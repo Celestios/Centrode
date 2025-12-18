@@ -3,18 +3,20 @@ use super::templates;
 use crate::domain::nodes::NodeInput;
 use crate::domain::relations::RelationInput;
 use crate::domain::relations::IRelation;
+use crate::domain::config::MapConfig;
 use anyhow::Result;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 pub struct Repository;
 
 impl Repository {
     pub async fn create_node(id: String, input: NodeInput) -> Result<String> {
         let db = Database::get().await?;
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as i64;
 
         match input {
             NodeInput::Info(node) => {
-                let mut query = db.query(templates::CREATE_INODE);
-                query = query
+                db.query(templates::CREATE_INODE)
                     .bind(("id", id.clone()))
                     .bind(("text", node.text))
                     .bind(("visual_formatting", node.visual_formatting))
@@ -24,9 +26,10 @@ impl Repository {
                     .bind(("tags", node.tags))
                     .bind(("aliases", node.aliases))
                     .bind(("comments", node.comments))
-                    .bind(("attachment", node.attachment));
-                
-                query.await?;
+                    .bind(("attachment", node.attachment))
+                    .bind(("created_at", node.created_at))
+                    .bind(("updated_at", node.updated_at))
+                    .await?;
             },
             NodeInput::Task(node) => {
                 db.query(templates::CREATE_TASK_NODE)
@@ -34,6 +37,15 @@ impl Repository {
                     .bind(("text", node.text))
                     .bind(("due_date", node.due_date))
                     .bind(("state", node.state))
+                    .bind(("created_at", node.created_at))
+                    .bind(("updated_at", node.updated_at))
+                    .await?;
+            },
+            NodeInput::Inter(node) => {
+                // "Heavy Edges" are stored as nodes to allow them to be linked FROM
+                db.query(templates::CREATE_INTER_NODE)
+                    .bind(("id", id.clone()))
+                    .bind(("node", node))
                     .await?;
             }
         }
@@ -74,6 +86,11 @@ impl Repository {
                 let node: Option<crate::domain::nodes::TaskNode> = res.take(0)?;
                 Ok(node.map(crate::domain::nodes::NodeOutput::Task))
             },
+            "inter_node" => {
+                let mut res = db.query(templates::GET_NODE).bind(("table", "inter_node")).bind(("id", id.clone())).await?;
+                let node: Option<crate::domain::nodes::InterNode> = res.take(0)?;
+                Ok(node.map(crate::domain::nodes::NodeOutput::Inter))
+            },
             _ => Err(anyhow::anyhow!("Unknown table type: {}", table))
         }
     }
@@ -84,19 +101,30 @@ impl Repository {
         // 1. Run all queries in parallel or batch
         let mut responses = db.query(templates::GET_ALL_INODES)
             .query(templates::GET_ALL_TASKS)
+            .query(templates::GET_ALL_INTER_NODES)
             .query(templates::GET_ALL_RELATIONS)
             .await?;
 
         // 2. Unpack Results (Indices match query order)
         let inodes: Vec<crate::domain::nodes::INode> = responses.take(0)?;
         let tasks: Vec<crate::domain::nodes::TaskNode> = responses.take(1)?;
-        let relations: Vec<crate::domain::relations::IRelation> = responses.take(2)?;
+        let inters: Vec<crate::domain::nodes::InterNode> = responses.take(2)?;
+        let relations: Vec<crate::domain::relations::IRelation> = responses.take(3)?;
 
         // 3. Combine Nodes into one Polymorphic Vector
         let mut all_nodes = Vec::new();
         for n in inodes { all_nodes.push(crate::domain::nodes::NodeOutput::Info(n)); }
         for t in tasks { all_nodes.push(crate::domain::nodes::NodeOutput::Task(t)); }
+        for i in inters { all_nodes.push(crate::domain::nodes::NodeOutput::Inter(i)); }
 
         Ok((all_nodes, relations))
+    }
+
+    pub async fn get_map_config() -> Result<Option<MapConfig>> {
+        let db = Database::get().await?;
+
+        let mut res = db.query("SELECT * FROM map_metadata LIMIT 1;").await?;
+        let config: Option<MapConfig> = res.take(0)?;
+        Ok(config)
     }
 }

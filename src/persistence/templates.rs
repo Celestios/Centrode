@@ -10,8 +10,8 @@ pub const CREATE_INODE: &str = r#"
         aliases: $aliases,
         comments: $comments,
         attachment: $attachment,
-        created_at: time::now(),
-        updated_at: time::now()
+        created_at: $created_at,
+        updated_at: $updated_at
     } RETURN id;
 "#;
 
@@ -20,8 +20,18 @@ pub const CREATE_TASK_NODE: &str = r#"
         text: $text,
         due_date: $due_date,
         state: $state,
-        created_at: time::now(),
-        updated_at: time::now()
+        created_at: $created_at,
+        updated_at: $updated_at
+    } RETURN id;
+"#;
+
+pub const CREATE_INTER_NODE: &str = r#"
+    CREATE type::thing('inter_node', $id) CONTENT {
+        verb: $verb,
+        behavioral_features: $behavioral_features,
+        visual_formatting: $visual_formatting,
+        created_at: $created_at,
+        updated_at: $updated_at
     } RETURN id;
 "#;
 
@@ -43,4 +53,5 @@ pub const GET_NODE: &str = r#"
 // [NEW] Bulk Fetch Queries
 pub const GET_ALL_INODES: &str = "SELECT * FROM inode;";
 pub const GET_ALL_TASKS: &str = "SELECT * FROM task_node;";
+pub const GET_ALL_INTER_NODES: &str = "SELECT * FROM inter_node;";
 pub const GET_ALL_RELATIONS: &str = "SELECT * FROM relates_to;";

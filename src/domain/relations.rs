@@ -10,7 +10,7 @@ pub struct IRelation {
 
 #[derive(Debug, Clone)]
 pub struct RelationInput {
-    pub from: String, // SurrealDB RecordId (e.g., "inode:xyz")
-    pub to: String,   // SurrealDB RecordId
+    pub from: String,
+    pub to: String,  
     pub props: IRelation,
 }

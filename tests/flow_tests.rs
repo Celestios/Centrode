@@ -25,6 +25,8 @@ async fn test_knowledge_graph_flow() {
         aliases: vec![],
         comments: vec![],
         attachment: None,
+        created_at: 0,
+        updated_at: 0,
     });
 
     // 3. Create Node B (Target)
@@ -39,6 +41,8 @@ async fn test_knowledge_graph_flow() {
         aliases: vec![],
         comments: vec![],
         attachment: None,
+        created_at: 0,
+        updated_at: 0,
     });
 
     api::create_node(node_a_id.clone(), input_a).await.expect("Failed to create Node A");
@@ -63,11 +67,12 @@ async fn test_knowledge_graph_flow() {
     let fetched_node = api::get_node("inode".to_string(), node_a_id.clone()).await;
 
     match fetched_node {
-        Ok(Some(node)) => {
-            assert_eq!(node.text, Some("Source Node".to_string()));
+        Ok(Some(mycelium_core::domain::nodes::NodeOutput::Info(inode))) => {
+            assert_eq!(inode.text, Some("Source Node".to_string()));
             // In a real graph test, we would also query the relation here
             // to ensure the edge actually exists in the DB.
         },
+        Ok(Some(_)) => panic!("Fetched wrong node type"),
         Ok(None) => panic!("Node A was created but could not be found!"),
         Err(e) => panic!("Database error fetching Node A: {:?}", e),
     }

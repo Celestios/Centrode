@@ -3,6 +3,7 @@ use surrealdb::Surreal;
 use lazy_static::lazy_static;
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use super::schema;
 
 // Global Singleton for the Database
 lazy_static! {
@@ -19,10 +20,13 @@ impl Database {
         // Select Namespace/Database
         db.use_ns("mycelium").use_db("core").await?;
 
+        // Initialize Schema
+        schema::Schema::init().await?;
+
         // Store in Global Static
         let mut global_db = DB.lock().await;
         *global_db = Some(db);
-        
+
         Ok(())
     }
 

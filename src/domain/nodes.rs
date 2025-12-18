@@ -19,6 +19,8 @@ pub struct INode {
     pub aliases: Vec<String>,
     pub comments: Vec<String>,
     pub attachment: Option<String>,
+    pub created_at: i64,
+    pub updated_at: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -26,6 +28,17 @@ pub struct TaskNode {
     pub text: Option<String>,
     pub due_date: Option<i64>,
     pub state: String, // e.g., "TODO", "DONE"
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InterNode {
+    pub verb: String,
+    pub behavioral_features: Option<String>, // e.g., "active", "inhibiting"
+    pub visual_formatting: Option<String>,   // JSON string for distinct edge styling
+    pub created_at: i64,
+    pub updated_at: i64,
 }
 
 // The Enum passed from Flutter to create *any* node
@@ -33,6 +46,7 @@ pub struct TaskNode {
 pub enum NodeInput {
     Info(INode),
     Task(TaskNode),
+    Inter(InterNode), // [NEW] Enables creating "Heavy Edges"
 }
 
 // [NEW] The Output Enum for fetching any node type
@@ -40,15 +54,16 @@ pub enum NodeInput {
 pub enum NodeOutput {
     Info(INode),
     Task(TaskNode),
-    // Future types (e.g., LinkNode, GroupNode) go here
+    Inter(InterNode), // [NEW] Enables fetching "Heavy Edges"
 }
 
 // [NEW] Helper to extract the ID regardless of type
 impl NodeOutput {
     pub fn id(&self) -> Option<String> {
         match self {
-            NodeOutput::Info(_) => None, 
+            NodeOutput::Info(_) => None,
             NodeOutput::Task(_) => None,
+            NodeOutput::Inter(_) => None,
         }
     }
 }
