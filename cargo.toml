@@ -1,0 +1,51 @@
+[package]
+name = "mycelium_core"
+version = "0.1.0"
+edition = "2021"  # '2024' is not yet standard stable; 2021 is the current safe default.
+description = "Core logic and persistence layer for Mycelium 1.0, exposed via FFI."
+authors = ["Celestios <shahin.id5638@gmail.com>"]
+
+# [lib] is crucial for Flutter integration
+[lib]
+crate-type = ["cdylib", "staticlib", "rlib"] # 'cdylib' for Android/Desktop dynamic loading, 'staticlib' for iOS, 'rlib' for tests and dependencies
+
+[profile.dev]
+opt-level = 0
+debug = true
+split-debuginfo = "packed"
+debug-assertions = true
+incremental = true
+codegen-units = 256
+lto = "off"
+
+# Dependencies that need to be fast
+[profile.dev.package."*"]
+opt-level = 0
+
+[dependencies]
+# --- Core Runtime ---
+tokio = { version = "1.40", features = ["full"] }
+anyhow = "1.0"          # Simplified error handling for Bridge functions
+lazy_static = "1.4"     # To maintain the global Database instance
+thiserror = "1.0"       # For typed domain errors
+
+# --- The Bridge ---
+flutter_rust_bridge = "2.0" 
+
+# --- Database ---
+surrealdb = { version = "2.0", features = ["kv-rocksdb"] }
+
+# --- Serialization ---
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.10", features = ["v4", "serde"] }
+
+# --- Utilities ---
+chrono = { version = "0.4", features = ["serde"] } 
+
+# --- Logging ---
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+tempfile = "3"
