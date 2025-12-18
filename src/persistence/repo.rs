@@ -1,0 +1,102 @@
+use super::db::Database;
+use super::templates;
+use crate::domain::nodes::NodeInput;
+use crate::domain::relations::RelationInput;
+use crate::domain::relations::IRelation;
+use anyhow::Result;
+
+pub struct Repository;
+
+impl Repository {
+    pub async fn create_node(id: String, input: NodeInput) -> Result<String> {
+        let db = Database::get().await?;
+
+        match input {
+            NodeInput::Info(node) => {
+                let mut query = db.query(templates::CREATE_INODE);
+                query = query
+                    .bind(("id", id.clone()))
+                    .bind(("text", node.text))
+                    .bind(("visual_formatting", node.visual_formatting))
+                    .bind(("position", node.position))
+                    .bind(("layer", node.layer))
+                    .bind(("locked", node.locked))
+                    .bind(("tags", node.tags))
+                    .bind(("aliases", node.aliases))
+                    .bind(("comments", node.comments))
+                    .bind(("attachment", node.attachment));
+                
+                query.await?;
+            },
+            NodeInput::Task(node) => {
+                db.query(templates::CREATE_TASK_NODE)
+                    .bind(("id", id.clone()))
+                    .bind(("text", node.text))
+                    .bind(("due_date", node.due_date))
+                    .bind(("state", node.state))
+                    .await?;
+            }
+        }
+
+        Ok(id)
+    }
+
+    pub async fn create_relation(input: RelationInput) -> Result<String> {
+        let db = Database::get().await?;
+
+        db.query(templates::CREATE_RELATION)
+            .bind(("from", input.from))
+            .bind(("to", input.to))
+            .bind(("verb", input.props.verb))
+            .bind(("visual_formatting", input.props.visual_formatting))
+            .bind(("directionless", input.props.directionless))
+            .bind(("layer", input.props.layer))
+            .await?;
+
+        // In a real scenario, you might return the Relation ID
+        Ok("Relation Created".to_string())
+    }
+
+    pub async fn get_node(table: String, id: String) -> Result<Option<crate::domain::nodes::NodeOutput>> {
+        let db = Database::get().await?;
+
+        // 1. Fetch generic JSON first to determine structure, OR rely on the table name passed in.
+        // relying on 'table' arg is more performant for now.
+
+        match table.as_str() {
+            "inode" => {
+                let mut res = db.query(templates::GET_NODE).bind(("table", "inode")).bind(("id", id.clone())).await?;
+                let node: Option<crate::domain::nodes::INode> = res.take(0)?;
+                Ok(node.map(crate::domain::nodes::NodeOutput::Info))
+            },
+            "task_node" => {
+                let mut res = db.query(templates::GET_NODE).bind(("table", "task_node")).bind(("id", id.clone())).await?;
+                let node: Option<crate::domain::nodes::TaskNode> = res.take(0)?;
+                Ok(node.map(crate::domain::nodes::NodeOutput::Task))
+            },
+            _ => Err(anyhow::anyhow!("Unknown table type: {}", table))
+        }
+    }
+
+    pub async fn get_graph_snapshot() -> Result<(Vec<crate::domain::nodes::NodeOutput>, Vec<crate::domain::relations::IRelation>)> {
+        let db = Database::get().await?;
+
+        // 1. Run all queries in parallel or batch
+        let mut responses = db.query(templates::GET_ALL_INODES)
+            .query(templates::GET_ALL_TASKS)
+            .query(templates::GET_ALL_RELATIONS)
+            .await?;
+
+        // 2. Unpack Results (Indices match query order)
+        let inodes: Vec<crate::domain::nodes::INode> = responses.take(0)?;
+        let tasks: Vec<crate::domain::nodes::TaskNode> = responses.take(1)?;
+        let relations: Vec<crate::domain::relations::IRelation> = responses.take(2)?;
+
+        // 3. Combine Nodes into one Polymorphic Vector
+        let mut all_nodes = Vec::new();
+        for n in inodes { all_nodes.push(crate::domain::nodes::NodeOutput::Info(n)); }
+        for t in tasks { all_nodes.push(crate::domain::nodes::NodeOutput::Task(t)); }
+
+        Ok((all_nodes, relations))
+    }
+}
