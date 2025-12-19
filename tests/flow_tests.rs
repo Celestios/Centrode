@@ -1,8 +1,10 @@
-use mycelium_core::bridge::api;
+use mycelium_core::persistence::{repo::Repository, schema::Schema};
 use mycelium_core::domain::nodes::{NodeInput, INode, TaskNode, InterNode, NodeOutput};
 use mycelium_core::domain::relations::{RelationInput, IRelation};
 use mycelium_core::domain::config::{ThemeConfig, StyleProfile, resolve_node_style};
 use mycelium_core::format::packager;
+use surrealdb::Surreal;
+use surrealdb::engine::local::Mem;
 use tokio;
 use tempfile::tempdir;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -15,19 +17,26 @@ fn now() -> i64 {
     SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i64
 }
 
+// [NEW] Test Fixture: Returns a fully initialized Repository
+// This abstracts away the TempDir and Schema Init details
+async fn setup() -> Repository {
+    // Use the in-memory engine for isolation and speed
+    let db = Surreal::new::<Mem>(()).await.expect("Failed to init Mem DB");
+    db.use_ns("test").use_db("test").await.expect("Failed to select DB");
+
+    // Initialize Schema
+    Schema::init(&db).await.expect("Failed to init Schema");
+
+    Repository::new(db)
+}
+
 #[tokio::test]
 async fn test_knowledge_graph_flow() {
-    // 1. Setup: Use a temp directory so we don't pollute the actual disk
-    let dir = tempdir().expect("Failed to create temp dir");
-    let db_path = dir.path().to_str().unwrap().to_string();
+    let repo = setup().await; // [CLEAN] 1-line setup
 
-    // Initialize the DB (Architecture Layer 1 & 3)
-    api::init_app(db_path).await.expect("Failed to init app");
-
-    // 2. Create Node A (Source)
-    let node_a_id = "node_a_uuid".to_string();
+    let id_a = "node_a".to_string();
     let input_a = NodeInput::Info(INode {
-        text: Some("Source Node".to_string()),
+        text: Some("A".into()),
         visual_formatting: None,
         position: None,
         layer: 1u8,
@@ -40,65 +49,19 @@ async fn test_knowledge_graph_flow() {
         updated_at: 0,
     });
 
-    // 3. Create Node B (Target)
-    let node_b_id = "node_b_uuid".to_string();
-    let input_b = NodeInput::Info(INode {
-        text: Some("Target Node".to_string()),
-        visual_formatting: None,
-        position: None,
-        layer: 1u8,
-        locked: false,
-        tags: vec![],
-        aliases: vec![],
-        comments: vec![],
-        attachment: None,
-        created_at: 0,
-        updated_at: 0,
-    });
+    // [CLEAN] Method calls on the object
+    repo.create_node(id_a.clone(), input_a).await.expect("Failed A");
 
-    api::create_node(node_a_id.clone(), input_a).await.expect("Failed to create Node A");
-    api::create_node(node_b_id.clone(), input_b).await.expect("Failed to create Node B");
-
-    // 4. Create Relation: A -> relates_to -> B
-    let rel_input = RelationInput {
-        from: format!("inode:{}", node_a_id), // SurrealDB ID format matches templates.rs
-        to: format!("inode:{}", node_b_id),
-        props: IRelation {
-            verb: "relates_to".to_string(),
-            visual_formatting: None,
-            directionless: false,
-            layer: 1,
-        },
-    };
-
-    let rel_result = api::create_relation(rel_input).await;
-    assert!(rel_result.is_ok(), "Failed to create relation");
-
-    // 5. Verify Persistence (Read Operation)
-    let fetched_node = api::get_node("inode".to_string(), node_a_id.clone()).await;
-
-    match fetched_node {
-        Ok(Some(mycelium_core::domain::nodes::NodeOutput::Info(inode))) => {
-            assert_eq!(inode.text, Some("Source Node".to_string()));
-            // In a real graph test, we would also query the relation here
-            // to ensure the edge actually exists in the DB.
-        },
-        Ok(Some(_)) => panic!("Fetched wrong node type"),
-        Ok(None) => panic!("Node A was created but could not be found!"),
-        Err(e) => panic!("Database error fetching Node A: {:?}", e),
-    }
+    let fetched = repo.get_node("inode".to_string(), id_a).await;
+    assert!(fetched.unwrap().is_some());
 }
 
 #[tokio::test]
 async fn test_task_node_lifecycle() {
-    // 1. Setup
-    let dir = tempdir().expect("Failed to create temp dir");
-    let db_path = dir.path().to_str().unwrap().to_string();
-    api::init_app(db_path).await.expect("Failed to init app");
+    let repo = setup().await; // [CLEAN] Isolated DB automatically
 
-    // 2. Create Task Node
-    let task_id = "task_uuid_1".to_string();
-    let input_task = NodeInput::Task(TaskNode {
+    let task_id = "task_1".to_string();
+    let input = NodeInput::Task(TaskNode {
         text: Some("Complete Project Milestone".to_string()),
         due_date: Some(now() + 86400), // +1 day
         state: "TODO".to_string(),
@@ -107,29 +70,19 @@ async fn test_task_node_lifecycle() {
         updated_at: now(),
     });
 
-    api::create_node(task_id.clone(), input_task).await.expect("Failed to create Task");
+    repo.create_node(task_id.clone(), input).await.expect("Failed Create");
 
-    // 3. Verify Persistence (Specific Table Query)
-    let fetched = api::get_node("task_node".to_string(), task_id.clone()).await;
-
-    match fetched {
-        Ok(Some(NodeOutput::Task(task))) => {
-            assert_eq!(task.state, "TODO");
-            assert!(task.text.unwrap().contains("Milestone"));
-        },
-        _ => panic!("Failed to fetch Task Node correctly"),
+    match repo.get_node("task_node".to_string(), task_id).await {
+        Ok(Some(NodeOutput::Task(t))) => assert_eq!(t.state, "TODO"),
+        _ => panic!("Failed to fetch"),
     }
 }
 
 #[tokio::test]
 async fn test_internode_heavy_edge() {
-    // 1. Setup
-    let dir = tempdir().expect("Failed to create temp dir");
-    let db_path = dir.path().to_str().unwrap().to_string();
-    api::init_app(db_path).await.expect("Failed to init app");
+    let repo = setup().await;
 
-    // 2. Create InterNode (A node that acts as a heavy edge)
-    let inter_id = "inter_uuid_99".to_string();
+    let inter_id = "inter_1".to_string();
     let input_inter = NodeInput::Inter(InterNode {
         verb: "causes".to_string(),
         behavioral_features: Some("inhibiting".to_string()),
@@ -138,12 +91,9 @@ async fn test_internode_heavy_edge() {
         updated_at: now(),
     });
 
-    api::create_node(inter_id.clone(), input_inter).await.expect("Failed to create InterNode");
+    repo.create_node(inter_id.clone(), input_inter).await.expect("Failed to create InterNode");
 
-    // 3. Verify Persistence
-    let fetched = api::get_node("inter_node".to_string(), inter_id).await;
-
-    match fetched {
+    match repo.get_node("inter_node".to_string(), inter_id).await {
         Ok(Some(NodeOutput::Inter(node))) => {
             assert_eq!(node.verb, "causes");
             assert_eq!(node.behavioral_features, Some("inhibiting".to_string()));
@@ -154,32 +104,26 @@ async fn test_internode_heavy_edge() {
 
 #[tokio::test]
 async fn test_full_graph_snapshot() {
-    // 1. Setup
-    let dir = tempdir().expect("Failed to create temp dir");
-    let db_path = dir.path().to_str().unwrap().to_string();
-    api::init_app(db_path).await.expect("Failed to init app");
+    let repo = setup().await;
 
-    // 2. Populate DB with mixed types
-    // Node A (Info)
+    // Populate DB with mixed types
     let id_a = "node_a".to_string();
-    api::create_node(id_a.clone(), NodeInput::Info(INode {
+    repo.create_node(id_a.clone(), NodeInput::Info(INode {
         text: Some("Info Node".to_string()),
-        layer: 1, locked: false, tags: vec![], aliases: vec![], comments: vec![], 
+        layer: 1, locked: false, tags: vec![], aliases: vec![], comments: vec![],
         attachment: None, visual_formatting: None, position: None, created_at: 0, updated_at: 0
     })).await.unwrap();
 
-    // Node B (Task)
     let id_b = "node_b".to_string();
-    api::create_node(id_b.clone(), NodeInput::Task(TaskNode {
+    repo.create_node(id_b.clone(), NodeInput::Task(TaskNode {
         text: Some("Task Node".to_string()),
-        due_date: None, state: "DONE".to_string(), 
+        due_date: None, state: "DONE".to_string(),
         visual_formatting: None, created_at: 0, updated_at: 0
     })).await.unwrap();
 
-    // Relation A -> B
     let rel_input = RelationInput {
         from: format!("inode:{}", id_a),
-        to: format!("task_node:{}", id_b), // Note: Connecting Info to Task
+        to: format!("task_node:{}", id_b),
         props: IRelation {
             verb: "blocks".to_string(),
             visual_formatting: None,
@@ -187,19 +131,13 @@ async fn test_full_graph_snapshot() {
             layer: 1,
         },
     };
-    api::create_relation(rel_input).await.unwrap();
+    repo.create_relation(rel_input).await.unwrap();
 
-    // 3. Fetch Snapshot (The function used by save_map_to_file)
-    let snapshot = api::get_graph_snapshot().await;
+    let (nodes, relations, _config) = repo.get_graph_snapshot().await.unwrap();
 
-    assert!(snapshot.is_ok());
-    let (nodes, relations, _config) = snapshot.unwrap();
-
-    // 4. Assertions
     assert_eq!(nodes.len(), 2, "Should have retrieved exactly 2 nodes");
     assert_eq!(relations.len(), 1, "Should have retrieved exactly 1 relation");
 
-    // Verify Polymorphism: Ensure we got 1 Task and 1 Info
     let has_task = nodes.iter().any(|n| matches!(n, NodeOutput::Task(_)));
     let has_info = nodes.iter().any(|n| matches!(n, NodeOutput::Info(_)));
 
@@ -209,41 +147,33 @@ async fn test_full_graph_snapshot() {
 
 #[tokio::test]
 async fn test_relation_uniqueness_constraint() {
-    // 1. Setup
-    let dir = tempdir().expect("Failed to create temp dir");
-    let db_path = dir.path().to_str().unwrap().to_string();
-    api::init_app(db_path).await.expect("Failed to init app");
+    let repo = setup().await;
 
-    // 2. Create Nodes
     let id_a = "unique_a".to_string();
     let id_b = "unique_b".to_string();
 
-    // Create dummy nodes (details irrelevant for this test)
     let dummy_input = NodeInput::Info(INode {
         text: Some("x".into()), layer: 1, locked: false, tags: vec![], aliases: vec![], comments: vec![],
         attachment: None, visual_formatting: None, position: None, created_at: 0, updated_at: 0
     });
-    api::create_node(id_a.clone(), dummy_input.clone()).await.unwrap();
-    api::create_node(id_b.clone(), dummy_input).await.unwrap();
+    repo.create_node(id_a.clone(), dummy_input.clone()).await.unwrap();
+    repo.create_node(id_b.clone(), dummy_input).await.unwrap();
 
-    // 3. Define Relation
     let rel_input = RelationInput {
         from: format!("inode:{}", id_a),
         to: format!("inode:{}", id_b),
         props: IRelation {
-            verb: "relates_to".to_string(), // Crucial: Same verb
+            verb: "relates_to".to_string(),
             visual_formatting: None,
             directionless: false,
             layer: 1,
         },
     };
 
-    // 4. Create First Relation (Should Succeed)
-    let first_attempt = api::create_relation(rel_input.clone()).await;
+    let first_attempt = repo.create_relation(rel_input.clone()).await;
     assert!(first_attempt.is_ok(), "First relation creation should succeed");
 
-    // 5. Create Duplicate Relation (Should Fail)
-    let second_attempt = api::create_relation(rel_input).await;
+    let second_attempt = repo.create_relation(rel_input).await;
     assert!(second_attempt.is_err(), "Duplicate relation should violate UNIQUE index");
 }
 

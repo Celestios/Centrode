@@ -33,7 +33,7 @@ thiserror = "1.0"       # For typed domain errors
 flutter_rust_bridge = "2.0" 
 
 # --- Database ---
-surrealdb = { version = "2.0", features = ["kv-rocksdb"] }
+surrealdb = { version = "2.0", features = ["kv-rocksdb", "kv-mem"] }
 
 # --- Serialization ---
 serde = { version = "1.0", features = ["derive"] }

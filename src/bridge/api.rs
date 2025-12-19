@@ -5,6 +5,12 @@ use crate::domain::relations::RelationInput;
 use crate::domain::nodes::NodeOutput;
 use crate::format::packager; // Import the packager
 
+// [NEW] Helper to construct the Repository with the Global DB
+async fn repo() -> anyhow::Result<Repository> {
+    let db = Database::get().await?;
+    Ok(Repository::new(db))
+}
+
 // [NEW] Event Enum for the UI
 #[derive(Debug, Clone)]
 pub enum GraphEvent {
@@ -20,23 +26,23 @@ pub async fn init_app(storage_path: String) -> anyhow::Result<()> {
     Ok(())
 }
 
-// 2. Node Operations
+// 2. Node Operations (Cleaner one-liners)
 pub async fn create_node(id: String, input: NodeInput) -> anyhow::Result<String> {
-    Repository::create_node(id, input).await
+    repo().await?.create_node(id, input).await
 }
 
 pub async fn get_node(table: String, id: String) -> anyhow::Result<Option<NodeOutput>> {
-    Repository::get_node(table, id).await
+    repo().await?.get_node(table, id).await
 }
 
 // 3. Relation Operations
 pub async fn create_relation(input: RelationInput) -> anyhow::Result<String> {
-    Repository::create_relation(input).await
+    repo().await?.create_relation(input).await
 }
 
 // 4. Graph Snapshot
 pub async fn get_graph_snapshot() -> anyhow::Result<(Vec<NodeOutput>, Vec<crate::domain::relations::IRelation>, Option<crate::domain::config::MapConfig>)> {
-    Repository::get_graph_snapshot().await
+    repo().await?.get_graph_snapshot().await
 }
 
 pub async fn start_graph_stream() -> anyhow::Result<()> {
@@ -48,7 +54,7 @@ pub async fn start_graph_stream() -> anyhow::Result<()> {
 pub async fn save_map_to_file(file_path: String, attachment_dir: String) -> anyhow::Result<()> {
     // 1. Fetch current state from RocksDB
     // This runs efficiently in the async runtime
-    let (nodes, relations, metadata) = Repository::get_graph_snapshot().await?;
+    let (nodes, relations, metadata) = repo().await?.get_graph_snapshot().await?;
 
     // 2. Offload the blocking Zip/IO operations to a thread
     // Prevents freezing the UI during large saves

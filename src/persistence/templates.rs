@@ -43,12 +43,12 @@ pub const CREATE_RELATION: &str = r#"
         visual_formatting: $visual_formatting,
         directionless: $directionless,
         layer: $layer,
-        created_at: time::now()
+        created_at: time::unix(time::now())
     } RETURN id;
 "#;
 
 pub const GET_NODE: &str = r#"
-    SELECT * FROM type::thing($table, $id);
+    SELECT * FROM $id;
 "#;
 
 // [NEW] Bulk Fetch Queries

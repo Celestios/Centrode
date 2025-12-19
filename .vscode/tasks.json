@@ -5,12 +5,15 @@
       "label": "build",
       "type": "cargo",
       "command": "build",
-      "problemMatcher": [
-        "$rustc"
-      ],
+      "problemMatcher": ["$rustc"],
       "group": {
         "kind": "build",
         "isDefault": true
+      },
+      "options": {
+        "env": {
+          "RUST_BACKTRACE": "1"
+        }
       },
       "presentation": {
         "echo": true,
@@ -23,12 +26,15 @@
       "label": "test",
       "type": "cargo",
       "command": "test",
-      "problemMatcher": [
-        "$rustc"
-      ],
+      "problemMatcher": ["$rustc"],
       "group": {
         "kind": "test",
         "isDefault": true
+      },
+      "options": {
+        "env": {
+          "RUST_BACKTRACE": "1"
+        }
       }
     }
   ]

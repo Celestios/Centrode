@@ -11,7 +11,10 @@ impl Schema {
         db.query("DEFINE TABLE inode SCHEMAFULL;").await?;
         db.query("DEFINE TABLE task_node SCHEMAFULL;").await?;
         db.query("DEFINE TABLE inter_node SCHEMAFULL;").await?;
-        db.query("DEFINE TABLE relates_to SCHEMAFULL;").await?;
+
+        // [FIXED] Explicitly mark as a RELATION (edge) table
+        db.query("DEFINE TABLE relates_to TYPE RELATION SCHEMAFULL;").await?;
+
         db.query("DEFINE TABLE map_metadata SCHEMAFULL;").await?;
 
         // Define fields for inode
@@ -24,23 +27,23 @@ impl Schema {
         db.query("DEFINE FIELD aliases ON TABLE inode TYPE array<string>;").await?;
         db.query("DEFINE FIELD comments ON TABLE inode TYPE array<string>;").await?;
         db.query("DEFINE FIELD attachment ON TABLE inode TYPE option<string>;").await?;
-        db.query("DEFINE FIELD created_at ON TABLE inode TYPE datetime DEFAULT time::now();").await?;
-        db.query("DEFINE FIELD updated_at ON TABLE inode TYPE datetime DEFAULT time::now();").await?;
+        db.query("DEFINE FIELD created_at ON TABLE inode TYPE int;").await?;
+        db.query("DEFINE FIELD updated_at ON TABLE inode TYPE int;").await?;
 
         // Define fields for task_node
         db.query("DEFINE FIELD text ON TABLE task_node TYPE option<string>;").await?;
-        db.query("DEFINE FIELD due_date ON TABLE task_node TYPE option<datetime>;").await?;
+        db.query("DEFINE FIELD due_date ON TABLE task_node TYPE option<int>;").await?;
         db.query("DEFINE FIELD state ON TABLE task_node TYPE string;").await?;
         db.query("DEFINE FIELD visual_formatting ON TABLE task_node TYPE option<string>;").await?;
-        db.query("DEFINE FIELD created_at ON TABLE task_node TYPE datetime DEFAULT time::now();").await?;
-        db.query("DEFINE FIELD updated_at ON TABLE task_node TYPE datetime DEFAULT time::now();").await?;
+        db.query("DEFINE FIELD created_at ON TABLE task_node TYPE int;").await?;
+        db.query("DEFINE FIELD updated_at ON TABLE task_node TYPE int;").await?;
 
         // Define fields for inter_node
         db.query("DEFINE FIELD verb ON TABLE inter_node TYPE string;").await?;
         db.query("DEFINE FIELD behavioral_features ON TABLE inter_node TYPE option<string>;").await?;
         db.query("DEFINE FIELD visual_formatting ON TABLE inter_node TYPE option<string>;").await?;
-        db.query("DEFINE FIELD created_at ON TABLE inter_node TYPE datetime DEFAULT time::now();").await?;
-        db.query("DEFINE FIELD updated_at ON TABLE inter_node TYPE datetime DEFAULT time::now();").await?;
+        db.query("DEFINE FIELD created_at ON TABLE inter_node TYPE int;").await?;
+        db.query("DEFINE FIELD updated_at ON TABLE inter_node TYPE int;").await?;
 
         // Define fields for relates_to
         db.query("DEFINE FIELD in ON TABLE relates_to TYPE record<inode | task_node | inter_node>;").await?;
@@ -49,12 +52,11 @@ impl Schema {
         db.query("DEFINE FIELD visual_formatting ON TABLE relates_to TYPE option<string>;").await?;
         db.query("DEFINE FIELD directionless ON TABLE relates_to TYPE bool;").await?;
         db.query("DEFINE FIELD layer ON TABLE relates_to TYPE int;").await?;
-        db.query("DEFINE FIELD created_at ON TABLE relates_to TYPE datetime DEFAULT time::now();").await?;
+        db.query("DEFINE FIELD created_at ON TABLE relates_to TYPE int;").await?;
 
         // Define fields for map_metadata
         db.query("DEFINE FIELD map_name ON TABLE map_metadata TYPE string;").await?;
-        db.query("DEFINE FIELD created_at ON TABLE map_metadata TYPE datetime DEFAULT time::now();").await?;
-        db.query("DEFINE FIELD author_id ON TABLE map_metadata TYPE record<user>;").await?;
+        db.query("DEFINE FIELD created_at ON TABLE map_metadata TYPE int DEFAULT time::unix(time::now());").await?;
         db.query("DEFINE FIELD viewport_state ON TABLE map_metadata TYPE object;").await?;
         db.query("DEFINE FIELD theme ON TABLE map_metadata TYPE object;").await?;
 

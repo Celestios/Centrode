@@ -62,9 +62,9 @@ pub enum NodeOutput {
 impl NodeOutput {
     pub fn id(&self) -> Option<String> {
         match self {
-            NodeOutput::Info(_) => None,
-            NodeOutput::Task(_) => None,
-            NodeOutput::Inter(_) => None,
+            NodeOutput::Info(n) => n.text.clone(),
+            NodeOutput::Task(n) => n.text.clone(),
+            NodeOutput::Inter(n) => Some(n.verb.clone()),
         }
     }
 }
