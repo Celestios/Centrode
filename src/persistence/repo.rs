@@ -27,7 +27,6 @@ impl Repository {
                     .bind(("id", id.clone()))
                     .bind(("text", node.text))
                     .bind(("visual_formatting", node.visual_formatting))
-                    .bind(("position", node.position))
                     .bind(("layer", node.layer))
                     .bind(("locked", node.locked))
                     .bind(("tags", node.tags))

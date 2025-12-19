@@ -38,7 +38,6 @@ async fn test_knowledge_graph_flow() {
     let input_a = NodeInput::Info(INode {
         text: Some("A".into()),
         visual_formatting: None,
-        position: None,
         layer: 1u8,
         locked: false,
         tags: vec!["test".to_string()],
@@ -111,7 +110,7 @@ async fn test_full_graph_snapshot() {
     repo.create_node(id_a.clone(), NodeInput::Info(INode {
         text: Some("Info Node".to_string()),
         layer: 1, locked: false, tags: vec![], aliases: vec![], comments: vec![],
-        attachment: None, visual_formatting: None, position: None, created_at: 0, updated_at: 0
+        attachment: None, visual_formatting: None, created_at: 0, updated_at: 0
     })).await.unwrap();
 
     let id_b = "node_b".to_string();
@@ -154,7 +153,7 @@ async fn test_relation_uniqueness_constraint() {
 
     let dummy_input = NodeInput::Info(INode {
         text: Some("x".into()), layer: 1, locked: false, tags: vec![], aliases: vec![], comments: vec![],
-        attachment: None, visual_formatting: None, position: None, created_at: 0, updated_at: 0
+        attachment: None, visual_formatting: None, created_at: 0, updated_at: 0
     });
     repo.create_node(id_a.clone(), dummy_input.clone()).await.unwrap();
     repo.create_node(id_b.clone(), dummy_input).await.unwrap();

@@ -12,7 +12,6 @@ pub struct BaseNode {
 pub struct INode {
     pub text: Option<String>,
     pub visual_formatting: Option<String>,
-    pub position: Option<u32>,
     pub layer: u8,
     pub locked: bool,
     pub tags: Vec<String>,

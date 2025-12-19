@@ -11,10 +11,7 @@ impl Schema {
         db.query("DEFINE TABLE inode SCHEMAFULL;").await?;
         db.query("DEFINE TABLE task_node SCHEMAFULL;").await?;
         db.query("DEFINE TABLE inter_node SCHEMAFULL;").await?;
-
-        // [FIXED] Explicitly mark as a RELATION (edge) table
         db.query("DEFINE TABLE relates_to TYPE RELATION SCHEMAFULL;").await?;
-
         db.query("DEFINE TABLE map_metadata SCHEMAFULL;").await?;
 
         // Define fields for inode
@@ -22,7 +19,6 @@ impl Schema {
         db.query("DEFINE FIELD layer ON TABLE inode TYPE int DEFAULT 1;").await?;
         db.query("DEFINE FIELD locked ON TABLE inode TYPE bool DEFAULT false;").await?;
         db.query("DEFINE FIELD tags ON TABLE inode TYPE array<string>;").await?;
-        db.query("DEFINE FIELD position ON TABLE inode TYPE option<int>;").await?;
         db.query("DEFINE FIELD visual_formatting ON TABLE inode TYPE option<string>;").await?;
         db.query("DEFINE FIELD aliases ON TABLE inode TYPE array<string>;").await?;
         db.query("DEFINE FIELD comments ON TABLE inode TYPE array<string>;").await?;

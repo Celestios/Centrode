@@ -56,7 +56,7 @@ pub async fn save_map_to_file(file_path: String, attachment_dir: String) -> anyh
     // This runs efficiently in the async runtime
     let (nodes, relations, metadata) = repo().await?.get_graph_snapshot().await?;
 
-    // 2. Offload the blocking Zip/IO operations to a thread
+
     // Prevents freezing the UI during large saves
     tokio::task::spawn_blocking(move || {
         packager::save_project_to_celi(&file_path, &attachment_dir, nodes, relations, metadata)

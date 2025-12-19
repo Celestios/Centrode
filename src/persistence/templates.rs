@@ -3,7 +3,6 @@ pub const CREATE_INODE: &str = r#"
     CREATE type::thing('inode', $id) CONTENT {
         text: $text,
         visual_formatting: $visual_formatting,
-        position: $position,
         layer: $layer,
         locked: $locked,
         tags: $tags,

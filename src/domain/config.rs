@@ -40,7 +40,7 @@ pub struct StyleProfile {
     pub bg_color: String,     // e.g., "#1E1E1E"
     pub stroke_color: String, // e.g., "#FFFFFF"
     pub stroke_width: f32,
-    pub font_family: String,
+    pub font_family: String,  
 }
 
 impl StyleProfile {
