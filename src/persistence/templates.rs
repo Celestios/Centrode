@@ -38,7 +38,7 @@ pub const CREATE_INTER_NODE: &str = r#"
 
 // Uses SurrealDB's RELATE statement to create a graph edge
 pub const CREATE_RELATION: &str = r#"
-    RELATE type::thing($from) -> relates_to -> type::thing($to) CONTENT {
+    RELATE $from -> relates_to -> $to CONTENT {
         verb: $verb,
         visual_formatting: $visual_formatting,
         directionless: $directionless,

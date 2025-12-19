@@ -3,9 +3,6 @@ use surrealdb::Surreal;
 use lazy_static::lazy_static;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use std::path::Path;
-use std::fs;
-use anyhow::Context;
 use super::schema;
 
 // Global Singleton for the Database

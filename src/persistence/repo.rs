@@ -43,7 +43,11 @@ impl Repository {
                 // "Heavy Edges" are stored as nodes to allow them to be linked FROM
                 db.query(templates::CREATE_INTER_NODE)
                     .bind(("id", id.clone()))
-                    .bind(("node", node))
+                    .bind(("verb", node.verb))
+                    .bind(("behavioral_features", node.behavioral_features))
+                    .bind(("visual_formatting", node.visual_formatting))
+                    .bind(("created_at", node.created_at))
+                    .bind(("updated_at", node.updated_at))
                     .await?;
             }
         }
