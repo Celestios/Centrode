@@ -41,7 +41,9 @@ serde_json = "1.0"
 uuid = { version = "1.10", features = ["v4", "serde"] }
 
 # --- Utilities ---
-chrono = { version = "0.4", features = ["serde"] } 
+chrono = { version = "0.4", features = ["serde"] }
+zip = "0.6"
+walkdir = "2.4"
 
 # --- Logging ---
 tracing = "0.1"

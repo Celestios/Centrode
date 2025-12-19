@@ -3,6 +3,7 @@ use crate::persistence::repo::Repository;
 use crate::domain::nodes::NodeInput;
 use crate::domain::relations::RelationInput;
 use crate::domain::nodes::NodeOutput;
+use crate::format::packager; // Import the packager
 
 // [NEW] Event Enum for the UI
 #[derive(Debug, Clone)]
@@ -40,5 +41,20 @@ pub async fn get_graph_snapshot() -> anyhow::Result<(Vec<NodeOutput>, Vec<crate:
 
 pub async fn start_graph_stream() -> anyhow::Result<()> {
     // Placeholder: Implement live queries or broadcast channel
+    Ok(())
+}
+
+// 5. File Operations
+pub async fn save_map_to_file(file_path: String, attachment_dir: String) -> anyhow::Result<()> {
+    // 1. Fetch current state from RocksDB
+    // This runs efficiently in the async runtime
+    let (nodes, relations) = Repository::get_graph_snapshot().await?;
+
+    // 2. Offload the blocking Zip/IO operations to a thread
+    // Prevents freezing the UI during large saves
+    tokio::task::spawn_blocking(move || {
+        packager::save_project_to_celi(&file_path, &attachment_dir, nodes, relations)
+    }).await??;
+
     Ok(())
 }

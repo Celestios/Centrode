@@ -12,7 +12,6 @@ pub struct Repository;
 impl Repository {
     pub async fn create_node(id: String, input: NodeInput) -> Result<String> {
         let db = Database::get().await?;
-        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as i64;
 
         match input {
             NodeInput::Info(node) => {
