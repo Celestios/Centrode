@@ -1,11 +1,11 @@
-use super::db::Database;
 use anyhow::Result;
+use surrealdb::Surreal;
+use surrealdb::engine::local::Db;
 
 pub struct Schema;
 
 impl Schema {
-    pub async fn init() -> Result<()> {
-        let db = Database::get().await?;
+    pub async fn init(db: &Surreal<Db>) -> Result<()> {
 
         // Define tables
         db.query("DEFINE TABLE inode SCHEMAFULL;").await?;

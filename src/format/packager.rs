@@ -1,5 +1,6 @@
 use crate::domain::nodes::NodeOutput;
 use crate::domain::relations::IRelation;
+use crate::domain::config::MapConfig;
 use serde::{Serialize, Deserialize};
 use std::fs::File;
 use std::io::{Read, Write};
@@ -12,9 +13,9 @@ use anyhow::{Context, Result};
 #[derive(Serialize, Deserialize)]
 struct GraphSnapshot {
     version: String,
+    metadata: Option<MapConfig>,
     nodes: Vec<NodeOutput>,
     relations: Vec<IRelation>,
-    // Future metadata (viewport, canvas settings) goes here
 }
 
 /// Creates a .celi archive containing the graph snapshot and attachments
@@ -22,7 +23,8 @@ pub fn save_project_to_celi(
     archive_path: &str,
     attachment_dir: &str,
     nodes: Vec<NodeOutput>,
-    relations: Vec<IRelation>
+    relations: Vec<IRelation>,
+    metadata: Option<MapConfig>
 ) -> Result<()> {
 
     let path = Path::new(archive_path);
@@ -37,6 +39,7 @@ pub fn save_project_to_celi(
     // 1. Serialize and write the Graph Data (graph.json)
     let snapshot = GraphSnapshot {
         version: "0.1.0".to_string(),
+        metadata,
         nodes,
         relations,
     };

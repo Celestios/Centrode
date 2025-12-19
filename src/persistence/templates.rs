@@ -56,3 +56,4 @@ pub const GET_ALL_INODES: &str = "SELECT * FROM inode;";
 pub const GET_ALL_TASKS: &str = "SELECT * FROM task_node;";
 pub const GET_ALL_INTER_NODES: &str = "SELECT * FROM inter_node;";
 pub const GET_ALL_RELATIONS: &str = "SELECT * FROM relates_to;";
+pub const GET_MAP_METADATA: &str = "SELECT * FROM map_metadata LIMIT 1;";

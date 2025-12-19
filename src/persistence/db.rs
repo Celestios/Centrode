@@ -17,23 +17,16 @@ pub struct Database;
 
 impl Database {
     pub async fn connect(path: &str) -> anyhow::Result<()> {
-        // 1. Force directory creation to ensure visibility and permissions
-        let db_path = Path::new(path);
-        if !db_path.exists() {
-            fs::create_dir_all(db_path)
-                .with_context(|| format!("Failed to create database directory at: {:?}", db_path))?;
-        }
-
-        // Log the absolute path for verification (Boss needs to know where data lives)
-        let abs_path = fs::canonicalize(db_path)?;
-        println!(" [Database] Initializing RocksDB at: {:?}", abs_path);
-
-        // 2. Initialize RocksDB
+        // Initialize RocksDB (file-based)
         let db = Surreal::new::<RocksDb>(path).await?;
-
+        
+        // Select Namespace/Database
         db.use_ns("mycelium").use_db("core").await?;
-        schema::Schema::init().await?;
 
+        // Initialize Schema
+        schema::Schema::init(&db).await?;
+
+        // Store in Global Static
         let mut global_db = DB.lock().await;
         *global_db = Some(db);
 

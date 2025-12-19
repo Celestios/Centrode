@@ -8,7 +8,7 @@ use tempfile::tempdir;
 async fn test_knowledge_graph_flow() {
     // 1. Setup: Use a temp directory so we don't pollute the actual disk
     let dir = tempdir().expect("Failed to create temp dir");
-    let db_path = dir.path().join("mycelium.db").to_str().unwrap().to_string();
+    let db_path = dir.path().to_str().unwrap().to_string();
 
     // Initialize the DB (Architecture Layer 1 & 3)
     api::init_app(db_path).await.expect("Failed to init app");

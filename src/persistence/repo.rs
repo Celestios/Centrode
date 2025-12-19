@@ -93,7 +93,7 @@ impl Repository {
         }
     }
 
-    pub async fn get_graph_snapshot() -> Result<(Vec<crate::domain::nodes::NodeOutput>, Vec<crate::domain::relations::IRelation>)> {
+    pub async fn get_graph_snapshot() -> Result<(Vec<crate::domain::nodes::NodeOutput>, Vec<crate::domain::relations::IRelation>, Option<MapConfig>)> {
         let db = Database::get().await?;
 
         // 1. Run all queries in parallel or batch
@@ -101,6 +101,7 @@ impl Repository {
             .query(templates::GET_ALL_TASKS)
             .query(templates::GET_ALL_INTER_NODES)
             .query(templates::GET_ALL_RELATIONS)
+            .query(templates::GET_MAP_METADATA)
             .await?;
 
         // 2. Unpack Results (Indices match query order)
@@ -108,6 +109,7 @@ impl Repository {
         let tasks: Vec<crate::domain::nodes::TaskNode> = responses.take(1)?;
         let inters: Vec<crate::domain::nodes::InterNode> = responses.take(2)?;
         let relations: Vec<crate::domain::relations::IRelation> = responses.take(3)?;
+        let metadata: Option<MapConfig> = responses.take(4).ok().and_then(|mut v: Vec<MapConfig>| v.pop());
 
         // 3. Combine Nodes into one Polymorphic Vector
         let mut all_nodes = Vec::new();
@@ -115,7 +117,7 @@ impl Repository {
         for t in tasks { all_nodes.push(crate::domain::nodes::NodeOutput::Task(t)); }
         for i in inters { all_nodes.push(crate::domain::nodes::NodeOutput::Inter(i)); }
 
-        Ok((all_nodes, relations))
+        Ok((all_nodes, relations, metadata))
     }
 
     pub async fn get_map_config() -> Result<Option<MapConfig>> {
