@@ -20,6 +20,7 @@ pub const CREATE_TASK_NODE: &str = r#"
         text: $text,
         due_date: $due_date,
         state: $state,
+        visual_formatting: $visual_formatting,
         created_at: $created_at,
         updated_at: $updated_at
     } RETURN id;

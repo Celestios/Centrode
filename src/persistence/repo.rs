@@ -2,10 +2,8 @@ use super::db::Database;
 use super::templates;
 use crate::domain::nodes::NodeInput;
 use crate::domain::relations::RelationInput;
-use crate::domain::relations::IRelation;
 use crate::domain::config::MapConfig;
 use anyhow::Result;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 pub struct Repository;
 
@@ -36,6 +34,7 @@ impl Repository {
                     .bind(("text", node.text))
                     .bind(("due_date", node.due_date))
                     .bind(("state", node.state))
+                    .bind(("visual_formatting", node.visual_formatting))
                     .bind(("created_at", node.created_at))
                     .bind(("updated_at", node.updated_at))
                     .await?;

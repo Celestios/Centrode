@@ -31,6 +31,7 @@ impl Schema {
         db.query("DEFINE FIELD text ON TABLE task_node TYPE option<string>;").await?;
         db.query("DEFINE FIELD due_date ON TABLE task_node TYPE option<datetime>;").await?;
         db.query("DEFINE FIELD state ON TABLE task_node TYPE string;").await?;
+        db.query("DEFINE FIELD visual_formatting ON TABLE task_node TYPE option<string>;").await?;
         db.query("DEFINE FIELD created_at ON TABLE task_node TYPE datetime DEFAULT time::now();").await?;
         db.query("DEFINE FIELD updated_at ON TABLE task_node TYPE datetime DEFAULT time::now();").await?;
 
@@ -54,8 +55,8 @@ impl Schema {
         db.query("DEFINE FIELD map_name ON TABLE map_metadata TYPE string;").await?;
         db.query("DEFINE FIELD created_at ON TABLE map_metadata TYPE datetime DEFAULT time::now();").await?;
         db.query("DEFINE FIELD author_id ON TABLE map_metadata TYPE record<user>;").await?;
-        db.query("DEFINE FIELD global_settings ON TABLE map_metadata TYPE object;").await?;
         db.query("DEFINE FIELD viewport_state ON TABLE map_metadata TYPE object;").await?;
+        db.query("DEFINE FIELD theme ON TABLE map_metadata TYPE object;").await?;
 
         // Indexes
         db.query("DEFINE INDEX node_tags ON TABLE inode FIELDS tags[*];").await?;

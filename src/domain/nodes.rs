@@ -28,6 +28,7 @@ pub struct TaskNode {
     pub text: Option<String>,
     pub due_date: Option<i64>,
     pub state: String, // e.g., "TODO", "DONE"
+    pub visual_formatting: Option<String>,
     pub created_at: i64,
     pub updated_at: i64,
 }
