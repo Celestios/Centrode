@@ -6,6 +6,7 @@ use anyhow::Result;
 use surrealdb::Surreal;
 use surrealdb::engine::local::Db;
 use surrealdb::sql::Thing;
+use serde_json::Value; // Add this import
 
 // [CHANGED] Struct now holds state (the DB connection)
 #[derive(Clone)]
@@ -146,5 +147,77 @@ impl Repository {
         let mut res = self.db.query("SELECT * FROM map_metadata LIMIT 1;").await?;
         let config: Option<MapConfig> = res.take(0)?;
         Ok(config)
+    }
+
+    // [NEW] Dynamic Patching for Nodes
+    pub async fn patch_node(&self, table: String, id: String, patch: Value) -> Result<String> {
+        let record_id = Thing::from((table.as_str(), id.as_str()));
+
+        // Uses SurrealDB's MERGE to update partial fields
+        let mut res = self.db.query("UPDATE $id MERGE $patch RETURN id")
+            .bind(("id", record_id))
+            .bind(("patch", patch))
+            .await?;
+
+        // We expect a record ID back if successful
+        let updated: Option<Thing> = res.take("id")?;
+        Ok(updated.ok_or_else(|| anyhow::anyhow!("Failed to patch node: Record not found"))?.to_string())
+    }
+
+    // [NEW] Cascading Delete for Nodes
+    pub async fn delete_node(&self, table: String, id: String) -> Result<String> {
+        let record_id = Thing::from((table.as_str(), id.as_str()));
+
+        // Perform cleanup within a transaction to ensure integrity
+        let query = "
+            BEGIN TRANSACTION;
+            DELETE relates_to WHERE in = $target OR out = $target;
+            DELETE $target;
+            COMMIT TRANSACTION;
+        ";
+
+        self.db.query(query)
+            .bind(("target", record_id))
+            .await?;
+
+        Ok("Node and connected edges deleted successfully".to_string())
+    }
+
+    // [NEW] Relation Operations
+    pub async fn get_relation(&self, id: String) -> Result<Option<crate::domain::relations::IRelation>> {
+        let record_id = self.parse_record_id(&id)?;
+        let mut res = self.db.query("SELECT * FROM $id").bind(("id", record_id)).await?;
+        Ok(res.take(0)?)
+    }
+
+    pub async fn delete_relation(&self, id: String) -> Result<String> {
+        let record_id = self.parse_record_id(&id)?;
+        self.db.query("DELETE $id").bind(("id", record_id)).await?;
+        Ok("Relation deleted".to_string())
+    }
+
+    pub async fn update_relation_properties(&self, id: String, patch: Value) -> Result<String> {
+        let record_id = self.parse_record_id(&id)?;
+        let mut res = self.db.query("UPDATE $id MERGE $patch RETURN id")
+            .bind(("id", record_id))
+            .bind(("patch", patch))
+            .await?;
+
+        let updated: Option<Thing> = res.take("id")?;
+        Ok(updated.ok_or_else(|| anyhow::anyhow!("Failed to update relation"))?.to_string())
+    }
+
+    pub async fn reroute_relation(&self, id: String, new_from: String, new_to: String) -> Result<String> {
+        let record_id = self.parse_record_id(&id)?;
+        let from_record = self.parse_record_id(&new_from)?;
+        let to_record = self.parse_record_id(&new_to)?;
+
+        self.db.query("UPDATE $id SET in = $from, out = $to")
+            .bind(("id", record_id))
+            .bind(("from", from_record))
+            .bind(("to", to_record))
+            .await?;
+
+        Ok("Relation rerouted".to_string())
     }
 }

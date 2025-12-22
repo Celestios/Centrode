@@ -11,6 +11,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use std::fs::File;
 use std::io::Read;
 use std::collections::HashMap;
+use serde_json::json; // Ensure this is available in your Cargo.toml
 
 // Helper to get current timestamp
 fn now() -> i64 {
@@ -237,8 +238,8 @@ fn test_packager_integration() {
     let attach_str = attachment_dir.to_str().unwrap();
 
     // 2. Mock Data
-    let nodes = vec![]; // Empty graph is valid
-    let relations = vec![];
+    let nodes: Vec<NodeOutput> = vec![]; // Empty graph is valid
+    let relations: Vec<IRelation> = vec![];
 
     // 3. Execute Packager
     let result = packager::save_project_to_celi(archive_str, attach_str, nodes, relations, None);
@@ -253,4 +254,121 @@ fn test_packager_integration() {
     file.read_exact(&mut buffer).expect("Failed to read header");
 
     assert_eq!(&buffer, &[0x50, 0x4b, 0x03, 0x04], "File is not a valid ZIP archive");
+}
+
+
+#[tokio::test]
+async fn test_node_patching() {
+    let repo = setup().await;
+
+    // 1. Create a Node
+    let input = NodeInput::Info(INode {
+        id: None,
+        text: Some("Original Text".into()),
+        visual_formatting: None,
+        layer: 1, locked: false, tags: vec![], aliases: vec![], comments: vec![],
+        attachment: None, created_at: now(), updated_at: now(),
+    });
+    let id = repo.create_node(input).await.expect("Create failed");
+
+    // 2. Apply Dynamic Patch (Update 'text' and 'locked' status)
+    let patch = json!({
+        "text": "Patched Text",
+        "locked": true
+    });
+
+    // We expect the 'inode' table prefix based on the input type
+    repo.patch_node("inode".to_string(), id.clone(), patch).await.expect("Patch failed");
+
+    // 3. Verify Updates
+    let fetched = repo.get_node("inode".to_string(), id).await.expect("Fetch failed");
+    if let Some(NodeOutput::Info(node)) = fetched {
+        assert_eq!(node.text, Some("Patched Text".to_string()));
+        assert_eq!(node.locked, true);
+    } else {
+        panic!("Node not found or wrong type");
+    }
+}
+
+#[tokio::test]
+async fn test_cascading_delete() {
+    let repo = setup().await;
+
+    // 1. Create Graph: Node A -> [Relation] -> Node B
+    let id_a = repo.create_node(NodeInput::Info(INode {
+        id: None, text: Some("A".into()), layer: 1, locked: false, tags: vec![], aliases: vec![], comments: vec![], attachment: None, visual_formatting: None, created_at: 0, updated_at: 0
+    })).await.unwrap();
+
+    let id_b = repo.create_node(NodeInput::Info(INode {
+        id: None, text: Some("B".into()), layer: 1, locked: false, tags: vec![], aliases: vec![], comments: vec![], attachment: None, visual_formatting: None, created_at: 0, updated_at: 0
+    })).await.unwrap();
+
+    let rel_id = repo.create_relation(RelationInput {
+        from: format!("inode:{}", id_a),
+        to: format!("inode:{}", id_b),
+        props: IRelation { id: None, verb: "links".to_string(), visual_formatting: None, directionless: false, layer: 1 }
+    }).await.unwrap();
+
+    // 2. Delete Node A (Should cascade to Relation)
+    repo.delete_node("inode".to_string(), id_a.clone()).await.expect("Delete failed");
+
+    // 3. Verify Node A is gone
+    let node_a = repo.get_node("inode".to_string(), id_a).await.unwrap();
+    assert!(node_a.is_none(), "Node A should be deleted");
+
+    // 4. Verify Relation is gone
+    // We need to parse the ID string "relates_to:uuid" to check
+    let relation = repo.get_relation(format!("relates_to:{}", rel_id)).await.unwrap();
+    assert!(relation.is_none(), "Relation should be deleted via cascade");
+
+    // 5. Verify Node B still exists (Should NOT be deleted)
+    let node_b = repo.get_node("inode".to_string(), id_b).await.unwrap();
+    assert!(node_b.is_some(), "Node B should persist");
+}
+
+#[tokio::test]
+async fn test_relation_operations() {
+    let repo = setup().await;
+
+    // Setup Nodes
+    let id_a = repo.create_node(NodeInput::Info(INode {
+        id: None, text: Some("A".into()), layer: 1, locked: false, tags: vec![], aliases: vec![], comments: vec![], attachment: None, visual_formatting: None, created_at: 0, updated_at: 0
+    })).await.unwrap();
+    let id_b = repo.create_node(NodeInput::Info(INode {
+        id: None, text: Some("B".into()), layer: 1, locked: false, tags: vec![], aliases: vec![], comments: vec![], attachment: None, visual_formatting: None, created_at: 0, updated_at: 0
+    })).await.unwrap();
+    let id_c = repo.create_node(NodeInput::Info(INode {
+        id: None, text: Some("C".into()), layer: 1, locked: false, tags: vec![], aliases: vec![], comments: vec![], attachment: None, visual_formatting: None, created_at: 0, updated_at: 0
+    })).await.unwrap();
+
+    // 1. Create Relation A -> B
+    let rel_id_raw = repo.create_relation(RelationInput {
+        from: format!("inode:{}", id_a),
+        to: format!("inode:{}", id_b),
+        props: IRelation { id: None, verb: "original".to_string(), visual_formatting: None, directionless: false, layer: 1 }
+    }).await.unwrap();
+
+    let rel_id = format!("relates_to:{}", rel_id_raw);
+
+    // 2. Patch Relation (Change Verb)
+    repo.update_relation_properties(rel_id.clone(), json!({ "verb": "patched" })).await.expect("Patch failed");
+
+    let fetched = repo.get_relation(rel_id.clone()).await.unwrap().expect("Relation not found");
+    assert_eq!(fetched.verb, "patched");
+
+    // 3. Reroute Relation (A -> C)
+    repo.reroute_relation(
+        rel_id.clone(),
+        format!("inode:{}", id_a),
+        format!("inode:{}", id_c)
+    ).await.expect("Reroute failed");
+
+    // Verify Reroute (Manual DB check since IRelation struct doesn't expose in/out)
+    // Note: We need to access the inner DB or rely on the fact that no error occurred.
+    // Ideally, we'd verify the 'out' field equals 'inode:id_c'.
+
+    // 4. Delete Relation
+    repo.delete_relation(rel_id.clone()).await.expect("Delete failed");
+    let deleted = repo.get_relation(rel_id).await.unwrap();
+    assert!(deleted.is_none());
 }

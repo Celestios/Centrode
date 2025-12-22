@@ -64,3 +64,29 @@ pub async fn save_map_to_file(file_path: String, attachment_dir: String) -> anyh
 
     Ok(())
 }
+
+// [NEW] Node Patching & Deletion
+pub async fn patch_node_properties(table: String, id: String, json_patch: String) -> anyhow::Result<()> {
+    let patch: serde_json::Value = serde_json::from_str(&json_patch)?;
+    repo().await?.patch_node(table, id, patch).await?;
+    Ok(())
+}
+
+pub async fn delete_node_entry(table: String, id: String) -> anyhow::Result<String> {
+    repo().await?.delete_node(table, id).await
+}
+
+// [NEW] Relation Operations Wrappers
+pub async fn delete_relation(id: String) -> anyhow::Result<String> {
+    repo().await?.delete_relation(id).await
+}
+
+pub async fn patch_relation(id: String, json_patch: String) -> anyhow::Result<()> {
+    let patch: serde_json::Value = serde_json::from_str(&json_patch)?;
+    repo().await?.update_relation_properties(id, patch).await?;
+    Ok(())
+}
+
+pub async fn reroute_relation(id: String, new_from: String, new_to: String) -> anyhow::Result<String> {
+    repo().await?.reroute_relation(id, new_from, new_to).await
+}
