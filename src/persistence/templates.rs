@@ -1,6 +1,5 @@
-// We use `type::thing` to force specific IDs provided by the client/UUID generator
 pub const CREATE_INODE: &str = r#"
-    CREATE type::thing('inode', $id) CONTENT {
+    CREATE inode CONTENT {
         text: $text,
         visual_formatting: $visual_formatting,
         layer: $layer,
@@ -11,28 +10,28 @@ pub const CREATE_INODE: &str = r#"
         attachment: $attachment,
         created_at: $created_at,
         updated_at: $updated_at
-    } RETURN id;
+    };
 "#;
 
 pub const CREATE_TASK_NODE: &str = r#"
-    CREATE type::thing('task_node', $id) CONTENT {
+    CREATE task_node CONTENT {
         text: $text,
         due_date: $due_date,
         state: $state,
         visual_formatting: $visual_formatting,
         created_at: $created_at,
         updated_at: $updated_at
-    } RETURN id;
+    };
 "#;
 
 pub const CREATE_INTER_NODE: &str = r#"
-    CREATE type::thing('inter_node', $id) CONTENT {
+    CREATE inter_node CONTENT {
         verb: $verb,
         behavioral_features: $behavioral_features,
         visual_formatting: $visual_formatting,
         created_at: $created_at,
         updated_at: $updated_at
-    } RETURN id;
+    };
 "#;
 
 // Uses SurrealDB's RELATE statement to create a graph edge

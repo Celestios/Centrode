@@ -18,13 +18,12 @@ impl Repository {
     pub fn new(db: Surreal<Db>) -> Self {
         Self { db }
     }
-    // [CHANGED] Methods now take &self instead of db: &Surreal<Db>
-    pub async fn create_node(&self, id: String, input: NodeInput) -> Result<String> {
+    // Update the method signature and implementation
+    pub async fn create_node(&self, input: NodeInput) -> Result<String> {
 
         match input {
             NodeInput::Info(node) => {
-                self.db.query(templates::CREATE_INODE)
-                    .bind(("id", id.clone()))
+                let mut res = self.db.query(templates::CREATE_INODE)
                     .bind(("text", node.text))
                     .bind(("visual_formatting", node.visual_formatting))
                     .bind(("layer", node.layer))
@@ -35,36 +34,37 @@ impl Repository {
                     .bind(("attachment", node.attachment))
                     .bind(("created_at", node.created_at))
                     .bind(("updated_at", node.updated_at))
-                    .await?
-                    .check()?;
+                    .await?;
+
+                let created: Option<crate::domain::nodes::INode> = res.take(0)?;
+                Ok(created.and_then(|n| n.id).ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?)
             },
             NodeInput::Task(node) => {
-                self.db.query(templates::CREATE_TASK_NODE)
-                    .bind(("id", id.clone()))
+                let mut res = self.db.query(templates::CREATE_TASK_NODE)
                     .bind(("text", node.text))
                     .bind(("due_date", node.due_date))
                     .bind(("state", node.state))
                     .bind(("visual_formatting", node.visual_formatting))
                     .bind(("created_at", node.created_at))
                     .bind(("updated_at", node.updated_at))
-                    .await?
-                    .check()?;
+                    .await?;
+
+                let created: Option<crate::domain::nodes::TaskNode> = res.take(0)?;
+                Ok(created.and_then(|n| n.id).ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?)
             },
             NodeInput::Inter(node) => {
-                // "Heavy Edges" are stored as nodes to allow them to be linked FROM
-                self.db.query(templates::CREATE_INTER_NODE)
-                    .bind(("id", id.clone()))
+                let mut res = self.db.query(templates::CREATE_INTER_NODE)
                     .bind(("verb", node.verb))
                     .bind(("behavioral_features", node.behavioral_features))
                     .bind(("visual_formatting", node.visual_formatting))
                     .bind(("created_at", node.created_at))
                     .bind(("updated_at", node.updated_at))
-                    .await?
-                    .check()?;
+                    .await?;
+
+                let created: Option<crate::domain::nodes::InterNode> = res.take(0)?;
+                Ok(created.and_then(|n| n.id).ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?)
             }
         }
-
-        Ok(id)
     }
 
     pub async fn create_relation(&self, input: RelationInput) -> Result<String> {
@@ -72,17 +72,17 @@ impl Repository {
         let from = self.parse_record_id(&input.from)?;
         let to = self.parse_record_id(&input.to)?;
 
-        self.db.query(templates::CREATE_RELATION)
+        let mut res = self.db.query(templates::CREATE_RELATION)
             .bind(("from", from))
             .bind(("to", to))
             .bind(("verb", input.props.verb))
             .bind(("visual_formatting", input.props.visual_formatting))
             .bind(("directionless", input.props.directionless))
             .bind(("layer", input.props.layer))
-            .await?
-            .check()?;
+            .await?;
 
-        Ok("Relation Created".to_string())
+        let created: Option<crate::domain::relations::IRelation> = res.take(0)?;
+        Ok(created.and_then(|r| r.id).ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?)
     }
 
     // [FIXED] Uses Thing::from to bypass non-exhaustive struct restrictions

@@ -27,8 +27,8 @@ pub async fn init_app(storage_path: String) -> anyhow::Result<()> {
 }
 
 // 2. Node Operations (Cleaner one-liners)
-pub async fn create_node(id: String, input: NodeInput) -> anyhow::Result<String> {
-    repo().await?.create_node(id, input).await
+pub async fn create_node(input: NodeInput) -> anyhow::Result<String> {
+    repo().await?.create_node(input).await
 }
 
 pub async fn get_node(table: String, id: String) -> anyhow::Result<Option<NodeOutput>> {

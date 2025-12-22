@@ -5,7 +5,7 @@ edition = "2021"  # '2024' is not yet standard stable; 2021 is the current safe 
 description = "Core logic and persistence layer for Mycelium 1.0, exposed via FFI."
 authors = ["Celestios <shahin.id5638@gmail.com>"]
 
-# [lib] is crucial for Flutter integration
+
 [lib]
 crate-type = ["cdylib", "staticlib", "rlib"] # 'cdylib' for Android/Desktop dynamic loading, 'staticlib' for iOS, 'rlib' for tests and dependencies
 

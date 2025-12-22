@@ -10,6 +10,8 @@ pub struct BaseNode {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct INode {
+    #[serde(alias = "id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
     pub text: Option<String>,
     pub visual_formatting: Option<String>,
     pub layer: u8,
@@ -24,6 +26,8 @@ pub struct INode {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskNode {
+    #[serde(alias = "id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
     pub text: Option<String>,
     pub due_date: Option<i64>,
     pub state: String, // e.g., "TODO", "DONE"
@@ -34,6 +38,8 @@ pub struct TaskNode {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InterNode {
+    #[serde(alias = "id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
     pub verb: String,
     pub behavioral_features: Option<String>, // e.g., "active", "inhibiting"
     pub visual_formatting: Option<String>,   // JSON string for distinct edge styling
@@ -61,9 +67,9 @@ pub enum NodeOutput {
 impl NodeOutput {
     pub fn id(&self) -> Option<String> {
         match self {
-            NodeOutput::Info(n) => n.text.clone(),
-            NodeOutput::Task(n) => n.text.clone(),
-            NodeOutput::Inter(n) => Some(n.verb.clone()),
+            NodeOutput::Info(n) => n.id.clone(),
+            NodeOutput::Task(n) => n.id.clone(),
+            NodeOutput::Inter(n) => n.id.clone(),
         }
     }
 }

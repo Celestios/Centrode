@@ -34,8 +34,8 @@ async fn setup() -> Repository {
 async fn test_knowledge_graph_flow() {
     let repo = setup().await; // [CLEAN] 1-line setup
 
-    let id_a = "node_a".to_string();
     let input_a = NodeInput::Info(INode {
+        id: None,
         text: Some("A".into()),
         visual_formatting: None,
         layer: 1u8,
@@ -49,7 +49,7 @@ async fn test_knowledge_graph_flow() {
     });
 
     // [CLEAN] Method calls on the object
-    repo.create_node(id_a.clone(), input_a).await.expect("Failed A");
+    let id_a = repo.create_node(input_a).await.expect("Failed A");
 
     let fetched = repo.get_node("inode".to_string(), id_a).await;
     assert!(fetched.unwrap().is_some());
@@ -59,8 +59,8 @@ async fn test_knowledge_graph_flow() {
 async fn test_task_node_lifecycle() {
     let repo = setup().await; // [CLEAN] Isolated DB automatically
 
-    let task_id = "task_1".to_string();
     let input = NodeInput::Task(TaskNode {
+        id: None,
         text: Some("Complete Project Milestone".to_string()),
         due_date: Some(now() + 86400), // +1 day
         state: "TODO".to_string(),
@@ -69,7 +69,7 @@ async fn test_task_node_lifecycle() {
         updated_at: now(),
     });
 
-    repo.create_node(task_id.clone(), input).await.expect("Failed Create");
+    let task_id = repo.create_node(input).await.expect("Failed Create");
 
     match repo.get_node("task_node".to_string(), task_id).await {
         Ok(Some(NodeOutput::Task(t))) => assert_eq!(t.state, "TODO"),
@@ -81,8 +81,8 @@ async fn test_task_node_lifecycle() {
 async fn test_internode_heavy_edge() {
     let repo = setup().await;
 
-    let inter_id = "inter_1".to_string();
     let input_inter = NodeInput::Inter(InterNode {
+        id: None,
         verb: "causes".to_string(),
         behavioral_features: Some("inhibiting".to_string()),
         visual_formatting: None,
@@ -90,7 +90,7 @@ async fn test_internode_heavy_edge() {
         updated_at: now(),
     });
 
-    repo.create_node(inter_id.clone(), input_inter).await.expect("Failed to create InterNode");
+    let inter_id = repo.create_node(input_inter).await.expect("Failed to create InterNode");
 
     match repo.get_node("inter_node".to_string(), inter_id).await {
         Ok(Some(NodeOutput::Inter(node))) => {
@@ -106,15 +106,15 @@ async fn test_full_graph_snapshot() {
     let repo = setup().await;
 
     // Populate DB with mixed types
-    let id_a = "node_a".to_string();
-    repo.create_node(id_a.clone(), NodeInput::Info(INode {
+    let id_a = repo.create_node(NodeInput::Info(INode {
+        id: None,
         text: Some("Info Node".to_string()),
         layer: 1, locked: false, tags: vec![], aliases: vec![], comments: vec![],
         attachment: None, visual_formatting: None, created_at: 0, updated_at: 0
     })).await.unwrap();
 
-    let id_b = "node_b".to_string();
-    repo.create_node(id_b.clone(), NodeInput::Task(TaskNode {
+    let id_b = repo.create_node(NodeInput::Task(TaskNode {
+        id: None,
         text: Some("Task Node".to_string()),
         due_date: None, state: "DONE".to_string(),
         visual_formatting: None, created_at: 0, updated_at: 0
@@ -124,6 +124,7 @@ async fn test_full_graph_snapshot() {
         from: format!("inode:{}", id_a),
         to: format!("task_node:{}", id_b),
         props: IRelation {
+            id: None,
             verb: "blocks".to_string(),
             visual_formatting: None,
             directionless: false,
@@ -148,20 +149,19 @@ async fn test_full_graph_snapshot() {
 async fn test_relation_uniqueness_constraint() {
     let repo = setup().await;
 
-    let id_a = "unique_a".to_string();
-    let id_b = "unique_b".to_string();
-
     let dummy_input = NodeInput::Info(INode {
+        id: None,
         text: Some("x".into()), layer: 1, locked: false, tags: vec![], aliases: vec![], comments: vec![],
         attachment: None, visual_formatting: None, created_at: 0, updated_at: 0
     });
-    repo.create_node(id_a.clone(), dummy_input.clone()).await.unwrap();
-    repo.create_node(id_b.clone(), dummy_input).await.unwrap();
+    let id_a = repo.create_node(dummy_input.clone()).await.unwrap();
+    let id_b = repo.create_node(dummy_input).await.unwrap();
 
     let rel_input = RelationInput {
         from: format!("inode:{}", id_a),
         to: format!("inode:{}", id_b),
         props: IRelation {
+            id: None,
             verb: "relates_to".to_string(),
             visual_formatting: None,
             directionless: false,
