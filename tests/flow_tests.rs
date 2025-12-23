@@ -12,6 +12,9 @@ use std::fs::File;
 use std::io::Read;
 use std::collections::HashMap;
 use serde_json::json; // Ensure this is available in your Cargo.toml
+use mycelium_core::domain::config::MapConfig;
+use surrealdb::sql::Thing;
+use zip;
 
 // Helper to get current timestamp
 fn now() -> i64 {
@@ -371,4 +374,121 @@ async fn test_relation_operations() {
     repo.delete_relation(rel_id.clone()).await.expect("Delete failed");
     let deleted = repo.get_relation(rel_id).await.unwrap();
     assert!(deleted.is_none());
+}
+
+#[tokio::test]
+async fn test_map_metadata_persistence() {
+    let repo = setup().await;
+
+    // 1. Seed Metadata via Raw SQL (Simulating a "Save Settings" event)
+    let seed_query = r##"
+        CREATE map_metadata:settings CONTENT {
+            "map_name": "Project Alpha",
+            "viewport_state": {
+                "x_offset": 100.0,
+                "y_offset": 200.0,
+                "zoom_level": 1.5,
+                "active_view": "graph"
+            },
+            "theme": {
+                "name": "Cyberpunk",
+                "global_default": {
+                    "shape": "circle",
+                    "bg_color": "#000",
+                    "stroke_color": "#ff00ff",
+                    "stroke_width": 2.0,
+                    "font_family": "Roboto"
+                },
+                "type_definitions": {}
+            }
+        };
+    "##;
+
+    // Uses the new public accessor
+    repo.db().query(seed_query).await.expect("Failed to seed metadata");
+
+    // 2. Fetch via Graph Snapshot
+    let (_, _, metadata) = repo.get_graph_snapshot().await.expect("Snapshot failed");
+
+    // 3. Verify Persistence
+    let config = metadata.expect("Metadata should be present");
+    assert_eq!(config.map_name, "Project Alpha");
+    assert_eq!(config.theme.name, "Cyberpunk");
+    assert_eq!(config.viewport_state.zoom_level, 1.5);
+}
+
+#[test]
+fn test_packager_real_io_integrity() {
+    // 1. Setup Filesystem
+    let dir = tempdir().expect("Failed to make temp dir");
+    let out_path = dir.path().join("export_test.celi");
+    let attach_dir = dir.path().join("data");
+    std::fs::create_dir(&attach_dir).expect("Failed to make attach dir");
+
+    // 2. Create Dummy Attachment
+    let dummy_file = attach_dir.join("notes.txt");
+    std::fs::write(&dummy_file, "Secret Project Data").expect("Failed to write dummy file");
+
+    // 3. Mock Graph Data
+    let nodes = vec![
+        NodeOutput::Task(TaskNode {
+            id: Some(Thing::from(("task_node", "t1"))),
+            text: Some("Critical Task".into()),
+            due_date: None, state: "TODO".into(), visual_formatting: None,
+            created_at: 0, updated_at: 0
+        })
+    ];
+    let relations = vec![];
+
+    // 4. Run Export
+    let result = packager::save_project_to_celi(
+        out_path.to_str().unwrap(),
+        attach_dir.to_str().unwrap(),
+        nodes,
+        relations,
+        None
+    );
+    assert!(result.is_ok(), "Export failed");
+
+    // 5. Verify Content (Unzip & Inspect)
+    let file = File::open(&out_path).expect("Failed to open exported file");
+    let mut archive = zip::ZipArchive::new(file).expect("Failed to read zip");
+
+    // Check Graph JSON
+    {
+        let mut graph_file = archive.by_name("graph.json").expect("graph.json missing");
+        let mut json_content = String::new();
+        graph_file.read_to_string(&mut json_content).expect("Failed to read graph.json");
+
+        assert!(json_content.contains("Critical Task"), "JSON data corrupted or missing");
+    }
+
+    // Check Attachment
+    {
+        let mut attach_file = archive.by_name("data/notes.txt").expect("Attachment missing");
+        let mut attach_content = String::new();
+        attach_file.read_to_string(&mut attach_content).expect("Failed to read attachment");
+
+        assert_eq!(attach_content, "Secret Project Data", "Attachment content corrupted");
+    }
+}
+
+#[tokio::test]
+async fn test_error_handling_edge_cases() {
+    let repo = setup().await;
+
+    // 1. Fetching Non-Existent Node
+    let missing = repo.get_node("inode".into(), "non_existent_id".into()).await;
+    assert!(missing.is_ok());
+    assert!(missing.unwrap().is_none(), "Should return None for missing ID");
+
+    // 2. Patching Non-Existent Node
+    // Should return Err because the record to MERGE into doesn't exist
+    let patch_res = repo.patch_node(
+        "inode".into(),
+        "ghost_id".into(),
+        json!({"text": "Boo"})
+    ).await;
+
+    assert!(patch_res.is_err(), "Patching a ghost node should fail");
 }

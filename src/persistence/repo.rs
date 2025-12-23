@@ -6,7 +6,8 @@ use anyhow::Result;
 use surrealdb::Surreal;
 use surrealdb::engine::local::Db;
 use surrealdb::sql::Thing;
-use serde_json::Value; // Add this import
+use serde_json::Value;
+use serde::Deserialize; // [ADDED] Needed for the helper struct
 
 // [CHANGED] Struct now holds state (the DB connection)
 #[derive(Clone)]
@@ -19,8 +20,17 @@ impl Repository {
     pub fn new(db: Surreal<Db>) -> Self {
         Self { db }
     }
-    // Update the method signature and implementation
+
+    /// Exposes the underlying DB connection for testing/raw queries
+    pub fn db(&self) -> &Surreal<Db> {
+        &self.db
+    }
+
     pub async fn create_node(&self, input: NodeInput) -> Result<String> {
+        #[derive(Deserialize)]
+        struct CreatedId {
+            id: Thing,
+        }
 
         match input {
             NodeInput::Info(node) => {
@@ -37,8 +47,10 @@ impl Repository {
                     .bind(("updated_at", node.updated_at))
                     .await?;
 
-                let created: Option<crate::domain::nodes::INode> = res.take(0)?;
-                Ok(created.and_then(|n| n.id).ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?)
+                let created: Option<CreatedId> = res.take(0)?;
+                let thing = created.ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?.id;
+                // [CHANGED] Return only the ID part (e.g. "xxxxx") not "table:xxxxx"
+                Ok(thing.id.to_string())
             },
             NodeInput::Task(node) => {
                 let mut res = self.db.query(templates::CREATE_TASK_NODE)
@@ -50,8 +62,9 @@ impl Repository {
                     .bind(("updated_at", node.updated_at))
                     .await?;
 
-                let created: Option<crate::domain::nodes::TaskNode> = res.take(0)?;
-                Ok(created.and_then(|n| n.id).ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?)
+                let created: Option<CreatedId> = res.take(0)?;
+                let thing = created.ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?.id;
+                Ok(thing.id.to_string())
             },
             NodeInput::Inter(node) => {
                 let mut res = self.db.query(templates::CREATE_INTER_NODE)
@@ -62,14 +75,19 @@ impl Repository {
                     .bind(("updated_at", node.updated_at))
                     .await?;
 
-                let created: Option<crate::domain::nodes::InterNode> = res.take(0)?;
-                Ok(created.and_then(|n| n.id).ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?)
+                let created: Option<CreatedId> = res.take(0)?;
+                let thing = created.ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?.id;
+                Ok(thing.id.to_string())
             }
         }
     }
 
     pub async fn create_relation(&self, input: RelationInput) -> Result<String> {
-        // [FIXED] Parse "table:id" strings into SurrealDB Record IDs (Things)
+        #[derive(Deserialize)]
+        struct CreatedId {
+            id: Thing,
+        }
+
         let from = self.parse_record_id(&input.from)?;
         let to = self.parse_record_id(&input.to)?;
 
@@ -82,8 +100,10 @@ impl Repository {
             .bind(("layer", input.props.layer))
             .await?;
 
-        let created: Option<crate::domain::relations::IRelation> = res.take(0)?;
-        Ok(created.and_then(|r| r.id).ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?)
+        let created: Option<CreatedId> = res.take(0)?;
+        let thing = created.ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?.id;
+        // [CHANGED] Return only the ID part
+        Ok(thing.id.to_string())
     }
 
     // [FIXED] Uses Thing::from to bypass non-exhaustive struct restrictions
@@ -132,7 +152,7 @@ impl Repository {
         let tasks: Vec<crate::domain::nodes::TaskNode> = responses.take(1)?;
         let inters: Vec<crate::domain::nodes::InterNode> = responses.take(2)?;
         let relations: Vec<crate::domain::relations::IRelation> = responses.take(3)?;
-        let metadata: Option<MapConfig> = responses.take(4).ok().and_then(|mut v: Vec<MapConfig>| v.pop());
+        let metadata: Option<MapConfig> = responses.take::<Vec<MapConfig>>(4)?.pop();
 
         // 3. Combine Nodes into one Polymorphic Vector
         let mut all_nodes = Vec::new();

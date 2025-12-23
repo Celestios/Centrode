@@ -10,7 +10,7 @@ pub const CREATE_INODE: &str = r#"
         attachment: $attachment,
         created_at: $created_at,
         updated_at: $updated_at
-    };
+    } RETURN id;
 "#;
 
 pub const CREATE_TASK_NODE: &str = r#"
@@ -21,7 +21,7 @@ pub const CREATE_TASK_NODE: &str = r#"
         visual_formatting: $visual_formatting,
         created_at: $created_at,
         updated_at: $updated_at
-    };
+    } RETURN id;
 "#;
 
 pub const CREATE_INTER_NODE: &str = r#"
@@ -31,7 +31,7 @@ pub const CREATE_INTER_NODE: &str = r#"
         visual_formatting: $visual_formatting,
         created_at: $created_at,
         updated_at: $updated_at
-    };
+    } RETURN id;
 "#;
 
 // Uses SurrealDB's RELATE statement to create a graph edge

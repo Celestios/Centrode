@@ -59,7 +59,8 @@ pub fn save_project_to_celi(
             // Get relative path for zip entry name (e.g., "data/image.png")
             let name = path.strip_prefix(Path::new(attachment_dir).parent().unwrap_or(Path::new(".")))?
                 .to_str()
-                .context("Invalid UTF-8 path")?;
+                .context("Invalid UTF-8 path")?
+                .replace("\\", "/"); // [FIX] Ensure forward slashes for ZIP compatibility on Windows
 
             if path.is_file() {
                 zip.start_file(name, options)?;

@@ -12,7 +12,7 @@ impl Schema {
         db.query("DEFINE TABLE task_node SCHEMAFULL;").await?;
         db.query("DEFINE TABLE inter_node SCHEMAFULL;").await?;
         db.query("DEFINE TABLE relates_to TYPE RELATION SCHEMAFULL;").await?;
-        db.query("DEFINE TABLE map_metadata SCHEMAFULL;").await?;
+        db.query("DEFINE TABLE map_metadata SCHEMALESS;").await?;
 
         // Define fields for inode
         db.query("DEFINE FIELD text ON TABLE inode TYPE option<string>;").await?;
