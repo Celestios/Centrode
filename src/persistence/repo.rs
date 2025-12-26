@@ -1,5 +1,5 @@
 use super::templates;
-use crate::domain::nodes::NodeInput;
+use crate::domain::nodes::{NodeInput, NodeOutput};
 use crate::domain::relations::RelationInput;
 use crate::domain::config::MapConfig;
 use anyhow::Result;
@@ -239,5 +239,76 @@ impl Repository {
             .await?;
 
         Ok("Relation rerouted".to_string())
+    }
+
+    // [NEW] Smart Import Wrapper
+    // This takes the raw list from the file and handles the table splitting logic internally.
+    pub async fn import_dynamic_graph(
+        &self,
+        nodes: Vec<NodeOutput>,
+        relations: Vec<crate::domain::relations::IRelation>,
+        metadata: Option<crate::domain::config::MapConfig>
+    ) -> anyhow::Result<()> {
+
+        let mut inodes = Vec::new();
+        let mut tasks = Vec::new();
+        let mut inters = Vec::new();
+
+        // The "Sorting Hat" logic moves here, where it belongs (Data Layer)
+        for node in nodes {
+            match node {
+                NodeOutput::Info(n) => inodes.push(n),
+                NodeOutput::Task(n) => tasks.push(n),
+                NodeOutput::Inter(n) => inters.push(n),
+            }
+        }
+
+        // Delegate to the existing bulk insert
+        self.import_graph_state(inodes, tasks, inters, relations, metadata).await
+    }
+
+    pub async fn import_graph_state(
+        &self,
+        inodes: Vec<crate::domain::nodes::INode>,
+        task_nodes: Vec<crate::domain::nodes::TaskNode>,
+        inter_nodes: Vec<crate::domain::nodes::InterNode>,
+        relations: Vec<crate::domain::relations::IRelation>,
+        metadata: Option<crate::domain::config::MapConfig>
+    ) -> anyhow::Result<()> {
+
+        // TRANSACTION: "All or Nothing"
+        // We delete everything then insert everything.
+        // IDs are preserved because the Structs contain the `id: Option<Thing>` field,
+        // and SurrealDB respects provided IDs on INSERT.
+        let sql = "
+            BEGIN TRANSACTION;
+
+            -- 1. Wipe Canvas
+            DELETE inode;
+            DELETE task_node;
+            DELETE inter_node;
+            DELETE relates_to;
+            DELETE map_metadata;
+
+            -- 2. Bulk Insert
+            -- Note: We use $vars to prevent injection and handle large datasets efficiently
+            INSERT INTO inode $inodes;
+            INSERT INTO task_node $task_nodes;
+            INSERT INTO inter_node $inter_nodes;
+            INSERT INTO relates_to $relations;
+            INSERT INTO map_metadata $metadata;
+
+            COMMIT TRANSACTION;
+        ";
+
+        self.db.query(sql)
+            .bind(("inodes", inodes))
+            .bind(("task_nodes", task_nodes))
+            .bind(("inter_nodes", inter_nodes))
+            .bind(("relations", relations))
+            .bind(("metadata", metadata))
+            .await?;
+
+        Ok(())
     }
 }

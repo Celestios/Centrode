@@ -38,6 +38,7 @@ surrealdb = { version = "2.0", features = ["kv-rocksdb", "kv-mem"] }
 # --- Serialization ---
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+rmp-serde = "1.1"
 uuid = { version = "1.10", features = ["v4", "serde"] }
 
 # --- Utilities ---

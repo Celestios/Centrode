@@ -89,4 +89,20 @@ impl AppHandle {
 
         Ok(())
     }
+
+    // NEW: Load Map
+    pub async fn load_map_from_file(&self, file_path: String, attachment_dir: String) -> anyhow::Result<()> {
+
+        // 1. Offload File I/O & Deserialization (Cold -> RAM)
+        // This stops the UI from freezing during unzip
+        let (nodes, relations, metadata) = tokio::task::spawn_blocking(move || {
+            packager::load_project_from_celi(&file_path, &attachment_dir)
+        }).await??;
+
+        // 2. Persistence Layer: RAM -> DB
+        // The Repo now handles the sorting, so the API is clean.
+        self.repo.import_dynamic_graph(nodes, relations, metadata).await?;
+
+        Ok(())
+    }
 }

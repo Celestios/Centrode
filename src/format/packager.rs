@@ -2,11 +2,11 @@ use crate::domain::nodes::NodeOutput;
 use crate::domain::relations::IRelation;
 use crate::domain::config::MapConfig;
 use serde::{Serialize, Deserialize};
-use std::fs::File;
-use std::io::{Read, Write};
+use std::fs::{self, File};
+use std::io::Write;
 use std::path::Path;
 use walkdir::WalkDir;
-use zip::write::FileOptions;
+use zip::{write::FileOptions, ZipArchive};
 use anyhow::{Context, Result};
 
 // The schema for the internal graph.json file
@@ -32,21 +32,26 @@ pub fn save_project_to_celi(
         .with_context(|| format!("Failed to create archive at {}", archive_path))?;
 
     let mut zip = zip::ZipWriter::new(file);
+
+    // Speed: DEFLATE is standard. For max speed, could use Stored (0 compression),
+    // but Deflated is the best balance for disk I/O vs CPU.
     let options = FileOptions::default()
-        .compression_method(zip::CompressionMethod::Stored) // Use Deflated for actual compression
+        .compression_method(zip::CompressionMethod::Deflated)
         .unix_permissions(0o755);
 
-    // 1. Serialize and write the Graph Data (graph.json)
+    // 1. Serialize Graph Data (MessagePack)
     let snapshot = GraphSnapshot {
-        version: "0.1.0".to_string(),
+        version: "0.2.0".to_string(), // Bumped version
         metadata,
         nodes,
         relations,
     };
-    let json_data = serde_json::to_vec_pretty(&snapshot)?;
 
-    zip.start_file("graph.json", options)?;
-    zip.write_all(&json_data)?;
+    // Binary serialization is ~5x faster than JSON
+    let serialized_data = rmp_serde::to_vec(&snapshot)?;
+
+    zip.start_file("graph.msgpack", options)?;
+    zip.write_all(&serialized_data)?;
 
     // 2. Compress and include the Attachments folder (data/)
     // We walk the attachment_dir and replicate the structure inside the zip
@@ -65,9 +70,7 @@ pub fn save_project_to_celi(
             if path.is_file() {
                 zip.start_file(name, options)?;
                 let mut f = File::open(path)?;
-                let mut buffer = Vec::new();
-                f.read_to_end(&mut buffer)?;
-                zip.write_all(&buffer)?;
+                std::io::copy(&mut f, &mut zip)?; // Stream directly
             } else if !name.is_empty() {
                 zip.add_directory(name, options)?;
             }
@@ -76,4 +79,42 @@ pub fn save_project_to_celi(
 
     zip.finish()?;
     Ok(())
+}
+
+/// LOADER: Extracts Archive -> RAM Structs
+pub fn load_project_from_celi(
+    archive_path: &str,
+    target_attachment_dir: &str
+) -> Result<(Vec<NodeOutput>, Vec<IRelation>, Option<MapConfig>)> {
+
+    let file = File::open(archive_path)?;
+    let mut zip = ZipArchive::new(file)?;
+
+    // 1. Deserialize Brain
+    let snapshot: GraphSnapshot = {
+        let mut graph_file = zip.by_name("graph.msgpack")?;
+        rmp_serde::from_read(&mut graph_file)?
+    };
+
+    // 2. Extract Body (Assets)
+    // We iterate by index to avoid ownership issues with zip
+    for i in 0..zip.len() {
+        let mut file = zip.by_index(i)?;
+        let name = file.name().to_owned();
+
+        // Skip the DB file
+        if name == "graph.msgpack" || name == "graph.json" { continue; }
+
+        let outpath = Path::new(target_attachment_dir).join(&name);
+
+        if file.is_dir() {
+            fs::create_dir_all(&outpath)?;
+        } else {
+            if let Some(p) = outpath.parent() { fs::create_dir_all(p)?; }
+            let mut outfile = File::create(&outpath)?;
+            std::io::copy(&mut file, &mut outfile)?;
+        }
+    }
+
+    Ok((snapshot.nodes, snapshot.relations, snapshot.metadata))
 }
