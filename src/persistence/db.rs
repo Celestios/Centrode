@@ -1,19 +1,13 @@
 use surrealdb::engine::local::{Db, RocksDb};
 use surrealdb::Surreal;
-use lazy_static::lazy_static;
-use std::sync::Arc;
-use tokio::sync::Mutex;
 use super::schema;
-
-// Global Singleton for the Database
-lazy_static! {
-    pub static ref DB: Arc<Mutex<Option<Surreal<Db>>>> = Arc::new(Mutex::new(None));
-}
 
 pub struct Database;
 
 impl Database {
-    pub async fn connect(path: &str) -> anyhow::Result<()> {
+    /// Connects to the embedded RocksDB and initializes the schema.
+    /// Returns the database instance directly (No global state).
+    pub async fn connect(path: &str) -> anyhow::Result<Surreal<Db>> {
         // Initialize RocksDB (file-based)
         let db = Surreal::new::<RocksDb>(path).await?;
         
@@ -23,18 +17,6 @@ impl Database {
         // Initialize Schema
         schema::Schema::init(&db).await?;
 
-        // Store in Global Static
-        let mut global_db = DB.lock().await;
-        *global_db = Some(db);
-
-        Ok(())
-    }
-
-    pub async fn get() -> anyhow::Result<Surreal<Db>> {
-        let global_db = DB.lock().await;
-        match &*global_db {
-            Some(db) => Ok(db.clone()),
-            None => Err(anyhow::anyhow!("Database not initialized. Call init_app first.")),
-        }
+        Ok(db)
     }
 }

@@ -1,17 +1,11 @@
 use crate::persistence::db::Database;
 use crate::persistence::repo::Repository;
-use crate::domain::nodes::NodeInput;
+use crate::domain::nodes::{NodeInput, NodeOutput};
 use crate::domain::relations::RelationInput;
-use crate::domain::nodes::NodeOutput;
-use crate::format::packager; // Import the packager
+use crate::format::packager;
+use serde_json;
 
-// [NEW] Helper to construct the Repository with the Global DB
-async fn repo() -> anyhow::Result<Repository> {
-    let db = Database::get().await?;
-    Ok(Repository::new(db))
-}
-
-// [NEW] Event Enum for the UI
+// [NEW] Event Enum for the UI (Keep public for FFI)
 #[derive(Debug, Clone)]
 pub enum GraphEvent {
     NodeUpdated(NodeOutput),
@@ -20,73 +14,79 @@ pub enum GraphEvent {
     SnapshotLoaded,
 }
 
-// 1. App Initialization
-pub async fn init_app(storage_path: String) -> anyhow::Result<()> {
-    Database::connect(&storage_path).await?;
-    Ok(())
+// [NEW] The Opaque App Handle
+// This struct holds the entire state of the running backend.
+pub struct AppHandle {
+    pub repo: Repository,
 }
 
-// 2. Node Operations (Cleaner one-liners)
-pub async fn create_node(input: NodeInput) -> anyhow::Result<String> {
-    repo().await?.create_node(input).await
-}
+impl AppHandle {
+    // 1. App Initialization (The Constructor)
+    pub async fn new(storage_path: String) -> anyhow::Result<Self> {
+        let db = Database::connect(&storage_path).await?;
+        let repo = Repository::new(db);
+        Ok(Self { repo })
+    }
 
-pub async fn get_node(table: String, id: String) -> anyhow::Result<Option<NodeOutput>> {
-    repo().await?.get_node(table, id).await
-}
+    // 2. Node Operations
+    // Note: usage of &self eliminates the need for Mutex locking
+    pub async fn create_node(&self, input: NodeInput) -> anyhow::Result<String> {
+        self.repo.create_node(input).await
+    }
 
-// 3. Relation Operations
-pub async fn create_relation(input: RelationInput) -> anyhow::Result<String> {
-    repo().await?.create_relation(input).await
-}
+    pub async fn get_node(&self, table: String, id: String) -> anyhow::Result<Option<NodeOutput>> {
+        self.repo.get_node(table, id).await
+    }
 
-// 4. Graph Snapshot
-pub async fn get_graph_snapshot() -> anyhow::Result<(Vec<NodeOutput>, Vec<crate::domain::relations::IRelation>, Option<crate::domain::config::MapConfig>)> {
-    repo().await?.get_graph_snapshot().await
-}
+    pub async fn patch_node_properties(&self, table: String, id: String, json_patch: String) -> anyhow::Result<()> {
+        let patch: serde_json::Value = serde_json::from_str(&json_patch)?;
+        self.repo.patch_node(table, id, patch).await?;
+        Ok(())
+    }
 
-pub async fn start_graph_stream() -> anyhow::Result<()> {
-    // Placeholder: Implement live queries or broadcast channel
-    Ok(())
-}
+    pub async fn delete_node_entry(&self, table: String, id: String) -> anyhow::Result<String> {
+        self.repo.delete_node(table, id).await
+    }
 
-// 5. File Operations
-pub async fn save_map_to_file(file_path: String, attachment_dir: String) -> anyhow::Result<()> {
-    // 1. Fetch current state from RocksDB
-    // This runs efficiently in the async runtime
-    let (nodes, relations, metadata) = repo().await?.get_graph_snapshot().await?;
+    // 3. Relation Operations
+    pub async fn create_relation(&self, input: RelationInput) -> anyhow::Result<String> {
+        self.repo.create_relation(input).await
+    }
 
+    pub async fn delete_relation(&self, id: String) -> anyhow::Result<String> {
+        self.repo.delete_relation(id).await
+    }
 
-    // Prevents freezing the UI during large saves
-    tokio::task::spawn_blocking(move || {
-        packager::save_project_to_celi(&file_path, &attachment_dir, nodes, relations, metadata)
-    }).await??;
+    pub async fn patch_relation(&self, id: String, json_patch: String) -> anyhow::Result<()> {
+        let patch: serde_json::Value = serde_json::from_str(&json_patch)?;
+        self.repo.update_relation_properties(id, patch).await?;
+        Ok(())
+    }
 
-    Ok(())
-}
+    pub async fn reroute_relation(&self, id: String, new_from: String, new_to: String) -> anyhow::Result<String> {
+        self.repo.reroute_relation(id, new_from, new_to).await
+    }
 
-// [NEW] Node Patching & Deletion
-pub async fn patch_node_properties(table: String, id: String, json_patch: String) -> anyhow::Result<()> {
-    let patch: serde_json::Value = serde_json::from_str(&json_patch)?;
-    repo().await?.patch_node(table, id, patch).await?;
-    Ok(())
-}
+    // 4. Graph Snapshot
+    pub async fn get_graph_snapshot(&self) -> anyhow::Result<(Vec<NodeOutput>, Vec<crate::domain::relations::IRelation>, Option<crate::domain::config::MapConfig>)> {
+        self.repo.get_graph_snapshot().await
+    }
 
-pub async fn delete_node_entry(table: String, id: String) -> anyhow::Result<String> {
-    repo().await?.delete_node(table, id).await
-}
+    pub async fn start_graph_stream(&self) -> anyhow::Result<()> {
+        // Placeholder: Implement live queries or broadcast channel
+        Ok(())
+    }
 
-// [NEW] Relation Operations Wrappers
-pub async fn delete_relation(id: String) -> anyhow::Result<String> {
-    repo().await?.delete_relation(id).await
-}
+    // 5. File Operations
+    pub async fn save_map_to_file(&self, file_path: String, attachment_dir: String) -> anyhow::Result<()> {
+        // 1. Fetch current state from RocksDB
+        let (nodes, relations, metadata) = self.repo.get_graph_snapshot().await?;
 
-pub async fn patch_relation(id: String, json_patch: String) -> anyhow::Result<()> {
-    let patch: serde_json::Value = serde_json::from_str(&json_patch)?;
-    repo().await?.update_relation_properties(id, patch).await?;
-    Ok(())
-}
+        // 2. Offload packaging to blocking thread
+        tokio::task::spawn_blocking(move || {
+            packager::save_project_to_celi(&file_path, &attachment_dir, nodes, relations, metadata)
+        }).await??;
 
-pub async fn reroute_relation(id: String, new_from: String, new_to: String) -> anyhow::Result<String> {
-    repo().await?.reroute_relation(id, new_from, new_to).await
+        Ok(())
+    }
 }
