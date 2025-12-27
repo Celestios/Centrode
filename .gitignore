@@ -1,3 +1,4 @@
 .constitution
 target
 Cargo.lock
+tavily-cli.exe

@@ -79,7 +79,7 @@ impl AppHandle {
 
     // 5. File Operations
     pub async fn save_map_to_file(&self, file_path: String, attachment_dir: String) -> anyhow::Result<()> {
-        // 1. Fetch current state from RocksDB
+        // 1. Fetch current state from SurrealDB
         let (nodes, relations, metadata) = self.repo.get_graph_snapshot().await?;
 
         // 2. Offload packaging to blocking thread
