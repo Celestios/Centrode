@@ -3,12 +3,16 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
-import 'api/simple.dart';
+import 'bridge/api.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi' as ffi;
+import 'domain/config.dart';
+import 'domain/nodes.dart';
+import 'domain/relations.dart';
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
+import 'persistence/repo.dart';
 
 abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RustLibApiImplPlatform({
@@ -18,11 +22,164 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     required super.portManager,
   });
 
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_AppHandlePtr => wire
+      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandlePtr;
+
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_RepositoryPtr => wire
+      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositoryPtr;
+
+  @protected
+  AnyhowException dco_decode_AnyhowException(dynamic raw);
+
+  @protected
+  AppHandle
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    dynamic raw,
+  );
+
+  @protected
+  Repository
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+    dynamic raw,
+  );
+
+  @protected
+  AppHandle
+  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    dynamic raw,
+  );
+
+  @protected
+  AppHandle
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    dynamic raw,
+  );
+
+  @protected
+  Map<String, StyleProfile> dco_decode_Map_String_style_profile_None(
+    dynamic raw,
+  );
+
+  @protected
+  AppHandle
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    dynamic raw,
+  );
+
+  @protected
+  Repository
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+    dynamic raw,
+  );
+
   @protected
   String dco_decode_String(dynamic raw);
 
   @protected
+  bool dco_decode_bool(dynamic raw);
+
+  @protected
+  PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
+
+  @protected
+  INode dco_decode_box_autoadd_i_node(dynamic raw);
+
+  @protected
+  InterNode dco_decode_box_autoadd_inter_node(dynamic raw);
+
+  @protected
+  MapConfig dco_decode_box_autoadd_map_config(dynamic raw);
+
+  @protected
+  NodeInput dco_decode_box_autoadd_node_input(dynamic raw);
+
+  @protected
+  NodeOutput dco_decode_box_autoadd_node_output(dynamic raw);
+
+  @protected
+  RelationInput dco_decode_box_autoadd_relation_input(dynamic raw);
+
+  @protected
+  TaskNode dco_decode_box_autoadd_task_node(dynamic raw);
+
+  @protected
+  double dco_decode_f_32(dynamic raw);
+
+  @protected
+  double dco_decode_f_64(dynamic raw);
+
+  @protected
+  PlatformInt64 dco_decode_i_64(dynamic raw);
+
+  @protected
+  INode dco_decode_i_node(dynamic raw);
+
+  @protected
+  IRelation dco_decode_i_relation(dynamic raw);
+
+  @protected
+  InterNode dco_decode_inter_node(dynamic raw);
+
+  @protected
+  List<String> dco_decode_list_String(dynamic raw);
+
+  @protected
+  List<IRelation> dco_decode_list_i_relation(dynamic raw);
+
+  @protected
+  List<NodeOutput> dco_decode_list_node_output(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  List<(String, StyleProfile)> dco_decode_list_record_string_style_profile(
+    dynamic raw,
+  );
+
+  @protected
+  MapConfig dco_decode_map_config(dynamic raw);
+
+  @protected
+  NodeInput dco_decode_node_input(dynamic raw);
+
+  @protected
+  NodeOutput dco_decode_node_output(dynamic raw);
+
+  @protected
+  String? dco_decode_opt_String(dynamic raw);
+
+  @protected
+  PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
+
+  @protected
+  MapConfig? dco_decode_opt_box_autoadd_map_config(dynamic raw);
+
+  @protected
+  NodeOutput? dco_decode_opt_box_autoadd_node_output(dynamic raw);
+
+  @protected
+  (List<NodeOutput>, List<IRelation>, MapConfig?)
+  dco_decode_record_list_node_output_list_i_relation_opt_box_autoadd_map_config(
+    dynamic raw,
+  );
+
+  @protected
+  (String, StyleProfile) dco_decode_record_string_style_profile(dynamic raw);
+
+  @protected
+  RelationInput dco_decode_relation_input(dynamic raw);
+
+  @protected
+  StyleProfile dco_decode_style_profile(dynamic raw);
+
+  @protected
+  TaskNode dco_decode_task_node(dynamic raw);
+
+  @protected
+  ThemeConfig dco_decode_theme_config(dynamic raw);
 
   @protected
   int dco_decode_u_8(dynamic raw);
@@ -31,10 +188,169 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void dco_decode_unit(dynamic raw);
 
   @protected
+  BigInt dco_decode_usize(dynamic raw);
+
+  @protected
+  ViewportState dco_decode_viewport_state(dynamic raw);
+
+  @protected
+  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+
+  @protected
+  AppHandle
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  Repository
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  AppHandle
+  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  AppHandle
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  Map<String, StyleProfile> sse_decode_Map_String_style_profile_None(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  AppHandle
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  Repository
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
+  bool sse_decode_bool(SseDeserializer deserializer);
+
+  @protected
+  PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
+  INode sse_decode_box_autoadd_i_node(SseDeserializer deserializer);
+
+  @protected
+  InterNode sse_decode_box_autoadd_inter_node(SseDeserializer deserializer);
+
+  @protected
+  MapConfig sse_decode_box_autoadd_map_config(SseDeserializer deserializer);
+
+  @protected
+  NodeInput sse_decode_box_autoadd_node_input(SseDeserializer deserializer);
+
+  @protected
+  NodeOutput sse_decode_box_autoadd_node_output(SseDeserializer deserializer);
+
+  @protected
+  RelationInput sse_decode_box_autoadd_relation_input(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TaskNode sse_decode_box_autoadd_task_node(SseDeserializer deserializer);
+
+  @protected
+  double sse_decode_f_32(SseDeserializer deserializer);
+
+  @protected
+  double sse_decode_f_64(SseDeserializer deserializer);
+
+  @protected
+  PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+
+  @protected
+  INode sse_decode_i_node(SseDeserializer deserializer);
+
+  @protected
+  IRelation sse_decode_i_relation(SseDeserializer deserializer);
+
+  @protected
+  InterNode sse_decode_inter_node(SseDeserializer deserializer);
+
+  @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer);
+
+  @protected
+  List<IRelation> sse_decode_list_i_relation(SseDeserializer deserializer);
+
+  @protected
+  List<NodeOutput> sse_decode_list_node_output(SseDeserializer deserializer);
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  List<(String, StyleProfile)> sse_decode_list_record_string_style_profile(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  MapConfig sse_decode_map_config(SseDeserializer deserializer);
+
+  @protected
+  NodeInput sse_decode_node_input(SseDeserializer deserializer);
+
+  @protected
+  NodeOutput sse_decode_node_output(SseDeserializer deserializer);
+
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer);
+
+  @protected
+  PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
+  MapConfig? sse_decode_opt_box_autoadd_map_config(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NodeOutput? sse_decode_opt_box_autoadd_node_output(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  (List<NodeOutput>, List<IRelation>, MapConfig?)
+  sse_decode_record_list_node_output_list_i_relation_opt_box_autoadd_map_config(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  (String, StyleProfile) sse_decode_record_string_style_profile(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RelationInput sse_decode_relation_input(SseDeserializer deserializer);
+
+  @protected
+  StyleProfile sse_decode_style_profile(SseDeserializer deserializer);
+
+  @protected
+  TaskNode sse_decode_task_node(SseDeserializer deserializer);
+
+  @protected
+  ThemeConfig sse_decode_theme_config(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
@@ -43,13 +359,151 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_decode_unit(SseDeserializer deserializer);
 
   @protected
+  BigInt sse_decode_usize(SseDeserializer deserializer);
+
+  @protected
+  ViewportState sse_decode_viewport_state(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
-  bool sse_decode_bool(SseDeserializer deserializer);
+  void sse_encode_AnyhowException(
+    AnyhowException self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    AppHandle self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+    Repository self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    AppHandle self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    AppHandle self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_Map_String_style_profile_None(
+    Map<String, StyleProfile> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    AppHandle self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+    Repository self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_String(String self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_i_64(
+    PlatformInt64 self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_i_node(INode self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_inter_node(
+    InterNode self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_map_config(
+    MapConfig self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_node_input(
+    NodeInput self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_node_output(
+    NodeOutput self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_relation_input(
+    RelationInput self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_task_node(
+    TaskNode self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_f_32(double self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_f_64(double self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_i_node(INode self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_i_relation(IRelation self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_inter_node(InterNode self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_i_relation(
+    List<IRelation> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_node_output(
+    List<NodeOutput> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_prim_u_8_strict(
@@ -58,16 +512,80 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_record_string_style_profile(
+    List<(String, StyleProfile)> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_map_config(MapConfig self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_node_input(NodeInput self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_node_output(NodeOutput self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_i_64(
+    PlatformInt64? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_map_config(
+    MapConfig? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_node_output(
+    NodeOutput? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_record_list_node_output_list_i_relation_opt_box_autoadd_map_config(
+    (List<NodeOutput>, List<IRelation>, MapConfig?) self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_record_string_style_profile(
+    (String, StyleProfile) self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_relation_input(RelationInput self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_style_profile(StyleProfile self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_task_node(TaskNode self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_theme_config(ThemeConfig self, SseSerializer serializer);
+
+  @protected
   void sse_encode_u_8(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);
 
   @protected
-  void sse_encode_i_32(int self, SseSerializer serializer);
+  void sse_encode_usize(BigInt self, SseSerializer serializer);
 
   @protected
-  void sse_encode_bool(bool self, SseSerializer serializer);
+  void sse_encode_viewport_state(ViewportState self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer);
 }
 
 // Section: wire_class
@@ -83,4 +601,72 @@ class RustLibWire implements BaseWire {
   /// The symbols are looked up in [dynamicLibrary].
   RustLibWire(ffi.DynamicLibrary dynamicLibrary)
     : _lookup = dynamicLibrary.lookup;
+
+  void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandlePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_mycelium_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle',
+      );
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle =
+      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandlePtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandlePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_mycelium_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle',
+      );
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle =
+      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandlePtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositoryPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_mycelium_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository',
+      );
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository =
+      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositoryPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositoryPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_mycelium_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository',
+      );
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository =
+      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositoryPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 }

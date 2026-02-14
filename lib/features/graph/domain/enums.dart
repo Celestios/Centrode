@@ -1,0 +1,1 @@
+enum NodeType { info, task, inter }

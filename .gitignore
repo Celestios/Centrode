@@ -52,4 +52,4 @@ app.*.map.json
 tavily-cli.exe
 result.json
 pubspec.lock
-
+mycelium.db
