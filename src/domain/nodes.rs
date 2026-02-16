@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use surrealdb::sql::Thing;
+// [REMOVED] use surrealdb::sql::Thing;
 
 // Standard attributes all nodes share (optional for input, mandatory for output)
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -11,8 +11,9 @@ pub struct BaseNode {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct INode {
-    #[serde(alias = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<Thing>,
+    // [CHANGED] Type is String, with custom serialization logic
+    #[serde(alias = "id", skip_serializing_if = "Option::is_none", with = "crate::domain::serde_helpers::option_thing_string")]
+    pub id: Option<String>,
     pub text: Option<String>,
     pub visual_formatting: Option<String>,
     pub layer: u8,
@@ -27,8 +28,9 @@ pub struct INode {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskNode {
-    #[serde(alias = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<Thing>,
+    // [CHANGED]
+    #[serde(alias = "id", skip_serializing_if = "Option::is_none", with = "crate::domain::serde_helpers::option_thing_string")]
+    pub id: Option<String>,
     pub text: Option<String>,
     pub due_date: Option<i64>,
     pub state: String, // e.g., "TODO", "DONE"
@@ -39,8 +41,9 @@ pub struct TaskNode {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InterNode {
-    #[serde(alias = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<Thing>,
+    // [CHANGED]
+    #[serde(alias = "id", skip_serializing_if = "Option::is_none", with = "crate::domain::serde_helpers::option_thing_string")]
+    pub id: Option<String>,
     pub verb: String,
     pub behavioral_features: Option<String>, // e.g., "active", "inhibiting"
     pub visual_formatting: Option<String>,   // JSON string for distinct edge styling
@@ -64,13 +67,14 @@ pub enum NodeOutput {
     Inter(InterNode), // [NEW] Enables fetching "Heavy Edges"
 }
 
-// [NEW] Helper to extract the ID regardless of type
+// [CHANGED] Helper to extract the ID regardless of type
 impl NodeOutput {
     pub fn id(&self) -> Option<String> {
         match self {
-            NodeOutput::Info(n) => n.id.as_ref().map(|t| t.to_string()),
-            NodeOutput::Task(n) => n.id.as_ref().map(|t| t.to_string()),
-            NodeOutput::Inter(n) => n.id.as_ref().map(|t| t.to_string()),
+            // Now simply clone the string, no formatting needed
+            NodeOutput::Info(n) => n.id.clone(),
+            NodeOutput::Task(n) => n.id.clone(),
+            NodeOutput::Inter(n) => n.id.clone(),
         }
     }
 }

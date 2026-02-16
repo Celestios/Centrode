@@ -30,7 +30,7 @@ lazy_static = "1.4"     # To maintain the global Database instance
 thiserror = "1.0"       # For typed domain errors
 
 # --- The Bridge ---
-flutter_rust_bridge = "2.0" 
+flutter_rust_bridge = "=2.11.1" 
 
 # --- Database ---
 surrealdb = { version = "2.0", features = ["kv-surrealkv", "kv-mem"] }
@@ -49,6 +49,14 @@ walkdir = "2.4"
 # --- Logging ---
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+futures = "0.3"
 
 [dev-dependencies]
 tempfile = "3"
+
+# [features]
+# frb = []
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
