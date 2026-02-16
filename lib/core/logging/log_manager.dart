@@ -13,7 +13,6 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart'; // Import generated FFI
-import 'package:path_provider/path_provider.dart';
 
 import 'log_models.dart';
 
@@ -64,9 +63,9 @@ class LogManager {
       return;
     }
 
-    // 1. Resolve platform-appropriate log path
-    final docDir = await getApplicationDocumentsDirectory();
-    final logPath = '${docDir.path}/mycelium.log';
+    // [FIX] Use Directory.current.path to place the log in the project root
+    // matching the Rust panic hook path during local development.
+    final logPath = '${Directory.current.path}/mycelium.log';
 
     // 2. Establish the Isolate Handshake with path payload
     final receivePort = ReceivePort();

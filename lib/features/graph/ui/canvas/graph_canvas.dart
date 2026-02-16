@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../state/graph_controller.dart';
 import '../../state/interaction_controller.dart';
+import '../../state/canvas_interaction_states.dart';
 import '../../domain/models.dart';
 import 'node_widget.dart';
 import 'relation_painter.dart';
+import 'inline_editor_overlay.dart';
 
 /// Extension on Rect to check if one rect fully contains another.
 extension RectExtension on Rect {
@@ -38,6 +40,18 @@ class _GraphCanvasState extends State<GraphCanvas> {
         onNodeMove: controller.updateNodePosition,
         onRelationCreate: controller.createRelation,
         onNodeDragUpdate: controller.movementNotifier.pulse, // Forces relation repaint during drag
+        getActiveEditId: () => controller.activeEditId,
+        onEnterEditMode: (id) {
+          // Directly signal intent to the controller
+          controller.enterEditMode(id);
+        },
+        onCommitActiveEdit: () {
+          // The overlay handles actual text commit via onTapOutside.
+          // This clears the edit state to dismiss the overlay.
+          controller.cancelActiveEdit();
+        },
+        getRelations: () => controller.relations,
+        onCreateNode: (pos) => controller.createNode(UiNodeType.info, pos),
       );
       // Trigger rebuild to use the initialized controller
       setState(() {});
@@ -108,12 +122,6 @@ class _GraphCanvasState extends State<GraphCanvas> {
             panEnabled: state is CanvasIdle,
             scaleEnabled: state is CanvasIdle,
             child: GestureDetector(
-              // Double-click to add node (only in idle state)
-              onDoubleTapDown: state is CanvasIdle
-                  ? (details) {
-                      controller.createNode(UiNodeType.info, details.localPosition);
-                    }
-                  : null,
               // Tap empty space to dismiss menus
               onTap: () {
                 controller.hideDeleteMenu();
@@ -178,7 +186,17 @@ class _GraphCanvasState extends State<GraphCanvas> {
                       },
                     ),
 
-                    // 2. Temporary Relation Drag Line (when drawing relation)
+                    // 2. Absolute Zenith: Transient Editor Overlay
+                    // Unified overlay for both nodes and relations
+                    if (controller.activeEditId != null)
+                      InlineEditorOverlay(
+                        key: ValueKey('editor_${controller.activeEditId}'),
+                        entityId: controller.activeEditId!,
+                        initialText: controller.nodeLookup[controller.activeEditId!]?.text ??
+                            controller.relations.firstWhere((r) => r.id == controller.activeEditId!).label,
+                      ),
+
+                    // 3. Temporary Relation Drag Line (when drawing relation)
                     if (state is RelationDrawing)
                       Positioned.fill(
                         child: CustomPaint(

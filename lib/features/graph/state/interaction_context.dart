@@ -1,0 +1,41 @@
+// lib/features/graph/state/interaction_context.dart
+import 'dart:ui';
+import '../domain/models.dart';
+
+/// Scoped capability interface for active interaction states.
+/// 
+/// This interface isolates the environment data and callbacks from the 
+/// controller's lifecycle methods, enabling the GoF State Pattern where
+/// state objects can interact with the context without direct coupling
+/// to the controller implementation.
+abstract interface class InteractionContext {
+  /// Registry of all node view states for hit-testing and position updates.
+  Map<String, NodeViewState> get nodeViewStates;
+  
+  /// Z-order tracking for proper hit-testing (last item is topmost).
+  List<String> get zOrder;
+  
+  /// Returns all relations for hit-testing relation labels.
+  Iterable<UiRelation> getRelations();
+  
+  /// Callback when a node move operation completes.
+  void onNodeMove(String id, Offset pos);
+  
+  /// Callback when a relation is created between two nodes.
+  void onRelationCreate(String from, String to);
+  
+  /// Callback to trigger relation layer repaint during node drag.
+  void onNodeDragUpdate();
+  
+  /// Callback to commit the active text edit.
+  void onCommitActiveEdit();
+  
+  /// Returns the ID of the entity currently being edited, or null.
+  String? getActiveEditId();
+  
+  /// Callback to enter edit mode for an entity (node or relation).
+  void onEnterEditMode(String id);
+  
+  /// Callback to create a new node at the specified position.
+  void onCreateNode(Offset position);
+}

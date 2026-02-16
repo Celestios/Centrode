@@ -84,65 +84,29 @@ class SpatialHashGrid {
 }
 
 // -----------------------------------------------------------------------------
-// Canvas Interaction State Machine (FSM)
-// -----------------------------------------------------------------------------
-
-/// Sealed base class for all canvas interaction states.
-/// Enables exhaustive pattern matching for state transitions.
-sealed class CanvasInteractionState {
-  const CanvasInteractionState();
-}
-
-/// The default idle state - no active interaction.
-class CanvasIdle extends CanvasInteractionState {
-  const CanvasIdle();
-}
-
-/// State when a node is being dragged.
-class NodeDragging extends CanvasInteractionState {
-  final String nodeId;
-  final Offset grabOffset; // Offset from node top-left to cursor
-
-  NodeDragging(this.nodeId, this.grabOffset);
-}
-
-/// State when drawing a new relation between nodes.
-class RelationDrawing extends CanvasInteractionState {
-  final String sourceNodeId;
-  final Offset currentCursorPosition;
-  final String? snappedTargetNodeId;
-
-  RelationDrawing(
-    this.sourceNodeId,
-    this.currentCursorPosition, {
-    this.snappedTargetNodeId,
-  });
-}
-
-// -----------------------------------------------------------------------------
 // Reactive ViewState for Granular Updates
 // -----------------------------------------------------------------------------
+// NOTE: Canvas Interaction State Machine (FSM) classes have been moved to
+// lib/features/graph/state/canvas_interaction_states.dart as part of the
+// GoF State Pattern refactoring. This enables polymorphic dispatch and
+// eliminates circular dependencies between models and controller logic.
 
 /// Manages reactive spatial state for a node, decoupling high-frequency
 /// position updates from the structural graph state.
 class NodeViewState {
   final String nodeId;
   final ValueNotifier<Offset> positionNotifier;
-  final ValueNotifier<Size> sizeNotifier = ValueNotifier(Size.zero);
+  final ValueNotifier<Size> sizeNotifier; // Synchronous mathematical truth
 
   NodeViewState(UiNode node)
       : nodeId = node.id,
-        positionNotifier = ValueNotifier<Offset>(node.position);
+        positionNotifier = ValueNotifier<Offset>(node.position),
+        sizeNotifier = ValueNotifier<Size>(node.size); // Synchronous initialization
 
   /// Returns the bounding rect combining position and size.
   Rect get rect => positionNotifier.value & sizeNotifier.value;
 
-  /// Updates the size if it has changed.
-  void updateSize(Size newSize) {
-    if (sizeNotifier.value != newSize) {
-      sizeNotifier.value = newSize;
-    }
-  }
+  // updateSize(Size newSize) removed to ensure domain-driven constraints
 
   /// Updates position by a delta amount during drag operations.
   void updatePosition(Offset delta) {
@@ -446,6 +410,18 @@ class UiRelation {
         )
     );
   }
+
+  /// Creates a copy of this relation with optionally updated fields.
+  /// Used for optimistic label updates during inline editing.
+  UiRelation copyWith({String? id, String? label, Color? color}) {
+    return UiRelation(
+      id: id ?? this.id,
+      fromNodeId: fromNodeId,
+      toNodeId: toNodeId,
+      label: label ?? this.label,
+      color: color ?? this.color,
+    );
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -498,9 +474,9 @@ class MoveNodeCommand implements GraphCommand {
   @override
   Future<void> execute() async {
     final patchJson = jsonEncode({
-      "visual_formatting": {
+      "visual_formatting": jsonEncode({
         "layout": { "graph": { "x": newPosition.dx, "y": newPosition.dy } }
-      }
+      })
     });
     await api.patchNodeProperties(table: tableName, id: targetId, jsonPatch: patchJson);
   }
@@ -542,5 +518,49 @@ class DeleteNodeCommand implements GraphCommand {
   void undo() {
     onUndo(nodeData);
     spatialGrid.insert(targetId, nodeData.position);
+  }
+}
+
+/// Command for updating text content with debounced write-behind sync.
+/// Handles both node text and relation labels with appropriate field mapping.
+class UpdateTextCommand implements GraphCommand {
+  @override
+  final String targetId;
+  final String tableName;
+  final String newText;
+  final String oldText;
+  final bool isRelation;
+  final AppHandle api;
+  final VoidCallback onUndo;
+
+  UpdateTextCommand({
+    required this.targetId,
+    required this.tableName,
+    required this.newText,
+    required this.oldText,
+    required this.isRelation,
+    required this.api,
+    required this.onUndo,
+  });
+
+  @override
+  Future<void> execute() async {
+    final tName = isRelation ? "relates_to" : tableName;
+    final field = (tName == "inter_node" || isRelation) ? "verb" : "text";
+    final patchJson = jsonEncode({field: newText});
+
+    if (isRelation) {
+      // Defensive Gate: Relations need table prefix since only ID is passed
+      final String ffiId = targetId.contains(':') ? targetId : "$tName:$targetId";
+      await api.patchRelation(id: ffiId, jsonPatch: patchJson);
+    } else {
+      // Nodes: Rust combines table + id internally, pass raw ID
+      await api.patchNodeProperties(table: tName, id: targetId, jsonPatch: patchJson);
+    }
+  }
+
+  @override
+  void undo() {
+    onUndo();
   }
 }

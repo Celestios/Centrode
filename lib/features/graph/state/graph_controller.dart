@@ -141,6 +141,12 @@ class GraphController extends ChangeNotifier {
   // Tracks the last confirmed DB positions to prevent "Superseded Rollback Traps"
   final Map<String, Offset> _lastConfirmedDbPositions = {};
 
+  // The entity currently being edited in the UI (node or relation ID)
+  // Used to trigger inline text editing mode and auto-focus
+  // [REFACTORED]: UI primitives (TextEditingController, FocusNode) purged to decouple domain from UI.
+  // The overlay now manages its own ephemeral editing state.
+  String? activeEditId;
+
   // Public Getter (ReadOnly view for UI)
   List<UiNode> get nodes => _nodes.values.toList();
   List<UiRelation> get relations => _relations.values.toList();
@@ -166,6 +172,8 @@ class GraphController extends ChangeNotifier {
     for (var state in allNodeViewStates.values) {
       state.dispose();
     }
+    // [DELETED]: activeTextController and activeFocusNode disposal removed.
+    // The overlay now manages its own ephemeral editing state.
     visibleNodeIds.dispose();
     movementNotifier.dispose();
     super.dispose();
@@ -240,45 +248,86 @@ class GraphController extends ChangeNotifier {
   // 2. WRITE OPERATIONS (OPTIMISTIC)
   // ---------------------------------------------------------------------------
 
-  /// Creates a node pessimistically - awaits Rust confirmation before UI injection.
-  /// Implements the Pessimistic Creation Pattern to ensure UI reflects database truth.
+  /// Creates a node optimistically with immediate UI injection (T=0.0ms pattern).
+  /// Injects a temp ID first, then swaps to real ID after FFI confirmation.
+  /// Implements the Optimistic Creation Pattern for instant UI feedback.
   Future<void> createNode(UiNodeType type, Offset position) async {
-    _log.fine('Attempting to create node of type $type at $position');
-    
-    // A. Define the initial parameters (Do NOT inject into UI yet)
-    UiNode tempNode;
-    final tempId = const Uuid().v4(); // Only used for the Rust input requirement
-    
+    final tempId = "temp_${const Uuid().v4()}";
+    _log.fine('Optimistic Injection: $tempId at $position');
+
+    // 1. Instantiate UI Model based on type
+    UiNode node;
     switch (type) {
       case UiNodeType.task:
-        tempNode = TaskUiNode(id: tempId, position: position, text: "New Task", state: "TODO");
+        node = TaskUiNode(id: tempId, position: position, text: "New Task", state: "TODO");
         break;
       case UiNodeType.inter:
-        tempNode = InterUiNode(id: tempId, position: position, verb: "connects");
+        node = InterUiNode(id: tempId, position: position, verb: "connects");
         break;
       case UiNodeType.info:
-        tempNode = InfoUiNode(id: tempId, position: position, text: "New Note");
+        node = InfoUiNode(id: tempId, position: position, text: "New Note");
         break;
     }
 
+    // 2. Inject into UI immediately (T=0) - Optimistic Pattern
+    _nodes[tempId] = node;
+    allNodeViewStates[tempId] = NodeViewState(node);
+    spatialHash.insert(tempId, position);
+    
+    // [FIX]: Force visibility if the canvas has been panned/zoomed
+    if (visibleNodeIds.value.isNotEmpty) {
+      visibleNodeIds.value = {...visibleNodeIds.value, tempId};
+    }
+    
+    enterEditMode(tempId); // Signal intent to edit
+    notifyListeners();
+
     try {
-      // B. Await the strict FFI database insertion
-      final input = tempNode.toInput();
-      final realId = await _api.createNode(input: input);
+      // 3. Background Sync - Await FFI confirmation
+      final realId = await _api.createNode(input: node.toInput());
 
-      // C. Update the Canonical ID
-      tempNode.id = realId;
-
-      // D. Synchronous Local Cache Injection
-      _nodes[realId] = tempNode;
-      allNodeViewStates[realId] = NodeViewState(tempNode);
-      spatialHash.insert(realId, position);
+      // 4. ID Swap - Seamlessly transfer state from temp to real ID
+      final activeNode = _nodes.remove(tempId);
+      final activeVs = allNodeViewStates.remove(tempId);
       
-      _log.info('Node created successfully: $realId');
+      if (activeNode != null && activeVs != null) {
+        activeNode.id = realId;
+        _nodes[realId] = activeNode;
+        allNodeViewStates[realId] = activeVs;
+        
+        // Update spatial hash with new ID
+        spatialHash.remove(tempId, activeNode.position);
+        spatialHash.insert(realId, activeNode.position);
+        
+        // [FIX]: Migrate visibility to real ID
+        if (visibleNodeIds.value.isNotEmpty) {
+          final newSet = {...visibleNodeIds.value};
+          newSet.remove(tempId);
+          newSet.add(realId);
+          visibleNodeIds.value = newSet;
+        }
+        
+        // Transfer active edit state if still editing
+        if (activeEditId == tempId) {
+          activeEditId = realId;
+        }
+        
+        _log.info('ID Swap Complete: $tempId -> $realId');
+      }
+      
       notifyListeners();
-
     } catch (e) {
-      _log.severe('Failed to create node mathematically', e);
+      _log.severe('Optimistic sync failed', e);
+      // Rollback - remove the optimistic node
+      _nodes.remove(tempId);
+      final vs = allNodeViewStates.remove(tempId);
+      vs?.dispose();
+      spatialHash.remove(tempId, position);
+      
+      if (activeEditId == tempId) {
+        activeEditId = null;
+      }
+      
       errorMessage = "Creation failed: $e";
       notifyListeners();
     }
@@ -301,15 +350,16 @@ class GraphController extends ChangeNotifier {
 
     // C. Sync with Rust
     try {
+      // [FIX] Double-encode the inner layout object into a string
       final patchJson = jsonEncode({
-        "visual_formatting": {
+        "visual_formatting": jsonEncode({
             "layout": {
                 "graph": {
                     "x": node.position.dx,
                     "y": node.position.dy
                 }
             }
-        }
+        })
       });
 
       // We call 'patch_node_properties'.
@@ -320,8 +370,11 @@ class GraphController extends ChangeNotifier {
       String tableName;
       if (node is TaskUiNode) {
         tableName = "task_node";
-      } else if (node is InterUiNode) tableName = "inter_node";
-      else tableName = "inode";
+      } else if (node is InterUiNode) {
+        tableName = "inter_node";
+      } else {
+        tableName = "inode";
+      }
 
       await _api.patchNodeProperties(
           table: tableName,
@@ -356,11 +409,11 @@ class GraphController extends ChangeNotifier {
     _nodes[id] = updatedNode;
 
     try {
-      // B. Extract payload from the fresh copy
+      // [FIX] Double-encode the inner layout object into a string
       final patchJson = jsonEncode({
-        "visual_formatting": {
+        "visual_formatting": jsonEncode({
             "layout": { "graph": { "x": updatedNode.position.dx, "y": updatedNode.position.dy } }
-        }
+        })
       });
 
       final tableName = _getTableName(updatedNode);
@@ -424,6 +477,82 @@ class GraphController extends ChangeNotifier {
     if (node is TaskUiNode) return "task_node";
     if (node is InterUiNode) return "inter_node";
     return "inode";
+  }
+
+  /// Commits text changes from inline editing with debounced write-behind sync.
+  /// Handles both node text and relation labels with appropriate field mapping.
+  void commitEntityText(String id, String newText) {
+    final node = _nodes[id];
+    final rel = _relations[id];
+    final oldText = node?.text ?? rel?.label ?? "";
+
+    // No change - just clear edit state
+    if (newText == oldText) {
+      activeEditId = null;
+      notifyListeners();
+      return;
+    }
+
+    // Update Local Model optimistically
+    if (node != null) {
+      node.text = newText;
+      if (node is InterUiNode) {
+        node.verb = newText;
+      }
+    } else if (rel != null) {
+      _relations[id] = UiRelation(
+        id: rel.id,
+        fromNodeId: rel.fromNodeId,
+        toNodeId: rel.toNodeId,
+        label: newText,
+        color: rel.color,
+      );
+    }
+
+    // Clear edit state - the overlay manages its own controllers
+    activeEditId = null;
+
+    // Queue FFI Patch with debouncing
+    _processor.queueCommand(UpdateTextCommand(
+      targetId: id,
+      tableName: node != null ? _getTableName(node) : "relates_to",
+      newText: newText,
+      oldText: oldText,
+      isRelation: rel != null,
+      api: _api,
+      onUndo: () {
+        // Rollback local state on FFI failure
+        if (node != null) {
+          node.text = oldText;
+          if (node is InterUiNode) {
+            node.verb = oldText;
+          }
+        } else if (rel != null) {
+          _relations[id] = UiRelation(
+            id: rel.id,
+            fromNodeId: rel.fromNodeId,
+            toNodeId: rel.toNodeId,
+            label: oldText,
+            color: rel.color,
+          );
+        }
+        notifyListeners();
+      },
+    ));
+    
+    notifyListeners();
+  }
+
+  /// Cancels the active text edit without committing changes.
+  void cancelActiveEdit() {
+    activeEditId = null;
+    notifyListeners();
+  }
+
+  /// Sets the active edit ID and notifies the UI to mount the overlay.
+  void enterEditMode(String id) {
+    activeEditId = id;
+    notifyListeners();
   }
 
   /// Updates the visible node set based on the current viewport bounds.

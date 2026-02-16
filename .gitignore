@@ -55,3 +55,5 @@ pubspec.lock
 mycelium.db
 /.vscode
 .gitignore
+/.Archive
+/.constitution

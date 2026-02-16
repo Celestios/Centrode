@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import '../domain/models.dart';
+import 'canvas_interaction_states.dart';
+import 'interaction_context.dart';
 
 /// The Interaction Controller (FSM Engine)
 ///
 /// This engine circumvents the Gesture Arena by processing raw PointerEvents.
 /// It centralizes all pointer events into a math-driven FSM that operates in
 /// canvas space, decoupling user intent from the Flutter Widget tree.
-class InteractionController {
+///
+/// Implements the GoF State Pattern where state objects handle their own
+/// event processing, enabling polymorphic dispatch without switch statements.
+/// The controller implements [InteractionContext] to provide capabilities
+/// to state objects while maintaining encapsulation.
+class InteractionController implements InteractionContext {
   final Logger _log = Logger('InteractionController');
 
   /// The current interaction state of the canvas.
@@ -18,27 +25,92 @@ class InteractionController {
   final TransformationController transformController;
 
   /// Registry of all node view states for hit-testing.
+  @override
   final Map<String, NodeViewState> nodeViewStates;
 
   /// Callback when a node move operation completes.
-  final Function(String id, Offset pos) onNodeMove;
+  final Function(String id, Offset pos) _onNodeMove;
 
   /// Callback when a relation is created between two nodes.
-  final Function(String from, String to) onRelationCreate;
+  final Function(String from, String to) _onRelationCreate;
 
   /// Callback to trigger relation layer repaint during node drag.
-  final VoidCallback onNodeDragUpdate;
+  final VoidCallback _onNodeDragUpdate;
+
+  /// Getter to check if there's an active text edit in progress.
+  final String? Function() _getActiveEditId;
+
+  /// Callback to enter edit mode for an entity (node or relation).
+  final Function(String id) _onEnterEditMode;
+
+  /// Callback to commit the active edit.
+  final VoidCallback _onCommitActiveEdit;
+
+  /// Callback to create a new node at the specified position.
+  final Function(Offset position) _onCreateNode;
+
+  /// Getter for all relations (for hit-testing relation labels).
+  final Iterable<UiRelation> Function() _getRelations;
 
   /// Z-order tracking for proper hit-testing (last item is topmost).
-  final List<String> _zOrder = [];
+  @override
+  final List<String> zOrder = [];
+
+  // Double-tap detection state
+  DateTime? _lastPointerDownTime;
+  Offset? _lastPointerDownPos;
 
   InteractionController({
     required this.transformController,
     required this.nodeViewStates,
-    required this.onNodeMove,
-    required this.onRelationCreate,
-    required this.onNodeDragUpdate,
-  });
+    required Function(String id, Offset pos) onNodeMove,
+    required Function(String from, String to) onRelationCreate,
+    required VoidCallback onNodeDragUpdate,
+    required String? Function() getActiveEditId,
+    required Function(String id) onEnterEditMode,
+    required VoidCallback onCommitActiveEdit,
+    required Function(Offset position) onCreateNode,
+    required Iterable<UiRelation> Function() getRelations,
+  })  : _onNodeMove = onNodeMove,
+        _onRelationCreate = onRelationCreate,
+        _onNodeDragUpdate = onNodeDragUpdate,
+        _getActiveEditId = getActiveEditId,
+        _onEnterEditMode = onEnterEditMode,
+        _onCommitActiveEdit = onCommitActiveEdit,
+        _onCreateNode = onCreateNode,
+        _getRelations = getRelations;
+
+  // ---------------------------------------------------------------------------
+  // InteractionContext Implementation
+  // ---------------------------------------------------------------------------
+
+  @override
+  void onNodeMove(String id, Offset pos) => _onNodeMove(id, pos);
+
+  @override
+  void onRelationCreate(String from, String to) => _onRelationCreate(from, to);
+
+  @override
+  void onNodeDragUpdate() => _onNodeDragUpdate();
+
+  @override
+  String? getActiveEditId() => _getActiveEditId();
+
+  @override
+  void onEnterEditMode(String id) => _onEnterEditMode(id);
+
+  @override
+  void onCommitActiveEdit() => _onCommitActiveEdit();
+
+  @override
+  void onCreateNode(Offset position) => _onCreateNode(position);
+
+  @override
+  Iterable<UiRelation> getRelations() => _getRelations();
+
+  // ---------------------------------------------------------------------------
+  // FSM Engine
+  // ---------------------------------------------------------------------------
 
   /// Centralized state mutation to guarantee FSM observability.
   /// Logs state transitions for telemetry and debugging purposes.
@@ -51,7 +123,7 @@ class InteractionController {
 
   /// Updates the z-order list. Call this when nodes are added/removed/reordered.
   void updateZOrder(List<String> newOrder) {
-    _zOrder
+    zOrder
       ..clear()
       ..addAll(newOrder);
   }
@@ -59,7 +131,7 @@ class InteractionController {
   /// Converts a screen position to canvas coordinates.
   Offset _screenToCanvas(Offset screenPos) {
     final transform = transformController.value;
-    
+
     // Guard against singular matrix (scale = 0)
     if (transform.determinant() == 0.0) return screenPos;
 
@@ -69,114 +141,53 @@ class InteractionController {
     );
   }
 
-  /// Handles pointer down events. Performs hit-testing to determine interaction.
+  /// Processes double-tap detection and returns true if this is a double-tap.
+  bool _processDoubleTap(Offset pCanvas) {
+    final now = DateTime.now();
+    bool isDoubleTap = false;
+
+    if (_lastPointerDownTime != null &&
+        now.difference(_lastPointerDownTime!).inMilliseconds < 300 &&
+        _lastPointerDownPos != null &&
+        (_lastPointerDownPos! - pCanvas).distance < 20.0) {
+      isDoubleTap = true;
+    }
+
+    _lastPointerDownTime = now;
+    _lastPointerDownPos = pCanvas;
+
+    return isDoubleTap;
+  }
+
+  /// Handles pointer down events with polymorphic dispatch.
+  /// Delegates to the current state's handlePointerDown method.
   void handlePointerDown(PointerDownEvent e) {
     final pCanvas = _screenToCanvas(e.localPosition);
+    final isDoubleTap = _processDoubleTap(pCanvas);
 
-    // Z-index descending check (topmost first)
-    final nodeIds = _zOrder.isNotEmpty ? _zOrder.reversed : nodeViewStates.keys.toList().reversed;
-    
-    for (final nodeId in nodeIds) {
-      final vs = nodeViewStates[nodeId];
-      if (vs == null) continue;
-      if (vs.sizeNotifier.value == Size.zero) continue;
-
-      final nodeRect = vs.rect;
-      
-      // Port Hit-Test: Right Center Port (for relation drawing)
-      final portRect = Rect.fromCenter(
-        center: nodeRect.centerRight,
-        width: 30,
-        height: 30,
-      );
-
-      if (portRect.contains(pCanvas)) {
-        // Start drawing a relation from this node's port
-        _transitionTo(RelationDrawing(nodeId, pCanvas));
-        return;
-      } else if (nodeRect.contains(pCanvas)) {
-        // Start dragging this node
-        _transitionTo(NodeDragging(nodeId, pCanvas - vs.positionNotifier.value));
-        return;
-      }
-    }
-    
-    // No hit - return to idle
-    _transitionTo(const CanvasIdle());
+    // Polymorphic dispatch to state object
+    final newState = state.value.handlePointerDown(e, pCanvas, this, isDoubleTap);
+    _transitionTo(newState);
   }
 
-  /// Handles pointer move events. Updates the current interaction state.
+  /// Handles pointer move events with polymorphic dispatch.
+  /// Delegates to the current state's handlePointerMove method.
   void handlePointerMove(PointerMoveEvent e) {
     final pCanvas = _screenToCanvas(e.localPosition);
-    final current = state.value;
-
-    if (current is NodeDragging) {
-      // Update node position during drag
-      final vs = nodeViewStates[current.nodeId];
-      if (vs != null) {
-        vs.positionNotifier.value = pCanvas - current.grabOffset;
-        onNodeDragUpdate(); // Forces relation layer to repaint instantly
-      }
-    } else if (current is RelationDrawing) {
-      // L2 Snapping Logic - find nearby target node
-      String? snappedId;
-      final nodeIds = _zOrder.isNotEmpty 
-          ? _zOrder.reversed 
-          : nodeViewStates.keys.toList().reversed;
-      
-      for (final nodeId in nodeIds) {
-        if (nodeId == current.sourceNodeId) continue;
-        
-        final vs = nodeViewStates[nodeId];
-        if (vs == null) continue;
-        if (vs.sizeNotifier.value == Size.zero) continue;
-
-        // Check distance to target's left port (centerLeft)
-        final dist = (pCanvas - vs.rect.centerLeft).distance;
-        if (dist < 40.0) {
-          snappedId = nodeId;
-          break;
-        }
-      }
-      
-      // Only log L2 Snapping if it actually changes target state to avoid log flooding
-      if (snappedId != current.snappedTargetNodeId) {
-        if (snappedId != null) _log.finer('Relation snapped to target: $snappedId');
-      }
-      
-      _transitionTo(RelationDrawing(
-        current.sourceNodeId,
-        pCanvas,
-        snappedTargetNodeId: snappedId,
-      ));
-    }
+    _transitionTo(state.value.handlePointerMove(e, pCanvas, this));
   }
 
-  /// Handles pointer up events. Finalizes the current interaction.
+  /// Handles pointer up events with polymorphic dispatch.
+  /// Delegates to the current state's handlePointerUp method.
   void handlePointerUp(PointerUpEvent e) {
-    final current = state.value;
-
-    if (current is NodeDragging) {
-      // Finalize node position
-      final vs = nodeViewStates[current.nodeId];
-      if (vs != null) {
-        onNodeMove(current.nodeId, vs.positionNotifier.value);
-      }
-    } else if (current is RelationDrawing) {
-      // Create relation if we have a valid target
-      if (current.snappedTargetNodeId != null) {
-        onRelationCreate(current.sourceNodeId, current.snappedTargetNodeId!);
-      }
-    }
-    
-    // Return to idle state
-    _transitionTo(const CanvasIdle());
+    _transitionTo(state.value.handlePointerUp(e, this));
   }
 
-  /// Handles pointer cancel events. Resets to idle without finalizing.
+  /// Handles pointer cancel events with polymorphic dispatch.
+  /// Delegates to the current state's handlePointerCancel method.
   void handlePointerCancel(PointerCancelEvent e) {
     _log.warning('Pointer event cancelled by OS. Resetting FSM to Idle.');
-    _transitionTo(const CanvasIdle());
+    _transitionTo(state.value.handlePointerCancel(e, this));
   }
 
   /// Disposes the state notifier.
