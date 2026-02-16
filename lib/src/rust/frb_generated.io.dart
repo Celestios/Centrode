@@ -13,6 +13,7 @@ import 'domain/relations.dart';
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
 import 'persistence/repo.dart';
+import 'telemetry.dart';
 
 abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RustLibApiImplPlatform({
@@ -73,6 +74,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
     dynamic raw,
   );
+
+  @protected
+  RustStreamSink<LogState> dco_decode_StreamSink_log_state_Sse(dynamic raw);
 
   @protected
   String dco_decode_String(dynamic raw);
@@ -140,6 +144,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  LogState dco_decode_log_state(dynamic raw);
+
+  @protected
   MapConfig dco_decode_map_config(dynamic raw);
 
   @protected
@@ -180,6 +187,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ThemeConfig dco_decode_theme_config(dynamic raw);
+
+  @protected
+  BigInt dco_decode_u_64(dynamic raw);
 
   @protected
   int dco_decode_u_8(dynamic raw);
@@ -234,6 +244,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   Repository
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RustStreamSink<LogState> sse_decode_StreamSink_log_state_Sse(
     SseDeserializer deserializer,
   );
 
@@ -305,6 +320,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  LogState sse_decode_log_state(SseDeserializer deserializer);
+
+  @protected
   MapConfig sse_decode_map_config(SseDeserializer deserializer);
 
   @protected
@@ -351,6 +369,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ThemeConfig sse_decode_theme_config(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
@@ -418,6 +439,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
     Repository self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_log_state_Sse(
+    RustStreamSink<LogState> self,
     SseSerializer serializer,
   );
 
@@ -518,6 +545,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_log_state(LogState self, SseSerializer serializer);
+
+  @protected
   void sse_encode_map_config(MapConfig self, SseSerializer serializer);
 
   @protected
@@ -571,6 +601,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_theme_config(ThemeConfig self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_8(int self, SseSerializer serializer);

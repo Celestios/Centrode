@@ -53,3 +53,5 @@ tavily-cli.exe
 result.json
 pubspec.lock
 mycelium.db
+/.vscode
+.gitignore

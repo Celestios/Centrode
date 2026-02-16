@@ -8,10 +8,21 @@ import '../domain/nodes.dart';
 import '../domain/relations.dart';
 import '../frb_generated.dart';
 import '../persistence/repo.dart';
+import '../telemetry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `GraphEvent`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`
+
+/// Initialization endpoint for the telemetry layer.
+/// Called by Dart during app startup to initialize the tracing subscriber.
+Future<void> setupLogger() => RustLib.instance.api.crateBridgeApiSetupLogger();
+
+/// Stream connection endpoint for FFI.
+/// Dart calls this after the DiskWriterIsolate is ready.
+/// Flushes the pre-stream buffer and starts streaming logs.
+Stream<LogState> createLogStream() =>
+    RustLib.instance.api.crateBridgeApiCreateLogStream();
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>>
 abstract class AppHandle implements RustOpaqueInterface {

@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
+import 'dart:collection'; // For ListQueue
 import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart'; // Add 'uuid' to pubspec.yaml
 
 // Domain Imports
@@ -12,14 +14,132 @@ import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/relations.dart';
 // We assume 'AppHandle' and 'GraphSnapshot' are generated here.
 
+// -----------------------------------------------------------------------------
+// Command Processor for Write-Behind Debouncing
+// -----------------------------------------------------------------------------
+
+/// Manages the lifecycle of state mutations with FIFO ordering for FFI calls.
+/// Implements write-behind debouncing to batch high-frequency spatial updates.
+class CommandProcessor {
+  final Logger _log = Logger('CommandProcessor');
+  final Map<String, Timer> _debouncers = {};
+  final Map<String, GraphCommand> _pendingCommands = {};
+  final ListQueue<GraphCommand> _executionQueue = ListQueue();
+  bool _isProcessing = false;
+  final Function(String) onError;
+
+  CommandProcessor({required this.onError});
+
+  /// Queues a command for execution with optional debouncing.
+  /// Set [immediate] to true to bypass the debounce timer (e.g., for deletes).
+  void queueCommand(GraphCommand cmd, {bool immediate = false}) {
+    _log.finer('Queueing command: ${cmd.runtimeType} [Target: ${cmd.targetId}] (Immediate: $immediate)');
+    
+    // 1. Cancel existing debouncer for this entity
+    _debouncers[cmd.targetId]?.cancel();
+    _debouncers.remove(cmd.targetId);
+
+    if (immediate) {
+      _executionQueue.removeWhere((c) => c.targetId == cmd.targetId);
+      _pendingCommands.remove(cmd.targetId);
+      _executionQueue.addLast(cmd);
+      _processQueue();
+    } else {
+      _pendingCommands[cmd.targetId] = cmd;
+      _debouncers[cmd.targetId] = Timer(const Duration(milliseconds: 300), () {
+        final pending = _pendingCommands.remove(cmd.targetId);
+        if (pending != null) {
+          _log.finer('Debounce window closed. Promoting ${cmd.targetId} to execution queue.');
+          _executionQueue.addLast(pending);
+          _processQueue();
+        }
+      });
+    }
+  }
+
+  Future<void> _processQueue() async {
+    if (_isProcessing) return;
+    _isProcessing = true;
+    
+    _log.fine('Flushing execution queue (${_executionQueue.length} operations pending)');
+
+    while (_executionQueue.isNotEmpty) {
+      final cmd = _executionQueue.removeFirst();
+      try {
+        _log.finest('Executing FFI boundary command for ${cmd.targetId}');
+        await cmd.execute();
+        // Update canonical DB baseline on success
+        if (cmd is MoveNodeCommand) cmd.onSuccess();
+      } catch (e) {
+        _log.severe('FFI Synchronization failed for ${cmd.targetId}. Executing strict rollback.', e);
+        cmd.undo();
+        // Drop pending mutations for this entity to prevent overriding the rollback
+        _executionQueue.removeWhere((c) => c.targetId == cmd.targetId);
+        _pendingCommands.remove(cmd.targetId);
+        onError("Sync failed: $e");
+      }
+    }
+    _isProcessing = false;
+  }
+
+  /// Flushes all pending commands immediately.
+  /// Called during dispose to prevent ghost states.
+  Future<void> flush() async {
+    for (var timer in _debouncers.values) {
+      timer.cancel();
+    }
+    _debouncers.clear();
+    _executionQueue.addAll(_pendingCommands.values);
+    _pendingCommands.clear();
+    await _processQueue();
+  }
+
+  /// Synchronously terminates all debouncers and drops pending FFI operations.
+  /// Mandatory for safe execution during synchronous UI teardown.
+  void flushSync() {
+    for (var timer in _debouncers.values) {
+      timer.cancel();
+    }
+    _debouncers.clear();
+    // Drop optimistic UI states that have not yet crossed the FFI boundary
+    _executionQueue.clear();
+    _pendingCommands.clear();
+  }
+}
+
+/// A lightweight notifier that pulses during node movement.
+/// Used to trigger relation repaints without full graph rebuilds.
+class MovementNotifier extends ChangeNotifier {
+  void pulse() => notifyListeners();
+}
+
 class GraphController extends ChangeNotifier {
   final AppHandle _api;
-  final Uuid _uuid = const Uuid();
+  final Logger _log = Logger('GraphController');
 
   // THE STATE
   // Access via .values for lists, but keep Map for lookups.
   final Map<String, UiNode> _nodes = {};
   final Map<String, UiRelation> _relations = {};
+
+  // Spatial Hash Grid for O(1) viewport culling queries
+  final SpatialHashGrid spatialHash = SpatialHashGrid();
+
+  // Reactive ViewState Registry for granular position updates
+  // Renamed to allNodeViewStates to indicate it holds ALL nodes (not just visible)
+  final Map<String, NodeViewState> allNodeViewStates = {};
+
+  // Visible node set for viewport culling (updated by canvas transform)
+  final ValueNotifier<Set<String>> visibleNodeIds = ValueNotifier({});
+
+  // Invalidation signal for relation layer repaints
+  final MovementNotifier movementNotifier = MovementNotifier();
+
+  // Command Processor for write-behind debouncing
+  late final CommandProcessor _processor;
+  
+  // Tracks the last confirmed DB positions to prevent "Superseded Rollback Traps"
+  final Map<String, Offset> _lastConfirmedDbPositions = {};
 
   // Public Getter (ReadOnly view for UI)
   List<UiNode> get nodes => _nodes.values.toList();
@@ -28,12 +148,50 @@ class GraphController extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
-  // Interaction State
+  // Interaction State (for delete menu only - other interactions handled by InteractionController)
   String? nodeShowingDeleteMenu;
-  String? draggingRelationSourceNode;
-  Offset? draggingRelationCurrentPosition;
 
-  GraphController(this._api);
+  GraphController(this._api) {
+    _processor = CommandProcessor(onError: (msg) {
+      errorMessage = msg;
+      notifyListeners();
+    });
+  }
+
+  @override
+  void dispose() {
+    // Replaces the hazardous async flush() with strict synchronous teardown
+    _processor.flushSync();
+    // Dispose all NodeViewState instances
+    for (var state in allNodeViewStates.values) {
+      state.dispose();
+    }
+    visibleNodeIds.dispose();
+    movementNotifier.dispose();
+    super.dispose();
+  }
+
+  /// Syncs the ViewState registry with the current nodes.
+  /// Removes ViewStates for deleted nodes and adds new ones.
+  /// Also updates the spatial hash grid.
+  void _syncViewStates() {
+    // Cleanup removed nodes from both ViewState and SpatialHash
+    allNodeViewStates.removeWhere((id, state) {
+      if (!_nodes.containsKey(id)) {
+        spatialHash.remove(id, state.positionNotifier.value);
+        state.dispose();
+        return true;
+      }
+      return false;
+    });
+    // Add new nodes to both ViewState and SpatialHash
+    for (var node in _nodes.values) {
+      allNodeViewStates.putIfAbsent(node.id, () {
+        spatialHash.insert(node.id, node.position);
+        return NodeViewState(node);
+      });
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // 1. READ OPERATIONS
@@ -51,6 +209,7 @@ class GraphController extends ChangeNotifier {
       final snapshot = await _api.getGraphSnapshot();
 
       _nodes.clear();
+      _relations.clear();
 
       // The FFI generator typically maps Vec<NodeOutput> to List<NodeOutput>
       // We iterate and convert them to our Domain Model.
@@ -59,11 +218,18 @@ class GraphController extends ChangeNotifier {
         _nodes[uiNode.id] = uiNode;
       }
 
-      // TODO: Handle Relations (snapshot.$2) and Config (snapshot.$3) similarly
+      // Load and cache relations
+      for (final ffiRel in snapshot.$2) {
+        final uiRel = UiRelation.fromFFI(ffiRel);
+        _relations[uiRel.id] = uiRel;
+      }
+
+      // Sync ViewStates after populating nodes
+      _syncViewStates();
 
     } catch (e) {
       errorMessage = "Failed to load graph: $e";
-      print(errorMessage);
+      _log.severe('Failed to load graph snapshot', e);
     } finally {
       isLoading = false;
       notifyListeners();
@@ -74,87 +240,73 @@ class GraphController extends ChangeNotifier {
   // 2. WRITE OPERATIONS (OPTIMISTIC)
   // ---------------------------------------------------------------------------
 
-  /// Creates a node immediately in UI, then syncs with DB.
-  Future<void> addNode(UiNodeType type, Offset position) async {
-    // A. Generate Temporary Identity
-    final tempId = "temp_${_uuid.v4()}";
-
-    // B. Create the Optimistic Object
-    UiNode newNode;
+  /// Creates a node pessimistically - awaits Rust confirmation before UI injection.
+  /// Implements the Pessimistic Creation Pattern to ensure UI reflects database truth.
+  Future<void> createNode(UiNodeType type, Offset position) async {
+    _log.fine('Attempting to create node of type $type at $position');
+    
+    // A. Define the initial parameters (Do NOT inject into UI yet)
+    UiNode tempNode;
+    final tempId = const Uuid().v4(); // Only used for the Rust input requirement
+    
     switch (type) {
       case UiNodeType.task:
-        newNode = TaskUiNode(
-            id: tempId,
-            position: position,
-            text: "New Task",
-            state: "TODO");
+        tempNode = TaskUiNode(id: tempId, position: position, text: "New Task", state: "TODO");
         break;
       case UiNodeType.inter:
-         newNode = InterUiNode(
-             id: tempId,
-             position: position,
-             verb: "connects");
-         break;
+        tempNode = InterUiNode(id: tempId, position: position, verb: "connects");
+        break;
       case UiNodeType.info:
-        newNode = InfoUiNode(
-            id: tempId,
-            position: position,
-            text: "New Note");
+        tempNode = InfoUiNode(id: tempId, position: position, text: "New Note");
         break;
     }
 
-    // C. UPDATE UI INSTANTLY
-    _nodes[tempId] = newNode;
-    notifyListeners();
-
-    // D. ASYNC SYNC
     try {
-      // Convert UI Model -> FFI Input Model
-      final input = newNode.toInput();
-
-      // Call Rust
+      // B. Await the strict FFI database insertion
+      final input = tempNode.toInput();
       final realId = await _api.createNode(input: input);
 
-      // E. RECONCILIATION (Swap Temp ID for Real ID)
-      if (_nodes.containsKey(tempId)) {
-        final node = _nodes.remove(tempId)!; // Remove old key
-        node.id = realId;                     // Update internal ID
-        _nodes[realId] = node;                // Re-insert with new key
+      // C. Update the Canonical ID
+      tempNode.id = realId;
 
-        // No notifyListeners() needed if visual properties didn't change,
-        // but beneficial to ensure IDs are consistent in UI widgets.
-        notifyListeners();
-      }
+      // D. Synchronous Local Cache Injection
+      _nodes[realId] = tempNode;
+      allNodeViewStates[realId] = NodeViewState(tempNode);
+      spatialHash.insert(realId, position);
+      
+      _log.info('Node created successfully: $realId');
+      notifyListeners();
+
     } catch (e) {
-      // F. ROLLBACK ON ERROR
-      print("Failed to create node: $e");
-      _nodes.remove(tempId); // Delete the fake node
-      errorMessage = "Save failed";
+      _log.severe('Failed to create node mathematically', e);
+      errorMessage = "Creation failed: $e";
       notifyListeners();
     }
   }
 
-  /// Updates position immediately, debounces the network call (optional),
-  /// and handles failure.
-  Future<void> updateNodePosition(String id, Offset newPosition) async {
+  /// Syncs position from ViewState to UiNode and persists to backend.
+  /// Called when drag ends (not during drag for performance).
+  Future<void> syncAndPersistPosition(String id) async {
     final node = _nodes[id];
-    if (node == null) return;
+    final viewState = allNodeViewStates[id];
+    if (node == null || viewState == null) return;
 
     final oldPosition = node.position;
 
-    // A. Optimistic Update
-    node.position = newPosition;
-    notifyListeners();
+    // A. Sync from ViewState to UiNode
+    viewState.syncToNode(node);
 
-    // B. Sync with Rust
-    // (In a real app, use a Debouncer here to avoid spamming Rust 60 times/sec)
+    // B. Update spatial hash with new position
+    spatialHash.update(id, oldPosition, node.position);
+
+    // C. Sync with Rust
     try {
       final patchJson = jsonEncode({
         "visual_formatting": {
             "layout": {
                 "graph": {
-                    "x": newPosition.dx,
-                    "y": newPosition.dy
+                    "x": node.position.dx,
+                    "y": node.position.dy
                 }
             }
         }
@@ -178,11 +330,106 @@ class GraphController extends ChangeNotifier {
       );
 
     } catch (e) {
-      // C. Rollback
-      print("Failed to move node: $e");
+      // D. Rollback - restore old position in both ViewState and UiNode
+      _log.warning('Failed to move node, rolling back', e);
+      spatialHash.update(id, node.position, oldPosition); // Rollback spatial hash
+      viewState.positionNotifier.value = oldPosition;
       node.position = oldPosition;
+      movementNotifier.pulse(); // Trigger relation repaint
+    }
+  }
+
+  /// Commits a node position change from drag end, updating spatial hash.
+  /// This is the primary method for position persistence with viewport culling.
+  /// Implements the Data Projection Pattern to prevent stale payload issues.
+  Future<void> commitNodePosition(String id) async {
+    final oldNode = _nodes[id];
+    final viewState = allNodeViewStates[id];
+    
+    if (oldNode == null || viewState == null) return;
+
+    final newPosition = viewState.positionNotifier.value;
+    final oldPosition = oldNode.position;
+
+    // A. The Data Projection Pattern: Update the mathematical domain model
+    final updatedNode = oldNode.copyWith(position: newPosition);
+    _nodes[id] = updatedNode;
+
+    try {
+      // B. Extract payload from the fresh copy
+      final patchJson = jsonEncode({
+        "visual_formatting": {
+            "layout": { "graph": { "x": updatedNode.position.dx, "y": updatedNode.position.dy } }
+        }
+      });
+
+      final tableName = _getTableName(updatedNode);
+
+      // C. FFI Boundary Call
+      await _api.patchNodeProperties(
+          table: tableName,
+          id: id,
+          jsonPatch: patchJson
+      );
+
+    } catch (e) {
+      _log.warning('Rust synchronization failed. Rolling back to mathematical truth', e);
+      
+      // D. Strict Rollback
+      _nodes[id] = oldNode; // Revert Domain Model
+      viewState.positionNotifier.value = oldPosition; // Revert ViewModel ($S_{vol}$)
+      spatialHash.update(id, newPosition, oldPosition); // Revert Hit-Test Grid
+      
+      movementNotifier.pulse(); // Snap the lines back visually
       notifyListeners();
     }
+  }
+
+  /// Updates node position with write-behind debouncing via CommandProcessor.
+  /// Tracks the last confirmed DB position to prevent "Superseded Rollback Traps".
+  Future<void> updateNodePosition(String id, Offset newPosition) async {
+    final node = _nodes[id];
+    final viewState = allNodeViewStates[id];
+    if (node == null || viewState == null) return;
+
+    // Track the LAST confirmed position if this is a new sequence of moves
+    _lastConfirmedDbPositions.putIfAbsent(id, () => node.position);
+
+    final cmd = MoveNodeCommand(
+      targetId: id,
+      newPosition: newPosition,
+      rollbackPosition: _lastConfirmedDbPositions[id]!,
+      nodeViewState: viewState,
+      spatialGrid: spatialHash,
+      api: _api,
+      tableName: _getTableName(node),
+      onSuccess: () => _lastConfirmedDbPositions[id] = newPosition,
+      onUndo: (pos) {
+        node.position = pos;
+        movementNotifier.pulse(); // Visually snap vectors back to the recovered state
+      },
+    );
+
+    // Update optimistic local state (Persistent model)
+    final oldPosition = node.position;
+    spatialHash.update(id, oldPosition, newPosition);
+    node.position = newPosition;
+    
+    // Queue command with debouncing (300ms delay)
+    _processor.queueCommand(cmd);
+  }
+  
+  /// Helper to get the table name for a node type.
+  String _getTableName(UiNode node) {
+    if (node is TaskUiNode) return "task_node";
+    if (node is InterUiNode) return "inter_node";
+    return "inode";
+  }
+
+  /// Updates the visible node set based on the current viewport bounds.
+  /// Called by the canvas when the transform changes (pan/zoom).
+  void updateVisibleSet(Rect bufferRect) {
+    visibleNodeIds.value = spatialHash.queryRect(bufferRect);
   }
 
   // ---------------------------------------------------------------------------
@@ -203,88 +450,69 @@ class GraphController extends ChangeNotifier {
     }
   }
 
+  /// Deletes a node with immediate command execution (bypasses debounce timer).
+  /// Handles deletion race condition by ensuring delete executes before any pending moves.
   Future<void> deleteNode(String id) async {
     final node = _nodes[id];
     if (node == null) return;
 
+    _log.info('Initiating optimistic UI teardown for node: $id');
+
     // Optimistic Update
     _nodes.remove(id);
     if (nodeShowingDeleteMenu == id) nodeShowingDeleteMenu = null;
+    _syncViewStates(); // Cleanup ViewState for removed node
     notifyListeners();
 
-    try {
-      // Determine table based on type
-      String table;
-      switch (node.type) {
-        case UiNodeType.task: table = "task_node"; break;
-        case UiNodeType.inter: table = "inter_node"; break;
-        case UiNodeType.info: table = "inode"; break;
-      }
+    // Create delete command with rollback support
+    final cmd = DeleteNodeCommand(
+      targetId: id,
+      api: _api,
+      tableName: _getTableName(node),
+      nodeData: node,
+      onUndo: (restoredNode) {
+        _log.warning('Deletion rejected by database. Re-hydrating node: $id from cache.');
+        _nodes[id] = restoredNode;
+        _syncViewStates();
+        notifyListeners();
+      },
+      spatialGrid: spatialHash,
+    );
 
-      await _api.deleteNodeEntry(table: table, id: id);
-    } catch (e) {
-      print("Delete failed: $e");
-      _nodes[id] = node; // Rollback
-      errorMessage = "Delete failed";
-      notifyListeners();
-    }
+    // Immediate execution bypasses the 300ms move timer
+    _processor.queueCommand(cmd, immediate: true);
+    
+    // Clean up the last confirmed position tracking
+    _lastConfirmedDbPositions.remove(id);
   }
 
-  // Relation Creation Logic
-  void startRelationDrag(String sourceId, Offset startPos) {
-    draggingRelationSourceNode = sourceId;
-    draggingRelationCurrentPosition = startPos;
-    notifyListeners();
-  }
-
-  void updateRelationDrag(Offset currentPos) {
-    draggingRelationCurrentPosition = currentPos;
-    notifyListeners();
-  }
-
-  Future<void> endRelationDrag() async {
-    final sourceId = draggingRelationSourceNode;
-    final endPos = draggingRelationCurrentPosition;
-
-    // Reset state immediately
-    draggingRelationSourceNode = null;
-    draggingRelationCurrentPosition = null;
-    notifyListeners();
-
-    if (sourceId == null || endPos == null) return;
-
-    // Hit Test: Find target node
-    String? targetId;
-    for (final node in _nodes.values) {
-      if (node.id == sourceId) continue;
-
-      final rect = Rect.fromLTWH(
-        node.position.dx,
-        node.position.dy,
-        node.size.width,
-        node.size.height
-      );
-
-      if (rect.contains(endPos)) {
-        targetId = node.id;
-        break;
-      }
-    }
-
-    if (targetId != null) {
-      await createRelation(sourceId, targetId);
-    }
-  }
-
+  /// Creates a relation between two nodes.
+  /// Called by InteractionController when relation drawing completes.
+  /// Implements pre-flight validation to prevent duplicate relation crashes.
   Future<void> createRelation(String from, String to) async {
-    // 1. Create Relation Input
-    // Note: 'props' must match your Rust IRelation struct.
-    // We use default values for a generic connection.
+    final fromNode = _nodes[from];
+    final toNode = _nodes[to];
+    if (fromNode == null || toNode == null) return;
+
+    // A. Pre-flight Validation (O(1) duplicate check)
+    // Prevents "SurrealDB index unique_relation already contains..." crashes.
+    final bool relationExists = _relations.values.any(
+      (r) => r.fromNodeId == from && r.toNodeId == to
+    );
+
+    if (relationExists) {
+      _log.fine('Pre-flight Validation: Relation $from -> $to already exists. Aborting quietly.');
+      return; 
+    }
+
+    // B. Create Relation Input - Must inject table prefixes to satisfy Rust's DB parser
     final input = RelationInput(
-      from: from,
-      to: to,
+      from: "${_getTableName(fromNode)}:$from",
+      to: "${_getTableName(toNode)}:$to",
       props: const IRelation(
-        id: null, // Let DB generate
+        id: null,
+        inId: null,
+        outId: null,
         verb: "related",
         visualFormatting: null,
         directionless: false,
@@ -293,12 +521,13 @@ class GraphController extends ChangeNotifier {
     );
 
     try {
+      // C. Pessimistic FFI Call
       await _api.createRelation(input: input);
-      // Ideally reload graph or optimistically add relation here.
-      // For now, we rely on the next loadGraph or stream update.
+      
+      // D. Hydrate the UI with the confirmed mathematical state
       await loadGraph();
     } catch (e) {
-      print("Failed to create relation: $e");
+      _log.severe('Failed to create relation', e);
       errorMessage = "Link failed";
       notifyListeners();
     }

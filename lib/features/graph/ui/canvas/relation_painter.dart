@@ -3,9 +3,9 @@ import '../../domain/models.dart';
 
 class RelationPainter extends CustomPainter {
   final List<UiRelation> relations;
-  final Map<String, UiNode> nodeLookup; // To find positions
+  final Map<String, NodeViewState> nodeViewStates; // Use ViewStates for real-time positions
 
-  RelationPainter(this.relations, this.nodeLookup);
+  RelationPainter(this.relations, this.nodeViewStates);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -14,14 +14,31 @@ class RelationPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     for (final rel in relations) {
-      final from = nodeLookup[rel.fromNodeId];
-      final to = nodeLookup[rel.toNodeId];
+      final from = nodeViewStates[rel.fromNodeId];
+      final to = nodeViewStates[rel.toNodeId];
 
       if (from == null || to == null) continue;
 
-      // Calculate centers
-      final start = from.position + Offset(from.size.width / 2, from.size.height / 2);
-      final end = to.position + Offset(to.size.width / 2, to.size.height / 2);
+      // Access .value directly for the most current position during the pulse
+      final startPos = from.positionNotifier.value;
+      final endPos = to.positionNotifier.value;
+
+      // Dynamic vector geometry: use actual node sizes from ViewState
+      // Guard against early render passes where layout frames resolve to Size.zero
+      final startSize = from.sizeNotifier.value;
+      final endSize = to.sizeNotifier.value;
+
+      // Map correctly to the interaction ports (Right Center -> Left Center)
+      final startOffset = startSize == Size.zero
+          ? const Offset(100, 30) // Fallback to default node size (100x60) right port
+          : Offset(startSize.width, startSize.height / 2); // Right port
+
+      final endOffset = endSize == Size.zero
+          ? const Offset(0, 30) // Fallback to default node size (100x60) left port
+          : Offset(0, endSize.height / 2); // Left port
+
+      final start = startPos + startOffset;
+      final end = endPos + endOffset;
 
       paint.color = rel.color;
 
@@ -51,6 +68,8 @@ class RelationPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant RelationPainter oldDelegate) {
-    return true; // Optimize later to check list equality
+    // Always repaint when movementNotifier pulses
+    // Could optimize by comparing positions if needed
+    return true;
   }
 }

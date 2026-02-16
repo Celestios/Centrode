@@ -8,6 +8,8 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 class IRelation {
   final String? id;
+  final String? inId;
+  final String? outId;
   final String verb;
   final String? visualFormatting;
   final bool directionless;
@@ -15,6 +17,8 @@ class IRelation {
 
   const IRelation({
     this.id,
+    this.inId,
+    this.outId,
     required this.verb,
     this.visualFormatting,
     required this.directionless,
@@ -24,6 +28,8 @@ class IRelation {
   @override
   int get hashCode =>
       id.hashCode ^
+      inId.hashCode ^
+      outId.hashCode ^
       verb.hashCode ^
       visualFormatting.hashCode ^
       directionless.hashCode ^
@@ -35,6 +41,8 @@ class IRelation {
       other is IRelation &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          inId == other.inId &&
+          outId == other.outId &&
           verb == other.verb &&
           visualFormatting == other.visualFormatting &&
           directionless == other.directionless &&
