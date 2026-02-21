@@ -86,7 +86,7 @@ pub struct MapConfig {
     pub theme: ThemeConfig,            // Persistence of style system
 }
 
-pub fn resolve_node_style(theme: &ThemeConfig, node_type: &str, visual_formatting_json: &Option<String>) -> Result<StyleProfile, serde_json::Error> {
+pub fn resolve_node_style(theme: &ThemeConfig, node_type: &str, aesthetics_json: &Option<String>) -> Result<StyleProfile, serde_json::Error> {
     // 1. Start with Global Default
     let mut final_style = theme.global_default.clone();
 
@@ -96,7 +96,7 @@ pub fn resolve_node_style(theme: &ThemeConfig, node_type: &str, visual_formattin
     }
 
     // 3. Apply Instance Overrides (User explicitly colored this node)
-    if let Some(json) = visual_formatting_json {
+    if let Some(json) = aesthetics_json {
         let formatting: VisualFormatting = serde_json::from_str(json)?;
         if let Some(override_style) = formatting.overrides {
             final_style.merge(&override_style);

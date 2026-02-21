@@ -1,13 +1,14 @@
 use super::templates;
+use crate::domain::config::MapConfig;
 use crate::domain::nodes::{NodeInput, NodeOutput};
 use crate::domain::relations::RelationInput;
-use crate::domain::config::MapConfig;
 use anyhow::Result;
-use surrealdb::Surreal;
+use serde::Deserialize;
+use serde_json::Value;
 use surrealdb::engine::local::Db;
 use surrealdb::sql::Thing;
-use serde_json::Value;
-use serde::Deserialize; // [ADDED] Needed for the helper struct
+use surrealdb::Surreal;
+use tracing::{debug, error};
 
 // [CHANGED] Struct now holds state (the DB connection)
 #[derive(Clone)]
@@ -27,57 +28,37 @@ impl Repository {
     }
 
     pub async fn create_node(&self, input: NodeInput) -> Result<String> {
-        #[derive(Deserialize)]
-        struct CreatedId {
-            id: Thing,
-        }
-
         match input {
             NodeInput::Info(node) => {
-                let mut res = self.db.query(templates::CREATE_INODE)
-                    .bind(("text", node.text))
-                    .bind(("visual_formatting", node.visual_formatting))
-                    .bind(("layer", node.layer))
-                    .bind(("locked", node.locked))
-                    .bind(("tags", node.tags))
-                    .bind(("aliases", node.aliases))
-                    .bind(("comments", node.comments))
-                    .bind(("attachment", node.attachment))
-                    .bind(("created_at", node.created_at))
-                    .bind(("updated_at", node.updated_at))
-                    .await?;
-
-                let created: Option<CreatedId> = res.take(0)?;
-                let thing = created.ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?.id;
-                // [CHANGED] Return only the ID part (e.g. "xxxxx") not "table:xxxxx"
-                Ok(thing.id.to_string())
-            },
+                let created: Option<crate::domain::nodes::INode> =
+                    self.db.create("inode").content(node).await?;
+                let thing = created
+                    .ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?
+                    .id
+                    .ok_or_else(|| anyhow::anyhow!("ID is missing from created node"))?;
+                // Parse the "table:id" back to just "id"
+                let (_, id) = thing.split_once(':').unwrap_or(("", &thing));
+                Ok(id.to_string())
+            }
             NodeInput::Task(node) => {
-                let mut res = self.db.query(templates::CREATE_TASK_NODE)
-                    .bind(("text", node.text))
-                    .bind(("due_date", node.due_date))
-                    .bind(("state", node.state))
-                    .bind(("visual_formatting", node.visual_formatting))
-                    .bind(("created_at", node.created_at))
-                    .bind(("updated_at", node.updated_at))
-                    .await?;
-
-                let created: Option<CreatedId> = res.take(0)?;
-                let thing = created.ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?.id;
-                Ok(thing.id.to_string())
-            },
+                let created: Option<crate::domain::nodes::TaskNode> =
+                    self.db.create("task_node").content(node).await?;
+                let thing = created
+                    .ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?
+                    .id
+                    .ok_or_else(|| anyhow::anyhow!("ID is missing from created node"))?;
+                let (_, id) = thing.split_once(':').unwrap_or(("", &thing));
+                Ok(id.to_string())
+            }
             NodeInput::Inter(node) => {
-                let mut res = self.db.query(templates::CREATE_INTER_NODE)
-                    .bind(("verb", node.verb))
-                    .bind(("behavioral_features", node.behavioral_features))
-                    .bind(("visual_formatting", node.visual_formatting))
-                    .bind(("created_at", node.created_at))
-                    .bind(("updated_at", node.updated_at))
-                    .await?;
-
-                let created: Option<CreatedId> = res.take(0)?;
-                let thing = created.ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?.id;
-                Ok(thing.id.to_string())
+                let created: Option<crate::domain::nodes::InterNode> =
+                    self.db.create("inter_node").content(node).await?;
+                let thing = created
+                    .ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?
+                    .id
+                    .ok_or_else(|| anyhow::anyhow!("ID is missing from created node"))?;
+                let (_, id) = thing.split_once(':').unwrap_or(("", &thing));
+                Ok(id.to_string())
             }
         }
     }
@@ -91,74 +72,128 @@ impl Repository {
         let from = self.parse_record_id(&input.from)?;
         let to = self.parse_record_id(&input.to)?;
 
-        let mut res = self.db.query(templates::CREATE_RELATION)
+        let mut res = self
+            .db
+            .query(templates::CREATE_RELATION)
             .bind(("from", from))
             .bind(("to", to))
             .bind(("verb", input.props.verb))
-            .bind(("visual_formatting", input.props.visual_formatting))
+            .bind(("aesthetics", input.props.aesthetics))
             .bind(("directionless", input.props.directionless))
             .bind(("layer", input.props.layer))
             .await?;
 
         let created: Option<CreatedId> = res.take(0)?;
-        let thing = created.ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?.id;
+        let thing = created
+            .ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?
+            .id;
         // [CHANGED] Return only the ID part
         Ok(thing.id.to_string())
     }
 
     // [FIXED] Uses Thing::from to bypass non-exhaustive struct restrictions
     fn parse_record_id(&self, s: &str) -> Result<Thing> {
-        let (table, id) = s.split_once(':')
-            .ok_or_else(|| anyhow::anyhow!("Invalid record ID format: {}. Expected 'table:id'", s))?;
+        let (table, id) = s.split_once(':').ok_or_else(|| {
+            anyhow::anyhow!("Invalid record ID format: {}. Expected 'table:id'", s)
+        })?;
 
         Ok(Thing::from((table, id)))
     }
 
-    pub async fn get_node(&self, table: String, id: String) -> Result<Option<crate::domain::nodes::NodeOutput>> {
+    pub async fn get_node(
+        &self,
+        table: String,
+        id: String,
+    ) -> Result<Option<crate::domain::nodes::NodeOutput>> {
         // [FIXED] Bind as a single Thing object
         let record_id = Thing::from((table.as_str(), id.as_str()));
 
         match table.as_str() {
             "inode" => {
-                let mut res = self.db.query(templates::GET_NODE).bind(("id", record_id)).await?;
+                let mut res = self
+                    .db
+                    .query(templates::GET_NODE)
+                    .bind(("id", record_id))
+                    .await?;
                 let node: Option<crate::domain::nodes::INode> = res.take(0)?;
                 Ok(node.map(crate::domain::nodes::NodeOutput::Info))
-            },
+            }
             "task_node" => {
-                let mut res = self.db.query(templates::GET_NODE).bind(("id", record_id)).await?;
+                let mut res = self
+                    .db
+                    .query(templates::GET_NODE)
+                    .bind(("id", record_id))
+                    .await?;
                 let node: Option<crate::domain::nodes::TaskNode> = res.take(0)?;
                 Ok(node.map(crate::domain::nodes::NodeOutput::Task))
-            },
+            }
             "inter_node" => {
-                let mut res = self.db.query(templates::GET_NODE).bind(("id", record_id)).await?;
+                let mut res = self
+                    .db
+                    .query(templates::GET_NODE)
+                    .bind(("id", record_id))
+                    .await?;
                 let node: Option<crate::domain::nodes::InterNode> = res.take(0)?;
                 Ok(node.map(crate::domain::nodes::NodeOutput::Inter))
-            },
-            _ => Err(anyhow::anyhow!("Unknown table type: {}", table))
+            }
+            _ => Err(anyhow::anyhow!("Unknown table type: {}", table)),
         }
     }
 
-    pub async fn get_graph_snapshot(&self) -> Result<(Vec<crate::domain::nodes::NodeOutput>, Vec<crate::domain::relations::IRelation>, Option<MapConfig>)> {
+    pub async fn get_graph_snapshot(
+        &self,
+    ) -> Result<(
+        Vec<crate::domain::nodes::NodeOutput>,
+        Vec<crate::domain::relations::IRelation>,
+        Option<MapConfig>,
+    )> {
         // 1. Run all queries in parallel or batch
-        let mut responses = self.db.query(templates::GET_ALL_INODES)
+        let mut responses = self
+            .db
+            .query(templates::GET_ALL_INODES)
             .query(templates::GET_ALL_TASKS)
             .query(templates::GET_ALL_INTER_NODES)
             .query(templates::GET_ALL_RELATIONS)
             .query(templates::GET_MAP_METADATA)
             .await?;
 
-        // 2. Unpack Results (Indices match query order)
-        let inodes: Vec<crate::domain::nodes::INode> = responses.take(0)?;
-        let tasks: Vec<crate::domain::nodes::TaskNode> = responses.take(1)?;
-        let inters: Vec<crate::domain::nodes::InterNode> = responses.take(2)?;
-        let relations: Vec<crate::domain::relations::IRelation> = responses.take(3)?;
-        let metadata: Option<MapConfig> = responses.take::<Vec<MapConfig>>(4)?.pop();
+        // 2. Unpack Results with granular error tracing
+        let inodes: Vec<crate::domain::nodes::INode> = responses.take(0).map_err(|e| {
+            error!("Failed to deserialize inodes (index 0): {}", e);
+            e
+        })?;
+        let tasks: Vec<crate::domain::nodes::TaskNode> = responses.take(1).map_err(|e| {
+            error!("Failed to deserialize tasks (index 1): {}", e);
+            e
+        })?;
+        let inters: Vec<crate::domain::nodes::InterNode> = responses.take(2).map_err(|e| {
+            error!("Failed to deserialize inter_nodes (index 2): {}", e);
+            e
+        })?;
+        let relations: Vec<crate::domain::relations::IRelation> =
+            responses.take(3).map_err(|e| {
+                error!("Failed to deserialize relations (index 3): {}", e);
+                e
+            })?;
+        let metadata: Option<MapConfig> = responses
+            .take::<Vec<MapConfig>>(4)
+            .map_err(|e| {
+                error!("Failed to deserialize metadata (index 4): {}", e);
+                e
+            })?
+            .pop();
 
         // 3. Combine Nodes into one Polymorphic Vector
         let mut all_nodes = Vec::new();
-        for n in inodes { all_nodes.push(crate::domain::nodes::NodeOutput::Info(n)); }
-        for t in tasks { all_nodes.push(crate::domain::nodes::NodeOutput::Task(t)); }
-        for i in inters { all_nodes.push(crate::domain::nodes::NodeOutput::Inter(i)); }
+        for n in inodes {
+            all_nodes.push(crate::domain::nodes::NodeOutput::Info(n));
+        }
+        for t in tasks {
+            all_nodes.push(crate::domain::nodes::NodeOutput::Task(t));
+        }
+        for i in inters {
+            all_nodes.push(crate::domain::nodes::NodeOutput::Inter(i));
+        }
 
         Ok((all_nodes, relations, metadata))
     }
@@ -171,17 +206,37 @@ impl Repository {
 
     // [NEW] Dynamic Patching for Nodes
     pub async fn patch_node(&self, table: String, id: String, patch: Value) -> Result<String> {
-        let record_id = Thing::from((table.as_str(), id.as_str()));
+        debug!(
+            "REPO: patch_node called for {}/{} with patch: {:?}",
+            table, id, patch
+        );
 
-        // Uses SurrealDB's MERGE to update partial fields
-        let mut res = self.db.query("UPDATE $id MERGE $patch RETURN id")
-            .bind(("id", record_id))
+        // [VERIFICATION] Log the Thing being constructed
+        let thing = Thing::from((table.as_str(), id.as_str()));
+        debug!("REPO: Constructed Thing for update: {}", thing);
+
+        let mut res = self
+            .db
+            .query("UPDATE $id MERGE $patch RETURN id")
+            .bind(("id", thing.clone()))
             .bind(("patch", patch))
             .await?;
 
-        // We expect a record ID back if successful
         let updated: Option<Thing> = res.take("id")?;
-        Ok(updated.ok_or_else(|| anyhow::anyhow!("Failed to patch node: Record not found"))?.to_string())
+
+        match updated {
+            Some(t) => {
+                debug!(
+                    "REPO: patch_node successful for {}. Result ID: {}",
+                    thing, t
+                );
+                Ok(t.to_string())
+            }
+            None => {
+                error!("REPO: patch_node failed for {}: Record not found", thing);
+                Err(anyhow::anyhow!("Failed to patch node: Record not found"))
+            }
+        }
     }
 
     // [NEW] Cascading Delete for Nodes
@@ -196,17 +251,22 @@ impl Repository {
             COMMIT TRANSACTION;
         ";
 
-        self.db.query(query)
-            .bind(("target", record_id))
-            .await?;
+        self.db.query(query).bind(("target", record_id)).await?;
 
         Ok("Node and connected edges deleted successfully".to_string())
     }
 
     // [NEW] Relation Operations
-    pub async fn get_relation(&self, id: String) -> Result<Option<crate::domain::relations::IRelation>> {
+    pub async fn get_relation(
+        &self,
+        id: String,
+    ) -> Result<Option<crate::domain::relations::IRelation>> {
         let record_id = self.parse_record_id(&id)?;
-        let mut res = self.db.query("SELECT * FROM $id").bind(("id", record_id)).await?;
+        let mut res = self
+            .db
+            .query("SELECT * FROM $id")
+            .bind(("id", record_id))
+            .await?;
         Ok(res.take(0)?)
     }
 
@@ -217,22 +277,51 @@ impl Repository {
     }
 
     pub async fn update_relation_properties(&self, id: String, patch: Value) -> Result<String> {
+        debug!(
+            "REPO: update_relation_properties called for {} with patch: {:?}",
+            id, patch
+        );
         let record_id = self.parse_record_id(&id)?;
-        let mut res = self.db.query("UPDATE $id MERGE $patch RETURN id")
-            .bind(("id", record_id))
+        debug!("REPO: Parsed relation RecordID: {}", record_id);
+
+        let mut res = self
+            .db
+            .query("UPDATE $id MERGE $patch RETURN id")
+            .bind(("id", record_id.clone()))
             .bind(("patch", patch))
             .await?;
 
         let updated: Option<Thing> = res.take("id")?;
-        Ok(updated.ok_or_else(|| anyhow::anyhow!("Failed to update relation"))?.to_string())
+
+        match updated {
+            Some(thing) => {
+                debug!("REPO: update_relation_properties successful for {}", thing);
+                Ok(thing.to_string())
+            }
+            None => {
+                error!(
+                    "REPO: update_relation_properties failed for {}: Record not found",
+                    record_id
+                );
+                Err(anyhow::anyhow!(
+                    "Failed to update relation: Record not found"
+                ))
+            }
+        }
     }
 
-    pub async fn reroute_relation(&self, id: String, new_from: String, new_to: String) -> Result<String> {
+    pub async fn reroute_relation(
+        &self,
+        id: String,
+        new_from: String,
+        new_to: String,
+    ) -> Result<String> {
         let record_id = self.parse_record_id(&id)?;
         let from_record = self.parse_record_id(&new_from)?;
         let to_record = self.parse_record_id(&new_to)?;
 
-        self.db.query("UPDATE $id SET in = $from, out = $to")
+        self.db
+            .query("UPDATE $id SET in = $from, out = $to")
             .bind(("id", record_id))
             .bind(("from", from_record))
             .bind(("to", to_record))
@@ -247,9 +336,8 @@ impl Repository {
         &self,
         nodes: Vec<NodeOutput>,
         relations: Vec<crate::domain::relations::IRelation>,
-        metadata: Option<crate::domain::config::MapConfig>
+        metadata: Option<crate::domain::config::MapConfig>,
     ) -> anyhow::Result<()> {
-
         let mut inodes = Vec::new();
         let mut tasks = Vec::new();
         let mut inters = Vec::new();
@@ -264,7 +352,8 @@ impl Repository {
         }
 
         // Delegate to the existing bulk insert
-        self.import_graph_state(inodes, tasks, inters, relations, metadata).await
+        self.import_graph_state(inodes, tasks, inters, relations, metadata)
+            .await
     }
 
     pub async fn import_graph_state(
@@ -273,9 +362,8 @@ impl Repository {
         task_nodes: Vec<crate::domain::nodes::TaskNode>,
         inter_nodes: Vec<crate::domain::nodes::InterNode>,
         relations: Vec<crate::domain::relations::IRelation>,
-        metadata: Option<crate::domain::config::MapConfig>
+        metadata: Option<crate::domain::config::MapConfig>,
     ) -> anyhow::Result<()> {
-
         // TRANSACTION: "All or Nothing"
         // We delete everything then insert everything.
         // IDs are preserved because the Structs contain the `id: Option<Thing>` field,
@@ -301,7 +389,8 @@ impl Repository {
             COMMIT TRANSACTION;
         ";
 
-        self.db.query(sql)
+        self.db
+            .query(sql)
             .bind(("inodes", inodes))
             .bind(("task_nodes", task_nodes))
             .bind(("inter_nodes", inter_nodes))

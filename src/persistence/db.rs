@@ -1,6 +1,6 @@
+use super::schema;
 use surrealdb::engine::local::{Db, SurrealKv};
 use surrealdb::Surreal;
-use super::schema;
 
 pub struct Database;
 
@@ -10,7 +10,7 @@ impl Database {
     pub async fn connect(path: &str) -> anyhow::Result<Surreal<Db>> {
         // Initialize SurrealKV (file-based)
         let db = Surreal::new::<SurrealKv>(path).await?;
-        
+
         // Select Namespace/Database
         db.use_ns("mycelium").use_db("core").await?;
 

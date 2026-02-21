@@ -92,7 +92,7 @@ impl tracing::field::Visit for StringVisitor {
 /// # Performance Notes
 /// - Uses `Ordering::SeqCst` for atomic sequence generation
 /// - Microsecond precision timestamps via chrono
-pub struct FfiLoggerLayer;
+pub struct FfiLoggerLayer {}
 
 impl<S: tracing::Subscriber> Layer<S> for FfiLoggerLayer {
     fn on_event(&self, event: &tracing::Event<'_>, _ctx: tracing_subscriber::layer::Context<'_, S>) {
@@ -154,7 +154,7 @@ pub fn init_telemetry() {
     // Attach the filter to the registry with our FFI logger layer
     let subscriber = tracing_subscriber::registry()
         .with(filter)
-        .with(FfiLoggerLayer);
+        .with(FfiLoggerLayer {});
     let _ = tracing::subscriber::set_global_default(subscriber);
 
     // L5 FATAL PANIC HOOK

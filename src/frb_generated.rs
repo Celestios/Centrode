@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -2129952264;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1351778274;
 
 // Section: executor
 
@@ -603,6 +603,70 @@ fn wire__crate__bridge__api__AppHandle_new_impl(
         },
     )
 }
+fn wire__crate__bridge__api__AppHandle_patch_node_content_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "AppHandle_patch_node_content",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
+            >>::sse_decode(&mut deserializer);
+            let api_table = <String>::sse_decode(&mut deserializer);
+            let api_id = <String>::sse_decode(&mut deserializer);
+            let api_content_bytes = <Vec<u8>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => {
+                                    api_that_guard =
+                                        Some(api_that.lockable_decode_async_ref().await)
+                                }
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok = crate::bridge::api::AppHandle::patch_node_content(
+                            &*api_that_guard,
+                            api_table,
+                            api_id,
+                            api_content_bytes,
+                        )
+                        .await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__bridge__api__AppHandle_patch_node_properties_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -912,6 +976,76 @@ fn wire__crate__bridge__api__AppHandle_start_graph_stream_impl(
         },
     )
 }
+fn wire__crate__bridge__api__content_to_plain_text_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "content_to_plain_text",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_content = <crate::domain::base_models::Content>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok(
+                        crate::bridge::api::content_to_plain_text(api_content),
+                    )?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__bridge__api__create_content_from_text_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "create_content_from_text",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_text = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok(
+                        crate::bridge::api::create_content_from_text(api_text),
+                    )?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__bridge__api__create_log_stream_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -946,6 +1080,76 @@ fn wire__crate__bridge__api__create_log_stream_impl(
                         Ok(output_ok)
                     })()
                     .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__bridge__api__deserialize_content_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "deserialize_content",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_bytes = <Vec<u8>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let output_ok = crate::bridge::api::deserialize_content(api_bytes)?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__bridge__api__serialize_content_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "serialize_content",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_content = <crate::domain::base_models::Content>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let output_ok = crate::bridge::api::serialize_content(api_content)?;
+                        Ok(output_ok)
+                    })(),
                 )
             }
         },
@@ -1073,10 +1277,93 @@ impl SseDecode for String {
     }
 }
 
+impl SseDecode for crate::domain::base_models::BlockAttrs {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_level = <Option<u8>>::sse_decode(deserializer);
+        let mut var_language = <Option<String>>::sse_decode(deserializer);
+        return crate::domain::base_models::BlockAttrs {
+            level: var_level,
+            language: var_language,
+        };
+    }
+}
+
+impl SseDecode for crate::domain::base_models::BlockType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::domain::base_models::BlockType::Paragraph,
+            1 => crate::domain::base_models::BlockType::Heading,
+            2 => crate::domain::base_models::BlockType::BulletList,
+            3 => crate::domain::base_models::BlockType::OrderedList,
+            4 => crate::domain::base_models::BlockType::CodeBlock,
+            5 => crate::domain::base_models::BlockType::Blockquote,
+            _ => unreachable!("Invalid variant for BlockType: {}", inner),
+        };
+    }
+}
+
 impl SseDecode for bool {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         deserializer.cursor.read_u8().unwrap() != 0
+    }
+}
+
+impl SseDecode for crate::domain::base_models::Comment {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_text = <String>::sse_decode(deserializer);
+        let mut var_createdAt = <i64>::sse_decode(deserializer);
+        return crate::domain::base_models::Comment {
+            text: var_text,
+            created_at: var_createdAt,
+        };
+    }
+}
+
+impl SseDecode for crate::domain::base_models::Content {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_text = <String>::sse_decode(deserializer);
+        let mut var_blocks =
+            <Vec<crate::domain::base_models::ContentBlock>>::sse_decode(deserializer);
+        return crate::domain::base_models::Content {
+            text: var_text,
+            blocks: var_blocks,
+        };
+    }
+}
+
+impl SseDecode for crate::domain::base_models::ContentBlock {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_blockType = <crate::domain::base_models::BlockType>::sse_decode(deserializer);
+        let mut var_content =
+            <Vec<crate::domain::base_models::InlineElement>>::sse_decode(deserializer);
+        let mut var_attrs =
+            <Option<crate::domain::base_models::BlockAttrs>>::sse_decode(deserializer);
+        return crate::domain::base_models::ContentBlock {
+            block_type: var_blockType,
+            content: var_content,
+            attrs: var_attrs,
+        };
+    }
+}
+
+impl SseDecode for crate::domain::base_models::Coordinates {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_x = <i32>::sse_decode(deserializer);
+        let mut var_y = <i32>::sse_decode(deserializer);
+        let mut var_z = <u8>::sse_decode(deserializer);
+        return crate::domain::base_models::Coordinates {
+            x: var_x,
+            y: var_y,
+            z: var_z,
+        };
     }
 }
 
@@ -1094,6 +1381,13 @@ impl SseDecode for f64 {
     }
 }
 
+impl SseDecode for i32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_i32::<NativeEndian>().unwrap()
+    }
+}
+
 impl SseDecode for i64 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1105,21 +1399,21 @@ impl SseDecode for crate::domain::nodes::INode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_id = <Option<String>>::sse_decode(deserializer);
-        let mut var_text = <Option<String>>::sse_decode(deserializer);
-        let mut var_visualFormatting = <Option<String>>::sse_decode(deserializer);
-        let mut var_layer = <u8>::sse_decode(deserializer);
+        let mut var_content = <crate::domain::base_models::Content>::sse_decode(deserializer);
+        let mut var_aesthetics = <Option<String>>::sse_decode(deserializer);
+        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
         let mut var_locked = <bool>::sse_decode(deserializer);
         let mut var_tags = <Vec<String>>::sse_decode(deserializer);
         let mut var_aliases = <Vec<String>>::sse_decode(deserializer);
-        let mut var_comments = <Vec<String>>::sse_decode(deserializer);
+        let mut var_comments = <Vec<crate::domain::base_models::Comment>>::sse_decode(deserializer);
         let mut var_attachment = <Option<String>>::sse_decode(deserializer);
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
         return crate::domain::nodes::INode {
             id: var_id,
-            text: var_text,
-            visual_formatting: var_visualFormatting,
-            layer: var_layer,
+            content: var_content,
+            aesthetics: var_aesthetics,
+            position: var_position,
             locked: var_locked,
             tags: var_tags,
             aliases: var_aliases,
@@ -1138,17 +1432,48 @@ impl SseDecode for crate::domain::relations::IRelation {
         let mut var_inId = <Option<String>>::sse_decode(deserializer);
         let mut var_outId = <Option<String>>::sse_decode(deserializer);
         let mut var_verb = <String>::sse_decode(deserializer);
-        let mut var_visualFormatting = <Option<String>>::sse_decode(deserializer);
+        let mut var_aesthetics = <Option<String>>::sse_decode(deserializer);
         let mut var_directionless = <bool>::sse_decode(deserializer);
         let mut var_layer = <u8>::sse_decode(deserializer);
+        let mut var_createdAt = <i64>::sse_decode(deserializer);
+        let mut var_updatedAt = <i64>::sse_decode(deserializer);
         return crate::domain::relations::IRelation {
             id: var_id,
             in_id: var_inId,
             out_id: var_outId,
             verb: var_verb,
-            visual_formatting: var_visualFormatting,
+            aesthetics: var_aesthetics,
             directionless: var_directionless,
             layer: var_layer,
+            created_at: var_createdAt,
+            updated_at: var_updatedAt,
+        };
+    }
+}
+
+impl SseDecode for crate::domain::base_models::InlineElement {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_inlineType = <crate::domain::base_models::InlineType>::sse_decode(deserializer);
+        let mut var_text = <String>::sse_decode(deserializer);
+        let mut var_marks =
+            <Option<Vec<crate::domain::base_models::TextMark>>>::sse_decode(deserializer);
+        return crate::domain::base_models::InlineElement {
+            inline_type: var_inlineType,
+            text: var_text,
+            marks: var_marks,
+        };
+    }
+}
+
+impl SseDecode for crate::domain::base_models::InlineType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::domain::base_models::InlineType::Text,
+            1 => crate::domain::base_models::InlineType::HardBreak,
+            _ => unreachable!("Invalid variant for InlineType: {}", inner),
         };
     }
 }
@@ -1159,14 +1484,16 @@ impl SseDecode for crate::domain::nodes::InterNode {
         let mut var_id = <Option<String>>::sse_decode(deserializer);
         let mut var_verb = <String>::sse_decode(deserializer);
         let mut var_behavioralFeatures = <Option<String>>::sse_decode(deserializer);
-        let mut var_visualFormatting = <Option<String>>::sse_decode(deserializer);
+        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
+        let mut var_aesthetics = <Option<String>>::sse_decode(deserializer);
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
         return crate::domain::nodes::InterNode {
             id: var_id,
             verb: var_verb,
             behavioral_features: var_behavioralFeatures,
-            visual_formatting: var_visualFormatting,
+            position: var_position,
+            aesthetics: var_aesthetics,
             created_at: var_createdAt,
             updated_at: var_updatedAt,
         };
@@ -1185,6 +1512,34 @@ impl SseDecode for Vec<String> {
     }
 }
 
+impl SseDecode for Vec<crate::domain::base_models::Comment> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::domain::base_models::Comment>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::domain::base_models::ContentBlock> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::domain::base_models::ContentBlock>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::domain::relations::IRelation> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1192,6 +1547,20 @@ impl SseDecode for Vec<crate::domain::relations::IRelation> {
         let mut ans_ = vec![];
         for idx_ in 0..len_ {
             ans_.push(<crate::domain::relations::IRelation>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::domain::base_models::InlineElement> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::domain::base_models::InlineElement>::sse_decode(
                 deserializer,
             ));
         }
@@ -1237,6 +1606,20 @@ impl SseDecode for Vec<(String, crate::domain::config::StyleProfile)> {
     }
 }
 
+impl SseDecode for Vec<crate::domain::base_models::TextMark> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::domain::base_models::TextMark>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for crate::telemetry::LogState {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1264,6 +1647,30 @@ impl SseDecode for crate::domain::config::MapConfig {
             map_name: var_mapName,
             viewport_state: var_viewportState,
             theme: var_theme,
+        };
+    }
+}
+
+impl SseDecode for crate::domain::base_models::MarkAttrs {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_href = <Option<String>>::sse_decode(deserializer);
+        return crate::domain::base_models::MarkAttrs { href: var_href };
+    }
+}
+
+impl SseDecode for crate::domain::base_models::MarkType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::domain::base_models::MarkType::Bold,
+            1 => crate::domain::base_models::MarkType::Italic,
+            2 => crate::domain::base_models::MarkType::Underline,
+            3 => crate::domain::base_models::MarkType::Strikethrough,
+            4 => crate::domain::base_models::MarkType::Code,
+            5 => crate::domain::base_models::MarkType::Link,
+            _ => unreachable!("Invalid variant for MarkType: {}", inner),
         };
     }
 }
@@ -1327,6 +1734,32 @@ impl SseDecode for Option<String> {
     }
 }
 
+impl SseDecode for Option<crate::domain::base_models::BlockAttrs> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::domain::base_models::BlockAttrs>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::domain::base_models::Content> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::domain::base_models::Content>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<i64> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1349,11 +1782,48 @@ impl SseDecode for Option<crate::domain::config::MapConfig> {
     }
 }
 
+impl SseDecode for Option<crate::domain::base_models::MarkAttrs> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::domain::base_models::MarkAttrs>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<crate::domain::nodes::NodeOutput> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<crate::domain::nodes::NodeOutput>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<u8> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<u8>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::domain::base_models::TextMark>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::domain::base_models::TextMark>>::sse_decode(
+                deserializer,
+            ));
         } else {
             return None;
         }
@@ -1421,20 +1891,35 @@ impl SseDecode for crate::domain::nodes::TaskNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_id = <Option<String>>::sse_decode(deserializer);
-        let mut var_text = <Option<String>>::sse_decode(deserializer);
+        let mut var_content = <crate::domain::base_models::Content>::sse_decode(deserializer);
         let mut var_dueDate = <Option<i64>>::sse_decode(deserializer);
         let mut var_state = <String>::sse_decode(deserializer);
-        let mut var_visualFormatting = <Option<String>>::sse_decode(deserializer);
+        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
+        let mut var_aesthetics = <Option<String>>::sse_decode(deserializer);
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
         return crate::domain::nodes::TaskNode {
             id: var_id,
-            text: var_text,
+            content: var_content,
             due_date: var_dueDate,
             state: var_state,
-            visual_formatting: var_visualFormatting,
+            position: var_position,
+            aesthetics: var_aesthetics,
             created_at: var_createdAt,
             updated_at: var_updatedAt,
+        };
+    }
+}
+
+impl SseDecode for crate::domain::base_models::TextMark {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_markType = <crate::domain::base_models::MarkType>::sse_decode(deserializer);
+        let mut var_attrs =
+            <Option<crate::domain::base_models::MarkAttrs>>::sse_decode(deserializer);
+        return crate::domain::base_models::TextMark {
+            mark_type: var_markType,
+            attrs: var_attrs,
         };
     }
 }
@@ -1498,13 +1983,6 @@ impl SseDecode for crate::domain::config::ViewportState {
     }
 }
 
-impl SseDecode for i32 {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        deserializer.cursor.read_i32::<NativeEndian>().unwrap()
-    }
-}
-
 fn pde_ffi_dispatcher_primary_impl(
     func_id: i32,
     port: flutter_rust_bridge::for_generated::MessagePort,
@@ -1549,38 +2027,55 @@ fn pde_ffi_dispatcher_primary_impl(
             data_len,
         ),
         10 => wire__crate__bridge__api__AppHandle_new_impl(port, ptr, rust_vec_len, data_len),
-        11 => wire__crate__bridge__api__AppHandle_patch_node_properties_impl(
+        11 => wire__crate__bridge__api__AppHandle_patch_node_content_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        12 => wire__crate__bridge__api__AppHandle_patch_relation_impl(
+        12 => wire__crate__bridge__api__AppHandle_patch_node_properties_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        13 => wire__crate__bridge__api__AppHandle_reroute_relation_impl(
+        13 => wire__crate__bridge__api__AppHandle_patch_relation_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        14 => wire__crate__bridge__api__AppHandle_save_map_to_file_impl(
+        14 => wire__crate__bridge__api__AppHandle_reroute_relation_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        15 => wire__crate__bridge__api__AppHandle_start_graph_stream_impl(
+        15 => wire__crate__bridge__api__AppHandle_save_map_to_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        16 => wire__crate__bridge__api__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
+        16 => wire__crate__bridge__api__AppHandle_start_graph_stream_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        17 => {
+            wire__crate__bridge__api__content_to_plain_text_impl(port, ptr, rust_vec_len, data_len)
+        }
+        18 => wire__crate__bridge__api__create_content_from_text_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        19 => wire__crate__bridge__api__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
+        20 => wire__crate__bridge__api__deserialize_content_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__bridge__api__serialize_content_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1640,13 +2135,145 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<Repository>> for Repository {
 }
 
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::base_models::BlockAttrs {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.level.into_into_dart().into_dart(),
+            self.language.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::base_models::BlockAttrs
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::base_models::BlockAttrs>
+    for crate::domain::base_models::BlockAttrs
+{
+    fn into_into_dart(self) -> crate::domain::base_models::BlockAttrs {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::base_models::BlockType {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Paragraph => 0.into_dart(),
+            Self::Heading => 1.into_dart(),
+            Self::BulletList => 2.into_dart(),
+            Self::OrderedList => 3.into_dart(),
+            Self::CodeBlock => 4.into_dart(),
+            Self::Blockquote => 5.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::base_models::BlockType
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::base_models::BlockType>
+    for crate::domain::base_models::BlockType
+{
+    fn into_into_dart(self) -> crate::domain::base_models::BlockType {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::base_models::Comment {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.text.into_into_dart().into_dart(),
+            self.created_at.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::base_models::Comment
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::base_models::Comment>
+    for crate::domain::base_models::Comment
+{
+    fn into_into_dart(self) -> crate::domain::base_models::Comment {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::base_models::Content {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.text.into_into_dart().into_dart(),
+            self.blocks.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::base_models::Content
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::base_models::Content>
+    for crate::domain::base_models::Content
+{
+    fn into_into_dart(self) -> crate::domain::base_models::Content {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::base_models::ContentBlock {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.block_type.into_into_dart().into_dart(),
+            self.content.into_into_dart().into_dart(),
+            self.attrs.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::base_models::ContentBlock
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::base_models::ContentBlock>
+    for crate::domain::base_models::ContentBlock
+{
+    fn into_into_dart(self) -> crate::domain::base_models::ContentBlock {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::base_models::Coordinates {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.x.into_into_dart().into_dart(),
+            self.y.into_into_dart().into_dart(),
+            self.z.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::base_models::Coordinates
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::base_models::Coordinates>
+    for crate::domain::base_models::Coordinates
+{
+    fn into_into_dart(self) -> crate::domain::base_models::Coordinates {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::domain::nodes::INode {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.id.into_into_dart().into_dart(),
-            self.text.into_into_dart().into_dart(),
-            self.visual_formatting.into_into_dart().into_dart(),
-            self.layer.into_into_dart().into_dart(),
+            self.content.into_into_dart().into_dart(),
+            self.aesthetics.into_into_dart().into_dart(),
+            self.position.into_into_dart().into_dart(),
             self.locked.into_into_dart().into_dart(),
             self.tags.into_into_dart().into_dart(),
             self.aliases.into_into_dart().into_dart(),
@@ -1674,9 +2301,11 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relations::IRelation {
             self.in_id.into_into_dart().into_dart(),
             self.out_id.into_into_dart().into_dart(),
             self.verb.into_into_dart().into_dart(),
-            self.visual_formatting.into_into_dart().into_dart(),
+            self.aesthetics.into_into_dart().into_dart(),
             self.directionless.into_into_dart().into_dart(),
             self.layer.into_into_dart().into_dart(),
+            self.created_at.into_into_dart().into_dart(),
+            self.updated_at.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -1693,13 +2322,57 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::relations::IRelation>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::base_models::InlineElement {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.inline_type.into_into_dart().into_dart(),
+            self.text.into_into_dart().into_dart(),
+            self.marks.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::base_models::InlineElement
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::base_models::InlineElement>
+    for crate::domain::base_models::InlineElement
+{
+    fn into_into_dart(self) -> crate::domain::base_models::InlineElement {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::base_models::InlineType {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Text => 0.into_dart(),
+            Self::HardBreak => 1.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::base_models::InlineType
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::base_models::InlineType>
+    for crate::domain::base_models::InlineType
+{
+    fn into_into_dart(self) -> crate::domain::base_models::InlineType {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::domain::nodes::InterNode {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.id.into_into_dart().into_dart(),
             self.verb.into_into_dart().into_dart(),
             self.behavioral_features.into_into_dart().into_dart(),
-            self.visual_formatting.into_into_dart().into_dart(),
+            self.position.into_into_dart().into_dart(),
+            self.aesthetics.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
         ]
@@ -1754,6 +2427,48 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::config::MapConfig>
     for crate::domain::config::MapConfig
 {
     fn into_into_dart(self) -> crate::domain::config::MapConfig {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::base_models::MarkAttrs {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [self.href.into_into_dart().into_dart()].into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::base_models::MarkAttrs
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::base_models::MarkAttrs>
+    for crate::domain::base_models::MarkAttrs
+{
+    fn into_into_dart(self) -> crate::domain::base_models::MarkAttrs {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::base_models::MarkType {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Bold => 0.into_dart(),
+            Self::Italic => 1.into_dart(),
+            Self::Underline => 2.into_dart(),
+            Self::Strikethrough => 3.into_dart(),
+            Self::Code => 4.into_dart(),
+            Self::Link => 5.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::base_models::MarkType
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::base_models::MarkType>
+    for crate::domain::base_models::MarkType
+{
+    fn into_into_dart(self) -> crate::domain::base_models::MarkType {
         self
     }
 }
@@ -1868,10 +2583,11 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::TaskNode {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.id.into_into_dart().into_dart(),
-            self.text.into_into_dart().into_dart(),
+            self.content.into_into_dart().into_dart(),
             self.due_date.into_into_dart().into_dart(),
             self.state.into_into_dart().into_dart(),
-            self.visual_formatting.into_into_dart().into_dart(),
+            self.position.into_into_dart().into_dart(),
+            self.aesthetics.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
         ]
@@ -1886,6 +2602,27 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::nodes::TaskNode>
     for crate::domain::nodes::TaskNode
 {
     fn into_into_dart(self) -> crate::domain::nodes::TaskNode {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::base_models::TextMark {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.mark_type.into_into_dart().into_dart(),
+            self.attrs.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::base_models::TextMark
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::base_models::TextMark>
+    for crate::domain::base_models::TextMark
+{
+    fn into_into_dart(self) -> crate::domain::base_models::TextMark {
         self
     }
 }
@@ -2004,10 +2741,72 @@ impl SseEncode for String {
     }
 }
 
+impl SseEncode for crate::domain::base_models::BlockAttrs {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<u8>>::sse_encode(self.level, serializer);
+        <Option<String>>::sse_encode(self.language, serializer);
+    }
+}
+
+impl SseEncode for crate::domain::base_models::BlockType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::domain::base_models::BlockType::Paragraph => 0,
+                crate::domain::base_models::BlockType::Heading => 1,
+                crate::domain::base_models::BlockType::BulletList => 2,
+                crate::domain::base_models::BlockType::OrderedList => 3,
+                crate::domain::base_models::BlockType::CodeBlock => 4,
+                crate::domain::base_models::BlockType::Blockquote => 5,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for bool {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         serializer.cursor.write_u8(self as _).unwrap();
+    }
+}
+
+impl SseEncode for crate::domain::base_models::Comment {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.text, serializer);
+        <i64>::sse_encode(self.created_at, serializer);
+    }
+}
+
+impl SseEncode for crate::domain::base_models::Content {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.text, serializer);
+        <Vec<crate::domain::base_models::ContentBlock>>::sse_encode(self.blocks, serializer);
+    }
+}
+
+impl SseEncode for crate::domain::base_models::ContentBlock {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::domain::base_models::BlockType>::sse_encode(self.block_type, serializer);
+        <Vec<crate::domain::base_models::InlineElement>>::sse_encode(self.content, serializer);
+        <Option<crate::domain::base_models::BlockAttrs>>::sse_encode(self.attrs, serializer);
+    }
+}
+
+impl SseEncode for crate::domain::base_models::Coordinates {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.x, serializer);
+        <i32>::sse_encode(self.y, serializer);
+        <u8>::sse_encode(self.z, serializer);
     }
 }
 
@@ -2025,6 +2824,13 @@ impl SseEncode for f64 {
     }
 }
 
+impl SseEncode for i32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_i32::<NativeEndian>(self).unwrap();
+    }
+}
+
 impl SseEncode for i64 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2036,13 +2842,13 @@ impl SseEncode for crate::domain::nodes::INode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Option<String>>::sse_encode(self.id, serializer);
-        <Option<String>>::sse_encode(self.text, serializer);
-        <Option<String>>::sse_encode(self.visual_formatting, serializer);
-        <u8>::sse_encode(self.layer, serializer);
+        <crate::domain::base_models::Content>::sse_encode(self.content, serializer);
+        <Option<String>>::sse_encode(self.aesthetics, serializer);
+        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
         <bool>::sse_encode(self.locked, serializer);
         <Vec<String>>::sse_encode(self.tags, serializer);
         <Vec<String>>::sse_encode(self.aliases, serializer);
-        <Vec<String>>::sse_encode(self.comments, serializer);
+        <Vec<crate::domain::base_models::Comment>>::sse_encode(self.comments, serializer);
         <Option<String>>::sse_encode(self.attachment, serializer);
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);
@@ -2056,9 +2862,36 @@ impl SseEncode for crate::domain::relations::IRelation {
         <Option<String>>::sse_encode(self.in_id, serializer);
         <Option<String>>::sse_encode(self.out_id, serializer);
         <String>::sse_encode(self.verb, serializer);
-        <Option<String>>::sse_encode(self.visual_formatting, serializer);
+        <Option<String>>::sse_encode(self.aesthetics, serializer);
         <bool>::sse_encode(self.directionless, serializer);
         <u8>::sse_encode(self.layer, serializer);
+        <i64>::sse_encode(self.created_at, serializer);
+        <i64>::sse_encode(self.updated_at, serializer);
+    }
+}
+
+impl SseEncode for crate::domain::base_models::InlineElement {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::domain::base_models::InlineType>::sse_encode(self.inline_type, serializer);
+        <String>::sse_encode(self.text, serializer);
+        <Option<Vec<crate::domain::base_models::TextMark>>>::sse_encode(self.marks, serializer);
+    }
+}
+
+impl SseEncode for crate::domain::base_models::InlineType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::domain::base_models::InlineType::Text => 0,
+                crate::domain::base_models::InlineType::HardBreak => 1,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
     }
 }
 
@@ -2068,7 +2901,8 @@ impl SseEncode for crate::domain::nodes::InterNode {
         <Option<String>>::sse_encode(self.id, serializer);
         <String>::sse_encode(self.verb, serializer);
         <Option<String>>::sse_encode(self.behavioral_features, serializer);
-        <Option<String>>::sse_encode(self.visual_formatting, serializer);
+        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
+        <Option<String>>::sse_encode(self.aesthetics, serializer);
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);
     }
@@ -2084,12 +2918,42 @@ impl SseEncode for Vec<String> {
     }
 }
 
+impl SseEncode for Vec<crate::domain::base_models::Comment> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::domain::base_models::Comment>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::domain::base_models::ContentBlock> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::domain::base_models::ContentBlock>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::domain::relations::IRelation> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::domain::relations::IRelation>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::domain::base_models::InlineElement> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::domain::base_models::InlineElement>::sse_encode(item, serializer);
         }
     }
 }
@@ -2124,6 +2988,16 @@ impl SseEncode for Vec<(String, crate::domain::config::StyleProfile)> {
     }
 }
 
+impl SseEncode for Vec<crate::domain::base_models::TextMark> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::domain::base_models::TextMark>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for crate::telemetry::LogState {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2140,6 +3014,33 @@ impl SseEncode for crate::domain::config::MapConfig {
         <String>::sse_encode(self.map_name, serializer);
         <crate::domain::config::ViewportState>::sse_encode(self.viewport_state, serializer);
         <crate::domain::config::ThemeConfig>::sse_encode(self.theme, serializer);
+    }
+}
+
+impl SseEncode for crate::domain::base_models::MarkAttrs {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<String>>::sse_encode(self.href, serializer);
+    }
+}
+
+impl SseEncode for crate::domain::base_models::MarkType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::domain::base_models::MarkType::Bold => 0,
+                crate::domain::base_models::MarkType::Italic => 1,
+                crate::domain::base_models::MarkType::Underline => 2,
+                crate::domain::base_models::MarkType::Strikethrough => 3,
+                crate::domain::base_models::MarkType::Code => 4,
+                crate::domain::base_models::MarkType::Link => 5,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
     }
 }
 
@@ -2199,6 +3100,26 @@ impl SseEncode for Option<String> {
     }
 }
 
+impl SseEncode for Option<crate::domain::base_models::BlockAttrs> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::domain::base_models::BlockAttrs>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::domain::base_models::Content> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::domain::base_models::Content>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<i64> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2219,12 +3140,42 @@ impl SseEncode for Option<crate::domain::config::MapConfig> {
     }
 }
 
+impl SseEncode for Option<crate::domain::base_models::MarkAttrs> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::domain::base_models::MarkAttrs>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<crate::domain::nodes::NodeOutput> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::domain::nodes::NodeOutput>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<u8> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <u8>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::domain::base_models::TextMark>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::domain::base_models::TextMark>>::sse_encode(value, serializer);
         }
     }
 }
@@ -2276,12 +3227,21 @@ impl SseEncode for crate::domain::nodes::TaskNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Option<String>>::sse_encode(self.id, serializer);
-        <Option<String>>::sse_encode(self.text, serializer);
+        <crate::domain::base_models::Content>::sse_encode(self.content, serializer);
         <Option<i64>>::sse_encode(self.due_date, serializer);
         <String>::sse_encode(self.state, serializer);
-        <Option<String>>::sse_encode(self.visual_formatting, serializer);
+        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
+        <Option<String>>::sse_encode(self.aesthetics, serializer);
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);
+    }
+}
+
+impl SseEncode for crate::domain::base_models::TextMark {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::domain::base_models::MarkType>::sse_encode(self.mark_type, serializer);
+        <Option<crate::domain::base_models::MarkAttrs>>::sse_encode(self.attrs, serializer);
     }
 }
 
@@ -2333,13 +3293,6 @@ impl SseEncode for crate::domain::config::ViewportState {
         <f64>::sse_encode(self.y_offset, serializer);
         <f64>::sse_encode(self.zoom_level, serializer);
         <String>::sse_encode(self.active_view, serializer);
-    }
-}
-
-impl SseEncode for i32 {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        serializer.cursor.write_i32::<NativeEndian>(self).unwrap();
     }
 }
 

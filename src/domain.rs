@@ -1,3 +1,4 @@
+pub mod base_models;
 pub mod nodes;
 pub mod relations;
 pub mod config;
