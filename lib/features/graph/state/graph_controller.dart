@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 // Domain Imports
 import '../domain/models.dart';
+import '../domain/styling.dart';
 
 // FFI Imports (Adjust path to your generated code)
 import 'package:mycelium/src/rust/bridge/api.dart';
@@ -155,6 +156,10 @@ class GraphController extends ChangeNotifier {
   // The overlay now manages its own ephemeral editing state.
   String? activeEditId;
 
+  // Theme State
+  ThemeConfig? activeTheme;
+  List<ThemeConfig> availableThemes = [];
+
   // Public Getter (ReadOnly view for UI)
   List<UiNode> get nodes => _nodes.values.toList();
   List<UiRelation> get relations => _relations.values.toList();
@@ -241,6 +246,28 @@ class GraphController extends ChangeNotifier {
       for (final ffiRel in snapshot.$2) {
         final uiRel = UiRelation.fromFFI(ffiRel);
         _relations[uiRel.id] = uiRel;
+      }
+
+      // --- NEW: Load Themes ---
+      final ffiThemes = await _api.getAllThemes();
+      availableThemes = ffiThemes
+          .map(
+            (t) => ThemeConfig.fromRawJson(t.id ?? "unknown", t.name, t.config),
+          )
+          .toList();
+
+      final activeThemeId = await _api.getActiveThemeId();
+      if (activeThemeId != null) {
+        activeTheme = availableThemes.firstWhere(
+          (t) => t.id == activeThemeId,
+          orElse: () => availableThemes.isNotEmpty
+              ? availableThemes.first
+              : _createDefaultTheme(),
+        );
+      } else if (availableThemes.isNotEmpty) {
+        activeTheme = availableThemes.first;
+      } else {
+        activeTheme = _createDefaultTheme();
       }
 
       // Sync ViewStates after populating nodes
@@ -365,13 +392,13 @@ class GraphController extends ChangeNotifier {
 
     // C. Sync with Rust
     try {
-      // [FIX] Double-encode the inner layout object into a string
+      // [FIX] Patch the 'position' field directly as defined in schema.rs
       final patchJson = jsonEncode({
-        "visual_formatting": jsonEncode({
-          "layout": {
-            "graph": {"x": node.position.dx, "y": node.position.dy},
-          },
-        }),
+        "position": {
+          "x": node.position.dx.toInt(),
+          "y": node.position.dy.toInt(),
+          "z": 0,
+        },
       });
 
       // We call 'patch_node_properties'.
@@ -424,16 +451,13 @@ class GraphController extends ChangeNotifier {
     _nodes[id] = updatedNode;
 
     try {
-      // [FIX] Double-encode the inner layout object into a string
+      // [FIX] Patch the 'position' field directly
       final patchJson = jsonEncode({
-        "visual_formatting": jsonEncode({
-          "layout": {
-            "graph": {
-              "x": updatedNode.position.dx,
-              "y": updatedNode.position.dy,
-            },
-          },
-        }),
+        "position": {
+          "x": updatedNode.position.dx.toInt(),
+          "y": updatedNode.position.dy.toInt(),
+          "z": 0,
+        },
       });
 
       final tableName = _getTableName(updatedNode);
@@ -692,5 +716,90 @@ class GraphController extends ChangeNotifier {
       errorMessage = "Link failed";
       notifyListeners();
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 3. THEME & AESTHETIC OPERATIONS
+  // ---------------------------------------------------------------------------
+
+  /// Creates a default fallback theme if none exist in the database.
+  ThemeConfig _createDefaultTheme() {
+    return ThemeConfig(
+      id: "default",
+      name: "Default Theme",
+      globalDefault: StyleProfile(),
+      typeDefinitions: {
+        "Info": StyleProfile(bgColor: const Color(0xFFBBDEFB)),
+        "Task": StyleProfile(bgColor: const Color(0xFFC8E6C9)),
+        "Inter": StyleProfile(bgColor: const Color(0xFFFFF9C4)),
+      },
+    );
+  }
+
+  /// Updates node aesthetics with snapshot/delta logic.
+  Future<void> updateNodeAesthetics(String id, StyleProfile updates) async {
+    final node = _nodes[id];
+    if (node == null) return;
+
+    StyleProfile finalAesthetics;
+
+    if (node.aesthetics == null && activeTheme != null) {
+      // 1. First customization: Create a full snapshot from the current theme + updates
+      final themeStyle =
+          activeTheme!.typeDefinitions[node.type.name.capitalize()] ??
+          activeTheme!.globalDefault;
+      finalAesthetics = themeStyle.merge(updates);
+      _log.info('Creating aesthetic snapshot for node $id');
+    } else if (node.aesthetics != null) {
+      // 2. Subsequent edits: Merge updates into existing aesthetics
+      finalAesthetics = node.aesthetics!.merge(updates);
+      _log.info('Merging aesthetic updates for node $id');
+    } else {
+      // Fallback
+      finalAesthetics = updates;
+    }
+
+    // Update local model
+    node.aesthetics = finalAesthetics;
+
+    // Persist to Rust (Dumb Receiver - save as JSON string)
+    try {
+      final patchJson = jsonEncode({
+        "aesthetics": jsonEncode(finalAesthetics.toJson()),
+      });
+
+      await _api.patchNodeProperties(
+        table: _getTableName(node),
+        id: id,
+        jsonPatch: patchJson,
+      );
+
+      notifyListeners();
+    } catch (e) {
+      _log.severe('Failed to save node aesthetics', e);
+      errorMessage = "Aesthetics save failed";
+      notifyListeners();
+    }
+  }
+
+  /// Switches the active theme and persists the preference.
+  Future<void> setActiveTheme(String themeId) async {
+    try {
+      await _api.setActiveThemeId(themeId: themeId);
+      final newTheme = availableThemes.firstWhere((t) => t.id == themeId);
+      activeTheme = newTheme;
+      notifyListeners();
+    } catch (e) {
+      _log.severe('Failed to switch theme', e);
+      errorMessage = "Theme switch failed";
+      notifyListeners();
+    }
+  }
+}
+
+extension StringExtension on String {
+  String capitalize() {
+    if (isEmpty) return this;
+    return "${this[0].toUpperCase()}${substring(1)}";
   }
 }

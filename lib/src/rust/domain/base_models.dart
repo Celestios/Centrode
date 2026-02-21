@@ -147,6 +147,31 @@ class InlineElement {
 
 enum InlineType { text, hardBreak }
 
+class MapConfig {
+  final String mapName;
+  final ViewportState viewportState;
+  final String? activeThemeId;
+
+  const MapConfig({
+    required this.mapName,
+    required this.viewportState,
+    this.activeThemeId,
+  });
+
+  @override
+  int get hashCode =>
+      mapName.hashCode ^ viewportState.hashCode ^ activeThemeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MapConfig &&
+          runtimeType == other.runtimeType &&
+          mapName == other.mapName &&
+          viewportState == other.viewportState &&
+          activeThemeId == other.activeThemeId;
+}
+
 /// Mark-level attributes
 class MarkAttrs {
   final String? href;
@@ -183,4 +208,55 @@ class TextMark {
           runtimeType == other.runtimeType &&
           markType == other.markType &&
           attrs == other.attrs;
+}
+
+class Theme {
+  final String? id;
+  final String name;
+  final String config;
+
+  const Theme({this.id, required this.name, required this.config});
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode ^ config.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Theme &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          config == other.config;
+}
+
+class ViewportState {
+  final double xOffset;
+  final double yOffset;
+  final double zoomLevel;
+  final String activeView;
+
+  const ViewportState({
+    required this.xOffset,
+    required this.yOffset,
+    required this.zoomLevel,
+    required this.activeView,
+  });
+
+  @override
+  int get hashCode =>
+      xOffset.hashCode ^
+      yOffset.hashCode ^
+      zoomLevel.hashCode ^
+      activeView.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ViewportState &&
+          runtimeType == other.runtimeType &&
+          xOffset == other.xOffset &&
+          yOffset == other.yOffset &&
+          zoomLevel == other.zoomLevel &&
+          activeView == other.activeView;
 }

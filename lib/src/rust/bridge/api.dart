@@ -4,7 +4,6 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../domain/base_models.dart';
-import '../domain/config.dart';
 import '../domain/nodes.dart';
 import '../domain/relations.dart';
 import '../frb_generated.dart';
@@ -59,6 +58,10 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<String> deleteRelation({required String id});
 
+  Future<String?> getActiveThemeId();
+
+  Future<List<Theme>> getAllThemes();
+
   Future<(List<NodeOutput>, List<IRelation>, MapConfig?)> getGraphSnapshot();
 
   Future<NodeOutput?> getNode({required String table, required String id});
@@ -99,5 +102,9 @@ abstract class AppHandle implements RustOpaqueInterface {
     required String attachmentDir,
   });
 
+  Future<void> setActiveThemeId({required String themeId});
+
   Future<void> startGraphStream();
+
+  Future<String> upsertTheme({required Theme theme});
 }

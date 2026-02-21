@@ -10,6 +10,7 @@ import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/src/rust/domain/relations.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart';
 import 'content_builder.dart';
+import 'styling.dart';
 // Or sometimes: import 'package:mycelium/src/rust/frb_generated.dart';
 
 // -----------------------------------------------------------------------------
@@ -155,6 +156,9 @@ abstract class UiNode {
   String text;
   bool isSelected;
 
+  // Aesthetics for node-specific overrides
+  StyleProfile? aesthetics;
+
   UiNode({
     required this.id,
     required this.type,
@@ -163,6 +167,7 @@ abstract class UiNode {
     this.size = const Size(100, 60), // Default size
     this.color = const Color(0xFFFFFFFF),
     this.isSelected = false,
+    this.aesthetics,
   });
 
   /// Factory to convert the Raw Rust Enum into a Dart UiNode
@@ -200,6 +205,7 @@ class InfoUiNode extends UiNode {
     super.color = const Color(0xFFBBDEFB), // Blue-ish default
     this.tags = const [],
     this.locked = false,
+    super.aesthetics,
   }) : super(type: UiNodeType.info);
 
   factory InfoUiNode.fromRust(INode source) {
@@ -214,6 +220,9 @@ class InfoUiNode extends UiNode {
       text: source.content.text, // Mapped to new Content structure
       tags: source.tags,
       locked: source.locked,
+      aesthetics: source.aesthetics != null
+          ? StyleProfile.fromJson(jsonDecode(source.aesthetics!))
+          : null,
     );
   }
 
@@ -225,7 +234,9 @@ class InfoUiNode extends UiNode {
         content: ContentFactory.fromText(text), // New Content object
         tags: tags,
         locked: locked,
-        aesthetics: null,
+        aesthetics: aesthetics != null
+            ? jsonEncode(aesthetics!.toJson())
+            : null,
         position: Coordinates(
           x: position.dx.toInt(),
           y: position.dy.toInt(),
@@ -250,6 +261,7 @@ class InfoUiNode extends UiNode {
       color: color,
       tags: tags,
       locked: locked,
+      aesthetics: aesthetics ?? this.aesthetics,
     );
   }
 }
@@ -265,6 +277,7 @@ class TaskUiNode extends UiNode {
     super.color = const Color(0xFFC8E6C9), // Green-ish default
     required this.state,
     this.dueDate,
+    super.aesthetics,
   }) : super(type: UiNodeType.task);
 
   factory TaskUiNode.fromRust(TaskNode source) {
@@ -279,6 +292,9 @@ class TaskUiNode extends UiNode {
       dueDate: source.dueDate != null
           ? DateTime.fromMillisecondsSinceEpoch(source.dueDate!)
           : null,
+      aesthetics: source.aesthetics != null
+          ? StyleProfile.fromJson(jsonDecode(source.aesthetics!))
+          : null,
     );
   }
 
@@ -290,7 +306,9 @@ class TaskUiNode extends UiNode {
         content: ContentFactory.fromText(text),
         state: state,
         dueDate: dueDate?.millisecondsSinceEpoch,
-        aesthetics: null,
+        aesthetics: aesthetics != null
+            ? jsonEncode(aesthetics!.toJson())
+            : null,
         position: Coordinates(
           x: position.dx.toInt(),
           y: position.dy.toInt(),
@@ -311,6 +329,7 @@ class TaskUiNode extends UiNode {
       color: color,
       state: state,
       dueDate: dueDate,
+      aesthetics: aesthetics ?? this.aesthetics,
     );
   }
 }
@@ -324,6 +343,7 @@ class InterUiNode extends UiNode {
     super.text = "", // Inters use 'verb' primarily
     super.color = const Color(0xFFFFF9C4), // Yellow-ish
     required this.verb,
+    super.aesthetics,
   }) : super(type: UiNodeType.inter);
 
   factory InterUiNode.fromRust(InterNode source) {
@@ -335,6 +355,9 @@ class InterUiNode extends UiNode {
       ),
       verb: source.verb,
       text: source.verb,
+      aesthetics: source.aesthetics != null
+          ? StyleProfile.fromJson(jsonDecode(source.aesthetics!))
+          : null,
     );
   }
 
@@ -345,7 +368,9 @@ class InterUiNode extends UiNode {
         id: id.startsWith("temp_") ? null : id,
         verb: verb,
         behavioralFeatures: null,
-        aesthetics: null,
+        aesthetics: aesthetics != null
+            ? jsonEncode(aesthetics!.toJson())
+            : null,
         position: Coordinates(
           x: position.dx.toInt(),
           y: position.dy.toInt(),
@@ -365,6 +390,7 @@ class InterUiNode extends UiNode {
       text: text,
       color: color,
       verb: verb,
+      aesthetics: aesthetics ?? this.aesthetics,
     );
   }
 }
@@ -382,7 +408,10 @@ class UiRelation {
     required this.toNodeId,
     this.label = "",
     this.color = const Color(0xFFAAAAAA),
+    this.aesthetics,
   });
+
+  StyleProfile? aesthetics;
 
   factory UiRelation.fromFFI(IRelation source) {
     // Map the Rust 'in' and 'out' fields to fromNodeId and toNodeId
@@ -392,6 +421,9 @@ class UiRelation {
       fromNodeId: _stripTablePrefix(source.inId), // Binds the Rust 'in' field
       toNodeId: _stripTablePrefix(source.outId), // Binds the Rust 'out' field
       label: source.verb,
+      aesthetics: source.aesthetics != null
+          ? StyleProfile.fromJson(jsonDecode(source.aesthetics!))
+          : null,
     );
   }
 
@@ -404,7 +436,9 @@ class UiRelation {
         inId: null,
         outId: null,
         verb: label,
-        aesthetics: null, // visual_formatting transitioned to aesthetics
+        aesthetics: aesthetics != null
+            ? jsonEncode(aesthetics!.toJson())
+            : null,
         directionless: false,
         layer: 0,
         createdAt: DateTime.now().millisecondsSinceEpoch,
@@ -422,6 +456,7 @@ class UiRelation {
       toNodeId: toNodeId,
       label: label ?? this.label,
       color: color ?? this.color,
+      aesthetics: aesthetics ?? this.aesthetics,
     );
   }
 }

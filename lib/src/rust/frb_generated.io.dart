@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi' as ffi;
 import 'domain/base_models.dart';
-import 'domain/config.dart';
 import 'domain/nodes.dart';
 import 'domain/relations.dart';
 import 'frb_generated.dart';
@@ -56,11 +55,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   AppHandle
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    dynamic raw,
-  );
-
-  @protected
-  Map<String, StyleProfile> dco_decode_Map_String_style_profile_None(
     dynamic raw,
   );
 
@@ -125,6 +119,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   TaskNode dco_decode_box_autoadd_task_node(dynamic raw);
 
   @protected
+  Theme dco_decode_box_autoadd_theme(dynamic raw);
+
+  @protected
   int dco_decode_box_autoadd_u_8(dynamic raw);
 
   @protected
@@ -138,9 +135,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Coordinates dco_decode_coordinates(dynamic raw);
-
-  @protected
-  double dco_decode_f_32(dynamic raw);
 
   @protected
   double dco_decode_f_64(dynamic raw);
@@ -191,12 +185,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
-  List<(String, StyleProfile)> dco_decode_list_record_string_style_profile(
-    dynamic raw,
-  );
+  List<TextMark> dco_decode_list_text_mark(dynamic raw);
 
   @protected
-  List<TextMark> dco_decode_list_text_mark(dynamic raw);
+  List<Theme> dco_decode_list_theme(dynamic raw);
 
   @protected
   LogState dco_decode_log_state(dynamic raw);
@@ -250,13 +242,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  (String, StyleProfile) dco_decode_record_string_style_profile(dynamic raw);
-
-  @protected
   RelationInput dco_decode_relation_input(dynamic raw);
-
-  @protected
-  StyleProfile dco_decode_style_profile(dynamic raw);
 
   @protected
   TaskNode dco_decode_task_node(dynamic raw);
@@ -265,7 +251,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   TextMark dco_decode_text_mark(dynamic raw);
 
   @protected
-  ThemeConfig dco_decode_theme_config(dynamic raw);
+  Theme dco_decode_theme(dynamic raw);
 
   @protected
   BigInt dco_decode_u_64(dynamic raw);
@@ -306,11 +292,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   AppHandle
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  Map<String, StyleProfile> sse_decode_Map_String_style_profile_None(
     SseDeserializer deserializer,
   );
 
@@ -379,6 +360,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   TaskNode sse_decode_box_autoadd_task_node(SseDeserializer deserializer);
 
   @protected
+  Theme sse_decode_box_autoadd_theme(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
 
   @protected
@@ -392,9 +376,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Coordinates sse_decode_coordinates(SseDeserializer deserializer);
-
-  @protected
-  double sse_decode_f_32(SseDeserializer deserializer);
 
   @protected
   double sse_decode_f_64(SseDeserializer deserializer);
@@ -449,12 +430,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
-  List<(String, StyleProfile)> sse_decode_list_record_string_style_profile(
-    SseDeserializer deserializer,
-  );
+  List<TextMark> sse_decode_list_text_mark(SseDeserializer deserializer);
 
   @protected
-  List<TextMark> sse_decode_list_text_mark(SseDeserializer deserializer);
+  List<Theme> sse_decode_list_theme(SseDeserializer deserializer);
 
   @protected
   LogState sse_decode_log_state(SseDeserializer deserializer);
@@ -516,15 +495,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  (String, StyleProfile) sse_decode_record_string_style_profile(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   RelationInput sse_decode_relation_input(SseDeserializer deserializer);
-
-  @protected
-  StyleProfile sse_decode_style_profile(SseDeserializer deserializer);
 
   @protected
   TaskNode sse_decode_task_node(SseDeserializer deserializer);
@@ -533,7 +504,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   TextMark sse_decode_text_mark(SseDeserializer deserializer);
 
   @protected
-  ThemeConfig sse_decode_theme_config(SseDeserializer deserializer);
+  Theme sse_decode_theme(SseDeserializer deserializer);
 
   @protected
   BigInt sse_decode_u_64(SseDeserializer deserializer);
@@ -581,12 +552,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
     AppHandle self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_Map_String_style_profile_None(
-    Map<String, StyleProfile> self,
     SseSerializer serializer,
   );
 
@@ -683,6 +648,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_theme(Theme self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
 
   @protected
@@ -696,9 +664,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_coordinates(Coordinates self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_f_32(double self, SseSerializer serializer);
 
   @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
@@ -764,13 +729,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_list_record_string_style_profile(
-    List<(String, StyleProfile)> self,
-    SseSerializer serializer,
-  );
+  void sse_encode_list_text_mark(List<TextMark> self, SseSerializer serializer);
 
   @protected
-  void sse_encode_list_text_mark(List<TextMark> self, SseSerializer serializer);
+  void sse_encode_list_theme(List<Theme> self, SseSerializer serializer);
 
   @protected
   void sse_encode_log_state(LogState self, SseSerializer serializer);
@@ -846,16 +808,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_record_string_style_profile(
-    (String, StyleProfile) self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_relation_input(RelationInput self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_style_profile(StyleProfile self, SseSerializer serializer);
 
   @protected
   void sse_encode_task_node(TaskNode self, SseSerializer serializer);
@@ -864,7 +817,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_text_mark(TextMark self, SseSerializer serializer);
 
   @protected
-  void sse_encode_theme_config(ThemeConfig self, SseSerializer serializer);
+  void sse_encode_theme(Theme self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_64(BigInt self, SseSerializer serializer);

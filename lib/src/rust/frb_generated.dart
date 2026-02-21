@@ -7,7 +7,6 @@ import 'bridge/api.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'domain/base_models.dart';
-import 'domain/config.dart';
 import 'domain/nodes.dart';
 import 'domain/relations.dart';
 import 'frb_generated.dart';
@@ -70,7 +69,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -1351778274;
+  int get rustContentHash => 525611644;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -109,6 +108,14 @@ abstract class RustLibApi extends BaseApi {
   Future<String> crateBridgeApiAppHandleDeleteRelation({
     required AppHandle that,
     required String id,
+  });
+
+  Future<String?> crateBridgeApiAppHandleGetActiveThemeId({
+    required AppHandle that,
+  });
+
+  Future<List<Theme>> crateBridgeApiAppHandleGetAllThemes({
+    required AppHandle that,
   });
 
   Future<(List<NodeOutput>, List<IRelation>, MapConfig?)>
@@ -161,8 +168,18 @@ abstract class RustLibApi extends BaseApi {
     required String attachmentDir,
   });
 
+  Future<void> crateBridgeApiAppHandleSetActiveThemeId({
+    required AppHandle that,
+    required String themeId,
+  });
+
   Future<void> crateBridgeApiAppHandleStartGraphStream({
     required AppHandle that,
+  });
+
+  Future<String> crateBridgeApiAppHandleUpsertTheme({
+    required AppHandle that,
+    required Theme theme,
   });
 
   Future<String> crateBridgeApiContentToPlainText({required Content content});
@@ -425,6 +442,78 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<String?> crateBridgeApiAppHandleGetActiveThemeId({
+    required AppHandle that,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+            that,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 7,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_opt_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiAppHandleGetActiveThemeIdConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiAppHandleGetActiveThemeIdConstMeta =>
+      const TaskConstMeta(
+        debugName: "AppHandle_get_active_theme_id",
+        argNames: ["that"],
+      );
+
+  @override
+  Future<List<Theme>> crateBridgeApiAppHandleGetAllThemes({
+    required AppHandle that,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+            that,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 8,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_theme,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiAppHandleGetAllThemesConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiAppHandleGetAllThemesConstMeta =>
+      const TaskConstMeta(
+        debugName: "AppHandle_get_all_themes",
+        argNames: ["that"],
+      );
+
+  @override
   Future<(List<NodeOutput>, List<IRelation>, MapConfig?)>
   crateBridgeApiAppHandleGetGraphSnapshot({required AppHandle that}) {
     return handler.executeNormal(
@@ -438,7 +527,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 9,
             port: port_,
           );
         },
@@ -479,7 +568,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 10,
             port: port_,
           );
         },
@@ -519,7 +608,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 9,
+            funcId: 11,
             port: port_,
           );
         },
@@ -550,7 +639,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 10,
+            funcId: 12,
             port: port_,
           );
         },
@@ -592,7 +681,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 11,
+            funcId: 13,
             port: port_,
           );
         },
@@ -634,7 +723,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 12,
+            funcId: 14,
             port: port_,
           );
         },
@@ -674,7 +763,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 13,
+            funcId: 15,
             port: port_,
           );
         },
@@ -716,7 +805,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 14,
+            funcId: 16,
             port: port_,
           );
         },
@@ -756,7 +845,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 15,
+            funcId: 17,
             port: port_,
           );
         },
@@ -778,6 +867,44 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<void> crateBridgeApiAppHandleSetActiveThemeId({
+    required AppHandle that,
+    required String themeId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+            that,
+            serializer,
+          );
+          sse_encode_String(themeId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 18,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiAppHandleSetActiveThemeIdConstMeta,
+        argValues: [that, themeId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiAppHandleSetActiveThemeIdConstMeta =>
+      const TaskConstMeta(
+        debugName: "AppHandle_set_active_theme_id",
+        argNames: ["that", "themeId"],
+      );
+
+  @override
   Future<void> crateBridgeApiAppHandleStartGraphStream({
     required AppHandle that,
   }) {
@@ -792,7 +919,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 16,
+            funcId: 19,
             port: port_,
           );
         },
@@ -814,6 +941,44 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<String> crateBridgeApiAppHandleUpsertTheme({
+    required AppHandle that,
+    required Theme theme,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+            that,
+            serializer,
+          );
+          sse_encode_box_autoadd_theme(theme, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 20,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiAppHandleUpsertThemeConstMeta,
+        argValues: [that, theme],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiAppHandleUpsertThemeConstMeta =>
+      const TaskConstMeta(
+        debugName: "AppHandle_upsert_theme",
+        argNames: ["that", "theme"],
+      );
+
+  @override
   Future<String> crateBridgeApiContentToPlainText({required Content content}) {
     return handler.executeNormal(
       NormalTask(
@@ -823,7 +988,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 17,
+            funcId: 21,
             port: port_,
           );
         },
@@ -854,7 +1019,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 22,
             port: port_,
           );
         },
@@ -887,7 +1052,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 19,
+              funcId: 23,
               port: port_,
             );
           },
@@ -919,7 +1084,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 24,
             port: port_,
           );
         },
@@ -950,7 +1115,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 21,
+            funcId: 25,
             port: port_,
           );
         },
@@ -980,7 +1145,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 22,
+            funcId: 26,
             port: port_,
           );
         },
@@ -1054,18 +1219,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return AppHandleImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  Map<String, StyleProfile> dco_decode_Map_String_style_profile_None(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return Map.fromEntries(
-      dco_decode_list_record_string_style_profile(
-        raw,
-      ).map((e) => MapEntry(e.$1, e.$2)),
-    );
   }
 
   @protected
@@ -1189,6 +1342,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Theme dco_decode_box_autoadd_theme(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_theme(raw);
+  }
+
+  @protected
   int dco_decode_box_autoadd_u_8(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
@@ -1242,12 +1401,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       y: dco_decode_i_32(arr[1]),
       z: dco_decode_u_8(arr[2]),
     );
-  }
-
-  @protected
-  double dco_decode_f_32(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as double;
   }
 
   @protected
@@ -1393,19 +1546,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  List<(String, StyleProfile)> dco_decode_list_record_string_style_profile(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>)
-        .map(dco_decode_record_string_style_profile)
-        .toList();
-  }
-
-  @protected
   List<TextMark> dco_decode_list_text_mark(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_text_mark).toList();
+  }
+
+  @protected
+  List<Theme> dco_decode_list_theme(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_theme).toList();
   }
 
   @protected
@@ -1431,7 +1580,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return MapConfig(
       mapName: dco_decode_String(arr[0]),
       viewportState: dco_decode_viewport_state(arr[1]),
-      theme: dco_decode_theme_config(arr[2]),
+      activeThemeId: dco_decode_opt_String(arr[2]),
     );
   }
 
@@ -1552,16 +1701,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  (String, StyleProfile) dco_decode_record_string_style_profile(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2) {
-      throw Exception('Expected 2 elements, got ${arr.length}');
-    }
-    return (dco_decode_String(arr[0]), dco_decode_style_profile(arr[1]));
-  }
-
-  @protected
   RelationInput dco_decode_relation_input(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -1571,21 +1710,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       from: dco_decode_String(arr[0]),
       to: dco_decode_String(arr[1]),
       props: dco_decode_i_relation(arr[2]),
-    );
-  }
-
-  @protected
-  StyleProfile dco_decode_style_profile(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 5)
-      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
-    return StyleProfile(
-      shape: dco_decode_String(arr[0]),
-      bgColor: dco_decode_String(arr[1]),
-      strokeColor: dco_decode_String(arr[2]),
-      strokeWidth: dco_decode_f_32(arr[3]),
-      fontFamily: dco_decode_String(arr[4]),
     );
   }
 
@@ -1620,15 +1744,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ThemeConfig dco_decode_theme_config(dynamic raw) {
+  Theme dco_decode_theme(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
     if (arr.length != 3)
       throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-    return ThemeConfig(
-      name: dco_decode_String(arr[0]),
-      globalDefault: dco_decode_style_profile(arr[1]),
-      typeDefinitions: dco_decode_Map_String_style_profile_None(arr[2]),
+    return Theme(
+      id: dco_decode_opt_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      config: dco_decode_String(arr[2]),
     );
   }
 
@@ -1723,15 +1847,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
-  }
-
-  @protected
-  Map<String, StyleProfile> sse_decode_Map_String_style_profile_None(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_list_record_string_style_profile(deserializer);
-    return Map.fromEntries(inner.map((e) => MapEntry(e.$1, e.$2)));
   }
 
   @protected
@@ -1863,6 +1978,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Theme sse_decode_box_autoadd_theme(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_theme(deserializer));
+  }
+
+  @protected
   int sse_decode_box_autoadd_u_8(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_u_8(deserializer));
@@ -1904,12 +2025,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_y = sse_decode_i_32(deserializer);
     var var_z = sse_decode_u_8(deserializer);
     return Coordinates(x: var_x, y: var_y, z: var_z);
-  }
-
-  @protected
-  double sse_decode_f_32(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getFloat32();
   }
 
   @protected
@@ -2116,20 +2231,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  List<(String, StyleProfile)> sse_decode_list_record_string_style_profile(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <(String, StyleProfile)>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_record_string_style_profile(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
   List<TextMark> sse_decode_list_text_mark(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -2137,6 +2238,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var ans_ = <TextMark>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_text_mark(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<Theme> sse_decode_list_theme(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <Theme>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_theme(deserializer));
     }
     return ans_;
   }
@@ -2161,11 +2274,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_mapName = sse_decode_String(deserializer);
     var var_viewportState = sse_decode_viewport_state(deserializer);
-    var var_theme = sse_decode_theme_config(deserializer);
+    var var_activeThemeId = sse_decode_opt_String(deserializer);
     return MapConfig(
       mapName: var_mapName,
       viewportState: var_viewportState,
-      theme: var_theme,
+      activeThemeId: var_activeThemeId,
     );
   }
 
@@ -2343,39 +2456,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  (String, StyleProfile) sse_decode_record_string_style_profile(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_field0 = sse_decode_String(deserializer);
-    var var_field1 = sse_decode_style_profile(deserializer);
-    return (var_field0, var_field1);
-  }
-
-  @protected
   RelationInput sse_decode_relation_input(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_from = sse_decode_String(deserializer);
     var var_to = sse_decode_String(deserializer);
     var var_props = sse_decode_i_relation(deserializer);
     return RelationInput(from: var_from, to: var_to, props: var_props);
-  }
-
-  @protected
-  StyleProfile sse_decode_style_profile(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_shape = sse_decode_String(deserializer);
-    var var_bgColor = sse_decode_String(deserializer);
-    var var_strokeColor = sse_decode_String(deserializer);
-    var var_strokeWidth = sse_decode_f_32(deserializer);
-    var var_fontFamily = sse_decode_String(deserializer);
-    return StyleProfile(
-      shape: var_shape,
-      bgColor: var_bgColor,
-      strokeColor: var_strokeColor,
-      strokeWidth: var_strokeWidth,
-      fontFamily: var_fontFamily,
-    );
   }
 
   @protected
@@ -2410,18 +2496,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ThemeConfig sse_decode_theme_config(SseDeserializer deserializer) {
+  Theme sse_decode_theme(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_opt_String(deserializer);
     var var_name = sse_decode_String(deserializer);
-    var var_globalDefault = sse_decode_style_profile(deserializer);
-    var var_typeDefinitions = sse_decode_Map_String_style_profile_None(
-      deserializer,
-    );
-    return ThemeConfig(
-      name: var_name,
-      globalDefault: var_globalDefault,
-      typeDefinitions: var_typeDefinitions,
-    );
+    var var_config = sse_decode_String(deserializer);
+    return Theme(id: var_id, name: var_name, config: var_config);
   }
 
   @protected
@@ -2519,18 +2599,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as AppHandleImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void sse_encode_Map_String_style_profile_None(
-    Map<String, StyleProfile> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_list_record_string_style_profile(
-      self.entries.map((e) => (e.key, e.value)).toList(),
       serializer,
     );
   }
@@ -2697,6 +2765,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_theme(Theme self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_theme(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_u_8(self, serializer);
@@ -2730,12 +2804,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.x, serializer);
     sse_encode_i_32(self.y, serializer);
     sse_encode_u_8(self.z, serializer);
-  }
-
-  @protected
-  void sse_encode_f_32(double self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putFloat32(self);
   }
 
   @protected
@@ -2901,18 +2969,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_list_record_string_style_profile(
-    List<(String, StyleProfile)> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_record_string_style_profile(item, serializer);
-    }
-  }
-
-  @protected
   void sse_encode_list_text_mark(
     List<TextMark> self,
     SseSerializer serializer,
@@ -2921,6 +2977,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_text_mark(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_theme(List<Theme> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_theme(item, serializer);
     }
   }
 
@@ -2938,7 +3003,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.mapName, serializer);
     sse_encode_viewport_state(self.viewportState, serializer);
-    sse_encode_theme_config(self.theme, serializer);
+    sse_encode_opt_String(self.activeThemeId, serializer);
   }
 
   @protected
@@ -3109,31 +3174,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_record_string_style_profile(
-    (String, StyleProfile) self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.$1, serializer);
-    sse_encode_style_profile(self.$2, serializer);
-  }
-
-  @protected
   void sse_encode_relation_input(RelationInput self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.from, serializer);
     sse_encode_String(self.to, serializer);
     sse_encode_i_relation(self.props, serializer);
-  }
-
-  @protected
-  void sse_encode_style_profile(StyleProfile self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.shape, serializer);
-    sse_encode_String(self.bgColor, serializer);
-    sse_encode_String(self.strokeColor, serializer);
-    sse_encode_f_32(self.strokeWidth, serializer);
-    sse_encode_String(self.fontFamily, serializer);
   }
 
   @protected
@@ -3157,11 +3202,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_theme_config(ThemeConfig self, SseSerializer serializer) {
+  void sse_encode_theme(Theme self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_String(self.id, serializer);
     sse_encode_String(self.name, serializer);
-    sse_encode_style_profile(self.globalDefault, serializer);
-    sse_encode_Map_String_style_profile_None(self.typeDefinitions, serializer);
+    sse_encode_String(self.config, serializer);
   }
 
   @protected
@@ -3240,6 +3285,12 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
   Future<String> deleteRelation({required String id}) => RustLib.instance.api
       .crateBridgeApiAppHandleDeleteRelation(that: this, id: id);
 
+  Future<String?> getActiveThemeId() =>
+      RustLib.instance.api.crateBridgeApiAppHandleGetActiveThemeId(that: this);
+
+  Future<List<Theme>> getAllThemes() =>
+      RustLib.instance.api.crateBridgeApiAppHandleGetAllThemes(that: this);
+
   Future<(List<NodeOutput>, List<IRelation>, MapConfig?)> getGraphSnapshot() =>
       RustLib.instance.api.crateBridgeApiAppHandleGetGraphSnapshot(that: this);
 
@@ -3310,8 +3361,16 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
     attachmentDir: attachmentDir,
   );
 
+  Future<void> setActiveThemeId({required String themeId}) => RustLib
+      .instance
+      .api
+      .crateBridgeApiAppHandleSetActiveThemeId(that: this, themeId: themeId);
+
   Future<void> startGraphStream() =>
       RustLib.instance.api.crateBridgeApiAppHandleStartGraphStream(that: this);
+
+  Future<String> upsertTheme({required Theme theme}) => RustLib.instance.api
+      .crateBridgeApiAppHandleUpsertTheme(that: this, theme: theme);
 }
 
 @sealed
