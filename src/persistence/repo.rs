@@ -1,5 +1,5 @@
 use super::templates;
-use crate::domain::config::MapConfig;
+use crate::domain::base_models::MapConfig;
 use crate::domain::nodes::{NodeInput, NodeOutput};
 use crate::domain::relations::RelationInput;
 use anyhow::Result;
@@ -336,7 +336,7 @@ impl Repository {
         &self,
         nodes: Vec<NodeOutput>,
         relations: Vec<crate::domain::relations::IRelation>,
-        metadata: Option<crate::domain::config::MapConfig>,
+        metadata: Option<MapConfig>,
     ) -> anyhow::Result<()> {
         let mut inodes = Vec::new();
         let mut tasks = Vec::new();
@@ -362,7 +362,7 @@ impl Repository {
         task_nodes: Vec<crate::domain::nodes::TaskNode>,
         inter_nodes: Vec<crate::domain::nodes::InterNode>,
         relations: Vec<crate::domain::relations::IRelation>,
-        metadata: Option<crate::domain::config::MapConfig>,
+        metadata: Option<MapConfig>,
     ) -> anyhow::Result<()> {
         // TRANSACTION: "All or Nothing"
         // We delete everything then insert everything.

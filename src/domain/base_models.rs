@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 // -----------------------------------------------------------------------------
-// Comment & Coordinates (Existing)
+// Core Identity & Spatial Types (Restored)
 // -----------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -15,6 +15,37 @@ pub struct Coordinates {
     pub x: i32,
     pub y: i32,
     pub z: u8,
+}
+
+// -----------------------------------------------------------------------------
+// Theme & Styling (Dumb Receiver Implementation)
+// -----------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Theme {
+    #[serde(
+        alias = "id",
+        skip_serializing_if = "Option::is_none",
+        with = "crate::domain::serde_helpers::option_thing_string"
+    )]
+    pub id: Option<String>,
+    pub name: String,
+    pub config: String, // Blind JSON blob from Flutter
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ViewportState {
+    pub x_offset: f64,
+    pub y_offset: f64,
+    pub zoom_level: f64,
+    pub active_view: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct MapConfig {
+    pub map_name: String,
+    pub viewport_state: ViewportState,
+    pub active_theme_id: Option<String>,
 }
 
 // -----------------------------------------------------------------------------

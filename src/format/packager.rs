@@ -1,13 +1,13 @@
+use crate::domain::base_models::MapConfig;
 use crate::domain::nodes::NodeOutput;
 use crate::domain::relations::IRelation;
-use crate::domain::config::MapConfig;
-use serde::{Serialize, Deserialize};
+use anyhow::{Context, Result};
+use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
 use walkdir::WalkDir;
 use zip::{write::FileOptions, ZipArchive};
-use anyhow::{Context, Result};
 
 // The schema for the internal graph.json file
 #[derive(Serialize, Deserialize)]
@@ -24,9 +24,8 @@ pub fn save_project_to_celi(
     attachment_dir: &str,
     nodes: Vec<NodeOutput>,
     relations: Vec<IRelation>,
-    metadata: Option<MapConfig>
+    metadata: Option<MapConfig>,
 ) -> Result<()> {
-
     let path = Path::new(archive_path);
     let file = File::create(&path)
         .with_context(|| format!("Failed to create archive at {}", archive_path))?;
@@ -62,7 +61,8 @@ pub fn save_project_to_celi(
             let path = entry.path();
 
             // Get relative path for zip entry name (e.g., "data/image.png")
-            let name = path.strip_prefix(Path::new(attachment_dir).parent().unwrap_or(Path::new(".")))?
+            let name = path
+                .strip_prefix(Path::new(attachment_dir).parent().unwrap_or(Path::new(".")))?
                 .to_str()
                 .context("Invalid UTF-8 path")?
                 .replace("\\", "/"); // [FIX] Ensure forward slashes for ZIP compatibility on Windows
@@ -84,9 +84,8 @@ pub fn save_project_to_celi(
 /// LOADER: Extracts Archive -> RAM Structs
 pub fn load_project_from_celi(
     archive_path: &str,
-    target_attachment_dir: &str
+    target_attachment_dir: &str,
 ) -> Result<(Vec<NodeOutput>, Vec<IRelation>, Option<MapConfig>)> {
-
     let file = File::open(archive_path)?;
     let mut zip = ZipArchive::new(file)?;
 
@@ -103,14 +102,18 @@ pub fn load_project_from_celi(
         let name = file.name().to_owned();
 
         // Skip the DB file
-        if name == "graph.msgpack" || name == "graph.json" { continue; }
+        if name == "graph.msgpack" || name == "graph.json" {
+            continue;
+        }
 
         let outpath = Path::new(target_attachment_dir).join(&name);
 
         if file.is_dir() {
             fs::create_dir_all(&outpath)?;
         } else {
-            if let Some(p) = outpath.parent() { fs::create_dir_all(p)?; }
+            if let Some(p) = outpath.parent() {
+                fs::create_dir_all(p)?;
+            }
             let mut outfile = File::create(&outpath)?;
             std::io::copy(&mut file, &mut outfile)?;
         }

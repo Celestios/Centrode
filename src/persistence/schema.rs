@@ -12,6 +12,7 @@ impl Schema {
         db.query("DEFINE TABLE inter_node SCHEMAFULL;").await?;
         db.query("DEFINE TABLE relates_to TYPE RELATION SCHEMAFULL;")
             .await?;
+        db.query("DEFINE TABLE theme SCHEMAFULL;").await?;
         db.query("DEFINE TABLE map_metadata SCHEMALESS;").await?;
 
         // --- Shared Schema Definition Helpers ---
@@ -59,20 +60,6 @@ impl Schema {
             )
         };
 
-        let define_style_profile = |table: &str, field: &str| -> String {
-            format!(
-                "
-                DEFINE FIELD {field} ON TABLE {table} TYPE object;
-                DEFINE FIELD {field}.shape ON TABLE {table} TYPE string;
-                DEFINE FIELD {field}.bg_color ON TABLE {table} TYPE string;
-                DEFINE FIELD {field}.stroke_color ON TABLE {table} TYPE string;
-                DEFINE FIELD {field}.stroke_width ON TABLE {table} TYPE float;
-                DEFINE FIELD {field}.font_family ON TABLE {table} TYPE string;
-            "
-            )
-        };
-
-        // Define fields for inode
         db.query(define_content("inode")).await?;
         db.query(define_position("inode")).await?;
         db.query(define_comments("inode")).await?;
@@ -157,35 +144,15 @@ impl Schema {
         db.query("DEFINE FIELD viewport_state.active_view ON TABLE map_metadata TYPE string;")
             .await?;
 
-        // Theme
-        db.query("DEFINE FIELD theme ON TABLE map_metadata TYPE object;")
+        // Theme Table Definition (Dumb Receiver)
+        db.query("DEFINE FIELD name ON TABLE theme TYPE string;")
             .await?;
-        db.query("DEFINE FIELD theme.name ON TABLE map_metadata TYPE string;")
+        db.query("DEFINE FIELD config ON TABLE theme TYPE string;")
             .await?;
-        db.query(define_style_profile("map_metadata", "theme.global_default"))
+
+        // Active Theme on Map Metadata
+        db.query("DEFINE FIELD active_theme_id ON TABLE map_metadata TYPE option<record<theme>>;")
             .await?;
-        // type_definitions is a HashMap, since keys are dynamic and we want to avoid FLEXIBLE,
-        // we'll define it as a SCHEMALESS object specifically if possible,
-        // but SurrealDB 2.0 FIELD doesn't have a SCHEMALESS modifier for fields inside SCHEMAFULL tables.
-        // Actually, if we don't define the fields under theme.type_definitions, SCHEMAFULL will strip them.
-        // We will define the known node types to satisfy the schema.
-        db.query("DEFINE FIELD theme.type_definitions ON TABLE map_metadata TYPE object;")
-            .await?;
-        db.query(define_style_profile(
-            "map_metadata",
-            "theme.type_definitions.Info",
-        ))
-        .await?;
-        db.query(define_style_profile(
-            "map_metadata",
-            "theme.type_definitions.Task",
-        ))
-        .await?;
-        db.query(define_style_profile(
-            "map_metadata",
-            "theme.type_definitions.Inter",
-        ))
-        .await?;
 
         // Indexes
         db.query("DEFINE INDEX node_tags ON TABLE inode FIELDS tags[*];")

@@ -1,4 +1,4 @@
-use crate::domain::base_models::Content;
+use crate::domain::base_models::{Content, MapConfig};
 use crate::domain::nodes::{NodeInput, NodeOutput};
 use crate::domain::relations::RelationInput;
 use crate::format::packager;
@@ -252,7 +252,7 @@ impl AppHandle {
     ) -> anyhow::Result<(
         Vec<NodeOutput>,
         Vec<crate::domain::relations::IRelation>,
-        Option<crate::domain::config::MapConfig>,
+        Option<MapConfig>,
     )> {
         debug!("Fetching graph snapshot");
         let result = self.repo.get_graph_snapshot().await;
@@ -327,8 +327,9 @@ impl AppHandle {
     }
 
     // 6. Content Operations (Binary Serialization)
-    /// Patch node content using binary serialization for FFI efficiency.
-    /// The content_bytes parameter is a bincode-serialized Content struct.
+    /// Patch node content using raw UTF-8 bytes from Dart.
+    /// The content_bytes parameter is raw UTF-8 text, not bincode-serialized.
+    /// The Content struct is constructed in Rust where its schema is authoritative.
     pub async fn patch_node_content(
         &self,
         table: String,
@@ -342,17 +343,16 @@ impl AppHandle {
             content_bytes.len()
         );
 
-        // Deserialize from binary
-        let content: Content = bincode::deserialize(&content_bytes).map_err(|e| {
-            error!(
-                "FFI: Failed to deserialize content for {}/{}: {}",
-                table, id, e
-            );
-            anyhow::anyhow!("Failed to deserialize content: {}", e)
-        })?;
+        // FIX: Interpret the incoming bytes as a raw string rather than a
+        // bincode-serialized struct to resolve the "unexpected end of file"
+        let text = String::from_utf8(content_bytes)
+            .map_err(|e| anyhow::anyhow!("Invalid UTF-8 content: {}", e))?;
+
+        // Construct the Content struct in Rust where its schema is authoritative
+        let content = Content::from_plain_text(text);
 
         debug!(
-            "FFI: Deserialized content for {}/{}: {:?}",
+            "FFI: Constructed content for {}/{}: {:?}",
             table, id, content
         );
 
@@ -373,5 +373,66 @@ impl AppHandle {
             })?;
         info!("FFI: Node content {}/{} patched successfully", table, id);
         Ok(())
+    }
+
+    // 7. Theme Operations
+    pub async fn get_all_themes(&self) -> anyhow::Result<Vec<crate::domain::base_models::Theme>> {
+        let mut res = self.repo.db().query("SELECT * FROM theme").await?;
+        let themes: Vec<crate::domain::base_models::Theme> = res.take(0)?;
+        Ok(themes)
+    }
+
+    pub async fn get_active_theme_id(&self) -> anyhow::Result<Option<String>> {
+        let mut res = self
+            .repo
+            .db()
+            .query("SELECT active_theme_id FROM map_metadata LIMIT 1")
+            .await?;
+        let result: Option<serde_json::Value> = res.take(0)?;
+        if let Some(val) = result {
+            if let Some(id_val) = val.get("active_theme_id") {
+                if let Some(id_str) = id_val.as_str() {
+                    // SurrealDB record IDs look like "theme:id"
+                    return Ok(Some(id_str.replace("theme:", "")));
+                }
+            }
+        }
+        Ok(None)
+    }
+
+    pub async fn set_active_theme_id(&self, theme_id: String) -> anyhow::Result<()> {
+        let theme_record = format!("theme:{}", theme_id);
+        self.repo
+            .db()
+            .query("UPDATE map_metadata SET active_theme_id = $theme_id")
+            .bind(("theme_id", theme_record))
+            .await?;
+        Ok(())
+    }
+
+    pub async fn upsert_theme(
+        &self,
+        theme: crate::domain::base_models::Theme,
+    ) -> anyhow::Result<String> {
+        let mut res = if let Some(id) = theme.id.clone() {
+            let theme_record = format!("theme:{}", id);
+            self.repo
+                .db()
+                .query("UPDATE $id MERGE $theme")
+                .bind(("id", theme_record))
+                .bind(("theme", theme))
+                .await?
+        } else {
+            self.repo
+                .db()
+                .query("CREATE theme CONTENT $theme")
+                .bind(("theme", theme))
+                .await?
+        };
+
+        let result: Option<crate::domain::base_models::Theme> = res.take(0)?;
+        result
+            .and_then(|t| t.id)
+            .ok_or_else(|| anyhow::anyhow!("Failed to upsert theme"))
     }
 }
