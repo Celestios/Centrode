@@ -3,6 +3,7 @@
 
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
+import '../domain/base_models.dart';
 import '../domain/config.dart';
 import '../domain/nodes.dart';
 import '../domain/relations.dart';
@@ -23,6 +24,26 @@ Future<void> setupLogger() => RustLib.instance.api.crateBridgeApiSetupLogger();
 /// Flushes the pre-stream buffer and starts streaming logs.
 Stream<LogState> createLogStream() =>
     RustLib.instance.api.crateBridgeApiCreateLogStream();
+
+/// Serialize Content to binary for FFI transport.
+/// Used by Flutter to prepare content for efficient transfer.
+Future<Uint8List> serializeContent({required Content content}) =>
+    RustLib.instance.api.crateBridgeApiSerializeContent(content: content);
+
+/// Deserialize Content from binary FFI payload.
+/// Used by Flutter to decode content received from Rust.
+Future<Content?> deserializeContent({required List<int> bytes}) =>
+    RustLib.instance.api.crateBridgeApiDeserializeContent(bytes: bytes);
+
+/// Create a simple Content from plain text.
+/// Convenience function for creating paragraph content.
+Future<Content> createContentFromText({required String text}) =>
+    RustLib.instance.api.crateBridgeApiCreateContentFromText(text: text);
+
+/// Extract plain text from Content.
+/// Used for search indexing and fallback rendering.
+Future<String> contentToPlainText({required Content content}) =>
+    RustLib.instance.api.crateBridgeApiContentToPlainText(content: content);
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>>
 abstract class AppHandle implements RustOpaqueInterface {
@@ -50,6 +71,14 @@ abstract class AppHandle implements RustOpaqueInterface {
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
   static Future<AppHandle> newInstance({required String storagePath}) =>
       RustLib.instance.api.crateBridgeApiAppHandleNew(storagePath: storagePath);
+
+  /// Patch node content using binary serialization for FFI efficiency.
+  /// The content_bytes parameter is a bincode-serialized Content struct.
+  Future<void> patchNodeContent({
+    required String table,
+    required String id,
+    required List<int> contentBytes,
+  });
 
   Future<void> patchNodeProperties({
     required String table,

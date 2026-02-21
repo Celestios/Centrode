@@ -4,28 +4,29 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import 'base_models.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'nodes.freezed.dart';
 
 class INode {
   final String? id;
-  final String? text;
-  final String? visualFormatting;
-  final int layer;
+  final Content content;
+  final String? aesthetics;
+  final Coordinates position;
   final bool locked;
   final List<String> tags;
   final List<String> aliases;
-  final List<String> comments;
+  final List<Comment> comments;
   final String? attachment;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
 
   const INode({
     this.id,
-    this.text,
-    this.visualFormatting,
-    required this.layer,
+    required this.content,
+    this.aesthetics,
+    required this.position,
     required this.locked,
     required this.tags,
     required this.aliases,
@@ -38,9 +39,9 @@ class INode {
   @override
   int get hashCode =>
       id.hashCode ^
-      text.hashCode ^
-      visualFormatting.hashCode ^
-      layer.hashCode ^
+      content.hashCode ^
+      aesthetics.hashCode ^
+      position.hashCode ^
       locked.hashCode ^
       tags.hashCode ^
       aliases.hashCode ^
@@ -55,9 +56,9 @@ class INode {
       other is INode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
-          text == other.text &&
-          visualFormatting == other.visualFormatting &&
-          layer == other.layer &&
+          content == other.content &&
+          aesthetics == other.aesthetics &&
+          position == other.position &&
           locked == other.locked &&
           tags == other.tags &&
           aliases == other.aliases &&
@@ -71,7 +72,8 @@ class InterNode {
   final String? id;
   final String verb;
   final String? behavioralFeatures;
-  final String? visualFormatting;
+  final Coordinates position;
+  final String? aesthetics;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
 
@@ -79,7 +81,8 @@ class InterNode {
     this.id,
     required this.verb,
     this.behavioralFeatures,
-    this.visualFormatting,
+    required this.position,
+    this.aesthetics,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -89,7 +92,8 @@ class InterNode {
       id.hashCode ^
       verb.hashCode ^
       behavioralFeatures.hashCode ^
-      visualFormatting.hashCode ^
+      position.hashCode ^
+      aesthetics.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode;
 
@@ -101,7 +105,8 @@ class InterNode {
           id == other.id &&
           verb == other.verb &&
           behavioralFeatures == other.behavioralFeatures &&
-          visualFormatting == other.visualFormatting &&
+          position == other.position &&
+          aesthetics == other.aesthetics &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt;
 }
@@ -126,19 +131,21 @@ sealed class NodeOutput with _$NodeOutput {
 
 class TaskNode {
   final String? id;
-  final String? text;
+  final Content content;
   final PlatformInt64? dueDate;
   final String state;
-  final String? visualFormatting;
+  final Coordinates position;
+  final String? aesthetics;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
 
   const TaskNode({
     this.id,
-    this.text,
+    required this.content,
     this.dueDate,
     required this.state,
-    this.visualFormatting,
+    required this.position,
+    this.aesthetics,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -146,10 +153,11 @@ class TaskNode {
   @override
   int get hashCode =>
       id.hashCode ^
-      text.hashCode ^
+      content.hashCode ^
       dueDate.hashCode ^
       state.hashCode ^
-      visualFormatting.hashCode ^
+      position.hashCode ^
+      aesthetics.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode;
 
@@ -159,10 +167,11 @@ class TaskNode {
       other is TaskNode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
-          text == other.text &&
+          content == other.content &&
           dueDate == other.dueDate &&
           state == other.state &&
-          visualFormatting == other.visualFormatting &&
+          position == other.position &&
+          aesthetics == other.aesthetics &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt;
 }

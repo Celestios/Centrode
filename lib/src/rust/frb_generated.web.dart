@@ -9,6 +9,7 @@
 import 'bridge/api.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'domain/base_models.dart';
 import 'domain/config.dart';
 import 'domain/nodes.dart';
 import 'domain/relations.dart';
@@ -84,7 +85,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String dco_decode_String(dynamic raw);
 
   @protected
+  BlockAttrs dco_decode_block_attrs(dynamic raw);
+
+  @protected
+  BlockType dco_decode_block_type(dynamic raw);
+
+  @protected
   bool dco_decode_bool(dynamic raw);
+
+  @protected
+  BlockAttrs dco_decode_box_autoadd_block_attrs(dynamic raw);
+
+  @protected
+  Content dco_decode_box_autoadd_content(dynamic raw);
 
   @protected
   PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
@@ -99,6 +112,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   MapConfig dco_decode_box_autoadd_map_config(dynamic raw);
 
   @protected
+  MarkAttrs dco_decode_box_autoadd_mark_attrs(dynamic raw);
+
+  @protected
   NodeInput dco_decode_box_autoadd_node_input(dynamic raw);
 
   @protected
@@ -111,10 +127,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   TaskNode dco_decode_box_autoadd_task_node(dynamic raw);
 
   @protected
+  int dco_decode_box_autoadd_u_8(dynamic raw);
+
+  @protected
+  Comment dco_decode_comment(dynamic raw);
+
+  @protected
+  Content dco_decode_content(dynamic raw);
+
+  @protected
+  ContentBlock dco_decode_content_block(dynamic raw);
+
+  @protected
+  Coordinates dco_decode_coordinates(dynamic raw);
+
+  @protected
   double dco_decode_f_32(dynamic raw);
 
   @protected
   double dco_decode_f_64(dynamic raw);
+
+  @protected
+  int dco_decode_i_32(dynamic raw);
 
   @protected
   PlatformInt64 dco_decode_i_64(dynamic raw);
@@ -126,16 +160,34 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   IRelation dco_decode_i_relation(dynamic raw);
 
   @protected
+  InlineElement dco_decode_inline_element(dynamic raw);
+
+  @protected
+  InlineType dco_decode_inline_type(dynamic raw);
+
+  @protected
   InterNode dco_decode_inter_node(dynamic raw);
 
   @protected
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
+  List<Comment> dco_decode_list_comment(dynamic raw);
+
+  @protected
+  List<ContentBlock> dco_decode_list_content_block(dynamic raw);
+
+  @protected
   List<IRelation> dco_decode_list_i_relation(dynamic raw);
 
   @protected
+  List<InlineElement> dco_decode_list_inline_element(dynamic raw);
+
+  @protected
   List<NodeOutput> dco_decode_list_node_output(dynamic raw);
+
+  @protected
+  List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
@@ -146,10 +198,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<TextMark> dco_decode_list_text_mark(dynamic raw);
+
+  @protected
   LogState dco_decode_log_state(dynamic raw);
 
   @protected
   MapConfig dco_decode_map_config(dynamic raw);
+
+  @protected
+  MarkAttrs dco_decode_mark_attrs(dynamic raw);
+
+  @protected
+  MarkType dco_decode_mark_type(dynamic raw);
 
   @protected
   NodeInput dco_decode_node_input(dynamic raw);
@@ -161,13 +222,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String? dco_decode_opt_String(dynamic raw);
 
   @protected
+  BlockAttrs? dco_decode_opt_box_autoadd_block_attrs(dynamic raw);
+
+  @protected
+  Content? dco_decode_opt_box_autoadd_content(dynamic raw);
+
+  @protected
   PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
 
   @protected
   MapConfig? dco_decode_opt_box_autoadd_map_config(dynamic raw);
 
   @protected
+  MarkAttrs? dco_decode_opt_box_autoadd_mark_attrs(dynamic raw);
+
+  @protected
   NodeOutput? dco_decode_opt_box_autoadd_node_output(dynamic raw);
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_8(dynamic raw);
+
+  @protected
+  List<TextMark>? dco_decode_opt_list_text_mark(dynamic raw);
 
   @protected
   (List<NodeOutput>, List<IRelation>, MapConfig?)
@@ -186,6 +262,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TaskNode dco_decode_task_node(dynamic raw);
+
+  @protected
+  TextMark dco_decode_text_mark(dynamic raw);
 
   @protected
   ThemeConfig dco_decode_theme_config(dynamic raw);
@@ -258,7 +337,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
+  BlockAttrs sse_decode_block_attrs(SseDeserializer deserializer);
+
+  @protected
+  BlockType sse_decode_block_type(SseDeserializer deserializer);
+
+  @protected
   bool sse_decode_bool(SseDeserializer deserializer);
+
+  @protected
+  BlockAttrs sse_decode_box_autoadd_block_attrs(SseDeserializer deserializer);
+
+  @protected
+  Content sse_decode_box_autoadd_content(SseDeserializer deserializer);
 
   @protected
   PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
@@ -271,6 +362,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MapConfig sse_decode_box_autoadd_map_config(SseDeserializer deserializer);
+
+  @protected
+  MarkAttrs sse_decode_box_autoadd_mark_attrs(SseDeserializer deserializer);
 
   @protected
   NodeInput sse_decode_box_autoadd_node_input(SseDeserializer deserializer);
@@ -287,10 +381,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   TaskNode sse_decode_box_autoadd_task_node(SseDeserializer deserializer);
 
   @protected
+  int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
+
+  @protected
+  Comment sse_decode_comment(SseDeserializer deserializer);
+
+  @protected
+  Content sse_decode_content(SseDeserializer deserializer);
+
+  @protected
+  ContentBlock sse_decode_content_block(SseDeserializer deserializer);
+
+  @protected
+  Coordinates sse_decode_coordinates(SseDeserializer deserializer);
+
+  @protected
   double sse_decode_f_32(SseDeserializer deserializer);
 
   @protected
   double sse_decode_f_64(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
@@ -302,16 +414,38 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   IRelation sse_decode_i_relation(SseDeserializer deserializer);
 
   @protected
+  InlineElement sse_decode_inline_element(SseDeserializer deserializer);
+
+  @protected
+  InlineType sse_decode_inline_type(SseDeserializer deserializer);
+
+  @protected
   InterNode sse_decode_inter_node(SseDeserializer deserializer);
 
   @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
+  List<Comment> sse_decode_list_comment(SseDeserializer deserializer);
+
+  @protected
+  List<ContentBlock> sse_decode_list_content_block(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<IRelation> sse_decode_list_i_relation(SseDeserializer deserializer);
 
   @protected
+  List<InlineElement> sse_decode_list_inline_element(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<NodeOutput> sse_decode_list_node_output(SseDeserializer deserializer);
+
+  @protected
+  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -322,10 +456,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<TextMark> sse_decode_list_text_mark(SseDeserializer deserializer);
+
+  @protected
   LogState sse_decode_log_state(SseDeserializer deserializer);
 
   @protected
   MapConfig sse_decode_map_config(SseDeserializer deserializer);
+
+  @protected
+  MarkAttrs sse_decode_mark_attrs(SseDeserializer deserializer);
+
+  @protected
+  MarkType sse_decode_mark_type(SseDeserializer deserializer);
 
   @protected
   NodeInput sse_decode_node_input(SseDeserializer deserializer);
@@ -337,6 +480,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
+  BlockAttrs? sse_decode_opt_box_autoadd_block_attrs(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  Content? sse_decode_opt_box_autoadd_content(SseDeserializer deserializer);
+
+  @protected
   PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
 
   @protected
@@ -345,9 +496,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  MarkAttrs? sse_decode_opt_box_autoadd_mark_attrs(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   NodeOutput? sse_decode_opt_box_autoadd_node_output(
     SseDeserializer deserializer,
   );
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer);
+
+  @protected
+  List<TextMark>? sse_decode_opt_list_text_mark(SseDeserializer deserializer);
 
   @protected
   (List<NodeOutput>, List<IRelation>, MapConfig?)
@@ -370,6 +532,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   TaskNode sse_decode_task_node(SseDeserializer deserializer);
 
   @protected
+  TextMark sse_decode_text_mark(SseDeserializer deserializer);
+
+  @protected
   ThemeConfig sse_decode_theme_config(SseDeserializer deserializer);
 
   @protected
@@ -386,9 +551,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ViewportState sse_decode_viewport_state(SseDeserializer deserializer);
-
-  @protected
-  int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
   void sse_encode_AnyhowException(
@@ -454,7 +616,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
+  void sse_encode_block_attrs(BlockAttrs self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_block_type(BlockType self, SseSerializer serializer);
+
+  @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_block_attrs(
+    BlockAttrs self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_content(Content self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_i_64(
@@ -474,6 +651,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_map_config(
     MapConfig self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_mark_attrs(
+    MarkAttrs self,
     SseSerializer serializer,
   );
 
@@ -502,10 +685,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_comment(Comment self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_content(Content self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_content_block(ContentBlock self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_coordinates(Coordinates self, SseSerializer serializer);
+
+  @protected
   void sse_encode_f_32(double self, SseSerializer serializer);
 
   @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
@@ -517,10 +718,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_i_relation(IRelation self, SseSerializer serializer);
 
   @protected
+  void sse_encode_inline_element(InlineElement self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_inline_type(InlineType self, SseSerializer serializer);
+
+  @protected
   void sse_encode_inter_node(InterNode self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_comment(List<Comment> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_content_block(
+    List<ContentBlock> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_i_relation(
@@ -529,10 +745,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_inline_element(
+    List<InlineElement> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_node_output(
     List<NodeOutput> self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
@@ -547,10 +772,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_text_mark(List<TextMark> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_log_state(LogState self, SseSerializer serializer);
 
   @protected
   void sse_encode_map_config(MapConfig self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_mark_attrs(MarkAttrs self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_mark_type(MarkType self, SseSerializer serializer);
 
   @protected
   void sse_encode_node_input(NodeInput self, SseSerializer serializer);
@@ -560,6 +794,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_block_attrs(
+    BlockAttrs? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_content(
+    Content? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_box_autoadd_i_64(
@@ -574,8 +820,23 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_mark_attrs(
+    MarkAttrs? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_node_output(
     NodeOutput? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_list_text_mark(
+    List<TextMark>? self,
     SseSerializer serializer,
   );
 
@@ -602,6 +863,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_task_node(TaskNode self, SseSerializer serializer);
 
   @protected
+  void sse_encode_text_mark(TextMark self, SseSerializer serializer);
+
+  @protected
   void sse_encode_theme_config(ThemeConfig self, SseSerializer serializer);
 
   @protected
@@ -618,9 +882,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_viewport_state(ViewportState self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_i_32(int self, SseSerializer serializer);
 }
 
 // Section: wire_class

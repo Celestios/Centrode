@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
-import 'dart:collection'; // For ListQueue
+import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
-import 'package:uuid/uuid.dart'; // Add 'uuid' to pubspec.yaml
+import 'package:uuid/uuid.dart';
 
 // Domain Imports
 import '../domain/models.dart';
@@ -12,7 +12,6 @@ import '../domain/models.dart';
 // FFI Imports (Adjust path to your generated code)
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/relations.dart';
-// We assume 'AppHandle' and 'GraphSnapshot' are generated here.
 
 // -----------------------------------------------------------------------------
 // Command Processor for Write-Behind Debouncing
@@ -33,8 +32,10 @@ class CommandProcessor {
   /// Queues a command for execution with optional debouncing.
   /// Set [immediate] to true to bypass the debounce timer (e.g., for deletes).
   void queueCommand(GraphCommand cmd, {bool immediate = false}) {
-    _log.finer('Queueing command: ${cmd.runtimeType} [Target: ${cmd.targetId}] (Immediate: $immediate)');
-    
+    _log.finer(
+      'Queueing command: ${cmd.runtimeType} [Target: ${cmd.targetId}] (Immediate: $immediate)',
+    );
+
     // 1. Cancel existing debouncer for this entity
     _debouncers[cmd.targetId]?.cancel();
     _debouncers.remove(cmd.targetId);
@@ -49,7 +50,9 @@ class CommandProcessor {
       _debouncers[cmd.targetId] = Timer(const Duration(milliseconds: 300), () {
         final pending = _pendingCommands.remove(cmd.targetId);
         if (pending != null) {
-          _log.finer('Debounce window closed. Promoting ${cmd.targetId} to execution queue.');
+          _log.finer(
+            'Debounce window closed. Promoting ${cmd.targetId} to execution queue.',
+          );
           _executionQueue.addLast(pending);
           _processQueue();
         }
@@ -60,8 +63,10 @@ class CommandProcessor {
   Future<void> _processQueue() async {
     if (_isProcessing) return;
     _isProcessing = true;
-    
-    _log.fine('Flushing execution queue (${_executionQueue.length} operations pending)');
+
+    _log.fine(
+      'Flushing execution queue (${_executionQueue.length} operations pending)',
+    );
 
     while (_executionQueue.isNotEmpty) {
       final cmd = _executionQueue.removeFirst();
@@ -71,7 +76,10 @@ class CommandProcessor {
         // Update canonical DB baseline on success
         if (cmd is MoveNodeCommand) cmd.onSuccess();
       } catch (e) {
-        _log.severe('FFI Synchronization failed for ${cmd.targetId}. Executing strict rollback.', e);
+        _log.severe(
+          'FFI Synchronization failed for ${cmd.targetId}. Executing strict rollback.',
+          e,
+        );
         cmd.undo();
         // Drop pending mutations for this entity to prevent overriding the rollback
         _executionQueue.removeWhere((c) => c.targetId == cmd.targetId);
@@ -137,7 +145,7 @@ class GraphController extends ChangeNotifier {
 
   // Command Processor for write-behind debouncing
   late final CommandProcessor _processor;
-  
+
   // Tracks the last confirmed DB positions to prevent "Superseded Rollback Traps"
   final Map<String, Offset> _lastConfirmedDbPositions = {};
 
@@ -158,10 +166,12 @@ class GraphController extends ChangeNotifier {
   String? nodeShowingDeleteMenu;
 
   GraphController(this._api) {
-    _processor = CommandProcessor(onError: (msg) {
-      errorMessage = msg;
-      notifyListeners();
-    });
+    _processor = CommandProcessor(
+      onError: (msg) {
+        errorMessage = msg;
+        notifyListeners();
+      },
+    );
   }
 
   @override
@@ -221,7 +231,8 @@ class GraphController extends ChangeNotifier {
 
       // The FFI generator typically maps Vec<NodeOutput> to List<NodeOutput>
       // We iterate and convert them to our Domain Model.
-      for (final ffiNode in snapshot.$1) { // Assuming $1 is the nodes list
+      for (final ffiNode in snapshot.$1) {
+        // Assuming $1 is the nodes list
         final uiNode = UiNode.fromFFI(ffiNode);
         _nodes[uiNode.id] = uiNode;
       }
@@ -234,7 +245,6 @@ class GraphController extends ChangeNotifier {
 
       // Sync ViewStates after populating nodes
       _syncViewStates();
-
     } catch (e) {
       errorMessage = "Failed to load graph: $e";
       _log.severe('Failed to load graph snapshot', e);
@@ -259,7 +269,12 @@ class GraphController extends ChangeNotifier {
     UiNode node;
     switch (type) {
       case UiNodeType.task:
-        node = TaskUiNode(id: tempId, position: position, text: "New Task", state: "TODO");
+        node = TaskUiNode(
+          id: tempId,
+          position: position,
+          text: "New Task",
+          state: "TODO",
+        );
         break;
       case UiNodeType.inter:
         node = InterUiNode(id: tempId, position: position, verb: "connects");
@@ -273,12 +288,12 @@ class GraphController extends ChangeNotifier {
     _nodes[tempId] = node;
     allNodeViewStates[tempId] = NodeViewState(node);
     spatialHash.insert(tempId, position);
-    
+
     // [FIX]: Force visibility if the canvas has been panned/zoomed
     if (visibleNodeIds.value.isNotEmpty) {
       visibleNodeIds.value = {...visibleNodeIds.value, tempId};
     }
-    
+
     enterEditMode(tempId); // Signal intent to edit
     notifyListeners();
 
@@ -289,16 +304,16 @@ class GraphController extends ChangeNotifier {
       // 4. ID Swap - Seamlessly transfer state from temp to real ID
       final activeNode = _nodes.remove(tempId);
       final activeVs = allNodeViewStates.remove(tempId);
-      
+
       if (activeNode != null && activeVs != null) {
         activeNode.id = realId;
         _nodes[realId] = activeNode;
         allNodeViewStates[realId] = activeVs;
-        
+
         // Update spatial hash with new ID
         spatialHash.remove(tempId, activeNode.position);
         spatialHash.insert(realId, activeNode.position);
-        
+
         // [FIX]: Migrate visibility to real ID
         if (visibleNodeIds.value.isNotEmpty) {
           final newSet = {...visibleNodeIds.value};
@@ -306,15 +321,15 @@ class GraphController extends ChangeNotifier {
           newSet.add(realId);
           visibleNodeIds.value = newSet;
         }
-        
+
         // Transfer active edit state if still editing
         if (activeEditId == tempId) {
           activeEditId = realId;
         }
-        
+
         _log.info('ID Swap Complete: $tempId -> $realId');
       }
-      
+
       notifyListeners();
     } catch (e) {
       _log.severe('Optimistic sync failed', e);
@@ -323,11 +338,11 @@ class GraphController extends ChangeNotifier {
       final vs = allNodeViewStates.remove(tempId);
       vs?.dispose();
       spatialHash.remove(tempId, position);
-      
+
       if (activeEditId == tempId) {
         activeEditId = null;
       }
-      
+
       errorMessage = "Creation failed: $e";
       notifyListeners();
     }
@@ -353,13 +368,10 @@ class GraphController extends ChangeNotifier {
       // [FIX] Double-encode the inner layout object into a string
       final patchJson = jsonEncode({
         "visual_formatting": jsonEncode({
-            "layout": {
-                "graph": {
-                    "x": node.position.dx,
-                    "y": node.position.dy
-                }
-            }
-        })
+          "layout": {
+            "graph": {"x": node.position.dx, "y": node.position.dy},
+          },
+        }),
       });
 
       // We call 'patch_node_properties'.
@@ -377,15 +389,18 @@ class GraphController extends ChangeNotifier {
       }
 
       await _api.patchNodeProperties(
-          table: tableName,
-          id: id,
-          jsonPatch: patchJson
+        table: tableName,
+        id: id,
+        jsonPatch: patchJson,
       );
-
     } catch (e) {
       // D. Rollback - restore old position in both ViewState and UiNode
       _log.warning('Failed to move node, rolling back', e);
-      spatialHash.update(id, node.position, oldPosition); // Rollback spatial hash
+      spatialHash.update(
+        id,
+        node.position,
+        oldPosition,
+      ); // Rollback spatial hash
       viewState.positionNotifier.value = oldPosition;
       node.position = oldPosition;
       movementNotifier.pulse(); // Trigger relation repaint
@@ -398,7 +413,7 @@ class GraphController extends ChangeNotifier {
   Future<void> commitNodePosition(String id) async {
     final oldNode = _nodes[id];
     final viewState = allNodeViewStates[id];
-    
+
     if (oldNode == null || viewState == null) return;
 
     final newPosition = viewState.positionNotifier.value;
@@ -412,27 +427,35 @@ class GraphController extends ChangeNotifier {
       // [FIX] Double-encode the inner layout object into a string
       final patchJson = jsonEncode({
         "visual_formatting": jsonEncode({
-            "layout": { "graph": { "x": updatedNode.position.dx, "y": updatedNode.position.dy } }
-        })
+          "layout": {
+            "graph": {
+              "x": updatedNode.position.dx,
+              "y": updatedNode.position.dy,
+            },
+          },
+        }),
       });
 
       final tableName = _getTableName(updatedNode);
 
       // C. FFI Boundary Call
       await _api.patchNodeProperties(
-          table: tableName,
-          id: id,
-          jsonPatch: patchJson
+        table: tableName,
+        id: id,
+        jsonPatch: patchJson,
+      );
+    } catch (e) {
+      _log.warning(
+        'Rust synchronization failed. Rolling back to mathematical truth',
+        e,
       );
 
-    } catch (e) {
-      _log.warning('Rust synchronization failed. Rolling back to mathematical truth', e);
-      
       // D. Strict Rollback
       _nodes[id] = oldNode; // Revert Domain Model
-      viewState.positionNotifier.value = oldPosition; // Revert ViewModel ($S_{vol}$)
+      viewState.positionNotifier.value =
+          oldPosition; // Revert ViewModel ($S_{vol}$)
       spatialHash.update(id, newPosition, oldPosition); // Revert Hit-Test Grid
-      
+
       movementNotifier.pulse(); // Snap the lines back visually
       notifyListeners();
     }
@@ -459,7 +482,8 @@ class GraphController extends ChangeNotifier {
       onSuccess: () => _lastConfirmedDbPositions[id] = newPosition,
       onUndo: (pos) {
         node.position = pos;
-        movementNotifier.pulse(); // Visually snap vectors back to the recovered state
+        movementNotifier
+            .pulse(); // Visually snap vectors back to the recovered state
       },
     );
 
@@ -467,11 +491,11 @@ class GraphController extends ChangeNotifier {
     final oldPosition = node.position;
     spatialHash.update(id, oldPosition, newPosition);
     node.position = newPosition;
-    
+
     // Queue command with debouncing (300ms delay)
     _processor.queueCommand(cmd);
   }
-  
+
   /// Helper to get the table name for a node type.
   String _getTableName(UiNode node) {
     if (node is TaskUiNode) return "task_node";
@@ -513,33 +537,35 @@ class GraphController extends ChangeNotifier {
     activeEditId = null;
 
     // Queue FFI Patch with debouncing
-    _processor.queueCommand(UpdateTextCommand(
-      targetId: id,
-      tableName: node != null ? _getTableName(node) : "relates_to",
-      newText: newText,
-      oldText: oldText,
-      isRelation: rel != null,
-      api: _api,
-      onUndo: () {
-        // Rollback local state on FFI failure
-        if (node != null) {
-          node.text = oldText;
-          if (node is InterUiNode) {
-            node.verb = oldText;
+    _processor.queueCommand(
+      UpdateTextCommand(
+        targetId: id,
+        tableName: node != null ? _getTableName(node) : "relates_to",
+        newText: newText,
+        oldText: oldText,
+        isRelation: rel != null,
+        api: _api,
+        onUndo: () {
+          // Rollback local state on FFI failure
+          if (node != null) {
+            node.text = oldText;
+            if (node is InterUiNode) {
+              node.verb = oldText;
+            }
+          } else if (rel != null) {
+            _relations[id] = UiRelation(
+              id: rel.id,
+              fromNodeId: rel.fromNodeId,
+              toNodeId: rel.toNodeId,
+              label: oldText,
+              color: rel.color,
+            );
           }
-        } else if (rel != null) {
-          _relations[id] = UiRelation(
-            id: rel.id,
-            fromNodeId: rel.fromNodeId,
-            toNodeId: rel.toNodeId,
-            label: oldText,
-            color: rel.color,
-          );
-        }
-        notifyListeners();
-      },
-    ));
-    
+          notifyListeners();
+        },
+      ),
+    );
+
     notifyListeners();
   }
 
@@ -600,7 +626,9 @@ class GraphController extends ChangeNotifier {
       tableName: _getTableName(node),
       nodeData: node,
       onUndo: (restoredNode) {
-        _log.warning('Deletion rejected by database. Re-hydrating node: $id from cache.');
+        _log.warning(
+          'Deletion rejected by database. Re-hydrating node: $id from cache.',
+        );
         _nodes[id] = restoredNode;
         _syncViewStates();
         notifyListeners();
@@ -610,7 +638,7 @@ class GraphController extends ChangeNotifier {
 
     // Immediate execution bypasses the 300ms move timer
     _processor.queueCommand(cmd, immediate: true);
-    
+
     // Clean up the last confirmed position tracking
     _lastConfirmedDbPositions.remove(id);
   }
@@ -626,33 +654,37 @@ class GraphController extends ChangeNotifier {
     // A. Pre-flight Validation (O(1) duplicate check)
     // Prevents "SurrealDB index unique_relation already contains..." crashes.
     final bool relationExists = _relations.values.any(
-      (r) => r.fromNodeId == from && r.toNodeId == to
+      (r) => r.fromNodeId == from && r.toNodeId == to,
     );
 
     if (relationExists) {
-      _log.fine('Pre-flight Validation: Relation $from -> $to already exists. Aborting quietly.');
-      return; 
+      _log.fine(
+        'Pre-flight Validation: Relation $from -> $to already exists. Aborting quietly.',
+      );
+      return;
     }
 
     // B. Create Relation Input - Must inject table prefixes to satisfy Rust's DB parser
     final input = RelationInput(
       from: "${_getTableName(fromNode)}:$from",
       to: "${_getTableName(toNode)}:$to",
-      props: const IRelation(
+      props: IRelation(
         id: null,
         inId: null,
         outId: null,
         verb: "related",
-        visualFormatting: null,
+        aesthetics: null,
         directionless: false,
         layer: 0,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        updatedAt: DateTime.now().millisecondsSinceEpoch,
       ),
     );
 
     try {
       // C. Pessimistic FFI Call
       await _api.createRelation(input: input);
-      
+
       // D. Hydrate the UI with the confirmed mathematical state
       await loadGraph();
     } catch (e) {

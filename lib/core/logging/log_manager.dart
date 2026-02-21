@@ -69,17 +69,18 @@ class LogManager {
 
     // 2. Establish the Isolate Handshake with path payload
     final receivePort = ReceivePort();
-    await Isolate.spawn(
-      _diskWriterIsolate,
-      [receivePort.sendPort, logPath],
-    );
+    await Isolate.spawn(_diskWriterIsolate, [receivePort.sendPort, logPath]);
 
     // Bounded wait to prevent main-thread startup deadlock
     try {
-      _isolateSendPort = await receivePort.first.timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => throw TimeoutException('DiskWriter isolate handshake timeout'),
-      ) as SendPort;
+      _isolateSendPort =
+          await receivePort.first.timeout(
+                const Duration(seconds: 5),
+                onTimeout: () => throw TimeoutException(
+                  'DiskWriter isolate handshake timeout',
+                ),
+              )
+              as SendPort;
     } catch (e) {
       debugPrint('[LogManager] Fatal Isolate Initialization Failure: $e');
       _initialized = false;
@@ -102,13 +103,15 @@ class LogManager {
         );
       }
 
-      _activeBuffer.add(LogPayload(
-        time: DateTime.now().microsecondsSinceEpoch,
-        seqId: _dartSeqId++,
-        level: levelInt,
-        origin: 'DART',
-        message: record.message,
-      ));
+      _activeBuffer.add(
+        LogPayload(
+          time: DateTime.now().microsecondsSinceEpoch,
+          seqId: _dartSeqId++,
+          level: levelInt,
+          origin: 'DART',
+          message: record.message,
+        ),
+      );
 
       if (levelInt >= 4) _flushBuffer(); // Emergency flush on ERROR/FATAL
     });
@@ -127,14 +130,16 @@ class LogManager {
         developer.log(rustLog.message, level: rustLog.level, name: 'Rust');
       }
 
-      _activeBuffer.add(LogPayload(
-        time: rustLog.tMicro,
-        // Enforced Downcast: FRB translates Rust u64 -> Dart BigInt
-        seqId: rustLog.sId is BigInt ? (rustLog.sId as dynamic).toInt() : rustLog.sId as int,
-        level: rustLog.level,
-        origin: 'RUST',
-        message: rustLog.message,
-      ));
+      _activeBuffer.add(
+        LogPayload(
+          time: rustLog.tMicro,
+          // Enforced Downcast: FRB translates Rust u64 -> Dart BigInt
+          seqId: rustLog.sId.toInt(),
+          level: rustLog.level,
+          origin: 'RUST',
+          message: rustLog.message,
+        ),
+      );
 
       if (rustLog.level >= 4) _flushBuffer(); // Emergency flush on ERROR/FATAL
     });
@@ -237,7 +242,8 @@ void _diskWriterIsolate(List<dynamic> args) {
 void _performBatchWrite(List<dynamic> batch, File file) {
   // Disk Space Exhaustion / Rotation Logic
   try {
-    if (file.existsSync() && file.lengthSync() > LogManager._rotationThreshold) {
+    if (file.existsSync() &&
+        file.lengthSync() > LogManager._rotationThreshold) {
       final oldFile = File('${file.path}.old');
       if (oldFile.existsSync()) {
         oldFile.deleteSync();
@@ -271,6 +277,9 @@ void _performBatchWrite(List<dynamic> batch, File file) {
     );
   } catch (e) {
     // Route isolate I/O exceptions back to the VM dev console
-    developer.log('Fatal background I/O failure: $e', name: 'DiskWriterIsolate');
+    developer.log(
+      'Fatal background I/O failure: $e',
+      name: 'DiskWriterIsolate',
+    );
   }
 }

@@ -11,18 +11,22 @@ class IRelation {
   final String? inId;
   final String? outId;
   final String verb;
-  final String? visualFormatting;
+  final String? aesthetics;
   final bool directionless;
   final int layer;
+  final PlatformInt64 createdAt;
+  final PlatformInt64 updatedAt;
 
   const IRelation({
     this.id,
     this.inId,
     this.outId,
     required this.verb,
-    this.visualFormatting,
+    this.aesthetics,
     required this.directionless,
     required this.layer,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   @override
@@ -31,9 +35,11 @@ class IRelation {
       inId.hashCode ^
       outId.hashCode ^
       verb.hashCode ^
-      visualFormatting.hashCode ^
+      aesthetics.hashCode ^
       directionless.hashCode ^
-      layer.hashCode;
+      layer.hashCode ^
+      createdAt.hashCode ^
+      updatedAt.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -44,9 +50,11 @@ class IRelation {
           inId == other.inId &&
           outId == other.outId &&
           verb == other.verb &&
-          visualFormatting == other.visualFormatting &&
+          aesthetics == other.aesthetics &&
           directionless == other.directionless &&
-          layer == other.layer;
+          layer == other.layer &&
+          createdAt == other.createdAt &&
+          updatedAt == other.updatedAt;
 }
 
 class RelationInput {

@@ -1,0 +1,9 @@
+# Mycelium Project Rules & Context
+
+Refer to `.clinerules` for the full set of architectural and semantic rules.
+
+## Core Maxims:
+1. "Performance Trumps Framework Idioms"
+2. "The Database is the Final Arbiter of Truth"
+3. "Assume Asynchrony Will Fail"
+4. "Passive Graph, Active Logic" (Logic belongs in Rust Core)

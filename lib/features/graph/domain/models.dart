@@ -8,6 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/src/rust/domain/relations.dart';
+import 'package:mycelium/src/rust/domain/base_models.dart';
+import 'content_builder.dart';
 // Or sometimes: import 'package:mycelium/src/rust/frb_generated.dart';
 
 // -----------------------------------------------------------------------------
@@ -99,9 +101,11 @@ class NodeViewState {
   final ValueNotifier<Size> sizeNotifier; // Synchronous mathematical truth
 
   NodeViewState(UiNode node)
-      : nodeId = node.id,
-        positionNotifier = ValueNotifier<Offset>(node.position),
-        sizeNotifier = ValueNotifier<Size>(node.size); // Synchronous initialization
+    : nodeId = node.id,
+      positionNotifier = ValueNotifier<Offset>(node.position),
+      sizeNotifier = ValueNotifier<Size>(
+        node.size,
+      ); // Synchronous initialization
 
   /// Returns the bounding rect combining position and size.
   Rect get rect => positionNotifier.value & sizeNotifier.value;
@@ -141,12 +145,12 @@ abstract class UiNode {
   // Core Identity
   String id; // Mutable because we swap Temp ID -> Real ID
   final UiNodeType type;
-  
+
   // Visual Properties (Cached for performance)
   Offset position;
   Size size;
   Color color;
-  
+
   // Common Data
   String text;
   bool isSelected;
@@ -174,33 +178,9 @@ abstract class UiNode {
     }
   }
 
-  /// Helper to parse the 'visual_formatting' JSON string from Rust
-  static Map<String, dynamic> _parseFormatting(String? json) {
-    if (json == null || json.isEmpty) return {};
-    try {
-      return jsonDecode(json) as Map<String, dynamic>;
-    } catch (e) {
-      print("Error parsing visual_formatting: $e");
-      return {};
-    }
-  }
-
-  /// Helper to extract position from the parsed JSON
-  static Offset _extractPosition(Map<String, dynamic> map) {
-    // Check if layout.graph exists
-    if (map['layout'] != null && map['layout']['graph'] != null) {
-      final g = map['layout']['graph'];
-      return Offset(
-        (g['x'] as num?)?.toDouble() ?? 0.0,
-        (g['y'] as num?)?.toDouble() ?? 0.0,
-      );
-    }
-    return Offset.zero;
-  }
-
   /// Converts the UI state back to a Rust input object for saving/creation
   NodeInput toInput();
-  
+
   /// Creates a copy of this node with the given fields replaced.
   UiNode copyWith({Offset? position});
 }
@@ -223,12 +203,15 @@ class InfoUiNode extends UiNode {
   }) : super(type: UiNodeType.info);
 
   factory InfoUiNode.fromRust(INode source) {
-    final format = UiNode._parseFormatting(source.visualFormatting);
-    
+    // 1. O(1) Spatial Extraction directly from FFI Struct
+    // 2. Eradicated JSON parsing overhead
     return InfoUiNode(
-      id: _stripTablePrefix(source.id), // Strip table prefix for stable Map keys
-      position: UiNode._extractPosition(format),
-      text: source.text ?? "",
+      id: _stripTablePrefix(source.id),
+      position: Offset(
+        source.position.x.toDouble(),
+        source.position.y.toDouble(),
+      ),
+      text: source.content.text, // Mapped to new Content structure
       tags: source.tags,
       locked: source.locked,
     );
@@ -236,21 +219,26 @@ class InfoUiNode extends UiNode {
 
   @override
   NodeInput toInput() {
-    return NodeInput.info(INode(
-      id: id.startsWith("temp_") ? null : id, // Don't send temp IDs to DB
-      text: text,
-      tags: tags,
-      locked: locked,
-      visualFormatting: jsonEncode({
-        "layout": { "graph": { "x": position.dx, "y": position.dy } }
-      }),
-      layer: 1, // Default
-      aliases: [],
-      comments: [],
-      attachment: null,
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      updatedAt: DateTime.now().millisecondsSinceEpoch,
-    ));
+    return NodeInput.info(
+      INode(
+        id: id.startsWith("temp_") ? null : id,
+        content: ContentFactory.fromText(text), // New Content object
+        tags: tags,
+        locked: locked,
+        aesthetics: null,
+        position: Coordinates(
+          x: position.dx.toInt(),
+          y: position.dy.toInt(),
+          z: 0,
+        ), // Formal Spatial Struct
+        aliases: [],
+        comments:
+            [], // Note: FFI now expects List<Comment>, an empty list is technically sound here
+        attachment: null,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        updatedAt: DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
   }
 
   @override
@@ -280,32 +268,38 @@ class TaskUiNode extends UiNode {
   }) : super(type: UiNodeType.task);
 
   factory TaskUiNode.fromRust(TaskNode source) {
-    final format = UiNode._parseFormatting(source.visualFormatting);
-    
     return TaskUiNode(
-      id: _stripTablePrefix(source.id), // Strip table prefix for stable Map keys
-      position: UiNode._extractPosition(format),
-      text: source.text ?? "",
+      id: _stripTablePrefix(source.id),
+      position: Offset(
+        source.position.x.toDouble(),
+        source.position.y.toDouble(),
+      ),
+      text: source.content.text, // Mapped to new Content structure
       state: source.state,
-      dueDate: source.dueDate != null 
-          ? DateTime.fromMillisecondsSinceEpoch(source.dueDate!) 
+      dueDate: source.dueDate != null
+          ? DateTime.fromMillisecondsSinceEpoch(source.dueDate!)
           : null,
     );
   }
 
   @override
   NodeInput toInput() {
-    return NodeInput.task(TaskNode(
-      id: id.startsWith("temp_") ? null : id,
-      text: text,
-      state: state,
-      dueDate: dueDate?.millisecondsSinceEpoch,
-      visualFormatting: jsonEncode({
-        "layout": { "graph": { "x": position.dx, "y": position.dy } }
-      }),
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      updatedAt: DateTime.now().millisecondsSinceEpoch,
-    ));
+    return NodeInput.task(
+      TaskNode(
+        id: id.startsWith("temp_") ? null : id,
+        content: ContentFactory.fromText(text),
+        state: state,
+        dueDate: dueDate?.millisecondsSinceEpoch,
+        aesthetics: null,
+        position: Coordinates(
+          x: position.dx.toInt(),
+          y: position.dy.toInt(),
+          z: 0,
+        ),
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        updatedAt: DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
   }
 
   @override
@@ -323,7 +317,7 @@ class TaskUiNode extends UiNode {
 
 class InterUiNode extends UiNode {
   String verb;
-  
+
   InterUiNode({
     required super.id,
     required super.position,
@@ -333,28 +327,34 @@ class InterUiNode extends UiNode {
   }) : super(type: UiNodeType.inter);
 
   factory InterUiNode.fromRust(InterNode source) {
-     final format = UiNode._parseFormatting(source.visualFormatting);
-
-     return InterUiNode(
-       id: _stripTablePrefix(source.id), // Strip table prefix for stable Map keys
-       position: UiNode._extractPosition(format),
-       verb: source.verb,
-       text: source.verb, // Bind text to verb for display simplicity
-     );
+    return InterUiNode(
+      id: _stripTablePrefix(source.id),
+      position: Offset(
+        source.position.x.toDouble(),
+        source.position.y.toDouble(),
+      ),
+      verb: source.verb,
+      text: source.verb,
+    );
   }
 
   @override
   NodeInput toInput() {
-    return NodeInput.inter(InterNode(
-      id: id.startsWith("temp_") ? null : id,
-      verb: verb,
-      behavioralFeatures: null,
-      visualFormatting: jsonEncode({
-        "layout": { "graph": { "x": position.dx, "y": position.dy } }
-      }),
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      updatedAt: DateTime.now().millisecondsSinceEpoch,
-    ));
+    return NodeInput.inter(
+      InterNode(
+        id: id.startsWith("temp_") ? null : id,
+        verb: verb,
+        behavioralFeatures: null,
+        aesthetics: null,
+        position: Coordinates(
+          x: position.dx.toInt(),
+          y: position.dy.toInt(),
+          z: 0,
+        ),
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        updatedAt: DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
   }
 
   @override
@@ -388,26 +388,28 @@ class UiRelation {
     // Map the Rust 'in' and 'out' fields to fromNodeId and toNodeId
     // Strip table prefixes for stable Map key lookups
     return UiRelation(
-      id: _stripTablePrefix(source.id), 
+      id: _stripTablePrefix(source.id),
       fromNodeId: _stripTablePrefix(source.inId), // Binds the Rust 'in' field
-      toNodeId: _stripTablePrefix(source.outId),  // Binds the Rust 'out' field
+      toNodeId: _stripTablePrefix(source.outId), // Binds the Rust 'out' field
       label: source.verb,
     );
   }
 
   RelationInput toInput() {
     return RelationInput(
-        from: fromNodeId,
-        to: toNodeId,
-        props: IRelation(
-            id: id.startsWith("temp_") ? null : null, // ID handled by DB
-            inId: null,  // Not used for input
-            outId: null, // Not used for input
-            verb: label,
-            visualFormatting: null,
-            directionless: false,
-            layer: 0
-        )
+      from: fromNodeId,
+      to: toNodeId,
+      props: IRelation(
+        id: id.startsWith("temp_") ? null : null,
+        inId: null,
+        outId: null,
+        verb: label,
+        aesthetics: null, // visual_formatting transitioned to aesthetics
+        directionless: false,
+        layer: 0,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        updatedAt: DateTime.now().millisecondsSinceEpoch,
+      ),
     );
   }
 
@@ -433,10 +435,10 @@ class UiRelation {
 abstract class GraphCommand {
   /// The ID of the entity being modified.
   String get targetId;
-  
+
   /// Executes the command (typically an FFI call).
   Future<void> execute();
-  
+
   /// Rolls back local state on FFI failure.
   void undo();
 }
@@ -452,10 +454,10 @@ class MoveNodeCommand implements GraphCommand {
   final SpatialHashGrid spatialGrid;
   final AppHandle api;
   final String tableName;
-  
+
   /// Callback invoked on successful FFI sync to update canonical DB baseline.
   final VoidCallback onSuccess;
-  
+
   /// Callback invoked on rollback to synchronize the domain model.
   final void Function(Offset) onUndo;
 
@@ -473,12 +475,20 @@ class MoveNodeCommand implements GraphCommand {
 
   @override
   Future<void> execute() async {
+    // Structural Refactor: Direct mapping to the Coordinates struct
     final patchJson = jsonEncode({
-      "visual_formatting": jsonEncode({
-        "layout": { "graph": { "x": newPosition.dx, "y": newPosition.dy } }
-      })
+      "position": {
+        "x": newPosition.dx.toInt(),
+        "y": newPosition.dy.toInt(),
+        "z": 0, // Assuming 2D canvas strictly uses Z=0 mapping
+      },
     });
-    await api.patchNodeProperties(table: tableName, id: targetId, jsonPatch: patchJson);
+
+    await api.patchNodeProperties(
+      table: tableName,
+      id: targetId,
+      jsonPatch: patchJson,
+    );
   }
 
   @override
@@ -546,16 +556,41 @@ class UpdateTextCommand implements GraphCommand {
   @override
   Future<void> execute() async {
     final tName = isRelation ? "relates_to" : tableName;
-    final field = (tName == "inter_node" || isRelation) ? "verb" : "text";
-    final patchJson = jsonEncode({field: newText});
+
+    // Determine ontological target field based on Node type
+    String patchJson;
+    if (isRelation || tName == "inter_node") {
+      // InterNodes and Relations mathematically rely on the scalar 'verb'
+      patchJson = jsonEncode({"verb": newText});
+    } else {
+      // Info and Task Nodes utilize the compound 'Content' object
+      // We must send the FULL composite object to avoid SurrealDB wiping other fields (like 'blocks')
+      patchJson = jsonEncode({
+        "content": {
+          "text": newText,
+          "blocks": [
+            {
+              "block_type": "paragraph",
+              "content": [
+                {"inline_type": "text", "text": newText},
+              ],
+            },
+          ],
+        },
+      });
+    }
 
     if (isRelation) {
-      // Defensive Gate: Relations need table prefix since only ID is passed
-      final String ffiId = targetId.contains(':') ? targetId : "$tName:$targetId";
+      final String ffiId = targetId.contains(':')
+          ? targetId
+          : "$tName:$targetId";
       await api.patchRelation(id: ffiId, jsonPatch: patchJson);
     } else {
-      // Nodes: Rust combines table + id internally, pass raw ID
-      await api.patchNodeProperties(table: tName, id: targetId, jsonPatch: patchJson);
+      await api.patchNodeProperties(
+        table: tName,
+        id: targetId,
+        jsonPatch: patchJson,
+      );
     }
   }
 
