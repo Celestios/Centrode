@@ -3,7 +3,8 @@ import '../../domain/models.dart';
 
 class RelationPainter extends CustomPainter {
   final List<UiRelation> relations;
-  final Map<String, NodeViewState> nodeViewStates; // Use ViewStates for real-time positions
+  final Map<String, NodeViewState>
+  nodeViewStates; // Use ViewStates for real-time positions
 
   RelationPainter(this.relations, this.nodeViewStates);
 
@@ -30,17 +31,25 @@ class RelationPainter extends CustomPainter {
 
       // Map correctly to the interaction ports (Right Center -> Left Center)
       final startOffset = startSize == Size.zero
-          ? const Offset(100, 30) // Fallback to default node size (100x60) right port
+          ? const Offset(
+              100,
+              30,
+            ) // Fallback to default node size (100x60) right port
           : Offset(startSize.width, startSize.height / 2); // Right port
 
       final endOffset = endSize == Size.zero
-          ? const Offset(0, 30) // Fallback to default node size (100x60) left port
+          ? const Offset(
+              0,
+              30,
+            ) // Fallback to default node size (100x60) left port
           : Offset(0, endSize.height / 2); // Left port
 
       final start = startPos + startOffset;
       final end = endPos + endOffset;
 
-      paint.color = rel.color;
+      // [NEW] Apply selection styling: Blue color and thicker stroke if selected
+      paint.color = rel.isSelected ? Colors.blueAccent : rel.color;
+      paint.strokeWidth = rel.isSelected ? 4.0 : 2.0;
 
       // Draw straight line (Bezier curves can be added later)
       canvas.drawLine(start, end, paint);
@@ -56,14 +65,21 @@ class RelationPainter extends CustomPainter {
   void _drawText(Canvas canvas, String text, Offset pos) {
     final textSpan = TextSpan(
       text: text,
-      style: const TextStyle(color: Colors.black, fontSize: 10, backgroundColor: Colors.white),
+      style: const TextStyle(
+        color: Colors.black,
+        fontSize: 10,
+        backgroundColor: Colors.white,
+      ),
     );
     final textPainter = TextPainter(
       text: textSpan,
       textDirection: TextDirection.ltr,
     );
     textPainter.layout();
-    textPainter.paint(canvas, pos - Offset(textPainter.width / 2, textPainter.height / 2));
+    textPainter.paint(
+      canvas,
+      pos - Offset(textPainter.width / 2, textPainter.height / 2),
+    );
   }
 
   @override

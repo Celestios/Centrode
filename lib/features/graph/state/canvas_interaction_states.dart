@@ -1,14 +1,14 @@
 // lib/features/graph/state/canvas_interaction_states.dart
 import 'package:flutter/gestures.dart';
-import 'dart:ui';
+import 'package:flutter/material.dart';
 import 'interaction_context.dart';
 
 /// Sealed base class for all canvas interaction states.
-/// 
+///
 /// Implements the Gang of Four (GoF) State Pattern where each subclass
 /// encapsulates specialized domain physics. The sealed modifier enables
 /// exhaustive pattern matching for state transitions.
-/// 
+///
 /// Each state handles its own event processing and returns the next state,
 /// enabling polymorphic dispatch without switch statements in the controller.
 sealed class CanvasInteractionState {
@@ -47,7 +47,7 @@ sealed class CanvasInteractionState {
 }
 
 /// The default idle state - no active interaction.
-/// 
+///
 /// Performs hit-testing on pointer down to determine the next state:
 /// - Port hit: transitions to [RelationDrawing]
 /// - Node body hit: transitions to [NodeDragging]
@@ -65,9 +65,45 @@ class CanvasIdle extends CanvasInteractionState {
     // Conflict Resolution: Commit active edits if clicking elsewhere
     final activeEditId = ctx.getActiveEditId();
 
+    // Priority -1: Right-Click Marquee Routing
+    if (e.buttons == kSecondaryMouseButton) {
+      return MarqueeSelecting(pCanvas, pCanvas);
+    }
+
+    // Priority 0: Floating Toolbar Hit-Testing (Absolute Top)
+    final selectedEntities = ctx.getSelectedEntities();
+    if (selectedEntities.length == 1) {
+      final selectedId = selectedEntities.first;
+      final vs = ctx.nodeViewStates[selectedId];
+      if (vs != null) {
+        final tbOffset = ctx.getToolbarOffset();
+        final toolbarTopLeft = vs.positionNotifier.value + tbOffset;
+
+        // Exact geometric bounds of the toolbar (80x36)
+        final toolbarRect = Rect.fromLTWH(
+          toolbarTopLeft.dx,
+          toolbarTopLeft.dy,
+          80,
+          36,
+        );
+
+        if (toolbarRect.contains(pCanvas)) {
+          // Sub-divide the rect: Left Half (40px) = Drag
+          if (pCanvas.dx < toolbarTopLeft.dx + 40) {
+            return ToolbarDragging(selectedId, pCanvas - toolbarTopLeft);
+          } else {
+            // Right Half (40px) = Delete Action
+            ctx.onDeleteSelectedEntities();
+            return const CanvasIdle();
+          }
+        }
+      }
+    }
+
     // Hit Testing Registry
     String? hitNodeId;
     bool hitPort = false;
+    bool hitResize = false;
     final nodeIds = ctx.zOrder.reversed.toList();
     if (nodeIds.isEmpty) {
       nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
@@ -80,7 +116,7 @@ class CanvasIdle extends CanvasInteractionState {
 
       final nodeRect = vs.rect;
 
-      // Port Hit-Test: Right Center Port (for relation drawing)
+      // Priority 1: Port Hit-Test (Right Center Port for relation drawing)
       if (Rect.fromCenter(
         center: nodeRect.centerRight,
         width: 30,
@@ -89,7 +125,20 @@ class CanvasIdle extends CanvasInteractionState {
         hitNodeId = nodeId;
         hitPort = true;
         break;
-      } else if (nodeRect.contains(pCanvas)) {
+      }
+      // Priority 2: Resize Edge Hit-Test (Rightmost 15 logical pixels)
+      else if (Rect.fromLTRB(
+        nodeRect.right - 15,
+        nodeRect.top,
+        nodeRect.right,
+        nodeRect.bottom,
+      ).contains(pCanvas)) {
+        hitNodeId = nodeId;
+        hitResize = true;
+        break;
+      }
+      // Priority 3: Body Hit-Test (Standard Dragging)
+      else if (nodeRect.contains(pCanvas)) {
         hitNodeId = nodeId;
         break;
       }
@@ -102,6 +151,10 @@ class CanvasIdle extends CanvasInteractionState {
     if (activeEditId != null && hitEntityId != activeEditId) {
       ctx.onCommitActiveEdit();
     }
+
+    // Fire selection intent immediately on pointer down.
+    // If hitEntityId is null (clicked empty canvas), it clears the selection.
+    ctx.onSelectEntity(hitEntityId);
 
     // Double Tap Execution
     if (isDoubleTap) {
@@ -117,6 +170,12 @@ class CanvasIdle extends CanvasInteractionState {
     if (hitNodeId != null) {
       if (hitPort) {
         return RelationDrawing(hitNodeId, pCanvas);
+      } else if (hitResize) {
+        // Route to Resizing State
+        return NodeResizing(
+          hitNodeId,
+          pCanvas.dx - ctx.nodeViewStates[hitNodeId]!.positionNotifier.value.dx,
+        );
       } else {
         return NodeDragging(
           hitNodeId,
@@ -135,10 +194,14 @@ class CanvasIdle extends CanvasInteractionState {
       final tVs = ctx.nodeViewStates[rel.toNodeId];
       if (fVs == null || tVs == null) continue;
 
-      final start = fVs.positionNotifier.value +
-          Offset(fVs.sizeNotifier.value.width,
-              fVs.sizeNotifier.value.height / 2);
-      final end = tVs.positionNotifier.value +
+      final start =
+          fVs.positionNotifier.value +
+          Offset(
+            fVs.sizeNotifier.value.width,
+            fVs.sizeNotifier.value.height / 2,
+          );
+      final end =
+          tVs.positionNotifier.value +
           Offset(0, tVs.sizeNotifier.value.height / 2);
       final mid = Offset((start.dx + end.dx) / 2, (start.dy + end.dy) / 2);
 
@@ -151,7 +214,7 @@ class CanvasIdle extends CanvasInteractionState {
 }
 
 /// State when a node is being dragged.
-/// 
+///
 /// Updates the node position during drag and commits on pointer up.
 /// The [grabOffset] ensures the cursor maintains relative position to the node.
 class NodeDragging extends CanvasInteractionState {
@@ -167,7 +230,9 @@ class NodeDragging extends CanvasInteractionState {
     InteractionContext ctx,
   ) {
     final vs = ctx.nodeViewStates[nodeId];
-    if (vs == null) return const CanvasIdle(); // Defensive check for dangling pointers
+    if (vs == null) {
+      return const CanvasIdle(); // Defensive check for dangling pointers
+    }
     vs.positionNotifier.value = pCanvas - grabOffset;
     ctx.onNodeDragUpdate();
     return this;
@@ -187,7 +252,7 @@ class NodeDragging extends CanvasInteractionState {
 }
 
 /// State when drawing a new relation between nodes.
-/// 
+///
 /// Tracks the cursor position and performs L2 snapping to find target nodes.
 /// Returns a new instance on each move to ensure ValueNotifier notifications
 /// trigger UI rebuilds for the temporary relation line.
@@ -196,7 +261,11 @@ class RelationDrawing extends CanvasInteractionState {
   final Offset currentCursorPosition;
   final String? snappedTargetNodeId;
 
-  const RelationDrawing(this.sourceNodeId, this.currentCursorPosition, {this.snappedTargetNodeId});
+  const RelationDrawing(
+    this.sourceNodeId,
+    this.currentCursorPosition, {
+    this.snappedTargetNodeId,
+  });
 
   @override
   CanvasInteractionState handlePointerMove(
@@ -228,7 +297,11 @@ class RelationDrawing extends CanvasInteractionState {
 
     ctx.onNodeDragUpdate(); // Pulse MovementNotifier for relation layer repaints
     // Return new instance to trigger ValueNotifier notification
-    return RelationDrawing(sourceNodeId, pCanvas, snappedTargetNodeId: snappedId);
+    return RelationDrawing(
+      sourceNodeId,
+      pCanvas,
+      snappedTargetNodeId: snappedId,
+    );
   }
 
   @override
@@ -239,6 +312,114 @@ class RelationDrawing extends CanvasInteractionState {
     if (snappedTargetNodeId != null) {
       ctx.onRelationCreate(sourceNodeId, snappedTargetNodeId!);
     }
+    return const CanvasIdle();
+  }
+}
+
+/// [NEW] State when dragging the right edge of a node to resize its width.
+/// Operates exclusively in visual memory until PointerUp, where it commits the DB patch.
+class NodeResizing extends CanvasInteractionState {
+  final String nodeId;
+  final double grabOffsetX;
+
+  const NodeResizing(this.nodeId, this.grabOffsetX);
+
+  @override
+  CanvasInteractionState handlePointerMove(
+    PointerMoveEvent e,
+    Offset pCanvas,
+    InteractionContext ctx,
+  ) {
+    final vs = ctx.nodeViewStates[nodeId];
+    if (vs == null) return const CanvasIdle();
+
+    // Calculate new width: Current pointer X minus the Node's original Left X
+    double newWidth = pCanvas.dx - vs.positionNotifier.value.dx;
+    if (newWidth < 80.0) newWidth = 80.0; // Minimum width safety constraint
+
+    vs.dragWidthNotifier.value = newWidth;
+
+    // Trigger repaint for the relation layer
+    ctx.onNodeDragUpdate();
+    return this;
+  }
+
+  @override
+  CanvasInteractionState handlePointerUp(
+    PointerUpEvent e,
+    InteractionContext ctx,
+  ) {
+    final vs = ctx.nodeViewStates[nodeId];
+    if (vs != null && vs.dragWidthNotifier.value != null) {
+      ctx.onNodeResizeEnd(nodeId, vs.dragWidthNotifier.value!);
+      vs.dragWidthNotifier.value = null; // Clear volatile drag state
+    }
+    return const CanvasIdle();
+  }
+}
+
+/// [NEW] State when dragging the floating toolbar to adjust its relative offset.
+class ToolbarDragging extends CanvasInteractionState {
+  final String nodeId;
+  final Offset grabOffset; // Pointer offset relative to the toolbar's top-left
+
+  const ToolbarDragging(this.nodeId, this.grabOffset);
+
+  @override
+  CanvasInteractionState handlePointerMove(
+    PointerMoveEvent e,
+    Offset pCanvas,
+    InteractionContext ctx,
+  ) {
+    final vs = ctx.nodeViewStates[nodeId];
+    if (vs == null) return const CanvasIdle();
+
+    // Calculate new absolute position of the toolbar
+    final newAbsolutePos = pCanvas - grabOffset;
+
+    // Calculate new relative offset from the node's position
+    final newRelativeOffset = newAbsolutePos - vs.positionNotifier.value;
+
+    ctx.updateToolbarOffset(newRelativeOffset);
+    return this;
+  }
+}
+
+/// State when dragging a marquee selection box via right-click.
+/// Computes overlaps against visible nodes in O(V) time upon release.
+class MarqueeSelecting extends CanvasInteractionState {
+  final Offset startPos;
+  final Offset currentPos;
+
+  const MarqueeSelecting(this.startPos, this.currentPos);
+
+  @override
+  CanvasInteractionState handlePointerMove(
+    PointerMoveEvent e,
+    Offset pCanvas,
+    InteractionContext ctx,
+  ) {
+    // Return new instance to trigger CustomPaint redraw
+    return MarqueeSelecting(startPos, pCanvas);
+  }
+
+  @override
+  CanvasInteractionState handlePointerUp(
+    PointerUpEvent e,
+    InteractionContext ctx,
+  ) {
+    final marqueeRect = Rect.fromPoints(startPos, currentPos);
+    final visibleIds = ctx.getVisibleNodeIds();
+    final Set<String> hits = {};
+
+    for (final id in visibleIds) {
+      final vs = ctx.nodeViewStates[id];
+      if (vs != null && vs.rect.overlaps(marqueeRect)) {
+        hits.add(id);
+      }
+    }
+
+    ctx.onSelectEntities(hits);
     return const CanvasIdle();
   }
 }

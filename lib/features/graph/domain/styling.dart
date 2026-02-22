@@ -7,6 +7,7 @@ class StyleProfile {
   final Color strokeColor;
   final double strokeWidth;
   final String fontFamily;
+  final double width; // [NEW] Canonical Node Width
 
   StyleProfile({
     this.shape = 'rectangle',
@@ -14,6 +15,7 @@ class StyleProfile {
     this.strokeColor = Colors.black,
     this.strokeWidth = 1.0,
     this.fontFamily = 'Inter',
+    this.width = 100.0,
   });
 
   factory StyleProfile.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class StyleProfile {
       strokeColor: _parseColor(json['stroke_color'] ?? '#000000'),
       strokeWidth: (json['stroke_width'] ?? 1.0).toDouble(),
       fontFamily: json['font_family'] ?? 'Inter',
+      width: (json['width'] ?? 150.0).toDouble(), // [NEW]
     );
   }
 
@@ -33,6 +36,7 @@ class StyleProfile {
       'stroke_color': _colorToHex(strokeColor),
       'stroke_width': strokeWidth,
       'font_family': fontFamily,
+      'width': width, // [NEW]
     };
   }
 
@@ -42,6 +46,7 @@ class StyleProfile {
     Color? strokeColor,
     double? strokeWidth,
     String? fontFamily,
+    double? width, // [NEW]
   }) {
     return StyleProfile(
       shape: shape ?? this.shape,
@@ -49,6 +54,7 @@ class StyleProfile {
       strokeColor: strokeColor ?? this.strokeColor,
       strokeWidth: strokeWidth ?? this.strokeWidth,
       fontFamily: fontFamily ?? this.fontFamily,
+      width: width ?? this.width, // [NEW]
     );
   }
 
@@ -80,6 +86,7 @@ class StyleProfile {
       fontFamily: other.fontFamily != 'Inter'
           ? other.fontFamily
           : this.fontFamily,
+      width: other.width != 150.0 ? other.width : this.width, // [NEW]
     );
   }
 }

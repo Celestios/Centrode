@@ -170,6 +170,19 @@ class GraphController extends ChangeNotifier {
   // Interaction State (for delete menu only - other interactions handled by InteractionController)
   String? nodeShowingDeleteMenu;
 
+  // [REFACTORED] Set-based selection state for multi-select support
+  Set<String> selectedEntities = {};
+
+  // [NEW] Persistent relative offset for the floating toolbar (Defaults to ~centered above node)
+  final ValueNotifier<Offset> toolbarOffsetNotifier = ValueNotifier(
+    const Offset(10, -46),
+  );
+
+  // [NEW] Persistent relative offset for the global multi-toolbar (Top-Center anchored)
+  final ValueNotifier<Offset> multiToolbarOffsetNotifier = ValueNotifier(
+    const Offset(0, 40),
+  );
+
   GraphController(this._api) {
     _processor = CommandProcessor(
       onError: (msg) {
@@ -191,6 +204,8 @@ class GraphController extends ChangeNotifier {
     // The overlay now manages its own ephemeral editing state.
     visibleNodeIds.dispose();
     movementNotifier.dispose();
+    toolbarOffsetNotifier.dispose();
+    multiToolbarOffsetNotifier.dispose(); // [NEW]
     super.dispose();
   }
 
@@ -615,6 +630,52 @@ class GraphController extends ChangeNotifier {
   // INTERACTION METHODS
   // ---------------------------------------------------------------------------
 
+  /// Helper to set selection state on nodes and relations.
+  void _setSelectionState(Iterable<String> ids, bool isSelected) {
+    for (final id in ids) {
+      _nodes[id]?.isSelected = isSelected;
+      _relations[id]?.isSelected = isSelected;
+    }
+  }
+
+  /// Handles exclusive selection of a single node or relation.
+  /// Clears the current selection set and adds the new ID if provided.
+  void selectEntity(String? id) {
+    if (id == null) {
+      if (selectedEntities.isEmpty) return;
+      _setSelectionState(selectedEntities, false);
+      selectedEntities.clear();
+    } else {
+      if (selectedEntities.length == 1 && selectedEntities.first == id) return;
+      _setSelectionState(selectedEntities, false);
+      selectedEntities = {id};
+      _setSelectionState(selectedEntities, true);
+    }
+    movementNotifier.pulse();
+    notifyListeners();
+  }
+
+  /// Handles multi-entity selection (Marquee).
+  /// Overwrites the current selection set with the new IDs.
+  void selectEntities(Iterable<String> ids) {
+    _setSelectionState(selectedEntities, false);
+    selectedEntities = ids.toSet();
+    _setSelectionState(selectedEntities, true);
+    movementNotifier.pulse();
+    notifyListeners();
+  }
+
+  /// Executes the delete command for all currently selected entities.
+  void deleteSelectedEntities() {
+    if (selectedEntities.isEmpty) return;
+    final idsToDelete = selectedEntities.toList(); // Snapshot before clearing
+    selectEntity(null);
+
+    for (final id in idsToDelete) {
+      if (_nodes.containsKey(id)) deleteNode(id);
+    }
+  }
+
   void showDeleteMenu(String nodeId) {
     if (nodeShowingDeleteMenu != nodeId) {
       nodeShowingDeleteMenu = nodeId;
@@ -640,6 +701,14 @@ class GraphController extends ChangeNotifier {
     // Optimistic Update
     _nodes.remove(id);
     if (nodeShowingDeleteMenu == id) nodeShowingDeleteMenu = null;
+
+    // [FIX]: Synchronize viewport culling state mathematically to prevent orphan ID render crashes
+    if (visibleNodeIds.value.contains(id)) {
+      final newVisible = Set<String>.from(visibleNodeIds.value);
+      newVisible.remove(id);
+      visibleNodeIds.value = newVisible;
+    }
+
     _syncViewStates(); // Cleanup ViewState for removed node
     notifyListeners();
 

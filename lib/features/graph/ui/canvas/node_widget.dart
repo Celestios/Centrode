@@ -12,6 +12,8 @@ import '../../domain/styling.dart';
 /// [REFACTORED]: Converted to StatelessWidget with domain-driven geometry.
 /// Size is now determined synchronously from the UiNode domain model,
 /// eliminating asynchronous UI measurement and layout observers.
+///
+/// [NEW]: Dynamic node sizing with headless TextPainter for O(1) layout.
 class NodeWidget extends StatelessWidget {
   final UiNode node;
   final NodeViewState viewState;
@@ -36,9 +38,30 @@ class NodeWidget extends StatelessWidget {
         ) ??
         StyleProfile();
 
-    return ValueListenableBuilder<Offset>(
-      valueListenable: viewState.positionNotifier,
-      builder: (context, pos, _) {
+    // [NEW] We merge the notifiers so the widget repaints when position, size, or expanded state changes
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        viewState.positionNotifier,
+        viewState.sizeNotifier,
+        viewState.isExpandedNotifier,
+        viewState.dragWidthNotifier,
+      ]),
+      builder: (context, _) {
+        final pos = viewState.positionNotifier.value;
+
+        // Mathematical fallback: Use drag width if active, else aesthetic width, else 150
+        final activeWidth =
+            viewState.dragWidthNotifier.value ?? resolvedStyle.width;
+
+        // Execute headless geometry logic safely before render phase
+        viewState.recalculateSize(
+          node.text,
+          activeWidth,
+          resolvedStyle.fontFamily,
+        );
+
+        final size = viewState.sizeNotifier.value;
+
         return Transform.translate(
           offset: pos,
           child: Stack(
@@ -46,12 +69,12 @@ class NodeWidget extends StatelessWidget {
             children: [
               // Main Visual Body - strictly constrained by domain size
               Container(
-                width: node.size.width,
-                height: node.size.height,
+                width: size.width,
+                height: size.height,
                 decoration: BoxDecoration(
                   color: resolvedStyle.bgColor,
                   borderRadius: resolvedStyle.shape == 'circle'
-                      ? BorderRadius.circular(node.size.width / 2)
+                      ? BorderRadius.circular(size.width / 2)
                       : BorderRadius.circular(8.0),
                   border: Border.all(
                     color: node.isSelected
@@ -71,11 +94,30 @@ class NodeWidget extends StatelessWidget {
                 child: _buildNodeContent(context, resolvedStyle),
               ),
 
+              // [NEW] Resize Handle Visual (Right Edge)
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.resizeLeftRight,
+                  child: Container(
+                    width: 10,
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.horizontal(
+                        right: Radius.circular(8.0),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
               // Port Visual (aligned with portRect schema in InteractionController)
               // Positioned at right center, matching the 30x30 hit-test rect
               Positioned(
                 right: -15,
-                top: (node.size.height / 2) - 15,
+                top: (size.height / 2) - 15,
                 child: const IgnorePointer(
                   child: Icon(
                     Icons.add_circle,
@@ -128,8 +170,32 @@ class NodeWidget extends StatelessWidget {
             node.text.isEmpty ? "Empty Node" : node.text,
             style: TextStyle(fontSize: 12, fontFamily: style.fontFamily),
             overflow: TextOverflow.fade,
+            // [NEW] Enforce line limit visually based on expanded state
+            maxLines: viewState.isExpandedNotifier.value ? null : 3,
           ),
         ),
+
+        // [NEW] Expand/Collapse Toggle Button
+        if (viewState.lineCount > 3)
+          GestureDetector(
+            onTap: () {
+              viewState.isExpandedNotifier.value =
+                  !viewState.isExpandedNotifier.value;
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Text(
+                viewState.isExpandedNotifier.value ? "Show Less" : "Show More",
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Colors.blueAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+
+        // Task Node state badge
         if (node is TaskUiNode)
           Container(
             margin: const EdgeInsets.only(top: 4),

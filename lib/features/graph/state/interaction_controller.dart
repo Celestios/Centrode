@@ -18,8 +18,9 @@ class InteractionController implements InteractionContext {
   final Logger _log = Logger('InteractionController');
 
   /// The current interaction state of the canvas.
-  final ValueNotifier<CanvasInteractionState> state =
-      ValueNotifier(const CanvasIdle());
+  final ValueNotifier<CanvasInteractionState> state = ValueNotifier(
+    const CanvasIdle(),
+  );
 
   /// Controller for canvas transformations (pan/zoom).
   final TransformationController transformController;
@@ -52,6 +53,30 @@ class InteractionController implements InteractionContext {
   /// Getter for all relations (for hit-testing relation labels).
   final Iterable<UiRelation> Function() _getRelations;
 
+  /// Callback when a node resize operation completes.
+  final Function(String id, double newWidth) _onNodeResizeEnd;
+
+  /// Callback to select an entity.
+  final Function(String? id) _onSelectEntity;
+
+  /// Callback to select multiple entities (Marquee).
+  final Function(Iterable<String> ids) _onSelectEntities;
+
+  /// Getter for the currently selected entities.
+  final Set<String> Function() _getSelectedEntities;
+
+  /// Getter for the toolbar offset.
+  final Offset Function() _getToolbarOffset;
+
+  /// Callback to update the toolbar offset.
+  final Function(Offset) _updateToolbarOffset;
+
+  /// Callback to delete selected entities.
+  final VoidCallback _onDeleteSelectedEntities;
+
+  /// Getter for visible node IDs.
+  final Set<String> Function() _getVisibleNodeIds;
+
   /// Z-order tracking for proper hit-testing (last item is topmost).
   @override
   final List<String> zOrder = [];
@@ -71,14 +96,30 @@ class InteractionController implements InteractionContext {
     required VoidCallback onCommitActiveEdit,
     required Function(Offset position) onCreateNode,
     required Iterable<UiRelation> Function() getRelations,
-  })  : _onNodeMove = onNodeMove,
-        _onRelationCreate = onRelationCreate,
-        _onNodeDragUpdate = onNodeDragUpdate,
-        _getActiveEditId = getActiveEditId,
-        _onEnterEditMode = onEnterEditMode,
-        _onCommitActiveEdit = onCommitActiveEdit,
-        _onCreateNode = onCreateNode,
-        _getRelations = getRelations;
+    required Function(String id, double newWidth) onNodeResizeEnd,
+    required Function(String? id) onSelectEntity,
+    required Function(Iterable<String> ids) onSelectEntities,
+    required Set<String> Function() getSelectedEntities,
+    required Offset Function() getToolbarOffset,
+    required Function(Offset) updateToolbarOffset,
+    required VoidCallback onDeleteSelectedEntities,
+    required Set<String> Function() getVisibleNodeIds,
+  }) : _onNodeMove = onNodeMove,
+       _onRelationCreate = onRelationCreate,
+       _onNodeDragUpdate = onNodeDragUpdate,
+       _getActiveEditId = getActiveEditId,
+       _onEnterEditMode = onEnterEditMode,
+       _onCommitActiveEdit = onCommitActiveEdit,
+       _onCreateNode = onCreateNode,
+       _getRelations = getRelations,
+       _onNodeResizeEnd = onNodeResizeEnd,
+       _onSelectEntity = onSelectEntity,
+       _onSelectEntities = onSelectEntities,
+       _getSelectedEntities = getSelectedEntities,
+       _getToolbarOffset = getToolbarOffset,
+       _updateToolbarOffset = updateToolbarOffset,
+       _onDeleteSelectedEntities = onDeleteSelectedEntities,
+       _getVisibleNodeIds = getVisibleNodeIds;
 
   // ---------------------------------------------------------------------------
   // InteractionContext Implementation
@@ -108,6 +149,31 @@ class InteractionController implements InteractionContext {
   @override
   Iterable<UiRelation> getRelations() => _getRelations();
 
+  @override
+  void onNodeResizeEnd(String id, double newWidth) =>
+      _onNodeResizeEnd(id, newWidth);
+
+  @override
+  void onSelectEntity(String? id) => _onSelectEntity(id);
+
+  @override
+  void onSelectEntities(Iterable<String> ids) => _onSelectEntities(ids);
+
+  @override
+  Set<String> getSelectedEntities() => _getSelectedEntities();
+
+  @override
+  Offset getToolbarOffset() => _getToolbarOffset();
+
+  @override
+  void updateToolbarOffset(Offset delta) => _updateToolbarOffset(delta);
+
+  @override
+  void onDeleteSelectedEntities() => _onDeleteSelectedEntities();
+
+  @override
+  Set<String> getVisibleNodeIds() => _getVisibleNodeIds();
+
   // ---------------------------------------------------------------------------
   // FSM Engine
   // ---------------------------------------------------------------------------
@@ -116,7 +182,9 @@ class InteractionController implements InteractionContext {
   /// Logs state transitions for telemetry and debugging purposes.
   void _transitionTo(CanvasInteractionState newState) {
     if (state.value.runtimeType != newState.runtimeType) {
-      _log.fine('FSM Transition: ${state.value.runtimeType} -> ${newState.runtimeType}');
+      _log.fine(
+        'FSM Transition: ${state.value.runtimeType} -> ${newState.runtimeType}',
+      );
     }
     state.value = newState;
   }
@@ -135,10 +203,7 @@ class InteractionController implements InteractionContext {
     // Guard against singular matrix (scale = 0)
     if (transform.determinant() == 0.0) return screenPos;
 
-    return MatrixUtils.transformPoint(
-      Matrix4.inverted(transform),
-      screenPos,
-    );
+    return MatrixUtils.transformPoint(Matrix4.inverted(transform), screenPos);
   }
 
   /// Processes double-tap detection and returns true if this is a double-tap.
@@ -166,7 +231,12 @@ class InteractionController implements InteractionContext {
     final isDoubleTap = _processDoubleTap(pCanvas);
 
     // Polymorphic dispatch to state object
-    final newState = state.value.handlePointerDown(e, pCanvas, this, isDoubleTap);
+    final newState = state.value.handlePointerDown(
+      e,
+      pCanvas,
+      this,
+      isDoubleTap,
+    );
     _transitionTo(newState);
   }
 
