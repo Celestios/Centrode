@@ -6,7 +6,9 @@ import 'package:provider/provider.dart';
 
 // Import your screens
 import 'features/graph/ui/graph_screen.dart';
-import 'features/graph/state/graph_controller.dart';
+import 'features/graph/state/theme_controller.dart';
+import 'features/graph/state/graph_data_controller.dart';
+import 'features/graph/state/graph_ui_controller.dart';
 
 // Import the central logger
 import 'core/logging/log_manager.dart';
@@ -31,8 +33,23 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider<GraphController>(
-          create: (_) => GraphController(appHandle),
+        // 1. Independent Theme Domain
+        ChangeNotifierProvider<ThemeController>(
+          create: (_) => ThemeController(appHandle)..loadThemes(),
+        ),
+        // 2. Core Graph Data Domain (Depends on Theme for styling nodes)
+        ChangeNotifierProxyProvider<ThemeController, GraphDataController>(
+          create: (context) =>
+              GraphDataController(appHandle, context.read<ThemeController>()),
+          update: (context, theme, previous) =>
+              previous ?? GraphDataController(appHandle, theme),
+        ),
+        // 3. Volatile UI Domain (Depends on Graph Data)
+        ChangeNotifierProxyProvider<GraphDataController, GraphUIController>(
+          create: (context) =>
+              GraphUIController(context.read<GraphDataController>()),
+          update: (context, data, previous) =>
+              previous ?? GraphUIController(data),
         ),
       ],
       child: const MyApp(),

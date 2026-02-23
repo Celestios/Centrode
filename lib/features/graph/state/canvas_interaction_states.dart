@@ -118,7 +118,7 @@ class CanvasIdle extends CanvasInteractionState {
 
       // Priority 1: Port Hit-Test (Right Center Port for relation drawing)
       if (Rect.fromCenter(
-        center: nodeRect.centerRight,
+        center: vs.rightPort, // [REFACTORED]
         width: 30,
         height: 30,
       ).contains(pCanvas)) {
@@ -127,12 +127,8 @@ class CanvasIdle extends CanvasInteractionState {
         break;
       }
       // Priority 2: Resize Edge Hit-Test (Rightmost 15 logical pixels)
-      else if (Rect.fromLTRB(
-        nodeRect.right - 15,
-        nodeRect.top,
-        nodeRect.right,
-        nodeRect.bottom,
-      ).contains(pCanvas)) {
+      else if (vs.resizeHitbox.contains(pCanvas)) {
+        // [REFACTORED]
         hitNodeId = nodeId;
         hitResize = true;
         break;
@@ -194,15 +190,9 @@ class CanvasIdle extends CanvasInteractionState {
       final tVs = ctx.nodeViewStates[rel.toNodeId];
       if (fVs == null || tVs == null) continue;
 
-      final start =
-          fVs.positionNotifier.value +
-          Offset(
-            fVs.sizeNotifier.value.width,
-            fVs.sizeNotifier.value.height / 2,
-          );
-      final end =
-          tVs.positionNotifier.value +
-          Offset(0, tVs.sizeNotifier.value.height / 2);
+      // [REFACTORED]: Use DRY Geometry
+      final start = fVs.rightPort;
+      final end = tVs.leftPort;
       final mid = Offset((start.dx + end.dx) / 2, (start.dy + end.dy) / 2);
 
       if (Rect.fromCenter(center: mid, width: 100, height: 40).contains(p)) {
@@ -288,7 +278,7 @@ class RelationDrawing extends CanvasInteractionState {
       if (vs.sizeNotifier.value == Size.zero) continue;
 
       // Check distance to target's left port (centerLeft)
-      final dist = (pCanvas - vs.rect.centerLeft).distance;
+      final dist = (pCanvas - vs.leftPort).distance; // [REFACTORED]
       if (dist < 40.0) {
         snappedId = nodeId;
         break;

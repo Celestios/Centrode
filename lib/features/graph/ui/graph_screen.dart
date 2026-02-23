@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../state/graph_controller.dart';
+import '../state/graph_data_controller.dart';
 import 'canvas/graph_canvas.dart';
 
 class GraphScreen extends StatefulWidget {
@@ -17,13 +17,13 @@ class _GraphScreenState extends State<GraphScreen> {
     // Defer the loadGraph call until after the first frame
     // to ensure the Provider context is fully mounted.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<GraphController>().loadGraph();
+      context.read<GraphDataController>().loadGraph();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<GraphController>();
+    final controller = context.watch<GraphDataController>();
 
     return Scaffold(
       appBar: AppBar(
@@ -32,7 +32,7 @@ class _GraphScreenState extends State<GraphScreen> {
           if (controller.isLoading) const CircularProgressIndicator(),
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<GraphController>().loadGraph(),
+            onPressed: () => context.read<GraphDataController>().loadGraph(),
           ),
         ],
       ),

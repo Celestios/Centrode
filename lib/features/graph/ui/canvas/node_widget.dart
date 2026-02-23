@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../domain/models.dart';
-import '../../state/graph_controller.dart';
+import '../../state/theme_controller.dart';
+import '../../state/graph_ui_controller.dart';
 import '../../domain/styling.dart';
+
+extension StringExtension on String {
+  String capitalize() {
+    if (isEmpty) return this;
+    return '${this[0].toUpperCase()}${substring(1).toLowerCase()}';
+  }
+}
 
 /// A passive node widget that renders exactly what the domain instructs.
 ///
@@ -30,9 +38,12 @@ class NodeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<GraphController>();
+    final themeController = context.watch<ThemeController>();
+    final uiController = context.watch<GraphUIController>();
+    final isSelected = uiController.selectedEntities.contains(node.id);
+
     final resolvedStyle =
-        controller.activeTheme?.resolveStyle(
+        themeController.activeTheme?.resolveStyle(
           node.type.name.capitalize(),
           node.aesthetics,
         ) ??
@@ -77,18 +88,29 @@ class NodeWidget extends StatelessWidget {
                       ? BorderRadius.circular(size.width / 2)
                       : BorderRadius.circular(8.0),
                   border: Border.all(
-                    color: node.isSelected
-                        ? Colors.blueAccent
+                    // Selection highlighting: Use consistent blue accent when selected
+                    color: isSelected
+                        ? const Color(0xFF42A5F5)
                         : resolvedStyle.strokeColor,
-                    width: node.isSelected ? 2.0 : resolvedStyle.strokeWidth,
+                    width: isSelected ? 2.5 : resolvedStyle.strokeWidth,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 4,
-                      offset: const Offset(2, 2),
-                    ),
-                  ],
+                  boxShadow: isSelected
+                      ? [
+                          // Selection glow shadow
+                          const BoxShadow(
+                            color: Color(0x4442A5F5),
+                            blurRadius: 8,
+                            spreadRadius: 2,
+                          ),
+                        ]
+                      : [
+                          // Default shadow
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 4,
+                            offset: const Offset(2, 2),
+                          ),
+                        ],
                 ),
                 padding: const EdgeInsets.all(8.0),
                 child: _buildNodeContent(context, resolvedStyle),

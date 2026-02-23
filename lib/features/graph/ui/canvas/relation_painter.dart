@@ -5,8 +5,9 @@ class RelationPainter extends CustomPainter {
   final List<UiRelation> relations;
   final Map<String, NodeViewState>
   nodeViewStates; // Use ViewStates for real-time positions
+  final Set<String> selectedEntities; // Selection state from GraphUIController
 
-  RelationPainter(this.relations, this.nodeViewStates);
+  RelationPainter(this.relations, this.nodeViewStates, this.selectedEntities);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -25,31 +26,24 @@ class RelationPainter extends CustomPainter {
       final endPos = to.positionNotifier.value;
 
       // Dynamic vector geometry: use actual node sizes from ViewState
-      // Guard against early render passes where layout frames resolve to Size.zero
       final startSize = from.sizeNotifier.value;
       final endSize = to.sizeNotifier.value;
 
-      // Map correctly to the interaction ports (Right Center -> Left Center)
-      final startOffset = startSize == Size.zero
-          ? const Offset(
-              100,
-              30,
-            ) // Fallback to default node size (100x60) right port
-          : Offset(startSize.width, startSize.height / 2); // Right port
+      // [REFACTORED]: O(1) Geometry extraction directly from ViewState
+      final start = startSize == Size.zero
+          ? startPos +
+                const Offset(100, 30) // Fallback
+          : from.rightPort;
 
-      final endOffset = endSize == Size.zero
-          ? const Offset(
-              0,
-              30,
-            ) // Fallback to default node size (100x60) left port
-          : Offset(0, endSize.height / 2); // Left port
+      final end = endSize == Size.zero
+          ? endPos +
+                const Offset(0, 30) // Fallback
+          : to.leftPort;
 
-      final start = startPos + startOffset;
-      final end = endPos + endOffset;
-
-      // [NEW] Apply selection styling: Blue color and thicker stroke if selected
-      paint.color = rel.isSelected ? Colors.blueAccent : rel.color;
-      paint.strokeWidth = rel.isSelected ? 4.0 : 2.0;
+      // [UPDATED] Apply selection styling from GraphUIController.selectedEntities
+      final isSelected = selectedEntities.contains(rel.id);
+      paint.color = isSelected ? const Color(0xFF42A5F5) : rel.color;
+      paint.strokeWidth = isSelected ? 3.0 : 1.5;
 
       // Draw straight line (Bezier curves can be added later)
       canvas.drawLine(start, end, paint);

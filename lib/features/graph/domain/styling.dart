@@ -60,12 +60,12 @@ class StyleProfile {
 
   static Color _parseColor(String hex) {
     hex = hex.replaceFirst('#', '');
-    if (hex.length == 6) hex = 'FF' + hex;
+    if (hex.length == 6) hex = 'FF$hex';
     return Color(int.parse(hex, radix: 16));
   }
 
   static String _colorToHex(Color color) {
-    return '#${color.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
+    return '#${color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
   }
 
   /// Merges another style profile into this one (shallow merge of properties)
@@ -75,18 +75,14 @@ class StyleProfile {
     return copyWith(
       shape: other.shape != 'rectangle'
           ? other.shape
-          : this.shape, // Simple heuristic for now
-      bgColor: other.bgColor != Colors.white ? other.bgColor : this.bgColor,
+          : shape, // Simple heuristic for now
+      bgColor: other.bgColor != Colors.white ? other.bgColor : bgColor,
       strokeColor: other.strokeColor != Colors.black
           ? other.strokeColor
-          : this.strokeColor,
-      strokeWidth: other.strokeWidth != 1.0
-          ? other.strokeWidth
-          : this.strokeWidth,
-      fontFamily: other.fontFamily != 'Inter'
-          ? other.fontFamily
-          : this.fontFamily,
-      width: other.width != 150.0 ? other.width : this.width, // [NEW]
+          : strokeColor,
+      strokeWidth: other.strokeWidth != 1.0 ? other.strokeWidth : strokeWidth,
+      fontFamily: other.fontFamily != 'Inter' ? other.fontFamily : fontFamily,
+      width: other.width != 150.0 ? other.width : width, // [NEW]
     );
   }
 }
@@ -139,5 +135,19 @@ class ThemeConfig {
       return aesthetics;
     }
     return typeStyle;
+  }
+}
+
+/// Extension for selection highlighting on StyleProfile.
+/// Selection is a Volatile ViewState property - not persisted in Rust
+/// but represented in StyleProfile for UI rendering.
+extension SelectionStyling on StyleProfile {
+  /// Returns a copy of the style with selection highlighting applied.
+  /// Uses a light blue accent (0xFF42A5F5) consistent with the design system.
+  StyleProfile toSelected() {
+    return copyWith(
+      strokeColor: const Color(0xFF42A5F5),
+      strokeWidth: strokeWidth + 1.5,
+    );
   }
 }

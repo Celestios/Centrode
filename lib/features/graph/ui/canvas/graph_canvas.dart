@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../state/graph_controller.dart';
+import 'package:logging/logging.dart';
+import '../../state/graph_data_controller.dart';
+import '../../state/graph_ui_controller.dart';
 import '../../state/interaction_controller.dart';
 import '../../state/canvas_interaction_states.dart';
 import '../../domain/models.dart';
-import '../../domain/styling.dart'; // [NEW] For StyleProfile
+import '../../domain/styling.dart';
 import 'node_widget.dart';
 import 'relation_painter.dart';
 import 'inline_editor_overlay.dart';
@@ -30,47 +32,59 @@ class _GraphCanvasState extends State<GraphCanvas> {
       TransformationController();
   Rect _overscanBuffer = Rect.zero;
   InteractionController? _interactionController;
+  final Logger _log = Logger('GraphCanvas'); // [NEW]
 
   @override
   void initState() {
     super.initState();
+    _log.info('Initializing GraphCanvas and tracking transform mutations.');
     _transformController.addListener(_handleTransform);
 
     // Initialize InteractionController after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final controller = context.read<GraphController>();
+      final dataController = context.read<GraphDataController>();
+      final uiController = context.read<GraphUIController>();
+
       _interactionController = InteractionController(
         transformController: _transformController,
-        nodeViewStates: controller.allNodeViewStates,
-        onNodeMove: controller.updateNodePosition,
-        onRelationCreate: controller.createRelation,
-        onNodeDragUpdate: controller
-            .movementNotifier
-            .pulse, // Forces relation repaint during drag
-        getActiveEditId: () => controller.activeEditId,
-        onEnterEditMode: (id) {
-          // Directly signal intent to the controller
-          controller.enterEditMode(id);
+        nodeViewStates: dataController.allNodeViewStates,
+        onNodeMove: dataController.updateNodePosition,
+        onRelationCreate: dataController.createRelation,
+        onNodeDragUpdate: dataController.movementNotifier.pulse,
+        // Route volatile interactions to UIController
+        getActiveEditId: () => uiController.activeEditId,
+        onEnterEditMode: uiController.enterEditMode,
+        onCommitActiveEdit: uiController.cancelActiveEdit,
+        // Route data operations to DataController
+        getRelations: () => dataController.relations.toList(),
+        // [REFACTORED]: Synchronous execution restores T=0 Optimistic UI
+        onCreateNode: (pos) {
+          final tempId = dataController.createNode(
+            UiNodeType.info,
+            pos,
+            onIdSwap: uiController.handleIdSwap, // Delegate ID swap updates
+          );
+
+          // Force visibility for the new node to prevent culling before a pan/zoom occurs
+          uiController.visibleNodeIds.value = {
+            ...uiController.visibleNodeIds.value,
+            tempId,
+          };
+          uiController.enterEditMode(tempId);
         },
-        onCommitActiveEdit: () {
-          // The overlay handles actual text commit via onTapOutside.
-          // This clears the edit state to dismiss the overlay.
-          controller.cancelActiveEdit();
-        },
-        getRelations: () => controller.relations,
-        onCreateNode: (pos) => controller.createNode(UiNodeType.info, pos),
-        onNodeResizeEnd: (id, newWidth) {
-          // Route directly to existing aesthetic update pipeline
-          controller.updateNodeAesthetics(id, StyleProfile(width: newWidth));
-        },
-        onSelectEntity: controller.selectEntity,
-        onSelectEntities: controller.selectEntities,
-        getSelectedEntities: () => controller.selectedEntities,
-        getToolbarOffset: () => controller.toolbarOffsetNotifier.value,
+        onNodeResizeEnd: (id, newWidth) => dataController.updateNodeAesthetics(
+          id,
+          StyleProfile(width: newWidth),
+        ),
+        // Selection state from UIController
+        onSelectEntity: uiController.selectEntity,
+        onSelectEntities: uiController.selectEntities,
+        getSelectedEntities: () => uiController.selectedEntities,
+        getToolbarOffset: () => uiController.toolbarOffsetNotifier.value,
         updateToolbarOffset: (delta) =>
-            controller.toolbarOffsetNotifier.value = delta,
-        onDeleteSelectedEntities: controller.deleteSelectedEntities,
-        getVisibleNodeIds: () => controller.visibleNodeIds.value,
+            uiController.toolbarOffsetNotifier.value = delta,
+        onDeleteSelectedEntities: uiController.deleteSelectedEntities,
+        getVisibleNodeIds: () => uiController.visibleNodeIds.value,
       );
       // Trigger rebuild to use the initialized controller
       setState(() {});
@@ -87,14 +101,14 @@ class _GraphCanvasState extends State<GraphCanvas> {
 
   /// Handles transform changes (pan/zoom) and updates visible node set.
   void _handleTransform() {
-    final controller = context.read<GraphController>();
+    final uiController = context.read<GraphUIController>();
     final viewport = _calculateCanvasViewport();
 
     // Check if Viewport has breached the 1.5x Hysteresis Buffer
     if (!_overscanBuffer.containsRect(viewport)) {
       // Expand by 25% on each side (1.5x total area)
       _overscanBuffer = viewport.inflate(viewport.width * 0.25);
-      controller.updateVisibleSet(_overscanBuffer);
+      uiController.updateVisibleSet(_overscanBuffer);
     }
   }
 
@@ -103,7 +117,12 @@ class _GraphCanvasState extends State<GraphCanvas> {
     final Matrix4 transform = _transformController.value;
 
     // Guard against singular matrix to prevent unhandled render exceptions
-    if (transform.determinant() == 0.0) return Rect.zero;
+    if (transform.determinant() == 0.0) {
+      _log.severe(
+        'Singular matrix detected in canvas transform (Scale = 0). Aborting viewport calculation.',
+      ); // [NEW]
+      return Rect.zero;
+    }
 
     final Matrix4 inverse = Matrix4.inverted(transform);
     final Size size = MediaQuery.of(context).size;
@@ -118,7 +137,8 @@ class _GraphCanvasState extends State<GraphCanvas> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<GraphController>();
+    final dataController = context.watch<GraphDataController>();
+    final uiController = context.watch<GraphUIController>();
     final interactionController = _interactionController;
 
     // If InteractionController not yet initialized, show loading
@@ -148,7 +168,7 @@ class _GraphCanvasState extends State<GraphCanvas> {
                 child: GestureDetector(
                   // Tap empty space to dismiss menus
                   onTap: () {
-                    controller.hideDeleteMenu();
+                    uiController.hideDeleteMenu();
                   },
                   child: SizedBox(
                     width: 5000,
@@ -160,12 +180,13 @@ class _GraphCanvasState extends State<GraphCanvas> {
                         Positioned.fill(
                           child: RepaintBoundary(
                             child: ListenableBuilder(
-                              listenable: controller.movementNotifier,
+                              listenable: dataController.movementNotifier,
                               builder: (context, _) {
                                 return CustomPaint(
                                   painter: RelationPainter(
-                                    controller.relations,
-                                    controller.allNodeViewStates,
+                                    dataController.relations.toList(),
+                                    dataController.allNodeViewStates,
+                                    uiController.selectedEntities,
                                   ),
                                 );
                               },
@@ -175,11 +196,11 @@ class _GraphCanvasState extends State<GraphCanvas> {
 
                         // 1. The Nodes Layer - Only renders visible nodes via ValueListenableBuilder
                         ValueListenableBuilder<Set<String>>(
-                          valueListenable: controller.visibleNodeIds,
+                          valueListenable: uiController.visibleNodeIds,
                           builder: (context, visibleIds, _) {
                             // If no visible set calculated yet, render all nodes
                             final nodeIds = visibleIds.isEmpty
-                                ? controller.nodes.map((n) => n.id).toList()
+                                ? dataController.nodes.map((n) => n.id).toList()
                                 : visibleIds.toList();
 
                             // Update z-order in InteractionController
@@ -188,18 +209,18 @@ class _GraphCanvasState extends State<GraphCanvas> {
                             // [FIX]: Defensive Data Projection - Filter orphaned IDs before Widget inflation
                             final validNodeIds = nodeIds.where(
                               (id) =>
-                                  controller.allNodeViewStates.containsKey(
+                                  dataController.allNodeViewStates.containsKey(
                                     id,
                                   ) &&
-                                  controller.nodeLookup.containsKey(id),
+                                  dataController.nodeLookup.containsKey(id),
                             );
 
                             return Stack(
                               children: validNodeIds.map((id) {
                                 // Safe to force-unwrap because of the strict pre-filter above
                                 final viewState =
-                                    controller.allNodeViewStates[id]!;
-                                final node = controller.nodeLookup[id]!;
+                                    dataController.allNodeViewStates[id]!;
+                                final node = dataController.nodeLookup[id]!;
 
                                 return Positioned(
                                   key: ValueKey(
@@ -212,10 +233,10 @@ class _GraphCanvasState extends State<GraphCanvas> {
                                     viewState: viewState,
                                     node: node,
                                     isDeleteMenuVisible:
-                                        controller.nodeShowingDeleteMenu ==
+                                        uiController.nodeShowingDeleteMenu ==
                                         node.id,
                                     onDelete: () =>
-                                        controller.deleteNode(node.id),
+                                        dataController.deleteNode(node.id),
                                   ),
                                 );
                               }).toList(),
@@ -225,31 +246,33 @@ class _GraphCanvasState extends State<GraphCanvas> {
 
                         // 2. Absolute Zenith: Transient Editor Overlay
                         // Unified overlay for both nodes and relations
-                        if (controller.activeEditId != null)
+                        if (uiController.activeEditId != null)
                           InlineEditorOverlay(
-                            key: ValueKey('editor_${controller.activeEditId}'),
-                            entityId: controller.activeEditId!,
+                            key: ValueKey(
+                              'editor_${uiController.activeEditId}',
+                            ),
+                            entityId: uiController.activeEditId!,
                             initialText:
-                                controller
-                                    .nodeLookup[controller.activeEditId!]
+                                dataController
+                                    .nodeLookup[uiController.activeEditId!]
                                     ?.text ??
-                                controller.relations
+                                dataController.relations
                                     .firstWhere(
-                                      (r) => r.id == controller.activeEditId!,
+                                      (r) => r.id == uiController.activeEditId!,
                                     )
                                     .label,
                           ),
 
                         // 2.5: The Single-Node Floating Toolbar
-                        if (controller.selectedEntities.length == 1 &&
-                            controller.allNodeViewStates.containsKey(
-                              controller.selectedEntities.first,
+                        if (uiController.selectedEntities.length == 1 &&
+                            dataController.allNodeViewStates.containsKey(
+                              uiController.selectedEntities.first,
                             ))
                           ValueListenableBuilder<Offset>(
-                            valueListenable: controller.toolbarOffsetNotifier,
+                            valueListenable: uiController.toolbarOffsetNotifier,
                             builder: (context, tbOffset, _) {
                               final vs =
-                                  controller.allNodeViewStates[controller
+                                  dataController.allNodeViewStates[uiController
                                       .selectedEntities
                                       .first]!;
                               return ListenableBuilder(
@@ -264,7 +287,7 @@ class _GraphCanvasState extends State<GraphCanvas> {
                                       onDrag:
                                           null, // Drag handled by FSM ToolbarDragging
                                       onDelete:
-                                          controller.deleteSelectedEntities,
+                                          uiController.deleteSelectedEntities,
                                     ),
                                   );
                                 },
@@ -299,9 +322,9 @@ class _GraphCanvasState extends State<GraphCanvas> {
             ),
 
             // 5. Absolute Top UI Layer (Screen Space) - The Global Multi-Toolbar
-            if (controller.selectedEntities.length > 1)
+            if (uiController.selectedEntities.length > 1)
               ValueListenableBuilder<Offset>(
-                valueListenable: controller.multiToolbarOffsetNotifier,
+                valueListenable: uiController.multiToolbarOffsetNotifier,
                 builder: (context, offset, _) {
                   return Positioned(
                     // Anchor to top center of screen, offset by the Notifier
@@ -312,13 +335,13 @@ class _GraphCanvasState extends State<GraphCanvas> {
                         offset.dx,
                     child: GestureDetector(
                       onPanUpdate: (details) {
-                        controller.multiToolbarOffsetNotifier.value +=
+                        uiController.multiToolbarOffsetNotifier.value +=
                             details.delta;
                       },
                       child: _buildToolbarUI(
                         onDrag:
                             () {}, // Empty to satisfy signature, pan handled by GestureDetector above
-                        onDelete: controller.deleteSelectedEntities,
+                        onDelete: uiController.deleteSelectedEntities,
                         isMulti: true,
                       ),
                     ),
@@ -404,16 +427,15 @@ class _TempRelationPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    // Start from source node's right center (port position)
-    final sourceRect = sourceVs.rect;
-    final startPos = sourceRect.centerRight;
+    // Start from source node's right port
+    final startPos = sourceVs.rightPort; // [REFACTORED]
 
-    // End position - either snapped target's left center or cursor position
+    // End position - either snapped target's left port or cursor position
     Offset endPos;
     if (state.snappedTargetNodeId != null) {
       final targetVs = nodeViewStates[state.snappedTargetNodeId];
       if (targetVs != null) {
-        endPos = targetVs.rect.centerLeft;
+        endPos = targetVs.leftPort; // [REFACTORED]
       } else {
         endPos = state.currentCursorPosition;
       }
