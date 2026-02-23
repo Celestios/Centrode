@@ -1,59 +1,55 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
+# === IDEs and Editors ===
 .atom/
-.build/
-.buildlog/
 .history
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-# IntelliJ related
+.idea/
+.vscode/
 *.iml
 *.ipr
 *.iws
-.idea/
+*.swp
 
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# === Flutter / Dart / Pub ===
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
-.pub-cache/
 .pub/
-/build/
-
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-
+.pub-cache/
+**/doc/api/
+**/ios/Flutter/.last_build_id
 /android/
+/build/
 /ios/
 /linux/
 /macos/
+/pubspec.lock
 /web/
 /windows/
 
-
-/rust/
+# === Rust / Cargo / FFI ===
+/rust/Cargo.lock
+/rust/target/
+/rust/tavily-cli.exe
 /rust_builder/
 
-
-tavily-cli.exe
-result.json
-pubspec.lock
-mycelium.db
-/.vscode
-.gitignore
+# === Project Specific & Data ===
 /.Archive
 /.constitution
+.constitution
+mycelium.db
+result.json
+tavily-cli.exe
+
+# === Symbols and Obfuscation ===
+app.*.map.json
+app.*.symbols
+
+# === OS & System Miscellaneous ===
+.DS_Store
+.build/
+.buildlog/
+.svn/
+.swiftpm/
+*.class
+*.log
+*.pyc
+migrate_working_dir/
