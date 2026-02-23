@@ -1624,6 +1624,7 @@ impl SseDecode for crate::domain::nodes::INode {
         let mut var_aliases = <Vec<String>>::sse_decode(deserializer);
         let mut var_comments = <Vec<crate::domain::base_models::Comment>>::sse_decode(deserializer);
         let mut var_attachment = <Option<String>>::sse_decode(deserializer);
+        let mut var_significance = <u8>::sse_decode(deserializer);
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
         return crate::domain::nodes::INode {
@@ -1636,6 +1637,7 @@ impl SseDecode for crate::domain::nodes::INode {
             aliases: var_aliases,
             comments: var_comments,
             attachment: var_attachment,
+            significance: var_significance,
             created_at: var_createdAt,
             updated_at: var_updatedAt,
         };
@@ -2089,6 +2091,7 @@ impl SseDecode for crate::domain::nodes::TaskNode {
         let mut var_state = <String>::sse_decode(deserializer);
         let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
         let mut var_aesthetics = <Option<String>>::sse_decode(deserializer);
+        let mut var_significance = <u8>::sse_decode(deserializer);
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
         return crate::domain::nodes::TaskNode {
@@ -2098,6 +2101,7 @@ impl SseDecode for crate::domain::nodes::TaskNode {
             state: var_state,
             position: var_position,
             aesthetics: var_aesthetics,
+            significance: var_significance,
             created_at: var_createdAt,
             updated_at: var_updatedAt,
         };
@@ -2490,6 +2494,7 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::INode {
             self.aliases.into_into_dart().into_dart(),
             self.comments.into_into_dart().into_dart(),
             self.attachment.into_into_dart().into_dart(),
+            self.significance.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
         ]
@@ -2775,6 +2780,7 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::TaskNode {
             self.state.into_into_dart().into_dart(),
             self.position.into_into_dart().into_dart(),
             self.aesthetics.into_into_dart().into_dart(),
+            self.significance.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
         ]
@@ -3020,6 +3026,7 @@ impl SseEncode for crate::domain::nodes::INode {
         <Vec<String>>::sse_encode(self.aliases, serializer);
         <Vec<crate::domain::base_models::Comment>>::sse_encode(self.comments, serializer);
         <Option<String>>::sse_encode(self.attachment, serializer);
+        <u8>::sse_encode(self.significance, serializer);
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);
     }
@@ -3383,6 +3390,7 @@ impl SseEncode for crate::domain::nodes::TaskNode {
         <String>::sse_encode(self.state, serializer);
         <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
         <Option<String>>::sse_encode(self.aesthetics, serializer);
+        <u8>::sse_encode(self.significance, serializer);
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);
     }

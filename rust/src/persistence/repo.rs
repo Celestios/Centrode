@@ -1,4 +1,5 @@
 use super::templates;
+use crate::domain::analysis::DecaySignificanceStrategy;
 use crate::domain::base_models::MapConfig;
 use crate::domain::nodes::{NodeInput, NodeOutput};
 use crate::domain::relations::RelationInput;
@@ -87,8 +88,30 @@ impl Repository {
         let thing = created
             .ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?
             .id;
-        // [CHANGED] Return only the ID part
-        Ok(thing.id.to_string())
+
+        let relation_id = thing.id.to_string();
+
+        // Trigger updates for both ends of the new connection
+        self.trigger_significance_update(&input.from).await?;
+        self.trigger_significance_update(&input.to).await?;
+
+        Ok(relation_id)
+    }
+
+    pub async fn trigger_significance_update(&self, node_id: &str) -> Result<()> {
+        let strategy = DecaySignificanceStrategy;
+        // Run asynchronously to satisfy "Separate Response Packet" requirement
+        let db_clone = self.db.clone();
+        let id_clone = node_id.to_string();
+
+        tokio::spawn(async move {
+            if let Err(e) = strategy.recalculate_area(&db_clone, &id_clone).await {
+                tracing::error!("Significance update failed: {}", e);
+            }
+            // TODO: Broadcast SignificanceUpdate packet via FFI Sink
+        });
+
+        Ok(())
     }
 
     // [FIXED] Uses Thing::from to bypass non-exhaustive struct restrictions

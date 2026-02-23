@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import '../../../core/config/app_config.dart';
 import 'graph_data_controller.dart';
 
 /// Exclusively manages volatile screen state (selections, overlays, toolbars).
@@ -26,10 +27,10 @@ class GraphUIController extends ChangeNotifier {
   // Volatile State
   final ValueNotifier<Set<String>> visibleNodeIds = ValueNotifier({});
   final ValueNotifier<Offset> toolbarOffsetNotifier = ValueNotifier(
-    const Offset(10, -46),
+    AppConfig.graph.toolbar.singleOffset,
   );
   final ValueNotifier<Offset> multiToolbarOffsetNotifier = ValueNotifier(
-    const Offset(0, 40),
+    AppConfig.graph.toolbar.multiOffset,
   );
 
   String? activeEditId;

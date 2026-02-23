@@ -75,8 +75,9 @@ abstract class AppHandle implements RustOpaqueInterface {
   static Future<AppHandle> newInstance({required String storagePath}) =>
       RustLib.instance.api.crateBridgeApiAppHandleNew(storagePath: storagePath);
 
-  /// Patch node content using binary serialization for FFI efficiency.
-  /// The content_bytes parameter is a bincode-serialized Content struct.
+  /// Patch node content using raw UTF-8 bytes from Dart.
+  /// The content_bytes parameter is raw UTF-8 text, not bincode-serialized.
+  /// The Content struct is constructed in Rust where its schema is authoritative.
   Future<void> patchNodeContent({
     required String table,
     required String id,

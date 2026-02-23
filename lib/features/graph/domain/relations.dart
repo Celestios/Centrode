@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:mycelium/src/rust/domain/relations.dart';
 
+import '../../../core/config/app_config.dart';
 import 'utils.dart';
 import 'styling.dart';
 
@@ -48,7 +49,7 @@ class UiRelation {
       from: fromNodeId,
       to: toNodeId,
       props: IRelation(
-        id: id.startsWith("temp_") ? null : null,
+        id: id.startsWith(AppConfig.core.tempIdPrefix) ? null : null,
         inId: null,
         outId: null,
         verb: label,

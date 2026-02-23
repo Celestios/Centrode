@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import '../../../core/config/app_config.dart';
 import '../domain/models.dart';
 import 'canvas_interaction_states.dart';
 import 'interaction_context.dart';
@@ -212,9 +213,11 @@ class InteractionController implements InteractionContext {
     bool isDoubleTap = false;
 
     if (_lastPointerDownTime != null &&
-        now.difference(_lastPointerDownTime!).inMilliseconds < 300 &&
+        now.difference(_lastPointerDownTime!).inMilliseconds <
+            AppConfig.graph.interaction.doubleTapMs &&
         _lastPointerDownPos != null &&
-        (_lastPointerDownPos! - pCanvas).distance < 20.0) {
+        (_lastPointerDownPos! - pCanvas).distance <
+            AppConfig.graph.interaction.doubleTapDistance) {
       isDoubleTap = true;
     }
 

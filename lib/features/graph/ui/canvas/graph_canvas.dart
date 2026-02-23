@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
+import '../../../../core/config/app_config.dart';
 import '../../state/graph_data_controller.dart';
 import '../../state/graph_ui_controller.dart';
 import '../../state/interaction_controller.dart';
@@ -107,7 +108,9 @@ class _GraphCanvasState extends State<GraphCanvas> {
     // Check if Viewport has breached the 1.5x Hysteresis Buffer
     if (!_overscanBuffer.containsRect(viewport)) {
       // Expand by 25% on each side (1.5x total area)
-      _overscanBuffer = viewport.inflate(viewport.width * 0.25);
+      _overscanBuffer = viewport.inflate(
+        viewport.width * AppConfig.graph.canvas.overscanRatio,
+      );
       uiController.updateVisibleSet(_overscanBuffer);
     }
   }
@@ -159,9 +162,11 @@ class _GraphCanvasState extends State<GraphCanvas> {
               child: InteractiveViewer(
                 transformationController: _transformController,
                 constrained: false,
-                boundaryMargin: const EdgeInsets.all(1000),
-                minScale: 0.1,
-                maxScale: 5.0,
+                boundaryMargin: EdgeInsets.all(
+                  AppConfig.graph.canvas.boundaryMargin,
+                ),
+                minScale: AppConfig.graph.canvas.minScale,
+                maxScale: AppConfig.graph.canvas.maxScale,
                 // Lock viewer if interaction is active (arena circumvention)
                 panEnabled: state is CanvasIdle,
                 scaleEnabled: state is CanvasIdle,
@@ -171,8 +176,8 @@ class _GraphCanvasState extends State<GraphCanvas> {
                     uiController.hideDeleteMenu();
                   },
                   child: SizedBox(
-                    width: 5000,
-                    height: 5000,
+                    width: AppConfig.graph.canvas.initialSize,
+                    height: AppConfig.graph.canvas.initialSize,
                     child: Stack(
                       children: [
                         // 0. The Relations Layer (Bottom) - Isolated with RepaintBoundary

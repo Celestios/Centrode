@@ -53,3 +53,6 @@ app.*.symbols
 *.log
 *.pyc
 migrate_working_dir/
+
+# === Other ===
+notes.txt

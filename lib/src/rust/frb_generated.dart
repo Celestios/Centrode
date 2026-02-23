@@ -1425,8 +1425,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   INode dco_decode_i_node(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 11)
-      throw Exception('unexpected arr length: expect 11 but see ${arr.length}');
+    if (arr.length != 12)
+      throw Exception('unexpected arr length: expect 12 but see ${arr.length}');
     return INode(
       id: dco_decode_opt_String(arr[0]),
       content: dco_decode_content(arr[1]),
@@ -1437,8 +1437,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       aliases: dco_decode_list_String(arr[6]),
       comments: dco_decode_list_comment(arr[7]),
       attachment: dco_decode_opt_String(arr[8]),
-      createdAt: dco_decode_i_64(arr[9]),
-      updatedAt: dco_decode_i_64(arr[10]),
+      significance: dco_decode_u_8(arr[9]),
+      createdAt: dco_decode_i_64(arr[10]),
+      updatedAt: dco_decode_i_64(arr[11]),
     );
   }
 
@@ -1717,8 +1718,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskNode dco_decode_task_node(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 8)
-      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
     return TaskNode(
       id: dco_decode_opt_String(arr[0]),
       content: dco_decode_content(arr[1]),
@@ -1726,8 +1727,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       state: dco_decode_String(arr[3]),
       position: dco_decode_coordinates(arr[4]),
       aesthetics: dco_decode_opt_String(arr[5]),
-      createdAt: dco_decode_i_64(arr[6]),
-      updatedAt: dco_decode_i_64(arr[7]),
+      significance: dco_decode_u_8(arr[6]),
+      createdAt: dco_decode_i_64(arr[7]),
+      updatedAt: dco_decode_i_64(arr[8]),
     );
   }
 
@@ -2057,6 +2059,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_aliases = sse_decode_list_String(deserializer);
     var var_comments = sse_decode_list_comment(deserializer);
     var var_attachment = sse_decode_opt_String(deserializer);
+    var var_significance = sse_decode_u_8(deserializer);
     var var_createdAt = sse_decode_i_64(deserializer);
     var var_updatedAt = sse_decode_i_64(deserializer);
     return INode(
@@ -2069,6 +2072,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       aliases: var_aliases,
       comments: var_comments,
       attachment: var_attachment,
+      significance: var_significance,
       createdAt: var_createdAt,
       updatedAt: var_updatedAt,
     );
@@ -2473,6 +2477,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_state = sse_decode_String(deserializer);
     var var_position = sse_decode_coordinates(deserializer);
     var var_aesthetics = sse_decode_opt_String(deserializer);
+    var var_significance = sse_decode_u_8(deserializer);
     var var_createdAt = sse_decode_i_64(deserializer);
     var var_updatedAt = sse_decode_i_64(deserializer);
     return TaskNode(
@@ -2482,6 +2487,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       state: var_state,
       position: var_position,
       aesthetics: var_aesthetics,
+      significance: var_significance,
       createdAt: var_createdAt,
       updatedAt: var_updatedAt,
     );
@@ -2836,6 +2842,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_String(self.aliases, serializer);
     sse_encode_list_comment(self.comments, serializer);
     sse_encode_opt_String(self.attachment, serializer);
+    sse_encode_u_8(self.significance, serializer);
     sse_encode_i_64(self.createdAt, serializer);
     sse_encode_i_64(self.updatedAt, serializer);
   }
@@ -3190,6 +3197,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.state, serializer);
     sse_encode_coordinates(self.position, serializer);
     sse_encode_opt_String(self.aesthetics, serializer);
+    sse_encode_u_8(self.significance, serializer);
     sse_encode_i_64(self.createdAt, serializer);
     sse_encode_i_64(self.updatedAt, serializer);
   }
@@ -3310,8 +3318,9 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
     attachmentDir: attachmentDir,
   );
 
-  /// Patch node content using binary serialization for FFI efficiency.
-  /// The content_bytes parameter is a bincode-serialized Content struct.
+  /// Patch node content using raw UTF-8 bytes from Dart.
+  /// The content_bytes parameter is raw UTF-8 text, not bincode-serialized.
+  /// The Content struct is constructed in Rust where its schema is authoritative.
   Future<void> patchNodeContent({
     required String table,
     required String id,

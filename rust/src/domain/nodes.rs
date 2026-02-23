@@ -18,6 +18,8 @@ pub struct INode {
     pub aliases: Vec<String>,
     pub comments: Vec<Comment>,
     pub attachment: Option<String>,
+    #[serde(default)]
+    pub significance: u8,
     pub created_at: i64,
     pub updated_at: i64,
 }
@@ -36,6 +38,8 @@ pub struct TaskNode {
     pub state: String, // e.g., "TODO", "DONE"
     pub position: Coordinates,
     pub aesthetics: Option<String>,
+    #[serde(default)]
+    pub significance: u8,
     pub created_at: i64,
     pub updated_at: i64,
 }

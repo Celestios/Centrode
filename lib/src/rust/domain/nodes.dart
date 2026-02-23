@@ -19,6 +19,7 @@ class INode {
   final List<String> aliases;
   final List<Comment> comments;
   final String? attachment;
+  final int significance;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
 
@@ -32,6 +33,7 @@ class INode {
     required this.aliases,
     required this.comments,
     this.attachment,
+    required this.significance,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -47,6 +49,7 @@ class INode {
       aliases.hashCode ^
       comments.hashCode ^
       attachment.hashCode ^
+      significance.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode;
 
@@ -64,6 +67,7 @@ class INode {
           aliases == other.aliases &&
           comments == other.comments &&
           attachment == other.attachment &&
+          significance == other.significance &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt;
 }
@@ -136,6 +140,7 @@ class TaskNode {
   final String state;
   final Coordinates position;
   final String? aesthetics;
+  final int significance;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
 
@@ -146,6 +151,7 @@ class TaskNode {
     required this.state,
     required this.position,
     this.aesthetics,
+    required this.significance,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -158,6 +164,7 @@ class TaskNode {
       state.hashCode ^
       position.hashCode ^
       aesthetics.hashCode ^
+      significance.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode;
 
@@ -172,6 +179,7 @@ class TaskNode {
           state == other.state &&
           position == other.position &&
           aesthetics == other.aesthetics &&
+          significance == other.significance &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt;
 }

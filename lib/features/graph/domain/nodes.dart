@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'dart:ui'; // For Offset and Color
-
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart';
-
+import '../../../core/config/app_config.dart';
 import 'utils.dart';
 import 'styling.dart';
 import 'content_builder.dart';
@@ -17,9 +16,11 @@ import 'content_builder.dart';
 /// SurrealDB returns IDs as 'table:id' (e.g., 'inode:123'), but createNode
 /// returns just the ID ('123'). This normalizes all IDs for O(1) lookups.
 String _stripTablePrefix(String? raw) {
-  if (raw == null) return "unknown";
-  final parts = raw.split(':');
-  return parts.length > 1 ? parts.sublist(1).join(':') : raw;
+  if (raw == null) return AppConfig.core.unknownId;
+  final parts = raw.split(AppConfig.core.dbSeparator);
+  return parts.length > 1
+      ? parts.sublist(1).join(AppConfig.core.dbSeparator)
+      : raw;
 }
 
 // -----------------------------------------------------------------------------
@@ -56,11 +57,11 @@ abstract class UiNode {
     required this.type,
     required this.position,
     this.text = "",
-    this.size = const Size(100, 60), // Default size
+    Size? size,
     this.color = const Color(0xFFFFFFFF),
     this.isSelected = false,
     this.aesthetics,
-  });
+  }) : size = size ?? AppConfig.graph.node.defaultSize;
 
   /// Factory to convert the Raw Rust Enum into a Dart UiNode
   static UiNode fromFFI(NodeOutput ffiNode) {
@@ -122,7 +123,7 @@ class InfoUiNode extends UiNode {
   NodeInput toInput() {
     return NodeInput.info(
       INode(
-        id: id.startsWith("temp_") ? null : id,
+        id: id.startsWith(AppConfig.core.tempIdPrefix) ? null : id,
         content: ContentFactory.fromText(text), // New Content object
         tags: tags,
         locked: locked,
@@ -138,6 +139,7 @@ class InfoUiNode extends UiNode {
         comments:
             [], // Note: FFI now expects List<Comment>, an empty list is technically sound here
         attachment: null,
+        significance: 0,
         createdAt: DateTime.now().millisecondsSinceEpoch,
         updatedAt: DateTime.now().millisecondsSinceEpoch,
       ),
@@ -194,7 +196,7 @@ class TaskUiNode extends UiNode {
   NodeInput toInput() {
     return NodeInput.task(
       TaskNode(
-        id: id.startsWith("temp_") ? null : id,
+        id: id.startsWith(AppConfig.core.tempIdPrefix) ? null : id,
         content: ContentFactory.fromText(text),
         state: state,
         dueDate: dueDate?.millisecondsSinceEpoch,
@@ -206,6 +208,7 @@ class TaskUiNode extends UiNode {
           y: position.dy.toInt(),
           z: 0,
         ),
+        significance: 0,
         createdAt: DateTime.now().millisecondsSinceEpoch,
         updatedAt: DateTime.now().millisecondsSinceEpoch,
       ),
@@ -257,7 +260,7 @@ class InterUiNode extends UiNode {
   NodeInput toInput() {
     return NodeInput.inter(
       InterNode(
-        id: id.startsWith("temp_") ? null : id,
+        id: id.startsWith(AppConfig.core.tempIdPrefix) ? null : id,
         verb: verb,
         behavioralFeatures: null,
         aesthetics: aesthetics != null
@@ -300,9 +303,9 @@ extension UiNodeSchema on UiNode {
   /// Returns the exact table name required by the Rust Repository.
   /// No fallbacks allowed - throws for unknown node types.
   String get rustTable {
-    if (this is InfoUiNode) return "inode";
-    if (this is TaskUiNode) return "task_node";
-    if (this is InterUiNode) return "inter_node";
+    if (this is InfoUiNode) return AppConfig.graph.schema.infoTable;
+    if (this is TaskUiNode) return AppConfig.graph.schema.taskTable;
+    if (this is InterUiNode) return AppConfig.graph.schema.interTable;
     throw UnsupportedError("Unknown node type: ${this.runtimeType}");
   }
 }

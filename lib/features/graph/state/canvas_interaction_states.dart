@@ -1,6 +1,7 @@
 // lib/features/graph/state/canvas_interaction_states.dart
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import '../../../core/config/app_config.dart';
 import 'interaction_context.dart';
 
 /// Sealed base class for all canvas interaction states.
@@ -79,20 +80,21 @@ class CanvasIdle extends CanvasInteractionState {
         final tbOffset = ctx.getToolbarOffset();
         final toolbarTopLeft = vs.positionNotifier.value + tbOffset;
 
-        // Exact geometric bounds of the toolbar (80x36)
+        // Exact geometric bounds of the toolbar
         final toolbarRect = Rect.fromLTWH(
           toolbarTopLeft.dx,
           toolbarTopLeft.dy,
-          80,
-          36,
+          AppConfig.graph.toolbar.singleWidth,
+          AppConfig.graph.toolbar.height,
         );
 
         if (toolbarRect.contains(pCanvas)) {
-          // Sub-divide the rect: Left Half (40px) = Drag
-          if (pCanvas.dx < toolbarTopLeft.dx + 40) {
+          // Sub-divide the rect: Left Half = Drag
+          if (pCanvas.dx <
+              toolbarTopLeft.dx + AppConfig.graph.toolbar.singleWidth / 2) {
             return ToolbarDragging(selectedId, pCanvas - toolbarTopLeft);
           } else {
-            // Right Half (40px) = Delete Action
+            // Right Half = Delete Action
             ctx.onDeleteSelectedEntities();
             return const CanvasIdle();
           }
@@ -119,8 +121,8 @@ class CanvasIdle extends CanvasInteractionState {
       // Priority 1: Port Hit-Test (Right Center Port for relation drawing)
       if (Rect.fromCenter(
         center: vs.rightPort, // [REFACTORED]
-        width: 30,
-        height: 30,
+        width: AppConfig.graph.interaction.portHitArea,
+        height: AppConfig.graph.interaction.portHitArea,
       ).contains(pCanvas)) {
         hitNodeId = nodeId;
         hitPort = true;
@@ -195,7 +197,11 @@ class CanvasIdle extends CanvasInteractionState {
       final end = tVs.leftPort;
       final mid = Offset((start.dx + end.dx) / 2, (start.dy + end.dy) / 2);
 
-      if (Rect.fromCenter(center: mid, width: 100, height: 40).contains(p)) {
+      if (Rect.fromCenter(
+        center: mid,
+        width: AppConfig.graph.interaction.relationLabelHitArea.width,
+        height: AppConfig.graph.interaction.relationLabelHitArea.height,
+      ).contains(p)) {
         return rel.id;
       }
     }
@@ -279,7 +285,7 @@ class RelationDrawing extends CanvasInteractionState {
 
       // Check distance to target's left port (centerLeft)
       final dist = (pCanvas - vs.leftPort).distance; // [REFACTORED]
-      if (dist < 40.0) {
+      if (dist < AppConfig.graph.interaction.snapDistance) {
         snappedId = nodeId;
         break;
       }
@@ -325,7 +331,9 @@ class NodeResizing extends CanvasInteractionState {
 
     // Calculate new width: Current pointer X minus the Node's original Left X
     double newWidth = pCanvas.dx - vs.positionNotifier.value.dx;
-    if (newWidth < 80.0) newWidth = 80.0; // Minimum width safety constraint
+    if (newWidth < AppConfig.graph.node.minWidth) {
+      newWidth = AppConfig.graph.node.minWidth;
+    } // Minimum width safety constraint
 
     vs.dragWidthNotifier.value = newWidth;
 

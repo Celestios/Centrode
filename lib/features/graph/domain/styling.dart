@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../../../core/config/app_config.dart';
 
 class StyleProfile {
   final String shape;
@@ -10,21 +11,21 @@ class StyleProfile {
   final double width; // [NEW] Canonical Node Width
 
   StyleProfile({
-    this.shape = 'rectangle',
+    this.shape = AppConfig.defaultShape,
     this.bgColor = Colors.white,
     this.strokeColor = Colors.black,
     this.strokeWidth = 1.0,
-    this.fontFamily = 'Inter',
+    this.fontFamily = AppConfig.defaultFont,
     this.width = 100.0,
   });
 
   factory StyleProfile.fromJson(Map<String, dynamic> json) {
     return StyleProfile(
-      shape: json['shape'] ?? 'rectangle',
+      shape: json['shape'] ?? AppConfig.defaultShape,
       bgColor: _parseColor(json['bg_color'] ?? '#FFFFFF'),
       strokeColor: _parseColor(json['stroke_color'] ?? '#000000'),
       strokeWidth: (json['stroke_width'] ?? 1.0).toDouble(),
-      fontFamily: json['font_family'] ?? 'Inter',
+      fontFamily: json['font_family'] ?? AppConfig.defaultFont,
       width: (json['width'] ?? 150.0).toDouble(), // [NEW]
     );
   }
@@ -73,7 +74,7 @@ class StyleProfile {
     // In our case, we might want to handle partial updates.
     // However, if we store the whole object, we can just use copyWith or a full property copy.
     return copyWith(
-      shape: other.shape != 'rectangle'
+      shape: other.shape != AppConfig.defaultShape
           ? other.shape
           : shape, // Simple heuristic for now
       bgColor: other.bgColor != Colors.white ? other.bgColor : bgColor,
@@ -81,7 +82,9 @@ class StyleProfile {
           ? other.strokeColor
           : strokeColor,
       strokeWidth: other.strokeWidth != 1.0 ? other.strokeWidth : strokeWidth,
-      fontFamily: other.fontFamily != 'Inter' ? other.fontFamily : fontFamily,
+      fontFamily: other.fontFamily != AppConfig.defaultFont
+          ? other.fontFamily
+          : fontFamily,
       width: other.width != 150.0 ? other.width : width, // [NEW]
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/config/app_config.dart';
 import '../../domain/models.dart';
 import '../../state/theme_controller.dart';
 import '../../state/graph_ui_controller.dart';
@@ -90,7 +91,7 @@ class NodeWidget extends StatelessWidget {
                   border: Border.all(
                     // Selection highlighting: Use consistent blue accent when selected
                     color: isSelected
-                        ? const Color(0xFF42A5F5)
+                        ? AppConfig.graph.visual.selectionAccent
                         : resolvedStyle.strokeColor,
                     width: isSelected ? 2.5 : resolvedStyle.strokeWidth,
                   ),
@@ -124,7 +125,7 @@ class NodeWidget extends StatelessWidget {
                 child: MouseRegion(
                   cursor: SystemMouseCursors.resizeLeftRight,
                   child: Container(
-                    width: 10,
+                    width: AppConfig.graph.node.resizeHandleVisualWidth,
                     decoration: BoxDecoration(
                       color: Colors.transparent,
                       borderRadius: BorderRadius.horizontal(
@@ -136,14 +137,14 @@ class NodeWidget extends StatelessWidget {
               ),
 
               // Port Visual (aligned with portRect schema in InteractionController)
-              // Positioned at right center, matching the 30x30 hit-test rect
+              // Positioned at right center, matching the hit-test rect
               Positioned(
                 right: -15,
                 top: (size.height / 2) - 15,
-                child: const IgnorePointer(
+                child: IgnorePointer(
                   child: Icon(
                     Icons.add_circle,
-                    size: 30,
+                    size: AppConfig.graph.interaction.portHitArea,
                     color: Colors.blueAccent,
                   ),
                 ),
@@ -193,7 +194,9 @@ class NodeWidget extends StatelessWidget {
             style: TextStyle(fontSize: 12, fontFamily: style.fontFamily),
             overflow: TextOverflow.fade,
             // [NEW] Enforce line limit visually based on expanded state
-            maxLines: viewState.isExpandedNotifier.value ? null : 3,
+            maxLines: viewState.isExpandedNotifier.value
+                ? null
+                : AppConfig.graph.node.collapsedLineLimit,
           ),
         ),
 

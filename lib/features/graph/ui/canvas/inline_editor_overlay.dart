@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 import '../../state/graph_data_controller.dart';
 import '../../state/graph_ui_controller.dart';
+import '../../../../core/config/app_config.dart';
 
 /// A unified transient overlay for inline text editing.
 ///
@@ -88,13 +89,17 @@ class _InlineEditorOverlayState extends State<InlineEditorOverlay> {
           final end = toVs.leftPort;
           position = Offset(
             (start.dx + end.dx) / 2 - (width / 2),
-            (start.dy + end.dy) / 2 - 15,
+            (start.dy + end.dy) / 2 -
+                AppConfig.graph.relation.editorVerticalOffset,
           );
         } else if (nodeVs != null) {
           final double nodeWidth = nodeVs.sizeNotifier.value.width;
           // Defensive mathematical clamping for crash immunity
-          width = nodeWidth > 16.0 ? nodeWidth - 16.0 : 84.0;
-          position = nodeVs.positionNotifier.value + const Offset(8, 25);
+          width = nodeWidth > AppConfig.graph.editor.padding
+              ? nodeWidth - AppConfig.graph.editor.padding
+              : AppConfig.graph.editor.minWidth;
+          position =
+              nodeVs.positionNotifier.value + AppConfig.graph.node.editorOffset;
         } else {
           return const SizedBox.shrink();
         }
@@ -130,7 +135,9 @@ class _InlineEditorOverlayState extends State<InlineEditorOverlay> {
                 maxLines: null,
                 textAlign: rel != null ? TextAlign.center : TextAlign.start,
                 style: TextStyle(
-                  fontSize: rel != null ? 10 : 12,
+                  fontSize: rel != null
+                      ? AppConfig.graph.editor.fontSizeRelation
+                      : AppConfig.graph.editor.fontSizeNode,
                   backgroundColor: Colors.white,
                 ),
                 decoration: InputDecoration(

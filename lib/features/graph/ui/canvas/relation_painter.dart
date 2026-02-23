@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/models.dart';
+import '../../../../core/config/app_config.dart';
 
 class RelationPainter extends CustomPainter {
   final List<UiRelation> relations;
@@ -31,19 +32,21 @@ class RelationPainter extends CustomPainter {
 
       // [REFACTORED]: O(1) Geometry extraction directly from ViewState
       final start = startSize == Size.zero
-          ? startPos +
-                const Offset(100, 30) // Fallback
+          ? startPos + AppConfig.graph.relation.startFallback
           : from.rightPort;
 
       final end = endSize == Size.zero
-          ? endPos +
-                const Offset(0, 30) // Fallback
+          ? endPos + AppConfig.graph.relation.endFallback
           : to.leftPort;
 
       // [UPDATED] Apply selection styling from GraphUIController.selectedEntities
       final isSelected = selectedEntities.contains(rel.id);
-      paint.color = isSelected ? const Color(0xFF42A5F5) : rel.color;
-      paint.strokeWidth = isSelected ? 3.0 : 1.5;
+      paint.color = isSelected
+          ? AppConfig.graph.visual.selectionAccent
+          : rel.color;
+      paint.strokeWidth = isSelected
+          ? AppConfig.graph.relation.selectedStrokeWidth
+          : AppConfig.graph.relation.strokeWidth;
 
       // Draw straight line (Bezier curves can be added later)
       canvas.drawLine(start, end, paint);

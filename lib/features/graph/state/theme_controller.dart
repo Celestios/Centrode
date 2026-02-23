@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
+import '../../../core/config/app_config.dart';
 import '../domain/styling.dart';
 
 /// Exclusively manages global visual rules and theme persistence via FFI.
@@ -19,7 +20,11 @@ class ThemeController extends ChangeNotifier {
       final ffiThemes = await _api.getAllThemes();
       availableThemes = ffiThemes
           .map(
-            (t) => ThemeConfig.fromRawJson(t.id ?? "unknown", t.name, t.config),
+            (t) => ThemeConfig.fromRawJson(
+              t.id ?? AppConfig.core.unknownId,
+              t.name,
+              t.config,
+            ),
           )
           .toList();
 
@@ -62,9 +67,9 @@ class ThemeController extends ChangeNotifier {
       name: "Default Theme",
       globalDefault: StyleProfile(),
       typeDefinitions: {
-        "Info": StyleProfile(bgColor: const Color(0xFFBBDEFB)),
-        "Task": StyleProfile(bgColor: const Color(0xFFC8E6C9)),
-        "Inter": StyleProfile(bgColor: const Color(0xFFFFF9C4)),
+        "Info": StyleProfile(bgColor: AppConfig.graph.visual.defaultInfoBg),
+        "Task": StyleProfile(bgColor: AppConfig.graph.visual.defaultTaskBg),
+        "Inter": StyleProfile(bgColor: AppConfig.graph.visual.defaultInterBg),
       },
     );
   }
