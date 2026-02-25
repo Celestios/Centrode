@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:logging/logging.dart';
 import '../../../core/config/app_config.dart';
 import '../domain/models.dart';
@@ -274,6 +275,13 @@ class InteractionController implements InteractionContext {
   void handlePointerCancel(PointerCancelEvent e) {
     _log.warning('Pointer event cancelled by OS. Resetting FSM to Idle.');
     _transitionTo(state.value.handlePointerCancel(e, this));
+  }
+
+  /// Handles pointer hover events with polymorphic dispatch.
+  /// Fast-fails (O(1)) for most states, consumes (O(N)) for specific tools.
+  void handlePointerHover(PointerHoverEvent e) {
+    final pCanvas = _screenToCanvas(e.localPosition);
+    _transitionTo(state.value.handlePointerHover(e, pCanvas, this));
   }
 
   /// Disposes the state notifier.

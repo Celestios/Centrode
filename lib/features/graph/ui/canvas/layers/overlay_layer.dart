@@ -102,25 +102,27 @@ class OverlayLayer extends StatelessWidget {
             if (isMulti) {
               // 2. Mathematical Bounding Box calculation in Canvas Space
               double minX = double.infinity,
+                  minY = double.infinity,
                   maxX = double.negativeInfinity,
-                  minY = double.infinity;
-
+                  maxY = double.negativeInfinity;
               for (final vs in selectedViewStates) {
-                final pos = vs.positionNotifier.value;
-                final width = vs.sizeNotifier.value.width > 0
-                    ? vs.sizeNotifier.value.width
-                    : 150.0;
-
-                if (pos.dx < minX) minX = pos.dx;
-                if (pos.dx + width > maxX) maxX = pos.dx + width;
-                if (pos.dy < minY) minY = pos.dy; // Top-most Y
+                final rect = vs.rect;
+                if (rect.left < minX) minX = rect.left;
+                if (rect.top < minY) minY = rect.top;
+                if (rect.right > maxX) maxX = rect.right;
+                if (rect.bottom > maxY) maxY = rect.bottom;
               }
 
-              // Top-Center of the selected cluster
-              anchor = Offset(
-                (minX + maxX) / 2 - (AppConfig.graph.toolbar.multiWidth / 2),
-                minY,
-              );
+              if (minX == double.infinity) {
+                anchor = offset; // Fallback
+              } else {
+                // Center horizontally above the bounding box with height offset
+                final centerX = minX + (maxX - minX) / 2;
+                anchor = Offset(
+                  centerX - (AppConfig.graph.toolbar.multiWidth / 2),
+                  minY - AppConfig.graph.toolbar.height - 10,
+                );
+              }
             } else {
               // Single selection fallback
               anchor = selectedViewStates.first.positionNotifier.value;

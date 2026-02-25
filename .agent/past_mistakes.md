@@ -1,0 +1,34 @@
+## Pitfall 1: The "Chicken-and-Egg" Layout Paradox (State vs. Render Lifecycle)
+
+**The Mistake:** Attempting to enforce mathematically pure "Strict Visibility" before the framework had completed its physical layout passes.
+**The Reality:** In Flutter, a widget's size is intrinsically tied to its render phase. Our Spatial Hash Grid relies on bounding boxes (`Size` and `Offset`). If we tell the `NodeLayer` to *only* render items in the `visibleNodeIds` set, and that set starts empty at $T=0$, nothing renders. If nothing renders, sizes remain `Size.zero`. If sizes are zero, the spatial hash remains empty, creating an infinite deadlock.
+**The Fix:** We must explicitly design "T=0 Bypasses." Mathematical culling can only take over *after* the initial render pass has seeded the physical dimensions into the spatial index.
+
+## Pitfall 2: Coordinate Space Dissonance (Screen vs. Canvas Space)
+
+**The Mistake:** Mixing global screen metrics (`MediaQuery.of(context).size.width`) inside a transformed, infinite canvas (`InteractiveViewer`), and then attempting to hit-test those elements using purely local canvas coordinates.
+**The Reality:** The UI layer (`OverlayLayer`) was drawing the multi-selection toolbar using Screen Space, but the physics engine (`CanvasIdle` FSM) was calculating hits using Canvas Space. Furthermore, the FSM was wired to the wrong data pipe (`toolbarOffsetNotifier` instead of `multiToolbarOffsetNotifier`).
+**The Fix:** **Absolute Geometric Alignment.** If an interaction occurs inside the canvas, every visual element it interacts with must be calculated using exact Canvas Space bounding boxes. The physics engine and the rendering engine must share the exact same mathematical origin and data routers.
+
+## Pitfall 3: Event Starvation & Framework Assumptions (Input Telemetry)
+
+**The Mistake:** Assuming desktop pointer semantics (mouse movement) mapped cleanly to touch/drag semantics.
+**The Reality:** We relied on `onPointerMove` to drive the relation drawing tool. However, Flutter's gesture arena drops `PointerMoveEvent` entirely unless a mouse button is actively held down. By failing to explicitly listen to `PointerHoverEvent`, we starved the FSM of the telemetry required to draw a "sticky" relation line.
+**The Fix:** **Opt-In Polymorphic Telemetry.** We bound `PointerHoverEvent` at the root canvas, but to protect UI thread performance (preventing O(N) calculations 120 times a second), we implemented a base `handlePointerHover` that returns O(1) fast-fails, allowing only specific FSM states (like `RelationDrawing`) to consume the expensive event.
+
+## Pitfall 4: Asymmetric State Fallbacks (UI vs. Physics Engine)
+
+**The Mistake:** Applying a T=0 fallback to the UI layer without mirroring it in the physics layer.
+**The Reality:** When we restored the $T=0$ bypass in `NodeLayer` so nodes would render before a pan/zoom occurred, we forgot to update the `MarqueeSelecting` state. The UI rendered the nodes, but the FSM's marquee tool was still querying the empty `visibleNodeIds` set, resulting in zero intersections until a zoom forced a spatial query.
+**The Fix:** **Symmetrical State.** If the rendering engine has a fallback for uninitialized or "dirty" state, the physics/interaction engine must share that exact same fallback logic.
+
+---
+
+### Core Maxims for Future Development
+
+1. **Never mix Screen Space and Canvas Space.**
+2. **The Render pipeline precedes the Spatial index.** (Allow initial renders).
+3. **If a State Machine cannot see an event, check the Framework's event dropping rules.**
+4. **Symmetry between UI loops and FSM loops is non-negotiable.**
+
+---

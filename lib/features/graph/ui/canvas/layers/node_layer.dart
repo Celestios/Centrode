@@ -15,8 +15,9 @@ class NodeLayer extends StatelessWidget {
     return ValueListenableBuilder<Set<String>>(
       valueListenable: uiController.visibleNodeIds,
       builder: (context, visibleIds, _) {
+        // BYPASS RESTORED: Chicken-and-Egg layout requires initial render for sizes.
         final nodeIds = visibleIds.isEmpty
-            ? dataController.nodes.map((n) => n.id).toList()
+            ? dataController.nodeLookup.keys.toList()
             : visibleIds.toList();
 
         final validNodeIds = nodeIds.where(

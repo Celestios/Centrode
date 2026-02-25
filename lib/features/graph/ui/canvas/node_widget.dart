@@ -183,7 +183,7 @@ class NodeWidget extends StatelessWidget {
     // [REFACTORED]: Simplified to static rendering only.
     // Editing is now handled by the top-level InlineEditorOverlay.
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
           child: Text(
@@ -314,6 +314,7 @@ class _NodeInternalEditorState extends State<_NodeInternalEditor> {
         controller: _controller,
         focusNode: _focusNode,
         maxLines: null,
+        textAlign: TextAlign.center,
         autofocus: true,
         cursorColor: Colors.black54,
         style: TextStyle(fontSize: 12, fontFamily: widget.style.fontFamily),

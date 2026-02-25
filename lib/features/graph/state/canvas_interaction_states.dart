@@ -45,6 +45,14 @@ sealed class CanvasInteractionState {
     PointerCancelEvent e,
     InteractionContext ctx,
   ) => const CanvasIdle();
+
+  /// [NEW] Handles pointer hover events. Returns the next state after processing.
+  /// Default implementation returns `this` (no state change) for O(1) fast-fail.
+  CanvasInteractionState handlePointerHover(
+    PointerHoverEvent e,
+    Offset pCanvas,
+    InteractionContext ctx,
+  ) => this;
 }
 
 /// The default idle state - no active interaction.
@@ -75,43 +83,69 @@ class CanvasIdle extends CanvasInteractionState {
     // Supports both single-selection and multi-selection toolbars
     final selectedEntities = ctx.getSelectedEntities();
     if (selectedEntities.isNotEmpty) {
-      // For multi-selection, use the first selected node's position as anchor
-      // (or compute bounding box center in a more sophisticated implementation)
-      final anchorId = selectedEntities.first;
-      final vs = ctx.nodeViewStates[anchorId];
-      if (vs != null) {
-        final isMultiSelect = selectedEntities.length > 1;
-        final tbOffset = ctx.getToolbarOffset();
-        final toolbarTopLeft = vs.positionNotifier.value + tbOffset;
+      final isMultiSelect = selectedEntities.length > 1;
+      Offset anchorTopLeft;
 
-        // Use appropriate toolbar width based on selection count
-        final toolbarWidth = isMultiSelect
-            ? AppConfig.graph.toolbar.multiWidth
-            : AppConfig.graph.toolbar.singleWidth;
-
-        // Exact geometric bounds of the toolbar
-        final toolbarRect = Rect.fromLTWH(
-          toolbarTopLeft.dx,
-          toolbarTopLeft.dy,
-          toolbarWidth,
-          AppConfig.graph.toolbar.height,
+      if (isMultiSelect) {
+        // Calculate mathematically accurate Canvas Space Bounding Box
+        double minX = double.infinity,
+            minY = double.infinity,
+            maxX = double.negativeInfinity,
+            maxY = double.negativeInfinity;
+        for (final id in selectedEntities) {
+          final viewState = ctx.nodeViewStates[id];
+          if (viewState == null) continue;
+          final rect = viewState.rect;
+          if (rect.left < minX) minX = rect.left;
+          if (rect.top < minY) minY = rect.top;
+          if (rect.right > maxX) maxX = rect.right;
+          if (rect.bottom > maxY) maxY = rect.bottom;
+        }
+        // Center horizontally above the bounding box
+        final centerX = minX + (maxX - minX) / 2;
+        anchorTopLeft = Offset(
+          centerX - (AppConfig.graph.toolbar.multiWidth / 2),
+          minY - AppConfig.graph.toolbar.height - 10,
         );
+      } else {
+        final vs = ctx.nodeViewStates[selectedEntities.first];
+        if (vs == null) return this;
+        anchorTopLeft = vs.positionNotifier.value;
+      }
 
-        if (toolbarRect.contains(pCanvas)) {
-          final localX = pCanvas.dx - toolbarTopLeft.dx;
-          final btnWidth = AppConfig.graph.toolbar.buttonWidth;
+      final tbOffset = ctx.getToolbarOffset();
+      final toolbarTopLeft = anchorTopLeft + tbOffset;
 
-          if (localX < btnWidth) {
-            // Zone 1: Drag (toolbar repositioning)
-            return ToolbarDragging(anchorId, pCanvas - toolbarTopLeft);
-          } else if (localX < btnWidth * 2) {
-            // Zone 2: Link (New Relation) - enters sticky RelationDrawing mode
-            return RelationDrawing(selectedEntities, pCanvas, isSticky: true);
-          } else {
-            // Zone 3: Delete
-            ctx.onDeleteSelectedEntities();
-            return const CanvasIdle();
-          }
+      // Use appropriate toolbar width based on selection count
+      final toolbarWidth = isMultiSelect
+          ? AppConfig.graph.toolbar.multiWidth
+          : AppConfig.graph.toolbar.singleWidth;
+
+      // Exact geometric bounds of the toolbar
+      final toolbarRect = Rect.fromLTWH(
+        toolbarTopLeft.dx,
+        toolbarTopLeft.dy,
+        toolbarWidth,
+        AppConfig.graph.toolbar.height,
+      );
+
+      if (toolbarRect.contains(pCanvas)) {
+        final localX = pCanvas.dx - toolbarTopLeft.dx;
+        final btnWidth = AppConfig.graph.toolbar.buttonWidth;
+
+        if (localX < btnWidth) {
+          // Zone 1: Drag (toolbar repositioning)
+          return ToolbarDragging(
+            selectedEntities.first,
+            pCanvas - toolbarTopLeft,
+          );
+        } else if (localX < btnWidth * 2) {
+          // Zone 2: Link (New Relation) - enters sticky RelationDrawing mode
+          return RelationDrawing(selectedEntities, pCanvas, isSticky: true);
+        } else {
+          // Zone 3: Delete
+          ctx.onDeleteSelectedEntities();
+          return const CanvasIdle();
         }
       }
     }
@@ -392,6 +426,42 @@ class RelationDrawing extends CanvasInteractionState {
     }
     return const CanvasIdle();
   }
+
+  @override
+  CanvasInteractionState handlePointerHover(
+    PointerHoverEvent e,
+    Offset pCanvas,
+    InteractionContext ctx,
+  ) {
+    if (!isSticky) return this; // Opt-out if not in sticky mode
+
+    // Duplicate L2 snapping logic to process free mouse movement
+    String? snappedId;
+    final nodeIds = ctx.zOrder.reversed.toList();
+    if (nodeIds.isEmpty)
+      nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
+
+    for (final nodeId in nodeIds) {
+      if (sourceNodeIds.contains(nodeId)) continue;
+      final vs = ctx.nodeViewStates[nodeId];
+      if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
+
+      if ((pCanvas - vs.leftPort).distance <
+          AppConfig.graph.interaction.snapDistance) {
+        snappedId = nodeId;
+        break;
+      }
+    }
+
+    ctx.onNodeDragUpdate(); // Pulse MovementNotifier for layer repaints
+    return RelationDrawing(
+      sourceNodeIds,
+      pCanvas,
+      snappedTargetNodeId: snappedId,
+      isSticky: isSticky,
+      hasReleasedOnce: hasReleasedOnce,
+    );
+  }
 }
 
 /// [NEW] State when dragging the right edge of a node to resize its width.
@@ -489,10 +559,16 @@ class MarqueeSelecting extends CanvasInteractionState {
     InteractionContext ctx,
   ) {
     final marqueeRect = Rect.fromPoints(startPos, currentPos);
-    final visibleIds = ctx.getVisibleNodeIds();
+    var nodeIdsToCheck = ctx.getVisibleNodeIds();
+
+    // Fallback for T=0 state where viewport hasn't triggered a spatial query yet
+    if (nodeIdsToCheck.isEmpty) {
+      nodeIdsToCheck = ctx.nodeViewStates.keys.toSet();
+    }
+
     final Set<String> hits = {};
 
-    for (final id in visibleIds) {
+    for (final id in nodeIdsToCheck) {
       final vs = ctx.nodeViewStates[id];
       if (vs != null && vs.rect.overlaps(marqueeRect)) {
         hits.add(id);

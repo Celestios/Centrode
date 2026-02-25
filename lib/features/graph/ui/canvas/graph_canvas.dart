@@ -57,11 +57,14 @@ class _GraphCanvasState extends State<GraphCanvas> {
             onIdSwap: uiController.handleIdSwap, // Delegate ID swap updates
           );
 
-          // Force visibility for the new node to prevent culling before a pan/zoom occurs
-          uiController.visibleNodeIds.value = {
-            ...uiController.visibleNodeIds.value,
-            tempId,
-          };
+          // Only force visibility if the set is already active.
+          // If empty, the bypass in NodeLayer handles it safely.
+          if (uiController.visibleNodeIds.value.isNotEmpty) {
+            uiController.visibleNodeIds.value = {
+              ...uiController.visibleNodeIds.value,
+              tempId,
+            };
+          }
           uiController.enterEditMode(tempId);
         },
         onNodeResizeEnd: (id, newWidth) => dataController.updateNodeAesthetics(
@@ -72,9 +75,16 @@ class _GraphCanvasState extends State<GraphCanvas> {
         onSelectEntity: uiController.selectEntity,
         onSelectEntities: uiController.selectEntities,
         getSelectedEntities: () => uiController.selectedEntities,
-        getToolbarOffset: () => uiController.toolbarOffsetNotifier.value,
-        updateToolbarOffset: (delta) =>
-            uiController.toolbarOffsetNotifier.value = delta,
+        getToolbarOffset: () => uiController.selectedEntities.length > 1
+            ? uiController.multiToolbarOffsetNotifier.value
+            : uiController.toolbarOffsetNotifier.value,
+        updateToolbarOffset: (delta) {
+          if (uiController.selectedEntities.length > 1) {
+            uiController.multiToolbarOffsetNotifier.value = delta;
+          } else {
+            uiController.toolbarOffsetNotifier.value = delta;
+          }
+        },
         onDeleteSelectedEntities: uiController.deleteSelectedEntities,
         getVisibleNodeIds: () => uiController.visibleNodeIds.value,
         getZOrder: () => uiController.zOrder,
@@ -94,6 +104,7 @@ class _GraphCanvasState extends State<GraphCanvas> {
   @override
   Widget build(BuildContext context) {
     final uiController = context.watch<GraphUIController>();
+    final dataController = context.read<GraphDataController>();
     final interactionController = _interactionController;
 
     // If InteractionController not yet initialized, show loading
@@ -111,6 +122,7 @@ class _GraphCanvasState extends State<GraphCanvas> {
               onPointerMove: interactionController.handlePointerMove,
               onPointerUp: interactionController.handlePointerUp,
               onPointerCancel: interactionController.handlePointerCancel,
+              onPointerHover: interactionController.handlePointerHover,
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   // Guarded update: Feed dimensions to purely mathematical controller
