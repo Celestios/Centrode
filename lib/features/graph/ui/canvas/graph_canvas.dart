@@ -6,20 +6,12 @@ import '../../state/graph_data_controller.dart';
 import '../../state/graph_ui_controller.dart';
 import '../../state/interaction_controller.dart';
 import '../../state/canvas_interaction_states.dart';
+import '../../state/viewport_controller.dart';
 import '../../domain/models.dart';
 import '../../domain/styling.dart';
 import 'node_widget.dart';
 import 'relation_painter.dart';
 import 'inline_editor_overlay.dart';
-
-/// Extension on Rect to check if one rect fully contains another.
-extension RectExtension on Rect {
-  bool containsRect(Rect other) =>
-      left <= other.left &&
-      right >= other.right &&
-      top <= other.top &&
-      bottom >= other.bottom;
-}
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
@@ -29,25 +21,24 @@ class GraphCanvas extends StatefulWidget {
 }
 
 class _GraphCanvasState extends State<GraphCanvas> {
-  final TransformationController _transformController =
-      TransformationController();
-  Rect _overscanBuffer = Rect.zero;
+  late final ViewportController _viewportController;
   InteractionController? _interactionController;
-  final Logger _log = Logger('GraphCanvas'); // [NEW]
+  final Logger _log = Logger('GraphCanvas');
 
   @override
   void initState() {
     super.initState();
-    _log.info('Initializing GraphCanvas and tracking transform mutations.');
-    _transformController.addListener(_handleTransform);
+    _log.info('Initializing GraphCanvas.');
 
     // Initialize InteractionController after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final dataController = context.read<GraphDataController>();
       final uiController = context.read<GraphUIController>();
 
+      _viewportController = ViewportController(uiController);
+
       _interactionController = InteractionController(
-        transformController: _transformController,
+        transformController: _viewportController.transformController,
         nodeViewStates: dataController.allNodeViewStates,
         onNodeMove: dataController.updateNodePosition,
         onRelationCreate: dataController.createRelation,
@@ -94,48 +85,9 @@ class _GraphCanvasState extends State<GraphCanvas> {
 
   @override
   void dispose() {
-    _transformController.removeListener(_handleTransform);
-    _transformController.dispose();
+    _viewportController.dispose();
     _interactionController?.dispose();
     super.dispose();
-  }
-
-  /// Handles transform changes (pan/zoom) and updates visible node set.
-  void _handleTransform() {
-    final uiController = context.read<GraphUIController>();
-    final viewport = _calculateCanvasViewport();
-
-    // Check if Viewport has breached the 1.5x Hysteresis Buffer
-    if (!_overscanBuffer.containsRect(viewport)) {
-      // Expand by 25% on each side (1.5x total area)
-      _overscanBuffer = viewport.inflate(
-        viewport.width * AppConfig.graph.canvas.overscanRatio,
-      );
-      uiController.updateVisibleSet(_overscanBuffer);
-    }
-  }
-
-  /// Calculates the current viewport in canvas coordinates.
-  Rect _calculateCanvasViewport() {
-    final Matrix4 transform = _transformController.value;
-
-    // Guard against singular matrix to prevent unhandled render exceptions
-    if (transform.determinant() == 0.0) {
-      _log.severe(
-        'Singular matrix detected in canvas transform (Scale = 0). Aborting viewport calculation.',
-      ); // [NEW]
-      return Rect.zero;
-    }
-
-    final Matrix4 inverse = Matrix4.inverted(transform);
-    final Size size = MediaQuery.of(context).size;
-
-    final Offset topLeft = MatrixUtils.transformPoint(inverse, Offset.zero);
-    final Offset bottomRight = MatrixUtils.transformPoint(
-      inverse,
-      Offset(size.width, size.height),
-    );
-    return Rect.fromPoints(topLeft, bottomRight);
   }
 
   @override
@@ -159,138 +111,148 @@ class _GraphCanvasState extends State<GraphCanvas> {
               onPointerMove: interactionController.handlePointerMove,
               onPointerUp: interactionController.handlePointerUp,
               onPointerCancel: interactionController.handlePointerCancel,
-              child: InteractiveViewer(
-                transformationController: _transformController,
-                constrained: false,
-                boundaryMargin: EdgeInsets.all(
-                  AppConfig.graph.canvas.boundaryMargin,
-                ),
-                minScale: AppConfig.graph.canvas.minScale,
-                maxScale: AppConfig.graph.canvas.maxScale,
-                // Lock viewer if interaction is active (arena circumvention)
-                panEnabled: state is CanvasIdle,
-                scaleEnabled: state is CanvasIdle,
-                child: GestureDetector(
-                  // Tap empty space to dismiss menus
-                  onTap: () {
-                    uiController.hideDeleteMenu();
-                  },
-                  child: SizedBox(
-                    width: AppConfig.graph.canvas.initialSize,
-                    height: AppConfig.graph.canvas.initialSize,
-                    child: Stack(
-                      children: [
-                        // 0. The Relations Layer (Bottom) - Isolated with RepaintBoundary
-                        // Uses allNodeViewStates to resolve positions for culled nodes
-                        Positioned.fill(
-                          child: RepaintBoundary(
-                            child: ListenableBuilder(
-                              listenable: dataController.movementNotifier,
-                              builder: (context, _) {
-                                return CustomPaint(
-                                  painter: RelationPainter(
-                                    dataController.relations.toList(),
-                                    dataController.allNodeViewStates,
-                                    uiController.selectedEntities,
-                                  ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Guarded update: Feed dimensions to purely mathematical controller
+                  _viewportController.updateViewportSize(constraints.biggest);
+
+                  return InteractiveViewer(
+                    transformationController:
+                        _viewportController.transformController,
+                    constrained: false,
+                    boundaryMargin: EdgeInsets.all(
+                      AppConfig.graph.canvas.boundaryMargin,
+                    ),
+                    minScale: AppConfig.graph.canvas.minScale,
+                    maxScale: AppConfig.graph.canvas.maxScale,
+                    // Lock viewer if interaction is active (arena circumvention)
+                    panEnabled: state is CanvasIdle,
+                    scaleEnabled: state is CanvasIdle,
+                    child: GestureDetector(
+                      // Tap empty space to dismiss menus
+                      onTap: () {
+                        uiController.hideDeleteMenu();
+                      },
+                      child: SizedBox(
+                        width: AppConfig.graph.canvas.initialSize,
+                        height: AppConfig.graph.canvas.initialSize,
+                        child: Stack(
+                          children: [
+                            // 0. The Relations Layer (Bottom) - Isolated with RepaintBoundary
+                            // Uses allNodeViewStates to resolve positions for culled nodes
+                            Positioned.fill(
+                              child: RepaintBoundary(
+                                child: ListenableBuilder(
+                                  listenable: dataController.movementNotifier,
+                                  builder: (context, _) {
+                                    return CustomPaint(
+                                      painter: RelationPainter(
+                                        dataController.relations.toList(),
+                                        dataController.allNodeViewStates,
+                                        uiController.selectedEntities,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+
+                            // 1. The Nodes Layer - Only renders visible nodes via ValueListenableBuilder
+                            ValueListenableBuilder<Set<String>>(
+                              valueListenable: uiController.visibleNodeIds,
+                              builder: (context, visibleIds, _) {
+                                // If no visible set calculated yet, render all nodes
+                                final nodeIds = visibleIds.isEmpty
+                                    ? dataController.nodes
+                                          .map((n) => n.id)
+                                          .toList()
+                                    : visibleIds.toList();
+
+                                // Update z-order in InteractionController
+                                interactionController.updateZOrder(nodeIds);
+
+                                // [FIX]: Defensive Data Projection - Filter orphaned IDs before Widget inflation
+                                final validNodeIds = nodeIds.where(
+                                  (id) =>
+                                      dataController.allNodeViewStates
+                                          .containsKey(id) &&
+                                      dataController.nodeLookup.containsKey(id),
+                                );
+
+                                return Stack(
+                                  children: validNodeIds.map((id) {
+                                    // Safe to force-unwrap because of the strict pre-filter above
+                                    final viewState =
+                                        dataController.allNodeViewStates[id]!;
+                                    final node = dataController.nodeLookup[id]!;
+
+                                    return Positioned(
+                                      key: ValueKey(id),
+                                      left: 0,
+                                      top:
+                                          0, // Positioned via Transform in NodeWidget
+                                      child: NodeWidget(
+                                        viewState: viewState,
+                                        node: node,
+                                        isDeleteMenuVisible:
+                                            uiController
+                                                .nodeShowingDeleteMenu ==
+                                            node.id,
+                                        onDelete: () =>
+                                            dataController.deleteNode(node.id),
+                                      ),
+                                    );
+                                  }).toList(),
                                 );
                               },
                             ),
-                          ),
-                        ),
 
-                        // 1. The Nodes Layer - Only renders visible nodes via ValueListenableBuilder
-                        ValueListenableBuilder<Set<String>>(
-                          valueListenable: uiController.visibleNodeIds,
-                          builder: (context, visibleIds, _) {
-                            // If no visible set calculated yet, render all nodes
-                            final nodeIds = visibleIds.isEmpty
-                                ? dataController.nodes.map((n) => n.id).toList()
-                                : visibleIds.toList();
-
-                            // Update z-order in InteractionController
-                            interactionController.updateZOrder(nodeIds);
-
-                            // [FIX]: Defensive Data Projection - Filter orphaned IDs before Widget inflation
-                            final validNodeIds = nodeIds.where(
-                              (id) =>
-                                  dataController.allNodeViewStates.containsKey(
-                                    id,
-                                  ) &&
-                                  dataController.nodeLookup.containsKey(id),
-                            );
-
-                            return Stack(
-                              children: validNodeIds.map((id) {
-                                // Safe to force-unwrap because of the strict pre-filter above
-                                final viewState =
-                                    dataController.allNodeViewStates[id]!;
-                                final node = dataController.nodeLookup[id]!;
-
-                                return Positioned(
-                                  key: ValueKey(
-                                    id,
-                                  ), // Critical for efficient diffing
-                                  left: 0,
-                                  top:
-                                      0, // Positioned via Transform in NodeWidget
-                                  child: NodeWidget(
-                                    viewState: viewState,
-                                    node: node,
-                                    isDeleteMenuVisible:
-                                        uiController.nodeShowingDeleteMenu ==
-                                        node.id,
-                                    onDelete: () =>
-                                        dataController.deleteNode(node.id),
-                                  ),
-                                );
-                              }).toList(),
-                            );
-                          },
-                        ),
-
-                        // 2. Absolute Zenith: Transient Editor Overlay
-                        // Unified overlay for both nodes and relations
-                        if (uiController.activeEditId != null)
-                          InlineEditorOverlay(
-                            key: ValueKey(
-                              'editor_${uiController.activeEditId}',
-                            ),
-                            entityId: uiController.activeEditId!,
-                            initialText:
-                                dataController
-                                    .nodeLookup[uiController.activeEditId!]
-                                    ?.text ??
-                                dataController.relations
-                                    .firstWhere(
-                                      (r) => r.id == uiController.activeEditId!,
-                                    )
-                                    .label,
-                          ),
-
-                        // 3. Temporary Relation Drag Line (when drawing relation)
-                        if (state is RelationDrawing)
-                          Positioned.fill(
-                            child: CustomPaint(
-                              painter: _TempRelationPainter(
-                                state: state,
-                                nodeViewStates:
-                                    interactionController.nodeViewStates,
+                            // 2. Absolute Zenith: Transient Editor Overlay
+                            // Unified overlay for both nodes and relations
+                            if (uiController.activeEditId != null)
+                              InlineEditorOverlay(
+                                key: ValueKey(
+                                  'editor_${uiController.activeEditId}',
+                                ),
+                                entityId: uiController.activeEditId!,
+                                initialText:
+                                    dataController
+                                        .nodeLookup[uiController.activeEditId!]
+                                        ?.text ??
+                                    dataController.relations
+                                        .firstWhere(
+                                          (r) =>
+                                              r.id ==
+                                              uiController.activeEditId!,
+                                        )
+                                        .label,
                               ),
-                            ),
-                          ),
 
-                        // 4. Marquee Selection Box Layer
-                        if (state is MarqueeSelecting)
-                          Positioned.fill(
-                            child: CustomPaint(
-                              painter: _MarqueePainter(state: state),
-                            ),
-                          ),
-                      ],
+                            // 3. Temporary Relation Drag Line (when drawing relation)
+                            if (state is RelationDrawing)
+                              Positioned.fill(
+                                child: CustomPaint(
+                                  painter: _TempRelationPainter(
+                                    state: state,
+                                    nodeViewStates:
+                                        interactionController.nodeViewStates,
+                                  ),
+                                ),
+                              ),
+
+                            // 4. Marquee Selection Box Layer
+                            if (state is MarqueeSelecting)
+                              Positioned.fill(
+                                child: CustomPaint(
+                                  painter: _MarqueePainter(state: state),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
 
