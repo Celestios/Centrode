@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/config/app_config.dart';
 import '../../domain/models.dart';
 import '../../state/theme_controller.dart';
 import '../../state/graph_ui_controller.dart';
+import '../../state/graph_data_controller.dart';
 import '../../domain/styling.dart';
 
 extension StringExtension on String {
@@ -42,6 +44,7 @@ class NodeWidget extends StatelessWidget {
     final themeController = context.watch<ThemeController>();
     final uiController = context.watch<GraphUIController>();
     final isSelected = uiController.selectedEntities.contains(node.id);
+    final isEditing = uiController.activeEditId == node.id;
 
     final resolvedStyle =
         themeController.activeTheme?.resolveStyle(
@@ -114,7 +117,13 @@ class NodeWidget extends StatelessWidget {
                         ],
                 ),
                 padding: const EdgeInsets.all(8.0),
-                child: _buildNodeContent(context, resolvedStyle),
+                child: isEditing
+                    ? _NodeInternalEditor(
+                        nodeId: node.id,
+                        initialText: node.text,
+                        style: resolvedStyle,
+                      )
+                    : _buildNodeContent(context, resolvedStyle),
               ),
 
               // [NEW] Resize Handle Visual (Right Edge)
@@ -136,19 +145,7 @@ class NodeWidget extends StatelessWidget {
                 ),
               ),
 
-              // Port Visual (aligned with portRect schema in InteractionController)
-              // Positioned at right center, matching the hit-test rect
-              Positioned(
-                right: -15,
-                top: (size.height / 2) - 15,
-                child: IgnorePointer(
-                  child: Icon(
-                    Icons.add_circle,
-                    size: AppConfig.graph.interaction.portHitArea,
-                    color: Colors.blueAccent,
-                  ),
-                ),
-              ),
+              // REMOVED: Floating Toolbar (_NodeToolbar) - now handled by GraphCanvas stack
 
               // Delete Overlay (Topmost)
               if (isDeleteMenuVisible)
@@ -235,6 +232,98 @@ class NodeWidget extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Internal editor widget for in-place node text editing.
+///
+/// This widget renders a TextField directly within the node's container,
+/// inheriting the node's background and font styles for aesthetic alignment
+/// and "zero-drift" movement during editing.
+class _NodeInternalEditor extends StatefulWidget {
+  final String nodeId;
+  final String initialText;
+  final StyleProfile style;
+
+  const _NodeInternalEditor({
+    required this.nodeId,
+    required this.initialText,
+    required this.style,
+  });
+
+  @override
+  State<_NodeInternalEditor> createState() => _NodeInternalEditorState();
+}
+
+class _NodeInternalEditorState extends State<_NodeInternalEditor> {
+  late final TextEditingController _controller;
+  late final FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialText);
+    _focusNode = FocusNode();
+
+    // Request focus and select all text after the frame is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+      _controller.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _controller.text.length,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    context.read<GraphDataController>().commitEntityText(
+      widget.nodeId,
+      _controller.text,
+    );
+    context.read<GraphUIController>().cancelActiveEdit();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Focus(
+      onKeyEvent: (node, event) {
+        if (event is KeyDownEvent) {
+          // Enter without Shift: submit and close
+          if (event.logicalKey == LogicalKeyboardKey.enter &&
+              !HardwareKeyboard.instance.isShiftPressed) {
+            _submit();
+            return KeyEventResult.handled;
+          }
+          // Escape: cancel edit without saving
+          if (event.logicalKey == LogicalKeyboardKey.escape) {
+            context.read<GraphUIController>().cancelActiveEdit();
+            return KeyEventResult.handled;
+          }
+        }
+        return KeyEventResult.ignored;
+      },
+      child: TextField(
+        controller: _controller,
+        focusNode: _focusNode,
+        maxLines: null,
+        autofocus: true,
+        cursorColor: Colors.black54,
+        style: TextStyle(fontSize: 12, fontFamily: widget.style.fontFamily),
+        decoration: const InputDecoration(
+          border: InputBorder.none,
+          isDense: true,
+          contentPadding: EdgeInsets.zero,
+        ),
+        onTapOutside: (_) => _submit(),
+      ),
     );
   }
 }

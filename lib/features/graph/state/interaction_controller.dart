@@ -141,8 +141,21 @@ class InteractionController implements InteractionContext {
   @override
   void onEnterEditMode(String id) => _onEnterEditMode(id);
 
+  /// Callback to commit the active edit.
+  ///
+  /// With nodes now handling their own editing internally via `_NodeInternalEditor`
+  /// and relations via the refactored `InlineEditorOverlay`, this method serves
+  /// as a cleanup fallback. The internal widgets now handle their own commit
+  /// via TapOutside and Enter key events.
   @override
-  void onCommitActiveEdit() => _onCommitActiveEdit();
+  void onCommitActiveEdit() {
+    final activeId = _getActiveEditId();
+    if (activeId != null) {
+      // Internal widgets now handle their own commit via TapOutside/Enter
+      // This remains as a cleanup fallback
+      _onCommitActiveEdit();
+    }
+  }
 
   @override
   void onCreateNode(Offset position) => _onCreateNode(position);

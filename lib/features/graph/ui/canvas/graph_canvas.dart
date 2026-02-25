@@ -268,38 +268,6 @@ class _GraphCanvasState extends State<GraphCanvas> {
                                     .label,
                           ),
 
-                        // 2.5: The Single-Node Floating Toolbar
-                        if (uiController.selectedEntities.length == 1 &&
-                            dataController.allNodeViewStates.containsKey(
-                              uiController.selectedEntities.first,
-                            ))
-                          ValueListenableBuilder<Offset>(
-                            valueListenable: uiController.toolbarOffsetNotifier,
-                            builder: (context, tbOffset, _) {
-                              final vs =
-                                  dataController.allNodeViewStates[uiController
-                                      .selectedEntities
-                                      .first]!;
-                              return ListenableBuilder(
-                                listenable: vs.positionNotifier,
-                                builder: (context, _) {
-                                  final tbPos =
-                                      vs.positionNotifier.value + tbOffset;
-                                  return Positioned(
-                                    left: tbPos.dx,
-                                    top: tbPos.dy,
-                                    child: _buildToolbarUI(
-                                      onDrag:
-                                          null, // Drag handled by FSM ToolbarDragging
-                                      onDelete:
-                                          uiController.deleteSelectedEntities,
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-
                         // 3. Temporary Relation Drag Line (when drawing relation)
                         if (state is RelationDrawing)
                           Positioned.fill(
@@ -326,93 +294,138 @@ class _GraphCanvasState extends State<GraphCanvas> {
               ),
             ),
 
-            // 5. Absolute Top UI Layer (Screen Space) - The Global Multi-Toolbar
-            if (uiController.selectedEntities.length > 1)
-              ValueListenableBuilder<Offset>(
-                valueListenable: uiController.multiToolbarOffsetNotifier,
-                builder: (context, offset, _) {
-                  return Positioned(
-                    // Anchor to top center of screen, offset by the Notifier
-                    top: offset.dy,
-                    left:
-                        (MediaQuery.of(context).size.width / 2) -
-                        50 +
-                        offset.dx,
-                    child: GestureDetector(
-                      onPanUpdate: (details) {
-                        uiController.multiToolbarOffsetNotifier.value +=
-                            details.delta;
-                      },
-                      child: _buildToolbarUI(
-                        onDrag:
-                            () {}, // Empty to satisfy signature, pan handled by GestureDetector above
-                        onDelete: uiController.deleteSelectedEntities,
-                        isMulti: true,
-                      ),
-                    ),
-                  );
-                },
-              ),
+            // 2.5: THE UNIFIED FLOATING TOOLBAR
+            if (uiController.selectedEntities.isNotEmpty)
+              _buildUnifiedToolbar(context, uiController, dataController),
           ],
         );
       },
     );
   }
 
-  // Helper method to build toolbar UI
-  Widget _buildToolbarUI({
-    required Function? onDrag,
-    required VoidCallback onDelete,
-    bool isMulti = false,
-  }) {
-    return Container(
-      width: isMulti
-          ? 100
-          : 80, // Slightly wider for multi to show an indicator
-      height: 36,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
-          BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
-        ],
-        border: Border.all(
-          color: Colors.blueAccent.withValues(alpha: isMulti ? 0.8 : 0.3),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: MouseRegion(
-              cursor: SystemMouseCursors.grab,
-              child: Icon(
-                isMulti ? Icons.library_add_check : Icons.drag_indicator,
-                size: 20,
-                color: Colors.grey.shade600,
-              ),
+  /// Unified toolbar orchestrator that adapts based on selection count.
+  /// For single selection, anchors to node position; for multi, anchors to screen center.
+  Widget _buildUnifiedToolbar(
+    BuildContext context,
+    GraphUIController ui,
+    GraphDataController data,
+  ) {
+    final isMulti = ui.selectedEntities.length > 1;
+    final notifier = isMulti
+        ? ui.multiToolbarOffsetNotifier
+        : ui.toolbarOffsetNotifier;
+
+    return ValueListenableBuilder<Offset>(
+      valueListenable: notifier,
+      builder: (context, offset, _) {
+        // For single, anchor to node; for multi, anchor to screen center
+        final position = isMulti
+            ? Offset(
+                (MediaQuery.of(context).size.width / 2) -
+                    (AppConfig.graph.toolbar.multiWidth / 2) +
+                    offset.dx,
+                offset.dy,
+              )
+            : (data
+                          .allNodeViewStates[ui.selectedEntities.first]
+                          ?.positionNotifier
+                          .value ??
+                      Offset.zero) +
+                  offset;
+
+        return Positioned(
+          left: position.dx,
+          top: position.dy,
+          child: GestureDetector(
+            onPanUpdate: isMulti ? (d) => notifier.value += d.delta : null,
+            child: _buildToolbarUI(
+              onDelete: ui.deleteSelectedEntities,
+              isMulti: isMulti,
             ),
           ),
-          Container(width: 1, color: Colors.grey.shade300),
-          Expanded(
-            child: MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: onDelete,
-                child: const Icon(
-                  Icons.delete_outline,
+        );
+      },
+    );
+  }
+
+  // Helper method to build toolbar UI
+  // Three zones: Drag (left), Link (center), Delete (right)
+  Widget _buildToolbarUI({
+    required VoidCallback onDelete,
+    required bool isMulti,
+  }) {
+    final width = isMulti
+        ? AppConfig.graph.toolbar.multiWidth
+        : AppConfig.graph.toolbar.singleWidth;
+    return Material(
+      color: Colors.white,
+      elevation: 4,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: width,
+        height: AppConfig.graph.toolbar.height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Colors.blueAccent.withValues(alpha: isMulti ? 0.8 : 0.3),
+          ),
+        ),
+        child: Row(
+          children: [
+            // Zone 1: Drag Handle
+            Expanded(
+              child: MouseRegion(
+                cursor: SystemMouseCursors.grab,
+                child: Icon(
+                  Icons.drag_handle,
                   size: 20,
-                  color: Colors.redAccent,
+                  color: Colors.grey.shade600,
                 ),
               ),
             ),
-          ),
-        ],
+            Container(width: 1, color: Colors.grey.shade300),
+            // Zone 2: Link Button
+            Expanded(
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: Listener(
+                  onPointerDown: (e) {
+                    // Trigger Sticky RelationDrawing - this will be handled by the InteractionController
+                    // The toolbar hit-testing in CanvasIdle will detect this and transition to RelationDrawing
+                  },
+                  child: Icon(
+                    Icons.link,
+                    size: 20,
+                    color: Colors.blueAccent.shade700,
+                  ),
+                ),
+              ),
+            ),
+            Container(width: 1, color: Colors.grey.shade300),
+            // Zone 3: Delete Button
+            Expanded(
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: onDelete,
+                  child: Icon(
+                    Icons.delete,
+                    size: 20,
+                    color: Colors.red.shade400,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 /// Painter for the temporary relation line during drag.
+/// Supports multiple source nodes (multi-selection) drawing lines to a single
+/// target or cursor position.
 class _TempRelationPainter extends CustomPainter {
   final RelationDrawing state;
   final Map<String, NodeViewState> nodeViewStates;
@@ -421,9 +434,6 @@ class _TempRelationPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final sourceVs = nodeViewStates[state.sourceNodeId];
-    if (sourceVs == null) return;
-
     final paint = Paint()
       ..color = state.snappedTargetNodeId != null
           ? Colors.green
@@ -432,15 +442,12 @@ class _TempRelationPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    // Start from source node's right port
-    final startPos = sourceVs.rightPort; // [REFACTORED]
-
     // End position - either snapped target's left port or cursor position
     Offset endPos;
     if (state.snappedTargetNodeId != null) {
       final targetVs = nodeViewStates[state.snappedTargetNodeId];
       if (targetVs != null) {
-        endPos = targetVs.leftPort; // [REFACTORED]
+        endPos = targetVs.leftPort;
       } else {
         endPos = state.currentCursorPosition;
       }
@@ -448,8 +455,17 @@ class _TempRelationPainter extends CustomPainter {
       endPos = state.currentCursorPosition;
     }
 
-    // Draw the relation line
-    canvas.drawLine(startPos, endPos, paint);
+    // Draw lines from all source nodes to the end position
+    for (final sourceId in state.sourceNodeIds) {
+      final sourceVs = nodeViewStates[sourceId];
+      if (sourceVs == null) continue;
+
+      // Start from source node's right port
+      final startPos = sourceVs.rightPort;
+
+      // Draw the relation line
+      canvas.drawLine(startPos, endPos, paint);
+    }
 
     // Draw a small circle at the end if not snapped
     if (state.snappedTargetNodeId == null) {
@@ -462,7 +478,8 @@ class _TempRelationPainter extends CustomPainter {
     return oldDelegate.state.currentCursorPosition !=
             state.currentCursorPosition ||
         oldDelegate.state.snappedTargetNodeId != state.snappedTargetNodeId ||
-        oldDelegate.state.sourceNodeId != state.sourceNodeId;
+        oldDelegate.state.sourceNodeIds.length != state.sourceNodeIds.length ||
+        !oldDelegate.state.sourceNodeIds.containsAll(state.sourceNodeIds);
   }
 }
 

@@ -72,29 +72,43 @@ class CanvasIdle extends CanvasInteractionState {
     }
 
     // Priority 0: Floating Toolbar Hit-Testing (Absolute Top)
+    // Supports both single-selection and multi-selection toolbars
     final selectedEntities = ctx.getSelectedEntities();
-    if (selectedEntities.length == 1) {
-      final selectedId = selectedEntities.first;
-      final vs = ctx.nodeViewStates[selectedId];
+    if (selectedEntities.isNotEmpty) {
+      // For multi-selection, use the first selected node's position as anchor
+      // (or compute bounding box center in a more sophisticated implementation)
+      final anchorId = selectedEntities.first;
+      final vs = ctx.nodeViewStates[anchorId];
       if (vs != null) {
+        final isMultiSelect = selectedEntities.length > 1;
         final tbOffset = ctx.getToolbarOffset();
         final toolbarTopLeft = vs.positionNotifier.value + tbOffset;
+
+        // Use appropriate toolbar width based on selection count
+        final toolbarWidth = isMultiSelect
+            ? AppConfig.graph.toolbar.multiWidth
+            : AppConfig.graph.toolbar.singleWidth;
 
         // Exact geometric bounds of the toolbar
         final toolbarRect = Rect.fromLTWH(
           toolbarTopLeft.dx,
           toolbarTopLeft.dy,
-          AppConfig.graph.toolbar.singleWidth,
+          toolbarWidth,
           AppConfig.graph.toolbar.height,
         );
 
         if (toolbarRect.contains(pCanvas)) {
-          // Sub-divide the rect: Left Half = Drag
-          if (pCanvas.dx <
-              toolbarTopLeft.dx + AppConfig.graph.toolbar.singleWidth / 2) {
-            return ToolbarDragging(selectedId, pCanvas - toolbarTopLeft);
+          final localX = pCanvas.dx - toolbarTopLeft.dx;
+          final btnWidth = AppConfig.graph.toolbar.buttonWidth;
+
+          if (localX < btnWidth) {
+            // Zone 1: Drag (toolbar repositioning)
+            return ToolbarDragging(anchorId, pCanvas - toolbarTopLeft);
+          } else if (localX < btnWidth * 2) {
+            // Zone 2: Link (New Relation) - enters sticky RelationDrawing mode
+            return RelationDrawing(selectedEntities, pCanvas, isSticky: true);
           } else {
-            // Right Half = Delete Action
+            // Zone 3: Delete
             ctx.onDeleteSelectedEntities();
             return const CanvasIdle();
           }
@@ -104,7 +118,6 @@ class CanvasIdle extends CanvasInteractionState {
 
     // Hit Testing Registry
     String? hitNodeId;
-    bool hitPort = false;
     bool hitResize = false;
     final nodeIds = ctx.zOrder.reversed.toList();
     if (nodeIds.isEmpty) {
@@ -118,24 +131,14 @@ class CanvasIdle extends CanvasInteractionState {
 
       final nodeRect = vs.rect;
 
-      // Priority 1: Port Hit-Test (Right Center Port for relation drawing)
-      if (Rect.fromCenter(
-        center: vs.rightPort, // [REFACTORED]
-        width: AppConfig.graph.interaction.portHitArea,
-        height: AppConfig.graph.interaction.portHitArea,
-      ).contains(pCanvas)) {
-        hitNodeId = nodeId;
-        hitPort = true;
-        break;
-      }
-      // Priority 2: Resize Edge Hit-Test (Rightmost 15 logical pixels)
-      else if (vs.resizeHitbox.contains(pCanvas)) {
+      // Priority 1: Resize Edge Hit-Test (Rightmost 15 logical pixels)
+      if (vs.resizeHitbox.contains(pCanvas)) {
         // [REFACTORED]
         hitNodeId = nodeId;
         hitResize = true;
         break;
       }
-      // Priority 3: Body Hit-Test (Standard Dragging)
+      // Priority 2: Body Hit-Test (Standard Dragging)
       else if (nodeRect.contains(pCanvas)) {
         hitNodeId = nodeId;
         break;
@@ -166,9 +169,7 @@ class CanvasIdle extends CanvasInteractionState {
 
     // Standard Transitions
     if (hitNodeId != null) {
-      if (hitPort) {
-        return RelationDrawing(hitNodeId, pCanvas);
-      } else if (hitResize) {
+      if (hitResize) {
         // Route to Resizing State
         return NodeResizing(
           hitNodeId,
@@ -252,16 +253,76 @@ class NodeDragging extends CanvasInteractionState {
 /// Tracks the cursor position and performs L2 snapping to find target nodes.
 /// Returns a new instance on each move to ensure ValueNotifier notifications
 /// trigger UI rebuilds for the temporary relation line.
+///
+/// Supports multiple source nodes (multi-selection) and "Sticky" mode where
+/// the state persists after creating a relation, allowing rapid successive
+/// relation creation.
 class RelationDrawing extends CanvasInteractionState {
-  final String sourceNodeId;
+  /// The set of source node IDs to create relations from.
+  /// In sticky mode, this set is updated after each relation creation
+  /// to contain only the last target node (which becomes the new source).
+  final Set<String> sourceNodeIds;
+
+  /// The current cursor position in canvas coordinates.
   final Offset currentCursorPosition;
+
+  /// The currently snapped target node ID, if any.
   final String? snappedTargetNodeId;
 
+  /// Whether sticky mode is active. In sticky mode:
+  /// - Relations are created on pointer up without exiting the state
+  /// - The target becomes the new source for the next relation
+  /// - State only exits on explicit abort (secondary button or escape)
+  final bool isSticky;
+
+  /// Latch to track if the first release (toolbar button release) has occurred.
+  /// In sticky mode, this prevents the initial toolbar button release from
+  /// terminating the relation drawing state prematurely.
+  final bool hasReleasedOnce;
+
   const RelationDrawing(
-    this.sourceNodeId,
+    this.sourceNodeIds,
     this.currentCursorPosition, {
     this.snappedTargetNodeId,
+    this.isSticky = false,
+    this.hasReleasedOnce = false,
   });
+
+  /// Convenience constructor for single source node (non-sticky by default).
+  factory RelationDrawing.single(
+    String sourceNodeId,
+    Offset currentCursorPosition, {
+    bool isSticky = false,
+  }) {
+    return RelationDrawing(
+      {sourceNodeId},
+      currentCursorPosition,
+      isSticky: isSticky,
+    );
+  }
+
+  @override
+  CanvasInteractionState handlePointerDown(
+    PointerDownEvent e,
+    Offset pCanvas,
+    InteractionContext ctx,
+    bool isDoubleTap,
+  ) {
+    // Abort on Right-Click
+    if (e.buttons == kSecondaryMouseButton) {
+      return const CanvasIdle();
+    }
+
+    // If we are already in the "following" phase and have a snap target, commit on click
+    if (isSticky && hasReleasedOnce && snappedTargetNodeId != null) {
+      for (final sourceId in sourceNodeIds) {
+        ctx.onRelationCreate(sourceId, snappedTargetNodeId!);
+      }
+      return const CanvasIdle();
+    }
+
+    return this;
+  }
 
   @override
   CanvasInteractionState handlePointerMove(
@@ -277,14 +338,15 @@ class RelationDrawing extends CanvasInteractionState {
     }
 
     for (final nodeId in nodeIds) {
-      if (nodeId == sourceNodeId) continue;
+      // Skip all source nodes
+      if (sourceNodeIds.contains(nodeId)) continue;
 
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null) continue;
       if (vs.sizeNotifier.value == Size.zero) continue;
 
       // Check distance to target's left port (centerLeft)
-      final dist = (pCanvas - vs.leftPort).distance; // [REFACTORED]
+      final dist = (pCanvas - vs.leftPort).distance;
       if (dist < AppConfig.graph.interaction.snapDistance) {
         snappedId = nodeId;
         break;
@@ -294,9 +356,11 @@ class RelationDrawing extends CanvasInteractionState {
     ctx.onNodeDragUpdate(); // Pulse MovementNotifier for relation layer repaints
     // Return new instance to trigger ValueNotifier notification
     return RelationDrawing(
-      sourceNodeId,
+      sourceNodeIds,
       pCanvas,
       snappedTargetNodeId: snappedId,
+      isSticky: isSticky,
+      hasReleasedOnce: hasReleasedOnce,
     );
   }
 
@@ -305,8 +369,26 @@ class RelationDrawing extends CanvasInteractionState {
     PointerUpEvent e,
     InteractionContext ctx,
   ) {
+    if (isSticky) {
+      // First release (from the toolbar button): just flip the latch to start following
+      if (!hasReleasedOnce) {
+        return RelationDrawing(
+          sourceNodeIds,
+          currentCursorPosition,
+          snappedTargetNodeId: snappedTargetNodeId,
+          isSticky: true,
+          hasReleasedOnce: true,
+        );
+      }
+      // Subsequent releases in sticky mode are ignored; we wait for a PointerDown confirmation
+      return this;
+    }
+
+    // Legacy drag-and-drop behavior (non-sticky) remains for other triggers
     if (snappedTargetNodeId != null) {
-      ctx.onRelationCreate(sourceNodeId, snappedTargetNodeId!);
+      for (final sourceId in sourceNodeIds) {
+        ctx.onRelationCreate(sourceId, snappedTargetNodeId!);
+      }
     }
     return const CanvasIdle();
   }

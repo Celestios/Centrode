@@ -33,6 +33,9 @@ class GraphUIController extends ChangeNotifier {
     AppConfig.graph.toolbar.multiOffset,
   );
 
+  // NEW: Canonical Z-Order storage for hit-testing
+  final List<String> zOrder = [];
+
   String? activeEditId;
   String? nodeShowingDeleteMenu;
   Set<String> selectedEntities = {};
@@ -47,7 +50,15 @@ class GraphUIController extends ChangeNotifier {
   }
 
   void updateVisibleSet(Rect bufferRect) {
-    visibleNodeIds.value = _dataController.spatialHash.queryRect(bufferRect);
+    final newVisible = _dataController.spatialHash.queryRect(bufferRect);
+    visibleNodeIds.value = newVisible;
+
+    // Sync Z-order: Maintain existing order but filter for current visibility
+    final visibleSet = newVisible;
+    zOrder.removeWhere((id) => !visibleSet.contains(id));
+    for (final id in visibleSet) {
+      if (!zOrder.contains(id)) zOrder.add(id);
+    }
   }
 
   void selectEntity(String? id) {
@@ -118,6 +129,10 @@ class GraphUIController extends ChangeNotifier {
       newVisible.add(realId);
       visibleNodeIds.value = newVisible;
     }
+
+    // Sync Z-order during ID swap
+    final idx = zOrder.indexOf(tempId);
+    if (idx != -1) zOrder[idx] = realId;
 
     if (activeEditId == tempId) {
       activeEditId = realId;

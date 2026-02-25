@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../../../core/config/app_config.dart';
 import '../../domain/models.dart';
 
 /// Tier 1: Canonical $O(1)$ in-memory storage.
@@ -27,13 +28,14 @@ mixin GraphStoreMixin on ChangeNotifier {
 
   /// Returns the database table name for a given node type.
   String getTableName(UiNode node) {
+    final schema = AppConfig.graph.schema;
     switch (node.type) {
       case UiNodeType.info:
-        return "info_node";
+        return schema.infoTable;
       case UiNodeType.task:
-        return "task_node";
+        return schema.taskTable;
       case UiNodeType.inter:
-        return "inter_node";
+        return schema.interTable;
     }
   }
 

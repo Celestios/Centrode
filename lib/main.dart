@@ -4,13 +4,10 @@ import 'package:mycelium/src/rust/frb_generated.dart'; // Core FFI
 import 'package:mycelium/src/rust/bridge/api.dart'; // AppHandle
 import 'package:provider/provider.dart';
 
-// Import your screens
 import 'features/graph/ui/graph_screen.dart';
 import 'features/graph/state/theme_controller.dart';
 import 'features/graph/state/graph_data_controller.dart';
 import 'features/graph/state/graph_ui_controller.dart';
-
-// Import the central logger
 import 'core/logging/log_manager.dart';
 
 Future<void> main() async {

@@ -71,9 +71,10 @@ class _NodeConfig {
 
 class _ToolbarConfig {
   const _ToolbarConfig();
-  final double singleWidth = 80.0;
-  final double multiWidth = 100.0;
-  final double height = 36.0;
+  final double singleWidth = 90.0; // 3 buttons * 30.0
+  final double multiWidth = 105.0; // 3 buttons * 35.0
+  final double height = 32.0;
+  final double buttonWidth = 30.0; // base hit-box unit
   final Offset singleOffset = const Offset(10, -46);
   final Offset multiOffset = const Offset(0, 40);
 }
@@ -97,6 +98,8 @@ class _RelationConfig {
   final Offset startFallback = const Offset(100, 30);
   final Offset endFallback = const Offset(0, 30);
   final double editorVerticalOffset = 15.0;
+  final double editorMinWidth = 100.0;
+  final Color editorBgColor = Colors.white;
 }
 
 class _EditorConfig {
