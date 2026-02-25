@@ -78,9 +78,14 @@ class InteractionController implements InteractionContext {
   /// Getter for visible node IDs.
   final Set<String> Function() _getVisibleNodeIds;
 
-  /// Z-order tracking for proper hit-testing (last item is topmost).
+  /// Getter for Z-order tracking for proper hit-testing (last item is topmost).
+  ///
+  /// Now retrieves canonical truth from UI Controller instead of maintaining
+  /// local state.
   @override
-  final List<String> zOrder = [];
+  List<String> get zOrder => _getZOrder();
+
+  final List<String> Function() _getZOrder;
 
   // Double-tap detection state
   DateTime? _lastPointerDownTime;
@@ -105,6 +110,7 @@ class InteractionController implements InteractionContext {
     required Function(Offset) updateToolbarOffset,
     required VoidCallback onDeleteSelectedEntities,
     required Set<String> Function() getVisibleNodeIds,
+    required List<String> Function() getZOrder,
   }) : _onNodeMove = onNodeMove,
        _onRelationCreate = onRelationCreate,
        _onNodeDragUpdate = onNodeDragUpdate,
@@ -120,7 +126,8 @@ class InteractionController implements InteractionContext {
        _getToolbarOffset = getToolbarOffset,
        _updateToolbarOffset = updateToolbarOffset,
        _onDeleteSelectedEntities = onDeleteSelectedEntities,
-       _getVisibleNodeIds = getVisibleNodeIds;
+       _getVisibleNodeIds = getVisibleNodeIds,
+       _getZOrder = getZOrder;
 
   // ---------------------------------------------------------------------------
   // InteractionContext Implementation
@@ -201,13 +208,6 @@ class InteractionController implements InteractionContext {
       );
     }
     state.value = newState;
-  }
-
-  /// Updates the z-order list. Call this when nodes are added/removed/reordered.
-  void updateZOrder(List<String> newOrder) {
-    zOrder
-      ..clear()
-      ..addAll(newOrder);
   }
 
   /// Converts a screen position to canvas coordinates.

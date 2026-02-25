@@ -61,6 +61,14 @@ class GraphUIController extends ChangeNotifier {
     }
   }
 
+  void moveToFront(String id) {
+    if (zOrder.remove(id)) {
+      zOrder.add(id);
+      _log.finer('Moved entity to front of Z-order: $id');
+      notifyListeners();
+    }
+  }
+
   void selectEntity(String? id) {
     if (id == null) {
       if (selectedEntities.isEmpty) return;
