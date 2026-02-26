@@ -23,6 +23,7 @@ class OverlayLayer extends StatelessWidget {
     final uiController = context.watch<GraphUIController>();
 
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         // 2. Absolute Zenith: Transient Editor Overlay
         if (uiController.activeEditId != null)

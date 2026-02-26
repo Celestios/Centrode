@@ -38,6 +38,14 @@ class _GraphConfig {
   final relation = const _RelationConfig();
   final editor = const _EditorConfig();
   final schema = const _SchemaConfig();
+  final grid = const _GridConfig();
+}
+
+class _GridConfig {
+  const _GridConfig();
+  final double baseSize = 20.0;
+  final double dotRadius = 1.0;
+  final Color dotColor = const Color(0xFFD6D6D6); // Light gray
 }
 
 class _CanvasConfig {

@@ -35,6 +35,7 @@ class NodeLayer extends StatelessWidget {
           ..sort((a, b) => (zOrderMap[a] ?? -1).compareTo(zOrderMap[b] ?? -1));
 
         return Stack(
+          clipBehavior: Clip.none,
           children: sortedIds.map((id) {
             final viewState = dataController.allNodeViewStates[id]!;
             final node = dataController.nodeLookup[id]!;

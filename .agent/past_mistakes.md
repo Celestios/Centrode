@@ -24,7 +24,7 @@
 
 ---
 
-### Core Maxims for Future Development
+## Core Maxims for Future Development
 
 1. **Never mix Screen Space and Canvas Space.**
 2. **The Render pipeline precedes the Spatial index.** (Allow initial renders).
@@ -32,3 +32,9 @@
 4. **Symmetry between UI loops and FSM loops is non-negotiable.**
 
 ---
+
+## Pitfall 5: The "Infinite Zero" Clipping Trap (Layout Constraints vs. Infinity)
+
+**The Mistake:** Attempting to achieve a truly infinite canvas origin by shrinking the root `SizedBox` dimensions to `0x0`.
+**The Reality:** In Flutter, a `Stack` defaults to `Clip.hardEdge`. A `0x0` parent strictly clips all children out of visual existence, regardless of their absolute coordinates. Furthermore, a `CustomPainter` relies on its layout bounds; a `0x0` layout forces the mathematical rendering loop to compute a visible area of zero, drawing absolutely nothing.
+**The Fix:** **Provide a Mathematical Reference Plane and Disable Clipping.** You must maintain a large initial constraint size (`AppConfig.graph.canvas.initialSize`) as a stage, explicitly set `clipBehavior: Clip.none` on all underlying `Stack` layers, and completely decouple math-driven painters from layout constraints by passing the absolute viewport dimensions directly into the painter.

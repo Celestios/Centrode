@@ -196,6 +196,13 @@ class InteractionController implements InteractionContext {
   @override
   Set<String> getVisibleNodeIds() => _getVisibleNodeIds();
 
+  @override
+  double get currentScale {
+    final transform = transformController.value;
+    if (transform.determinant() == 0.0) return 1.0;
+    return transform.getMaxScaleOnAxis();
+  }
+
   // ---------------------------------------------------------------------------
   // FSM Engine
   // ---------------------------------------------------------------------------

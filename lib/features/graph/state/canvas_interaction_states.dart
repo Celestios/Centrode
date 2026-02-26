@@ -1,8 +1,25 @@
 // lib/features/graph/state/canvas_interaction_states.dart
+import 'dart:math';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../../../core/config/app_config.dart';
 import 'interaction_context.dart';
+
+/// Calculates the dynamic grid size based on the current zoom level (Dynamic LOD).
+double _calculateEffectiveGridSize(double scale) {
+  if (scale <= 0) return AppConfig.graph.grid.baseSize;
+  final double lod = max(1.0, (1.0 / scale).floorToDouble());
+  return AppConfig.graph.grid.baseSize * lod;
+}
+
+/// O(1) Mathematical quantization for continuous grid snapping.
+Offset _snapToGrid(Offset p, double gridSize) {
+  return Offset(
+    (p.dx / gridSize).round() * gridSize,
+    (p.dy / gridSize).round() * gridSize,
+  );
+}
 
 /// Sealed base class for all canvas interaction states.
 ///
@@ -194,7 +211,10 @@ class CanvasIdle extends CanvasInteractionState {
     // Double Tap Execution
     if (isDoubleTap) {
       if (hitEntityId == null) {
-        ctx.onCreateNode(pCanvas);
+        // Quantize node creation coordinates using Dynamic LOD
+        final effectiveGridSize = _calculateEffectiveGridSize(ctx.currentScale);
+        final snappedPos = _snapToGrid(pCanvas, effectiveGridSize);
+        ctx.onCreateNode(snappedPos);
       } else {
         ctx.onEnterEditMode(hitEntityId);
       }
@@ -264,7 +284,12 @@ class NodeDragging extends CanvasInteractionState {
     if (vs == null) {
       return const CanvasIdle(); // Defensive check for dangling pointers
     }
-    vs.positionNotifier.value = pCanvas - grabOffset;
+
+    // Apply continuous L1 snapping to the node's origin using Dynamic LOD
+    final rawPos = pCanvas - grabOffset;
+    final effectiveGridSize = _calculateEffectiveGridSize(ctx.currentScale);
+    vs.positionNotifier.value = _snapToGrid(rawPos, effectiveGridSize);
+
     ctx.onNodeDragUpdate();
     return this;
   }

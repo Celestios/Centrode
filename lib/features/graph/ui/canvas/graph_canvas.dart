@@ -12,6 +12,7 @@ import '../../domain/styling.dart';
 import 'layers/relation_layer.dart';
 import 'layers/node_layer.dart';
 import 'layers/overlay_layer.dart';
+import 'layers/grid_layer.dart';
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
@@ -132,9 +133,8 @@ class _GraphCanvasState extends State<GraphCanvas> {
                     transformationController:
                         _viewportController.transformController,
                     constrained: false,
-                    boundaryMargin: EdgeInsets.all(
-                      AppConfig.graph.canvas.boundaryMargin,
-                    ),
+                    // UNLOCK INFINITY: Set boundary to infinity
+                    boundaryMargin: EdgeInsets.all(double.infinity),
                     minScale: AppConfig.graph.canvas.minScale,
                     maxScale: AppConfig.graph.canvas.maxScale,
                     // Lock viewer if interaction is active (arena circumvention)
@@ -145,11 +145,18 @@ class _GraphCanvasState extends State<GraphCanvas> {
                       onTap: () {
                         uiController.hideDeleteMenu();
                       },
+                      // Restore the reference plane to prevent 0x0 constraint collapse
                       child: SizedBox(
                         width: AppConfig.graph.canvas.initialSize,
                         height: AppConfig.graph.canvas.initialSize,
                         child: Stack(
+                          clipBehavior: Clip.none,
                           children: [
+                            GridLayer(
+                              transformController:
+                                  _viewportController.transformController,
+                              viewportSize: constraints.biggest,
+                            ),
                             const RelationLayer(),
                             const NodeLayer(),
                             OverlayLayer(

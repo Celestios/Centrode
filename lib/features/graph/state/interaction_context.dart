@@ -62,4 +62,7 @@ abstract interface class InteractionContext {
 
   /// Returns the current set of visible node IDs for O(V) hit testing.
   Set<String> getVisibleNodeIds();
+
+  /// Gets the current scale factor of the canvas viewport.
+  double get currentScale;
 }
