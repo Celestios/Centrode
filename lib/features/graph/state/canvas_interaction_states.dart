@@ -32,6 +32,9 @@ Offset _snapToGrid(Offset p, double gridSize) {
 sealed class CanvasInteractionState {
   const CanvasInteractionState();
 
+  /// The mouse cursor associated with this state.
+  MouseCursor get cursor => SystemMouseCursors.basic;
+
   /// Handles pointer down events. Returns the next state after processing.
   /// Default implementation returns `this` (no state change).
   CanvasInteractionState handlePointerDown(
@@ -79,7 +82,10 @@ sealed class CanvasInteractionState {
 /// - Node body hit: transitions to [NodeDragging]
 /// - Double-tap: creates node (on canvas) or enters edit mode (on entity)
 class CanvasIdle extends CanvasInteractionState {
-  const CanvasIdle();
+  @override
+  final MouseCursor cursor;
+
+  const CanvasIdle({this.cursor = SystemMouseCursors.basic});
 
   @override
   CanvasInteractionState handlePointerDown(
@@ -182,6 +188,12 @@ class CanvasIdle extends CanvasInteractionState {
 
       final nodeRect = vs.rect;
 
+      // Priority 0.5: Expand Toggle Hit-Test
+      if (vs.lineCount > 3 && vs.expandToggleHitbox.contains(pCanvas)) {
+        vs.isExpandedNotifier.value = !vs.isExpandedNotifier.value;
+        return this; // Intercept and abort further drag/selection evaluation
+      }
+
       // Priority 1: Resize Edge Hit-Test (Rightmost 15 logical pixels)
       if (vs.resizeHitbox.contains(pCanvas)) {
         // [REFACTORED]
@@ -207,6 +219,14 @@ class CanvasIdle extends CanvasInteractionState {
     // Fire selection intent immediately on pointer down.
     // If hitEntityId is null (clicked empty canvas), it clears the selection.
     ctx.onSelectEntity(hitEntityId);
+
+    // THE FIX: Complete FSM Shielding for the active editor.
+    // If the user clicks inside the node currently being edited, abort FSM processing.
+    // This allows the native Flutter TextField to completely own the gesture arena
+    // for cursor placement, text selection, and word-highlighting double-clicks.
+    if (hitEntityId != null && hitEntityId == activeEditId) {
+      return this;
+    }
 
     // Double Tap Execution
     if (isDoubleTap) {
@@ -261,6 +281,39 @@ class CanvasIdle extends CanvasInteractionState {
       }
     }
     return null;
+  }
+
+  @override
+  CanvasInteractionState handlePointerHover(
+    PointerHoverEvent e,
+    Offset pCanvas,
+    InteractionContext ctx,
+  ) {
+    final nodeIds = ctx.zOrder.reversed.toList();
+    if (nodeIds.isEmpty) {
+      nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
+    }
+
+    for (final nodeId in nodeIds) {
+      final vs = ctx.nodeViewStates[nodeId];
+      if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
+
+      if (vs.resizeHitbox.contains(pCanvas)) {
+        return cursor == SystemMouseCursors.resizeLeftRight
+            ? this
+            : const CanvasIdle(cursor: SystemMouseCursors.resizeLeftRight);
+      }
+
+      if (vs.lineCount > 3 && vs.expandToggleHitbox.contains(pCanvas)) {
+        return cursor == SystemMouseCursors.click
+            ? this
+            : const CanvasIdle(cursor: SystemMouseCursors.click);
+      }
+    }
+
+    return cursor == SystemMouseCursors.basic
+        ? this
+        : const CanvasIdle(cursor: SystemMouseCursors.basic);
   }
 }
 
@@ -496,6 +549,10 @@ class NodeResizing extends CanvasInteractionState {
   final String nodeId;
   final double grabOffsetX;
 
+  /// The mouse cursor for resize interactions.
+  @override
+  MouseCursor get cursor => SystemMouseCursors.resizeLeftRight;
+
   const NodeResizing(this.nodeId, this.grabOffsetX);
 
   @override
@@ -528,7 +585,12 @@ class NodeResizing extends CanvasInteractionState {
     final vs = ctx.nodeViewStates[nodeId];
     if (vs != null && vs.dragWidthNotifier.value != null) {
       ctx.onNodeResizeEnd(nodeId, vs.dragWidthNotifier.value!);
-      vs.dragWidthNotifier.value = null; // Clear volatile drag state
+
+      // THE FIX: Do NOT clear the volatile state yet.
+      // Leave it as the Optimistic UI cache. The ViewState's `rehydrate()`
+      // method will automatically clear it once the DB successfully saves
+      // and streams the new canonical aesthetics back to the widget.
+      // vs.dragWidthNotifier.value = null;
     }
     return const CanvasIdle();
   }

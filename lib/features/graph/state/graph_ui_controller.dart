@@ -53,12 +53,8 @@ class GraphUIController extends ChangeNotifier {
     final newVisible = _dataController.spatialHash.queryRect(bufferRect);
     visibleNodeIds.value = newVisible;
 
-    // Sync Z-order: Maintain existing order but filter for current visibility
-    final visibleSet = newVisible;
-    zOrder.removeWhere((id) => !visibleSet.contains(id));
-    for (final id in visibleSet) {
-      if (!zOrder.contains(id)) zOrder.add(id);
-    }
+    // THE FIX: Removed zOrder mutation.
+    // Z-Order is now a persistent, canonical hierarchy immune to camera panning.
   }
 
   void moveToFront(String id) {
@@ -162,5 +158,9 @@ class GraphUIController extends ChangeNotifier {
       final newVisible = Set<String>.from(visibleNodeIds.value)..remove(id);
       visibleNodeIds.value = newVisible;
     }
+
+    // THE FIX: Symmetric Deletion.
+    // Ensure the ID is purged from the canonical hit-testing stack.
+    zOrder.remove(id);
   }
 }

@@ -43,13 +43,21 @@ class NodeWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeController = context.watch<ThemeController>();
     final uiController = context.watch<GraphUIController>();
-    final isSelected = uiController.selectedEntities.contains(node.id);
-    final isEditing = uiController.activeEditId == node.id;
+
+    // THE FIX: Reactively select the canonical node from the central store.
+    // This prevents the widget from rendering stale aesthetics (like old width)
+    // when the FSM drops the volatile drag state before the parent layer rebuilds.
+    final liveNode = context.select<GraphDataController, UiNode>(
+      (c) => c.nodeLookup[node.id] ?? node,
+    );
+
+    final isSelected = uiController.selectedEntities.contains(liveNode.id);
+    final isEditing = uiController.activeEditId == liveNode.id;
 
     final resolvedStyle =
         themeController.activeTheme?.resolveStyle(
-          node.type.name.capitalize(),
-          node.aesthetics,
+          liveNode.type.name.capitalize(),
+          liveNode.aesthetics,
         ) ??
         StyleProfile();
 
@@ -119,11 +127,11 @@ class NodeWidget extends StatelessWidget {
                 padding: const EdgeInsets.all(8.0),
                 child: isEditing
                     ? _NodeInternalEditor(
-                        nodeId: node.id,
-                        initialText: node.text,
+                        nodeId: liveNode.id,
+                        initialText: liveNode.text,
                         style: resolvedStyle,
                       )
-                    : _buildNodeContent(context, resolvedStyle),
+                    : _buildNodeContent(context, liveNode, resolvedStyle),
               ),
 
               // [NEW] Resize Handle Visual (Right Edge)
@@ -131,15 +139,15 @@ class NodeWidget extends StatelessWidget {
                 right: 0,
                 top: 0,
                 bottom: 0,
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.resizeLeftRight,
-                  child: Container(
-                    width: AppConfig.graph.node.resizeHandleVisualWidth,
-                    decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.horizontal(
-                        right: Radius.circular(8.0),
-                      ),
+                child: Container(
+                  width: AppConfig.graph.node.resizeHandleVisualWidth,
+                  decoration: BoxDecoration(
+                    // THE FIX: Force the rendering engine to paint this container.
+                    // Colors.transparent is skipped by the hit-tester in a Stack.
+                    // 1% opacity black is invisible to the eye but opaque to the pointer.
+                    color: Colors.black.withValues(alpha: 0.01),
+                    borderRadius: BorderRadius.horizontal(
+                      right: Radius.circular(8.0),
                     ),
                   ),
                 ),
@@ -179,7 +187,11 @@ class NodeWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildNodeContent(BuildContext context, StyleProfile style) {
+  Widget _buildNodeContent(
+    BuildContext context,
+    UiNode liveNode,
+    StyleProfile style,
+  ) {
     // [REFACTORED]: Simplified to static rendering only.
     // Editing is now handled by the top-level InlineEditorOverlay.
     return Column(
@@ -187,7 +199,7 @@ class NodeWidget extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            node.text.isEmpty ? "Empty Node" : node.text,
+            liveNode.text.isEmpty ? "Empty Node" : liveNode.text,
             style: TextStyle(fontSize: 12, fontFamily: style.fontFamily),
             overflow: TextOverflow.fade,
             // [NEW] Enforce line limit visually based on expanded state
@@ -199,26 +211,21 @@ class NodeWidget extends StatelessWidget {
 
         // [NEW] Expand/Collapse Toggle Button
         if (viewState.lineCount > 3)
-          GestureDetector(
-            onTap: () {
-              viewState.isExpandedNotifier.value =
-                  !viewState.isExpandedNotifier.value;
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Text(
-                viewState.isExpandedNotifier.value ? "Show Less" : "Show More",
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: Colors.blueAccent,
-                  fontWeight: FontWeight.bold,
-                ),
+          Container(
+            margin: const EdgeInsets.only(top: 4.0),
+            padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+            child: Text(
+              viewState.isExpandedNotifier.value ? "Show Less" : "Show More",
+              style: const TextStyle(
+                fontSize: 10,
+                color: Colors.blueAccent,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
 
         // Task Node state badge
-        if (node is TaskUiNode)
+        if (liveNode is TaskUiNode)
           Container(
             margin: const EdgeInsets.only(top: 4),
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
@@ -227,7 +234,7 @@ class NodeWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
-              (node as TaskUiNode).state,
+              (liveNode).state,
               style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
             ),
           ),

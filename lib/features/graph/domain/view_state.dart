@@ -36,8 +36,12 @@ class NodeViewState {
     nodeId = node.id;
     positionNotifier.value = node.position;
     sizeNotifier.value = node.size;
-    // Reset volatile UI states to prevent stale interaction artifacts
-    isExpandedNotifier.value = false;
+    // THE FIX: Do NOT reset isExpandedNotifier here.
+    // Clicking the "Show More" button triggers a micro-drag in the FSM, which
+    // forces a DB sync. If we reset the expansion state here, the button
+    // click is instantly reverted.
+    // isExpandedNotifier.value = false;
+
     dragWidthNotifier.value = null;
   }
 
@@ -57,6 +61,10 @@ class NodeViewState {
   /// Returns the precise hit-test area for the right-edge resize interaction
   Rect get resizeHitbox =>
       Rect.fromLTRB(rect.right - 15, rect.top, rect.right, rect.bottom);
+
+  /// Returns the precise hit-test area for the "Show More" / "Show Less" toggle
+  Rect get expandToggleHitbox =>
+      Rect.fromLTRB(rect.left, rect.bottom - 24, rect.right, rect.bottom);
   // ---------------------------------
 
   // updateSize(Size newSize) removed to ensure domain-driven constraints
