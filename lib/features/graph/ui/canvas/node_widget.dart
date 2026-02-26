@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:logging/logging.dart';
 import '../../../../core/config/app_config.dart';
 import '../../domain/models.dart';
 import '../../state/theme_controller.dart';
@@ -266,6 +267,7 @@ class _NodeInternalEditor extends StatefulWidget {
 class _NodeInternalEditorState extends State<_NodeInternalEditor> {
   late final TextEditingController _controller;
   late final FocusNode _focusNode;
+  final Logger _log = Logger('NodeInternalEditor');
 
   @override
   void initState() {
@@ -291,6 +293,7 @@ class _NodeInternalEditorState extends State<_NodeInternalEditor> {
   }
 
   void _submit() {
+    _log.info('Committing internal node edit for: ${widget.nodeId}');
     context.read<GraphDataController>().commitEntityText(
       widget.nodeId,
       _controller.text,
@@ -311,6 +314,7 @@ class _NodeInternalEditorState extends State<_NodeInternalEditor> {
           }
           // Escape: cancel edit without saving
           if (event.logicalKey == LogicalKeyboardKey.escape) {
+            _log.info('Aborted internal node edit via Escape key.');
             context.read<GraphUIController>().cancelActiveEdit();
             return KeyEventResult.handled;
           }

@@ -38,6 +38,9 @@ class CommandProcessor {
       _debouncers[key] = Timer(const Duration(milliseconds: 300), () {
         final pending = _pendingCommands.remove(key);
         if (pending != null) {
+          _log.fine(
+            'Debounce timer fired for key: $key. Pushing to execution queue.',
+          );
           _executionQueue.addLast(pending);
           _processQueue();
         }
@@ -47,6 +50,9 @@ class CommandProcessor {
 
   Future<void> _processQueue() async {
     if (_isProcessing) return;
+    _log.info(
+      'Starting _processQueue with ${_executionQueue.length} pending commands.',
+    );
     _isProcessing = true;
 
     while (_executionQueue.isNotEmpty) {

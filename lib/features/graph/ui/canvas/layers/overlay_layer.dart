@@ -67,6 +67,7 @@ class OverlayLayer extends StatelessWidget {
 
   /// Unified toolbar orchestrator that adapts based on selection count.
   /// For single selection, anchors to node position; for multi, anchors to screen center.
+  /// Supports both NodeViewState entities and UiRelation entities.
   Widget _buildUnifiedToolbar(
     BuildContext context,
     GraphUIController ui,
@@ -78,16 +79,32 @@ class OverlayLayer extends StatelessWidget {
         : ui.toolbarOffsetNotifier;
 
     // 1. Track ALL selected nodes so the toolbar moves if a multi-selection group is dragged
+    // Also track relations and their connected nodes for dynamic anchor calculation
     final List<Listenable> listenables = [offsetNotifier];
     final List<NodeViewState> selectedViewStates = [];
+    final List<UiRelation> selectedRelations = [];
 
     for (final id in ui.selectedEntities) {
       final vs = data.allNodeViewStates[id];
       if (vs != null) {
         listenables.add(vs.positionNotifier);
         selectedViewStates.add(vs);
+      } else {
+        // Fallback: Check if it's a relation
+        try {
+          final rel = data.relations.firstWhere((r) => r.id == id);
+          selectedRelations.add(rel);
+          // Listen to connected nodes so toolbar moves when they move
+          final sourceVs = data.allNodeViewStates[rel.fromNodeId];
+          final targetVs = data.allNodeViewStates[rel.toNodeId];
+          if (sourceVs != null) listenables.add(sourceVs.positionNotifier);
+          if (targetVs != null) listenables.add(targetVs.positionNotifier);
+        } catch (_) {}
       }
     }
+
+    final isRelationOnly =
+        selectedViewStates.isEmpty && selectedRelations.isNotEmpty && !isMulti;
 
     // Outer Positioned satisfies Stack constraints, Transform.translate handles dynamic movement
     return Positioned(
@@ -128,6 +145,16 @@ class OverlayLayer extends StatelessWidget {
               // Single selection fallback
               anchor = selectedViewStates.first.positionNotifier.value;
             }
+          } else if (isRelationOnly) {
+            // Mathematical midpoint anchor for single relation
+            final rel = selectedRelations.first;
+            final sourceVs = data.allNodeViewStates[rel.fromNodeId];
+            final targetVs = data.allNodeViewStates[rel.toNodeId];
+            if (sourceVs != null && targetVs != null) {
+              final start = sourceVs.rightPort;
+              final end = targetVs.leftPort;
+              anchor = Offset((start.dx + end.dx) / 2, (start.dy + end.dy) / 2);
+            }
           }
 
           final position = anchor + offset;
@@ -141,6 +168,7 @@ class OverlayLayer extends StatelessWidget {
               child: _buildToolbarUI(
                 onDelete: ui.deleteSelectedEntities,
                 isMulti: isMulti,
+                isRelationOnly: isRelationOnly,
               ),
             ),
           );
@@ -150,14 +178,22 @@ class OverlayLayer extends StatelessWidget {
   }
 
   // Helper method to build toolbar UI
-  // Three zones: Drag (left), Link (center), Delete (right)
+  // Three zones for nodes: Drag (left), Link (center), Delete (right)
+  // Two zones for relations: Drag (left), Delete (right) - Link is omitted
   Widget _buildToolbarUI({
     required VoidCallback onDelete,
     required bool isMulti,
+    bool isRelationOnly = false,
   }) {
-    final width = isMulti
+    // Dynamically size the toolbar based on available buttons
+    double width = isMulti
         ? AppConfig.graph.toolbar.multiWidth
         : AppConfig.graph.toolbar.singleWidth;
+
+    if (isRelationOnly) {
+      width = AppConfig.graph.toolbar.buttonWidth * 2; // Only Drag and Delete
+    }
+
     return Material(
       color: Colors.white,
       elevation: 4,
@@ -184,24 +220,28 @@ class OverlayLayer extends StatelessWidget {
                 ),
               ),
             ),
-            Container(width: 1, color: Colors.grey.shade300),
-            // Zone 2: Link Button
-            Expanded(
-              child: MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: Listener(
-                  onPointerDown: (e) {
-                    // Trigger Sticky RelationDrawing - this will be handled by the InteractionController
-                    // The toolbar hit-testing in CanvasIdle will detect this and transition to RelationDrawing
-                  },
-                  child: Icon(
-                    Icons.link,
-                    size: 20,
-                    color: Colors.blueAccent.shade700,
+
+            // Conditional Zone 2: Link Button (Omitted for Relations)
+            if (!isRelationOnly) ...[
+              Container(width: 1, color: Colors.grey.shade300),
+              Expanded(
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: Listener(
+                    onPointerDown: (e) {
+                      // Trigger Sticky RelationDrawing - this will be handled by the InteractionController
+                      // The toolbar hit-testing in CanvasIdle will detect this and transition to RelationDrawing
+                    },
+                    child: Icon(
+                      Icons.link,
+                      size: 20,
+                      color: Colors.blueAccent.shade700,
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
+
             Container(width: 1, color: Colors.grey.shade300),
             // Zone 3: Delete Button
             Expanded(

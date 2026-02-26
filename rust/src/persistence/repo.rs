@@ -9,7 +9,7 @@ use serde_json::Value;
 use surrealdb::engine::local::Db;
 use surrealdb::sql::Thing;
 use surrealdb::Surreal;
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 
 // [CHANGED] Struct now holds state (the DB connection)
 #[derive(Clone)]
@@ -39,6 +39,7 @@ impl Repository {
                     .ok_or_else(|| anyhow::anyhow!("ID is missing from created node"))?;
                 // Parse the "table:id" back to just "id"
                 let (_, id) = thing.split_once(':').unwrap_or(("", &thing));
+                info!("REPO: Created InfoNode with ID: {}", id); // [NEW]
                 Ok(id.to_string())
             }
             NodeInput::Task(node) => {
@@ -49,6 +50,7 @@ impl Repository {
                     .id
                     .ok_or_else(|| anyhow::anyhow!("ID is missing from created node"))?;
                 let (_, id) = thing.split_once(':').unwrap_or(("", &thing));
+                info!("REPO: Created TaskNode with ID: {}", id); // [NEW]
                 Ok(id.to_string())
             }
             NodeInput::Inter(node) => {
@@ -59,6 +61,7 @@ impl Repository {
                     .id
                     .ok_or_else(|| anyhow::anyhow!("ID is missing from created node"))?;
                 let (_, id) = thing.split_once(':').unwrap_or(("", &thing));
+                info!("REPO: Created InterNode with ID: {}", id); // [NEW]
                 Ok(id.to_string())
             }
         }
@@ -76,13 +79,26 @@ impl Repository {
         let mut res = self
             .db
             .query(templates::CREATE_RELATION)
-            .bind(("from", from))
-            .bind(("to", to))
-            .bind(("verb", input.props.verb))
-            .bind(("aesthetics", input.props.aesthetics))
+            .bind(("from", from.clone()))
+            .bind(("to", to.clone()))
+            .bind(("verb", input.props.verb.clone()))
+            .bind(("aesthetics", input.props.aesthetics.clone()))
             .bind(("directionless", input.props.directionless))
             .bind(("layer", input.props.layer))
-            .await?;
+            .await
+            .map_err(|e| {
+                let err_msg = e.to_string();
+                if err_msg.contains("unique") || err_msg.contains("index") {
+                    tracing::warn!(
+                        "REPO: Duplicate edge rejected by schema constraint ({} -> {})",
+                        input.from,
+                        input.to
+                    );
+                } else {
+                    tracing::error!("REPO: Failed to create relation: {}", err_msg);
+                }
+                e
+            })?;
 
         let created: Option<CreatedId> = res.take(0)?;
         let thing = created
@@ -90,6 +106,11 @@ impl Repository {
             .id;
 
         let relation_id = thing.id.to_string();
+
+        info!(
+            "REPO: Created Relation {} -> {} [ID: {}]",
+            input.from, input.to, relation_id
+        ); // [NEW]
 
         // Trigger updates for both ends of the new connection
         self.trigger_significance_update(&input.from).await?;
@@ -136,30 +157,42 @@ impl Repository {
                 let mut res = self
                     .db
                     .query(templates::GET_NODE)
-                    .bind(("id", record_id))
+                    .bind(("id", record_id.clone()))
                     .await?;
                 let node: Option<crate::domain::nodes::INode> = res.take(0)?;
+                if node.is_none() {
+                    tracing::trace!("REPO: get_node (inode) Miss for ID: {}", record_id);
+                }
                 Ok(node.map(crate::domain::nodes::NodeOutput::Info))
             }
             "task_node" => {
                 let mut res = self
                     .db
                     .query(templates::GET_NODE)
-                    .bind(("id", record_id))
+                    .bind(("id", record_id.clone()))
                     .await?;
                 let node: Option<crate::domain::nodes::TaskNode> = res.take(0)?;
+                if node.is_none() {
+                    tracing::trace!("REPO: get_node (task_node) Miss for ID: {}", record_id);
+                }
                 Ok(node.map(crate::domain::nodes::NodeOutput::Task))
             }
             "inter_node" => {
                 let mut res = self
                     .db
                     .query(templates::GET_NODE)
-                    .bind(("id", record_id))
+                    .bind(("id", record_id.clone()))
                     .await?;
                 let node: Option<crate::domain::nodes::InterNode> = res.take(0)?;
+                if node.is_none() {
+                    tracing::trace!("REPO: get_node (inter_node) Miss for ID: {}", record_id);
+                }
                 Ok(node.map(crate::domain::nodes::NodeOutput::Inter))
             }
-            _ => Err(anyhow::anyhow!("Unknown table type: {}", table)),
+            _ => {
+                tracing::warn!("REPO: get_node failed: Unknown table type: {}", table);
+                Err(anyhow::anyhow!("Unknown table type: {}", table))
+            }
         }
     }
 
@@ -274,7 +307,18 @@ impl Repository {
             COMMIT TRANSACTION;
         ";
 
-        self.db.query(query).bind(("target", record_id)).await?;
+        tracing::trace!(
+            "REPO: BEGIN TRANSACTION for cascading delete of {}",
+            record_id
+        );
+        self.db
+            .query(query)
+            .bind(("target", record_id.clone()))
+            .await?;
+        tracing::info!(
+            "REPO: COMMIT TRANSACTION successful for cascading delete of {}",
+            record_id
+        );
 
         Ok("Node and connected edges deleted successfully".to_string())
     }
@@ -288,9 +332,14 @@ impl Repository {
         let mut res = self
             .db
             .query("SELECT * FROM $id")
-            .bind(("id", record_id))
+            .bind(("id", record_id.clone()))
             .await?;
-        Ok(res.take(0)?)
+
+        let relation: Option<crate::domain::relations::IRelation> = res.take(0)?;
+        if relation.is_none() {
+            tracing::trace!("REPO: get_relation Miss for ID: {}", record_id);
+        }
+        Ok(relation)
     }
 
     pub async fn delete_relation(&self, id: String) -> Result<String> {
@@ -387,6 +436,15 @@ impl Repository {
         relations: Vec<crate::domain::relations::IRelation>,
         metadata: Option<MapConfig>,
     ) -> anyhow::Result<()> {
+        tracing::warn!("REPO: Initiating destructive canvas wipe for bulk import."); // [NEW]
+        tracing::info!(
+            "REPO: Import Payload: {} nodes, {} relations",
+            inodes.len() + task_nodes.len() + inter_nodes.len(),
+            relations.len()
+        ); // [NEW]
+
+        tracing::trace!("REPO: BEGIN TRANSACTION for bulk import.");
+
         // TRANSACTION: "All or Nothing"
         // We delete everything then insert everything.
         // IDs are preserved because the Structs contain the `id: Option<Thing>` field,
@@ -421,6 +479,7 @@ impl Repository {
             .bind(("metadata", metadata))
             .await?;
 
+        tracing::info!("REPO: Bulk import transaction committed successfully."); // [NEW]
         Ok(())
     }
 }

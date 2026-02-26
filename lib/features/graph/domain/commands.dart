@@ -86,6 +86,8 @@ class MoveNodeCommand implements GraphCommand {
       id: targetId,
       jsonPatch: patchJson,
     );
+    // [NEW] Use a developer-targeted log for closing the loop
+    debugPrint('FFI SUCCESS: MoveNodeCommand executed for $targetId');
   }
 
   @override
@@ -160,6 +162,11 @@ class UpdateTextCommand implements GraphCommand {
   Future<void> execute() async {
     final tName = isRelation ? "relates_to" : tableName;
 
+    // [NEW] Full String Preview
+    debugPrint(
+      'FFI DISPATCH: UpdateTextCommand on $targetId. Text: "$oldText" -> "$newText"',
+    );
+
     if (isRelation || tName == "inter_node") {
       // InterNodes and Relations mathematically rely on the scalar 'verb'
       // Relations still use JSON for verb field
@@ -188,6 +195,7 @@ class UpdateTextCommand implements GraphCommand {
         contentBytes: contentBytes,
       );
     }
+    debugPrint('FFI SUCCESS: Content update verified for $targetId'); // [NEW]
   }
 
   @override

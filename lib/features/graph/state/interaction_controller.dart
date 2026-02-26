@@ -135,10 +135,16 @@ class InteractionController implements InteractionContext {
   // ---------------------------------------------------------------------------
 
   @override
-  void onNodeMove(String id, Offset pos) => _onNodeMove(id, pos);
+  void onNodeMove(String id, Offset pos) {
+    _log.info('Callback: onNodeMove -> id: $id, pos: $pos');
+    _onNodeMove(id, pos);
+  }
 
   @override
-  void onRelationCreate(String from, String to) => _onRelationCreate(from, to);
+  void onRelationCreate(String from, String to) {
+    _log.info('Callback: onRelationCreate -> from: $from, to: $to');
+    _onRelationCreate(from, to);
+  }
 
   @override
   void onNodeDragUpdate() => _onNodeDragUpdate();
@@ -159,6 +165,10 @@ class InteractionController implements InteractionContext {
   void onCommitActiveEdit() {
     final activeId = _getActiveEditId();
     if (activeId != null) {
+      // [NEW] Telemetry for FSM Fallback commit
+      _log.info(
+        'FSM Fallback: Committing active edit for $activeId via InteractionController.',
+      );
       // Internal widgets now handle their own commit via TapOutside/Enter
       // This remains as a cleanup fallback
       _onCommitActiveEdit();
@@ -166,7 +176,10 @@ class InteractionController implements InteractionContext {
   }
 
   @override
-  void onCreateNode(Offset position) => _onCreateNode(position);
+  void onCreateNode(Offset position) {
+    _log.info('Callback: onCreateNode -> position: $position');
+    _onCreateNode(position);
+  }
 
   @override
   Iterable<UiRelation> getRelations() => _getRelations();
@@ -191,7 +204,10 @@ class InteractionController implements InteractionContext {
   void updateToolbarOffset(Offset delta) => _updateToolbarOffset(delta);
 
   @override
-  void onDeleteSelectedEntities() => _onDeleteSelectedEntities();
+  void onDeleteSelectedEntities() {
+    _log.info('Callback: onDeleteSelectedEntities');
+    _onDeleteSelectedEntities();
+  }
 
   @override
   Set<String> getVisibleNodeIds() => _getVisibleNodeIds();
@@ -254,6 +270,12 @@ class InteractionController implements InteractionContext {
     final pCanvas = _screenToCanvas(e.localPosition);
     final isDoubleTap = _processDoubleTap(pCanvas);
 
+    // [NEW] Telemetry for input origin and double-tap detection
+    _log.finer(
+      'PointerDown: Screen(${e.localPosition.dx.toInt()}, ${e.localPosition.dy.toInt()}) -> Canvas(${pCanvas.dx.toInt()}, ${pCanvas.dy.toInt()})',
+    );
+    if (isDoubleTap) _log.info('Double-tap detected at $pCanvas');
+
     // Polymorphic dispatch to state object
     final newState = state.value.handlePointerDown(
       e,
@@ -274,6 +296,9 @@ class InteractionController implements InteractionContext {
   /// Handles pointer up events with polymorphic dispatch.
   /// Delegates to the current state's handlePointerUp method.
   void handlePointerUp(PointerUpEvent e) {
+    _log.finer(
+      'PointerUp: Gesture cycle complete at Canvas(${e.localPosition.dx}, ${e.localPosition.dy})',
+    );
     _transitionTo(state.value.handlePointerUp(e, this));
   }
 

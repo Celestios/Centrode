@@ -49,6 +49,55 @@ class LogManager {
   static const Duration _deltaT = Duration(milliseconds: 500);
   static const int _rotationThreshold = 10 * 1024 * 1024; // 10MB
 
+  /// [NEW] Inspects the log file for fatal crashes from the previous session.
+  Future<void> _checkForPreviousPanics(String logPath) async {
+    try {
+      final file = File(logPath);
+      if (!file.existsSync()) return;
+
+      // Read file to check for panic hook output
+      final contents = await file.readAsString();
+      if (contents.contains('[RUST-FATAL]')) {
+        final lines = contents.split('\n');
+        final fatalLines = lines
+            .where((l) => l.contains('[RUST-FATAL]'))
+            .toList();
+
+        for (final line in fatalLines) {
+          developer.log(
+            'Previous session crashed: $line',
+            name: 'RustPanic',
+            level: 2000,
+          );
+          _activeBuffer.add(
+            LogPayload(
+              time: DateTime.now().microsecondsSinceEpoch,
+              seqId: _dartSeqId++,
+              level: 5, // FATAL
+              origin: 'RUST',
+              message: 'PREVIOUS SESSION CRASH: $line',
+            ),
+          );
+        }
+
+        // Archive the crash log so we don't report it repeatedly on every startup
+        final crashArchive = File(
+          '${file.path}.crash.${DateTime.now().millisecondsSinceEpoch}',
+        );
+        await file.rename(crashArchive.path);
+        developer.log(
+          'Archived previous crash log to ${crashArchive.path}',
+          name: 'LogManager',
+        );
+      }
+    } catch (e) {
+      developer.log(
+        'Failed to check for previous panics: $e',
+        name: 'LogManager',
+      );
+    }
+  }
+
   /// Initializes the LogManager.
   ///
   /// This method:
@@ -66,6 +115,9 @@ class LogManager {
     // [FIX] Use Directory.current.path to place the log in the project root
     // matching the Rust panic hook path during local development.
     final logPath = '${Directory.current.path}/mycelium.log';
+
+    // [NEW] Recover crash telemetry before the isolate takes file ownership
+    await _checkForPreviousPanics(logPath);
 
     // 2. Establish the Isolate Handshake with path payload
     final receivePort = ReceivePort();

@@ -104,6 +104,7 @@ mixin GraphNodeMutationsMixin
     void Function(String, String)? onIdSwap,
   ) async {
     try {
+      _nodeLog.fine('FFI Dispatch: Creating node for tempId: $tempId'); // [NEW]
       final realId = await api.createNode(input: node.toInput());
 
       // Ensure node and viewstate still exist before swapping, they might have been deleted mid-process
@@ -113,16 +114,22 @@ mixin GraphNodeMutationsMixin
       if (activeNode != null && activeVs != null) {
         activeNode.id = realId;
         handleIdSwap(tempId, realId, activeNode, activeVs, onIdSwap);
-        _nodeLog.info('ID Swap Complete: $tempId -> $realId');
+        _nodeLog.info('ID SWAP SUCCESS: $tempId -> $realId'); // [MODIFIED]
       }
     } catch (e) {
-      _nodeLog.severe('Optimistic sync failed', e);
+      _nodeLog.severe(
+        'ID SWAP FAILED: Rolling back $tempId. Error: $e',
+      ); // [MODIFIED]
       // Rollback: Remove optimistic entries
       nodeLookup.remove(tempId);
       final vs = viewStates.remove(tempId);
       vs?.dispose();
       spatialGrid.remove(tempId, node.position);
       clearConfirmedPosition(tempId);
+
+      _nodeLog.fine(
+        'ROLLBACK: Removed optimistic node, viewState, and spatial entries for $tempId.',
+      ); // [NEW]
 
       onError("Creation failed: $e");
     }
@@ -158,6 +165,9 @@ mixin GraphNodeMutationsMixin
         // ROLLBACK: Pull from quarantine instead of creating new memory pointers
         final quarantinedVs = _quarantineCache.remove(id);
         if (quarantinedVs != null) {
+          _nodeLog.fine(
+            'QUARANTINE: Node $id ViewState recovered from _quarantineCache.',
+          ); // [NEW]
           quarantinedVs.rehydrate(restoredNode);
           viewStates[id] = quarantinedVs;
         } else {
@@ -174,6 +184,9 @@ mixin GraphNodeMutationsMixin
     // 2. OPTIMISTIC TEARDOWN (Move to quarantine instead of disposing)
     nodeLookup.remove(id);
     _quarantineCache[id] = viewStates.remove(id)!; // Preserve memory pointers
+    _nodeLog.fine(
+      'QUARANTINE: Node $id ViewState moved to _quarantineCache.',
+    ); // [NEW]
     spatialGrid.remove(id, node.position);
     clearConfirmedPosition(id);
 
@@ -231,6 +244,10 @@ mixin GraphNodeMutationsMixin
     final newPosition = viewState.positionNotifier.value;
     final oldPosition = node.position;
 
+    _nodeLog.fine(
+      'COMMITTING POSITION: $id moving $oldPosition -> $newPosition',
+    ); // [NEW]
+
     // Capture the current node state for rollback
     final capturedNode = node;
 
@@ -257,5 +274,6 @@ mixin GraphNodeMutationsMixin
 
     // C. Queue with immediate execution (bypasses debounce, maintains FIFO)
     processor.queueCommand(cmd, immediate: true);
+    _nodeLog.finer('Position command queued for $id (Immediate).'); // [NEW]
   }
 }

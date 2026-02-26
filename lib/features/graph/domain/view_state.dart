@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
+import 'package:logging/logging.dart';
 
 import 'nodes.dart';
 
@@ -10,6 +11,7 @@ class NodeViewState {
   String nodeId;
   final ValueNotifier<Offset> positionNotifier;
   final ValueNotifier<Size> sizeNotifier; // Synchronous mathematical truth
+  final Logger _log = Logger('NodeViewState');
 
   // [NEW] Volatile UI States (Not persisted to DB)
   final ValueNotifier<bool> isExpandedNotifier = ValueNotifier(false);
@@ -27,6 +29,9 @@ class NodeViewState {
   /// This ensures that widgets and hit-testers using this ViewState
   /// immediately reference the canonical Database ID.
   void updateId(String newId) {
+    _log.info(
+      'VIEWSTATE: Atomic ID Swap confirmed: $nodeId -> $newId',
+    ); // [NEW]
     nodeId = newId;
   }
 
@@ -41,6 +46,10 @@ class NodeViewState {
     // forces a DB sync. If we reset the expansion state here, the button
     // click is instantly reverted.
     // isExpandedNotifier.value = false;
+
+    _log.fine(
+      'VIEWSTATE: Expansion state preserved during rehydration for $nodeId',
+    ); // [NEW]
 
     dragWidthNotifier.value = null;
   }
@@ -116,6 +125,12 @@ class NodeViewState {
 
     // Base padding (16) + Task Node state badge safety margin (24)
     sizeNotifier.value = Size(currentWidth, textHeight + 20);
+
+    if (sizeNotifier.value.height <= 0) {
+      _log.warning(
+        'LAYOUT WARNING: Node $nodeId calculated zero height. Possible clipping trap.',
+      );
+    }
   }
 
   /// Disposes the internal ValueNotifiers.

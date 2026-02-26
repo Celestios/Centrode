@@ -19,6 +19,7 @@ use tracing::{debug, error, info};
 /// Called by Dart during app startup to initialize the tracing subscriber.
 pub async fn setup_logger() -> anyhow::Result<()> {
     crate::telemetry::init_telemetry();
+    tracing::debug!("FFI: setup_logger completed");
     Ok(())
 }
 
@@ -26,6 +27,8 @@ pub async fn setup_logger() -> anyhow::Result<()> {
 /// Dart calls this after the DiskWriterIsolate is ready.
 /// Flushes the pre-stream buffer and starts streaming logs.
 pub async fn create_log_stream(sink: StreamSink<LogState>) -> anyhow::Result<()> {
+    tracing::debug!("FFI: create_log_stream called");
+
     // Connect the stream and flush buffer
     connect_log_stream();
 
@@ -45,7 +48,11 @@ pub async fn create_log_stream(sink: StreamSink<LogState>) -> anyhow::Result<()>
                         break; // Sink closed
                     }
                 }
-                Err(_) => continue, // Skip lagged messages
+                Err(e) => {
+                    // Logs tokio_stream::wrappers::errors::BroadcastStreamRecvError::Lagged
+                    tracing::warn!("FFI: Log stream overflow. Dropped messages: {}", e);
+                    continue;
+                }
             }
         }
     });
@@ -379,12 +386,14 @@ impl AppHandle {
 
     // 7. Theme Operations
     pub async fn get_all_themes(&self) -> anyhow::Result<Vec<crate::domain::base_models::Theme>> {
+        tracing::debug!("FFI: get_all_themes called");
         let mut res = self.repo.db().query("SELECT * FROM theme").await?;
         let themes: Vec<crate::domain::base_models::Theme> = res.take(0)?;
         Ok(themes)
     }
 
     pub async fn get_active_theme_id(&self) -> anyhow::Result<Option<String>> {
+        tracing::debug!("FFI: get_active_theme_id called");
         let mut res = self
             .repo
             .db()
@@ -403,6 +412,7 @@ impl AppHandle {
     }
 
     pub async fn set_active_theme_id(&self, theme_id: String) -> anyhow::Result<()> {
+        tracing::debug!("FFI: set_active_theme_id called with id: {}", theme_id);
         let theme_record = format!("theme:{}", theme_id);
         self.repo
             .db()
@@ -416,6 +426,7 @@ impl AppHandle {
         &self,
         theme: crate::domain::base_models::Theme,
     ) -> anyhow::Result<String> {
+        tracing::debug!("FFI: upsert_theme called for theme id: {:?}", theme.id);
         let mut res = if let Some(id) = theme.id.clone() {
             let theme_record = format!("theme:{}", id);
             self.repo
@@ -442,6 +453,7 @@ impl AppHandle {
     /// Creates a stream connection for graph events.
     /// This enables Flutter to receive async updates about node changes.
     pub async fn create_graph_stream(&self, sink: StreamSink<GraphEvent>) -> anyhow::Result<()> {
+        tracing::debug!("FFI: create_graph_stream called");
         let receiver = stream::subscribe_to_graph();
 
         tokio::spawn(async move {
@@ -456,7 +468,11 @@ impl AppHandle {
                             break; // Flutter disconnected
                         }
                     }
-                    Err(_) => continue, // Skip lagged messages
+                    Err(e) => {
+                        // Logs tokio_stream::wrappers::errors::BroadcastStreamRecvError::Lagged
+                        tracing::warn!("FFI: Graph stream overflow. Dropped events: {}", e);
+                        continue;
+                    }
                 }
             }
         });

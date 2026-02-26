@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
 
 import '../domain/models.dart';
 import 'command_processor.dart';
@@ -60,6 +61,8 @@ class GraphDataController extends ChangeNotifier
         GraphNodeMutationsMixin,
         GraphRelationMutationsMixin,
         GraphPropertyMutationsMixin {
+  final Logger _log = Logger('GraphDataController'); // [NEW]
+
   // ===========================================================================
   // State Flags
   // ===========================================================================
@@ -100,6 +103,10 @@ class GraphDataController extends ChangeNotifier
     themeController = theme;
     onError = _handleError;
     processor = CommandProcessor(onError: _handleError);
+
+    _log.info(
+      'GraphDataController initialized: Late contracts (API, Theme, Processor) successfully bound.',
+    );
   }
 
   // ===========================================================================
@@ -108,6 +115,7 @@ class GraphDataController extends ChangeNotifier
 
   /// Handles errors from sub-services and notifies listeners.
   void _handleError(String msg) {
+    _log.severe('Sub-service error intercepted: $msg');
     errorMessage = msg;
     notifyListeners();
   }
@@ -124,9 +132,21 @@ class GraphDataController extends ChangeNotifier
   Future<void> loadGraph() async {
     isLoading = true;
     notifyListeners();
+    final stopwatch = Stopwatch()..start();
+    _log.info('loadGraph: Initiating FFI request to load graph state.');
 
     try {
       await super.loadGraph(); // Dispatches to GraphSyncMixin
+      stopwatch.stop();
+      _log.info(
+        'loadGraph: Completed successfully in ${stopwatch.elapsedMilliseconds}ms.',
+      );
+    } catch (e) {
+      stopwatch.stop();
+      _log.severe(
+        'loadGraph: Failed after ${stopwatch.elapsedMilliseconds}ms: $e',
+      );
+      rethrow;
     } finally {
       isLoading = false;
       notifyListeners();
@@ -145,6 +165,7 @@ class GraphDataController extends ChangeNotifier
   /// 3. Dispose base ChangeNotifier
   @override
   void dispose() {
+    _log.fine('Disposing GraphDataController and dismantling mixin chain.');
     disposeSync();
     disposeSpatial();
     super.dispose();

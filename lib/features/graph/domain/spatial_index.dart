@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
+import 'package:logging/logging.dart';
 
 // -----------------------------------------------------------------------------
 // Spatial Hash Grid for O(1) Lookups
@@ -10,6 +11,7 @@ import 'dart:ui';
 class SpatialHashGrid {
   final double chunkSize;
   final Map<Point<int>, Set<String>> _grid = {};
+  final Logger _log = Logger('SpatialHashGrid');
 
   SpatialHashGrid({this.chunkSize = 1000.0});
 
@@ -28,6 +30,8 @@ class SpatialHashGrid {
     final oldChunk = getChunk(oldPos);
     final newChunk = getChunk(newPos);
     if (oldChunk != newChunk) {
+      // [NEW] Track chunk transitions to debug ghost nodes
+      _log.fine('SPATIAL: $nodeId moving chunk $oldChunk -> $newChunk');
       _grid[oldChunk]?.remove(nodeId);
       _grid.putIfAbsent(newChunk, () => {}).add(nodeId);
     }
@@ -52,11 +56,15 @@ class SpatialHashGrid {
         if (chunk != null) visible.addAll(chunk);
       }
     }
+
     return visible;
   }
 
   /// Clears all entries from the grid.
   void clear() {
     _grid.clear();
+    _log.info(
+      'SPATIAL: Grid cleared (Rehash/Reset triggered).',
+    ); // [NEW] Track structural resets
   }
 }

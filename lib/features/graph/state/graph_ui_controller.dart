@@ -51,6 +51,9 @@ class GraphUIController extends ChangeNotifier {
 
   void updateVisibleSet(Rect bufferRect) {
     final newVisible = _dataController.spatialHash.queryRect(bufferRect);
+    _log.finer(
+      'updateVisibleSet: Spatial index returned ${newVisible.length} visible nodes.',
+    );
     visibleNodeIds.value = newVisible;
 
     // THE FIX: Removed zOrder mutation.
@@ -91,6 +94,9 @@ class GraphUIController extends ChangeNotifier {
 
   void deleteSelectedEntities() {
     if (selectedEntities.isEmpty) return;
+    _log.info(
+      'Executing batch deletion for ${selectedEntities.length} entities.',
+    );
     final idsToDelete = selectedEntities.toList();
     selectEntity(null); // Clear selection visually immediately
 
@@ -113,6 +119,7 @@ class GraphUIController extends ChangeNotifier {
 
   void showDeleteMenu(String nodeId) {
     if (nodeShowingDeleteMenu != nodeId) {
+      _log.fine('Showing delete menu for node: $nodeId');
       nodeShowingDeleteMenu = nodeId;
       notifyListeners();
     }
@@ -120,6 +127,7 @@ class GraphUIController extends ChangeNotifier {
 
   void hideDeleteMenu() {
     if (nodeShowingDeleteMenu != null) {
+      _log.fine('Hiding delete menu.');
       nodeShowingDeleteMenu = null;
       notifyListeners();
     }
@@ -127,6 +135,8 @@ class GraphUIController extends ChangeNotifier {
 
   /// Synchronizes volatile state when the data layer promotes a temp ID to a real DB ID.
   void handleIdSwap(String tempId, String realId) {
+    _log.info('Volatile ID swap: $tempId -> $realId');
+
     if (visibleNodeIds.value.contains(tempId)) {
       final newVisible = Set<String>.from(visibleNodeIds.value);
       newVisible.remove(tempId);

@@ -251,6 +251,8 @@ impl Schema {
     /// Migration helper to convert old content format to new block-based format
     /// Call this once during upgrade from older versions
     pub async fn migrate_content_format(db: &Surreal<Db>) -> Result<()> {
+        tracing::info!("SCHEMA: Starting content format migration to block-based structure.");
+
         // Migrate inode content from old format (text + document_ast string) to new format (blocks)
         db.query(
             "
@@ -291,6 +293,7 @@ impl Schema {
         )
         .await?;
 
+        tracing::info!("SCHEMA: Content format migration completed successfully.");
         Ok(())
     }
 }

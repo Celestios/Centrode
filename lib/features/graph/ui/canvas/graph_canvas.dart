@@ -32,6 +32,9 @@ class _GraphCanvasState extends State<GraphCanvas> {
   // NEW: State flag to ensure we only frame the camera once on load
   bool _hasInitialFramed = false;
 
+  // NEW: Cache to prevent log spam during high-frequency build phases
+  EdgeInsets? _lastElasticMargins;
+
   @override
   void initState() {
     super.initState();
@@ -149,6 +152,9 @@ class _GraphCanvasState extends State<GraphCanvas> {
                     // NEW: Trigger initial camera framing once we have physical dimensions
                     if (!_hasInitialFramed && viewport != Size.zero) {
                       _hasInitialFramed = true;
+                      _log.info(
+                        'CANVAS: Triggering initial camera framing on bounds.',
+                      ); // [NEW]
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         _viewportController.focusOnBounds(
                           dataController.canvasBounds.value,
@@ -195,6 +201,14 @@ class _GraphCanvasState extends State<GraphCanvas> {
                           rightBound,
                           bottomBound,
                         );
+
+                        // [RESTORED]: Trace the pan-space boundaries only upon mutation
+                        if (_lastElasticMargins != elasticMargins) {
+                          _lastElasticMargins = elasticMargins;
+                          _log.fine(
+                            'GEOMETRY: Elastic Margins calculated: L:$leftBound, T:$topBound, R:$rightBound, B:$bottomBound',
+                          );
+                        }
 
                         return InteractiveViewer(
                           transformationController:

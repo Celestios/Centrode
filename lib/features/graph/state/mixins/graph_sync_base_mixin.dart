@@ -75,10 +75,17 @@ mixin GraphSyncBaseMixin on ChangeNotifier, GraphStoreMixin, GraphSpatialMixin {
   /// Synchronizes [GraphStoreMixin] and [GraphSpatialMixin].
   Future<void> loadGraph() async {
     try {
+      _syncLog.info(
+        'Initiating Graph Hydration: Connecting FFI Stream and fetching snapshot.',
+      ); // [NEW]
       // Connect to the asynchronous event bus from Rust
       _graphStreamSub ??= api.createGraphStream().listen(_handleGraphEvent);
 
       final snapshot = await api.getGraphSnapshot();
+
+      _syncLog.info(
+        'Snapshot received: ${snapshot.$1.length} nodes, ${snapshot.$2.length} relations.',
+      ); // [NEW]
 
       nodeLookup.clear();
       relationLookup.clear();
@@ -93,6 +100,9 @@ mixin GraphSyncBaseMixin on ChangeNotifier, GraphStoreMixin, GraphSpatialMixin {
         relationLookup[uiRel.id] = uiRel;
       }
 
+      _syncLog.fine(
+        'Hydration complete. Syncing spatial view states.',
+      ); // [NEW]
       syncViewStates();
     } catch (e) {
       _syncLog.severe('Failed to load graph snapshot', e);
@@ -103,6 +113,9 @@ mixin GraphSyncBaseMixin on ChangeNotifier, GraphStoreMixin, GraphSpatialMixin {
   /// Handles incoming graph events from the Rust stream.
   /// Updates local state based on asynchronous boundary updates.
   void _handleGraphEvent(GraphEvent event) {
+    _syncLog.info(
+      'FFI EVENT: Incoming $event',
+    ); // [NEW] instrumentation for all events
     // Map the FFI generated union to the local reactive state
     switch (event) {
       case GraphEvent_BoundaryUpdated(:final field0):

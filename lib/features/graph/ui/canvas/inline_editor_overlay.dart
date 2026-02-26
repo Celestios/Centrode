@@ -121,6 +121,9 @@ class _InlineEditorOverlayState extends State<InlineEditorOverlay> {
                 if (event is KeyDownEvent) {
                   if (event.logicalKey == LogicalKeyboardKey.enter &&
                       !HardwareKeyboard.instance.isShiftPressed) {
+                    _log.info(
+                      'Committing inline edit for relation: ${widget.entityId}',
+                    );
                     dataController.commitEntityText(
                       widget.entityId,
                       _controller.text,
@@ -129,6 +132,7 @@ class _InlineEditorOverlayState extends State<InlineEditorOverlay> {
                     return KeyEventResult.handled;
                   }
                   if (event.logicalKey == LogicalKeyboardKey.escape) {
+                    _log.info('Aborted inline edit via Escape key.');
                     uiController.cancelActiveEdit();
                     return KeyEventResult.handled;
                   }
@@ -152,6 +156,9 @@ class _InlineEditorOverlayState extends State<InlineEditorOverlay> {
                   contentPadding: EdgeInsets.zero,
                 ),
                 onTapOutside: (_) {
+                  _log.info(
+                    'Committing inline edit for relation: ${widget.entityId} via onTapOutside',
+                  );
                   dataController.commitEntityText(
                     widget.entityId,
                     _controller.text,

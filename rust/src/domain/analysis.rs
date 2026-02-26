@@ -11,6 +11,11 @@ impl DecaySignificanceStrategy {
         db: &Surreal<Db>,
         center_node_id: &str,
     ) -> anyhow::Result<()> {
+        tracing::info!(
+            "ANALYSIS: Recalculating significance area for center node: {}",
+            center_node_id
+        );
+
         // Use SurrealDB Graph Traversal for O(1) local lookup
         // Calculate raw scores for nodes within a 2-step radius
         let sql = "
@@ -31,6 +36,11 @@ impl DecaySignificanceStrategy {
 
         let center_id = center_node_id.to_string();
         db.query(sql).bind(("center", center_id)).await?;
+
+        tracing::info!(
+            "ANALYSIS: Significance area recalculated successfully for {}",
+            center_node_id
+        );
         Ok(())
     }
 }
@@ -71,6 +81,9 @@ impl GraphAnalysis {
         if let Some(b) = bounds {
             if let (Some(mx), Some(mxx), Some(my), Some(mxy)) = (b.min_x, b.max_x, b.min_y, b.max_y)
             {
+                tracing::trace!(
+                    "ANALYSIS: Downcasting f64 boundaries to i32 for FFI spatial index."
+                );
                 return Ok(BoundingBox {
                     min_x: mx as i32,
                     max_x: mxx as i32,
@@ -80,6 +93,9 @@ impl GraphAnalysis {
             }
         }
 
+        tracing::warn!(
+            "ANALYSIS: Zero-Node Collapse detected. Falling back to default empty bounding box."
+        );
         Ok(BoundingBox::default())
     }
 }
