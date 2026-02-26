@@ -155,7 +155,7 @@ class InfoUiNode extends UiNode {
       color: color,
       tags: tags,
       locked: locked,
-      aesthetics: aesthetics ?? this.aesthetics,
+      aesthetics: aesthetics ?? aesthetics,
     );
   }
 }
@@ -224,7 +224,7 @@ class TaskUiNode extends UiNode {
       color: color,
       state: state,
       dueDate: dueDate,
-      aesthetics: aesthetics ?? this.aesthetics,
+      aesthetics: aesthetics ?? aesthetics,
     );
   }
 }
@@ -285,7 +285,7 @@ class InterUiNode extends UiNode {
       text: text,
       color: color,
       verb: verb,
-      aesthetics: aesthetics ?? this.aesthetics,
+      aesthetics: aesthetics ?? aesthetics,
     );
   }
 }
@@ -306,6 +306,6 @@ extension UiNodeSchema on UiNode {
     if (this is InfoUiNode) return AppConfig.graph.schema.infoTable;
     if (this is TaskUiNode) return AppConfig.graph.schema.taskTable;
     if (this is InterUiNode) return AppConfig.graph.schema.interTable;
-    throw UnsupportedError("Unknown node type: ${this.runtimeType}");
+    throw UnsupportedError("Unknown node type: ${runtimeType}");
   }
 }

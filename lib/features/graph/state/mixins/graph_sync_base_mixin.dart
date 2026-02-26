@@ -3,9 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 
 import '../../domain/models.dart';
+import '../../../../src/rust/bridge/stream.dart';
+import '../../../../src/rust/domain/base_models.dart' show BoundingBox;
 import '../command_processor.dart';
 import '../theme_controller.dart';
-import 'package:mycelium/src/rust/bridge/api.dart' as rust;
 
 import 'graph_store_mixin.dart';
 import 'graph_spatial_mixin.dart';
@@ -46,10 +47,18 @@ mixin GraphSyncBaseMixin on ChangeNotifier, GraphStoreMixin, GraphSpatialMixin {
   final Logger _syncLog = Logger('GraphSyncMixin');
 
   // Late initialization strictly handled by the composition root.
-  late final rust.AppHandle api;
+  late final dynamic api;
   late final CommandProcessor processor;
   late final ThemeController themeController;
   late final void Function(String) onError;
+
+  // NEW: The reactive bounding box updated asynchronously by Rust
+  // Uses default bounds of 5000x5000 centered at origin
+  final ValueNotifier<BoundingBox> canvasBounds = ValueNotifier(
+    const BoundingBox(minX: -2500, minY: -2500, maxX: 2500, maxY: 2500),
+  );
+
+  StreamSubscription? _graphStreamSub;
 
   /// Returns the database table name for a given node type.
   /// Uses strict type checking to ensure no "info_node" strings leak through.
@@ -66,6 +75,9 @@ mixin GraphSyncBaseMixin on ChangeNotifier, GraphStoreMixin, GraphSpatialMixin {
   /// Synchronizes [GraphStoreMixin] and [GraphSpatialMixin].
   Future<void> loadGraph() async {
     try {
+      // Connect to the asynchronous event bus from Rust
+      _graphStreamSub ??= api.createGraphStream().listen(_handleGraphEvent);
+
       final snapshot = await api.getGraphSnapshot();
 
       nodeLookup.clear();
@@ -85,6 +97,28 @@ mixin GraphSyncBaseMixin on ChangeNotifier, GraphStoreMixin, GraphSpatialMixin {
     } catch (e) {
       _syncLog.severe('Failed to load graph snapshot', e);
       onError("Failed to load graph: $e");
+    }
+  }
+
+  /// Handles incoming graph events from the Rust stream.
+  /// Updates local state based on asynchronous boundary updates.
+  void _handleGraphEvent(GraphEvent event) {
+    // Map the FFI generated union to the local reactive state
+    switch (event) {
+      case GraphEvent_BoundaryUpdated(:final field0):
+        // NEW: Explicitly print the integer bounds to prove dynamic expansion
+        _syncLog.fine(
+          'Elastic Boundaries updated from Core: minX:${field0.minX}, maxX:${field0.maxX}, minY:${field0.minY}, maxY:${field0.maxY}',
+        );
+        canvasBounds.value = BoundingBox(
+          minX: field0.minX,
+          minY: field0.minY,
+          maxX: field0.maxX,
+          maxY: field0.maxY,
+        );
+      case _:
+        // Other events handled by their respective mixins
+        break;
     }
   }
 
@@ -148,5 +182,7 @@ mixin GraphSyncBaseMixin on ChangeNotifier, GraphStoreMixin, GraphSpatialMixin {
   /// with other components. Its disposal is the responsibility of the owner.
   void disposeSync() {
     processor.flushSync();
+    _graphStreamSub?.cancel();
+    canvasBounds.dispose();
   }
 }

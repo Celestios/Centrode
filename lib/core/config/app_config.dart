@@ -44,16 +44,16 @@ class _GraphConfig {
 class _GridConfig {
   const _GridConfig();
   final double baseSize = 20.0;
-  final double dotRadius = 1.0;
-  final Color dotColor = const Color(0xFFD6D6D6); // Light gray
+  final double dotRadius = 1.5;
+  final Color dotColor = const Color.fromARGB(233, 214, 214, 214); // Light gray
 }
 
 class _CanvasConfig {
   const _CanvasConfig();
-  final double boundaryMargin = 1000.0;
-  final double minScale = 0.1;
-  final double maxScale = 5.0;
-  final double initialSize = 5000.0;
+  final double boundaryMargin = 2000.0;
+  final double minScale = 0.4;
+  final double maxScale = 3.0;
+  final double initialSize = 4000.0;
   final double overscanRatio = 0.25; // 25% inflation for culling buffer
 }
 

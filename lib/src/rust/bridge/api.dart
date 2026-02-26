@@ -10,9 +10,9 @@ import '../frb_generated.dart';
 import '../persistence/repo.dart';
 import '../telemetry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'stream.dart';
 
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `GraphEvent`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`
+// These functions are ignored because they are not marked as `pub`: `broadcast_boundaries`
 
 /// Initialization endpoint for the telemetry layer.
 /// Called by Dart during app startup to initialize the tracing subscriber.
@@ -49,6 +49,10 @@ abstract class AppHandle implements RustOpaqueInterface {
   Repository get repo;
 
   set repo(Repository repo);
+
+  /// Creates a stream connection for graph events.
+  /// This enables Flutter to receive async updates about node changes.
+  Stream<GraphEvent> createGraphStream();
 
   Future<String> createNode({required NodeInput input});
 
@@ -104,8 +108,6 @@ abstract class AppHandle implements RustOpaqueInterface {
   });
 
   Future<void> setActiveThemeId({required String themeId});
-
-  Future<void> startGraphStream();
 
   Future<String> upsertTheme({required Theme theme});
 }

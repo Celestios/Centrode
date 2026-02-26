@@ -463,8 +463,9 @@ class RelationDrawing extends CanvasInteractionState {
     // Duplicate L2 snapping logic to process free mouse movement
     String? snappedId;
     final nodeIds = ctx.zOrder.reversed.toList();
-    if (nodeIds.isEmpty)
+    if (nodeIds.isEmpty) {
       nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
+    }
 
     for (final nodeId in nodeIds) {
       if (sourceNodeIds.contains(nodeId)) continue;

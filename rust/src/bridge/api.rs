@@ -1,3 +1,5 @@
+use crate::bridge::stream::{self, GraphEvent};
+use crate::domain::analysis::GraphAnalysis;
 use crate::domain::base_models::{Content, MapConfig};
 use crate::domain::nodes::{NodeInput, NodeOutput};
 use crate::domain::relations::RelationInput;
@@ -81,15 +83,6 @@ pub fn content_to_plain_text(content: Content) -> String {
     content.to_plain_text()
 }
 
-// [NEW] Event Enum for the UI (Keep public for FFI)
-#[derive(Debug, Clone)]
-pub enum GraphEvent {
-    NodeUpdated(NodeOutput),
-    NodeDeleted(String),
-    RelationUpdated,
-    SnapshotLoaded,
-}
-
 // [NEW] The Opaque App Handle
 // This struct holds the entire state of the running backend.
 pub struct AppHandle {
@@ -106,6 +99,13 @@ impl AppHandle {
         Ok(Self { repo })
     }
 
+    // Helper to calculate and broadcast boundaries
+    async fn broadcast_boundaries(&self) {
+        if let Ok(bounds) = GraphAnalysis::calculate_global_bounds(self.repo.db()).await {
+            stream::publish_event(GraphEvent::BoundaryUpdated(bounds));
+        }
+    }
+
     // 2. Node Operations
     // Note: usage of &self eliminates the need for Mutex locking
     pub async fn create_node(&self, input: NodeInput) -> anyhow::Result<String> {
@@ -113,6 +113,7 @@ impl AppHandle {
         match self.repo.create_node(input).await {
             Ok(id) => {
                 info!("FFI: Successfully committed node to database: {}", id);
+                self.broadcast_boundaries().await; // Trigger on creation - requires FRB regeneration
                 Ok(id)
             }
             Err(e) => {
@@ -152,6 +153,12 @@ impl AppHandle {
                 );
                 e
             })?;
+
+        // If position was patched, recalculate bounds
+        if json_patch.contains("position") {
+            self.broadcast_boundaries().await;
+        }
+
         info!("FFI: Node {}/{} patched successfully", table, id);
         Ok(())
     }
@@ -161,6 +168,7 @@ impl AppHandle {
         match self.repo.delete_node(table.clone(), id.clone()).await {
             Ok(deleted_id) => {
                 info!("Node {} deleted successfully", deleted_id);
+                self.broadcast_boundaries().await; // Trigger recalculation after deletion
                 Ok(deleted_id)
             }
             Err(e) => {
@@ -264,12 +272,6 @@ impl AppHandle {
             );
         }
         result
-    }
-
-    pub async fn start_graph_stream(&self) -> anyhow::Result<()> {
-        debug!("Starting graph stream (placeholder)");
-        // Placeholder: Implement live queries or broadcast channel
-        Ok(())
     }
 
     // 5. File Operations
@@ -434,5 +436,31 @@ impl AppHandle {
         result
             .and_then(|t| t.id)
             .ok_or_else(|| anyhow::anyhow!("Failed to upsert theme"))
+    }
+
+    // 7. Graph Stream Connection
+    /// Creates a stream connection for graph events.
+    /// This enables Flutter to receive async updates about node changes.
+    pub async fn create_graph_stream(&self, sink: StreamSink<GraphEvent>) -> anyhow::Result<()> {
+        let receiver = stream::subscribe_to_graph();
+
+        tokio::spawn(async move {
+            use tokio_stream::StreamExt;
+            let stream = tokio_stream::wrappers::BroadcastStream::new(receiver);
+            tokio::pin!(stream);
+
+            while let Some(result) = stream.next().await {
+                match result {
+                    Ok(event) => {
+                        if sink.add(event).is_err() {
+                            break; // Flutter disconnected
+                        }
+                    }
+                    Err(_) => continue, // Skip lagged messages
+                }
+            }
+        });
+
+        Ok(())
     }
 }

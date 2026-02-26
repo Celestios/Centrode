@@ -7,6 +7,7 @@
 // ignore_for_file: argument_type_not_assignable
 
 import 'bridge/api.dart';
+import 'bridge/stream.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'domain/base_models.dart';
@@ -73,6 +74,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RustStreamSink<GraphEvent> dco_decode_StreamSink_graph_event_Sse(dynamic raw);
+
+  @protected
   RustStreamSink<LogState> dco_decode_StreamSink_log_state_Sse(dynamic raw);
 
   @protected
@@ -88,7 +92,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool dco_decode_bool(dynamic raw);
 
   @protected
+  BoundingBox dco_decode_bounding_box(dynamic raw);
+
+  @protected
   BlockAttrs dco_decode_box_autoadd_block_attrs(dynamic raw);
+
+  @protected
+  BoundingBox dco_decode_box_autoadd_bounding_box(dynamic raw);
 
   @protected
   Content dco_decode_box_autoadd_content(dynamic raw);
@@ -140,6 +150,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   double dco_decode_f_64(dynamic raw);
+
+  @protected
+  GraphEvent dco_decode_graph_event(dynamic raw);
 
   @protected
   int dco_decode_i_32(dynamic raw);
@@ -310,6 +323,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RustStreamSink<GraphEvent> sse_decode_StreamSink_graph_event_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   RustStreamSink<LogState> sse_decode_StreamSink_log_state_Sse(
     SseDeserializer deserializer,
   );
@@ -327,7 +345,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
+  BoundingBox sse_decode_bounding_box(SseDeserializer deserializer);
+
+  @protected
   BlockAttrs sse_decode_box_autoadd_block_attrs(SseDeserializer deserializer);
+
+  @protected
+  BoundingBox sse_decode_box_autoadd_bounding_box(SseDeserializer deserializer);
 
   @protected
   Content sse_decode_box_autoadd_content(SseDeserializer deserializer);
@@ -381,6 +405,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   double sse_decode_f_64(SseDeserializer deserializer);
+
+  @protected
+  GraphEvent sse_decode_graph_event(SseDeserializer deserializer);
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
@@ -572,6 +599,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_StreamSink_graph_event_Sse(
+    RustStreamSink<GraphEvent> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_StreamSink_log_state_Sse(
     RustStreamSink<LogState> self,
     SseSerializer serializer,
@@ -590,8 +623,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
+  void sse_encode_bounding_box(BoundingBox self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_block_attrs(
     BlockAttrs self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_bounding_box(
+    BoundingBox self,
     SseSerializer serializer,
   );
 
@@ -669,6 +711,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_graph_event(GraphEvent self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);

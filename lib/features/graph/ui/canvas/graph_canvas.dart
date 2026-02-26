@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
@@ -9,6 +11,7 @@ import '../../state/interaction_controller.dart';
 import '../../state/canvas_interaction_states.dart';
 import '../../domain/models.dart';
 import '../../domain/styling.dart';
+import '../../../../src/rust/domain/base_models.dart' show BoundingBox;
 import 'layers/relation_layer.dart';
 import 'layers/node_layer.dart';
 import 'layers/overlay_layer.dart';
@@ -25,6 +28,9 @@ class _GraphCanvasState extends State<GraphCanvas> {
   late final ViewportController _viewportController;
   InteractionController? _interactionController;
   final Logger _log = Logger('GraphCanvas');
+
+  // NEW: State flag to ensure we only frame the camera once on load
+  bool _hasInitialFramed = false;
 
   @override
   void initState() {
@@ -129,45 +135,99 @@ class _GraphCanvasState extends State<GraphCanvas> {
                   // Guarded update: Feed dimensions to purely mathematical controller
                   _viewportController.updateViewportSize(constraints.biggest);
 
-                  return InteractiveViewer(
-                    transformationController:
-                        _viewportController.transformController,
-                    constrained: false,
-                    // UNLOCK INFINITY: Set boundary to infinity
-                    boundaryMargin: EdgeInsets.all(double.infinity),
-                    minScale: AppConfig.graph.canvas.minScale,
-                    maxScale: AppConfig.graph.canvas.maxScale,
-                    // Lock viewer if interaction is active (arena circumvention)
-                    panEnabled: state is CanvasIdle,
-                    scaleEnabled: state is CanvasIdle,
-                    child: GestureDetector(
-                      // Tap empty space to dismiss menus
-                      onTap: () {
-                        uiController.hideDeleteMenu();
-                      },
-                      // Restore the reference plane to prevent 0x0 constraint collapse
-                      child: SizedBox(
-                        width: AppConfig.graph.canvas.initialSize,
-                        height: AppConfig.graph.canvas.initialSize,
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            GridLayer(
-                              transformController:
-                                  _viewportController.transformController,
-                              viewportSize: constraints.biggest,
+                  final viewport = constraints.biggest;
+
+                  // NEW: Trigger initial camera framing once we have physical dimensions
+                  if (!_hasInitialFramed && viewport != Size.zero) {
+                    _hasInitialFramed = true;
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _viewportController.focusOnBounds(
+                        dataController.canvasBounds.value,
+                      );
+                    });
+                  }
+
+                  // NEW: Listen to the elastic boundaries from the Rust core
+                  return ValueListenableBuilder<BoundingBox>(
+                    valueListenable: dataController.canvasBounds,
+                    builder: (context, bounds, _) {
+                      // Calculate dynamic padding to provide the "Elastic Buffer"
+                      final padding =
+                          AppConfig.graph.canvas.boundaryMargin; // 500.0
+
+                      // THE FIX: Scale-Aware Geometric Decoupling.
+                      // The margin must NEVER be smaller than the maximum possible zoomed-out screen.
+                      final minScale = AppConfig.graph.canvas.minScale;
+                      final effectiveViewportWidth = viewport.width / minScale;
+                      final effectiveViewportHeight =
+                          viewport.height / minScale;
+
+                      final leftBound = math.max(
+                        effectiveViewportWidth,
+                        -bounds.minX.toDouble() + padding,
+                      );
+                      final topBound = math.max(
+                        effectiveViewportHeight,
+                        -bounds.minY.toDouble() + padding,
+                      );
+                      final rightBound = math.max(
+                        effectiveViewportWidth,
+                        bounds.maxX.toDouble() + padding,
+                      );
+                      final bottomBound = math.max(
+                        effectiveViewportHeight,
+                        bounds.maxY.toDouble() + padding,
+                      );
+
+                      final elasticMargins = EdgeInsets.fromLTRB(
+                        leftBound,
+                        topBound,
+                        rightBound,
+                        bottomBound,
+                      );
+
+                      return InteractiveViewer(
+                        transformationController:
+                            _viewportController.transformController,
+                        constrained: false,
+                        boundaryMargin:
+                            elasticMargins, // <-- Apply Elastic Math
+                        minScale: AppConfig.graph.canvas.minScale,
+                        maxScale: AppConfig.graph.canvas.maxScale,
+                        // Lock viewer if interaction is active (arena circumvention)
+                        panEnabled: state is CanvasIdle,
+                        scaleEnabled: state is CanvasIdle,
+                        child: GestureDetector(
+                          // Tap empty space to dismiss menus
+                          onTap: () {
+                            uiController.hideDeleteMenu();
+                          },
+                          // 1x1 Mathematical Reference Plane
+                          // (Satisfies Pitfall #5 layout requirements without inflating pan area)
+                          child: SizedBox(
+                            width: 1,
+                            height: 1,
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                GridLayer(
+                                  transformController:
+                                      _viewportController.transformController,
+                                  viewportSize: constraints.biggest,
+                                ),
+                                const RelationLayer(),
+                                const NodeLayer(),
+                                OverlayLayer(
+                                  interactionState: state,
+                                  nodeViewStates:
+                                      interactionController.nodeViewStates,
+                                ),
+                              ],
                             ),
-                            const RelationLayer(),
-                            const NodeLayer(),
-                            OverlayLayer(
-                              interactionState: state,
-                              nodeViewStates:
-                                  interactionController.nodeViewStates,
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   );
                 },
               ),

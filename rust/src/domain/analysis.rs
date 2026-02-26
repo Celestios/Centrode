@@ -1,3 +1,5 @@
+use crate::domain::base_models::BoundingBox;
+use serde::Deserialize;
 use surrealdb::engine::local::Db;
 use surrealdb::Surreal;
 
@@ -30,5 +32,54 @@ impl DecaySignificanceStrategy {
         let center_id = center_node_id.to_string();
         db.query(sql).bind(("center", center_id)).await?;
         Ok(())
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Graph Analysis: Elastic Boundary Calculation
+// -----------------------------------------------------------------------------
+
+pub struct GraphAnalysis;
+
+impl GraphAnalysis {
+    /// Calculates the absolute bounding box of all nodes in the graph using a native aggregate query.
+    pub async fn calculate_global_bounds(db: &Surreal<Db>) -> anyhow::Result<BoundingBox> {
+        // SurrealQL: Extract clean arrays, filter out nulls, and compute strict boundaries
+        let sql = "
+            LET $xs = (SELECT VALUE position.x FROM inode, task_node, inter_node WHERE position.x != NONE);
+            LET $ys = (SELECT VALUE position.y FROM inode, task_node, inter_node WHERE position.y != NONE);
+            RETURN {
+                min_x: math::min($xs),
+                max_x: math::max($xs),
+                min_y: math::min($ys),
+                max_y: math::max($ys)
+            };
+        ";
+
+        #[derive(Deserialize, Debug)]
+        struct BoundsResult {
+            min_x: Option<f64>,
+            max_x: Option<f64>,
+            min_y: Option<f64>,
+            max_y: Option<f64>,
+        }
+
+        let mut res = db.query(sql).await?;
+        let bounds: Option<BoundsResult> = res.take(2)?;
+
+        // Safely extract floats and cast them down to i32 for the FFI boundary
+        if let Some(b) = bounds {
+            if let (Some(mx), Some(mxx), Some(my), Some(mxy)) = (b.min_x, b.max_x, b.min_y, b.max_y)
+            {
+                return Ok(BoundingBox {
+                    min_x: mx as i32,
+                    max_x: mxx as i32,
+                    min_y: my as i32,
+                    max_y: mxy as i32,
+                });
+            }
+        }
+
+        Ok(BoundingBox::default())
     }
 }

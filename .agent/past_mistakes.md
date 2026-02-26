@@ -38,3 +38,22 @@
 **The Mistake:** Attempting to achieve a truly infinite canvas origin by shrinking the root `SizedBox` dimensions to `0x0`.
 **The Reality:** In Flutter, a `Stack` defaults to `Clip.hardEdge`. A `0x0` parent strictly clips all children out of visual existence, regardless of their absolute coordinates. Furthermore, a `CustomPainter` relies on its layout bounds; a `0x0` layout forces the mathematical rendering loop to compute a visible area of zero, drawing absolutely nothing.
 **The Fix:** **Provide a Mathematical Reference Plane and Disable Clipping.** You must maintain a large initial constraint size (`AppConfig.graph.canvas.initialSize`) as a stage, explicitly set `clipBehavior: Clip.none` on all underlying `Stack` layers, and completely decouple math-driven painters from layout constraints by passing the absolute viewport dimensions directly into the painter.
+
+## Pitfall 6: Asymmetric Telemetry (The "Deaf" UI)
+
+**The Mistake:** Building a perfect, $O(1)$ telemetry and event pipeline in the Rust core but leaving the Dart UI disconnected during rapid iteration.
+**The Reality:** The Rust core accurately calculated boundaries, executed database updates, and broadcasted state changes to the FFI event bus. However, because the Dart presentation layer's stream listener was commented out, the UI remained permanently frozen, creating the illusion of a backend failure when the pipeline was actually executing flawlessly.
+**The Fix:** **End-to-End Pipeline Verification.** A pipeline is not complete until the Dart reactive layer (e.g., `ValueNotifier`) is actively consuming, mapping, and logging the FFI union events. Never trust the UI as the sole indicator of backend health; always verify the FFI bridge logs.
+
+## Pitfall 7: Multi-Statement Query Indexing (SurrealDB Rust SDK)
+
+**The Mistake:** Assuming SurrealDB's Rust SDK automatically aggregates results from multi-statement queries into a single response block at index `0`.
+**The Reality:** The SDK processes statements strictly sequentially. In a query structured as `LET $xs = ...; LET $ys = ...; RETURN { ... };`, calling `res.take(0)` fetches the empty/null result of the very first `LET` assignment. This caused silent `serde` deserialization failures in Rust, forcing the application into a permanent fallback state despite perfect SurrealQL syntax.
+**The Fix:** **Strict Index Targeting.** You must explicitly target the index of the exact `RETURN` or `SELECT` statement in your SurrealQL script (e.g., `res.take(2)` for the third statement). Additionally, always use `SELECT VALUE` when extracting arrays for mathematical aggregation to prevent `NONE` values from silently failing `math::min()` or `math::max()` functions.
+
+## Pitfall 8: Geometric Dissonance & The "Zero-Node Collapse" (InteractiveViewer Math)
+
+**The Mistake:** Equating the pure mathematical bounding box of the graph directly to the physical panning limits of the camera, and inflating the `InteractiveViewer`'s base child to try and prevent clipping.
+**The Reality:** `InteractiveViewer` mathematically *adds* its `boundaryMargin` to the dimensions of its child. If the base child is large (e.g., `1000x1000`), it permanently skews the absolute coordinate math. Furthermore, if the mathematical boundary relies purely on node positions, an empty graph or a graph with only 1 node causes a "Zero-Node Collapse." The margin shrinks to near `0x0`, violently trapping the physical camera in a panning box smaller than the user's screen.
+**The Fix:** **Geometric Decoupling & The Minimum Viable Pan (MVP).** 1. Force the `InteractiveViewer`'s stage child to strictly `1x1` so the `boundaryMargin` becomes the sole mathematical dictator of coordinate space. 
+2. Use layout constraints to dynamically clamp the boundary margin against the physical screen size (`math.max(viewport.width, absolute_boundary)`). This guarantees the user always has at least one full screen-width of panning space to work with, regardless of how small the actual data graph is.

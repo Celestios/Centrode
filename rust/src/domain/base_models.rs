@@ -358,3 +358,29 @@ pub struct MarkAttrs {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub href: Option<String>, // For links
 }
+
+// -----------------------------------------------------------------------------
+// Elastic Boundary (BoundingBox)
+// -----------------------------------------------------------------------------
+
+/// The mathematical boundary object for elastic canvas constraints.
+/// Uses i32 to match the existing Coordinates type in the codebase.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct BoundingBox {
+    pub min_x: i32,
+    pub min_y: i32,
+    pub max_x: i32,
+    pub max_y: i32,
+}
+
+impl Default for BoundingBox {
+    fn default() -> Self {
+        // Fallback for an empty canvas: A 5000x5000 stage centered at origin
+        Self {
+            min_x: -2500,
+            min_y: -2500,
+            max_x: 2500,
+            max_y: 2500,
+        }
+    }
+}

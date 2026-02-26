@@ -79,7 +79,7 @@ class UiRelation {
       label: label ?? this.label,
       color: color ?? this.color,
       isSelected: isSelected ?? this.isSelected, // [NEW]
-      aesthetics: aesthetics ?? this.aesthetics,
+      aesthetics: aesthetics ?? aesthetics,
     );
   }
 }

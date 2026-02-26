@@ -4,6 +4,7 @@
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
 import 'bridge/api.dart';
+import 'bridge/stream.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'domain/base_models.dart';
@@ -69,7 +70,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => 525611644;
+  int get rustContentHash => -448127476;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -87,6 +88,10 @@ abstract class RustLibApi extends BaseApi {
   void crateBridgeApiAppHandleAutoAccessorSetRepo({
     required AppHandle that,
     required Repository repo,
+  });
+
+  Stream<GraphEvent> crateBridgeApiAppHandleCreateGraphStream({
+    required AppHandle that,
   });
 
   Future<String> crateBridgeApiAppHandleCreateNode({
@@ -171,10 +176,6 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateBridgeApiAppHandleSetActiveThemeId({
     required AppHandle that,
     required String themeId,
-  });
-
-  Future<void> crateBridgeApiAppHandleStartGraphStream({
-    required AppHandle that,
   });
 
   Future<String> crateBridgeApiAppHandleUpsertTheme({
@@ -288,6 +289,47 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Stream<GraphEvent> crateBridgeApiAppHandleCreateGraphStream({
+    required AppHandle that,
+  }) {
+    final sink = RustStreamSink<GraphEvent>();
+    unawaited(
+      handler.executeNormal(
+        NormalTask(
+          callFfi: (port_) {
+            final serializer = SseSerializer(generalizedFrbRustBinding);
+            sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+              that,
+              serializer,
+            );
+            sse_encode_StreamSink_graph_event_Sse(sink, serializer);
+            pdeCallFfi(
+              generalizedFrbRustBinding,
+              serializer,
+              funcId: 3,
+              port: port_,
+            );
+          },
+          codec: SseCodec(
+            decodeSuccessData: sse_decode_unit,
+            decodeErrorData: sse_decode_AnyhowException,
+          ),
+          constMeta: kCrateBridgeApiAppHandleCreateGraphStreamConstMeta,
+          argValues: [that, sink],
+          apiImpl: this,
+        ),
+      ),
+    );
+    return sink.stream;
+  }
+
+  TaskConstMeta get kCrateBridgeApiAppHandleCreateGraphStreamConstMeta =>
+      const TaskConstMeta(
+        debugName: "AppHandle_create_graph_stream",
+        argNames: ["that", "sink"],
+      );
+
+  @override
   Future<String> crateBridgeApiAppHandleCreateNode({
     required AppHandle that,
     required NodeInput input,
@@ -304,7 +346,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 3,
+            funcId: 4,
             port: port_,
           );
         },
@@ -342,7 +384,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 4,
+            funcId: 5,
             port: port_,
           );
         },
@@ -382,7 +424,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 6,
             port: port_,
           );
         },
@@ -420,7 +462,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 7,
             port: port_,
           );
         },
@@ -456,7 +498,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 8,
             port: port_,
           );
         },
@@ -492,7 +534,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 9,
             port: port_,
           );
         },
@@ -527,7 +569,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 9,
+            funcId: 10,
             port: port_,
           );
         },
@@ -568,7 +610,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 10,
+            funcId: 11,
             port: port_,
           );
         },
@@ -608,7 +650,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 11,
+            funcId: 12,
             port: port_,
           );
         },
@@ -639,7 +681,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 12,
+            funcId: 13,
             port: port_,
           );
         },
@@ -681,7 +723,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 13,
+            funcId: 14,
             port: port_,
           );
         },
@@ -723,7 +765,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 14,
+            funcId: 15,
             port: port_,
           );
         },
@@ -763,7 +805,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 15,
+            funcId: 16,
             port: port_,
           );
         },
@@ -805,7 +847,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 16,
+            funcId: 17,
             port: port_,
           );
         },
@@ -845,7 +887,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 17,
+            funcId: 18,
             port: port_,
           );
         },
@@ -883,7 +925,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 19,
             port: port_,
           );
         },
@@ -902,42 +944,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(
         debugName: "AppHandle_set_active_theme_id",
         argNames: ["that", "themeId"],
-      );
-
-  @override
-  Future<void> crateBridgeApiAppHandleStartGraphStream({
-    required AppHandle that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 19,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleStartGraphStreamConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateBridgeApiAppHandleStartGraphStreamConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_start_graph_stream",
-        argNames: ["that"],
       );
 
   @override
@@ -1240,6 +1246,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  RustStreamSink<GraphEvent> dco_decode_StreamSink_graph_event_Sse(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError();
+  }
+
+  @protected
   RustStreamSink<LogState> dco_decode_StreamSink_log_state_Sse(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     throw UnimplementedError();
@@ -1276,9 +1290,29 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BoundingBox dco_decode_bounding_box(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return BoundingBox(
+      minX: dco_decode_i_32(arr[0]),
+      minY: dco_decode_i_32(arr[1]),
+      maxX: dco_decode_i_32(arr[2]),
+      maxY: dco_decode_i_32(arr[3]),
+    );
+  }
+
+  @protected
   BlockAttrs dco_decode_box_autoadd_block_attrs(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_block_attrs(raw);
+  }
+
+  @protected
+  BoundingBox dco_decode_box_autoadd_bounding_box(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_bounding_box(raw);
   }
 
   @protected
@@ -1407,6 +1441,29 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   double dco_decode_f_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as double;
+  }
+
+  @protected
+  GraphEvent dco_decode_graph_event(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return GraphEvent_NodeUpdated(
+          dco_decode_box_autoadd_node_output(raw[1]),
+        );
+      case 1:
+        return GraphEvent_NodeDeleted(dco_decode_String(raw[1]));
+      case 2:
+        return GraphEvent_RelationUpdated();
+      case 3:
+        return GraphEvent_SnapshotLoaded();
+      case 4:
+        return GraphEvent_BoundaryUpdated(
+          dco_decode_box_autoadd_bounding_box(raw[1]),
+        );
+      default:
+        throw Exception("unreachable");
+    }
   }
 
   @protected
@@ -1876,6 +1933,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  RustStreamSink<GraphEvent> sse_decode_StreamSink_graph_event_Sse(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    throw UnimplementedError('Unreachable ()');
+  }
+
+  @protected
   RustStreamSink<LogState> sse_decode_StreamSink_log_state_Sse(
     SseDeserializer deserializer,
   ) {
@@ -1912,9 +1977,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BoundingBox sse_decode_bounding_box(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_minX = sse_decode_i_32(deserializer);
+    var var_minY = sse_decode_i_32(deserializer);
+    var var_maxX = sse_decode_i_32(deserializer);
+    var var_maxY = sse_decode_i_32(deserializer);
+    return BoundingBox(
+      minX: var_minX,
+      minY: var_minY,
+      maxX: var_maxX,
+      maxY: var_maxY,
+    );
+  }
+
+  @protected
   BlockAttrs sse_decode_box_autoadd_block_attrs(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_block_attrs(deserializer));
+  }
+
+  @protected
+  BoundingBox sse_decode_box_autoadd_bounding_box(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_bounding_box(deserializer));
   }
 
   @protected
@@ -2033,6 +2121,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   double sse_decode_f_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getFloat64();
+  }
+
+  @protected
+  GraphEvent sse_decode_graph_event(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        var var_field0 = sse_decode_box_autoadd_node_output(deserializer);
+        return GraphEvent_NodeUpdated(var_field0);
+      case 1:
+        var var_field0 = sse_decode_String(deserializer);
+        return GraphEvent_NodeDeleted(var_field0);
+      case 2:
+        return GraphEvent_RelationUpdated();
+      case 3:
+        return GraphEvent_SnapshotLoaded();
+      case 4:
+        var var_field0 = sse_decode_box_autoadd_bounding_box(deserializer);
+        return GraphEvent_BoundaryUpdated(var_field0);
+      default:
+        throw UnimplementedError('');
+    }
   }
 
   @protected
@@ -2636,6 +2748,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_StreamSink_graph_event_Sse(
+    RustStreamSink<GraphEvent> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(
+      self.setupAndSerialize(
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_graph_event,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+      ),
+      serializer,
+    );
+  }
+
+  @protected
   void sse_encode_StreamSink_log_state_Sse(
     RustStreamSink<LogState> self,
     SseSerializer serializer,
@@ -2678,12 +2807,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_bounding_box(BoundingBox self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.minX, serializer);
+    sse_encode_i_32(self.minY, serializer);
+    sse_encode_i_32(self.maxX, serializer);
+    sse_encode_i_32(self.maxY, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_block_attrs(
     BlockAttrs self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_block_attrs(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_bounding_box(
+    BoundingBox self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bounding_box(self, serializer);
   }
 
   @protected
@@ -2816,6 +2963,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_f_64(double self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putFloat64(self);
+  }
+
+  @protected
+  void sse_encode_graph_event(GraphEvent self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case GraphEvent_NodeUpdated(field0: final field0):
+        sse_encode_i_32(0, serializer);
+        sse_encode_box_autoadd_node_output(field0, serializer);
+      case GraphEvent_NodeDeleted(field0: final field0):
+        sse_encode_i_32(1, serializer);
+        sse_encode_String(field0, serializer);
+      case GraphEvent_RelationUpdated():
+        sse_encode_i_32(2, serializer);
+      case GraphEvent_SnapshotLoaded():
+        sse_encode_i_32(3, serializer);
+      case GraphEvent_BoundaryUpdated(field0: final field0):
+        sse_encode_i_32(4, serializer);
+        sse_encode_box_autoadd_bounding_box(field0, serializer);
+    }
   }
 
   @protected
@@ -3275,6 +3442,11 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
   set repo(Repository repo) => RustLib.instance.api
       .crateBridgeApiAppHandleAutoAccessorSetRepo(that: this, repo: repo);
 
+  /// Creates a stream connection for graph events.
+  /// This enables Flutter to receive async updates about node changes.
+  Stream<GraphEvent> createGraphStream() =>
+      RustLib.instance.api.crateBridgeApiAppHandleCreateGraphStream(that: this);
+
   Future<String> createNode({required NodeInput input}) => RustLib.instance.api
       .crateBridgeApiAppHandleCreateNode(that: this, input: input);
 
@@ -3374,9 +3546,6 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
       .instance
       .api
       .crateBridgeApiAppHandleSetActiveThemeId(that: this, themeId: themeId);
-
-  Future<void> startGraphStream() =>
-      RustLib.instance.api.crateBridgeApiAppHandleStartGraphStream(that: this);
 
   Future<String> upsertTheme({required Theme theme}) => RustLib.instance.api
       .crateBridgeApiAppHandleUpsertTheme(that: this, theme: theme);

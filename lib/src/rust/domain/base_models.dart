@@ -34,6 +34,36 @@ enum BlockType {
   blockquote,
 }
 
+/// The mathematical boundary object for elastic canvas constraints.
+/// Uses i32 to match the existing Coordinates type in the codebase.
+class BoundingBox {
+  final int minX;
+  final int minY;
+  final int maxX;
+  final int maxY;
+
+  const BoundingBox({
+    required this.minX,
+    required this.minY,
+    required this.maxX,
+    required this.maxY,
+  });
+
+  @override
+  int get hashCode =>
+      minX.hashCode ^ minY.hashCode ^ maxX.hashCode ^ maxY.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BoundingBox &&
+          runtimeType == other.runtimeType &&
+          minX == other.minX &&
+          minY == other.minY &&
+          maxX == other.maxX &&
+          maxY == other.maxY;
+}
+
 class Comment {
   final String text;
   final PlatformInt64 createdAt;
