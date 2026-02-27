@@ -36,6 +36,15 @@ mixin GraphSpatialMixin on ChangeNotifier, GraphStoreMixin {
   Offset? getConfirmedPosition(String id) => _lastConfirmedPositions[id];
   void clearConfirmedPosition(String id) => _lastConfirmedPositions.remove(id);
 
+  /// Rebuilds the spatial index from scratch using a set of nodes.
+  /// Triggered during bulk load or major graph resets.
+  void reindexAll(Map<String, UiNode> nodes) {
+    spatialGrid.clear();
+    for (final node in nodes.values) {
+      spatialGrid.insert(node.id, node.position);
+    }
+  }
+
   void disposeSpatial() {
     for (final vs in viewStates.values) {
       vs.dispose();

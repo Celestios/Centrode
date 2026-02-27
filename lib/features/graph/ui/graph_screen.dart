@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 import '../state/graph_data_controller.dart';
+import '../state/graph_ui_controller.dart';
 import 'canvas/graph_canvas.dart';
 
 class GraphScreen extends StatefulWidget {
@@ -14,6 +15,14 @@ class GraphScreen extends StatefulWidget {
 class _GraphScreenState extends State<GraphScreen> {
   final Logger _log = Logger('GraphScreen');
 
+  Future<void> _loadGraph() async {
+    final dataController = context.read<GraphDataController>();
+    final uiController = context.read<GraphUIController>();
+    await dataController.loadGraph();
+    // Sync Z-Order after graph load to restore hit-testing
+    uiController.syncZOrder(dataController.nodeLookup.keys);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -21,7 +30,7 @@ class _GraphScreenState extends State<GraphScreen> {
     // Defer the loadGraph call until after the first frame
     // to ensure the Provider context is fully mounted.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<GraphDataController>().loadGraph();
+      _loadGraph();
     });
   }
 
@@ -38,7 +47,7 @@ class _GraphScreenState extends State<GraphScreen> {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               _log.info('User initiated manual graph refresh.');
-              context.read<GraphDataController>().loadGraph();
+              _loadGraph();
             },
           ),
         ],

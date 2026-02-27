@@ -104,6 +104,9 @@ mixin GraphSyncBaseMixin on ChangeNotifier, GraphStoreMixin, GraphSpatialMixin {
         'Hydration complete. Syncing spatial view states.',
       ); // [NEW]
       syncViewStates();
+
+      // THE FIX: Seed the passive spatial index with the new node positions
+      reindexAll(nodeLookup);
     } catch (e) {
       _syncLog.severe('Failed to load graph snapshot', e);
       onError("Failed to load graph: $e");

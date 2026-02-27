@@ -160,6 +160,25 @@ class GraphUIController extends ChangeNotifier {
     }
   }
 
+  /// Synchronizes the hit-testing stack with the provided IDs.
+  /// Ensures new nodes are added to the stack and stale ones are purged.
+  void syncZOrder(Iterable<String> ids) {
+    final idSet = ids.toSet();
+
+    // 1. Purge entities no longer in the database
+    zOrder.removeWhere((id) => !idSet.contains(id));
+
+    // 2. Append new entities to the top (end) of the Z-Order
+    for (final id in ids) {
+      if (!zOrder.contains(id)) {
+        zOrder.add(id);
+      }
+    }
+
+    _log.fine('Z-Order synchronized: ${zOrder.length} entities tracked.');
+    notifyListeners();
+  }
+
   /// Cleans up any dangling UI states when a node is deleted by the Data layer
   void _cleanVolatileStateFor(String id) {
     if (nodeShowingDeleteMenu == id) hideDeleteMenu();

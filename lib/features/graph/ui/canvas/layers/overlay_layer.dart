@@ -5,7 +5,6 @@ import '../../../state/graph_data_controller.dart';
 import '../../../state/graph_ui_controller.dart';
 import '../../../state/canvas_interaction_states.dart';
 import '../../../domain/models.dart';
-import '../inline_editor_overlay.dart';
 
 class OverlayLayer extends StatelessWidget {
   final CanvasInteractionState interactionState;
@@ -25,18 +24,6 @@ class OverlayLayer extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // 2. Absolute Zenith: Transient Editor Overlay
-        if (uiController.activeEditId != null)
-          InlineEditorOverlay(
-            key: ValueKey('editor_${uiController.activeEditId}'),
-            entityId: uiController.activeEditId!,
-            initialText:
-                dataController.nodeLookup[uiController.activeEditId!]?.text ??
-                dataController.relations
-                    .firstWhere((r) => r.id == uiController.activeEditId!)
-                    .label,
-          ),
-
         // 3. Temporary Relation Drag Line (when drawing relation)
         if (interactionState is RelationDrawing)
           Positioned.fill(
