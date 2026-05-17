@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:logging/logging.dart';
 import '../../../presentation/graph_metrics.dart';
-import '../../../store/graph_repository.dart';
 import '../../../store/graph_data_query.dart';
-import '../../../state/graph_ui_controller.dart';
+import '../../../presentation/node_render_state.dart';
 import '../relation_painter.dart';
 import '../canvas_text_editor.dart';
 
@@ -15,12 +12,12 @@ class RelationLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dataController = context.watch<GraphDataQuery>();
-    final uiController = context.watch<GraphUIController>();
+    final uiController = context.watch<NodeRenderState>();
 
     return Positioned.fill(
       child: RepaintBoundary(
         child: ListenableBuilder(
-          listenable: dataController.movementNotifier,
+          listenable: uiController.movementNotifier,
           builder: (context, _) {
             // Find if a relation is currently being edited
             final activeEditId = uiController.activeEditId;
@@ -32,8 +29,8 @@ class RelationLayer extends StatelessWidget {
 
             Widget? editorWidget;
             if (editedRel != null) {
-              final fromVs = dataController.viewStates[editedRel.fromNodeId];
-              final toVs = dataController.viewStates[editedRel.toNodeId];
+              final fromVs = uiController.viewStates[editedRel.fromNodeId];
+              final toVs = uiController.viewStates[editedRel.toNodeId];
 
               if (fromVs != null && toVs != null) {
                 final start = fromVs.rightPort;
@@ -96,7 +93,7 @@ class RelationLayer extends StatelessWidget {
                   child: CustomPaint(
                     painter: RelationPainter(
                       dataController.relations.toList(),
-                      dataController.viewStates,
+                      uiController.viewStates,
                       uiController.selectedEntities,
                     ),
                   ),

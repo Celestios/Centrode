@@ -7,7 +7,7 @@ class RelationPainter extends CustomPainter {
   final List<UiRelation> relations;
   final Map<String, NodeViewState>
   nodeViewStates; // Use ViewStates for real-time positions
-  final Set<String> selectedEntities; // Selection state from GraphUIController
+  final Set<String> selectedEntities; // Selection state from NodeRenderState
 
   RelationPainter(this.relations, this.nodeViewStates, this.selectedEntities);
 
@@ -40,7 +40,7 @@ class RelationPainter extends CustomPainter {
           ? endPos + AppConfig.relation.endFallback
           : to.leftPort;
 
-      // Apply selection styling from GraphUIController.selectedEntities
+      // Apply selection styling from NodeRenderState.selectedEntities
       final isSelected = selectedEntities.contains(rel.id);
       paint.color = isSelected
           ? AppConfig.visuals.selectionAccent

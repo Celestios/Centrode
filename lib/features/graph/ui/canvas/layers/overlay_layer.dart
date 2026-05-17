@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../presentation/graph_metrics.dart';
 import '../../../store/graph_repository.dart';
-import '../../../state/graph_ui_controller.dart';
+import '../../../presentation/node_render_state.dart';
 import '../../../engine/base_interaction_state.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
@@ -15,7 +15,7 @@ class OverlayLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dataController = context.watch<GraphDataController>();
-    final uiController = context.watch<GraphUIController>();
+    final renderState = context.watch<NodeRenderState>();
 
     return Stack(
       clipBehavior: Clip.none,
@@ -26,7 +26,7 @@ class OverlayLayer extends StatelessWidget {
             child: CustomPaint(
               painter: _TempRelationPainter(
                 state: interactionState as RelationDrawing,
-                nodeViewStates: dataController.allNodeViewStates,
+                nodeViewStates: renderState.viewStates,
               ),
             ),
           ),
@@ -42,8 +42,8 @@ class OverlayLayer extends StatelessWidget {
           ),
 
         // 5. THE UNIFIED FLOATING TOOLBAR
-        if (uiController.selectedEntities.isNotEmpty)
-          _buildUnifiedToolbar(context, uiController, dataController),
+        if (renderState.selectedEntities.isNotEmpty)
+          _buildUnifiedToolbar(context, renderState, dataController),
       ],
     );
   }
@@ -53,13 +53,13 @@ class OverlayLayer extends StatelessWidget {
   /// Supports both NodeViewState entities and UiRelation entities.
   Widget _buildUnifiedToolbar(
     BuildContext context,
-    GraphUIController ui,
+    NodeRenderState renderState,
     GraphDataController data,
   ) {
-    final isMulti = ui.selectedEntities.length > 1;
+    final isMulti = renderState.selectedEntities.length > 1;
     final offsetNotifier = isMulti
-        ? ui.multiToolbarOffsetNotifier
-        : ui.toolbarOffsetNotifier;
+        ? renderState.multiToolbarOffsetNotifier
+        : renderState.toolbarOffsetNotifier;
 
     // 1. Track ALL selected nodes so the toolbar moves if a multi-selection group is dragged
     // Also track relations and their connected nodes for dynamic anchor calculation
@@ -67,8 +67,8 @@ class OverlayLayer extends StatelessWidget {
     final List<NodeViewState> selectedViewStates = [];
     final List<UiRelation> selectedRelations = [];
 
-    for (final id in ui.selectedEntities) {
-      final vs = data.allNodeViewStates[id];
+    for (final id in renderState.selectedEntities) {
+      final vs = renderState.viewStates[id];
       if (vs != null) {
         listenables.add(vs.positionNotifier);
         selectedViewStates.add(vs);
@@ -78,8 +78,8 @@ class OverlayLayer extends StatelessWidget {
           final rel = data.relations.firstWhere((r) => r.id == id);
           selectedRelations.add(rel);
           // Listen to connected nodes so toolbar moves when they move
-          final sourceVs = data.allNodeViewStates[rel.fromNodeId];
-          final targetVs = data.allNodeViewStates[rel.toNodeId];
+          final sourceVs = renderState.viewStates[rel.fromNodeId];
+          final targetVs = renderState.viewStates[rel.toNodeId];
           if (sourceVs != null) listenables.add(sourceVs.positionNotifier);
           if (targetVs != null) listenables.add(targetVs.positionNotifier);
         } catch (_) {}
@@ -131,8 +131,8 @@ class OverlayLayer extends StatelessWidget {
           } else if (isRelationOnly) {
             // Mathematical midpoint anchor for single relation
             final rel = selectedRelations.first;
-            final sourceVs = data.allNodeViewStates[rel.fromNodeId];
-            final targetVs = data.allNodeViewStates[rel.toNodeId];
+            final sourceVs = renderState.viewStates[rel.fromNodeId];
+            final targetVs = renderState.viewStates[rel.toNodeId];
             if (sourceVs != null && targetVs != null) {
               final start = sourceVs.rightPort;
               final end = targetVs.leftPort;
@@ -149,7 +149,7 @@ class OverlayLayer extends StatelessWidget {
                   ? (d) => offsetNotifier.value += d.delta
                   : null,
               child: _buildToolbarUI(
-                onDelete: ui.deleteSelectedEntities,
+                onDelete: renderState.deleteSelectedEntities,
                 isMulti: isMulti,
                 isRelationOnly: isRelationOnly,
               ),

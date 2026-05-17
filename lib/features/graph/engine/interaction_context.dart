@@ -28,6 +28,9 @@ abstract interface class InteractionContext {
   /// Callback to trigger relation layer repaint during node drag.
   void onNodeDragUpdate();
 
+  /// Registers a node dragging state to protect its volatile position from store overrides.
+  void setNodeDragging(String id, bool dragging);
+
   /// Callback to commit the active text edit.
   void onCommitActiveEdit();
 

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../store/graph_data_query.dart';
-import '../../../state/graph_ui_controller.dart';
+import '../../../presentation/node_render_state.dart';
+import '../../../presentation/viewport_state.dart';
 import '../node_widget.dart';
 
 class NodeLayer extends StatelessWidget {
@@ -10,10 +11,11 @@ class NodeLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final query = context.watch<GraphDataQuery>();
-    final uiState = context.watch<GraphUIController>();
+    final uiState = context.watch<NodeRenderState>();
+    final viewport = context.watch<ViewportController>();
 
     return ValueListenableBuilder<Set<String>>(
-      valueListenable: uiState.visibleNodeIds,
+      valueListenable: viewport.visibleNodeIds,
       builder: (context, visibleIds, _) {
         final renderStack = uiState.zOrder.where(visibleIds.contains);
 
@@ -21,7 +23,7 @@ class NodeLayer extends StatelessWidget {
           clipBehavior: Clip.none,
           children: renderStack.map((id) {
             final node = query.nodeLookup[id]!;
-            final viewState = query.viewStates[id]!;
+            final viewState = uiState.viewStates[id]!;
             final isSelected = uiState.selectedEntities.contains(id);
             final isEditing = uiState.activeEditId == id;
 

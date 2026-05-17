@@ -5,7 +5,7 @@ import 'package:logging/logging.dart';
 import '../../models/models.dart';
 import '../../../../src/rust/bridge/stream.dart';
 import '../../../../src/rust/domain/base_models.dart' show BoundingBox;
-import '../../state/command_processor.dart';
+import '../command_processor.dart';
 import '../../presentation/theme_manager.dart';
 
 import 'graph_store_mixin.dart';
@@ -98,8 +98,7 @@ mixin GraphSyncBaseMixin on ChangeNotifier, GraphStoreMixin, GraphSpatialMixin {
         relationLookup[uiRel.id] = uiRel;
       }
 
-      _syncLog.fine('Hydration complete. Syncing spatial view states.');
-      syncViewStates();
+      _syncLog.fine('Hydration complete. Seeding spatial index.');
 
       // Seed the passive spatial index with the new node positions
       reindexAll(nodeLookup);

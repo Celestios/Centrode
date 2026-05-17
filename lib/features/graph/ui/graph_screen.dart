@@ -4,7 +4,7 @@ import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import '../presentation/theme_manager.dart';
 import '../store/graph_repository.dart';
-import '../state/graph_ui_controller.dart';
+import '../presentation/node_render_state.dart';
 import '../store/graph_data_query.dart';
 import 'canvas/graph_canvas.dart';
 import 'widgets/init_error_widget.dart';
@@ -22,7 +22,7 @@ class _GraphScreenState extends State<GraphScreen> {
 
   ThemeController? _themeController;
   GraphDataController? _dataController;
-  GraphUIController? _uiController;
+  NodeRenderState? _uiController;
   bool _initialized = false;
   late final Future<AppHandle> _handleFuture = _createAppHandle();
 
@@ -78,7 +78,7 @@ class _GraphScreenState extends State<GraphScreen> {
           _initialized = true; // prevent multiple schedules
           _themeController ??= ThemeController(appHandle);
           _dataController ??= GraphDataController(appHandle, _themeController!);
-          _uiController ??= GraphUIController(_dataController!);
+          _uiController ??= NodeRenderState(_dataController!);
 
           // Defer the async theme load and graph hydration until after the current build cycle
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -97,7 +97,7 @@ class _GraphScreenState extends State<GraphScreen> {
               value: _dataController!,
             ),
             ListenableProvider<GraphDataQuery>.value(value: _dataController!),
-            ChangeNotifierProvider<GraphUIController>.value(
+            ChangeNotifierProvider<NodeRenderState>.value(
               value: _uiController!,
             ),
           ],

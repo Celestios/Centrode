@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import '../../models/models.dart';
-import '../../state/command_processor.dart';
+import '../command_processor.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/features/graph/presentation/style_resolver.dart';
 import 'package:mycelium/features/graph/models/content_builder.dart';
@@ -76,7 +76,6 @@ mixin GraphPropertyMutationsMixin
           // Restore exactly the field that was changed
           if (node != null) {
             node.content = ContentFactory.fromText(oldText);
-            viewStates[id]?.onContentOrStyleChanged(node); // re‑compute size
           } else if (rel != null) {
             rel.verb = oldText;
           }

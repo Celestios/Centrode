@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../presentation/graph_metrics.dart';
-import 'package:mycelium/features/graph/presentation/node_render_state.dart';
+import 'package:mycelium/features/graph/presentation/viewport_state.dart';
 import 'package:mycelium/features/graph/engine/base_interaction_state.dart';
 
 class GridLayer extends StatelessWidget {

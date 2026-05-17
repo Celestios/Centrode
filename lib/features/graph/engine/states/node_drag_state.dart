@@ -26,8 +26,11 @@ class NodeDragging extends CanvasInteractionState {
       _nodeDragLog.severe(
         'Dangling Pointer: Dragging $nodeId but ViewState is null. Resetting to Idle.',
       );
+      ctx.setNodeDragging(nodeId, false);
       return const CanvasIdle(); // Defensive check for dangling pointers
     }
+
+    ctx.setNodeDragging(nodeId, true);
 
     // Apply continuous L1 snapping to the node's origin using Dynamic LOD
     final rawPos = pCanvas - grabOffset;
@@ -44,6 +47,7 @@ class NodeDragging extends CanvasInteractionState {
     InteractionContext ctx,
   ) {
     final vs = ctx.nodeViewStates[nodeId];
+    ctx.setNodeDragging(nodeId, false);
     if (vs != null) {
       // [NEW] Telemetry for volatile-to-domain commit
       _nodeDragLog.info(
@@ -51,6 +55,15 @@ class NodeDragging extends CanvasInteractionState {
       );
       ctx.onNodeMove(nodeId, vs.positionNotifier.value);
     }
+    return const CanvasIdle();
+  }
+
+  @override
+  CanvasInteractionState handlePointerCancel(
+    PointerCancelEvent e,
+    InteractionContext ctx,
+  ) {
+    ctx.setNodeDragging(nodeId, false);
     return const CanvasIdle();
   }
 }

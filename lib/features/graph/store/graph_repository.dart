@@ -1,9 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'graph_data_query.dart';
-import '../presentation/view_state.dart';
 import '../models/models.dart';
-import '../state/command_processor.dart';
+import 'command_processor.dart';
 import '../presentation/theme_manager.dart';
 import 'package:mycelium/src/rust/bridge/api.dart' as rust;
 import 'package:mycelium/features/graph/presentation/style_resolver.dart';
@@ -87,11 +86,7 @@ class GraphDataController extends ChangeNotifier
   /// This getter maintains the original API contract.
   SpatialHashGrid get spatialHash => spatialGrid;
 
-  /// Alias for [viewStates] for backward compatibility.
-  ///
-  /// The original API used `allNodeViewStates` but the mixin uses `viewStates`.
-  /// This getter maintains the original API contract.
-  Map<String, NodeViewState> get allNodeViewStates => viewStates;
+
 
   // ===========================================================================
   // Constructor

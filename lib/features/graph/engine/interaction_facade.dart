@@ -3,28 +3,31 @@ import '../models/models.dart';
 import '../presentation/view_state.dart';
 import 'interaction_context.dart';
 import '../store/graph_repository.dart';
-import '../state/graph_ui_controller.dart';
+import '../presentation/node_render_state.dart';
+import '../presentation/viewport_state.dart';
 
 /// The Facade bridging the active FSM to the Data/UI Controllers.
 class CanvasInteractionEnvironment implements InteractionContext {
   final GraphDataController _dataController;
-  final GraphUIController _uiController;
+  final NodeRenderState _renderState;
+  final ViewportController _viewportController;
   final double Function() _getScale;
 
   CanvasInteractionEnvironment({
     required GraphDataController dataController,
-    required GraphUIController uiController,
+    required NodeRenderState renderState,
+    required ViewportController viewportController,
     required double Function() getScale,
   }) : _dataController = dataController,
-       _uiController = uiController,
+       _renderState = renderState,
+       _viewportController = viewportController,
        _getScale = getScale;
 
   @override
-  Map<String, NodeViewState> get nodeViewStates =>
-      _dataController.allNodeViewStates;
+  Map<String, NodeViewState> get nodeViewStates => _renderState.viewStates;
 
   @override
-  List<String> get zOrder => _uiController.zOrder;
+  List<String> get zOrder => _renderState.zOrder;
 
   @override
   Iterable<UiRelation> getRelations() => _dataController.relations;
@@ -38,57 +41,61 @@ class CanvasInteractionEnvironment implements InteractionContext {
       _dataController.createRelation(from, to);
 
   @override
-  void onNodeDragUpdate() => _dataController.triggerUpdate();
+  void onNodeDragUpdate() => _renderState.notifyNodeDragUpdate();
 
   @override
-  String? getActiveEditId() => _uiController.activeEditId;
+  void setNodeDragging(String id, bool dragging) =>
+      _renderState.setNodeDragging(id, dragging);
 
   @override
-  void onEnterEditMode(String id) => _uiController.enterEditMode(id);
+  String? getActiveEditId() => _renderState.activeEditId;
 
   @override
-  void onCommitActiveEdit() => _uiController.cancelActiveEdit();
+  void onEnterEditMode(String id) => _renderState.enterEditMode(id);
+
+  @override
+  void onCommitActiveEdit() => _renderState.cancelActiveEdit();
 
   @override
   void onCreateNode(Offset position) {
     // 1. Create the node via data layer
     final id = _dataController.createNode(UiNodes.info, position);
 
-    // 3. Trigger UI edit mode
-    _uiController.enterEditMode(id);
+    // 2. Trigger UI edit mode
+    _renderState.enterEditMode(id);
   }
 
   @override
   void updateNodeWidth(double leftEdge, double rightEdge) {
-    if (_uiController.selectedEntities.isNotEmpty) {
-      final id = _uiController.selectedEntities.first;
+    if (_renderState.selectedEntities.isNotEmpty) {
+      final id = _renderState.selectedEntities.first;
       _dataController.updateNodeWidth(id, leftEdge, rightEdge);
     }
   }
 
   @override
-  void onSelectEntity(String? id) => _uiController.selectEntity(id);
+  void onSelectEntity(String? id) => _renderState.selectEntity(id);
 
   @override
   void onSelectEntities(Iterable<String> ids) =>
-      _uiController.selectEntities(ids);
+      _renderState.selectEntities(ids);
 
   @override
-  Set<String> getSelectedEntities() => _uiController.selectedEntities;
+  Set<String> getSelectedEntities() => _renderState.selectedEntities;
 
   @override
-  Offset getToolbarOffset() => _uiController.toolbarOffsetNotifier.value;
+  Offset getToolbarOffset() => _renderState.toolbarOffsetNotifier.value;
 
   @override
   void updateToolbarOffset(Offset delta) {
-    _uiController.toolbarOffsetNotifier.value += delta;
+    _renderState.toolbarOffsetNotifier.value += delta;
   }
 
   @override
-  void onDeleteSelectedEntities() => _uiController.deleteSelectedEntities();
+  void onDeleteSelectedEntities() => _renderState.deleteSelectedEntities();
 
   @override
-  Set<String> getVisibleNodeIds() => _uiController.visibleNodeIds.value;
+  Set<String> getVisibleNodeIds() => _viewportController.visibleNodeIds.value;
 
   @override
   double get currentScale => _getScale();

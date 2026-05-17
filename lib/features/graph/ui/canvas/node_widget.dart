@@ -1,14 +1,10 @@
 // lib/features/graph/ui/canvas/node_widget.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:logging/logging.dart';
 import '../../presentation/graph_metrics.dart';
 import '../../models/models.dart';
-import '../../state/graph_ui_controller.dart';
 import '../../store/graph_data_query.dart';
-import '../../store/graph_repository.dart';
 import '../../presentation/view_state.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'canvas_text_editor.dart';

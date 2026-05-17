@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 import '../../store/graph_repository.dart';
-import '../../state/graph_ui_controller.dart';
+import '../../presentation/node_render_state.dart';
 
 class CanvasTextEditor extends StatefulWidget {
   final String entityId;
@@ -56,7 +56,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
       widget.entityId,
       _controller.text,
     );
-    context.read<GraphUIController>().cancelActiveEdit();
+    context.read<NodeRenderState>().cancelActiveEdit();
   }
 
   @override
@@ -71,7 +71,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
           }
           if (event.logicalKey == LogicalKeyboardKey.escape) {
             _log.info('Aborted edit via Escape key.');
-            context.read<GraphUIController>().cancelActiveEdit();
+            context.read<NodeRenderState>().cancelActiveEdit();
             return KeyEventResult.handled;
           }
         }
