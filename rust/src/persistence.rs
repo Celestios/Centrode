@@ -1,4 +1,4 @@
 pub mod db;
 pub mod repo;
-pub mod templates;
 pub mod schema;
+pub mod history;

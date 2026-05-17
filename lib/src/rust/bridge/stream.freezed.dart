@@ -128,7 +128,7 @@ return boundaryUpdated(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( NodeOutput field0)?  nodeUpdated,TResult Function( String field0)?  nodeDeleted,TResult Function()?  relationUpdated,TResult Function()?  snapshotLoaded,TResult Function( BoundingBox field0)?  boundaryUpdated,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Nodes field0)?  nodeUpdated,TResult Function( String field0)?  nodeDeleted,TResult Function()?  relationUpdated,TResult Function()?  snapshotLoaded,TResult Function( BoundingBox field0)?  boundaryUpdated,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case GraphEvent_NodeUpdated() when nodeUpdated != null:
 return nodeUpdated(_that.field0);case GraphEvent_NodeDeleted() when nodeDeleted != null:
@@ -153,7 +153,7 @@ return boundaryUpdated(_that.field0);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( NodeOutput field0)  nodeUpdated,required TResult Function( String field0)  nodeDeleted,required TResult Function()  relationUpdated,required TResult Function()  snapshotLoaded,required TResult Function( BoundingBox field0)  boundaryUpdated,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Nodes field0)  nodeUpdated,required TResult Function( String field0)  nodeDeleted,required TResult Function()  relationUpdated,required TResult Function()  snapshotLoaded,required TResult Function( BoundingBox field0)  boundaryUpdated,}) {final _that = this;
 switch (_that) {
 case GraphEvent_NodeUpdated():
 return nodeUpdated(_that.field0);case GraphEvent_NodeDeleted():
@@ -174,7 +174,7 @@ return boundaryUpdated(_that.field0);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( NodeOutput field0)?  nodeUpdated,TResult? Function( String field0)?  nodeDeleted,TResult? Function()?  relationUpdated,TResult? Function()?  snapshotLoaded,TResult? Function( BoundingBox field0)?  boundaryUpdated,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Nodes field0)?  nodeUpdated,TResult? Function( String field0)?  nodeDeleted,TResult? Function()?  relationUpdated,TResult? Function()?  snapshotLoaded,TResult? Function( BoundingBox field0)?  boundaryUpdated,}) {final _that = this;
 switch (_that) {
 case GraphEvent_NodeUpdated() when nodeUpdated != null:
 return nodeUpdated(_that.field0);case GraphEvent_NodeDeleted() when nodeDeleted != null:
@@ -196,7 +196,7 @@ class GraphEvent_NodeUpdated extends GraphEvent {
   const GraphEvent_NodeUpdated(this.field0): super._();
   
 
- final  NodeOutput field0;
+ final  Nodes field0;
 
 /// Create a copy of GraphEvent
 /// with the given fields replaced by the non-null parameter values.
@@ -228,11 +228,11 @@ abstract mixin class $GraphEvent_NodeUpdatedCopyWith<$Res> implements $GraphEven
   factory $GraphEvent_NodeUpdatedCopyWith(GraphEvent_NodeUpdated value, $Res Function(GraphEvent_NodeUpdated) _then) = _$GraphEvent_NodeUpdatedCopyWithImpl;
 @useResult
 $Res call({
- NodeOutput field0
+ Nodes field0
 });
 
 
-$NodeOutputCopyWith<$Res> get field0;
+$NodesCopyWith<$Res> get field0;
 
 }
 /// @nodoc
@@ -248,7 +248,7 @@ class _$GraphEvent_NodeUpdatedCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
   return _then(GraphEvent_NodeUpdated(
 null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
-as NodeOutput,
+as Nodes,
   ));
 }
 
@@ -256,9 +256,9 @@ as NodeOutput,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$NodeOutputCopyWith<$Res> get field0 {
+$NodesCopyWith<$Res> get field0 {
   
-  return $NodeOutputCopyWith<$Res>(_self.field0, (value) {
+  return $NodesCopyWith<$Res>(_self.field0, (value) {
     return _then(_self.copyWith(field0: value));
   });
 }

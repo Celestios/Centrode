@@ -1,6 +1,6 @@
 use crate::domain::base_models::BoundingBox;
-use serde::Deserialize;
 use surrealdb::engine::local::Db;
+use surrealdb::types::RecordId;
 use surrealdb::Surreal;
 
 pub struct DecaySignificanceStrategy;
@@ -9,10 +9,10 @@ impl DecaySignificanceStrategy {
     pub async fn recalculate_area(
         &self,
         db: &Surreal<Db>,
-        center_node_id: &str,
+        center_node_id: RecordId,
     ) -> anyhow::Result<()> {
         tracing::info!(
-            "ANALYSIS: Recalculating significance area for center node: {}",
+            "ANALYSIS: Recalculating significance area for center node: {:?}",
             center_node_id
         );
 
@@ -34,11 +34,12 @@ impl DecaySignificanceStrategy {
             };
         ";
 
-        let center_id = center_node_id.to_string();
-        db.query(sql).bind(("center", center_id)).await?;
+        db.query(sql)
+            .bind(("center", center_node_id.clone()))
+            .await?;
 
         tracing::info!(
-            "ANALYSIS: Significance area recalculated successfully for {}",
+            "ANALYSIS: Significance area recalculated successfully for {:?}",
             center_node_id
         );
         Ok(())
@@ -66,36 +67,8 @@ impl GraphAnalysis {
             };
         ";
 
-        #[derive(Deserialize, Debug)]
-        struct BoundsResult {
-            min_x: Option<f64>,
-            max_x: Option<f64>,
-            min_y: Option<f64>,
-            max_y: Option<f64>,
-        }
-
         let mut res = db.query(sql).await?;
-        let bounds: Option<BoundsResult> = res.take(2)?;
-
-        // Safely extract floats and cast them down to i32 for the FFI boundary
-        if let Some(b) = bounds {
-            if let (Some(mx), Some(mxx), Some(my), Some(mxy)) = (b.min_x, b.max_x, b.min_y, b.max_y)
-            {
-                tracing::trace!(
-                    "ANALYSIS: Downcasting f64 boundaries to i32 for FFI spatial index."
-                );
-                return Ok(BoundingBox {
-                    min_x: mx as i32,
-                    max_x: mxx as i32,
-                    min_y: my as i32,
-                    max_y: mxy as i32,
-                });
-            }
-        }
-
-        tracing::warn!(
-            "ANALYSIS: Zero-Node Collapse detected. Falling back to default empty bounding box."
-        );
-        Ok(BoundingBox::default())
+        let bounds: Option<BoundingBox> = res.take(0)?;
+        bounds.ok_or_else(|| anyhow::anyhow!("No nodes found to calculate bounds"))
     }
 }

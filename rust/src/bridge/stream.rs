@@ -1,21 +1,20 @@
 use crate::domain::base_models::BoundingBox;
-use crate::domain::nodes::NodeOutput;
+use crate::domain::nodes::Nodes;
 use flutter_rust_bridge::frb;
 use lazy_static::lazy_static;
-use serde::Serialize;
 use tokio::sync::broadcast;
 use tracing::debug;
 
 /// The Event Enum for the Graph Stream
 /// This enum is serialized and sent to Flutter via the FFI stream.
 #[frb]
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone)]
 pub enum GraphEvent {
-    NodeUpdated(NodeOutput),
+    NodeUpdated(Nodes),
     NodeDeleted(String),
     RelationUpdated,
     SnapshotLoaded,
-    BoundaryUpdated(BoundingBox), // NEW: The asynchronous boundary push
+    BoundaryUpdated(BoundingBox),
 }
 
 lazy_static! {

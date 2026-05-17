@@ -5,24 +5,43 @@
 
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'styles.dart';
 
 class IRelation {
-  final String? id;
-  final String? inId;
-  final String? outId;
+  final String key;
+  final IRelationFields fields;
+
+  const IRelation({required this.key, required this.fields});
+
+  @override
+  int get hashCode => key.hashCode ^ fields.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is IRelation &&
+          runtimeType == other.runtimeType &&
+          key == other.key &&
+          fields == other.fields;
+}
+
+class IRelationFields {
+  final String in_;
+  final String out;
   final String verb;
-  final String? aesthetics;
+  final RelationStyle? style;
+  final RelationStyle? resolvedStyle;
   final bool directionless;
-  final int layer;
+  final String layer;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
 
-  const IRelation({
-    this.id,
-    this.inId,
-    this.outId,
+  const IRelationFields({
+    required this.in_,
+    required this.out,
     required this.verb,
-    this.aesthetics,
+    this.style,
+    this.resolvedStyle,
     required this.directionless,
     required this.layer,
     required this.createdAt,
@@ -31,11 +50,11 @@ class IRelation {
 
   @override
   int get hashCode =>
-      id.hashCode ^
-      inId.hashCode ^
-      outId.hashCode ^
+      in_.hashCode ^
+      out.hashCode ^
       verb.hashCode ^
-      aesthetics.hashCode ^
+      style.hashCode ^
+      resolvedStyle.hashCode ^
       directionless.hashCode ^
       layer.hashCode ^
       createdAt.hashCode ^
@@ -44,39 +63,15 @@ class IRelation {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is IRelation &&
+      other is IRelationFields &&
           runtimeType == other.runtimeType &&
-          id == other.id &&
-          inId == other.inId &&
-          outId == other.outId &&
+          in_ == other.in_ &&
+          out == other.out &&
           verb == other.verb &&
-          aesthetics == other.aesthetics &&
+          style == other.style &&
+          resolvedStyle == other.resolvedStyle &&
           directionless == other.directionless &&
           layer == other.layer &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt;
-}
-
-class RelationInput {
-  final String from;
-  final String to;
-  final IRelation props;
-
-  const RelationInput({
-    required this.from,
-    required this.to,
-    required this.props,
-  });
-
-  @override
-  int get hashCode => from.hashCode ^ to.hashCode ^ props.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is RelationInput &&
-          runtimeType == other.runtimeType &&
-          from == other.from &&
-          to == other.to &&
-          props == other.props;
 }

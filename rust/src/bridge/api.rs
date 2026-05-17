@@ -1,41 +1,39 @@
 use crate::bridge::stream::{self, GraphEvent};
 use crate::domain::analysis::GraphAnalysis;
-use crate::domain::base_models::{Content, MapConfig};
-use crate::domain::nodes::{NodeInput, NodeOutput};
-use crate::domain::relations::RelationInput;
+use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings};
+use crate::domain::nodes::{INode, InterNode, Nodes, TaskNode};
+use crate::domain::relations::IRelation;
+use crate::domain::theme::{Theme, ThemeFields};
 use crate::format::packager;
 use crate::frb_generated::StreamSink;
 use crate::persistence::db::Database;
+use crate::persistence::history::HistoryManager;
+use crate::persistence::history::HistoryRecord;
 use crate::persistence::repo::Repository;
-use crate::telemetry::{connect_log_stream, LogState};
-use serde_json;
+use crate::telemetry::{connect_log_stream, init_telemetry, LogState};
+use std::collections::BTreeMap;
+use std::sync::Mutex;
+use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
+use tokio::task::JoinHandle;
 use tracing::{debug, error, info};
 
 // ============================================================================
 // Telemetry FFI Endpoints
 // ============================================================================
 
-/// Initialization endpoint for the telemetry layer.
-/// Called by Dart during app startup to initialize the tracing subscriber.
 pub async fn setup_logger() -> anyhow::Result<()> {
-    crate::telemetry::init_telemetry();
+    init_telemetry();
     tracing::debug!("FFI: setup_logger completed");
     Ok(())
 }
 
-/// Stream connection endpoint for FFI.
-/// Dart calls this after the DiskWriterIsolate is ready.
-/// Flushes the pre-stream buffer and starts streaming logs.
 pub async fn create_log_stream(sink: StreamSink<LogState>) -> anyhow::Result<()> {
     tracing::debug!("FFI: create_log_stream called");
 
-    // Connect the stream and flush buffer
     connect_log_stream();
 
-    // Subscribe to the broadcast channel
     let receiver = crate::telemetry::subscribe_to_logs();
 
-    // Spawn a task to forward logs to the sink
     tokio::spawn(async move {
         use tokio_stream::StreamExt;
         let stream = tokio_stream::wrappers::BroadcastStream::new(receiver);
@@ -60,68 +58,33 @@ pub async fn create_log_stream(sink: StreamSink<LogState>) -> anyhow::Result<()>
     Ok(())
 }
 
-// ============================================================================
-// Content Serialization FFI Endpoints
-// ============================================================================
-
-/// Serialize Content to binary for FFI transport.
-/// Used by Flutter to prepare content for efficient transfer.
-pub fn serialize_content(content: Content) -> anyhow::Result<Vec<u8>> {
-    bincode::serialize(&content).map_err(|e| anyhow::anyhow!("Failed to serialize content: {}", e))
-}
-
-/// Deserialize Content from binary FFI payload.
-/// Used by Flutter to decode content received from Rust.
-pub fn deserialize_content(bytes: Vec<u8>) -> anyhow::Result<Option<Content>> {
-    let content: Content = bincode::deserialize(&bytes)
-        .map_err(|e| anyhow::anyhow!("Failed to deserialize content: {}", e))?;
-    Ok(Some(content))
-}
-
-/// Create a simple Content from plain text.
-/// Convenience function for creating paragraph content.
-pub fn create_content_from_text(text: String) -> Content {
-    Content::from_plain_text(text)
-}
-
-/// Extract plain text from Content.
-/// Used for search indexing and fallback rendering.
-pub fn content_to_plain_text(content: Content) -> String {
-    content.to_plain_text()
-}
-
-// [NEW] The Opaque App Handle
-// This struct holds the entire state of the running backend.
 pub struct AppHandle {
     pub repo: Repository,
+    tasks: Mutex<Vec<JoinHandle<()>>>,
 }
 
 impl AppHandle {
-    // 1. App Initialization (The Constructor)
-    pub async fn new(storage_path: String) -> anyhow::Result<Self> {
-        debug!("Initializing AppHandle with storage path: {}", storage_path);
-        let db = Database::connect(&storage_path).await?;
-        let repo = Repository::new(db);
-        info!("AppHandle initialized successfully");
-        Ok(Self { repo })
+    pub async fn new(storage_path: String, name: String) -> anyhow::Result<Self> {
+        let db = Database::connect(&storage_path, name).await?;
+        Ok(Self {
+            repo: Repository::new(db),
+            tasks: Mutex::new(Vec::new()),
+        })
     }
 
-    // Helper to calculate and broadcast boundaries
     async fn broadcast_boundaries(&self) {
         if let Ok(bounds) = GraphAnalysis::calculate_global_bounds(self.repo.db()).await {
             stream::publish_event(GraphEvent::BoundaryUpdated(bounds));
         }
     }
 
-    // 2. Node Operations
-    // Note: usage of &self eliminates the need for Mutex locking
-    pub async fn create_node(&self, input: NodeInput) -> anyhow::Result<String> {
+    pub async fn create_node(&self, input: Nodes) -> anyhow::Result<()> {
         debug!("FFI: create_node called with input: {:?}", input);
         match self.repo.create_node(input).await {
-            Ok(id) => {
-                info!("FFI: Successfully committed node to database: {}", id);
-                self.broadcast_boundaries().await; // Trigger on creation - requires FRB regeneration
-                Ok(id)
+            Result::Ok(()) => {
+                info!("FFI: Successfully committed node to database");
+                self.broadcast_boundaries().await;
+                Ok(())
             }
             Err(e) => {
                 error!("FFI: Database rejection during node creation: {}", e);
@@ -130,71 +93,43 @@ impl AppHandle {
         }
     }
 
-    pub async fn get_node(&self, table: String, id: String) -> anyhow::Result<Option<NodeOutput>> {
-        debug!("Fetching node: {}/{}", table, id);
-        self.repo.get_node(table, id).await
+    pub async fn get_node(&self, table: String, key: String) -> anyhow::Result<Option<Nodes>> {
+        debug!("Fetching node: {}/{}", &table, &key);
+        self.repo.get_node(table, key).await
     }
 
-    pub async fn patch_node_properties(
-        &self,
-        table: String,
-        id: String,
-        json_patch: String,
-    ) -> anyhow::Result<()> {
-        debug!(
-            "FFI: patch_node_properties called for {}/{} with patch: {}",
-            table, id, json_patch
-        );
-        let patch: serde_json::Value = serde_json::from_str(&json_patch).map_err(|e| {
-            error!("FFI: Failed to parse JSON patch: {}", e);
+    pub async fn update_node(&self, input: Nodes) -> anyhow::Result<()> {
+        self.repo.update_node(input).await.map_err(|e| {
+            error!("FFI: Repository failed to update node {}", e);
             e
         })?;
-
-        self.repo
-            .patch_node(table.clone(), id.clone(), patch)
-            .await
-            .map_err(|e| {
-                error!(
-                    "FFI: Repository failed to patch node {}/{}: {}",
-                    table, id, e
-                );
-                e
-            })?;
-
-        // If position was patched, recalculate bounds
-        if json_patch.contains("position") {
-            self.broadcast_boundaries().await;
-        }
-
-        info!("FFI: Node {}/{} patched successfully", table, id);
         Ok(())
     }
 
-    pub async fn delete_node_entry(&self, table: String, id: String) -> anyhow::Result<String> {
-        debug!("Deleting node: {}/{}", table, id);
-        match self.repo.delete_node(table.clone(), id.clone()).await {
-            Ok(deleted_id) => {
-                info!("Node {} deleted successfully", deleted_id);
-                self.broadcast_boundaries().await; // Trigger recalculation after deletion
-                Ok(deleted_id)
+    pub async fn delete_node_entry(&self, table: String, key: String) -> anyhow::Result<()> {
+        debug!("Deleting node: {}/{}", table, key);
+        match self.repo.delete_node(table.clone(), key.clone()).await {
+            Ok(()) => {
+                info!("Node {} deleted successfully", key.clone());
+                self.broadcast_boundaries().await;
+                Ok(())
             }
             Err(e) => {
-                error!("Failed to delete node {}/{}: {}", table, id, e);
+                error!("Failed to delete node {}/{}: {}", table, key, e);
                 Err(e)
             }
         }
     }
 
-    // 3. Relation Operations
-    pub async fn create_relation(&self, input: RelationInput) -> anyhow::Result<String> {
+    pub async fn create_relation(&self, input: IRelation) -> anyhow::Result<()> {
         debug!(
-            "FFI: create_relation called: {:?} -> {:?}",
-            input.from, input.to
+            "FFI: create_relation called: {} -> {}",
+            input.fields.in_, input.fields.out
         );
         match self.repo.create_relation(input).await {
-            Ok(id) => {
-                info!("FFI: Relation created successfully: {}", id);
-                Ok(id)
+            Ok(()) => {
+                info!("FFI: Relation created successfully");
+                Ok(())
             }
             Err(e) => {
                 error!("FFI: Failed to create relation: {}", e);
@@ -203,55 +138,53 @@ impl AppHandle {
         }
     }
 
-    pub async fn delete_relation(&self, id: String) -> anyhow::Result<String> {
-        debug!("Deleting relation: {}", id);
-        match self.repo.delete_relation(id.clone()).await {
-            Ok(deleted_id) => {
-                info!("Relation {} deleted successfully", deleted_id);
-                Ok(deleted_id)
+    pub async fn delete_relation(&self, table: String, key: String) -> anyhow::Result<()> {
+        debug!("Deleting relation: {}", key);
+        match self.repo.delete_relation(table, key.clone()).await {
+            Ok(()) => {
+                info!("Relation deleted successfully");
+                Ok(())
             }
             Err(e) => {
-                error!("Failed to delete relation {}: {}", id, e);
+                error!("Failed to delete relation {}: {}", key, e);
                 Err(e)
             }
         }
     }
 
-    pub async fn patch_relation(&self, id: String, json_patch: String) -> anyhow::Result<()> {
-        debug!(
-            "FFI: patch_relation called for {} with patch: {}",
-            id, json_patch
-        );
-        let patch: serde_json::Value = serde_json::from_str(&json_patch).map_err(|e| {
-            error!("FFI: Failed to parse JSON patch for relation {}: {}", id, e);
-            e
-        })?;
+    pub async fn update_relation(&self, input: IRelation) -> anyhow::Result<()> {
+        debug!("FFI: update_relation called for {} with patch", input.key);
 
         self.repo
-            .update_relation_properties(id.clone(), patch)
+            .update_relation("IRelation".to_string(), input.key.clone(), input.fields)
             .await
             .map_err(|e| {
-                error!("FFI: Repository failed to patch relation {}: {}", id, e);
+                error!(
+                    "FFI: Repository failed to patch relation {}: {}",
+                    input.key, e
+                );
                 e
             })?;
-        info!("FFI: Relation {} patched successfully", id);
+        info!("FFI: Relation {} patched successfully", input.key);
         Ok(())
     }
 
     pub async fn reroute_relation(
         &self,
-        id: String,
-        new_from: String,
-        new_to: String,
-    ) -> anyhow::Result<String> {
-        debug!("Rerouting relation {} to: {} -> {}", id, new_from, new_to);
-        match self
-            .repo
-            .reroute_relation(id.clone(), new_from, new_to)
-            .await
-        {
+        record: RecordStrings,
+        from: RecordStrings,
+        to: RecordStrings,
+    ) -> anyhow::Result<()> {
+        debug!(
+            "Rerouting relation {} to: {} -> {}",
+            record.to_str(),
+            from.to_str(),
+            to.to_str()
+        );
+        let id = record.to_str();
+        match self.repo.reroute_relation(record, from, to).await {
             Ok(rerouted_id) => {
-                info!("Relation {} rerouted successfully", rerouted_id);
+                info!("Relation {} rerouted successfully", id);
                 Ok(rerouted_id)
             }
             Err(e) => {
@@ -261,135 +194,132 @@ impl AppHandle {
         }
     }
 
-    // 4. Graph Snapshot
     pub async fn get_graph_snapshot(
         &self,
     ) -> anyhow::Result<(
-        Vec<NodeOutput>,
-        Vec<crate::domain::relations::IRelation>,
-        Option<MapConfig>,
+        Vec<INode>,
+        Vec<TaskNode>,
+        Vec<InterNode>,
+        Vec<IRelation>,
+        MapData,
     )> {
-        debug!("Fetching graph snapshot");
-        let result = self.repo.get_graph_snapshot().await;
-        if let Ok((nodes, relations, _config)) = &result {
-            info!(
-                "Graph snapshot loaded: {} nodes, {} relations",
-                nodes.len(),
-                relations.len()
-            );
-        }
-        result
+        let res = self.repo.get_graph_snapshot().await?;
+        Ok(res)
     }
 
-    // 5. File Operations
     pub async fn save_map_to_file(
         &self,
         file_path: String,
         attachment_dir: String,
     ) -> anyhow::Result<()> {
-        info!("Saving map to file: {}", file_path);
-        // 1. Fetch current state from SurrealDB
-        let (nodes, relations, metadata) = self.repo.get_graph_snapshot().await?;
+        let (inodes, task_nodes, inter_nodes, relations, metadata) =
+            self.repo.get_graph_snapshot().await?;
 
-        // 2. Clone for logging after the closure
-        let file_path_clone = file_path.clone();
+        let mut content: BTreeMap<String, Vec<Value>> = BTreeMap::new();
 
-        // 3. Offload packaging to blocking thread
+        content.insert(
+            INode::LABEL.into(),
+            inodes.into_iter().map(|n| n.into_value()).collect(),
+        );
+        content.insert(
+            TaskNode::LABEL.into(),
+            task_nodes.into_iter().map(|n| n.into_value()).collect(),
+        );
+        content.insert(
+            InterNode::LABEL.into(),
+            inter_nodes.into_iter().map(|n| n.into_value()).collect(),
+        );
+        content.insert(
+            IRelation::LABEL.into(),
+            relations.into_iter().map(|r| r.into_value()).collect(),
+        );
+
         tokio::task::spawn_blocking(move || {
-            packager::save_project_to_celi(&file_path, &attachment_dir, nodes, relations, metadata)
+            packager::save_project_to_celi(&file_path, &attachment_dir, content, metadata)
         })
         .await??;
 
-        info!("Map saved successfully to {}", file_path_clone);
         Ok(())
     }
 
-    // NEW: Load Map
     pub async fn load_map_from_file(
         &self,
         file_path: String,
         attachment_dir: String,
     ) -> anyhow::Result<()> {
-        info!("Loading map from file: {}", file_path);
-
-        // 1. Offload File I/O & Deserialization (Cold -> RAM)
-        // This stops the UI from freezing during unzip
-        let (nodes, relations, metadata) = tokio::task::spawn_blocking(move || {
+        let (mut content, metadata) = tokio::task::spawn_blocking(move || {
             packager::load_project_from_celi(&file_path, &attachment_dir)
         })
         .await??;
 
-        debug!(
-            "Loaded {} nodes and {} relations from file",
-            nodes.len(),
-            relations.len()
-        );
+        let inodes: Vec<INode> = content
+            .remove(INode::LABEL)
+            .unwrap_or_default()
+            .iter()
+            .map(|v| INode::from_value(v.clone()).unwrap())
+            .collect();
 
-        // 2. Persistence Layer: RAM -> DB
-        // The Repo now handles the sorting, so the API is clean.
+        let tasknodes: Vec<TaskNode> = content
+            .remove(TaskNode::LABEL)
+            .unwrap_or_default()
+            .iter()
+            .map(|v| TaskNode::from_value(v.clone()).unwrap())
+            .collect();
+        let internodes: Vec<InterNode> = content
+            .remove(InterNode::LABEL)
+            .unwrap_or_default()
+            .iter()
+            .map(|v| InterNode::from_value(v.clone()).unwrap())
+            .collect();
+        let irelations: Vec<IRelation> = content
+            .remove(IRelation::LABEL)
+            .unwrap_or_default()
+            .iter()
+            .map(|v| IRelation::from_value(v.clone()).unwrap())
+            .collect();
+
         self.repo
-            .import_dynamic_graph(nodes, relations, metadata)
+            .set_graph_snapshot(inodes, tasknodes, internodes, irelations, metadata)
             .await?;
 
-        info!("Map loaded and imported successfully");
         Ok(())
     }
 
-    // 6. Content Operations (Binary Serialization)
-    /// Patch node content using raw UTF-8 bytes from Dart.
-    /// The content_bytes parameter is raw UTF-8 text, not bincode-serialized.
-    /// The Content struct is constructed in Rust where its schema is authoritative.
-    pub async fn patch_node_content(
-        &self,
-        table: String,
-        id: String,
-        content_bytes: Vec<u8>,
-    ) -> anyhow::Result<()> {
-        debug!(
-            "FFI: patch_node_content called for {}/{} ({} bytes)",
-            table,
-            id,
-            content_bytes.len()
-        );
-
-        // FIX: Interpret the incoming bytes as a raw string rather than a
-        // bincode-serialized struct to resolve the "unexpected end of file"
-        let text = String::from_utf8(content_bytes)
-            .map_err(|e| anyhow::anyhow!("Invalid UTF-8 content: {}", e))?;
-
-        // Construct the Content struct in Rust where its schema is authoritative
-        let content = Content::from_plain_text(text);
-
-        debug!(
-            "FFI: Constructed content for {}/{}: {:?}",
-            table, id, content
-        );
-
-        // Create the patch with native content object
-        let patch = serde_json::json!({
-            "content": content
-        });
-
-        self.repo
-            .patch_node(table.clone(), id.clone(), patch)
-            .await
-            .map_err(|e| {
-                error!(
-                    "FFI: Repository failed to patch content for {}/{}: {}",
-                    table, id, e
-                );
-                e
-            })?;
-        info!("FFI: Node content {}/{} patched successfully", table, id);
-        Ok(())
-    }
-
-    // 7. Theme Operations
-    pub async fn get_all_themes(&self) -> anyhow::Result<Vec<crate::domain::base_models::Theme>> {
+    pub async fn get_all_themes(&self) -> anyhow::Result<Vec<Theme>> {
         tracing::debug!("FFI: get_all_themes called");
-        let mut res = self.repo.db().query("SELECT * FROM theme").await?;
-        let themes: Vec<crate::domain::base_models::Theme> = res.take(0)?;
+        let theme_records: Vec<Value> = self.repo.db().select(Theme::LABEL).await?;
+        let themes: Vec<Theme> = theme_records
+            .into_iter()
+            .filter_map(|val| {
+                let record = Record::from_record_value(val)?;
+                let (key, fields) = record.to_type::<ThemeFields>()?;
+                Some(Theme { key, fields })
+            })
+            .collect();
         Ok(themes)
+    }
+
+    pub async fn get_theme(&self, key: String) -> anyhow::Result<Option<Theme>> {
+        tracing::debug!("FFI: get_theme called with key: {}", key);
+
+        let record_id = RecordId::new(Theme::LABEL, key.clone());
+        let fields: Option<ThemeFields> = self.repo.db().select(record_id).await?;
+
+        Ok(fields.map(|f| Theme { key, fields: f }))
+    }
+
+    pub async fn set_active_theme_id(&self, theme_id: String) -> anyhow::Result<()> {
+        tracing::debug!("FFI: set_active_theme_id called with id: {}", theme_id);
+
+        let record_id = RecordId::new(MapData::LABEL, MapData::KEY);
+        let theme_record_id = RecordId::new(Theme::LABEL, theme_id);
+        self.repo
+            .db()
+            .query("UPDATE $record SET active_theme_id = $theme_id")
+            .bind(("record", record_id))
+            .bind(("theme_id", theme_record_id))
+            .await?;
+        Ok(())
     }
 
     pub async fn get_active_theme_id(&self) -> anyhow::Result<Option<String>> {
@@ -397,66 +327,59 @@ impl AppHandle {
         let mut res = self
             .repo
             .db()
-            .query("SELECT active_theme_id FROM map_metadata LIMIT 1")
+            .query("SELECT active_theme_id FROM $record")
+            .bind(("record", RecordId::new(MapData::LABEL, MapData::KEY)))
             .await?;
-        let result: Option<serde_json::Value> = res.take(0)?;
-        if let Some(val) = result {
-            if let Some(id_val) = val.get("active_theme_id") {
-                if let Some(id_str) = id_val.as_str() {
-                    // SurrealDB record IDs look like "theme:id"
-                    return Ok(Some(id_str.replace("theme:", "")));
-                }
-            }
+        let result: Option<RecordId> = res.take(0)?;
+        match result {
+            Some(record) => match record.key {
+                RecordIdKey::String(id_str) => Ok(Some(id_str)),
+                other => Err(anyhow::anyhow!("Expected string key, got {:?}", other)),
+            },
+            None => Ok(None),
         }
-        Ok(None)
     }
 
-    pub async fn set_active_theme_id(&self, theme_id: String) -> anyhow::Result<()> {
-        tracing::debug!("FFI: set_active_theme_id called with id: {}", theme_id);
-        let theme_record = format!("theme:{}", theme_id);
-        self.repo
-            .db()
-            .query("UPDATE map_metadata SET active_theme_id = $theme_id")
-            .bind(("theme_id", theme_record))
-            .await?;
+    pub async fn set_active_theme(&self, theme_key: String) -> anyhow::Result<()> {
+        tracing::debug!("FFI: set_active_theme_id called with id: {}", theme_key);
+        let _: Option<Theme> = self.repo.db().update((MapData::LABEL, theme_key)).await?;
         Ok(())
     }
 
-    pub async fn upsert_theme(
-        &self,
-        theme: crate::domain::base_models::Theme,
-    ) -> anyhow::Result<String> {
-        tracing::debug!("FFI: upsert_theme called for theme id: {:?}", theme.id);
-        let mut res = if let Some(id) = theme.id.clone() {
-            let theme_record = format!("theme:{}", id);
-            self.repo
-                .db()
-                .query("UPDATE $id MERGE $theme")
-                .bind(("id", theme_record))
-                .bind(("theme", theme))
-                .await?
-        } else {
-            self.repo
-                .db()
-                .query("CREATE theme CONTENT $theme")
-                .bind(("theme", theme))
-                .await?
-        };
+    pub async fn create_theme(&self, key: String, fields: ThemeFields) -> anyhow::Result<()> {
+        tracing::debug!("FFI: create_theme called");
 
-        let result: Option<crate::domain::base_models::Theme> = res.take(0)?;
-        result
-            .and_then(|t| t.id)
-            .ok_or_else(|| anyhow::anyhow!("Failed to upsert theme"))
+        let record_id = RecordId::new(Theme::LABEL, key);
+        self.repo
+            .db()
+            .query("CREATE $record_id CONTENT $fields")
+            .bind(("record_id", record_id))
+            .bind(("fields", fields))
+            .await?;
+
+        Ok(())
     }
 
-    // 7. Graph Stream Connection
-    /// Creates a stream connection for graph events.
-    /// This enables Flutter to receive async updates about node changes.
+    pub async fn update_theme(&self, theme: Theme) -> anyhow::Result<()> {
+        tracing::debug!("FFI: update_theme called");
+
+        let record_id = RecordId::new(Theme::LABEL, theme.key);
+        let fields = theme.fields;
+        self.repo
+            .db()
+            .query("UPDATE $record_id MERGE $fields")
+            .bind(("record_id", record_id))
+            .bind(("fields", fields))
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn create_graph_stream(&self, sink: StreamSink<GraphEvent>) -> anyhow::Result<()> {
         tracing::debug!("FFI: create_graph_stream called");
         let receiver = stream::subscribe_to_graph();
 
-        tokio::spawn(async move {
+        let task = tokio::spawn(async move {
             use tokio_stream::StreamExt;
             let stream = tokio_stream::wrappers::BroadcastStream::new(receiver);
             tokio::pin!(stream);
@@ -465,11 +388,10 @@ impl AppHandle {
                 match result {
                     Ok(event) => {
                         if sink.add(event).is_err() {
-                            break; // Flutter disconnected
+                            break;
                         }
                     }
                     Err(e) => {
-                        // Logs tokio_stream::wrappers::errors::BroadcastStreamRecvError::Lagged
                         tracing::warn!("FFI: Graph stream overflow. Dropped events: {}", e);
                         continue;
                     }
@@ -477,6 +399,58 @@ impl AppHandle {
             }
         });
 
+        self.tasks.lock().unwrap().push(task);
+
         Ok(())
+    }
+
+    pub fn close(self) -> anyhow::Result<()> {
+        tracing::info!("Closing AppHandle, aborting background tasks...");
+        match self.tasks.lock() {
+            Ok(mut tasks) => {
+                for task in tasks.drain(..) {
+                    task.abort();
+                }
+            }
+            Err(poisoned) => {
+                // The mutex is poisoned, but we can still get the data inside.
+                let mut tasks = poisoned.into_inner();
+                tracing::warn!("Mutex poisoned while closing; aborting tasks anyway.");
+                for task in tasks.drain(..) {
+                    task.abort();
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub async fn undo(&self) -> anyhow::Result<Option<HistoryRecord>> {
+        tracing::debug!("FFI: undo called");
+        let history_manager = HistoryManager::new(self.repo.db(), 100);
+        history_manager.undo().await
+    }
+
+    pub async fn redo(&self) -> anyhow::Result<Option<HistoryRecord>> {
+        tracing::debug!("FFI: redo called");
+        let history_manager = HistoryManager::new(self.repo.db(), 100);
+        history_manager.redo().await
+    }
+}
+
+impl Drop for AppHandle {
+    fn drop(&mut self) {
+        tracing::info!("Dropping AppHandle, aborting background tasks...");
+        match self.tasks.lock() {
+            Ok(mut tasks) => {
+                for task in tasks.drain(..) {
+                    task.abort();
+                }
+            }
+            Err(_) => {
+                tracing::error!(
+                    "Mutex poisoned while dropping AppHandle; background tasks not aborted."
+                );
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../domain/models.dart';
-import '../../../../core/config/app_config.dart';
+import '../../models/models.dart';
+import '../../presentation/graph_metrics.dart';
+import '../../presentation/view_state.dart';
 
 class RelationPainter extends CustomPainter {
   final List<UiRelation> relations;
@@ -30,31 +31,31 @@ class RelationPainter extends CustomPainter {
       final startSize = from.sizeNotifier.value;
       final endSize = to.sizeNotifier.value;
 
-      // [REFACTORED]: O(1) Geometry extraction directly from ViewState
+      // O(1) Geometry extraction directly from ViewState
       final start = startSize == Size.zero
-          ? startPos + AppConfig.graph.relation.startFallback
+          ? startPos + AppConfig.relation.startFallback
           : from.rightPort;
 
       final end = endSize == Size.zero
-          ? endPos + AppConfig.graph.relation.endFallback
+          ? endPos + AppConfig.relation.endFallback
           : to.leftPort;
 
-      // [UPDATED] Apply selection styling from GraphUIController.selectedEntities
+      // Apply selection styling from GraphUIController.selectedEntities
       final isSelected = selectedEntities.contains(rel.id);
       paint.color = isSelected
-          ? AppConfig.graph.visual.selectionAccent
-          : rel.color;
+          ? AppConfig.visuals.selectionAccent
+          : Color(rel.resolvedStyle?.strokeColor ?? 0xFF000000);
       paint.strokeWidth = isSelected
-          ? AppConfig.graph.relation.selectedStrokeWidth
-          : AppConfig.graph.relation.strokeWidth;
+          ? AppConfig.relation.selectedStrokeWidth
+          : AppConfig.relation.strokeWidth;
 
       // Draw straight line (Bezier curves can be added later)
       canvas.drawLine(start, end, paint);
 
       // Draw Label (Simplified)
-      if (rel.label.isNotEmpty) {
+      if (rel.verb.isNotEmpty) {
         final mid = Offset((start.dx + end.dx) / 2, (start.dy + end.dy) / 2);
-        _drawText(canvas, rel.label, mid);
+        _drawText(canvas, rel.verb, mid);
       }
     }
   }

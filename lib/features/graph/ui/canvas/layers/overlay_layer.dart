@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../../core/config/app_config.dart';
-import '../../../state/graph_data_controller.dart';
+import '../../../presentation/graph_metrics.dart';
+import '../../../store/graph_repository.dart';
 import '../../../state/graph_ui_controller.dart';
-import '../../../state/canvas_interaction_states.dart';
-import '../../../domain/models.dart';
+import '../../../engine/base_interaction_state.dart';
+import '../../../models/models.dart';
+import '../../../presentation/view_state.dart';
 
 class OverlayLayer extends StatelessWidget {
   final CanvasInteractionState interactionState;
-  final Map<String, NodeViewState> nodeViewStates;
 
-  const OverlayLayer({
-    super.key,
-    required this.interactionState,
-    required this.nodeViewStates,
-  });
+  const OverlayLayer({super.key, required this.interactionState});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +26,7 @@ class OverlayLayer extends StatelessWidget {
             child: CustomPaint(
               painter: _TempRelationPainter(
                 state: interactionState as RelationDrawing,
-                nodeViewStates: nodeViewStates,
+                nodeViewStates: dataController.allNodeViewStates,
               ),
             ),
           ),
@@ -124,8 +120,8 @@ class OverlayLayer extends StatelessWidget {
                 // Center horizontally above the bounding box with height offset
                 final centerX = minX + (maxX - minX) / 2;
                 anchor = Offset(
-                  centerX - (AppConfig.graph.toolbar.multiWidth / 2),
-                  minY - AppConfig.graph.toolbar.height - 10,
+                  centerX - (AppConfig.toolbar.multiWidth / 2),
+                  minY - AppConfig.toolbar.height - 10,
                 );
               }
             } else {
@@ -174,11 +170,11 @@ class OverlayLayer extends StatelessWidget {
   }) {
     // Dynamically size the toolbar based on available buttons
     double width = isMulti
-        ? AppConfig.graph.toolbar.multiWidth
-        : AppConfig.graph.toolbar.singleWidth;
+        ? AppConfig.toolbar.multiWidth
+        : AppConfig.toolbar.singleWidth;
 
     if (isRelationOnly) {
-      width = AppConfig.graph.toolbar.buttonWidth * 2; // Only Drag and Delete
+      width = AppConfig.toolbar.buttonWidth * 2; // Only Drag and Delete
     }
 
     return Material(
@@ -187,7 +183,7 @@ class OverlayLayer extends StatelessWidget {
       borderRadius: BorderRadius.circular(8),
       child: Container(
         width: width,
-        height: AppConfig.graph.toolbar.height,
+        height: AppConfig.toolbar.height,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           border: Border.all(

@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
-import '../state/graph_data_controller.dart';
+import 'package:mycelium/src/rust/bridge/api.dart';
+import '../presentation/theme_manager.dart';
+import '../store/graph_repository.dart';
 import '../state/graph_ui_controller.dart';
+import '../store/graph_data_query.dart';
 import 'canvas/graph_canvas.dart';
+import 'widgets/init_error_widget.dart';
 
 class GraphScreen extends StatefulWidget {
-  const GraphScreen({super.key});
+  final String storagePath;
+  const GraphScreen({super.key, required this.storagePath});
 
   @override
   State<GraphScreen> createState() => _GraphScreenState();
@@ -15,44 +20,98 @@ class GraphScreen extends StatefulWidget {
 class _GraphScreenState extends State<GraphScreen> {
   final Logger _log = Logger('GraphScreen');
 
-  Future<void> _loadGraph() async {
-    final dataController = context.read<GraphDataController>();
-    final uiController = context.read<GraphUIController>();
-    await dataController.loadGraph();
-    // Sync Z-Order after graph load to restore hit-testing
-    uiController.syncZOrder(dataController.nodeLookup.keys);
+  ThemeController? _themeController;
+  GraphDataController? _dataController;
+  GraphUIController? _uiController;
+  bool _initialized = false;
+  late final Future<AppHandle> _handleFuture = _createAppHandle();
+
+  Future<AppHandle> _createAppHandle() async {
+    final handle = await AppHandle.newInstance(
+      storagePath: widget.storagePath,
+      name: 'Default Map',
+    );
+    _log.info('AppHandle created for ${widget.storagePath}');
+    return handle;
   }
 
   @override
-  void initState() {
-    super.initState();
-    _log.info('GraphScreen mounted; deferring loadGraph.');
-    // Defer the loadGraph call until after the first frame
-    // to ensure the Provider context is fully mounted.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadGraph();
-    });
+  void dispose() {
+    _themeController?.dispose();
+    _dataController?.dispose();
+    _uiController?.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<GraphDataController>();
+    return FutureBuilder<AppHandle>(
+      future: _handleFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return InitErrorWidget(
+            error: snapshot.error!,
+            onRetry: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) =>
+                      GraphScreen(storagePath: widget.storagePath),
+                ),
+              );
+            },
+            onShowDetails: () {
+              _log.severe('Init error: ${snapshot.error}');
+            },
+          );
+        }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: null,
-        actions: [
-          if (controller.isLoading) const CircularProgressIndicator(),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              _log.info('User initiated manual graph refresh.');
-              _loadGraph();
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final appHandle = snapshot.data!;
+
+        // Create controllers once, schedule init after this frame
+        if (!_initialized) {
+          _initialized = true; // prevent multiple schedules
+          _themeController ??= ThemeController(appHandle);
+          _dataController ??= GraphDataController(appHandle, _themeController!);
+          _uiController ??= GraphUIController(_dataController!);
+
+          // Defer the async theme load and graph hydration until after the current build cycle
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _themeController!.initialize(Theme.of(context));
+            _dataController!.loadGraph();
+          });
+        }
+
+        return MultiProvider(
+          providers: [
+            Provider<AppHandle>.value(value: appHandle),
+            ChangeNotifierProvider<ThemeController>.value(
+              value: _themeController!,
+            ),
+            ChangeNotifierProvider<GraphDataController>.value(
+              value: _dataController!,
+            ),
+            ListenableProvider<GraphDataQuery>.value(value: _dataController!),
+            ChangeNotifierProvider<GraphUIController>.value(
+              value: _uiController!,
+            ),
+          ],
+          child: Consumer<ThemeController>(
+            builder: (context, themeController, _) {
+              final mapTheme = themeController.currentGraphTheme;
+              return Theme(
+                data: mapTheme?.toThemeData() ?? Theme.of(context),
+                child: const GraphCanvas(),
+              );
             },
           ),
-        ],
-      ),
-      body: const GraphCanvas(),
+        );
+      },
     );
   }
 }

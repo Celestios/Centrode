@@ -6,31 +6,22 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-/// LogState represents a single log entry for FFI transfer to Dart.
-/// Designed for zero-copy efficiency with atomic sequencing.
 class LogState {
-  /// Microseconds since Unix epoch (T)
   final PlatformInt64 tMicro;
-
-  /// Atomic sequence counter for ordering reconstruction (S_id)
-  final BigInt sId;
-
-  /// Log level: 0=Trace, 1=Debug, 2=Info, 3=Warn, 4=Error, 5=Fatal
+  final PlatformInt64 seqId;
   final int level;
-
-  /// Log message content
   final String message;
 
   const LogState({
     required this.tMicro,
-    required this.sId,
+    required this.seqId,
     required this.level,
     required this.message,
   });
 
   @override
   int get hashCode =>
-      tMicro.hashCode ^ sId.hashCode ^ level.hashCode ^ message.hashCode;
+      tMicro.hashCode ^ seqId.hashCode ^ level.hashCode ^ message.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -38,7 +29,7 @@ class LogState {
       other is LogState &&
           runtimeType == other.runtimeType &&
           tMicro == other.tMicro &&
-          sId == other.sId &&
+          seqId == other.seqId &&
           level == other.level &&
           message == other.message;
 }

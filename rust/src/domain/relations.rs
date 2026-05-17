@@ -1,40 +1,49 @@
-use serde::{Deserialize, Serialize};
+use crate::domain::base_models::IsTable;
+use crate::domain::styles::RelationStyle;
+use surrealdb::types::{RecordId, SurrealValue};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, SurrealValue)]
 pub struct IRelation {
-    #[serde(
-        alias = "id",
-        skip_serializing_if = "Option::is_none",
-        with = "crate::domain::serde_helpers::option_thing_string"
-    )]
-    pub id: Option<String>,
-    #[serde(
-        rename = "in",
-        alias = "in",
-        skip_serializing_if = "Option::is_none",
-        default,
-        with = "crate::domain::serde_helpers::option_thing_string"
-    )]
-    pub in_id: Option<String>,
-    #[serde(
-        rename = "out",
-        alias = "out",
-        skip_serializing_if = "Option::is_none",
-        default,
-        with = "crate::domain::serde_helpers::option_thing_string"
-    )]
-    pub out_id: Option<String>,
+    pub key: String,
+    pub fields: IRelationFields,
+}
+
+impl IsTable for IRelation {
+    const LABEL: &'static str = "IRelation";
+
+    fn get_key(&self) -> &str {
+        &self.key
+    }
+}
+
+#[derive(Debug, Clone, SurrealValue)]
+pub struct IRelationFields {
+    #[surreal(rename = "in")]
+    pub in_: String,
+    pub out: String,
     pub verb: String,
-    pub aesthetics: Option<String>,
+    pub style: Option<RelationStyle>,
+    pub resolved_style: Option<RelationStyle>,
     pub directionless: bool,
-    pub layer: u8,
+    pub layer: String,
     pub created_at: i64,
     pub updated_at: i64,
 }
 
-#[derive(Debug, Clone)]
-pub struct RelationInput {
-    pub from: String,
-    pub to: String,
-    pub props: IRelation,
+impl IRelationFields {
+    pub fn get_in_id(&self) -> RecordId {
+        let (table, key) = self
+            .in_
+            .split_once(':')
+            .expect("`in_` must contain a ':' separating table and key");
+        RecordId::new(table, key)
+    }
+
+    pub fn get_out_id(&self) -> RecordId {
+        let (table, key) = self
+            .out
+            .split_once(':')
+            .expect("`out` must contain a ':' separating table and key");
+        RecordId::new(table, key)
+    }
 }

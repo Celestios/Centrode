@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../state/graph_data_controller.dart';
+import '../../../store/graph_data_query.dart';
 import '../../../state/graph_ui_controller.dart';
 import '../node_widget.dart';
 
@@ -9,36 +9,21 @@ class NodeLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dataController = context.watch<GraphDataController>();
-    final uiController = context.watch<GraphUIController>();
+    final query = context.watch<GraphDataQuery>();
+    final uiState = context.watch<GraphUIController>();
 
     return ValueListenableBuilder<Set<String>>(
-      valueListenable: uiController.visibleNodeIds,
+      valueListenable: uiState.visibleNodeIds,
       builder: (context, visibleIds, _) {
-        // BYPASS RESTORED: Chicken-and-Egg layout requires initial render for sizes.
-        final nodeIds = visibleIds.isEmpty
-            ? dataController.nodeLookup.keys.toList()
-            : visibleIds.toList();
-
-        final validNodeIds = nodeIds.where(
-          (id) =>
-              dataController.allNodeViewStates.containsKey(id) &&
-              dataController.nodeLookup.containsKey(id),
-        );
-
-        // Sort IDs based on UI Controller's canonical Z-order
-        final zOrderMap = <String, int>{};
-        for (var i = 0; i < uiController.zOrder.length; i++) {
-          zOrderMap[uiController.zOrder[i]] = i;
-        }
-        final sortedIds = validNodeIds.toList()
-          ..sort((a, b) => (zOrderMap[a] ?? -1).compareTo(zOrderMap[b] ?? -1));
+        final renderStack = uiState.zOrder.where(visibleIds.contains);
 
         return Stack(
           clipBehavior: Clip.none,
-          children: sortedIds.map((id) {
-            final viewState = dataController.allNodeViewStates[id]!;
-            final node = dataController.nodeLookup[id]!;
+          children: renderStack.map((id) {
+            final node = query.nodeLookup[id]!;
+            final viewState = query.viewStates[id]!;
+            final isSelected = uiState.selectedEntities.contains(id);
+            final isEditing = uiState.activeEditId == id;
 
             return Positioned(
               key: ValueKey(id),
@@ -47,9 +32,10 @@ class NodeLayer extends StatelessWidget {
               child: NodeWidget(
                 viewState: viewState,
                 node: node,
-                isDeleteMenuVisible:
-                    uiController.nodeShowingDeleteMenu == node.id,
-                onDelete: () => dataController.deleteNode(node.id),
+                isSelected: isSelected,
+                isEditing: isEditing,
+                isDeleteMenuVisible: uiState.nodeShowingDeleteMenu == id,
+                onDelete: () => uiState.showDeleteMenu(id),
               ),
             );
           }).toList(),

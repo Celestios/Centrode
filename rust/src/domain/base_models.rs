@@ -1,39 +1,82 @@
-use serde::{Deserialize, Serialize};
+use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
 
 // -----------------------------------------------------------------------------
 // Core Identity & Spatial Types (Restored)
 // -----------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Comment {
-    pub text: String,
-    pub created_at: i64, // Unix microseconds
+#[derive(Debug, Clone, SurrealValue)]
+pub struct Record {
+    pub id: RecordId,
+    pub fields: Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+impl Record {
+    pub fn from_record_value(value: Value) -> Option<Self> {
+        if let Value::Object(mut obj) = value {
+            if let Some(Value::RecordId(id)) = obj.remove("id") {
+                return Some(Record {
+                    id,
+                    fields: Value::Object(obj),
+                });
+            }
+        }
+        None
+    }
+
+    pub fn to_type<T: SurrealValue>(self) -> Option<(String, T)> {
+        let key = match self.id.key {
+            RecordIdKey::String(s) => s,
+            _ => return None,
+        };
+        let parsed_fields: T = T::from_value(self.fields).ok()?;
+        Some((key, parsed_fields))
+    }
+}
+
+pub struct RecordStrings {
+    pub table: String,
+    pub key: String,
+}
+
+impl RecordStrings {
+    pub fn to_str(&self) -> String {
+        format!("{}/{}", self.table.as_str(), self.key.as_str())
+    }
+}
+
+pub trait IsTable {
+    const LABEL: &'static str;
+
+    fn get_label() -> &'static str {
+        Self::LABEL
+    }
+
+    fn get_key(&self) -> &str;
+
+    fn get_record_id(&self) -> RecordId {
+        RecordId::new(Self::LABEL, self.get_key())
+    }
+}
+
+#[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
+pub struct Comment {
+    pub text: String,
+    pub created_at: i64,
+}
+
+#[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
 pub struct Coordinates {
     pub x: i32,
     pub y: i32,
-    pub z: u8,
 }
 
-// -----------------------------------------------------------------------------
-// Theme & Styling (Dumb Receiver Implementation)
-// -----------------------------------------------------------------------------
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct Theme {
-    #[serde(
-        alias = "id",
-        skip_serializing_if = "Option::is_none",
-        with = "crate::domain::serde_helpers::option_thing_string"
-    )]
-    pub id: Option<String>,
-    pub name: String,
-    pub config: String, // Blind JSON blob from Flutter
+#[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
+pub struct Size {
+    pub width: i32,
+    pub height: i32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, SurrealValue, PartialEq)]
 pub struct ViewportState {
     pub x_offset: f64,
     pub y_offset: f64,
@@ -41,346 +84,87 @@ pub struct ViewportState {
     pub active_view: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct MapConfig {
+impl Default for ViewportState {
+    fn default() -> Self {
+        Self {
+            x_offset: 0.0,
+            y_offset: 0.0,
+            zoom_level: 1.0,
+            active_view: "canvas".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, SurrealValue, Default)]
+pub enum DisplayMode {
+    #[default]
+    Importance,
+    Leveling,
+}
+
+#[derive(Debug, Clone, SurrealValue)]
+pub struct MapData {
     pub map_name: String,
     pub viewport_state: ViewportState,
     pub active_theme_id: Option<String>,
+    pub display_mode: DisplayMode,
 }
 
-// -----------------------------------------------------------------------------
-// Content Property & DocumentModel (New Implementation)
-// -----------------------------------------------------------------------------
-
-/// Primary source of truth for node content.
-/// The `text` field is derived from `blocks` for search indexing in SurrealDB.
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
-pub struct Content {
-    /// Plain text projection - used for search indexing.
-    #[serde(default)]
-    pub text: String,
-
-    /// Native block structure - queryable logic
-    #[serde(default)]
-    pub blocks: Vec<ContentBlock>,
-}
-
-impl Content {
-    /// Creates a new Content with the given blocks
-    pub fn new(blocks: Vec<ContentBlock>) -> Self {
-        let text = Self::compute_plain_text(&blocks);
-        Content { text, blocks }
-    }
-
-    /// Creates a Content from plain text (creates a single paragraph block)
-    pub fn from_plain_text(text: impl Into<String>) -> Self {
-        let text = text.into();
-        let blocks = if text.is_empty() {
-            vec![]
-        } else {
-            vec![ContentBlock::paragraph(text.clone())]
-        };
-        Content { text, blocks }
-    }
-
-    /// Derive plain text for search indexing
-    pub fn to_plain_text(&self) -> String {
-        Self::compute_plain_text(&self.blocks)
-    }
-
-    /// Computes plain text from blocks
-    fn compute_plain_text(blocks: &[ContentBlock]) -> String {
-        let mut result = String::new();
-        for block in blocks {
-            for inline in &block.content {
-                result.push_str(&inline.text);
-            }
-            result.push('\n');
-        }
-        // Remove trailing newline if present
-        if result.ends_with('\n') {
-            result.pop();
-        }
-        result
-    }
-
-    /// Updates the derived text field from blocks
-    pub fn refresh_text(&mut self) {
-        self.text = self.to_plain_text();
-    }
-}
-
-// -----------------------------------------------------------------------------
-// Block-Level Content
-// -----------------------------------------------------------------------------
-
-/// Block-level content (paragraphs, headings, lists)
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct ContentBlock {
-    pub block_type: BlockType,
-    pub content: Vec<InlineElement>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub attrs: Option<BlockAttrs>,
-}
-
-impl Default for ContentBlock {
+impl Default for MapData {
     fn default() -> Self {
-        Self::paragraph("")
-    }
-}
-
-impl ContentBlock {
-    /// Creates a new paragraph block with the given text
-    pub fn paragraph(text: impl Into<String>) -> Self {
-        ContentBlock {
-            block_type: BlockType::Paragraph,
-            content: vec![InlineElement::text(text)],
-            attrs: None,
-        }
-    }
-
-    /// Creates a new heading block with the given text and level
-    pub fn heading(text: impl Into<String>, level: u8) -> Self {
-        ContentBlock {
-            block_type: BlockType::Heading,
-            content: vec![InlineElement::text(text)],
-            attrs: Some(BlockAttrs {
-                level: Some(level),
-                language: None,
-            }),
-        }
-    }
-
-    /// Creates a new code block with the given text and optional language
-    pub fn code_block(text: impl Into<String>, language: Option<String>) -> Self {
-        ContentBlock {
-            block_type: BlockType::CodeBlock,
-            content: vec![InlineElement::text(text)],
-            attrs: Some(BlockAttrs {
-                level: None,
-                language,
-            }),
-        }
-    }
-
-    /// Creates a new bullet list item
-    pub fn bullet_list(text: impl Into<String>) -> Self {
-        ContentBlock {
-            block_type: BlockType::BulletList,
-            content: vec![InlineElement::text(text)],
-            attrs: None,
-        }
-    }
-
-    /// Creates a new ordered list item
-    pub fn ordered_list(text: impl Into<String>) -> Self {
-        ContentBlock {
-            block_type: BlockType::OrderedList,
-            content: vec![InlineElement::text(text)],
-            attrs: None,
-        }
-    }
-
-    /// Creates a new blockquote
-    pub fn blockquote(text: impl Into<String>) -> Self {
-        ContentBlock {
-            block_type: BlockType::Blockquote,
-            content: vec![InlineElement::text(text)],
-            attrs: None,
+        Self {
+            map_name: "Untitled Map".to_string(),
+            viewport_state: ViewportState::default(),
+            active_theme_id: None,
+            display_mode: DisplayMode::default(),
         }
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum BlockType {
-    Paragraph,
-    Heading,
-    BulletList,
-    OrderedList,
-    CodeBlock,
-    Blockquote,
-}
+impl MapData {
+    pub const LABEL: &'static str = "MapMetaData";
+    pub const KEY: &'static str = "singleton";
 
-impl Default for BlockType {
-    fn default() -> Self {
-        BlockType::Paragraph
+    pub fn get_record_id(&self) -> RecordId {
+        RecordId::new(Self::LABEL, Self::KEY)
     }
-}
-
-/// Block-level attributes
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
-pub struct BlockAttrs {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub level: Option<u8>, // For headings: 1-6
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub language: Option<String>, // For code blocks
-}
-
-// -----------------------------------------------------------------------------
-// Inline Content
-// -----------------------------------------------------------------------------
-
-/// Inline content with optional formatting marks
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct InlineElement {
-    pub inline_type: InlineType,
-    pub text: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub marks: Option<Vec<TextMark>>,
-}
-
-impl InlineElement {
-    /// Creates a new text inline node
-    pub fn text(text: impl Into<String>) -> Self {
-        InlineElement {
-            inline_type: InlineType::Text,
-            text: text.into(),
-            marks: None,
-        }
-    }
-
-    /// Creates a new text inline node with formatting marks
-    pub fn text_with_marks(text: impl Into<String>, marks: Vec<TextMark>) -> Self {
-        InlineElement {
-            inline_type: InlineType::Text,
-            text: text.into(),
-            marks: Some(marks),
-        }
-    }
-
-    /// Creates a hard break inline node
-    pub fn hard_break() -> Self {
-        InlineElement {
-            inline_type: InlineType::HardBreak,
-            text: String::new(),
-            marks: None,
-        }
-    }
-
-    /// Adds a mark to this inline node
-    pub fn add_mark(&mut self, mark: TextMark) {
-        self.marks.get_or_insert_with(Vec::new).push(mark);
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum InlineType {
-    Text,
-    HardBreak,
-}
-
-impl Default for InlineType {
-    fn default() -> Self {
-        InlineType::Text
-    }
-}
-
-// -----------------------------------------------------------------------------
-// Text Marks (Formatting)
-// -----------------------------------------------------------------------------
-
-/// Formatting mark (bold, italic, link, etc.)
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct TextMark {
-    pub mark_type: MarkType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub attrs: Option<MarkAttrs>,
-}
-
-impl TextMark {
-    /// Creates a bold mark
-    pub fn bold() -> Self {
-        TextMark {
-            mark_type: MarkType::Bold,
-            attrs: None,
-        }
-    }
-
-    /// Creates an italic mark
-    pub fn italic() -> Self {
-        TextMark {
-            mark_type: MarkType::Italic,
-            attrs: None,
-        }
-    }
-
-    /// Creates an underline mark
-    pub fn underline() -> Self {
-        TextMark {
-            mark_type: MarkType::Underline,
-            attrs: None,
-        }
-    }
-
-    /// Creates a strikethrough mark
-    pub fn strikethrough() -> Self {
-        TextMark {
-            mark_type: MarkType::Strikethrough,
-            attrs: None,
-        }
-    }
-
-    /// Creates a code mark
-    pub fn code() -> Self {
-        TextMark {
-            mark_type: MarkType::Code,
-            attrs: None,
-        }
-    }
-
-    /// Creates a link mark with the given URL
-    pub fn link(href: impl Into<String>) -> Self {
-        TextMark {
-            mark_type: MarkType::Link,
-            attrs: Some(MarkAttrs {
-                href: Some(href.into()),
-            }),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum MarkType {
-    Bold,
-    Italic,
-    Underline,
-    Strikethrough,
-    Code,
-    Link,
-}
-
-/// Mark-level attributes
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
-pub struct MarkAttrs {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub href: Option<String>, // For links
 }
 
 // -----------------------------------------------------------------------------
 // Elastic Boundary (BoundingBox)
 // -----------------------------------------------------------------------------
 
-/// The mathematical boundary object for elastic canvas constraints.
-/// Uses i32 to match the existing Coordinates type in the codebase.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, SurrealValue, PartialEq)]
 pub struct BoundingBox {
-    pub min_x: i32,
-    pub min_y: i32,
-    pub max_x: i32,
-    pub max_y: i32,
+    pub min_x: f64,
+    pub min_y: f64,
+    pub max_x: f64,
+    pub max_y: f64,
+}
+
+impl BoundingBox {
+    pub fn new(
+        min_x: impl Into<f64>,
+        min_y: impl Into<f64>,
+        max_x: impl Into<f64>,
+        max_y: impl Into<f64>,
+    ) -> Self {
+        Self {
+            min_x: min_x.into(),
+            min_y: min_y.into(),
+            max_x: max_x.into(),
+            max_y: max_y.into(),
+        }
+    }
 }
 
 impl Default for BoundingBox {
     fn default() -> Self {
-        // Fallback for an empty canvas: A 5000x5000 stage centered at origin
         Self {
-            min_x: -2500,
-            min_y: -2500,
-            max_x: 2500,
-            max_y: 2500,
+            min_x: -2500.0,
+            min_y: -2500.0,
+            max_x: 2500.0,
+            max_y: 2500.0,
         }
     }
 }

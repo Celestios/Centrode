@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'package:logging/logging.dart';
-import '../domain/models.dart';
+import '../models/models.dart';
 
 /// Manages the lifecycle of state mutations with FIFO ordering for FFI calls.
 /// Implements write-behind debouncing to batch high-frequency spatial updates.
@@ -77,6 +77,17 @@ class CommandProcessor {
 
   Future<void> flush() async {
     flushSync();
+    await _processQueue();
+  }
+
+  /// Forces execution of all pending debounced commands immediately.
+  Future<void> forceFlush() async {
+    for (var entry in _pendingCommands.entries) {
+      _debouncers[entry.key]?.cancel();
+      _executionQueue.addLast(entry.value);
+    }
+    _debouncers.clear();
+    _pendingCommands.clear();
     await _processQueue();
   }
 

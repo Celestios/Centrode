@@ -6,41 +6,11 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-/// Block-level attributes
-class BlockAttrs {
-  final int? level;
-  final String? language;
-
-  const BlockAttrs({this.level, this.language});
-
-  @override
-  int get hashCode => level.hashCode ^ language.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is BlockAttrs &&
-          runtimeType == other.runtimeType &&
-          level == other.level &&
-          language == other.language;
-}
-
-enum BlockType {
-  paragraph,
-  heading,
-  bulletList,
-  orderedList,
-  codeBlock,
-  blockquote,
-}
-
-/// The mathematical boundary object for elastic canvas constraints.
-/// Uses i32 to match the existing Coordinates type in the codebase.
 class BoundingBox {
-  final int minX;
-  final int minY;
-  final int maxX;
-  final int maxY;
+  final double minX;
+  final double minY;
+  final double maxX;
+  final double maxY;
 
   const BoundingBox({
     required this.minX,
@@ -82,63 +52,14 @@ class Comment {
           createdAt == other.createdAt;
 }
 
-/// Primary source of truth for node content.
-/// The `text` field is derived from `blocks` for search indexing in SurrealDB.
-class Content {
-  /// Plain text projection - used for search indexing.
-  final String text;
-
-  /// Native block structure - queryable logic
-  final List<ContentBlock> blocks;
-
-  const Content({required this.text, required this.blocks});
-
-  @override
-  int get hashCode => text.hashCode ^ blocks.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Content &&
-          runtimeType == other.runtimeType &&
-          text == other.text &&
-          blocks == other.blocks;
-}
-
-/// Block-level content (paragraphs, headings, lists)
-class ContentBlock {
-  final BlockType blockType;
-  final List<InlineElement> content;
-  final BlockAttrs? attrs;
-
-  const ContentBlock({
-    required this.blockType,
-    required this.content,
-    this.attrs,
-  });
-
-  @override
-  int get hashCode => blockType.hashCode ^ content.hashCode ^ attrs.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ContentBlock &&
-          runtimeType == other.runtimeType &&
-          blockType == other.blockType &&
-          content == other.content &&
-          attrs == other.attrs;
-}
-
 class Coordinates {
   final int x;
   final int y;
-  final int z;
 
-  const Coordinates({required this.x, required this.y, required this.z});
+  const Coordinates({required this.x, required this.y});
 
   @override
-  int get hashCode => x.hashCode ^ y.hashCode ^ z.hashCode;
+  int get hashCode => x.hashCode ^ y.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -146,118 +67,76 @@ class Coordinates {
       other is Coordinates &&
           runtimeType == other.runtimeType &&
           x == other.x &&
-          y == other.y &&
-          z == other.z;
+          y == other.y;
 }
 
-/// Inline content with optional formatting marks
-class InlineElement {
-  final InlineType inlineType;
-  final String text;
-  final List<TextMark>? marks;
+enum DisplayMode { importance, leveling }
 
-  const InlineElement({
-    required this.inlineType,
-    required this.text,
-    this.marks,
-  });
-
-  @override
-  int get hashCode => inlineType.hashCode ^ text.hashCode ^ marks.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is InlineElement &&
-          runtimeType == other.runtimeType &&
-          inlineType == other.inlineType &&
-          text == other.text &&
-          marks == other.marks;
-}
-
-enum InlineType { text, hardBreak }
-
-class MapConfig {
+class MapData {
   final String mapName;
   final ViewportState viewportState;
   final String? activeThemeId;
+  final DisplayMode displayMode;
 
-  const MapConfig({
+  const MapData({
     required this.mapName,
     required this.viewportState,
     this.activeThemeId,
+    required this.displayMode,
   });
 
   @override
   int get hashCode =>
-      mapName.hashCode ^ viewportState.hashCode ^ activeThemeId.hashCode;
+      mapName.hashCode ^
+      viewportState.hashCode ^
+      activeThemeId.hashCode ^
+      displayMode.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is MapConfig &&
+      other is MapData &&
           runtimeType == other.runtimeType &&
           mapName == other.mapName &&
           viewportState == other.viewportState &&
-          activeThemeId == other.activeThemeId;
+          activeThemeId == other.activeThemeId &&
+          displayMode == other.displayMode;
 }
 
-/// Mark-level attributes
-class MarkAttrs {
-  final String? href;
+class RecordStrings {
+  final String table;
+  final String key;
 
-  const MarkAttrs({this.href});
+  const RecordStrings({required this.table, required this.key});
 
   @override
-  int get hashCode => href.hashCode;
+  int get hashCode => table.hashCode ^ key.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is MarkAttrs &&
+      other is RecordStrings &&
           runtimeType == other.runtimeType &&
-          href == other.href;
+          table == other.table &&
+          key == other.key;
 }
 
-enum MarkType { bold, italic, underline, strikethrough, code, link }
+class Size {
+  final int width;
+  final int height;
 
-/// Formatting mark (bold, italic, link, etc.)
-class TextMark {
-  final MarkType markType;
-  final MarkAttrs? attrs;
-
-  const TextMark({required this.markType, this.attrs});
+  const Size({required this.width, required this.height});
 
   @override
-  int get hashCode => markType.hashCode ^ attrs.hashCode;
+  int get hashCode => width.hashCode ^ height.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is TextMark &&
+      other is Size &&
           runtimeType == other.runtimeType &&
-          markType == other.markType &&
-          attrs == other.attrs;
-}
-
-class Theme {
-  final String? id;
-  final String name;
-  final String config;
-
-  const Theme({this.id, required this.name, required this.config});
-
-  @override
-  int get hashCode => id.hashCode ^ name.hashCode ^ config.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Theme &&
-          runtimeType == other.runtimeType &&
-          id == other.id &&
-          name == other.name &&
-          config == other.config;
+          width == other.width &&
+          height == other.height;
 }
 
 class ViewportState {

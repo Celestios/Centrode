@@ -1,72 +1,54 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:mycelium/src/rust/frb_generated.dart'; // Core FFI
-import 'package:mycelium/src/rust/bridge/api.dart'; // AppHandle
-import 'package:provider/provider.dart';
+import 'package:mycelium/src/rust/frb_generated.dart';
+import 'infrastructure/telemetry/log_manager.dart';
+import 'features/workspace/ui/project_selector_screen.dart'; // your existing screen
+import 'presentation/theme/app_theme.dart'; // from previous step
+import 'presentation/theme/theme_repository.dart'; // from previous step
 
-import 'features/graph/ui/graph_screen.dart';
-import 'features/graph/state/theme_controller.dart';
-import 'features/graph/state/graph_data_controller.dart';
-import 'features/graph/state/graph_ui_controller.dart';
-import 'core/logging/log_manager.dart';
+late final ValueNotifier<AppTheme> themeNotifier;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. Initialize the low-level FFI bridge FIRST
-  //    Rust library must be loaded into memory before LogManager can call FFI functions
   await RustLib.init();
-
-  // 2. Initialize Central Logger (now safe to call FFI)
   await LogManager().init();
+
   final log = Logger('BootSequence');
-  log.info('LogManager online. Booting Mycelium...');
-  log.info('Rust FFI Loaded.');
+  log.info('Rust FFI loaded. Mycelium core ready.');
 
-  // 3. Initialize the Rust App State
-  final appHandle = await AppHandle.newInstance(storagePath: "mycelium.db");
-  log.info('SurrealDB Engine connected.');
+  final themes = await ThemeLoader.loadBundledThemes();
+  if (themes.isEmpty) {
+    log.severe(
+      'No JSON themes found in assets. Falling back to bare defaults.',
+    );
+    themeNotifier = ValueNotifier(AppTheme());
+  } else {
+    final initialTheme = themes['light'] ?? themes.values.first;
+    themeNotifier = ValueNotifier(initialTheme);
+    log.info('Loaded themes: ${themes.keys.join(', ')}');
+  }
 
-  runApp(
-    MultiProvider(
-      providers: [
-        // 1. Independent Theme Domain
-        ChangeNotifierProvider<ThemeController>(
-          create: (_) => ThemeController(appHandle)..loadThemes(),
-        ),
-        // 2. Core Graph Data Domain (Depends on Theme for styling nodes)
-        ChangeNotifierProxyProvider<ThemeController, GraphDataController>(
-          create: (context) =>
-              GraphDataController(appHandle, context.read<ThemeController>()),
-          update: (context, theme, previous) =>
-              previous ?? GraphDataController(appHandle, theme),
-        ),
-        // 3. Volatile UI Domain (Depends on Graph Data)
-        ChangeNotifierProxyProvider<GraphDataController, GraphUIController>(
-          create: (context) =>
-              GraphUIController(context.read<GraphDataController>()),
-          update: (context, data, previous) =>
-              previous ?? GraphUIController(data),
-        ),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  runApp(MyApp(allThemes: themes));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final Map<String, AppTheme> allThemes;
+
+  const MyApp({super.key, required this.allThemes});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Mycelium',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
-        useMaterial3: true,
-      ),
-      // 4. Set the Home Screen
-      home: const GraphScreen(),
+    return ValueListenableBuilder<AppTheme>(
+      valueListenable: themeNotifier,
+      builder: (context, currentTheme, _) {
+        return MaterialApp(
+          title: 'Mycelium',
+          theme: currentTheme.toThemeData(),
+          home: const ProjectSelectorScreen(),
+        );
+      },
     );
   }
 }

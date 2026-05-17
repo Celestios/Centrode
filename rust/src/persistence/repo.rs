@@ -1,132 +1,94 @@
-use super::templates;
 use crate::domain::analysis::DecaySignificanceStrategy;
-use crate::domain::base_models::MapConfig;
-use crate::domain::nodes::{NodeInput, NodeOutput};
-use crate::domain::relations::RelationInput;
-use anyhow::Result;
-use serde::Deserialize;
-use serde_json::Value;
-use surrealdb::engine::local::Db;
-use surrealdb::sql::Thing;
-use surrealdb::Surreal;
-use tracing::{debug, error, info};
+use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings};
+use crate::domain::nodes::{
+    INode, INodeFields, InterNode, InterNodeFields, Nodes, TaskNode, TaskNodeFields,
+};
+use crate::domain::relations::{IRelation, IRelationFields};
 
-// [CHANGED] Struct now holds state (the DB connection)
+use anyhow::Result;
+use surrealdb::engine::local::Db;
+use surrealdb::types::{RecordId, Value};
+use surrealdb::Surreal;
+use tracing::{debug, info};
+
 #[derive(Clone)]
 pub struct Repository {
     db: Surreal<Db>,
 }
 
 impl Repository {
-    // [NEW] Constructor
     pub fn new(db: Surreal<Db>) -> Self {
         Self { db }
     }
 
-    /// Exposes the underlying DB connection for testing/raw queries
     pub fn db(&self) -> &Surreal<Db> {
         &self.db
     }
 
-    pub async fn create_node(&self, input: NodeInput) -> Result<String> {
+    pub async fn create_node(&self, input: Nodes) -> Result<()> {
         match input {
-            NodeInput::Info(node) => {
-                let created: Option<crate::domain::nodes::INode> =
-                    self.db.create("inode").content(node).await?;
-                let thing = created
-                    .ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?
-                    .id
-                    .ok_or_else(|| anyhow::anyhow!("ID is missing from created node"))?;
-                // Parse the "table:id" back to just "id"
-                let (_, id) = thing.split_once(':').unwrap_or(("", &thing));
-                info!("REPO: Created InfoNode with ID: {}", id); // [NEW]
-                Ok(id.to_string())
+            Nodes::INode(node) => {
+                let key = node.key.clone();
+                let _: Option<INodeFields> = self
+                    .db
+                    .create((INode::LABEL, key.clone()))
+                    .content(node.fields)
+                    .await?;
+                info!("REPO: Created InfoNode with ID: {}", key);
+                Ok(())
             }
-            NodeInput::Task(node) => {
-                let created: Option<crate::domain::nodes::TaskNode> =
-                    self.db.create("task_node").content(node).await?;
-                let thing = created
-                    .ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?
-                    .id
-                    .ok_or_else(|| anyhow::anyhow!("ID is missing from created node"))?;
-                let (_, id) = thing.split_once(':').unwrap_or(("", &thing));
-                info!("REPO: Created TaskNode with ID: {}", id); // [NEW]
-                Ok(id.to_string())
+            Nodes::TaskNode(node) => {
+                let key = node.key.clone();
+                let _: Option<TaskNodeFields> = self
+                    .db
+                    .create((TaskNode::LABEL, key.clone()))
+                    .content(node.fields)
+                    .await?;
+                info!("REPO: Created TaskNode with ID: {}", key);
+                Ok(())
             }
-            NodeInput::Inter(node) => {
-                let created: Option<crate::domain::nodes::InterNode> =
-                    self.db.create("inter_node").content(node).await?;
-                let thing = created
-                    .ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?
-                    .id
-                    .ok_or_else(|| anyhow::anyhow!("ID is missing from created node"))?;
-                let (_, id) = thing.split_once(':').unwrap_or(("", &thing));
-                info!("REPO: Created InterNode with ID: {}", id); // [NEW]
-                Ok(id.to_string())
+            Nodes::InterNode(node) => {
+                let key = node.key.clone();
+                let _: Option<InterNodeFields> = self
+                    .db
+                    .create((InterNode::LABEL, key.clone()))
+                    .content(node.fields)
+                    .await?;
+                info!("REPO: Created InterNode with ID: {}", key);
+                Ok(())
             }
         }
     }
 
-    pub async fn create_relation(&self, input: RelationInput) -> Result<String> {
-        #[derive(Deserialize)]
-        struct CreatedId {
-            id: Thing,
-        }
+    pub async fn create_relation(&self, input: IRelation) -> Result<()> {
+        let key = input.key.clone();
+        let in_id = input.fields.get_in_id();
+        let out_id = input.fields.get_out_id();
 
-        let from = self.parse_record_id(&input.from)?;
-        let to = self.parse_record_id(&input.to)?;
-
-        let mut res = self
+        let created: Option<IRelation> = self
             .db
-            .query(templates::CREATE_RELATION)
-            .bind(("from", from.clone()))
-            .bind(("to", to.clone()))
-            .bind(("verb", input.props.verb.clone()))
-            .bind(("aesthetics", input.props.aesthetics.clone()))
-            .bind(("directionless", input.props.directionless))
-            .bind(("layer", input.props.layer))
-            .await
-            .map_err(|e| {
-                let err_msg = e.to_string();
-                if err_msg.contains("unique") || err_msg.contains("index") {
-                    tracing::warn!(
-                        "REPO: Duplicate edge rejected by schema constraint ({} -> {})",
-                        input.from,
-                        input.to
-                    );
-                } else {
-                    tracing::error!("REPO: Failed to create relation: {}", err_msg);
-                }
-                e
-            })?;
+            .create((IRelation::LABEL, key.clone()))
+            .content(input.fields)
+            .await?;
+        let _ = created.ok_or_else(|| anyhow::anyhow!("Failed to create Relation"))?;
 
-        let created: Option<CreatedId> = res.take(0)?;
-        let thing = created
-            .ok_or_else(|| anyhow::anyhow!("Failed to retrieve ID"))?
-            .id;
+        self.trigger_significance_update(&in_id).await?;
+        self.trigger_significance_update(&out_id).await?;
 
-        let relation_id = thing.id.to_string();
+        info!("REPO: Created Relation with ID: {}", key);
+        info!("REPO: Created Relation from {:?} to {:?}", in_id, out_id);
 
-        info!(
-            "REPO: Created Relation {} -> {} [ID: {}]",
-            input.from, input.to, relation_id
-        ); // [NEW]
-
-        // Trigger updates for both ends of the new connection
-        self.trigger_significance_update(&input.from).await?;
-        self.trigger_significance_update(&input.to).await?;
-
-        Ok(relation_id)
+        Ok(())
     }
 
-    pub async fn trigger_significance_update(&self, node_id: &str) -> Result<()> {
+    pub async fn trigger_significance_update(&self, node_id: &RecordId) -> Result<()> {
         let strategy = DecaySignificanceStrategy;
-        // Run asynchronously to satisfy "Separate Response Packet" requirement
+
         let db_clone = self.db.clone();
-        let id_clone = node_id.to_string();
+        let id_clone = node_id.clone();
 
         tokio::spawn(async move {
-            if let Err(e) = strategy.recalculate_area(&db_clone, &id_clone).await {
+            if let Err(e) = strategy.recalculate_area(&db_clone, id_clone).await {
                 tracing::error!("Significance update failed: {}", e);
             }
             // TODO: Broadcast SignificanceUpdate packet via FFI Sink
@@ -135,262 +97,275 @@ impl Repository {
         Ok(())
     }
 
-    // [FIXED] Uses Thing::from to bypass non-exhaustive struct restrictions
-    fn parse_record_id(&self, s: &str) -> Result<Thing> {
-        let (table, id) = s.split_once(':').ok_or_else(|| {
-            anyhow::anyhow!("Invalid record ID format: {}. Expected 'table:id'", s)
-        })?;
-
-        Ok(Thing::from((table, id)))
-    }
-
-    pub async fn get_node(
-        &self,
-        table: String,
-        id: String,
-    ) -> Result<Option<crate::domain::nodes::NodeOutput>> {
-        // [FIXED] Bind as a single Thing object
-        let record_id = Thing::from((table.as_str(), id.as_str()));
-
+    pub async fn get_node(&self, table: String, key: String) -> Result<Option<Nodes>> {
         match table.as_str() {
-            "inode" => {
-                let mut res = self
-                    .db
-                    .query(templates::GET_NODE)
-                    .bind(("id", record_id.clone()))
-                    .await?;
-                let node: Option<crate::domain::nodes::INode> = res.take(0)?;
-                if node.is_none() {
-                    tracing::trace!("REPO: get_node (inode) Miss for ID: {}", record_id);
-                }
-                Ok(node.map(crate::domain::nodes::NodeOutput::Info))
+            INode::LABEL => {
+                let fields: Option<INodeFields> = self.db.select((table, key.clone())).await?;
+                Ok(fields.map(|f| Nodes::INode(INode { key, fields: f })))
             }
-            "task_node" => {
-                let mut res = self
-                    .db
-                    .query(templates::GET_NODE)
-                    .bind(("id", record_id.clone()))
-                    .await?;
-                let node: Option<crate::domain::nodes::TaskNode> = res.take(0)?;
-                if node.is_none() {
-                    tracing::trace!("REPO: get_node (task_node) Miss for ID: {}", record_id);
-                }
-                Ok(node.map(crate::domain::nodes::NodeOutput::Task))
+            TaskNode::LABEL => {
+                let fields: Option<TaskNodeFields> = self.db.select((table, key.clone())).await?;
+                Ok(fields.map(|f| Nodes::TaskNode(TaskNode { key, fields: f })))
             }
-            "inter_node" => {
-                let mut res = self
-                    .db
-                    .query(templates::GET_NODE)
-                    .bind(("id", record_id.clone()))
-                    .await?;
-                let node: Option<crate::domain::nodes::InterNode> = res.take(0)?;
-                if node.is_none() {
-                    tracing::trace!("REPO: get_node (inter_node) Miss for ID: {}", record_id);
-                }
-                Ok(node.map(crate::domain::nodes::NodeOutput::Inter))
+            InterNode::LABEL => {
+                let fields: Option<InterNodeFields> = self.db.select((table, key.clone())).await?;
+                Ok(fields.map(|f| Nodes::InterNode(InterNode { key, fields: f })))
             }
-            _ => {
-                tracing::warn!("REPO: get_node failed: Unknown table type: {}", table);
-                Err(anyhow::anyhow!("Unknown table type: {}", table))
-            }
+            _ => Err(anyhow::anyhow!("Unknown node type with id: {:?}", key)),
         }
     }
 
     pub async fn get_graph_snapshot(
         &self,
     ) -> Result<(
-        Vec<crate::domain::nodes::NodeOutput>,
-        Vec<crate::domain::relations::IRelation>,
-        Option<MapConfig>,
+        Vec<INode>,
+        Vec<TaskNode>,
+        Vec<InterNode>,
+        Vec<IRelation>,
+        MapData,
     )> {
-        // 1. Run all queries in parallel or batch
-        let mut responses = self
-            .db
-            .query(templates::GET_ALL_INODES)
-            .query(templates::GET_ALL_TASKS)
-            .query(templates::GET_ALL_INTER_NODES)
-            .query(templates::GET_ALL_RELATIONS)
-            .query(templates::GET_MAP_METADATA)
+        tracing::info!("Fetching graph snapshot...");
+
+        tracing::debug!("Fetching INodes...");
+
+        let inodes_raw: Vec<Value> = self.db.select(INode::LABEL).await?;
+
+        let inodes: Vec<INode> = inodes_raw
+            .into_iter()
+            .filter_map(|val| {
+                let record = Record::from_record_value(val)?;
+                let (key, fields) = record.to_type::<INodeFields>()?;
+                Some(INode { key, fields })
+            })
+            .collect();
+
+        tracing::debug!("Fetched {} INodes", inodes.len());
+
+        tracing::debug!("Fetching TaskNodes...");
+        let tasks_raw: Vec<Value> = self.db.select(TaskNode::LABEL).await?;
+        let tasks: Vec<TaskNode> = tasks_raw
+            .into_iter()
+            .filter_map(|val| {
+                let record = Record::from_record_value(val)?;
+                let (key, fields) = record.to_type::<TaskNodeFields>()?;
+                Some(TaskNode { key, fields })
+            })
+            .collect();
+        tracing::debug!("Fetched {} TaskNodes", tasks.len());
+
+        tracing::debug!("Fetching InterNodes...");
+        let inters_raw: Vec<Value> = self.db.select(InterNode::LABEL).await?;
+        let inters: Vec<InterNode> = inters_raw
+            .into_iter()
+            .filter_map(|val| {
+                let record = Record::from_record_value(val)?;
+                let (key, fields) = record.to_type::<InterNodeFields>()?;
+                Some(InterNode { key, fields })
+            })
+            .collect();
+        tracing::debug!("Fetched {} InterNodes", inters.len());
+
+        tracing::debug!("Fetching IRelations...");
+        let relations_raw: Vec<Value> = self.db.select(IRelation::LABEL).await?;
+        let relations: Vec<IRelation> = relations_raw
+            .into_iter()
+            .filter_map(|val| {
+                let record = Record::from_record_value(val)?;
+                let (key, fields) = record.to_type::<IRelationFields>()?;
+                Some(IRelation { key, fields })
+            })
+            .collect();
+        tracing::debug!("Fetched {} IRelations", relations.len());
+
+        tracing::debug!("Fetching MapMetadata...");
+        let metadata: Option<MapData> = self.db.select((MapData::LABEL, MapData::KEY)).await?;
+        let metadata = metadata.ok_or_else(|| anyhow::anyhow!("MapMetadata not found"))?;
+
+        Ok((inodes, tasks, inters, relations, metadata))
+    }
+
+    /// Clear all graph-related tables in the correct dependency order.
+    /// This helper works with any handle that derefs to `Surreal<C>` (including a transaction).
+    async fn clear_graph(&self) -> Result<()> {
+        tracing::debug!("Clearing existing graph data...");
+
+        let db = self.db.clone();
+        let tx = db.begin().await?;
+
+        tracing::debug!("Deleting existing IRelations...");
+        let _: Vec<IRelation> = tx.delete(IRelation::LABEL).await?;
+        tracing::debug!("Deleted all IRelations");
+
+        tracing::debug!("Deleting existing InterNodes...");
+        let _: Vec<InterNode> = tx.delete(InterNode::LABEL).await?;
+        tracing::debug!("Deleted all InterNodes");
+
+        tracing::debug!("Deleting existing TaskNodes...");
+        let _: Vec<TaskNode> = tx.delete(TaskNode::LABEL).await?;
+        tracing::debug!("Deleted all TaskNodes");
+
+        tracing::debug!("Deleting existing INodes...");
+        let _: Vec<INode> = tx.delete(INode::LABEL).await?;
+        tracing::debug!("Deleted all INodes");
+
+        tracing::debug!("Deleting existing MapMetadata...");
+        let _: Vec<MapData> = tx.delete(MapData::LABEL).await?;
+        tracing::debug!("Deleted all MapMetadata");
+
+        tx.commit().await?;
+        tracing::debug!("Graph cleared.");
+        Ok(())
+    }
+
+    pub async fn set_graph_snapshot(
+        &self,
+        inodes: Vec<INode>,
+        tasknodes: Vec<TaskNode>,
+        internodes: Vec<InterNode>,
+        irelations: Vec<IRelation>,
+        metadata: MapData,
+    ) -> Result<()> {
+        tracing::info!("Storing graph snapshot atomically...");
+
+        self.clear_graph().await?;
+        let db = self.db.clone();
+        let tx = db.begin().await?;
+
+        tracing::debug!("Inserting {} INodes...", inodes.len());
+        for inode in inodes {
+            let _: Option<INodeFields> = tx
+                .create(inode.get_record_id())
+                .content(inode.fields)
+                .await?;
+        }
+
+        tracing::debug!("Inserting {} TaskNodes...", tasknodes.len());
+        for task in tasknodes {
+            let _: Option<TaskNodeFields> = tx
+                .create((TaskNode::LABEL, task.key.clone()))
+                .content(task.fields)
+                .await?;
+        }
+
+        tracing::debug!("Inserting {} InterNodes...", internodes.len());
+        for inter in internodes {
+            let _: Option<InterNodeFields> = tx
+                .create((InterNode::LABEL, inter.key.clone()))
+                .content(inter.fields)
+                .await?;
+        }
+
+        tracing::debug!("Inserting {} IRelations...", irelations.len());
+        for relation in irelations {
+            let _: Option<IRelationFields> = tx
+                .create((IRelation::LABEL, relation.key.clone()))
+                .content(relation.fields)
+                .await?;
+        }
+
+        tracing::debug!("Inserting MapMetadata...");
+        let _: Option<MapData> = tx
+            .create((MapData::LABEL, MapData::KEY))
+            .content(metadata)
             .await?;
 
-        // 2. Unpack Results with granular error tracing
-        let inodes: Vec<crate::domain::nodes::INode> = responses.take(0).map_err(|e| {
-            error!("Failed to deserialize inodes (index 0): {}", e);
-            e
-        })?;
-        let tasks: Vec<crate::domain::nodes::TaskNode> = responses.take(1).map_err(|e| {
-            error!("Failed to deserialize tasks (index 1): {}", e);
-            e
-        })?;
-        let inters: Vec<crate::domain::nodes::InterNode> = responses.take(2).map_err(|e| {
-            error!("Failed to deserialize inter_nodes (index 2): {}", e);
-            e
-        })?;
-        let relations: Vec<crate::domain::relations::IRelation> =
-            responses.take(3).map_err(|e| {
-                error!("Failed to deserialize relations (index 3): {}", e);
-                e
-            })?;
-        let metadata: Option<MapConfig> = responses
-            .take::<Vec<MapConfig>>(4)
-            .map_err(|e| {
-                error!("Failed to deserialize metadata (index 4): {}", e);
-                e
-            })?
-            .pop();
+        tx.commit().await?;
+        tracing::info!("Graph snapshot stored successfully.");
 
-        // 3. Combine Nodes into one Polymorphic Vector
-        let mut all_nodes = Vec::new();
-        for n in inodes {
-            all_nodes.push(crate::domain::nodes::NodeOutput::Info(n));
-        }
-        for t in tasks {
-            all_nodes.push(crate::domain::nodes::NodeOutput::Task(t));
-        }
-        for i in inters {
-            all_nodes.push(crate::domain::nodes::NodeOutput::Inter(i));
-        }
-
-        Ok((all_nodes, relations, metadata))
+        Ok(())
     }
 
-    pub async fn get_map_config(&self) -> Result<Option<MapConfig>> {
-        let mut res = self.db.query("SELECT * FROM map_metadata LIMIT 1;").await?;
-        let config: Option<MapConfig> = res.take(0)?;
-        Ok(config)
-    }
-
-    // [NEW] Dynamic Patching for Nodes
-    pub async fn patch_node(&self, table: String, id: String, patch: Value) -> Result<String> {
-        debug!(
-            "REPO: patch_node called for {}/{} with patch: {:?}",
-            table, id, patch
-        );
-
-        // [VERIFICATION] Log the Thing being constructed
-        let thing = Thing::from((table.as_str(), id.as_str()));
-        debug!("REPO: Constructed Thing for update: {}", thing);
-
-        let mut res = self
-            .db
-            .query("UPDATE $id MERGE $patch RETURN id")
-            .bind(("id", thing.clone()))
-            .bind(("patch", patch))
-            .await?;
-
-        let updated: Option<Thing> = res.take("id")?;
-
-        match updated {
-            Some(t) => {
-                debug!(
-                    "REPO: patch_node successful for {}. Result ID: {}",
-                    thing, t
-                );
-                Ok(t.to_string())
+    pub async fn update_node(&self, input: Nodes) -> Result<()> {
+        match input {
+            Nodes::INode(node) => {
+                let key = node.key.clone();
+                let _: Option<INodeFields> = self
+                    .db
+                    .update((INode::LABEL, key.clone()))
+                    .content(node.fields)
+                    .await?;
+                info!("REPO: Updated InfoNode with ID: {}", key);
+                Ok(())
             }
-            None => {
-                error!("REPO: patch_node failed for {}: Record not found", thing);
-                Err(anyhow::anyhow!("Failed to patch node: Record not found"))
+            Nodes::TaskNode(node) => {
+                let key = node.key.clone();
+                let _: Option<TaskNodeFields> = self
+                    .db
+                    .update((TaskNode::LABEL, key.clone()))
+                    .content(node.fields)
+                    .await?;
+                info!("REPO: Updated TaskNode with ID: {}", key);
+                Ok(())
+            }
+            Nodes::InterNode(node) => {
+                let key = node.key.clone();
+                let _: Option<InterNodeFields> = self
+                    .db
+                    .update((InterNode::LABEL, key.clone()))
+                    .content(node.fields)
+                    .await?;
+                info!("REPO: Updated InterNode with ID: {}", key);
+                Ok(())
             }
         }
     }
 
-    // [NEW] Cascading Delete for Nodes
-    pub async fn delete_node(&self, table: String, id: String) -> Result<String> {
-        let record_id = Thing::from((table.as_str(), id.as_str()));
-
-        // Perform cleanup within a transaction to ensure integrity
+    pub async fn delete_node(&self, table: String, key: String) -> Result<()> {
         let query = "
             BEGIN TRANSACTION;
-            DELETE relates_to WHERE in = $target OR out = $target;
+            DELETE IRelation WHERE in = $target OR out = $target;
             DELETE $target;
             COMMIT TRANSACTION;
         ";
-
+        let record_id = RecordId::new(table, key);
         tracing::trace!(
-            "REPO: BEGIN TRANSACTION for cascading delete of {}",
+            "REPO: BEGIN TRANSACTION for cascading delete of {:?}",
             record_id
         );
         self.db
             .query(query)
             .bind(("target", record_id.clone()))
             .await?;
-        tracing::info!(
-            "REPO: COMMIT TRANSACTION successful for cascading delete of {}",
-            record_id
-        );
 
-        Ok("Node and connected edges deleted successfully".to_string())
+        Ok(())
     }
 
-    // [NEW] Relation Operations
-    pub async fn get_relation(
+    pub async fn get_relation(&self, table: String, key: String) -> Result<IRelation> {
+        let record_id = RecordId::new(table, key.clone());
+        let fields: Option<IRelationFields> = self.db.select(record_id).await?;
+        let fields = fields.ok_or_else(|| anyhow::anyhow!("Relation not found"))?;
+        Ok(IRelation { key, fields })
+    }
+
+    pub async fn delete_relation(&self, table: String, key: String) -> Result<()> {
+        let record_id = RecordId::new(table, key);
+        let _: Option<IRelationFields> = self.db.delete(record_id).await?;
+        Ok(())
+    }
+
+    pub async fn update_relation(
         &self,
-        id: String,
-    ) -> Result<Option<crate::domain::relations::IRelation>> {
-        let record_id = self.parse_record_id(&id)?;
-        let mut res = self
-            .db
-            .query("SELECT * FROM $id")
-            .bind(("id", record_id.clone()))
-            .await?;
+        table: String,
+        key: String,
+        fields: IRelationFields,
+    ) -> Result<()> {
+        debug!("REPO: update_relation called for {} ", key);
+        let record_id = RecordId::new(table, key);
+        debug!("REPO: Parsed relation RecordID: {:?}", record_id);
 
-        let relation: Option<crate::domain::relations::IRelation> = res.take(0)?;
-        if relation.is_none() {
-            tracing::trace!("REPO: get_relation Miss for ID: {}", record_id);
-        }
-        Ok(relation)
-    }
-
-    pub async fn delete_relation(&self, id: String) -> Result<String> {
-        let record_id = self.parse_record_id(&id)?;
-        self.db.query("DELETE $id").bind(("id", record_id)).await?;
-        Ok("Relation deleted".to_string())
-    }
-
-    pub async fn update_relation_properties(&self, id: String, patch: Value) -> Result<String> {
-        debug!(
-            "REPO: update_relation_properties called for {} with patch: {:?}",
-            id, patch
-        );
-        let record_id = self.parse_record_id(&id)?;
-        debug!("REPO: Parsed relation RecordID: {}", record_id);
-
-        let mut res = self
-            .db
-            .query("UPDATE $id MERGE $patch RETURN id")
-            .bind(("id", record_id.clone()))
-            .bind(("patch", patch))
-            .await?;
-
-        let updated: Option<Thing> = res.take("id")?;
-
-        match updated {
-            Some(thing) => {
-                debug!("REPO: update_relation_properties successful for {}", thing);
-                Ok(thing.to_string())
-            }
-            None => {
-                error!(
-                    "REPO: update_relation_properties failed for {}: Record not found",
-                    record_id
-                );
-                Err(anyhow::anyhow!(
-                    "Failed to update relation: Record not found"
-                ))
-            }
-        }
+        let _: Option<IRelationFields> = self.db.update(record_id).content(fields).await?;
+        Ok(())
     }
 
     pub async fn reroute_relation(
         &self,
-        id: String,
-        new_from: String,
-        new_to: String,
-    ) -> Result<String> {
-        let record_id = self.parse_record_id(&id)?;
-        let from_record = self.parse_record_id(&new_from)?;
-        let to_record = self.parse_record_id(&new_to)?;
+        record: RecordStrings,
+        from: RecordStrings,
+        to: RecordStrings,
+    ) -> Result<()> {
+        let record_id = RecordId::new(record.table, record.key);
+        let from_record = RecordId::new(from.table, from.key);
+        let to_record = RecordId::new(to.table, to.key);
 
         self.db
             .query("UPDATE $id SET in = $from, out = $to")
@@ -399,87 +374,6 @@ impl Repository {
             .bind(("to", to_record))
             .await?;
 
-        Ok("Relation rerouted".to_string())
-    }
-
-    // [NEW] Smart Import Wrapper
-    // This takes the raw list from the file and handles the table splitting logic internally.
-    pub async fn import_dynamic_graph(
-        &self,
-        nodes: Vec<NodeOutput>,
-        relations: Vec<crate::domain::relations::IRelation>,
-        metadata: Option<MapConfig>,
-    ) -> anyhow::Result<()> {
-        let mut inodes = Vec::new();
-        let mut tasks = Vec::new();
-        let mut inters = Vec::new();
-
-        // The "Sorting Hat" logic moves here, where it belongs (Data Layer)
-        for node in nodes {
-            match node {
-                NodeOutput::Info(n) => inodes.push(n),
-                NodeOutput::Task(n) => tasks.push(n),
-                NodeOutput::Inter(n) => inters.push(n),
-            }
-        }
-
-        // Delegate to the existing bulk insert
-        self.import_graph_state(inodes, tasks, inters, relations, metadata)
-            .await
-    }
-
-    pub async fn import_graph_state(
-        &self,
-        inodes: Vec<crate::domain::nodes::INode>,
-        task_nodes: Vec<crate::domain::nodes::TaskNode>,
-        inter_nodes: Vec<crate::domain::nodes::InterNode>,
-        relations: Vec<crate::domain::relations::IRelation>,
-        metadata: Option<MapConfig>,
-    ) -> anyhow::Result<()> {
-        tracing::warn!("REPO: Initiating destructive canvas wipe for bulk import."); // [NEW]
-        tracing::info!(
-            "REPO: Import Payload: {} nodes, {} relations",
-            inodes.len() + task_nodes.len() + inter_nodes.len(),
-            relations.len()
-        ); // [NEW]
-
-        tracing::trace!("REPO: BEGIN TRANSACTION for bulk import.");
-
-        // TRANSACTION: "All or Nothing"
-        // We delete everything then insert everything.
-        // IDs are preserved because the Structs contain the `id: Option<Thing>` field,
-        // and SurrealDB respects provided IDs on INSERT.
-        let sql = "
-            BEGIN TRANSACTION;
-
-            -- 1. Wipe Canvas
-            DELETE inode;
-            DELETE task_node;
-            DELETE inter_node;
-            DELETE relates_to;
-            DELETE map_metadata;
-
-            -- 2. Bulk Insert
-            -- Note: We use $vars to prevent injection and handle large datasets efficiently
-            INSERT INTO inode $inodes;
-            INSERT INTO task_node $task_nodes;
-            INSERT INTO inter_node $inter_nodes;
-            INSERT INTO relates_to $relations;
-            INSERT INTO map_metadata $metadata;
-
-            COMMIT TRANSACTION;
-        ";
-
-        self.db
-            .query(sql)
-            .bind(("inodes", inodes))
-            .bind(("task_nodes", task_nodes))
-            .bind(("inter_nodes", inter_nodes))
-            .bind(("relations", relations))
-            .bind(("metadata", metadata))
-            .await?;
-
-        tracing::info!("REPO: Bulk import transaction committed successfully."); // [NEW]
         Ok(())
     }
 }

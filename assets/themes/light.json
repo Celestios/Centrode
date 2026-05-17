@@ -1,0 +1,19 @@
+{
+  "primaryColor": "0xFF1976D2",
+  "scaffoldBackgroundColor": "0xFFF5F5F5",
+  "cardColor": "0xFFFFFFFF",
+  "dividerColor": "0xFFBDBDBD",
+  "textColor": "0xFF212121",
+  "fontFamily": "Roboto",
+  "bodyFontSize": 14.0,
+  "bodyFontWeight": "normal",
+  "bodyTextColor": "0xFF212121",
+  "borderRadius": 8.0,
+  "appBarBackgroundColor": "0xFF1976D2",
+  "appBarForegroundColor": "0xFFFFFFFF",
+  "appBarElevation": 0.0,
+  "appBarTitleFontSize": 20.0,
+  "appBarTitleFontWeight": "w600",
+  "useMaterial3": true,
+  "brightness": "light"
+}

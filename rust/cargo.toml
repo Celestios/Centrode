@@ -1,7 +1,7 @@
 [package]
 name = "mycelium_core"
 version = "0.1.0"
-edition = "2021"  # '2024' is not yet standard stable; 2021 is the current safe default.
+edition = "2021"
 description = "Core logic and persistence layer for Mycelium 1.0, exposed via FFI."
 authors = ["Celestios <shahin.id5638@gmail.com>"]
 
@@ -33,7 +33,7 @@ thiserror = "1.0"       # For typed domain errors
 flutter_rust_bridge = "=2.11.1" 
 
 # --- Database ---
-surrealdb = { version = "2.0", features = ["kv-surrealkv", "kv-mem"] }
+surrealdb = { version = "3.0", features = ["kv-surrealkv", "kv-mem"] }
 
 # --- Serialization ---
 serde = { version = "1.0", features = ["derive"] }

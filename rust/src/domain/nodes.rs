@@ -1,89 +1,100 @@
-use crate::domain::base_models::{Comment, Content, Coordinates};
-use serde::{Deserialize, Serialize};
+use crate::domain::base_models::{Comment, Coordinates, IsTable, Size};
+use crate::domain::contents::Content;
+use crate::domain::styles::NodeStyle;
+use surrealdb::types::SurrealValue;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, SurrealValue)]
 pub struct INode {
-    // Type is String, with custom serialization logic
-    #[serde(
-        alias = "id",
-        skip_serializing_if = "Option::is_none",
-        with = "crate::domain::serde_helpers::option_thing_string"
-    )]
-    pub id: Option<String>,
+    pub key: String,
+    pub fields: INodeFields,
+}
+
+#[derive(Debug, Clone, SurrealValue)]
+pub struct TaskNode {
+    pub key: String,
+    pub fields: TaskNodeFields,
+}
+
+#[derive(Debug, Clone, SurrealValue)]
+pub struct InterNode {
+    pub key: String,
+    pub fields: InterNodeFields,
+}
+
+impl IsTable for INode {
+    const LABEL: &'static str = "INode";
+
+    fn get_key(&self) -> &str {
+        &self.key
+    }
+}
+impl IsTable for TaskNode {
+    const LABEL: &'static str = "TaskNode";
+
+    fn get_key(&self) -> &str {
+        &self.key
+    }
+}
+impl IsTable for InterNode {
+    const LABEL: &'static str = "InterNode";
+
+    fn get_key(&self) -> &str {
+        &self.key
+    }
+}
+
+#[derive(Debug, Clone, SurrealValue)]
+pub struct INodeFields {
     pub content: Content,
-    pub aesthetics: Option<String>,
+    pub style: Option<NodeStyle>,
+    pub resolved_style: Option<NodeStyle>,
+    pub layer: String,
     pub position: Coordinates,
+    pub size: Size,
+    pub line_count: i32,
+    pub expandable: bool,
+    pub is_expanded: bool,
     pub locked: bool,
     pub tags: Vec<String>,
     pub aliases: Vec<String>,
     pub comments: Vec<Comment>,
     pub attachment: Option<String>,
-    #[serde(default)]
     pub significance: u8,
     pub created_at: i64,
     pub updated_at: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TaskNode {
-    // [CHANGED]
-    #[serde(
-        alias = "id",
-        skip_serializing_if = "Option::is_none",
-        with = "crate::domain::serde_helpers::option_thing_string"
-    )]
-    pub id: Option<String>,
+#[derive(Debug, Clone, SurrealValue)]
+pub struct TaskNodeFields {
     pub content: Content,
     pub due_date: Option<i64>,
-    pub state: String, // e.g., "TODO", "DONE"
+    pub state: String,
     pub position: Coordinates,
-    pub aesthetics: Option<String>,
-    #[serde(default)]
+    pub size: Size,
+    pub expandable: bool,
+    pub is_expanded: bool,
+    pub layer: String,
+    pub style: Option<NodeStyle>,
+    pub resolved_style: Option<NodeStyle>,
     pub significance: u8,
     pub created_at: i64,
     pub updated_at: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InterNode {
-    #[serde(
-        alias = "id",
-        skip_serializing_if = "Option::is_none",
-        with = "crate::domain::serde_helpers::option_thing_string"
-    )]
-    pub id: Option<String>,
+#[derive(Debug, Clone, SurrealValue)]
+pub struct InterNodeFields {
     pub verb: String,
-    pub behavioral_features: Option<String>, // e.g., "active", "inhibiting"
+    pub behavioral_features: Option<String>,
     pub position: Coordinates,
-    pub aesthetics: Option<String>, // JSON string for distinct edge styling
+    pub style: Option<String>,
+    pub layer: String,
     pub created_at: i64,
     pub updated_at: i64,
 }
 
-// The Enum passed from Flutter to create *any* node
-#[derive(Debug, Clone)]
-pub enum NodeInput {
-    Info(INode),
-    Task(TaskNode),
-    Inter(InterNode),
-}
-
-// The Output Enum for fetching any node type
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum NodeOutput {
-    Info(INode),
-    Task(TaskNode),
-    Inter(InterNode),
-}
-
-// Helper to extract the ID regardless of type
-impl NodeOutput {
-    pub fn id(&self) -> Option<String> {
-        match self {
-            // Now simply clone the string, no formatting needed
-            NodeOutput::Info(n) => n.id.clone(),
-            NodeOutput::Task(n) => n.id.clone(),
-            NodeOutput::Inter(n) => n.id.clone(),
-        }
-    }
+#[derive(Debug, Clone, SurrealValue)]
+pub enum Nodes {
+    INode(INode),
+    TaskNode(TaskNode),
+    InterNode(InterNode),
 }

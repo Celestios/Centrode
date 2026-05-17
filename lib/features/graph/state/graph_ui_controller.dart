@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import '../../../core/config/app_config.dart';
-import 'graph_data_controller.dart';
+import '../presentation/graph_metrics.dart';
+import '../store/graph_repository.dart';
 
 /// Exclusively manages volatile screen state (selections, overlays, toolbars).
 ///
@@ -21,19 +21,71 @@ import 'graph_data_controller.dart';
 class GraphUIController extends ChangeNotifier {
   final Logger _log = Logger('GraphUIController');
   final GraphDataController _dataController;
+  Rect? _lastBufferRect;
 
-  GraphUIController(this._dataController);
+  GraphUIController(this._dataController) {
+    _dataController.addListener(_onDataChanged);
+  }
+
+  void _onDataChanged() {
+    _syncAtomicUIState();
+  }
+
+  /// Ensures that all UI-specific collections (zOrder, selection, etc.)
+  /// are strictly subset of the current canonical data.
+  void _syncAtomicUIState() {
+    final keys = _dataController.nodeLookup.keys.toSet();
+
+    // 1. Purge zOrder of non-existent or uninitialized nodes
+    zOrder.removeWhere(
+      (id) => !keys.contains(id) || !_dataController.viewStates.containsKey(id),
+    );
+
+    // 2. Add new nodes that are now ready
+    for (final id in keys) {
+      if (!zOrder.contains(id) && _dataController.viewStates.containsKey(id)) {
+        zOrder.add(id);
+      }
+    }
+
+    // 3. Clean up volatile/transient states
+    selectedEntities.removeWhere((id) => !keys.contains(id));
+
+    if (activeEditId != null && !keys.contains(activeEditId)) {
+      activeEditId = null;
+    }
+
+    if (nodeShowingDeleteMenu != null &&
+        !keys.contains(nodeShowingDeleteMenu)) {
+      nodeShowingDeleteMenu = null;
+    }
+
+    // 4. Update visible set if we have a known viewport
+    if (_lastBufferRect != null) {
+      updateVisibleSet(_lastBufferRect!);
+    } else {
+      // Fallback cleanup if no viewport is registered yet
+      if (visibleNodeIds.value.any((id) => !keys.contains(id))) {
+        visibleNodeIds.value = visibleNodeIds.value
+            .where(keys.contains)
+            .toSet();
+      }
+    }
+
+    _log.fine('UI State synchronized: ${zOrder.length} nodes in render stack.');
+    notifyListeners();
+  }
 
   // Volatile State
   final ValueNotifier<Set<String>> visibleNodeIds = ValueNotifier({});
   final ValueNotifier<Offset> toolbarOffsetNotifier = ValueNotifier(
-    AppConfig.graph.toolbar.singleOffset,
+    AppConfig.toolbar.singleOffset,
   );
   final ValueNotifier<Offset> multiToolbarOffsetNotifier = ValueNotifier(
-    AppConfig.graph.toolbar.multiOffset,
+    AppConfig.toolbar.multiOffset,
   );
 
-  // NEW: Canonical Z-Order storage for hit-testing
+  // Canonical Z-Order storage for hit-testing
   final List<String> zOrder = [];
 
   String? activeEditId;
@@ -43,6 +95,7 @@ class GraphUIController extends ChangeNotifier {
   @override
   void dispose() {
     _log.fine('Disposing GraphUIController and volatile notifiers.');
+    _dataController.removeListener(_onDataChanged);
     visibleNodeIds.dispose();
     toolbarOffsetNotifier.dispose();
     multiToolbarOffsetNotifier.dispose();
@@ -50,14 +103,12 @@ class GraphUIController extends ChangeNotifier {
   }
 
   void updateVisibleSet(Rect bufferRect) {
+    _lastBufferRect = bufferRect;
     final newVisible = _dataController.spatialHash.queryRect(bufferRect);
     _log.finer(
       'updateVisibleSet: Spatial index returned ${newVisible.length} visible nodes.',
     );
     visibleNodeIds.value = newVisible;
-
-    // THE FIX: Removed zOrder mutation.
-    // Z-Order is now a persistent, canonical hierarchy immune to camera panning.
   }
 
   void moveToFront(String id) {
@@ -102,7 +153,6 @@ class GraphUIController extends ChangeNotifier {
 
     for (final id in idsToDelete) {
       _dataController.deleteNode(id);
-      _cleanVolatileStateFor(id);
     }
   }
 
@@ -131,65 +181,5 @@ class GraphUIController extends ChangeNotifier {
       nodeShowingDeleteMenu = null;
       notifyListeners();
     }
-  }
-
-  /// Synchronizes volatile state when the data layer promotes a temp ID to a real DB ID.
-  void handleIdSwap(String tempId, String realId) {
-    _log.info('Volatile ID swap: $tempId -> $realId');
-
-    if (visibleNodeIds.value.contains(tempId)) {
-      final newVisible = Set<String>.from(visibleNodeIds.value);
-      newVisible.remove(tempId);
-      newVisible.add(realId);
-      visibleNodeIds.value = newVisible;
-    }
-
-    // Sync Z-order during ID swap
-    final idx = zOrder.indexOf(tempId);
-    if (idx != -1) zOrder[idx] = realId;
-
-    if (activeEditId == tempId) {
-      activeEditId = realId;
-      notifyListeners();
-    }
-
-    if (selectedEntities.contains(tempId)) {
-      selectedEntities.remove(tempId);
-      selectedEntities.add(realId);
-      notifyListeners();
-    }
-  }
-
-  /// Synchronizes the hit-testing stack with the provided IDs.
-  /// Ensures new nodes are added to the stack and stale ones are purged.
-  void syncZOrder(Iterable<String> ids) {
-    final idSet = ids.toSet();
-
-    // 1. Purge entities no longer in the database
-    zOrder.removeWhere((id) => !idSet.contains(id));
-
-    // 2. Append new entities to the top (end) of the Z-Order
-    for (final id in ids) {
-      if (!zOrder.contains(id)) {
-        zOrder.add(id);
-      }
-    }
-
-    _log.fine('Z-Order synchronized: ${zOrder.length} entities tracked.');
-    notifyListeners();
-  }
-
-  /// Cleans up any dangling UI states when a node is deleted by the Data layer
-  void _cleanVolatileStateFor(String id) {
-    if (nodeShowingDeleteMenu == id) hideDeleteMenu();
-    if (activeEditId == id) cancelActiveEdit();
-    if (visibleNodeIds.value.contains(id)) {
-      final newVisible = Set<String>.from(visibleNodeIds.value)..remove(id);
-      visibleNodeIds.value = newVisible;
-    }
-
-    // THE FIX: Symmetric Deletion.
-    // Ensure the ID is purged from the canonical hit-testing stack.
-    zOrder.remove(id);
   }
 }

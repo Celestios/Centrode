@@ -4,45 +4,25 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../domain/base_models.dart';
+import '../domain/contents.dart';
 import '../domain/nodes.dart';
 import '../domain/relations.dart';
+import '../domain/styles.dart';
+import '../domain/theme.dart';
 import '../frb_generated.dart';
+import '../persistence/history.dart';
 import '../persistence/repo.dart';
 import '../telemetry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'stream.dart';
 
 // These functions are ignored because they are not marked as `pub`: `broadcast_boundaries`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `drop`
 
-/// Initialization endpoint for the telemetry layer.
-/// Called by Dart during app startup to initialize the tracing subscriber.
 Future<void> setupLogger() => RustLib.instance.api.crateBridgeApiSetupLogger();
 
-/// Stream connection endpoint for FFI.
-/// Dart calls this after the DiskWriterIsolate is ready.
-/// Flushes the pre-stream buffer and starts streaming logs.
 Stream<LogState> createLogStream() =>
     RustLib.instance.api.crateBridgeApiCreateLogStream();
-
-/// Serialize Content to binary for FFI transport.
-/// Used by Flutter to prepare content for efficient transfer.
-Future<Uint8List> serializeContent({required Content content}) =>
-    RustLib.instance.api.crateBridgeApiSerializeContent(content: content);
-
-/// Deserialize Content from binary FFI payload.
-/// Used by Flutter to decode content received from Rust.
-Future<Content?> deserializeContent({required List<int> bytes}) =>
-    RustLib.instance.api.crateBridgeApiDeserializeContent(bytes: bytes);
-
-/// Create a simple Content from plain text.
-/// Convenience function for creating paragraph content.
-Future<Content> createContentFromText({required String text}) =>
-    RustLib.instance.api.crateBridgeApiCreateContentFromText(text: text);
-
-/// Extract plain text from Content.
-/// Used for search indexing and fallback rendering.
-Future<String> contentToPlainText({required Content content}) =>
-    RustLib.instance.api.crateBridgeApiContentToPlainText(content: content);
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>>
 abstract class AppHandle implements RustOpaqueInterface {
@@ -50,25 +30,32 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   set repo(Repository repo);
 
-  /// Creates a stream connection for graph events.
-  /// This enables Flutter to receive async updates about node changes.
+  Future<void> close();
+
   Stream<GraphEvent> createGraphStream();
 
-  Future<String> createNode({required NodeInput input});
+  Future<void> createNode({required Nodes input});
 
-  Future<String> createRelation({required RelationInput input});
+  Future<void> createRelation({required IRelation input});
 
-  Future<String> deleteNodeEntry({required String table, required String id});
+  Future<void> createTheme({required String key, required ThemeFields fields});
 
-  Future<String> deleteRelation({required String id});
+  Future<void> deleteNodeEntry({required String table, required String key});
+
+  Future<void> deleteRelation({required String table, required String key});
 
   Future<String?> getActiveThemeId();
 
   Future<List<Theme>> getAllThemes();
 
-  Future<(List<NodeOutput>, List<IRelation>, MapConfig?)> getGraphSnapshot();
+  Future<
+    (List<INode>, List<TaskNode>, List<InterNode>, List<IRelation>, MapData)
+  >
+  getGraphSnapshot();
 
-  Future<NodeOutput?> getNode({required String table, required String id});
+  Future<Nodes?> getNode({required String table, required String key});
+
+  Future<Theme?> getTheme({required String key});
 
   Future<void> loadMapFromFile({
     required String filePath,
@@ -76,30 +63,20 @@ abstract class AppHandle implements RustOpaqueInterface {
   });
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
-  static Future<AppHandle> newInstance({required String storagePath}) =>
-      RustLib.instance.api.crateBridgeApiAppHandleNew(storagePath: storagePath);
+  static Future<AppHandle> newInstance({
+    required String storagePath,
+    required String name,
+  }) => RustLib.instance.api.crateBridgeApiAppHandleNew(
+    storagePath: storagePath,
+    name: name,
+  );
 
-  /// Patch node content using raw UTF-8 bytes from Dart.
-  /// The content_bytes parameter is raw UTF-8 text, not bincode-serialized.
-  /// The Content struct is constructed in Rust where its schema is authoritative.
-  Future<void> patchNodeContent({
-    required String table,
-    required String id,
-    required List<int> contentBytes,
-  });
+  Future<HistoryRecord?> redo();
 
-  Future<void> patchNodeProperties({
-    required String table,
-    required String id,
-    required String jsonPatch,
-  });
-
-  Future<void> patchRelation({required String id, required String jsonPatch});
-
-  Future<String> rerouteRelation({
-    required String id,
-    required String newFrom,
-    required String newTo,
+  Future<void> rerouteRelation({
+    required RecordStrings record,
+    required RecordStrings from,
+    required RecordStrings to,
   });
 
   Future<void> saveMapToFile({
@@ -107,7 +84,15 @@ abstract class AppHandle implements RustOpaqueInterface {
     required String attachmentDir,
   });
 
+  Future<void> setActiveTheme({required String themeKey});
+
   Future<void> setActiveThemeId({required String themeId});
 
-  Future<String> upsertTheme({required Theme theme});
+  Future<HistoryRecord?> undo();
+
+  Future<void> updateNode({required Nodes input});
+
+  Future<void> updateRelation({required IRelation input});
+
+  Future<void> updateTheme({required Theme theme});
 }

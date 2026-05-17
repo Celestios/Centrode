@@ -1,16 +1,15 @@
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
-import '../../../../core/config/app_config.dart';
-import '../../state/graph_data_controller.dart';
+import '../../presentation/graph_metrics.dart';
+import '../../store/graph_repository.dart';
 import '../../state/graph_ui_controller.dart';
-import '../../state/viewport_controller.dart';
-import '../../state/interaction_controller.dart';
-import '../../state/canvas_interaction_states.dart';
-import '../../domain/models.dart';
-import '../../domain/styling.dart';
+import '../../presentation/node_render_state.dart';
+import '../../engine/interaction_engine.dart';
+import '../../engine/base_interaction_state.dart';
+import 'package:mycelium/features/graph/engine/interaction_facade.dart';
+
 import '../../../../src/rust/domain/base_models.dart' show BoundingBox;
 import 'layers/relation_layer.dart';
 import 'layers/node_layer.dart';
@@ -29,10 +28,7 @@ class _GraphCanvasState extends State<GraphCanvas> {
   InteractionController? _interactionController;
   final Logger _log = Logger('GraphCanvas');
 
-  // NEW: State flag to ensure we only frame the camera once on load
   bool _hasInitialFramed = false;
-
-  // NEW: Cache to prevent log spam during high-frequency build phases
   EdgeInsets? _lastElasticMargins;
 
   @override
@@ -40,73 +36,27 @@ class _GraphCanvasState extends State<GraphCanvas> {
     super.initState();
     _log.info('Initializing GraphCanvas.');
 
-    // Initialize InteractionController after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final dataController = context.read<GraphDataController>();
       final uiController = context.read<GraphUIController>();
 
+      // 1. Initialize your ViewportController
       _viewportController = ViewportController(uiController);
 
+      // 2. Build the exact Environment Facade
+      final environment = CanvasInteractionEnvironment(
+        dataController: dataController,
+        uiController: uiController,
+        getScale: () =>
+            _viewportController.transformController.value.getMaxScaleOnAxis(),
+      );
+
+      // 3. Initialize the pure FSM Engine
       _interactionController = InteractionController(
         transformController: _viewportController.transformController,
-        nodeViewStates: dataController.allNodeViewStates,
-        onNodeMove: dataController.updateNodePosition,
-        onRelationCreate: dataController.createRelation,
-        onNodeDragUpdate: dataController.movementNotifier.pulse,
-        // Route volatile interactions to UIController
-        getActiveEditId: () => uiController.activeEditId,
-        onEnterEditMode: uiController.enterEditMode,
-        onCommitActiveEdit: uiController.cancelActiveEdit,
-        // Route data operations to DataController
-        getRelations: () => dataController.relations.toList(),
-        // [REFACTORED]: Synchronous execution restores T=0 Optimistic UI
-        onCreateNode: (pos) {
-          final tempId = dataController.createNode(
-            UiNodeType.info,
-            pos,
-            onIdSwap: uiController.handleIdSwap, // Delegate ID swap updates
-          );
-
-          // Only force visibility if the set is already active.
-          // If empty, the bypass in NodeLayer handles it safely.
-          if (uiController.visibleNodeIds.value.isNotEmpty) {
-            uiController.visibleNodeIds.value = {
-              ...uiController.visibleNodeIds.value,
-              tempId,
-            };
-
-            // THE FIX: Symmetrical Physics State.
-            // We MUST also push this into the Z-Order stack so the FSM can hit-test it
-            // before the next pan/zoom viewport recalculation occurs.
-            if (!uiController.zOrder.contains(tempId)) {
-              uiController.zOrder.add(tempId);
-            }
-          }
-          uiController.enterEditMode(tempId);
-        },
-        onNodeResizeEnd: (id, newWidth) => dataController.updateNodeAesthetics(
-          id,
-          StyleProfile(width: newWidth),
-        ),
-        // Selection state from UIController
-        onSelectEntity: uiController.selectEntity,
-        onSelectEntities: uiController.selectEntities,
-        getSelectedEntities: () => uiController.selectedEntities,
-        getToolbarOffset: () => uiController.selectedEntities.length > 1
-            ? uiController.multiToolbarOffsetNotifier.value
-            : uiController.toolbarOffsetNotifier.value,
-        updateToolbarOffset: (delta) {
-          if (uiController.selectedEntities.length > 1) {
-            uiController.multiToolbarOffsetNotifier.value = delta;
-          } else {
-            uiController.toolbarOffsetNotifier.value = delta;
-          }
-        },
-        onDeleteSelectedEntities: uiController.deleteSelectedEntities,
-        getVisibleNodeIds: () => uiController.visibleNodeIds.value,
-        getZOrder: () => uiController.zOrder,
+        environment: environment,
       );
-      // Trigger rebuild to use the initialized controller
+
       setState(() {});
     });
   }
@@ -144,17 +94,15 @@ class _GraphCanvasState extends State<GraphCanvas> {
                 onPointerHover: interactionController.handlePointerHover,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    // Guarded update: Feed dimensions to purely mathematical controller
-                    _viewportController.updateViewportSize(constraints.biggest);
-
                     final viewport = constraints.biggest;
 
-                    // NEW: Trigger initial camera framing once we have physical dimensions
+                    _viewportController.updateViewportSize(viewport);
+
                     if (!_hasInitialFramed && viewport != Size.zero) {
                       _hasInitialFramed = true;
                       _log.info(
                         'CANVAS: Triggering initial camera framing on bounds.',
-                      ); // [NEW]
+                      );
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         _viewportController.focusOnBounds(
                           dataController.canvasBounds.value,
@@ -162,17 +110,16 @@ class _GraphCanvasState extends State<GraphCanvas> {
                       });
                     }
 
-                    // NEW: Listen to the elastic boundaries from the Rust core
+                    // Listen to the elastic boundaries from the Rust core
                     return ValueListenableBuilder<BoundingBox>(
                       valueListenable: dataController.canvasBounds,
                       builder: (context, bounds, _) {
                         // Calculate dynamic padding to provide the "Elastic Buffer"
-                        final padding =
-                            AppConfig.graph.canvas.boundaryMargin; // 500.0
+                        final padding = AppConfig.canvas.boundaryMargin;
 
-                        // THE FIX: Scale-Aware Geometric Decoupling.
+                        // Scale-Aware Geometric Decoupling.
                         // The margin must NEVER be smaller than the maximum possible zoomed-out screen.
-                        final minScale = AppConfig.graph.canvas.minScale;
+                        final minScale = AppConfig.canvas.minScale;
                         final effectiveViewportWidth =
                             viewport.width / minScale;
                         final effectiveViewportHeight =
@@ -202,7 +149,7 @@ class _GraphCanvasState extends State<GraphCanvas> {
                           bottomBound,
                         );
 
-                        // [RESTORED]: Trace the pan-space boundaries only upon mutation
+                        // Trace the pan-space boundaries only upon mutation
                         if (_lastElasticMargins != elasticMargins) {
                           _lastElasticMargins = elasticMargins;
                           _log.fine(
@@ -214,38 +161,47 @@ class _GraphCanvasState extends State<GraphCanvas> {
                           transformationController:
                               _viewportController.transformController,
                           constrained: false,
-                          boundaryMargin:
-                              elasticMargins, // <-- Apply Elastic Math
-                          minScale: AppConfig.graph.canvas.minScale,
-                          maxScale: AppConfig.graph.canvas.maxScale,
-                          // Lock viewer if interaction is active (arena circumvention)
+                          boundaryMargin: elasticMargins,
+                          minScale: AppConfig.canvas.minScale,
+                          maxScale: AppConfig.canvas.maxScale,
+                          scaleFactor: AppConfig.canvas.scaleFactor,
                           panEnabled: state is CanvasIdle,
                           scaleEnabled: state is CanvasIdle,
                           child: GestureDetector(
-                            // Tap empty space to dismiss menus
                             onTap: () {
                               uiController.hideDeleteMenu();
+                              // TODO: deselect node/nodes
+                              // uiController.deselect();
+                            },
+
+                            onDoubleTap: () {
+                              // TODO: move from listeners
+                              // uiController.createNode
+                              // TODO: This will replace create node to provide a list of different options to create
+                              // uiController.popupmenu
+                            },
+
+                            onLongPress: () {
+                              // TODO: Pop up context menu of canvas
+                              // uiController.popupmenu
                             },
                             // 1x1 Mathematical Reference Plane
-                            // (Satisfies Pitfall #5 layout requirements without inflating pan area)
                             child: SizedBox(
-                              width: 1,
-                              height: 1,
+                              width: 10000,
+                              height: 10000,
                               child: Stack(
                                 clipBehavior: Clip.none,
                                 children: [
-                                  GridLayer(
-                                    transformController:
-                                        _viewportController.transformController,
-                                    viewportSize: constraints.biggest,
+                                  ValueListenableBuilder<ViewportStateGrid>(
+                                    valueListenable: _viewportController
+                                        .viewportStateNotifier,
+                                    builder: (context, state, _) {
+                                      return GridLayer(viewportState: state);
+                                    },
                                   ),
                                   const RelationLayer(),
                                   const NodeLayer(),
-                                  OverlayLayer(
-                                    interactionState: state,
-                                    nodeViewStates:
-                                        interactionController.nodeViewStates,
-                                  ),
+                                  OverlayLayer(interactionState: state),
                                 ],
                               ),
                             ),
@@ -257,6 +213,10 @@ class _GraphCanvasState extends State<GraphCanvas> {
                 ),
               ),
             ),
+            // TODO: maybe add dynamic floating menus here? or add in graph_screen.dart
+            // Topmenu(),
+            // Leftmenu(),
+            // Rightmenu(),
           ],
         );
       },
