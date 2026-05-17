@@ -1,16 +1,16 @@
 import 'dart:ui';
-import 'package:flutter/foundation.dart';
 import '../../models/models.dart';
-import 'graph_store_mixin.dart';
 
-/// Tier 2: Viewport culling and reactive geometry.
-mixin GraphSpatialMixin on ChangeNotifier, GraphStoreMixin {
+/// Encapsulates viewport culling and reactive geometry.
+class GraphSpatial {
   final SpatialHashGrid spatialGrid = SpatialHashGrid();
   final Map<String, Offset> _lastConfirmedPositions = {};
 
   void saveConfirmedPosition(String id, Offset pos) =>
       _lastConfirmedPositions[id] = pos;
+
   Offset? getConfirmedPosition(String id) => _lastConfirmedPositions[id];
+
   void clearConfirmedPosition(String id) => _lastConfirmedPositions.remove(id);
 
   /// Rebuilds the spatial index from scratch using a set of nodes.
@@ -22,7 +22,7 @@ mixin GraphSpatialMixin on ChangeNotifier, GraphStoreMixin {
     }
   }
 
-  void disposeSpatial() {
+  void dispose() {
     _lastConfirmedPositions.clear();
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'graph_metrics.dart';
-import '../store/graph_repository.dart';
+import '../store/graph_data_controller.dart';
 import 'view_state.dart';
 
 /// Notifier pulsed to trigger relation painter repaints when node coordinates change.

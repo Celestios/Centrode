@@ -7,50 +7,16 @@ import '../../../../src/rust/bridge/stream.dart';
 import '../../../../src/rust/domain/base_models.dart' show BoundingBox;
 import '../command_processor.dart';
 import '../../presentation/theme_manager.dart';
+import '../graph_data_controller.dart';
 
-import 'graph_store_mixin.dart';
-import 'graph_spatial_mixin.dart';
-
-/// Tier 3 Base: FFI coordination foundation.
-///
-/// This mixin provides the core infrastructure for FFI coordination and
-/// write-behind debouncing. It holds the [api], [processor], [themeController],
-/// and [onError] callback that other sync mixins depend on.
-///
-/// ## Architecture
-///
-/// The `GraphSyncBaseMixin` serves as the foundation for the specialized
-/// sync mixins:
-/// - **GraphNodeMutationsMixin**: Node creation, deletion, position updates
-/// - **GraphRelationMutationsMixin**: Relation creation
-/// - **GraphPropertyMutationsMixin**: Text and aesthetics updates
-///
-/// ## Key Patterns
-///
-/// ### Optimistic Updates (T=0.0ms Pattern)
-/// Operations inject into the UI immediately, then sync with the Rust backend
-/// asynchronously. On failure, changes are rolled back.
-///
-/// ### ID Swap Pattern
-/// Temporary IDs (`temp_*`) are used for optimistic node creation. When the
-/// Rust backend returns a real ID, all dependent structures are updated atomically.
-///
-/// ### Write-Behind Debouncing
-/// High-frequency operations (position updates during drag) are debounced
-/// with a 300ms delay via [CommandProcessor] to batch FFI calls.
-///
-/// See also:
-/// - [GraphNodeMutationsMixin] for node mutation operations
-/// - [GraphRelationMutationsMixin] for relation mutation operations
-/// - [GraphPropertyMutationsMixin] for property mutation operations
-mixin GraphSyncBaseMixin on ChangeNotifier, GraphStoreMixin, GraphSpatialMixin {
-  final Logger _syncLog = Logger('GraphSyncMixin');
-
-  // Late initialization strictly handled by the composition root.
-  late final dynamic api;
-  late final CommandProcessor processor;
-  late final ThemeController themeController;
-  late final void Function(String) onError;
+/// Handles communication between the local store/spatial structures and the Rust backend.
+class GraphSyncEngine {
+  final Logger _syncLog = Logger('GraphSyncEngine');
+  
+  final GraphDataController controller;
+  final dynamic api;
+  final CommandProcessor processor;
+  final ThemeController themeController;
 
   // The reactive bounding box updated asynchronously by Rust
   // Uses default bounds of 5000x5000 centered at origin
@@ -60,8 +26,15 @@ mixin GraphSyncBaseMixin on ChangeNotifier, GraphStoreMixin, GraphSpatialMixin {
 
   StreamSubscription? _graphStreamSub;
 
+  GraphSyncEngine({
+    required this.controller,
+    required this.api,
+    required this.processor,
+    required this.themeController,
+  });
+
   /// Fetches the fresh state from Rust.
-  /// Synchronizes [GraphStoreMixin] and [GraphSpatialMixin].
+  /// Synchronizes store and spatial modules.
   Future<void> loadGraph() async {
     try {
       _syncLog.info(
@@ -76,17 +49,16 @@ mixin GraphSyncBaseMixin on ChangeNotifier, GraphStoreMixin, GraphSpatialMixin {
         'Snapshot received: ${snapshot.$1.length} nodes, ${snapshot.$2.length} relations.',
       );
 
-      nodeLookup.clear();
-      relationLookup.clear();
+      controller.store.clearStore();
 
       for (final ffiNode in snapshot.$1) {
         final uiNode = UiNode.fromRust(ffiNode);
-        nodeLookup[uiNode.id] = uiNode;
+        controller.store.nodeLookup[uiNode.id] = uiNode;
       }
 
       for (final ffiNode in snapshot.$2) {
         final uiNode = UiNode.fromRust(ffiNode);
-        nodeLookup[uiNode.id] = uiNode;
+        controller.store.nodeLookup[uiNode.id] = uiNode;
       }
 
       for (final _ in snapshot.$3) {
@@ -95,16 +67,16 @@ mixin GraphSyncBaseMixin on ChangeNotifier, GraphStoreMixin, GraphSpatialMixin {
 
       for (final ffiRel in snapshot.$4) {
         final uiRel = UiRelation.fromRust(ffiRel);
-        relationLookup[uiRel.id] = uiRel;
+        controller.store.relationLookup[uiRel.id] = uiRel;
       }
 
       _syncLog.fine('Hydration complete. Seeding spatial index.');
 
       // Seed the passive spatial index with the new node positions
-      reindexAll(nodeLookup);
+      controller.spatial.reindexAll(controller.store.nodeLookup);
     } catch (e) {
       _syncLog.severe('Failed to load graph snapshot', e);
-      onError("Failed to load graph: $e");
+      controller.onError("Failed to load graph: $e");
     }
   }
 
@@ -128,7 +100,7 @@ mixin GraphSyncBaseMixin on ChangeNotifier, GraphStoreMixin, GraphSpatialMixin {
           maxY: field0.maxY,
         );
       case _:
-        // Other events handled by their respective mixins
+        // Other events handled
         break;
     }
   }
@@ -171,14 +143,8 @@ mixin GraphSyncBaseMixin on ChangeNotifier, GraphStoreMixin, GraphSpatialMixin {
     }
   }
 
-  /// Disposes all resources held by this mixin.
-  ///
-  /// This method ensures all pending commands are flushed before disposal
-  /// to prevent data loss. The [CommandProcessor] is cleaned up synchronously.
-  ///
-  /// Note: This does NOT dispose the [ThemeController] as it may be shared
-  /// with other components. Its disposal is the responsibility of the owner.
-  void disposeSync() {
+  /// Disposes all resources held by this sync engine.
+  void dispose() {
     processor.flushSync();
     _graphStreamSub?.cancel();
     canvasBounds.dispose();

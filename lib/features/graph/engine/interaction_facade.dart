@@ -2,7 +2,7 @@ import 'dart:ui';
 import '../models/models.dart';
 import '../presentation/view_state.dart';
 import 'interaction_context.dart';
-import '../store/graph_repository.dart';
+import '../store/graph_data_controller.dart';
 import '../presentation/node_render_state.dart';
 import '../presentation/viewport_state.dart';
 

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import '../presentation/theme_manager.dart';
-import '../store/graph_repository.dart';
+import '../store/graph_data_controller.dart';
 import '../presentation/node_render_state.dart';
 import '../store/graph_data_query.dart';
 import 'canvas/graph_canvas.dart';

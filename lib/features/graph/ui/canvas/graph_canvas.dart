@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 import '../../presentation/graph_metrics.dart';
-import '../../store/graph_repository.dart';
+import '../../store/graph_data_controller.dart';
 import '../../presentation/node_render_state.dart';
 import '../../presentation/viewport_state.dart';
 import '../../engine/interaction_engine.dart';

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
-import '../../store/graph_repository.dart';
+import '../../store/graph_data_controller.dart';
 import '../../presentation/node_render_state.dart';
 
 class CanvasTextEditor extends StatefulWidget {
