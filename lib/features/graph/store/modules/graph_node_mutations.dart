@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:logging/logging.dart';
 import '../../models/models.dart';
+import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import '../graph_data_controller.dart';
 import '../../presentation/strategies/node_layout_strategy.dart';
-
 
 /// Node mutation operations for the graph.
 class GraphNodeMutations {
@@ -32,11 +32,8 @@ class GraphNodeMutations {
     // Resolve the node style immediately so it doesn't render with a transparent/stale fallback style
     controller.styleManager.updateStyleForNode(id);
 
-    // Compute the correct initial size based on the layout strategy and resolved style
-    final strategy = node is InfoUiNode
-        ? const InfoNodeLayoutStrategy()
-        : const TaskNodeLayoutStrategy();
-    node.size = strategy.calculate(node, node.resolvedStyle);
+    // Compute the correct initial size using the centralized layout strategy helper
+    node.size = NodeLayoutStrategy.calculateSize(node);
 
 
     final cmd = CreateNodeCommand(
@@ -127,6 +124,7 @@ class GraphNodeMutations {
 
     final oldPosition = node.position;
     final oldSize = node.size;
+    final oldStyle = node.style;
 
     final newWidth = rightEdge - leftEdge;
     final newPosition = Offset(leftEdge, node.position.dy);
@@ -136,7 +134,15 @@ class GraphNodeMutations {
     );
 
     node.position = newPosition;
-    node.size = Size(newWidth, node.size.height);
+
+    // Use centralized NodeStyleStrategy to dynamically resolve node's populated style,
+    // and save manual target width in style config to lock manual mode.
+    final resolvedStyle = NodeStyleStrategy.resolveStyle(node);
+    node.style = (node.style ?? resolvedStyle).copyWith(width: newWidth.round());
+
+    // Centralized layout recomputation snaps width, snaps height, and calculates
+    // the dynamic line count, fully preventing stale DB states prior to command queuing!
+    node.size = NodeLayoutStrategy.calculateSize(node);
 
     controller.spatial.spatialGrid.update(id, oldPosition, newPosition);
 
@@ -148,7 +154,42 @@ class GraphNodeMutations {
       onUndo: () {
         node.position = oldPosition;
         node.size = oldSize;
+        node.style = oldStyle;
         controller.spatial.spatialGrid.update(id, newPosition, oldPosition);
+        controller.triggerUpdate();
+      },
+    );
+
+    controller.syncEngine.processor.queueCommand(cmd, immediate: true);
+    controller.triggerUpdate();
+  }
+
+  /// Toggles the node's expanded/collapsed state and recalculates height.
+  void toggleNodeExpansion(String id) {
+    final node = controller.store.nodeLookup[id];
+    if (node == null) return;
+
+    final oldSize = node.size;
+    final oldExpanded = node.isExpanded;
+
+    final newExpanded = !oldExpanded;
+    node.isExpanded = newExpanded;
+
+    // Recalculate size with centralized strategy helper
+    node.size = NodeLayoutStrategy.calculateSize(node);
+
+    _nodeLog.fine(
+      'TOGGLING EXPANSION: $id oldExpanded=$oldExpanded -> newExpanded=$newExpanded, newSize=${node.size}',
+    );
+
+    final cmd = MoveNodeCommand(
+      targetId: id,
+      newNode: node,
+      api: controller.syncEngine.api,
+      onSuccess: () => controller.spatial.saveConfirmedPosition(id, node.position),
+      onUndo: () {
+        node.isExpanded = oldExpanded;
+        node.size = oldSize;
         controller.triggerUpdate();
       },
     );

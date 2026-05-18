@@ -180,13 +180,19 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   void updateNodeWidth(String id, double leftEdge, double rightEdge) =>
       nodeMutations.updateNodeWidth(id, leftEdge, rightEdge);
 
+  void toggleNodeExpansion(String id) =>
+      nodeMutations.toggleNodeExpansion(id);
+
   // Relation Mutations
   void createRelation(String fromId, String toId) =>
       relationMutations.createRelation(fromId, toId);
 
   // Property Mutations
-  void commitEntityText(String id, String newText) =>
-      propertyMutations.commitEntityText(id, newText);
+  void commitEntityText(String id, String newText, {String? originalText}) =>
+      propertyMutations.commitEntityText(id, newText, originalText: originalText);
+
+  void updateEntityTextLive(String id, String newText) =>
+      propertyMutations.updateEntityTextLive(id, newText);
 
   void updateNodeStyle(String id, NodeStyle newStyle) =>
       propertyMutations.updateNodeStyle(id, newStyle);

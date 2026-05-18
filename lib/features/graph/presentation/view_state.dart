@@ -3,6 +3,7 @@ import 'package:flutter/painting.dart';
 import 'package:logging/logging.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
+import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
 
 
 class NodeViewState {
@@ -43,11 +44,8 @@ class NodeViewState {
     sizeNotifier.value = node.size;
   }
 
-  void _recomputeSizeWithStrategy(UiNode node) {
-    final strategy = node is InfoUiNode
-        ? const InfoNodeLayoutStrategy()
-        : const TaskNodeLayoutStrategy();
-    node.size = strategy.calculate(node, node.resolvedStyle);
+  void _recomputeSizeWithStrategy(UiNode node, {bool isEditing = false}) {
+    node.size = NodeLayoutStrategy.calculateSize(node, isEditing: isEditing);
   }
 
   // --- DRY Geometry Getters ---
@@ -60,8 +58,19 @@ class NodeViewState {
   Offset get leftPort =>
       positionNotifier.value + Offset(0, sizeNotifier.value.height / 2);
 
-  Rect get resizeHitbox =>
-      Rect.fromLTRB(rect.right - 15, rect.top, rect.right, rect.bottom);
+  Rect get rightResizeHitbox => Rect.fromLTRB(
+        rect.right - AppConfig.interaction.resizeEdgeWidth,
+        rect.top,
+        rect.right,
+        rect.bottom,
+      );
+
+  Rect get leftResizeHitbox => Rect.fromLTRB(
+        rect.left,
+        rect.top,
+        rect.left + AppConfig.interaction.resizeEdgeWidth,
+        rect.bottom,
+      );
 
   Rect get expandToggleHitbox =>
       Rect.fromLTRB(rect.left, rect.bottom - 24, rect.right, rect.bottom);
@@ -80,9 +89,10 @@ class NodeViewState {
   }
 
   /// Called when content or aesthetics change.
-  void onContentOrStyleChanged(UiNode node) {
-    _recomputeSizeWithStrategy(node);
+  void onContentOrStyleChanged(UiNode node, {bool isEditing = false}) {
+    _recomputeSizeWithStrategy(node, isEditing: isEditing);
     sizeNotifier.value = node.size;
+    lineCountNotifier.value = node.lineCount;
   }
 
   /// Called during resize drag to set the temporary width.

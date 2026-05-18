@@ -66,11 +66,13 @@ class CanvasInteractionEnvironment implements InteractionContext {
   }
 
   @override
-  void updateNodeWidth(double leftEdge, double rightEdge) {
-    if (_renderState.selectedEntities.isNotEmpty) {
-      final id = _renderState.selectedEntities.first;
-      _dataController.updateNodeWidth(id, leftEdge, rightEdge);
-    }
+  void updateNodeWidth(String id, double leftEdge, double rightEdge) {
+    _dataController.updateNodeWidth(id, leftEdge, rightEdge);
+  }
+
+  @override
+  void toggleNodeExpansion(String id) {
+    _dataController.toggleNodeExpansion(id);
   }
 
   @override

@@ -64,7 +64,10 @@ class _Node {
 
   final double defaultWidth = 100.0;
   final double minWidth = 40.0;
+  final double maxWidth = 500.0;
+  final double autoWrapThreshold = 240.0;
   final double resizeHandleVisualWidth = 5.0;
+  final double editingBufferWidth = 35.0;
   final int collapsedLineLimit = 3;
   final Size defaultSize = const Size(100, 60);
   final Offset editorOffset = const Offset(8, 25);

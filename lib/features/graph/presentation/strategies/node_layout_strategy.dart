@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
+import 'node_style_strategy.dart';
 
 /// Responsible for computing the physical size of a node based on its content,
 /// style, and grid constraints.
@@ -10,15 +11,23 @@ abstract class NodeLayoutStrategy {
 
   /// Calculates the size of the node.
   /// Snaps the result to the grid defined in [AppConfig].
-  Size calculate(UiNode node, NodeStyle? style);
+  Size calculate(UiNode node, NodeStyle? style, {bool isEditing = false});
+
+  /// Centralized helper to compute a node's physical size based on its runtime type.
+  static Size calculateSize(UiNode node, {bool isEditing = false}) {
+    final strategy = node is InfoUiNode
+        ? const InfoNodeLayoutStrategy()
+        : const TaskNodeLayoutStrategy();
+    return strategy.calculate(node, node.resolvedStyle, isEditing: isEditing);
+  }
 }
 
 class InfoNodeLayoutStrategy extends NodeLayoutStrategy {
   const InfoNodeLayoutStrategy();
 
   @override
-  Size calculate(UiNode node, NodeStyle? style) {
-    return _calculateDefaultLayout(node, style);
+  Size calculate(UiNode node, NodeStyle? style, {bool isEditing = false}) {
+    return _calculateDefaultLayout(node, style, isEditing: isEditing);
   }
 }
 
@@ -26,47 +35,57 @@ class TaskNodeLayoutStrategy extends NodeLayoutStrategy {
   const TaskNodeLayoutStrategy();
 
   @override
-  Size calculate(UiNode node, NodeStyle? style) {
-    return _calculateDefaultLayout(node, style);
+  Size calculate(UiNode node, NodeStyle? style, {bool isEditing = false}) {
+    return _calculateDefaultLayout(node, style, isEditing: isEditing);
   }
 }
 
-Size _calculateDefaultLayout(UiNode node, NodeStyle? style) {
+Size _calculateDefaultLayout(UiNode node, NodeStyle? style, {bool isEditing = false}) {
   final content = node.content;
   // Fallback if text is empty
   if (content.text.isEmpty) {
     return AppConfig.node.defaultSize;
   }
 
-  final resolvedStyle = style ??
-      NodeStyle(
-        bgColor: 0xFFFFFFFF,
-        strokeColor: 0xFF000000,
-        strokeWidth: 1,
-        fontFamily: AppConfig.visuals.defaultFont,
-        fontSize: 12.0,
-        shape: AppConfig.visuals.defaultShape,
-        width: AppConfig.node.defaultWidth.toInt(),
-        height: AppConfig.node.defaultSize.height.toInt(),
-        textColor: 0xFF000000,
-        borderRadius: 8.0,
-        padding: 8.0,
-        shadowColor: 0x33000000,
-        shadowBlur: 4.0,
-        shadowSpread: 0.0,
-        shadowOffsetX: 2.0,
-        shadowOffsetY: 2.0,
-      );
+  final resolvedStyle = style ?? NodeStyleStrategy.fallbackStyle();
 
   final textStyle = TextStyle(
     fontFamily: resolvedStyle.fontFamily,
     fontSize: resolvedStyle.fontSize,
   );
 
-  // Use current width if set, otherwise fallback to default
-  final double targetWidth = (node.size.width > 0)
-      ? node.size.width
-      : AppConfig.node.defaultWidth;
+  // 1. Determine dynamic or manual width target
+  // If the node has custom style set, it has been manually resized
+  final bool isManual = node.style != null && node.style!.width > 0;
+  double targetWidth;
+
+  if (isManual) {
+    targetWidth = node.style!.width.toDouble();
+  } else {
+    // Dynamic Sizing Mode: Measure the text on a single line to see how wide it naturally wants to be
+    final tempPainter = TextPainter(
+      text: TextSpan(text: content.text, style: textStyle),
+      textDirection: TextDirection.ltr,
+    )..layout(); // infinite maxWidth default
+    
+    // In edit mode, add a horizontal breathing room/buffer space
+    // to prevent late wrapping visual glitches in the inline text field.
+    final neededWidth = tempPainter.width +
+        16.0 +
+        (isEditing ? AppConfig.node.editingBufferWidth : 0.0);
+    // Auto-grow between defaultWidth and autoWrapThreshold
+    targetWidth = neededWidth.clamp(
+      AppConfig.node.defaultWidth,
+      AppConfig.node.autoWrapThreshold,
+    );
+  }
+
+  // Double-safe clamp to absolute physical node limits
+  targetWidth = targetWidth.clamp(
+    AppConfig.node.minWidth,
+    AppConfig.node.maxWidth,
+  );
+
   final double contentWidth = (targetWidth - 16).clamp(
     1,
     double.infinity,
@@ -79,6 +98,7 @@ Size _calculateDefaultLayout(UiNode node, NodeStyle? style) {
 
   final lineMetrics = tp.computeLineMetrics();
   final lineCount = lineMetrics.length;
+  node.lineCount = lineCount; // Write the actual computed line count back to the node dynamically
   double textHeight;
 
   // Handle "Show More" logic based on line count

@@ -68,7 +68,11 @@ class NodeWidget extends StatelessWidget {
       ]),
       builder: (context, _) {
         final pos = viewState.positionNotifier.value;
-        final size = viewState.sizeNotifier.value;
+        final rawSize = viewState.sizeNotifier.value;
+        final size = Size(
+          viewState.dragWidthNotifier.value ?? rawSize.width,
+          rawSize.height,
+        );
 
         return Transform.translate(
           offset: pos,

@@ -44,7 +44,10 @@ abstract interface class InteractionContext {
   void onCreateNode(Offset position);
 
   /// Callback when a node resize operation completes.
-  void updateNodeWidth(double leftEdge, double rightEdge);
+  void updateNodeWidth(String id, double leftEdge, double rightEdge);
+
+  /// Callback when a node expansion state is toggled.
+  void toggleNodeExpansion(String id);
 
   /// Callback to set the active selected entity (node or relation), or clear if null.
   void onSelectEntity(String? id);

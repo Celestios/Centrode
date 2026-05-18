@@ -32,7 +32,7 @@ sealed class UiNode {
   String get text => content.text;
 
   bool expandable = false;
-  final int lineCount;
+  int lineCount;
   String get tableName;
 
   Nodes toRust();
@@ -105,6 +105,7 @@ class InfoUiNode extends UiNode {
     super.layer,
     super.size,
     super.isExpanded,
+    super.lineCount,
     super.significance,
     this.tags = const [],
     this.aliases = const [],
@@ -167,6 +168,7 @@ class InfoUiNode extends UiNode {
       isExpanded: fields.isExpanded,
       significance: fields.significance,
       content: fields.content,
+      lineCount: fields.lineCount,
       tags: fields.tags,
       aliases: fields.aliases,
       comments: fields.comments,
@@ -184,6 +186,7 @@ class InfoUiNode extends UiNode {
     String? layer,
     Size? size,
     bool? isExpanded,
+    int? lineCount,
     int? significance,
     Offset? position,
     Content? content,
@@ -202,6 +205,7 @@ class InfoUiNode extends UiNode {
       layer: layer ?? this.layer,
       size: size ?? this.size,
       isExpanded: isExpanded ?? this.isExpanded,
+      lineCount: lineCount ?? this.lineCount,
       significance: significance ?? this.significance,
       position: position ?? this.position,
       content: content ?? this.content,
@@ -229,6 +233,7 @@ class TaskUiNode extends UiNode {
     super.layer,
     super.size,
     super.isExpanded,
+    super.lineCount,
     super.significance,
     this.dueDate,
     this.state = "Not Done",
@@ -299,6 +304,7 @@ class TaskUiNode extends UiNode {
     String? layer,
     Size? size,
     bool? isExpanded,
+    int? lineCount,
     int? significance,
     Offset? position,
     Content? content,
@@ -315,6 +321,7 @@ class TaskUiNode extends UiNode {
       layer: layer ?? this.layer,
       size: size ?? this.size,
       isExpanded: isExpanded ?? this.isExpanded,
+      lineCount: lineCount ?? this.lineCount,
       significance: significance ?? this.significance,
       position: position ?? this.position,
       content: content ?? this.content,

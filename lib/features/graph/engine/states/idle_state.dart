@@ -156,6 +156,7 @@ class CanvasIdle extends CanvasInteractionState {
     // Hit Testing Registry
     String? hitNodeId;
     bool hitResize = false;
+    ResizeEdge? draggedEdge;
     final nodeIds = ctx.zOrder.reversed.toList();
     if (nodeIds.isEmpty) {
       nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
@@ -176,15 +177,20 @@ class CanvasIdle extends CanvasInteractionState {
       // Priority 0.5: Expand Toggle Hit-Test
       if (vs.lineCount > 3 && vs.expandToggleHitbox.contains(pCanvas)) {
         _canvasIdleLog.fine('Expand Toggle Hit: $nodeId'); // [NEW]
-        vs.isExpandedNotifier.value = !vs.isExpandedNotifier.value;
+        ctx.toggleNodeExpansion(nodeId);
         return this; // Intercept and abort further drag/selection evaluation
       }
 
-      // Priority 1: Resize Edge Hit-Test (Rightmost 15 logical pixels)
-      if (vs.resizeHitbox.contains(pCanvas)) {
-        // [REFACTORED]
+      // Priority 1: Resize Edge Hit-Test (Rightmost / Leftmost 15 logical pixels)
+      if (vs.rightResizeHitbox.contains(pCanvas)) {
         hitNodeId = nodeId;
         hitResize = true;
+        draggedEdge = ResizeEdge.right;
+        break;
+      } else if (vs.leftResizeHitbox.contains(pCanvas)) {
+        hitNodeId = nodeId;
+        hitResize = true;
+        draggedEdge = ResizeEdge.left;
         break;
       }
       // Priority 2: Body Hit-Test (Standard Dragging)
@@ -203,8 +209,8 @@ class CanvasIdle extends CanvasInteractionState {
     // Relation label hit testing
     final hitEntityId = hitNodeId ?? _hitTestRelations(pCanvas, ctx);
 
-    // Commit active edit if clicking elsewhere
-    if (activeEditId != null && hitEntityId != activeEditId) {
+    // Commit active edit if clicking elsewhere or if clicking a resize handle of the edited node
+    if (activeEditId != null && (hitEntityId != activeEditId || hitResize)) {
       ctx.onCommitActiveEdit();
     }
 
@@ -214,10 +220,9 @@ class CanvasIdle extends CanvasInteractionState {
     ctx.onSelectEntity(hitEntityId);
 
     // THE FIX: Complete FSM Shielding for the active editor.
-    // If the user clicks inside the node currently being edited, abort FSM processing.
-    // This allows the native Flutter TextField to completely own the gesture arena
-    // for cursor placement, text selection, and word-highlighting double-clicks.
-    if (hitEntityId != null && hitEntityId == activeEditId) {
+    // If the user clicks inside the node currently being edited (and not on its resize handles),
+    // abort FSM processing to let native Flutter TextField own the gesture arena.
+    if (hitEntityId != null && hitEntityId == activeEditId && !hitResize) {
       _canvasIdleLog.finer(
         'FSM Shielding Active: Event absorbed by Editor for $hitEntityId',
       ); // [NEW]
@@ -242,12 +247,24 @@ class CanvasIdle extends CanvasInteractionState {
 
     // Standard Transitions
     if (hitNodeId != null) {
-      if (hitResize) {
+      if (hitResize && draggedEdge != null) {
+        final vs = ctx.nodeViewStates[hitNodeId]!;
+        final initialLeft = vs.positionNotifier.value.dx;
+        final initialWidth = vs.sizeNotifier.value.width;
+        final double grabOffsetX;
+        if (draggedEdge == ResizeEdge.right) {
+          grabOffsetX = pCanvas.dx - (initialLeft + initialWidth);
+        } else {
+          grabOffsetX = pCanvas.dx - initialLeft;
+        }
+
         // Route to Resizing State
         return NodeResizing(
           hitNodeId,
-          ResizeEdge.right, // the edge being dragged
-          pCanvas.dx - ctx.nodeViewStates[hitNodeId]!.positionNotifier.value.dx,
+          draggedEdge,
+          grabOffsetX,
+          initialLeft,
+          initialWidth,
         );
       } else {
         return NodeDragging(
@@ -298,7 +315,8 @@ class CanvasIdle extends CanvasInteractionState {
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
 
-      if (vs.resizeHitbox.contains(pCanvas)) {
+      if (vs.rightResizeHitbox.contains(pCanvas) ||
+          vs.leftResizeHitbox.contains(pCanvas)) {
         return cursor == SystemMouseCursors.resizeLeftRight
             ? this
             : CanvasIdle(cursor: SystemMouseCursors.resizeLeftRight);

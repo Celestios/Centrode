@@ -117,7 +117,10 @@ class NodeRenderState extends ChangeNotifier {
         }
         if (vs.sizeNotifier.value != node.size) {
           vs.dragWidthNotifier.value = null; // Reset volatile drag width
-          vs.onContentOrStyleChanged(node);  // Recomputes height strategy
+          vs.onContentOrStyleChanged(
+            node,
+            isEditing: node.id == activeEditId,
+          ); // Recomputes height strategy
         }
       }
     }

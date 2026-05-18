@@ -32,6 +32,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialText);
+    _controller.addListener(_onTextChanged);
     _focusNode = FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -45,9 +46,17 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
 
   @override
   void dispose() {
+    _controller.removeListener(_onTextChanged);
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _onTextChanged() {
+    context.read<GraphDataController>().updateEntityTextLive(
+      widget.entityId,
+      _controller.text,
+    );
   }
 
   void _submit() {
@@ -55,6 +64,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     context.read<GraphDataController>().commitEntityText(
       widget.entityId,
       _controller.text,
+      originalText: widget.initialText,
     );
     context.read<NodeRenderState>().cancelActiveEdit();
   }

@@ -11,11 +11,19 @@ class NodeResizing extends CanvasInteractionState {
   final String nodeId;
   final ResizeEdge edge;
   final double grabOffsetX;
+  final double initialLeft;
+  final double initialWidth;
 
   @override
   MouseCursor get cursor => SystemMouseCursors.resizeLeftRight;
 
-  const NodeResizing(this.nodeId, this.edge, this.grabOffsetX);
+  const NodeResizing(
+    this.nodeId,
+    this.edge,
+    this.grabOffsetX,
+    this.initialLeft,
+    this.initialWidth,
+  );
 
   @override
   CanvasInteractionState handlePointerMove(
@@ -29,24 +37,21 @@ class NodeResizing extends CanvasInteractionState {
     // Snap to the same dynamic LOD grid used by NodeDragging
     final effectiveGridSize = calculateEffectiveGridSize(ctx.currentScale);
 
-    final double currentLeft = vs.positionNotifier.value.dx;
-    final double currentWidth =
-        vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width;
-
     switch (edge) {
       case ResizeEdge.right:
         // Proposed right edge (raw, unsnapped)
         final rawRight = pCanvas.dx - grabOffsetX;
         // Snap the right‑edge position using an Offset wrapper
-        // TODO: note, had to wrapp in offset
         final snappedRight = _snapToGrid(
           Offset(rawRight, 0),
           effectiveGridSize,
         ).dx;
-        // New width = snapped right edge minus current left
-        double newWidth = snappedRight - currentLeft;
+        // New width = snapped right edge minus initial left
+        double newWidth = snappedRight - initialLeft;
         if (newWidth < AppConfig.node.minWidth) {
           newWidth = AppConfig.node.minWidth;
+        } else if (newWidth > AppConfig.node.maxWidth) {
+          newWidth = AppConfig.node.maxWidth;
         }
         vs.dragWidthNotifier.value = newWidth;
         break;
@@ -58,8 +63,8 @@ class NodeResizing extends CanvasInteractionState {
           Offset(rawLeft, 0),
           effectiveGridSize,
         ).dx;
-        // Right edge stays fixed: currentLeft + currentWidth
-        final fixedRight = currentLeft + currentWidth;
+        // Right edge stays fixed: initialLeft + initialWidth
+        final fixedRight = initialLeft + initialWidth;
         double newWidth = fixedRight - snappedLeft;
         if (newWidth < AppConfig.node.minWidth) {
           newWidth = AppConfig.node.minWidth;
@@ -69,10 +74,18 @@ class NodeResizing extends CanvasInteractionState {
             vs.positionNotifier.value.dy,
           );
         } else {
-          vs.positionNotifier.value = Offset(
-            snappedLeft,
-            vs.positionNotifier.value.dy,
-          );
+          if (newWidth > AppConfig.node.maxWidth) {
+            newWidth = AppConfig.node.maxWidth;
+            vs.positionNotifier.value = Offset(
+              fixedRight - newWidth,
+              vs.positionNotifier.value.dy,
+            );
+          } else {
+            vs.positionNotifier.value = Offset(
+              snappedLeft,
+              vs.positionNotifier.value.dy,
+            );
+          }
         }
         vs.dragWidthNotifier.value = newWidth;
         break;
@@ -92,7 +105,7 @@ class NodeResizing extends CanvasInteractionState {
       final newWidth = vs.dragWidthNotifier.value!;
       final leftEdge = vs.positionNotifier.value.dx;
       final rightEdge = leftEdge + newWidth;
-      ctx.updateNodeWidth(leftEdge, rightEdge);
+      ctx.updateNodeWidth(nodeId, leftEdge, rightEdge);
       // Do NOT clear dragWidthNotifier – let rehydrate() handle it
     }
     return const CanvasIdle();
