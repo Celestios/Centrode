@@ -177,23 +177,25 @@ class NodeWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
-          child: Text(
-            liveNode.text.isEmpty ? "Empty Node" : liveNode.text,
-            style: TextStyle(
-              fontSize: style.fontSize,
-              fontFamily: style.fontFamily,
-              color: Color(style.textColor),
+          child: Center(
+            child: Text(
+              liveNode.text.isEmpty ? "Empty Node" : liveNode.text,
+              style: TextStyle(
+                fontSize: style.fontSize,
+                fontFamily: style.fontFamily,
+                color: Color(style.textColor),
+              ),
+              overflow: TextOverflow.fade,
+              maxLines: viewState.isExpandedNotifier.value
+                  ? null
+                  : AppConfig.node.collapsedLineLimit,
             ),
-            overflow: TextOverflow.fade,
-            maxLines: viewState.isExpandedNotifier.value
-                ? null
-                : AppConfig.node.collapsedLineLimit,
           ),
         ),
         if (viewState.lineCount > 3)
           Container(
-            margin: const EdgeInsets.only(top: 4.0),
-            padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+            margin: const EdgeInsets.only(top: 0.0),
+            padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 1.0),
             child: Text(
               viewState.isExpandedNotifier.value ? "Show Less" : "Show More",
               style: const TextStyle(

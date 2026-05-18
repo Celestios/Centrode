@@ -22,7 +22,9 @@ class NodeViewState {
     : nodeId = node.id,
       positionNotifier = ValueNotifier<Offset>(node.position),
       sizeNotifier = ValueNotifier<Size>(node.size),
-      isExpandedNotifier = ValueNotifier<bool>(node.isExpanded);
+      isExpandedNotifier = ValueNotifier<bool>(node.isExpanded) {
+    lineCountNotifier.value = node.lineCount;
+  }
 
   /// Re‑hydrates the ViewState with the latest data from the domain node.
   void rehydrate(UiNode node) {
@@ -90,6 +92,7 @@ class NodeViewState {
 
   /// Called when content or aesthetics change.
   void onContentOrStyleChanged(UiNode node, {bool isEditing = false}) {
+    isExpandedNotifier.value = node.isExpanded;
     _recomputeSizeWithStrategy(node, isEditing: isEditing);
     sizeNotifier.value = node.size;
     lineCountNotifier.value = node.lineCount;

@@ -61,12 +61,12 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
 
   void _submit() {
     _log.info('Committing internal edit for: ${widget.entityId}');
+    context.read<NodeRenderState>().cancelActiveEdit();
     context.read<GraphDataController>().commitEntityText(
       widget.entityId,
       _controller.text,
       originalText: widget.initialText,
     );
-    context.read<NodeRenderState>().cancelActiveEdit();
   }
 
   @override

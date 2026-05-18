@@ -63,7 +63,7 @@ class _Node {
   const _Node();
 
   final double defaultWidth = 100.0;
-  final double minWidth = 40.0;
+  final double minWidth = 60.0;
   final double maxWidth = 500.0;
   final double autoWrapThreshold = 240.0;
   final double resizeHandleVisualWidth = 5.0;

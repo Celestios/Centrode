@@ -115,6 +115,12 @@ class NodeRenderState extends ChangeNotifier {
             movementNotifier.pulse();
           }
         }
+        if (vs.isExpandedNotifier.value != node.isExpanded) {
+          vs.isExpandedNotifier.value = node.isExpanded;
+        }
+        if (vs.lineCountNotifier.value != node.lineCount) {
+          vs.lineCountNotifier.value = node.lineCount;
+        }
         if (vs.sizeNotifier.value != node.size) {
           vs.dragWidthNotifier.value = null; // Reset volatile drag width
           vs.onContentOrStyleChanged(

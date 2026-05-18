@@ -106,7 +106,9 @@ class _GraphScreenState extends State<GraphScreen> {
               final mapTheme = themeController.currentGraphTheme;
               return Theme(
                 data: mapTheme?.toThemeData() ?? Theme.of(context),
-                child: const GraphCanvas(),
+                child: const Material(
+                  child: GraphCanvas(),
+                ),
               );
             },
           ),
