@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:logging/logging.dart';
 import '../../models/models.dart';
 import '../graph_data_controller.dart';
+import '../../presentation/strategies/node_layout_strategy.dart';
+
 
 /// Node mutation operations for the graph.
 class GraphNodeMutations {
@@ -26,6 +28,16 @@ class GraphNodeMutations {
     controller.store.nodeLookup[id] = node;
     controller.spatial.spatialGrid.insert(id, position);
     controller.spatial.saveConfirmedPosition(id, position);
+
+    // Resolve the node style immediately so it doesn't render with a transparent/stale fallback style
+    controller.styleManager.updateStyleForNode(id);
+
+    // Compute the correct initial size based on the layout strategy and resolved style
+    final strategy = node is InfoUiNode
+        ? const InfoNodeLayoutStrategy()
+        : const TaskNodeLayoutStrategy();
+    node.size = strategy.calculate(node, node.resolvedStyle);
+
 
     final cmd = CreateNodeCommand(
       targetId: id,

@@ -1833,8 +1833,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   NodeStyle dco_decode_node_style(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 8)
-      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    if (arr.length != 16)
+      throw Exception('unexpected arr length: expect 16 but see ${arr.length}');
     return NodeStyle(
       bgColor: dco_decode_u_32(arr[0]),
       strokeColor: dco_decode_u_32(arr[1]),
@@ -1844,6 +1844,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       shape: dco_decode_String(arr[5]),
       width: dco_decode_i_32(arr[6]),
       height: dco_decode_i_32(arr[7]),
+      textColor: dco_decode_u_32(arr[8]),
+      borderRadius: dco_decode_f_64(arr[9]),
+      padding: dco_decode_f_64(arr[10]),
+      shadowColor: dco_decode_u_32(arr[11]),
+      shadowBlur: dco_decode_f_64(arr[12]),
+      shadowSpread: dco_decode_f_64(arr[13]),
+      shadowOffsetX: dco_decode_f_64(arr[14]),
+      shadowOffsetY: dco_decode_f_64(arr[15]),
     );
   }
 
@@ -1970,8 +1978,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RelationStyle dco_decode_relation_style(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 10)
-      throw Exception('unexpected arr length: expect 10 but see ${arr.length}');
+    if (arr.length != 15)
+      throw Exception('unexpected arr length: expect 15 but see ${arr.length}');
     return RelationStyle(
       bgColor: dco_decode_u_32(arr[0]),
       strokeColor: dco_decode_u_32(arr[1]),
@@ -1983,6 +1991,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       arrowSize: dco_decode_f_64(arr[7]),
       width: dco_decode_i_32(arr[8]),
       height: dco_decode_i_32(arr[9]),
+      textColor: dco_decode_u_32(arr[10]),
+      shadowColor: dco_decode_u_32(arr[11]),
+      shadowBlur: dco_decode_f_64(arr[12]),
+      shadowOffsetX: dco_decode_f_64(arr[13]),
+      shadowOffsetY: dco_decode_f_64(arr[14]),
     );
   }
 
@@ -2812,6 +2825,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_shape = sse_decode_String(deserializer);
     var var_width = sse_decode_i_32(deserializer);
     var var_height = sse_decode_i_32(deserializer);
+    var var_textColor = sse_decode_u_32(deserializer);
+    var var_borderRadius = sse_decode_f_64(deserializer);
+    var var_padding = sse_decode_f_64(deserializer);
+    var var_shadowColor = sse_decode_u_32(deserializer);
+    var var_shadowBlur = sse_decode_f_64(deserializer);
+    var var_shadowSpread = sse_decode_f_64(deserializer);
+    var var_shadowOffsetX = sse_decode_f_64(deserializer);
+    var var_shadowOffsetY = sse_decode_f_64(deserializer);
     return NodeStyle(
       bgColor: var_bgColor,
       strokeColor: var_strokeColor,
@@ -2821,6 +2842,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       shape: var_shape,
       width: var_width,
       height: var_height,
+      textColor: var_textColor,
+      borderRadius: var_borderRadius,
+      padding: var_padding,
+      shadowColor: var_shadowColor,
+      shadowBlur: var_shadowBlur,
+      shadowSpread: var_shadowSpread,
+      shadowOffsetX: var_shadowOffsetX,
+      shadowOffsetY: var_shadowOffsetY,
     );
   }
 
@@ -3013,6 +3042,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_arrowSize = sse_decode_f_64(deserializer);
     var var_width = sse_decode_i_32(deserializer);
     var var_height = sse_decode_i_32(deserializer);
+    var var_textColor = sse_decode_u_32(deserializer);
+    var var_shadowColor = sse_decode_u_32(deserializer);
+    var var_shadowBlur = sse_decode_f_64(deserializer);
+    var var_shadowOffsetX = sse_decode_f_64(deserializer);
+    var var_shadowOffsetY = sse_decode_f_64(deserializer);
     return RelationStyle(
       bgColor: var_bgColor,
       strokeColor: var_strokeColor,
@@ -3024,6 +3058,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       arrowSize: var_arrowSize,
       width: var_width,
       height: var_height,
+      textColor: var_textColor,
+      shadowColor: var_shadowColor,
+      shadowBlur: var_shadowBlur,
+      shadowOffsetX: var_shadowOffsetX,
+      shadowOffsetY: var_shadowOffsetY,
     );
   }
 
@@ -3824,6 +3863,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.shape, serializer);
     sse_encode_i_32(self.width, serializer);
     sse_encode_i_32(self.height, serializer);
+    sse_encode_u_32(self.textColor, serializer);
+    sse_encode_f_64(self.borderRadius, serializer);
+    sse_encode_f_64(self.padding, serializer);
+    sse_encode_u_32(self.shadowColor, serializer);
+    sse_encode_f_64(self.shadowBlur, serializer);
+    sse_encode_f_64(self.shadowSpread, serializer);
+    sse_encode_f_64(self.shadowOffsetX, serializer);
+    sse_encode_f_64(self.shadowOffsetY, serializer);
   }
 
   @protected
@@ -4012,6 +4059,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_f_64(self.arrowSize, serializer);
     sse_encode_i_32(self.width, serializer);
     sse_encode_i_32(self.height, serializer);
+    sse_encode_u_32(self.textColor, serializer);
+    sse_encode_u_32(self.shadowColor, serializer);
+    sse_encode_f_64(self.shadowBlur, serializer);
+    sse_encode_f_64(self.shadowOffsetX, serializer);
+    sse_encode_f_64(self.shadowOffsetY, serializer);
   }
 
   @protected

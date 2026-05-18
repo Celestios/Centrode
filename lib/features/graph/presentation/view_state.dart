@@ -1,10 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:logging/logging.dart';
-import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
+
 
 class NodeViewState {
   final String nodeId;
@@ -48,20 +47,7 @@ class NodeViewState {
     final strategy = node is InfoUiNode
         ? const InfoNodeLayoutStrategy()
         : const TaskNodeLayoutStrategy();
-    node.size = strategy.calculate(
-      node,
-      node.resolvedStyle ??
-          NodeStyle(
-            bgColor: 0xFFFFFFFF,
-            strokeColor: 0xFF000000,
-            strokeWidth: 1,
-            fontFamily: AppConfig.visuals.defaultFont,
-            fontSize: 12.0,
-            shape: AppConfig.visuals.defaultShape,
-            width: AppConfig.node.defaultWidth.toInt(),
-            height: AppConfig.node.defaultSize.height.toInt(),
-          ),
-    );
+    node.size = strategy.calculate(node, node.resolvedStyle);
   }
 
   // --- DRY Geometry Getters ---

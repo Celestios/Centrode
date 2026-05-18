@@ -25,6 +25,12 @@ class DefaultRelationStyleStrategy extends RelationStyleStrategy {
       height: 0,
       arrowType: 'filled_triangle',
       arrowSize: 10,
+      // --- Advanced Style Properties ---
+      textColor: theme.bodyTextColor.toARGB32(),
+      shadowColor: const Color(0x1F000000).toARGB32(),
+      shadowBlur: 2.0,
+      shadowOffsetX: 1.0,
+      shadowOffsetY: 1.0,
     );
   }
 }

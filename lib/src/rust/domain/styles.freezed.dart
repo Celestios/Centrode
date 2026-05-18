@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$NodeStyle {
 
- int get bgColor; int get strokeColor; int get strokeWidth; String get fontFamily; double get fontSize; String get shape; int get width; int get height;
+ int get bgColor; int get strokeColor; int get strokeWidth; String get fontFamily; double get fontSize; String get shape; int get width; int get height; int get textColor; double get borderRadius; double get padding; int get shadowColor; double get shadowBlur; double get shadowSpread; double get shadowOffsetX; double get shadowOffsetY;
 /// Create a copy of NodeStyle
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $NodeStyleCopyWith<NodeStyle> get copyWith => _$NodeStyleCopyWithImpl<NodeStyle>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NodeStyle&&(identical(other.bgColor, bgColor) || other.bgColor == bgColor)&&(identical(other.strokeColor, strokeColor) || other.strokeColor == strokeColor)&&(identical(other.strokeWidth, strokeWidth) || other.strokeWidth == strokeWidth)&&(identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.shape, shape) || other.shape == shape)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NodeStyle&&(identical(other.bgColor, bgColor) || other.bgColor == bgColor)&&(identical(other.strokeColor, strokeColor) || other.strokeColor == strokeColor)&&(identical(other.strokeWidth, strokeWidth) || other.strokeWidth == strokeWidth)&&(identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.shape, shape) || other.shape == shape)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height)&&(identical(other.textColor, textColor) || other.textColor == textColor)&&(identical(other.borderRadius, borderRadius) || other.borderRadius == borderRadius)&&(identical(other.padding, padding) || other.padding == padding)&&(identical(other.shadowColor, shadowColor) || other.shadowColor == shadowColor)&&(identical(other.shadowBlur, shadowBlur) || other.shadowBlur == shadowBlur)&&(identical(other.shadowSpread, shadowSpread) || other.shadowSpread == shadowSpread)&&(identical(other.shadowOffsetX, shadowOffsetX) || other.shadowOffsetX == shadowOffsetX)&&(identical(other.shadowOffsetY, shadowOffsetY) || other.shadowOffsetY == shadowOffsetY));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,bgColor,strokeColor,strokeWidth,fontFamily,fontSize,shape,width,height);
+int get hashCode => Object.hash(runtimeType,bgColor,strokeColor,strokeWidth,fontFamily,fontSize,shape,width,height,textColor,borderRadius,padding,shadowColor,shadowBlur,shadowSpread,shadowOffsetX,shadowOffsetY);
 
 @override
 String toString() {
-  return 'NodeStyle(bgColor: $bgColor, strokeColor: $strokeColor, strokeWidth: $strokeWidth, fontFamily: $fontFamily, fontSize: $fontSize, shape: $shape, width: $width, height: $height)';
+  return 'NodeStyle(bgColor: $bgColor, strokeColor: $strokeColor, strokeWidth: $strokeWidth, fontFamily: $fontFamily, fontSize: $fontSize, shape: $shape, width: $width, height: $height, textColor: $textColor, borderRadius: $borderRadius, padding: $padding, shadowColor: $shadowColor, shadowBlur: $shadowBlur, shadowSpread: $shadowSpread, shadowOffsetX: $shadowOffsetX, shadowOffsetY: $shadowOffsetY)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $NodeStyleCopyWith<$Res>  {
   factory $NodeStyleCopyWith(NodeStyle value, $Res Function(NodeStyle) _then) = _$NodeStyleCopyWithImpl;
 @useResult
 $Res call({
- int bgColor, int strokeColor, int strokeWidth, String fontFamily, double fontSize, String shape, int width, int height
+ int bgColor, int strokeColor, int strokeWidth, String fontFamily, double fontSize, String shape, int width, int height, int textColor, double borderRadius, double padding, int shadowColor, double shadowBlur, double shadowSpread, double shadowOffsetX, double shadowOffsetY
 });
 
 
@@ -62,7 +62,7 @@ class _$NodeStyleCopyWithImpl<$Res>
 
 /// Create a copy of NodeStyle
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? bgColor = null,Object? strokeColor = null,Object? strokeWidth = null,Object? fontFamily = null,Object? fontSize = null,Object? shape = null,Object? width = null,Object? height = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? bgColor = null,Object? strokeColor = null,Object? strokeWidth = null,Object? fontFamily = null,Object? fontSize = null,Object? shape = null,Object? width = null,Object? height = null,Object? textColor = null,Object? borderRadius = null,Object? padding = null,Object? shadowColor = null,Object? shadowBlur = null,Object? shadowSpread = null,Object? shadowOffsetX = null,Object? shadowOffsetY = null,}) {
   return _then(_self.copyWith(
 bgColor: null == bgColor ? _self.bgColor : bgColor // ignore: cast_nullable_to_non_nullable
 as int,strokeColor: null == strokeColor ? _self.strokeColor : strokeColor // ignore: cast_nullable_to_non_nullable
@@ -72,7 +72,15 @@ as String,fontSize: null == fontSize ? _self.fontSize : fontSize // ignore: cast
 as double,shape: null == shape ? _self.shape : shape // ignore: cast_nullable_to_non_nullable
 as String,width: null == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
 as int,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
-as int,
+as int,textColor: null == textColor ? _self.textColor : textColor // ignore: cast_nullable_to_non_nullable
+as int,borderRadius: null == borderRadius ? _self.borderRadius : borderRadius // ignore: cast_nullable_to_non_nullable
+as double,padding: null == padding ? _self.padding : padding // ignore: cast_nullable_to_non_nullable
+as double,shadowColor: null == shadowColor ? _self.shadowColor : shadowColor // ignore: cast_nullable_to_non_nullable
+as int,shadowBlur: null == shadowBlur ? _self.shadowBlur : shadowBlur // ignore: cast_nullable_to_non_nullable
+as double,shadowSpread: null == shadowSpread ? _self.shadowSpread : shadowSpread // ignore: cast_nullable_to_non_nullable
+as double,shadowOffsetX: null == shadowOffsetX ? _self.shadowOffsetX : shadowOffsetX // ignore: cast_nullable_to_non_nullable
+as double,shadowOffsetY: null == shadowOffsetY ? _self.shadowOffsetY : shadowOffsetY // ignore: cast_nullable_to_non_nullable
+as double,
   ));
 }
 
@@ -154,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int bgColor,  int strokeColor,  int strokeWidth,  String fontFamily,  double fontSize,  String shape,  int width,  int height)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int bgColor,  int strokeColor,  int strokeWidth,  String fontFamily,  double fontSize,  String shape,  int width,  int height,  int textColor,  double borderRadius,  double padding,  int shadowColor,  double shadowBlur,  double shadowSpread,  double shadowOffsetX,  double shadowOffsetY)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _NodeStyle() when $default != null:
-return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFamily,_that.fontSize,_that.shape,_that.width,_that.height);case _:
+return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFamily,_that.fontSize,_that.shape,_that.width,_that.height,_that.textColor,_that.borderRadius,_that.padding,_that.shadowColor,_that.shadowBlur,_that.shadowSpread,_that.shadowOffsetX,_that.shadowOffsetY);case _:
   return orElse();
 
 }
@@ -175,10 +183,10 @@ return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFami
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int bgColor,  int strokeColor,  int strokeWidth,  String fontFamily,  double fontSize,  String shape,  int width,  int height)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int bgColor,  int strokeColor,  int strokeWidth,  String fontFamily,  double fontSize,  String shape,  int width,  int height,  int textColor,  double borderRadius,  double padding,  int shadowColor,  double shadowBlur,  double shadowSpread,  double shadowOffsetX,  double shadowOffsetY)  $default,) {final _that = this;
 switch (_that) {
 case _NodeStyle():
-return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFamily,_that.fontSize,_that.shape,_that.width,_that.height);}
+return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFamily,_that.fontSize,_that.shape,_that.width,_that.height,_that.textColor,_that.borderRadius,_that.padding,_that.shadowColor,_that.shadowBlur,_that.shadowSpread,_that.shadowOffsetX,_that.shadowOffsetY);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -192,10 +200,10 @@ return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFami
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int bgColor,  int strokeColor,  int strokeWidth,  String fontFamily,  double fontSize,  String shape,  int width,  int height)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int bgColor,  int strokeColor,  int strokeWidth,  String fontFamily,  double fontSize,  String shape,  int width,  int height,  int textColor,  double borderRadius,  double padding,  int shadowColor,  double shadowBlur,  double shadowSpread,  double shadowOffsetX,  double shadowOffsetY)?  $default,) {final _that = this;
 switch (_that) {
 case _NodeStyle() when $default != null:
-return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFamily,_that.fontSize,_that.shape,_that.width,_that.height);case _:
+return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFamily,_that.fontSize,_that.shape,_that.width,_that.height,_that.textColor,_that.borderRadius,_that.padding,_that.shadowColor,_that.shadowBlur,_that.shadowSpread,_that.shadowOffsetX,_that.shadowOffsetY);case _:
   return null;
 
 }
@@ -207,7 +215,7 @@ return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFami
 
 
 class _NodeStyle implements NodeStyle {
-  const _NodeStyle({required this.bgColor, required this.strokeColor, required this.strokeWidth, required this.fontFamily, required this.fontSize, required this.shape, required this.width, required this.height});
+  const _NodeStyle({required this.bgColor, required this.strokeColor, required this.strokeWidth, required this.fontFamily, required this.fontSize, required this.shape, required this.width, required this.height, required this.textColor, required this.borderRadius, required this.padding, required this.shadowColor, required this.shadowBlur, required this.shadowSpread, required this.shadowOffsetX, required this.shadowOffsetY});
   
 
 @override final  int bgColor;
@@ -218,6 +226,14 @@ class _NodeStyle implements NodeStyle {
 @override final  String shape;
 @override final  int width;
 @override final  int height;
+@override final  int textColor;
+@override final  double borderRadius;
+@override final  double padding;
+@override final  int shadowColor;
+@override final  double shadowBlur;
+@override final  double shadowSpread;
+@override final  double shadowOffsetX;
+@override final  double shadowOffsetY;
 
 /// Create a copy of NodeStyle
 /// with the given fields replaced by the non-null parameter values.
@@ -229,16 +245,16 @@ _$NodeStyleCopyWith<_NodeStyle> get copyWith => __$NodeStyleCopyWithImpl<_NodeSt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NodeStyle&&(identical(other.bgColor, bgColor) || other.bgColor == bgColor)&&(identical(other.strokeColor, strokeColor) || other.strokeColor == strokeColor)&&(identical(other.strokeWidth, strokeWidth) || other.strokeWidth == strokeWidth)&&(identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.shape, shape) || other.shape == shape)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NodeStyle&&(identical(other.bgColor, bgColor) || other.bgColor == bgColor)&&(identical(other.strokeColor, strokeColor) || other.strokeColor == strokeColor)&&(identical(other.strokeWidth, strokeWidth) || other.strokeWidth == strokeWidth)&&(identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.shape, shape) || other.shape == shape)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height)&&(identical(other.textColor, textColor) || other.textColor == textColor)&&(identical(other.borderRadius, borderRadius) || other.borderRadius == borderRadius)&&(identical(other.padding, padding) || other.padding == padding)&&(identical(other.shadowColor, shadowColor) || other.shadowColor == shadowColor)&&(identical(other.shadowBlur, shadowBlur) || other.shadowBlur == shadowBlur)&&(identical(other.shadowSpread, shadowSpread) || other.shadowSpread == shadowSpread)&&(identical(other.shadowOffsetX, shadowOffsetX) || other.shadowOffsetX == shadowOffsetX)&&(identical(other.shadowOffsetY, shadowOffsetY) || other.shadowOffsetY == shadowOffsetY));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,bgColor,strokeColor,strokeWidth,fontFamily,fontSize,shape,width,height);
+int get hashCode => Object.hash(runtimeType,bgColor,strokeColor,strokeWidth,fontFamily,fontSize,shape,width,height,textColor,borderRadius,padding,shadowColor,shadowBlur,shadowSpread,shadowOffsetX,shadowOffsetY);
 
 @override
 String toString() {
-  return 'NodeStyle(bgColor: $bgColor, strokeColor: $strokeColor, strokeWidth: $strokeWidth, fontFamily: $fontFamily, fontSize: $fontSize, shape: $shape, width: $width, height: $height)';
+  return 'NodeStyle(bgColor: $bgColor, strokeColor: $strokeColor, strokeWidth: $strokeWidth, fontFamily: $fontFamily, fontSize: $fontSize, shape: $shape, width: $width, height: $height, textColor: $textColor, borderRadius: $borderRadius, padding: $padding, shadowColor: $shadowColor, shadowBlur: $shadowBlur, shadowSpread: $shadowSpread, shadowOffsetX: $shadowOffsetX, shadowOffsetY: $shadowOffsetY)';
 }
 
 
@@ -249,7 +265,7 @@ abstract mixin class _$NodeStyleCopyWith<$Res> implements $NodeStyleCopyWith<$Re
   factory _$NodeStyleCopyWith(_NodeStyle value, $Res Function(_NodeStyle) _then) = __$NodeStyleCopyWithImpl;
 @override @useResult
 $Res call({
- int bgColor, int strokeColor, int strokeWidth, String fontFamily, double fontSize, String shape, int width, int height
+ int bgColor, int strokeColor, int strokeWidth, String fontFamily, double fontSize, String shape, int width, int height, int textColor, double borderRadius, double padding, int shadowColor, double shadowBlur, double shadowSpread, double shadowOffsetX, double shadowOffsetY
 });
 
 
@@ -266,7 +282,7 @@ class __$NodeStyleCopyWithImpl<$Res>
 
 /// Create a copy of NodeStyle
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? bgColor = null,Object? strokeColor = null,Object? strokeWidth = null,Object? fontFamily = null,Object? fontSize = null,Object? shape = null,Object? width = null,Object? height = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? bgColor = null,Object? strokeColor = null,Object? strokeWidth = null,Object? fontFamily = null,Object? fontSize = null,Object? shape = null,Object? width = null,Object? height = null,Object? textColor = null,Object? borderRadius = null,Object? padding = null,Object? shadowColor = null,Object? shadowBlur = null,Object? shadowSpread = null,Object? shadowOffsetX = null,Object? shadowOffsetY = null,}) {
   return _then(_NodeStyle(
 bgColor: null == bgColor ? _self.bgColor : bgColor // ignore: cast_nullable_to_non_nullable
 as int,strokeColor: null == strokeColor ? _self.strokeColor : strokeColor // ignore: cast_nullable_to_non_nullable
@@ -276,7 +292,15 @@ as String,fontSize: null == fontSize ? _self.fontSize : fontSize // ignore: cast
 as double,shape: null == shape ? _self.shape : shape // ignore: cast_nullable_to_non_nullable
 as String,width: null == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
 as int,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
-as int,
+as int,textColor: null == textColor ? _self.textColor : textColor // ignore: cast_nullable_to_non_nullable
+as int,borderRadius: null == borderRadius ? _self.borderRadius : borderRadius // ignore: cast_nullable_to_non_nullable
+as double,padding: null == padding ? _self.padding : padding // ignore: cast_nullable_to_non_nullable
+as double,shadowColor: null == shadowColor ? _self.shadowColor : shadowColor // ignore: cast_nullable_to_non_nullable
+as int,shadowBlur: null == shadowBlur ? _self.shadowBlur : shadowBlur // ignore: cast_nullable_to_non_nullable
+as double,shadowSpread: null == shadowSpread ? _self.shadowSpread : shadowSpread // ignore: cast_nullable_to_non_nullable
+as double,shadowOffsetX: null == shadowOffsetX ? _self.shadowOffsetX : shadowOffsetX // ignore: cast_nullable_to_non_nullable
+as double,shadowOffsetY: null == shadowOffsetY ? _self.shadowOffsetY : shadowOffsetY // ignore: cast_nullable_to_non_nullable
+as double,
   ));
 }
 
@@ -286,7 +310,7 @@ as int,
 /// @nodoc
 mixin _$RelationStyle {
 
- int get bgColor; int get strokeColor; int get strokeWidth; String get fontFamily; double get fontSize; String get shape; String get arrowType; double get arrowSize; int get width; int get height;
+ int get bgColor; int get strokeColor; int get strokeWidth; String get fontFamily; double get fontSize; String get shape; String get arrowType; double get arrowSize; int get width; int get height; int get textColor; int get shadowColor; double get shadowBlur; double get shadowOffsetX; double get shadowOffsetY;
 /// Create a copy of RelationStyle
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -297,16 +321,16 @@ $RelationStyleCopyWith<RelationStyle> get copyWith => _$RelationStyleCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RelationStyle&&(identical(other.bgColor, bgColor) || other.bgColor == bgColor)&&(identical(other.strokeColor, strokeColor) || other.strokeColor == strokeColor)&&(identical(other.strokeWidth, strokeWidth) || other.strokeWidth == strokeWidth)&&(identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.shape, shape) || other.shape == shape)&&(identical(other.arrowType, arrowType) || other.arrowType == arrowType)&&(identical(other.arrowSize, arrowSize) || other.arrowSize == arrowSize)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RelationStyle&&(identical(other.bgColor, bgColor) || other.bgColor == bgColor)&&(identical(other.strokeColor, strokeColor) || other.strokeColor == strokeColor)&&(identical(other.strokeWidth, strokeWidth) || other.strokeWidth == strokeWidth)&&(identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.shape, shape) || other.shape == shape)&&(identical(other.arrowType, arrowType) || other.arrowType == arrowType)&&(identical(other.arrowSize, arrowSize) || other.arrowSize == arrowSize)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height)&&(identical(other.textColor, textColor) || other.textColor == textColor)&&(identical(other.shadowColor, shadowColor) || other.shadowColor == shadowColor)&&(identical(other.shadowBlur, shadowBlur) || other.shadowBlur == shadowBlur)&&(identical(other.shadowOffsetX, shadowOffsetX) || other.shadowOffsetX == shadowOffsetX)&&(identical(other.shadowOffsetY, shadowOffsetY) || other.shadowOffsetY == shadowOffsetY));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,bgColor,strokeColor,strokeWidth,fontFamily,fontSize,shape,arrowType,arrowSize,width,height);
+int get hashCode => Object.hash(runtimeType,bgColor,strokeColor,strokeWidth,fontFamily,fontSize,shape,arrowType,arrowSize,width,height,textColor,shadowColor,shadowBlur,shadowOffsetX,shadowOffsetY);
 
 @override
 String toString() {
-  return 'RelationStyle(bgColor: $bgColor, strokeColor: $strokeColor, strokeWidth: $strokeWidth, fontFamily: $fontFamily, fontSize: $fontSize, shape: $shape, arrowType: $arrowType, arrowSize: $arrowSize, width: $width, height: $height)';
+  return 'RelationStyle(bgColor: $bgColor, strokeColor: $strokeColor, strokeWidth: $strokeWidth, fontFamily: $fontFamily, fontSize: $fontSize, shape: $shape, arrowType: $arrowType, arrowSize: $arrowSize, width: $width, height: $height, textColor: $textColor, shadowColor: $shadowColor, shadowBlur: $shadowBlur, shadowOffsetX: $shadowOffsetX, shadowOffsetY: $shadowOffsetY)';
 }
 
 
@@ -317,7 +341,7 @@ abstract mixin class $RelationStyleCopyWith<$Res>  {
   factory $RelationStyleCopyWith(RelationStyle value, $Res Function(RelationStyle) _then) = _$RelationStyleCopyWithImpl;
 @useResult
 $Res call({
- int bgColor, int strokeColor, int strokeWidth, String fontFamily, double fontSize, String shape, String arrowType, double arrowSize, int width, int height
+ int bgColor, int strokeColor, int strokeWidth, String fontFamily, double fontSize, String shape, String arrowType, double arrowSize, int width, int height, int textColor, int shadowColor, double shadowBlur, double shadowOffsetX, double shadowOffsetY
 });
 
 
@@ -334,7 +358,7 @@ class _$RelationStyleCopyWithImpl<$Res>
 
 /// Create a copy of RelationStyle
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? bgColor = null,Object? strokeColor = null,Object? strokeWidth = null,Object? fontFamily = null,Object? fontSize = null,Object? shape = null,Object? arrowType = null,Object? arrowSize = null,Object? width = null,Object? height = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? bgColor = null,Object? strokeColor = null,Object? strokeWidth = null,Object? fontFamily = null,Object? fontSize = null,Object? shape = null,Object? arrowType = null,Object? arrowSize = null,Object? width = null,Object? height = null,Object? textColor = null,Object? shadowColor = null,Object? shadowBlur = null,Object? shadowOffsetX = null,Object? shadowOffsetY = null,}) {
   return _then(_self.copyWith(
 bgColor: null == bgColor ? _self.bgColor : bgColor // ignore: cast_nullable_to_non_nullable
 as int,strokeColor: null == strokeColor ? _self.strokeColor : strokeColor // ignore: cast_nullable_to_non_nullable
@@ -346,7 +370,12 @@ as String,arrowType: null == arrowType ? _self.arrowType : arrowType // ignore: 
 as String,arrowSize: null == arrowSize ? _self.arrowSize : arrowSize // ignore: cast_nullable_to_non_nullable
 as double,width: null == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
 as int,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
-as int,
+as int,textColor: null == textColor ? _self.textColor : textColor // ignore: cast_nullable_to_non_nullable
+as int,shadowColor: null == shadowColor ? _self.shadowColor : shadowColor // ignore: cast_nullable_to_non_nullable
+as int,shadowBlur: null == shadowBlur ? _self.shadowBlur : shadowBlur // ignore: cast_nullable_to_non_nullable
+as double,shadowOffsetX: null == shadowOffsetX ? _self.shadowOffsetX : shadowOffsetX // ignore: cast_nullable_to_non_nullable
+as double,shadowOffsetY: null == shadowOffsetY ? _self.shadowOffsetY : shadowOffsetY // ignore: cast_nullable_to_non_nullable
+as double,
   ));
 }
 
@@ -428,10 +457,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int bgColor,  int strokeColor,  int strokeWidth,  String fontFamily,  double fontSize,  String shape,  String arrowType,  double arrowSize,  int width,  int height)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int bgColor,  int strokeColor,  int strokeWidth,  String fontFamily,  double fontSize,  String shape,  String arrowType,  double arrowSize,  int width,  int height,  int textColor,  int shadowColor,  double shadowBlur,  double shadowOffsetX,  double shadowOffsetY)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RelationStyle() when $default != null:
-return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFamily,_that.fontSize,_that.shape,_that.arrowType,_that.arrowSize,_that.width,_that.height);case _:
+return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFamily,_that.fontSize,_that.shape,_that.arrowType,_that.arrowSize,_that.width,_that.height,_that.textColor,_that.shadowColor,_that.shadowBlur,_that.shadowOffsetX,_that.shadowOffsetY);case _:
   return orElse();
 
 }
@@ -449,10 +478,10 @@ return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFami
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int bgColor,  int strokeColor,  int strokeWidth,  String fontFamily,  double fontSize,  String shape,  String arrowType,  double arrowSize,  int width,  int height)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int bgColor,  int strokeColor,  int strokeWidth,  String fontFamily,  double fontSize,  String shape,  String arrowType,  double arrowSize,  int width,  int height,  int textColor,  int shadowColor,  double shadowBlur,  double shadowOffsetX,  double shadowOffsetY)  $default,) {final _that = this;
 switch (_that) {
 case _RelationStyle():
-return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFamily,_that.fontSize,_that.shape,_that.arrowType,_that.arrowSize,_that.width,_that.height);}
+return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFamily,_that.fontSize,_that.shape,_that.arrowType,_that.arrowSize,_that.width,_that.height,_that.textColor,_that.shadowColor,_that.shadowBlur,_that.shadowOffsetX,_that.shadowOffsetY);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -466,10 +495,10 @@ return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFami
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int bgColor,  int strokeColor,  int strokeWidth,  String fontFamily,  double fontSize,  String shape,  String arrowType,  double arrowSize,  int width,  int height)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int bgColor,  int strokeColor,  int strokeWidth,  String fontFamily,  double fontSize,  String shape,  String arrowType,  double arrowSize,  int width,  int height,  int textColor,  int shadowColor,  double shadowBlur,  double shadowOffsetX,  double shadowOffsetY)?  $default,) {final _that = this;
 switch (_that) {
 case _RelationStyle() when $default != null:
-return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFamily,_that.fontSize,_that.shape,_that.arrowType,_that.arrowSize,_that.width,_that.height);case _:
+return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFamily,_that.fontSize,_that.shape,_that.arrowType,_that.arrowSize,_that.width,_that.height,_that.textColor,_that.shadowColor,_that.shadowBlur,_that.shadowOffsetX,_that.shadowOffsetY);case _:
   return null;
 
 }
@@ -481,7 +510,7 @@ return $default(_that.bgColor,_that.strokeColor,_that.strokeWidth,_that.fontFami
 
 
 class _RelationStyle implements RelationStyle {
-  const _RelationStyle({required this.bgColor, required this.strokeColor, required this.strokeWidth, required this.fontFamily, required this.fontSize, required this.shape, required this.arrowType, required this.arrowSize, required this.width, required this.height});
+  const _RelationStyle({required this.bgColor, required this.strokeColor, required this.strokeWidth, required this.fontFamily, required this.fontSize, required this.shape, required this.arrowType, required this.arrowSize, required this.width, required this.height, required this.textColor, required this.shadowColor, required this.shadowBlur, required this.shadowOffsetX, required this.shadowOffsetY});
   
 
 @override final  int bgColor;
@@ -494,6 +523,11 @@ class _RelationStyle implements RelationStyle {
 @override final  double arrowSize;
 @override final  int width;
 @override final  int height;
+@override final  int textColor;
+@override final  int shadowColor;
+@override final  double shadowBlur;
+@override final  double shadowOffsetX;
+@override final  double shadowOffsetY;
 
 /// Create a copy of RelationStyle
 /// with the given fields replaced by the non-null parameter values.
@@ -505,16 +539,16 @@ _$RelationStyleCopyWith<_RelationStyle> get copyWith => __$RelationStyleCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RelationStyle&&(identical(other.bgColor, bgColor) || other.bgColor == bgColor)&&(identical(other.strokeColor, strokeColor) || other.strokeColor == strokeColor)&&(identical(other.strokeWidth, strokeWidth) || other.strokeWidth == strokeWidth)&&(identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.shape, shape) || other.shape == shape)&&(identical(other.arrowType, arrowType) || other.arrowType == arrowType)&&(identical(other.arrowSize, arrowSize) || other.arrowSize == arrowSize)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RelationStyle&&(identical(other.bgColor, bgColor) || other.bgColor == bgColor)&&(identical(other.strokeColor, strokeColor) || other.strokeColor == strokeColor)&&(identical(other.strokeWidth, strokeWidth) || other.strokeWidth == strokeWidth)&&(identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.shape, shape) || other.shape == shape)&&(identical(other.arrowType, arrowType) || other.arrowType == arrowType)&&(identical(other.arrowSize, arrowSize) || other.arrowSize == arrowSize)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height)&&(identical(other.textColor, textColor) || other.textColor == textColor)&&(identical(other.shadowColor, shadowColor) || other.shadowColor == shadowColor)&&(identical(other.shadowBlur, shadowBlur) || other.shadowBlur == shadowBlur)&&(identical(other.shadowOffsetX, shadowOffsetX) || other.shadowOffsetX == shadowOffsetX)&&(identical(other.shadowOffsetY, shadowOffsetY) || other.shadowOffsetY == shadowOffsetY));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,bgColor,strokeColor,strokeWidth,fontFamily,fontSize,shape,arrowType,arrowSize,width,height);
+int get hashCode => Object.hash(runtimeType,bgColor,strokeColor,strokeWidth,fontFamily,fontSize,shape,arrowType,arrowSize,width,height,textColor,shadowColor,shadowBlur,shadowOffsetX,shadowOffsetY);
 
 @override
 String toString() {
-  return 'RelationStyle(bgColor: $bgColor, strokeColor: $strokeColor, strokeWidth: $strokeWidth, fontFamily: $fontFamily, fontSize: $fontSize, shape: $shape, arrowType: $arrowType, arrowSize: $arrowSize, width: $width, height: $height)';
+  return 'RelationStyle(bgColor: $bgColor, strokeColor: $strokeColor, strokeWidth: $strokeWidth, fontFamily: $fontFamily, fontSize: $fontSize, shape: $shape, arrowType: $arrowType, arrowSize: $arrowSize, width: $width, height: $height, textColor: $textColor, shadowColor: $shadowColor, shadowBlur: $shadowBlur, shadowOffsetX: $shadowOffsetX, shadowOffsetY: $shadowOffsetY)';
 }
 
 
@@ -525,7 +559,7 @@ abstract mixin class _$RelationStyleCopyWith<$Res> implements $RelationStyleCopy
   factory _$RelationStyleCopyWith(_RelationStyle value, $Res Function(_RelationStyle) _then) = __$RelationStyleCopyWithImpl;
 @override @useResult
 $Res call({
- int bgColor, int strokeColor, int strokeWidth, String fontFamily, double fontSize, String shape, String arrowType, double arrowSize, int width, int height
+ int bgColor, int strokeColor, int strokeWidth, String fontFamily, double fontSize, String shape, String arrowType, double arrowSize, int width, int height, int textColor, int shadowColor, double shadowBlur, double shadowOffsetX, double shadowOffsetY
 });
 
 
@@ -542,7 +576,7 @@ class __$RelationStyleCopyWithImpl<$Res>
 
 /// Create a copy of RelationStyle
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? bgColor = null,Object? strokeColor = null,Object? strokeWidth = null,Object? fontFamily = null,Object? fontSize = null,Object? shape = null,Object? arrowType = null,Object? arrowSize = null,Object? width = null,Object? height = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? bgColor = null,Object? strokeColor = null,Object? strokeWidth = null,Object? fontFamily = null,Object? fontSize = null,Object? shape = null,Object? arrowType = null,Object? arrowSize = null,Object? width = null,Object? height = null,Object? textColor = null,Object? shadowColor = null,Object? shadowBlur = null,Object? shadowOffsetX = null,Object? shadowOffsetY = null,}) {
   return _then(_RelationStyle(
 bgColor: null == bgColor ? _self.bgColor : bgColor // ignore: cast_nullable_to_non_nullable
 as int,strokeColor: null == strokeColor ? _self.strokeColor : strokeColor // ignore: cast_nullable_to_non_nullable
@@ -554,7 +588,12 @@ as String,arrowType: null == arrowType ? _self.arrowType : arrowType // ignore: 
 as String,arrowSize: null == arrowSize ? _self.arrowSize : arrowSize // ignore: cast_nullable_to_non_nullable
 as double,width: null == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
 as int,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
-as int,
+as int,textColor: null == textColor ? _self.textColor : textColor // ignore: cast_nullable_to_non_nullable
+as int,shadowColor: null == shadowColor ? _self.shadowColor : shadowColor // ignore: cast_nullable_to_non_nullable
+as int,shadowBlur: null == shadowBlur ? _self.shadowBlur : shadowBlur // ignore: cast_nullable_to_non_nullable
+as double,shadowOffsetX: null == shadowOffsetX ? _self.shadowOffsetX : shadowOffsetX // ignore: cast_nullable_to_non_nullable
+as double,shadowOffsetY: null == shadowOffsetY ? _self.shadowOffsetY : shadowOffsetY // ignore: cast_nullable_to_non_nullable
+as double,
   ));
 }
 

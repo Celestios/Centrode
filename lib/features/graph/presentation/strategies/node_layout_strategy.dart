@@ -10,14 +10,14 @@ abstract class NodeLayoutStrategy {
 
   /// Calculates the size of the node.
   /// Snaps the result to the grid defined in [AppConfig].
-  Size calculate(UiNode node, NodeStyle style);
+  Size calculate(UiNode node, NodeStyle? style);
 }
 
 class InfoNodeLayoutStrategy extends NodeLayoutStrategy {
   const InfoNodeLayoutStrategy();
 
   @override
-  Size calculate(UiNode node, NodeStyle style) {
+  Size calculate(UiNode node, NodeStyle? style) {
     return _calculateDefaultLayout(node, style);
   }
 }
@@ -26,21 +26,41 @@ class TaskNodeLayoutStrategy extends NodeLayoutStrategy {
   const TaskNodeLayoutStrategy();
 
   @override
-  Size calculate(UiNode node, NodeStyle style) {
+  Size calculate(UiNode node, NodeStyle? style) {
     return _calculateDefaultLayout(node, style);
   }
 }
 
-Size _calculateDefaultLayout(UiNode node, NodeStyle style) {
+Size _calculateDefaultLayout(UiNode node, NodeStyle? style) {
   final content = node.content;
   // Fallback if text is empty
   if (content.text.isEmpty) {
     return AppConfig.node.defaultSize;
   }
 
+  final resolvedStyle = style ??
+      NodeStyle(
+        bgColor: 0xFFFFFFFF,
+        strokeColor: 0xFF000000,
+        strokeWidth: 1,
+        fontFamily: AppConfig.visuals.defaultFont,
+        fontSize: 12.0,
+        shape: AppConfig.visuals.defaultShape,
+        width: AppConfig.node.defaultWidth.toInt(),
+        height: AppConfig.node.defaultSize.height.toInt(),
+        textColor: 0xFF000000,
+        borderRadius: 8.0,
+        padding: 8.0,
+        shadowColor: 0x33000000,
+        shadowBlur: 4.0,
+        shadowSpread: 0.0,
+        shadowOffsetX: 2.0,
+        shadowOffsetY: 2.0,
+      );
+
   final textStyle = TextStyle(
-    fontFamily: style.fontFamily,
-    fontSize: style.fontSize,
+    fontFamily: resolvedStyle.fontFamily,
+    fontSize: resolvedStyle.fontSize,
   );
 
   // Use current width if set, otherwise fallback to default

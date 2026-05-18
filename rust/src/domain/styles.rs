@@ -12,6 +12,15 @@ pub struct NodeStyle {
     pub shape: String,
     pub width: i32,
     pub height: i32,
+    // --- Advanced Visual Properties ---
+    pub text_color: u32,
+    pub border_radius: f64,
+    pub padding: f64,
+    pub shadow_color: u32,
+    pub shadow_blur: f64,
+    pub shadow_spread: f64,
+    pub shadow_offset_x: f64,
+    pub shadow_offset_y: f64,
 }
 
 #[frb(dart_metadata=("freezed"))]
@@ -27,4 +36,10 @@ pub struct RelationStyle {
     pub arrow_size: f64,
     pub width: i32,
     pub height: i32,
+    // --- Advanced Visual Properties ---
+    pub text_color: u32,
+    pub shadow_color: u32,
+    pub shadow_blur: f64,
+    pub shadow_offset_x: f64,
+    pub shadow_offset_y: f64,
 }

@@ -312,12 +312,11 @@ impl AppHandle {
         tracing::debug!("FFI: set_active_theme_id called with id: {}", theme_id);
 
         let record_id = RecordId::new(MapData::LABEL, MapData::KEY);
-        let theme_record_id = RecordId::new(Theme::LABEL, theme_id);
         self.repo
             .db()
             .query("UPDATE $record SET active_theme_id = $theme_id")
             .bind(("record", record_id))
-            .bind(("theme_id", theme_record_id))
+            .bind(("theme_id", theme_id))
             .await?;
         Ok(())
     }
@@ -327,17 +326,11 @@ impl AppHandle {
         let mut res = self
             .repo
             .db()
-            .query("SELECT active_theme_id FROM $record")
+            .query("SELECT VALUE active_theme_id FROM $record")
             .bind(("record", RecordId::new(MapData::LABEL, MapData::KEY)))
             .await?;
-        let result: Option<RecordId> = res.take(0)?;
-        match result {
-            Some(record) => match record.key {
-                RecordIdKey::String(id_str) => Ok(Some(id_str)),
-                other => Err(anyhow::anyhow!("Expected string key, got {:?}", other)),
-            },
-            None => Ok(None),
-        }
+        let result: Option<String> = res.take(0)?;
+        Ok(result)
     }
 
     pub async fn set_active_theme(&self, theme_key: String) -> anyhow::Result<()> {

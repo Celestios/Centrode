@@ -52,22 +52,10 @@ class NodeWidget extends StatelessWidget {
       (c) => c.nodeLookup[node.id] ?? node,
     );
 
-    // ── Pure domain‑driven style (no theme lookup) ─────────────
-    // In the final design `liveNode.resolvedStyle` will always be set
-    // after the StyleManager runs.  Until that infrastructure is in
-    // place we fall back to a sensible default.
-    final NodeStyle resolvedStyle =
-        liveNode.resolvedStyle ??
-        NodeStyle(
-          bgColor: 0xFFFFFFFF,
-          strokeColor: 0xFF000000,
-          strokeWidth: 1,
-          fontFamily: AppConfig.visuals.defaultFont,
-          fontSize: 12.0,
-          shape: AppConfig.visuals.defaultShape,
-          width: AppConfig.node.defaultWidth.toInt(),
-          height: AppConfig.node.defaultSize.height.toInt(),
-        );
+    final resolvedStyle = liveNode.resolvedStyle;
+    if (resolvedStyle == null) {
+      return const SizedBox.shrink();
+    }
 
     // We merge the notifiers so the widget repaints when position, size,
     // or expanded state changes.
@@ -80,7 +68,6 @@ class NodeWidget extends StatelessWidget {
       ]),
       builder: (context, _) {
         final pos = viewState.positionNotifier.value;
-
         final size = viewState.sizeNotifier.value;
 
         return Transform.translate(
@@ -96,7 +83,7 @@ class NodeWidget extends StatelessWidget {
                   color: Color(resolvedStyle.bgColor),
                   borderRadius: resolvedStyle.shape == 'circle'
                       ? BorderRadius.circular(size.width / 2)
-                      : BorderRadius.circular(8.0),
+                      : BorderRadius.circular(resolvedStyle.borderRadius),
                   border: Border.all(
                     color: isSelected
                         ? AppConfig.visuals.selectionAccent
@@ -115,13 +102,17 @@ class NodeWidget extends StatelessWidget {
                         ]
                       : [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 4,
-                            offset: const Offset(2, 2),
+                            color: Color(resolvedStyle.shadowColor),
+                            blurRadius: resolvedStyle.shadowBlur,
+                            spreadRadius: resolvedStyle.shadowSpread,
+                            offset: Offset(
+                              resolvedStyle.shadowOffsetX,
+                              resolvedStyle.shadowOffsetY,
+                            ),
                           ),
                         ],
                 ),
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(resolvedStyle.padding),
                 child: isEditing
                     ? CanvasTextEditor(
                         entityId: liveNode.id,
@@ -130,6 +121,7 @@ class NodeWidget extends StatelessWidget {
                         textStyle: TextStyle(
                           fontSize: resolvedStyle.fontSize,
                           fontFamily: resolvedStyle.fontFamily,
+                          color: Color(resolvedStyle.textColor),
                         ),
                       )
                     : _buildNodeContent(context, liveNode, resolvedStyle),
@@ -144,9 +136,23 @@ class NodeWidget extends StatelessWidget {
                   width: AppConfig.node.resizeHandleVisualWidth,
                   decoration: BoxDecoration(
                     // A nearly‑invisible colour that the hit‑tester sees.
-                    color: Colors.black.withValues(alpha: 1),
-                    borderRadius: const BorderRadius.horizontal(
-                      right: Radius.circular(8.0),
+                    color: Colors.black.withValues(alpha: 0.01),
+                    borderRadius: BorderRadius.horizontal(
+                      right: Radius.circular(resolvedStyle.borderRadius),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                child: Container(
+                  width: AppConfig.node.resizeHandleVisualWidth,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.01),
+                    borderRadius: BorderRadius.horizontal(
+                      left: Radius.circular(resolvedStyle.borderRadius),
                     ),
                   ),
                 ),
@@ -172,6 +178,7 @@ class NodeWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: style.fontSize,
               fontFamily: style.fontFamily,
+              color: Color(style.textColor),
             ),
             overflow: TextOverflow.fade,
             maxLines: viewState.isExpandedNotifier.value
@@ -197,12 +204,20 @@ class NodeWidget extends StatelessWidget {
             margin: const EdgeInsets.only(top: 4),
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.8),
+              color: Color(style.bgColor).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: Color(style.textColor).withValues(alpha: 0.3),
+                width: 1,
+              ),
             ),
             child: Text(
               (liveNode).state,
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Color(style.textColor),
+              ),
             ),
           ),
       ],

@@ -55,21 +55,41 @@ DEFINE FIELD OVERWRITE comments.*.created_at ON TABLE INode TYPE int;
 
 -- style: option<object>
 DEFINE FIELD OVERWRITE style ON TABLE INode TYPE option<object>;
-DEFINE FIELD OVERWRITE style.bg_color ON TABLE INode TYPE option<int>;
-DEFINE FIELD OVERWRITE style.stroke_color ON TABLE INode TYPE option<int>;
-DEFINE FIELD OVERWRITE style.stroke_width ON TABLE INode TYPE option<int>;
-DEFINE FIELD OVERWRITE style.font_family ON TABLE INode TYPE option<string>;
-DEFINE FIELD OVERWRITE style.font_size ON TABLE INode TYPE option<int>;
-DEFINE FIELD OVERWRITE style.shape ON TABLE INode TYPE option<string>;
+DEFINE FIELD OVERWRITE style.bg_color ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE style.stroke_color ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE style.stroke_width ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE style.font_family ON TABLE INode TYPE string;
+DEFINE FIELD OVERWRITE style.font_size ON TABLE INode TYPE float;
+DEFINE FIELD OVERWRITE style.shape ON TABLE INode TYPE string;
+DEFINE FIELD OVERWRITE style.width ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE style.height ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE style.text_color ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE style.border_radius ON TABLE INode TYPE float;
+DEFINE FIELD OVERWRITE style.padding ON TABLE INode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_color ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE style.shadow_blur ON TABLE INode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_spread ON TABLE INode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_offset_x ON TABLE INode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_offset_y ON TABLE INode TYPE float;
 
 -- resolved_style: option<object>
 DEFINE FIELD OVERWRITE resolved_style ON TABLE INode TYPE option<object>;
-DEFINE FIELD OVERWRITE resolved_style.bg_color ON TABLE INode TYPE option<int>;
-DEFINE FIELD OVERWRITE resolved_style.stroke_color ON TABLE INode TYPE option<int>;
-DEFINE FIELD OVERWRITE resolved_style.stroke_width ON TABLE INode TYPE option<int>;
-DEFINE FIELD OVERWRITE resolved_style.font_family ON TABLE INode TYPE option<string>;
-DEFINE FIELD OVERWRITE resolved_style.font_size ON TABLE INode TYPE option<int>;
-DEFINE FIELD OVERWRITE resolved_style.shape ON TABLE INode TYPE option<string>;
+DEFINE FIELD OVERWRITE resolved_style.bg_color ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.stroke_color ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.stroke_width ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.font_family ON TABLE INode TYPE string;
+DEFINE FIELD OVERWRITE resolved_style.font_size ON TABLE INode TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.shape ON TABLE INode TYPE string;
+DEFINE FIELD OVERWRITE resolved_style.width ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.height ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.text_color ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.border_radius ON TABLE INode TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.padding ON TABLE INode TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.shadow_color ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.shadow_blur ON TABLE INode TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.shadow_spread ON TABLE INode TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.shadow_offset_x ON TABLE INode TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.shadow_offset_y ON TABLE INode TYPE float;
 
 DEFINE FIELD OVERWRITE is_expanded ON TABLE INode TYPE bool;
 DEFINE FIELD OVERWRITE expandable ON TABLE INode TYPE bool;
@@ -118,21 +138,41 @@ DEFINE FIELD OVERWRITE size.height ON TABLE TaskNode TYPE int;
 
 -- style: option<object>
 DEFINE FIELD OVERWRITE style ON TABLE TaskNode TYPE option<object>;
-DEFINE FIELD OVERWRITE style.bg_color ON TABLE TaskNode TYPE option<int>;
-DEFINE FIELD OVERWRITE style.stroke_color ON TABLE TaskNode TYPE option<int>;
-DEFINE FIELD OVERWRITE style.stroke_width ON TABLE TaskNode TYPE option<int>;
-DEFINE FIELD OVERWRITE style.font_family ON TABLE TaskNode TYPE option<string>;
-DEFINE FIELD OVERWRITE style.font_size ON TABLE TaskNode TYPE option<int>;
-DEFINE FIELD OVERWRITE style.shape ON TABLE TaskNode TYPE option<string>;
+DEFINE FIELD OVERWRITE style.bg_color ON TABLE TaskNode TYPE int;
+DEFINE FIELD OVERWRITE style.stroke_color ON TABLE TaskNode TYPE int;
+DEFINE FIELD OVERWRITE style.stroke_width ON TABLE TaskNode TYPE int;
+DEFINE FIELD OVERWRITE style.font_family ON TABLE TaskNode TYPE string;
+DEFINE FIELD OVERWRITE style.font_size ON TABLE TaskNode TYPE float;
+DEFINE FIELD OVERWRITE style.shape ON TABLE TaskNode TYPE string;
+DEFINE FIELD OVERWRITE style.width ON TABLE TaskNode TYPE int;
+DEFINE FIELD OVERWRITE style.height ON TABLE TaskNode TYPE int;
+DEFINE FIELD OVERWRITE style.text_color ON TABLE TaskNode TYPE int;
+DEFINE FIELD OVERWRITE style.border_radius ON TABLE TaskNode TYPE float;
+DEFINE FIELD OVERWRITE style.padding ON TABLE TaskNode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_color ON TABLE TaskNode TYPE int;
+DEFINE FIELD OVERWRITE style.shadow_blur ON TABLE TaskNode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_spread ON TABLE TaskNode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_offset_x ON TABLE TaskNode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_offset_y ON TABLE TaskNode TYPE float;
 
 -- resolved_style: option<object>
 DEFINE FIELD OVERWRITE resolved_style ON TABLE TaskNode TYPE option<object>;
-DEFINE FIELD OVERWRITE resolved_style.bg_color ON TABLE TaskNode TYPE option<int>;
-DEFINE FIELD OVERWRITE resolved_style.stroke_color ON TABLE TaskNode TYPE option<int>;
-DEFINE FIELD OVERWRITE resolved_style.stroke_width ON TABLE TaskNode TYPE option<int>;
-DEFINE FIELD OVERWRITE resolved_style.font_family ON TABLE TaskNode TYPE option<string>;
-DEFINE FIELD OVERWRITE resolved_style.font_size ON TABLE TaskNode TYPE option<int>;
-DEFINE FIELD OVERWRITE resolved_style.shape ON TABLE TaskNode TYPE option<string>;
+DEFINE FIELD OVERWRITE resolved_style.bg_color ON TABLE TaskNode TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.stroke_color ON TABLE TaskNode TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.stroke_width ON TABLE TaskNode TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.font_family ON TABLE TaskNode TYPE string;
+DEFINE FIELD OVERWRITE resolved_style.font_size ON TABLE TaskNode TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.shape ON TABLE TaskNode TYPE string;
+DEFINE FIELD OVERWRITE resolved_style.width ON TABLE TaskNode TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.height ON TABLE TaskNode TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.text_color ON TABLE TaskNode TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.border_radius ON TABLE TaskNode TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.padding ON TABLE TaskNode TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.shadow_color ON TABLE TaskNode TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.shadow_blur ON TABLE TaskNode TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.shadow_spread ON TABLE TaskNode TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.shadow_offset_x ON TABLE TaskNode TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.shadow_offset_y ON TABLE TaskNode TYPE float;
 
 DEFINE FIELD OVERWRITE is_expanded ON TABLE TaskNode TYPE bool;
 DEFINE FIELD OVERWRITE expandable ON TABLE TaskNode TYPE bool;
@@ -161,16 +201,38 @@ DEFINE FIELD OVERWRITE updated_at ON TABLE InterNode COMPUTED time::millis(time:
 -- ---------------------------------------------------------------------------
 
 DEFINE FIELD OVERWRITE style ON TABLE IRelation TYPE option<object>;
-DEFINE FIELD OVERWRITE style.stroke_color ON TABLE IRelation TYPE option<int>;
-DEFINE FIELD OVERWRITE style.stroke_width ON TABLE IRelation TYPE option<int>;
-DEFINE FIELD OVERWRITE style.font_family ON TABLE IRelation TYPE option<string>;
-DEFINE FIELD OVERWRITE style.font_size ON TABLE IRelation TYPE option<int>;
+DEFINE FIELD OVERWRITE style.bg_color ON TABLE IRelation TYPE int;
+DEFINE FIELD OVERWRITE style.stroke_color ON TABLE IRelation TYPE int;
+DEFINE FIELD OVERWRITE style.stroke_width ON TABLE IRelation TYPE int;
+DEFINE FIELD OVERWRITE style.font_family ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE style.font_size ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE style.shape ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE style.arrow_type ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE style.arrow_size ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE style.width ON TABLE IRelation TYPE int;
+DEFINE FIELD OVERWRITE style.height ON TABLE IRelation TYPE int;
+DEFINE FIELD OVERWRITE style.text_color ON TABLE IRelation TYPE int;
+DEFINE FIELD OVERWRITE style.shadow_color ON TABLE IRelation TYPE int;
+DEFINE FIELD OVERWRITE style.shadow_blur ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_offset_x ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_offset_y ON TABLE IRelation TYPE float;
 
 DEFINE FIELD OVERWRITE resolved_style ON TABLE IRelation TYPE option<object>;
-DEFINE FIELD OVERWRITE resolved_style.stroke_color ON TABLE IRelation TYPE option<int>;
-DEFINE FIELD OVERWRITE resolved_style.stroke_width ON TABLE IRelation TYPE option<int>;
-DEFINE FIELD OVERWRITE resolved_style.font_family ON TABLE IRelation TYPE option<string>;
-DEFINE FIELD OVERWRITE resolved_style.font_size ON TABLE IRelation TYPE option<int>;
+DEFINE FIELD OVERWRITE resolved_style.bg_color ON TABLE IRelation TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.stroke_color ON TABLE IRelation TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.stroke_width ON TABLE IRelation TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.font_family ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE resolved_style.font_size ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.shape ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE resolved_style.arrow_type ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE resolved_style.arrow_size ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.width ON TABLE IRelation TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.height ON TABLE IRelation TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.text_color ON TABLE IRelation TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.shadow_color ON TABLE IRelation TYPE int;
+DEFINE FIELD OVERWRITE resolved_style.shadow_blur ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.shadow_offset_x ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.shadow_offset_y ON TABLE IRelation TYPE float;
 
 DEFINE FIELD OVERWRITE in ON TABLE IRelation TYPE record<INode | TaskNode | InterNode>;
 DEFINE FIELD OVERWRITE out ON TABLE IRelation TYPE record<INode | TaskNode | InterNode>;
@@ -190,7 +252,7 @@ DEFINE FIELD OVERWRITE viewport_state.x_offset ON TABLE MapMetaData TYPE float;
 DEFINE FIELD OVERWRITE viewport_state.y_offset ON TABLE MapMetaData TYPE float;
 DEFINE FIELD OVERWRITE viewport_state.zoom_level ON TABLE MapMetaData TYPE float;
 DEFINE FIELD OVERWRITE viewport_state.active_view ON TABLE MapMetaData TYPE string;
-DEFINE FIELD OVERWRITE active_theme_id ON TABLE MapMetaData TYPE option<record<MapTheme>>;
+DEFINE FIELD OVERWRITE active_theme_id ON TABLE MapMetaData TYPE option<string>;
 DEFINE FIELD OVERWRITE display_mode ON TABLE MapMetaData TYPE any;
 
 -- ---------------------------------------------------------------------------

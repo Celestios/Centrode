@@ -62,9 +62,9 @@ class _Interaction {
 class _Node {
   const _Node();
 
-  final double defaultWidth = 150.0;
-  final double minWidth = 80.0;
-  final double resizeHandleVisualWidth = 10.0;
+  final double defaultWidth = 100.0;
+  final double minWidth = 40.0;
+  final double resizeHandleVisualWidth = 5.0;
   final int collapsedLineLimit = 3;
   final Size defaultSize = const Size(100, 60);
   final Offset editorOffset = const Offset(8, 25);

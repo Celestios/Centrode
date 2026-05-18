@@ -9,18 +9,27 @@ authors = ["Celestios <shahin.id5638@gmail.com>"]
 [lib]
 crate-type = ["cdylib", "staticlib", "rlib"] # 'cdylib' for Android/Desktop dynamic loading, 'staticlib' for iOS, 'rlib' for tests and dependencies
 
+# [profile.dev]
+# opt-level = 0
+# debug = 1              # Changed from 'true' (2) to 1. Still get line numbers for stack traces, but DLL is ~40% smaller.
+# split-debuginfo = "unpacked"  # 'unpacked' is faster on Windows than 'packed'
+# debug-assertions = true
+# incremental = true
+# codegen-units = 256    # Parallelize the build across all HP G10 cores
+# lto = "off"
+# 
+# # Dependencies that need to be fast - CRITICAL: Keep dependencies fast so your UI doesn't lag
+# [profile.dev.package."*"]
+# opt-level = 3          # Dependencies compiled once at full speed; incremental builds (your code) remain fast at level 0
+
 [profile.dev]
 opt-level = 0
-debug = 1              # Changed from 'true' (2) to 1. Still get line numbers for stack traces, but DLL is ~40% smaller.
-split-debuginfo = "unpacked"  # 'unpacked' is faster on Windows than 'packed'
+debug = 0              # No debug info for fastest compilation and smallest DLL
+split-debuginfo = "off"
 debug-assertions = true
 incremental = true
-codegen-units = 256    # Parallelize the build across all HP G10 cores
+codegen-units = 512    # Parallelize build to the maximum
 lto = "off"
-
-# Dependencies that need to be fast - CRITICAL: Keep dependencies fast so your UI doesn't lag
-[profile.dev.package."*"]
-opt-level = 3          # Dependencies compiled once at full speed; incremental builds (your code) remain fast at level 0
 
 [dependencies]
 # --- Core Runtime ---

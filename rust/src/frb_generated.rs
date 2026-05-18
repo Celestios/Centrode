@@ -2198,6 +2198,14 @@ impl SseDecode for crate::domain::styles::NodeStyle {
         let mut var_shape = <String>::sse_decode(deserializer);
         let mut var_width = <i32>::sse_decode(deserializer);
         let mut var_height = <i32>::sse_decode(deserializer);
+        let mut var_textColor = <u32>::sse_decode(deserializer);
+        let mut var_borderRadius = <f64>::sse_decode(deserializer);
+        let mut var_padding = <f64>::sse_decode(deserializer);
+        let mut var_shadowColor = <u32>::sse_decode(deserializer);
+        let mut var_shadowBlur = <f64>::sse_decode(deserializer);
+        let mut var_shadowSpread = <f64>::sse_decode(deserializer);
+        let mut var_shadowOffsetX = <f64>::sse_decode(deserializer);
+        let mut var_shadowOffsetY = <f64>::sse_decode(deserializer);
         return crate::domain::styles::NodeStyle {
             bg_color: var_bgColor,
             stroke_color: var_strokeColor,
@@ -2207,6 +2215,14 @@ impl SseDecode for crate::domain::styles::NodeStyle {
             shape: var_shape,
             width: var_width,
             height: var_height,
+            text_color: var_textColor,
+            border_radius: var_borderRadius,
+            padding: var_padding,
+            shadow_color: var_shadowColor,
+            shadow_blur: var_shadowBlur,
+            shadow_spread: var_shadowSpread,
+            shadow_offset_x: var_shadowOffsetX,
+            shadow_offset_y: var_shadowOffsetY,
         };
     }
 }
@@ -2409,6 +2425,11 @@ impl SseDecode for crate::domain::styles::RelationStyle {
         let mut var_arrowSize = <f64>::sse_decode(deserializer);
         let mut var_width = <i32>::sse_decode(deserializer);
         let mut var_height = <i32>::sse_decode(deserializer);
+        let mut var_textColor = <u32>::sse_decode(deserializer);
+        let mut var_shadowColor = <u32>::sse_decode(deserializer);
+        let mut var_shadowBlur = <f64>::sse_decode(deserializer);
+        let mut var_shadowOffsetX = <f64>::sse_decode(deserializer);
+        let mut var_shadowOffsetY = <f64>::sse_decode(deserializer);
         return crate::domain::styles::RelationStyle {
             bg_color: var_bgColor,
             stroke_color: var_strokeColor,
@@ -2420,6 +2441,11 @@ impl SseDecode for crate::domain::styles::RelationStyle {
             arrow_size: var_arrowSize,
             width: var_width,
             height: var_height,
+            text_color: var_textColor,
+            shadow_color: var_shadowColor,
+            shadow_blur: var_shadowBlur,
+            shadow_offset_x: var_shadowOffsetX,
+            shadow_offset_y: var_shadowOffsetY,
         };
     }
 }
@@ -3298,6 +3324,14 @@ impl flutter_rust_bridge::IntoDart for crate::domain::styles::NodeStyle {
             self.shape.into_into_dart().into_dart(),
             self.width.into_into_dart().into_dart(),
             self.height.into_into_dart().into_dart(),
+            self.text_color.into_into_dart().into_dart(),
+            self.border_radius.into_into_dart().into_dart(),
+            self.padding.into_into_dart().into_dart(),
+            self.shadow_color.into_into_dart().into_dart(),
+            self.shadow_blur.into_into_dart().into_dart(),
+            self.shadow_spread.into_into_dart().into_dart(),
+            self.shadow_offset_x.into_into_dart().into_dart(),
+            self.shadow_offset_y.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -3375,6 +3409,11 @@ impl flutter_rust_bridge::IntoDart for crate::domain::styles::RelationStyle {
             self.arrow_size.into_into_dart().into_dart(),
             self.width.into_into_dart().into_dart(),
             self.height.into_into_dart().into_dart(),
+            self.text_color.into_into_dart().into_dart(),
+            self.shadow_color.into_into_dart().into_dart(),
+            self.shadow_blur.into_into_dart().into_dart(),
+            self.shadow_offset_x.into_into_dart().into_dart(),
+            self.shadow_offset_y.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -4090,6 +4129,14 @@ impl SseEncode for crate::domain::styles::NodeStyle {
         <String>::sse_encode(self.shape, serializer);
         <i32>::sse_encode(self.width, serializer);
         <i32>::sse_encode(self.height, serializer);
+        <u32>::sse_encode(self.text_color, serializer);
+        <f64>::sse_encode(self.border_radius, serializer);
+        <f64>::sse_encode(self.padding, serializer);
+        <u32>::sse_encode(self.shadow_color, serializer);
+        <f64>::sse_encode(self.shadow_blur, serializer);
+        <f64>::sse_encode(self.shadow_spread, serializer);
+        <f64>::sse_encode(self.shadow_offset_x, serializer);
+        <f64>::sse_encode(self.shadow_offset_y, serializer);
     }
 }
 
@@ -4266,6 +4313,11 @@ impl SseEncode for crate::domain::styles::RelationStyle {
         <f64>::sse_encode(self.arrow_size, serializer);
         <i32>::sse_encode(self.width, serializer);
         <i32>::sse_encode(self.height, serializer);
+        <u32>::sse_encode(self.text_color, serializer);
+        <u32>::sse_encode(self.shadow_color, serializer);
+        <f64>::sse_encode(self.shadow_blur, serializer);
+        <f64>::sse_encode(self.shadow_offset_x, serializer);
+        <f64>::sse_encode(self.shadow_offset_y, serializer);
     }
 }
 

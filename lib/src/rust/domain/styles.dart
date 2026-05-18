@@ -19,6 +19,14 @@ sealed class NodeStyle with _$NodeStyle {
     required String shape,
     required int width,
     required int height,
+    required int textColor,
+    required double borderRadius,
+    required double padding,
+    required int shadowColor,
+    required double shadowBlur,
+    required double shadowSpread,
+    required double shadowOffsetX,
+    required double shadowOffsetY,
   }) = _NodeStyle;
 }
 
@@ -35,5 +43,10 @@ sealed class RelationStyle with _$RelationStyle {
     required double arrowSize,
     required int width,
     required int height,
+    required int textColor,
+    required int shadowColor,
+    required double shadowBlur,
+    required double shadowOffsetX,
+    required double shadowOffsetY,
   }) = _RelationStyle;
 }
