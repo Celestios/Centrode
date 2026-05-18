@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';

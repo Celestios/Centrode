@@ -7,7 +7,7 @@ use crate::domain::relations::{IRelation, IRelationFields};
 
 use anyhow::Result;
 use surrealdb::engine::local::Db;
-use surrealdb::types::{RecordId, Value};
+use surrealdb::types::{RecordId, SurrealValue, Value};
 use surrealdb::Surreal;
 use tracing::{debug, info};
 
@@ -62,14 +62,15 @@ impl Repository {
 
     pub async fn create_relation(&self, input: IRelation) -> Result<()> {
         let key = input.key.clone();
-        let in_id = input.fields.get_in_id();
-        let out_id = input.fields.get_out_id();
+        let in_id = input.get_in_id();
+        let out_id = input.get_out_id();
 
-        let created: Option<IRelation> = self
+        let mut res = self
             .db
-            .create((IRelation::LABEL, key.clone()))
-            .content(input.fields)
+            .query("INSERT RELATION INTO IRelation $relation")
+            .bind(("relation", input.to_db_value()))
             .await?;
+        let created: Option<Value> = res.take(0)?;
         let _ = created.ok_or_else(|| anyhow::anyhow!("Failed to create Relation"))?;
 
         self.trigger_significance_update(&in_id).await?;
@@ -169,11 +170,7 @@ impl Repository {
         let relations_raw: Vec<Value> = self.db.select(IRelation::LABEL).await?;
         let relations: Vec<IRelation> = relations_raw
             .into_iter()
-            .filter_map(|val| {
-                let record = Record::from_record_value(val)?;
-                let (key, fields) = record.to_type::<IRelationFields>()?;
-                Some(IRelation { key, fields })
-            })
+            .filter_map(IRelation::from_db_value)
             .collect();
         tracing::debug!("Fetched {} IRelations", relations.len());
 
@@ -256,11 +253,17 @@ impl Repository {
         }
 
         tracing::debug!("Inserting {} IRelations...", irelations.len());
-        for relation in irelations {
-            let _: Option<IRelationFields> = tx
-                .create((IRelation::LABEL, relation.key.clone()))
-                .content(relation.fields)
+        if !irelations.is_empty() {
+            let relation_vals: Vec<Value> = irelations
+                .into_iter()
+                .map(|relation| relation.to_db_value())
+                .collect();
+
+            let mut res = tx
+                .query("INSERT RELATION INTO IRelation $relations")
+                .bind(("relations", relation_vals))
                 .await?;
+            let _: Option<Value> = res.take(0)?;
         }
 
         tracing::debug!("Inserting MapMetadata...");
@@ -332,14 +335,14 @@ impl Repository {
 
     pub async fn get_relation(&self, table: String, key: String) -> Result<IRelation> {
         let record_id = RecordId::new(table, key.clone());
-        let fields: Option<IRelationFields> = self.db.select(record_id).await?;
-        let fields = fields.ok_or_else(|| anyhow::anyhow!("Relation not found"))?;
-        Ok(IRelation { key, fields })
+        let val: Option<Value> = self.db.select(record_id).await?;
+        let val = val.ok_or_else(|| anyhow::anyhow!("Relation not found"))?;
+        IRelation::from_db_value(val).ok_or_else(|| anyhow::anyhow!("Failed to parse Relation"))
     }
 
     pub async fn delete_relation(&self, table: String, key: String) -> Result<()> {
         let record_id = RecordId::new(table, key);
-        let _: Option<IRelationFields> = self.db.delete(record_id).await?;
+        let _: Option<Value> = self.db.delete(record_id).await?;
         Ok(())
     }
 
@@ -353,7 +356,7 @@ impl Repository {
         let record_id = RecordId::new(table, key);
         debug!("REPO: Parsed relation RecordID: {:?}", record_id);
 
-        let _: Option<IRelationFields> = self.db.update(record_id).content(fields).await?;
+        let _: Option<Value> = self.db.update(record_id).merge(fields.into_value()).await?;
         Ok(())
     }
 

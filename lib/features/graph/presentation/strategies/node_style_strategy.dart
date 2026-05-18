@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:mycelium/src/rust/domain/styles.dart'; // NodeStyle
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
@@ -54,24 +53,15 @@ class InfoNodeStyleStrategy extends NodeStyleStrategy {
   @override
   NodeStyle resolve(UiNode node, GraphTheme theme) {
     if (node.style != null) return node.style!;
-    return NodeStyle(
+    return NodeStyleStrategy.fallbackStyle().copyWith(
       bgColor: theme.primaryColor.toARGB32(),
       strokeColor: theme.dividerColor.toARGB32(),
-      strokeWidth: 1,
       fontFamily: theme.fontFamily,
       fontSize: theme.bodyFontSize,
-      shape: 'rectangle',
       width: 150,
       height: 40,
-      // --- Advanced Style Properties ---
       textColor: theme.bodyTextColor.toARGB32(),
       borderRadius: theme.borderRadius,
-      padding: 8.0,
-      shadowColor: const Color(0x33000000).toARGB32(),
-      shadowBlur: 4.0,
-      shadowSpread: 0.0,
-      shadowOffsetX: 2.0,
-      shadowOffsetY: 2.0,
     );
   }
 }
@@ -82,24 +72,15 @@ class TaskNodeStyleStrategy extends NodeStyleStrategy {
   @override
   NodeStyle resolve(UiNode node, GraphTheme theme) {
     if (node.style != null) return node.style!;
-    return NodeStyle(
+    return NodeStyleStrategy.fallbackStyle().copyWith(
       bgColor: 0xFFC8E6C9,
       strokeColor: 0xFF000000,
-      strokeWidth: 1,
       fontFamily: theme.fontFamily,
       fontSize: theme.bodyFontSize,
-      shape: 'rectangle',
       width: 150,
       height: 40,
-      // --- Advanced Style Properties ---
       textColor: 0xFF1B5E20,
       borderRadius: theme.borderRadius,
-      padding: 8.0,
-      shadowColor: const Color(0x33000000).toARGB32(),
-      shadowBlur: 4.0,
-      shadowSpread: 0.0,
-      shadowOffsetX: 2.0,
-      shadowOffsetY: 2.0,
     );
   }
 }

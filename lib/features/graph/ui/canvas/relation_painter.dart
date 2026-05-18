@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../presentation/graph_metrics.dart';
 import '../../presentation/view_state.dart';
+import '../../presentation/strategies/relation_style_strategy.dart';
 
 class RelationPainter extends CustomPainter {
   final List<UiRelation> relations;
@@ -40,14 +41,17 @@ class RelationPainter extends CustomPainter {
           ? endPos + AppConfig.relation.endFallback
           : to.leftPort;
 
+      // Centralized Style Resolution
+      final resolved = RelationStyleStrategy.resolveStyle(rel);
+
       // Apply selection styling from NodeRenderState.selectedEntities
       final isSelected = selectedEntities.contains(rel.id);
       paint.color = isSelected
           ? AppConfig.visuals.selectionAccent
-          : Color(rel.resolvedStyle?.strokeColor ?? 0xFF000000);
+          : Color(resolved.strokeColor);
       paint.strokeWidth = isSelected
           ? AppConfig.relation.selectedStrokeWidth
-          : AppConfig.relation.strokeWidth;
+          : resolved.strokeWidth.toDouble();
 
       // Draw straight line (Bezier curves can be added later)
       canvas.drawLine(start, end, paint);

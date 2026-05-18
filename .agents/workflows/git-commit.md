@@ -65,6 +65,11 @@ When executing this workflow, the agent must check and allow the user to tweak t
 ### 5. Git Execution
 - **Task**: Perform the selected git actions.
 - **Action**:
-  - If Option 1: Execute `git commit -m "<message>"`.
-  - If Option 2: Execute `git add -A` followed by `git commit -m "<message>"`.
+  - **Handling Multi-line Messages (Crucial for Windows)**: To avoid complex command-line escaping, you may write the commit message to a temporary file and use `git commit -F <file>`.
+  - **Preventing Temporary File Staging**: To prevent the temporary commit message file from being staged (which forces an unnecessary amend to remove it):
+    - **Option 1**: Commit currently staged changes. If using a temporary file, write it, run `git commit -F <file>`, and delete the file.
+    - **Option 2**: Run `git add -A` **first**, and only *after* staging the changes should you write the temporary file. Or, write the temporary file directly inside a git-ignored directory (e.g., `.git/temp_commit_msg.txt`). Then run `git commit -F <file>` and delete the file.
+  - **Execution Commands**:
+    - If Option 1: Run `git commit -m "<message>"` (or use the temporary file approach above).
+    - If Option 2: Run `git add -A` followed by `git commit -m "<message>"` (or use the temporary file approach above).
   - Report the output of the git command, including the new commit hash and a success message.

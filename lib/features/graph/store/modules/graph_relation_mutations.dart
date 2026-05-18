@@ -25,13 +25,36 @@ class GraphRelationMutations {
       return;
     }
 
-    final relation = InfoUiRelation(fromNodeId: fromId, toNodeId: toId);
+    final fromNode = controller.store.nodeLookup[fromId];
+    final toNode = controller.store.nodeLookup[toId];
+    if (fromNode == null || toNode == null) {
+      _relLog.warning(
+        'Failed to create relation: source or target node not found in store lookup.',
+      );
+      return;
+    }
+
+    final relation = InfoUiRelation(
+      fromNodeId: fromId,
+      fromNodeTable: fromNode.tableName,
+      toNodeId: toId,
+      toNodeTable: toNode.tableName,
+    );
+
+    // OPTIMISTIC INSERTION (T=0.0ms)
+    controller.store.relationLookup[relation.id] = relation;
+    controller.styleManager.updateStyleForRelation(relation.id);
 
     final cmd = CreateRelationCommand(
       targetId: relation.id,
       api: controller.syncEngine.api,
       relation: relation,
-      reloadGraph: controller.syncEngine.loadGraph,
+      reloadGraph: controller.loadGraph,
+      onUndo: () {
+        _relLog.warning('Relation creation rejected or failed. Removing relation: ${relation.id}');
+        controller.store.relationLookup.remove(relation.id);
+        controller.triggerUpdate();
+      },
     );
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
     controller.triggerUpdate();

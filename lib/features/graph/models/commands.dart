@@ -166,12 +166,14 @@ class CreateRelationCommand implements GraphCommand {
   final AppHandle api;
   final UiRelation relation;
   final Future<void> Function() reloadGraph;
+  final VoidCallback? onUndo;
 
   CreateRelationCommand({
     required this.targetId,
     required this.api,
     required this.relation,
     required this.reloadGraph,
+    this.onUndo,
   });
 
   @override
@@ -185,6 +187,6 @@ class CreateRelationCommand implements GraphCommand {
 
   @override
   void undo() {
-    // Pessimistic creation doesn't have an optimistic local state to undo.
+    onUndo?.call();
   }
 }

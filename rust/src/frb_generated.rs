@@ -1890,9 +1890,13 @@ impl SseDecode for crate::domain::relations::IRelation {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_key = <String>::sse_decode(deserializer);
+        let mut var_in_ = <String>::sse_decode(deserializer);
+        let mut var_out = <String>::sse_decode(deserializer);
         let mut var_fields = <crate::domain::relations::IRelationFields>::sse_decode(deserializer);
         return crate::domain::relations::IRelation {
             key: var_key,
+            in_: var_in_,
+            out: var_out,
             fields: var_fields,
         };
     }
@@ -1901,8 +1905,6 @@ impl SseDecode for crate::domain::relations::IRelation {
 impl SseDecode for crate::domain::relations::IRelationFields {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_in_ = <String>::sse_decode(deserializer);
-        let mut var_out = <String>::sse_decode(deserializer);
         let mut var_verb = <String>::sse_decode(deserializer);
         let mut var_style =
             <Option<crate::domain::styles::RelationStyle>>::sse_decode(deserializer);
@@ -1913,8 +1915,6 @@ impl SseDecode for crate::domain::relations::IRelationFields {
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
         return crate::domain::relations::IRelationFields {
-            in_: var_in_,
-            out: var_out,
             verb: var_verb,
             style: var_style,
             resolved_style: var_resolvedStyle,
@@ -3095,6 +3095,8 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relations::IRelation {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.key.into_into_dart().into_dart(),
+            self.in_.into_into_dart().into_dart(),
+            self.out.into_into_dart().into_dart(),
             self.fields.into_into_dart().into_dart(),
         ]
         .into_dart()
@@ -3115,8 +3117,6 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::relations::IRelation>
 impl flutter_rust_bridge::IntoDart for crate::domain::relations::IRelationFields {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
-            self.in_.into_into_dart().into_dart(),
-            self.out.into_into_dart().into_dart(),
             self.verb.into_into_dart().into_dart(),
             self.style.into_into_dart().into_dart(),
             self.resolved_style.into_into_dart().into_dart(),
@@ -3896,6 +3896,8 @@ impl SseEncode for crate::domain::relations::IRelation {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.key, serializer);
+        <String>::sse_encode(self.in_, serializer);
+        <String>::sse_encode(self.out, serializer);
         <crate::domain::relations::IRelationFields>::sse_encode(self.fields, serializer);
     }
 }
@@ -3903,8 +3905,6 @@ impl SseEncode for crate::domain::relations::IRelation {
 impl SseEncode for crate::domain::relations::IRelationFields {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <String>::sse_encode(self.in_, serializer);
-        <String>::sse_encode(self.out, serializer);
         <String>::sse_encode(self.verb, serializer);
         <Option<crate::domain::styles::RelationStyle>>::sse_encode(self.style, serializer);
         <Option<crate::domain::styles::RelationStyle>>::sse_encode(self.resolved_style, serializer);

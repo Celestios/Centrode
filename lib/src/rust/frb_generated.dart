@@ -1645,11 +1645,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   IRelation dco_decode_i_relation(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
     return IRelation(
       key: dco_decode_String(arr[0]),
-      fields: dco_decode_i_relation_fields(arr[1]),
+      in_: dco_decode_String(arr[1]),
+      out: dco_decode_String(arr[2]),
+      fields: dco_decode_i_relation_fields(arr[3]),
     );
   }
 
@@ -1657,18 +1659,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   IRelationFields dco_decode_i_relation_fields(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 9)
-      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
     return IRelationFields(
-      in_: dco_decode_String(arr[0]),
-      out: dco_decode_String(arr[1]),
-      verb: dco_decode_String(arr[2]),
-      style: dco_decode_opt_box_autoadd_relation_style(arr[3]),
-      resolvedStyle: dco_decode_opt_box_autoadd_relation_style(arr[4]),
-      directionless: dco_decode_bool(arr[5]),
-      layer: dco_decode_String(arr[6]),
-      createdAt: dco_decode_i_64(arr[7]),
-      updatedAt: dco_decode_i_64(arr[8]),
+      verb: dco_decode_String(arr[0]),
+      style: dco_decode_opt_box_autoadd_relation_style(arr[1]),
+      resolvedStyle: dco_decode_opt_box_autoadd_relation_style(arr[2]),
+      directionless: dco_decode_bool(arr[3]),
+      layer: dco_decode_String(arr[4]),
+      createdAt: dco_decode_i_64(arr[5]),
+      updatedAt: dco_decode_i_64(arr[6]),
     );
   }
 
@@ -2559,15 +2559,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   IRelation sse_decode_i_relation(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_key = sse_decode_String(deserializer);
+    var var_in_ = sse_decode_String(deserializer);
+    var var_out = sse_decode_String(deserializer);
     var var_fields = sse_decode_i_relation_fields(deserializer);
-    return IRelation(key: var_key, fields: var_fields);
+    return IRelation(
+      key: var_key,
+      in_: var_in_,
+      out: var_out,
+      fields: var_fields,
+    );
   }
 
   @protected
   IRelationFields sse_decode_i_relation_fields(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_in_ = sse_decode_String(deserializer);
-    var var_out = sse_decode_String(deserializer);
     var var_verb = sse_decode_String(deserializer);
     var var_style = sse_decode_opt_box_autoadd_relation_style(deserializer);
     var var_resolvedStyle = sse_decode_opt_box_autoadd_relation_style(
@@ -2578,8 +2583,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_createdAt = sse_decode_i_64(deserializer);
     var var_updatedAt = sse_decode_i_64(deserializer);
     return IRelationFields(
-      in_: var_in_,
-      out: var_out,
       verb: var_verb,
       style: var_style,
       resolvedStyle: var_resolvedStyle,
@@ -3648,6 +3651,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_i_relation(IRelation self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.key, serializer);
+    sse_encode_String(self.in_, serializer);
+    sse_encode_String(self.out, serializer);
     sse_encode_i_relation_fields(self.fields, serializer);
   }
 
@@ -3657,8 +3662,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.in_, serializer);
-    sse_encode_String(self.out, serializer);
     sse_encode_String(self.verb, serializer);
     sse_encode_opt_box_autoadd_relation_style(self.style, serializer);
     sse_encode_opt_box_autoadd_relation_style(self.resolvedStyle, serializer);

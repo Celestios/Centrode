@@ -10,7 +10,9 @@ import 'package:mycelium/src/rust/domain/relations.dart';
 sealed class UiRelation {
   final String id;
   String fromNodeId;
+  String fromNodeTable;
   String toNodeId;
+  String toNodeTable;
   String verb;
   String layer;
   bool directionless;
@@ -22,7 +24,9 @@ sealed class UiRelation {
   UiRelation({
     String? id,
     required this.fromNodeId,
+    required this.fromNodeTable,
     required this.toNodeId,
+    required this.toNodeTable,
     String? verb,
     bool? directionless,
     this.style,
@@ -58,9 +62,11 @@ sealed class UiRelation {
 // ---------------------------------------------------------------------------
 class InfoUiRelation extends UiRelation {
   InfoUiRelation({
-    String? id,
+    super.id,
     required super.fromNodeId,
+    required super.fromNodeTable,
     required super.toNodeId,
+    required super.toNodeTable,
     super.verb,
     super.directionless,
     super.style,
@@ -74,7 +80,9 @@ class InfoUiRelation extends UiRelation {
   InfoUiRelation copyWith({
     String? id,
     String? fromNodeId,
+    String? fromNodeTable,
     String? toNodeId,
+    String? toNodeTable,
     String? verb,
     String? layer,
     bool? directionless,
@@ -86,7 +94,9 @@ class InfoUiRelation extends UiRelation {
     return InfoUiRelation(
       id: id ?? this.id,
       fromNodeId: fromNodeId ?? this.fromNodeId,
+      fromNodeTable: fromNodeTable ?? this.fromNodeTable,
       toNodeId: toNodeId ?? this.toNodeId,
+      toNodeTable: toNodeTable ?? this.toNodeTable,
       verb: verb ?? this.verb,
       layer: layer ?? this.layer,
       directionless: directionless ?? this.directionless,
@@ -101,9 +111,9 @@ class InfoUiRelation extends UiRelation {
   IRelation toRust() {
     return IRelation(
       key: id,
+      in_: '$fromNodeTable:$fromNodeId',
+      out: '$toNodeTable:$toNodeId',
       fields: IRelationFields(
-        in_: fromNodeId,
-        out: toNodeId,
         verb: verb,
         style: style,
         resolvedStyle: resolvedStyle,
@@ -117,10 +127,25 @@ class InfoUiRelation extends UiRelation {
 
   /// Deserialises from an FFI [IRelation].
   factory InfoUiRelation.fromRust(IRelation relation) {
+    String getTable(String id) {
+      final index = id.indexOf(':');
+      if (index == -1) {
+        throw ArgumentError('Invalid FFI RecordId format: $id');
+      }
+      return id.substring(0, index);
+    }
+
+    String stripPrefix(String id) {
+      final index = id.indexOf(':');
+      return index == -1 ? id : id.substring(index + 1);
+    }
+
     return InfoUiRelation(
       id: relation.key,
-      fromNodeId: relation.fields.in_,
-      toNodeId: relation.fields.out,
+      fromNodeId: stripPrefix(relation.in_),
+      fromNodeTable: getTable(relation.in_),
+      toNodeId: stripPrefix(relation.out),
+      toNodeTable: getTable(relation.out),
       verb: relation.fields.verb,
       directionless: relation.fields.directionless,
       style: relation.fields.style,

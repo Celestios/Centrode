@@ -9,12 +9,20 @@ import 'styles.dart';
 
 class IRelation {
   final String key;
+  final String in_;
+  final String out;
   final IRelationFields fields;
 
-  const IRelation({required this.key, required this.fields});
+  const IRelation({
+    required this.key,
+    required this.in_,
+    required this.out,
+    required this.fields,
+  });
 
   @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
+  int get hashCode =>
+      key.hashCode ^ in_.hashCode ^ out.hashCode ^ fields.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -22,12 +30,12 @@ class IRelation {
       other is IRelation &&
           runtimeType == other.runtimeType &&
           key == other.key &&
+          in_ == other.in_ &&
+          out == other.out &&
           fields == other.fields;
 }
 
 class IRelationFields {
-  final String in_;
-  final String out;
   final String verb;
   final RelationStyle? style;
   final RelationStyle? resolvedStyle;
@@ -37,8 +45,6 @@ class IRelationFields {
   final PlatformInt64 updatedAt;
 
   const IRelationFields({
-    required this.in_,
-    required this.out,
     required this.verb,
     this.style,
     this.resolvedStyle,
@@ -50,8 +56,6 @@ class IRelationFields {
 
   @override
   int get hashCode =>
-      in_.hashCode ^
-      out.hashCode ^
       verb.hashCode ^
       style.hashCode ^
       resolvedStyle.hashCode ^
@@ -65,8 +69,6 @@ class IRelationFields {
       identical(this, other) ||
       other is IRelationFields &&
           runtimeType == other.runtimeType &&
-          in_ == other.in_ &&
-          out == other.out &&
           verb == other.verb &&
           style == other.style &&
           resolvedStyle == other.resolvedStyle &&

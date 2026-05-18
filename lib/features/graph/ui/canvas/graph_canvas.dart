@@ -15,6 +15,7 @@ import 'layers/relation_layer.dart';
 import 'layers/node_layer.dart';
 import 'layers/overlay_layer.dart';
 import 'layers/grid_layer.dart';
+import '../../../../shared/widgets/canvas_interactive_viewer.dart';
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
@@ -29,6 +30,7 @@ class _GraphCanvasState extends State<GraphCanvas> {
   final Logger _log = Logger('GraphCanvas');
 
   bool _hasInitialFramed = false;
+
   EdgeInsets? _lastElasticMargins;
 
   @override
@@ -163,10 +165,10 @@ class _GraphCanvasState extends State<GraphCanvas> {
                             );
                           }
 
-                          return InteractiveViewer(
+                          return CanvasInteractiveViewer(
                             transformationController:
                                 _viewportController.transformController,
-                            constrained: false,
+                            constrained: true,
                             boundaryMargin: elasticMargins,
                             minScale: AppConfig.canvas.minScale,
                             maxScale: AppConfig.canvas.maxScale,
@@ -179,25 +181,20 @@ class _GraphCanvasState extends State<GraphCanvas> {
                               },
                               onDoubleTap: () {},
                               onLongPress: () {},
-                              // 1x1 Mathematical Reference Plane
-                              child: SizedBox(
-                                width: 10000,
-                                height: 10000,
-                                child: Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    ValueListenableBuilder<ViewportStateGrid>(
-                                      valueListenable: _viewportController
-                                          .viewportStateNotifier,
-                                      builder: (context, state, _) {
-                                        return GridLayer(viewportState: state);
-                                      },
-                                    ),
-                                    const RelationLayer(),
-                                    const NodeLayer(),
-                                    OverlayLayer(interactionState: state),
-                                  ],
-                                ),
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  ValueListenableBuilder<ViewportStateGrid>(
+                                    valueListenable: _viewportController
+                                        .viewportStateNotifier,
+                                    builder: (context, state, _) {
+                                      return GridLayer(viewportState: state);
+                                    },
+                                  ),
+                                  const RelationLayer(),
+                                  const NodeLayer(),
+                                  OverlayLayer(interactionState: state),
+                                ],
                               ),
                             ),
                           );

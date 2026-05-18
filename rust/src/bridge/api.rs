@@ -13,7 +13,7 @@ use crate::persistence::repo::Repository;
 use crate::telemetry::{connect_log_stream, init_telemetry, LogState};
 use std::collections::BTreeMap;
 use std::sync::Mutex;
-use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
+use surrealdb::types::{RecordId, SurrealValue, Value};
 use tokio::task::JoinHandle;
 use tracing::{debug, error, info};
 
@@ -124,7 +124,7 @@ impl AppHandle {
     pub async fn create_relation(&self, input: IRelation) -> anyhow::Result<()> {
         debug!(
             "FFI: create_relation called: {} -> {}",
-            input.fields.in_, input.fields.out
+            input.in_, input.out
         );
         match self.repo.create_relation(input).await {
             Ok(()) => {
