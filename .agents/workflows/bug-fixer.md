@@ -9,20 +9,22 @@ This workflow provides instructions for the agent to systematically diagnose bug
 ## Core Mandate
 
 When executing this workflow, adhere to the following principles:
-1. **Evidence-Based Diagnosis**: Don't guess. Use logs, code analysis, and reproduction steps to find the root cause.
-2. **Clear Explanation**: Explain *why* the bug occurs, not just *that* it occurs.
-3. **Impact Assessment**: Briefly mention what else might be affected by the proposed fix.
-4. **Pause for Consent**: Never apply a fix without explicit confirmation of the plan.
+1. **Verify System Dynamics**: Do not guess. Make sure you understand the exact system dynamics and precisely how the problem occurs before attempting to fix it.
+2. **Handle Uncertainty**: If you are not absolutely sure about the root cause or execution flow, you must implement temporary extra logging, diagnostic output, or focused test cases to observe and isolate the behavior.
+3. **Clear Explanation**: Explain *why* the bug occurs, not just *that* it occurs.
+4. **Impact Assessment**: Briefly mention what else might be affected by the proposed fix.
+5. **Pause for Consent**: Never apply a fix without explicit confirmation of the plan.
 
 ## Steps
 
 ### 1. Investigation & Reproduction
-- **Task**: Identify the scope of the bug and gather necessary context.
+- **Task**: Identify the scope of the bug, understand the system dynamics, and gather necessary context.
 - **Action**: 
     - Search for relevant code, error messages, or logs.
-    - Analyze the execution flow leading to the reported issue.
+    - Analyze the execution flow and state transitions leading to the reported issue.
+    - **Observe Dynamics**: If you lack certainty about how the bug behaves or its exact path of execution, introduce temporary extra logging, debug messages, or targeted unit/integration tests to capture the issue's dynamics.
     - If possible, describe how to reproduce the issue.
-*Constraint: You MUST output a summary of your investigation, including the specific files and lines involved.*
+*Constraint: You MUST output a summary of your investigation, including the specific files/lines involved and how you verified the execution dynamics.*
 
 ### 2. Root Cause Analysis (RCA)
 - **Task**: Explain the "How" and "Why".

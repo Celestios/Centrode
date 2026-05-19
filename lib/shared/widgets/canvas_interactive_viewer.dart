@@ -1,4 +1,4 @@
-﻿// Forked from Flutter's InteractiveViewer with a fix for trackpad
+// Forked from Flutter's InteractiveViewer with a fix for trackpad
 // PointerPanZoom focal-point drift:
 // ScaleGestureRecognizer sets focalPoint = position + pan, which causes
 // the viewer to zoom around a moving virtual point instead of the fixed
