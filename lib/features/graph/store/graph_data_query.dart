@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:mycelium/src/rust/domain/base_models.dart' show BoundingBox;
 import '../models/models.dart';
 
 /// Read-only domain interface enforcing CQRS.
@@ -11,4 +12,6 @@ abstract interface class GraphDataQuery implements Listenable {
   Map<String, UiNode> get nodeLookup;
   Map<String, UiRelation> get relationLookup;
   Iterable<UiRelation> get relations;
+  ValueNotifier<BoundingBox> get canvasBounds;
 }
+

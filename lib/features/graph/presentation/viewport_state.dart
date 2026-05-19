@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'graph_metrics.dart';
@@ -48,12 +49,20 @@ class ViewportController {
     ),
   );
 
+  /// Notifier exposing the calculated elastic margins for CanvasInteractiveViewer.
+  final ValueNotifier<EdgeInsets> elasticMargins = ValueNotifier(EdgeInsets.zero);
+
   ViewportController(this._dataController) {
     _log.info(
       'Initializing ViewportController and tracking transform mutations.',
     );
     transformController.addListener(_handleTransform);
     _dataController.addListener(_onDataChanged);
+    _dataController.canvasBounds.addListener(_onCanvasBoundsChanged);
+  }
+
+  void _onCanvasBoundsChanged() {
+    recalculateElasticMargins();
   }
 
   void _onDataChanged() {
@@ -71,6 +80,7 @@ class ViewportController {
     _log.fine('Viewport dimensions updated: $size');
     _currentViewportSize = size;
     _recalculate();
+    recalculateElasticMargins();
   }
 
   /// Mutates the Transformation Matrix to center the camera on the provided bounds.
@@ -87,6 +97,7 @@ class ViewportController {
 
     _log.info('Translating Camera Matrix to center: ($centerX, $centerY)');
     transformController.value = Matrix4.identity()..translate(dx, dy);
+    recalculateElasticMargins();
   }
 
   void _handleTransform() {
@@ -113,6 +124,60 @@ class ViewportController {
         viewport.width * AppConfig.canvas.overscanRatio,
       );
       updateVisibleSet(inflatedBuffer);
+    }
+  }
+
+  /// Calculates and updates the elastic margins boundaries.
+  /// Decoupled from the high-frequency transform controller tick to prevent
+  /// layout rebuild jitter during active panning/scaling.
+  void recalculateElasticMargins() {
+    if (_currentViewportSize == Size.zero) return;
+
+    final viewport = _calculateCanvasViewport();
+    if (viewport == Rect.zero) return;
+
+    // Scale-Aware Geometric Decoupling & Elastic Margin calculation.
+    final bounds = _dataController.canvasBounds.value;
+    final padding = AppConfig.canvas.boundaryMargin;
+    final minScale = AppConfig.canvas.minScale;
+    
+    final effectiveViewportWidth = _currentViewportSize.width / minScale;
+    final effectiveViewportHeight = _currentViewportSize.height / minScale;
+
+    // 1. Calculate boundaries based on graph node coordinates
+    final nodeLeftBound = -bounds.minX.toDouble() + padding;
+    final nodeTopBound = -bounds.minY.toDouble() + padding;
+    final nodeRightBound = bounds.maxX.toDouble() + padding;
+    final nodeBottomBound = bounds.maxY.toDouble() + padding;
+
+    // 2. Adjust boundaries to guarantee they enclose the current camera viewport
+    // to prevent sudden snap backs when the nodes boundary shrinks.
+    final leftBound = math.max(
+      math.max(effectiveViewportWidth, nodeLeftBound),
+      viewport != Rect.zero ? -viewport.left : 0.0,
+    );
+    final topBound = math.max(
+      math.max(effectiveViewportHeight, nodeTopBound),
+      viewport != Rect.zero ? -viewport.top : 0.0,
+    );
+    final rightBound = math.max(
+      math.max(effectiveViewportWidth, nodeRightBound),
+      viewport != Rect.zero ? viewport.right - _currentViewportSize.width : 0.0,
+    );
+    final bottomBound = math.max(
+      math.max(effectiveViewportHeight, nodeBottomBound),
+      viewport != Rect.zero ? viewport.bottom - _currentViewportSize.height : 0.0,
+    );
+
+    final calculatedMargins = EdgeInsets.fromLTRB(
+      leftBound,
+      topBound,
+      rightBound,
+      bottomBound,
+    );
+
+    if (elasticMargins.value != calculatedMargins) {
+      elasticMargins.value = calculatedMargins;
     }
   }
 
@@ -150,8 +215,10 @@ class ViewportController {
     _log.fine('Disposing ViewportController.');
     transformController.removeListener(_handleTransform);
     _dataController.removeListener(_onDataChanged);
+    _dataController.canvasBounds.removeListener(_onCanvasBoundsChanged);
     transformController.dispose();
     viewportStateNotifier.dispose();
     visibleNodeIds.dispose();
+    elasticMargins.dispose();
   }
 }

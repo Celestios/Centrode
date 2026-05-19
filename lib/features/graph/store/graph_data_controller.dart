@@ -78,6 +78,7 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
 
   Iterable<UiNode> get nodesIterable => store.nodes;
 
+  @override
   ValueNotifier<BoundingBox> get canvasBounds => syncEngine.canvasBounds;
 
   // ===========================================================================
