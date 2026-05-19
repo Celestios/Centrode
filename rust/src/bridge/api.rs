@@ -73,8 +73,14 @@ impl AppHandle {
     }
 
     async fn broadcast_boundaries(&self) {
-        if let Ok(bounds) = GraphAnalysis::calculate_global_bounds(self.repo.db()).await {
-            stream::publish_event(GraphEvent::BoundaryUpdated(bounds));
+        match GraphAnalysis::calculate_global_bounds(self.repo.db()).await {
+            Ok(bounds) => {
+                info!("FFI: Broadcasting bounds: {:?}", bounds);
+                stream::publish_event(GraphEvent::BoundaryUpdated(bounds));
+            }
+            Err(e) => {
+                error!("FFI: Failed to calculate global bounds: {}", e);
+            }
         }
     }
 

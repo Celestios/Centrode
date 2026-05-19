@@ -190,23 +190,23 @@ impl Repository {
         let tx = db.begin().await?;
 
         tracing::debug!("Deleting existing IRelations...");
-        let _: Vec<IRelation> = tx.delete(IRelation::LABEL).await?;
+        let _: Vec<Value> = tx.delete(IRelation::LABEL).await?;
         tracing::debug!("Deleted all IRelations");
 
         tracing::debug!("Deleting existing InterNodes...");
-        let _: Vec<InterNode> = tx.delete(InterNode::LABEL).await?;
+        let _: Vec<Value> = tx.delete(InterNode::LABEL).await?;
         tracing::debug!("Deleted all InterNodes");
 
         tracing::debug!("Deleting existing TaskNodes...");
-        let _: Vec<TaskNode> = tx.delete(TaskNode::LABEL).await?;
+        let _: Vec<Value> = tx.delete(TaskNode::LABEL).await?;
         tracing::debug!("Deleted all TaskNodes");
 
         tracing::debug!("Deleting existing INodes...");
-        let _: Vec<INode> = tx.delete(INode::LABEL).await?;
+        let _: Vec<Value> = tx.delete(INode::LABEL).await?;
         tracing::debug!("Deleted all INodes");
 
         tracing::debug!("Deleting existing MapMetadata...");
-        let _: Vec<MapData> = tx.delete(MapData::LABEL).await?;
+        let _: Vec<Value> = tx.delete(MapData::LABEL).await?;
         tracing::debug!("Deleted all MapMetadata");
 
         tx.commit().await?;

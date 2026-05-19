@@ -193,6 +193,7 @@ DEFINE FIELD OVERWRITE position.y ON TABLE InterNode TYPE int;
 DEFINE FIELD OVERWRITE style ON TABLE InterNode TYPE option<string>;
 DEFINE FIELD OVERWRITE verb ON TABLE InterNode TYPE string;
 DEFINE FIELD OVERWRITE behavioral_features ON TABLE InterNode TYPE option<string>;
+DEFINE FIELD OVERWRITE layer ON TABLE InterNode TYPE string;
 DEFINE FIELD OVERWRITE created_at ON TABLE InterNode TYPE int;
 DEFINE FIELD OVERWRITE updated_at ON TABLE InterNode COMPUTED time::millis(time::now());
 
@@ -283,7 +284,7 @@ DEFINE FIELD OVERWRITE brightness ON TABLE MapTheme;
 DEFINE FIELD OVERWRITE action_type ON TABLE History TYPE string;
 DEFINE FIELD OVERWRITE payload ON TABLE History TYPE any;
 DEFINE FIELD OVERWRITE status ON TABLE History TYPE string;
-DEFINE FIELD OVERWRITE created_at ON TABLE History TYPE int DEFAULT time::millis(time::now());
+DEFINE FIELD OVERWRITE created_at ON TABLE History;
 
 -- ---------------------------------------------------------------------------
 -- 9. Analyzer (Required before indexes that use it)

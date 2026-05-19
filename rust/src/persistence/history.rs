@@ -11,10 +11,10 @@ pub enum HistoryStatus {
 
 #[derive(Debug, SurrealValue)]
 pub struct HistoryRecord {
-    pub id: Option<RecordId>,
+    pub id: Option<String>,
     pub action_type: String,
     pub payload: Value,
-    pub status: HistoryStatus,
+    pub status: String,
     pub created_at: i64,
 }
 
@@ -38,30 +38,36 @@ impl<'a> HistoryManager<'a> {
             id: None,
             action_type: action_type.to_string(),
             payload,
-            status: HistoryStatus::Applied,
+            status: "applied".to_string(),
             created_at: chrono::Utc::now().timestamp_millis(),
         };
 
-        // Insert into DB
-        let _: Option<HistoryRecord> = self.db.create("History").content(record).await?;
+        // Insert into DB (deserialize result as generic Value to bypass strict struct mapping)
+        let _: Option<Value> = self.db.create("History").content(record).await?;
 
         // Enforce threshold (clean up old records)
         let mut count_response = self
             .db
-            .query("SELECT count() FROM History WHERE status = 'applied'")
+            .query("RETURN count(SELECT * FROM History WHERE status = 'applied')")
             .await?;
         let count: Option<i64> = count_response.take(0)?;
         let count = count.unwrap_or(0);
 
         if count > self.threshold as i64 {
             let limit = count - self.threshold as i64;
-            let _ = self
+            #[derive(SurrealValue)]
+            struct HistoryPrune {
+                id: RecordId,
+            }
+            let mut select_response = self
                 .db
-                .query(
-                    "DELETE History WHERE status = 'applied' ORDER BY created_at ASC LIMIT $limit",
-                )
+                .query("SELECT id, created_at FROM History WHERE status = 'applied' ORDER BY created_at ASC, id ASC LIMIT $limit")
                 .bind(("limit", limit))
                 .await?;
+            let ids_to_delete: Vec<HistoryPrune> = select_response.take(0)?;
+            for prune in ids_to_delete {
+                let _: Option<Value> = self.db.delete(prune.id).await?;
+            }
         }
 
         Ok(())
@@ -72,20 +78,23 @@ impl<'a> HistoryManager<'a> {
         let mut response = self
             .db
             .query(
-                "SELECT * FROM History WHERE status = 'applied' ORDER BY created_at DESC LIMIT 1",
+                "SELECT <string> id AS id, action_type, payload, status, created_at FROM History WHERE status = 'applied' ORDER BY created_at DESC LIMIT 1",
             )
             .await?;
         let record: Option<HistoryRecord> = response.take(0)?;
 
         if let Some(mut rec) = record {
-            if let Some(id) = &rec.id {
+            if let Some(ref id_str) = rec.id {
+                let (table, key) = id_str.split_once(':').unwrap_or(("History", id_str));
+                let record_id = RecordId::new(table, key);
+
                 // Mark it as "undone"
                 self.db
                     .query("UPDATE $id SET status = 'undone'")
-                    .bind(("id", id.clone()))
+                    .bind(("id", record_id))
                     .await?;
 
-                rec.status = HistoryStatus::Undone;
+                rec.status = "undone".to_string();
                 return Ok(Some(rec));
             }
         }
@@ -96,19 +105,24 @@ impl<'a> HistoryManager<'a> {
         // Get the latest "undone" event (LIFO for redo)
         let mut response = self
             .db
-            .query("SELECT * FROM History WHERE status = 'undone' ORDER BY created_at DESC LIMIT 1")
+            .query(
+                "SELECT <string> id AS id, action_type, payload, status, created_at FROM History WHERE status = 'undone' ORDER BY created_at DESC LIMIT 1",
+            )
             .await?;
         let record: Option<HistoryRecord> = response.take(0)?;
 
         if let Some(mut rec) = record {
-            if let Some(id) = &rec.id {
+            if let Some(ref id_str) = rec.id {
+                let (table, key) = id_str.split_once(':').unwrap_or(("History", id_str));
+                let record_id = RecordId::new(table, key);
+
                 // Mark it as "applied"
                 self.db
                     .query("UPDATE $id SET status = 'applied'")
-                    .bind(("id", id.clone()))
+                    .bind(("id", record_id))
                     .await?;
 
-                rec.status = HistoryStatus::Applied;
+                rec.status = "applied".to_string();
                 return Ok(Some(rec));
             }
         }
