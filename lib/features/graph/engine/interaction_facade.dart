@@ -86,11 +86,21 @@ class CanvasInteractionEnvironment implements InteractionContext {
   Set<String> getSelectedEntities() => _renderState.selectedEntities;
 
   @override
-  Offset getToolbarOffset() => _renderState.toolbarOffsetNotifier.value;
+  Offset getToolbarOffset() {
+    final isMulti = _renderState.selectedEntities.length > 1;
+    return isMulti
+        ? _renderState.multiToolbarOffsetNotifier.value
+        : _renderState.toolbarOffsetNotifier.value;
+  }
 
   @override
-  void updateToolbarOffset(Offset delta) {
-    _renderState.toolbarOffsetNotifier.value += delta;
+  void setToolbarOffset(Offset offset) {
+    final isMulti = _renderState.selectedEntities.length > 1;
+    if (isMulti) {
+      _renderState.multiToolbarOffsetNotifier.value = offset;
+    } else {
+      _renderState.toolbarOffsetNotifier.value = offset;
+    }
   }
 
   @override

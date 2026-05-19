@@ -28,8 +28,6 @@ extension StringExtension on String {
 class NodeWidget extends StatelessWidget {
   final UiNode node;
   final NodeViewState viewState;
-  final bool isDeleteMenuVisible;
-  final VoidCallback onDelete;
   final bool isSelected;
   final bool isEditing;
 
@@ -37,8 +35,6 @@ class NodeWidget extends StatelessWidget {
     super.key,
     required this.node,
     required this.viewState,
-    required this.isDeleteMenuVisible,
-    required this.onDelete,
     required this.isSelected,
     required this.isEditing,
   });

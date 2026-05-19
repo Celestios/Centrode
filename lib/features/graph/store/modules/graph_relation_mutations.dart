@@ -59,4 +59,32 @@ class GraphRelationMutations {
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
     controller.triggerUpdate();
   }
+
+  /// Deletes a relation with immediate command execution via CommandProcessor.
+  Future<void> deleteRelation(String id) async {
+    final relation = controller.store.relationLookup[id];
+    if (relation == null) return;
+
+    _relLog.info('Initiating optimistic UI teardown for relation: $id');
+
+    // Prepare Command for FFI with rollback
+    final cmd = DeleteRelationCommand(
+      targetId: id,
+      api: controller.syncEngine.api,
+      tableName: 'IRelation',
+      onUndo: () {
+        _relLog.warning('Deletion rejected. Re-hydrating relation: $id');
+        controller.store.relationLookup[id] = relation;
+        controller.triggerUpdate(); // Force canvas rebuild to re-mount the rehydrated relation
+      },
+    );
+
+    // OPTIMISTIC TEARDOWN
+    controller.store.relationLookup.remove(id);
+
+    // Queue command with immediate execution
+    controller.syncEngine.processor.queueCommand(cmd, immediate: true);
+    controller.triggerUpdate();
+  }
 }
+

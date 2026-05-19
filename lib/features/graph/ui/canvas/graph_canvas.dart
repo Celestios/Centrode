@@ -131,7 +131,7 @@ class _GraphCanvasState extends State<GraphCanvas> {
                             },
                             child: GestureDetector(
                               onTap: () {
-                                renderState.hideDeleteMenu();
+                                renderState.hideFloatingToolbar();
                               },
                               onDoubleTap: () {},
                               onLongPress: () {},

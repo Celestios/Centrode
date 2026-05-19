@@ -36,8 +36,6 @@ class NodeLayer extends StatelessWidget {
                 node: node,
                 isSelected: isSelected,
                 isEditing: isEditing,
-                isDeleteMenuVisible: uiState.nodeShowingDeleteMenu == id,
-                onDelete: () => uiState.showDeleteMenu(id),
               ),
             );
           }).toList(),

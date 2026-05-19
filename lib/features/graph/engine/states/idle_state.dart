@@ -57,12 +57,14 @@ class CanvasIdle extends CanvasInteractionState {
           if (rect.right > maxX) maxX = rect.right;
           if (rect.bottom > maxY) maxY = rect.bottom;
         }
-        // Center horizontally above the bounding box
-        final centerX = minX + (maxX - minX) / 2;
-        anchorTopLeft = Offset(
-          centerX - (AppConfig.toolbar.multiWidth / 2),
-          minY - AppConfig.toolbar.height - 10,
-        );
+        if (minX != double.infinity) {
+          // Center horizontally above the bounding box
+          final centerX = minX + (maxX - minX) / 2;
+          anchorTopLeft = Offset(
+            centerX - (AppConfig.toolbar.multiWidth / 2),
+            minY - AppConfig.toolbar.height - 10,
+          );
+        }
       } else {
         // Single selection: check if it's a node or a relation
         final vs = ctx.nodeViewStates[selectedEntities.first];

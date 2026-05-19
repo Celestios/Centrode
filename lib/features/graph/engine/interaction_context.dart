@@ -61,8 +61,8 @@ abstract interface class InteractionContext {
   /// Gets the current relative offset for the floating toolbar.
   Offset getToolbarOffset();
 
-  /// Updates the global relative offset for the floating toolbar.
-  void updateToolbarOffset(Offset delta);
+  /// Sets the relative offset for the floating toolbar.
+  void setToolbarOffset(Offset offset);
 
   /// Executes the delete command for all currently selected entities.
   void onDeleteSelectedEntities();

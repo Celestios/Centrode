@@ -48,7 +48,7 @@ class NodeRenderState extends ChangeNotifier {
   String? activeEditId;
 
   /// ID of the node currently prompting a floating delete menu.
-  String? nodeShowingDeleteMenu;
+  String? nodeShowingFloatingToolbar;
 
   /// Set of selected entity IDs (nodes or relations).
   Set<String> selectedEntities = {};
@@ -87,7 +87,9 @@ class NodeRenderState extends ChangeNotifier {
       final vs = viewStates.remove(id);
       if (vs != null) {
         _quarantineCache[id] = vs;
-        _log.finest('QUARANTINE: Node $id ViewState quarantined in NodeRenderState.');
+        _log.finest(
+          'QUARANTINE: Node $id ViewState quarantined in NodeRenderState.',
+        );
       }
     }
 
@@ -100,7 +102,9 @@ class NodeRenderState extends ChangeNotifier {
         // Attempt to restore pointer from quarantine cache
         final quarantinedVs = _quarantineCache.remove(id);
         if (quarantinedVs != null) {
-          _log.finest('QUARANTINE: Node $id ViewState rehydrated from NodeRenderState quarantine.');
+          _log.finest(
+            'QUARANTINE: Node $id ViewState rehydrated from NodeRenderState quarantine.',
+          );
           quarantinedVs.rehydrate(node);
           viewStates[id] = quarantinedVs;
         } else {
@@ -142,17 +146,21 @@ class NodeRenderState extends ChangeNotifier {
     }
 
     // 5. Clean up volatile selected entities, active edits, and menu flags
-    selectedEntities.removeWhere((id) => !keys.contains(id));
+    final validKeys = keys.union(_dataController.relationLookup.keys.toSet());
+    selectedEntities.removeWhere((id) => !validKeys.contains(id));
 
     if (activeEditId != null && !keys.contains(activeEditId)) {
       activeEditId = null;
     }
 
-    if (nodeShowingDeleteMenu != null && !keys.contains(nodeShowingDeleteMenu)) {
-      nodeShowingDeleteMenu = null;
+    if (nodeShowingFloatingToolbar != null &&
+        !keys.contains(nodeShowingFloatingToolbar)) {
+      nodeShowingFloatingToolbar = null;
     }
 
-    _log.finest('NodeRenderState synchronized: ${zOrder.length} nodes in render stack.');
+    _log.finest(
+      'NodeRenderState synchronized: ${zOrder.length} nodes in render stack.',
+    );
     notifyListeners();
   }
 
@@ -187,19 +195,27 @@ class NodeRenderState extends ChangeNotifier {
   /// Selects multiple entities simultaneously (e.g., marquee selection).
   void selectEntities(Iterable<String> ids) {
     selectedEntities = ids.toSet();
-    _log.finer('Marquee selection updated: ${selectedEntities.length} entities');
+    _log.finer(
+      'Marquee selection updated: ${selectedEntities.length} entities',
+    );
     notifyListeners();
   }
 
   /// Triggers deletion for all currently selected entities.
   void deleteSelectedEntities() {
     if (selectedEntities.isEmpty) return;
-    _log.info('Executing batch deletion for ${selectedEntities.length} entities.');
+    _log.info(
+      'Executing batch deletion for ${selectedEntities.length} entities.',
+    );
     final idsToDelete = selectedEntities.toList();
     selectEntity(null); // Instantly clear selection visually
 
     for (final id in idsToDelete) {
-      _dataController.deleteNode(id);
+      if (_dataController.nodeLookup.containsKey(id)) {
+        _dataController.deleteNode(id);
+      } else if (_dataController.relationLookup.containsKey(id)) {
+        _dataController.deleteRelation(id);
+      }
     }
   }
 
@@ -217,19 +233,19 @@ class NodeRenderState extends ChangeNotifier {
   }
 
   /// Triggers the delete menu to float near the specified node.
-  void showDeleteMenu(String nodeId) {
-    if (nodeShowingDeleteMenu != nodeId) {
+  void showFloatingToolbar(String nodeId) {
+    if (nodeShowingFloatingToolbar != nodeId) {
       _log.finer('Showing delete menu for node: $nodeId');
-      nodeShowingDeleteMenu = nodeId;
+      nodeShowingFloatingToolbar = nodeId;
       notifyListeners();
     }
   }
 
   /// Hides the floating delete menu.
-  void hideDeleteMenu() {
-    if (nodeShowingDeleteMenu != null) {
+  void hideFloatingToolbar() {
+    if (nodeShowingFloatingToolbar != null) {
       _log.finer('Hiding delete menu.');
-      nodeShowingDeleteMenu = null;
+      nodeShowingFloatingToolbar = null;
       notifyListeners();
     }
   }

@@ -188,6 +188,9 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   void createRelation(String fromId, String toId) =>
       relationMutations.createRelation(fromId, toId);
 
+  Future<void> deleteRelation(String id) => relationMutations.deleteRelation(id);
+
+
   // Property Mutations
   void commitEntityText(String id, String newText, {String? originalText}) =>
       propertyMutations.commitEntityText(id, newText, originalText: originalText);

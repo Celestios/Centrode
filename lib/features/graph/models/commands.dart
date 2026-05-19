@@ -190,3 +190,32 @@ class CreateRelationCommand implements GraphCommand {
     onUndo?.call();
   }
 }
+
+class DeleteRelationCommand implements GraphCommand {
+  @override
+  String targetId;
+  final AppHandle api;
+  final String tableName;
+  final VoidCallback onUndo;
+
+  DeleteRelationCommand({
+    required this.targetId,
+    required this.api,
+    required this.tableName,
+    required this.onUndo,
+  });
+
+  @override
+  CommandCategory get category => CommandCategory.lifecycle;
+
+  @override
+  Future<void> execute() async {
+    await api.deleteRelation(table: tableName, key: targetId);
+  }
+
+  @override
+  void undo() {
+    onUndo();
+  }
+}
+
