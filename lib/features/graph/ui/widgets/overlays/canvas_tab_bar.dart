@@ -1,7 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
+import 'glass_panel.dart';
 
 class CanvasTabBar extends StatelessWidget {
   const CanvasTabBar({super.key});
@@ -63,74 +63,59 @@ class CanvasTabBar extends StatelessWidget {
     final activeColor = primaryColor;
     final inactiveColor = onSurface.withValues(alpha: 0.6);
 
-    final borderRadiusVal = theme.cardTheme.shape is RoundedRectangleBorder
-        ? (theme.cardTheme.shape as RoundedRectangleBorder).borderRadius.resolve(TextDirection.ltr)
-        : BorderRadius.circular(10);
-
-    return ClipRRect(
-      borderRadius: borderRadiusVal,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: borderRadiusVal,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: isActive
-                  ? primaryColor.withValues(alpha: 0.12)
-                  : theme.cardColor.withValues(alpha: 0.6),
-              borderRadius: borderRadiusVal,
-              border: Border.all(
-                color: isActive
-                    ? primaryColor.withValues(alpha: 0.4)
-                    : theme.dividerColor.withValues(alpha: 0.3),
-                width: 1.0,
-              ),
-              boxShadow: isActive
-                  ? [
-                      BoxShadow(
-                        color: primaryColor.withValues(alpha: 0.05),
-                        blurRadius: 8,
-                      )
-                    ]
-                  : null,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.insert_drive_file_outlined,
-                  color: isActive ? activeColor : inactiveColor,
-                  size: 14,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  name,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-                    color: isActive ? activeColor : inactiveColor,
-                  ),
-                ),
-                if (canClose) ...[
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: onClose,
-                    child: Icon(
-                      Icons.close_rounded,
-                      color: isActive
-                          ? activeColor.withValues(alpha: 0.6)
-                          : inactiveColor.withValues(alpha: 0.6),
-                      size: 14,
-                    ),
-                  ),
-                ],
-              ],
+    return GlassPanel(
+      fallbackBorderRadius: 10,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      onTap: onTap,
+      duration: const Duration(milliseconds: 200),
+      backgroundColor: isActive
+          ? primaryColor.withValues(alpha: 0.12)
+          : theme.cardColor.withValues(alpha: 0.6),
+      border: Border.all(
+        color: isActive
+            ? primaryColor.withValues(alpha: 0.4)
+            : theme.dividerColor.withValues(alpha: 0.3),
+        width: 1.0,
+      ),
+      boxShadow: isActive
+          ? [
+              BoxShadow(
+                color: primaryColor.withValues(alpha: 0.05),
+                blurRadius: 8,
+              )
+            ]
+          : null,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.insert_drive_file_outlined,
+            color: isActive ? activeColor : inactiveColor,
+            size: 14,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+              color: isActive ? activeColor : inactiveColor,
             ),
           ),
-        ),
+          if (canClose) ...[
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: onClose,
+              child: Icon(
+                Icons.close_rounded,
+                color: isActive
+                    ? activeColor.withValues(alpha: 0.6)
+                    : inactiveColor.withValues(alpha: 0.6),
+                size: 14,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -140,43 +125,22 @@ class CanvasTabBar extends StatelessWidget {
     WorkspaceTabsController tabsController,
   ) {
     final theme = Theme.of(context);
-    final borderRadiusVal = theme.cardTheme.shape is RoundedRectangleBorder
-        ? (theme.cardTheme.shape as RoundedRectangleBorder).borderRadius.resolve(TextDirection.ltr)
-        : BorderRadius.circular(10);
 
-    return ClipRRect(
-      borderRadius: borderRadiusVal,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Material(
-          color: theme.cardColor.withValues(alpha: 0.6),
-          borderRadius: borderRadiusVal,
-          child: InkWell(
-            borderRadius: borderRadiusVal,
-            onTap: () {
-              final newIndex = tabsController.tabs.length + 1;
-              tabsController.addTab(
-                'maps/mycelium_tab_$newIndex.db',
-                'Map $newIndex',
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                borderRadius: borderRadiusVal,
-                border: Border.all(
-                  color: theme.dividerColor.withValues(alpha: 0.3),
-                  width: 1.0,
-                ),
-              ),
-              child: Icon(
-                Icons.add_rounded,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                size: 14,
-              ),
-            ),
-          ),
-        ),
+    return GlassPanel(
+      fallbackBorderRadius: 10,
+      alpha: 0.6,
+      padding: const EdgeInsets.all(7),
+      onTap: () {
+        final newIndex = tabsController.tabs.length + 1;
+        tabsController.addTab(
+          'maps/mycelium_tab_$newIndex.db',
+          'Map $newIndex',
+        );
+      },
+      child: Icon(
+        Icons.add_rounded,
+        color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+        size: 14,
       ),
     );
   }

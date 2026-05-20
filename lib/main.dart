@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/frb_generated.dart';
+import 'package:window_manager/window_manager.dart';
 import 'infrastructure/telemetry/log_manager.dart';
 import 'features/workspace/ui/project_selector_screen.dart'; // your existing screen
 import 'presentation/theme/app_theme.dart'; // from previous step
@@ -11,6 +14,21 @@ late final ValueNotifier<AppTheme> themeNotifier;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    await windowManager.ensureInitialized();
+    const windowOptions = WindowOptions(
+      size: Size(1280, 720),
+      center: true,
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.hidden,
+    );
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  }
 
   await RustLib.init();
   await LogManager().init();

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../presentation/widgets/window_title_bar.dart';
 import '../../graph/ui/graph_screen.dart';
 
 class ProjectSelectorScreen extends StatelessWidget {
@@ -15,12 +16,18 @@ class ProjectSelectorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Choose Project')),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () => _openDefaultGraph(context),
-          child: const Text('Open Default Graph'),
-        ),
+      body: Column(
+        children: [
+          const SimpleWindowTitleBar(title: 'Mycelium - Choose Project'),
+          Expanded(
+            child: Center(
+              child: ElevatedButton(
+                onPressed: () => _openDefaultGraph(context),
+                child: const Text('Open Default Graph'),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

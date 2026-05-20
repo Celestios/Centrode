@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
+import '../../../../presentation/widgets/window_title_bar.dart';
 import '../presentation/theme_manager.dart';
 import '../store/graph_data_controller.dart';
 import '../presentation/node_render_state.dart';
@@ -85,22 +86,38 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
       future: _initFuture,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return InitErrorWidget(
-            error: snapshot.error!,
-            onRetry: () {
-              setState(() {
-                _initFuture = widget.session.initialize(Theme.of(context));
-              });
-            },
-            onShowDetails: () {
-              _log.severe('Init error: ${snapshot.error}');
-            },
+          return Scaffold(
+            body: Column(
+              children: [
+                const SimpleWindowTitleBar(title: 'Mycelium - Error loading Workspace'),
+                Expanded(
+                  child: InitErrorWidget(
+                    error: snapshot.error!,
+                    onRetry: () {
+                      setState(() {
+                        _initFuture = widget.session.initialize(Theme.of(context));
+                      });
+                    },
+                    onShowDetails: () {
+                      _log.severe('Init error: ${snapshot.error}');
+                    },
+                  ),
+                ),
+              ],
+            ),
           );
         }
 
         if (snapshot.connectionState != ConnectionState.done || !widget.session.isInitialized) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: Column(
+              children: [
+                SimpleWindowTitleBar(title: 'Mycelium - Loading Workspace...'),
+                Expanded(
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              ],
+            ),
           );
         }
 
@@ -124,8 +141,17 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
               final mapTheme = themeController.currentGraphTheme;
               return Theme(
                 data: mapTheme?.toThemeData() ?? Theme.of(context),
-                child: const Material(
-                  child: GraphCanvas(),
+                child: const Scaffold(
+                  body: Column(
+                    children: [
+                      WorkspaceWindowTitleBar(),
+                      Expanded(
+                        child: Material(
+                          child: GraphCanvas(),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },

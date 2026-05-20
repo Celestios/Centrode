@@ -38,6 +38,7 @@ class NodeResizing extends CanvasInteractionState {
     final effectiveGridSize = calculateEffectiveGridSize(ctx.currentScale);
 
     switch (edge) {
+      // TODO: the code below can be extracted to helper functions to follow DRY.
       case ResizeEdge.right:
         // Proposed right edge (raw, unsnapped)
         final rawRight = pCanvas.dx - grabOffsetX;

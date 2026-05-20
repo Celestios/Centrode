@@ -16,6 +16,7 @@ class CanvasIdle extends CanvasInteractionState {
 
   const CanvasIdle({this.cursor = SystemMouseCursors.basic});
 
+  // TODO: this function seems like a mess
   @override
   CanvasInteractionState handlePointerDown(
     PointerDownEvent e,

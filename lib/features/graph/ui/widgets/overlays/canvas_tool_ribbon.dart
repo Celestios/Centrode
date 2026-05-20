@@ -1,8 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
 import '../../../store/graph_data_controller.dart';
+import 'glass_panel.dart';
 
 class CanvasToolRibbon extends StatefulWidget {
   const CanvasToolRibbon({super.key});
@@ -25,34 +25,33 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
     final onSurface = theme.colorScheme.onSurface;
     final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
 
-    final borderRadiusVal = theme.cardTheme.shape is RoundedRectangleBorder
-        ? (theme.cardTheme.shape as RoundedRectangleBorder).borderRadius
-        : BorderRadius.circular(16);
+    final tools = [
+      (icon: Icons.near_me_outlined, label: 'Select', mode: 'select'),
+      (icon: Icons.pan_tool_outlined, label: 'Pan', mode: 'pan'),
+      (icon: Icons.timeline_outlined, label: 'Connect', mode: 'connect'),
+    ];
+
+    final actions = [
+      (icon: Icons.undo_rounded, tooltip: 'Undo', action: dataController.undo, showAlways: true),
+      (icon: Icons.redo_rounded, tooltip: 'Redo', action: dataController.redo, showAlways: true),
+      (icon: Icons.file_download_outlined, tooltip: 'Import Map', action: () {}, showAlways: false),
+      (icon: Icons.file_upload_outlined, tooltip: 'Export Map', action: () {}, showAlways: false),
+    ];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ClipRRect(
-        borderRadius: borderRadiusVal,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: theme.cardColor.withValues(alpha: 0.85),
-              borderRadius: borderRadiusVal,
-              border: Border.all(
-                color: theme.dividerColor.withValues(alpha: 0.3),
-                width: 1.0,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
+      child: GlassPanel(
+        fallbackBorderRadius: 16,
+        blur: 12,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Logo/Title (hidden in compact mode)
@@ -87,35 +86,18 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                     return Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _buildToolButton(
-                          icon: Icons.near_me_outlined,
-                          label: 'Select',
-                          isActive: currentMode == 'select',
-                          onPressed: () => session.toolModeNotifier.value = 'select',
-                          theme: theme,
-                          primaryColor: primaryColor,
-                          textColor: textColor,
-                        ),
-                        const SizedBox(width: 6),
-                        _buildToolButton(
-                          icon: Icons.pan_tool_outlined,
-                          label: 'Pan',
-                          isActive: currentMode == 'pan',
-                          onPressed: () => session.toolModeNotifier.value = 'pan',
-                          theme: theme,
-                          primaryColor: primaryColor,
-                          textColor: textColor,
-                        ),
-                        const SizedBox(width: 6),
-                        _buildToolButton(
-                          icon: Icons.timeline_outlined,
-                          label: 'Connect',
-                          isActive: currentMode == 'connect',
-                          onPressed: () => session.toolModeNotifier.value = 'connect',
-                          theme: theme,
-                          primaryColor: primaryColor,
-                          textColor: textColor,
-                        ),
+                        for (int i = 0; i < tools.length; i++) ...[
+                          if (i > 0) const SizedBox(width: 6),
+                          _buildToolButton(
+                            icon: tools[i].icon,
+                            label: tools[i].label,
+                            isActive: currentMode == tools[i].mode,
+                            onPressed: () => session.toolModeNotifier.value = tools[i].mode,
+                            theme: theme,
+                            primaryColor: primaryColor,
+                            textColor: textColor,
+                          ),
+                        ],
                       ],
                     );
                   },
@@ -130,32 +112,14 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                 const SizedBox(width: 8),
 
                 // Action controls: Undo, Redo, Import, Export
-                _buildActionButton(
-                  icon: Icons.undo_rounded,
-                  tooltip: 'Undo',
-                  onPressed: () => dataController.undo(),
-                  textColor: textColor,
-                ),
-                _buildActionButton(
-                  icon: Icons.redo_rounded,
-                  tooltip: 'Redo',
-                  onPressed: () => dataController.redo(),
-                  textColor: textColor,
-                ),
-                if (!_isCompact) ...[
-                  _buildActionButton(
-                    icon: Icons.file_download_outlined,
-                    tooltip: 'Import Map',
-                    onPressed: () {},
-                    textColor: textColor,
-                  ),
-                  _buildActionButton(
-                    icon: Icons.file_upload_outlined,
-                    tooltip: 'Export Map',
-                    onPressed: () {},
-                    textColor: textColor,
-                  ),
-                ],
+                for (final act in actions)
+                  if (act.showAlways || !_isCompact)
+                    _buildActionButton(
+                      icon: act.icon,
+                      tooltip: act.tooltip,
+                      onPressed: act.action,
+                      textColor: textColor,
+                    ),
 
                 const SizedBox(width: 8),
                 Container(
@@ -183,8 +147,6 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                 ),
               ],
             ),
-          ),
-        ),
       ),
     );
   }

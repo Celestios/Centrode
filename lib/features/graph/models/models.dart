@@ -6,3 +6,6 @@ export '../store/spatial_index.dart';
 export 'graph_node.dart';
 export 'graph_relation.dart';
 export 'commands.dart';
+
+
+// TODO: this file should be removed.

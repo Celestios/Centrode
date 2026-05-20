@@ -4,6 +4,7 @@ import '../../../src/rust/bridge/api.dart';
 import '../store/graph_data_controller.dart';
 import 'theme_manager.dart';
 import 'node_render_state.dart';
+import 'viewport_state.dart';
 
 class TabSession {
   final String id;
@@ -13,7 +14,11 @@ class TabSession {
   ThemeController? themeController;
   GraphDataController? dataController;
   NodeRenderState? nodeRenderState;
+  ViewportController? viewportController;
   final ValueNotifier<String> toolModeNotifier = ValueNotifier('select');
+  final ValueNotifier<bool> showLeftPanel = ValueNotifier(true);
+  final ValueNotifier<bool> showRightPanel = ValueNotifier(true);
+  final ValueNotifier<bool> showBottomPanel = ValueNotifier(true);
   bool isInitialized = false;
 
   Future<void>? _initFuture;
@@ -59,6 +64,10 @@ class TabSession {
     dataController?.dispose();
     nodeRenderState?.dispose();
     toolModeNotifier.dispose();
+    showLeftPanel.dispose();
+    showRightPanel.dispose();
+    showBottomPanel.dispose();
+    viewportController = null;
     handle?.close();
   }
 }
@@ -100,7 +109,9 @@ class WorkspaceTabsController extends ChangeNotifier {
     final closedSession = _tabs.removeAt(index);
     closedSession.dispose();
 
-    if (_activeIndex >= _tabs.length) {
+    if (index < _activeIndex) {
+      _activeIndex--;
+    } else if (_activeIndex >= _tabs.length) {
       _activeIndex = _tabs.length - 1;
     }
     notifyListeners();

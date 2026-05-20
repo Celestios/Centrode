@@ -8,6 +8,7 @@ import '../../presentation/viewport_state.dart';
 import '../../engine/interaction_engine.dart';
 import '../../engine/base_interaction_state.dart';
 import 'package:mycelium/features/graph/engine/interaction_facade.dart';
+import '../../presentation/workspace_tabs_controller.dart';
 import 'layers/relation_layer.dart';
 import 'layers/node_layer.dart';
 import 'layers/overlay_layer.dart';
@@ -17,7 +18,7 @@ import '../widgets/overlays/canvas_tool_ribbon.dart';
 import '../widgets/overlays/canvas_tab_bar.dart';
 import '../widgets/overlays/left_repository_drawer.dart';
 import '../widgets/overlays/right_property_panel.dart';
-import '../widgets/overlays/canvas_status_bar.dart';
+import '../widgets/overlays/canvas_status_bar/canvas_status_bar.dart';
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
@@ -30,6 +31,7 @@ class _GraphCanvasState extends State<GraphCanvas> {
   ViewportController? _viewportController;
   InteractionController? _interactionController;
   final Logger _log = Logger('GraphCanvas');
+  TabSession? _boundSession;
 
   bool _hasInitialFramed = false;
 
@@ -46,6 +48,10 @@ class _GraphCanvasState extends State<GraphCanvas> {
       // 1. Initialize your ViewportController bound directly to the data query layer
       final vpController = ViewportController(dataController);
       _viewportController = vpController;
+      
+      final tabsController = context.read<WorkspaceTabsController>();
+      _boundSession = tabsController.activeSession;
+      _boundSession?.viewportController = vpController;
 
       // 2. Build the Environment Facade with separate ViewportController access
       final environment = CanvasInteractionEnvironment(
@@ -68,6 +74,9 @@ class _GraphCanvasState extends State<GraphCanvas> {
 
   @override
   void dispose() {
+    if (_boundSession?.viewportController == _viewportController) {
+      _boundSession?.viewportController = null;
+    }
     _viewportController?.dispose();
     _interactionController?.dispose();
     super.dispose();
@@ -79,6 +88,8 @@ class _GraphCanvasState extends State<GraphCanvas> {
     final dataController = context.read<GraphDataController>();
     final interactionController = _interactionController;
     final viewportController = _viewportController;
+    final tabsController = context.watch<WorkspaceTabsController>();
+    final session = tabsController.activeSession;
 
     // If InteractionController or ViewportController not yet initialized, show loading
     if (!mounted || interactionController == null || viewportController == null) {
@@ -191,27 +202,45 @@ class _GraphCanvasState extends State<GraphCanvas> {
               ),
 
               // Left repository drawer
-              Positioned(
-                top: 120,
-                bottom: 86,
-                left: 12,
-                child: const LeftRepositoryDrawer(),
+              ValueListenableBuilder<bool>(
+                valueListenable: session.showLeftPanel,
+                builder: (context, visible, _) {
+                  if (!visible) return const SizedBox.shrink();
+                  return const Positioned(
+                    top: 120,
+                    bottom: 86,
+                    left: 12,
+                    child: LeftRepositoryDrawer(),
+                  );
+                },
               ),
 
               // Right property inspector panel
-              Positioned(
-                top: 120,
-                bottom: 86,
-                right: 12,
-                child: const RightPropertyPanel(),
+              ValueListenableBuilder<bool>(
+                valueListenable: session.showRightPanel,
+                builder: (context, visible, _) {
+                  if (!visible) return const SizedBox.shrink();
+                  return const Positioned(
+                    top: 120,
+                    bottom: 86,
+                    right: 12,
+                    child: RightPropertyPanel(),
+                  );
+                },
               ),
 
               // Bottom control status bar
-              Positioned(
-                bottom: 12,
-                left: 12,
-                right: 12,
-                child: const CanvasStatusBar(),
+              ValueListenableBuilder<bool>(
+                valueListenable: session.showBottomPanel,
+                builder: (context, visible, _) {
+                  if (!visible) return const SizedBox.shrink();
+                  return const Positioned(
+                    bottom: 12,
+                    left: 12,
+                    right: 12,
+                    child: CanvasStatusBar(),
+                  );
+                },
               ),
             ],
           );
