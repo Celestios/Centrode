@@ -7,7 +7,7 @@ class ProjectSelectorScreen extends StatelessWidget {
   void _openDefaultGraph(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => GraphScreen(storagePath: 'mycelium.db'),
+        builder: (_) => GraphScreen(storagePath: 'maps/mycelium.db'),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:mycelium/src/rust/bridge/api.dart';
 import '../presentation/theme_manager.dart';
 import '../store/graph_data_controller.dart';
 import '../presentation/node_render_state.dart';
+import '../presentation/workspace_tabs_controller.dart';
 import '../store/graph_data_query.dart';
 import 'canvas/graph_canvas.dart';
 import 'widgets/init_error_widget.dart';
@@ -18,46 +19,78 @@ class GraphScreen extends StatefulWidget {
 }
 
 class _GraphScreenState extends State<GraphScreen> {
-  final Logger _log = Logger('GraphScreen');
+  late final WorkspaceTabsController _tabsController;
 
-  ThemeController? _themeController;
-  GraphDataController? _dataController;
-  NodeRenderState? _uiController;
-  bool _initialized = false;
-  late final Future<AppHandle> _handleFuture = _createAppHandle();
-
-  Future<AppHandle> _createAppHandle() async {
-    final handle = await AppHandle.newInstance(
-      storagePath: widget.storagePath,
-      name: 'Default Map',
+  @override
+  void initState() {
+    super.initState();
+    _tabsController = WorkspaceTabsController(
+      initialPath: widget.storagePath,
+      initialName: 'Default Map',
     );
-    _log.info('AppHandle created for ${widget.storagePath}');
-    return handle;
   }
 
   @override
   void dispose() {
-    _themeController?.dispose();
-    _dataController?.dispose();
-    _uiController?.dispose();
+    _tabsController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<AppHandle>(
-      future: _handleFuture,
+    return ChangeNotifierProvider<WorkspaceTabsController>.value(
+      value: _tabsController,
+      child: Consumer<WorkspaceTabsController>(
+        builder: (context, tabsController, _) {
+          final activeSession = tabsController.activeSession;
+          return ActiveSessionWidget(
+            key: ValueKey(activeSession.id),
+            session: activeSession,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class ActiveSessionWidget extends StatefulWidget {
+  final TabSession session;
+  const ActiveSessionWidget({super.key, required this.session});
+
+  @override
+  State<ActiveSessionWidget> createState() => _ActiveSessionWidgetState();
+}
+
+class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
+  late Future<void> _initFuture;
+  final Logger _log = Logger('ActiveSessionWidget');
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _initFuture = widget.session.initialize(Theme.of(context));
+  }
+
+  @override
+  void didUpdateWidget(ActiveSessionWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session.id != widget.session.id) {
+      _initFuture = widget.session.initialize(Theme.of(context));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: _initFuture,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return InitErrorWidget(
             error: snapshot.error!,
             onRetry: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) =>
-                      GraphScreen(storagePath: widget.storagePath),
-                ),
-              );
+              setState(() {
+                _initFuture = widget.session.initialize(Theme.of(context));
+              });
             },
             onShowDetails: () {
               _log.severe('Init error: ${snapshot.error}');
@@ -65,40 +98,25 @@ class _GraphScreenState extends State<GraphScreen> {
           );
         }
 
-        if (snapshot.connectionState != ConnectionState.done) {
+        if (snapshot.connectionState != ConnectionState.done || !widget.session.isInitialized) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        final appHandle = snapshot.data!;
-
-        // Create controllers once, schedule init after this frame
-        if (!_initialized) {
-          _initialized = true; // prevent multiple schedules
-          _themeController ??= ThemeController(appHandle);
-          _dataController ??= GraphDataController(appHandle, _themeController!);
-          _uiController ??= NodeRenderState(_dataController!);
-
-          // Defer the async theme load and graph hydration until after the current build cycle
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _themeController!.initialize(Theme.of(context));
-            _dataController!.loadGraph();
-          });
-        }
-
         return MultiProvider(
+          key: ValueKey(widget.session.id), // Reconstruct providers and context hierarchy
           providers: [
-            Provider<AppHandle>.value(value: appHandle),
+            Provider<AppHandle>.value(value: widget.session.handle!),
             ChangeNotifierProvider<ThemeController>.value(
-              value: _themeController!,
+              value: widget.session.themeController!,
             ),
             ChangeNotifierProvider<GraphDataController>.value(
-              value: _dataController!,
+              value: widget.session.dataController!,
             ),
-            ListenableProvider<GraphDataQuery>.value(value: _dataController!),
+            ListenableProvider<GraphDataQuery>.value(value: widget.session.dataController!),
             ChangeNotifierProvider<NodeRenderState>.value(
-              value: _uiController!,
+              value: widget.session.nodeRenderState!,
             ),
           ],
           child: Consumer<ThemeController>(
