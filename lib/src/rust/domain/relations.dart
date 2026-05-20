@@ -39,6 +39,8 @@ class IRelationFields {
   final String verb;
   final RelationStyle? style;
   final RelationStyle? resolvedStyle;
+  final RelationLayout? layout;
+  final RelationLayout? resolvedLayout;
   final bool directionless;
   final String layer;
   final PlatformInt64 createdAt;
@@ -48,6 +50,8 @@ class IRelationFields {
     required this.verb,
     this.style,
     this.resolvedStyle,
+    this.layout,
+    this.resolvedLayout,
     required this.directionless,
     required this.layer,
     required this.createdAt,
@@ -59,6 +63,8 @@ class IRelationFields {
       verb.hashCode ^
       style.hashCode ^
       resolvedStyle.hashCode ^
+      layout.hashCode ^
+      resolvedLayout.hashCode ^
       directionless.hashCode ^
       layer.hashCode ^
       createdAt.hashCode ^
@@ -72,6 +78,8 @@ class IRelationFields {
           verb == other.verb &&
           style == other.style &&
           resolvedStyle == other.resolvedStyle &&
+          layout == other.layout &&
+          resolvedLayout == other.resolvedLayout &&
           directionless == other.directionless &&
           layer == other.layer &&
           createdAt == other.createdAt &&

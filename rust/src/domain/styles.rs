@@ -43,3 +43,10 @@ pub struct RelationStyle {
     pub shadow_offset_x: f64,
     pub shadow_offset_y: f64,
 }
+
+#[frb(dart_metadata=("freezed"))]
+#[derive(Debug, Clone, PartialEq, SurrealValue)]
+pub struct RelationLayout {
+    pub from_side: String,
+    pub to_side: String,
+}

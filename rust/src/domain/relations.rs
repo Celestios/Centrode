@@ -1,5 +1,5 @@
 use crate::domain::base_models::{IsTable, Record};
-use crate::domain::styles::RelationStyle;
+use crate::domain::styles::{RelationStyle, RelationLayout};
 use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
 
 #[derive(Debug, Clone, SurrealValue)]
@@ -99,6 +99,8 @@ pub struct IRelationFields {
     pub verb: String,
     pub style: Option<RelationStyle>,
     pub resolved_style: Option<RelationStyle>,
+    pub layout: Option<RelationLayout>,
+    pub resolved_layout: Option<RelationLayout>,
     pub directionless: bool,
     pub layer: String,
     pub created_at: i64,

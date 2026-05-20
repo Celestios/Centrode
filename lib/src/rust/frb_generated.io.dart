@@ -149,6 +149,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RecordStrings dco_decode_box_autoadd_record_strings(dynamic raw);
 
   @protected
+  RelationLayout dco_decode_box_autoadd_relation_layout(dynamic raw);
+
+  @protected
   RelationStyle dco_decode_box_autoadd_relation_style(dynamic raw);
 
   @protected
@@ -293,6 +296,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Nodes? dco_decode_opt_box_autoadd_nodes(dynamic raw);
 
   @protected
+  RelationLayout? dco_decode_opt_box_autoadd_relation_layout(dynamic raw);
+
+  @protected
   RelationStyle? dco_decode_opt_box_autoadd_relation_style(dynamic raw);
 
   @protected
@@ -312,6 +318,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RecordStrings dco_decode_record_strings(dynamic raw);
+
+  @protected
+  RelationLayout dco_decode_relation_layout(dynamic raw);
 
   @protected
   RelationStyle dco_decode_relation_style(dynamic raw);
@@ -463,6 +472,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RecordStrings sse_decode_box_autoadd_record_strings(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RelationLayout sse_decode_box_autoadd_relation_layout(
     SseDeserializer deserializer,
   );
 
@@ -623,6 +637,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Nodes? sse_decode_opt_box_autoadd_nodes(SseDeserializer deserializer);
 
   @protected
+  RelationLayout? sse_decode_opt_box_autoadd_relation_layout(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   RelationStyle? sse_decode_opt_box_autoadd_relation_style(
     SseDeserializer deserializer,
   );
@@ -644,6 +663,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RecordStrings sse_decode_record_strings(SseDeserializer deserializer);
+
+  @protected
+  RelationLayout sse_decode_relation_layout(SseDeserializer deserializer);
 
   @protected
   RelationStyle sse_decode_relation_style(SseDeserializer deserializer);
@@ -835,6 +857,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_relation_layout(
+    RelationLayout self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_relation_style(
     RelationStyle self,
     SseSerializer serializer,
@@ -1022,6 +1050,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_nodes(Nodes? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_box_autoadd_relation_layout(
+    RelationLayout? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_relation_style(
     RelationStyle? self,
     SseSerializer serializer,
@@ -1049,6 +1083,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_record_strings(RecordStrings self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_relation_layout(
+    RelationLayout self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_relation_style(RelationStyle self, SseSerializer serializer);

@@ -145,7 +145,7 @@ class _GraphCanvasState extends State<GraphCanvas> {
                                       return GridLayer(viewportState: state);
                                     },
                                   ),
-                                  const RelationLayer(),
+                                  RelationLayer(interactionState: state),
                                   const NodeLayer(),
                                   OverlayLayer(interactionState: state),
                                 ],

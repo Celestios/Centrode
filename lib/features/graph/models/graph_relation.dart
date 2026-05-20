@@ -1,5 +1,3 @@
-// lib/features/graph/domain/relations.dart
-
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:uuid/uuid.dart';
 import 'package:mycelium/src/rust/domain/relations.dart';
@@ -18,6 +16,8 @@ sealed class UiRelation {
   bool directionless;
   RelationStyle? style;
   RelationStyle? resolvedStyle;
+  RelationLayout? layout;
+  RelationLayout? resolvedLayout;
   final int createdAt;
   int updatedAt;
 
@@ -31,6 +31,8 @@ sealed class UiRelation {
     bool? directionless,
     this.style,
     this.resolvedStyle,
+    this.layout,
+    this.resolvedLayout,
     String? layer,
     int? createdAt,
     int? updatedAt,
@@ -49,7 +51,6 @@ sealed class UiRelation {
     return InfoUiRelation.fromRust(relation);
   }
 
-  /// Creates a shallow copy of any [UiRelation] subtype.
   static UiRelation? copy(UiRelation? rel) {
     if (rel == null) return null;
     if (rel is InfoUiRelation) return rel.copyWith();
@@ -71,6 +72,8 @@ class InfoUiRelation extends UiRelation {
     super.directionless,
     super.style,
     super.resolvedStyle,
+    super.layout,
+    super.resolvedLayout,
     super.layer,
     super.createdAt,
     super.updatedAt,
@@ -88,6 +91,8 @@ class InfoUiRelation extends UiRelation {
     bool? directionless,
     RelationStyle? style,
     RelationStyle? resolvedStyle,
+    RelationLayout? layout,
+    RelationLayout? resolvedLayout,
     int? createdAt,
     int? updatedAt,
   }) {
@@ -102,6 +107,8 @@ class InfoUiRelation extends UiRelation {
       directionless: directionless ?? this.directionless,
       style: style ?? this.style,
       resolvedStyle: resolvedStyle ?? this.resolvedStyle,
+      layout: layout ?? this.layout,
+      resolvedLayout: resolvedLayout ?? this.resolvedLayout,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -117,6 +124,8 @@ class InfoUiRelation extends UiRelation {
         verb: verb,
         style: style,
         resolvedStyle: resolvedStyle,
+        layout: layout,
+        resolvedLayout: resolvedLayout,
         directionless: directionless,
         layer: layer,
         createdAt: createdAt,
@@ -150,6 +159,8 @@ class InfoUiRelation extends UiRelation {
       directionless: relation.fields.directionless,
       style: relation.fields.style,
       resolvedStyle: relation.fields.resolvedStyle,
+      layout: relation.fields.layout,
+      resolvedLayout: relation.fields.resolvedLayout,
       createdAt: relation.fields.createdAt,
       updatedAt: relation.fields.updatedAt,
     );

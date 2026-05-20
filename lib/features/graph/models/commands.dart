@@ -219,3 +219,32 @@ class DeleteRelationCommand implements GraphCommand {
   }
 }
 
+class UpdateRelationLayoutCommand implements GraphCommand {
+  @override
+  String targetId;
+  final AppHandle api;
+  final UiRelation newRelation;
+  final VoidCallback onUndo;
+
+  UpdateRelationLayoutCommand({
+    required this.targetId,
+    required this.api,
+    required this.newRelation,
+    required this.onUndo,
+  });
+
+  @override
+  CommandCategory get category => CommandCategory.aesthetic;
+
+  @override
+  Future<void> execute() async {
+    await api.updateRelation(input: newRelation.toRust());
+  }
+
+  @override
+  void undo() {
+    onUndo();
+  }
+}
+
+

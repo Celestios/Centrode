@@ -308,6 +308,260 @@ as double,
 }
 
 /// @nodoc
+mixin _$RelationLayout {
+
+ String get fromSide; String get toSide;
+/// Create a copy of RelationLayout
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RelationLayoutCopyWith<RelationLayout> get copyWith => _$RelationLayoutCopyWithImpl<RelationLayout>(this as RelationLayout, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RelationLayout&&(identical(other.fromSide, fromSide) || other.fromSide == fromSide)&&(identical(other.toSide, toSide) || other.toSide == toSide));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,fromSide,toSide);
+
+@override
+String toString() {
+  return 'RelationLayout(fromSide: $fromSide, toSide: $toSide)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RelationLayoutCopyWith<$Res>  {
+  factory $RelationLayoutCopyWith(RelationLayout value, $Res Function(RelationLayout) _then) = _$RelationLayoutCopyWithImpl;
+@useResult
+$Res call({
+ String fromSide, String toSide
+});
+
+
+
+
+}
+/// @nodoc
+class _$RelationLayoutCopyWithImpl<$Res>
+    implements $RelationLayoutCopyWith<$Res> {
+  _$RelationLayoutCopyWithImpl(this._self, this._then);
+
+  final RelationLayout _self;
+  final $Res Function(RelationLayout) _then;
+
+/// Create a copy of RelationLayout
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? fromSide = null,Object? toSide = null,}) {
+  return _then(_self.copyWith(
+fromSide: null == fromSide ? _self.fromSide : fromSide // ignore: cast_nullable_to_non_nullable
+as String,toSide: null == toSide ? _self.toSide : toSide // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [RelationLayout].
+extension RelationLayoutPatterns on RelationLayout {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _RelationLayout value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _RelationLayout() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _RelationLayout value)  $default,){
+final _that = this;
+switch (_that) {
+case _RelationLayout():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _RelationLayout value)?  $default,){
+final _that = this;
+switch (_that) {
+case _RelationLayout() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String fromSide,  String toSide)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _RelationLayout() when $default != null:
+return $default(_that.fromSide,_that.toSide);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String fromSide,  String toSide)  $default,) {final _that = this;
+switch (_that) {
+case _RelationLayout():
+return $default(_that.fromSide,_that.toSide);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String fromSide,  String toSide)?  $default,) {final _that = this;
+switch (_that) {
+case _RelationLayout() when $default != null:
+return $default(_that.fromSide,_that.toSide);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _RelationLayout implements RelationLayout {
+  const _RelationLayout({required this.fromSide, required this.toSide});
+  
+
+@override final  String fromSide;
+@override final  String toSide;
+
+/// Create a copy of RelationLayout
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RelationLayoutCopyWith<_RelationLayout> get copyWith => __$RelationLayoutCopyWithImpl<_RelationLayout>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RelationLayout&&(identical(other.fromSide, fromSide) || other.fromSide == fromSide)&&(identical(other.toSide, toSide) || other.toSide == toSide));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,fromSide,toSide);
+
+@override
+String toString() {
+  return 'RelationLayout(fromSide: $fromSide, toSide: $toSide)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RelationLayoutCopyWith<$Res> implements $RelationLayoutCopyWith<$Res> {
+  factory _$RelationLayoutCopyWith(_RelationLayout value, $Res Function(_RelationLayout) _then) = __$RelationLayoutCopyWithImpl;
+@override @useResult
+$Res call({
+ String fromSide, String toSide
+});
+
+
+
+
+}
+/// @nodoc
+class __$RelationLayoutCopyWithImpl<$Res>
+    implements _$RelationLayoutCopyWith<$Res> {
+  __$RelationLayoutCopyWithImpl(this._self, this._then);
+
+  final _RelationLayout _self;
+  final $Res Function(_RelationLayout) _then;
+
+/// Create a copy of RelationLayout
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? fromSide = null,Object? toSide = null,}) {
+  return _then(_RelationLayout(
+fromSide: null == fromSide ? _self.fromSide : fromSide // ignore: cast_nullable_to_non_nullable
+as String,toSide: null == toSide ? _self.toSide : toSide // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$RelationStyle {
 
  int get bgColor; int get strokeColor; int get strokeWidth; String get fontFamily; double get fontSize; String get shape; String get arrowType; double get arrowSize; int get width; int get height; int get textColor; int get shadowColor; double get shadowBlur; double get shadowOffsetX; double get shadowOffsetY;

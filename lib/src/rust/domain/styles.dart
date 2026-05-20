@@ -31,6 +31,14 @@ sealed class NodeStyle with _$NodeStyle {
 }
 
 @freezed
+sealed class RelationLayout with _$RelationLayout {
+  const factory RelationLayout({
+    required String fromSide,
+    required String toSide,
+  }) = _RelationLayout;
+}
+
+@freezed
 sealed class RelationStyle with _$RelationStyle {
   const factory RelationStyle({
     required int bgColor,

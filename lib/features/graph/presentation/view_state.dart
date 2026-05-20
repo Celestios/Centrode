@@ -60,6 +60,69 @@ class NodeViewState {
   Offset get leftPort =>
       positionNotifier.value + Offset(0, sizeNotifier.value.height / 2);
 
+  Offset get topPort =>
+      positionNotifier.value + Offset(sizeNotifier.value.width / 2, 0);
+
+  Offset get bottomPort =>
+      positionNotifier.value + Offset(sizeNotifier.value.width / 2, sizeNotifier.value.height);
+
+  Offset get topLeftPort =>
+      positionNotifier.value + Offset.zero;
+
+  Offset get topRightPort =>
+      positionNotifier.value + Offset(sizeNotifier.value.width, 0);
+
+  Offset get bottomLeftPort =>
+      positionNotifier.value + Offset(0, sizeNotifier.value.height);
+
+  Offset get bottomRightPort =>
+      positionNotifier.value + Offset(sizeNotifier.value.width, sizeNotifier.value.height);
+
+  static const List<String> portNames = [
+    'Left',
+    'Right',
+    'Top',
+    'Bottom',
+    'TopLeft',
+    'TopRight',
+    'BottomLeft',
+    'BottomRight',
+  ];
+
+  Offset getPortPosition(String side) {
+    switch (side) {
+      case 'Top':
+        return topPort;
+      case 'Bottom':
+        return bottomPort;
+      case 'Left':
+        return leftPort;
+      case 'Right':
+        return rightPort;
+      case 'TopLeft':
+        return topLeftPort;
+      case 'TopRight':
+        return topRightPort;
+      case 'BottomLeft':
+        return bottomLeftPort;
+      case 'BottomRight':
+        return bottomRightPort;
+      default:
+        return rightPort; // Fallback
+    }
+  }
+
+  Map<String, Offset> getAllPorts() => {
+        'Left': leftPort,
+        'Right': rightPort,
+        'Top': topPort,
+        'Bottom': bottomPort,
+        'TopLeft': topLeftPort,
+        'TopRight': topRightPort,
+        'BottomLeft': bottomLeftPort,
+        'BottomRight': bottomRightPort,
+      };
+
   Rect get rightResizeHitbox => Rect.fromLTRB(
         rect.right - AppConfig.interaction.resizeEdgeWidth,
         rect.top,

@@ -1473,6 +1473,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  RelationLayout dco_decode_box_autoadd_relation_layout(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_relation_layout(raw);
+  }
+
+  @protected
   RelationStyle dco_decode_box_autoadd_relation_style(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_relation_style(raw);
@@ -1659,16 +1665,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   IRelationFields dco_decode_i_relation_fields(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 7)
-      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
     return IRelationFields(
       verb: dco_decode_String(arr[0]),
       style: dco_decode_opt_box_autoadd_relation_style(arr[1]),
       resolvedStyle: dco_decode_opt_box_autoadd_relation_style(arr[2]),
-      directionless: dco_decode_bool(arr[3]),
-      layer: dco_decode_String(arr[4]),
-      createdAt: dco_decode_i_64(arr[5]),
-      updatedAt: dco_decode_i_64(arr[6]),
+      layout: dco_decode_opt_box_autoadd_relation_layout(arr[3]),
+      resolvedLayout: dco_decode_opt_box_autoadd_relation_layout(arr[4]),
+      directionless: dco_decode_bool(arr[5]),
+      layer: dco_decode_String(arr[6]),
+      createdAt: dco_decode_i_64(arr[7]),
+      updatedAt: dco_decode_i_64(arr[8]),
     );
   }
 
@@ -1920,6 +1928,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  RelationLayout? dco_decode_opt_box_autoadd_relation_layout(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_relation_layout(raw);
+  }
+
+  @protected
   RelationStyle? dco_decode_opt_box_autoadd_relation_style(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_relation_style(raw);
@@ -1971,6 +1985,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return RecordStrings(
       table: dco_decode_String(arr[0]),
       key: dco_decode_String(arr[1]),
+    );
+  }
+
+  @protected
+  RelationLayout dco_decode_relation_layout(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return RelationLayout(
+      fromSide: dco_decode_String(arr[0]),
+      toSide: dco_decode_String(arr[1]),
     );
   }
 
@@ -2380,6 +2406,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  RelationLayout sse_decode_box_autoadd_relation_layout(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_relation_layout(deserializer));
+  }
+
+  @protected
   RelationStyle sse_decode_box_autoadd_relation_style(
     SseDeserializer deserializer,
   ) {
@@ -2578,6 +2612,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_resolvedStyle = sse_decode_opt_box_autoadd_relation_style(
       deserializer,
     );
+    var var_layout = sse_decode_opt_box_autoadd_relation_layout(deserializer);
+    var var_resolvedLayout = sse_decode_opt_box_autoadd_relation_layout(
+      deserializer,
+    );
     var var_directionless = sse_decode_bool(deserializer);
     var var_layer = sse_decode_String(deserializer);
     var var_createdAt = sse_decode_i_64(deserializer);
@@ -2586,6 +2624,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       verb: var_verb,
       style: var_style,
       resolvedStyle: var_resolvedStyle,
+      layout: var_layout,
+      resolvedLayout: var_resolvedLayout,
       directionless: var_directionless,
       layer: var_layer,
       createdAt: var_createdAt,
@@ -2965,6 +3005,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  RelationLayout? sse_decode_opt_box_autoadd_relation_layout(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_relation_layout(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   RelationStyle? sse_decode_opt_box_autoadd_relation_style(
     SseDeserializer deserializer,
   ) {
@@ -3030,6 +3083,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_table = sse_decode_String(deserializer);
     var var_key = sse_decode_String(deserializer);
     return RecordStrings(table: var_table, key: var_key);
+  }
+
+  @protected
+  RelationLayout sse_decode_relation_layout(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_fromSide = sse_decode_String(deserializer);
+    var var_toSide = sse_decode_String(deserializer);
+    return RelationLayout(fromSide: var_fromSide, toSide: var_toSide);
   }
 
   @protected
@@ -3501,6 +3562,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_relation_layout(
+    RelationLayout self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_relation_layout(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_relation_style(
     RelationStyle self,
     SseSerializer serializer,
@@ -3665,6 +3735,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.verb, serializer);
     sse_encode_opt_box_autoadd_relation_style(self.style, serializer);
     sse_encode_opt_box_autoadd_relation_style(self.resolvedStyle, serializer);
+    sse_encode_opt_box_autoadd_relation_layout(self.layout, serializer);
+    sse_encode_opt_box_autoadd_relation_layout(self.resolvedLayout, serializer);
     sse_encode_bool(self.directionless, serializer);
     sse_encode_String(self.layer, serializer);
     sse_encode_i_64(self.createdAt, serializer);
@@ -3982,6 +4054,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_relation_layout(
+    RelationLayout? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_relation_layout(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_relation_style(
     RelationStyle? self,
     SseSerializer serializer,
@@ -4047,6 +4132,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.table, serializer);
     sse_encode_String(self.key, serializer);
+  }
+
+  @protected
+  void sse_encode_relation_layout(
+    RelationLayout self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.fromSide, serializer);
+    sse_encode_String(self.toSide, serializer);
   }
 
   @protected

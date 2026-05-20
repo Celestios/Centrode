@@ -3,11 +3,16 @@ import 'package:provider/provider.dart';
 import '../../../presentation/graph_metrics.dart';
 import '../../../store/graph_data_query.dart';
 import '../../../presentation/node_render_state.dart';
+import '../../../presentation/strategies/relation_layout_strategy.dart';
+import '../../../engine/base_interaction_state.dart';
+import '../../../models/models.dart';
 import '../relation_painter.dart';
 import '../canvas_text_editor.dart';
 
 class RelationLayer extends StatelessWidget {
-  const RelationLayer({super.key});
+  final CanvasInteractionState interactionState;
+
+  const RelationLayer({super.key, required this.interactionState});
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +24,43 @@ class RelationLayer extends StatelessWidget {
         child: ListenableBuilder(
           listenable: uiController.movementNotifier,
           builder: (context, _) {
+            // Compute dragging overrides if a tip is actively being dragged
+            final draggingOverrides = <String, (Offset, Offset)>{};
+            if (interactionState is RelationTipDragging) {
+              final drag = interactionState as RelationTipDragging;
+              UiRelation? rel;
+              for (final r in dataController.relations) {
+                if (r.id == drag.relationId) {
+                  rel = r;
+                  break;
+                }
+              }
+              if (rel != null) {
+                final from = uiController.viewStates[rel.fromNodeId];
+                final to = uiController.viewStates[rel.toNodeId];
+                if (from != null && to != null) {
+                  final Offset dragPos;
+                  if (drag.snappedTargetNodeId != null && drag.snappedTargetSide != null) {
+                    final targetVs = uiController.viewStates[drag.snappedTargetNodeId!];
+                    dragPos = targetVs != null
+                        ? targetVs.getPortPosition(drag.snappedTargetSide!)
+                        : drag.currentCursorPosition;
+                  } else {
+                    dragPos = drag.currentCursorPosition;
+                  }
+
+                  final (resolvedStart, resolvedEnd) = RelationLayoutStrategy.resolveEndpoints(
+                    rel,
+                    from,
+                    to,
+                    overrideStart: drag.isStartTip ? dragPos : null,
+                    overrideEnd: !drag.isStartTip ? dragPos : null,
+                  );
+                  draggingOverrides[rel.id] = (resolvedStart, resolvedEnd);
+                }
+              }
+            }
+
             // Find if a relation is currently being edited
             final activeEditId = uiController.activeEditId;
             final editedRel = activeEditId != null
@@ -33,8 +75,8 @@ class RelationLayer extends StatelessWidget {
               final toVs = uiController.viewStates[editedRel.toNodeId];
 
               if (fromVs != null && toVs != null) {
-                final start = fromVs.rightPort;
-                final end = toVs.leftPort;
+                final (start, end) = RelationLayoutStrategy.resolveEndpoints(editedRel, fromVs, toVs);
+
                 final mid = Offset(
                   (start.dx + end.dx) / 2,
                   (start.dy + end.dy) / 2,
@@ -95,6 +137,7 @@ class RelationLayer extends StatelessWidget {
                       dataController.relations.toList(),
                       uiController.viewStates,
                       uiController.selectedEntities,
+                      draggingOverrides: draggingOverrides,
                     ),
                   ),
                 ),

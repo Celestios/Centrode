@@ -23,7 +23,16 @@ abstract interface class InteractionContext {
   void onNodeMove(String id, Offset pos);
 
   /// Callback when a relation is created between two nodes.
-  void onRelationCreate(String from, String to);
+  void onRelationCreate(String from, String to, {String? fromSide, String? toSide});
+
+  /// Callback when a relation layout/endpoints are updated.
+  void onRelationUpdateLayout(
+    String id, {
+    String? fromNodeId,
+    String? toNodeId,
+    String? fromSide,
+    String? toSide,
+  });
 
   /// Callback to trigger relation layer repaint during node drag.
   void onNodeDragUpdate();

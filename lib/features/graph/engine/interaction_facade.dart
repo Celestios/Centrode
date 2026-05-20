@@ -37,8 +37,25 @@ class CanvasInteractionEnvironment implements InteractionContext {
       _dataController.updateNodePosition(id, pos);
 
   @override
-  void onRelationCreate(String from, String to) =>
-      _dataController.createRelation(from, to);
+  void onRelationCreate(String from, String to, {String? fromSide, String? toSide}) =>
+      _dataController.createRelation(from, to, fromSide: fromSide, toSide: toSide);
+
+  @override
+  void onRelationUpdateLayout(
+    String id, {
+    String? fromNodeId,
+    String? toNodeId,
+    String? fromSide,
+    String? toSide,
+  }) {
+    _dataController.updateRelationLayout(
+      id,
+      fromNodeId: fromNodeId,
+      toNodeId: toNodeId,
+      fromSide: fromSide,
+      toSide: toSide,
+    );
+  }
 
   @override
   void onNodeDragUpdate() => _renderState.notifyNodeDragUpdate();

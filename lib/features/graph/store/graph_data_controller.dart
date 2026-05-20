@@ -185,10 +185,25 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
       nodeMutations.toggleNodeExpansion(id);
 
   // Relation Mutations
-  void createRelation(String fromId, String toId) =>
-      relationMutations.createRelation(fromId, toId);
+  void createRelation(String fromId, String toId, {String? fromSide, String? toSide}) =>
+      relationMutations.createRelation(fromId, toId, fromSide: fromSide, toSide: toSide);
 
   Future<void> deleteRelation(String id) => relationMutations.deleteRelation(id);
+
+  void updateRelationLayout(
+    String id, {
+    String? fromNodeId,
+    String? toNodeId,
+    String? fromSide,
+    String? toSide,
+  }) =>
+      relationMutations.updateRelationLayout(
+        id,
+        fromNodeId: fromNodeId,
+        toNodeId: toNodeId,
+        fromSide: fromSide,
+        toSide: toSide,
+      );
 
 
   // Property Mutations

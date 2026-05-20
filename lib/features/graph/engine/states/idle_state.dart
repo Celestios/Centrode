@@ -34,9 +34,44 @@ class CanvasIdle extends CanvasInteractionState {
       return MarqueeSelecting(pCanvas, pCanvas);
     }
 
+    // Priority -0.5: Selected Relation Tip Handles Hit-Testing
+    final selectedEntities = ctx.getSelectedEntities();
+    for (final id in selectedEntities) {
+      UiRelation? rel;
+      for (final r in ctx.getRelations()) {
+        if (r.id == id) {
+          rel = r;
+          break;
+        }
+      }
+      if (rel == null) continue;
+
+      final from = ctx.nodeViewStates[rel.fromNodeId];
+      final to = ctx.nodeViewStates[rel.toNodeId];
+      if (from == null || to == null) continue;
+
+      final (handleStart, handleEnd) = RelationLayoutStrategy.resolveTipHandles(rel, from, to);
+      if ((pCanvas - handleStart).distance < 12.0) {
+        _canvasIdleLog.fine('Relation start tip handle hit: $id');
+        return RelationTipDragging(
+          relationId: rel.id,
+          isStartTip: true,
+          originalPosition: handleStart,
+          currentCursorPosition: pCanvas,
+        );
+      } else if ((pCanvas - handleEnd).distance < 12.0) {
+        _canvasIdleLog.fine('Relation end tip handle hit: $id');
+        return RelationTipDragging(
+          relationId: rel.id,
+          isStartTip: false,
+          originalPosition: handleEnd,
+          currentCursorPosition: pCanvas,
+        );
+      }
+    }
+
     // Priority 0: Floating Toolbar Hit-Testing (Absolute Top)
     // Supports both single-selection, multi-selection, and relation toolbars
-    final selectedEntities = ctx.getSelectedEntities();
     if (selectedEntities.isNotEmpty) {
       final isMultiSelect = selectedEntities.length > 1;
       Offset? anchorTopLeft;
@@ -79,8 +114,7 @@ class CanvasIdle extends CanvasInteractionState {
             final sourceVs = ctx.nodeViewStates[rel.fromNodeId];
             final targetVs = ctx.nodeViewStates[rel.toNodeId];
             if (sourceVs != null && targetVs != null) {
-              final start = sourceVs.rightPort;
-              final end = targetVs.leftPort;
+              final (start, end) = RelationLayoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
               anchorTopLeft = Offset(
                 (start.dx + end.dx) / 2,
                 (start.dy + end.dy) / 2,
@@ -287,8 +321,7 @@ class CanvasIdle extends CanvasInteractionState {
       if (fVs == null || tVs == null) continue;
 
       // Using DRY Geometry
-      final start = fVs.rightPort;
-      final end = tVs.leftPort;
+      final (start, end) = RelationLayoutStrategy.resolveEndpoints(rel, fVs, tVs);
       final mid = Offset((start.dx + end.dx) / 2, (start.dy + end.dy) / 2);
 
       if (Rect.fromCenter(

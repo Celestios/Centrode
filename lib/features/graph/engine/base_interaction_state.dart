@@ -7,6 +7,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import '../presentation/graph_metrics.dart';
+import '../presentation/strategies/relation_layout_strategy.dart';
+import '../presentation/view_state.dart';
+import '../models/models.dart';
 import 'interaction_context.dart';
 
 part 'states/idle_state.dart';
@@ -15,6 +18,7 @@ part 'states/relation_draw_state.dart';
 part 'states/node_resize_state.dart';
 part 'states/toolbar_drag_state.dart';
 part 'states/marquee_state.dart';
+part 'states/relation_tip_drag_state.dart';
 
 /// Calculates the dynamic grid size based on the current zoom level (Dynamic LOD).
 double calculateEffectiveGridSize(double scale) {

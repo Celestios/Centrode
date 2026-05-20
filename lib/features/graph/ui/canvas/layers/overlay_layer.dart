@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../../../presentation/graph_metrics.dart';
 import '../../../store/graph_data_controller.dart';
@@ -6,6 +7,7 @@ import '../../../presentation/node_render_state.dart';
 import '../../../engine/base_interaction_state.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
+import '../../../presentation/strategies/relation_layout_strategy.dart';
 
 class OverlayLayer extends StatelessWidget {
   final CanvasInteractionState interactionState;
@@ -134,8 +136,7 @@ class OverlayLayer extends StatelessWidget {
             final sourceVs = renderState.viewStates[rel.fromNodeId];
             final targetVs = renderState.viewStates[rel.toNodeId];
             if (sourceVs != null && targetVs != null) {
-              final start = sourceVs.rightPort;
-              final end = targetVs.leftPort;
+              final (start, end) = RelationLayoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
               anchor = Offset((start.dx + end.dx) / 2, (start.dy + end.dy) / 2);
             }
           }
@@ -266,7 +267,7 @@ class _TempRelationPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    // End position - either snapped target's left port or cursor position
+    // End position - either snapped target's snapped port or cursor position
     Offset endPos;
     if (state.snappedTargetNodeId != null) {
       final targetVs = nodeViewStates[state.snappedTargetNodeId];
@@ -284,7 +285,7 @@ class _TempRelationPainter extends CustomPainter {
       final sourceVs = nodeViewStates[sourceId];
       if (sourceVs == null) continue;
 
-      // Start from source node's right port
+      // Start from source node's snapped port
       final startPos = sourceVs.rightPort;
 
       // Draw the relation line
@@ -302,8 +303,7 @@ class _TempRelationPainter extends CustomPainter {
     return oldDelegate.state.currentCursorPosition !=
             state.currentCursorPosition ||
         oldDelegate.state.snappedTargetNodeId != state.snappedTargetNodeId ||
-        oldDelegate.state.sourceNodeIds.length != state.sourceNodeIds.length ||
-        !oldDelegate.state.sourceNodeIds.containsAll(state.sourceNodeIds);
+        !setEquals(oldDelegate.state.sourceNodeIds, state.sourceNodeIds);
   }
 }
 

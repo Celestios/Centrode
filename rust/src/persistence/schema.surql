@@ -235,6 +235,14 @@ DEFINE FIELD OVERWRITE resolved_style.shadow_blur ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.shadow_offset_x ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.shadow_offset_y ON TABLE IRelation TYPE float;
 
+DEFINE FIELD OVERWRITE layout ON TABLE IRelation TYPE option<object>;
+DEFINE FIELD OVERWRITE layout.from_side ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE layout.to_side ON TABLE IRelation TYPE string;
+
+DEFINE FIELD OVERWRITE resolved_layout ON TABLE IRelation TYPE option<object>;
+DEFINE FIELD OVERWRITE resolved_layout.from_side ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE resolved_layout.to_side ON TABLE IRelation TYPE string;
+
 DEFINE FIELD OVERWRITE in ON TABLE IRelation TYPE record<INode | TaskNode | InterNode>;
 DEFINE FIELD OVERWRITE out ON TABLE IRelation TYPE record<INode | TaskNode | InterNode>;
 DEFINE FIELD OVERWRITE verb ON TABLE IRelation TYPE string;

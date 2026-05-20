@@ -3,14 +3,20 @@ import '../../models/models.dart';
 import '../../presentation/graph_metrics.dart';
 import '../../presentation/view_state.dart';
 import '../../presentation/strategies/relation_style_strategy.dart';
+import '../../presentation/strategies/relation_layout_strategy.dart';
 
 class RelationPainter extends CustomPainter {
   final List<UiRelation> relations;
-  final Map<String, NodeViewState>
-  nodeViewStates; // Use ViewStates for real-time positions
+  final Map<String, NodeViewState> nodeViewStates; // Use ViewStates for real-time positions
   final Set<String> selectedEntities; // Selection state from NodeRenderState
+  final Map<String, (Offset start, Offset end)> draggingOverrides;
 
-  RelationPainter(this.relations, this.nodeViewStates, this.selectedEntities);
+  RelationPainter(
+    this.relations,
+    this.nodeViewStates,
+    this.selectedEntities, {
+    this.draggingOverrides = const {},
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -24,22 +30,18 @@ class RelationPainter extends CustomPainter {
 
       if (from == null || to == null) continue;
 
-      // Access .value directly for the most current position during the pulse
-      final startPos = from.positionNotifier.value;
-      final endPos = to.positionNotifier.value;
+      Offset start;
+      Offset end;
 
-      // Dynamic vector geometry: use actual node sizes from ViewState
-      final startSize = from.sizeNotifier.value;
-      final endSize = to.sizeNotifier.value;
-
-      // O(1) Geometry extraction directly from ViewState
-      final start = startSize == Size.zero
-          ? startPos + AppConfig.relation.startFallback
-          : from.rightPort;
-
-      final end = endSize == Size.zero
-          ? endPos + AppConfig.relation.endFallback
-          : to.leftPort;
+      final override = draggingOverrides[rel.id];
+      if (override != null) {
+        start = override.$1;
+        end = override.$2;
+      } else {
+        final (resolvedStart, resolvedEnd) = RelationLayoutStrategy.resolveEndpoints(rel, from, to);
+        start = resolvedStart;
+        end = resolvedEnd;
+      }
 
       // Centralized Style Resolution
       final resolved = RelationStyleStrategy.resolveStyle(rel);
@@ -55,6 +57,31 @@ class RelationPainter extends CustomPainter {
 
       // Draw straight line (Bezier curves can be added later)
       canvas.drawLine(start, end, paint);
+
+      // If selected, draw the two tip handlers
+      if (isSelected) {
+        final (handleStart, handleEnd) = RelationLayoutStrategy.resolveTipHandles(
+          rel,
+          from,
+          to,
+          overrideStart: draggingOverrides[rel.id]?.$1,
+          overrideEnd: draggingOverrides[rel.id]?.$2,
+        );
+
+        final handlePaint = Paint()
+          ..color = AppConfig.visuals.selectionAccent
+          ..style = PaintingStyle.fill;
+        final borderPaint = Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0;
+
+        canvas.drawCircle(handleStart, 6.0, borderPaint);
+        canvas.drawCircle(handleStart, 5.0, handlePaint);
+
+        canvas.drawCircle(handleEnd, 6.0, borderPaint);
+        canvas.drawCircle(handleEnd, 5.0, handlePaint);
+      }
 
       // Draw Label (Simplified)
       if (rel.verb.isNotEmpty) {
