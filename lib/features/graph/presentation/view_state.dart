@@ -38,14 +38,6 @@ class NodeViewState {
     _log.fine('VIEWSTATE: Rehydrated state for $nodeId');
   }
 
-  /// After a user triggers expand/collapse, update **both** the node and the notifier.
-  void toggleExpanded(UiNode node) {
-    node.isExpanded = !node.isExpanded;
-    isExpandedNotifier.value = node.isExpanded;
-    _recomputeSizeWithStrategy(node);
-    sizeNotifier.value = node.size;
-  }
-
   void _recomputeSizeWithStrategy(UiNode node, {bool isEditing = false}) {
     node.size = NodeLayoutStrategy.calculateSize(node, isEditing: isEditing);
   }
@@ -149,9 +141,7 @@ class NodeViewState {
     positionNotifier.value += screenDelta / currentScale;
   }
 
-  void syncToNode(UiNode node) {
-    node.position = positionNotifier.value;
-  }
+
 
   /// Called when content or aesthetics change.
   void onContentOrStyleChanged(UiNode node, {bool isEditing = false}) {
@@ -166,16 +156,7 @@ class NodeViewState {
     dragWidthNotifier.value = width;
   }
 
-  /// Commits the drag width to the node and clears the transient width.
-  void commitDragWidth(UiNode node) {
-    final w = dragWidthNotifier.value;
-    if (w != null) {
-      node.size = Size(w, node.size.height);
-      _recomputeSizeWithStrategy(node);
-      sizeNotifier.value = node.size;
-      dragWidthNotifier.value = null;
-    }
-  }
+
 
   void dispose() {
     positionNotifier.dispose();

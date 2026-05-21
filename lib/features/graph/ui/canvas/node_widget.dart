@@ -61,6 +61,7 @@ class NodeWidget extends StatelessWidget {
         viewState.sizeNotifier,
         viewState.isExpandedNotifier,
         viewState.dragWidthNotifier,
+        viewState.lineCountNotifier,
       ]),
       builder: (context, _) {
         final pos = viewState.positionNotifier.value;

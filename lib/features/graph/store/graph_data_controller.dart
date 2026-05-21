@@ -46,8 +46,18 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   final ThemeController themeController;
 
   // ===========================================================================
-  // State Flags
+  // State Flags & Stream
   // ===========================================================================
+
+  final StreamController<GraphEntityUpdate> _entityUpdateController =
+      StreamController<GraphEntityUpdate>.broadcast();
+
+  @override
+  Stream<GraphEntityUpdate> get onEntityUpdate => _entityUpdateController.stream;
+
+  void publishUpdate(GraphEntityUpdate update) {
+    _entityUpdateController.add(update);
+  }
 
   @override
   bool isLoading = false;
@@ -224,6 +234,7 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   void dispose() {
     _log.fine('Disposing GraphDataController and dismantling domain modules.');
     themeController.removeListener(_onThemeChanged);
+    _entityUpdateController.close();
     syncEngine.dispose();
     spatial.dispose();
     super.dispose();

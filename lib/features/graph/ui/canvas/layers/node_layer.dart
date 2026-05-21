@@ -10,9 +10,9 @@ class NodeLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final query = context.watch<GraphDataQuery>();
+    final query = context.read<GraphDataQuery>();
     final uiState = context.watch<NodeRenderState>();
-    final viewport = context.watch<ViewportController>();
+    final viewport = context.read<ViewportController>();
 
     return ValueListenableBuilder<Set<String>>(
       valueListenable: viewport.visibleNodeIds,

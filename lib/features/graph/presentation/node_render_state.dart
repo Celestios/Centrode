@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'graph_metrics.dart';
 import '../store/graph_data_controller.dart';
+import '../store/graph_data_query.dart';
 import 'view_state.dart';
 
 /// Notifier pulsed to trigger relation painter repaints when node coordinates change.
@@ -53,13 +55,88 @@ class NodeRenderState extends ChangeNotifier {
   /// Set of selected entity IDs (nodes or relations).
   Set<String> selectedEntities = {};
 
+  StreamSubscription<GraphEntityUpdate>? _updateSubscription;
+
   NodeRenderState(this._dataController) {
     _dataController.addListener(_onDataChanged);
+    _updateSubscription = _dataController.onEntityUpdate.listen(_handleEntityUpdate);
     _syncAtomicUIState(); // Initial synchronization projection
   }
 
   void _onDataChanged() {
     _syncAtomicUIState();
+  }
+
+  void _handleEntityUpdate(GraphEntityUpdate update) {
+    final id = update.id;
+    switch (update.type) {
+      case GraphUpdateType.position:
+        final vs = viewStates[id];
+        if (vs != null && !draggingNodes.contains(id)) {
+          final Offset newPos = update.payload as Offset;
+          if (vs.positionNotifier.value != newPos) {
+            vs.positionNotifier.value = newPos;
+            movementNotifier.pulse();
+          }
+        }
+        break;
+      case GraphUpdateType.size:
+        final vs = viewStates[id];
+        if (vs != null) {
+          final Size newSize = update.payload as Size;
+          if (vs.sizeNotifier.value != newSize) {
+            vs.dragWidthNotifier.value = null; // Reset volatile drag width
+            final node = _dataController.nodeLookup[id];
+            if (node != null) {
+              vs.onContentOrStyleChanged(
+                node,
+                isEditing: id == activeEditId,
+              );
+            }
+          }
+        }
+        break;
+      case GraphUpdateType.expansion:
+        final vs = viewStates[id];
+        if (vs != null) {
+          final bool newExpanded = update.payload as bool;
+          vs.isExpandedNotifier.value = newExpanded;
+        }
+        break;
+      case GraphUpdateType.text:
+        final vs = viewStates[id];
+        if (vs != null) {
+          final node = _dataController.nodeLookup[id];
+          if (node != null) {
+            vs.lineCountNotifier.value = node.lineCount;
+          }
+        }
+        break;
+      case GraphUpdateType.style:
+        final vs = viewStates[id];
+        if (vs != null) {
+          final node = _dataController.nodeLookup[id];
+          if (node != null) {
+            vs.onContentOrStyleChanged(
+              node,
+              isEditing: id == activeEditId,
+            );
+          }
+        }
+        break;
+      case GraphUpdateType.nodeAdded:
+      case GraphUpdateType.nodeDeleted:
+      case GraphUpdateType.relationAdded:
+      case GraphUpdateType.relationDeleted:
+      case GraphUpdateType.relationLayout:
+      case GraphUpdateType.reset:
+        if (update.type == GraphUpdateType.relationLayout ||
+            update.type == GraphUpdateType.relationAdded ||
+            update.type == GraphUpdateType.relationDeleted) {
+          movementNotifier.pulse();
+        }
+        break;
+    }
   }
 
   /// Registers a node dragging state to protect its volatile position from store overrides.
@@ -254,6 +331,7 @@ class NodeRenderState extends ChangeNotifier {
   void dispose() {
     _log.fine('Disposing NodeRenderState and volatile notifiers.');
     _dataController.removeListener(_onDataChanged);
+    _updateSubscription?.cancel();
 
     for (final vs in viewStates.values) {
       vs.dispose();

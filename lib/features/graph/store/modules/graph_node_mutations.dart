@@ -4,6 +4,7 @@ import 'package:logging/logging.dart';
 import '../../models/models.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import '../graph_data_controller.dart';
+import '../graph_data_query.dart';
 import '../../presentation/strategies/node_layout_strategy.dart';
 
 /// Node mutation operations for the graph.
@@ -45,11 +46,21 @@ class GraphNodeMutations {
         controller.store.nodeLookup.remove(id);
         controller.spatial.spatialGrid.remove(id, position);
         controller.spatial.clearConfirmedPosition(id);
+        controller.publishUpdate(GraphEntityUpdate(
+          id: id,
+          tableName: node.tableName,
+          type: GraphUpdateType.nodeDeleted,
+        ));
         controller.triggerUpdate();
       },
     );
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
 
+    controller.publishUpdate(GraphEntityUpdate(
+      id: id,
+      tableName: node.tableName,
+      type: GraphUpdateType.nodeAdded,
+    ));
     controller.triggerUpdate();
     return id;
   }
@@ -71,6 +82,11 @@ class GraphNodeMutations {
         _nodeLog.warning('Deletion rejected. Re-hydrating node: $id');
         controller.store.nodeLookup[id] = node;
         controller.spatial.spatialGrid.insert(id, node.position);
+        controller.publishUpdate(GraphEntityUpdate(
+          id: id,
+          tableName: node.tableName,
+          type: GraphUpdateType.nodeAdded,
+        ));
         controller.triggerUpdate(); // Force canvas rebuild to re-mount the rehydrated node
       },
     );
@@ -82,6 +98,11 @@ class GraphNodeMutations {
 
     // Queue command with immediate execution
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
+    controller.publishUpdate(GraphEntityUpdate(
+      id: id,
+      tableName: node.tableName,
+      type: GraphUpdateType.nodeDeleted,
+    ));
     controller.triggerUpdate();
   }
 
@@ -109,13 +130,23 @@ class GraphNodeMutations {
       onUndo: () {
         node.position = oldPosition;
         controller.spatial.spatialGrid.update(id, newPosition, oldPosition);
-        controller.triggerUpdate();
+        controller.publishUpdate(GraphEntityUpdate(
+          id: id,
+          tableName: node.tableName,
+          type: GraphUpdateType.position,
+          payload: oldPosition,
+        ));
       },
     );
 
     // Queue command with debouncing (300ms delay)
     controller.syncEngine.processor.queueCommand(cmd);
-    controller.triggerUpdate();
+    controller.publishUpdate(GraphEntityUpdate(
+      id: id,
+      tableName: node.tableName,
+      type: GraphUpdateType.position,
+      payload: newPosition,
+    ));
   }
 
   /// Updates node width based on left and right edges.
@@ -164,12 +195,34 @@ class GraphNodeMutations {
         node.size = oldSize;
         node.style = oldStyle;
         controller.spatial.spatialGrid.update(id, newPosition, oldPosition);
-        controller.triggerUpdate();
+        controller.publishUpdate(GraphEntityUpdate(
+          id: id,
+          tableName: node.tableName,
+          type: GraphUpdateType.size,
+          payload: oldSize,
+        ));
+        controller.publishUpdate(GraphEntityUpdate(
+          id: id,
+          tableName: node.tableName,
+          type: GraphUpdateType.position,
+          payload: oldPosition,
+        ));
       },
     );
 
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
-    controller.triggerUpdate();
+    controller.publishUpdate(GraphEntityUpdate(
+      id: id,
+      tableName: node.tableName,
+      type: GraphUpdateType.size,
+      payload: node.size,
+    ));
+    controller.publishUpdate(GraphEntityUpdate(
+      id: id,
+      tableName: node.tableName,
+      type: GraphUpdateType.position,
+      payload: node.position,
+    ));
   }
 
   /// Toggles the node's expanded/collapsed state and recalculates height.
@@ -202,11 +255,33 @@ class GraphNodeMutations {
       onUndo: () {
         node.isExpanded = oldExpanded;
         node.size = oldSize;
-        controller.triggerUpdate();
+        controller.publishUpdate(GraphEntityUpdate(
+          id: id,
+          tableName: node.tableName,
+          type: GraphUpdateType.expansion,
+          payload: oldExpanded,
+        ));
+        controller.publishUpdate(GraphEntityUpdate(
+          id: id,
+          tableName: node.tableName,
+          type: GraphUpdateType.size,
+          payload: oldSize,
+        ));
       },
     );
 
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
-    controller.triggerUpdate();
+    controller.publishUpdate(GraphEntityUpdate(
+      id: id,
+      tableName: node.tableName,
+      type: GraphUpdateType.expansion,
+      payload: newExpanded,
+    ));
+    controller.publishUpdate(GraphEntityUpdate(
+      id: id,
+      tableName: node.tableName,
+      type: GraphUpdateType.size,
+      payload: node.size,
+    ));
   }
 }

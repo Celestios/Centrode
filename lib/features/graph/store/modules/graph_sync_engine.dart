@@ -8,6 +8,7 @@ import '../../../../src/rust/domain/base_models.dart' show BoundingBox;
 import '../command_processor.dart';
 import '../../presentation/theme_manager.dart';
 import '../graph_data_controller.dart';
+import '../graph_data_query.dart';
 
 /// Handles communication between the local store/spatial structures and the Rust backend.
 class GraphSyncEngine {
@@ -74,6 +75,12 @@ class GraphSyncEngine {
 
       // Seed the passive spatial index with the new node positions
       controller.spatial.reindexAll(controller.store.nodeLookup);
+
+      controller.publishUpdate(GraphEntityUpdate(
+        id: '',
+        tableName: '',
+        type: GraphUpdateType.reset,
+      ));
     } catch (e) {
       _syncLog.severe('Failed to load graph snapshot', e);
       controller.onError("Failed to load graph: $e");

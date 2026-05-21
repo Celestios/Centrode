@@ -3,6 +3,7 @@ import 'package:mycelium/src/rust/domain/styles.dart';
 import '../../models/commands.dart';
 import '../../models/graph_relation.dart';
 import '../graph_data_controller.dart';
+import '../graph_data_query.dart';
 
 /// Relation mutation operations for the graph.
 class GraphRelationMutations {
@@ -58,10 +59,21 @@ class GraphRelationMutations {
       onUndo: () {
         _relLog.warning('Relation creation rejected or failed. Removing relation: ${relation.id}');
         controller.store.relationLookup.remove(relation.id);
+        controller.publishUpdate(GraphEntityUpdate(
+          id: relation.id,
+          tableName: 'IRelation',
+          type: GraphUpdateType.relationDeleted,
+        ));
         controller.triggerUpdate();
       },
     );
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
+    controller.publishUpdate(GraphEntityUpdate(
+      id: relation.id,
+      tableName: 'IRelation',
+      type: GraphUpdateType.relationAdded,
+      payload: relation,
+    ));
     controller.triggerUpdate();
   }
 
@@ -80,6 +92,12 @@ class GraphRelationMutations {
       onUndo: () {
         _relLog.warning('Deletion rejected. Re-hydrating relation: $id');
         controller.store.relationLookup[id] = relation;
+        controller.publishUpdate(GraphEntityUpdate(
+          id: id,
+          tableName: 'IRelation',
+          type: GraphUpdateType.relationAdded,
+          payload: relation,
+        ));
         controller.triggerUpdate(); // Force canvas rebuild to re-mount the rehydrated relation
       },
     );
@@ -89,6 +107,11 @@ class GraphRelationMutations {
 
     // Queue command with immediate execution
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
+    controller.publishUpdate(GraphEntityUpdate(
+      id: id,
+      tableName: 'IRelation',
+      type: GraphUpdateType.relationDeleted,
+    ));
     controller.triggerUpdate();
   }
 
@@ -136,12 +159,22 @@ class GraphRelationMutations {
       onUndo: () {
         _relLog.warning('Relation layout update failed or rejected. Rolling back.');
         controller.store.relationLookup[id] = oldRelation;
-        controller.triggerUpdate();
+        controller.publishUpdate(GraphEntityUpdate(
+          id: id,
+          tableName: 'IRelation',
+          type: GraphUpdateType.relationLayout,
+          payload: oldRelation.layout,
+        ));
       },
     );
 
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
-    controller.triggerUpdate();
+    controller.publishUpdate(GraphEntityUpdate(
+      id: id,
+      tableName: 'IRelation',
+      type: GraphUpdateType.relationLayout,
+      payload: updatedRelation.layout,
+    ));
   }
 }
 

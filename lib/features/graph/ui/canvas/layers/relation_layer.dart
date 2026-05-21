@@ -16,13 +16,16 @@ class RelationLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dataController = context.watch<GraphDataQuery>();
-    final uiController = context.watch<NodeRenderState>();
+    final dataController = context.read<GraphDataQuery>();
+    final uiController = context.read<NodeRenderState>();
 
     return Positioned.fill(
       child: RepaintBoundary(
         child: ListenableBuilder(
-          listenable: uiController.movementNotifier,
+          listenable: Listenable.merge([
+            uiController.movementNotifier,
+            uiController,
+          ]),
           builder: (context, _) {
             // Compute dragging overrides if a tip is actively being dragged
             final draggingOverrides = <String, (Offset, Offset)>{};

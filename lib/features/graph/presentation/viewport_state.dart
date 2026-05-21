@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'graph_metrics.dart';
@@ -52,23 +54,34 @@ class ViewportController {
   /// Notifier exposing the calculated elastic margins for CanvasInteractiveViewer.
   final ValueNotifier<EdgeInsets> elasticMargins = ValueNotifier(EdgeInsets.zero);
 
+  StreamSubscription<GraphEntityUpdate>? _updateSubscription;
+
   ViewportController(this._dataController) {
     _log.info(
       'Initializing ViewportController and tracking transform mutations.',
     );
     transformController.addListener(_handleTransform);
-    _dataController.addListener(_onDataChanged);
     _dataController.canvasBounds.addListener(_onCanvasBoundsChanged);
+    _updateSubscription = _dataController.onEntityUpdate.listen(_handleEntityUpdate);
   }
 
   void _onCanvasBoundsChanged() {
     recalculateElasticMargins();
   }
 
-  void _onDataChanged() {
-    // If the database changed (rollback/delete/add), re-evaluate culling immediately
-    if (_overscanBuffer != Rect.zero) {
-      updateVisibleSet(_overscanBuffer);
+  void _handleEntityUpdate(GraphEntityUpdate update) {
+    switch (update.type) {
+      case GraphUpdateType.position:
+      case GraphUpdateType.size:
+      case GraphUpdateType.nodeAdded:
+      case GraphUpdateType.nodeDeleted:
+      case GraphUpdateType.reset:
+        if (_overscanBuffer != Rect.zero) {
+          updateVisibleSet(_overscanBuffer);
+        }
+        break;
+      default:
+        break;
     }
   }
 
@@ -187,7 +200,9 @@ class ViewportController {
     _log.finest(
       'updateVisibleSet: Spatial index returned ${newVisible.length} visible nodes.',
     );
-    visibleNodeIds.value = newVisible;
+    if (!setEquals(visibleNodeIds.value, newVisible)) {
+      visibleNodeIds.value = newVisible;
+    }
   }
 
   Rect _calculateCanvasViewport() {
@@ -214,8 +229,8 @@ class ViewportController {
   void dispose() {
     _log.fine('Disposing ViewportController.');
     transformController.removeListener(_handleTransform);
-    _dataController.removeListener(_onDataChanged);
     _dataController.canvasBounds.removeListener(_onCanvasBoundsChanged);
+    _updateSubscription?.cancel();
     transformController.dispose();
     viewportStateNotifier.dispose();
     visibleNodeIds.dispose();

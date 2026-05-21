@@ -5,6 +5,7 @@ import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/features/graph/models/content_builder.dart';
 import '../../presentation/strategies/node_layout_strategy.dart';
 import '../graph_data_controller.dart';
+import '../graph_data_query.dart';
 
 /// Property mutation operations for the graph.
 class GraphPropertyMutations {
@@ -63,14 +64,52 @@ class GraphPropertyMutations {
             if (preEditSize != null) {
               node.size = preEditSize;
             }
+            controller.publishUpdate(GraphEntityUpdate(
+              id: id,
+              tableName: node.tableName,
+              type: GraphUpdateType.text,
+              payload: effectiveOriginalText,
+            ));
+            controller.publishUpdate(GraphEntityUpdate(
+              id: id,
+              tableName: node.tableName,
+              type: GraphUpdateType.size,
+              payload: preEditSize,
+            ));
           } else if (rel != null) {
             rel.verb = effectiveOriginalText;
+            controller.publishUpdate(GraphEntityUpdate(
+              id: id,
+              tableName: 'IRelation',
+              type: GraphUpdateType.text,
+              payload: effectiveOriginalText,
+            ));
           }
-          controller.triggerUpdate();
         },
       ),
     );
-    controller.triggerUpdate();
+
+    if (node != null) {
+      controller.publishUpdate(GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.text,
+        payload: newText,
+      ));
+      controller.publishUpdate(GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.size,
+        payload: node.size,
+      ));
+    } else if (rel != null) {
+      controller.publishUpdate(GraphEntityUpdate(
+        id: id,
+        tableName: 'IRelation',
+        type: GraphUpdateType.text,
+        payload: newText,
+      ));
+    }
   }
 
   /// Updates the entity text locally in memory without triggering FFI/database sync.
@@ -83,11 +122,27 @@ class GraphPropertyMutations {
       if (node.content.text == newText) return;
       node.content = ContentFactory.fromText(newText);
       node.size = NodeLayoutStrategy.calculateSize(node);
-      controller.triggerUpdate();
+      controller.publishUpdate(GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.text,
+        payload: newText,
+      ));
+      controller.publishUpdate(GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.size,
+        payload: node.size,
+      ));
     } else if (rel != null) {
       if (rel.verb == newText) return;
       rel.verb = newText;
-      controller.triggerUpdate();
+      controller.publishUpdate(GraphEntityUpdate(
+        id: id,
+        tableName: 'IRelation',
+        type: GraphUpdateType.text,
+        payload: newText,
+      ));
     }
   }
 
@@ -97,6 +152,12 @@ class GraphPropertyMutations {
     if (node == null) return;
     node.style = newStyle;
     controller.styleManager.updateStyleForNode(id);
+    controller.publishUpdate(GraphEntityUpdate(
+      id: id,
+      tableName: node.tableName,
+      type: GraphUpdateType.style,
+      payload: newStyle,
+    ));
     // TODO: Also persist the change (new style) via a command – TBD later.
   }
 }
