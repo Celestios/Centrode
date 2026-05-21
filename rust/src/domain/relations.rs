@@ -107,3 +107,11 @@ pub struct IRelationFields {
     pub updated_at: i64,
 }
 
+#[derive(Debug, Clone, SurrealValue)]
+pub enum RelationPatch {
+    Verb(String),
+    Style(Option<RelationStyle>),
+    Layout(Option<RelationLayout>),
+    Directionless(bool),
+}
+

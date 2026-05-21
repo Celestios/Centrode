@@ -74,7 +74,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -771197368;
+  int get rustContentHash => 344414714;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -85,6 +85,11 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
+  Future<void> crateBridgeApiAppHandleApplyEntityMutation({
+    required AppHandle that,
+    required SymmetricEntityPatch mutation,
+  });
+
   Repository crateBridgeApiAppHandleAutoAccessorGetRepo({
     required AppHandle that,
   });
@@ -244,6 +249,44 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
+  Future<void> crateBridgeApiAppHandleApplyEntityMutation({
+    required AppHandle that,
+    required SymmetricEntityPatch mutation,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+            that,
+            serializer,
+          );
+          sse_encode_box_autoadd_symmetric_entity_patch(mutation, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 1,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiAppHandleApplyEntityMutationConstMeta,
+        argValues: [that, mutation],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiAppHandleApplyEntityMutationConstMeta =>
+      const TaskConstMeta(
+        debugName: "AppHandle_apply_entity_mutation",
+        argNames: ["that", "mutation"],
+      );
+
+  @override
   Repository crateBridgeApiAppHandleAutoAccessorGetRepo({
     required AppHandle that,
   }) {
@@ -255,7 +298,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 1)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -292,7 +335,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             repo,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -324,7 +367,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 3,
+            funcId: 4,
             port: port_,
           );
         },
@@ -360,7 +403,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 4,
+              funcId: 5,
               port: port_,
             );
           },
@@ -400,7 +443,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 6,
             port: port_,
           );
         },
@@ -438,7 +481,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 7,
             port: port_,
           );
         },
@@ -478,7 +521,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 8,
             port: port_,
           );
         },
@@ -518,7 +561,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 9,
             port: port_,
           );
         },
@@ -558,7 +601,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 9,
+            funcId: 10,
             port: port_,
           );
         },
@@ -594,7 +637,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 10,
+            funcId: 11,
             port: port_,
           );
         },
@@ -630,7 +673,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 11,
+            funcId: 12,
             port: port_,
           );
         },
@@ -667,7 +710,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 12,
+            funcId: 13,
             port: port_,
           );
         },
@@ -708,7 +751,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 13,
+            funcId: 14,
             port: port_,
           );
         },
@@ -746,7 +789,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 14,
+            funcId: 15,
             port: port_,
           );
         },
@@ -786,7 +829,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 15,
+            funcId: 16,
             port: port_,
           );
         },
@@ -821,7 +864,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 16,
+            funcId: 17,
             port: port_,
           );
         },
@@ -857,7 +900,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 17,
+            funcId: 18,
             port: port_,
           );
         },
@@ -897,7 +940,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 19,
             port: port_,
           );
         },
@@ -937,7 +980,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 19,
+            funcId: 20,
             port: port_,
           );
         },
@@ -975,7 +1018,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 21,
             port: port_,
           );
         },
@@ -1013,7 +1056,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 21,
+            funcId: 22,
             port: port_,
           );
         },
@@ -1049,7 +1092,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 22,
+            funcId: 23,
             port: port_,
           );
         },
@@ -1085,7 +1128,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 23,
+            funcId: 24,
             port: port_,
           );
         },
@@ -1123,7 +1166,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 24,
+            funcId: 25,
             port: port_,
           );
         },
@@ -1161,7 +1204,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 25,
+            funcId: 26,
             port: port_,
           );
         },
@@ -1194,7 +1237,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 26,
+              funcId: 27,
               port: port_,
             );
           },
@@ -1223,7 +1266,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 27,
+            funcId: 28,
             port: port_,
           );
         },
@@ -1425,6 +1468,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Content dco_decode_box_autoadd_content(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_content(raw);
+  }
+
+  @protected
+  Coordinates dco_decode_box_autoadd_coordinates(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_coordinates(raw);
+  }
+
+  @protected
   PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_i_64(raw);
@@ -1482,6 +1537,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RelationStyle dco_decode_box_autoadd_relation_style(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_relation_style(raw);
+  }
+
+  @protected
+  Size dco_decode_box_autoadd_size(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_size(raw);
+  }
+
+  @protected
+  SymmetricEntityPatch dco_decode_box_autoadd_symmetric_entity_patch(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_symmetric_entity_patch(raw);
   }
 
   @protected
@@ -1558,6 +1627,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   DisplayMode dco_decode_display_mode(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return DisplayMode.values[raw as int];
+  }
+
+  @protected
+  EntityPatch dco_decode_entity_patch(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return EntityPatch_Node(dco_decode_list_node_patch(raw[1]));
+      case 1:
+        return EntityPatch_Relation(dco_decode_list_relation_patch(raw[1]));
+      default:
+        throw Exception("unreachable");
+    }
   }
 
   @protected
@@ -1771,9 +1853,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<NodePatch> dco_decode_list_node_patch(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_node_patch).toList();
+  }
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as Uint8List;
+  }
+
+  @protected
+  List<RelationPatch> dco_decode_list_relation_patch(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_relation_patch).toList();
   }
 
   @protected
@@ -1835,6 +1929,29 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   MarkType dco_decode_mark_type(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return MarkType.values[raw as int];
+  }
+
+  @protected
+  NodePatch dco_decode_node_patch(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return NodePatch_Position(dco_decode_box_autoadd_coordinates(raw[1]));
+      case 1:
+        return NodePatch_Size(dco_decode_box_autoadd_size(raw[1]));
+      case 2:
+        return NodePatch_Content(dco_decode_box_autoadd_content(raw[1]));
+      case 3:
+        return NodePatch_IsExpanded(dco_decode_bool(raw[1]));
+      case 4:
+        return NodePatch_Style(dco_decode_opt_box_autoadd_node_style(raw[1]));
+      case 5:
+        return NodePatch_Tags(dco_decode_list_String(raw[1]));
+      case 6:
+        return NodePatch_Significance(dco_decode_u_8(raw[1]));
+      default:
+        throw Exception("unreachable");
+    }
   }
 
   @protected
@@ -2001,6 +2118,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  RelationPatch dco_decode_relation_patch(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return RelationPatch_Verb(dco_decode_String(raw[1]));
+      case 1:
+        return RelationPatch_Style(
+          dco_decode_opt_box_autoadd_relation_style(raw[1]),
+        );
+      case 2:
+        return RelationPatch_Layout(
+          dco_decode_opt_box_autoadd_relation_layout(raw[1]),
+        );
+      case 3:
+        return RelationPatch_Directionless(dco_decode_bool(raw[1]));
+      default:
+        throw Exception("unreachable");
+    }
+  }
+
+  @protected
   RelationStyle dco_decode_relation_style(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -2034,6 +2172,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return Size(
       width: dco_decode_i_32(arr[0]),
       height: dco_decode_i_32(arr[1]),
+    );
+  }
+
+  @protected
+  SymmetricEntityPatch dco_decode_symmetric_entity_patch(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return SymmetricEntityPatch(
+      id: dco_decode_record_strings(arr[0]),
+      forward: dco_decode_entity_patch(arr[1]),
+      reverse: dco_decode_entity_patch(arr[2]),
     );
   }
 
@@ -2356,6 +2507,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Content sse_decode_box_autoadd_content(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_content(deserializer));
+  }
+
+  @protected
+  Coordinates sse_decode_box_autoadd_coordinates(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_coordinates(deserializer));
+  }
+
+  @protected
   PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_i_64(deserializer));
@@ -2419,6 +2582,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_relation_style(deserializer));
+  }
+
+  @protected
+  Size sse_decode_box_autoadd_size(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_size(deserializer));
+  }
+
+  @protected
+  SymmetricEntityPatch sse_decode_box_autoadd_symmetric_entity_patch(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_symmetric_entity_patch(deserializer));
   }
 
   @protected
@@ -2489,6 +2666,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
     return DisplayMode.values[inner];
+  }
+
+  @protected
+  EntityPatch sse_decode_entity_patch(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        var var_field0 = sse_decode_list_node_patch(deserializer);
+        return EntityPatch_Node(var_field0);
+      case 1:
+        var var_field0 = sse_decode_list_relation_patch(deserializer);
+        return EntityPatch_Relation(var_field0);
+      default:
+        throw UnimplementedError('');
+    }
   }
 
   @protected
@@ -2771,10 +2965,36 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<NodePatch> sse_decode_list_node_patch(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <NodePatch>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_node_patch(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
     return deserializer.buffer.getUint8List(len_);
+  }
+
+  @protected
+  List<RelationPatch> sse_decode_list_relation_patch(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <RelationPatch>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_relation_patch(deserializer));
+    }
+    return ans_;
   }
 
   @protected
@@ -2855,6 +3075,38 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
     return MarkType.values[inner];
+  }
+
+  @protected
+  NodePatch sse_decode_node_patch(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        var var_field0 = sse_decode_box_autoadd_coordinates(deserializer);
+        return NodePatch_Position(var_field0);
+      case 1:
+        var var_field0 = sse_decode_box_autoadd_size(deserializer);
+        return NodePatch_Size(var_field0);
+      case 2:
+        var var_field0 = sse_decode_box_autoadd_content(deserializer);
+        return NodePatch_Content(var_field0);
+      case 3:
+        var var_field0 = sse_decode_bool(deserializer);
+        return NodePatch_IsExpanded(var_field0);
+      case 4:
+        var var_field0 = sse_decode_opt_box_autoadd_node_style(deserializer);
+        return NodePatch_Style(var_field0);
+      case 5:
+        var var_field0 = sse_decode_list_String(deserializer);
+        return NodePatch_Tags(var_field0);
+      case 6:
+        var var_field0 = sse_decode_u_8(deserializer);
+        return NodePatch_Significance(var_field0);
+      default:
+        throw UnimplementedError('');
+    }
   }
 
   @protected
@@ -3094,6 +3346,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  RelationPatch sse_decode_relation_patch(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        var var_field0 = sse_decode_String(deserializer);
+        return RelationPatch_Verb(var_field0);
+      case 1:
+        var var_field0 = sse_decode_opt_box_autoadd_relation_style(
+          deserializer,
+        );
+        return RelationPatch_Style(var_field0);
+      case 2:
+        var var_field0 = sse_decode_opt_box_autoadd_relation_layout(
+          deserializer,
+        );
+        return RelationPatch_Layout(var_field0);
+      case 3:
+        var var_field0 = sse_decode_bool(deserializer);
+        return RelationPatch_Directionless(var_field0);
+      default:
+        throw UnimplementedError('');
+    }
+  }
+
+  @protected
   RelationStyle sse_decode_relation_style(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_bgColor = sse_decode_u_32(deserializer);
@@ -3136,6 +3415,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_width = sse_decode_i_32(deserializer);
     var var_height = sse_decode_i_32(deserializer);
     return Size(width: var_width, height: var_height);
+  }
+
+  @protected
+  SymmetricEntityPatch sse_decode_symmetric_entity_patch(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_record_strings(deserializer);
+    var var_forward = sse_decode_entity_patch(deserializer);
+    var var_reverse = sse_decode_entity_patch(deserializer);
+    return SymmetricEntityPatch(
+      id: var_id,
+      forward: var_forward,
+      reverse: var_reverse,
+    );
   }
 
   @protected
@@ -3496,6 +3790,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_content(Content self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_content(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_coordinates(
+    Coordinates self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_coordinates(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_i_64(
     PlatformInt64 self,
     SseSerializer serializer,
@@ -3580,6 +3889,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_size(Size self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_size(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_symmetric_entity_patch(
+    SymmetricEntityPatch self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_symmetric_entity_patch(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_task_node(
     TaskNode self,
     SseSerializer serializer,
@@ -3642,6 +3966,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_display_mode(DisplayMode self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_entity_patch(EntityPatch self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case EntityPatch_Node(field0: final field0):
+        sse_encode_i_32(0, serializer);
+        sse_encode_list_node_patch(field0, serializer);
+      case EntityPatch_Relation(field0: final field0):
+        sse_encode_i_32(1, serializer);
+        sse_encode_list_relation_patch(field0, serializer);
+    }
   }
 
   @protected
@@ -3855,6 +4192,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_node_patch(
+    List<NodePatch> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_node_patch(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
     SseSerializer serializer,
@@ -3862,6 +4211,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     serializer.buffer.putUint8List(self);
+  }
+
+  @protected
+  void sse_encode_list_relation_patch(
+    List<RelationPatch> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_relation_patch(item, serializer);
+    }
   }
 
   @protected
@@ -3925,6 +4286,34 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_mark_type(MarkType self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_node_patch(NodePatch self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case NodePatch_Position(field0: final field0):
+        sse_encode_i_32(0, serializer);
+        sse_encode_box_autoadd_coordinates(field0, serializer);
+      case NodePatch_Size(field0: final field0):
+        sse_encode_i_32(1, serializer);
+        sse_encode_box_autoadd_size(field0, serializer);
+      case NodePatch_Content(field0: final field0):
+        sse_encode_i_32(2, serializer);
+        sse_encode_box_autoadd_content(field0, serializer);
+      case NodePatch_IsExpanded(field0: final field0):
+        sse_encode_i_32(3, serializer);
+        sse_encode_bool(field0, serializer);
+      case NodePatch_Style(field0: final field0):
+        sse_encode_i_32(4, serializer);
+        sse_encode_opt_box_autoadd_node_style(field0, serializer);
+      case NodePatch_Tags(field0: final field0):
+        sse_encode_i_32(5, serializer);
+        sse_encode_list_String(field0, serializer);
+      case NodePatch_Significance(field0: final field0):
+        sse_encode_i_32(6, serializer);
+        sse_encode_u_8(field0, serializer);
+    }
   }
 
   @protected
@@ -4145,6 +4534,25 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_relation_patch(RelationPatch self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case RelationPatch_Verb(field0: final field0):
+        sse_encode_i_32(0, serializer);
+        sse_encode_String(field0, serializer);
+      case RelationPatch_Style(field0: final field0):
+        sse_encode_i_32(1, serializer);
+        sse_encode_opt_box_autoadd_relation_style(field0, serializer);
+      case RelationPatch_Layout(field0: final field0):
+        sse_encode_i_32(2, serializer);
+        sse_encode_opt_box_autoadd_relation_layout(field0, serializer);
+      case RelationPatch_Directionless(field0: final field0):
+        sse_encode_i_32(3, serializer);
+        sse_encode_bool(field0, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_relation_style(RelationStyle self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_u_32(self.bgColor, serializer);
@@ -4169,6 +4577,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.width, serializer);
     sse_encode_i_32(self.height, serializer);
+  }
+
+  @protected
+  void sse_encode_symmetric_entity_patch(
+    SymmetricEntityPatch self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_record_strings(self.id, serializer);
+    sse_encode_entity_patch(self.forward, serializer);
+    sse_encode_entity_patch(self.reverse, serializer);
   }
 
   @protected
@@ -4296,6 +4715,12 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
     rustArcDecrementStrongCountPtr:
         RustLib.instance.api.rust_arc_decrement_strong_count_AppHandlePtr,
   );
+
+  Future<void> applyEntityMutation({required SymmetricEntityPatch mutation}) =>
+      RustLib.instance.api.crateBridgeApiAppHandleApplyEntityMutation(
+        that: this,
+        mutation: mutation,
+      );
 
   Repository get repo => RustLib.instance.api
       .crateBridgeApiAppHandleAutoAccessorGetRepo(that: this);

@@ -33,6 +33,7 @@ impl Record {
     }
 }
 
+#[derive(Debug, Clone, SurrealValue)]
 pub struct RecordStrings {
     pub table: String,
     pub key: String,
@@ -167,4 +168,31 @@ impl Default for BoundingBox {
             max_y: 2500.0,
         }
     }
+}
+
+// -----------------------------------------------------------------------------
+// Targeted Updates & Patches
+// -----------------------------------------------------------------------------
+
+use crate::domain::nodes::NodePatch;
+use crate::domain::relations::RelationPatch;
+
+#[derive(Debug, Clone, SurrealValue)]
+pub enum EntityPatch {
+    Node(Vec<NodePatch>),
+    Relation(Vec<RelationPatch>),
+}
+
+#[derive(Debug, Clone, SurrealValue)]
+pub struct SymmetricEntityPatch {
+    pub id: RecordStrings,
+    pub forward: EntityPatch,
+    pub reverse: EntityPatch,
+}
+
+#[derive(Debug, Clone, SurrealValue)]
+pub struct PatchHistoryPayload {
+    pub id: RecordStrings,
+    pub forward: EntityPatch,
+    pub reverse: EntityPatch,
 }

@@ -127,8 +127,12 @@ class GraphRelationMutations {
 
     final cmd = UpdateRelationLayoutCommand(
       targetId: id,
+      tableName: 'IRelation',
       api: controller.syncEngine.api,
-      newRelation: updatedRelation,
+      oldLayout: oldRelation.layout,
+      newLayout: updatedRelation.layout,
+      oldStyle: oldRelation.style,
+      newStyle: updatedRelation.style,
       onUndo: () {
         _relLog.warning('Relation layout update failed or rejected. Rolling back.');
         controller.store.relationLookup[id] = oldRelation;

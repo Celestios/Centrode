@@ -44,17 +44,18 @@ class GraphPropertyMutations {
       rel.verb = newText;
     }
 
-    // 2. Build FFI payload (shallow copy of the now-mutated object)
-    final UiNode? newNode = UiNode.copy(node);
-    final UiRelation? newRelation = UiRelation.copy(rel);
-
     // 3. Queue command with primitive rollback
     controller.syncEngine.processor.queueCommand(
       UpdateTextCommand(
         targetId: id,
+        tableName: node?.tableName ?? 'IRelation',
         api: controller.syncEngine.api,
-        newNode: newNode,
-        newRelation: newRelation,
+        oldContent: node == null ? null : ContentFactory.fromText(effectiveOriginalText),
+        newContent: node == null ? null : ContentFactory.fromText(newText),
+        oldSize: node == null ? null : preEditSize,
+        newSize: node?.size,
+        oldVerb: rel == null ? null : effectiveOriginalText,
+        newVerb: rel == null ? null : newText,
         onUndo: () {
           // Restore exactly the field and dimensions that were changed
           if (node != null) {

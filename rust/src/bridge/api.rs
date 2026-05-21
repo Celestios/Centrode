@@ -1,7 +1,9 @@
 use crate::bridge::stream::{self, GraphEvent};
 use crate::domain::analysis::GraphAnalysis;
-use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings};
-use crate::domain::nodes::{INode, InterNode, Nodes, TaskNode};
+use crate::domain::base_models::{
+    IsTable, MapData, Record, RecordStrings, SymmetricEntityPatch, EntityPatch, PatchHistoryPayload
+};
+use crate::domain::nodes::{INode, InterNode, Nodes, TaskNode, NodePatch};
 use crate::domain::relations::IRelation;
 use crate::domain::theme::{Theme, ThemeFields};
 use crate::format::packager;
@@ -109,6 +111,34 @@ impl AppHandle {
             error!("FFI: Repository failed to update node {}", e);
             e
         })?;
+        Ok(())
+    }
+
+    pub async fn apply_entity_mutation(&self, mutation: SymmetricEntityPatch) -> anyhow::Result<()> {
+        let record_id = RecordId::new(mutation.id.table.as_str(), mutation.id.key.as_str());
+        
+        // 1. Apply the forward mutation to SurrealDB
+        self.repo.patch_entity(record_id.clone(), &mutation.forward).await?;
+        
+        // 2. Log to the history stack
+        let history_manager = HistoryManager::new(self.repo.db(), 100);
+        let history_payload = PatchHistoryPayload {
+            id: mutation.id.clone(),
+            forward: mutation.forward.clone(),
+            reverse: mutation.reverse.clone(),
+        };
+        history_manager.push_event("entity_patch", history_payload.into_value()).await?;
+        
+        // 3. Broadcast boundary changes if spatial coordinates changed
+        let has_position_change = if let EntityPatch::Node(ref patches) = mutation.forward {
+            patches.iter().any(|p| matches!(p, NodePatch::Position(_)))
+        } else {
+            false
+        };
+        if has_position_change {
+            self.broadcast_boundaries().await;
+        }
+        
         Ok(())
     }
 
@@ -426,13 +456,49 @@ impl AppHandle {
     pub async fn undo(&self) -> anyhow::Result<Option<HistoryRecord>> {
         tracing::debug!("FFI: undo called");
         let history_manager = HistoryManager::new(self.repo.db(), 100);
-        history_manager.undo().await
+        let record = history_manager.undo().await?;
+        if let Some(ref rec) = record {
+            if rec.action_type == "entity_patch" {
+                let payload = PatchHistoryPayload::from_value(rec.payload.clone())?;
+                let record_id = RecordId::new(payload.id.table.as_str(), payload.id.key.as_str());
+                self.repo.patch_entity(record_id, &payload.reverse).await?;
+                
+                // Broadcast boundary changes if spatial coordinates changed in reverse patch
+                let has_position_change = if let EntityPatch::Node(ref patches) = payload.reverse {
+                    patches.iter().any(|p| matches!(p, NodePatch::Position(_)))
+                } else {
+                    false
+                };
+                if has_position_change {
+                    self.broadcast_boundaries().await;
+                }
+            }
+        }
+        Ok(record)
     }
 
     pub async fn redo(&self) -> anyhow::Result<Option<HistoryRecord>> {
         tracing::debug!("FFI: redo called");
         let history_manager = HistoryManager::new(self.repo.db(), 100);
-        history_manager.redo().await
+        let record = history_manager.redo().await?;
+        if let Some(ref rec) = record {
+            if rec.action_type == "entity_patch" {
+                let payload = PatchHistoryPayload::from_value(rec.payload.clone())?;
+                let record_id = RecordId::new(payload.id.table.as_str(), payload.id.key.as_str());
+                self.repo.patch_entity(record_id, &payload.forward).await?;
+                
+                // Broadcast boundary changes if spatial coordinates changed in forward patch
+                let has_position_change = if let EntityPatch::Node(ref patches) = payload.forward {
+                    patches.iter().any(|p| matches!(p, NodePatch::Position(_)))
+                } else {
+                    false
+                };
+                if has_position_change {
+                    self.broadcast_boundaries().await;
+                }
+            }
+        }
+        Ok(record)
     }
 }
 

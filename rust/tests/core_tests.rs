@@ -567,3 +567,116 @@ async fn test_decay_significance_propagation() {
         panic!("Failed to retrieve Node C");
     }
 }
+
+#[tokio::test]
+async fn test_targeted_patch_and_history() {
+    use mycelium_core::domain::base_models::{EntityPatch, PatchHistoryPayload, RecordStrings};
+    use mycelium_core::domain::nodes::NodePatch;
+
+    let repo = setup_test_repo().await;
+    let history = HistoryManager::new(repo.db(), 5);
+
+    // 1. Create a node
+    let inode = INode {
+        key: "inode_patch_test".to_string(),
+        fields: INodeFields {
+            content: Content::from_plain_text("Patch test node"),
+            style: None,
+            resolved_style: None,
+            layer: "default".to_string(),
+            position: Coordinates { x: 10, y: 20 },
+            size: Size {
+                width: 100,
+                height: 50,
+            },
+            line_count: 1,
+            expandable: true,
+            is_expanded: false,
+            locked: false,
+            tags: vec![],
+            aliases: vec![],
+            comments: vec![],
+            attachment: None,
+            significance: 0,
+            created_at: 0,
+            updated_at: 0,
+        },
+    };
+    repo.create_node(Nodes::INode(inode)).await.unwrap();
+
+    let record_id = RecordId::new("INode", "inode_patch_test");
+
+    // 2. Define targeted patch mutations
+    let forward_patch = EntityPatch::Node(vec![
+        NodePatch::Position(Coordinates { x: 50, y: 60 }),
+        NodePatch::IsExpanded(true),
+    ]);
+    let reverse_patch = EntityPatch::Node(vec![
+        NodePatch::Position(Coordinates { x: 10, y: 20 }),
+        NodePatch::IsExpanded(false),
+    ]);
+
+    // 3. Apply forward patch
+    repo.patch_entity(record_id.clone(), &forward_patch).await.unwrap();
+
+    // Verify database is updated
+    let fetched = repo.get_node("INode".to_string(), "inode_patch_test".to_string()).await.unwrap().unwrap();
+    if let Nodes::INode(ref n) = fetched {
+        assert_eq!(n.fields.position.x, 50);
+        assert_eq!(n.fields.position.y, 60);
+        assert_eq!(n.fields.is_expanded, true);
+    } else {
+        panic!("Incorrect node type");
+    }
+
+    // 4. Log to history
+    let payload = PatchHistoryPayload {
+        id: RecordStrings {
+            table: "INode".to_string(),
+            key: "inode_patch_test".to_string(),
+        },
+        forward: forward_patch,
+        reverse: reverse_patch,
+    };
+    history.push_event("entity_patch", payload.into_value()).await.unwrap();
+
+    // 5. Undo
+    let undone = history.undo().await.unwrap();
+    assert!(undone.is_some());
+    let rec_undone = undone.unwrap();
+    assert_eq!(rec_undone.action_type, "entity_patch");
+
+    let payload_undone = PatchHistoryPayload::from_value(rec_undone.payload).unwrap();
+    let target_id = RecordId::new(payload_undone.id.table.as_str(), payload_undone.id.key.as_str());
+    repo.patch_entity(target_id, &payload_undone.reverse).await.unwrap();
+
+    // Verify undone state
+    let fetched_undone = repo.get_node("INode".to_string(), "inode_patch_test".to_string()).await.unwrap().unwrap();
+    if let Nodes::INode(ref n) = fetched_undone {
+        assert_eq!(n.fields.position.x, 10);
+        assert_eq!(n.fields.position.y, 20);
+        assert_eq!(n.fields.is_expanded, false);
+    } else {
+        panic!("Incorrect node type");
+    }
+
+    // 6. Redo
+    let redone = history.redo().await.unwrap();
+    assert!(redone.is_some());
+    let rec_redone = redone.unwrap();
+    assert_eq!(rec_redone.action_type, "entity_patch");
+
+    let payload_redone = PatchHistoryPayload::from_value(rec_redone.payload).unwrap();
+    let target_id_redone = RecordId::new(payload_redone.id.table.as_str(), payload_redone.id.key.as_str());
+    repo.patch_entity(target_id_redone, &payload_redone.forward).await.unwrap();
+
+    // Verify redone state
+    let fetched_redone = repo.get_node("INode".to_string(), "inode_patch_test".to_string()).await.unwrap().unwrap();
+    if let Nodes::INode(ref n) = fetched_redone {
+        assert_eq!(n.fields.position.x, 50);
+        assert_eq!(n.fields.position.y, 60);
+        assert_eq!(n.fields.is_expanded, true);
+    } else {
+        panic!("Incorrect node type");
+    }
+}

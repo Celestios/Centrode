@@ -101,8 +101,10 @@ class GraphNodeMutations {
 
     final cmd = MoveNodeCommand(
       targetId: id,
-      newNode: node,
+      tableName: node.tableName,
       api: controller.syncEngine.api,
+      oldPosition: oldPosition,
+      newPosition: newPosition,
       onSuccess: () => controller.spatial.saveConfirmedPosition(id, newPosition),
       onUndo: () {
         node.position = oldPosition;
@@ -148,8 +150,14 @@ class GraphNodeMutations {
 
     final cmd = MoveNodeCommand(
       targetId: id,
-      newNode: node,
+      tableName: node.tableName,
       api: controller.syncEngine.api,
+      oldPosition: oldPosition,
+      newPosition: newPosition,
+      oldSize: oldSize,
+      newSize: node.size,
+      oldStyle: oldStyle,
+      newStyle: node.style,
       onSuccess: () => controller.spatial.saveConfirmedPosition(id, newPosition),
       onUndo: () {
         node.position = oldPosition;
@@ -184,8 +192,12 @@ class GraphNodeMutations {
 
     final cmd = MoveNodeCommand(
       targetId: id,
-      newNode: node,
+      tableName: node.tableName,
       api: controller.syncEngine.api,
+      oldSize: oldSize,
+      newSize: node.size,
+      oldExpanded: oldExpanded,
+      newExpanded: newExpanded,
       onSuccess: () => controller.spatial.saveConfirmedPosition(id, node.position),
       onUndo: () {
         node.isExpanded = oldExpanded;

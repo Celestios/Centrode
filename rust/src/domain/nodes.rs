@@ -98,3 +98,14 @@ pub enum Nodes {
     TaskNode(TaskNode),
     InterNode(InterNode),
 }
+
+#[derive(Debug, Clone, SurrealValue)]
+pub enum NodePatch {
+    Position(Coordinates),
+    Size(Size),
+    Content(Content),
+    IsExpanded(bool),
+    Style(Option<NodeStyle>),
+    Tags(Vec<String>),
+    Significance(u8),
+}

@@ -1,8 +1,12 @@
 import 'dart:ui';
-import 'package:flutter/foundation.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'graph_node.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
+import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
+import 'package:mycelium/src/rust/domain/nodes.dart';
+import 'package:mycelium/src/rust/domain/relations.dart';
+import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/src/rust/domain/contents.dart';
 
 // -----------------------------------------------------------------------------
 // Command Pattern for State Mutations with Write-Behind Debouncing
@@ -35,15 +39,31 @@ abstract class GraphCommand {
 class MoveNodeCommand implements GraphCommand {
   @override
   String targetId;
-  final UiNode newNode; // node with updated position
+  final String tableName;
   final AppHandle api;
+  final Offset? oldPosition;
+  final Offset? newPosition;
+  final Size? oldSize;
+  final Size? newSize;
+  final NodeStyle? oldStyle;
+  final NodeStyle? newStyle;
+  final bool? oldExpanded;
+  final bool? newExpanded;
   final VoidCallback onSuccess;
   final VoidCallback onUndo; // called on rollback
 
   MoveNodeCommand({
     required this.targetId,
-    required this.newNode,
+    required this.tableName,
     required this.api,
+    this.oldPosition,
+    this.newPosition,
+    this.oldSize,
+    this.newSize,
+    this.oldStyle,
+    this.newStyle,
+    this.oldExpanded,
+    this.newExpanded,
     required this.onSuccess,
     required this.onUndo,
   });
@@ -53,7 +73,46 @@ class MoveNodeCommand implements GraphCommand {
 
   @override
   Future<void> execute() async {
-    await api.updateNode(input: newNode.toRust());
+    final List<NodePatch> forwardPatches = [];
+    final List<NodePatch> reversePatches = [];
+
+    if (newPosition != null && oldPosition != null) {
+      forwardPatches.add(NodePatch.position(frb.Coordinates(
+        x: newPosition!.dx.round(),
+        y: newPosition!.dy.round(),
+      )));
+      reversePatches.add(NodePatch.position(frb.Coordinates(
+        x: oldPosition!.dx.round(),
+        y: oldPosition!.dy.round(),
+      )));
+    }
+    if (newSize != null && oldSize != null) {
+      forwardPatches.add(NodePatch.size(frb.Size(
+        width: newSize!.width.round(),
+        height: newSize!.height.round(),
+      )));
+      reversePatches.add(NodePatch.size(frb.Size(
+        width: oldSize!.width.round(),
+        height: oldSize!.height.round(),
+      )));
+    }
+    if (newStyle != null || oldStyle != null) {
+      forwardPatches.add(NodePatch.style(newStyle));
+      reversePatches.add(NodePatch.style(oldStyle));
+    }
+    if (newExpanded != null && oldExpanded != null) {
+      forwardPatches.add(NodePatch.isExpanded(newExpanded!));
+      reversePatches.add(NodePatch.isExpanded(oldExpanded!));
+    }
+
+    if (forwardPatches.isNotEmpty) {
+      final patch = frb.SymmetricEntityPatch(
+        id: frb.RecordStrings(table: tableName, key: targetId),
+        forward: frb.EntityPatch.node(forwardPatches),
+        reverse: frb.EntityPatch.node(reversePatches),
+      );
+      await api.applyEntityMutation(mutation: patch);
+    }
     onSuccess();
   }
 
@@ -98,37 +157,80 @@ class DeleteNodeCommand implements GraphCommand {
 class UpdateTextCommand implements GraphCommand {
   @override
   String targetId;
+  final String tableName;
   final AppHandle api;
-  final UiNode? newNode; // snapshot with new content
-  final UiRelation? newRelation; // snapshot with new verb
-  final VoidCallback onUndo; // extra rollback work if needed
+  final Content? oldContent;
+  final Content? newContent;
+  final Size? oldSize;
+  final Size? newSize;
+  final String? oldVerb;
+  final String? newVerb;
+  final VoidCallback onUndo;
 
   UpdateTextCommand({
     required this.targetId,
+    required this.tableName,
     required this.api,
-    this.newNode,
-    this.newRelation,
+    this.oldContent,
+    this.newContent,
+    this.oldSize,
+    this.newSize,
+    this.oldVerb,
+    this.newVerb,
     required this.onUndo,
-  }) : assert(
-         newNode != null || newRelation != null,
-         'Must provide either node or relation',
-       );
+  });
 
   @override
   CommandCategory get category => CommandCategory.content;
 
   @override
   Future<void> execute() async {
-    if (newNode != null) {
-      await api.updateNode(input: newNode!.toRust());
-    } else if (newRelation != null) {
-      await api.updateRelation(input: newRelation!.toRust());
+    if (tableName == 'IRelation') {
+      final List<RelationPatch> forwardPatches = [];
+      final List<RelationPatch> reversePatches = [];
+      if (newVerb != null && oldVerb != null) {
+        forwardPatches.add(RelationPatch.verb(newVerb!));
+        reversePatches.add(RelationPatch.verb(oldVerb!));
+      }
+      if (forwardPatches.isNotEmpty) {
+        final patch = frb.SymmetricEntityPatch(
+          id: frb.RecordStrings(table: tableName, key: targetId),
+          forward: frb.EntityPatch.relation(forwardPatches),
+          reverse: frb.EntityPatch.relation(reversePatches),
+        );
+        await api.applyEntityMutation(mutation: patch);
+      }
+    } else {
+      final List<NodePatch> forwardPatches = [];
+      final List<NodePatch> reversePatches = [];
+      if (newContent != null && oldContent != null) {
+        forwardPatches.add(NodePatch.content(newContent!));
+        reversePatches.add(NodePatch.content(oldContent!));
+      }
+      if (newSize != null && oldSize != null) {
+        forwardPatches.add(NodePatch.size(frb.Size(
+          width: newSize!.width.round(),
+          height: newSize!.height.round(),
+        )));
+        reversePatches.add(NodePatch.size(frb.Size(
+          width: oldSize!.width.round(),
+          height: oldSize!.height.round(),
+        )));
+      }
+      if (forwardPatches.isNotEmpty) {
+        final patch = frb.SymmetricEntityPatch(
+          id: frb.RecordStrings(table: tableName, key: targetId),
+          forward: frb.EntityPatch.node(forwardPatches),
+          reverse: frb.EntityPatch.node(reversePatches),
+        );
+        await api.applyEntityMutation(mutation: patch);
+      }
     }
   }
 
   @override
   void undo() {
-    onUndo(); // caller restores the old text/verb
+    onUndo();
   }
 }
 
@@ -222,14 +324,22 @@ class DeleteRelationCommand implements GraphCommand {
 class UpdateRelationLayoutCommand implements GraphCommand {
   @override
   String targetId;
+  final String tableName;
   final AppHandle api;
-  final UiRelation newRelation;
+  final RelationLayout? oldLayout;
+  final RelationLayout? newLayout;
+  final RelationStyle? oldStyle;
+  final RelationStyle? newStyle;
   final VoidCallback onUndo;
 
   UpdateRelationLayoutCommand({
     required this.targetId,
+    required this.tableName,
     required this.api,
-    required this.newRelation,
+    this.oldLayout,
+    this.newLayout,
+    this.oldStyle,
+    this.newStyle,
     required this.onUndo,
   });
 
@@ -238,7 +348,26 @@ class UpdateRelationLayoutCommand implements GraphCommand {
 
   @override
   Future<void> execute() async {
-    await api.updateRelation(input: newRelation.toRust());
+    final List<RelationPatch> forwardPatches = [];
+    final List<RelationPatch> reversePatches = [];
+
+    if (newLayout != null || oldLayout != null) {
+      forwardPatches.add(RelationPatch.layout(newLayout));
+      reversePatches.add(RelationPatch.layout(oldLayout));
+    }
+    if (newStyle != null || oldStyle != null) {
+      forwardPatches.add(RelationPatch.style(newStyle));
+      reversePatches.add(RelationPatch.style(oldStyle));
+    }
+
+    if (forwardPatches.isNotEmpty) {
+      final patch = frb.SymmetricEntityPatch(
+        id: frb.RecordStrings(table: tableName, key: targetId),
+        forward: frb.EntityPatch.relation(forwardPatches),
+        reverse: frb.EntityPatch.relation(reversePatches),
+      );
+      await api.applyEntityMutation(mutation: patch);
+    }
   }
 
   @override

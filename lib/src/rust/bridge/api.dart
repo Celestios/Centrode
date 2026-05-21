@@ -26,6 +26,8 @@ Stream<LogState> createLogStream() =>
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>>
 abstract class AppHandle implements RustOpaqueInterface {
+  Future<void> applyEntityMutation({required SymmetricEntityPatch mutation});
+
   Repository get repo;
 
   set repo(Repository repo);

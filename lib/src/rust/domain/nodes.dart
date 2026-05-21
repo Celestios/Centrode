@@ -174,6 +174,19 @@ class InterNodeFields {
 }
 
 @freezed
+sealed class NodePatch with _$NodePatch {
+  const NodePatch._();
+
+  const factory NodePatch.position(Coordinates field0) = NodePatch_Position;
+  const factory NodePatch.size(Size field0) = NodePatch_Size;
+  const factory NodePatch.content(Content field0) = NodePatch_Content;
+  const factory NodePatch.isExpanded(bool field0) = NodePatch_IsExpanded;
+  const factory NodePatch.style([NodeStyle? field0]) = NodePatch_Style;
+  const factory NodePatch.tags(List<String> field0) = NodePatch_Tags;
+  const factory NodePatch.significance(int field0) = NodePatch_Significance;
+}
+
+@freezed
 sealed class Nodes with _$Nodes {
   const Nodes._();
 

@@ -5,7 +5,9 @@
 
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 import 'styles.dart';
+part 'relations.freezed.dart';
 
 class IRelation {
   final String key;
@@ -84,4 +86,17 @@ class IRelationFields {
           layer == other.layer &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt;
+}
+
+@freezed
+sealed class RelationPatch with _$RelationPatch {
+  const RelationPatch._();
+
+  const factory RelationPatch.verb(String field0) = RelationPatch_Verb;
+  const factory RelationPatch.style([RelationStyle? field0]) =
+      RelationPatch_Style;
+  const factory RelationPatch.layout([RelationLayout? field0]) =
+      RelationPatch_Layout;
+  const factory RelationPatch.directionless(bool field0) =
+      RelationPatch_Directionless;
 }

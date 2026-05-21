@@ -1,9 +1,9 @@
 use crate::domain::analysis::DecaySignificanceStrategy;
-use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings};
+use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings, EntityPatch};
 use crate::domain::nodes::{
-    INode, INodeFields, InterNode, InterNodeFields, Nodes, TaskNode, TaskNodeFields,
+    INode, INodeFields, InterNode, InterNodeFields, Nodes, TaskNode, TaskNodeFields, NodePatch,
 };
-use crate::domain::relations::{IRelation, IRelationFields};
+use crate::domain::relations::{IRelation, IRelationFields, RelationPatch};
 
 use anyhow::Result;
 use surrealdb::engine::local::Db;
@@ -377,6 +377,73 @@ impl Repository {
             .bind(("to", to_record))
             .await?;
 
+        Ok(())
+    }
+
+    pub async fn patch_entity(&self, id: RecordId, patch: &EntityPatch) -> Result<()> {
+        match patch {
+            EntityPatch::Node(patches) => {
+                for node_patch in patches {
+                    self.patch_node(id.clone(), node_patch).await?;
+                }
+                Ok(())
+            }
+            EntityPatch::Relation(patches) => {
+                for rel_patch in patches {
+                    self.patch_relation(id.clone(), rel_patch).await?;
+                }
+                Ok(())
+            }
+        }
+    }
+
+    async fn patch_node(&self, id: RecordId, patch: &NodePatch) -> Result<()> {
+        let (query_str, bind_val) = match patch {
+            NodePatch::Position(coords) => ("UPDATE $id SET position = $val", coords.clone().into_value()),
+            NodePatch::Size(size) => ("UPDATE $id SET size = $val", size.clone().into_value()),
+            NodePatch::Content(content) => ("UPDATE $id SET content = $val", content.clone().into_value()),
+            NodePatch::IsExpanded(val) => ("UPDATE $id SET is_expanded = $val", Value::Bool(*val)),
+            NodePatch::Style(style) => {
+                let val = match style {
+                    Some(s) => s.clone().into_value(),
+                    None => Value::None,
+                };
+                ("UPDATE $id SET style = $val", val)
+            }
+            NodePatch::Tags(tags) => {
+                let arr: Vec<Value> = tags.iter().map(|t| Value::String(t.clone())).collect();
+                ("UPDATE $id SET tags = $val", Value::Array(arr.into()))
+            }
+            NodePatch::Significance(sig) => {
+                ("UPDATE $id SET significance = $val", Value::Number(surrealdb::types::Number::from(*sig as i32)))
+            }
+        };
+        
+        self.db.query(query_str).bind(("id", id)).bind(("val", bind_val)).await?;
+        Ok(())
+    }
+
+    async fn patch_relation(&self, id: RecordId, patch: &RelationPatch) -> Result<()> {
+        let (query_str, bind_val) = match patch {
+            RelationPatch::Verb(verb) => ("UPDATE $id SET verb = $val", Value::String(verb.clone())),
+            RelationPatch::Style(style) => {
+                let val = match style {
+                    Some(s) => s.clone().into_value(),
+                    None => Value::None,
+                };
+                ("UPDATE $id SET style = $val", val)
+            }
+            RelationPatch::Layout(layout) => {
+                let val = match layout {
+                    Some(l) => l.clone().into_value(),
+                    None => Value::None,
+                };
+                ("UPDATE $id SET layout = $val", val)
+            }
+            RelationPatch::Directionless(val) => ("UPDATE $id SET directionless = $val", Value::Bool(*val)),
+        };
+        
+        self.db.query(query_str).bind(("id", id)).bind(("val", bind_val)).await?;
         Ok(())
     }
 }

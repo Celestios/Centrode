@@ -127,6 +127,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BoundingBox dco_decode_box_autoadd_bounding_box(dynamic raw);
 
   @protected
+  Content dco_decode_box_autoadd_content(dynamic raw);
+
+  @protected
+  Coordinates dco_decode_box_autoadd_coordinates(dynamic raw);
+
+  @protected
   PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
 
   @protected
@@ -157,6 +163,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RelationStyle dco_decode_box_autoadd_relation_style(dynamic raw);
 
   @protected
+  Size dco_decode_box_autoadd_size(dynamic raw);
+
+  @protected
+  SymmetricEntityPatch dco_decode_box_autoadd_symmetric_entity_patch(
+    dynamic raw,
+  );
+
+  @protected
   TaskNode dco_decode_box_autoadd_task_node(dynamic raw);
 
   @protected
@@ -182,6 +196,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   DisplayMode dco_decode_display_mode(dynamic raw);
+
+  @protected
+  EntityPatch dco_decode_entity_patch(dynamic raw);
 
   @protected
   double dco_decode_f_64(dynamic raw);
@@ -244,7 +261,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<InterNode> dco_decode_list_inter_node(dynamic raw);
 
   @protected
+  List<NodePatch> dco_decode_list_node_patch(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  List<RelationPatch> dco_decode_list_relation_patch(dynamic raw);
 
   @protected
   List<TaskNode> dco_decode_list_task_node(dynamic raw);
@@ -266,6 +289,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MarkType dco_decode_mark_type(dynamic raw);
+
+  @protected
+  NodePatch dco_decode_node_patch(dynamic raw);
 
   @protected
   NodeStyle dco_decode_node_style(dynamic raw);
@@ -325,10 +351,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RelationLayout dco_decode_relation_layout(dynamic raw);
 
   @protected
+  RelationPatch dco_decode_relation_patch(dynamic raw);
+
+  @protected
   RelationStyle dco_decode_relation_style(dynamic raw);
 
   @protected
   Size dco_decode_size(dynamic raw);
+
+  @protected
+  SymmetricEntityPatch dco_decode_symmetric_entity_patch(dynamic raw);
 
   @protected
   TaskNode dco_decode_task_node(dynamic raw);
@@ -452,6 +484,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BoundingBox sse_decode_box_autoadd_bounding_box(SseDeserializer deserializer);
 
   @protected
+  Content sse_decode_box_autoadd_content(SseDeserializer deserializer);
+
+  @protected
+  Coordinates sse_decode_box_autoadd_coordinates(SseDeserializer deserializer);
+
+  @protected
   PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
 
   @protected
@@ -488,6 +526,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  Size sse_decode_box_autoadd_size(SseDeserializer deserializer);
+
+  @protected
+  SymmetricEntityPatch sse_decode_box_autoadd_symmetric_entity_patch(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   TaskNode sse_decode_box_autoadd_task_node(SseDeserializer deserializer);
 
   @protected
@@ -513,6 +559,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   DisplayMode sse_decode_display_mode(SseDeserializer deserializer);
+
+  @protected
+  EntityPatch sse_decode_entity_patch(SseDeserializer deserializer);
 
   @protected
   double sse_decode_f_64(SseDeserializer deserializer);
@@ -579,7 +628,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<InterNode> sse_decode_list_inter_node(SseDeserializer deserializer);
 
   @protected
+  List<NodePatch> sse_decode_list_node_patch(SseDeserializer deserializer);
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  List<RelationPatch> sse_decode_list_relation_patch(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<TaskNode> sse_decode_list_task_node(SseDeserializer deserializer);
@@ -601,6 +658,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MarkType sse_decode_mark_type(SseDeserializer deserializer);
+
+  @protected
+  NodePatch sse_decode_node_patch(SseDeserializer deserializer);
 
   @protected
   NodeStyle sse_decode_node_style(SseDeserializer deserializer);
@@ -670,10 +730,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RelationLayout sse_decode_relation_layout(SseDeserializer deserializer);
 
   @protected
+  RelationPatch sse_decode_relation_patch(SseDeserializer deserializer);
+
+  @protected
   RelationStyle sse_decode_relation_style(SseDeserializer deserializer);
 
   @protected
   Size sse_decode_size(SseDeserializer deserializer);
+
+  @protected
+  SymmetricEntityPatch sse_decode_symmetric_entity_patch(
+    SseDeserializer deserializer,
+  );
 
   @protected
   TaskNode sse_decode_task_node(SseDeserializer deserializer);
@@ -817,6 +885,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_content(Content self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_coordinates(
+    Coordinates self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_i_64(
     PlatformInt64 self,
     SseSerializer serializer,
@@ -871,6 +948,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_size(Size self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_symmetric_entity_patch(
+    SymmetricEntityPatch self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_task_node(
     TaskNode self,
     SseSerializer serializer,
@@ -902,6 +988,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_display_mode(DisplayMode self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_entity_patch(EntityPatch self, SseSerializer serializer);
 
   @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
@@ -982,8 +1071,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_node_patch(
+    List<NodePatch> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_relation_patch(
+    List<RelationPatch> self,
     SseSerializer serializer,
   );
 
@@ -1007,6 +1108,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_mark_type(MarkType self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_node_patch(NodePatch self, SseSerializer serializer);
 
   @protected
   void sse_encode_node_style(NodeStyle self, SseSerializer serializer);
@@ -1093,10 +1197,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_relation_patch(RelationPatch self, SseSerializer serializer);
+
+  @protected
   void sse_encode_relation_style(RelationStyle self, SseSerializer serializer);
 
   @protected
   void sse_encode_size(Size self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_symmetric_entity_patch(
+    SymmetricEntityPatch self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_task_node(TaskNode self, SseSerializer serializer);
