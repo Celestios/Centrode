@@ -13,6 +13,9 @@ abstract class RelationLayoutStrategy {
     if (type == 'bezier') {
       return const BezierRelationLayoutStrategy();
     }
+    if (type == 'orthogonal') {
+      return const OrthogonalRelationLayoutStrategy();
+    }
     return const StraightRelationLayoutStrategy();
   }
 
@@ -407,6 +410,188 @@ class BezierRelationLayoutStrategy extends RelationLayoutStrategy {
         return true;
       }
       prev = next;
+    }
+    return false;
+  }
+}
+
+class OrthogonalRelationLayoutStrategy extends RelationLayoutStrategy {
+  const OrthogonalRelationLayoutStrategy();
+
+  @override
+  Size calculate(UiRelation relation, RelationStyle style) {
+    return AppConfig.interaction.relationLabelHitArea;
+  }
+
+  String _resolveSideFromOffset(NodeViewState vs, Offset offset, String? side) {
+    if (side != null && side != 'Auto') {
+      return side;
+    }
+    String bestSide = 'Right';
+    double bestDist = double.infinity;
+    for (final name in NodeViewState.portNames) {
+      final portPos = vs.getPortPosition(name);
+      final dist = (portPos - offset).distance;
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestSide = name;
+      }
+    }
+    if (bestDist < 5.0) {
+      return bestSide;
+    }
+    return 'Auto';
+  }
+
+  Offset _getCardinalNormal(String side, Offset start, Offset end) {
+    switch (side) {
+      case 'Left':
+      case 'TopLeft':
+      case 'BottomLeft':
+        return const Offset(-1.0, 0.0);
+      case 'Right':
+      case 'TopRight':
+      case 'BottomRight':
+        return const Offset(1.0, 0.0);
+      case 'Top':
+        return const Offset(0.0, -1.0);
+      case 'Bottom':
+        return const Offset(0.0, 1.0);
+      default:
+        final dir = end - start;
+        if (dir.dx.abs() > dir.dy.abs()) {
+          return Offset(dir.dx.sign, 0.0);
+        } else {
+          return Offset(0.0, dir.dy.sign);
+        }
+    }
+  }
+
+  List<Offset> _getOrthogonalPoints(
+    Offset start,
+    Offset end,
+    NodeViewState fromVs,
+    NodeViewState toVs,
+    UiRelation relation,
+  ) {
+    if ((end - start).distance < 25.0) {
+      return [start, end];
+    }
+
+    final layout = relation.resolvedLayout ?? relation.layout;
+    final startSide = _resolveSideFromOffset(fromVs, start, layout?.fromSide);
+    final endSide = _resolveSideFromOffset(toVs, end, layout?.toSide);
+
+    final nStart = _getCardinalNormal(startSide, start, end);
+    final nEnd = _getCardinalNormal(endSide, end, start);
+
+    const gap = 20.0;
+    final pStart = start + nStart * gap;
+    final pEnd = end + nEnd * gap;
+
+    final List<Offset> points = [start, pStart];
+
+    final isStartHorizontal = nStart.dx.abs() > 0.5;
+    final isEndHorizontal = nEnd.dx.abs() > 0.5;
+
+    if (isStartHorizontal && isEndHorizontal) {
+      final midX = (pStart.dx + pEnd.dx) / 2;
+      points.add(Offset(midX, pStart.dy));
+      points.add(Offset(midX, pEnd.dy));
+    } else if (!isStartHorizontal && !isEndHorizontal) {
+      final midY = (pStart.dy + pEnd.dy) / 2;
+      points.add(Offset(pStart.dx, midY));
+      points.add(Offset(pEnd.dx, midY));
+    } else if (isStartHorizontal && !isEndHorizontal) {
+      points.add(Offset(pEnd.dx, pStart.dy));
+    } else {
+      points.add(Offset(pStart.dx, pEnd.dy));
+    }
+
+    points.add(pEnd);
+    points.add(end);
+
+    final List<Offset> cleanPoints = [];
+    for (final p in points) {
+      if (cleanPoints.isEmpty || (cleanPoints.last - p).distance > 0.1) {
+        cleanPoints.add(p);
+      }
+    }
+    return cleanPoints;
+  }
+
+  @override
+  Path computePath(
+    Offset start,
+    Offset end,
+    NodeViewState fromVs,
+    NodeViewState toVs,
+    UiRelation relation,
+  ) {
+    final points = _getOrthogonalPoints(start, end, fromVs, toVs, relation);
+    final path = Path();
+    if (points.isNotEmpty) {
+      path.moveTo(points.first.dx, points.first.dy);
+      for (int i = 1; i < points.length; i++) {
+        path.lineTo(points[i].dx, points[i].dy);
+      }
+    }
+    return path;
+  }
+
+  @override
+  Offset computeLabelPosition(
+    Offset start,
+    Offset end,
+    NodeViewState fromVs,
+    NodeViewState toVs,
+    UiRelation relation,
+  ) {
+    final points = _getOrthogonalPoints(start, end, fromVs, toVs, relation);
+    if (points.length < 2) return (start + end) / 2;
+
+    double totalLength = 0.0;
+    final List<double> segmentLengths = [];
+    for (int i = 0; i < points.length - 1; i++) {
+      final len = (points[i+1] - points[i]).distance;
+      segmentLengths.add(len);
+      totalLength += len;
+    }
+
+    if (totalLength == 0.0) return points.first;
+
+    final targetLength = totalLength * 0.5;
+    double currentLength = 0.0;
+
+    for (int i = 0; i < segmentLengths.length; i++) {
+      final len = segmentLengths[i];
+      if (currentLength + len >= targetLength) {
+        final t = (targetLength - currentLength) / len;
+        return Offset.lerp(points[i], points[i+1], t)!;
+      }
+      currentLength += len;
+    }
+    return points.last;
+  }
+
+  @override
+  bool isPointNear(
+    Offset p,
+    Offset start,
+    Offset end,
+    NodeViewState fromVs,
+    NodeViewState toVs,
+    UiRelation relation,
+    double threshold,
+  ) {
+    final points = _getOrthogonalPoints(start, end, fromVs, toVs, relation);
+    if (points.length < 2) {
+      return distanceToSegment(p, start, end) <= threshold;
+    }
+    for (int i = 0; i < points.length - 1; i++) {
+      if (distanceToSegment(p, points[i], points[i+1]) <= threshold) {
+        return true;
+      }
     }
     return false;
   }

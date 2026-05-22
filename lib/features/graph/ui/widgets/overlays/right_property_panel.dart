@@ -306,24 +306,24 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                   icon: Icon(
                     Icons.horizontal_rule_rounded,
                     size: 16,
-                    color: currentStrategy != 'bezier'
+                    color: currentStrategy == 'default' || (currentStrategy != 'bezier' && currentStrategy != 'orthogonal')
                         ? theme.colorScheme.primary
                         : theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                   label: Text(
                     'Straight',
                     style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: currentStrategy != 'bezier'
+                      fontSize: 10,
+                      fontWeight: currentStrategy == 'default' || (currentStrategy != 'bezier' && currentStrategy != 'orthogonal')
                           ? FontWeight.bold
                           : FontWeight.normal,
-                      color: currentStrategy != 'bezier'
+                      color: currentStrategy == 'default' || (currentStrategy != 'bezier' && currentStrategy != 'orthogonal')
                           ? theme.colorScheme.primary
                           : theme.colorScheme.onSurface,
                     ),
                   ),
                   style: TextButton.styleFrom(
-                    backgroundColor: currentStrategy != 'bezier'
+                    backgroundColor: currentStrategy == 'default' || (currentStrategy != 'bezier' && currentStrategy != 'orthogonal')
                         ? theme.colorScheme.primary.withValues(alpha: 0.1)
                         : Colors.transparent,
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -333,7 +333,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
               Expanded(
                 child: TextButton.icon(
                   onPressed: () {
@@ -355,7 +355,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                   label: Text(
                     'Bezier',
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 10,
                       fontWeight: currentStrategy == 'bezier'
                           ? FontWeight.bold
                           : FontWeight.normal,
@@ -366,6 +366,48 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                   ),
                   style: TextButton.styleFrom(
                     backgroundColor: currentStrategy == 'bezier'
+                        ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                        : Colors.transparent,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: TextButton.icon(
+                  onPressed: () {
+                    for (final id in relationIds) {
+                      dataController.updateRelationLayout(
+                        id,
+                        strategyType: 'orthogonal',
+                      );
+                    }
+                    setState(() {});
+                  },
+                  icon: Icon(
+                    Icons.alt_route_rounded,
+                    size: 16,
+                    color: currentStrategy == 'orthogonal'
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                  label: Text(
+                    'Orthogonal',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: currentStrategy == 'orthogonal'
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: currentStrategy == 'orthogonal'
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: currentStrategy == 'orthogonal'
                         ? theme.colorScheme.primary.withValues(alpha: 0.1)
                         : Colors.transparent,
                     padding: const EdgeInsets.symmetric(vertical: 8),
