@@ -72,6 +72,7 @@ DEFINE FIELD OVERWRITE style.shadow_blur ON TABLE INode TYPE float;
 DEFINE FIELD OVERWRITE style.shadow_spread ON TABLE INode TYPE float;
 DEFINE FIELD OVERWRITE style.shadow_offset_x ON TABLE INode TYPE float;
 DEFINE FIELD OVERWRITE style.shadow_offset_y ON TABLE INode TYPE float;
+DEFINE FIELD OVERWRITE style.strategy_type ON TABLE INode TYPE string;
 
 -- resolved_style: option<object>
 DEFINE FIELD OVERWRITE resolved_style ON TABLE INode TYPE option<object>;
@@ -91,6 +92,15 @@ DEFINE FIELD OVERWRITE resolved_style.shadow_blur ON TABLE INode TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.shadow_spread ON TABLE INode TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.shadow_offset_x ON TABLE INode TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.shadow_offset_y ON TABLE INode TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.strategy_type ON TABLE INode TYPE string;
+
+-- layout: option<object>
+DEFINE FIELD OVERWRITE layout ON TABLE INode TYPE option<object>;
+DEFINE FIELD OVERWRITE layout.strategy_type ON TABLE INode TYPE string;
+
+-- resolved_layout: option<object>
+DEFINE FIELD OVERWRITE resolved_layout ON TABLE INode TYPE option<object>;
+DEFINE FIELD OVERWRITE resolved_layout.strategy_type ON TABLE INode TYPE string;
 
 DEFINE FIELD OVERWRITE is_expanded ON TABLE INode TYPE bool;
 DEFINE FIELD OVERWRITE expandable ON TABLE INode TYPE bool;
@@ -155,6 +165,7 @@ DEFINE FIELD OVERWRITE style.shadow_blur ON TABLE TaskNode TYPE float;
 DEFINE FIELD OVERWRITE style.shadow_spread ON TABLE TaskNode TYPE float;
 DEFINE FIELD OVERWRITE style.shadow_offset_x ON TABLE TaskNode TYPE float;
 DEFINE FIELD OVERWRITE style.shadow_offset_y ON TABLE TaskNode TYPE float;
+DEFINE FIELD OVERWRITE style.strategy_type ON TABLE TaskNode TYPE string;
 
 -- resolved_style: option<object>
 DEFINE FIELD OVERWRITE resolved_style ON TABLE TaskNode TYPE option<object>;
@@ -174,6 +185,15 @@ DEFINE FIELD OVERWRITE resolved_style.shadow_blur ON TABLE TaskNode TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.shadow_spread ON TABLE TaskNode TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.shadow_offset_x ON TABLE TaskNode TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.shadow_offset_y ON TABLE TaskNode TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.strategy_type ON TABLE TaskNode TYPE string;
+
+-- layout: option<object>
+DEFINE FIELD OVERWRITE layout ON TABLE TaskNode TYPE option<object>;
+DEFINE FIELD OVERWRITE layout.strategy_type ON TABLE TaskNode TYPE string;
+
+-- resolved_layout: option<object>
+DEFINE FIELD OVERWRITE resolved_layout ON TABLE TaskNode TYPE option<object>;
+DEFINE FIELD OVERWRITE resolved_layout.strategy_type ON TABLE TaskNode TYPE string;
 
 DEFINE FIELD OVERWRITE is_expanded ON TABLE TaskNode TYPE bool;
 DEFINE FIELD OVERWRITE expandable ON TABLE TaskNode TYPE bool;
@@ -218,6 +238,7 @@ DEFINE FIELD OVERWRITE style.shadow_color ON TABLE IRelation TYPE int;
 DEFINE FIELD OVERWRITE style.shadow_blur ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE style.shadow_offset_x ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE style.shadow_offset_y ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE style.strategy_type ON TABLE IRelation TYPE string;
 
 DEFINE FIELD OVERWRITE resolved_style ON TABLE IRelation TYPE option<object>;
 DEFINE FIELD OVERWRITE resolved_style.bg_color ON TABLE IRelation TYPE int;
@@ -235,14 +256,17 @@ DEFINE FIELD OVERWRITE resolved_style.shadow_color ON TABLE IRelation TYPE int;
 DEFINE FIELD OVERWRITE resolved_style.shadow_blur ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.shadow_offset_x ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.shadow_offset_y ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE resolved_style.strategy_type ON TABLE IRelation TYPE string;
 
 DEFINE FIELD OVERWRITE layout ON TABLE IRelation TYPE option<object>;
 DEFINE FIELD OVERWRITE layout.from_side ON TABLE IRelation TYPE string;
 DEFINE FIELD OVERWRITE layout.to_side ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE layout.strategy_type ON TABLE IRelation TYPE string;
 
 DEFINE FIELD OVERWRITE resolved_layout ON TABLE IRelation TYPE option<object>;
 DEFINE FIELD OVERWRITE resolved_layout.from_side ON TABLE IRelation TYPE string;
 DEFINE FIELD OVERWRITE resolved_layout.to_side ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE resolved_layout.strategy_type ON TABLE IRelation TYPE string;
 
 DEFINE FIELD OVERWRITE in ON TABLE IRelation TYPE record<INode | TaskNode | InterNode>;
 DEFINE FIELD OVERWRITE out ON TABLE IRelation TYPE record<INode | TaskNode | InterNode>;

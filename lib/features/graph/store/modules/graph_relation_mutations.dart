@@ -15,7 +15,12 @@ class GraphRelationMutations {
   /// Creates a relation between two nodes.
   /// Called by InteractionController when relation drawing completes.
   /// Implements pre-flight validation to prevent duplicate relation crashes.
-  void createRelation(String fromId, String toId, {String? fromSide, String? toSide}) {
+  void createRelation(
+    String fromId,
+    String toId, {
+    String? fromSide,
+    String? toSide,
+  }) {
     final bool relationExists = controller.store.relationLookup.values.any(
       (r) => r.fromNodeId == fromId && r.toNodeId == toId,
     );
@@ -44,6 +49,7 @@ class GraphRelationMutations {
       layout: RelationLayout(
         fromSide: fromSide ?? 'Auto',
         toSide: toSide ?? 'Auto',
+        strategyType: 'default',
       ),
     );
 
@@ -57,23 +63,29 @@ class GraphRelationMutations {
       relation: relation,
       reloadGraph: controller.loadGraph,
       onUndo: () {
-        _relLog.warning('Relation creation rejected or failed. Removing relation: ${relation.id}');
+        _relLog.warning(
+          'Relation creation rejected or failed. Removing relation: ${relation.id}',
+        );
         controller.store.relationLookup.remove(relation.id);
-        controller.publishUpdate(GraphEntityUpdate(
-          id: relation.id,
-          tableName: 'IRelation',
-          type: GraphUpdateType.relationDeleted,
-        ));
+        controller.publishUpdate(
+          GraphEntityUpdate(
+            id: relation.id,
+            tableName: 'IRelation',
+            type: GraphUpdateType.relationDeleted,
+          ),
+        );
         controller.triggerUpdate();
       },
     );
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
-    controller.publishUpdate(GraphEntityUpdate(
-      id: relation.id,
-      tableName: 'IRelation',
-      type: GraphUpdateType.relationAdded,
-      payload: relation,
-    ));
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: relation.id,
+        tableName: 'IRelation',
+        type: GraphUpdateType.relationAdded,
+        payload: relation,
+      ),
+    );
     controller.triggerUpdate();
   }
 
@@ -92,13 +104,16 @@ class GraphRelationMutations {
       onUndo: () {
         _relLog.warning('Deletion rejected. Re-hydrating relation: $id');
         controller.store.relationLookup[id] = relation;
-        controller.publishUpdate(GraphEntityUpdate(
-          id: id,
-          tableName: 'IRelation',
-          type: GraphUpdateType.relationAdded,
-          payload: relation,
-        ));
-        controller.triggerUpdate(); // Force canvas rebuild to re-mount the rehydrated relation
+        controller.publishUpdate(
+          GraphEntityUpdate(
+            id: id,
+            tableName: 'IRelation',
+            type: GraphUpdateType.relationAdded,
+            payload: relation,
+          ),
+        );
+        controller
+            .triggerUpdate(); // Force canvas rebuild to re-mount the rehydrated relation
       },
     );
 
@@ -107,11 +122,13 @@ class GraphRelationMutations {
 
     // Queue command with immediate execution
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
-    controller.publishUpdate(GraphEntityUpdate(
-      id: id,
-      tableName: 'IRelation',
-      type: GraphUpdateType.relationDeleted,
-    ));
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: 'IRelation',
+        type: GraphUpdateType.relationDeleted,
+      ),
+    );
     controller.triggerUpdate();
   }
 
@@ -122,6 +139,7 @@ class GraphRelationMutations {
     String? toNodeId,
     String? fromSide,
     String? toSide,
+    String? strategyType,
   }) {
     final relation = controller.store.relationLookup[id];
     if (relation == null) return;
@@ -129,12 +147,17 @@ class GraphRelationMutations {
     final oldRelation = UiRelation.copy(relation);
     if (oldRelation == null) return;
 
-    final fromNode = fromNodeId != null ? controller.store.nodeLookup[fromNodeId] : null;
-    final toNode = toNodeId != null ? controller.store.nodeLookup[toNodeId] : null;
+    final fromNode = fromNodeId != null
+        ? controller.store.nodeLookup[fromNodeId]
+        : null;
+    final toNode = toNodeId != null
+        ? controller.store.nodeLookup[toNodeId]
+        : null;
 
     final newLayout = RelationLayout(
       fromSide: fromSide ?? relation.layout?.fromSide ?? 'Auto',
       toSide: toSide ?? relation.layout?.toSide ?? 'Auto',
+      strategyType: strategyType ?? relation.layout?.strategyType ?? 'default',
     );
 
     final updatedRelation = (relation as InfoUiRelation).copyWith(
@@ -157,25 +180,32 @@ class GraphRelationMutations {
       oldStyle: oldRelation.style,
       newStyle: updatedRelation.style,
       onUndo: () {
-        _relLog.warning('Relation layout update failed or rejected. Rolling back.');
+        _relLog.warning(
+          'Relation layout update failed or rejected. Rolling back.',
+        );
         controller.store.relationLookup[id] = oldRelation;
-        controller.publishUpdate(GraphEntityUpdate(
-          id: id,
-          tableName: 'IRelation',
-          type: GraphUpdateType.relationLayout,
-          payload: oldRelation.layout,
-        ));
+        controller.publishUpdate(
+          GraphEntityUpdate(
+            id: id,
+            tableName: 'IRelation',
+            type: GraphUpdateType.relationLayout,
+            payload: oldRelation.layout,
+          ),
+        );
+        controller.triggerUpdate();
       },
     );
 
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
-    controller.publishUpdate(GraphEntityUpdate(
-      id: id,
-      tableName: 'IRelation',
-      type: GraphUpdateType.relationLayout,
-      payload: updatedRelation.layout,
-    ));
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: 'IRelation',
+        type: GraphUpdateType.relationLayout,
+        payload: updatedRelation.layout,
+      ),
+    );
+
+    controller.triggerUpdate();
   }
 }
-
-

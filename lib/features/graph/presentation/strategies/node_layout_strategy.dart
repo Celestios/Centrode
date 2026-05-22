@@ -9,15 +9,31 @@ import 'node_style_strategy.dart';
 abstract class NodeLayoutStrategy {
   const NodeLayoutStrategy();
 
+  /// Resolves the correct layout strategy based on type.
+  static NodeLayoutStrategy fromType(String? type, {UiNode? fallbackNode}) {
+    if (type == 'task') {
+      return const TaskNodeLayoutStrategy();
+    }
+    if (type == 'info') {
+      return const InfoNodeLayoutStrategy();
+    }
+    if (fallbackNode != null) {
+      return fallbackNode is TaskUiNode
+          ? const TaskNodeLayoutStrategy()
+          : const InfoNodeLayoutStrategy();
+    }
+    return const InfoNodeLayoutStrategy();
+  }
+
+
   /// Calculates the size of the node.
   /// Snaps the result to the grid defined in [AppConfig].
   Size calculate(UiNode node, NodeStyle? style, {bool isEditing = false});
 
   /// Centralized helper to compute a node's physical size based on its runtime type.
   static Size calculateSize(UiNode node, {bool isEditing = false}) {
-    final strategy = node is InfoUiNode
-        ? const InfoNodeLayoutStrategy()
-        : const TaskNodeLayoutStrategy();
+    final strategyType = node.resolvedLayout?.strategyType ?? node.layout?.strategyType;
+    final strategy = fromType(strategyType, fallbackNode: node);
     return strategy.calculate(node, node.resolvedStyle, isEditing: isEditing);
   }
 }

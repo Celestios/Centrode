@@ -150,6 +150,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   MarkAttrs dco_decode_box_autoadd_mark_attrs(dynamic raw);
 
   @protected
+  NodeLayout dco_decode_box_autoadd_node_layout(dynamic raw);
+
+  @protected
   NodeStyle dco_decode_box_autoadd_node_style(dynamic raw);
 
   @protected
@@ -305,6 +308,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   MarkType dco_decode_mark_type(dynamic raw);
 
   @protected
+  NodeLayout dco_decode_node_layout(dynamic raw);
+
+  @protected
   NodePatch dco_decode_node_patch(dynamic raw);
 
   @protected
@@ -330,6 +336,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MarkAttrs? dco_decode_opt_box_autoadd_mark_attrs(dynamic raw);
+
+  @protected
+  NodeLayout? dco_decode_opt_box_autoadd_node_layout(dynamic raw);
 
   @protected
   NodeStyle? dco_decode_opt_box_autoadd_node_style(dynamic raw);
@@ -531,6 +540,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   MarkAttrs sse_decode_box_autoadd_mark_attrs(SseDeserializer deserializer);
 
   @protected
+  NodeLayout sse_decode_box_autoadd_node_layout(SseDeserializer deserializer);
+
+  @protected
   NodeStyle sse_decode_box_autoadd_node_style(SseDeserializer deserializer);
 
   @protected
@@ -700,6 +712,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   MarkType sse_decode_mark_type(SseDeserializer deserializer);
 
   @protected
+  NodeLayout sse_decode_node_layout(SseDeserializer deserializer);
+
+  @protected
   NodePatch sse_decode_node_patch(SseDeserializer deserializer);
 
   @protected
@@ -727,6 +742,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MarkAttrs? sse_decode_opt_box_autoadd_mark_attrs(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NodeLayout? sse_decode_opt_box_autoadd_node_layout(
     SseDeserializer deserializer,
   );
 
@@ -973,6 +993,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_node_layout(
+    NodeLayout self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_node_style(
     NodeStyle self,
     SseSerializer serializer,
@@ -1177,6 +1203,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_mark_type(MarkType self, SseSerializer serializer);
 
   @protected
+  void sse_encode_node_layout(NodeLayout self, SseSerializer serializer);
+
+  @protected
   void sse_encode_node_patch(NodePatch self, SseSerializer serializer);
 
   @protected
@@ -1210,6 +1239,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_mark_attrs(
     MarkAttrs? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_node_layout(
+    NodeLayout? self,
     SseSerializer serializer,
   );
 

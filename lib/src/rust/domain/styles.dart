@@ -9,6 +9,11 @@ import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'styles.freezed.dart';
 
 @freezed
+sealed class NodeLayout with _$NodeLayout {
+  const factory NodeLayout({required String strategyType}) = _NodeLayout;
+}
+
+@freezed
 sealed class NodeStyle with _$NodeStyle {
   const factory NodeStyle({
     required int bgColor,
@@ -27,6 +32,7 @@ sealed class NodeStyle with _$NodeStyle {
     required double shadowSpread,
     required double shadowOffsetX,
     required double shadowOffsetY,
+    required String strategyType,
   }) = _NodeStyle;
 }
 
@@ -35,6 +41,7 @@ sealed class RelationLayout with _$RelationLayout {
   const factory RelationLayout({
     required String fromSide,
     required String toSide,
+    required String strategyType,
   }) = _RelationLayout;
 }
 
@@ -56,5 +63,6 @@ sealed class RelationStyle with _$RelationStyle {
     required double shadowBlur,
     required double shadowOffsetX,
     required double shadowOffsetY,
+    required String strategyType,
   }) = _RelationStyle;
 }

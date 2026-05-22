@@ -27,6 +27,8 @@ sealed class UiNode {
 
   // ──────────────────── public dependency properties ────────
   NodeStyle? style;
+  NodeLayout? layout;
+  NodeLayout? resolvedLayout;
   Size size;
   Content content;
 
@@ -52,6 +54,8 @@ sealed class UiNode {
     bool? locked,
     this.style,
     this.resolvedStyle,
+    this.layout,
+    this.resolvedLayout,
     String? layer,
     Size? size,
     bool? isExpanded,
@@ -103,6 +107,8 @@ class InfoUiNode extends UiNode {
     super.locked,
     super.style,
     super.resolvedStyle,
+    super.layout,
+    super.resolvedLayout,
     super.layer,
     super.size,
     super.isExpanded,
@@ -126,6 +132,8 @@ class InfoUiNode extends UiNode {
           content: content,
           style: style,
           resolvedStyle: resolvedStyle,
+          layout: layout,
+          resolvedLayout: resolvedLayout,
           layer: layer,
           position: frb.Coordinates(
             x: position.dx.round(),
@@ -160,6 +168,8 @@ class InfoUiNode extends UiNode {
       locked: fields.locked,
       style: fields.style,
       resolvedStyle: fields.resolvedStyle,
+      layout: fields.layout,
+      resolvedLayout: fields.resolvedLayout,
       layer: fields.layer,
       position: Offset(
         fields.position.x.toDouble(),
@@ -189,6 +199,8 @@ class InfoUiNode extends UiNode {
     bool? locked,
     NodeStyle? style,
     NodeStyle? resolvedStyle,
+    NodeLayout? layout,
+    NodeLayout? resolvedLayout,
     String? layer,
     Size? size,
     bool? isExpanded,
@@ -208,6 +220,8 @@ class InfoUiNode extends UiNode {
       locked: locked ?? this.locked,
       style: style ?? this.style,
       resolvedStyle: resolvedStyle ?? this.resolvedStyle,
+      layout: layout ?? this.layout,
+      resolvedLayout: resolvedLayout ?? this.resolvedLayout,
       layer: layer ?? this.layer,
       size: size ?? this.size,
       isExpanded: isExpanded ?? this.isExpanded,
@@ -236,6 +250,8 @@ class TaskUiNode extends UiNode {
     super.locked,
     super.style,
     super.resolvedStyle,
+    super.layout,
+    super.resolvedLayout,
     super.layer,
     super.size,
     super.isExpanded,
@@ -270,6 +286,8 @@ class TaskUiNode extends UiNode {
           layer: layer,
           style: style,
           resolvedStyle: resolvedStyle,
+          layout: layout,
+          resolvedLayout: resolvedLayout,
           significance: significance,
           createdAt: createdAt,
           updatedAt: updatedAt,
@@ -286,6 +304,8 @@ class TaskUiNode extends UiNode {
       updatedAt: fields.updatedAt,
       style: fields.style,
       resolvedStyle: fields.resolvedStyle,
+      layout: fields.layout,
+      resolvedLayout: fields.resolvedLayout,
       layer: fields.layer,
       position: Offset(
         fields.position.x.toDouble(),
@@ -307,6 +327,8 @@ class TaskUiNode extends UiNode {
     bool? locked,
     NodeStyle? style,
     NodeStyle? resolvedStyle,
+    NodeLayout? layout,
+    NodeLayout? resolvedLayout,
     String? layer,
     Size? size,
     bool? isExpanded,
@@ -324,6 +346,8 @@ class TaskUiNode extends UiNode {
       locked: locked ?? this.locked,
       style: style ?? this.style,
       resolvedStyle: resolvedStyle ?? this.resolvedStyle,
+      layout: layout ?? this.layout,
+      resolvedLayout: resolvedLayout ?? this.resolvedLayout,
       layer: layer ?? this.layer,
       size: size ?? this.size,
       isExpanded: isExpanded ?? this.isExpanded,

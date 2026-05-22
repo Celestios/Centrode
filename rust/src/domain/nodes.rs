@@ -1,6 +1,6 @@
 use crate::domain::base_models::{Comment, Coordinates, IsTable, Size};
 use crate::domain::contents::Content;
-use crate::domain::styles::NodeStyle;
+use crate::domain::styles::{NodeLayout, NodeStyle};
 use crate::domain::tags::TagEdge;
 use surrealdb::types::SurrealValue;
 
@@ -49,6 +49,8 @@ pub struct INodeFields {
     pub content: Content,
     pub style: Option<NodeStyle>,
     pub resolved_style: Option<NodeStyle>,
+    pub layout: Option<NodeLayout>,
+    pub resolved_layout: Option<NodeLayout>,
     pub layer: String,
     pub position: Coordinates,
     pub size: Size,
@@ -77,6 +79,8 @@ pub struct TaskNodeFields {
     pub layer: String,
     pub style: Option<NodeStyle>,
     pub resolved_style: Option<NodeStyle>,
+    pub layout: Option<NodeLayout>,
+    pub resolved_layout: Option<NodeLayout>,
     pub significance: u8,
     pub created_at: i64,
     pub updated_at: i64,

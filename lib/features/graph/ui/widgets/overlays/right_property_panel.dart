@@ -270,9 +270,115 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
     final nodeIds = selectedEntities
         .where((id) => dataController.nodeLookup.containsKey(id))
         .toList();
+    final relationIds = selectedEntities
+        .where((id) => dataController.relationLookup.containsKey(id))
+        .toList();
 
-    if (nodeIds.isEmpty) {
-      return _buildCenteredPlaceholder(theme, 'Select nodes to customize appearance');
+    if (nodeIds.isEmpty && relationIds.isEmpty) {
+      return _buildCenteredPlaceholder(
+        theme,
+        'Select an item to customize appearance',
+      );
+    }
+
+    if (relationIds.isNotEmpty && nodeIds.isEmpty) {
+      final firstRelation = dataController.relationLookup[relationIds.first]!;
+      final currentStrategy = firstRelation.layout?.strategyType ?? 'default';
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(theme, 'LINE STYLE'),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton.icon(
+                  onPressed: () {
+                    for (final id in relationIds) {
+                      dataController.updateRelationLayout(
+                        id,
+                        strategyType: 'default',
+                      );
+                    }
+                    setState(() {});
+                  },
+                  icon: Icon(
+                    Icons.horizontal_rule_rounded,
+                    size: 16,
+                    color: currentStrategy != 'bezier'
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                  label: Text(
+                    'Straight',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: currentStrategy != 'bezier'
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: currentStrategy != 'bezier'
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: currentStrategy != 'bezier'
+                        ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                        : Colors.transparent,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextButton.icon(
+                  onPressed: () {
+                    for (final id in relationIds) {
+                      dataController.updateRelationLayout(
+                        id,
+                        strategyType: 'bezier',
+                      );
+                    }
+                    setState(() {});
+                  },
+                  icon: Icon(
+                    Icons.gesture_rounded,
+                    size: 16,
+                    color: currentStrategy == 'bezier'
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                  label: Text(
+                    'Bezier',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: currentStrategy == 'bezier'
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: currentStrategy == 'bezier'
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: currentStrategy == 'bezier'
+                        ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                        : Colors.transparent,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
     }
 
     final firstNode = dataController.nodeLookup[nodeIds.first]!;

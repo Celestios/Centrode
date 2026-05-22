@@ -207,6 +207,7 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
     String? toNodeId,
     String? fromSide,
     String? toSide,
+    String? strategyType,
   }) =>
       relationMutations.updateRelationLayout(
         id,
@@ -214,6 +215,7 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
         toNodeId: toNodeId,
         fromSide: fromSide,
         toSide: toSide,
+        strategyType: strategyType,
       );
 
 

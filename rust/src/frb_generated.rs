@@ -2163,6 +2163,9 @@ impl SseDecode for crate::domain::nodes::INodeFields {
         let mut var_style = <Option<crate::domain::styles::NodeStyle>>::sse_decode(deserializer);
         let mut var_resolvedStyle =
             <Option<crate::domain::styles::NodeStyle>>::sse_decode(deserializer);
+        let mut var_layout = <Option<crate::domain::styles::NodeLayout>>::sse_decode(deserializer);
+        let mut var_resolvedLayout =
+            <Option<crate::domain::styles::NodeLayout>>::sse_decode(deserializer);
         let mut var_layer = <String>::sse_decode(deserializer);
         let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
         let mut var_size = <crate::domain::base_models::Size>::sse_decode(deserializer);
@@ -2181,6 +2184,8 @@ impl SseDecode for crate::domain::nodes::INodeFields {
             content: var_content,
             style: var_style,
             resolved_style: var_resolvedStyle,
+            layout: var_layout,
+            resolved_layout: var_resolvedLayout,
             layer: var_layer,
             position: var_position,
             size: var_size,
@@ -2558,6 +2563,16 @@ impl SseDecode for crate::domain::contents::MarkType {
     }
 }
 
+impl SseDecode for crate::domain::styles::NodeLayout {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_strategyType = <String>::sse_decode(deserializer);
+        return crate::domain::styles::NodeLayout {
+            strategy_type: var_strategyType,
+        };
+    }
+}
+
 impl SseDecode for crate::domain::patches::NodePatch {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2620,6 +2635,7 @@ impl SseDecode for crate::domain::styles::NodeStyle {
         let mut var_shadowSpread = <f64>::sse_decode(deserializer);
         let mut var_shadowOffsetX = <f64>::sse_decode(deserializer);
         let mut var_shadowOffsetY = <f64>::sse_decode(deserializer);
+        let mut var_strategyType = <String>::sse_decode(deserializer);
         return crate::domain::styles::NodeStyle {
             bg_color: var_bgColor,
             stroke_color: var_strokeColor,
@@ -2637,6 +2653,7 @@ impl SseDecode for crate::domain::styles::NodeStyle {
             shadow_spread: var_shadowSpread,
             shadow_offset_x: var_shadowOffsetX,
             shadow_offset_y: var_shadowOffsetY,
+            strategy_type: var_strategyType,
         };
     }
 }
@@ -2716,6 +2733,19 @@ impl SseDecode for Option<crate::domain::contents::MarkAttrs> {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<crate::domain::contents::MarkAttrs>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::domain::styles::NodeLayout> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::domain::styles::NodeLayout>::sse_decode(
                 deserializer,
             ));
         } else {
@@ -2855,9 +2885,11 @@ impl SseDecode for crate::domain::styles::RelationLayout {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_fromSide = <String>::sse_decode(deserializer);
         let mut var_toSide = <String>::sse_decode(deserializer);
+        let mut var_strategyType = <String>::sse_decode(deserializer);
         return crate::domain::styles::RelationLayout {
             from_side: var_fromSide,
             to_side: var_toSide,
+            strategy_type: var_strategyType,
         };
     }
 }
@@ -2910,6 +2942,7 @@ impl SseDecode for crate::domain::styles::RelationStyle {
         let mut var_shadowBlur = <f64>::sse_decode(deserializer);
         let mut var_shadowOffsetX = <f64>::sse_decode(deserializer);
         let mut var_shadowOffsetY = <f64>::sse_decode(deserializer);
+        let mut var_strategyType = <String>::sse_decode(deserializer);
         return crate::domain::styles::RelationStyle {
             bg_color: var_bgColor,
             stroke_color: var_strokeColor,
@@ -2926,6 +2959,7 @@ impl SseDecode for crate::domain::styles::RelationStyle {
             shadow_blur: var_shadowBlur,
             shadow_offset_x: var_shadowOffsetX,
             shadow_offset_y: var_shadowOffsetY,
+            strategy_type: var_strategyType,
         };
     }
 }
@@ -3035,6 +3069,9 @@ impl SseDecode for crate::domain::nodes::TaskNodeFields {
         let mut var_style = <Option<crate::domain::styles::NodeStyle>>::sse_decode(deserializer);
         let mut var_resolvedStyle =
             <Option<crate::domain::styles::NodeStyle>>::sse_decode(deserializer);
+        let mut var_layout = <Option<crate::domain::styles::NodeLayout>>::sse_decode(deserializer);
+        let mut var_resolvedLayout =
+            <Option<crate::domain::styles::NodeLayout>>::sse_decode(deserializer);
         let mut var_significance = <u8>::sse_decode(deserializer);
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
@@ -3049,6 +3086,8 @@ impl SseDecode for crate::domain::nodes::TaskNodeFields {
             layer: var_layer,
             style: var_style,
             resolved_style: var_resolvedStyle,
+            layout: var_layout,
+            resolved_layout: var_resolvedLayout,
             significance: var_significance,
             created_at: var_createdAt,
             updated_at: var_updatedAt,
@@ -3649,6 +3688,8 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::INodeFields {
             self.content.into_into_dart().into_dart(),
             self.style.into_into_dart().into_dart(),
             self.resolved_style.into_into_dart().into_dart(),
+            self.layout.into_into_dart().into_dart(),
+            self.resolved_layout.into_into_dart().into_dart(),
             self.layer.into_into_dart().into_dart(),
             self.position.into_into_dart().into_dart(),
             self.size.into_into_dart().into_dart(),
@@ -3903,6 +3944,23 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::contents::MarkType>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::styles::NodeLayout {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [self.strategy_type.into_into_dart().into_dart()].into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::styles::NodeLayout
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::styles::NodeLayout>
+    for crate::domain::styles::NodeLayout
+{
+    fn into_into_dart(self) -> crate::domain::styles::NodeLayout {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::domain::patches::NodePatch {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
@@ -3964,6 +4022,7 @@ impl flutter_rust_bridge::IntoDart for crate::domain::styles::NodeStyle {
             self.shadow_spread.into_into_dart().into_dart(),
             self.shadow_offset_x.into_into_dart().into_dart(),
             self.shadow_offset_y.into_into_dart().into_dart(),
+            self.strategy_type.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -4033,6 +4092,7 @@ impl flutter_rust_bridge::IntoDart for crate::domain::styles::RelationLayout {
         [
             self.from_side.into_into_dart().into_dart(),
             self.to_side.into_into_dart().into_dart(),
+            self.strategy_type.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -4100,6 +4160,7 @@ impl flutter_rust_bridge::IntoDart for crate::domain::styles::RelationStyle {
             self.shadow_blur.into_into_dart().into_dart(),
             self.shadow_offset_x.into_into_dart().into_dart(),
             self.shadow_offset_y.into_into_dart().into_dart(),
+            self.strategy_type.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -4260,6 +4321,8 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::TaskNodeFields {
             self.layer.into_into_dart().into_dart(),
             self.style.into_into_dart().into_dart(),
             self.resolved_style.into_into_dart().into_dart(),
+            self.layout.into_into_dart().into_dart(),
+            self.resolved_layout.into_into_dart().into_dart(),
             self.significance.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
@@ -4669,6 +4732,8 @@ impl SseEncode for crate::domain::nodes::INodeFields {
         <crate::domain::contents::Content>::sse_encode(self.content, serializer);
         <Option<crate::domain::styles::NodeStyle>>::sse_encode(self.style, serializer);
         <Option<crate::domain::styles::NodeStyle>>::sse_encode(self.resolved_style, serializer);
+        <Option<crate::domain::styles::NodeLayout>>::sse_encode(self.layout, serializer);
+        <Option<crate::domain::styles::NodeLayout>>::sse_encode(self.resolved_layout, serializer);
         <String>::sse_encode(self.layer, serializer);
         <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
         <crate::domain::base_models::Size>::sse_encode(self.size, serializer);
@@ -4957,6 +5022,13 @@ impl SseEncode for crate::domain::contents::MarkType {
     }
 }
 
+impl SseEncode for crate::domain::styles::NodeLayout {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.strategy_type, serializer);
+    }
+}
+
 impl SseEncode for crate::domain::patches::NodePatch {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -5015,6 +5087,7 @@ impl SseEncode for crate::domain::styles::NodeStyle {
         <f64>::sse_encode(self.shadow_spread, serializer);
         <f64>::sse_encode(self.shadow_offset_x, serializer);
         <f64>::sse_encode(self.shadow_offset_y, serializer);
+        <String>::sse_encode(self.strategy_type, serializer);
     }
 }
 
@@ -5087,6 +5160,16 @@ impl SseEncode for Option<crate::domain::contents::MarkAttrs> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::domain::contents::MarkAttrs>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::domain::styles::NodeLayout> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::domain::styles::NodeLayout>::sse_encode(value, serializer);
         }
     }
 }
@@ -5203,6 +5286,7 @@ impl SseEncode for crate::domain::styles::RelationLayout {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.from_side, serializer);
         <String>::sse_encode(self.to_side, serializer);
+        <String>::sse_encode(self.strategy_type, serializer);
     }
 }
 
@@ -5251,6 +5335,7 @@ impl SseEncode for crate::domain::styles::RelationStyle {
         <f64>::sse_encode(self.shadow_blur, serializer);
         <f64>::sse_encode(self.shadow_offset_x, serializer);
         <f64>::sse_encode(self.shadow_offset_y, serializer);
+        <String>::sse_encode(self.strategy_type, serializer);
     }
 }
 
@@ -5338,6 +5423,8 @@ impl SseEncode for crate::domain::nodes::TaskNodeFields {
         <String>::sse_encode(self.layer, serializer);
         <Option<crate::domain::styles::NodeStyle>>::sse_encode(self.style, serializer);
         <Option<crate::domain::styles::NodeStyle>>::sse_encode(self.resolved_style, serializer);
+        <Option<crate::domain::styles::NodeLayout>>::sse_encode(self.layout, serializer);
+        <Option<crate::domain::styles::NodeLayout>>::sse_encode(self.resolved_layout, serializer);
         <u8>::sse_encode(self.significance, serializer);
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);

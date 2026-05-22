@@ -8,6 +8,23 @@ import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
 abstract class NodeStyleStrategy {
   const NodeStyleStrategy();
 
+  /// Resolves the correct style strategy based on type.
+  static NodeStyleStrategy fromType(String? type, {UiNode? fallbackNode}) {
+    if (type == 'task') {
+      return const TaskNodeStyleStrategy();
+    }
+    if (type == 'info') {
+      return const InfoNodeStyleStrategy();
+    }
+    if (fallbackNode != null) {
+      return fallbackNode is TaskUiNode
+          ? const TaskNodeStyleStrategy()
+          : const InfoNodeStyleStrategy();
+    }
+    return const InfoNodeStyleStrategy();
+  }
+
+
   /// Returns a fully populated [NodeStyle] for rendering.
   /// [node.style] may be null → use theme defaults.
   NodeStyle resolve(UiNode node, GraphTheme theme);
@@ -31,15 +48,15 @@ abstract class NodeStyleStrategy {
       shadowSpread: 0.0,
       shadowOffsetX: 2.0,
       shadowOffsetY: 2.0,
+      strategyType: 'default',
     );
   }
 
   /// Centralized static helper to resolve a node's populated style.
   static NodeStyle resolveStyle(UiNode node, {GraphTheme? theme}) {
     if (node.resolvedStyle != null) return node.resolvedStyle!;
-    final strategy = node is InfoUiNode
-        ? const InfoNodeStyleStrategy()
-        : const TaskNodeStyleStrategy();
+    final strategyType = node.resolvedStyle?.strategyType ?? node.style?.strategyType;
+    final strategy = fromType(strategyType, fallbackNode: node);
     if (theme != null) {
       return strategy.resolve(node, theme);
     }

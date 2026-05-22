@@ -6,7 +6,14 @@ import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
 
 abstract class RelationStyleStrategy {
   const RelationStyleStrategy();
+
+  /// Resolves the correct style strategy based on type.
+  static RelationStyleStrategy fromType(String? type) {
+    return const DefaultRelationStyleStrategy();
+  }
+
   RelationStyle resolve(UiRelation relation, GraphTheme theme);
+
 
 
 
@@ -38,6 +45,7 @@ abstract class RelationStyleStrategy {
       shadowBlur: 2.0,
       shadowOffsetX: 1.0,
       shadowOffsetY: 1.0,
+      strategyType: 'default',
     );
   }
 }

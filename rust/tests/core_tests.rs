@@ -39,6 +39,8 @@ async fn test_repo_crud() {
             content: Content::from_plain_text("This is an Info Node"),
             style: None,
             resolved_style: None,
+            layout: None,
+            resolved_layout: None,
             layer: "default".to_string(),
             position: Coordinates { x: 100, y: 150 },
             size: Size {
@@ -116,6 +118,8 @@ async fn test_repo_crud() {
             layer: "default".to_string(),
             style: None,
             resolved_style: None,
+            layout: None,
+            resolved_layout: None,
             significance: 1,
             created_at: 0,
             updated_at: 0,
@@ -248,6 +252,8 @@ async fn test_graph_snapshot() {
             content: Content::from_plain_text("Snapshot Node"),
             style: None,
             resolved_style: None,
+            layout: None,
+            resolved_layout: None,
             layer: "default".to_string(),
             position: Coordinates { x: 10, y: 10 },
             size: Size {
@@ -446,6 +452,8 @@ async fn test_graph_boundary_calculation() {
             content: Content::from_plain_text("n1"),
             style: None,
             resolved_style: None,
+            layout: None,
+            resolved_layout: None,
             layer: "default".to_string(),
             position: Coordinates { x: -100, y: 300 },
             size: Size {
@@ -473,6 +481,8 @@ async fn test_graph_boundary_calculation() {
             content: Content::from_plain_text("n2"),
             style: None,
             resolved_style: None,
+            layout: None,
+            resolved_layout: None,
             layer: "default".to_string(),
             position: Coordinates { x: 500, y: -200 },
             size: Size {
@@ -514,6 +524,8 @@ async fn test_decay_significance_propagation() {
         content: Content::from_plain_text("Node"),
         style: None,
         resolved_style: None,
+        layout: None,
+        resolved_layout: None,
         layer: "default".to_string(),
         position: Coordinates { x: 0, y: 0 },
         size: Size {
@@ -632,6 +644,8 @@ async fn test_targeted_patch_and_history() {
             content: Content::from_plain_text("Patch test node"),
             style: None,
             resolved_style: None,
+            layout: None,
+            resolved_layout: None,
             layer: "default".to_string(),
             position: Coordinates { x: 10, y: 20 },
             size: Size {
@@ -796,6 +810,8 @@ async fn test_tags_crud_and_patching() {
             content: Content::from_plain_text("Tag test node"),
             style: None,
             resolved_style: None,
+            layout: None,
+            resolved_layout: None,
             layer: "default".to_string(),
             position: Coordinates { x: 10, y: 20 },
             size: Size {

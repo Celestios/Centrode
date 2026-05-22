@@ -52,7 +52,8 @@ class RelationLayer extends StatelessWidget {
                     dragPos = drag.currentCursorPosition;
                   }
 
-                  final (resolvedStart, resolvedEnd) = RelationLayoutStrategy.resolveEndpoints(
+                  final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
+                  final (resolvedStart, resolvedEnd) = layoutStrategy.resolveEndpoints(
                     rel,
                     from,
                     to,
@@ -78,16 +79,14 @@ class RelationLayer extends StatelessWidget {
               final toVs = uiController.viewStates[editedRel.toNodeId];
 
               if (fromVs != null && toVs != null) {
-                final (start, end) = RelationLayoutStrategy.resolveEndpoints(editedRel, fromVs, toVs);
+                final layoutStrategy = RelationLayoutStrategy.fromType(editedRel.layout?.strategyType);
+                final (start, end) = layoutStrategy.resolveEndpoints(editedRel, fromVs, toVs);
 
-                final mid = Offset(
-                  (start.dx + end.dx) / 2,
-                  (start.dy + end.dy) / 2,
-                );
+                final labelPos = layoutStrategy.computeLabelPosition(start, end, fromVs, toVs, editedRel);
 
                 final width = AppConfig.relation.editorMinWidth;
                 final position =
-                    mid -
+                    labelPos -
                     Offset(width / 2, AppConfig.relation.editorVerticalOffset);
 
                 editorWidget = Positioned(

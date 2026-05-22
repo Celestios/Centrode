@@ -51,7 +51,8 @@ class CanvasIdle extends CanvasInteractionState {
       final to = ctx.nodeViewStates[rel.toNodeId];
       if (from == null || to == null) continue;
 
-      final (handleStart, handleEnd) = RelationLayoutStrategy.resolveTipHandles(rel, from, to);
+      final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
+      final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(rel, from, to);
       if ((pCanvas - handleStart).distance < 12.0) {
         _canvasIdleLog.fine('Relation start tip handle hit: $id');
         return RelationTipDragging(
@@ -115,11 +116,9 @@ class CanvasIdle extends CanvasInteractionState {
             final sourceVs = ctx.nodeViewStates[rel.fromNodeId];
             final targetVs = ctx.nodeViewStates[rel.toNodeId];
             if (sourceVs != null && targetVs != null) {
-              final (start, end) = RelationLayoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
-              anchorTopLeft = Offset(
-                (start.dx + end.dx) / 2,
-                (start.dy + end.dy) / 2,
-              );
+              final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
+              final (start, end) = layoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
+              anchorTopLeft = layoutStrategy.computeLabelPosition(start, end, sourceVs, targetVs, rel);
               isRelationOnly = true;
             }
           } catch (_) {}
@@ -341,15 +340,21 @@ class CanvasIdle extends CanvasInteractionState {
       final tVs = ctx.nodeViewStates[rel.toNodeId];
       if (fVs == null || tVs == null) continue;
 
-      // Using DRY Geometry
-      final (start, end) = RelationLayoutStrategy.resolveEndpoints(rel, fVs, tVs);
-      final mid = Offset((start.dx + end.dx) / 2, (start.dy + end.dy) / 2);
+      final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
+      final (start, end) = layoutStrategy.resolveEndpoints(rel, fVs, tVs);
+      final mid = layoutStrategy.computeLabelPosition(start, end, fVs, tVs, rel);
 
+      // Hit-test the label bounding box
       if (Rect.fromCenter(
         center: mid,
         width: AppConfig.interaction.relationLabelHitArea.width,
         height: AppConfig.interaction.relationLabelHitArea.height,
       ).contains(p)) {
+        return rel.id;
+      }
+
+      // Hit-test the line/curve path (8px threshold)
+      if (layoutStrategy.isPointNear(p, start, end, fVs, tVs, rel, 8.0)) {
         return rel.id;
       }
     }

@@ -34,6 +34,8 @@ class INodeFields {
   final Content content;
   final NodeStyle? style;
   final NodeStyle? resolvedStyle;
+  final NodeLayout? layout;
+  final NodeLayout? resolvedLayout;
   final String layer;
   final Coordinates position;
   final Size size;
@@ -53,6 +55,8 @@ class INodeFields {
     required this.content,
     this.style,
     this.resolvedStyle,
+    this.layout,
+    this.resolvedLayout,
     required this.layer,
     required this.position,
     required this.size,
@@ -74,6 +78,8 @@ class INodeFields {
       content.hashCode ^
       style.hashCode ^
       resolvedStyle.hashCode ^
+      layout.hashCode ^
+      resolvedLayout.hashCode ^
       layer.hashCode ^
       position.hashCode ^
       size.hashCode ^
@@ -97,6 +103,8 @@ class INodeFields {
           content == other.content &&
           style == other.style &&
           resolvedStyle == other.resolvedStyle &&
+          layout == other.layout &&
+          resolvedLayout == other.resolvedLayout &&
           layer == other.layer &&
           position == other.position &&
           size == other.size &&
@@ -212,6 +220,8 @@ class TaskNodeFields {
   final String layer;
   final NodeStyle? style;
   final NodeStyle? resolvedStyle;
+  final NodeLayout? layout;
+  final NodeLayout? resolvedLayout;
   final int significance;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
@@ -227,6 +237,8 @@ class TaskNodeFields {
     required this.layer,
     this.style,
     this.resolvedStyle,
+    this.layout,
+    this.resolvedLayout,
     required this.significance,
     required this.createdAt,
     required this.updatedAt,
@@ -244,6 +256,8 @@ class TaskNodeFields {
       layer.hashCode ^
       style.hashCode ^
       resolvedStyle.hashCode ^
+      layout.hashCode ^
+      resolvedLayout.hashCode ^
       significance.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode;
@@ -263,6 +277,8 @@ class TaskNodeFields {
           layer == other.layer &&
           style == other.style &&
           resolvedStyle == other.resolvedStyle &&
+          layout == other.layout &&
+          resolvedLayout == other.resolvedLayout &&
           significance == other.significance &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt;

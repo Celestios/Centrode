@@ -30,6 +30,8 @@ class RelationPainter extends CustomPainter {
 
       if (from == null || to == null) continue;
 
+      final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
+
       Offset start;
       Offset end;
 
@@ -38,7 +40,7 @@ class RelationPainter extends CustomPainter {
         start = override.$1;
         end = override.$2;
       } else {
-        final (resolvedStart, resolvedEnd) = RelationLayoutStrategy.resolveEndpoints(rel, from, to);
+        final (resolvedStart, resolvedEnd) = layoutStrategy.resolveEndpoints(rel, from, to);
         start = resolvedStart;
         end = resolvedEnd;
       }
@@ -55,12 +57,13 @@ class RelationPainter extends CustomPainter {
           ? AppConfig.relation.selectedStrokeWidth
           : resolved.strokeWidth.toDouble();
 
-      // Draw straight line (Bezier curves can be added later)
-      canvas.drawLine(start, end, paint);
+      // Draw relation path (straight line or Bezier curve)
+      final path = layoutStrategy.computePath(start, end, from, to, rel);
+      canvas.drawPath(path, paint);
 
       // If selected, draw the two tip handlers
       if (isSelected) {
-        final (handleStart, handleEnd) = RelationLayoutStrategy.resolveTipHandles(
+        final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(
           rel,
           from,
           to,
@@ -83,9 +86,9 @@ class RelationPainter extends CustomPainter {
         canvas.drawCircle(handleEnd, 5.0, handlePaint);
       }
 
-      // Draw Label (Simplified)
+      // Draw Label (Centered on the layout path)
       if (rel.verb.isNotEmpty) {
-        final mid = Offset((start.dx + end.dx) / 2, (start.dy + end.dy) / 2);
+        final mid = layoutStrategy.computeLabelPosition(start, end, from, to, rel);
         _drawText(canvas, rel.verb, mid);
       }
     }

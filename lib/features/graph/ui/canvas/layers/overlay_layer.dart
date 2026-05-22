@@ -165,8 +165,9 @@ class OverlayLayer extends StatelessWidget {
             final sourceVs = renderState.viewStates[rel.fromNodeId];
             final targetVs = renderState.viewStates[rel.toNodeId];
             if (sourceVs != null && targetVs != null) {
-              final (start, end) = RelationLayoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
-              anchor = Offset((start.dx + end.dx) / 2, (start.dy + end.dy) / 2);
+              final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
+              final (start, end) = layoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
+              anchor = layoutStrategy.computeLabelPosition(start, end, sourceVs, targetVs, rel);
             }
           }
 

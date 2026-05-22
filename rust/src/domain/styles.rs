@@ -21,6 +21,7 @@ pub struct NodeStyle {
     pub shadow_spread: f64,
     pub shadow_offset_x: f64,
     pub shadow_offset_y: f64,
+    pub strategy_type: String,
 }
 
 #[frb(dart_metadata=("freezed"))]
@@ -42,6 +43,7 @@ pub struct RelationStyle {
     pub shadow_blur: f64,
     pub shadow_offset_x: f64,
     pub shadow_offset_y: f64,
+    pub strategy_type: String,
 }
 
 #[frb(dart_metadata=("freezed"))]
@@ -49,4 +51,12 @@ pub struct RelationStyle {
 pub struct RelationLayout {
     pub from_side: String,
     pub to_side: String,
+    pub strategy_type: String,
 }
+
+#[frb(dart_metadata=("freezed"))]
+#[derive(Debug, Clone, PartialEq, SurrealValue)]
+pub struct NodeLayout {
+    pub strategy_type: String,
+}
+
