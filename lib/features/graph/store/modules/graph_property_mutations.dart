@@ -6,6 +6,9 @@ import 'package:mycelium/features/graph/models/content_builder.dart';
 import '../../presentation/strategies/node_layout_strategy.dart';
 import '../graph_data_controller.dart';
 import '../graph_data_query.dart';
+import 'package:mycelium/src/rust/domain/tags.dart';
+import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
+
 
 /// Property mutation operations for the graph.
 class GraphPropertyMutations {
@@ -159,5 +162,79 @@ class GraphPropertyMutations {
       payload: newStyle,
     ));
     // TODO: Also persist the change (new style) via a command – TBD later.
+  }
+
+  void updateNodeTags(String id, List<Tag> newTags) {
+    _propLog.info('Updating tags for $id: $newTags');
+    final node = controller.store.nodeLookup[id];
+    if (node is! InfoUiNode) return;
+
+    final oldTags = List<Tag>.from(node.tags);
+
+    node.tags = newTags;
+
+    controller.syncEngine.processor.queueCommand(
+      UpdateTagsCommand(
+        targetId: id,
+        tableName: node.tableName,
+        api: controller.syncEngine.api,
+        oldTags: oldTags,
+        newTags: newTags,
+        onUndo: () {
+          node.tags = oldTags;
+          controller.publishUpdate(GraphEntityUpdate(
+            id: id,
+            tableName: node.tableName,
+            type: GraphUpdateType.tags,
+            payload: oldTags,
+          ));
+          controller.triggerUpdate();
+        },
+      ),
+    );
+
+    controller.publishUpdate(GraphEntityUpdate(
+      id: id,
+      tableName: node.tableName,
+      type: GraphUpdateType.tags,
+      payload: newTags,
+    ));
+    controller.triggerUpdate();
+  }
+
+  void updateNodeComments(String id, List<frb.Comment> newComments) {
+    _propLog.info('Updating comments for $id: $newComments');
+    final node = controller.store.nodeLookup[id];
+    if (node is! InfoUiNode) return;
+
+    final oldComments = List<frb.Comment>.from(node.comments);
+
+    node.comments = newComments;
+
+    controller.syncEngine.processor.queueCommand(
+      UpdateCommentsCommand(
+        targetId: id,
+        api: controller.syncEngine.api,
+        node: node,
+        onUndo: () {
+          node.comments = oldComments;
+          controller.publishUpdate(GraphEntityUpdate(
+            id: id,
+            tableName: node.tableName,
+            type: GraphUpdateType.comments,
+            payload: oldComments,
+          ));
+          controller.triggerUpdate();
+        },
+      ),
+    );
+
+    controller.publishUpdate(GraphEntityUpdate(
+      id: id,
+      tableName: node.tableName,
+      type: GraphUpdateType.comments,
+      payload: newComments,
+    ));
+    controller.triggerUpdate();
   }
 }

@@ -71,6 +71,23 @@ class _Node {
   final int collapsedLineLimit = 3;
   final Size defaultSize = const Size(100, 60);
   final Offset editorOffset = const Offset(8, 25);
+
+  final double metadataSphereOffsetFromRight = 10.0;
+  final double metadataSphereOffsetFromTop = 10.0;
+  final double metadataSphereRadius = 5.0;
+  final double metadataSphereStrokeWidth = 1.5;
+  final double metadataSphereHitboxRadius = 12.0;
+  final Offset metadataPreviewOffset = const Offset(0, -12);
+  final double metadataPreviewWidth = 220.0;
+  final double metadataPreviewBorderRadius = 8.0;
+  final double metadataPreviewBlur = 8.0;
+  final List<int> defaultTagColors = const [
+    0xFF5C6BC0,
+    0xFF26A69A,
+    0xFFEC407A,
+    0xFFFFA726,
+    0xFF78909C,
+  ];
 }
 
 class _Toolbar {

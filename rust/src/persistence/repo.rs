@@ -1,9 +1,11 @@
 use crate::domain::analysis::DecaySignificanceStrategy;
-use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings, EntityPatch};
+use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings};
 use crate::domain::nodes::{
-    INode, INodeFields, InterNode, InterNodeFields, Nodes, TaskNode, TaskNodeFields, NodePatch,
+    INode, INodeFields, InterNode, InterNodeFields, Nodes, TaskNode, TaskNodeFields,
 };
-use crate::domain::relations::{IRelation, IRelationFields, RelationPatch};
+use crate::domain::patches::{EntityPatch, NodePatch, RelationPatch, TagOperation};
+use crate::domain::relations::{IRelation, IRelationFields};
+use crate::domain::tags::Tag;
 
 use anyhow::Result;
 use surrealdb::engine::local::Db;
@@ -101,7 +103,12 @@ impl Repository {
     pub async fn get_node(&self, table: String, key: String) -> Result<Option<Nodes>> {
         match table.as_str() {
             INode::LABEL => {
-                let fields: Option<INodeFields> = self.db.select((table, key.clone())).await?;
+                let mut res = self
+                    .db
+                    .query("SELECT * FROM INode WHERE id = $id FETCH tags")
+                    .bind(("id", RecordId::new(table, key.clone())))
+                    .await?;
+                let fields: Option<INodeFields> = res.take(0)?;
                 Ok(fields.map(|f| Nodes::INode(INode { key, fields: f })))
             }
             TaskNode::LABEL => {
@@ -129,7 +136,8 @@ impl Repository {
 
         tracing::debug!("Fetching INodes...");
 
-        let inodes_raw: Vec<Value> = self.db.select(INode::LABEL).await?;
+        let mut res = self.db.query("SELECT * FROM INode FETCH tags").await?;
+        let inodes_raw: Vec<Value> = res.take(0)?;
 
         let inodes: Vec<INode> = inodes_raw
             .into_iter()
@@ -399,9 +407,15 @@ impl Repository {
 
     async fn patch_node(&self, id: RecordId, patch: &NodePatch) -> Result<()> {
         let (query_str, bind_val) = match patch {
-            NodePatch::Position(coords) => ("UPDATE $id SET position = $val", coords.clone().into_value()),
+            NodePatch::Position(coords) => (
+                "UPDATE $id SET position = $val",
+                coords.clone().into_value(),
+            ),
             NodePatch::Size(size) => ("UPDATE $id SET size = $val", size.clone().into_value()),
-            NodePatch::Content(content) => ("UPDATE $id SET content = $val", content.clone().into_value()),
+            NodePatch::Content(content) => (
+                "UPDATE $id SET content = $val",
+                content.clone().into_value(),
+            ),
             NodePatch::IsExpanded(val) => ("UPDATE $id SET is_expanded = $val", Value::Bool(*val)),
             NodePatch::Style(style) => {
                 let val = match style {
@@ -410,22 +424,35 @@ impl Repository {
                 };
                 ("UPDATE $id SET style = $val", val)
             }
-            NodePatch::Tags(tags) => {
-                let arr: Vec<Value> = tags.iter().map(|t| Value::String(t.clone())).collect();
-                ("UPDATE $id SET tags = $val", Value::Array(arr.into()))
-            }
-            NodePatch::Significance(sig) => {
-                ("UPDATE $id SET significance = $val", Value::Number(surrealdb::types::Number::from(*sig as i32)))
-            }
+            NodePatch::TagOp(op) => match op {
+                TagOperation::Add(tag_id) => (
+                    "UPDATE $id SET tags += $val",
+                    Value::RecordId(RecordId::new(Tag::LABEL, tag_id.as_str())),
+                ),
+                TagOperation::Remove(tag_id) => (
+                    "UPDATE $id SET tags -= $val",
+                    Value::RecordId(RecordId::new(Tag::LABEL, tag_id.as_str())),
+                ),
+            },
+            NodePatch::Significance(sig) => (
+                "UPDATE $id SET significance = $val",
+                Value::Number(surrealdb::types::Number::from(*sig as i32)),
+            ),
         };
-        
-        self.db.query(query_str).bind(("id", id)).bind(("val", bind_val)).await?;
+
+        self.db
+            .query(query_str)
+            .bind(("id", id))
+            .bind(("val", bind_val))
+            .await?;
         Ok(())
     }
 
     async fn patch_relation(&self, id: RecordId, patch: &RelationPatch) -> Result<()> {
         let (query_str, bind_val) = match patch {
-            RelationPatch::Verb(verb) => ("UPDATE $id SET verb = $val", Value::String(verb.clone())),
+            RelationPatch::Verb(verb) => {
+                ("UPDATE $id SET verb = $val", Value::String(verb.clone()))
+            }
             RelationPatch::Style(style) => {
                 let val = match style {
                     Some(s) => s.clone().into_value(),
@@ -440,10 +467,49 @@ impl Repository {
                 };
                 ("UPDATE $id SET layout = $val", val)
             }
-            RelationPatch::Directionless(val) => ("UPDATE $id SET directionless = $val", Value::Bool(*val)),
+            RelationPatch::Directionless(val) => {
+                ("UPDATE $id SET directionless = $val", Value::Bool(*val))
+            }
         };
-        
-        self.db.query(query_str).bind(("id", id)).bind(("val", bind_val)).await?;
+
+        self.db
+            .query(query_str)
+            .bind(("id", id))
+            .bind(("val", bind_val))
+            .await?;
+        Ok(())
+    }
+
+    // --- Tag CRUD ---
+
+    pub async fn create_tag(&self, tag: Tag) -> Result<()> {
+        let record_id = RecordId::new(Tag::LABEL, tag.name.as_str());
+        let _: Option<Tag> = self.db.create(record_id).content(tag).await?;
+
+        Ok(())
+    }
+
+    pub async fn get_tag(&self, name: String) -> Result<Option<Tag>> {
+        let record_id = RecordId::new(Tag::LABEL, name.clone());
+
+        // Delegate structural validation entirely to Serde
+        let record: Option<Tag> = self.db.select(record_id).await?;
+
+        Ok(record.map(|r| Tag {
+            name,
+            color: r.color,
+        }))
+    }
+
+    pub async fn get_all_tags(&self) -> Result<Vec<Tag>> {
+        let tags: Vec<Tag> = self.db.select(Tag::LABEL).await?;
+        Ok(tags)
+    }
+
+    pub async fn delete_tag(&self, name: String) -> Result<()> {
+        let record_id = RecordId::new(Tag::LABEL, name);
+        let _: Option<Tag> = self.db.delete(record_id).await?;
+
         Ok(())
     }
 }

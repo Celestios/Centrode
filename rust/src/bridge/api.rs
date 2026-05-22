@@ -1,9 +1,9 @@
 use crate::bridge::stream::{self, GraphEvent};
 use crate::domain::analysis::GraphAnalysis;
-use crate::domain::base_models::{
-    IsTable, MapData, Record, RecordStrings, SymmetricEntityPatch, EntityPatch, PatchHistoryPayload
-};
-use crate::domain::nodes::{INode, InterNode, Nodes, TaskNode, NodePatch};
+use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings};
+use crate::domain::nodes::{INode, InterNode, Nodes, TaskNode};
+use crate::domain::tags::Tag;
+use crate::domain::patches::{EntityPatch, NodePatch, SymmetricEntityPatch, PatchHistoryPayload};
 use crate::domain::relations::IRelation;
 use crate::domain::theme::{Theme, ThemeFields};
 use crate::format::packager;
@@ -499,6 +499,22 @@ impl AppHandle {
             }
         }
         Ok(record)
+    }
+
+    pub async fn create_tag(&self, tag: Tag) -> anyhow::Result<()> {
+        self.repo.create_tag(tag).await
+    }
+
+    pub async fn get_tag(&self, name: String) -> anyhow::Result<Option<Tag>> {
+        self.repo.get_tag(name).await
+    }
+
+    pub async fn get_all_tags(&self) -> anyhow::Result<Vec<Tag>> {
+        self.repo.get_all_tags().await
+    }
+
+    pub async fn delete_tag(&self, name: String) -> anyhow::Result<()> {
+        self.repo.delete_tag(name).await
     }
 }
 

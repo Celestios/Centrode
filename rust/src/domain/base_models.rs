@@ -33,7 +33,7 @@ impl Record {
     }
 }
 
-#[derive(Debug, Clone, SurrealValue)]
+#[derive(Debug, Clone)]
 pub struct RecordStrings {
     pub table: String,
     pub key: String,
@@ -42,6 +42,41 @@ pub struct RecordStrings {
 impl RecordStrings {
     pub fn to_str(&self) -> String {
         format!("{}/{}", self.table.as_str(), self.key.as_str())
+    }
+}
+
+impl SurrealValue for RecordStrings {
+    fn kind_of() -> surrealdb::types::Kind {
+        surrealdb::types::Kind::Record(vec![])
+    }
+
+    fn into_value(self) -> Value {
+        RecordId::new(self.table, self.key).into_value()
+    }
+
+    fn from_value(value: Value) -> Result<Self, surrealdb::types::Error> {
+        match value {
+            Value::RecordId(rid) => {
+                let key_str = match rid.key {
+                    RecordIdKey::String(s) => s.clone(),
+                    unsupported => {
+                        return Err(surrealdb::types::Error::thrown(format!(
+                            "Expected scalar Record key, found: {:?}",
+                            unsupported
+                        )))
+                    }
+                };
+
+                Ok(Self {
+                    table: rid.table.to_string(),
+                    key: key_str,
+                })
+            }
+            unsupported => Err(surrealdb::types::Error::thrown(format!(
+                "RecordStrings expected Value::RecordId, found: {:?}",
+                unsupported
+            ))),
+        }
     }
 }
 
@@ -168,31 +203,4 @@ impl Default for BoundingBox {
             max_y: 2500.0,
         }
     }
-}
-
-// -----------------------------------------------------------------------------
-// Targeted Updates & Patches
-// -----------------------------------------------------------------------------
-
-use crate::domain::nodes::NodePatch;
-use crate::domain::relations::RelationPatch;
-
-#[derive(Debug, Clone, SurrealValue)]
-pub enum EntityPatch {
-    Node(Vec<NodePatch>),
-    Relation(Vec<RelationPatch>),
-}
-
-#[derive(Debug, Clone, SurrealValue)]
-pub struct SymmetricEntityPatch {
-    pub id: RecordStrings,
-    pub forward: EntityPatch,
-    pub reverse: EntityPatch,
-}
-
-#[derive(Debug, Clone, SurrealValue)]
-pub struct PatchHistoryPayload {
-    pub id: RecordStrings,
-    pub forward: EntityPatch,
-    pub reverse: EntityPatch,
 }

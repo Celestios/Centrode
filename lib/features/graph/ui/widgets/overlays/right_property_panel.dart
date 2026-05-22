@@ -1,49 +1,914 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../presentation/node_render_state.dart';
 import 'collapsible_sidebar.dart';
+import '../../../store/graph_data_controller.dart';
+import '../../../models/models.dart';
+import 'package:mycelium/features/graph/models/graph_node.dart';
+import 'package:mycelium/src/rust/domain/tags.dart';
+import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
+import '../../../presentation/graph_metrics.dart';
+import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 
-class RightPropertyPanel extends StatelessWidget {
+class RightPropertyPanel extends StatefulWidget {
   const RightPropertyPanel({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final onSurface = theme.colorScheme.onSurface;
-    final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
+  State<RightPropertyPanel> createState() => _RightPropertyPanelState();
+}
 
+class _RightPropertyPanelState extends State<RightPropertyPanel> {
+  final TextEditingController _tagController = TextEditingController();
+  final TextEditingController _commentController = TextEditingController();
+  final FocusNode _tagFocusNode = FocusNode();
+  final FocusNode _commentFocusNode = FocusNode();
+
+  bool _isAddingTag = false;
+  int? _selectedTagColor;
+  List<int> _currentPalette = [...AppConfig.node.defaultTagColors];
+  String? _lastNodeId;
+
+  @override
+  void dispose() {
+    _tagController.dispose();
+    _commentController.dispose();
+    _tagFocusNode.dispose();
+    _commentFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _randomizePalette() {
+    final rand = math.Random();
+    final newColors = List.generate(5, (_) {
+      final hue = rand.nextDouble() * 360.0;
+      return HSVColor.fromAHSV(1.0, hue, 0.70, 0.80).toColor().toARGB32();
+    });
+    setState(() {
+      _currentPalette = newColors;
+      _selectedTagColor = newColors.first;
+    });
+  }
+
+  void _startAddingTag() {
+    setState(() {
+      _isAddingTag = true;
+      _selectedTagColor = _currentPalette.first;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _tagFocusNode.requestFocus();
+    });
+  }
+
+  void _cancelAddingTag() {
+    _tagController.clear();
+    setState(() {
+      _isAddingTag = false;
+    });
+  }
+
+  NodeStyle _getEffectiveStyle(UiNode node) {
+    return node.style ?? NodeStyleStrategy.resolveStyle(node);
+  }
+
+  void _updateSelectedNodesStyle(
+    List<String> nodeIds,
+    GraphDataController dataController,
+    NodeStyle Function(NodeStyle style) updateFn,
+  ) {
+    for (final id in nodeIds) {
+      final node = dataController.nodeLookup[id];
+      if (node != null) {
+        final style = _getEffectiveStyle(node);
+        dataController.updateNodeStyle(id, updateFn(style));
+      }
+    }
+  }
+
+  Widget _buildSectionHeader(ThemeData theme, String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+      ),
+    );
+  }
+
+  Widget _buildCenteredPlaceholder(ThemeData theme, String text) {
+    return Center(
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 12,
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final renderState = context.watch<NodeRenderState>();
+    final dataController = context.watch<GraphDataController>();
     final selectedEntities = renderState.selectedEntities;
     final isSelected = selectedEntities.isNotEmpty;
 
     return CollapsibleSidebar(
-      title: 'INSPECTOR (${selectedEntities.length})',
+      title: 'INSPECTOR',
       icon: Icons.tune_rounded,
       isRight: true,
       isVisible: isSelected,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 32.0),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.info_outline_rounded,
-                color: textColor.withValues(alpha: 0.3),
-                size: 36,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'No properties available',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: textColor.withValues(alpha: 0.5),
+      showHeader: false,
+      expandedWidth: 260.0,
+      child: isSelected
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTabBar(context, renderState),
+                ValueListenableBuilder<InspectorTab>(
+                  valueListenable: renderState.activeInspectorTabNotifier,
+                  builder: (context, activeTab, _) {
+                    return Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: activeTab == InspectorTab.appearance
+                          ? _buildAppearanceTab(
+                              context,
+                              selectedEntities,
+                              dataController,
+                            )
+                          : _buildDataTab(
+                              context,
+                              selectedEntities,
+                              dataController,
+                            ),
+                    );
+                  },
                 ),
-                textAlign: TextAlign.center,
+              ],
+            )
+          : const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildTabBar(BuildContext context, NodeRenderState renderState) {
+    final theme = Theme.of(context);
+    return ValueListenableBuilder<InspectorTab>(
+      valueListenable: renderState.activeInspectorTabNotifier,
+      builder: (context, activeTab, _) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: theme.dividerColor.withValues(alpha: 0.15),
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 36,
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildTabButton(
+                          context,
+                          label: 'Appearance',
+                          isActive: activeTab == InspectorTab.appearance,
+                          onTap: () {
+                            renderState.activeInspectorTabNotifier.value =
+                                InspectorTab.appearance;
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildTabButton(
+                          context,
+                          label: 'Data',
+                          isActive: activeTab == InspectorTab.data,
+                          onTap: () {
+                            renderState.activeInspectorTabNotifier.value =
+                                InspectorTab.data;
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${renderState.selectedEntities.length}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTabButton(
+    BuildContext context, {
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isActive ? theme.colorScheme.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
         ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            color: isActive
+                ? Colors.white
+                : theme.colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppearanceTab(
+    BuildContext context,
+    Set<String> selectedEntities,
+    GraphDataController dataController,
+  ) {
+    final theme = Theme.of(context);
+    final nodeIds = selectedEntities
+        .where((id) => dataController.nodeLookup.containsKey(id))
+        .toList();
+
+    if (nodeIds.isEmpty) {
+      return _buildCenteredPlaceholder(theme, 'Select nodes to customize appearance');
+    }
+
+    final firstNode = dataController.nodeLookup[nodeIds.first]!;
+    final currentStyle = _getEffectiveStyle(firstNode);
+
+    // List of modern, curated colors
+    final colors = [
+      (0xFFBBDEFB, 0xFF0D47A1, 0xFF1E88E5), // Light Blue
+      (0xFFC8E6C9, 0xFF1B5E20, 0xFF4CAF50), // Light Green
+      (0xFFFFF9C4, 0xFFF57F17, 0xFFFBC02D), // Light Yellow
+      (0xFFE1BEE7, 0xFF4A148C, 0xFF8E24AA), // Lavender
+      (0xFFF8BBD0, 0xFF880E4F, 0xFFD81B60), // Rose
+      (0xFFFFE0B2, 0xFFE65100, 0xFFFB8C00), // Orange
+      (0xFFCFD8DC, 0xFF263238, 0xFF546E7A), // Charcoal
+      (0xFFEEEEEE, 0xFF212121, 0xFF9E9E9E), // White/Gray
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(theme, 'SHAPE'),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _updateSelectedNodesStyle(
+                  nodeIds,
+                  dataController,
+                  (style) => style.copyWith(shape: 'rectangle'),
+                ),
+                icon: const Icon(Icons.crop_square, size: 16),
+                label: const Text('Rectangle', style: TextStyle(fontSize: 11)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: currentStyle.shape != 'circle'
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurface,
+                  side: BorderSide(
+                    color: currentStyle.shape != 'circle'
+                        ? theme.colorScheme.primary
+                        : theme.dividerColor.withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _updateSelectedNodesStyle(
+                  nodeIds,
+                  dataController,
+                  (style) => style.copyWith(shape: 'circle'),
+                ),
+                icon: const Icon(Icons.circle_outlined, size: 16),
+                label: const Text('Circle', style: TextStyle(fontSize: 11)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: currentStyle.shape == 'circle'
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurface,
+                  side: BorderSide(
+                    color: currentStyle.shape == 'circle'
+                        ? theme.colorScheme.primary
+                        : theme.dividerColor.withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildSectionHeader(theme, 'BACKGROUND COLOR'),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: colors.map((col) {
+            final isSelected = currentStyle.bgColor == col.$1;
+            return GestureDetector(
+              onTap: () => _updateSelectedNodesStyle(
+                nodeIds,
+                dataController,
+                (style) => style.copyWith(
+                  bgColor: col.$1,
+                  textColor: col.$2,
+                  strokeColor: col.$3,
+                ),
+              ),
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Color(col.$1),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected
+                        ? theme.colorScheme.primary
+                        : Colors.white24,
+                    width: isSelected ? 2.5 : 1,
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 2,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 16),
+        _buildStyleSlider(
+          title: 'FONT SIZE',
+          value: currentStyle.fontSize,
+          min: 8,
+          max: 24,
+          onChanged: (val) => _updateSelectedNodesStyle(
+            nodeIds,
+            dataController,
+            (style) => style.copyWith(fontSize: val),
+          ),
+        ),
+        const SizedBox(height: 12),
+        _buildStyleSlider(
+          title: 'BORDER RADIUS',
+          value: currentStyle.borderRadius,
+          min: 0,
+          max: 24,
+          onChanged: (val) => _updateSelectedNodesStyle(
+            nodeIds,
+            dataController,
+            (style) => style.copyWith(borderRadius: val),
+          ),
+        ),
+        const SizedBox(height: 12),
+        _buildStyleSlider(
+          title: 'BORDER WIDTH',
+          value: currentStyle.strokeWidth.toDouble(),
+          min: 0,
+          max: 6,
+          onChanged: (val) => _updateSelectedNodesStyle(
+            nodeIds,
+            dataController,
+            (style) => style.copyWith(strokeWidth: val.round()),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStyleSlider({
+    required String title,
+    required double value,
+    required double min,
+    required double max,
+    required ValueChanged<double> onChanged,
+  }) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildSectionHeader(theme, title),
+            Text(
+              value.toStringAsFixed(0),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+              ),
+            ),
+          ],
+        ),
+        SliderTheme(
+          data: SliderThemeData(
+            trackHeight: 2,
+            activeTrackColor: theme.colorScheme.primary,
+            inactiveTrackColor: theme.dividerColor.withValues(alpha: 0.15),
+            thumbColor: theme.colorScheme.primary,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+          ),
+          child: Slider(
+            value: value.clamp(min, max),
+            min: min,
+            max: max,
+            onChanged: onChanged,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDataTab(
+    BuildContext context,
+    Set<String> selectedEntities,
+    GraphDataController dataController,
+  ) {
+    final theme = Theme.of(context);
+
+    if (selectedEntities.length != 1) {
+      return _buildCenteredPlaceholder(theme, 'Select a single node to view metadata');
+    }
+
+    final nodeId = selectedEntities.first;
+    final node = dataController.nodeLookup[nodeId];
+
+    if (_lastNodeId != nodeId) {
+      _lastNodeId = nodeId;
+      _isAddingTag = false;
+      _tagController.clear();
+      _currentPalette = [...AppConfig.node.defaultTagColors];
+    }
+
+    if (node is! InfoUiNode) {
+      return _buildCenteredPlaceholder(theme, 'Metadata is only available for information nodes');
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // TAGS SECTION
+        _buildSectionHeader(theme, 'TAGS'),
+        const SizedBox(height: 8),
+        if (node.tags.isNotEmpty || !_isAddingTag)
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              ...node.tags.map((tag) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Color(tag.color).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Color(tag.color).withValues(alpha: 0.4),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        tag.name,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Color(tag.color),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      GestureDetector(
+                        onTap: () {
+                          final updatedTags = node.tags
+                              .where((t) => t.name != tag.name)
+                              .toList();
+                          dataController.updateNodeTags(node.id, updatedTags);
+                        },
+                        child: Icon(
+                          Icons.close,
+                          size: 10,
+                          color: Color(tag.color),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              if (!_isAddingTag) _buildAddTagTriggerButton(theme),
+            ],
+          )
+        else if (!_isAddingTag)
+          _buildAddTagTriggerButton(theme),
+        if (_isAddingTag) ...[
+          const SizedBox(height: 8),
+          _buildTagEditor(theme, node, dataController),
+        ],
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 16.0),
+          child: Divider(height: 1),
+        ),
+
+        // COMMENTS SECTION
+        _buildSectionHeader(theme, 'COMMENTS'),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 32,
+                child: TextField(
+                  controller: _commentController,
+                  focusNode: _commentFocusNode,
+                  style: const TextStyle(fontSize: 11),
+                  decoration: InputDecoration(
+                    hintText: 'Write a comment...',
+                    hintStyle: TextStyle(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    filled: true,
+                    fillColor: Colors.black.withValues(alpha: 0.1),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  onSubmitted: (val) => _addComment(node, dataController),
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            IconButton(
+              icon: const Icon(Icons.send_rounded, size: 14),
+              onPressed: () => _addComment(node, dataController),
+              style: IconButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary.withValues(
+                  alpha: 0.15,
+                ),
+                foregroundColor: theme.colorScheme.primary,
+                padding: const EdgeInsets.all(8),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Scrollable List of Comments
+        if (node.comments.isNotEmpty)
+          Container(
+            constraints: const BoxConstraints(maxHeight: 250),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                children: node.comments.map((comment) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: theme.dividerColor.withValues(alpha: 0.1),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _formatTimestamp(comment.createdAt.toInt()),
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.4,
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                final updatedComments = node.comments
+                                    .where((c) => c != comment)
+                                    .toList();
+                                dataController.updateNodeComments(
+                                  node.id,
+                                  updatedComments,
+                                );
+                              },
+                              child: Icon(
+                                Icons.delete_outline_rounded,
+                                size: 12,
+                                color: theme.colorScheme.error.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          comment.text,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.85,
+                            ),
+                            height: 1.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24.0),
+            child: Center(
+              child: Text(
+                'No comments yet',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  void _addTag(InfoUiNode node, GraphDataController dataController) {
+    final text = _tagController.text.trim();
+    if (text.isEmpty) return;
+
+    // Check if tag already exists on this node
+    if (node.tags.any((t) => t.name.toLowerCase() == text.toLowerCase())) {
+      _tagController.clear();
+      return;
+    }
+
+    final color = _selectedTagColor ?? _currentPalette.first;
+
+    final newTag = Tag(name: text, color: color);
+    dataController.updateNodeTags(node.id, [...node.tags, newTag]);
+
+    _tagController.clear();
+    setState(() {
+      _isAddingTag = false;
+    });
+  }
+
+  void _addComment(InfoUiNode node, GraphDataController dataController) {
+    final text = _commentController.text.trim();
+    if (text.isEmpty) return;
+
+    final newComment = frb.Comment(
+      text: text,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+    );
+    dataController.updateNodeComments(node.id, [newComment, ...node.comments]);
+
+    _commentController.clear();
+    _commentFocusNode.requestFocus();
+  }
+
+  String _formatTimestamp(int timestampMs) {
+    final dt = DateTime.fromMillisecondsSinceEpoch(timestampMs).toLocal();
+    String pad(int n) => n.toString().padLeft(2, '0');
+    return '${dt.year}-${pad(dt.month)}-${pad(dt.day)} ${pad(dt.hour)}:${pad(dt.minute)}';
+  }
+
+  Widget _buildAddTagTriggerButton(ThemeData theme) {
+    return InkWell(
+      onTap: _startAddingTag,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: theme.colorScheme.primary.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.add_rounded, size: 14, color: theme.colorScheme.primary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTagEditor(
+    ThemeData theme,
+    InfoUiNode node,
+    GraphDataController dataController,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 32,
+                  child: TextField(
+                    controller: _tagController,
+                    focusNode: _tagFocusNode,
+                    style: const TextStyle(fontSize: 11),
+                    decoration: InputDecoration(
+                      hintText: 'Tag name...',
+                      hintStyle: TextStyle(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.4,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      filled: true,
+                      fillColor: Colors.black.withValues(alpha: 0.15),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    onSubmitted: (val) => _addTag(node, dataController),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              IconButton(
+                icon: const Icon(Icons.close_rounded, size: 14),
+                onPressed: _cancelAddingTag,
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: theme.colorScheme.onSurface.withValues(
+                    alpha: 0.6,
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  minimumSize: const Size(32, 32),
+                ),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                icon: const Icon(Icons.check_rounded, size: 14),
+                onPressed: () => _addTag(node, dataController),
+                style: IconButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary.withValues(
+                    alpha: 0.15,
+                  ),
+                  foregroundColor: theme.colorScheme.primary,
+                  padding: const EdgeInsets.all(8),
+                  minimumSize: const Size(32, 32),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: _currentPalette.map((colorValue) {
+                      final isSelected = _selectedTagColor == colorValue;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedTagColor = colorValue;
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          margin: const EdgeInsets.only(right: 6),
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: Color(colorValue),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? theme.colorScheme.primary
+                                  : Colors.white24,
+                              width: isSelected ? 2 : 1,
+                            ),
+                          ),
+                          child: isSelected
+                              ? Icon(
+                                  Icons.check,
+                                  size: 10,
+                                  color:
+                                      ThemeData.estimateBrightnessForColor(
+                                            Color(colorValue),
+                                          ) ==
+                                          Brightness.dark
+                                      ? Colors.white
+                                      : Colors.black,
+                                )
+                              : null,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: 'Randomize Colors',
+                child: InkWell(
+                  onTap: _randomizePalette,
+                  borderRadius: BorderRadius.circular(6),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Icon(
+                      Icons.shuffle_rounded,
+                      size: 14,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

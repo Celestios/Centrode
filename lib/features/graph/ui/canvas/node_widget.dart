@@ -6,6 +6,7 @@ import '../../presentation/graph_metrics.dart';
 import '../../models/models.dart';
 import '../../store/graph_data_query.dart';
 import '../../presentation/view_state.dart';
+import '../../presentation/node_render_state.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'canvas_text_editor.dart';
 
@@ -131,7 +132,7 @@ class NodeWidget extends StatelessWidget {
               // ── Resize Handle Visual (Right Edge) ─────────
               Positioned(
                 right: 0,
-                top: 0,
+                top: 24.0, // Shifted down to clear the metadata sphere area
                 bottom: 0,
                 child: Container(
                   width: AppConfig.node.resizeHandleVisualWidth,
@@ -158,6 +159,49 @@ class NodeWidget extends StatelessWidget {
                   ),
                 ),
               ),
+
+              // ── Metadata Sphere Widget ────────────────────
+              if (liveNode is InfoUiNode &&
+                  (liveNode.tags.isNotEmpty || liveNode.comments.isNotEmpty))
+                Positioned(
+                  right: AppConfig.node.metadataSphereOffsetFromRight -
+                      AppConfig.node.metadataSphereRadius,
+                  top: AppConfig.node.metadataSphereOffsetFromTop -
+                      AppConfig.node.metadataSphereRadius,
+                  child: MouseRegion(
+                    onEnter: (_) {
+                      context.read<NodeRenderState>().hoveredNodeMetadataNotifier.value = liveNode.id;
+                    },
+                    onExit: (_) {
+                      context.read<NodeRenderState>().hoveredNodeMetadataNotifier.value = null;
+                    },
+                    child: Container(
+                      width: AppConfig.node.metadataSphereRadius * 2,
+                      height: AppConfig.node.metadataSphereRadius * 2,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(
+                          (liveNode.tags.isNotEmpty && liveNode.comments.isNotEmpty)
+                              ? 0xFFEC407A
+                              : liveNode.tags.isNotEmpty
+                                  ? 0xFF5C6BC0
+                                  : 0xFF26A69A,
+                        ),
+                        border: Border.all(
+                          color: Colors.white,
+                          width: AppConfig.node.metadataSphereStrokeWidth,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 2,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         );

@@ -191,13 +191,33 @@ class CanvasIdle extends CanvasInteractionState {
     }
 
     // Hit Testing Registry
-    String? hitNodeId;
-    bool hitResize = false;
-    ResizeEdge? draggedEdge;
     final nodeIds = ctx.zOrder.reversed.toList();
     if (nodeIds.isEmpty) {
       nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
     }
+
+    // Priority -0.2: Metadata Sphere Hit-Testing
+    for (final nodeId in nodeIds) {
+      final vs = ctx.nodeViewStates[nodeId];
+      if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
+      final node = ctx.getNode(nodeId);
+      if (node is InfoUiNode && (node.tags.isNotEmpty || node.comments.isNotEmpty)) {
+        final nodeRect = vs.rect;
+        final center = Offset(
+          nodeRect.right - AppConfig.node.metadataSphereOffsetFromRight,
+          nodeRect.top + AppConfig.node.metadataSphereOffsetFromTop,
+        );
+        if ((pCanvas - center).distance < AppConfig.node.metadataSphereHitboxRadius) {
+          _canvasIdleLog.fine('Metadata sphere hit: $nodeId');
+          ctx.openDataInspector(nodeId);
+          return this;
+        }
+      }
+    }
+
+    String? hitNodeId;
+    bool hitResize = false;
+    ResizeEdge? draggedEdge;
 
     int zeroSizeRejections = 0; // Track Size.zero bypasses
 
@@ -350,6 +370,21 @@ class CanvasIdle extends CanvasInteractionState {
     for (final nodeId in nodeIds) {
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
+
+      // Metadata sphere hover hit test
+      final node = ctx.getNode(nodeId);
+      if (node is InfoUiNode && (node.tags.isNotEmpty || node.comments.isNotEmpty)) {
+        final nodeRect = vs.rect;
+        final center = Offset(
+          nodeRect.right - AppConfig.node.metadataSphereOffsetFromRight,
+          nodeRect.top + AppConfig.node.metadataSphereOffsetFromTop,
+        );
+        if ((pCanvas - center).distance < AppConfig.node.metadataSphereHitboxRadius) {
+          return cursor == SystemMouseCursors.click
+              ? this
+              : const CanvasIdle(cursor: SystemMouseCursors.click);
+        }
+      }
 
       if (vs.rightResizeHitbox.contains(pCanvas) ||
           vs.leftResizeHitbox.contains(pCanvas)) {

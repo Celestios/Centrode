@@ -79,6 +79,12 @@ abstract interface class InteractionContext {
   /// Returns the current set of visible node IDs for O(V) hit testing.
   Set<String> getVisibleNodeIds();
 
+  /// Opens the right property panel and switches to the Data tab for the specified node.
+  void openDataInspector(String nodeId);
+
+  /// Retrieves a node by its ID from the data store lookup.
+  UiNode? getNode(String id);
+
   /// Gets the current scale factor of the canvas viewport.
   double get currentScale;
 }

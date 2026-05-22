@@ -7,6 +7,7 @@ import '../domain/base_models.dart';
 import '../domain/contents.dart';
 import '../domain/nodes.dart';
 import '../domain/styles.dart';
+import '../domain/tags.dart';
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;

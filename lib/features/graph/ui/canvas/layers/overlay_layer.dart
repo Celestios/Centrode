@@ -8,6 +8,7 @@ import '../../../engine/base_interaction_state.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
 import '../../../presentation/strategies/relation_layout_strategy.dart';
+import '../metadata_preview_overlay.dart';
 
 class OverlayLayer extends StatelessWidget {
   final CanvasInteractionState interactionState;
@@ -46,6 +47,34 @@ class OverlayLayer extends StatelessWidget {
         // 5. THE UNIFIED FLOATING TOOLBAR
         if (renderState.selectedEntities.isNotEmpty)
           _buildUnifiedToolbar(context, renderState, dataController),
+
+        // 6. Metadata Preview Overlay Card
+        ListenableBuilder(
+          listenable: renderState.hoveredNodeMetadataNotifier,
+          builder: (context, _) {
+            final hoveredNodeId = renderState.hoveredNodeMetadataNotifier.value;
+            if (hoveredNodeId == null) return const SizedBox.shrink();
+
+            final node = dataController.nodeLookup[hoveredNodeId];
+            final vs = renderState.viewStates[hoveredNodeId];
+            if (node is! InfoUiNode || vs == null) return const SizedBox.shrink();
+
+            final rect = vs.rect;
+            final sphereCenter = Offset(
+              rect.right - AppConfig.node.metadataSphereOffsetFromRight,
+              rect.top + AppConfig.node.metadataSphereOffsetFromTop,
+            );
+
+            return Positioned(
+              left: sphereCenter.dx + AppConfig.node.metadataPreviewOffset.dx,
+              top: sphereCenter.dy + AppConfig.node.metadataPreviewOffset.dy,
+              child: FractionalTranslation(
+                translation: const Offset(-0.5, -1.0),
+                child: MetadataPreviewOverlay(node: node),
+              ),
+            );
+          },
+        ),
       ],
     );
   }

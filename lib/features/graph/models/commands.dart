@@ -3,8 +3,8 @@ import 'package:mycelium/src/rust/bridge/api.dart';
 import 'graph_node.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
-import 'package:mycelium/src/rust/domain/nodes.dart';
-import 'package:mycelium/src/rust/domain/relations.dart';
+import 'package:mycelium/src/rust/domain/patches.dart';
+import 'package:mycelium/src/rust/domain/tags.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/src/rust/domain/contents.dart';
 
@@ -77,24 +77,40 @@ class MoveNodeCommand implements GraphCommand {
     final List<NodePatch> reversePatches = [];
 
     if (newPosition != null && oldPosition != null) {
-      forwardPatches.add(NodePatch.position(frb.Coordinates(
-        x: newPosition!.dx.round(),
-        y: newPosition!.dy.round(),
-      )));
-      reversePatches.add(NodePatch.position(frb.Coordinates(
-        x: oldPosition!.dx.round(),
-        y: oldPosition!.dy.round(),
-      )));
+      forwardPatches.add(
+        NodePatch.position(
+          frb.Coordinates(
+            x: newPosition!.dx.round(),
+            y: newPosition!.dy.round(),
+          ),
+        ),
+      );
+      reversePatches.add(
+        NodePatch.position(
+          frb.Coordinates(
+            x: oldPosition!.dx.round(),
+            y: oldPosition!.dy.round(),
+          ),
+        ),
+      );
     }
     if (newSize != null && oldSize != null) {
-      forwardPatches.add(NodePatch.size(frb.Size(
-        width: newSize!.width.round(),
-        height: newSize!.height.round(),
-      )));
-      reversePatches.add(NodePatch.size(frb.Size(
-        width: oldSize!.width.round(),
-        height: oldSize!.height.round(),
-      )));
+      forwardPatches.add(
+        NodePatch.size(
+          frb.Size(
+            width: newSize!.width.round(),
+            height: newSize!.height.round(),
+          ),
+        ),
+      );
+      reversePatches.add(
+        NodePatch.size(
+          frb.Size(
+            width: oldSize!.width.round(),
+            height: oldSize!.height.round(),
+          ),
+        ),
+      );
     }
     if (newStyle != null || oldStyle != null) {
       forwardPatches.add(NodePatch.style(newStyle));
@@ -106,10 +122,10 @@ class MoveNodeCommand implements GraphCommand {
     }
 
     if (forwardPatches.isNotEmpty) {
-      final patch = frb.SymmetricEntityPatch(
+      final patch = SymmetricEntityPatch(
         id: frb.RecordStrings(table: tableName, key: targetId),
-        forward: frb.EntityPatch.node(forwardPatches),
-        reverse: frb.EntityPatch.node(reversePatches),
+        forward: EntityPatch.node(forwardPatches),
+        reverse: EntityPatch.node(reversePatches),
       );
       await api.applyEntityMutation(mutation: patch);
     }
@@ -193,10 +209,10 @@ class UpdateTextCommand implements GraphCommand {
         reversePatches.add(RelationPatch.verb(oldVerb!));
       }
       if (forwardPatches.isNotEmpty) {
-        final patch = frb.SymmetricEntityPatch(
+        final patch = SymmetricEntityPatch(
           id: frb.RecordStrings(table: tableName, key: targetId),
-          forward: frb.EntityPatch.relation(forwardPatches),
-          reverse: frb.EntityPatch.relation(reversePatches),
+          forward: EntityPatch.relation(forwardPatches),
+          reverse: EntityPatch.relation(reversePatches),
         );
         await api.applyEntityMutation(mutation: patch);
       }
@@ -208,20 +224,28 @@ class UpdateTextCommand implements GraphCommand {
         reversePatches.add(NodePatch.content(oldContent!));
       }
       if (newSize != null && oldSize != null) {
-        forwardPatches.add(NodePatch.size(frb.Size(
-          width: newSize!.width.round(),
-          height: newSize!.height.round(),
-        )));
-        reversePatches.add(NodePatch.size(frb.Size(
-          width: oldSize!.width.round(),
-          height: oldSize!.height.round(),
-        )));
+        forwardPatches.add(
+          NodePatch.size(
+            frb.Size(
+              width: newSize!.width.round(),
+              height: newSize!.height.round(),
+            ),
+          ),
+        );
+        reversePatches.add(
+          NodePatch.size(
+            frb.Size(
+              width: oldSize!.width.round(),
+              height: oldSize!.height.round(),
+            ),
+          ),
+        );
       }
       if (forwardPatches.isNotEmpty) {
-        final patch = frb.SymmetricEntityPatch(
+        final patch = SymmetricEntityPatch(
           id: frb.RecordStrings(table: tableName, key: targetId),
-          forward: frb.EntityPatch.node(forwardPatches),
-          reverse: frb.EntityPatch.node(reversePatches),
+          forward: EntityPatch.node(forwardPatches),
+          reverse: EntityPatch.node(reversePatches),
         );
         await api.applyEntityMutation(mutation: patch);
       }
@@ -361,10 +385,10 @@ class UpdateRelationLayoutCommand implements GraphCommand {
     }
 
     if (forwardPatches.isNotEmpty) {
-      final patch = frb.SymmetricEntityPatch(
+      final patch = SymmetricEntityPatch(
         id: frb.RecordStrings(table: tableName, key: targetId),
-        forward: frb.EntityPatch.relation(forwardPatches),
-        reverse: frb.EntityPatch.relation(reversePatches),
+        forward: EntityPatch.relation(forwardPatches),
+        reverse: EntityPatch.relation(reversePatches),
       );
       await api.applyEntityMutation(mutation: patch);
     }
@@ -376,4 +400,92 @@ class UpdateRelationLayoutCommand implements GraphCommand {
   }
 }
 
+class UpdateTagsCommand implements GraphCommand {
+  @override
+  String targetId;
+  final String tableName;
+  final AppHandle api;
+  final List<Tag> oldTags;
+  final List<Tag> newTags;
+  final VoidCallback onUndo;
 
+  UpdateTagsCommand({
+    required this.targetId,
+    required this.tableName,
+    required this.api,
+    required this.oldTags,
+    required this.newTags,
+    required this.onUndo,
+  });
+
+  @override
+  CommandCategory get category => CommandCategory.content;
+
+  @override
+  Future<void> execute() async {
+    final addedTags = newTags.where((t) => !oldTags.contains(t)).toList();
+    final removedTags = oldTags.where((t) => !newTags.contains(t)).toList();
+
+    for (final tag in addedTags) {
+      final existing = await api.getTag(name: tag.name);
+      if (existing == null) {
+        await api.createTag(tag: tag);
+      }
+    }
+
+    final List<NodePatch> forwardPatches = [];
+    final List<NodePatch> reversePatches = [];
+
+    for (final tag in addedTags) {
+      forwardPatches.add(NodePatch.tagOp(TagOperation.add(tag.name)));
+      reversePatches.add(NodePatch.tagOp(TagOperation.remove(tag.name)));
+    }
+
+    for (final tag in removedTags) {
+      forwardPatches.add(NodePatch.tagOp(TagOperation.remove(tag.name)));
+      reversePatches.add(NodePatch.tagOp(TagOperation.add(tag.name)));
+    }
+
+    if (forwardPatches.isNotEmpty) {
+      final patch = SymmetricEntityPatch(
+        id: frb.RecordStrings(table: tableName, key: targetId),
+        forward: EntityPatch.node(forwardPatches),
+        reverse: EntityPatch.node(reversePatches),
+      );
+      await api.applyEntityMutation(mutation: patch);
+    }
+  }
+
+  @override
+  void undo() {
+    onUndo();
+  }
+}
+
+class UpdateCommentsCommand implements GraphCommand {
+  @override
+  String targetId;
+  final AppHandle api;
+  final UiNode node;
+  final VoidCallback onUndo;
+
+  UpdateCommentsCommand({
+    required this.targetId,
+    required this.api,
+    required this.node,
+    required this.onUndo,
+  });
+
+  @override
+  CommandCategory get category => CommandCategory.content;
+
+  @override
+  Future<void> execute() async {
+    await api.updateNode(input: node.toRust());
+  }
+
+  @override
+  void undo() {
+    onUndo();
+  }
+}

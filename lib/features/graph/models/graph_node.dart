@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/src/rust/domain/contents.dart';
 import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
+import 'package:mycelium/src/rust/domain/tags.dart';
 
 enum UiNodes { info, task }
 
@@ -88,7 +89,7 @@ sealed class UiNode {
 // -----------------------------------------------------------------------------
 
 class InfoUiNode extends UiNode {
-  List<String> tags;
+  List<Tag> tags;
   List<String> aliases;
   List<frb.Comment> comments;
   String? attachment;
@@ -138,7 +139,7 @@ class InfoUiNode extends UiNode {
           expandable: expandable,
           isExpanded: isExpanded,
           locked: locked,
-          tags: tags,
+          tags: tags.map((tag) => TagEdge.hydrated(tag)).toList(),
           aliases: aliases,
           comments: comments,
           attachment: attachment,
@@ -169,7 +170,12 @@ class InfoUiNode extends UiNode {
       significance: fields.significance,
       content: fields.content,
       lineCount: fields.lineCount,
-      tags: fields.tags,
+      tags: fields.tags.map((edge) {
+        return edge.when(
+          hydrated: (tag) => tag,
+          pointer: (record) => Tag(name: record.key, color: 0xFF78909C),
+        );
+      }).toList(),
       aliases: fields.aliases,
       comments: fields.comments,
       attachment: fields.attachment,
@@ -190,7 +196,7 @@ class InfoUiNode extends UiNode {
     int? significance,
     Offset? position,
     Content? content,
-    List<String>? tags,
+    List<Tag>? tags,
     List<String>? aliases,
     List<frb.Comment>? comments,
     String? attachment,

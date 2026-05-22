@@ -7,8 +7,9 @@ import '../models/models.dart';
 import 'command_processor.dart';
 import '../presentation/theme_manager.dart';
 import 'package:mycelium/src/rust/bridge/api.dart' as rust;
-import 'package:mycelium/src/rust/domain/base_models.dart' show BoundingBox;
+import 'package:mycelium/src/rust/domain/base_models.dart' show BoundingBox, Comment;
 import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/src/rust/domain/tags.dart';
 
 import 'modules/graph_store.dart';
 import 'modules/graph_spatial.dart';
@@ -225,6 +226,12 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
 
   void updateNodeStyle(String id, NodeStyle newStyle) =>
       propertyMutations.updateNodeStyle(id, newStyle);
+
+  void updateNodeTags(String id, List<Tag> newTags) =>
+      propertyMutations.updateNodeTags(id, newTags);
+
+  void updateNodeComments(String id, List<Comment> newComments) =>
+      propertyMutations.updateNodeComments(id, newComments);
 
   // ===========================================================================
   // Lifecycle

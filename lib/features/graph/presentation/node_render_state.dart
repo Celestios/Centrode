@@ -11,6 +11,8 @@ class MovementNotifier extends ChangeNotifier {
   void pulse() => notifyListeners();
 }
 
+enum InspectorTab { appearance, data }
+
 /// Exclusively manages volatile visual state (selections, overlays, toolbars, and viewState lifecycles).
 ///
 /// This controller projects the canonical data model changes from [GraphDataController]
@@ -19,6 +21,12 @@ class MovementNotifier extends ChangeNotifier {
 class NodeRenderState extends ChangeNotifier {
   final Logger _log = Logger('NodeRenderState');
   final GraphDataController _dataController;
+
+  /// Tracks the currently active inspector tab.
+  final ValueNotifier<InspectorTab> activeInspectorTabNotifier = ValueNotifier(InspectorTab.appearance);
+
+  /// ID of the node whose metadata is currently hovered on canvas.
+  final ValueNotifier<String?> hoveredNodeMetadataNotifier = ValueNotifier(null);
 
   /// Map of currently active visual view states.
   final Map<String, NodeViewState> viewStates = {};
@@ -129,6 +137,8 @@ class NodeRenderState extends ChangeNotifier {
       case GraphUpdateType.relationAdded:
       case GraphUpdateType.relationDeleted:
       case GraphUpdateType.relationLayout:
+      case GraphUpdateType.tags:
+      case GraphUpdateType.comments:
       case GraphUpdateType.reset:
         if (update.type == GraphUpdateType.relationLayout ||
             update.type == GraphUpdateType.relationAdded ||
@@ -346,6 +356,8 @@ class NodeRenderState extends ChangeNotifier {
     movementNotifier.dispose();
     toolbarOffsetNotifier.dispose();
     multiToolbarOffsetNotifier.dispose();
+    activeInspectorTabNotifier.dispose();
+    hoveredNodeMetadataNotifier.dispose();
     super.dispose();
   }
 }

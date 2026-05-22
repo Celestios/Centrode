@@ -10,6 +10,7 @@ DEFINE TABLE OVERWRITE INode SCHEMAFULL;
 DEFINE TABLE OVERWRITE TaskNode SCHEMAFULL;
 DEFINE TABLE OVERWRITE InterNode SCHEMAFULL;
 DEFINE TABLE OVERWRITE IRelation TYPE RELATION SCHEMAFULL;
+DEFINE TABLE OVERWRITE Tag SCHEMAFULL;
 DEFINE TABLE OVERWRITE MapTheme SCHEMAFULL;
 DEFINE TABLE OVERWRITE MapMetaData SCHEMALESS;
 DEFINE TABLE OVERWRITE History SCHEMAFULL;
@@ -95,7 +96,7 @@ DEFINE FIELD OVERWRITE is_expanded ON TABLE INode TYPE bool;
 DEFINE FIELD OVERWRITE expandable ON TABLE INode TYPE bool;
 DEFINE FIELD OVERWRITE layer ON TABLE INode TYPE string;
 DEFINE FIELD OVERWRITE locked ON TABLE INode TYPE bool;
-DEFINE FIELD OVERWRITE tags ON TABLE INode TYPE array<string>;
+DEFINE FIELD OVERWRITE tags ON TABLE INode TYPE array<record<Tag>>;
 DEFINE FIELD OVERWRITE aliases ON TABLE INode TYPE array<string>;
 DEFINE FIELD OVERWRITE attachment ON TABLE INode TYPE option<string>;
 DEFINE FIELD OVERWRITE significance ON TABLE INode TYPE int DEFAULT 0;
@@ -252,7 +253,12 @@ DEFINE FIELD OVERWRITE created_at ON TABLE IRelation TYPE int;
 DEFINE FIELD OVERWRITE updated_at ON TABLE IRelation COMPUTED time::millis(time::now());
 
 -- ---------------------------------------------------------------------------
--- 6. Fields for `MapMetaData`
+-- 6. Fields for `Tag`
+-- ---------------------------------------------------------------------------
+DEFINE FIELD OVERWRITE name ON TABLE Tag VALUE meta::id(id);
+DEFINE FIELD OVERWRITE color ON TABLE Tag TYPE int;
+-- ---------------------------------------------------------------------------
+-- 7. Fields for `MapMetaData`
 -- ---------------------------------------------------------------------------
 DEFINE FIELD OVERWRITE map_name ON TABLE MapMetaData TYPE string;
 DEFINE FIELD OVERWRITE created_at ON TABLE MapMetaData TYPE int DEFAULT time::millis(time::now());
@@ -265,7 +271,7 @@ DEFINE FIELD OVERWRITE active_theme_id ON TABLE MapMetaData TYPE option<string>;
 DEFINE FIELD OVERWRITE display_mode ON TABLE MapMetaData TYPE any;
 
 -- ---------------------------------------------------------------------------
--- 7. Fields for `MapTheme`
+-- 8. Fields for `MapTheme`
 -- ---------------------------------------------------------------------------
 DEFINE FIELD OVERWRITE name ON TABLE MapTheme TYPE string;
 DEFINE FIELD OVERWRITE primary_color ON TABLE MapTheme TYPE int;
@@ -287,7 +293,7 @@ DEFINE FIELD OVERWRITE use_material3 ON TABLE MapTheme TYPE bool;
 DEFINE FIELD OVERWRITE brightness ON TABLE MapTheme;
 
 -- ---------------------------------------------------------------------------
--- 8. Fields for `History`
+-- 9. Fields for `History`
 -- ---------------------------------------------------------------------------
 DEFINE FIELD OVERWRITE action_type ON TABLE History TYPE string;
 DEFINE FIELD OVERWRITE payload ON TABLE History TYPE any;
@@ -295,12 +301,12 @@ DEFINE FIELD OVERWRITE status ON TABLE History TYPE string;
 DEFINE FIELD OVERWRITE created_at ON TABLE History;
 
 -- ---------------------------------------------------------------------------
--- 9. Analyzer (Required before indexes that use it)
+-- 10. Analyzer (Required before indexes that use it)
 -- ---------------------------------------------------------------------------
 DEFINE ANALYZER IF NOT EXISTS simple TOKENIZERS blank, class FILTERS lowercase;
 
 -- ---------------------------------------------------------------------------
--- 10. Indexes
+-- 11. Indexes
 -- ---------------------------------------------------------------------------
 
 -- Simple indexes

@@ -1,6 +1,7 @@
 use crate::domain::base_models::{Comment, Coordinates, IsTable, Size};
 use crate::domain::contents::Content;
 use crate::domain::styles::NodeStyle;
+use crate::domain::tags::TagEdge;
 use surrealdb::types::SurrealValue;
 
 #[derive(Debug, Clone, SurrealValue)]
@@ -55,7 +56,7 @@ pub struct INodeFields {
     pub expandable: bool,
     pub is_expanded: bool,
     pub locked: bool,
-    pub tags: Vec<String>,
+    pub tags: Vec<TagEdge>,
     pub aliases: Vec<String>,
     pub comments: Vec<Comment>,
     pub attachment: Option<String>,
@@ -97,15 +98,4 @@ pub enum Nodes {
     INode(INode),
     TaskNode(TaskNode),
     InterNode(InterNode),
-}
-
-#[derive(Debug, Clone, SurrealValue)]
-pub enum NodePatch {
-    Position(Coordinates),
-    Size(Size),
-    Content(Content),
-    IsExpanded(bool),
-    Style(Option<NodeStyle>),
-    Tags(Vec<String>),
-    Significance(u8),
 }

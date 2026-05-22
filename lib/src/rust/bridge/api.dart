@@ -6,8 +6,10 @@
 import '../domain/base_models.dart';
 import '../domain/contents.dart';
 import '../domain/nodes.dart';
+import '../domain/patches.dart';
 import '../domain/relations.dart';
 import '../domain/styles.dart';
+import '../domain/tags.dart';
 import '../domain/theme.dart';
 import '../frb_generated.dart';
 import '../persistence/history.dart';
@@ -40,13 +42,19 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<void> createRelation({required IRelation input});
 
+  Future<void> createTag({required Tag tag});
+
   Future<void> createTheme({required String key, required ThemeFields fields});
 
   Future<void> deleteNodeEntry({required String table, required String key});
 
   Future<void> deleteRelation({required String table, required String key});
 
+  Future<void> deleteTag({required String name});
+
   Future<String?> getActiveThemeId();
+
+  Future<List<Tag>> getAllTags();
 
   Future<List<Theme>> getAllThemes();
 
@@ -56,6 +64,8 @@ abstract class AppHandle implements RustOpaqueInterface {
   getGraphSnapshot();
 
   Future<Nodes?> getNode({required String table, required String key});
+
+  Future<Tag?> getTag({required String name});
 
   Future<Theme?> getTheme({required String key});
 

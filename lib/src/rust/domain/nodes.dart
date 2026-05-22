@@ -9,6 +9,7 @@ import 'contents.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 import 'styles.dart';
+import 'tags.dart';
 part 'nodes.freezed.dart';
 
 class INode {
@@ -40,7 +41,7 @@ class INodeFields {
   final bool expandable;
   final bool isExpanded;
   final bool locked;
-  final List<String> tags;
+  final List<TagEdge> tags;
   final List<String> aliases;
   final List<Comment> comments;
   final String? attachment;
@@ -171,19 +172,6 @@ class InterNodeFields {
           layer == other.layer &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt;
-}
-
-@freezed
-sealed class NodePatch with _$NodePatch {
-  const NodePatch._();
-
-  const factory NodePatch.position(Coordinates field0) = NodePatch_Position;
-  const factory NodePatch.size(Size field0) = NodePatch_Size;
-  const factory NodePatch.content(Content field0) = NodePatch_Content;
-  const factory NodePatch.isExpanded(bool field0) = NodePatch_IsExpanded;
-  const factory NodePatch.style([NodeStyle? field0]) = NodePatch_Style;
-  const factory NodePatch.tags(List<String> field0) = NodePatch_Tags;
-  const factory NodePatch.significance(int field0) = NodePatch_Significance;
 }
 
 @freezed

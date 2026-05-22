@@ -60,6 +60,7 @@ class _GraphCanvasState extends State<GraphCanvas> {
         viewportController: vpController,
         getScale: () =>
             vpController.transformController.value.getMaxScaleOnAxis(),
+        boundSession: _boundSession,
       );
 
       // 3. Initialize the pure FSM Engine

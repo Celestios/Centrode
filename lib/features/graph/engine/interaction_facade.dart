@@ -5,6 +5,7 @@ import 'interaction_context.dart';
 import '../store/graph_data_controller.dart';
 import '../presentation/node_render_state.dart';
 import '../presentation/viewport_state.dart';
+import '../presentation/workspace_tabs_controller.dart';
 
 /// The Facade bridging the active FSM to the Data/UI Controllers.
 class CanvasInteractionEnvironment implements InteractionContext {
@@ -12,16 +13,19 @@ class CanvasInteractionEnvironment implements InteractionContext {
   final NodeRenderState _renderState;
   final ViewportController _viewportController;
   final double Function() _getScale;
+  final TabSession? _boundSession;
 
   CanvasInteractionEnvironment({
     required GraphDataController dataController,
     required NodeRenderState renderState,
     required ViewportController viewportController,
     required double Function() getScale,
+    TabSession? boundSession,
   }) : _dataController = dataController,
        _renderState = renderState,
        _viewportController = viewportController,
-       _getScale = getScale;
+       _getScale = getScale,
+       _boundSession = boundSession;
 
   @override
   Map<String, NodeViewState> get nodeViewStates => _renderState.viewStates;
@@ -31,6 +35,16 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
   @override
   Iterable<UiRelation> getRelations() => _dataController.relations;
+
+  @override
+  UiNode? getNode(String id) => _dataController.nodeLookup[id];
+
+  @override
+  void openDataInspector(String nodeId) {
+    onSelectEntity(nodeId);
+    _boundSession?.showRightPanel.value = true;
+    _renderState.activeInspectorTabNotifier.value = InspectorTab.data;
+  }
 
   @override
   void onNodeMove(String id, Offset pos) =>
@@ -68,7 +82,10 @@ class CanvasInteractionEnvironment implements InteractionContext {
   String? getActiveEditId() => _renderState.activeEditId;
 
   @override
-  void onEnterEditMode(String id) => _renderState.enterEditMode(id);
+  void onEnterEditMode(String id) {
+    _renderState.enterEditMode(id);
+    openDataInspector(id);
+  }
 
   @override
   void onCommitActiveEdit() => _renderState.cancelActiveEdit();
@@ -78,8 +95,8 @@ class CanvasInteractionEnvironment implements InteractionContext {
     // 1. Create the node via data layer
     final id = _dataController.createNode(UiNodes.info, position);
 
-    // 2. Trigger UI edit mode
-    _renderState.enterEditMode(id);
+    // 2. Open Data Inspector (which also selects and opens edit/inspector state)
+    openDataInspector(id);
   }
 
   @override

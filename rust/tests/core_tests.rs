@@ -2,12 +2,13 @@ mod common;
 
 use common::setup_test_repo;
 use mycelium_core::domain::analysis::{DecaySignificanceStrategy, GraphAnalysis};
-use mycelium_core::domain::base_models::{BoundingBox, Coordinates, MapData, Size};
+use mycelium_core::domain::base_models::{BoundingBox, Coordinates, MapData, RecordStrings, Size};
 use mycelium_core::domain::contents::Content;
 use mycelium_core::domain::nodes::{
     INode, INodeFields, InterNode, InterNodeFields, Nodes, TaskNode, TaskNodeFields,
 };
 use mycelium_core::domain::relations::{IRelation, IRelationFields};
+use mycelium_core::domain::tags::TagEdge;
 use mycelium_core::persistence::history::HistoryManager;
 use std::time::Duration;
 use surrealdb::types::{RecordId, SurrealValue};
@@ -20,6 +21,16 @@ struct TestPayload {
 #[tokio::test]
 async fn test_repo_crud() {
     let repo = setup_test_repo().await;
+
+    use mycelium_core::domain::tags::Tag;
+    let tag = Tag {
+        name: "tag1".to_string(),
+        color: 0xFF00FF,
+    };
+
+    repo.create_tag(tag.clone())
+        .await
+        .expect("Failed to create tag");
 
     // 1. Create InfoNode (INode)
     let inode = INode {
@@ -38,7 +49,10 @@ async fn test_repo_crud() {
             expandable: true,
             is_expanded: false,
             locked: false,
-            tags: vec!["tag1".to_string()],
+            tags: vec![TagEdge::Pointer(RecordStrings {
+                table: "Tag".to_string(),
+                key: "tag1".to_string(),
+            })],
             aliases: vec![],
             comments: vec![],
             attachment: None,
@@ -314,26 +328,55 @@ async fn test_history_manager() {
 
     // Push 5 events
     history
-        .push_event("add_node", TestPayload { key: "node_1".to_string() }.into_value())
+        .push_event(
+            "add_node",
+            TestPayload {
+                key: "node_1".to_string(),
+            }
+            .into_value(),
+        )
         .await
         .unwrap();
     history
-        .push_event("add_node", TestPayload { key: "node_2".to_string() }.into_value())
+        .push_event(
+            "add_node",
+            TestPayload {
+                key: "node_2".to_string(),
+            }
+            .into_value(),
+        )
         .await
         .unwrap();
     history
-        .push_event("add_node", TestPayload { key: "node_3".to_string() }.into_value())
+        .push_event(
+            "add_node",
+            TestPayload {
+                key: "node_3".to_string(),
+            }
+            .into_value(),
+        )
         .await
         .unwrap();
     history
-        .push_event("add_node", TestPayload { key: "node_4".to_string() }.into_value())
+        .push_event(
+            "add_node",
+            TestPayload {
+                key: "node_4".to_string(),
+            }
+            .into_value(),
+        )
         .await
         .unwrap();
     history
-        .push_event("add_node", TestPayload { key: "node_5".to_string() }.into_value())
+        .push_event(
+            "add_node",
+            TestPayload {
+                key: "node_5".to_string(),
+            }
+            .into_value(),
+        )
         .await
         .unwrap();
-
 
     // Check threshold pruning (max 3 applied events should remain)
     let mut count_response = repo
@@ -367,7 +410,13 @@ async fn test_history_manager() {
 
     // Pushing a new event after undo should clear the redo (undone) stack
     history
-        .push_event("add_node", TestPayload { key: "node_6".to_string() }.into_value())
+        .push_event(
+            "add_node",
+            TestPayload {
+                key: "node_6".to_string(),
+            }
+            .into_value(),
+        )
         .await
         .unwrap();
 
@@ -570,8 +619,8 @@ async fn test_decay_significance_propagation() {
 
 #[tokio::test]
 async fn test_targeted_patch_and_history() {
-    use mycelium_core::domain::base_models::{EntityPatch, PatchHistoryPayload, RecordStrings};
-    use mycelium_core::domain::nodes::NodePatch;
+    use mycelium_core::domain::base_models::RecordStrings;
+    use mycelium_core::domain::patches::{EntityPatch, NodePatch, PatchHistoryPayload};
 
     let repo = setup_test_repo().await;
     let history = HistoryManager::new(repo.db(), 5);
@@ -617,10 +666,16 @@ async fn test_targeted_patch_and_history() {
     ]);
 
     // 3. Apply forward patch
-    repo.patch_entity(record_id.clone(), &forward_patch).await.unwrap();
+    repo.patch_entity(record_id.clone(), &forward_patch)
+        .await
+        .unwrap();
 
     // Verify database is updated
-    let fetched = repo.get_node("INode".to_string(), "inode_patch_test".to_string()).await.unwrap().unwrap();
+    let fetched = repo
+        .get_node("INode".to_string(), "inode_patch_test".to_string())
+        .await
+        .unwrap()
+        .unwrap();
     if let Nodes::INode(ref n) = fetched {
         assert_eq!(n.fields.position.x, 50);
         assert_eq!(n.fields.position.y, 60);
@@ -638,7 +693,10 @@ async fn test_targeted_patch_and_history() {
         forward: forward_patch,
         reverse: reverse_patch,
     };
-    history.push_event("entity_patch", payload.into_value()).await.unwrap();
+    history
+        .push_event("entity_patch", payload.into_value())
+        .await
+        .unwrap();
 
     // 5. Undo
     let undone = history.undo().await.unwrap();
@@ -647,11 +705,20 @@ async fn test_targeted_patch_and_history() {
     assert_eq!(rec_undone.action_type, "entity_patch");
 
     let payload_undone = PatchHistoryPayload::from_value(rec_undone.payload).unwrap();
-    let target_id = RecordId::new(payload_undone.id.table.as_str(), payload_undone.id.key.as_str());
-    repo.patch_entity(target_id, &payload_undone.reverse).await.unwrap();
+    let target_id = RecordId::new(
+        payload_undone.id.table.as_str(),
+        payload_undone.id.key.as_str(),
+    );
+    repo.patch_entity(target_id, &payload_undone.reverse)
+        .await
+        .unwrap();
 
     // Verify undone state
-    let fetched_undone = repo.get_node("INode".to_string(), "inode_patch_test".to_string()).await.unwrap().unwrap();
+    let fetched_undone = repo
+        .get_node("INode".to_string(), "inode_patch_test".to_string())
+        .await
+        .unwrap()
+        .unwrap();
     if let Nodes::INode(ref n) = fetched_undone {
         assert_eq!(n.fields.position.x, 10);
         assert_eq!(n.fields.position.y, 20);
@@ -667,11 +734,20 @@ async fn test_targeted_patch_and_history() {
     assert_eq!(rec_redone.action_type, "entity_patch");
 
     let payload_redone = PatchHistoryPayload::from_value(rec_redone.payload).unwrap();
-    let target_id_redone = RecordId::new(payload_redone.id.table.as_str(), payload_redone.id.key.as_str());
-    repo.patch_entity(target_id_redone, &payload_redone.forward).await.unwrap();
+    let target_id_redone = RecordId::new(
+        payload_redone.id.table.as_str(),
+        payload_redone.id.key.as_str(),
+    );
+    repo.patch_entity(target_id_redone, &payload_redone.forward)
+        .await
+        .unwrap();
 
     // Verify redone state
-    let fetched_redone = repo.get_node("INode".to_string(), "inode_patch_test".to_string()).await.unwrap().unwrap();
+    let fetched_redone = repo
+        .get_node("INode".to_string(), "inode_patch_test".to_string())
+        .await
+        .unwrap()
+        .unwrap();
     if let Nodes::INode(ref n) = fetched_redone {
         assert_eq!(n.fields.position.x, 50);
         assert_eq!(n.fields.position.y, 60);
@@ -679,4 +755,126 @@ async fn test_targeted_patch_and_history() {
     } else {
         panic!("Incorrect node type");
     }
+}
+
+#[tokio::test]
+async fn test_tags_crud_and_patching() {
+    use mycelium_core::domain::patches::{EntityPatch, NodePatch, TagOperation};
+    use mycelium_core::domain::tags::Tag;
+
+    let repo = setup_test_repo().await;
+
+    // 1. Create a tag
+    let tag = Tag {
+        name: "test_tag_rust".to_string(),
+        color: 0xFF00FF,
+    };
+    repo.create_tag(tag.clone())
+        .await
+        .expect("Failed to create tag");
+
+    // 2. Read the tag back
+    let fetched_tag = repo
+        .get_tag("test_tag_rust".to_string())
+        .await
+        .expect("Failed to get tag");
+    assert!(fetched_tag.is_some());
+    let fetched_tag = fetched_tag.unwrap();
+    assert_eq!(fetched_tag.name, "test_tag_rust");
+    assert_eq!(fetched_tag.color, 0xFF00FF);
+
+    // 3. List all tags
+    let all_tags = repo.get_all_tags().await.expect("Failed to get all tags");
+    assert!(all_tags
+        .iter()
+        .any(|t| t.name == "test_tag_rust" && t.color == 0xFF00FF));
+
+    // 4. Create an INode
+    let inode = INode {
+        key: "inode_tag_test".to_string(),
+        fields: INodeFields {
+            content: Content::from_plain_text("Tag test node"),
+            style: None,
+            resolved_style: None,
+            layer: "default".to_string(),
+            position: Coordinates { x: 10, y: 20 },
+            size: Size {
+                width: 100,
+                height: 50,
+            },
+            line_count: 1,
+            expandable: true,
+            is_expanded: false,
+            locked: false,
+            tags: vec![],
+            aliases: vec![],
+            comments: vec![],
+            attachment: None,
+            significance: 0,
+            created_at: 0,
+            updated_at: 0,
+        },
+    };
+    repo.create_node(Nodes::INode(inode)).await.unwrap();
+
+    let record_id = RecordId::new("INode", "inode_tag_test");
+
+    // 5. Add tag to the INode using patch
+    let add_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Add(
+        "test_tag_rust".to_string(),
+    ))]);
+    repo.patch_entity(record_id.clone(), &add_patch)
+        .await
+        .unwrap();
+
+    // 6. Retrieve INode and verify tag is added & hydrated
+    let fetched_node = repo
+        .get_node("INode".to_string(), "inode_tag_test".to_string())
+        .await
+        .unwrap()
+        .unwrap();
+    if let Nodes::INode(n) = fetched_node {
+        assert_eq!(n.fields.tags.len(), 1);
+        match &n.fields.tags[0] {
+            TagEdge::Hydrated(t) => {
+                assert_eq!(t.name, "test_tag_rust");
+                assert_eq!(t.color, 0xFF00FF);
+            }
+            TagEdge::Pointer(p) => {
+                panic!("Expected tag to be hydrated but got pointer: {:?}", p);
+            }
+        }
+    } else {
+        panic!("Incorrect node type");
+    }
+
+    // 7. Remove tag from the INode using patch
+    let remove_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Remove(
+        "test_tag_rust".to_string(),
+    ))]);
+    repo.patch_entity(record_id.clone(), &remove_patch)
+        .await
+        .unwrap();
+
+    // 8. Retrieve INode and verify tag is removed
+    let fetched_node_after_remove = repo
+        .get_node("INode".to_string(), "inode_tag_test".to_string())
+        .await
+        .unwrap()
+        .unwrap();
+    if let Nodes::INode(n) = fetched_node_after_remove {
+        assert_eq!(n.fields.tags.len(), 0);
+    } else {
+        panic!("Incorrect node type");
+    }
+
+    // 9. Delete the tag
+    repo.delete_tag("test_tag_rust".to_string())
+        .await
+        .expect("Failed to delete tag");
+    let fetched_tag_deleted = repo
+        .get_tag("test_tag_rust".to_string())
+        .await
+        .expect("Failed to get tag");
+    assert!(fetched_tag_deleted.is_none());
 }

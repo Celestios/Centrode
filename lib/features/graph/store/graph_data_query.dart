@@ -14,6 +14,8 @@ enum GraphUpdateType {
   relationAdded,
   relationDeleted,
   relationLayout,
+  tags,
+  comments,
   reset
 }
 

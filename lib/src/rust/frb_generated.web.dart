@@ -13,8 +13,10 @@ import 'dart:convert';
 import 'domain/base_models.dart';
 import 'domain/contents.dart';
 import 'domain/nodes.dart';
+import 'domain/patches.dart';
 import 'domain/relations.dart';
 import 'domain/styles.dart';
+import 'domain/tags.dart';
 import 'domain/theme.dart';
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_web.dart';
@@ -171,6 +173,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  Tag dco_decode_box_autoadd_tag(dynamic raw);
+
+  @protected
+  TagOperation dco_decode_box_autoadd_tag_operation(dynamic raw);
+
+  @protected
   TaskNode dco_decode_box_autoadd_task_node(dynamic raw);
 
   @protected
@@ -270,6 +278,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<RelationPatch> dco_decode_list_relation_patch(dynamic raw);
 
   @protected
+  List<Tag> dco_decode_list_tag(dynamic raw);
+
+  @protected
+  List<TagEdge> dco_decode_list_tag_edge(dynamic raw);
+
+  @protected
   List<TaskNode> dco_decode_list_task_node(dynamic raw);
 
   @protected
@@ -330,6 +344,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RelationStyle? dco_decode_opt_box_autoadd_relation_style(dynamic raw);
 
   @protected
+  Tag? dco_decode_opt_box_autoadd_tag(dynamic raw);
+
+  @protected
   Theme? dco_decode_opt_box_autoadd_theme(dynamic raw);
 
   @protected
@@ -361,6 +378,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   SymmetricEntityPatch dco_decode_symmetric_entity_patch(dynamic raw);
+
+  @protected
+  Tag dco_decode_tag(dynamic raw);
+
+  @protected
+  TagEdge dco_decode_tag_edge(dynamic raw);
+
+  @protected
+  TagOperation dco_decode_tag_operation(dynamic raw);
 
   @protected
   TaskNode dco_decode_task_node(dynamic raw);
@@ -534,6 +560,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  Tag sse_decode_box_autoadd_tag(SseDeserializer deserializer);
+
+  @protected
+  TagOperation sse_decode_box_autoadd_tag_operation(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   TaskNode sse_decode_box_autoadd_task_node(SseDeserializer deserializer);
 
   @protected
@@ -639,6 +673,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<Tag> sse_decode_list_tag(SseDeserializer deserializer);
+
+  @protected
+  List<TagEdge> sse_decode_list_tag_edge(SseDeserializer deserializer);
+
+  @protected
   List<TaskNode> sse_decode_list_task_node(SseDeserializer deserializer);
 
   @protected
@@ -709,6 +749,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  Tag? sse_decode_opt_box_autoadd_tag(SseDeserializer deserializer);
+
+  @protected
   Theme? sse_decode_opt_box_autoadd_theme(SseDeserializer deserializer);
 
   @protected
@@ -742,6 +785,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   SymmetricEntityPatch sse_decode_symmetric_entity_patch(
     SseDeserializer deserializer,
   );
+
+  @protected
+  Tag sse_decode_tag(SseDeserializer deserializer);
+
+  @protected
+  TagEdge sse_decode_tag_edge(SseDeserializer deserializer);
+
+  @protected
+  TagOperation sse_decode_tag_operation(SseDeserializer deserializer);
 
   @protected
   TaskNode sse_decode_task_node(SseDeserializer deserializer);
@@ -957,6 +1009,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_tag(Tag self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_tag_operation(
+    TagOperation self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_task_node(
     TaskNode self,
     SseSerializer serializer,
@@ -1089,6 +1150,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_tag(List<Tag> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_tag_edge(List<TagEdge> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_task_node(List<TaskNode> self, SseSerializer serializer);
 
   @protected
@@ -1168,6 +1235,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_tag(Tag? self, SseSerializer serializer);
+
+  @protected
   void sse_encode_opt_box_autoadd_theme(Theme? self, SseSerializer serializer);
 
   @protected
@@ -1210,6 +1280,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     SymmetricEntityPatch self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_tag(Tag self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_tag_edge(TagEdge self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_tag_operation(TagOperation self, SseSerializer serializer);
 
   @protected
   void sse_encode_task_node(TaskNode self, SseSerializer serializer);

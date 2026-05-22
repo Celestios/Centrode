@@ -117,7 +117,7 @@ class NodeViewState {
 
   Rect get rightResizeHitbox => Rect.fromLTRB(
         rect.right - AppConfig.interaction.resizeEdgeWidth,
-        rect.top,
+        rect.top + 24.0,
         rect.right,
         rect.bottom,
       );

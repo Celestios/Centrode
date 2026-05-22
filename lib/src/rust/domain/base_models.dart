@@ -4,13 +4,7 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
-import 'contents.dart';
-import 'nodes.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
-import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
-import 'relations.dart';
-import 'styles.dart';
-part 'base_models.freezed.dart';
 
 class BoundingBox {
   final double minX;
@@ -78,15 +72,6 @@ class Coordinates {
 
 enum DisplayMode { importance, leveling }
 
-@freezed
-sealed class EntityPatch with _$EntityPatch {
-  const EntityPatch._();
-
-  const factory EntityPatch.node(List<NodePatch> field0) = EntityPatch_Node;
-  const factory EntityPatch.relation(List<RelationPatch> field0) =
-      EntityPatch_Relation;
-}
-
 class MapData {
   final String mapName;
   final ViewportState viewportState;
@@ -152,30 +137,6 @@ class Size {
           runtimeType == other.runtimeType &&
           width == other.width &&
           height == other.height;
-}
-
-class SymmetricEntityPatch {
-  final RecordStrings id;
-  final EntityPatch forward;
-  final EntityPatch reverse;
-
-  const SymmetricEntityPatch({
-    required this.id,
-    required this.forward,
-    required this.reverse,
-  });
-
-  @override
-  int get hashCode => id.hashCode ^ forward.hashCode ^ reverse.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is SymmetricEntityPatch &&
-          runtimeType == other.runtimeType &&
-          id == other.id &&
-          forward == other.forward &&
-          reverse == other.reverse;
 }
 
 class ViewportState {
