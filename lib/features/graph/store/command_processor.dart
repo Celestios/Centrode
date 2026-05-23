@@ -48,12 +48,19 @@ class CommandProcessor {
     }
   }
 
+  Future<void>? _processingFuture;
+
   Future<void> _processQueue() async {
-    if (_isProcessing) return;
+    if (_processingFuture != null) {
+      return _processingFuture;
+    }
     _log.info(
       'Starting _processQueue with ${_executionQueue.length} pending commands.',
     );
-    _isProcessing = true;
+    final completer = Completer<void>();
+    _processingFuture = completer.future;
+
+    try {
 
     while (_executionQueue.isNotEmpty) {
       final cmd = _executionQueue.removeFirst();
@@ -72,7 +79,10 @@ class CommandProcessor {
         onError("Sync failed: $e");
       }
     }
-    _isProcessing = false;
+    } finally {
+      _processingFuture = null;
+      completer.complete();
+    }
   }
 
   Future<void> flush() async {

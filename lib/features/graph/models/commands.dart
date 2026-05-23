@@ -307,8 +307,16 @@ class CreateRelationCommand implements GraphCommand {
 
   @override
   Future<void> execute() async {
-    await api.createRelation(input: relation.toRust());
-    await reloadGraph();
+    try {
+      print('Executing CreateRelationCommand for $targetId');
+      await api.createRelation(input: relation.toRust());
+      print('Calling reloadGraph...');
+      await reloadGraph();
+      print('Executed CreateRelationCommand successfully.');
+    } catch (e, st) {
+      print('CreateRelationCommand FAILED: $e\n$st');
+      rethrow;
+    }
   }
 
   @override

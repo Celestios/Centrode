@@ -2,7 +2,7 @@
 name = "mycelium_core"
 version = "0.1.0"
 edition = "2021"
-description = "Core logic and persistence layer for Mycelium 1.0, exposed via FFI."
+description = "Core logic and persistence layer for Mycelium, exposed via FFI."
 authors = ["Celestios <shahin.id5638@gmail.com>"]
 
 
@@ -33,7 +33,7 @@ lto = "off"
 
 [dependencies]
 # --- Core Runtime ---
-tokio = { version = "1.40", features = ["full"] }
+tokio = { version = "1.40", features = ["rt", "macros", "sync", "time"] }
 anyhow = "1.0"          # Simplified error handling for Bridge functions
 lazy_static = "1.4"     # To maintain the global Database instance
 thiserror = "1.0"       # For typed domain errors

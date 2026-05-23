@@ -268,3 +268,108 @@ pub enum MarkType {
 pub struct MarkAttrs {
     pub href: Option<String>, // For links
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_content_from_plain_text() {
+        // Empty text
+        let content_empty = Content::from_plain_text("");
+        assert_eq!(content_empty.text, "");
+        assert!(content_empty.blocks.is_empty());
+
+        // Single line text
+        let content_single = Content::from_plain_text("Hello Mycelium");
+        assert_eq!(content_single.text, "Hello Mycelium");
+        assert_eq!(content_single.blocks.len(), 1);
+        assert_eq!(content_single.blocks[0].block_type, BlockType::Paragraph);
+        assert_eq!(content_single.blocks[0].content.len(), 1);
+        assert_eq!(content_single.blocks[0].content[0].text, "Hello Mycelium");
+    }
+
+    #[test]
+    fn test_content_block_constructors() {
+        let p_block = ContentBlock::paragraph("Paragraph text");
+        assert_eq!(p_block.block_type, BlockType::Paragraph);
+        assert_eq!(p_block.content[0].text, "Paragraph text");
+        assert!(p_block.attrs.is_none());
+
+        let h_block = ContentBlock::heading("Heading text", 3);
+        assert_eq!(h_block.block_type, BlockType::Heading);
+        assert_eq!(h_block.content[0].text, "Heading text");
+        assert_eq!(h_block.attrs.as_ref().unwrap().level, Some(3));
+
+        let code_block = ContentBlock::code_block("const x = 5;", Some("javascript".to_string()));
+        assert_eq!(code_block.block_type, BlockType::CodeBlock);
+        assert_eq!(code_block.content[0].text, "const x = 5;");
+        assert_eq!(code_block.attrs.as_ref().unwrap().language, Some("javascript".to_string()));
+
+        let bullet = ContentBlock::bullet_list("Bullet item");
+        assert_eq!(bullet.block_type, BlockType::BulletList);
+        assert_eq!(bullet.content[0].text, "Bullet item");
+
+        let ordered = ContentBlock::ordered_list("Ordered item");
+        assert_eq!(ordered.block_type, BlockType::OrderedList);
+        assert_eq!(ordered.content[0].text, "Ordered item");
+
+        let quote = ContentBlock::blockquote("Quote item");
+        assert_eq!(quote.block_type, BlockType::Blockquote);
+        assert_eq!(quote.content[0].text, "Quote item");
+    }
+
+    #[test]
+    fn test_inline_element_and_marks() {
+        let mut inline = InlineElement::text("bold link");
+        assert_eq!(inline.inline_type, InlineType::Text);
+        assert!(inline.marks.is_none());
+
+        inline.add_mark(TextMark::bold());
+        inline.add_mark(TextMark::link("https://mycelium.org"));
+
+        let marks = inline.marks.unwrap();
+        assert_eq!(marks.len(), 2);
+        assert_eq!(marks[0].mark_type, MarkType::Bold);
+        assert_eq!(marks[1].mark_type, MarkType::Link);
+        assert_eq!(marks[1].attrs.as_ref().unwrap().href, Some("https://mycelium.org".to_string()));
+
+        let text_with_marks = InlineElement::text_with_marks("italic text", vec![TextMark::italic(), TextMark::underline()]);
+        assert_eq!(text_with_marks.marks.as_ref().unwrap().len(), 2);
+        assert_eq!(text_with_marks.marks.as_ref().unwrap()[0].mark_type, MarkType::Italic);
+        assert_eq!(text_with_marks.marks.as_ref().unwrap()[1].mark_type, MarkType::Underline);
+
+        let hard_break = InlineElement::hard_break();
+        assert_eq!(hard_break.inline_type, InlineType::HardBreak);
+        assert!(hard_break.text.is_empty());
+    }
+
+    #[test]
+    fn test_content_plain_text_computation_and_refresh() {
+        let blocks = vec![
+            ContentBlock {
+                block_type: BlockType::Heading,
+                content: vec![InlineElement::text("My Document Heading")],
+                attrs: Some(BlockAttrs { level: Some(1), language: None }),
+            },
+            ContentBlock {
+                block_type: BlockType::Paragraph,
+                content: vec![
+                    InlineElement::text("This is "),
+                    InlineElement::text_with_marks("formatted", vec![TextMark::bold()]),
+                    InlineElement::text(" text."),
+                ],
+                attrs: None,
+            },
+        ];
+
+        let mut content = Content::new(blocks);
+        // The computed text should join the text of all inline elements in each block, separated by a newline
+        assert_eq!(content.text, "My Document Heading\nThis is formatted text.");
+
+        // Modify in-place
+        content.blocks[1].content[1].text = "updated bold".to_string();
+        content.refresh_text();
+        assert_eq!(content.text, "My Document Heading\nThis is updated bold text.");
+    }
+}

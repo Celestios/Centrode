@@ -18,6 +18,37 @@ struct TestPayload {
     key: String,
 }
 
+async fn assert_significance_eventually(
+    repo: &mycelium_core::persistence::repo::Repository,
+    table: &str,
+    key: &str,
+    expected: u8,
+) {
+    let start = std::time::Instant::now();
+    let timeout = std::time::Duration::from_millis(1000);
+    let interval = std::time::Duration::from_millis(10);
+    while start.elapsed() < timeout {
+        if let Ok(Some(node)) = repo.get_node(table.to_string(), key.to_string()).await {
+            let sig = match node {
+                Nodes::INode(n) => n.fields.significance,
+                Nodes::TaskNode(t) => t.fields.significance,
+                Nodes::InterNode(_) => 0,
+            };
+            if sig == expected {
+                return;
+            }
+        }
+        tokio::time::sleep(interval).await;
+    }
+    let node = repo.get_node(table.to_string(), key.to_string()).await.unwrap().unwrap();
+    let sig = match node {
+        Nodes::INode(n) => n.fields.significance,
+        Nodes::TaskNode(t) => t.fields.significance,
+        Nodes::InterNode(_) => 0,
+    };
+    assert_eq!(sig, expected, "Node {}/{} significance did not reach expected value", table, key);
+}
+
 #[tokio::test]
 async fn test_repo_crud() {
     let repo = setup_test_repo().await;
@@ -224,6 +255,13 @@ async fn test_repo_crud() {
         .await
         .expect("Failed to delete INode");
 
+    // Assert inode_1 is actually deleted
+    let inode_after_delete = repo
+        .get_node("INode".to_string(), "inode_1".to_string())
+        .await
+        .expect("Failed to query inode_1 after delete");
+    assert!(inode_after_delete.is_none(), "INode inode_1 should have been deleted");
+
     let relation_after_delete = repo
         .get_relation("IRelation".to_string(), "rel_1".to_string())
         .await;
@@ -236,9 +274,20 @@ async fn test_repo_crud() {
     repo.delete_node("TaskNode".to_string(), "task_1".to_string())
         .await
         .expect("Failed to clean up TaskNode");
+    let task_after_delete = repo
+        .get_node("TaskNode".to_string(), "task_1".to_string())
+        .await
+        .expect("Failed to query task_1 after delete");
+    assert!(task_after_delete.is_none(), "TaskNode task_1 should have been deleted");
+
     repo.delete_node("InterNode".to_string(), "inter_1".to_string())
         .await
         .expect("Failed to clean up InterNode");
+    let inter_after_delete = repo
+        .get_node("InterNode".to_string(), "inter_1".to_string())
+        .await
+        .expect("Failed to query inter_1 after delete");
+    assert!(inter_after_delete.is_none(), "InterNode inter_1 should have been deleted");
 }
 
 #[tokio::test]
@@ -289,30 +338,85 @@ async fn test_graph_snapshot() {
     assert_eq!(relations.len(), 0);
     assert_eq!(metadata.map_name, "Test Map");
 
-    // Overwrite snapshot atomically
+    // Overwrite snapshot atomically with all entity types
     let new_inodes = vec![INode {
         key: "new_inode_snap".to_string(),
         fields: inode.fields.clone(),
+    }];
+    let task_fields = TaskNodeFields {
+        content: Content::from_plain_text("Snapshot Task"),
+        due_date: Some(99999),
+        state: "todo".to_string(),
+        position: Coordinates { x: 50, y: 50 },
+        size: Size { width: 30, height: 30 },
+        expandable: false,
+        is_expanded: false,
+        layer: "default".to_string(),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
+    };
+    let new_tasks = vec![TaskNode {
+        key: "new_task_snap".to_string(),
+        fields: task_fields,
+    }];
+    let inter_fields = InterNodeFields {
+        verb: "leads_to".to_string(),
+        behavioral_features: None,
+        position: Coordinates { x: 200, y: 200 },
+        style: None,
+        layer: "default".to_string(),
+        created_at: 0,
+        updated_at: 0,
+    };
+    let new_inters = vec![InterNode {
+        key: "new_inter_snap".to_string(),
+        fields: inter_fields,
+    }];
+    let new_relations = vec![IRelation {
+        key: "new_rel_snap".to_string(),
+        in_: "INode:new_inode_snap".to_string(),
+        out: "TaskNode:new_task_snap".to_string(),
+        fields: IRelationFields {
+            verb: "references".to_string(),
+            style: None,
+            resolved_style: None,
+            layout: None,
+            resolved_layout: None,
+            directionless: false,
+            layer: "default".to_string(),
+            created_at: 0,
+            updated_at: 0,
+        },
     }];
     let new_metadata = MapData {
         map_name: "Overwritten Map".to_string(),
         ..Default::default()
     };
 
-    repo.set_graph_snapshot(new_inodes, vec![], vec![], vec![], new_metadata)
+    repo.set_graph_snapshot(new_inodes, new_tasks, new_inters, new_relations, new_metadata)
         .await
         .expect("Failed to write new graph snapshot");
 
-    // Retrieve again and verify state has changed completely
+    // Retrieve again and verify state has changed completely and contains all types
     let (inodes_v2, tasks_v2, inters_v2, relations_v2, metadata_v2) = repo
         .get_graph_snapshot()
         .await
         .expect("Failed to fetch overwritten graph snapshot");
     assert_eq!(inodes_v2.len(), 1);
     assert_eq!(inodes_v2[0].key, "new_inode_snap");
-    assert_eq!(tasks_v2.len(), 0);
-    assert_eq!(inters_v2.len(), 0);
-    assert_eq!(relations_v2.len(), 0);
+    assert_eq!(tasks_v2.len(), 1);
+    assert_eq!(tasks_v2[0].key, "new_task_snap");
+    assert_eq!(inters_v2.len(), 1);
+    assert_eq!(inters_v2[0].key, "new_inter_snap");
+    assert_eq!(relations_v2.len(), 1);
+    assert_eq!(relations_v2[0].key, "new_rel_snap");
+    assert_eq!(relations_v2[0].in_, "INode:new_inode_snap");
+    assert_eq!(relations_v2[0].out, "TaskNode:new_task_snap");
     assert_eq!(metadata_v2.map_name, "Overwritten Map");
 }
 
@@ -580,9 +684,6 @@ async fn test_decay_significance_propagation() {
         .unwrap();
     }
 
-    // Wait for the spawned background tasks of create_relation to finish so they don't interfere
-    tokio::time::sleep(Duration::from_millis(100)).await;
-
     // Let's manually trigger recalculation on Center Node "A" synchronously so we can immediately assert.
     // Neighbors within 2-step radius of A:
     // A -> B (1 step) -> C (2 steps)
@@ -599,34 +700,9 @@ async fn test_decay_significance_propagation() {
         .await
         .expect("Failed to recalculate significance");
 
-    // Fetch nodes and assert significance levels
-    if let Some(Nodes::INode(n_b)) = repo
-        .get_node("INode".to_string(), "B".to_string())
-        .await
-        .unwrap()
-    {
-        assert_eq!(n_b.fields.significance, 1);
-    } else {
-        panic!("Failed to retrieve Node B");
-    }
-
-    // Node C is also a neighbor of A (via A -> B -> C)?
-    // Wait, the traversal is `->IRelation->(INode, TaskNode)`. This is a single hop traversal.
-    // Let's trace line 25 of analysis.rs:
-    // `LET $targets = (SELECT id FROM (SELECT ->{0}->({1}, {2}) AS neighbors FROM $center).neighbors);`
-    // Yes! This selects ONLY direct neighbors of the center node (1 step away).
-    // So target is B. B gets updated.
-    // Node C (which is 2 steps away) is NOT in `$targets`, so its significance is NOT updated.
-    // Let's verify Node C significance is still 0 (since it was never in targets).
-    if let Some(Nodes::INode(n_c)) = repo
-        .get_node("INode".to_string(), "C".to_string())
-        .await
-        .unwrap()
-    {
-        assert_eq!(n_c.fields.significance, 0);
-    } else {
-        panic!("Failed to retrieve Node C");
-    }
+    // Fetch nodes and assert significance levels using our polling helper
+    assert_significance_eventually(&repo, "INode", "B", 1).await;
+    assert_significance_eventually(&repo, "INode", "C", 0).await;
 }
 
 #[tokio::test]
@@ -893,4 +969,285 @@ async fn test_tags_crud_and_patching() {
         .await
         .expect("Failed to get tag");
     assert!(fetched_tag_deleted.is_none());
+}
+
+#[tokio::test]
+async fn test_error_cases() {
+    let repo = setup_test_repo().await;
+
+    // 1. Query non-existent node
+    let res = repo.get_node("INode".to_string(), "nonexistent".to_string()).await;
+    assert!(res.is_ok());
+    assert!(res.unwrap().is_none());
+
+    // 2. Query non-existent relation
+    let res = repo.get_relation("IRelation".to_string(), "nonexistent".to_string()).await;
+    assert!(res.is_err());
+
+    // 3. Duplicate relation (unique constraint)
+    let node_fields = INodeFields {
+        content: Content::from_plain_text("node"),
+        style: None, resolved_style: None, layout: None, resolved_layout: None,
+        layer: "default".to_string(), position: Coordinates { x: 0, y: 0 },
+        size: Size { width: 10, height: 10 }, line_count: 1, expandable: false,
+        is_expanded: false, locked: false, tags: vec![], aliases: vec![],
+        comments: vec![], attachment: None, significance: 0, created_at: 0, updated_at: 0,
+    };
+    repo.create_node(Nodes::INode(INode { key: "n1".to_string(), fields: node_fields.clone() })).await.unwrap();
+    repo.create_node(Nodes::INode(INode { key: "n2".to_string(), fields: node_fields.clone() })).await.unwrap();
+
+    let rel = IRelation {
+        key: "rel_dup_1".to_string(),
+        in_: "INode:n1".to_string(),
+        out: "INode:n2".to_string(),
+        fields: IRelationFields {
+            verb: "test_verb".to_string(),
+            style: None, resolved_style: None, layout: None, resolved_layout: None,
+            directionless: false, layer: "default".to_string(), created_at: 0, updated_at: 0,
+        }
+    };
+    repo.create_relation(rel.clone()).await.unwrap();
+
+    // Try to insert another relation with the same in, out, and verb
+    let rel_dup = IRelation {
+        key: "rel_dup_2".to_string(),
+        ..rel.clone()
+    };
+    let res_dup = repo.create_relation(rel_dup).await;
+    assert!(res_dup.is_err(), "Duplicate relation unique constraint should fail");
+}
+
+#[tokio::test]
+async fn test_relation_rerouting_and_deletion() {
+    let repo = setup_test_repo().await;
+
+    let node_fields = INodeFields {
+        content: Content::from_plain_text("node"),
+        style: None, resolved_style: None, layout: None, resolved_layout: None,
+        layer: "default".to_string(), position: Coordinates { x: 0, y: 0 },
+        size: Size { width: 10, height: 10 }, line_count: 1, expandable: false,
+        is_expanded: false, locked: false, tags: vec![], aliases: vec![],
+        comments: vec![], attachment: None, significance: 0, created_at: 0, updated_at: 0,
+    };
+    repo.create_node(Nodes::INode(INode { key: "n1".to_string(), fields: node_fields.clone() })).await.unwrap();
+    repo.create_node(Nodes::INode(INode { key: "n2".to_string(), fields: node_fields.clone() })).await.unwrap();
+    repo.create_node(Nodes::INode(INode { key: "n3".to_string(), fields: node_fields.clone() })).await.unwrap();
+
+    let rel = IRelation {
+        key: "rel_route".to_string(),
+        in_: "INode:n1".to_string(),
+        out: "INode:n2".to_string(),
+        fields: IRelationFields {
+            verb: "relates".to_string(),
+            style: None, resolved_style: None, layout: None, resolved_layout: None,
+            directionless: false, layer: "default".to_string(), created_at: 0, updated_at: 0,
+        }
+    };
+    repo.create_relation(rel.clone()).await.unwrap();
+
+    // 1. Delete relation
+    repo.delete_relation("IRelation".to_string(), "rel_route".to_string()).await.unwrap();
+    let res = repo.get_relation("IRelation".to_string(), "rel_route".to_string()).await;
+    assert!(res.is_err(), "Relation should be deleted");
+
+    // Make sure endpoints still exist
+    assert!(repo.get_node("INode".to_string(), "n1".to_string()).await.unwrap().is_some());
+    assert!(repo.get_node("INode".to_string(), "n2".to_string()).await.unwrap().is_some());
+
+    // 2. Re-create relation and test rerouting
+    repo.create_relation(rel.clone()).await.unwrap();
+    repo.reroute_relation(
+        RecordStrings { table: "IRelation".to_string(), key: "rel_route".to_string() },
+        RecordStrings { table: "INode".to_string(), key: "n1".to_string() },
+        RecordStrings { table: "INode".to_string(), key: "n3".to_string() },
+    ).await.unwrap();
+
+    let fetched = repo.get_relation("IRelation".to_string(), "rel_route".to_string()).await.unwrap();
+    assert_eq!(fetched.in_, "INode:n1");
+    assert_eq!(fetched.out, "INode:n3");
+}
+
+#[tokio::test]
+async fn test_remaining_patches() {
+    use mycelium_core::domain::patches::{EntityPatch, NodePatch, RelationPatch};
+    use mycelium_core::domain::styles::{NodeStyle, RelationStyle, RelationLayout};
+
+    let repo = setup_test_repo().await;
+
+    let inode = INode {
+        key: "n_patch".to_string(),
+        fields: INodeFields {
+            content: Content::from_plain_text("original"),
+            style: None, resolved_style: None, layout: None, resolved_layout: None,
+            layer: "default".to_string(), position: Coordinates { x: 0, y: 0 },
+            size: Size { width: 10, height: 10 }, line_count: 1, expandable: false,
+            is_expanded: false, locked: false, tags: vec![], aliases: vec![],
+            comments: vec![], attachment: None, significance: 0, created_at: 0, updated_at: 0,
+        }
+    };
+    repo.create_node(Nodes::INode(inode)).await.unwrap();
+    let node_id = RecordId::new("INode", "n_patch");
+
+    let style = NodeStyle {
+        bg_color: 0x123456, stroke_color: 0x789abc, stroke_width: 2,
+        font_family: "Arial".to_string(), font_size: 14.0, shape: "circle".to_string(),
+        width: 15, height: 15, text_color: 0xffffff, border_radius: 4.0,
+        padding: 8.0, shadow_color: 0, shadow_blur: 0.0, shadow_spread: 0.0,
+        shadow_offset_x: 0.0, shadow_offset_y: 0.0, strategy_type: "default".to_string(),
+    };
+    let content = Content::from_plain_text("patched content");
+
+    let patch = EntityPatch::Node(vec![
+        NodePatch::Size(Size { width: 42, height: 42 }),
+        NodePatch::Content(content.clone()),
+        NodePatch::Style(Some(style.clone())),
+        NodePatch::Significance(3),
+    ]);
+
+    repo.patch_entity(node_id.clone(), &patch).await.unwrap();
+
+    let fetched = repo.get_node("INode".to_string(), "n_patch".to_string()).await.unwrap().unwrap();
+    if let Nodes::INode(n) = fetched {
+        assert_eq!(n.fields.size.width, 42);
+        assert_eq!(n.fields.size.height, 42);
+        assert_eq!(n.fields.content.text, "patched content");
+        assert_eq!(n.fields.style.as_ref().unwrap().bg_color, 0x123456);
+        assert_eq!(n.fields.significance, 3);
+    } else {
+        panic!("Not an INode");
+    }
+
+    let target = INode {
+        key: "n_patch_target".to_string(),
+        fields: INodeFields {
+            content: Content::from_plain_text("target"),
+            style: None, resolved_style: None, layout: None, resolved_layout: None,
+            layer: "default".to_string(), position: Coordinates { x: 50, y: 50 },
+            size: Size { width: 10, height: 10 }, line_count: 1, expandable: false,
+            is_expanded: false, locked: false, tags: vec![], aliases: vec![],
+            comments: vec![], attachment: None, significance: 0, created_at: 0, updated_at: 0,
+        }
+    };
+    repo.create_node(Nodes::INode(target)).await.unwrap();
+
+    let rel = IRelation {
+        key: "r_patch".to_string(),
+        in_: "INode:n_patch".to_string(),
+        out: "INode:n_patch_target".to_string(),
+        fields: IRelationFields {
+            verb: "relates".to_string(),
+            style: None, resolved_style: None, layout: None, resolved_layout: None,
+            directionless: false, layer: "default".to_string(), created_at: 0, updated_at: 0,
+        }
+    };
+    repo.create_relation(rel).await.unwrap();
+    let rel_id = RecordId::new("IRelation", "r_patch");
+
+    let rel_style = RelationStyle {
+        bg_color: 0x111111, stroke_color: 0x222222, stroke_width: 1,
+        font_family: "Sans".to_string(), font_size: 10.0, shape: "line".to_string(),
+        arrow_type: "arrow".to_string(), arrow_size: 5.0, width: 0, height: 0,
+        text_color: 0x333333, shadow_color: 0, shadow_blur: 0.0,
+        shadow_offset_x: 0.0, shadow_offset_y: 0.0, strategy_type: "default".to_string(),
+    };
+    let rel_layout = RelationLayout {
+        from_side: "right".to_string(),
+        to_side: "left".to_string(),
+        strategy_type: "custom".to_string(),
+    };
+
+    let rel_patch = EntityPatch::Relation(vec![
+        RelationPatch::Verb("patched_verb".to_string()),
+        RelationPatch::Style(Some(rel_style.clone())),
+        RelationPatch::Layout(Some(rel_layout.clone())),
+        RelationPatch::Directionless(true),
+    ]);
+
+    repo.patch_entity(rel_id, &rel_patch).await.unwrap();
+
+    let fetched_rel = repo.get_relation("IRelation".to_string(), "r_patch".to_string()).await.unwrap();
+    assert_eq!(fetched_rel.fields.verb, "patched_verb");
+    assert_eq!(fetched_rel.fields.style.as_ref().unwrap().stroke_color, 0x222222);
+    assert_eq!(fetched_rel.fields.layout.as_ref().unwrap().from_side, "right");
+    assert_eq!(fetched_rel.fields.directionless, true);
+}
+
+#[tokio::test]
+async fn test_theme_crud_and_active_theme() {
+    use mycelium_core::domain::theme::{ThemeFields, ThemeBrightness, FontWeight};
+
+    let repo = setup_test_repo().await;
+
+    let theme_fields = ThemeFields {
+        name: "My Dark Theme".to_string(),
+        primary_color: 0x112233,
+        scaffold_background_color: 0x000000,
+        card_color: 0x222222,
+        divider_color: 0x333333,
+        text_color: 0xffffff,
+        font_family: "Roboto".to_string(),
+        body_font_size: 14.0,
+        body_font_weight: FontWeight(3),
+        body_text_color: 0xdddddd,
+        border_radius: 8.0,
+        app_bar_background_color: 0x111111,
+        app_bar_foreground_color: 0xeeeeee,
+        app_bar_elevation: 4.0,
+        app_bar_title_font_size: 18.0,
+        app_bar_title_font_weight: FontWeight(6),
+        use_material3: true,
+        brightness: ThemeBrightness::Dark,
+    };
+
+    let theme_id = RecordId::new("MapTheme", "dark_theme");
+    let _: Option<ThemeFields> = repo.db()
+        .query("CREATE $record_id CONTENT $fields")
+        .bind(("record_id", theme_id.clone()))
+        .bind(("fields", theme_fields.clone()))
+        .await
+        .unwrap()
+        .take(0)
+        .unwrap();
+
+    let fetched_fields: Option<ThemeFields> = repo.db().select(theme_id.clone()).await.unwrap();
+    assert!(fetched_fields.is_some());
+    let fetched_fields = fetched_fields.unwrap();
+    assert_eq!(fetched_fields.name, "My Dark Theme");
+    assert_eq!(fetched_fields.primary_color, 0x112233);
+
+    let mut updated_fields = theme_fields.clone();
+    updated_fields.name = "Updated Dark Theme".to_string();
+    updated_fields.primary_color = 0x445566;
+    let _: Option<ThemeFields> = repo.db()
+        .query("UPDATE $record_id MERGE $fields")
+        .bind(("record_id", theme_id.clone()))
+        .bind(("fields", updated_fields))
+        .await
+        .unwrap()
+        .take(0)
+        .unwrap();
+
+    let fetched_updated: ThemeFields = repo.db().select(theme_id.clone()).await.unwrap().unwrap();
+    assert_eq!(fetched_updated.name, "Updated Dark Theme");
+    assert_eq!(fetched_updated.primary_color, 0x445566);
+
+    let map_data_id = RecordId::new("MapMetaData", "singleton");
+    repo.db()
+        .query("UPDATE $record SET active_theme_id = $theme_id")
+        .bind(("record", map_data_id.clone()))
+        .bind(("theme_id", "dark_theme".to_string()))
+        .await
+        .unwrap();
+
+    let mut res = repo.db()
+        .query("SELECT VALUE active_theme_id FROM $record")
+        .bind(("record", map_data_id))
+        .await
+        .unwrap();
+    let active_theme_id: Option<String> = res.take(0).unwrap();
+    assert_eq!(active_theme_id, Some("dark_theme".to_string()));
+
+    let themes: Vec<ThemeFields> = repo.db().select("MapTheme").await.unwrap();
+    assert_eq!(themes.len(), 1);
+    assert_eq!(themes[0].name, "Updated Dark Theme");
 }

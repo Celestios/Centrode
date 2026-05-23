@@ -374,16 +374,22 @@ impl Repository {
         from: RecordStrings,
         to: RecordStrings,
     ) -> Result<()> {
-        let record_id = RecordId::new(record.table, record.key);
-        let from_record = RecordId::new(from.table, from.key);
-        let to_record = RecordId::new(to.table, to.key);
+        let existing = self.get_relation(record.table.clone(), record.key.clone()).await?;
 
-        self.db
-            .query("UPDATE $id SET in = $from, out = $to")
-            .bind(("id", record_id))
-            .bind(("from", from_record))
-            .bind(("to", to_record))
-            .await?;
+        let old_in_id = existing.get_in_id();
+        let old_out_id = existing.get_out_id();
+
+        let record_id = RecordId::new(record.table, record.key);
+        let _: Option<Value> = self.db.delete(record_id).await?;
+
+        let mut updated = existing;
+        updated.in_ = format!("{}:{}", from.table, from.key);
+        updated.out = format!("{}:{}", to.table, to.key);
+
+        self.create_relation(updated).await?;
+
+        self.trigger_significance_update(&old_in_id).await?;
+        self.trigger_significance_update(&old_out_id).await?;
 
         Ok(())
     }
