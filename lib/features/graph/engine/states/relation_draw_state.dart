@@ -101,8 +101,9 @@ class RelationDrawing extends CanvasInteractionState {
       if (vs == null) continue;
       if (vs.sizeNotifier.value == Size.zero) continue;
 
-      // Check distance to target's left port (centerLeft)
-      final dist = (pCanvas - vs.leftPort).distance;
+      // Check distance to target's closest port
+      final position = vs.getClosestPort(pCanvas).position;
+      final dist = (pCanvas - position).distance;
       if (dist < AppConfig.interaction.snapDistance) {
         snappedId = nodeId;
         break;
@@ -172,7 +173,8 @@ class RelationDrawing extends CanvasInteractionState {
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
 
-      if ((pCanvas - vs.leftPort).distance <
+      final position = vs.getClosestPort(pCanvas).position;
+      if ((pCanvas - position).distance <
           AppConfig.interaction.snapDistance) {
         snappedId = nodeId;
         break;

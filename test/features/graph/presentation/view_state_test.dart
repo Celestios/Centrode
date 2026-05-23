@@ -58,4 +58,52 @@ void main() {
     expect(NodeStyleStrategy.fromType(null, fallbackNode: infoNode), isA<InfoNodeStyleStrategy>());
     expect(NodeStyleStrategy.fromType(null, fallbackNode: taskNode), isA<TaskNodeStyleStrategy>());
   });
+
+  test('NodeViewState getClosestPort finds the correct closest port', () {
+    final node = InfoUiNode(
+      id: 'test-node-1',
+      position: const Offset(100.0, 100.0),
+      size: const Size(100.0, 100.0),
+    );
+    final viewState = NodeViewState(node);
+
+    // Left port: (100.0, 150.0)
+    // Right port: (200.0, 150.0)
+    // Top port: (150.0, 100.0)
+    // Bottom port: (150.0, 200.0)
+
+    // Point near top port: (150.0, 90.0)
+    final topClosest = viewState.getClosestPort(const Offset(150.0, 90.0));
+    expect(topClosest.name, 'Top');
+    expect(topClosest.position, const Offset(150.0, 100.0));
+
+    // Point near left port: (95.0, 155.0)
+    final leftClosest = viewState.getClosestPort(const Offset(95.0, 155.0));
+    expect(leftClosest.name, 'Left');
+    expect(leftClosest.position, const Offset(100.0, 150.0));
+  });
+
+  test('NodeViewState getClosestPortsBetween finds closest pair of ports', () {
+    final node1 = InfoUiNode(
+      id: 'test-node-1',
+      position: const Offset(100.0, 100.0),
+      size: const Size(100.0, 100.0),
+    );
+    final node2 = InfoUiNode(
+      id: 'test-node-2',
+      position: const Offset(300.0, 100.0), // directly to the right
+      size: const Size(100.0, 100.0),
+    );
+
+    final vs1 = NodeViewState(node1);
+    final vs2 = NodeViewState(node2);
+
+    // Closest ports should be: vs1's Right (200.0, 150.0) and vs2's Left (300.0, 150.0)
+    final closest = NodeViewState.getClosestPortsBetween(vs1, vs2);
+    expect(closest.startName, 'Right');
+    expect(closest.startPos, const Offset(200.0, 150.0));
+    expect(closest.endName, 'Left');
+    expect(closest.endPos, const Offset(300.0, 150.0));
+  });
 }
+
