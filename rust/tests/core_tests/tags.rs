@@ -126,3 +126,125 @@ async fn test_tags_crud_and_patching() {
         .expect("Failed to get tag");
     assert!(fetched_tag_deleted.is_none());
 }
+
+#[tokio::test]
+async fn test_tag_case_insensitive_uniqueness_and_disassociation() {
+    let repo = setup_test_repo().await;
+
+    // 1. Create tag "Work" (color: 0xFF0000)
+    let tag1 = Tag {
+        name: "Work".to_string(),
+        color: 0xFF0000,
+    };
+    repo.create_tag(tag1.clone())
+        .await
+        .expect("Failed to create tag");
+
+    // 2. Create tag "work" (color: 0x00FF00) - different casing and color
+    let tag2 = Tag {
+        name: "work".to_string(),
+        color: 0x00FF00,
+    };
+    repo.create_tag(tag2.clone())
+        .await
+        .expect("Failed to create tag");
+
+    // 3. Verify they resolved to the same tag record, and the color got updated to 0x00FF00
+    let fetched_work = repo
+        .get_tag("Work".to_string())
+        .await
+        .expect("Failed to get tag")
+        .expect("Tag should exist");
+    
+    assert_eq!(fetched_work.name.to_lowercase(), "work");
+    assert_eq!(fetched_work.color, 0x00FF00);
+
+    // List all tags and verify we only have ONE tag matching "work"
+    let all_tags = repo.get_all_tags().await.expect("Failed to get all tags");
+    let work_tags: Vec<&Tag> = all_tags.iter().filter(|t| t.name.to_lowercase() == "work").collect();
+    assert_eq!(work_tags.len(), 1);
+
+    // 4. Create a node and associate the tag
+    let inode = INode {
+        key: "inode_tag_case_test".to_string(),
+        fields: INodeFields {
+            content: Content::from_plain_text("Tag case test node"),
+            style: None,
+            resolved_style: None,
+            layout: None,
+            resolved_layout: None,
+            layer: "default".to_string(),
+            position: Coordinates { x: 10, y: 20 },
+            size: Size {
+                width: 100,
+                height: 50,
+            },
+            line_count: 1,
+            expandable: true,
+            is_expanded: false,
+            locked: false,
+            tags: vec![],
+            aliases: vec![],
+            comments: vec![],
+            attachment: None,
+            significance: 0,
+            created_at: 0,
+            updated_at: 0,
+        },
+    };
+    repo.create_node(Nodes::INode(inode)).await.unwrap();
+    let record_id = RecordId::new("INode", "inode_tag_case_test");
+
+    // Add tag to the INode using different casing "WORK"
+    let add_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Add(
+        "WORK".to_string(),
+    ))]);
+    repo.patch_entity(record_id.clone(), &add_patch)
+        .await
+        .unwrap();
+
+    // Verify it is added and hydrated using the lowercase/casing from the database
+    let fetched_node = repo
+        .get_node("INode".to_string(), "inode_tag_case_test".to_string())
+        .await
+        .unwrap()
+        .unwrap();
+    if let Nodes::INode(n) = fetched_node {
+        assert_eq!(n.fields.tags.len(), 1);
+        match &n.fields.tags[0] {
+            TagEdge::Hydrated(t) => {
+                assert_eq!(t.name.to_lowercase(), "work");
+            }
+            TagEdge::Pointer(_) => panic!("Expected hydrated"),
+        }
+    } else {
+        panic!("Incorrect node type");
+    }
+
+    // 5. Remove tag from the node
+    let remove_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Remove(
+        "work".to_string(),
+    ))]);
+    repo.patch_entity(record_id.clone(), &remove_patch)
+        .await
+        .unwrap();
+
+    // Verify it is removed from node
+    let fetched_node_after_remove = repo
+        .get_node("INode".to_string(), "inode_tag_case_test".to_string())
+        .await
+        .unwrap()
+        .unwrap();
+    if let Nodes::INode(n) = fetched_node_after_remove {
+        assert_eq!(n.fields.tags.len(), 0);
+    } else {
+        panic!("Incorrect node type");
+    }
+
+    // Verify the tag STILL exists globally in the database
+    let global_tag = repo
+        .get_tag("work".to_string())
+        .await
+        .expect("Failed to get tag");
+    assert!(global_tag.is_some());
+}

@@ -26,8 +26,8 @@ impl SurrealValue for TagEdge {
     /// unlike standard into_value, this will convert both variants to their ids automatically.
     fn into_value(self) -> Value {
         match self {
-            Self::Hydrated(v) => RecordId::new(Tag::LABEL, v.name).into_value(),
-            Self::Pointer(p) => RecordId::new(p.table, p.key).into_value(),
+            Self::Hydrated(v) => RecordId::new(Tag::LABEL, v.name.to_lowercase()).into_value(),
+            Self::Pointer(p) => RecordId::new(p.table, p.key.to_lowercase()).into_value(),
         }
     }
 }

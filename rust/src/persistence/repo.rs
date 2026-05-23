@@ -433,11 +433,11 @@ impl Repository {
             NodePatch::TagOp(op) => match op {
                 TagOperation::Add(tag_id) => (
                     "UPDATE $id SET tags += $val",
-                    Value::RecordId(RecordId::new(Tag::LABEL, tag_id.as_str())),
+                    Value::RecordId(RecordId::new(Tag::LABEL, tag_id.to_lowercase())),
                 ),
                 TagOperation::Remove(tag_id) => (
                     "UPDATE $id SET tags -= $val",
-                    Value::RecordId(RecordId::new(Tag::LABEL, tag_id.as_str())),
+                    Value::RecordId(RecordId::new(Tag::LABEL, tag_id.to_lowercase())),
                 ),
             },
             NodePatch::Significance(sig) => (
@@ -489,22 +489,24 @@ impl Repository {
     // --- Tag CRUD ---
 
     pub async fn create_tag(&self, tag: Tag) -> Result<()> {
-        let record_id = RecordId::new(Tag::LABEL, tag.name.as_str());
-        let _: Option<Tag> = self.db.create(record_id).content(tag).await?;
+        let record_id = RecordId::new(Tag::LABEL, tag.name.to_lowercase());
+        let existing: Option<Tag> = self.db.select(record_id.clone()).await?;
+        if existing.is_none() {
+            let _: Option<Tag> = self.db.create(record_id).content(tag).await?;
+        } else {
+            let _: Option<Tag> = self.db.update(record_id).content(tag).await?;
+        }
 
         Ok(())
     }
 
     pub async fn get_tag(&self, name: String) -> Result<Option<Tag>> {
-        let record_id = RecordId::new(Tag::LABEL, name.clone());
+        let record_id = RecordId::new(Tag::LABEL, name.to_lowercase());
 
         // Delegate structural validation entirely to Serde
         let record: Option<Tag> = self.db.select(record_id).await?;
 
-        Ok(record.map(|r| Tag {
-            name,
-            color: r.color,
-        }))
+        Ok(record)
     }
 
     pub async fn get_all_tags(&self) -> Result<Vec<Tag>> {
@@ -513,7 +515,7 @@ impl Repository {
     }
 
     pub async fn delete_tag(&self, name: String) -> Result<()> {
-        let record_id = RecordId::new(Tag::LABEL, name);
+        let record_id = RecordId::new(Tag::LABEL, name.to_lowercase());
         let _: Option<Tag> = self.db.delete(record_id).await?;
 
         Ok(())

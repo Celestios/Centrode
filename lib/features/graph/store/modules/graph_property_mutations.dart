@@ -180,6 +180,16 @@ class GraphPropertyMutations {
         api: controller.syncEngine.api,
         oldTags: oldTags,
         newTags: newTags,
+        onSuccess: (resolvedTags) {
+          node.tags = resolvedTags;
+          controller.publishUpdate(GraphEntityUpdate(
+            id: id,
+            tableName: node.tableName,
+            type: GraphUpdateType.tags,
+            payload: resolvedTags,
+          ));
+          controller.triggerUpdate();
+        },
         onUndo: () {
           node.tags = oldTags;
           controller.publishUpdate(GraphEntityUpdate(
