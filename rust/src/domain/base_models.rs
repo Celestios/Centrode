@@ -197,10 +197,10 @@ impl BoundingBox {
 impl Default for BoundingBox {
     fn default() -> Self {
         Self {
-            min_x: -2500.0,
-            min_y: -2500.0,
-            max_x: 2500.0,
-            max_y: 2500.0,
+            min_x: -500.0,
+            min_y: -500.0,
+            max_x: 500.0,
+            max_y: 500.0,
         }
     }
 }

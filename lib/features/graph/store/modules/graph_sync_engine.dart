@@ -7,6 +7,7 @@ import '../../../../src/rust/bridge/stream.dart';
 import '../../../../src/rust/domain/base_models.dart' show BoundingBox;
 import '../command_processor.dart';
 import '../../presentation/theme_manager.dart';
+import '../../presentation/graph_metrics.dart';
 import '../graph_data_controller.dart';
 import '../graph_data_query.dart';
 
@@ -20,9 +21,9 @@ class GraphSyncEngine {
   final ThemeController themeController;
 
   // The reactive bounding box updated asynchronously by Rust
-  // Uses default bounds of 5000x5000 centered at origin
+  // Uses default bounds from AppConfig configuration
   final ValueNotifier<BoundingBox> canvasBounds = ValueNotifier(
-    const BoundingBox(minX: -2500, minY: -2500, maxX: 2500, maxY: 2500),
+    AppConfig.canvas.defaultBounds,
   );
 
   StreamSubscription? _graphStreamSub;

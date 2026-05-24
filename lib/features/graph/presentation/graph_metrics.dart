@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart' hide Theme;
+import 'package:mycelium/src/rust/domain/base_models.dart' show BoundingBox;
 
 abstract final class AppConfig {
   AppConfig._();
@@ -40,12 +41,19 @@ class _Canvas {
   const _Canvas();
 
   final Color backgroundColor = const Color.fromARGB(255, 255, 255, 255);
-  final double boundaryMargin = 2000.0;
+  final double boundaryMargin = 500.0;
   final double minScale = 0.2;
   final double maxScale = 3.0;
   final double scaleFactor = 1000.0;
   final double initialSize = 4000.0;
   final double overscanRatio = 0.25;
+
+  final BoundingBox defaultBounds = const BoundingBox(
+    minX: -500,
+    minY: -500,
+    maxX: 500,
+    maxY: 500,
+  );
 }
 
 class _Interaction {

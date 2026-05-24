@@ -1,70 +1,124 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../../../../models/graph_node.dart';
+import '../../../../models/graph_relation.dart';
 
 class MiniMapPainter extends CustomPainter {
-  final List<dynamic> nodes;
-  final dynamic canvasBounds;
-  final Rect visibleRect;
+  final List<UiNode> nodes;
+  final List<UiRelation> relations;
+  final Size viewportSize; // widget pixel dimensions
+  final EdgeInsets margins; // elastic margins (L, T, R, B)
+  final Rect visibleRect; // current camera view in child coords
   final Color primaryColor;
 
   MiniMapPainter({
     required this.nodes,
-    required this.canvasBounds,
+    required this.relations,
+    required this.viewportSize,
+    required this.margins,
     required this.visibleRect,
     required this.primaryColor,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 1. Resolve bounding box coordinates
-    final double minX = canvasBounds.minX.toDouble();
-    final double maxX = canvasBounds.maxX.toDouble();
-    final double minY = canvasBounds.minY.toDouble();
-    final double maxY = canvasBounds.maxY.toDouble();
+    // Total pannable area in child coordinates
+    final double totalW = viewportSize.width + margins.left + margins.right;
+    final double totalH = viewportSize.height + margins.top + margins.bottom;
 
-    final double graphWidth = (maxX - minX).clamp(100.0, double.infinity);
-    final double graphHeight = (maxY - minY).clamp(100.0, double.infinity);
+    final double scaleX = size.width / totalW;
+    final double scaleY = size.height / totalH;
 
-    // Padding inside the mini-map viewport
-    const double padding = 8.0;
-    final double areaWidth = size.width - (padding * 2);
-    final double areaHeight = size.height - (padding * 2);
+    final double offsetX = (size.width - totalW * scaleX) / 2;
+    final double offsetY = (size.height - totalH * scaleY) / 2;
 
-    // 2. Scale factor calculation to fit graph bounds into mini-map size
-    final double scaleX = areaWidth / graphWidth;
-    final double scaleY = areaHeight / graphHeight;
-    final double scale = math.min(scaleX, scaleY);
-
-    // Translation offsets to center graph inside mini-map
-    final double offsetX = padding + (areaWidth - graphWidth * scale) / 2 - minX * scale;
-    final double offsetY = padding + (areaHeight - graphHeight * scale) / 2 - minY * scale;
-
-    Offset canvasToMiniMap(Offset pos) {
+    Offset toMini(double cx, double cy) {
       return Offset(
-        pos.dx * scale + offsetX,
-        pos.dy * scale + offsetY,
+        (cx + margins.left) * scaleX + offsetX,
+        (cy + margins.top) * scaleY + offsetY,
       );
     }
 
-    // 3. Draw node dots
-    final nodePaint = Paint()
-      ..color = primaryColor.withValues(alpha: 0.5)
-      ..style = PaintingStyle.fill;
+    final Map<String, UiNode> nodeMap = {for (var n in nodes) n.id: n};
 
-    for (final node in nodes) {
-      final miniPos = canvasToMiniMap(node.position);
-      // Guard bounds checking
-      if (miniPos.dx >= 0 && miniPos.dx <= size.width && miniPos.dy >= 0 && miniPos.dy <= size.height) {
-        canvas.drawCircle(miniPos, 1.8, nodePaint);
+    // 1. Draw relations
+    final linePaint = Paint()
+      ..color = primaryColor.withValues(alpha: 0.15)
+      ..strokeWidth = 0.5;
+
+    for (final rel in relations) {
+      final from = nodeMap[rel.fromNodeId];
+      final to = nodeMap[rel.toNodeId];
+      if (from == null || to == null) continue;
+
+      final fromCenter =
+          from.position + Offset(from.size.width / 2, from.size.height / 2);
+      final toCenter =
+          to.position + Offset(to.size.width / 2, to.size.height / 2);
+
+      final start = toMini(fromCenter.dx, fromCenter.dy);
+      final end = toMini(toCenter.dx, toCenter.dy);
+
+      if (start.dx >= 0 &&
+          start.dx <= size.width &&
+          start.dy >= 0 &&
+          start.dy <= size.height &&
+          end.dx >= 0 &&
+          end.dx <= size.width &&
+          end.dy >= 0 &&
+          end.dy <= size.height) {
+        canvas.drawLine(start, end, linePaint);
       }
     }
 
-    // 4. Draw current viewport rectangle
-    final topLeft = canvasToMiniMap(visibleRect.topLeft);
-    final bottomRight = canvasToMiniMap(visibleRect.bottomRight);
-    final viewportRect = Rect.fromPoints(topLeft, bottomRight).intersect(
-      Rect.fromLTWH(0, 0, size.width, size.height),
+    // 2. Draw nodes
+    for (final node in nodes) {
+      final miniPos = toMini(node.position.dx, node.position.dy);
+      final double miniWidth = node.size.width * scaleX;
+      final double miniHeight = node.size.height * scaleY;
+
+      if (miniPos.dx + miniWidth < 0 ||
+          miniPos.dx > size.width ||
+          miniPos.dy + miniHeight < 0 ||
+          miniPos.dy > size.height) {
+        continue;
+      }
+
+      final Color bgColor = Color(
+        node.resolvedStyle?.bgColor ??
+            node.style?.bgColor ??
+            primaryColor.toARGB32(),
+      );
+      final double borderRadius = node.resolvedStyle?.borderRadius ?? 4.0;
+
+      final fillPaint = Paint()..color = bgColor;
+      final borderPaint = Paint()
+        ..color = (node.resolvedStyle?.strokeColor != null)
+            ? Color(node.resolvedStyle!.strokeColor)
+            : primaryColor.withValues(alpha: 0.3)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.5;
+
+      final rect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(miniPos.dx, miniPos.dy, miniWidth, miniHeight),
+        Radius.circular(borderRadius * scaleX),
+      );
+
+      canvas.drawRRect(rect, fillPaint);
+      canvas.drawRRect(rect, borderPaint);
+    }
+
+    // 3. Draw viewport rectangle (current camera) – FIXED SIZE
+    final viewportTopLeft = toMini(visibleRect.left, visibleRect.top);
+    final viewportSizeMini = Size(
+      visibleRect.width * scaleX,
+      visibleRect.height * scaleY,
     );
+    final viewportRect = Rect.fromLTWH(
+      viewportTopLeft.dx,
+      viewportTopLeft.dy,
+      viewportSizeMini.width,
+      viewportSizeMini.height,
+    ).intersect(Rect.fromLTWH(0, 0, size.width, size.height));
 
     final viewportFill = Paint()
       ..color = primaryColor.withValues(alpha: 0.08)
@@ -80,10 +134,5 @@ class MiniMapPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant MiniMapPainter oldDelegate) {
-    return oldDelegate.nodes.length != nodes.length ||
-        oldDelegate.canvasBounds != canvasBounds ||
-        oldDelegate.visibleRect != visibleRect ||
-        oldDelegate.primaryColor != primaryColor;
-  }
+  bool shouldRepaint(covariant MiniMapPainter oldDelegate) => true;
 }
