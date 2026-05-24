@@ -21,6 +21,10 @@ class MiniMapPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (viewportSize.width <= 0 || viewportSize.height <= 0) {
+      return;
+    }
+
     // Total pannable area in child coordinates
     final double totalW = viewportSize.width + margins.left + margins.right;
     final double totalH = viewportSize.height + margins.top + margins.bottom;

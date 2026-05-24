@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import '../../../../presentation/widgets/window_title_bar.dart';
+import '../../../main.dart';
 import '../presentation/theme_manager.dart';
 import '../store/graph_data_controller.dart';
 import '../presentation/node_render_state.dart';
@@ -21,6 +22,7 @@ class GraphScreen extends StatefulWidget {
 
 class _GraphScreenState extends State<GraphScreen> {
   late final WorkspaceTabsController _tabsController;
+  ThemeData? _lastThemeData;
 
   @override
   void initState() {
@@ -44,9 +46,49 @@ class _GraphScreenState extends State<GraphScreen> {
       child: Consumer<WorkspaceTabsController>(
         builder: (context, tabsController, _) {
           final activeSession = tabsController.activeSession;
-          return ActiveSessionWidget(
-            key: ValueKey(activeSession.id),
-            session: activeSession,
+
+          return ListenableBuilder(
+            listenable: Listenable.merge([
+              activeSession,
+              activeSession.themeController,
+            ].whereType<Listenable>()),
+            builder: (context, _) {
+              final mapTheme = activeSession.themeController?.currentGraphTheme;
+              ThemeData fallbackTheme() {
+                try {
+                  return themeNotifier.value.toThemeData();
+                } catch (_) {
+                  return Theme.of(context);
+                }
+              }
+
+              final ThemeData themeData;
+              if (mapTheme != null) {
+                themeData = mapTheme.toThemeData();
+                _lastThemeData = themeData;
+              } else {
+                themeData = _lastThemeData ?? fallbackTheme();
+              }
+
+              return AnimatedTheme(
+                data: themeData,
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeInOut,
+                child: Scaffold(
+                  body: Column(
+                    children: [
+                      const WorkspaceWindowTitleBar(),
+                      Expanded(
+                        child: ActiveSessionWidget(
+                          key: ValueKey(activeSession.id),
+                          session: activeSession,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
@@ -80,83 +122,60 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
     }
   }
 
+  Widget _buildSessionContent(BuildContext context) {
+    return MultiProvider(
+      key: ValueKey(widget.session.id), // Reconstruct providers and context hierarchy
+      providers: [
+        Provider<AppHandle>.value(value: widget.session.handle!),
+        ChangeNotifierProvider<ThemeController>.value(
+          value: widget.session.themeController!,
+        ),
+        ChangeNotifierProvider<GraphDataController>.value(
+          value: widget.session.dataController!,
+        ),
+        ListenableProvider<GraphDataQuery>.value(value: widget.session.dataController!),
+        ChangeNotifierProvider<NodeRenderState>.value(
+          value: widget.session.nodeRenderState!,
+        ),
+      ],
+      child: const Material(
+        child: GraphCanvas(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (widget.session.isInitialized) {
+      return _buildSessionContent(context);
+    }
+
     return FutureBuilder<void>(
       future: _initFuture,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Scaffold(
-            body: Column(
-              children: [
-                const SimpleWindowTitleBar(title: 'Mycelium - Error loading Workspace'),
-                Expanded(
-                  child: InitErrorWidget(
-                    error: snapshot.error!,
-                    onRetry: () {
-                      setState(() {
-                        _initFuture = widget.session.initialize(Theme.of(context));
-                      });
-                    },
-                    onShowDetails: () {
-                      _log.severe('Init error: ${snapshot.error}');
-                    },
-                  ),
-                ),
-              ],
+          return Center(
+            child: InitErrorWidget(
+              error: snapshot.error!,
+              onRetry: () {
+                setState(() {
+                  _initFuture = widget.session.initialize(Theme.of(context));
+                });
+              },
+              onShowDetails: () {
+                _log.severe('Init error: ${snapshot.error}');
+              },
             ),
           );
         }
 
         if (snapshot.connectionState != ConnectionState.done || !widget.session.isInitialized) {
-          return const Scaffold(
-            body: Column(
-              children: [
-                SimpleWindowTitleBar(title: 'Mycelium - Loading Workspace...'),
-                Expanded(
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              ],
-            ),
+          return const Center(
+            child: CircularProgressIndicator(),
           );
         }
 
-        return MultiProvider(
-          key: ValueKey(widget.session.id), // Reconstruct providers and context hierarchy
-          providers: [
-            Provider<AppHandle>.value(value: widget.session.handle!),
-            ChangeNotifierProvider<ThemeController>.value(
-              value: widget.session.themeController!,
-            ),
-            ChangeNotifierProvider<GraphDataController>.value(
-              value: widget.session.dataController!,
-            ),
-            ListenableProvider<GraphDataQuery>.value(value: widget.session.dataController!),
-            ChangeNotifierProvider<NodeRenderState>.value(
-              value: widget.session.nodeRenderState!,
-            ),
-          ],
-          child: Consumer<ThemeController>(
-            builder: (context, themeController, _) {
-              final mapTheme = themeController.currentGraphTheme;
-              return Theme(
-                data: mapTheme?.toThemeData() ?? Theme.of(context),
-                child: const Scaffold(
-                  body: Column(
-                    children: [
-                      WorkspaceWindowTitleBar(),
-                      Expanded(
-                        child: Material(
-                          child: GraphCanvas(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        );
+        return _buildSessionContent(context);
       },
     );
   }

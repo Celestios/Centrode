@@ -4,7 +4,8 @@ import 'package:logging/logging.dart';
 
 import '../../models/models.dart';
 import '../../../../src/rust/bridge/stream.dart';
-import '../../../../src/rust/domain/base_models.dart' show BoundingBox;
+import '../../../../src/rust/domain/base_models.dart'
+    show BoundingBox, MapData, ViewportState;
 import '../command_processor.dart';
 import '../../presentation/theme_manager.dart';
 import '../../presentation/graph_metrics.dart';
@@ -14,11 +15,12 @@ import '../graph_data_query.dart';
 /// Handles communication between the local store/spatial structures and the Rust backend.
 class GraphSyncEngine {
   final Logger _syncLog = Logger('GraphSyncEngine');
-  
+
   final GraphDataController controller;
   final dynamic api;
   final CommandProcessor processor;
   final ThemeController themeController;
+  MapData? _lastLoadedMetadata;
 
   // The reactive bounding box updated asynchronously by Rust
   // Uses default bounds from AppConfig configuration
@@ -35,6 +37,31 @@ class GraphSyncEngine {
     required this.themeController,
   });
 
+  /// Get the latest saved viewport state of the map
+  /// Which will be the initial viewport state of the current loaded map
+  ViewportState? get savedViewportState {
+    if (_lastLoadedMetadata == null) return null;
+    final vp = _lastLoadedMetadata!.viewportState;
+    return ViewportState(
+      xOffset: vp.xOffset,
+      yOffset: vp.yOffset,
+      zoomLevel: vp.zoomLevel,
+      activeView: vp.activeView,
+    );
+  }
+
+  /// Updates the cached viewport state in memory so that subsequent queries return the latest values.
+  void updateSavedViewportState(ViewportState state) {
+    if (_lastLoadedMetadata != null) {
+      _lastLoadedMetadata = MapData(
+        mapName: _lastLoadedMetadata!.mapName,
+        viewportState: state,
+        activeThemeId: _lastLoadedMetadata!.activeThemeId,
+        displayMode: _lastLoadedMetadata!.displayMode,
+      );
+    }
+  }
+
   /// Fetches the fresh state from Rust.
   /// Synchronizes store and spatial modules.
   Future<void> loadGraph() async {
@@ -46,6 +73,7 @@ class GraphSyncEngine {
       _graphStreamSub ??= api.createGraphStream().listen(_handleGraphEvent);
 
       final snapshot = await api.getGraphSnapshot();
+      _lastLoadedMetadata = snapshot.$5;
 
       _syncLog.info(
         'Snapshot received: ${snapshot.$1.length} nodes, ${snapshot.$2.length} relations.',
@@ -77,11 +105,9 @@ class GraphSyncEngine {
       // Seed the passive spatial index with the new node positions
       controller.spatial.reindexAll(controller.store.nodeLookup);
 
-      controller.publishUpdate(GraphEntityUpdate(
-        id: '',
-        tableName: '',
-        type: GraphUpdateType.reset,
-      ));
+      controller.publishUpdate(
+        GraphEntityUpdate(id: '', tableName: '', type: GraphUpdateType.reset),
+      );
     } catch (e) {
       _syncLog.severe('Failed to load graph snapshot', e);
       controller.onError("Failed to load graph: $e");

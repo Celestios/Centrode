@@ -192,6 +192,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_box_autoadd_u_8(dynamic raw);
 
   @protected
+  ViewportState dco_decode_box_autoadd_viewport_state(dynamic raw);
+
+  @protected
   Comment dco_decode_comment(dynamic raw);
 
   @protected
@@ -588,6 +591,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
+
+  @protected
+  ViewportState sse_decode_box_autoadd_viewport_state(
+    SseDeserializer deserializer,
+  );
 
   @protected
   Comment sse_decode_comment(SseDeserializer deserializer);
@@ -1058,6 +1066,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_viewport_state(
+    ViewportState self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_comment(Comment self, SseSerializer serializer);

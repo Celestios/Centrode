@@ -86,7 +86,34 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
     }
   }
 
-  Widget _buildSectionHeader(ThemeData theme, String title) {
+  Widget _buildSectionHeader(
+    ThemeData theme,
+    String title, {
+    IconData? icon, // Optional icon parameter
+  }) {
+    // If icon is provided, create a Row with icon and text
+    if (icon != null) {
+      return Row(
+        children: [
+          Icon(
+            icon,
+            size: 10,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+          ),
+          const SizedBox(width: 4), // Spacing between icon and text
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Otherwise, just return the text
     return Text(
       title,
       style: TextStyle(
@@ -306,7 +333,10 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                   icon: Icon(
                     Icons.horizontal_rule_rounded,
                     size: 16,
-                    color: currentStrategy == 'default' || (currentStrategy != 'bezier' && currentStrategy != 'orthogonal')
+                    color:
+                        currentStrategy == 'default' ||
+                            (currentStrategy != 'bezier' &&
+                                currentStrategy != 'orthogonal')
                         ? theme.colorScheme.primary
                         : theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
@@ -314,19 +344,28 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                     'Straight',
                     style: TextStyle(
                       fontSize: 10,
-                      fontWeight: currentStrategy == 'default' || (currentStrategy != 'bezier' && currentStrategy != 'orthogonal')
+                      fontWeight:
+                          currentStrategy == 'default' ||
+                              (currentStrategy != 'bezier' &&
+                                  currentStrategy != 'orthogonal')
                           ? FontWeight.bold
                           : FontWeight.normal,
-                      color: currentStrategy == 'default' || (currentStrategy != 'bezier' && currentStrategy != 'orthogonal')
+                      color:
+                          currentStrategy == 'default' ||
+                              (currentStrategy != 'bezier' &&
+                                  currentStrategy != 'orthogonal')
                           ? theme.colorScheme.primary
                           : theme.colorScheme.onSurface,
                     ),
                   ),
                   style: TextButton.styleFrom(
-                    backgroundColor: currentStrategy == 'default' || (currentStrategy != 'bezier' && currentStrategy != 'orthogonal')
+                    backgroundColor:
+                        currentStrategy == 'default' ||
+                            (currentStrategy != 'bezier' &&
+                                currentStrategy != 'orthogonal')
                         ? theme.colorScheme.primary.withValues(alpha: 0.1)
                         : Colors.transparent,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -368,7 +407,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                     backgroundColor: currentStrategy == 'bezier'
                         ? theme.colorScheme.primary.withValues(alpha: 0.1)
                         : Colors.transparent,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -410,7 +449,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                     backgroundColor: currentStrategy == 'orthogonal'
                         ? theme.colorScheme.primary.withValues(alpha: 0.1)
                         : Colors.transparent,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -625,7 +664,10 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
     final theme = Theme.of(context);
 
     if (selectedEntities.length != 1) {
-      return _buildCenteredPlaceholder(theme, 'Select a single node to view metadata');
+      return _buildCenteredPlaceholder(
+        theme,
+        'Select a single node to view metadata',
+      );
     }
 
     final nodeId = selectedEntities.first;
@@ -639,14 +681,17 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
     }
 
     if (node is! InfoUiNode) {
-      return _buildCenteredPlaceholder(theme, 'Metadata is only available for information nodes');
+      return _buildCenteredPlaceholder(
+        theme,
+        'Metadata is only available for information nodes',
+      );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // TAGS SECTION
-        _buildSectionHeader(theme, 'TAGS'),
+        _buildSectionHeader(theme, 'TAGS', icon: Icons.local_offer),
         const SizedBox(height: 8),
         if (node.tags.isNotEmpty || !_isAddingTag)
           Wrap(

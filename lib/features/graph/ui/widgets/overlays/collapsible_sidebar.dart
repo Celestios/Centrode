@@ -54,51 +54,56 @@ class CollapsibleSidebar extends StatelessWidget {
               ),
             ]
           : [],
-      child: SingleChildScrollView(
-        physics: const NeverScrollableScrollPhysics(),
-        child: SizedBox(
-          width: expandedWidth,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (showHeader) ...[
-                // Header
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                  child: SizedBox(
-                    height: 32,
-                    child: Row(
-                      children: [
-                        if (icon != null) ...[
-                          Icon(icon, color: primaryColor, size: 16),
-                          const SizedBox(width: 8),
-                        ],
-                        Expanded(
-                          child: AnimatedOpacity(
-                            opacity: isMinimized ? 0.0 : 1.0,
-                            duration: const Duration(milliseconds: 150),
-                            child: Text(
-                              title.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.1,
-                                color: primaryColor,
+      child: OverflowBox(
+        alignment: isRight ? Alignment.topRight : Alignment.topLeft,
+        minWidth: expandedWidth,
+        maxWidth: expandedWidth,
+        child: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: SizedBox(
+            width: expandedWidth,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (showHeader) ...[
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                    child: SizedBox(
+                      height: 32,
+                      child: Row(
+                        children: [
+                          if (icon != null) ...[
+                            Icon(icon, color: primaryColor, size: 16),
+                            const SizedBox(width: 8),
+                          ],
+                          Expanded(
+                            child: AnimatedOpacity(
+                              opacity: isMinimized ? 0.0 : 1.0,
+                              duration: const Duration(milliseconds: 150),
+                              child: Text(
+                                title.toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.1,
+                                  color: primaryColor,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ),
-                        if (headerAction != null) headerAction!,
-                      ],
+                          if (headerAction != null) headerAction!,
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.3)),
+                  Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.3)),
+                ],
+                child,
               ],
-              child,
-            ],
+            ),
           ),
         ),
       ),

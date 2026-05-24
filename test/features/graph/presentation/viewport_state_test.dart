@@ -12,6 +12,7 @@ class MockSpatialHashGrid extends Mock implements SpatialHashGrid {}
 
 void main() {
   setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
     registerFallbackValue(Rect.zero);
   });
 
@@ -73,6 +74,20 @@ void main() {
       // Margin Left should be > 500
       expect(margins.left, greaterThanOrEqualTo(500));
       expect(margins.right, greaterThanOrEqualTo(500));
+    });
+
+    test('animateViewportTo initiates animation successfully', () {
+      controller.updateViewportSize(const Size(100, 100));
+      final target = Matrix4.identity()..translate(100.0, 200.0)..scale(2.0);
+      
+      // Uses a fake ticker provider
+      final vsync = const TestVSync();
+      controller.animateViewportTo(target, vsync, duration: const Duration(milliseconds: 100));
+      
+      // Initial translation should start at 0, 0
+      final initialTranslation = controller.transformController.value.getTranslation();
+      expect(initialTranslation.x, 0.0);
+      expect(initialTranslation.y, 0.0);
     });
   });
 }

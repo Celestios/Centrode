@@ -27,13 +27,18 @@ class GraphCanvas extends StatefulWidget {
   State<GraphCanvas> createState() => _GraphCanvasState();
 }
 
-class _GraphCanvasState extends State<GraphCanvas> {
+class _GraphCanvasState extends State<GraphCanvas>
+    with TickerProviderStateMixin {
   ViewportController? _viewportController;
   InteractionController? _interactionController;
   final Logger _log = Logger('GraphCanvas');
   TabSession? _boundSession;
 
+  GraphDataController? _dataController;
+
   bool _hasInitialFramed = false;
+  bool _viewportRestoreAttempted = false;
+  bool _viewportRestored = false;
 
   @override
   void initState() {
@@ -43,12 +48,13 @@ class _GraphCanvasState extends State<GraphCanvas> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final dataController = context.read<GraphDataController>();
+      _dataController = dataController;
       final renderState = context.read<NodeRenderState>();
 
       // 1. Initialize your ViewportController bound directly to the data query layer
       final vpController = ViewportController(dataController);
       _viewportController = vpController;
-      
+
       final tabsController = context.read<WorkspaceTabsController>();
       _boundSession = tabsController.activeSession;
       _boundSession?.viewportController = vpController;
@@ -69,12 +75,42 @@ class _GraphCanvasState extends State<GraphCanvas> {
         environment: environment,
       );
 
+      dataController.addListener(_onDataControllerChanged);
+      _onDataControllerChanged();
+
       setState(() {});
     });
   }
 
+  void _onDataControllerChanged() {
+    final dataController = context.read<GraphDataController>();
+    if (!dataController.isLoading &&
+        !_viewportRestoreAttempted &&
+        _viewportController != null) {
+      _viewportRestoreAttempted = true;
+      _viewportRestored = _restoreSavedViewport(dataController);
+    }
+  }
+
+  bool _restoreSavedViewport(GraphDataController dataController) {
+    final saved = dataController.getSavedViewportState();
+    if (saved != null && saved.zoomLevel > 0) {
+      final targetMatrix = Matrix4.identity()
+        ..translate(saved.xOffset, saved.yOffset)
+        ..scale(saved.zoomLevel);
+
+      _viewportController?.animateViewportTo(targetMatrix, this);
+      _log.info(
+        'Restored viewport: offset(${saved.xOffset}, ${saved.yOffset}), zoom ${saved.zoomLevel}',
+      );
+      return true;
+    }
+    return false;
+  }
+
   @override
   void dispose() {
+    _dataController?.removeListener(_onDataControllerChanged);
     if (_boundSession?.viewportController == _viewportController) {
       _boundSession?.viewportController = null;
     }
@@ -93,7 +129,9 @@ class _GraphCanvasState extends State<GraphCanvas> {
     final session = tabsController.activeSession;
 
     // If InteractionController or ViewportController not yet initialized, show loading
-    if (!mounted || interactionController == null || viewportController == null) {
+    if (!mounted ||
+        interactionController == null ||
+        viewportController == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -129,14 +167,19 @@ class _GraphCanvasState extends State<GraphCanvas> {
 
                         if (!_hasInitialFramed && viewport != Size.zero) {
                           _hasInitialFramed = true;
-                          _log.info(
-                            'CANVAS: Triggering initial camera framing on bounds.',
-                          );
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            viewportController.focusOnBounds(
-                              dataController.canvasBounds.value,
-                            );
-                          });
+                          // Only auto-frame if no saved state was restored
+                          if (!_viewportRestored) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              viewportController.focusOnBounds(
+                                dataController.canvasBounds.value,
+                              );
+                            });
+                          } else {
+                            // Still recalc margins after layout
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              viewportController.recalculateElasticMargins();
+                            });
+                          }
                         }
 
                         return ValueListenableBuilder<EdgeInsets>(
