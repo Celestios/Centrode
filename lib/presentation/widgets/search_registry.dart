@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../features/graph/presentation/workspace_tabs_controller.dart';
 import '../../features/graph/models/graph_node.dart';
+import '../../features/graph/models/graph_relation.dart';
 import '../../src/rust/domain/nodes.dart';
 import '../../src/rust/domain/base_models.dart' show BoundingBox;
 import 'command_registry.dart';
 
-enum SearchResultType { command, node, tag }
+enum SearchResultType { command, node, tag, relation, relationHeader }
 
 class SearchResult {
   final String title;
@@ -14,6 +15,8 @@ class SearchResult {
   final IconData icon;
   final SearchResultType type;
   final void Function(BuildContext context) onSelected;
+  final UiRelation? relation;
+  final String? relationVerb;
 
   const SearchResult({
     required this.title,
@@ -21,6 +24,8 @@ class SearchResult {
     required this.icon,
     required this.type,
     required this.onSelected,
+    this.relation,
+    this.relationVerb,
   });
 }
 
@@ -152,11 +157,12 @@ class SearchRegistry {
       }
     }
 
-    // 4. Default Canvas Node Text Search (no prefix)
+    // 4. Default Canvas Node/Relation Search (no prefix)
     if (dataController == null) return [];
     final term = query.toLowerCase();
     final results = <SearchResult>[];
 
+    // Search Nodes
     for (final node in dataController.nodesIterable) {
       if (node.text.toLowerCase().contains(term)) {
         results.add(SearchResult(
@@ -166,6 +172,64 @@ class SearchRegistry {
           type: SearchResultType.node,
           onSelected: (ctx) => _focusOnUiNode(ctx, node.id),
         ));
+      }
+    }
+
+    // Search Relations and Group by Verb
+    final matchingRelations = <UiRelation>[];
+    for (final relation in dataController.relations) {
+      final fromNode = dataController.nodeLookup[relation.fromNodeId];
+      final toNode = dataController.nodeLookup[relation.toNodeId];
+
+      final matchesVerb = relation.verb.toLowerCase().contains(term);
+      final matchesFrom = fromNode != null && fromNode.text.toLowerCase().contains(term);
+      final matchesTo = toNode != null && toNode.text.toLowerCase().contains(term);
+
+      if (matchesVerb || matchesFrom || matchesTo) {
+        matchingRelations.add(relation);
+      }
+    }
+
+    if (matchingRelations.isNotEmpty) {
+      // Group by verb (case-insensitive/lowercase, but preserve first spelling found)
+      final groupedRelations = <String, List<UiRelation>>{};
+      for (final rel in matchingRelations) {
+        final verbKey = rel.verb.trim().toLowerCase();
+        groupedRelations.putIfAbsent(verbKey, () => []).add(rel);
+      }
+
+      // Add groups to search results
+      for (final entry in groupedRelations.entries) {
+        // Find canonical verb casing from the first relation in the group
+        final canonicalVerb = entry.value.first.verb;
+        
+        // Add header
+        results.add(SearchResult(
+          title: '',
+          subtitle: '',
+          icon: Icons.alt_route_rounded,
+          type: SearchResultType.relationHeader,
+          relationVerb: canonicalVerb,
+          onSelected: (_) {},
+        ));
+
+        // Add matching relations
+        for (final rel in entry.value) {
+          final fromNode = dataController.nodeLookup[rel.fromNodeId];
+          final toNode = dataController.nodeLookup[rel.toNodeId];
+          final fromText = fromNode?.text ?? 'Untitled Node';
+          final toText = toNode?.text ?? 'Untitled Node';
+
+          results.add(SearchResult(
+            title: '$fromText ➔ $toText',
+            subtitle: 'Relation • ${rel.verb}',
+            icon: Icons.trending_flat_rounded,
+            type: SearchResultType.relation,
+            relation: rel,
+            relationVerb: rel.verb,
+            onSelected: (ctx) => _focusOnUiRelation(ctx, rel),
+          ));
+        }
       }
     }
 
@@ -186,6 +250,61 @@ class SearchRegistry {
         maxY: uiNode.position.dy + uiNode.size.height + 150,
       );
       viewportController.focusOnBounds(bounds);
+    }
+  }
+
+  void _focusOnUiRelation(BuildContext context, UiRelation relation) {
+    final tabsController = context.read<WorkspaceTabsController>();
+    final session = tabsController.activeSession;
+    final dataController = session.dataController;
+    if (dataController == null) return;
+
+    final fromNode = dataController.nodeLookup[relation.fromNodeId];
+    final toNode = dataController.nodeLookup[relation.toNodeId];
+    final viewportController = session.viewportController;
+
+    if (viewportController != null) {
+      if (fromNode != null && toNode != null) {
+        // Construct bounding box to frame the connection
+        final double minX = fromNode.position.dx < toNode.position.dx
+            ? fromNode.position.dx
+            : toNode.position.dx;
+        final double minY = fromNode.position.dy < toNode.position.dy
+            ? fromNode.position.dy
+            : toNode.position.dy;
+        final double maxX = (fromNode.position.dx + fromNode.size.width) >
+                (toNode.position.dx + toNode.size.width)
+            ? (fromNode.position.dx + fromNode.size.width)
+            : (toNode.position.dx + toNode.size.width);
+        final double maxY = (fromNode.position.dy + fromNode.size.height) >
+                (toNode.position.dy + toNode.size.height)
+            ? (fromNode.position.dy + fromNode.size.height)
+            : (toNode.position.dy + toNode.size.height);
+
+        final bounds = BoundingBox(
+          minX: minX - 150,
+          minY: minY - 150,
+          maxX: maxX + 150,
+          maxY: maxY + 150,
+        );
+        viewportController.focusOnBounds(bounds);
+      } else if (fromNode != null) {
+        final bounds = BoundingBox(
+          minX: fromNode.position.dx - 150,
+          minY: fromNode.position.dy - 150,
+          maxX: fromNode.position.dx + fromNode.size.width + 150,
+          maxY: fromNode.position.dy + fromNode.size.height + 150,
+        );
+        viewportController.focusOnBounds(bounds);
+      } else if (toNode != null) {
+        final bounds = BoundingBox(
+          minX: toNode.position.dx - 150,
+          minY: toNode.position.dy - 150,
+          maxX: toNode.position.dx + toNode.size.width + 150,
+          maxY: toNode.position.dy + toNode.size.height + 150,
+        );
+        viewportController.focusOnBounds(bounds);
+      }
     }
   }
 }

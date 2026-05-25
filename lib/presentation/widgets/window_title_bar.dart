@@ -267,12 +267,14 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
 
           // Central Drag Area with Search Bar in the middle
           Expanded(
-            child: DragToMoveArea(
-              child: Container(
-                color: Colors.transparent,
-                alignment: Alignment.center,
-                child: const SearchCommandPalette(),
-              ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const DragToMoveArea(
+                  child: SizedBox.expand(),
+                ),
+                const SearchCommandPalette(),
+              ],
             ),
           ),
 

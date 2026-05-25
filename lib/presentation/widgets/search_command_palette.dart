@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../../features/graph/presentation/workspace_tabs_controller.dart';
+import '../../features/graph/models/graph_node.dart';
 import 'search_registry.dart';
 
 class SearchCommandPalette extends StatefulWidget {
@@ -14,6 +17,7 @@ class SearchCommandPalette extends StatefulWidget {
 class _SearchCommandPaletteState extends State<SearchCommandPalette> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  final FocusNode _keyboardFocusNode = FocusNode(skipTraversal: true);
   final LayerLink _layerLink = LayerLink();
   final ScrollController _scrollController = ScrollController();
   OverlayEntry? _overlayEntry;
@@ -37,11 +41,13 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     _focusNode.dispose();
+    _keyboardFocusNode.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   void _onFocusChange() {
+    setState(() {});
     if (_focusNode.hasFocus) {
       _showOverlay();
       _doSearch();
@@ -87,7 +93,15 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
       setState(() {
         _results = results;
         _isLoading = false;
-        _selectedIndex = _selectedIndex.clamp(0, _results.isEmpty ? 0 : _results.length - 1);
+        
+        int firstSelectable = 0;
+        for (int i = 0; i < _results.length; i++) {
+          if (_results[i].type != SearchResultType.relationHeader) {
+            firstSelectable = i;
+            break;
+          }
+        }
+        _selectedIndex = firstSelectable;
       });
       _overlayEntry?.markNeedsBuild();
     }
@@ -98,8 +112,13 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
 
     final overlay = Overlay.of(context);
     _overlayEntry = OverlayEntry(
-      builder: (context) {
-        final theme = Theme.of(context);
+      builder: (overlayContext) {
+        final theme = Theme.of(overlayContext);
+        final dataController = context.read<WorkspaceTabsController>().activeSession.dataController;
+
+        if (_searchController.text.trim().isEmpty) {
+          return const SizedBox.shrink();
+        }
 
         return Positioned(
           width: 500,
@@ -137,13 +156,11 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                                 theme.colorScheme.primary,
                               ),
                             ),
-                          if (!_isLoading && _results.isEmpty)
+                           if (!_isLoading && _results.isEmpty)
                             Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Text(
-                                _searchController.text.startsWith('?')
-                                    ? 'No matching database records found.'
-                                    : 'No matching nodes or commands found.',
+                                'No matching results',
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: theme.hintColor,
                                 ),
@@ -159,6 +176,97 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                                 itemBuilder: (context, index) {
                                   final item = _results[index];
                                   final isSelected = index == _selectedIndex;
+
+                                  if (item.type == SearchResultType.relationHeader) {
+                                    return Container(
+                                      padding: const EdgeInsets.only(left: 14, right: 14, top: 12, bottom: 6),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            item.relationVerb?.toUpperCase() ?? 'RELATION',
+                                            style: theme.textTheme.bodySmall?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 1.2,
+                                              color: theme.colorScheme.primary.withValues(alpha: 0.8),
+                                              fontSize: 10,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Container(
+                                              height: 1,
+                                              color: theme.dividerColor.withValues(alpha: 0.15),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }
+
+                                  if (item.type == SearchResultType.relation) {
+                                    final rel = item.relation;
+                                    final fromNode = rel != null ? dataController?.nodeLookup[rel.fromNodeId] : null;
+                                    final toNode = rel != null ? dataController?.nodeLookup[rel.toNodeId] : null;
+
+                                    return InkWell(
+                                      onTap: () => _selectItem(item),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 8,
+                                        ),
+                                        color: isSelected
+                                            ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                                            : Colors.transparent,
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              item.icon,
+                                              size: 16,
+                                              color: isSelected
+                                                  ? theme.colorScheme.primary
+                                                  : theme.iconTheme.color?.withValues(alpha: 0.6),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            _buildNodePreview(fromNode, theme),
+                                            Expanded(
+                                              child: Container(
+                                                margin: const EdgeInsets.symmetric(horizontal: 8),
+                                                child: Stack(
+                                                  alignment: Alignment.center,
+                                                  children: [
+                                                    Container(
+                                                      height: 1.5,
+                                                      color: theme.dividerColor.withValues(alpha: 0.3),
+                                                    ),
+                                                    Align(
+                                                      alignment: Alignment.centerRight,
+                                                      child: Icon(
+                                                        Icons.chevron_right_rounded,
+                                                        size: 14,
+                                                        color: theme.dividerColor.withValues(alpha: 0.5),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            _buildNodePreview(toNode, theme),
+                                            if (isSelected) ...[
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'Enter',
+                                                style: theme.textTheme.bodySmall?.copyWith(
+                                                  color: theme.colorScheme.primary,
+                                                  fontSize: 10,
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }
 
                                   return InkWell(
                                     onTap: () => _selectItem(item),
@@ -272,22 +380,39 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
       if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
         setState(() {
           if (_results.isNotEmpty) {
-            _selectedIndex = (_selectedIndex + 1) % _results.length;
-            _scrollToIndex(_selectedIndex);
+            final hasSelectable = _results.any((r) => r.type != SearchResultType.relationHeader);
+            if (hasSelectable) {
+              int attempts = 0;
+              do {
+                _selectedIndex = (_selectedIndex + 1) % _results.length;
+                attempts++;
+              } while (_results[_selectedIndex].type == SearchResultType.relationHeader && attempts < _results.length);
+              _scrollToIndex(_selectedIndex);
+            }
           }
         });
         _overlayEntry?.markNeedsBuild();
       } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
         setState(() {
           if (_results.isNotEmpty) {
-            _selectedIndex = (_selectedIndex - 1 + _results.length) % _results.length;
-            _scrollToIndex(_selectedIndex);
+            final hasSelectable = _results.any((r) => r.type != SearchResultType.relationHeader);
+            if (hasSelectable) {
+              int attempts = 0;
+              do {
+                _selectedIndex = (_selectedIndex - 1 + _results.length) % _results.length;
+                attempts++;
+              } while (_results[_selectedIndex].type == SearchResultType.relationHeader && attempts < _results.length);
+              _scrollToIndex(_selectedIndex);
+            }
           }
         });
         _overlayEntry?.markNeedsBuild();
       } else if (event.logicalKey == LogicalKeyboardKey.enter) {
         if (_results.isNotEmpty && _selectedIndex < _results.length) {
-          _selectItem(_results[_selectedIndex]);
+          final item = _results[_selectedIndex];
+          if (item.type != SearchResultType.relationHeader) {
+            _selectItem(item);
+          }
         }
       } else if (event.logicalKey == LogicalKeyboardKey.escape) {
         _focusNode.unfocus();
@@ -301,7 +426,7 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
     final theme = Theme.of(context);
 
     return KeyboardListener(
-      focusNode: FocusNode(skipTraversal: true),
+      focusNode: _keyboardFocusNode,
       onKeyEvent: _handleKeyEvent,
       child: CompositedTransformTarget(
         link: _layerLink,
@@ -311,64 +436,137 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
             _focusNode.unfocus();
             _hideOverlay();
           },
-          child: Container(
-            width: 380,
-            height: 32,
-            decoration: BoxDecoration(
-              color: theme.cardColor.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: theme.dividerColor.withValues(alpha: 0.15),
-              ),
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.search_rounded,
-                  size: 16,
-                  color: theme.iconTheme.color?.withValues(alpha: 0.5),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (_) {
+              if (!_focusNode.hasFocus) {
+                _focusNode.requestFocus();
+              }
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOutCubic,
+              width: 380,
+              height: 32,
+              decoration: BoxDecoration(
+                color: _focusNode.hasFocus
+                    ? theme.cardColor.withValues(alpha: 0.95)
+                    : theme.cardColor.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: _focusNode.hasFocus
+                      ? theme.colorScheme.primary
+                      : theme.dividerColor.withValues(alpha: 0.15),
+                  width: _focusNode.hasFocus ? 1.5 : 1.0,
                 ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    focusNode: _focusNode,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontSize: 12,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: "Search ('>' cmd, '#' tag, '?' db)...",
-                      hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.hintColor.withValues(alpha: 0.7),
+                boxShadow: _focusNode.hasFocus
+                    ? [
+                        BoxShadow(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.25),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : [],
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.search_rounded,
+                    size: 16,
+                    color: _focusNode.hasFocus
+                        ? theme.colorScheme.primary
+                        : theme.iconTheme.color?.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      focusNode: _focusNode,
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         fontSize: 12,
                       ),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
+                      decoration: InputDecoration(
+                        hintText: "Search ('>' cmd, '#' tag, '?' db)...",
+                        hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.hintColor.withValues(alpha: 0.7),
+                          fontSize: 12,
+                        ),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  margin: const EdgeInsets.only(right: 6),
-                  decoration: BoxDecoration(
-                    color: theme.dividerColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'Ctrl P',
-                    style: TextStyle(
-                      fontSize: 8,
-                      color: theme.hintColor,
-                      fontWeight: FontWeight.bold,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    margin: const EdgeInsets.only(right: 6),
+                    decoration: BoxDecoration(
+                      color: theme.dividerColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'Ctrl P',
+                      style: TextStyle(
+                        fontSize: 8,
+                        color: theme.hintColor,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildNodePreview(UiNode? node, ThemeData theme) {
+    if (node == null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: theme.dividerColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          'Unknown',
+          style: theme.textTheme.bodySmall?.copyWith(fontSize: 10),
+        ),
+      );
+    }
+
+    final style = node.resolvedStyle;
+    final bgColor = style != null ? Color(style.bgColor) : theme.cardColor;
+    final strokeColor = style != null ? Color(style.strokeColor) : theme.dividerColor;
+    final textColor = style != null ? Color(style.textColor) : theme.textTheme.bodyMedium?.color;
+    final borderRadius = style != null ? style.borderRadius : 4.0;
+    final isCircle = style?.shape == 'circle';
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 130),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: isCircle ? BorderRadius.circular(100) : BorderRadius.circular(borderRadius),
+        border: Border.all(
+          color: strokeColor,
+          width: 1,
+        ),
+      ),
+      child: Text(
+        node.text.isEmpty ? 'Untitled Node' : node.text,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: textColor,
+          fontFamily: style?.fontFamily,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
