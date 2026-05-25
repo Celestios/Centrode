@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:mycelium/features/graph/presentation/viewport_state.dart';
 import 'package:mycelium/features/graph/store/graph_data_query.dart';
-import 'package:mycelium/features/graph/store/modules/graph_spatial.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' show BoundingBox;
 import 'package:mycelium/features/graph/models/models.dart';
 

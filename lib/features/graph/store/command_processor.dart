@@ -10,7 +10,6 @@ class CommandProcessor {
   final Map<String, Timer> _debouncers = {};
   final Map<String, GraphCommand> _pendingCommands = {};
   final ListQueue<GraphCommand> _executionQueue = ListQueue();
-  bool _isProcessing = false;
   final Function(String) onError;
 
   CommandProcessor({required this.onError});

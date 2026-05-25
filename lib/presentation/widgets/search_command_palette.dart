@@ -178,17 +178,40 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                                   final isSelected = index == _selectedIndex;
 
                                   if (item.type == SearchResultType.relationHeader) {
+                                    final verbColor = _getVerbColor(item.relationVerb, theme);
                                     return Container(
-                                      padding: const EdgeInsets.only(left: 14, right: 14, top: 12, bottom: 6),
+                                      padding: const EdgeInsets.only(left: 14, right: 14, top: 14, bottom: 8),
                                       child: Row(
                                         children: [
-                                          Text(
-                                            item.relationVerb?.toUpperCase() ?? 'RELATION',
-                                            style: theme.textTheme.bodySmall?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              letterSpacing: 1.2,
-                                              color: theme.colorScheme.primary.withValues(alpha: 0.8),
-                                              fontSize: 10,
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: verbColor.withValues(alpha: 0.1),
+                                              border: Border.all(
+                                                color: verbColor.withValues(alpha: 0.4),
+                                                width: 1,
+                                              ),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.alt_route_rounded,
+                                                  size: 10,
+                                                  color: verbColor,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  item.relationVerb?.toUpperCase() ?? 'RELATION',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    letterSpacing: 1.1,
+                                                    color: verbColor,
+                                                    fontSize: 9,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                           const SizedBox(width: 8),
@@ -207,13 +230,16 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                                     final rel = item.relation;
                                     final fromNode = rel != null ? dataController?.nodeLookup[rel.fromNodeId] : null;
                                     final toNode = rel != null ? dataController?.nodeLookup[rel.toNodeId] : null;
+                                    final verbColor = _getVerbColor(item.relationVerb, theme);
 
                                     return InkWell(
                                       onTap: () => _selectItem(item),
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 14,
-                                          vertical: 8,
+                                        padding: const EdgeInsets.only(
+                                          left: 28,
+                                          right: 14,
+                                          top: 8,
+                                          bottom: 8,
                                         ),
                                         color: isSelected
                                             ? theme.colorScheme.primary.withValues(alpha: 0.15)
@@ -222,12 +248,12 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                                           children: [
                                             Icon(
                                               item.icon,
-                                              size: 16,
+                                              size: 14,
                                               color: isSelected
                                                   ? theme.colorScheme.primary
-                                                  : theme.iconTheme.color?.withValues(alpha: 0.6),
+                                                  : verbColor.withValues(alpha: 0.7),
                                             ),
-                                            const SizedBox(width: 10),
+                                            const SizedBox(width: 8),
                                             _buildNodePreview(fromNode, theme),
                                             Expanded(
                                               child: Container(
@@ -237,14 +263,35 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                                                   children: [
                                                     Container(
                                                       height: 1.5,
-                                                      color: theme.dividerColor.withValues(alpha: 0.3),
+                                                      color: verbColor.withValues(alpha: 0.3),
                                                     ),
                                                     Align(
                                                       alignment: Alignment.centerRight,
                                                       child: Icon(
                                                         Icons.chevron_right_rounded,
                                                         size: 14,
-                                                        color: theme.dividerColor.withValues(alpha: 0.5),
+                                                        color: verbColor.withValues(alpha: 0.5),
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                                      decoration: BoxDecoration(
+                                                        color: theme.cardColor,
+                                                        border: Border.all(
+                                                          color: verbColor.withValues(alpha: 0.4),
+                                                          width: 1,
+                                                        ),
+                                                        borderRadius: BorderRadius.circular(4),
+                                                      ),
+                                                      child: Text(
+                                                        item.relationVerb ?? '',
+                                                        style: TextStyle(
+                                                          fontSize: 8,
+                                                          fontWeight: FontWeight.bold,
+                                                          color: verbColor,
+                                                        ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
                                                       ),
                                                     ),
                                                   ],
@@ -569,5 +616,28 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
         overflow: TextOverflow.ellipsis,
       ),
     );
+  }
+
+  Color _getVerbColor(String? verb, ThemeData theme) {
+    if (verb == null || verb.isEmpty || verb.trim().toLowerCase() == 'default') {
+      return theme.colorScheme.primary;
+    }
+    final verbClean = verb.trim().toLowerCase();
+    
+    // Hash the string to get a deterministic hue value
+    int hash = 0;
+    for (int i = 0; i < verbClean.length; i++) {
+      hash = verbClean.codeUnitAt(i) + ((hash << 5) - hash);
+    }
+    
+    // Convert hash to hue (0-360)
+    final double hue = (hash.abs() % 360).toDouble();
+    
+    // Adjust saturation and lightness for visibility based on theme brightness
+    final isDark = theme.brightness == Brightness.dark;
+    final double saturation = isDark ? 0.75 : 0.65;
+    final double lightness = isDark ? 0.65 : 0.45;
+    
+    return HSLColor.fromAHSL(1.0, hue, saturation, lightness).toColor();
   }
 }

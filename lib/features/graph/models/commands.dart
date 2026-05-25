@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'graph_node.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
@@ -7,6 +8,8 @@ import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/src/rust/domain/tags.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/src/rust/domain/contents.dart';
+
+final _log = Logger('Commands');
 
 // -----------------------------------------------------------------------------
 // Command Pattern for State Mutations with Write-Behind Debouncing
@@ -308,13 +311,13 @@ class CreateRelationCommand implements GraphCommand {
   @override
   Future<void> execute() async {
     try {
-      print('Executing CreateRelationCommand for $targetId');
+      _log.info('Executing CreateRelationCommand for $targetId');
       await api.createRelation(input: relation.toRust());
-      print('Calling reloadGraph...');
+      _log.info('Calling reloadGraph...');
       await reloadGraph();
-      print('Executed CreateRelationCommand successfully.');
+      _log.info('Executed CreateRelationCommand successfully.');
     } catch (e, st) {
-      print('CreateRelationCommand FAILED: $e\n$st');
+      _log.severe('CreateRelationCommand FAILED: $e', e, st);
       rethrow;
     }
   }

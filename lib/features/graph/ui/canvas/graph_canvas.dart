@@ -143,150 +143,168 @@ class _GraphCanvasState extends State<GraphCanvas>
       child: ValueListenableBuilder<CanvasInteractionState>(
         valueListenable: interactionController.state,
         builder: (context, state, _) {
-          return Stack(
-            children: [
-              // Zoomable / Pannable Interactive Canvas Layer
-              Positioned.fill(
-                child: MouseRegion(
-                  cursor: state.cursor,
-                  child: Listener(
-                    onPointerDown: interactionController.handlePointerDown,
-                    onPointerMove: interactionController.handlePointerMove,
-                    onPointerUp: interactionController.handlePointerUp,
-                    onPointerCancel: interactionController.handlePointerCancel,
-                    onPointerHover: interactionController.handlePointerHover,
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final viewport = constraints.biggest;
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              return Stack(
+                children: [
+                  // Zoomable / Pannable Interactive Canvas Layer
+                  Positioned.fill(
+                    child: MouseRegion(
+                      cursor: state.cursor,
+                      child: Listener(
+                        onPointerDown: interactionController.handlePointerDown,
+                        onPointerMove: interactionController.handlePointerMove,
+                        onPointerUp: interactionController.handlePointerUp,
+                        onPointerCancel:
+                            interactionController.handlePointerCancel,
+                        onPointerHover:
+                            interactionController.handlePointerHover,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final viewport = constraints.biggest;
 
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (context.mounted) {
-                            viewportController.updateViewportSize(viewport);
-                          }
-                        });
-
-                        if (!_hasInitialFramed && viewport != Size.zero) {
-                          _hasInitialFramed = true;
-                          // Only auto-frame if no saved state was restored
-                          if (!_viewportRestored) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
-                              viewportController.focusOnBounds(
-                                dataController.canvasBounds.value,
-                              );
+                              if (context.mounted) {
+                                viewportController.updateViewportSize(viewport);
+                              }
                             });
-                          } else {
-                            // Still recalc margins after layout
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              viewportController.recalculateElasticMargins();
-                            });
-                          }
-                        }
 
-                        return ValueListenableBuilder<EdgeInsets>(
-                          valueListenable: viewportController.elasticMargins,
-                          builder: (context, elasticMargins, _) {
-                            return CanvasInteractiveViewer(
-                              transformationController:
-                                  viewportController.transformController,
-                              constrained: true,
-                              boundaryMargin: elasticMargins,
-                              minScale: AppConfig.canvas.minScale,
-                              maxScale: AppConfig.canvas.maxScale,
-                              scaleFactor: AppConfig.canvas.scaleFactor,
-                              panEnabled: state is CanvasIdle,
-                              scaleEnabled: state is CanvasIdle,
-                              onInteractionEnd: (details) {
-                                viewportController.recalculateElasticMargins();
-                              },
-                              child: GestureDetector(
-                                onTap: () {
-                                  renderState.hideFloatingToolbar();
-                                },
-                                onDoubleTap: () {},
-                                onLongPress: () {},
-                                child: Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    ValueListenableBuilder<ViewportStateGrid>(
-                                      valueListenable: viewportController
-                                          .viewportStateNotifier,
-                                      builder: (context, state, _) {
-                                        return GridLayer(viewportState: state);
-                                      },
+                            if (!_hasInitialFramed && viewport != Size.zero) {
+                              _hasInitialFramed = true;
+                              // Only auto-frame if no saved state was restored
+                              if (!_viewportRestored) {
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) {
+                                  viewportController.focusOnBounds(
+                                    dataController.canvasBounds.value,
+                                  );
+                                });
+                              } else {
+                                // Still recalc margins after layout
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) {
+                                  viewportController
+                                      .recalculateElasticMargins();
+                                });
+                              }
+                            }
+
+                            return ValueListenableBuilder<EdgeInsets>(
+                              valueListenable:
+                                  viewportController.elasticMargins,
+                              builder: (context, elasticMargins, _) {
+                                return CanvasInteractiveViewer(
+                                  transformationController:
+                                      viewportController.transformController,
+                                  constrained: true,
+                                  boundaryMargin: elasticMargins,
+                                  minScale: AppConfig.canvas.minScale,
+                                  maxScale: AppConfig.canvas.maxScale,
+                                  scaleFactor: AppConfig.canvas.scaleFactor,
+                                  panEnabled: state is CanvasIdle,
+                                  scaleEnabled: state is CanvasIdle,
+                                  onInteractionEnd: (details) {
+                                    viewportController
+                                        .recalculateElasticMargins();
+                                  },
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      renderState.hideFloatingToolbar();
+                                    },
+                                    onDoubleTap: () {},
+                                    onLongPress: () {},
+                                    child: Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        ValueListenableBuilder<
+                                          ViewportStateGrid
+                                        >(
+                                          valueListenable: viewportController
+                                              .viewportStateNotifier,
+                                          builder: (context, state, _) {
+                                            return GridLayer(
+                                              viewportState: state,
+                                            );
+                                          },
+                                        ),
+                                        RelationLayer(interactionState: state),
+                                        const NodeLayer(),
+                                        OverlayLayer(interactionState: state),
+                                      ],
                                     ),
-                                    RelationLayer(interactionState: state),
-                                    const NodeLayer(),
-                                    OverlayLayer(interactionState: state),
-                                  ],
-                                ),
-                              ),
+                                  ),
+                                );
+                              },
                             );
                           },
-                        );
-                      },
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
 
-              // Persistent Floating Overlays
-              // Top Deck Area (Ribbon and tabs below it)
-              Positioned(
-                top: 12,
-                left: 0,
-                right: 0,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    CanvasToolRibbon(),
-                    SizedBox(height: 6),
-                    CanvasTabBar(),
-                  ],
-                ),
-              ),
+                  // Persistent Floating Overlays
+                  // Top Deck Area (Ribbon and tabs below it)
+                  Positioned(
+                    top: 12,
+                    left: 0,
+                    right: 0,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        CanvasToolRibbon(),
+                        SizedBox(height: 6),
+                        CanvasTabBar(),
+                      ],
+                    ),
+                  ),
 
-              // Left repository drawer
-              ValueListenableBuilder<bool>(
-                valueListenable: session.showLeftPanel,
-                builder: (context, visible, _) {
-                  if (!visible) return const SizedBox.shrink();
-                  return const Positioned(
-                    top: 120,
-                    bottom: 86,
-                    left: 12,
-                    child: LeftRepositoryDrawer(),
-                  );
-                },
-              ),
+                  // Left repository drawer (floating compact card, width 52)
+                  ValueListenableBuilder<bool>(
+                    valueListenable: session.showLeftPanel,
+                    builder: (context, leftVisible, _) {
+                      if (!leftVisible) return const SizedBox.shrink();
+                      return const Positioned(
+                        top: 178.0,
+                        left: 12,
+                        width: 52,
+                        height: 158,
+                        child: LeftRepositoryDrawer(),
+                      );
+                    },
+                  ),
 
-              // Right property inspector panel
-              ValueListenableBuilder<bool>(
-                valueListenable: session.showRightPanel,
-                builder: (context, visible, _) {
-                  if (!visible) return const SizedBox.shrink();
-                  return const Positioned(
-                    top: 120,
-                    bottom: 86,
-                    right: 12,
-                    child: RightPropertyPanel(),
-                  );
-                },
-              ),
+                  // Right property inspector panel
+                  ValueListenableBuilder<bool>(
+                    valueListenable: session.showRightPanel,
+                    builder: (context, visible, _) {
+                      if (!visible) return const SizedBox.shrink();
+                      return const Positioned(
+                        top: 120,
+                        bottom: 86,
+                        right: 12,
+                        child: RightPropertyPanel(),
+                      );
+                    },
+                  ),
 
-              // Bottom control status bar
-              ValueListenableBuilder<bool>(
-                valueListenable: session.showBottomPanel,
-                builder: (context, visible, _) {
-                  if (!visible) return const SizedBox.shrink();
-                  return const Positioned(
-                    bottom: 12,
-                    left: 12,
-                    right: 12,
-                    child: CanvasStatusBar(),
-                  );
-                },
-              ),
-            ],
+                  // Bottom control status bar
+                  ValueListenableBuilder<bool>(
+                    valueListenable: session.showBottomPanel,
+                    builder: (context, visible, _) {
+                      if (!visible) return const SizedBox.shrink();
+                      return const Positioned(
+                        bottom: 12,
+                        left: 12,
+                        right: 12,
+                        child: CanvasStatusBar(),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
           );
         },
       ),
