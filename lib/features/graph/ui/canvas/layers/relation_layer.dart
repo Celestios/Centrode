@@ -8,6 +8,7 @@ import '../../../engine/base_interaction_state.dart';
 import '../../../models/models.dart';
 import '../relation_painter.dart';
 import '../canvas_text_editor.dart';
+import '../../../presentation/strategies/routing/relation_layout_context.dart';
 
 class RelationLayer extends StatelessWidget {
   final CanvasInteractionState interactionState;
@@ -74,6 +75,12 @@ class RelationLayer extends StatelessWidget {
                 : null;
 
             Widget? editorWidget;
+            final layoutContext = RelationLayoutContext(
+              nodeViewStates: uiController.viewStates,
+              relations: dataController.relations.toList(),
+              pathCache: uiController.relationPathCache,
+            );
+
             if (editedRel != null) {
               final fromVs = uiController.viewStates[editedRel.fromNodeId];
               final toVs = uiController.viewStates[editedRel.toNodeId];
@@ -82,7 +89,7 @@ class RelationLayer extends StatelessWidget {
                 final layoutStrategy = RelationLayoutStrategy.fromType(editedRel.layout?.strategyType);
                 final (start, end) = layoutStrategy.resolveEndpoints(editedRel, fromVs, toVs);
 
-                final labelPos = layoutStrategy.computeLabelPosition(start, end, fromVs, toVs, editedRel);
+                final labelPos = layoutStrategy.computeLabelPosition(start, end, fromVs, toVs, editedRel, layoutContext);
 
                 final width = AppConfig.relation.editorMinWidth;
                 final position =
@@ -139,6 +146,7 @@ class RelationLayer extends StatelessWidget {
                       dataController.relations.toList(),
                       uiController.viewStates,
                       uiController.selectedEntities,
+                      pathCache: uiController.relationPathCache,
                       draggingOverrides: draggingOverrides,
                     ),
                   ),

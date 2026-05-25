@@ -4,6 +4,7 @@ import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
 import 'package:mycelium/features/graph/presentation/strategies/relation_layout_strategy.dart';
+import 'package:mycelium/features/graph/presentation/strategies/routing/relation_layout_context.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 
 void main() {
@@ -29,6 +30,11 @@ void main() {
 
     final fromVs = NodeViewState(fromNode);
     final toVs = NodeViewState(toNode);
+    final context = RelationLayoutContext(
+      nodeViewStates: {fromVs.nodeId: fromVs, toVs.nodeId: toVs},
+      relations: [relation],
+      pathCache: {},
+    );
 
     // Endpoints for Auto between right/left sides:
     // fromRight = (110, 35), toLeft = (210, 35)
@@ -38,7 +44,7 @@ void main() {
     expect(start, const Offset(110, 35));
     expect(end, const Offset(210, 35));
 
-    final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(relation, fromVs, toVs);
+    final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(relation, fromVs, toVs, context);
     // Since distance is 100 (> 40), it should offset by 16px along the direction (1, 0)
     expect(handleStart, const Offset(126, 35));
     expect(handleEnd, const Offset(194, 35));
@@ -66,6 +72,11 @@ void main() {
 
     final fromVs = NodeViewState(fromNode);
     final toVs = NodeViewState(toNode);
+    final context = RelationLayoutContext(
+      nodeViewStates: {fromVs.nodeId: fromVs, toVs.nodeId: toVs},
+      relations: [relation],
+      pathCache: {},
+    );
 
     // Endpoints for Auto between right/left sides:
     // fromRight = (110, 35), toLeft = (120, 35)
@@ -75,7 +86,7 @@ void main() {
     expect(start, const Offset(110, 35));
     expect(end, const Offset(120, 35));
 
-    final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(relation, fromVs, toVs);
+    final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(relation, fromVs, toVs, context);
     // Since distance is 10 (< 40), handles should be at 1/3 and 2/3 of the way
     expect(handleStart, Offset(110 + 10 / 3, 35));
     expect(handleEnd, Offset(110 + 20 / 3, 35));
@@ -144,6 +155,11 @@ void main() {
 
     final fromVs = NodeViewState(fromNode);
     final toVs = NodeViewState(toNode);
+    final context = RelationLayoutContext(
+      nodeViewStates: {fromVs.nodeId: fromVs, toVs.nodeId: toVs},
+      relations: [relation],
+      pathCache: {},
+    );
 
     const layoutStrategy = BezierRelationLayoutStrategy();
     final (start, end) = layoutStrategy.resolveEndpoints(relation, fromVs, toVs);
@@ -155,8 +171,8 @@ void main() {
     // The point (129.5, 74.3) is very close to the Bezier curve, but far from the straight line.
     const straightStrategy = StraightRelationLayoutStrategy();
     const testPoint = Offset(129.5, 74.3);
-    
-    expect(straightStrategy.isPointNear(testPoint, start, end, fromVs, toVs, relation, 2.0), isFalse);
-    expect(layoutStrategy.isPointNear(testPoint, start, end, fromVs, toVs, relation, 2.0), isTrue);
+
+    expect(straightStrategy.isPointNear(testPoint, start, end, fromVs, toVs, relation, 2.0, context), isFalse);
+    expect(layoutStrategy.isPointNear(testPoint, start, end, fromVs, toVs, relation, 2.0, context), isTrue);
   });
 }

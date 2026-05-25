@@ -20,6 +20,7 @@ void main() {
       when(() => mockTransform.value).thenReturn(Matrix4.identity());
       
       mockContext = MockInteractionContext();
+      when(() => mockContext.relationPathCache).thenReturn({});
       
       controller = InteractionController(
         transformController: mockTransform,

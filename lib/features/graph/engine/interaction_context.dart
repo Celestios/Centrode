@@ -13,6 +13,9 @@ abstract interface class InteractionContext {
   /// Registry of all node view states for hit-testing and position updates.
   Map<String, NodeViewState> get nodeViewStates;
 
+  /// Cache of computed relation paths for obstacle avoidance.
+  Map<String, List<Offset>> get relationPathCache;
+
   /// Z-order tracking for proper hit-testing (last item is topmost).
   List<String> get zOrder;
 

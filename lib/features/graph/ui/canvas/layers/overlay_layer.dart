@@ -8,6 +8,7 @@ import '../../../engine/base_interaction_state.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
 import '../../../presentation/strategies/relation_layout_strategy.dart';
+import '../../../presentation/strategies/routing/relation_layout_context.dart';
 import '../metadata_preview_overlay.dart';
 
 class OverlayLayer extends StatelessWidget {
@@ -165,9 +166,14 @@ class OverlayLayer extends StatelessWidget {
             final sourceVs = renderState.viewStates[rel.fromNodeId];
             final targetVs = renderState.viewStates[rel.toNodeId];
             if (sourceVs != null && targetVs != null) {
+              final layoutContext = RelationLayoutContext(
+                nodeViewStates: renderState.viewStates,
+                relations: data.relations.toList(),
+                pathCache: renderState.relationPathCache,
+              );
               final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
               final (start, end) = layoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
-              anchor = layoutStrategy.computeLabelPosition(start, end, sourceVs, targetVs, rel);
+              anchor = layoutStrategy.computeLabelPosition(start, end, sourceVs, targetVs, rel, layoutContext);
             }
           }
 

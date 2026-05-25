@@ -31,6 +31,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
   Map<String, NodeViewState> get nodeViewStates => _renderState.viewStates;
 
   @override
+  Map<String, List<Offset>> get relationPathCache => _renderState.relationPathCache;
+
+  @override
   List<String> get zOrder => _renderState.zOrder;
 
   @override

@@ -59,9 +59,15 @@ class ToolbarDragging extends CanvasInteractionState {
           final targetVs = ctx.nodeViewStates[rel.toNodeId];
           if (sourceVs == null || targetVs == null) return const CanvasIdle();
 
+          final layoutContext = RelationLayoutContext(
+            nodeViewStates: ctx.nodeViewStates,
+            relations: ctx.getRelations().toList(),
+            pathCache: ctx.relationPathCache,
+          );
+
           final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
           final (start, end) = layoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
-          anchor = layoutStrategy.computeLabelPosition(start, end, sourceVs, targetVs, rel);
+          anchor = layoutStrategy.computeLabelPosition(start, end, sourceVs, targetVs, rel, layoutContext);
         } catch (_) {
           return const CanvasIdle();
         }

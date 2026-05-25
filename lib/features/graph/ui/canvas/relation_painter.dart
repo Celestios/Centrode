@@ -4,17 +4,20 @@ import '../../presentation/graph_metrics.dart';
 import '../../presentation/view_state.dart';
 import '../../presentation/strategies/relation_style_strategy.dart';
 import '../../presentation/strategies/relation_layout_strategy.dart';
+import '../../presentation/strategies/routing/relation_layout_context.dart';
 
 class RelationPainter extends CustomPainter {
   final List<UiRelation> relations;
   final Map<String, NodeViewState> nodeViewStates; // Use ViewStates for real-time positions
   final Set<String> selectedEntities; // Selection state from NodeRenderState
+  final Map<String, List<Offset>> pathCache;
   final Map<String, (Offset start, Offset end)> draggingOverrides;
 
   RelationPainter(
     this.relations,
     this.nodeViewStates,
     this.selectedEntities, {
+    required this.pathCache,
     this.draggingOverrides = const {},
   });
 
@@ -23,6 +26,12 @@ class RelationPainter extends CustomPainter {
     final paint = Paint()
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
+
+    final layoutContext = RelationLayoutContext(
+      nodeViewStates: nodeViewStates,
+      relations: relations,
+      pathCache: pathCache,
+    );
 
     for (final rel in relations) {
       final from = nodeViewStates[rel.fromNodeId];
@@ -58,15 +67,16 @@ class RelationPainter extends CustomPainter {
           : resolved.strokeWidth.toDouble();
 
       // Draw relation path (straight line or Bezier curve)
-      final path = layoutStrategy.computePath(start, end, from, to, rel);
+      final path = layoutStrategy.computePath(start, end, from, to, rel, layoutContext);
       canvas.drawPath(path, paint);
 
-      // If selected, draw the two tip handlers
+      // If selected, draw the two tip handles
       if (isSelected) {
         final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(
           rel,
           from,
           to,
+          layoutContext,
           overrideStart: draggingOverrides[rel.id]?.$1,
           overrideEnd: draggingOverrides[rel.id]?.$2,
         );
@@ -88,7 +98,7 @@ class RelationPainter extends CustomPainter {
 
       // Draw Label (Centered on the layout path)
       if (rel.verb.isNotEmpty) {
-        final mid = layoutStrategy.computeLabelPosition(start, end, from, to, rel);
+        final mid = layoutStrategy.computeLabelPosition(start, end, from, to, rel, layoutContext);
         _drawText(canvas, rel.verb, mid);
       }
     }

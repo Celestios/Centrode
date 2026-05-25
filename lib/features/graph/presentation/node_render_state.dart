@@ -31,6 +31,9 @@ class NodeRenderState extends ChangeNotifier {
   /// Map of currently active visual view states.
   final Map<String, NodeViewState> viewStates = {};
 
+  /// Cache of computed relation paths for obstacle avoidance.
+  final Map<String, List<Offset>> relationPathCache = {};
+
   /// Cache to prevent premature disposal of visual state during optimistic deletes,
   /// enabling seamless rehydration during FFI command rollbacks.
   final Map<String, NodeViewState> _quarantineCache = {};
@@ -84,6 +87,7 @@ class NodeRenderState extends ChangeNotifier {
           final Offset newPos = update.payload as Offset;
           if (vs.positionNotifier.value != newPos) {
             vs.positionNotifier.value = newPos;
+            relationPathCache.clear();
             movementNotifier.pulse();
           }
         }
@@ -94,6 +98,7 @@ class NodeRenderState extends ChangeNotifier {
           final Size newSize = update.payload as Size;
           if (vs.sizeNotifier.value != newSize) {
             vs.dragWidthNotifier.value = null; // Reset volatile drag width
+            relationPathCache.clear();
             final node = _dataController.nodeLookup[id];
             if (node != null) {
               vs.onContentOrStyleChanged(
@@ -109,6 +114,7 @@ class NodeRenderState extends ChangeNotifier {
         if (vs != null) {
           final bool newExpanded = update.payload as bool;
           vs.isExpandedNotifier.value = newExpanded;
+          relationPathCache.clear();
         }
         break;
       case GraphUpdateType.text:
@@ -140,6 +146,7 @@ class NodeRenderState extends ChangeNotifier {
       case GraphUpdateType.tags:
       case GraphUpdateType.comments:
       case GraphUpdateType.reset:
+        relationPathCache.clear();
         if (update.type == GraphUpdateType.relationLayout ||
             update.type == GraphUpdateType.relationAdded ||
             update.type == GraphUpdateType.relationDeleted) {
@@ -161,6 +168,12 @@ class NodeRenderState extends ChangeNotifier {
 
   /// Pulsates the movement notifier to redraw connected relations in real-time.
   void notifyNodeDragUpdate() {
+    // Invalidate only the relation paths connected to dragging nodes
+    relationPathCache.removeWhere((relId, _) {
+      final rel = _dataController.relationLookup[relId];
+      if (rel == null) return true;
+      return draggingNodes.contains(rel.fromNodeId) || draggingNodes.contains(rel.toNodeId);
+    });
     movementNotifier.pulse();
   }
 
@@ -203,6 +216,7 @@ class NodeRenderState extends ChangeNotifier {
         if (!draggingNodes.contains(id)) {
           if (vs.positionNotifier.value != node.position) {
             vs.positionNotifier.value = node.position;
+            relationPathCache.clear();
             movementNotifier.pulse();
           }
         }
@@ -214,6 +228,7 @@ class NodeRenderState extends ChangeNotifier {
         }
         if (vs.sizeNotifier.value != node.size) {
           vs.dragWidthNotifier.value = null; // Reset volatile drag width
+          relationPathCache.clear();
           vs.onContentOrStyleChanged(
             node,
             isEditing: node.id == activeEditId,

@@ -1,8 +1,11 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
+import 'routing/relation_layout_context.dart';
+import 'routing/relation_router.dart';
 
 /// Responsible for computing the physical size, bounds, or layout positions for a relation.
 abstract class RelationLayoutStrategy {
@@ -97,13 +100,15 @@ abstract class RelationLayoutStrategy {
     NodeViewState fromVs,
     NodeViewState toVs,
     UiRelation relation,
+    RelationLayoutContext context,
   );
 
   /// Resolves positions for the tip handles, placed slightly before the start and end tips.
   (Offset, Offset) resolveTipHandles(
     UiRelation relation,
     NodeViewState fromVs,
-    NodeViewState toVs, {
+    NodeViewState toVs,
+    RelationLayoutContext context, {
     Offset? overrideStart,
     Offset? overrideEnd,
   }) {
@@ -114,6 +119,7 @@ abstract class RelationLayoutStrategy {
       overrideStart: overrideStart,
       overrideEnd: overrideEnd,
     );
+
     final len = (end - start).distance;
     if (len < 40.0) {
       return (
@@ -121,11 +127,45 @@ abstract class RelationLayoutStrategy {
         start + (end - start) * (2 / 3),
       );
     }
-    final dir = len == 0.0 ? Offset.zero : (end - start) / len;
-    return (
-      start + dir * 16.0,
-      end - dir * 16.0,
-    );
+
+    final waypoints = getWaypoints(start, end, fromVs, toVs, relation, context);
+    if (waypoints.length < 2) {
+      return (start, end);
+    }
+
+    // Start handle: 16px along the waypoints path from start
+    Offset hStart = start;
+    double distLeft = 16.0;
+    for (int i = 0; i < waypoints.length - 1; i++) {
+      final p1 = waypoints[i];
+      final p2 = waypoints[i + 1];
+      final segLen = (p2 - p1).distance;
+      if (segLen >= distLeft) {
+        final dir = segLen == 0.0 ? Offset.zero : (p2 - p1) / segLen;
+        hStart = p1 + dir * distLeft;
+        break;
+      } else {
+        distLeft -= segLen;
+      }
+    }
+
+    // End handle: 16px back along the waypoints path from end
+    Offset hEnd = end;
+    distLeft = 16.0;
+    for (int i = waypoints.length - 1; i > 0; i--) {
+      final p2 = waypoints[i];
+      final p1 = waypoints[i - 1];
+      final segLen = (p2 - p1).distance;
+      if (segLen >= distLeft) {
+        final dir = segLen == 0.0 ? Offset.zero : (p2 - p1) / segLen;
+        hEnd = p2 - dir * distLeft;
+        break;
+      } else {
+        distLeft -= segLen;
+      }
+    }
+
+    return (hStart, hEnd);
   }
 
   /// Computes the center position where the relation label should be rendered.
@@ -135,6 +175,7 @@ abstract class RelationLayoutStrategy {
     NodeViewState fromVs,
     NodeViewState toVs,
     UiRelation relation,
+    RelationLayoutContext context,
   );
 
   /// Checks if a point is near the relation line/curve.
@@ -146,6 +187,7 @@ abstract class RelationLayoutStrategy {
     NodeViewState toVs,
     UiRelation relation,
     double threshold,
+    RelationLayoutContext context,
   );
 
   /// Helper to calculate the shortest distance from a point to a line segment.
@@ -158,6 +200,33 @@ abstract class RelationLayoutStrategy {
     final t = ((ap.dx * ab.dx + ap.dy * ab.dy) / lenSq).clamp(0.0, 1.0);
     final projection = a + ab * t;
     return (p - projection).distance;
+  }
+
+  /// Helper to query, compute, and cache obstacle-avoiding waypoints.
+  List<Offset> getWaypoints(
+    Offset start,
+    Offset end,
+    NodeViewState fromVs,
+    NodeViewState toVs,
+    UiRelation relation,
+    RelationLayoutContext context,
+  ) {
+    final cached = context.pathCache[relation.id];
+    if (cached != null) return cached;
+
+    final obstacles = context.getObstacles(
+      excludeFromId: relation.fromNodeId,
+      excludeToId: relation.toNodeId,
+    );
+
+    final waypoints = RelationRouter.computeWaypoints(
+      start: start,
+      end: end,
+      obstacles: obstacles,
+    );
+
+    context.pathCache[relation.id] = waypoints;
+    return waypoints;
   }
 }
 
@@ -176,10 +245,17 @@ class StraightRelationLayoutStrategy extends RelationLayoutStrategy {
     NodeViewState fromVs,
     NodeViewState toVs,
     UiRelation relation,
+    RelationLayoutContext context,
   ) {
-    return Path()
-      ..moveTo(start.dx, start.dy)
-      ..lineTo(end.dx, end.dy);
+    final waypoints = getWaypoints(start, end, fromVs, toVs, relation, context);
+    final path = Path();
+    if (waypoints.isNotEmpty) {
+      path.moveTo(waypoints.first.dx, waypoints.first.dy);
+      for (int i = 1; i < waypoints.length; i++) {
+        path.lineTo(waypoints[i].dx, waypoints[i].dy);
+      }
+    }
+    return path;
   }
 
   @override
@@ -189,8 +265,33 @@ class StraightRelationLayoutStrategy extends RelationLayoutStrategy {
     NodeViewState fromVs,
     NodeViewState toVs,
     UiRelation relation,
+    RelationLayoutContext context,
   ) {
-    return Offset((start.dx + end.dx) / 2, (start.dy + end.dy) / 2);
+    final waypoints = getWaypoints(start, end, fromVs, toVs, relation, context);
+    if (waypoints.length < 2) return (start + end) / 2;
+
+    double totalLength = 0.0;
+    final List<double> segmentLengths = [];
+    for (int i = 0; i < waypoints.length - 1; i++) {
+      final len = (waypoints[i + 1] - waypoints[i]).distance;
+      segmentLengths.add(len);
+      totalLength += len;
+    }
+
+    if (totalLength == 0.0) return waypoints.first;
+
+    final targetLength = totalLength * 0.5;
+    double currentLength = 0.0;
+
+    for (int i = 0; i < segmentLengths.length; i++) {
+      final len = segmentLengths[i];
+      if (currentLength + len >= targetLength) {
+        final t = (targetLength - currentLength) / len;
+        return Offset.lerp(waypoints[i], waypoints[i + 1], t)!;
+      }
+      currentLength += len;
+    }
+    return waypoints.last;
   }
 
   @override
@@ -202,8 +303,18 @@ class StraightRelationLayoutStrategy extends RelationLayoutStrategy {
     NodeViewState toVs,
     UiRelation relation,
     double threshold,
+    RelationLayoutContext context,
   ) {
-    return distanceToSegment(p, start, end) <= threshold;
+    final waypoints = getWaypoints(start, end, fromVs, toVs, relation, context);
+    if (waypoints.length < 2) {
+      return distanceToSegment(p, start, end) <= threshold;
+    }
+    for (int i = 0; i < waypoints.length - 1; i++) {
+      if (distanceToSegment(p, waypoints[i], waypoints[i + 1]) <= threshold) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 
@@ -254,25 +365,159 @@ class BezierRelationLayoutStrategy extends RelationLayoutStrategy {
     return 'Auto';
   }
 
-  (Offset, Offset) _getBezierControlPoints(
-    Offset start,
-    Offset end,
+  Path _getBezierPath(
+    List<Offset> waypoints,
     NodeViewState fromVs,
     NodeViewState toVs,
     UiRelation relation,
   ) {
+    final path = Path();
+    if (waypoints.isEmpty) return path;
+
+    if (waypoints.length < 3) {
+      // Standard single Bezier curve when unobstructed
+      final start = waypoints.first;
+      final end = waypoints.last;
+      final layout = relation.resolvedLayout ?? relation.layout;
+      final fromSide = _resolveSideFromOffset(fromVs, start, layout?.fromSide);
+      final toSide = _resolveSideFromOffset(toVs, end, layout?.toSide);
+
+      final startNormal = _getPortNormal(fromSide, start, end);
+      final endNormal = _getPortNormal(toSide, end, start);
+
+      final distance = (end - start).distance;
+      final proj = (distance * 0.4).clamp(30.0, 150.0);
+      final p1 = start + startNormal * proj;
+      final p2 = end + endNormal * proj;
+
+      path.moveTo(start.dx, start.dy);
+      path.cubicTo(p1.dx, p1.dy, p2.dx, p2.dy, end.dx, end.dy);
+      return path;
+    }
+
+    // Obstacle avoidance Bezier curve routing:
+    // We construct a smooth rounded path through all waypoints.
+    final start = waypoints.first;
+    final end = waypoints.last;
     final layout = relation.resolvedLayout ?? relation.layout;
     final fromSide = _resolveSideFromOffset(fromVs, start, layout?.fromSide);
     final toSide = _resolveSideFromOffset(toVs, end, layout?.toSide);
 
-    final startNormal = _getPortNormal(fromSide, start, end);
-    final endNormal = _getPortNormal(toSide, end, start);
+    final startNormal = _getPortNormal(fromSide, start, waypoints[1]);
+    final endNormal = _getPortNormal(toSide, end, waypoints[waypoints.length - 2]);
 
-    final distance = (end - start).distance;
-    final proj = (distance * 0.4).clamp(30.0, 150.0);
-    final p1 = start + startNormal * proj;
-    final p2 = end + endNormal * proj;
-    return (p1, p2);
+    final points = <Offset>[];
+    // Virtual start point to force orthogonal exit
+    points.add(start - startNormal * 30.0);
+    points.addAll(waypoints);
+    // Virtual end point to force orthogonal entry
+    points.add(end - endNormal * 30.0);
+
+    final radius = 40.0;
+    path.moveTo(start.dx, start.dy);
+
+    for (int i = 1; i < points.length - 1; i++) {
+      final pPrev = points[i - 1];
+      final pCurr = points[i];
+      final pNext = points[i + 1];
+
+      final d1 = (pCurr - pPrev).distance;
+      final d2 = (pNext - pCurr).distance;
+      final r = min(radius, min(d1 / 2, d2 / 2));
+
+      final dir1 = d1 == 0.0 ? Offset.zero : (pCurr - pPrev) / d1;
+      final dir2 = d2 == 0.0 ? Offset.zero : (pNext - pCurr) / d2;
+
+      final startPoint = pCurr - dir1 * r;
+      final endPoint = pCurr + dir2 * r;
+
+      path.lineTo(startPoint.dx, startPoint.dy);
+      path.quadraticBezierTo(pCurr.dx, pCurr.dy, endPoint.dx, endPoint.dy);
+    }
+    path.lineTo(end.dx, end.dy);
+
+    return path;
+  }
+
+  List<Offset> _getBezierSamplePoints(
+    List<Offset> waypoints,
+    NodeViewState fromVs,
+    NodeViewState toVs,
+    UiRelation relation,
+  ) {
+    if (waypoints.isEmpty) return [];
+
+    if (waypoints.length < 3) {
+      final start = waypoints.first;
+      final end = waypoints.last;
+      final layout = relation.resolvedLayout ?? relation.layout;
+      final fromSide = _resolveSideFromOffset(fromVs, start, layout?.fromSide);
+      final toSide = _resolveSideFromOffset(toVs, end, layout?.toSide);
+
+      final startNormal = _getPortNormal(fromSide, start, end);
+      final endNormal = _getPortNormal(toSide, end, start);
+
+      final distance = (end - start).distance;
+      final proj = (distance * 0.4).clamp(30.0, 150.0);
+      final p1 = start + startNormal * proj;
+      final p2 = end + endNormal * proj;
+
+      final samples = <Offset>[];
+      for (int i = 0; i <= 10; i++) {
+        final t = i / 10.0;
+        final mt = 1.0 - t;
+        final pt = start * (mt * mt * mt) +
+            p1 * (3 * mt * mt * t) +
+            p2 * (3 * mt * t * t) +
+            end * (t * t * t);
+        samples.add(pt);
+      }
+      return samples;
+    }
+
+    final start = waypoints.first;
+    final end = waypoints.last;
+    final layout = relation.resolvedLayout ?? relation.layout;
+    final fromSide = _resolveSideFromOffset(fromVs, start, layout?.fromSide);
+    final toSide = _resolveSideFromOffset(toVs, end, layout?.toSide);
+
+    final startNormal = _getPortNormal(fromSide, start, waypoints[1]);
+    final endNormal = _getPortNormal(toSide, end, waypoints[waypoints.length - 2]);
+
+    final points = <Offset>[];
+    points.add(start - startNormal * 30.0);
+    points.addAll(waypoints);
+    points.add(end - endNormal * 30.0);
+
+    final samples = <Offset>[start];
+    final radius = 40.0;
+
+    for (int i = 1; i < points.length - 1; i++) {
+      final pPrev = points[i - 1];
+      final pCurr = points[i];
+      final pNext = points[i + 1];
+
+      final d1 = (pCurr - pPrev).distance;
+      final d2 = (pNext - pCurr).distance;
+      final r = min(radius, min(d1 / 2, d2 / 2));
+
+      final dir1 = d1 == 0.0 ? Offset.zero : (pCurr - pPrev) / d1;
+      final dir2 = d2 == 0.0 ? Offset.zero : (pNext - pCurr) / d2;
+
+      final startPoint = pCurr - dir1 * r;
+      final endPoint = pCurr + dir2 * r;
+
+      samples.add(startPoint);
+      for (int k = 1; k <= 3; k++) {
+        final t = k / 3.0;
+        final mt = 1.0 - t;
+        final pt = startPoint * (mt * mt) + pCurr * (2 * mt * t) + endPoint * (t * t);
+        samples.add(pt);
+      }
+    }
+    samples.add(end);
+
+    return samples;
   }
 
   @override
@@ -282,18 +527,10 @@ class BezierRelationLayoutStrategy extends RelationLayoutStrategy {
     NodeViewState fromVs,
     NodeViewState toVs,
     UiRelation relation,
+    RelationLayoutContext context,
   ) {
-    final distance = (end - start).distance;
-    if (distance < 1.0) {
-      return Path()
-        ..moveTo(start.dx, start.dy)
-        ..lineTo(end.dx, end.dy);
-    }
-
-    final (p1, p2) = _getBezierControlPoints(start, end, fromVs, toVs, relation);
-    return Path()
-      ..moveTo(start.dx, start.dy)
-      ..cubicTo(p1.dx, p1.dy, p2.dx, p2.dy, end.dx, end.dy);
+    final waypoints = getWaypoints(start, end, fromVs, toVs, relation, context);
+    return _getBezierPath(waypoints, fromVs, toVs, relation);
   }
 
   @override
@@ -303,17 +540,34 @@ class BezierRelationLayoutStrategy extends RelationLayoutStrategy {
     NodeViewState fromVs,
     NodeViewState toVs,
     UiRelation relation,
+    RelationLayoutContext context,
   ) {
-    final distance = (end - start).distance;
-    if (distance < 1.0) {
-      return Offset((start.dx + end.dx) / 2, (start.dy + end.dy) / 2);
+    final waypoints = getWaypoints(start, end, fromVs, toVs, relation, context);
+    final samples = _getBezierSamplePoints(waypoints, fromVs, toVs, relation);
+    if (samples.length < 2) return (start + end) / 2;
+
+    double totalLength = 0.0;
+    final List<double> segmentLengths = [];
+    for (int i = 0; i < samples.length - 1; i++) {
+      final len = (samples[i + 1] - samples[i]).distance;
+      segmentLengths.add(len);
+      totalLength += len;
     }
 
-    final (p1, p2) = _getBezierControlPoints(start, end, fromVs, toVs, relation);
+    if (totalLength == 0.0) return samples.first;
 
-    // Cubic Bezier evaluation at t = 0.5
-    // B(0.5) = 0.125 * start + 0.375 * p1 + 0.375 * p2 + 0.125 * end
-    return start * 0.125 + p1 * 0.375 + p2 * 0.375 + end * 0.125;
+    final targetLength = totalLength * 0.5;
+    double currentLength = 0.0;
+
+    for (int i = 0; i < segmentLengths.length; i++) {
+      final len = segmentLengths[i];
+      if (currentLength + len >= targetLength) {
+        final t = (targetLength - currentLength) / len;
+        return Offset.lerp(samples[i], samples[i + 1], t)!;
+      }
+      currentLength += len;
+    }
+    return samples.last;
   }
 
   @override
@@ -325,28 +579,17 @@ class BezierRelationLayoutStrategy extends RelationLayoutStrategy {
     NodeViewState toVs,
     UiRelation relation,
     double threshold,
+    RelationLayoutContext context,
   ) {
-    final distance = (end - start).distance;
-    if (distance < 1.0) {
+    final waypoints = getWaypoints(start, end, fromVs, toVs, relation, context);
+    final samples = _getBezierSamplePoints(waypoints, fromVs, toVs, relation);
+    if (samples.length < 2) {
       return (p - start).distance <= threshold;
     }
-
-    final (p1, p2) = _getBezierControlPoints(start, end, fromVs, toVs, relation);
-
-    // Sample 10 linear segments along the curve
-    Offset prev = start;
-    for (int i = 1; i <= 10; i++) {
-      final t = i / 10.0;
-      final mt = 1.0 - t;
-      final next = start * (mt * mt * mt) +
-          p1 * (3 * mt * mt * t) +
-          p2 * (3 * mt * t * t) +
-          end * (t * t * t);
-
-      if (distanceToSegment(p, prev, next) <= threshold) {
+    for (int i = 0; i < samples.length - 1; i++) {
+      if (distanceToSegment(p, samples[i], samples[i + 1]) <= threshold) {
         return true;
       }
-      prev = next;
     }
     return false;
   }
@@ -371,81 +614,76 @@ class OrthogonalRelationLayoutStrategy extends RelationLayoutStrategy {
     return 'Auto';
   }
 
-  Offset _getCardinalNormal(String side, Offset start, Offset end) {
-    switch (side) {
-      case 'Left':
-      case 'TopLeft':
-      case 'BottomLeft':
-        return const Offset(-1.0, 0.0);
-      case 'Right':
-      case 'TopRight':
-      case 'BottomRight':
-        return const Offset(1.0, 0.0);
-      case 'Top':
-        return const Offset(0.0, -1.0);
-      case 'Bottom':
-        return const Offset(0.0, 1.0);
-      default:
-        final dir = end - start;
-        if (dir.dx.abs() > dir.dy.abs()) {
-          return Offset(dir.dx.sign, 0.0);
-        } else {
-          return Offset(0.0, dir.dy.sign);
+  List<Offset> _getOrthogonalWaypoints(
+    List<Offset> routed,
+    List<Rect> obstacles,
+  ) {
+    if (routed.length < 2) return routed;
+    final List<Offset> points = [routed.first];
+
+    for (int i = 0; i < routed.length - 1; i++) {
+      final p1 = points.last;
+      final p2 = routed[i + 1];
+
+      if ((p1.dx - p2.dx).abs() < 0.1 || (p1.dy - p2.dy).abs() < 0.1) {
+        points.add(p2);
+        continue;
+      }
+
+      final corner1 = Offset(p2.dx, p1.dy); // Horizontal first
+      final corner2 = Offset(p1.dx, p2.dy); // Vertical first
+
+      bool intersects1 = false;
+      for (final rect in obstacles) {
+        if (RelationRouter.segmentIntersectsRect(p1, corner1, rect) ||
+            RelationRouter.segmentIntersectsRect(corner1, p2, rect)) {
+          intersects1 = true;
+          break;
         }
+      }
+
+      bool intersects2 = false;
+      for (final rect in obstacles) {
+        if (RelationRouter.segmentIntersectsRect(p1, corner2, rect) ||
+            RelationRouter.segmentIntersectsRect(corner2, p2, rect)) {
+          intersects2 = true;
+          break;
+        }
+      }
+
+      if (!intersects1 && intersects2) {
+        points.add(corner1);
+      } else if (intersects1 && !intersects2) {
+        points.add(corner2);
+      } else {
+        points.add(corner1); // Default to horizontal-first
+      }
+      points.add(p2);
     }
+
+    final clean = <Offset>[];
+    for (final p in points) {
+      if (clean.isEmpty || (clean.last - p).distance > 0.1) {
+        clean.add(p);
+      }
+    }
+    return clean;
   }
 
-  List<Offset> _getOrthogonalPoints(
+  List<Offset> getOrthoPoints(
     Offset start,
     Offset end,
     NodeViewState fromVs,
     NodeViewState toVs,
     UiRelation relation,
+    RelationLayoutContext context,
   ) {
-    if ((end - start).distance < 25.0) {
-      return [start, end];
-    }
-
-    final layout = relation.resolvedLayout ?? relation.layout;
-    final startSide = _resolveSideFromOffset(fromVs, start, layout?.fromSide);
-    final endSide = _resolveSideFromOffset(toVs, end, layout?.toSide);
-
-    final nStart = _getCardinalNormal(startSide, start, end);
-    final nEnd = _getCardinalNormal(endSide, end, start);
-
-    const gap = 20.0;
-    final pStart = start + nStart * gap;
-    final pEnd = end + nEnd * gap;
-
-    final List<Offset> points = [start, pStart];
-
-    final isStartHorizontal = nStart.dx.abs() > 0.5;
-    final isEndHorizontal = nEnd.dx.abs() > 0.5;
-
-    if (isStartHorizontal && isEndHorizontal) {
-      final midX = (pStart.dx + pEnd.dx) / 2;
-      points.add(Offset(midX, pStart.dy));
-      points.add(Offset(midX, pEnd.dy));
-    } else if (!isStartHorizontal && !isEndHorizontal) {
-      final midY = (pStart.dy + pEnd.dy) / 2;
-      points.add(Offset(pStart.dx, midY));
-      points.add(Offset(pEnd.dx, midY));
-    } else if (isStartHorizontal && !isEndHorizontal) {
-      points.add(Offset(pEnd.dx, pStart.dy));
-    } else {
-      points.add(Offset(pStart.dx, pEnd.dy));
-    }
-
-    points.add(pEnd);
-    points.add(end);
-
-    final List<Offset> cleanPoints = [];
-    for (final p in points) {
-      if (cleanPoints.isEmpty || (cleanPoints.last - p).distance > 0.1) {
-        cleanPoints.add(p);
-      }
-    }
-    return cleanPoints;
+    final waypoints = getWaypoints(start, end, fromVs, toVs, relation, context);
+    final obstacles = context.getObstacles(
+      excludeFromId: relation.fromNodeId,
+      excludeToId: relation.toNodeId,
+    );
+    return _getOrthogonalWaypoints(waypoints, obstacles);
   }
 
   @override
@@ -455,13 +693,14 @@ class OrthogonalRelationLayoutStrategy extends RelationLayoutStrategy {
     NodeViewState fromVs,
     NodeViewState toVs,
     UiRelation relation,
+    RelationLayoutContext context,
   ) {
-    final points = _getOrthogonalPoints(start, end, fromVs, toVs, relation);
+    final orthoPoints = getOrthoPoints(start, end, fromVs, toVs, relation, context);
     final path = Path();
-    if (points.isNotEmpty) {
-      path.moveTo(points.first.dx, points.first.dy);
-      for (int i = 1; i < points.length; i++) {
-        path.lineTo(points[i].dx, points[i].dy);
+    if (orthoPoints.isNotEmpty) {
+      path.moveTo(orthoPoints.first.dx, orthoPoints.first.dy);
+      for (int i = 1; i < orthoPoints.length; i++) {
+        path.lineTo(orthoPoints[i].dx, orthoPoints[i].dy);
       }
     }
     return path;
@@ -474,19 +713,20 @@ class OrthogonalRelationLayoutStrategy extends RelationLayoutStrategy {
     NodeViewState fromVs,
     NodeViewState toVs,
     UiRelation relation,
+    RelationLayoutContext context,
   ) {
-    final points = _getOrthogonalPoints(start, end, fromVs, toVs, relation);
-    if (points.length < 2) return (start + end) / 2;
+    final orthoPoints = getOrthoPoints(start, end, fromVs, toVs, relation, context);
+    if (orthoPoints.length < 2) return (start + end) / 2;
 
     double totalLength = 0.0;
     final List<double> segmentLengths = [];
-    for (int i = 0; i < points.length - 1; i++) {
-      final len = (points[i+1] - points[i]).distance;
+    for (int i = 0; i < orthoPoints.length - 1; i++) {
+      final len = (orthoPoints[i + 1] - orthoPoints[i]).distance;
       segmentLengths.add(len);
       totalLength += len;
     }
 
-    if (totalLength == 0.0) return points.first;
+    if (totalLength == 0.0) return orthoPoints.first;
 
     final targetLength = totalLength * 0.5;
     double currentLength = 0.0;
@@ -495,11 +735,11 @@ class OrthogonalRelationLayoutStrategy extends RelationLayoutStrategy {
       final len = segmentLengths[i];
       if (currentLength + len >= targetLength) {
         final t = (targetLength - currentLength) / len;
-        return Offset.lerp(points[i], points[i+1], t)!;
+        return Offset.lerp(orthoPoints[i], orthoPoints[i + 1], t)!;
       }
       currentLength += len;
     }
-    return points.last;
+    return orthoPoints.last;
   }
 
   @override
@@ -511,13 +751,14 @@ class OrthogonalRelationLayoutStrategy extends RelationLayoutStrategy {
     NodeViewState toVs,
     UiRelation relation,
     double threshold,
+    RelationLayoutContext context,
   ) {
-    final points = _getOrthogonalPoints(start, end, fromVs, toVs, relation);
-    if (points.length < 2) {
+    final orthoPoints = getOrthoPoints(start, end, fromVs, toVs, relation, context);
+    if (orthoPoints.length < 2) {
       return distanceToSegment(p, start, end) <= threshold;
     }
-    for (int i = 0; i < points.length - 1; i++) {
-      if (distanceToSegment(p, points[i], points[i+1]) <= threshold) {
+    for (int i = 0; i < orthoPoints.length - 1; i++) {
+      if (distanceToSegment(p, orthoPoints[i], orthoPoints[i + 1]) <= threshold) {
         return true;
       }
     }

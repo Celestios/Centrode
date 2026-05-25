@@ -27,6 +27,12 @@ class CanvasIdle extends CanvasInteractionState {
     // Conflict Resolution: Commit active edits if clicking elsewhere
     final activeEditId = ctx.getActiveEditId();
 
+    final layoutContext = RelationLayoutContext(
+      nodeViewStates: ctx.nodeViewStates,
+      relations: ctx.getRelations().toList(),
+      pathCache: ctx.relationPathCache,
+    );
+
     // Priority -1: Right-Click Marquee Routing
     if (e.buttons == kSecondaryMouseButton) {
       _canvasIdleLog.fine(
@@ -52,7 +58,7 @@ class CanvasIdle extends CanvasInteractionState {
       if (from == null || to == null) continue;
 
       final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
-      final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(rel, from, to);
+      final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(rel, from, to, layoutContext);
       if ((pCanvas - handleStart).distance < 12.0) {
         _canvasIdleLog.fine('Relation start tip handle hit: $id');
         return RelationTipDragging(
@@ -118,7 +124,7 @@ class CanvasIdle extends CanvasInteractionState {
             if (sourceVs != null && targetVs != null) {
               final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
               final (start, end) = layoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
-              anchorTopLeft = layoutStrategy.computeLabelPosition(start, end, sourceVs, targetVs, rel);
+              anchorTopLeft = layoutStrategy.computeLabelPosition(start, end, sourceVs, targetVs, rel, layoutContext);
               isRelationOnly = true;
             }
           } catch (_) {}
@@ -263,7 +269,7 @@ class CanvasIdle extends CanvasInteractionState {
     }
 
     // Relation label hit testing
-    final hitEntityId = hitNodeId ?? _hitTestRelations(pCanvas, ctx);
+    final hitEntityId = hitNodeId ?? _hitTestRelations(pCanvas, ctx, layoutContext);
 
     // Commit active edit if clicking elsewhere or if clicking a resize handle of the edited node
     if (activeEditId != null && (hitEntityId != activeEditId || hitResize)) {
@@ -334,7 +340,7 @@ class CanvasIdle extends CanvasInteractionState {
   }
 
   /// Hit-tests relation labels at the midpoint between connected nodes.
-  String? _hitTestRelations(Offset p, InteractionContext ctx) {
+  String? _hitTestRelations(Offset p, InteractionContext ctx, RelationLayoutContext layoutContext) {
     for (final rel in ctx.getRelations()) {
       final fVs = ctx.nodeViewStates[rel.fromNodeId];
       final tVs = ctx.nodeViewStates[rel.toNodeId];
@@ -342,7 +348,7 @@ class CanvasIdle extends CanvasInteractionState {
 
       final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
       final (start, end) = layoutStrategy.resolveEndpoints(rel, fVs, tVs);
-      final mid = layoutStrategy.computeLabelPosition(start, end, fVs, tVs, rel);
+      final mid = layoutStrategy.computeLabelPosition(start, end, fVs, tVs, rel, layoutContext);
 
       // Hit-test the label bounding box
       if (Rect.fromCenter(
@@ -354,7 +360,7 @@ class CanvasIdle extends CanvasInteractionState {
       }
 
       // Hit-test the line/curve path (8px threshold)
-      if (layoutStrategy.isPointNear(p, start, end, fVs, tVs, rel, 8.0)) {
+      if (layoutStrategy.isPointNear(p, start, end, fVs, tVs, rel, 8.0, layoutContext)) {
         return rel.id;
       }
     }
