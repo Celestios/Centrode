@@ -1,7 +1,7 @@
 use crate::bridge::stream::{self, GraphEvent};
 use crate::domain::analysis::GraphAnalysis;
 use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings, ViewportState};
-use crate::domain::nodes::{INode, InterNode, Nodes, TaskNode};
+use crate::domain::nodes::{INode, INodeFields, InterNode, InterNodeFields, Nodes, TaskNode, TaskNodeFields};
 use crate::domain::tags::Tag;
 use crate::domain::patches::{EntityPatch, NodePatch, SymmetricEntityPatch, PatchHistoryPayload};
 use crate::domain::relations::IRelation;
@@ -528,6 +528,51 @@ impl AppHandle {
 
     pub async fn delete_tag(&self, name: String) -> anyhow::Result<()> {
         self.repo.delete_tag(name).await
+    }
+
+    pub async fn query_search(&self, query: String) -> anyhow::Result<Vec<Nodes>> {
+        tracing::debug!("FFI: query_search called with query: {}", query);
+        let trimmed = query.trim();
+        let query_str = if trimmed.to_uppercase().starts_with("WHERE") {
+            format!("SELECT * FROM INode, TaskNode, InterNode {}", trimmed)
+        } else {
+            "SELECT * FROM INode, TaskNode WHERE content.text ~ $query".to_string()
+        };
+
+        let mut req = self.repo.db().query(&query_str);
+        if !trimmed.to_uppercase().starts_with("WHERE") {
+            req = req.bind(("query", query));
+        }
+
+        let mut res = req.await?;
+        let records: Vec<Value> = res.take(0)?;
+        let mut nodes = Vec::new();
+
+        for val in records {
+            if let Some(record) = Record::from_record_value(val) {
+                let table = record.id.table.as_str();
+                match table {
+                    "INode" => {
+                        if let Some((key, fields)) = record.to_type::<INodeFields>() {
+                            nodes.push(Nodes::INode(INode { key, fields }));
+                        }
+                    }
+                    "TaskNode" => {
+                        if let Some((key, fields)) = record.to_type::<TaskNodeFields>() {
+                            nodes.push(Nodes::TaskNode(TaskNode { key, fields }));
+                        }
+                    }
+                    "InterNode" => {
+                        if let Some((key, fields)) = record.to_type::<InterNodeFields>() {
+                            nodes.push(Nodes::InterNode(InterNode { key, fields }));
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        Ok(nodes)
     }
 }
 

@@ -83,6 +83,8 @@ abstract class AppHandle implements RustOpaqueInterface {
     name: name,
   );
 
+  Future<List<Nodes>> querySearch({required String query});
+
   Future<HistoryRecord?> redo();
 
   Future<void> rerouteRelation({

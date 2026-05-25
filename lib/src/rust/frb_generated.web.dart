@@ -278,6 +278,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<NodePatch> dco_decode_list_node_patch(dynamic raw);
 
   @protected
+  List<Nodes> dco_decode_list_nodes(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
@@ -683,6 +686,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<NodePatch> sse_decode_list_node_patch(SseDeserializer deserializer);
+
+  @protected
+  List<Nodes> sse_decode_list_nodes(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -1176,6 +1182,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     List<NodePatch> self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_list_nodes(List<Nodes> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
