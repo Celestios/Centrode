@@ -1,12 +1,14 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../src/rust/bridge/api.dart';
+import '../../../src/rust/domain/base_models.dart' show ViewportState;
 import '../store/graph_data_controller.dart';
 import 'theme_manager.dart';
 import 'node_render_state.dart';
 import 'viewport_state.dart';
 
-class TabSession {
+class TabSession extends ChangeNotifier {
   final String id;
   final String storagePath;
   final String name;
@@ -14,7 +16,54 @@ class TabSession {
   ThemeController? themeController;
   GraphDataController? dataController;
   NodeRenderState? nodeRenderState;
-  ViewportController? viewportController;
+
+  ViewportController? _viewportController;
+  Timer? _debounceTimer;
+
+  ViewportController? get viewportController => _viewportController;
+
+  set viewportController(ViewportController? vp) {
+    if (_viewportController == vp) return;
+    _viewportController?.transformController.removeListener(_onViewportChanged);
+    _viewportController = vp;
+    _viewportController?.transformController.addListener(_onViewportChanged);
+  }
+
+  void _onViewportChanged() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 1500), () {
+      saveViewportState();
+    });
+  }
+
+  Future<void> saveViewportState() async {
+    _debounceTimer?.cancel();
+    final vp = _viewportController;
+    final h = handle;
+    if (vp != null && h != null) {
+      final matrix = vp.transformController.value;
+      final xOffset = matrix.getTranslation().x;
+      final yOffset = matrix.getTranslation().y;
+      final zoomLevel = matrix.getMaxScaleOnAxis();
+      const activeView = "canvas";
+
+      final state = ViewportState(
+        xOffset: xOffset,
+        yOffset: yOffset,
+        zoomLevel: zoomLevel,
+        activeView: activeView,
+      );
+
+      dataController?.updateSavedViewportState(state);
+
+      try {
+        await h.updateViewportState(state: state);
+      } catch (e) {
+        debugPrint('Failed to save viewport state for session $name: $e');
+      }
+    }
+  }
+
   final ValueNotifier<String> toolModeNotifier = ValueNotifier('select');
   final ValueNotifier<bool> showLeftPanel = ValueNotifier(true);
   final ValueNotifier<bool> showRightPanel = ValueNotifier(true);
@@ -57,9 +106,13 @@ class TabSession {
     await tc.initialize(globalTheme);
     await dc.loadGraph();
     isInitialized = true;
+    notifyListeners();
   }
 
+  @override
   void dispose() {
+    _debounceTimer?.cancel();
+    _viewportController?.transformController.removeListener(_onViewportChanged);
     themeController?.dispose();
     dataController?.dispose();
     nodeRenderState?.dispose();
@@ -67,8 +120,9 @@ class TabSession {
     showLeftPanel.dispose();
     showRightPanel.dispose();
     showBottomPanel.dispose();
-    viewportController = null;
+    _viewportController = null;
     handle?.close();
+    super.dispose();
   }
 }
 
@@ -99,22 +153,28 @@ class WorkspaceTabsController extends ChangeNotifier {
 
   void selectTab(int index) {
     if (index >= 0 && index < _tabs.length && index != _activeIndex) {
+      final prevSession = _tabs[_activeIndex];
+      prevSession.saveViewportState(); // Fire-and-forget
+
       _activeIndex = index;
       notifyListeners();
     }
   }
 
-  void closeTab(int index) {
+  Future<void> closeTab(int index) async {
     if (_tabs.length <= 1) return; // Keep at least one tab open
-    final closedSession = _tabs.removeAt(index);
-    closedSession.dispose();
+    final closedSession = _tabs[index];
+    await closedSession.saveViewportState();
 
+    _tabs.removeAt(index);
     if (index < _activeIndex) {
       _activeIndex--;
     } else if (_activeIndex >= _tabs.length) {
       _activeIndex = _tabs.length - 1;
     }
     notifyListeners();
+
+    closedSession.dispose();
   }
 
   @override

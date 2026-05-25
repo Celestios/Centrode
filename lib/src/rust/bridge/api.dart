@@ -107,4 +107,6 @@ abstract class AppHandle implements RustOpaqueInterface {
   Future<void> updateRelation({required IRelation input});
 
   Future<void> updateTheme({required Theme theme});
+
+  Future<void> updateViewportState({required ViewportState state});
 }

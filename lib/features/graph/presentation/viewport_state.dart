@@ -40,6 +40,8 @@ class ViewportController {
   Rect _overscanBuffer = Rect.zero;
   Size _currentViewportSize = Size.zero;
 
+  AnimationController? _viewportAnimationController;
+
   /// Notifier exposing the set of node IDs currently residing inside the overscan buffer.
   final ValueNotifier<Set<String>> visibleNodeIds = ValueNotifier({});
 
@@ -52,7 +54,9 @@ class ViewportController {
   );
 
   /// Notifier exposing the calculated elastic margins for CanvasInteractiveViewer.
-  final ValueNotifier<EdgeInsets> elasticMargins = ValueNotifier(EdgeInsets.zero);
+  final ValueNotifier<EdgeInsets> elasticMargins = ValueNotifier(
+    EdgeInsets.zero,
+  );
 
   StreamSubscription<GraphEntityUpdate>? _updateSubscription;
 
@@ -62,7 +66,9 @@ class ViewportController {
     );
     transformController.addListener(_handleTransform);
     _dataController.canvasBounds.addListener(_onCanvasBoundsChanged);
-    _updateSubscription = _dataController.onEntityUpdate.listen(_handleEntityUpdate);
+    _updateSubscription = _dataController.onEntityUpdate.listen(
+      _handleEntityUpdate,
+    );
   }
 
   void _onCanvasBoundsChanged() {
@@ -153,7 +159,7 @@ class ViewportController {
     final bounds = _dataController.canvasBounds.value;
     final padding = AppConfig.canvas.boundaryMargin;
     final minScale = AppConfig.canvas.minScale;
-    
+
     final effectiveViewportWidth = _currentViewportSize.width / minScale;
     final effectiveViewportHeight = _currentViewportSize.height / minScale;
 
@@ -179,7 +185,9 @@ class ViewportController {
     );
     final bottomBound = math.max(
       math.max(effectiveViewportHeight, nodeBottomBound),
-      viewport != Rect.zero ? viewport.bottom - _currentViewportSize.height : 0.0,
+      viewport != Rect.zero
+          ? viewport.bottom - _currentViewportSize.height
+          : 0.0,
     );
 
     final calculatedMargins = EdgeInsets.fromLTRB(
@@ -226,8 +234,58 @@ class ViewportController {
     return Rect.fromPoints(topLeft, bottomRight);
   }
 
+  /// Animates the viewport translation and scale dynamically using a [vsync] ticker.
+  void animateViewportTo(
+    Matrix4 targetMatrix,
+    TickerProvider vsync, {
+    Duration duration = const Duration(milliseconds: 600),
+  }) {
+    _viewportAnimationController?.stop();
+    _viewportAnimationController?.dispose();
+
+    final startMatrix = transformController.value;
+    final startTranslation = startMatrix.getTranslation();
+    final targetTranslation = targetMatrix.getTranslation();
+    final startScale = startMatrix.getMaxScaleOnAxis();
+    final targetScale = targetMatrix.getMaxScaleOnAxis();
+
+    _viewportAnimationController = AnimationController(
+      vsync: vsync,
+      duration: duration,
+    );
+
+    _viewportAnimationController!.addListener(() {
+      final t = _viewportAnimationController!.value;
+      final interpTranslation = Offset.lerp(
+        Offset(startTranslation.x, startTranslation.y),
+        Offset(targetTranslation.x, targetTranslation.y),
+        t,
+      )!;
+      final interpScale = startScale + (targetScale - startScale) * t;
+
+      transformController.value = Matrix4.identity()
+        ..translate(interpTranslation.dx, interpTranslation.dy)
+        ..scale(interpScale);
+
+      if (t == 1.0) {
+        recalculateElasticMargins();
+        final controllerToDispose = _viewportAnimationController;
+        Future.microtask(() {
+          if (controllerToDispose == _viewportAnimationController) {
+            _viewportAnimationController?.dispose();
+            _viewportAnimationController = null;
+          }
+        });
+      }
+    });
+
+    _viewportAnimationController!.forward();
+  }
+
   void dispose() {
     _log.fine('Disposing ViewportController.');
+    _viewportAnimationController?.stop();
+    _viewportAnimationController?.dispose();
     transformController.removeListener(_handleTransform);
     _dataController.canvasBounds.removeListener(_onCanvasBoundsChanged);
     _updateSubscription?.cancel();

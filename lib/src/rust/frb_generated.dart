@@ -76,7 +76,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -954653584;
+  int get rustContentHash => 705229163;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -229,6 +229,11 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateBridgeApiAppHandleUpdateTheme({
     required AppHandle that,
     required Theme theme,
+  });
+
+  Future<void> crateBridgeApiAppHandleUpdateViewportState({
+    required AppHandle that,
+    required ViewportState state,
   });
 
   Stream<LogState> crateBridgeApiCreateLogStream();
@@ -1397,6 +1402,44 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<void> crateBridgeApiAppHandleUpdateViewportState({
+    required AppHandle that,
+    required ViewportState state,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+            that,
+            serializer,
+          );
+          sse_encode_box_autoadd_viewport_state(state, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 31,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiAppHandleUpdateViewportStateConstMeta,
+        argValues: [that, state],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiAppHandleUpdateViewportStateConstMeta =>
+      const TaskConstMeta(
+        debugName: "AppHandle_update_viewport_state",
+        argNames: ["that", "state"],
+      );
+
+  @override
   Stream<LogState> crateBridgeApiCreateLogStream() {
     final sink = RustStreamSink<LogState>();
     unawaited(
@@ -1408,7 +1451,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 31,
+              funcId: 32,
               port: port_,
             );
           },
@@ -1437,7 +1480,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 32,
+            funcId: 33,
             port: port_,
           );
         },
@@ -1764,6 +1807,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   int dco_decode_box_autoadd_u_8(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
+  }
+
+  @protected
+  ViewportState dco_decode_box_autoadd_viewport_state(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_viewport_state(raw);
   }
 
   @protected
@@ -2906,6 +2955,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   int sse_decode_box_autoadd_u_8(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_u_8(deserializer));
+  }
+
+  @protected
+  ViewportState sse_decode_box_autoadd_viewport_state(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_viewport_state(deserializer));
   }
 
   @protected
@@ -4360,6 +4417,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_viewport_state(
+    ViewportState self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_viewport_state(self, serializer);
+  }
+
+  @protected
   void sse_encode_comment(Comment self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.text, serializer);
@@ -5367,6 +5433,11 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
 
   Future<void> updateTheme({required Theme theme}) => RustLib.instance.api
       .crateBridgeApiAppHandleUpdateTheme(that: this, theme: theme);
+
+  Future<void> updateViewportState({required ViewportState state}) => RustLib
+      .instance
+      .api
+      .crateBridgeApiAppHandleUpdateViewportState(that: this, state: state);
 }
 
 @sealed

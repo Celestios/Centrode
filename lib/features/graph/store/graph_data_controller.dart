@@ -7,7 +7,8 @@ import '../models/models.dart';
 import 'command_processor.dart';
 import '../presentation/theme_manager.dart';
 import 'package:mycelium/src/rust/bridge/api.dart' as rust;
-import 'package:mycelium/src/rust/domain/base_models.dart' show BoundingBox, Comment;
+import 'package:mycelium/src/rust/domain/base_models.dart'
+    show BoundingBox, Comment, ViewportState;
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/src/rust/domain/tags.dart';
 
@@ -54,7 +55,8 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
       StreamController<GraphEntityUpdate>.broadcast();
 
   @override
-  Stream<GraphEntityUpdate> get onEntityUpdate => _entityUpdateController.stream;
+  Stream<GraphEntityUpdate> get onEntityUpdate =>
+      _entityUpdateController.stream;
 
   void publishUpdate(GraphEntityUpdate update) {
     _entityUpdateController.add(update);
@@ -91,6 +93,14 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
 
   @override
   ValueNotifier<BoundingBox> get canvasBounds => syncEngine.canvasBounds;
+
+  ViewportState? getSavedViewportState() {
+    return syncEngine.savedViewportState;
+  }
+
+  void updateSavedViewportState(ViewportState state) {
+    syncEngine.updateSavedViewportState(state);
+  }
 
   // ===========================================================================
   // Constructor
@@ -192,14 +202,23 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   void updateNodeWidth(String id, double leftEdge, double rightEdge) =>
       nodeMutations.updateNodeWidth(id, leftEdge, rightEdge);
 
-  void toggleNodeExpansion(String id) =>
-      nodeMutations.toggleNodeExpansion(id);
+  void toggleNodeExpansion(String id) => nodeMutations.toggleNodeExpansion(id);
 
   // Relation Mutations
-  void createRelation(String fromId, String toId, {String? fromSide, String? toSide}) =>
-      relationMutations.createRelation(fromId, toId, fromSide: fromSide, toSide: toSide);
+  void createRelation(
+    String fromId,
+    String toId, {
+    String? fromSide,
+    String? toSide,
+  }) => relationMutations.createRelation(
+    fromId,
+    toId,
+    fromSide: fromSide,
+    toSide: toSide,
+  );
 
-  Future<void> deleteRelation(String id) => relationMutations.deleteRelation(id);
+  Future<void> deleteRelation(String id) =>
+      relationMutations.deleteRelation(id);
 
   void updateRelationLayout(
     String id, {
@@ -208,20 +227,22 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
     String? fromSide,
     String? toSide,
     String? strategyType,
-  }) =>
-      relationMutations.updateRelationLayout(
-        id,
-        fromNodeId: fromNodeId,
-        toNodeId: toNodeId,
-        fromSide: fromSide,
-        toSide: toSide,
-        strategyType: strategyType,
-      );
-
+  }) => relationMutations.updateRelationLayout(
+    id,
+    fromNodeId: fromNodeId,
+    toNodeId: toNodeId,
+    fromSide: fromSide,
+    toSide: toSide,
+    strategyType: strategyType,
+  );
 
   // Property Mutations
   void commitEntityText(String id, String newText, {String? originalText}) =>
-      propertyMutations.commitEntityText(id, newText, originalText: originalText);
+      propertyMutations.commitEntityText(
+        id,
+        newText,
+        originalText: originalText,
+      );
 
   void updateEntityTextLive(String id, String newText) =>
       propertyMutations.updateEntityTextLive(id, newText);

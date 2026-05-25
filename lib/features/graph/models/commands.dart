@@ -415,6 +415,7 @@ class UpdateTagsCommand implements GraphCommand {
   final AppHandle api;
   final List<Tag> oldTags;
   final List<Tag> newTags;
+  final void Function(List<Tag> resolvedTags) onSuccess;
   final VoidCallback onUndo;
 
   UpdateTagsCommand({
@@ -423,6 +424,7 @@ class UpdateTagsCommand implements GraphCommand {
     required this.api,
     required this.oldTags,
     required this.newTags,
+    required this.onSuccess,
     required this.onUndo,
   });
 
@@ -431,25 +433,34 @@ class UpdateTagsCommand implements GraphCommand {
 
   @override
   Future<void> execute() async {
-    final addedTags = newTags.where((t) => !oldTags.contains(t)).toList();
-    final removedTags = oldTags.where((t) => !newTags.contains(t)).toList();
-
-    for (final tag in addedTags) {
+    final List<Tag> resolvedNewTags = [];
+    for (final tag in newTags) {
       final existing = await api.getTag(name: tag.name);
       if (existing == null) {
         await api.createTag(tag: tag);
+        resolvedNewTags.add(tag);
+      } else {
+        resolvedNewTags.add(existing);
       }
     }
+
+    final oldLowerNames = oldTags.map((t) => t.name.toLowerCase()).toSet();
+    final newLowerNames = resolvedNewTags.map((t) => t.name.toLowerCase()).toSet();
 
     final List<NodePatch> forwardPatches = [];
     final List<NodePatch> reversePatches = [];
 
-    for (final tag in addedTags) {
+    // Tags that are truly new (their lowercase name is in resolvedNewTags but not in oldTags)
+    final added = resolvedNewTags.where((t) => !oldLowerNames.contains(t.name.toLowerCase())).toList();
+    // Tags that are truly removed (their lowercase name is in oldTags but not in resolvedNewTags)
+    final removed = oldTags.where((t) => !newLowerNames.contains(t.name.toLowerCase())).toList();
+
+    for (final tag in added) {
       forwardPatches.add(NodePatch.tagOp(TagOperation.add(tag.name)));
       reversePatches.add(NodePatch.tagOp(TagOperation.remove(tag.name)));
     }
 
-    for (final tag in removedTags) {
+    for (final tag in removed) {
       forwardPatches.add(NodePatch.tagOp(TagOperation.remove(tag.name)));
       reversePatches.add(NodePatch.tagOp(TagOperation.add(tag.name)));
     }
@@ -462,6 +473,8 @@ class UpdateTagsCommand implements GraphCommand {
       );
       await api.applyEntityMutation(mutation: patch);
     }
+
+    onSuccess(resolvedNewTags);
   }
 
   @override

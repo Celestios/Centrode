@@ -1,6 +1,6 @@
 use crate::bridge::stream::{self, GraphEvent};
 use crate::domain::analysis::GraphAnalysis;
-use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings};
+use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings, ViewportState};
 use crate::domain::nodes::{INode, InterNode, Nodes, TaskNode};
 use crate::domain::tags::Tag;
 use crate::domain::patches::{EntityPatch, NodePatch, SymmetricEntityPatch, PatchHistoryPayload};
@@ -353,6 +353,19 @@ impl AppHandle {
             .query("UPDATE $record SET active_theme_id = $theme_id")
             .bind(("record", record_id))
             .bind(("theme_id", theme_id))
+            .await?;
+        Ok(())
+    }
+
+    pub async fn update_viewport_state(&self, state: ViewportState) -> anyhow::Result<()> {
+        tracing::debug!("FFI: update_viewport_state called with state: {:?}", state);
+
+        let record_id = RecordId::new(MapData::LABEL, MapData::KEY);
+        self.repo
+            .db()
+            .query("UPDATE $record SET viewport_state = $state")
+            .bind(("record", record_id))
+            .bind(("state", state))
             .await?;
         Ok(())
     }

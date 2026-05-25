@@ -14,7 +14,8 @@ class SimpleWindowTitleBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb || !(Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    if (kIsWeb ||
+        !(Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       return const SizedBox.shrink();
     }
 
@@ -54,7 +55,8 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb || !(Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    if (kIsWeb ||
+        !(Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       return const SizedBox.shrink();
     }
 
@@ -90,7 +92,7 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
                     ],
                   ).createShader(bounds),
                   child: const Text(
-                    'M',
+                    'MYCELIUM',
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 18,
@@ -365,7 +367,8 @@ class WindowControlButtons extends StatefulWidget {
   State<WindowControlButtons> createState() => _WindowControlButtonsState();
 }
 
-class _WindowControlButtonsState extends State<WindowControlButtons> with WindowListener {
+class _WindowControlButtonsState extends State<WindowControlButtons>
+    with WindowListener {
   bool _isMaximized = false;
 
   @override

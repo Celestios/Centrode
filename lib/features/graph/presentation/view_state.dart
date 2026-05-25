@@ -115,6 +115,61 @@ class NodeViewState {
         'BottomRight': bottomRightPort,
       };
 
+  /// Finds the name and position of the port on this node closest to a given point.
+  ({String name, Offset position}) getClosestPort(Offset point) {
+    double bestDist = double.infinity;
+    String bestName = 'Right';
+    Offset bestPos = rightPort;
+    for (final name in portNames) {
+      final portPos = getPortPosition(name);
+      final dist = (point - portPos).distance;
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestName = name;
+        bestPos = portPos;
+      }
+    }
+    return (name: bestName, position: bestPos);
+  }
+
+  /// Finds the closest pair of ports between two nodes (from and to).
+  /// Returns a record containing the start port name/position and the end port name/position.
+  static ({
+    String startName,
+    Offset startPos,
+    String endName,
+    Offset endPos,
+  }) getClosestPortsBetween(NodeViewState fromVs, NodeViewState toVs) {
+    double bestDist = double.infinity;
+    String bestStartName = 'Right';
+    Offset bestStartPos = fromVs.rightPort;
+    String bestEndName = 'Left';
+    Offset bestEndPos = toVs.leftPort;
+
+    for (final fromName in portNames) {
+      final fromPortPos = fromVs.getPortPosition(fromName);
+      for (final toName in portNames) {
+        final toPortPos = toVs.getPortPosition(toName);
+        final dist = (fromPortPos - toPortPos).distance;
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestStartName = fromName;
+          bestStartPos = fromPortPos;
+          bestEndName = toName;
+          bestEndPos = toPortPos;
+        }
+      }
+    }
+
+    return (
+      startName: bestStartName,
+      startPos: bestStartPos,
+      endName: bestEndName,
+      endPos: bestEndPos,
+    );
+  }
+
+
   Rect get rightResizeHitbox => Rect.fromLTRB(
         rect.right - AppConfig.interaction.resizeEdgeWidth,
         rect.top + 24.0,

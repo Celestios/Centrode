@@ -63,81 +63,27 @@ abstract class RelationLayoutStrategy {
 
     // 1. Dragging start tip: resolve end port dynamically relative to active start if end side is Auto
     if (overrideStart != null && overrideEnd == null && endSize != Size.zero && (toSide == null || toSide == 'Auto')) {
-      double bestDist = double.infinity;
-      Offset bestEnd = toVs.leftPort;
-      for (final name in NodeViewState.portNames) {
-        final portPos = toVs.getPortPosition(name);
-        final dist = (overrideStart - portPos).distance;
-        if (dist < bestDist) {
-          bestDist = dist;
-          bestEnd = portPos;
-        }
-      }
-      end = bestEnd;
+      end = toVs.getClosestPort(overrideStart).position;
     }
     // 2. Dragging end tip: resolve start port dynamically relative to active end if start side is Auto
     else if (overrideEnd != null && overrideStart == null && startSize != Size.zero && (fromSide == null || fromSide == 'Auto')) {
-      double bestDist = double.infinity;
-      Offset bestStart = fromVs.rightPort;
-      for (final name in NodeViewState.portNames) {
-        final portPos = fromVs.getPortPosition(name);
-        final dist = (portPos - overrideEnd).distance;
-        if (dist < bestDist) {
-          bestDist = dist;
-          bestStart = portPos;
-        }
-      }
-      start = bestStart;
+      start = fromVs.getClosestPort(overrideEnd).position;
     }
     // 3. Normal routing (neither side is overridden)
     else if (overrideStart == null && overrideEnd == null && startSize != Size.zero && endSize != Size.zero &&
         ((fromSide == null || fromSide == 'Auto') || (toSide == null || toSide == 'Auto'))) {
       if (fromSide != null && fromSide != 'Auto') {
         final explicitStart = fromVs.getPortPosition(fromSide);
-        double bestDist = double.infinity;
-        Offset bestEnd = toVs.leftPort;
-        for (final name in NodeViewState.portNames) {
-          final portPos = toVs.getPortPosition(name);
-          final dist = (explicitStart - portPos).distance;
-          if (dist < bestDist) {
-            bestDist = dist;
-            bestEnd = portPos;
-          }
-        }
         start = explicitStart;
-        end = bestEnd;
+        end = toVs.getClosestPort(explicitStart).position;
       } else if (toSide != null && toSide != 'Auto') {
         final explicitEnd = toVs.getPortPosition(toSide);
-        double bestDist = double.infinity;
-        Offset bestStart = fromVs.rightPort;
-        for (final name in NodeViewState.portNames) {
-          final portPos = fromVs.getPortPosition(name);
-          final dist = (portPos - explicitEnd).distance;
-          if (dist < bestDist) {
-            bestDist = dist;
-            bestStart = portPos;
-          }
-        }
-        start = bestStart;
+        start = fromVs.getClosestPort(explicitEnd).position;
         end = explicitEnd;
       } else {
-        double bestDist = double.infinity;
-        Offset bestStart = fromVs.rightPort;
-        Offset bestEnd = toVs.leftPort;
-        for (final fromName in NodeViewState.portNames) {
-          final fromPortPos = fromVs.getPortPosition(fromName);
-          for (final toName in NodeViewState.portNames) {
-            final toPortPos = toVs.getPortPosition(toName);
-            final dist = (fromPortPos - toPortPos).distance;
-            if (dist < bestDist) {
-              bestDist = dist;
-              bestStart = fromPortPos;
-              bestEnd = toPortPos;
-            }
-          }
-        }
-        start = bestStart;
-        end = bestEnd;
+        final closest = NodeViewState.getClosestPortsBetween(fromVs, toVs);
+        start = closest.startPos;
+        end = closest.endPos;
       }
     }
 
@@ -301,18 +247,9 @@ class BezierRelationLayoutStrategy extends RelationLayoutStrategy {
     if (side != null && side != 'Auto') {
       return side;
     }
-    String bestSide = 'Right';
-    double bestDist = double.infinity;
-    for (final name in NodeViewState.portNames) {
-      final portPos = vs.getPortPosition(name);
-      final dist = (portPos - offset).distance;
-      if (dist < bestDist) {
-        bestDist = dist;
-        bestSide = name;
-      }
-    }
-    if (bestDist < 2.0) {
-      return bestSide;
+    final closest = vs.getClosestPort(offset);
+    if ((closest.position - offset).distance < 2.0) {
+      return closest.name;
     }
     return 'Auto';
   }
@@ -427,18 +364,9 @@ class OrthogonalRelationLayoutStrategy extends RelationLayoutStrategy {
     if (side != null && side != 'Auto') {
       return side;
     }
-    String bestSide = 'Right';
-    double bestDist = double.infinity;
-    for (final name in NodeViewState.portNames) {
-      final portPos = vs.getPortPosition(name);
-      final dist = (portPos - offset).distance;
-      if (dist < bestDist) {
-        bestDist = dist;
-        bestSide = name;
-      }
-    }
-    if (bestDist < 5.0) {
-      return bestSide;
+    final closest = vs.getClosestPort(offset);
+    if ((closest.position - offset).distance < 5.0) {
+      return closest.name;
     }
     return 'Auto';
   }

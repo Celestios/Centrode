@@ -297,33 +297,31 @@ class _TempRelationPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    // End position - either snapped target's snapped port or cursor position
-    Offset endPos;
-    if (state.snappedTargetNodeId != null) {
-      final targetVs = nodeViewStates[state.snappedTargetNodeId];
-      if (targetVs != null) {
-        endPos = targetVs.leftPort;
-      } else {
-        endPos = state.currentCursorPosition;
+    final targetVs = state.snappedTargetNodeId != null
+        ? nodeViewStates[state.snappedTargetNodeId]
+        : null;
+
+    if (targetVs != null) {
+      // Snapped to a target node: Draw optimal path from each source to target
+      for (final sourceId in state.sourceNodeIds) {
+        final sourceVs = nodeViewStates[sourceId];
+        if (sourceVs == null) continue;
+
+        final closest = NodeViewState.getClosestPortsBetween(sourceVs, targetVs);
+        canvas.drawLine(closest.startPos, closest.endPos, paint);
       }
     } else {
-      endPos = state.currentCursorPosition;
-    }
+      // Not snapped: Draw from closest source port to cursor position
+      final endPos = state.currentCursorPosition;
+      for (final sourceId in state.sourceNodeIds) {
+        final sourceVs = nodeViewStates[sourceId];
+        if (sourceVs == null) continue;
 
-    // Draw lines from all source nodes to the end position
-    for (final sourceId in state.sourceNodeIds) {
-      final sourceVs = nodeViewStates[sourceId];
-      if (sourceVs == null) continue;
+        final startPos = sourceVs.getClosestPort(endPos).position;
+        canvas.drawLine(startPos, endPos, paint);
+      }
 
-      // Start from source node's snapped port
-      final startPos = sourceVs.rightPort;
-
-      // Draw the relation line
-      canvas.drawLine(startPos, endPos, paint);
-    }
-
-    // Draw a small circle at the end if not snapped
-    if (state.snappedTargetNodeId == null) {
+      // Draw a small circle at the end if not snapped
       canvas.drawCircle(endPos, 6, paint..style = PaintingStyle.fill);
     }
   }

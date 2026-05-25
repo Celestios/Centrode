@@ -19,7 +19,7 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
     final tabsController = context.watch<WorkspaceTabsController>();
     final session = tabsController.activeSession;
     final dataController = context.watch<GraphDataController>();
-    
+
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
     final onSurface = theme.colorScheme.onSurface;
@@ -32,10 +32,30 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
     ];
 
     final actions = [
-      (icon: Icons.undo_rounded, tooltip: 'Undo', action: dataController.undo, showAlways: true),
-      (icon: Icons.redo_rounded, tooltip: 'Redo', action: dataController.redo, showAlways: true),
-      (icon: Icons.file_download_outlined, tooltip: 'Import Map', action: () {}, showAlways: false),
-      (icon: Icons.file_upload_outlined, tooltip: 'Export Map', action: () {}, showAlways: false),
+      (
+        icon: Icons.undo_rounded,
+        tooltip: 'Undo',
+        action: dataController.undo,
+        showAlways: true,
+      ),
+      (
+        icon: Icons.redo_rounded,
+        tooltip: 'Redo',
+        action: dataController.redo,
+        showAlways: true,
+      ),
+      (
+        icon: Icons.file_download_outlined,
+        tooltip: 'Import Map',
+        action: () {},
+        showAlways: false,
+      ),
+      (
+        icon: Icons.file_upload_outlined,
+        tooltip: 'Export Map',
+        action: () {},
+        showAlways: false,
+      ),
     ];
 
     return Padding(
@@ -52,101 +72,77 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
           ),
         ],
         child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Logo/Title (hidden in compact mode)
-                if (!_isCompact) ...[
-                  ShaderMask(
-                    shaderCallback: (bounds) => LinearGradient(
-                      colors: [primaryColor, primaryColor.withValues(alpha: 0.7)],
-                    ).createShader(bounds),
-                    child: Text(
-                      'MYCELIUM',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
-                        letterSpacing: 1.2,
-                        color: Colors.white,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Tool Mode selection
+            ValueListenableBuilder<String>(
+              valueListenable: session.toolModeNotifier,
+              builder: (context, currentMode, _) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (int i = 0; i < tools.length; i++) ...[
+                      if (i > 0) const SizedBox(width: 6),
+                      _buildToolButton(
+                        icon: tools[i].icon,
+                        label: tools[i].label,
+                        isActive: currentMode == tools[i].mode,
+                        onPressed: () =>
+                            session.toolModeNotifier.value = tools[i].mode,
+                        theme: theme,
+                        primaryColor: primaryColor,
+                        textColor: textColor,
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 1.5,
-                    height: 24,
-                    color: theme.dividerColor.withValues(alpha: 0.3),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-
-                // Tool Mode selection
-                ValueListenableBuilder<String>(
-                  valueListenable: session.toolModeNotifier,
-                  builder: (context, currentMode, _) {
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        for (int i = 0; i < tools.length; i++) ...[
-                          if (i > 0) const SizedBox(width: 6),
-                          _buildToolButton(
-                            icon: tools[i].icon,
-                            label: tools[i].label,
-                            isActive: currentMode == tools[i].mode,
-                            onPressed: () => session.toolModeNotifier.value = tools[i].mode,
-                            theme: theme,
-                            primaryColor: primaryColor,
-                            textColor: textColor,
-                          ),
-                        ],
-                      ],
-                    );
-                  },
-                ),
-
-                const SizedBox(width: 8),
-                Container(
-                  width: 1.5,
-                  height: 24,
-                  color: theme.dividerColor.withValues(alpha: 0.3),
-                ),
-                const SizedBox(width: 8),
-
-                // Action controls: Undo, Redo, Import, Export
-                for (final act in actions)
-                  if (act.showAlways || !_isCompact)
-                    _buildActionButton(
-                      icon: act.icon,
-                      tooltip: act.tooltip,
-                      onPressed: act.action,
-                      textColor: textColor,
-                    ),
-
-                const SizedBox(width: 8),
-                Container(
-                  width: 1.5,
-                  height: 24,
-                  color: theme.dividerColor.withValues(alpha: 0.3),
-                ),
-                const SizedBox(width: 8),
-
-                // Compact Toggle button
-                IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  icon: Icon(
-                    _isCompact ? Icons.menu_open_rounded : Icons.menu_rounded,
-                    color: textColor.withValues(alpha: 0.7),
-                    size: 20,
-                  ),
-                  tooltip: _isCompact ? 'Expand ribbon' : 'Compact ribbon',
-                  onPressed: () {
-                    setState(() {
-                      _isCompact = !_isCompact;
-                    });
-                  },
-                ),
-              ],
+                    ],
+                  ],
+                );
+              },
             ),
+
+            const SizedBox(width: 8),
+            Container(
+              width: 1.5,
+              height: 24,
+              color: theme.dividerColor.withValues(alpha: 0.3),
+            ),
+            const SizedBox(width: 8),
+
+            // Action controls: Undo, Redo, Import, Export
+            for (final act in actions)
+              if (act.showAlways || !_isCompact)
+                _buildActionButton(
+                  icon: act.icon,
+                  tooltip: act.tooltip,
+                  onPressed: act.action,
+                  textColor: textColor,
+                ),
+
+            const SizedBox(width: 8),
+            Container(
+              width: 1.5,
+              height: 24,
+              color: theme.dividerColor.withValues(alpha: 0.3),
+            ),
+            const SizedBox(width: 8),
+
+            // Compact Toggle button
+            IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              icon: Icon(
+                _isCompact ? Icons.menu_open_rounded : Icons.menu_rounded,
+                color: textColor.withValues(alpha: 0.7),
+                size: 20,
+              ),
+              tooltip: _isCompact ? 'Expand ribbon' : 'Compact ribbon',
+              onPressed: () {
+                setState(() {
+                  _isCompact = !_isCompact;
+                });
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -178,17 +174,15 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
               : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isActive ? activeColor.withValues(alpha: 0.3) : Colors.transparent,
+            color: isActive
+                ? activeColor.withValues(alpha: 0.3)
+                : Colors.transparent,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              color: isActive ? activeColor : inactiveColor,
-              size: 18,
-            ),
+            Icon(icon, color: isActive ? activeColor : inactiveColor, size: 18),
             if (!_isCompact) ...[
               const SizedBox(width: 6),
               Text(

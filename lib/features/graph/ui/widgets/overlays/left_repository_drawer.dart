@@ -1,65 +1,81 @@
 import 'package:flutter/material.dart';
-import 'collapsible_sidebar.dart';
+import 'glass_panel.dart'; // adjust path as needed
 
-class LeftRepositoryDrawer extends StatefulWidget {
+class LeftRepositoryDrawer extends StatelessWidget {
   const LeftRepositoryDrawer({super.key});
-
-  @override
-  State<LeftRepositoryDrawer> createState() => _LeftRepositoryDrawerState();
-}
-
-class _LeftRepositoryDrawerState extends State<LeftRepositoryDrawer> {
-  bool _isMinimized = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final onSurface = theme.colorScheme.onSurface;
-    final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
+    final primaryColor = theme.colorScheme.primary;
+    final dividerColor = theme.dividerColor.withValues(alpha: 0.3);
 
-    return CollapsibleSidebar(
-      title: 'REPOSITORY',
-      isMinimized: _isMinimized,
-      headerAction: IconButton(
-        padding: EdgeInsets.zero,
-        constraints: const BoxConstraints(),
-        icon: Icon(
-          _isMinimized
-              ? Icons.keyboard_double_arrow_right_rounded
-              : Icons.keyboard_double_arrow_left_rounded,
-          color: textColor.withValues(alpha: 0.7),
-          size: 18,
+    // The whole button group sits inside a single GlassPanel
+    return Center(
+      child: GlassPanel(
+        blur: 12.0, // matches sidebar’s glass
+        alpha: 0.85,
+        fallbackBorderRadius: 16.0,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
+        // No internal padding – the child handles its own spacing
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _GlassIconTile(
+              icon: Icons.local_offer,
+              onTap: () => debugPrint('tags tapped'),
+            ),
+            Divider(height: 1, color: dividerColor),
+            _GlassIconTile(
+              icon: Icons.file_open_outlined,
+              onTap: () => debugPrint('Open tapped'),
+            ),
+            Divider(height: 1, color: dividerColor),
+            _GlassIconTile(
+              icon: Icons.save_alt_outlined,
+              onTap: () => debugPrint('Save tapped'),
+            ),
+            Divider(height: 1, color: dividerColor),
+            _GlassIconTile(
+              icon: Icons.settings_outlined,
+              onTap: () => debugPrint('Settings tapped'),
+            ),
+            // Add more tiles below – no need for SizedBox gaps
+          ],
         ),
-        onPressed: () => setState(() => _isMinimized = !_isMinimized),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 32.0),
-        child: Center(
-          child: _isMinimized
-              ? Icon(
-                  Icons.folder_off_outlined,
-                  color: textColor.withValues(alpha: 0.4),
-                  size: 20,
-                )
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.folder_off_outlined,
-                      color: textColor.withValues(alpha: 0.3),
-                      size: 36,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No templates loaded',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: textColor.withValues(alpha: 0.5),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+    );
+  }
+}
+
+/// A tappable icon row that sits inside the glass group.
+/// It uses [InkWell] for the ripple and respects the theme.
+class _GlassIconTile extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const _GlassIconTile({required this.icon, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final iconColor = theme.colorScheme.primary;
+    final iconSize = IconTheme.of(context).size ?? 24.0;
+
+    // Material + InkWell gives proper touch feedback inside the GlassPanel
+    return Material(
+      color: Colors.transparent, // transparent so GlassPanel background shows
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+          child: Icon(icon, color: iconColor, size: iconSize),
         ),
       ),
     );
