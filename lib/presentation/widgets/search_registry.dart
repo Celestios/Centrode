@@ -81,11 +81,11 @@ class SearchRegistry {
 
       for (final node in dataController.nodesIterable) {
         if (node is InfoUiNode) {
-          final matchesTag = node.tags.any((t) => t.name.toLowerCase().contains(term));
+          final matchesTag = node.tags.any((t) => t.fields.name.toLowerCase().contains(term));
           if (matchesTag) {
             results.add(SearchResult(
               title: node.text.isEmpty ? 'Untitled Node' : node.text,
-              subtitle: 'Node • Tagged • ${node.tags.map((t) => '#${t.name}').join(', ')}',
+              subtitle: 'Node • Tagged • ${node.tags.map((t) => '#${t.fields.name}').join(', ')}',
               icon: Icons.tag_rounded,
               type: SearchResultType.tag,
               onSelected: (ctx) => _focusOnUiNode(ctx, node.id),

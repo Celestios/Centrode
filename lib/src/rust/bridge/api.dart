@@ -50,7 +50,7 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<void> deleteRelation({required String table, required String key});
 
-  Future<void> deleteTag({required String name});
+  Future<void> deleteTag({required String key});
 
   Future<String?> getActiveThemeId();
 
@@ -65,7 +65,7 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<Nodes?> getNode({required String table, required String key});
 
-  Future<Tag?> getTag({required String name});
+  Future<Tag?> getTag({required String key});
 
   Future<Theme?> getTheme({required String key});
 
@@ -107,6 +107,8 @@ abstract class AppHandle implements RustOpaqueInterface {
   Future<void> updateNode({required Nodes input});
 
   Future<void> updateRelation({required IRelation input});
+
+  Future<void> updateTag({required Tag tag});
 
   Future<void> updateTheme({required Theme theme});
 

@@ -91,18 +91,18 @@ class MetadataPreviewOverlay extends StatelessWidget {
                       return Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Color(tag.color).withValues(alpha: 0.2),
+                          color: Color(tag.fields.color).withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(
-                            color: Color(tag.color).withValues(alpha: 0.4),
+                            color: Color(tag.fields.color).withValues(alpha: 0.4),
                             width: 1,
                           ),
                         ),
                         child: Text(
-                          tag.name,
+                          tag.fields.name,
                           style: TextStyle(
                             fontSize: 10,
-                            color: Color(tag.color),
+                            color: Color(tag.fields.color),
                             fontWeight: FontWeight.w600,
                           ),
                         ),

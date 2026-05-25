@@ -436,36 +436,42 @@ class UpdateTagsCommand implements GraphCommand {
 
   @override
   Future<void> execute() async {
+    final allTags = await api.getAllTags();
+    final Map<String, Tag> nameToTag = {
+      for (final t in allTags) t.fields.name.toLowerCase(): t
+    };
+
     final List<Tag> resolvedNewTags = [];
     for (final tag in newTags) {
-      final existing = await api.getTag(name: tag.name);
+      final existing = nameToTag[tag.fields.name.toLowerCase()];
       if (existing == null) {
         await api.createTag(tag: tag);
         resolvedNewTags.add(tag);
+        nameToTag[tag.fields.name.toLowerCase()] = tag;
       } else {
         resolvedNewTags.add(existing);
       }
     }
 
-    final oldLowerNames = oldTags.map((t) => t.name.toLowerCase()).toSet();
-    final newLowerNames = resolvedNewTags.map((t) => t.name.toLowerCase()).toSet();
+    final oldLowerNames = oldTags.map((t) => t.fields.name.toLowerCase()).toSet();
+    final newLowerNames = resolvedNewTags.map((t) => t.fields.name.toLowerCase()).toSet();
 
     final List<NodePatch> forwardPatches = [];
     final List<NodePatch> reversePatches = [];
 
     // Tags that are truly new (their lowercase name is in resolvedNewTags but not in oldTags)
-    final added = resolvedNewTags.where((t) => !oldLowerNames.contains(t.name.toLowerCase())).toList();
+    final added = resolvedNewTags.where((t) => !oldLowerNames.contains(t.fields.name.toLowerCase())).toList();
     // Tags that are truly removed (their lowercase name is in oldTags but not in resolvedNewTags)
-    final removed = oldTags.where((t) => !newLowerNames.contains(t.name.toLowerCase())).toList();
+    final removed = oldTags.where((t) => !newLowerNames.contains(t.fields.name.toLowerCase())).toList();
 
     for (final tag in added) {
-      forwardPatches.add(NodePatch.tagOp(TagOperation.add(tag.name)));
-      reversePatches.add(NodePatch.tagOp(TagOperation.remove(tag.name)));
+      forwardPatches.add(NodePatch.tagOp(TagOperation.add(tag.key)));
+      reversePatches.add(NodePatch.tagOp(TagOperation.remove(tag.key)));
     }
 
     for (final tag in removed) {
-      forwardPatches.add(NodePatch.tagOp(TagOperation.remove(tag.name)));
-      reversePatches.add(NodePatch.tagOp(TagOperation.add(tag.name)));
+      forwardPatches.add(NodePatch.tagOp(TagOperation.remove(tag.key)));
+      reversePatches.add(NodePatch.tagOp(TagOperation.add(tag.key)));
     }
 
     if (forwardPatches.isNotEmpty) {

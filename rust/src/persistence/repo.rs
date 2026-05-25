@@ -5,7 +5,7 @@ use crate::domain::nodes::{
 };
 use crate::domain::patches::{EntityPatch, NodePatch, RelationPatch, TagOperation};
 use crate::domain::relations::{IRelation, IRelationFields};
-use crate::domain::tags::Tag;
+use crate::domain::tags::{Tag, TagFields};
 
 use anyhow::Result;
 use surrealdb::engine::local::Db;
@@ -433,11 +433,11 @@ impl Repository {
             NodePatch::TagOp(op) => match op {
                 TagOperation::Add(tag_id) => (
                     "UPDATE $id SET tags += $val",
-                    Value::RecordId(RecordId::new(Tag::LABEL, tag_id.to_lowercase())),
+                    Value::RecordId(RecordId::new(Tag::LABEL, tag_id.clone())),
                 ),
                 TagOperation::Remove(tag_id) => (
                     "UPDATE $id SET tags -= $val",
-                    Value::RecordId(RecordId::new(Tag::LABEL, tag_id.to_lowercase())),
+                    Value::RecordId(RecordId::new(Tag::LABEL, tag_id.clone())),
                 ),
             },
             NodePatch::Significance(sig) => (
@@ -489,35 +489,47 @@ impl Repository {
     // --- Tag CRUD ---
 
     pub async fn create_tag(&self, tag: Tag) -> Result<()> {
-        let record_id = RecordId::new(Tag::LABEL, tag.name.to_lowercase());
-        let existing: Option<Tag> = self.db.select(record_id.clone()).await?;
-        if existing.is_none() {
-            let _: Option<Tag> = self.db.create(record_id).content(tag).await?;
-        } else {
-            let _: Option<Tag> = self.db.update(record_id).content(tag).await?;
-        }
-
+        let record_id = RecordId::new(Tag::LABEL, tag.key.clone());
+        let _: Option<TagFields> = self.db.create(record_id).content(tag.fields).await?;
         Ok(())
     }
 
-    pub async fn get_tag(&self, name: String) -> Result<Option<Tag>> {
-        let record_id = RecordId::new(Tag::LABEL, name.to_lowercase());
+    pub async fn update_tag(&self, tag: Tag) -> Result<()> {
+        let record_id = RecordId::new(Tag::LABEL, tag.key.clone());
+        let _: Option<TagFields> = self.db.update(record_id).content(tag.fields).await?;
+        Ok(())
+    }
 
-        // Delegate structural validation entirely to Serde
-        let record: Option<Tag> = self.db.select(record_id).await?;
-
-        Ok(record)
+    pub async fn get_tag(&self, key: String) -> Result<Option<Tag>> {
+        let record_id = RecordId::new(Tag::LABEL, key.clone());
+        let fields: Option<TagFields> = self.db.select(record_id).await?;
+        Ok(fields.map(|f| Tag { key, fields: f }))
     }
 
     pub async fn get_all_tags(&self) -> Result<Vec<Tag>> {
-        let tags: Vec<Tag> = self.db.select(Tag::LABEL).await?;
+        let tag_records: Vec<Value> = self.db.select(Tag::LABEL).await?;
+        let tags: Vec<Tag> = tag_records
+            .into_iter()
+            .filter_map(|val| {
+                let record = Record::from_record_value(val)?;
+                let (key, fields) = record.to_type::<TagFields>()?;
+                Some(Tag { key, fields })
+            })
+            .collect();
         Ok(tags)
     }
 
-    pub async fn delete_tag(&self, name: String) -> Result<()> {
-        let record_id = RecordId::new(Tag::LABEL, name.to_lowercase());
-        let _: Option<Tag> = self.db.delete(record_id).await?;
+    pub async fn delete_tag(&self, key: String) -> Result<()> {
+        let tag_id = RecordId::new(Tag::LABEL, key);
 
+        // Step 1: Remove the tag RecordId from all INode.tags arrays
+        self.db
+            .query("UPDATE INode SET tags -= $tag_id WHERE $tag_id INSIDE tags")
+            .bind(("tag_id", tag_id.clone()))
+            .await?;
+
+        // Step 2: Delete the Tag record itself
+        let _: Option<Value> = self.db.delete(tag_id).await?;
         Ok(())
     }
 }

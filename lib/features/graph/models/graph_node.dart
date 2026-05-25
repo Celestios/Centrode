@@ -183,7 +183,15 @@ class InfoUiNode extends UiNode {
       tags: fields.tags.map((edge) {
         return edge.when(
           hydrated: (tag) => tag,
-          pointer: (record) => Tag(name: record.key, color: 0xFF78909C),
+          pointer: (record) => Tag(
+            key: record.key,
+            fields: TagFields(
+              name: record.key,
+              color: 0xFF78909C,
+              createdAt: DateTime.now().millisecondsSinceEpoch,
+              updatedAt: DateTime.now().millisecondsSinceEpoch,
+            ),
+          ),
         );
       }).toList(),
       aliases: fields.aliases,

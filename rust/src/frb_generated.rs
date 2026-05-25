@@ -40,7 +40,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 372822145;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 607782426;
 
 // Section: executor
 
@@ -691,7 +691,7 @@ fn wire__crate__bridge__api__AppHandle_delete_tag_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
             >>::sse_decode(&mut deserializer);
-            let api_name = <String>::sse_decode(&mut deserializer);
+            let api_key = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -714,7 +714,7 @@ fn wire__crate__bridge__api__AppHandle_delete_tag_impl(
                         }
                         let api_that_guard = api_that_guard.unwrap();
                         let output_ok =
-                            crate::bridge::api::AppHandle::delete_tag(&*api_that_guard, api_name)
+                            crate::bridge::api::AppHandle::delete_tag(&*api_that_guard, api_key)
                                 .await?;
                         Ok(output_ok)
                     })()
@@ -1037,7 +1037,7 @@ fn wire__crate__bridge__api__AppHandle_get_tag_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
             >>::sse_decode(&mut deserializer);
-            let api_name = <String>::sse_decode(&mut deserializer);
+            let api_key = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -1060,7 +1060,7 @@ fn wire__crate__bridge__api__AppHandle_get_tag_impl(
                         }
                         let api_that_guard = api_that_guard.unwrap();
                         let output_ok =
-                            crate::bridge::api::AppHandle::get_tag(&*api_that_guard, api_name)
+                            crate::bridge::api::AppHandle::get_tag(&*api_that_guard, api_key)
                                 .await?;
                         Ok(output_ok)
                     })()
@@ -1758,6 +1758,64 @@ fn wire__crate__bridge__api__AppHandle_update_relation_impl(
                             api_input,
                         )
                         .await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__bridge__api__AppHandle_update_tag_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "AppHandle_update_tag",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
+            >>::sse_decode(&mut deserializer);
+            let api_tag = <crate::domain::tags::Tag>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => {
+                                    api_that_guard =
+                                        Some(api_that.lockable_decode_async_ref().await)
+                                }
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok =
+                            crate::bridge::api::AppHandle::update_tag(&*api_that_guard, api_tag)
+                                .await?;
                         Ok(output_ok)
                     })()
                     .await,
@@ -3126,11 +3184,11 @@ impl SseDecode for crate::domain::patches::SymmetricEntityPatch {
 impl SseDecode for crate::domain::tags::Tag {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_name = <String>::sse_decode(deserializer);
-        let mut var_color = <u32>::sse_decode(deserializer);
+        let mut var_key = <String>::sse_decode(deserializer);
+        let mut var_fields = <crate::domain::tags::TagFields>::sse_decode(deserializer);
         return crate::domain::tags::Tag {
-            name: var_name,
-            color: var_color,
+            key: var_key,
+            fields: var_fields,
         };
     }
 }
@@ -3153,6 +3211,22 @@ impl SseDecode for crate::domain::tags::TagEdge {
                 unimplemented!("");
             }
         }
+    }
+}
+
+impl SseDecode for crate::domain::tags::TagFields {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_color = <u32>::sse_decode(deserializer);
+        let mut var_createdAt = <i64>::sse_decode(deserializer);
+        let mut var_updatedAt = <i64>::sse_decode(deserializer);
+        return crate::domain::tags::TagFields {
+            name: var_name,
+            color: var_color,
+            created_at: var_createdAt,
+            updated_at: var_updatedAt,
+        };
     }
 }
 
@@ -3471,16 +3545,19 @@ fn pde_ffi_dispatcher_primary_impl(
             data_len,
         ),
         31 => {
+            wire__crate__bridge__api__AppHandle_update_tag_impl(port, ptr, rust_vec_len, data_len)
+        }
+        32 => {
             wire__crate__bridge__api__AppHandle_update_theme_impl(port, ptr, rust_vec_len, data_len)
         }
-        32 => wire__crate__bridge__api__AppHandle_update_viewport_state_impl(
+        33 => wire__crate__bridge__api__AppHandle_update_viewport_state_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        33 => wire__crate__bridge__api__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
-        34 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
+        34 => wire__crate__bridge__api__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
+        35 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -4365,8 +4442,8 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::patches::SymmetricEntityPa
 impl flutter_rust_bridge::IntoDart for crate::domain::tags::Tag {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
-            self.name.into_into_dart().into_dart(),
-            self.color.into_into_dart().into_dart(),
+            self.key.into_into_dart().into_dart(),
+            self.fields.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -4398,6 +4475,29 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::tags::TagEdge>
     for crate::domain::tags::TagEdge
 {
     fn into_into_dart(self) -> crate::domain::tags::TagEdge {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::tags::TagFields {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.name.into_into_dart().into_dart(),
+            self.color.into_into_dart().into_dart(),
+            self.created_at.into_into_dart().into_dart(),
+            self.updated_at.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::tags::TagFields
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::tags::TagFields>
+    for crate::domain::tags::TagFields
+{
+    fn into_into_dart(self) -> crate::domain::tags::TagFields {
         self
     }
 }
@@ -5511,8 +5611,8 @@ impl SseEncode for crate::domain::patches::SymmetricEntityPatch {
 impl SseEncode for crate::domain::tags::Tag {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <String>::sse_encode(self.name, serializer);
-        <u32>::sse_encode(self.color, serializer);
+        <String>::sse_encode(self.key, serializer);
+        <crate::domain::tags::TagFields>::sse_encode(self.fields, serializer);
     }
 }
 
@@ -5532,6 +5632,16 @@ impl SseEncode for crate::domain::tags::TagEdge {
                 unimplemented!("");
             }
         }
+    }
+}
+
+impl SseEncode for crate::domain::tags::TagFields {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.name, serializer);
+        <u32>::sse_encode(self.color, serializer);
+        <i64>::sse_encode(self.created_at, serializer);
+        <i64>::sse_encode(self.updated_at, serializer);
     }
 }
 

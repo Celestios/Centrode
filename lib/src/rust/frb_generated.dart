@@ -76,7 +76,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => 372822145;
+  int get rustContentHash => 607782426;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -142,7 +142,7 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateBridgeApiAppHandleDeleteTag({
     required AppHandle that,
-    required String name,
+    required String key,
   });
 
   Future<String?> crateBridgeApiAppHandleGetActiveThemeId({
@@ -170,7 +170,7 @@ abstract class RustLibApi extends BaseApi {
 
   Future<Tag?> crateBridgeApiAppHandleGetTag({
     required AppHandle that,
-    required String name,
+    required String key,
   });
 
   Future<Theme?> crateBridgeApiAppHandleGetTheme({
@@ -229,6 +229,11 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateBridgeApiAppHandleUpdateRelation({
     required AppHandle that,
     required IRelation input,
+  });
+
+  Future<void> crateBridgeApiAppHandleUpdateTag({
+    required AppHandle that,
+    required Tag tag,
   });
 
   Future<void> crateBridgeApiAppHandleUpdateTheme({
@@ -694,7 +699,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   Future<void> crateBridgeApiAppHandleDeleteTag({
     required AppHandle that,
-    required String name,
+    required String key,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -704,7 +709,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             that,
             serializer,
           );
-          sse_encode_String(name, serializer);
+          sse_encode_String(key, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -717,7 +722,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateBridgeApiAppHandleDeleteTagConstMeta,
-        argValues: [that, name],
+        argValues: [that, key],
         apiImpl: this,
       ),
     );
@@ -726,7 +731,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateBridgeApiAppHandleDeleteTagConstMeta =>
       const TaskConstMeta(
         debugName: "AppHandle_delete_tag",
-        argNames: ["that", "name"],
+        argNames: ["that", "key"],
       );
 
   @override
@@ -918,7 +923,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   Future<Tag?> crateBridgeApiAppHandleGetTag({
     required AppHandle that,
-    required String name,
+    required String key,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -928,7 +933,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             that,
             serializer,
           );
-          sse_encode_String(name, serializer);
+          sse_encode_String(key, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -941,7 +946,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateBridgeApiAppHandleGetTagConstMeta,
-        argValues: [that, name],
+        argValues: [that, key],
         apiImpl: this,
       ),
     );
@@ -950,7 +955,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateBridgeApiAppHandleGetTagConstMeta =>
       const TaskConstMeta(
         debugName: "AppHandle_get_tag",
-        argNames: ["that", "name"],
+        argNames: ["that", "key"],
       );
 
   @override
@@ -1407,6 +1412,44 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<void> crateBridgeApiAppHandleUpdateTag({
+    required AppHandle that,
+    required Tag tag,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+            that,
+            serializer,
+          );
+          sse_encode_box_autoadd_tag(tag, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 31,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiAppHandleUpdateTagConstMeta,
+        argValues: [that, tag],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiAppHandleUpdateTagConstMeta =>
+      const TaskConstMeta(
+        debugName: "AppHandle_update_tag",
+        argNames: ["that", "tag"],
+      );
+
+  @override
   Future<void> crateBridgeApiAppHandleUpdateTheme({
     required AppHandle that,
     required Theme theme,
@@ -1423,7 +1466,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 31,
+            funcId: 32,
             port: port_,
           );
         },
@@ -1461,7 +1504,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 32,
+            funcId: 33,
             port: port_,
           );
         },
@@ -1494,7 +1537,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 33,
+              funcId: 34,
               port: port_,
             );
           },
@@ -1523,7 +1566,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 34,
+            funcId: 35,
             port: port_,
           );
         },
@@ -2519,7 +2562,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     final arr = raw as List<dynamic>;
     if (arr.length != 2)
       throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return Tag(name: dco_decode_String(arr[0]), color: dco_decode_u_32(arr[1]));
+    return Tag(
+      key: dco_decode_String(arr[0]),
+      fields: dco_decode_tag_fields(arr[1]),
+    );
   }
 
   @protected
@@ -2533,6 +2579,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       default:
         throw Exception("unreachable");
     }
+  }
+
+  @protected
+  TagFields dco_decode_tag_fields(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return TagFields(
+      name: dco_decode_String(arr[0]),
+      color: dco_decode_u_32(arr[1]),
+      createdAt: dco_decode_i_64(arr[2]),
+      updatedAt: dco_decode_i_64(arr[3]),
+    );
   }
 
   @protected
@@ -3907,9 +3967,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   Tag sse_decode_tag(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_name = sse_decode_String(deserializer);
-    var var_color = sse_decode_u_32(deserializer);
-    return Tag(name: var_name, color: var_color);
+    var var_key = sse_decode_String(deserializer);
+    var var_fields = sse_decode_tag_fields(deserializer);
+    return Tag(key: var_key, fields: var_fields);
   }
 
   @protected
@@ -3927,6 +3987,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       default:
         throw UnimplementedError('');
     }
+  }
+
+  @protected
+  TagFields sse_decode_tag_fields(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_name = sse_decode_String(deserializer);
+    var var_color = sse_decode_u_32(deserializer);
+    var var_createdAt = sse_decode_i_64(deserializer);
+    var var_updatedAt = sse_decode_i_64(deserializer);
+    return TagFields(
+      name: var_name,
+      color: var_color,
+      createdAt: var_createdAt,
+      updatedAt: var_updatedAt,
+    );
   }
 
   @protected
@@ -5207,8 +5282,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   void sse_encode_tag(Tag self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.name, serializer);
-    sse_encode_u_32(self.color, serializer);
+    sse_encode_String(self.key, serializer);
+    sse_encode_tag_fields(self.fields, serializer);
   }
 
   @protected
@@ -5222,6 +5297,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_i_32(1, serializer);
         sse_encode_box_autoadd_record_strings(field0, serializer);
     }
+  }
+
+  @protected
+  void sse_encode_tag_fields(TagFields self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.name, serializer);
+    sse_encode_u_32(self.color, serializer);
+    sse_encode_i_64(self.createdAt, serializer);
+    sse_encode_i_64(self.updatedAt, serializer);
   }
 
   @protected
@@ -5417,8 +5501,8 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
         key: key,
       );
 
-  Future<void> deleteTag({required String name}) => RustLib.instance.api
-      .crateBridgeApiAppHandleDeleteTag(that: this, name: name);
+  Future<void> deleteTag({required String key}) => RustLib.instance.api
+      .crateBridgeApiAppHandleDeleteTag(that: this, key: key);
 
   Future<String?> getActiveThemeId() =>
       RustLib.instance.api.crateBridgeApiAppHandleGetActiveThemeId(that: this);
@@ -5442,8 +5526,8 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
         key: key,
       );
 
-  Future<Tag?> getTag({required String name}) => RustLib.instance.api
-      .crateBridgeApiAppHandleGetTag(that: this, name: name);
+  Future<Tag?> getTag({required String key}) =>
+      RustLib.instance.api.crateBridgeApiAppHandleGetTag(that: this, key: key);
 
   Future<Theme?> getTheme({required String key}) => RustLib.instance.api
       .crateBridgeApiAppHandleGetTheme(that: this, key: key);
@@ -5505,6 +5589,9 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
       .instance
       .api
       .crateBridgeApiAppHandleUpdateRelation(that: this, input: input);
+
+  Future<void> updateTag({required Tag tag}) => RustLib.instance.api
+      .crateBridgeApiAppHandleUpdateTag(that: this, tag: tag);
 
   Future<void> updateTheme({required Theme theme}) => RustLib.instance.api
       .crateBridgeApiAppHandleUpdateTheme(that: this, theme: theme);

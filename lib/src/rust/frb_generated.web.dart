@@ -401,6 +401,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   TagEdge dco_decode_tag_edge(dynamic raw);
 
   @protected
+  TagFields dco_decode_tag_fields(dynamic raw);
+
+  @protected
   TagOperation dco_decode_tag_operation(dynamic raw);
 
   @protected
@@ -825,6 +828,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TagEdge sse_decode_tag_edge(SseDeserializer deserializer);
+
+  @protected
+  TagFields sse_decode_tag_fields(SseDeserializer deserializer);
 
   @protected
   TagOperation sse_decode_tag_operation(SseDeserializer deserializer);
@@ -1344,6 +1350,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_tag_edge(TagEdge self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_tag_fields(TagFields self, SseSerializer serializer);
 
   @protected
   void sse_encode_tag_operation(TagOperation self, SseSerializer serializer);

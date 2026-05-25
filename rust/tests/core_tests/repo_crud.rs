@@ -12,10 +12,15 @@ use std::time::Duration;
 async fn test_repo_crud() {
     let repo = setup_test_repo().await;
 
-    use mycelium_core::domain::tags::Tag;
+    use mycelium_core::domain::tags::{Tag, TagFields};
     let tag = Tag {
-        name: "tag1".to_string(),
-        color: 0xFF00FF,
+        key: "tag1".to_string(),
+        fields: TagFields {
+            name: "tag1".to_string(),
+            color: 0xFF00FF,
+            created_at: 0,
+            updated_at: 0,
+        },
     };
 
     repo.create_tag(tag.clone())

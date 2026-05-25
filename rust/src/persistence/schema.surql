@@ -279,8 +279,10 @@ DEFINE FIELD OVERWRITE updated_at ON TABLE IRelation COMPUTED time::millis(time:
 -- ---------------------------------------------------------------------------
 -- 6. Fields for `Tag`
 -- ---------------------------------------------------------------------------
-DEFINE FIELD OVERWRITE name ON TABLE Tag VALUE meta::id(id);
+DEFINE FIELD OVERWRITE name ON TABLE Tag TYPE string;
 DEFINE FIELD OVERWRITE color ON TABLE Tag TYPE int;
+DEFINE FIELD OVERWRITE created_at ON TABLE Tag TYPE int;
+DEFINE FIELD OVERWRITE updated_at ON TABLE Tag COMPUTED time::millis(time::now());
 -- ---------------------------------------------------------------------------
 -- 7. Fields for `MapMetaData`
 -- ---------------------------------------------------------------------------

@@ -8,6 +8,7 @@ import '../../../models/models.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/src/rust/domain/tags.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
+import 'package:uuid/uuid.dart';
 import '../../../presentation/graph_metrics.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
@@ -705,10 +706,10 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Color(tag.color).withValues(alpha: 0.15),
+                    color: Color(tag.fields.color).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Color(tag.color).withValues(alpha: 0.4),
+                      color: Color(tag.fields.color).withValues(alpha: 0.4),
                       width: 1,
                     ),
                   ),
@@ -716,10 +717,10 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        tag.name,
+                        tag.fields.name,
                         style: TextStyle(
                           fontSize: 10,
-                          color: Color(tag.color),
+                          color: Color(tag.fields.color),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -727,14 +728,14 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                       GestureDetector(
                         onTap: () {
                           final updatedTags = node.tags
-                              .where((t) => t.name != tag.name)
+                              .where((t) => t.key != tag.key)
                               .toList();
                           dataController.updateNodeTags(node.id, updatedTags);
                         },
                         child: Icon(
                           Icons.close,
                           size: 10,
-                          color: Color(tag.color),
+                          color: Color(tag.fields.color),
                         ),
                       ),
                     ],
@@ -896,14 +897,23 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
     if (text.isEmpty) return;
 
     // Check if tag already exists on this node
-    if (node.tags.any((t) => t.name.toLowerCase() == text.toLowerCase())) {
+    if (node.tags.any((t) => t.fields.name.toLowerCase() == text.toLowerCase())) {
       _tagController.clear();
       return;
     }
 
     final color = _selectedTagColor ?? _currentPalette.first;
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
 
-    final newTag = Tag(name: text, color: color);
+    final newTag = Tag(
+      key: const Uuid().v4(),
+      fields: TagFields(
+        name: text,
+        color: color,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      ),
+    );
     dataController.updateNodeTags(node.id, [...node.tags, newTag]);
 
     _tagController.clear();

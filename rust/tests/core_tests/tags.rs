@@ -3,7 +3,7 @@ use mycelium_core::domain::base_models::{Coordinates, Size};
 use mycelium_core::domain::contents::Content;
 use mycelium_core::domain::nodes::{INode, INodeFields, Nodes};
 use mycelium_core::domain::patches::{EntityPatch, NodePatch, TagOperation};
-use mycelium_core::domain::tags::{Tag, TagEdge};
+use mycelium_core::domain::tags::{Tag, TagEdge, TagFields};
 use surrealdb::types::RecordId;
 
 #[tokio::test]
@@ -12,8 +12,13 @@ async fn test_tags_crud_and_patching() {
 
     // 1. Create a tag
     let tag = Tag {
-        name: "test_tag_rust".to_string(),
-        color: 0xFF00FF,
+        key: "test_tag_rust_uuid".to_string(),
+        fields: TagFields {
+            name: "test_tag_rust".to_string(),
+            color: 0xFF00FF,
+            created_at: 100,
+            updated_at: 100,
+        },
     };
     repo.create_tag(tag.clone())
         .await
@@ -21,19 +26,20 @@ async fn test_tags_crud_and_patching() {
 
     // 2. Read the tag back
     let fetched_tag = repo
-        .get_tag("test_tag_rust".to_string())
+        .get_tag("test_tag_rust_uuid".to_string())
         .await
         .expect("Failed to get tag");
     assert!(fetched_tag.is_some());
     let fetched_tag = fetched_tag.unwrap();
-    assert_eq!(fetched_tag.name, "test_tag_rust");
-    assert_eq!(fetched_tag.color, 0xFF00FF);
+    assert_eq!(fetched_tag.key, "test_tag_rust_uuid");
+    assert_eq!(fetched_tag.fields.name, "test_tag_rust");
+    assert_eq!(fetched_tag.fields.color, 0xFF00FF);
 
     // 3. List all tags
     let all_tags = repo.get_all_tags().await.expect("Failed to get all tags");
     assert!(all_tags
         .iter()
-        .any(|t| t.name == "test_tag_rust" && t.color == 0xFF00FF));
+        .any(|t| t.key == "test_tag_rust_uuid" && t.fields.name == "test_tag_rust" && t.fields.color == 0xFF00FF));
 
     // 4. Create an INode
     let inode = INode {
@@ -69,7 +75,7 @@ async fn test_tags_crud_and_patching() {
 
     // 5. Add tag to the INode using patch
     let add_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Add(
-        "test_tag_rust".to_string(),
+        "test_tag_rust_uuid".to_string(),
     ))]);
     repo.patch_entity(record_id.clone(), &add_patch)
         .await
@@ -85,8 +91,9 @@ async fn test_tags_crud_and_patching() {
         assert_eq!(n.fields.tags.len(), 1);
         match &n.fields.tags[0] {
             TagEdge::Hydrated(t) => {
-                assert_eq!(t.name, "test_tag_rust");
-                assert_eq!(t.color, 0xFF00FF);
+                assert_eq!(t.key, "test_tag_rust_uuid");
+                assert_eq!(t.fields.name, "test_tag_rust");
+                assert_eq!(t.fields.color, 0xFF00FF);
             }
             TagEdge::Pointer(p) => {
                 panic!("Expected tag to be hydrated but got pointer: {:?}", p);
@@ -98,7 +105,7 @@ async fn test_tags_crud_and_patching() {
 
     // 7. Remove tag from the INode using patch
     let remove_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Remove(
-        "test_tag_rust".to_string(),
+        "test_tag_rust_uuid".to_string(),
     ))]);
     repo.patch_entity(record_id.clone(), &remove_patch)
         .await
@@ -117,58 +124,39 @@ async fn test_tags_crud_and_patching() {
     }
 
     // 9. Delete the tag
-    repo.delete_tag("test_tag_rust".to_string())
+    repo.delete_tag("test_tag_rust_uuid".to_string())
         .await
         .expect("Failed to delete tag");
     let fetched_tag_deleted = repo
-        .get_tag("test_tag_rust".to_string())
+        .get_tag("test_tag_rust_uuid".to_string())
         .await
         .expect("Failed to get tag");
     assert!(fetched_tag_deleted.is_none());
 }
 
 #[tokio::test]
-async fn test_tag_case_insensitive_uniqueness_and_disassociation() {
+async fn test_tag_cascading_disassociation_on_delete() {
     let repo = setup_test_repo().await;
 
-    // 1. Create tag "Work" (color: 0xFF0000)
-    let tag1 = Tag {
-        name: "Work".to_string(),
-        color: 0xFF0000,
+    // 1. Create a tag
+    let tag = Tag {
+        key: "work_uuid".to_string(),
+        fields: TagFields {
+            name: "Work".to_string(),
+            color: 0xFF0000,
+            created_at: 200,
+            updated_at: 200,
+        },
     };
-    repo.create_tag(tag1.clone())
+    repo.create_tag(tag.clone())
         .await
         .expect("Failed to create tag");
 
-    // 2. Create tag "work" (color: 0x00FF00) - different casing and color
-    let tag2 = Tag {
-        name: "work".to_string(),
-        color: 0x00FF00,
-    };
-    repo.create_tag(tag2.clone())
-        .await
-        .expect("Failed to create tag");
-
-    // 3. Verify they resolved to the same tag record, and the color got updated to 0x00FF00
-    let fetched_work = repo
-        .get_tag("Work".to_string())
-        .await
-        .expect("Failed to get tag")
-        .expect("Tag should exist");
-    
-    assert_eq!(fetched_work.name.to_lowercase(), "work");
-    assert_eq!(fetched_work.color, 0x00FF00);
-
-    // List all tags and verify we only have ONE tag matching "work"
-    let all_tags = repo.get_all_tags().await.expect("Failed to get all tags");
-    let work_tags: Vec<&Tag> = all_tags.iter().filter(|t| t.name.to_lowercase() == "work").collect();
-    assert_eq!(work_tags.len(), 1);
-
-    // 4. Create a node and associate the tag
+    // 2. Create a node and associate the tag
     let inode = INode {
-        key: "inode_tag_case_test".to_string(),
+        key: "inode_cascade_test".to_string(),
         fields: INodeFields {
-            content: Content::from_plain_text("Tag case test node"),
+            content: Content::from_plain_text("Cascade test node"),
             style: None,
             resolved_style: None,
             layout: None,
@@ -193,59 +181,42 @@ async fn test_tag_case_insensitive_uniqueness_and_disassociation() {
         },
     };
     repo.create_node(Nodes::INode(inode)).await.unwrap();
-    let record_id = RecordId::new("INode", "inode_tag_case_test");
+    let record_id = RecordId::new("INode", "inode_cascade_test");
 
-    // Add tag to the INode using different casing "WORK"
+    // Add tag to the INode using patch
     let add_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Add(
-        "WORK".to_string(),
+        "work_uuid".to_string(),
     ))]);
     repo.patch_entity(record_id.clone(), &add_patch)
         .await
         .unwrap();
 
-    // Verify it is added and hydrated using the lowercase/casing from the database
+    // Verify it is added
     let fetched_node = repo
-        .get_node("INode".to_string(), "inode_tag_case_test".to_string())
+        .get_node("INode".to_string(), "inode_cascade_test".to_string())
         .await
         .unwrap()
         .unwrap();
     if let Nodes::INode(n) = fetched_node {
         assert_eq!(n.fields.tags.len(), 1);
-        match &n.fields.tags[0] {
-            TagEdge::Hydrated(t) => {
-                assert_eq!(t.name.to_lowercase(), "work");
-            }
-            TagEdge::Pointer(_) => panic!("Expected hydrated"),
-        }
     } else {
         panic!("Incorrect node type");
     }
 
-    // 5. Remove tag from the node
-    let remove_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Remove(
-        "work".to_string(),
-    ))]);
-    repo.patch_entity(record_id.clone(), &remove_patch)
+    // 3. Delete the tag globally
+    repo.delete_tag("work_uuid".to_string())
         .await
-        .unwrap();
+        .expect("Failed to delete tag");
 
-    // Verify it is removed from node
-    let fetched_node_after_remove = repo
-        .get_node("INode".to_string(), "inode_tag_case_test".to_string())
+    // 4. Verify the tag is removed from the node's tags array automatically
+    let fetched_node_after_delete = repo
+        .get_node("INode".to_string(), "inode_cascade_test".to_string())
         .await
         .unwrap()
         .unwrap();
-    if let Nodes::INode(n) = fetched_node_after_remove {
+    if let Nodes::INode(n) = fetched_node_after_delete {
         assert_eq!(n.fields.tags.len(), 0);
     } else {
         panic!("Incorrect node type");
     }
-
-    // Verify the tag STILL exists globally in the database
-    let global_tag = repo
-        .get_tag("work".to_string())
-        .await
-        .expect("Failed to get tag");
-    assert!(global_tag.is_some());
 }
-

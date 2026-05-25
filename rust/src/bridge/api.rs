@@ -518,16 +518,20 @@ impl AppHandle {
         self.repo.create_tag(tag).await
     }
 
-    pub async fn get_tag(&self, name: String) -> anyhow::Result<Option<Tag>> {
-        self.repo.get_tag(name).await
+    pub async fn update_tag(&self, tag: Tag) -> anyhow::Result<()> {
+        self.repo.update_tag(tag).await
+    }
+
+    pub async fn get_tag(&self, key: String) -> anyhow::Result<Option<Tag>> {
+        self.repo.get_tag(key).await
     }
 
     pub async fn get_all_tags(&self) -> anyhow::Result<Vec<Tag>> {
         self.repo.get_all_tags().await
     }
 
-    pub async fn delete_tag(&self, name: String) -> anyhow::Result<()> {
-        self.repo.delete_tag(name).await
+    pub async fn delete_tag(&self, key: String) -> anyhow::Result<()> {
+        self.repo.delete_tag(key).await
     }
 
     pub async fn query_search(&self, query: String) -> anyhow::Result<Vec<Nodes>> {
