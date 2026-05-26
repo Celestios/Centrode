@@ -489,13 +489,34 @@ impl Repository {
     // --- Tag CRUD ---
 
     pub async fn create_tag(&self, tag: Tag) -> Result<()> {
+        let name_lower = tag.fields.name.to_lowercase();
+        let mut res = self.db
+            .query("SELECT * FROM Tag WHERE string::lowercase(name) = $name")
+            .bind(("name", name_lower))
+            .await?;
+        let existing: Vec<Value> = res.take(0)?;
+        if !existing.is_empty() {
+            return Err(anyhow::anyhow!("Tag name must be unique"));
+        }
+
         let record_id = RecordId::new(Tag::LABEL, tag.key.clone());
         let _: Option<TagFields> = self.db.create(record_id).content(tag.fields).await?;
         Ok(())
     }
 
     pub async fn update_tag(&self, tag: Tag) -> Result<()> {
+        let name_lower = tag.fields.name.to_lowercase();
         let record_id = RecordId::new(Tag::LABEL, tag.key.clone());
+        let mut res = self.db
+            .query("SELECT * FROM Tag WHERE string::lowercase(name) = $name AND id != $id")
+            .bind(("name", name_lower))
+            .bind(("id", record_id.clone()))
+            .await?;
+        let existing: Vec<Value> = res.take(0)?;
+        if !existing.is_empty() {
+            return Err(anyhow::anyhow!("Tag name must be unique"));
+        }
+
         let _: Option<TagFields> = self.db.update(record_id).content(tag.fields).await?;
         Ok(())
     }

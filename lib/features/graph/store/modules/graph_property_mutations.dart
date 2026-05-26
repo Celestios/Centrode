@@ -247,4 +247,68 @@ class GraphPropertyMutations {
     ));
     controller.triggerUpdate();
   }
+
+  Future<List<Tag>> getAllTags() async {
+    final dynamic api = controller.syncEngine.api;
+    final List<dynamic> rawTags = await api.getAllTags();
+    return rawTags.cast<Tag>();
+  }
+
+  Future<void> createTag(Tag tag) async {
+    final dynamic api = controller.syncEngine.api;
+    await api.createTag(tag: tag);
+    controller.triggerUpdate();
+  }
+
+  Future<void> updateTag(Tag tag) async {
+    final dynamic api = controller.syncEngine.api;
+    await api.updateTag(tag: tag);
+
+    // Update matching tags in-memory in all nodes
+    for (final node in controller.store.nodeLookup.values) {
+      if (node is InfoUiNode) {
+        bool changed = false;
+        final updatedTags = node.tags.map((t) {
+          if (t.key == tag.key) {
+            changed = true;
+            return tag;
+          }
+          return t;
+        }).toList();
+        if (changed) {
+          node.tags = updatedTags;
+          controller.publishUpdate(GraphEntityUpdate(
+            id: node.id,
+            tableName: node.tableName,
+            type: GraphUpdateType.tags,
+            payload: updatedTags,
+          ));
+        }
+      }
+    }
+    controller.triggerUpdate();
+  }
+
+  Future<void> deleteTag(String tagKey) async {
+    final dynamic api = controller.syncEngine.api;
+    await api.deleteTag(key: tagKey);
+
+    // Remove deleted tag from all nodes in memory
+    for (final node in controller.store.nodeLookup.values) {
+      if (node is InfoUiNode) {
+        final originalCount = node.tags.length;
+        final updatedTags = node.tags.where((t) => t.key != tagKey).toList();
+        if (updatedTags.length != originalCount) {
+          node.tags = updatedTags;
+          controller.publishUpdate(GraphEntityUpdate(
+            id: node.id,
+            tableName: node.tableName,
+            type: GraphUpdateType.tags,
+            payload: updatedTags,
+          ));
+        }
+      }
+    }
+    controller.triggerUpdate();
+  }
 }

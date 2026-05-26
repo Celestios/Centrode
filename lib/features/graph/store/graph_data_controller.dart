@@ -256,6 +256,12 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   void updateNodeComments(String id, List<Comment> newComments) =>
       propertyMutations.updateNodeComments(id, newComments);
 
+  // Global Tags Manager CRUD
+  Future<List<Tag>> getAllTags() => propertyMutations.getAllTags();
+  Future<void> createTag(Tag tag) => propertyMutations.createTag(tag);
+  Future<void> updateTag(Tag tag) => propertyMutations.updateTag(tag);
+  Future<void> deleteTag(String tagKey) => propertyMutations.deleteTag(tagKey);
+
   // ===========================================================================
   // Lifecycle
   // ===========================================================================

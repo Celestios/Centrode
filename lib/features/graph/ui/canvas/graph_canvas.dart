@@ -19,6 +19,7 @@ import '../widgets/overlays/canvas_tab_bar.dart';
 import '../widgets/overlays/left_repository_drawer.dart';
 import '../widgets/overlays/right_property_panel.dart';
 import '../widgets/overlays/canvas_status_bar/canvas_status_bar.dart';
+import '../../../../presentation/widgets/tag_manager/global_tags_manager_panel.dart';
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
@@ -39,6 +40,7 @@ class _GraphCanvasState extends State<GraphCanvas>
   bool _hasInitialFramed = false;
   bool _viewportRestoreAttempted = false;
   bool _viewportRestored = false;
+  bool _isTagManagerOpen = false;
 
   @override
   void initState() {
@@ -265,12 +267,46 @@ class _GraphCanvasState extends State<GraphCanvas>
                     valueListenable: session.showLeftPanel,
                     builder: (context, leftVisible, _) {
                       if (!leftVisible) return const SizedBox.shrink();
-                      return const Positioned(
+                      return Positioned(
                         top: 178.0,
                         left: 12,
                         width: 52,
-                        height: 158,
-                        child: LeftRepositoryDrawer(),
+                        child: LeftRepositoryDrawer(
+                          isTagManagerOpen: _isTagManagerOpen,
+                          onTapTags: () {
+                            setState(() {
+                              _isTagManagerOpen = !_isTagManagerOpen;
+                            });
+                          },
+                        ),
+                      );
+                    },
+                  ),
+
+                  // Global Tags Manager Panel (opens to the right of the left drawer)
+                  ValueListenableBuilder<bool>(
+                    valueListenable: session.showLeftPanel,
+                    builder: (context, leftVisible, _) {
+                      if (!leftVisible) return const SizedBox.shrink();
+                      return AnimatedPositioned(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOut,
+                        top: 178.0,
+                        left: 76.0,
+                        bottom: 86.0,
+                        width: _isTagManagerOpen ? 280.0 : 0.0,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 200),
+                          opacity: _isTagManagerOpen ? 1.0 : 0.0,
+                          child: const ClipRect(
+                            child: OverflowBox(
+                              minWidth: 280.0,
+                              maxWidth: 280.0,
+                              alignment: Alignment.topLeft,
+                              child: GlobalTagsManagerPanel(),
+                            ),
+                          ),
+                        ),
                       );
                     },
                   ),

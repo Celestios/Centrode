@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'glass_panel.dart'; // adjust path as needed
 
 class LeftRepositoryDrawer extends StatelessWidget {
-  const LeftRepositoryDrawer({super.key});
+  final bool isTagManagerOpen;
+  final VoidCallback onTapTags;
+
+  const LeftRepositoryDrawer({
+    super.key,
+    required this.isTagManagerOpen,
+    required this.onTapTags,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
     final dividerColor = theme.dividerColor.withValues(alpha: 0.3);
 
     // The whole button group sits inside a single GlassPanel
@@ -28,8 +34,9 @@ class LeftRepositoryDrawer extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _GlassIconTile(
-              icon: Icons.local_offer,
-              onTap: () => debugPrint('tags tapped'),
+              icon: isTagManagerOpen ? Icons.arrow_back_rounded : Icons.local_offer,
+              onTap: onTapTags,
+              animateIcon: true,
             ),
             Divider(height: 1, color: dividerColor),
             _GlassIconTile(
@@ -46,7 +53,6 @@ class LeftRepositoryDrawer extends StatelessWidget {
               icon: Icons.settings_outlined,
               onTap: () => debugPrint('Settings tapped'),
             ),
-            // Add more tiles below – no need for SizedBox gaps
           ],
         ),
       ),
@@ -59,14 +65,32 @@ class LeftRepositoryDrawer extends StatelessWidget {
 class _GlassIconTile extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
+  final bool animateIcon;
 
-  const _GlassIconTile({required this.icon, this.onTap});
+  const _GlassIconTile({
+    required this.icon,
+    this.onTap,
+    this.animateIcon = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final iconColor = theme.colorScheme.primary;
     final iconSize = IconTheme.of(context).size ?? 24.0;
+
+    Widget iconWidget = Icon(icon, key: ValueKey(icon), color: iconColor, size: iconSize);
+
+    if (animateIcon) {
+      iconWidget = AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        transitionBuilder: (child, animation) => ScaleTransition(
+          scale: animation,
+          child: FadeTransition(opacity: animation, child: child),
+        ),
+        child: iconWidget,
+      );
+    }
 
     // Material + InkWell gives proper touch feedback inside the GlassPanel
     return Material(
@@ -75,7 +99,7 @@ class _GlassIconTile extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-          child: Icon(icon, color: iconColor, size: iconSize),
+          child: iconWidget,
         ),
       ),
     );
