@@ -1,8 +1,7 @@
-use crate::domain::base_models::{BoundingBox, IsTable};
+use crate::domain::base_models::{BoundingBox, IsTable, RecordStrings};
 use crate::domain::nodes::{INode, InterNode, TaskNode};
 use crate::domain::relations::IRelation;
 use surrealdb::engine::local::Db;
-use surrealdb::types::RecordId;
 use surrealdb::Surreal;
 
 pub struct DecaySignificanceStrategy;
@@ -11,13 +10,12 @@ impl DecaySignificanceStrategy {
     pub async fn recalculate_area(
         &self,
         db: &Surreal<Db>,
-        center_node_id: RecordId,
+        center_node_id: RecordStrings,
     ) -> anyhow::Result<()> {
         tracing::info!(
             "ANALYSIS: Recalculating significance area for center node: {:?}",
-            center_node_id
+            center_node_id.to_str()
         );
-
 
         // Calculate raw scores for nodes within a 2-step radius using index-driven SELECTs
         // Escape the reserved keyword `in` with backticks
@@ -42,7 +40,7 @@ impl DecaySignificanceStrategy {
         );
 
         db.query(sql)
-            .bind(("center", center_node_id.clone()))
+            .bind(("center", center_node_id.into_record()))
             .await?;
 
         tracing::info!(

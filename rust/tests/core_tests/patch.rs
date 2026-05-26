@@ -157,27 +157,58 @@ async fn test_remaining_patches() {
         key: "n_patch".to_string(),
         fields: INodeFields {
             content: Content::from_plain_text("original"),
-            style: None, resolved_style: None, layout: None, resolved_layout: None,
-            layer: "default".to_string(), position: Coordinates { x: 0, y: 0 },
-            size: Size { width: 10, height: 10 }, line_count: 1, expandable: false,
-            is_expanded: false, locked: false, tags: vec![], aliases: vec![],
-            comments: vec![], attachment: None, significance: 0, created_at: 0, updated_at: 0,
-        }
+            style: None,
+            resolved_style: None,
+            layout: None,
+            resolved_layout: None,
+            layer: "default".to_string(),
+            position: Coordinates { x: 0, y: 0 },
+            size: Size {
+                width: 10,
+                height: 10,
+            },
+            line_count: 1,
+            expandable: false,
+            is_expanded: false,
+            locked: false,
+            tags: vec![],
+            aliases: vec![],
+            comments: vec![],
+            attachment: None,
+            significance: 0,
+            created_at: 0,
+            updated_at: 0,
+        },
     };
     repo.create_node(Nodes::INode(inode)).await.unwrap();
     let node_id = RecordId::new("INode", "n_patch");
 
     let style = NodeStyle {
-        bg_color: 0x123456, stroke_color: 0x789abc, stroke_width: 2,
-        font_family: "Arial".to_string(), font_size: 14.0, shape: "circle".to_string(),
-        width: 15, height: 15, text_color: 0xffffff, border_radius: 4.0,
-        padding: 8.0, shadow_color: 0, shadow_blur: 0.0, shadow_spread: 0.0,
-        shadow_offset_x: 0.0, shadow_offset_y: 0.0, strategy_type: "default".to_string(),
+        bg_color: 0x123456,
+        stroke_color: 0x789abc,
+        stroke_width: 2,
+        font_family: "Arial".to_string(),
+        font_size: 14.0,
+        shape: "circle".to_string(),
+        width: 15,
+        height: 15,
+        text_color: 0xffffff,
+        border_radius: 4.0,
+        padding: 8.0,
+        shadow_color: 0,
+        shadow_blur: 0.0,
+        shadow_spread: 0.0,
+        shadow_offset_x: 0.0,
+        shadow_offset_y: 0.0,
+        strategy_type: "default".to_string(),
     };
     let content = Content::from_plain_text("patched content");
 
     let patch = EntityPatch::Node(vec![
-        NodePatch::Size(Size { width: 42, height: 42 }),
+        NodePatch::Size(Size {
+            width: 42,
+            height: 42,
+        }),
         NodePatch::Content(content.clone()),
         NodePatch::Style(Some(style.clone())),
         NodePatch::Significance(3),
@@ -185,7 +216,11 @@ async fn test_remaining_patches() {
 
     repo.patch_entity(node_id.clone(), &patch).await.unwrap();
 
-    let fetched = repo.get_node("INode".to_string(), "n_patch".to_string()).await.unwrap().unwrap();
+    let fetched = repo
+        .get_node("INode".to_string(), "n_patch".to_string())
+        .await
+        .unwrap()
+        .unwrap();
     if let Nodes::INode(n) = fetched {
         assert_eq!(n.fields.size.width, 42);
         assert_eq!(n.fields.size.height, 42);
@@ -200,34 +235,67 @@ async fn test_remaining_patches() {
         key: "n_patch_target".to_string(),
         fields: INodeFields {
             content: Content::from_plain_text("target"),
-            style: None, resolved_style: None, layout: None, resolved_layout: None,
-            layer: "default".to_string(), position: Coordinates { x: 50, y: 50 },
-            size: Size { width: 10, height: 10 }, line_count: 1, expandable: false,
-            is_expanded: false, locked: false, tags: vec![], aliases: vec![],
-            comments: vec![], attachment: None, significance: 0, created_at: 0, updated_at: 0,
-        }
+            style: None,
+            resolved_style: None,
+            layout: None,
+            resolved_layout: None,
+            layer: "default".to_string(),
+            position: Coordinates { x: 50, y: 50 },
+            size: Size {
+                width: 10,
+                height: 10,
+            },
+            line_count: 1,
+            expandable: false,
+            is_expanded: false,
+            locked: false,
+            tags: vec![],
+            aliases: vec![],
+            comments: vec![],
+            attachment: None,
+            significance: 0,
+            created_at: 0,
+            updated_at: 0,
+        },
     };
     repo.create_node(Nodes::INode(target)).await.unwrap();
 
     let rel = IRelation {
         key: "r_patch".to_string(),
-        in_: "INode:n_patch".to_string(),
-        out: "INode:n_patch_target".to_string(),
+        in_: "INode:n_patch".into(),
+        out: "INode:n_patch_target".into(),
         fields: IRelationFields {
             verb: "relates".to_string(),
-            style: None, resolved_style: None, layout: None, resolved_layout: None,
-            directionless: false, layer: "default".to_string(), created_at: 0, updated_at: 0,
-        }
+            style: None,
+            resolved_style: None,
+            layout: None,
+            resolved_layout: None,
+            directionless: false,
+            layer: "default".to_string(),
+            created_at: 0,
+            updated_at: 0,
+        },
     };
     repo.create_relation(rel).await.unwrap();
     let rel_id = RecordId::new("IRelation", "r_patch");
 
     let rel_style = RelationStyle {
-        bg_color: 0x111111, stroke_color: 0x222222, stroke_width: 1,
-        font_family: "Sans".to_string(), font_size: 10.0, shape: "line".to_string(),
-        arrow_type: "arrow".to_string(), arrow_size: 5.0, width: 0, height: 0,
-        text_color: 0x333333, shadow_color: 0, shadow_blur: 0.0,
-        shadow_offset_x: 0.0, shadow_offset_y: 0.0, strategy_type: "default".to_string(),
+        bg_color: 0x111111,
+        stroke_color: 0x222222,
+        stroke_width: 1,
+        font_family: "Sans".to_string(),
+        font_size: 10.0,
+        shape: "line".to_string(),
+        arrow_type: "arrow".to_string(),
+        arrow_size: 5.0,
+        width: 0,
+        height: 0,
+        text_color: 0x333333,
+        shadow_color: 0,
+        shadow_blur: 0.0,
+        shadow_offset_x: 0.0,
+        shadow_offset_y: 0.0,
+        strategy_type: "default".to_string(),
     };
     let rel_layout = RelationLayout {
         from_side: "right".to_string(),
@@ -244,9 +312,18 @@ async fn test_remaining_patches() {
 
     repo.patch_entity(rel_id, &rel_patch).await.unwrap();
 
-    let fetched_rel = repo.get_relation("IRelation".to_string(), "r_patch".to_string()).await.unwrap();
+    let fetched_rel = repo
+        .get_relation("IRelation".to_string(), "r_patch".to_string())
+        .await
+        .unwrap();
     assert_eq!(fetched_rel.fields.verb, "patched_verb");
-    assert_eq!(fetched_rel.fields.style.as_ref().unwrap().stroke_color, 0x222222);
-    assert_eq!(fetched_rel.fields.layout.as_ref().unwrap().from_side, "right");
+    assert_eq!(
+        fetched_rel.fields.style.as_ref().unwrap().stroke_color,
+        0x222222
+    );
+    assert_eq!(
+        fetched_rel.fields.layout.as_ref().unwrap().from_side,
+        "right"
+    );
     assert_eq!(fetched_rel.fields.directionless, true);
 }

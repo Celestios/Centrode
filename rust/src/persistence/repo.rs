@@ -64,13 +64,17 @@ impl Repository {
 
     pub async fn create_relation(&self, input: IRelation) -> Result<()> {
         let key = input.key.clone();
-        let in_id = input.get_in_id();
-        let out_id = input.get_out_id();
+        let in_id = input.in_.clone();
+        let out_id = input.out.clone();
+        let record = RecordId::new(IRelation::LABEL, key.clone());
 
         let mut res = self
             .db
-            .query("INSERT RELATION INTO IRelation $relation")
-            .bind(("relation", input.to_db_value()))
+            .query("RELATE $from -> $record -> $out CONTENT $data")
+            .bind(("record", record))
+            .bind(("from", in_id.into_record()))
+            .bind(("out", out_id.into_record()))
+            .bind(("data", input))
             .await?;
         let created: Option<Value> = res.take(0)?;
         let _ = created.ok_or_else(|| anyhow::anyhow!("Failed to create Relation"))?;
@@ -84,7 +88,7 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn trigger_significance_update(&self, node_id: &RecordId) -> Result<()> {
+    pub async fn trigger_significance_update(&self, node_id: &RecordStrings) -> Result<()> {
         let strategy = DecaySignificanceStrategy;
 
         let db_clone = self.db.clone();
@@ -178,7 +182,7 @@ impl Repository {
         let relations_raw: Vec<Value> = self.db.select(IRelation::LABEL).await?;
         let relations: Vec<IRelation> = relations_raw
             .into_iter()
-            .filter_map(IRelation::from_db_value)
+            .filter_map(|val| IRelation::from_value(val).ok())
             .collect();
         tracing::debug!("Fetched {} IRelations", relations.len());
 
@@ -261,15 +265,17 @@ impl Repository {
         }
 
         tracing::debug!("Inserting {} IRelations...", irelations.len());
-        if !irelations.is_empty() {
-            let relation_vals: Vec<Value> = irelations
-                .into_iter()
-                .map(|relation| relation.to_db_value())
-                .collect();
+        for relation in irelations {
+            let in_id = relation.in_.clone();
+            let out_id = relation.out.clone();
+            let record = RecordId::new(IRelation::LABEL, relation.key.clone());
 
             let mut res = tx
-                .query("INSERT RELATION INTO IRelation $relations")
-                .bind(("relations", relation_vals))
+                .query("RELATE $from -> $record -> $out CONTENT $data")
+                .bind(("record", record))
+                .bind(("from", in_id.into_record()))
+                .bind(("out", out_id.into_record()))
+                .bind(("data", relation))
                 .await?;
             let _: Option<Value> = res.take(0)?;
         }
@@ -345,7 +351,7 @@ impl Repository {
         let record_id = RecordId::new(table, key.clone());
         let val: Option<Value> = self.db.select(record_id).await?;
         let val = val.ok_or_else(|| anyhow::anyhow!("Relation not found"))?;
-        IRelation::from_db_value(val).ok_or_else(|| anyhow::anyhow!("Failed to parse Relation"))
+        IRelation::from_value(val).map_err(|e| anyhow::anyhow!("Failed to parse Relation: {}", e))
     }
 
     pub async fn delete_relation(&self, table: String, key: String) -> Result<()> {
@@ -370,21 +376,22 @@ impl Repository {
 
     pub async fn reroute_relation(
         &self,
-        record: RecordStrings,
+        record_string: RecordStrings,
         from: RecordStrings,
         to: RecordStrings,
     ) -> Result<()> {
-        let existing = self.get_relation(record.table.clone(), record.key.clone()).await?;
+        let existing = self
+            .get_relation(record_string.table.clone(), record_string.key.clone())
+            .await?;
 
-        let old_in_id = existing.get_in_id();
-        let old_out_id = existing.get_out_id();
-
-        let record_id = RecordId::new(record.table, record.key);
-        let _: Option<Value> = self.db.delete(record_id).await?;
+        let old_in_id = existing.in_.clone();
+        let old_out_id = existing.out.clone();
 
         let mut updated = existing;
-        updated.in_ = format!("{}:{}", from.table, from.key);
-        updated.out = format!("{}:{}", to.table, to.key);
+        updated.in_ = from;
+        updated.out = to;
+
+        let _: Option<Value> = self.db.delete(record_string.into_record()).await?;
 
         self.create_relation(updated).await?;
 
@@ -490,7 +497,8 @@ impl Repository {
 
     pub async fn create_tag(&self, tag: Tag) -> Result<()> {
         let name_lower = tag.fields.name.to_lowercase();
-        let mut res = self.db
+        let mut res = self
+            .db
             .query("SELECT * FROM Tag WHERE string::lowercase(name) = $name")
             .bind(("name", name_lower))
             .await?;
@@ -507,7 +515,8 @@ impl Repository {
     pub async fn update_tag(&self, tag: Tag) -> Result<()> {
         let name_lower = tag.fields.name.to_lowercase();
         let record_id = RecordId::new(Tag::LABEL, tag.key.clone());
-        let mut res = self.db
+        let mut res = self
+            .db
             .query("SELECT * FROM Tag WHERE string::lowercase(name) = $name AND id != $id")
             .bind(("name", name_lower))
             .bind(("id", record_id.clone()))

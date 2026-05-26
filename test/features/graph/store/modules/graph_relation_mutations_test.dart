@@ -40,8 +40,8 @@ void main() {
     )));
     registerFallbackValue(IRelation(
       key: 'dummy',
-      in_: 'dummy:in',
-      out: 'dummy:out',
+      in_: const frb.RecordStrings(table: 'dummy', key: 'in'),
+      out: const frb.RecordStrings(table: 'dummy', key: 'out'),
       fields: IRelationFields(
         verb: 'link',
         layer: 'default',
@@ -60,8 +60,8 @@ void main() {
     setUpAll(() {
       registerFallbackValue(IRelation(
         key: 'dummy-rel',
-        in_: 'INode:n1',
-        out: 'TaskNode:n2',
+        in_: const frb.RecordStrings(table: 'INode', key: 'n1'),
+        out: const frb.RecordStrings(table: 'TaskNode', key: 'n2'),
         fields: IRelationFields(
           verb: 'depends',
           directionless: false,

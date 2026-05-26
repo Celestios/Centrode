@@ -2387,8 +2387,8 @@ impl SseDecode for crate::domain::relations::IRelation {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_key = <String>::sse_decode(deserializer);
-        let mut var_in_ = <String>::sse_decode(deserializer);
-        let mut var_out = <String>::sse_decode(deserializer);
+        let mut var_in_ = <crate::domain::base_models::RecordStrings>::sse_decode(deserializer);
+        let mut var_out = <crate::domain::base_models::RecordStrings>::sse_decode(deserializer);
         let mut var_fields = <crate::domain::relations::IRelationFields>::sse_decode(deserializer);
         return crate::domain::relations::IRelation {
             key: var_key,
@@ -4997,8 +4997,8 @@ impl SseEncode for crate::domain::relations::IRelation {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.key, serializer);
-        <String>::sse_encode(self.in_, serializer);
-        <String>::sse_encode(self.out, serializer);
+        <crate::domain::base_models::RecordStrings>::sse_encode(self.in_, serializer);
+        <crate::domain::base_models::RecordStrings>::sse_encode(self.out, serializer);
         <crate::domain::relations::IRelationFields>::sse_encode(self.fields, serializer);
     }
 }

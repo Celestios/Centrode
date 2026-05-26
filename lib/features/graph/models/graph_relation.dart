@@ -1,6 +1,7 @@
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:uuid/uuid.dart';
 import 'package:mycelium/src/rust/domain/relations.dart';
+import 'package:mycelium/src/rust/domain/base_models.dart';
 
 // ---------------------------------------------------------------------------
 // Abstract base class
@@ -118,8 +119,8 @@ class InfoUiRelation extends UiRelation {
   IRelation toRust() {
     return IRelation(
       key: id,
-      in_: '$fromNodeTable:$fromNodeId',
-      out: '$toNodeTable:$toNodeId',
+      in_: RecordStrings(table: fromNodeTable, key: fromNodeId),
+      out: RecordStrings(table: toNodeTable, key: toNodeId),
       fields: IRelationFields(
         verb: verb,
         style: style,
@@ -136,25 +137,12 @@ class InfoUiRelation extends UiRelation {
 
   /// Deserialises from an FFI [IRelation].
   factory InfoUiRelation.fromRust(IRelation relation) {
-    String getTable(String id) {
-      final index = id.indexOf(':');
-      if (index == -1) {
-        throw ArgumentError('Invalid FFI RecordId format: $id');
-      }
-      return id.substring(0, index);
-    }
-
-    String stripPrefix(String id) {
-      final index = id.indexOf(':');
-      return index == -1 ? id : id.substring(index + 1);
-    }
-
     return InfoUiRelation(
       id: relation.key,
-      fromNodeId: stripPrefix(relation.in_),
-      fromNodeTable: getTable(relation.in_),
-      toNodeId: stripPrefix(relation.out),
-      toNodeTable: getTable(relation.out),
+      fromNodeId: relation.in_.key,
+      fromNodeTable: relation.in_.table,
+      toNodeId: relation.out.key,
+      toNodeTable: relation.out.table,
       verb: relation.fields.verb,
       directionless: relation.fields.directionless,
       style: relation.fields.style,

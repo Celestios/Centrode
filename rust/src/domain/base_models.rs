@@ -1,3 +1,4 @@
+use core::convert::Into;
 use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
 
 // -----------------------------------------------------------------------------
@@ -33,15 +34,47 @@ impl Record {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RecordStrings {
     pub table: String,
     pub key: String,
 }
+impl std::str::FromStr for RecordStrings {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut parts = s.splitn(2, ':');
+        let table = parts.next().ok_or("Missing table name")?.to_string();
+        let key = parts.next().ok_or("Missing record key")?.to_string();
+
+        if table.is_empty() || key.is_empty() {
+            return Err("Table or Key cannot be empty".to_string());
+        }
+
+        Ok(RecordStrings { table, key })
+    }
+}
+
+impl From<&str> for RecordStrings {
+    fn from(s: &str) -> Self {
+        s.parse()
+            .unwrap_or_else(|e| panic!("Invalid RecordStrings literal '{}': {}", s, e))
+    }
+}
+
+impl std::fmt::Display for RecordStrings {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.table, self.key)
+    }
+}
 
 impl RecordStrings {
     pub fn to_str(&self) -> String {
-        format!("{}/{}", self.table.as_str(), self.key.as_str())
+        format!("{}:{}", self.table.as_str(), self.key.as_str())
+    }
+
+    pub fn into_record(&self) -> RecordId {
+        RecordId::new(self.table.clone(), self.key.clone())
     }
 }
 

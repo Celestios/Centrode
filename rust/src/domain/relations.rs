@@ -1,13 +1,12 @@
-use crate::domain::base_models::{IsTable, Record};
-use crate::domain::styles::{RelationStyle, RelationLayout};
-use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
+use crate::domain::base_models::{IsTable, Record, RecordStrings};
+use crate::domain::styles::{RelationLayout, RelationStyle};
+use surrealdb::types::{RecordIdKey, SurrealValue, Value};
 
-#[derive(Debug, Clone, SurrealValue)]
+#[derive(Debug, Clone)]
 pub struct IRelation {
     pub key: String,
-    #[surreal(rename = "in")]
-    pub in_: String,
-    pub out: String,
+    pub in_: RecordStrings,
+    pub out: RecordStrings,
     pub fields: IRelationFields,
 }
 
@@ -19,78 +18,59 @@ impl IsTable for IRelation {
     }
 }
 
-impl IRelation {
-    pub fn get_in_id(&self) -> RecordId {
-        let (table, key) = self
-            .in_
-            .split_once(':')
-            .expect("`in_` must contain a ':' separating table and key");
-        RecordId::new(table, key)
+impl SurrealValue for IRelation {
+    fn kind_of() -> surrealdb::types::Kind {
+        surrealdb::types::Kind::Object
     }
 
-    pub fn get_out_id(&self) -> RecordId {
-        let (table, key) = self
-            .out
-            .split_once(':')
-            .expect("`out` must contain a ':' separating table and key");
-        RecordId::new(table, key)
-    }
+    fn from_value(value: Value) -> Result<Self, surrealdb::types::Error> {
+        let record = Record::from_record_value(value).ok_or_else(|| {
+            surrealdb::types::Error::thrown(
+                "Expected an object with an 'id' field for IRelation".to_string(),
+            )
+        })?;
 
-    pub fn to_db_value(self) -> Value {
-        let in_id = self.get_in_id();
-        let out_id = self.get_out_id();
-        let mut val = self.fields.into_value();
-        if let Value::Object(ref mut obj) = val {
-            obj.insert("id".to_string(), Value::RecordId(RecordId::new(Self::LABEL, self.key)));
-            obj.insert("in".to_string(), Value::RecordId(in_id));
-            obj.insert("out".to_string(), Value::RecordId(out_id));
-        }
-        val
-    }
-
-    pub fn from_db_value(value: Value) -> Option<Self> {
-        let mut record = Record::from_record_value(value)?;
-        let in_val = if let Value::Object(ref mut obj) = record.fields {
-            obj.remove("in")
-        } else {
-            None
-        };
-        let out_val = if let Value::Object(ref mut obj) = record.fields {
-            obj.remove("out")
-        } else {
-            None
-        };
-
-        let in_str = match in_val {
-            Some(Value::RecordId(rid)) => {
-                let key_str = match rid.key {
-                    RecordIdKey::String(s) => s,
-                    _ => return None,
-                };
-                format!("{}:{}", rid.table, key_str)
+        let key = match record.id.key {
+            RecordIdKey::String(s) => s,
+            _ => {
+                return Err(surrealdb::types::Error::thrown(
+                    "RecordId key must be a string".to_string(),
+                ))
             }
-            Some(Value::String(s)) => s,
-            _ => return None,
-        };
-        let out_str = match out_val {
-            Some(Value::RecordId(rid)) => {
-                let key_str = match rid.key {
-                    RecordIdKey::String(s) => s,
-                    _ => return None,
-                };
-                format!("{}:{}", rid.table, key_str)
-            }
-            Some(Value::String(s)) => s,
-            _ => return None,
         };
 
-        let (key, fields) = record.to_type::<IRelationFields>()?;
-        Some(IRelation {
+        let mut fields_map = match record.fields {
+            Value::Object(map) => map,
+            _ => {
+                return Err(surrealdb::types::Error::thrown(
+                    "Fields must be an object".to_string(),
+                ))
+            }
+        };
+
+        let in_val = fields_map.remove("in").ok_or_else(|| {
+            surrealdb::types::Error::thrown("Missing 'in' field in IRelation".to_string())
+        })?;
+        let out_val = fields_map.remove("out").ok_or_else(|| {
+            surrealdb::types::Error::thrown("Missing 'out' field in IRelation".to_string())
+        })?;
+
+        let in_rs = RecordStrings::from_value(in_val)?;
+        let out_rs = RecordStrings::from_value(out_val)?;
+
+        let fields_obj = Value::Object(fields_map);
+        let fields = IRelationFields::from_value(fields_obj)?;
+
+        Ok(IRelation {
             key,
-            in_: in_str,
-            out: out_str,
+            in_: in_rs,
+            out: out_rs,
             fields,
         })
+    }
+
+    fn into_value(self) -> Value {
+        self.fields.into_value()
     }
 }
 
@@ -106,6 +86,3 @@ pub struct IRelationFields {
     pub created_at: i64,
     pub updated_at: i64,
 }
-
-
-

@@ -170,8 +170,8 @@ async fn test_repo_crud() {
     // 4. Create Relation linking inode_1 to task_1
     let relation = IRelation {
         key: "rel_1".to_string(),
-        in_: "INode:inode_1".to_string(),
-        out: "TaskNode:task_1".to_string(),
+        in_: RecordStrings::from("INode:inode_1"),
+        out: RecordStrings::from("TaskNode:task_1"),
         fields: IRelationFields {
             verb: "depends_on".to_string(),
             style: None,
@@ -197,8 +197,8 @@ async fn test_repo_crud() {
         .await
         .expect("Failed to get relation");
     assert_eq!(fetched_rel.key, "rel_1");
-    assert_eq!(fetched_rel.in_, "INode:inode_1");
-    assert_eq!(fetched_rel.out, "TaskNode:task_1");
+    assert_eq!(fetched_rel.in_, RecordStrings::from("INode:inode_1"));
+    assert_eq!(fetched_rel.out, RecordStrings::from("TaskNode:task_1"));
     assert_eq!(fetched_rel.fields.verb, "depends_on");
 
     // Update Relation
@@ -224,7 +224,10 @@ async fn test_repo_crud() {
         .get_node("INode".to_string(), "inode_1".to_string())
         .await
         .expect("Failed to query inode_1 after delete");
-    assert!(inode_after_delete.is_none(), "INode inode_1 should have been deleted");
+    assert!(
+        inode_after_delete.is_none(),
+        "INode inode_1 should have been deleted"
+    );
 
     let relation_after_delete = repo
         .get_relation("IRelation".to_string(), "rel_1".to_string())
@@ -242,7 +245,10 @@ async fn test_repo_crud() {
         .get_node("TaskNode".to_string(), "task_1".to_string())
         .await
         .expect("Failed to query task_1 after delete");
-    assert!(task_after_delete.is_none(), "TaskNode task_1 should have been deleted");
+    assert!(
+        task_after_delete.is_none(),
+        "TaskNode task_1 should have been deleted"
+    );
 
     repo.delete_node("InterNode".to_string(), "inter_1".to_string())
         .await
@@ -251,7 +257,10 @@ async fn test_repo_crud() {
         .get_node("InterNode".to_string(), "inter_1".to_string())
         .await
         .expect("Failed to query inter_1 after delete");
-    assert!(inter_after_delete.is_none(), "InterNode inter_1 should have been deleted");
+    assert!(
+        inter_after_delete.is_none(),
+        "InterNode inter_1 should have been deleted"
+    );
 }
 
 #[tokio::test]
@@ -259,35 +268,71 @@ async fn test_error_cases() {
     let repo = setup_test_repo().await;
 
     // 1. Query non-existent node
-    let res = repo.get_node("INode".to_string(), "nonexistent".to_string()).await;
+    let res = repo
+        .get_node("INode".to_string(), "nonexistent".to_string())
+        .await;
     assert!(res.is_ok());
     assert!(res.unwrap().is_none());
 
     // 2. Query non-existent relation
-    let res = repo.get_relation("IRelation".to_string(), "nonexistent".to_string()).await;
+    let res = repo
+        .get_relation("IRelation".to_string(), "nonexistent".to_string())
+        .await;
     assert!(res.is_err());
 
     // 3. Duplicate relation (unique constraint)
     let node_fields = INodeFields {
         content: Content::from_plain_text("node"),
-        style: None, resolved_style: None, layout: None, resolved_layout: None,
-        layer: "default".to_string(), position: Coordinates { x: 0, y: 0 },
-        size: Size { width: 10, height: 10 }, line_count: 1, expandable: false,
-        is_expanded: false, locked: false, tags: vec![], aliases: vec![],
-        comments: vec![], attachment: None, significance: 0, created_at: 0, updated_at: 0,
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x: 0, y: 0 },
+        size: Size {
+            width: 10,
+            height: 10,
+        },
+        line_count: 1,
+        expandable: false,
+        is_expanded: false,
+        locked: false,
+        tags: vec![],
+        aliases: vec![],
+        comments: vec![],
+        attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
     };
-    repo.create_node(Nodes::INode(INode { key: "n1".to_string(), fields: node_fields.clone() })).await.unwrap();
-    repo.create_node(Nodes::INode(INode { key: "n2".to_string(), fields: node_fields.clone() })).await.unwrap();
+    repo.create_node(Nodes::INode(INode {
+        key: "n1".to_string(),
+        fields: node_fields.clone(),
+    }))
+    .await
+    .unwrap();
+    repo.create_node(Nodes::INode(INode {
+        key: "n2".to_string(),
+        fields: node_fields.clone(),
+    }))
+    .await
+    .unwrap();
 
     let rel = IRelation {
         key: "rel_dup_1".to_string(),
-        in_: "INode:n1".to_string(),
-        out: "INode:n2".to_string(),
+        in_: RecordStrings::from("INode:n1"),
+        out: RecordStrings::from("INode:n2"),
         fields: IRelationFields {
             verb: "test_verb".to_string(),
-            style: None, resolved_style: None, layout: None, resolved_layout: None,
-            directionless: false, layer: "default".to_string(), created_at: 0, updated_at: 0,
-        }
+            style: None,
+            resolved_style: None,
+            layout: None,
+            resolved_layout: None,
+            directionless: false,
+            layer: "default".to_string(),
+            created_at: 0,
+            updated_at: 0,
+        },
     };
     repo.create_relation(rel.clone()).await.unwrap();
 
@@ -297,7 +342,10 @@ async fn test_error_cases() {
         ..rel.clone()
     };
     let res_dup = repo.create_relation(rel_dup).await;
-    assert!(res_dup.is_err(), "Duplicate relation unique constraint should fail");
+    assert!(
+        res_dup.is_err(),
+        "Duplicate relation unique constraint should fail"
+    );
 }
 
 #[tokio::test]
@@ -306,46 +354,100 @@ async fn test_relation_rerouting_and_deletion() {
 
     let node_fields = INodeFields {
         content: Content::from_plain_text("node"),
-        style: None, resolved_style: None, layout: None, resolved_layout: None,
-        layer: "default".to_string(), position: Coordinates { x: 0, y: 0 },
-        size: Size { width: 10, height: 10 }, line_count: 1, expandable: false,
-        is_expanded: false, locked: false, tags: vec![], aliases: vec![],
-        comments: vec![], attachment: None, significance: 0, created_at: 0, updated_at: 0,
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x: 0, y: 0 },
+        size: Size {
+            width: 10,
+            height: 10,
+        },
+        line_count: 1,
+        expandable: false,
+        is_expanded: false,
+        locked: false,
+        tags: vec![],
+        aliases: vec![],
+        comments: vec![],
+        attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
     };
-    repo.create_node(Nodes::INode(INode { key: "n1".to_string(), fields: node_fields.clone() })).await.unwrap();
-    repo.create_node(Nodes::INode(INode { key: "n2".to_string(), fields: node_fields.clone() })).await.unwrap();
-    repo.create_node(Nodes::INode(INode { key: "n3".to_string(), fields: node_fields.clone() })).await.unwrap();
+    repo.create_node(Nodes::INode(INode {
+        key: "n1".to_string(),
+        fields: node_fields.clone(),
+    }))
+    .await
+    .unwrap();
+    repo.create_node(Nodes::INode(INode {
+        key: "n2".to_string(),
+        fields: node_fields.clone(),
+    }))
+    .await
+    .unwrap();
+    repo.create_node(Nodes::INode(INode {
+        key: "n3".to_string(),
+        fields: node_fields.clone(),
+    }))
+    .await
+    .unwrap();
 
     let rel = IRelation {
         key: "rel_route".to_string(),
-        in_: "INode:n1".to_string(),
-        out: "INode:n2".to_string(),
+        in_: RecordStrings::from("INode:n1"),
+        out: RecordStrings::from("INode:n2"),
         fields: IRelationFields {
             verb: "relates".to_string(),
-            style: None, resolved_style: None, layout: None, resolved_layout: None,
-            directionless: false, layer: "default".to_string(), created_at: 0, updated_at: 0,
-        }
+            style: None,
+            resolved_style: None,
+            layout: None,
+            resolved_layout: None,
+            directionless: false,
+            layer: "default".to_string(),
+            created_at: 0,
+            updated_at: 0,
+        },
     };
     repo.create_relation(rel.clone()).await.unwrap();
 
     // 1. Delete relation
-    repo.delete_relation("IRelation".to_string(), "rel_route".to_string()).await.unwrap();
-    let res = repo.get_relation("IRelation".to_string(), "rel_route".to_string()).await;
+    repo.delete_relation("IRelation".to_string(), "rel_route".to_string())
+        .await
+        .unwrap();
+    let res = repo
+        .get_relation("IRelation".to_string(), "rel_route".to_string())
+        .await;
     assert!(res.is_err(), "Relation should be deleted");
 
     // Make sure endpoints still exist
-    assert!(repo.get_node("INode".to_string(), "n1".to_string()).await.unwrap().is_some());
-    assert!(repo.get_node("INode".to_string(), "n2".to_string()).await.unwrap().is_some());
+    assert!(repo
+        .get_node("INode".to_string(), "n1".to_string())
+        .await
+        .unwrap()
+        .is_some());
+    assert!(repo
+        .get_node("INode".to_string(), "n2".to_string())
+        .await
+        .unwrap()
+        .is_some());
 
     // 2. Re-create relation and test rerouting
     repo.create_relation(rel.clone()).await.unwrap();
     repo.reroute_relation(
-        RecordStrings { table: "IRelation".to_string(), key: "rel_route".to_string() },
-        RecordStrings { table: "INode".to_string(), key: "n1".to_string() },
-        RecordStrings { table: "INode".to_string(), key: "n3".to_string() },
-    ).await.unwrap();
+        RecordStrings::from("IRelation:rel_route"),
+        RecordStrings::from("INode:n1"),
+        RecordStrings::from("INode:n3"),
+    )
+    .await
+    .unwrap();
 
-    let fetched = repo.get_relation("IRelation".to_string(), "rel_route".to_string()).await.unwrap();
-    assert_eq!(fetched.in_, "INode:n1");
-    assert_eq!(fetched.out, "INode:n3");
+    let fetched = repo
+        .get_relation("IRelation".to_string(), "rel_route".to_string())
+        .await
+        .unwrap();
+    assert_eq!(fetched.in_, RecordStrings::from("INode:n1"));
+    assert_eq!(fetched.out, RecordStrings::from("INode:n3"));
 }

@@ -1,12 +1,13 @@
 use crate::common::setup_test_repo;
 use mycelium_core::domain::analysis::{DecaySignificanceStrategy, GraphAnalysis};
-use mycelium_core::domain::base_models::{BoundingBox, Coordinates, MapData, Size};
+use mycelium_core::domain::base_models::{
+    BoundingBox, Coordinates, IsTable, MapData, RecordStrings, Size,
+};
 use mycelium_core::domain::contents::Content;
 use mycelium_core::domain::nodes::{
     INode, INodeFields, InterNode, InterNodeFields, Nodes, TaskNode, TaskNodeFields,
 };
 use mycelium_core::domain::relations::{IRelation, IRelationFields};
-use surrealdb::types::RecordId;
 
 async fn assert_significance_eventually(
     repo: &mycelium_core::persistence::repo::Repository,
@@ -30,13 +31,21 @@ async fn assert_significance_eventually(
         }
         tokio::time::sleep(interval).await;
     }
-    let node = repo.get_node(table.to_string(), key.to_string()).await.unwrap().unwrap();
+    let node = repo
+        .get_node(table.to_string(), key.to_string())
+        .await
+        .unwrap()
+        .unwrap();
     let sig = match node {
         Nodes::INode(n) => n.fields.significance,
         Nodes::TaskNode(t) => t.fields.significance,
         Nodes::InterNode(_) => 0,
     };
-    assert_eq!(sig, expected, "Node {}/{} significance did not reach expected value", table, key);
+    assert_eq!(
+        sig, expected,
+        "Node {}/{} significance did not reach expected value",
+        table, key
+    );
 }
 
 #[tokio::test]
@@ -97,7 +106,10 @@ async fn test_graph_snapshot() {
         due_date: Some(99999),
         state: "todo".to_string(),
         position: Coordinates { x: 50, y: 50 },
-        size: Size { width: 30, height: 30 },
+        size: Size {
+            width: 30,
+            height: 30,
+        },
         expandable: false,
         is_expanded: false,
         layer: "default".to_string(),
@@ -128,8 +140,14 @@ async fn test_graph_snapshot() {
     }];
     let new_relations = vec![IRelation {
         key: "new_rel_snap".to_string(),
-        in_: "INode:new_inode_snap".to_string(),
-        out: "TaskNode:new_task_snap".to_string(),
+        in_: RecordStrings {
+            table: "INode".to_string(),
+            key: "new_inode_snap".to_string(),
+        },
+        out: RecordStrings {
+            table: "TaskNode".to_string(),
+            key: "new_task_snap".to_string(),
+        },
         fields: IRelationFields {
             verb: "references".to_string(),
             style: None,
@@ -147,9 +165,15 @@ async fn test_graph_snapshot() {
         ..Default::default()
     };
 
-    repo.set_graph_snapshot(new_inodes, new_tasks, new_inters, new_relations, new_metadata)
-        .await
-        .expect("Failed to write new graph snapshot");
+    repo.set_graph_snapshot(
+        new_inodes,
+        new_tasks,
+        new_inters,
+        new_relations,
+        new_metadata,
+    )
+    .await
+    .expect("Failed to write new graph snapshot");
 
     // Retrieve again and verify state has changed completely and contains all types
     let (inodes_v2, tasks_v2, inters_v2, relations_v2, metadata_v2) = repo
@@ -164,8 +188,8 @@ async fn test_graph_snapshot() {
     assert_eq!(inters_v2[0].key, "new_inter_snap");
     assert_eq!(relations_v2.len(), 1);
     assert_eq!(relations_v2[0].key, "new_rel_snap");
-    assert_eq!(relations_v2[0].in_, "INode:new_inode_snap");
-    assert_eq!(relations_v2[0].out, "TaskNode:new_task_snap");
+    assert_eq!(relations_v2[0].in_.to_str(), "INode:new_inode_snap");
+    assert_eq!(relations_v2[0].out.to_str(), "TaskNode:new_task_snap");
     assert_eq!(metadata_v2.map_name, "Overwritten Map");
 }
 
@@ -306,8 +330,14 @@ async fn test_decay_significance_propagation() {
     for (idx, (from, to)) in connections.iter().enumerate() {
         repo.create_relation(IRelation {
             key: format!("rel_{}", idx),
-            in_: format!("INode:{}", from),
-            out: format!("INode:{}", to),
+            in_: RecordStrings {
+                table: INode::LABEL.to_string(),
+                key: from.to_string(),
+            },
+            out: RecordStrings {
+                table: INode::LABEL.to_string(),
+                key: to.to_string(),
+            },
             fields: rel_fields.clone(),
         })
         .await
@@ -326,7 +356,13 @@ async fn test_decay_significance_propagation() {
     // B's level = min(4, floor(2.5 / 2.0)) = floor(1.25) = 1.
     let strategy = DecaySignificanceStrategy;
     strategy
-        .recalculate_area(repo.db(), RecordId::new("INode", "A"))
+        .recalculate_area(
+            repo.db(),
+            RecordStrings {
+                table: "INode".to_string(),
+                key: "A".to_string(),
+            },
+        )
         .await
         .expect("Failed to recalculate significance");
 

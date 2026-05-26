@@ -2063,8 +2063,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
     return IRelation(
       key: dco_decode_String(arr[0]),
-      in_: dco_decode_String(arr[1]),
-      out: dco_decode_String(arr[2]),
+      in_: dco_decode_record_strings(arr[1]),
+      out: dco_decode_record_strings(arr[2]),
       fields: dco_decode_i_relation_fields(arr[3]),
     );
   }
@@ -3243,8 +3243,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   IRelation sse_decode_i_relation(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_key = sse_decode_String(deserializer);
-    var var_in_ = sse_decode_String(deserializer);
-    var var_out = sse_decode_String(deserializer);
+    var var_in_ = sse_decode_record_strings(deserializer);
+    var var_out = sse_decode_record_strings(deserializer);
     var var_fields = sse_decode_i_relation_fields(deserializer);
     return IRelation(
       key: var_key,
@@ -4688,8 +4688,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_i_relation(IRelation self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.key, serializer);
-    sse_encode_String(self.in_, serializer);
-    sse_encode_String(self.out, serializer);
+    sse_encode_record_strings(self.in_, serializer);
+    sse_encode_record_strings(self.out, serializer);
     sse_encode_i_relation_fields(self.fields, serializer);
   }
 
