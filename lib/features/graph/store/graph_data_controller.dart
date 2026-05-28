@@ -18,6 +18,8 @@ import 'modules/graph_sync_engine.dart';
 import 'modules/graph_node_mutations.dart';
 import 'modules/graph_relation_mutations.dart';
 import 'modules/graph_property_mutations.dart';
+import 'modules/graph_template_mutations.dart';
+import 'package:mycelium/src/rust/domain/templates.dart';
 import 'package:mycelium/features/graph/presentation/style_manager.dart';
 
 /// High-level orchestrator utilizing Clean Class Composition.
@@ -44,6 +46,7 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   late final GraphNodeMutations nodeMutations;
   late final GraphRelationMutations relationMutations;
   late final GraphPropertyMutations propertyMutations;
+  late final GraphTemplateMutations templateMutations;
 
   final ThemeController themeController;
 
@@ -119,6 +122,7 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
     nodeMutations = GraphNodeMutations(this);
     relationMutations = GraphRelationMutations(this);
     propertyMutations = GraphPropertyMutations(this);
+    templateMutations = GraphTemplateMutations(this);
     styleManager = StyleManager(store);
 
     themeController.addListener(_onThemeChanged);
@@ -261,6 +265,17 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   Future<void> createTag(Tag tag) => propertyMutations.createTag(tag);
   Future<void> updateTag(Tag tag) => propertyMutations.updateTag(tag);
   Future<void> deleteTag(String tagKey) => propertyMutations.deleteTag(tagKey);
+
+  // Global Templates Manager CRUD
+  Future<List<Template>> getAllTemplates() => templateMutations.getAllTemplates();
+  Future<void> saveTemplateFromSelection(
+    String name,
+    List<String> nodeIds,
+    List<String> relationIds,
+  ) => templateMutations.saveTemplateFromSelection(name, nodeIds, relationIds);
+  Future<void> instantiateTemplate(String key, Offset canvasCoords) =>
+      templateMutations.instantiateTemplate(key, canvasCoords);
+  Future<void> deleteTemplate(String key) => templateMutations.deleteTemplate(key);
 
   // ===========================================================================
   // Lifecycle

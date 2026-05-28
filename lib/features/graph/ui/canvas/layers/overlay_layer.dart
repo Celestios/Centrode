@@ -179,6 +179,11 @@ class OverlayLayer extends StatelessWidget {
 
           final position = anchor + offset;
 
+          final nodeIds = renderState.selectedEntities
+              .where((id) => data.nodeLookup.containsKey(id))
+              .toList();
+          final canSaveTemplate = nodeIds.isNotEmpty;
+
           return Transform.translate(
             offset: position,
             child: GestureDetector(
@@ -186,9 +191,11 @@ class OverlayLayer extends StatelessWidget {
                   ? (d) => offsetNotifier.value += d.delta
                   : null,
               child: _buildToolbarUI(
+                context: context,
                 onDelete: renderState.deleteSelectedEntities,
                 isMulti: isMulti,
                 isRelationOnly: isRelationOnly,
+                canSaveTemplate: canSaveTemplate,
               ),
             ),
           );
@@ -201,9 +208,11 @@ class OverlayLayer extends StatelessWidget {
   // Three zones for nodes: Drag (left), Link (center), Delete (right)
   // Two zones for relations: Drag (left), Delete (right) - Link is omitted
   Widget _buildToolbarUI({
+    required BuildContext context,
     required VoidCallback onDelete,
     required bool isMulti,
     bool isRelationOnly = false,
+    bool canSaveTemplate = false,
   }) {
     // Dynamically size the toolbar based on available buttons
     double width = isMulti
@@ -212,6 +221,8 @@ class OverlayLayer extends StatelessWidget {
 
     if (isRelationOnly) {
       width = AppConfig.toolbar.buttonWidth * 2; // Only Drag and Delete
+    } else if (canSaveTemplate) {
+      width += AppConfig.toolbar.buttonWidth;
     }
 
     return Material(
@@ -257,6 +268,21 @@ class OverlayLayer extends StatelessWidget {
                       size: 20,
                       color: Colors.blueAccent.shade700,
                     ),
+                  ),
+                ),
+              ),
+            ],
+
+            // Save as Template Button
+            if (canSaveTemplate) ...[
+              Container(width: 1, color: Colors.grey.shade300),
+              Expanded(
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: Icon(
+                    Icons.bookmark_add_outlined,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ),

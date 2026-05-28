@@ -79,6 +79,9 @@ abstract interface class InteractionContext {
   /// Executes the delete command for all currently selected entities.
   void onDeleteSelectedEntities();
 
+  /// Triggers saving the current selection as a template.
+  void onSaveTemplate();
+
   /// Returns the current set of visible node IDs for O(V) hit testing.
   Set<String> getVisibleNodeIds();
 

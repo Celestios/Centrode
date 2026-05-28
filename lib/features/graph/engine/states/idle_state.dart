@@ -136,14 +136,20 @@ class CanvasIdle extends CanvasInteractionState {
         final tbOffset = ctx.getToolbarOffset();
         final toolbarTopLeft = anchorTopLeft + tbOffset;
 
-        // Use appropriate toolbar width based on selection type
-        double toolbarWidth = AppConfig.toolbar.singleWidth;
-        if (isMultiSelect) {
-          toolbarWidth = AppConfig.toolbar.multiWidth;
-        } else if (isRelationOnly) {
-          toolbarWidth =
-              AppConfig.toolbar.buttonWidth *
-              2; // 2-button toolbar for relations
+        // Use appropriate toolbar width based on selection type and template availability
+        final nodeIds = selectedEntities
+            .where((id) => ctx.nodeViewStates.containsKey(id))
+            .toList();
+        final canSaveTemplate = nodeIds.isNotEmpty;
+
+        double toolbarWidth = isMultiSelect
+            ? AppConfig.toolbar.multiWidth
+            : AppConfig.toolbar.singleWidth;
+
+        if (isRelationOnly) {
+          toolbarWidth = AppConfig.toolbar.buttonWidth * 2; // Only Drag and Delete
+        } else if (canSaveTemplate) {
+          toolbarWidth += AppConfig.toolbar.buttonWidth;
         }
 
         // Exact geometric bounds of the toolbar
@@ -159,11 +165,16 @@ class CanvasIdle extends CanvasInteractionState {
             'Toolbar Hit: Entity ${selectedEntities.first} at $pCanvas',
           ); // [NEW]
           final localX = pCanvas.dx - toolbarTopLeft.dx;
-          final btnWidth = AppConfig.toolbar.buttonWidth;
+
+          final int numButtons = isRelationOnly
+              ? 2
+              : (canSaveTemplate ? 4 : 3);
+          final double btnWidth = toolbarWidth / numButtons;
+          final int clickedButtonIndex = (localX / btnWidth).floor().clamp(0, numButtons - 1);
 
           if (isRelationOnly) {
             // Relation toolbar: Zone 1 (Drag), Zone 2 (Delete) - Link is omitted
-            if (localX < btnWidth) {
+            if (clickedButtonIndex == 0) {
               // Zone 1: Drag (toolbar repositioning)
               return ToolbarDragging(
                 selectedEntities.first,
@@ -175,18 +186,22 @@ class CanvasIdle extends CanvasInteractionState {
               return const CanvasIdle();
             }
           } else {
-            // Node toolbar: 3-zone logic
-            if (localX < btnWidth) {
+            // Node toolbar: 3-zone or 4-zone logic depending on canSaveTemplate
+            if (clickedButtonIndex == 0) {
               // Zone 1: Drag (toolbar repositioning)
               return ToolbarDragging(
                 selectedEntities.first,
                 pCanvas - toolbarTopLeft,
               );
-            } else if (localX < btnWidth * 2) {
+            } else if (clickedButtonIndex == 1) {
               // Zone 2: Link (New Relation) - enters sticky RelationDrawing mode
               return RelationDrawing(selectedEntities, pCanvas, isSticky: true);
+            } else if (canSaveTemplate && clickedButtonIndex == 2) {
+              // Zone 3: Save Template (bookmark_add)
+              ctx.onSaveTemplate();
+              return const CanvasIdle();
             } else {
-              // Zone 3: Delete
+              // Zone 4 (or 3 if no template): Delete
               ctx.onDeleteSelectedEntities();
               return const CanvasIdle();
             }
