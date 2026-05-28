@@ -5,7 +5,6 @@ import 'package:logging/logging.dart';
 import 'graph_data_query.dart';
 import '../models/models.dart';
 import 'command_processor.dart';
-import '../presentation/theme_manager.dart';
 import 'package:mycelium/src/rust/bridge/api.dart' as rust;
 import 'package:mycelium/src/rust/domain/base_models.dart'
     show BoundingBox, Comment, ViewportState;
@@ -20,7 +19,11 @@ import 'modules/graph_relation_mutations.dart';
 import 'modules/graph_property_mutations.dart';
 import 'modules/graph_template_mutations.dart';
 import 'package:mycelium/src/rust/domain/templates.dart';
-import 'package:mycelium/features/graph/presentation/style_manager.dart';
+
+abstract class GraphStyleUpdater {
+  void updateStyleForNode(String id);
+  void updateStyleForRelation(String id);
+}
 
 /// High-level orchestrator utilizing Clean Class Composition.
 ///
@@ -41,14 +44,16 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   late final GraphStore store;
   late final GraphSpatial spatial;
   late final GraphSyncEngine syncEngine;
-  late final StyleManager styleManager;
 
   late final GraphNodeMutations nodeMutations;
   late final GraphRelationMutations relationMutations;
   late final GraphPropertyMutations propertyMutations;
   late final GraphTemplateMutations templateMutations;
 
-  final ThemeController themeController;
+  // Dependency Inversion Hooks
+  Size Function(UiNode, {bool isEditing})? sizeCalculator;
+  NodeStyle Function(UiNode)? styleResolver;
+  GraphStyleUpdater? styleUpdater;
 
   // ===========================================================================
   // State Flags & Stream
@@ -106,37 +111,56 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   }
 
   // ===========================================================================
+  // Sizing & Styling Wrapper Methods
+  // ===========================================================================
+
+  Size calculateNodeSize(UiNode node, {bool isEditing = false}) {
+    return sizeCalculator?.call(node, isEditing: isEditing) ?? node.size;
+  }
+
+  NodeStyle resolveNodeStyle(UiNode node) {
+    return styleResolver?.call(node) ?? node.style ?? NodeStyle(
+      bgColor: 0xFFFFFFFF,
+      strokeColor: 0xFF000000,
+      strokeWidth: 1,
+      fontFamily: 'Roboto',
+      fontSize: 12.0,
+      shape: 'rectangle',
+      width: 100,
+      height: 60,
+      textColor: 0xFF000000,
+      borderRadius: 8.0,
+      padding: 8.0,
+      shadowColor: 0x33000000,
+      shadowBlur: 4.0,
+      shadowSpread: 0.0,
+      shadowOffsetX: 2.0,
+      shadowOffsetY: 2.0,
+      strategyType: 'default',
+    );
+  }
+
+  // ===========================================================================
   // Constructor
   // ===========================================================================
 
   /// Creates a new GraphDataController and initializes its domain modules.
-  GraphDataController(rust.AppHandle apiHandle, this.themeController) {
+  GraphDataController(rust.AppHandle apiHandle) {
     store = GraphStore();
     spatial = GraphSpatial();
     syncEngine = GraphSyncEngine(
       controller: this,
       api: apiHandle,
       processor: CommandProcessor(onError: _handleError),
-      themeController: themeController,
     );
     nodeMutations = GraphNodeMutations(this);
     relationMutations = GraphRelationMutations(this);
     propertyMutations = GraphPropertyMutations(this);
     templateMutations = GraphTemplateMutations(this);
-    styleManager = StyleManager(store);
-
-    themeController.addListener(_onThemeChanged);
 
     _log.info(
       'GraphDataController initialized: Domain modules successfully composed.',
     );
-  }
-
-  void _onThemeChanged() {
-    final newTheme = themeController.currentGraphTheme;
-    styleManager.setTheme(newTheme);
-    styleManager.updateAllStyles(store.nodes, store.relations);
-    notifyListeners();
   }
 
   // ===========================================================================
@@ -284,7 +308,6 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   @override
   void dispose() {
     _log.fine('Disposing GraphDataController and dismantling domain modules.');
-    themeController.removeListener(_onThemeChanged);
     _entityUpdateController.close();
     syncEngine.dispose();
     spatial.dispose();

@@ -14,7 +14,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
   final ViewportController _viewportController;
   final double Function() _getScale;
   final TabSession? _boundSession;
-  final VoidCallback? _onSaveTemplate;
+  final void Function(List<String> nodeIds, List<String> relationIds)? _onSaveTemplate;
 
   CanvasInteractionEnvironment({
     required GraphDataController dataController,
@@ -22,7 +22,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
     required ViewportController viewportController,
     required double Function() getScale,
     TabSession? boundSession,
-    VoidCallback? onSaveTemplate,
+    void Function(List<String> nodeIds, List<String> relationIds)? onSaveTemplate,
   }) : _dataController = dataController,
        _renderState = renderState,
        _viewportController = viewportController,
@@ -147,7 +147,22 @@ class CanvasInteractionEnvironment implements InteractionContext {
   void onDeleteSelectedEntities() => _renderState.deleteSelectedEntities();
 
   @override
-  void onSaveTemplate() => _onSaveTemplate?.call();
+  void onSaveTemplate() {
+    final nodeIds = _renderState.selectedEntities
+        .where((id) => _dataController.nodeLookup.containsKey(id))
+        .toList();
+    if (nodeIds.isEmpty) return;
+
+    final nodeIdsSet = nodeIds.toSet();
+    final relationIds = _dataController.relationLookup.values
+        .where((r) =>
+            (nodeIdsSet.contains(r.fromNodeId) && nodeIdsSet.contains(r.toNodeId)) ||
+            _renderState.selectedEntities.contains(r.id))
+        .map((r) => r.id)
+        .toList();
+
+    _onSaveTemplate?.call(nodeIds, relationIds);
+  }
 
   @override
   Set<String> getVisibleNodeIds() => _viewportController.visibleNodeIds.value;

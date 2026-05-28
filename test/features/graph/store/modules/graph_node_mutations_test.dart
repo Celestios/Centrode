@@ -56,7 +56,7 @@ void main() {
       when(() => mockApi.deleteNodeEntry(table: any(named: 'table'), key: any(named: 'key')))
           .thenAnswer((_) async {});
 
-      controller = GraphDataController(mockApi, mockThemeController);
+      controller = GraphDataController(mockApi);
     });
 
     tearDown(() {

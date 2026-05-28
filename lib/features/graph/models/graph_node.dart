@@ -5,7 +5,6 @@ import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:uuid/uuid.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/src/rust/domain/contents.dart';
-import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
 import 'package:mycelium/src/rust/domain/tags.dart';
 
 enum UiNodes { info, task }
@@ -15,6 +14,8 @@ enum UiNodes { info, task }
 // -----------------------------------------------------------------------------
 
 sealed class UiNode {
+  static const Size defaultNodeSize = Size(100.0, 60.0);
+
   final String id;
   final int createdAt;
   String layer;
@@ -70,7 +71,7 @@ sealed class UiNode {
        locked = locked ?? false,
        layer = layer ?? "default",
        isExpanded = isExpanded ?? false,
-       size = size ?? AppConfig.node.defaultSize,
+       size = size ?? defaultNodeSize,
        content = content ?? ContentFactory.fromText("topic"),
        lineCount = lineCount ?? 1 {
     if (initialExpandable != null) {

@@ -7,8 +7,6 @@ import '../../../../src/rust/bridge/stream.dart';
 import '../../../../src/rust/domain/base_models.dart'
     show BoundingBox, MapData, ViewportState;
 import '../command_processor.dart';
-import '../../presentation/theme_manager.dart';
-import '../../presentation/graph_metrics.dart';
 import '../graph_data_controller.dart';
 import '../graph_data_query.dart';
 
@@ -19,13 +17,16 @@ class GraphSyncEngine {
   final GraphDataController controller;
   final dynamic api;
   final CommandProcessor processor;
-  final ThemeController themeController;
   MapData? _lastLoadedMetadata;
 
   // The reactive bounding box updated asynchronously by Rust
-  // Uses default bounds from AppConfig configuration
   final ValueNotifier<BoundingBox> canvasBounds = ValueNotifier(
-    AppConfig.canvas.defaultBounds,
+    const BoundingBox(
+      minX: -500,
+      minY: -500,
+      maxX: 500,
+      maxY: 500,
+    ),
   );
 
   StreamSubscription? _graphStreamSub;
@@ -34,7 +35,6 @@ class GraphSyncEngine {
     required this.controller,
     required this.api,
     required this.processor,
-    required this.themeController,
   });
 
   /// Get the latest saved viewport state of the map

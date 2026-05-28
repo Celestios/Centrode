@@ -55,7 +55,7 @@ class GraphRelationMutations {
 
     // OPTIMISTIC INSERTION (T=0.0ms)
     controller.store.relationLookup[relation.id] = relation;
-    controller.styleManager.updateStyleForRelation(relation.id);
+    controller.styleUpdater?.updateStyleForRelation(relation.id);
 
     final cmd = CreateRelationCommand(
       targetId: relation.id,

@@ -2,10 +2,8 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:logging/logging.dart';
 import '../../models/models.dart';
-import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import '../graph_data_controller.dart';
 import '../graph_data_query.dart';
-import '../../presentation/strategies/node_layout_strategy.dart';
 
 /// Node mutation operations for the graph.
 class GraphNodeMutations {
@@ -31,10 +29,10 @@ class GraphNodeMutations {
     controller.spatial.saveConfirmedPosition(id, position);
 
     // Resolve the node style immediately so it doesn't render with a transparent/stale fallback style
-    controller.styleManager.updateStyleForNode(id);
+    controller.styleUpdater?.updateStyleForNode(id);
 
     // Compute the correct initial size using the centralized layout strategy helper
-    node.size = NodeLayoutStrategy.calculateSize(node);
+    node.size = controller.calculateNodeSize(node);
 
 
     final cmd = CreateNodeCommand(
@@ -170,12 +168,12 @@ class GraphNodeMutations {
 
     // Use centralized NodeStyleStrategy to dynamically resolve node's populated style,
     // and save manual target width in style config to lock manual mode.
-    final resolvedStyle = NodeStyleStrategy.resolveStyle(node);
+    final resolvedStyle = controller.resolveNodeStyle(node);
     node.style = (node.style ?? resolvedStyle).copyWith(width: newWidth.round());
 
     // Centralized layout recomputation snaps width, snaps height, and calculates
     // the dynamic line count, fully preventing stale DB states prior to command queuing!
-    node.size = NodeLayoutStrategy.calculateSize(node);
+    node.size = controller.calculateNodeSize(node);
 
     controller.spatial.spatialGrid.update(id, oldPosition, newPosition);
 
@@ -237,7 +235,7 @@ class GraphNodeMutations {
     node.isExpanded = newExpanded;
 
     // Recalculate size with centralized strategy helper
-    node.size = NodeLayoutStrategy.calculateSize(node);
+    node.size = controller.calculateNodeSize(node);
 
     _nodeLog.fine(
       'TOGGLING EXPANSION: $id oldExpanded=$oldExpanded -> newExpanded=$newExpanded, newSize=${node.size}',

@@ -7,6 +7,9 @@ import '../store/graph_data_controller.dart';
 import 'theme_manager.dart';
 import 'node_render_state.dart';
 import 'viewport_state.dart';
+import 'strategies/node_layout_strategy.dart';
+import 'strategies/node_style_strategy.dart';
+import 'style_manager.dart';
 
 class TabSession extends ChangeNotifier {
   final String id;
@@ -99,11 +102,27 @@ class TabSession extends ChangeNotifier {
     handle = activeHandle;
     final tc = ThemeController(activeHandle);
     themeController = tc;
-    final dc = GraphDataController(activeHandle, tc);
+    final dc = GraphDataController(activeHandle);
     dataController = dc;
     nodeRenderState = NodeRenderState(dc);
     
+    final styleManager = StyleManager(dc.store);
+    dc.sizeCalculator = NodeLayoutStrategy.calculateSize;
+    dc.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
+    dc.styleUpdater = styleManager;
+
+    tc.addListener(() {
+      final newTheme = tc.currentGraphTheme;
+      styleManager.setTheme(newTheme);
+      styleManager.updateAllStyles(dc.store.nodes, dc.store.relations);
+      dc.triggerUpdate();
+    });
+    
     await tc.initialize(globalTheme);
+    // Seeding initial theme style
+    styleManager.setTheme(tc.currentGraphTheme);
+    styleManager.updateAllStyles(dc.store.nodes, dc.store.relations);
+
     await dc.loadGraph();
     isInitialized = true;
     notifyListeners();

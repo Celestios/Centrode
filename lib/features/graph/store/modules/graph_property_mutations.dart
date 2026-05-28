@@ -3,7 +3,6 @@ import 'package:logging/logging.dart';
 import '../../models/models.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/features/graph/models/content_builder.dart';
-import '../../presentation/strategies/node_layout_strategy.dart';
 import '../graph_data_controller.dart';
 import '../graph_data_query.dart';
 import 'package:mycelium/src/rust/domain/tags.dart';
@@ -33,7 +32,7 @@ class GraphPropertyMutations {
     if (node != null && originalText != null) {
       final oldContent = node.content;
       node.content = ContentFactory.fromText(originalText);
-      preEditSize = NodeLayoutStrategy.calculateSize(node);
+      preEditSize = controller.calculateNodeSize(node);
       // Restore back to current text
       node.content = oldContent;
     } else {
@@ -43,7 +42,7 @@ class GraphPropertyMutations {
     // 1. Ensure the optimistic memory state is completely up-to-date
     if (node != null) {
       node.content = ContentFactory.fromText(newText);
-      node.size = NodeLayoutStrategy.calculateSize(node);
+      node.size = controller.calculateNodeSize(node);
     } else if (rel != null) {
       rel.verb = newText;
     }
@@ -124,7 +123,7 @@ class GraphPropertyMutations {
     if (node != null) {
       if (node.content.text == newText) return;
       node.content = ContentFactory.fromText(newText);
-      node.size = NodeLayoutStrategy.calculateSize(node);
+      node.size = controller.calculateNodeSize(node);
       controller.publishUpdate(GraphEntityUpdate(
         id: id,
         tableName: node.tableName,
@@ -154,7 +153,7 @@ class GraphPropertyMutations {
     final node = controller.store.nodeLookup[id];
     if (node == null) return;
     node.style = newStyle;
-    controller.styleManager.updateStyleForNode(id);
+    controller.styleUpdater?.updateStyleForNode(id);
     controller.publishUpdate(GraphEntityUpdate(
       id: id,
       tableName: node.tableName,

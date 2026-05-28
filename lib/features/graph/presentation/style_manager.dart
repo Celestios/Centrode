@@ -7,8 +7,9 @@ import 'package:mycelium/features/graph/presentation/strategies/significance_mod
 import 'package:mycelium/features/graph/store/modules/graph_store.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' show DisplayMode;
+import 'package:mycelium/features/graph/store/graph_data_controller.dart' show GraphStyleUpdater;
 
-class StyleManager {
+class StyleManager implements GraphStyleUpdater {
   final Logger _log = Logger('StyleManager');
 
   final GraphStore _store;

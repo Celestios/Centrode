@@ -34,7 +34,7 @@ void main() {
             displayMode: frb.DisplayMode.importance,
           )));
 
-      controller = GraphDataController(mockApi, mockThemeController);
+      controller = GraphDataController(mockApi);
     });
 
     tearDown(() {

@@ -73,20 +73,7 @@ class _GraphCanvasState extends State<GraphCanvas>
         getScale: () =>
             vpController.transformController.value.getMaxScaleOnAxis(),
         boundSession: _boundSession,
-        onSaveTemplate: () async {
-          final nodeIds = renderState.selectedEntities
-              .where((id) => dataController.nodeLookup.containsKey(id))
-              .toList();
-          if (nodeIds.isEmpty) return;
-
-          final nodeIdsSet = nodeIds.toSet();
-          final relationIds = dataController.relationLookup.values
-              .where((r) =>
-                  (nodeIdsSet.contains(r.fromNodeId) && nodeIdsSet.contains(r.toNodeId)) ||
-                  renderState.selectedEntities.contains(r.id))
-              .map((r) => r.id)
-              .toList();
-
+        onSaveTemplate: (nodeIds, relationIds) async {
           final name = await showSaveTemplateDialog(context);
           if (name != null) {
             await dataController.saveTemplateFromSelection(name, nodeIds, relationIds);
