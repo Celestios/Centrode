@@ -1,0 +1,5 @@
+{
+  "name": "rust-core-plugin",
+  "version": "1.0.0",
+  "description": "Rules and conventions for modifying the Rust core (mycelium_core) backend, including FFI bindings and SurrealDB persistence."
+}

@@ -1,3 +1,7 @@
+---
+activation: always_on
+---
+
 # Rule: Symmetry and Architectural Cohesion
 
 - You MUST recognize symmetry as the enforcement of structural invariants and algebraic cohesion across the codebase.

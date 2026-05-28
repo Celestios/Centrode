@@ -1,0 +1,5 @@
+{
+  "name": "srp-audit-plugin",
+  "version": "1.0.0",
+  "description": "An architectural alignment and Single-Responsibility Principle (SRP) audit plugin. Enforces 3-Tier boundaries and symmetry."
+}

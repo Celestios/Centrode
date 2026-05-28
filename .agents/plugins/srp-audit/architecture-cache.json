@@ -1,0 +1,204 @@
+{
+  "last_audit_commit": "ddb8654a0a965ba3ab6d26a557bff602db84780f",
+  "last_audit_time": "2026-05-28T12:20:00Z",
+  "layers": {
+    "lib/features/graph/ui": {
+      "tier": 1,
+      "responsibility": "Renders visual UI components, canvas viewports, and overlays for user interaction.",
+      "exclusions": "MUST NOT house domain state mutation logic, direct database/FFI calls, or low-level mathematical coordinate calculations."
+    },
+    "lib/features/graph/engine": {
+      "tier": 2,
+      "responsibility": "Manages user interaction state (dragging, panning, zooming), processes canvas gestures, and drives the gesture Finite State Machine (FSM).",
+      "exclusions": "MUST NOT paint UI widgets directly or interact directly with the database or storage controllers."
+    },
+    "lib/features/graph/presentation": {
+      "tier": 2,
+      "responsibility": "Manages UI-specific transient presentation state, view projections, layout strategies, viewport calculations, and theme mappings.",
+      "exclusions": "MUST NOT directly mutate database structures or issue raw FFI commands."
+    },
+    "lib/features/graph/store": {
+      "tier": 3,
+      "responsibility": "Coordinates in-memory lookup cache, spatial queries, FFI synchronization, and local reactive state updates.",
+      "exclusions": "MUST NOT import, listen to, or depend on UI presentation controllers, style managers, or theme controllers."
+    },
+    "lib/features/graph/models": {
+      "tier": 3,
+      "responsibility": "Defines UI domain models wrapping core Rust models, providing serialization/deserialization across the FFI boundary.",
+      "exclusions": "MUST NOT import or depend on presentation-tier configuration parameters or metrics."
+    },
+    "lib/infrastructure": {
+      "tier": 3,
+      "responsibility": "Handles low-level platform infrastructure concerns (logger isolates, uncaught asynchronous telemetry reporting).",
+      "exclusions": "MUST NOT import or depend on domain business logic or presentation-tier state."
+    }
+  },
+  "components": {
+    "lib/features/graph/models/graph_node.dart": {
+      "class": "UiNode",
+      "srp_responsibility": "Provides abstract domain model representation for all graph nodes.",
+      "sha256": "85AFC93D1146878D7BEE70C08F9D7696ABC516D1364D9688397267689EBB1E43",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Line 8: Model imports presentation-tier configuration metrics (graph_metrics.dart)."
+      ]
+    },
+    "lib/features/graph/models/graph_relation.dart": {
+      "class": "UiRelation",
+      "srp_responsibility": "Defines presentational relation models wrapping low-level Rust relation models.",
+      "sha256": "A534457EEB2D1AB96B3AD040D13EB9B1099ECD132B1B330BF0F937C33ED31B4F",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/features/graph/store/graph_data_controller.dart": {
+      "class": "GraphDataController",
+      "srp_responsibility": "Acts as the high-level orchestrator and Facade for domain store modules.",
+      "sha256": "C7FEDC798753BF0CD1BA3BEF9AE2DB9D67A9F2280BFDD18F52330F013D711721",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Line 8: Imports and couples with presentation-tier ThemeController.",
+        "Line 23: Imports and couples with presentation-tier StyleManager.",
+        "Line 113: Constructor injection dynamically registers ThemeController listener inside store facade."
+      ]
+    },
+    "lib/features/graph/store/modules/graph_node_mutations.dart": {
+      "class": "GraphNodeMutations",
+      "srp_responsibility": "Performs optimistic node mutations and queues FFI command executions.",
+      "sha256": "0F63EE7E6759B53B3C1E60579AFAD26F5F152C275F54F4C405C80F7A674EAC11",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Line 5: Imports and relies on NodeStyleStrategy from the presentation layer.",
+        "Line 8: Imports and relies on NodeLayoutStrategy from the presentation layer."
+      ]
+    },
+    "lib/features/graph/store/modules/graph_property_mutations.dart": {
+      "class": "GraphPropertyMutations",
+      "srp_responsibility": "Performs optimistic entity property changes and text modifications.",
+      "sha256": "BAA7599F0D2C8F87982F3542115A4BF1716F5A528ACCB0A0714D1C2B5DFCBBFD",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Line 6: Imports and relies on NodeLayoutStrategy from the presentation layer."
+      ]
+    },
+    "lib/features/graph/store/modules/graph_relation_mutations.dart": {
+      "class": "GraphRelationMutations",
+      "srp_responsibility": "Performs optimistic relation creation and deletions.",
+      "sha256": "39B97B4EC9F81673BA07CDC1EEB8AAD5C953733D0F0EC65BA0A87E3A4CB396FF",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Line 58: Calls controller.styleManager.updateStyleForRelation, which leaks presentation concerns into the store mutations."
+      ]
+    },
+    "lib/features/graph/store/modules/graph_template_mutations.dart": {
+      "class": "GraphTemplateMutations",
+      "srp_responsibility": "Manages graph template saves and instantiations.",
+      "sha256": "4E3AFE1E0C67FF428B78231625F6A5D112D3A61921B96A9C21AF4898094DF951",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/features/graph/store/modules/graph_store.dart": {
+      "class": "GraphStore",
+      "srp_responsibility": "Provides fast O(1) lookups for active in-memory nodes and relations.",
+      "sha256": "00F63D49E57EA8BAD988F4F9E6872732206557B76143429401FCBDE985F08D7F",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/features/graph/store/modules/graph_spatial.dart": {
+      "class": "GraphSpatial",
+      "srp_responsibility": "Tracks dynamic element locations and performs spatial hash indexing for viewport culling.",
+      "sha256": "5FAD8CF88D11792D3A4A32D57774EAB8D2D1FF2998952285287975C93EDC2AFC",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/features/graph/store/modules/graph_sync_engine.dart": {
+      "class": "GraphSyncEngine",
+      "srp_responsibility": "Maintains communications and state streams between local store modules and the Rust FFI.",
+      "sha256": "3B49C6A54CE13F89D0B2241801C219FD0705E35C51C0E7F832EBC63BEA9A2C9C",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Line 22: Contains an unused reference and parameter to presentation-tier ThemeController."
+      ]
+    },
+    "lib/features/graph/engine/interaction_facade.dart": {
+      "class": "CanvasInteractionEnvironment",
+      "srp_responsibility": "Implements InteractionContext to act as the unified facade bridging interaction FSM to controllers.",
+      "sha256": "0BC0C060ACBD3B64BDBA6A431EAD9013FE56B224B26E15534E407E639EE373BF",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/features/graph/engine/interaction_engine.dart": {
+      "class": "InteractionController",
+      "srp_responsibility": "Drives the Finite State Machine (FSM) translating viewport gestures to interaction states.",
+      "sha256": "6D718E0D8E96EFEABFC64305EFC8455D73D8BBD2097E089D0F7DDA4F334CB99F",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/features/graph/presentation/node_render_state.dart": {
+      "class": "NodeRenderState",
+      "srp_responsibility": "Translates database/store truth into responsive view states and z-order layouts.",
+      "sha256": "4D0CB07CF853DF41ACB90894BB99611728354CCDD4F536B22AF84BDD77849C03",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/features/graph/presentation/viewport_state.dart": {
+      "class": "ViewportController",
+      "srp_responsibility": "Controls viewport translation, boundaries, zoom constraints, and elastic viewport framing.",
+      "sha256": "07A2DAA2BC6F165EA2714E9652A62ED60DD5DDD84A8D805CEB0FD862599B388D",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/features/graph/presentation/theme_manager.dart": {
+      "class": "ThemeController",
+      "srp_responsibility": "Coordinates active application UI theme state and bridges core styling preferences.",
+      "sha256": "F34EDDA666D8A197D89F85D736403218E8393E373AD2106A27260803CD0CA8DE",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/features/graph/presentation/style_manager.dart": {
+      "class": "StyleManager",
+      "srp_responsibility": "Maps theme preferences and significance levels to concrete UI node/relation styling metrics.",
+      "sha256": "163A64B735842EB5F63F9CC342897B5AB615CAAE2509D108FB933D94F07CAA72",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/features/graph/presentation/workspace_tabs_controller.dart": {
+      "class": "WorkspaceTabsController",
+      "srp_responsibility": "Coordinates multiple tab sessions, handles initialization, and controls the active workspace.",
+      "sha256": "67D537E99C58A6BB0267C9C8F51BEC10B0AC6ADE0DB1D46DA7321521525082B4",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/features/graph/presentation/view_state.dart": {
+      "class": "NodeViewState",
+      "srp_responsibility": "Manages transient UI-bound node states (hover, dragging, editing, focus).",
+      "sha256": "3959B258D8AA8DE1A3387542891A45D11C96CABFB5A29FDC01A8E63E45BEB021",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Line 42: Calculates node layout size directly in ViewState using NodeLayoutStrategy, introducing coupling with layout strategies."
+      ]
+    },
+    "lib/features/graph/presentation/strategies/node_layout_strategy.dart": {
+      "class": "NodeLayoutStrategy",
+      "srp_responsibility": "Computes visual bounds and line-wrapping counts based on font sizes and configurations.",
+      "sha256": "BB982B1432A027E6FE281018497DFF5C929895376B841AFD675D11203CFD04B5",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/features/graph/presentation/strategies/node_style_strategy.dart": {
+      "class": "NodeStyleStrategy",
+      "srp_responsibility": "Resolves base node styles and defaults from global application configuration parameters.",
+      "sha256": "773AF174C2E835273CD6344DA7F23948179D6E81965710A4410D7BEF2E4696E5",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/features/graph/ui/canvas/graph_canvas.dart": {
+      "class": "GraphCanvas",
+      "srp_responsibility": "Constructs the layout viewport stack, listens to active controllers, and initializes the FSM environment.",
+      "sha256": "D532BDEBB98DA04B334072AC42CE6506B1FB138D5C96A9F28DF72071F05F0C1C",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Lines 76-94: Combines inline query rules (gathering node and relation IDs) and dialog presentation directly inside the widget initialization block."
+      ]
+    }
+  }
+}

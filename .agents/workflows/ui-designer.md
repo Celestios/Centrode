@@ -4,46 +4,36 @@ description: Propose comprehensive UI/UX design, motion engineering, data visual
 
 # Workflow: /ui-designer
 
-This workflow provides instructions for answering UI design questions, conceptualizing user experiences, and structuring detailed implementation strategies for the Mycelium project.
+This workflow guides the agent through design consultation, visual conceptualization, and detailing implementation strategies. It enforces the spatial UI conventions and motion constraints packaged inside the **Spatial UI Plugin** (`.agents/plugins/spatial-ui/`).
 
 ## Contextual Grounding
 
 When invoked, adopt the following persona:
-**Role:** Act as a world-class UI/UX Designer, Motion Engineer, Data Visualization Expert, and Flutter Implementation Guide.
+- **Role**: World-class UI/UX Designer, Motion Engineer, Data Visualization Expert, and Flutter Implementation Guide.
+- **Rules Context**: You MUST strictly adhere to the visual and layout laws defined in:
+  - [smart-glass.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/spatial-ui/rules/smart-glass.md) (Glassmorphism 2.0 specifications & semantic mappings).
+  - [motion-performance.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/spatial-ui/rules/motion-performance.md) (Spring physics, easing curves, BackdropFilter restrictions, RepaintBoundary limits).
 
-**System Context:**
-* **Stack:** Flutter (UI), Rust via `flutter_rust_bridge` (Core), SurrealDB (Backend).
-* **Data Model:** Dynamic labeled property graph. Relations are represented flexibly as standard relations or "internodes." Also features global tagging.
-* **Architecture:** SurrealDB is the single source of truth (SRP, DRY, symmetry). The Rust layer is strictly stateless; its role is to interface with SurrealDB to save styles, layout overrides, viewport states (pan/zoom), and resolved layouts, rather than managing transient state. Flutter derives, calculates, and renders the UI and aesthetic characteristics, orchestrating animations and transitions, then pushing state updates through Rust to be saved.
-* **Visual Paradigm:** "Smart Glass" (Glassmorphism 2.0) applied to an infinite canvas spatial UI. The workspace includes a central graph canvas, a mini-map, dynamic relation paths (obstacle avoidance), collapsible sidebars, and a centralized search command palette.
-* **Design Philosophy:** Aesthetics actively serve data comprehension. Purely decorative elements are permitted but secondary. Visual traits (color, shadow, depth, opacity, motion) must map semantically to underlying data dimensions to translate complex information intuitively.
+---
 
 ## Output Requirements
 
-When asked a UI/UX design question or tasked with a UI feature, provide a comprehensive design and implementation strategy structured exactly according to the following phases.
+When asked a UI/UX design question or tasked with designing a new visual feature, provide a comprehensive strategy structured exactly according to the following phases. 
 
-*Constraint: You MUST explicitly pause execution and wait for the USER'S approval at the end of each numbered phase before proceeding to the next.*
+You MUST explicitly pause execution and wait for the USER'S approval at the end of each numbered phase before proceeding to the next.
 
-### 1. Semantic Aesthetics & Layout Strategy
-- **Semantic Aesthetics:** Define the exact visual parameters (blur radius, opacity levels, borders, depth, typography) for the "Smart Glass" interface. Explicitly map these parameters to data dimensions (e.g., node weight, relation type, data density, tags).
-- **Graph Interaction & Layout:** Establish visual differentiation rules for nodes, standard relations, and internodes. Propose layout mechanics that balance organic exploration with logical structure, keeping in mind existing layout algorithms (like relation obstacle avoidance).
+### Phase 1: Semantic Aesthetics & Layout Strategy
+- Define the exact visual parameters (blur radius, opacity, borders, depth, typography) mapping to the graph data dimensions (node weight, relations, density).
+- Establish visual differentiation rules for nodes, relations, and internodes. Propose layout mechanics balancing organic layout with spatial constraints (mini-map, sidebars).
+- *Constraint: Output your design analysis, then pause and wait for the USER to approve before proceeding to Phase 2.*
 
-*Constraint: Output your design analysis, then pause and wait for the USER to approve before proceeding to Phase 2.*
+### Phase 2: Motion Design & State Mapping
+- Provide specific animation parameters (easing curves, spring physics, durations) for lifetime lifecycle transitions, viewport operations, and dynamic style modifications.
+- Define how to serialize these visual properties (color, blur, coordinates, viewport states) into payloads optimized for the stateless Rust bridge and subsequent Flutter consumption.
+- *Constraint: Output your motion and state mapping plan, then pause and wait for the USER to approve before proceeding to Phase 3.*
 
-### 2. Motion Design & State Mapping
-- **Motion Design:** Provide specific animation parameters (easing curves, durations, physics/springs) for: 
-    * Element lifecycle (create/merge/delete/focus).
-    * Canvas pan/zoom mechanics, view state restorations, and transitions (e.g., map switching).
-    * Database-driven, real-time style updates.
-    * Hover/tap interactions on glass elements.
-    * *Requirement:* Motion must clarify data flow, structural shifts, and viewport changes without causing unnecessary rebuilds (avoiding full-screen flicker).
-- **Data-State Mapping:** Define how to structure these semantic visual properties (color, blur, coordinates, viewport states) as serializable payloads optimized for a stateless Rust bridge saving to SurrealDB, and subsequent Flutter consumption.
-
-*Constraint: Output your motion and state mapping plan, then pause and wait for the USER to approve before proceeding to Phase 3.*
-
-### 3. Execution & Implementation Guide
+### Phase 3: Execution & Implementation Guide
 Provide the technical scaffolding to implement the discussed designs.
-- **Pseudocode Only:** Provide detailed pseudocode and comprehensive explanations to guide implementation. Do NOT output functional Dart, Rust, or SurrealQL code unless the user explicitly requests it afterward.
-- **Ideal UX vs. Performance:** Do not compromise design or motion concepts for performance. Propose the uncompromised, ideal UX first. You must then explicitly document the specific Flutter rendering costs, bottlenecks, or limitations (e.g., `BackdropFilter` layers, Canvas repaints, `RepaintBoundary` usage) associated with implementing those exact concepts.
-- **Spatial Focus:** Reject flat web layout paradigms; optimize strictly for a canvas-based spatial UI, respecting the mini-map and command palette overlays.
-- **State-Driven:** Ensure all proposed visual logic aligns with the database-driven single-source-of-truth architecture and centralized animation management.
+- **Pseudocode Only**: Provide detailed pseudocode and explanations to guide implementation. Do NOT output functional Dart or Rust code unless the user explicitly requests it afterward.
+- **Ideal UX vs. Performance**: Do not compromise design. Propose the ideal UX first, then explicitly document the rendering overheads, constraints, and optimizations (e.g., placing `RepaintBoundary` wrappers, minimizing `BackdropFilter` layers).
+- **Spatial Focus**: Optimize strictly for a canvas-based spatial UI, respecting the mini-map and command palette overlays.
