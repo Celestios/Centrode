@@ -10,6 +10,7 @@ import '../domain/patches.dart';
 import '../domain/relations.dart';
 import '../domain/styles.dart';
 import '../domain/tags.dart';
+import '../domain/templates.dart';
 import '../domain/theme.dart';
 import '../frb_generated.dart';
 import '../persistence/history.dart';
@@ -52,9 +53,13 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<void> deleteTag({required String key});
 
+  Future<void> deleteTemplate({required String key});
+
   Future<String?> getActiveThemeId();
 
   Future<List<Tag>> getAllTags();
+
+  Future<List<Template>> getAllTemplates();
 
   Future<List<Theme>> getAllThemes();
 
@@ -68,6 +73,12 @@ abstract class AppHandle implements RustOpaqueInterface {
   Future<Tag?> getTag({required String key});
 
   Future<Theme?> getTheme({required String key});
+
+  Future<void> instantiateTemplate({
+    required String key,
+    required double targetX,
+    required double targetY,
+  });
 
   Future<void> loadMapFromFile({
     required String filePath,
@@ -96,6 +107,12 @@ abstract class AppHandle implements RustOpaqueInterface {
   Future<void> saveMapToFile({
     required String filePath,
     required String attachmentDir,
+  });
+
+  Future<void> saveTemplateFromSelection({
+    required String name,
+    required List<RecordStrings> nodeKeys,
+    required List<RecordStrings> relationKeys,
   });
 
   Future<void> setActiveTheme({required String themeKey});

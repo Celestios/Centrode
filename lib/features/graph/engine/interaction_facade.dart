@@ -14,6 +14,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
   final ViewportController _viewportController;
   final double Function() _getScale;
   final TabSession? _boundSession;
+  final VoidCallback? _onSaveTemplate;
 
   CanvasInteractionEnvironment({
     required GraphDataController dataController,
@@ -21,11 +22,13 @@ class CanvasInteractionEnvironment implements InteractionContext {
     required ViewportController viewportController,
     required double Function() getScale,
     TabSession? boundSession,
+    VoidCallback? onSaveTemplate,
   }) : _dataController = dataController,
        _renderState = renderState,
        _viewportController = viewportController,
        _getScale = getScale,
-       _boundSession = boundSession;
+       _boundSession = boundSession,
+       _onSaveTemplate = onSaveTemplate;
 
   @override
   Map<String, NodeViewState> get nodeViewStates => _renderState.viewStates;
@@ -142,6 +145,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
   @override
   void onDeleteSelectedEntities() => _renderState.deleteSelectedEntities();
+
+  @override
+  void onSaveTemplate() => _onSaveTemplate?.call();
 
   @override
   Set<String> getVisibleNodeIds() => _viewportController.visibleNodeIds.value;

@@ -17,6 +17,7 @@ import 'domain/patches.dart';
 import 'domain/relations.dart';
 import 'domain/styles.dart';
 import 'domain/tags.dart';
+import 'domain/templates.dart';
 import 'domain/theme.dart';
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_web.dart';
@@ -284,6 +285,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<RecordStrings> dco_decode_list_record_strings(dynamic raw);
+
+  @protected
   List<RelationPatch> dco_decode_list_relation_patch(dynamic raw);
 
   @protected
@@ -294,6 +298,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<TaskNode> dco_decode_list_task_node(dynamic raw);
+
+  @protected
+  List<Template> dco_decode_list_template(dynamic raw);
 
   @protected
   List<TextMark> dco_decode_list_text_mark(dynamic raw);
@@ -411,6 +418,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TaskNodeFields dco_decode_task_node_fields(dynamic raw);
+
+  @protected
+  Template dco_decode_template(dynamic raw);
 
   @protected
   TextMark dco_decode_text_mark(dynamic raw);
@@ -697,6 +707,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
+  List<RecordStrings> sse_decode_list_record_strings(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<RelationPatch> sse_decode_list_relation_patch(
     SseDeserializer deserializer,
   );
@@ -709,6 +724,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<TaskNode> sse_decode_list_task_node(SseDeserializer deserializer);
+
+  @protected
+  List<Template> sse_decode_list_template(SseDeserializer deserializer);
 
   @protected
   List<TextMark> sse_decode_list_text_mark(SseDeserializer deserializer);
@@ -840,6 +858,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TaskNodeFields sse_decode_task_node_fields(SseDeserializer deserializer);
+
+  @protected
+  Template sse_decode_template(SseDeserializer deserializer);
 
   @protected
   TextMark sse_decode_text_mark(SseDeserializer deserializer);
@@ -1199,6 +1220,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_record_strings(
+    List<RecordStrings> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_relation_patch(
     List<RelationPatch> self,
     SseSerializer serializer,
@@ -1212,6 +1239,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_list_task_node(List<TaskNode> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_template(List<Template> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_text_mark(List<TextMark> self, SseSerializer serializer);
@@ -1365,6 +1395,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     TaskNodeFields self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_template(Template self, SseSerializer serializer);
 
   @protected
   void sse_encode_text_mark(TextMark self, SseSerializer serializer);

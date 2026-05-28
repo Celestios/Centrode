@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import '../../../models/left_panel_type.dart';
 import 'glass_panel.dart'; // adjust path as needed
 
 class LeftRepositoryDrawer extends StatelessWidget {
-  final bool isTagManagerOpen;
-  final VoidCallback onTapTags;
+  final LeftPanelType activePanel;
+  final void Function(LeftPanelType) onPanelChanged;
 
   const LeftRepositoryDrawer({
     super.key,
-    required this.isTagManagerOpen,
-    required this.onTapTags,
+    required this.activePanel,
+    required this.onPanelChanged,
   });
 
   @override
@@ -34,8 +35,26 @@ class LeftRepositoryDrawer extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _GlassIconTile(
-              icon: isTagManagerOpen ? Icons.arrow_back_rounded : Icons.local_offer,
-              onTap: onTapTags,
+              icon: activePanel == LeftPanelType.tags ? Icons.arrow_back_rounded : Icons.local_offer,
+              onTap: () {
+                if (activePanel == LeftPanelType.tags) {
+                  onPanelChanged(LeftPanelType.none);
+                } else {
+                  onPanelChanged(LeftPanelType.tags);
+                }
+              },
+              animateIcon: true,
+            ),
+            Divider(height: 1, color: dividerColor),
+            _GlassIconTile(
+              icon: activePanel == LeftPanelType.templates ? Icons.arrow_back_rounded : Icons.copy_all_outlined,
+              onTap: () {
+                if (activePanel == LeftPanelType.templates) {
+                  onPanelChanged(LeftPanelType.none);
+                } else {
+                  onPanelChanged(LeftPanelType.templates);
+                }
+              },
               animateIcon: true,
             ),
             Divider(height: 1, color: dividerColor),

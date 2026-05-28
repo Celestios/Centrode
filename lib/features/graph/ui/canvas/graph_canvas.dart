@@ -20,6 +20,10 @@ import '../widgets/overlays/left_repository_drawer.dart';
 import '../widgets/overlays/right_property_panel.dart';
 import '../widgets/overlays/canvas_status_bar/canvas_status_bar.dart';
 import '../../../../presentation/widgets/tag_manager/global_tags_manager_panel.dart';
+import '../../../../presentation/widgets/template_manager/global_templates_manager_panel.dart';
+import '../../../../presentation/widgets/template_manager/save_template_dialog.dart';
+import '../../models/left_panel_type.dart';
+import '../../../../src/rust/domain/templates.dart';
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
@@ -40,7 +44,7 @@ class _GraphCanvasState extends State<GraphCanvas>
   bool _hasInitialFramed = false;
   bool _viewportRestoreAttempted = false;
   bool _viewportRestored = false;
-  bool _isTagManagerOpen = false;
+  LeftPanelType _activeLeftPanel = LeftPanelType.none;
 
   @override
   void initState() {
@@ -69,6 +73,25 @@ class _GraphCanvasState extends State<GraphCanvas>
         getScale: () =>
             vpController.transformController.value.getMaxScaleOnAxis(),
         boundSession: _boundSession,
+        onSaveTemplate: () async {
+          final nodeIds = renderState.selectedEntities
+              .where((id) => dataController.nodeLookup.containsKey(id))
+              .toList();
+          if (nodeIds.isEmpty) return;
+
+          final nodeIdsSet = nodeIds.toSet();
+          final relationIds = dataController.relationLookup.values
+              .where((r) =>
+                  (nodeIdsSet.contains(r.fromNodeId) && nodeIdsSet.contains(r.toNodeId)) ||
+                  renderState.selectedEntities.contains(r.id))
+              .map((r) => r.id)
+              .toList();
+
+          final name = await showSaveTemplateDialog(context);
+          if (name != null) {
+            await dataController.saveTemplateFromSelection(name, nodeIds, relationIds);
+          }
+        },
       );
 
       // 3. Initialize the pure FSM Engine
@@ -151,18 +174,31 @@ class _GraphCanvasState extends State<GraphCanvas>
                 children: [
                   // Zoomable / Pannable Interactive Canvas Layer
                   Positioned.fill(
-                    child: MouseRegion(
-                      cursor: state.cursor,
-                      child: Listener(
-                        onPointerDown: interactionController.handlePointerDown,
-                        onPointerMove: interactionController.handlePointerMove,
-                        onPointerUp: interactionController.handlePointerUp,
-                        onPointerCancel:
-                            interactionController.handlePointerCancel,
-                        onPointerHover:
-                            interactionController.handlePointerHover,
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
+                    child: DragTarget<Template>(
+                      onWillAcceptWithDetails: (details) => true,
+                      onAcceptWithDetails: (details) async {
+                        final renderBox = context.findRenderObject() as RenderBox?;
+                        if (renderBox == null) return;
+                        final localOffset = renderBox.globalToLocal(details.offset);
+                        final transform = viewportController.transformController.value;
+                        if (transform.determinant() == 0.0) return;
+                        final inverse = Matrix4.inverted(transform);
+                        final canvasOffset = MatrixUtils.transformPoint(inverse, localOffset);
+                        await dataController.instantiateTemplate(details.data.key, canvasOffset);
+                      },
+                      builder: (context, candidateData, rejectedData) {
+                        return MouseRegion(
+                          cursor: state.cursor,
+                          child: Listener(
+                            onPointerDown: interactionController.handlePointerDown,
+                            onPointerMove: interactionController.handlePointerMove,
+                            onPointerUp: interactionController.handlePointerUp,
+                            onPointerCancel:
+                                interactionController.handlePointerCancel,
+                            onPointerHover:
+                                interactionController.handlePointerHover,
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
                             final viewport = constraints.biggest;
 
                             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -243,8 +279,10 @@ class _GraphCanvasState extends State<GraphCanvas>
                           },
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
+                ),
+              ),
 
                   // Persistent Floating Overlays
                   // Top Deck Area (Ribbon and tabs below it)
@@ -272,10 +310,10 @@ class _GraphCanvasState extends State<GraphCanvas>
                         left: 12,
                         width: 52,
                         child: LeftRepositoryDrawer(
-                          isTagManagerOpen: _isTagManagerOpen,
-                          onTapTags: () {
+                          activePanel: _activeLeftPanel,
+                          onPanelChanged: (panel) {
                             setState(() {
-                              _isTagManagerOpen = !_isTagManagerOpen;
+                              _activeLeftPanel = panel;
                             });
                           },
                         ),
@@ -283,27 +321,28 @@ class _GraphCanvasState extends State<GraphCanvas>
                     },
                   ),
 
-                  // Global Tags Manager Panel (opens to the right of the left drawer)
+                  // Left repository panel (opens to the right of the left drawer)
                   ValueListenableBuilder<bool>(
                     valueListenable: session.showLeftPanel,
                     builder: (context, leftVisible, _) {
                       if (!leftVisible) return const SizedBox.shrink();
+                      final isOpen = _activeLeftPanel != LeftPanelType.none;
                       return AnimatedPositioned(
                         duration: const Duration(milliseconds: 250),
                         curve: Curves.easeInOut,
                         top: 178.0,
                         left: 76.0,
                         bottom: 86.0,
-                        width: _isTagManagerOpen ? 280.0 : 0.0,
+                        width: isOpen ? 280.0 : 0.0,
                         child: AnimatedOpacity(
                           duration: const Duration(milliseconds: 200),
-                          opacity: _isTagManagerOpen ? 1.0 : 0.0,
-                          child: const ClipRect(
+                          opacity: isOpen ? 1.0 : 0.0,
+                          child: ClipRect(
                             child: OverflowBox(
                               minWidth: 280.0,
                               maxWidth: 280.0,
                               alignment: Alignment.topLeft,
-                              child: GlobalTagsManagerPanel(),
+                              child: _buildLeftPanelContent(),
                             ),
                           ),
                         ),
@@ -345,5 +384,16 @@ class _GraphCanvasState extends State<GraphCanvas>
         },
       ),
     );
+  }
+
+  Widget _buildLeftPanelContent() {
+    switch (_activeLeftPanel) {
+      case LeftPanelType.tags:
+        return const GlobalTagsManagerPanel();
+      case LeftPanelType.templates:
+        return const GlobalTemplatesManagerPanel();
+      case LeftPanelType.none:
+        return const SizedBox.shrink();
+    }
   }
 }

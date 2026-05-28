@@ -1,6 +1,6 @@
 use crate::domain::base_models::{IsTable, Record, RecordStrings};
 use crate::domain::styles::{RelationLayout, RelationStyle};
-use surrealdb::types::{RecordIdKey, SurrealValue, Value};
+use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
 
 #[derive(Debug, Clone)]
 pub struct IRelation {
@@ -70,8 +70,15 @@ impl SurrealValue for IRelation {
     }
 
     fn into_value(self) -> Value {
-        self.fields.into_value()
+        let mut val = self.fields.into_value();
+        if let Value::Object(ref mut obj) = val {
+            obj.insert("id".to_string(), RecordId::new(Self::LABEL, self.key).into_value());
+            obj.insert("in".to_string(), self.in_.into_value());
+            obj.insert("out".to_string(), self.out.into_value());
+        }
+        val
     }
+
 }
 
 #[derive(Debug, Clone, SurrealValue)]

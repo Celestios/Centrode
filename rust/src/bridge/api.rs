@@ -3,6 +3,8 @@ use crate::domain::analysis::GraphAnalysis;
 use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings, ViewportState};
 use crate::domain::nodes::{INode, INodeFields, InterNode, InterNodeFields, Nodes, TaskNode, TaskNodeFields};
 use crate::domain::tags::Tag;
+use crate::domain::templates::Template;
+
 use crate::domain::patches::{EntityPatch, NodePatch, SymmetricEntityPatch, PatchHistoryPayload};
 use crate::domain::relations::IRelation;
 use crate::domain::theme::{Theme, ThemeFields};
@@ -533,6 +535,32 @@ impl AppHandle {
     pub async fn delete_tag(&self, key: String) -> anyhow::Result<()> {
         self.repo.delete_tag(key).await
     }
+
+    // --- Template FFI Endpoints ---
+
+    pub async fn save_template_from_selection(
+        &self,
+        name: String,
+        node_keys: Vec<RecordStrings>,
+        relation_keys: Vec<RecordStrings>,
+    ) -> anyhow::Result<()> {
+        self.repo.save_template_from_selection(name, node_keys, relation_keys).await
+    }
+
+    pub async fn instantiate_template(&self, key: String, target_x: f64, target_y: f64) -> anyhow::Result<()> {
+        self.repo.instantiate_template(key, target_x, target_y).await?;
+        stream::publish_event(GraphEvent::SnapshotLoaded);
+        Ok(())
+    }
+
+    pub async fn get_all_templates(&self) -> anyhow::Result<Vec<Template>> {
+        self.repo.get_all_templates().await
+    }
+
+    pub async fn delete_template(&self, key: String) -> anyhow::Result<()> {
+        self.repo.delete_template(key).await
+    }
+
 
     pub async fn query_search(&self, query: String) -> anyhow::Result<Vec<Nodes>> {
         tracing::debug!("FFI: query_search called with query: {}", query);
