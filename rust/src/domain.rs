@@ -7,3 +7,4 @@ pub mod relations;
 pub mod styles;
 pub mod tags;
 pub mod theme;
+pub mod templates;

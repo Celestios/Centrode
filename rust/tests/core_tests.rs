@@ -17,3 +17,7 @@ mod tags;
 
 #[path = "core_tests/theme.rs"]
 mod theme;
+
+#[path = "core_tests/templates.rs"]
+mod templates;
+

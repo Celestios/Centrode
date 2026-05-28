@@ -6,6 +6,8 @@ use crate::domain::nodes::{
 use crate::domain::patches::{EntityPatch, NodePatch, RelationPatch, TagOperation};
 use crate::domain::relations::{IRelation, IRelationFields};
 use crate::domain::tags::{Tag, TagFields};
+use crate::domain::templates::Template;
+
 
 use anyhow::Result;
 use surrealdb::engine::local::Db;
@@ -562,4 +564,223 @@ impl Repository {
         let _: Option<Value> = self.db.delete(tag_id).await?;
         Ok(())
     }
+
+    // --- Template CRUD ---
+
+    pub async fn create_template(&self, template: Template) -> Result<()> {
+        let record_id = RecordId::new(Template::LABEL, template.key.clone());
+        let _: Option<Template> = self.db.create(record_id).content(template).await?;
+        Ok(())
+    }
+
+    pub async fn get_all_templates(&self) -> Result<Vec<Template>> {
+        let records: Vec<Value> = self.db.select(Template::LABEL).await?;
+        let mut templates = Vec::new();
+        for val in records {
+            if let Some(record) = Record::from_record_value(val.clone()) {
+                match Template::from_value(record.fields) {
+                    Ok(tpl) => templates.push(tpl),
+                    Err(e) => {
+                        tracing::error!("Template deserialization failed: {:?}", e);
+                    }
+                }
+            } else {
+                tracing::error!("Record::from_record_value failed for template: {:?}", val);
+            }
+        }
+        Ok(templates)
+    }
+
+    pub async fn delete_template(&self, key: String) -> Result<()> {
+        let record_id = RecordId::new(Template::LABEL, key);
+        let _: Option<Value> = self.db.delete(record_id).await?;
+        Ok(())
+    }
+
+    pub async fn save_template_from_selection(
+        &self,
+        name: String,
+        node_keys: Vec<RecordStrings>,
+        relation_keys: Vec<RecordStrings>,
+    ) -> Result<()> {
+        let mut nodes = Vec::new();
+        for rstr in &node_keys {
+            if let Some(node) = self.get_node(rstr.table.clone(), rstr.key.clone()).await? {
+                nodes.push(node);
+            }
+        }
+
+        let mut relations = Vec::new();
+        for rstr in &relation_keys {
+            let rel = self.get_relation(rstr.table.clone(), rstr.key.clone()).await?;
+            relations.push(rel);
+        }
+
+        if nodes.is_empty() {
+            return Err(anyhow::anyhow!("Cannot save template from empty selection"));
+        }
+
+        // Calculate centroid of selected nodes
+        let mut sum_x = 0.0;
+        let mut sum_y = 0.0;
+        for node in &nodes {
+            let pos = match node {
+                Nodes::INode(n) => &n.fields.position,
+                Nodes::TaskNode(n) => &n.fields.position,
+                Nodes::InterNode(n) => &n.fields.position,
+            };
+            sum_x += pos.x as f64;
+            sum_y += pos.y as f64;
+        }
+        let count = nodes.len() as f64;
+        let centroid_x = (sum_x / count).round() as i32;
+        let centroid_y = (sum_y / count).round() as i32;
+
+        // Shift coordinates relative to (0, 0)
+        let mut shifted_nodes = nodes;
+        for node in &mut shifted_nodes {
+            let pos = match node {
+                Nodes::INode(n) => &mut n.fields.position,
+                Nodes::TaskNode(n) => &mut n.fields.position,
+                Nodes::InterNode(n) => &mut n.fields.position,
+            };
+            pos.x -= centroid_x;
+            pos.y -= centroid_y;
+        }
+
+        let now = chrono::Utc::now().timestamp_millis();
+        let key = uuid::Uuid::new_v4().to_string();
+
+        let template = Template {
+            key: key.clone(),
+            name,
+            created_at: now,
+            updated_at: now,
+            nodes: shifted_nodes,
+            relations,
+        };
+
+        self.create_template(template).await?;
+        Ok(())
+    }
+
+    pub async fn instantiate_template(&self, key: String, target_x: f64, target_y: f64) -> Result<()> {
+        let record_id = RecordId::new(Template::LABEL, key.clone());
+        let template_val: Option<Value> = self.db.select(record_id).await?;
+        let template_val = template_val.ok_or_else(|| anyhow::anyhow!("Template not found"))?;
+        let record = Record::from_record_value(template_val)
+            .ok_or_else(|| anyhow::anyhow!("Failed to parse Template record"))?;
+        let template = Template::from_value(record.fields)?;
+
+        use std::collections::HashMap;
+        let mut key_map = HashMap::new();
+        for node in &template.nodes {
+            let old_key = match node {
+                Nodes::INode(n) => &n.key,
+                Nodes::TaskNode(n) => &n.key,
+                Nodes::InterNode(n) => &n.key,
+            };
+            let new_key = uuid::Uuid::new_v4().to_string();
+            key_map.insert(old_key.clone(), new_key);
+        }
+
+        let target_xi = target_x.round() as i32;
+        let target_yi = target_y.round() as i32;
+
+        let mut new_nodes = Vec::new();
+        for node in &template.nodes {
+            let mut cloned_node = node.clone();
+            match &mut cloned_node {
+                Nodes::INode(n) => {
+                    n.key = key_map.get(&n.key).unwrap().clone();
+                    n.fields.position.x += target_xi;
+                    n.fields.position.y += target_yi;
+                    let now = chrono::Utc::now().timestamp_millis();
+                    n.fields.created_at = now;
+                    n.fields.updated_at = now;
+                }
+                Nodes::TaskNode(n) => {
+                    n.key = key_map.get(&n.key).unwrap().clone();
+                    n.fields.position.x += target_xi;
+                    n.fields.position.y += target_yi;
+                    let now = chrono::Utc::now().timestamp_millis();
+                    n.fields.created_at = now;
+                    n.fields.updated_at = now;
+                }
+                Nodes::InterNode(n) => {
+                    n.key = key_map.get(&n.key).unwrap().clone();
+                    n.fields.position.x += target_xi;
+                    n.fields.position.y += target_yi;
+                    let now = chrono::Utc::now().timestamp_millis();
+                    n.fields.created_at = now;
+                    n.fields.updated_at = now;
+                }
+            }
+            new_nodes.push(cloned_node);
+        }
+
+        let mut new_relations = Vec::new();
+        for rel in &template.relations {
+            let mut cloned_rel = rel.clone();
+            cloned_rel.key = uuid::Uuid::new_v4().to_string();
+
+            if let Some(new_in_key) = key_map.get(&cloned_rel.in_.key) {
+                cloned_rel.in_.key = new_in_key.clone();
+            }
+            if let Some(new_out_key) = key_map.get(&cloned_rel.out.key) {
+                cloned_rel.out.key = new_out_key.clone();
+            }
+
+            let now = chrono::Utc::now().timestamp_millis();
+            cloned_rel.fields.created_at = now;
+            cloned_rel.fields.updated_at = now;
+
+            new_relations.push(cloned_rel);
+        }
+
+        let db = self.db.clone();
+        let tx = db.begin().await?;
+
+        for node in new_nodes {
+            match node {
+                Nodes::INode(n) => {
+                    let _: Option<INodeFields> = tx
+                        .create((INode::LABEL, n.key.clone()))
+                        .content(n.fields)
+                        .await?;
+                }
+                Nodes::TaskNode(n) => {
+                    let _: Option<TaskNodeFields> = tx
+                        .create((TaskNode::LABEL, n.key.clone()))
+                        .content(n.fields)
+                        .await?;
+                }
+                Nodes::InterNode(n) => {
+                    let _: Option<InterNodeFields> = tx
+                        .create((InterNode::LABEL, n.key.clone()))
+                        .content(n.fields)
+                        .await?;
+                }
+            }
+        }
+
+        for relation in new_relations {
+            let in_id = relation.in_.clone();
+            let out_id = relation.out.clone();
+            let record = RecordId::new(IRelation::LABEL, relation.key.clone());
+
+            let mut res = tx
+                .query("RELATE $from -> $record -> $out CONTENT $data")
+                .bind(("record", record))
+                .bind(("from", in_id.into_record()))
+                .bind(("out", out_id.into_record()))
+                .bind(("data", relation))
+                .await?;
+            let _: Option<Value> = res.take(0)?;
+        }
+
+        tx.commit().await?;
+        Ok(())
+    }
 }
+
