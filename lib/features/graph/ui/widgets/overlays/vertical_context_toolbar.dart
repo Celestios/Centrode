@@ -528,12 +528,20 @@ class HoverIconButton extends StatefulWidget {
 
 class _HoverIconButtonState extends State<HoverIconButton> {
   bool _isHovered = false;
+  bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
+    double scale = 1.0;
+    if (_isHovered) scale = 1.08;
+    if (_isPressed) scale = 0.94;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
+      onExit: (_) => setState(() {
+        _isHovered = false;
+        _isPressed = false;
+      }),
       child: Tooltip(
         message: widget.tooltip,
         child: Padding(
@@ -543,17 +551,43 @@ class _HoverIconButtonState extends State<HoverIconButton> {
             child: InkWell(
               borderRadius: BorderRadius.circular(6),
               onTap: widget.onPressed,
+              onHighlightChanged: (highlighted) =>
+                  setState(() => _isPressed = highlighted),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 100),
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(
-                  color: _isHovered ? widget.hoverColor.withValues(alpha: 0.12) : Colors.transparent,
                   borderRadius: BorderRadius.circular(6),
+                  gradient: _isHovered
+                      ? LinearGradient(
+                          colors: [
+                            widget.hoverColor.withValues(alpha: 0.18),
+                            widget.hoverColor.withValues(alpha: 0.05),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : null,
+                  border: _isHovered
+                      ? Border.all(
+                          color: widget.hoverColor.withValues(alpha: 0.3),
+                          width: 1.0,
+                        )
+                      : Border.all(color: Colors.transparent),
+                  boxShadow: _isHovered
+                      ? [
+                          BoxShadow(
+                            color: widget.hoverColor.withValues(alpha: 0.08),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          )
+                        ]
+                      : [],
                 ),
                 child: Center(
                   child: AnimatedScale(
-                    scale: _isHovered ? 1.1 : 1.0,
+                    scale: scale,
                     duration: const Duration(milliseconds: 100),
                     child: Icon(
                       widget.icon,

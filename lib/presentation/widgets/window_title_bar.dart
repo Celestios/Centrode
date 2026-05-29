@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -65,18 +66,21 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
     final session = tabsController.activeSession;
     final GraphDataController? dataController = session.dataController;
 
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: theme.dividerColor.withValues(alpha: 0.15),
-            width: 1.0,
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
+        child: Container(
+          height: 48,
+          decoration: BoxDecoration(
+            color: theme.cardColor.withValues(alpha: 0.65),
+            border: Border(
+              bottom: BorderSide(
+                color: theme.dividerColor.withValues(alpha: 0.2),
+                width: 0.8,
+              ),
+            ),
           ),
-        ),
-      ),
-      child: Row(
+          child: Row(
         children: [
           // Logo & Standard Menu Options
           Container(
@@ -358,7 +362,7 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ),),);
   }
 }
 
@@ -465,22 +469,31 @@ class _WindowControlButtonsState extends State<WindowControlButtons>
     Color? hoverIconColor,
     required VoidCallback onPressed,
   }) {
-    return InkWell(
-      onTap: onPressed,
-      child: HoverBuilder(
-        hoverColor: hoverColor,
-        builder: (context, isHovered) {
-          return Container(
-            width: 46,
-            height: 38,
-            alignment: Alignment.center,
-            child: Icon(
-              icon,
-              size: 16,
-              color: isHovered ? (hoverIconColor ?? color) : color,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onPressed,
+            child: HoverBuilder(
+              hoverColor: hoverColor,
+              builder: (context, isHovered) {
+                return Container(
+                  width: 42,
+                  height: 32,
+                  alignment: Alignment.center,
+                  child: Icon(
+                    icon,
+                    size: 16,
+                    color: isHovered ? (hoverIconColor ?? color) : color,
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -510,7 +523,10 @@ class _HoverBuilderState extends State<HoverBuilder> {
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        color: _isHovered ? widget.hoverColor : Colors.transparent,
+        decoration: BoxDecoration(
+          color: _isHovered ? widget.hoverColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+        ),
         child: widget.builder(context, _isHovered),
       ),
     );

@@ -94,7 +94,7 @@ class GlassPanel extends StatelessWidget {
           borderRadius: resolvedBorderRadius,
           border: border ??
               Border.all(
-                color: theme.dividerColor.withValues(alpha: 0.3),
+                color: theme.colorScheme.primary.withValues(alpha: 0.25),
                 width: 1.0,
               ),
           boxShadow: boxShadow,

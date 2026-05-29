@@ -490,79 +490,85 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                 _focusNode.requestFocus();
               }
             },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              curve: Curves.easeOutCubic,
-              width: 380,
-              height: 32,
-              decoration: BoxDecoration(
-                color: _focusNode.hasFocus
-                    ? theme.cardColor.withValues(alpha: 0.95)
-                    : theme.cardColor.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: _focusNode.hasFocus
-                      ? theme.colorScheme.primary
-                      : theme.dividerColor.withValues(alpha: 0.15),
-                  width: _focusNode.hasFocus ? 1.5 : 1.0,
-                ),
-                boxShadow: _focusNode.hasFocus
-                    ? [
-                        BoxShadow(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.25),
-                          blurRadius: 8,
-                          spreadRadius: 1,
-                        ),
-                      ]
-                    : [],
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.search_rounded,
-                    size: 16,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  curve: Curves.easeOutCubic,
+                  width: 380,
+                  height: 32,
+                  decoration: BoxDecoration(
                     color: _focusNode.hasFocus
-                        ? theme.colorScheme.primary
-                        : theme.iconTheme.color?.withValues(alpha: 0.5),
+                        ? theme.cardColor.withValues(alpha: 0.85)
+                        : theme.cardColor.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: _focusNode.hasFocus
+                          ? theme.colorScheme.primary.withValues(alpha: 0.25)
+                          : theme.dividerColor.withValues(alpha: 0.15),
+                      width: _focusNode.hasFocus ? 1.5 : 1.0,
+                    ),
+                    boxShadow: _focusNode.hasFocus
+                        ? [
+                            BoxShadow(
+                              color: theme.colorScheme.primary.withValues(alpha: 0.25),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ]
+                        : [],
                   ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      focusNode: _focusNode,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontSize: 12,
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.search_rounded,
+                        size: 16,
+                        color: _focusNode.hasFocus
+                            ? theme.colorScheme.primary
+                            : theme.iconTheme.color?.withValues(alpha: 0.5),
                       ),
-                      decoration: InputDecoration(
-                        hintText: "Search ('>' cmd, '#' tag, '?' db)...",
-                        hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.hintColor.withValues(alpha: 0.7),
-                          fontSize: 12,
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          focusNode: _focusNode,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontSize: 12,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: "Search ('>' cmd, '#' tag, '?' db)...",
+                            hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.hintColor.withValues(alpha: 0.7),
+                              fontSize: 12,
+                            ),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
                         ),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
                       ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    margin: const EdgeInsets.only(right: 6),
-                    decoration: BoxDecoration(
-                      color: theme.dividerColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      'Ctrl P',
-                      style: TextStyle(
-                        fontSize: 8,
-                        color: theme.hintColor,
-                        fontWeight: FontWeight.bold,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        margin: const EdgeInsets.only(right: 6),
+                        decoration: BoxDecoration(
+                          color: theme.dividerColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Ctrl P',
+                          style: TextStyle(
+                            fontSize: 8,
+                            color: theme.hintColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),

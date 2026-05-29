@@ -81,7 +81,7 @@ class LeftRepositoryDrawer extends StatelessWidget {
 
 /// A tappable icon row that sits inside the glass group.
 /// It uses [InkWell] for the ripple and respects the theme.
-class _GlassIconTile extends StatelessWidget {
+class _GlassIconTile extends StatefulWidget {
   final IconData icon;
   final VoidCallback? onTap;
   final bool animateIcon;
@@ -93,14 +93,28 @@ class _GlassIconTile extends StatelessWidget {
   });
 
   @override
+  State<_GlassIconTile> createState() => _GlassIconTileState();
+}
+
+class _GlassIconTileState extends State<_GlassIconTile> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final iconColor = theme.colorScheme.primary;
+    final primaryColor = theme.colorScheme.primary;
+    final iconColor = _isHovered ? primaryColor : primaryColor.withValues(alpha: 0.7);
     final iconSize = IconTheme.of(context).size ?? 24.0;
 
-    Widget iconWidget = Icon(icon, key: ValueKey(icon), color: iconColor, size: iconSize);
+    Widget iconWidget = Icon(
+      widget.icon,
+      key: ValueKey(widget.icon),
+      color: iconColor,
+      size: iconSize,
+    );
 
-    if (animateIcon) {
+    if (widget.animateIcon) {
       iconWidget = AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
         transitionBuilder: (child, animation) => ScaleTransition(
@@ -111,14 +125,51 @@ class _GlassIconTile extends StatelessWidget {
       );
     }
 
-    // Material + InkWell gives proper touch feedback inside the GlassPanel
-    return Material(
-      color: Colors.transparent, // transparent so GlassPanel background shows
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-          child: iconWidget,
+    double scale = 1.0;
+    if (_isHovered) scale = 1.08;
+    if (_isPressed) scale = 0.94;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() {
+        _isHovered = false;
+        _isPressed = false;
+      }),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onTap,
+          onHighlightChanged: (highlighted) =>
+              setState(() => _isPressed = highlighted),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            decoration: BoxDecoration(
+              gradient: _isHovered
+                  ? LinearGradient(
+                      colors: [
+                        theme.colorScheme.primary.withValues(alpha: 0.18),
+                        theme.colorScheme.primary.withValues(alpha: 0.05),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              border: _isHovered
+                  ? Border.all(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                      width: 1.0,
+                    )
+                  : null,
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+            child: Center(
+              child: AnimatedScale(
+                scale: scale,
+                duration: const Duration(milliseconds: 100),
+                child: iconWidget,
+              ),
+            ),
+          ),
         ),
       ),
     );

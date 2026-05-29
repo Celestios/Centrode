@@ -18,7 +18,7 @@ class GraphManualWidget extends StatelessWidget {
             backgroundColor: theme.cardColor.withValues(alpha: 0.95),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
+              side: BorderSide(color: primaryColor.withValues(alpha: 0.25)),
             ),
             title: Row(
               children: [
