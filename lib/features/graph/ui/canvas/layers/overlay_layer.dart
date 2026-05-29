@@ -8,7 +8,6 @@ import '../../../engine/base_interaction_state.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
 import '../metadata_preview_overlay.dart';
-import '../../widgets/overlays/vertical_context_toolbar.dart';
 
 class OverlayLayer extends StatelessWidget {
   final CanvasInteractionState interactionState;

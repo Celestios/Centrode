@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart' hide Theme;
 import 'package:mycelium/src/rust/domain/base_models.dart' show BoundingBox;
 
@@ -152,4 +153,12 @@ class ElementStyleConfig {
   static const double defaultStrokeWidth = 1.0;
   static const String defaultFontFamily = 'Roboto';
   static const double defaultWidth = 100.0;
+}
+
+/// Calculates the dynamic grid size based on the current zoom level (Dynamic LOD).
+double calculateEffectiveGridSize(double scale) {
+  if (scale <= 0) return AppConfig.grid.baseSize;
+  final double lod = max(1.0, (1.0 / scale).floorToDouble());
+  final effectiveSize = AppConfig.grid.baseSize * lod;
+  return effectiveSize;
 }

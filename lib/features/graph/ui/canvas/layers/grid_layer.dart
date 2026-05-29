@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../presentation/graph_metrics.dart';
 import 'package:mycelium/features/graph/presentation/viewport_state.dart';
-import 'package:mycelium/features/graph/engine/base_interaction_state.dart';
+import 'package:mycelium/shared/utils/color_utils.dart';
 
 class GridLayer extends StatelessWidget {
   final ViewportStateGrid viewportState;
@@ -11,12 +11,22 @@ class GridLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final Color backgroundColor = theme.scaffoldBackgroundColor;
+    final isDark = ColorUtils.isDark(backgroundColor);
+
+    final Color dotColor = isDark
+        ? Colors.white.withValues(alpha: 0.15)
+        : const Color.fromARGB(233, 214, 214, 214);
+
     return CustomPaint(
       size: viewportState.viewportSize,
       painter: _GridPainter(
         visibleRect: viewportState.visibleRect,
         scale: viewportState.scale,
         viewportSize: viewportState.viewportSize,
+        backgroundColor: backgroundColor,
+        dotColor: dotColor,
       ),
       willChange: true, // high-frequency updates during gestures
     );
@@ -27,11 +37,15 @@ class _GridPainter extends CustomPainter {
   final Rect visibleRect;
   final double scale;
   final Size viewportSize;
+  final Color backgroundColor;
+  final Color dotColor;
 
   _GridPainter({
     required this.visibleRect,
     required this.scale,
     required this.viewportSize,
+    required this.backgroundColor,
+    required this.dotColor,
   });
 
   @override
@@ -39,7 +53,7 @@ class _GridPainter extends CustomPainter {
     // Draw background color
     canvas.drawRect(
       visibleRect,
-      Paint()..color = AppConfig.canvas.backgroundColor,
+      Paint()..color = backgroundColor,
     );
 
     final double effectiveGridSize = calculateEffectiveGridSize(scale);
@@ -68,7 +82,7 @@ class _GridPainter extends CustomPainter {
 
     // Render dots with constant screen-space size
     final paint = Paint()
-      ..color = AppConfig.grid.dotColor
+      ..color = dotColor
       ..strokeCap = StrokeCap.round
       ..strokeWidth = (AppConfig.grid.dotRadius * 2) / scale;
 
@@ -77,6 +91,9 @@ class _GridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _GridPainter oldDelegate) {
-    return oldDelegate.visibleRect != visibleRect || oldDelegate.scale != scale;
+    return oldDelegate.visibleRect != visibleRect ||
+        oldDelegate.scale != scale ||
+        oldDelegate.backgroundColor != backgroundColor ||
+        oldDelegate.dotColor != dotColor;
   }
 }

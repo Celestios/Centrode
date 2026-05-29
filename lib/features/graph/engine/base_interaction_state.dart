@@ -1,8 +1,6 @@
 // lib/features/graph/state/canvas_interaction_states.dart
 library;
 
-import 'dart:math';
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
@@ -20,14 +18,6 @@ part 'states/node_resize_state.dart';
 part 'states/toolbar_drag_state.dart';
 part 'states/marquee_state.dart';
 part 'states/relation_tip_drag_state.dart';
-
-/// Calculates the dynamic grid size based on the current zoom level (Dynamic LOD).
-double calculateEffectiveGridSize(double scale) {
-  if (scale <= 0) return AppConfig.grid.baseSize;
-  final double lod = max(1.0, (1.0 / scale).floorToDouble());
-  final effectiveSize = AppConfig.grid.baseSize * lod;
-  return effectiveSize;
-}
 
 /// O(1) Mathematical quantization for continuous grid snapping.
 Offset _snapToGrid(Offset p, double gridSize) {
