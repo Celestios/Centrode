@@ -1,5 +1,6 @@
 // lib/features/graph/state/interaction_context.dart
 import 'dart:ui';
+import 'package:mycelium/src/rust/domain/styles.dart';
 import '../models/models.dart';
 import '../presentation/view_state.dart';
 
@@ -93,4 +94,10 @@ abstract interface class InteractionContext {
 
   /// Gets the current scale factor of the canvas viewport.
   double get currentScale;
+
+  /// Updates the style of the specified node.
+  void updateNodeStyle(String id, NodeStyle Function(NodeStyle style) updateFn);
+
+  /// Calculates the visual anchor point for the floating toolbar based on selected entities.
+  Offset? calculateToolbarAnchor(Iterable<String> selectedIds);
 }

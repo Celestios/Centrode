@@ -5,6 +5,8 @@ import 'graph_metrics.dart';
 import '../store/graph_data_controller.dart';
 import '../store/graph_data_query.dart';
 import 'view_state.dart';
+import 'strategies/relation_layout_strategy.dart';
+import 'strategies/routing/relation_layout_context.dart';
 
 /// Notifier pulsed to trigger relation painter repaints when node coordinates change.
 class MovementNotifier extends ChangeNotifier {
@@ -264,6 +266,67 @@ class NodeRenderState extends ChangeNotifier {
       'NodeRenderState synchronized: ${zOrder.length} nodes in render stack.',
     );
     notifyListeners();
+  }
+
+  /// Calculates the visual anchor point for the floating toolbar based on selected entities.
+  Offset? calculateToolbarAnchor(Iterable<String> selectedIds) {
+    if (selectedIds.isEmpty) return null;
+    final isMulti = selectedIds.length > 1;
+
+    if (isMulti) {
+      // Calculate mathematically accurate Canvas Space Bounding Box
+      double minX = double.infinity,
+          minY = double.infinity,
+          maxX = double.negativeInfinity,
+          maxY = double.negativeInfinity;
+      for (final id in selectedIds) {
+        final vs = viewStates[id];
+        if (vs == null) continue;
+        final rect = vs.rect;
+        if (rect.left < minX) minX = rect.left;
+        if (rect.top < minY) minY = rect.top;
+        if (rect.right > maxX) maxX = rect.right;
+        if (rect.bottom > maxY) maxY = rect.bottom;
+      }
+
+      if (minX == double.infinity) {
+        return null;
+      } else {
+        // Center horizontally above the bounding box with height offset
+        final centerX = minX + (maxX - minX) / 2;
+        return Offset(
+          centerX - (AppConfig.toolbar.multiWidth / 2),
+          minY - AppConfig.toolbar.height - 10,
+        );
+      }
+    } else {
+      final id = selectedIds.first;
+      final vs = viewStates[id];
+      if (vs != null) {
+        // Single selection fallback
+        return vs.positionNotifier.value;
+      } else {
+        // Relation midpoint anchor
+        try {
+          final rel = _dataController.relationLookup[id];
+          if (rel != null) {
+            final sourceVs = viewStates[rel.fromNodeId];
+            final targetVs = viewStates[rel.toNodeId];
+            if (sourceVs != null && targetVs != null) {
+              final layoutContext = RelationLayoutContext(
+                nodeViewStates: viewStates,
+                relations: _dataController.relations.toList(),
+                pathCache: relationPathCache,
+              );
+              final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
+              final (start, end) = layoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
+              return layoutStrategy.computeLabelPosition(start, end, sourceVs, targetVs, rel, layoutContext);
+            }
+          }
+        } catch (_) {}
+      }
+    }
+    return null;
   }
 
   /// Brings the selected entity to the front of the Z-stack.

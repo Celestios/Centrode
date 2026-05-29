@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../../../presentation/graph_metrics.dart';
-import '../../../store/graph_data_controller.dart';
+import '../../../store/graph_data_query.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../engine/base_interaction_state.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
-import '../../../presentation/strategies/relation_layout_strategy.dart';
-import '../../../presentation/strategies/routing/relation_layout_context.dart';
 import '../metadata_preview_overlay.dart';
 
 class OverlayLayer extends StatelessWidget {
@@ -18,7 +16,7 @@ class OverlayLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dataController = context.watch<GraphDataController>();
+    final dataController = context.watch<GraphDataQuery>();
     final renderState = context.watch<NodeRenderState>();
 
     return Stack(
@@ -86,7 +84,7 @@ class OverlayLayer extends StatelessWidget {
   Widget _buildUnifiedToolbar(
     BuildContext context,
     NodeRenderState renderState,
-    GraphDataController data,
+    GraphDataQuery data,
   ) {
     final isMulti = renderState.selectedEntities.length > 1;
     final offsetNotifier = isMulti
@@ -131,50 +129,8 @@ class OverlayLayer extends StatelessWidget {
           final offset = offsetNotifier.value;
           Offset anchor = Offset.zero;
 
-          if (selectedViewStates.isNotEmpty) {
-            if (isMulti) {
-              // 2. Mathematical Bounding Box calculation in Canvas Space
-              double minX = double.infinity,
-                  minY = double.infinity,
-                  maxX = double.negativeInfinity,
-                  maxY = double.negativeInfinity;
-              for (final vs in selectedViewStates) {
-                final rect = vs.rect;
-                if (rect.left < minX) minX = rect.left;
-                if (rect.top < minY) minY = rect.top;
-                if (rect.right > maxX) maxX = rect.right;
-                if (rect.bottom > maxY) maxY = rect.bottom;
-              }
-
-              if (minX == double.infinity) {
-                anchor = offset; // Fallback
-              } else {
-                // Center horizontally above the bounding box with height offset
-                final centerX = minX + (maxX - minX) / 2;
-                anchor = Offset(
-                  centerX - (AppConfig.toolbar.multiWidth / 2),
-                  minY - AppConfig.toolbar.height - 10,
-                );
-              }
-            } else {
-              // Single selection fallback
-              anchor = selectedViewStates.first.positionNotifier.value;
-            }
-          } else if (isRelationOnly) {
-            // Mathematical midpoint anchor for single relation
-            final rel = selectedRelations.first;
-            final sourceVs = renderState.viewStates[rel.fromNodeId];
-            final targetVs = renderState.viewStates[rel.toNodeId];
-            if (sourceVs != null && targetVs != null) {
-              final layoutContext = RelationLayoutContext(
-                nodeViewStates: renderState.viewStates,
-                relations: data.relations.toList(),
-                pathCache: renderState.relationPathCache,
-              );
-              final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
-              final (start, end) = layoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
-              anchor = layoutStrategy.computeLabelPosition(start, end, sourceVs, targetVs, rel, layoutContext);
-            }
+          if (selectedViewStates.isNotEmpty || selectedRelations.isNotEmpty) {
+            anchor = renderState.calculateToolbarAnchor(renderState.selectedEntities) ?? Offset.zero;
           }
 
           final position = anchor + offset;
@@ -183,6 +139,7 @@ class OverlayLayer extends StatelessWidget {
               .where((id) => data.nodeLookup.containsKey(id))
               .toList();
           final canSaveTemplate = nodeIds.isNotEmpty;
+          final String? singleNodeId = (!isMulti && nodeIds.length == 1) ? nodeIds.first : null;
 
           return Transform.translate(
             offset: position,
@@ -196,6 +153,7 @@ class OverlayLayer extends StatelessWidget {
                 isMulti: isMulti,
                 isRelationOnly: isRelationOnly,
                 canSaveTemplate: canSaveTemplate,
+                singleNodeId: singleNodeId,
               ),
             ),
           );
@@ -213,6 +171,7 @@ class OverlayLayer extends StatelessWidget {
     required bool isMulti,
     bool isRelationOnly = false,
     bool canSaveTemplate = false,
+    String? singleNodeId,
   }) {
     // Dynamically size the toolbar based on available buttons
     double width = isMulti
@@ -225,86 +184,206 @@ class OverlayLayer extends StatelessWidget {
       width += AppConfig.toolbar.buttonWidth;
     }
 
+    final isSingleNode = singleNodeId != null;
+    final height = isSingleNode
+        ? AppConfig.toolbar.height * 2
+        : AppConfig.toolbar.height;
+
     return Material(
       color: Colors.white,
       elevation: 4,
       borderRadius: BorderRadius.circular(8),
       child: Container(
         width: width,
-        height: AppConfig.toolbar.height,
+        height: height,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: Colors.blueAccent.withValues(alpha: isMulti ? 0.8 : 0.3),
           ),
         ),
-        child: Row(
-          children: [
-            // Zone 1: Drag Handle
-            Expanded(
-              child: MouseRegion(
-                cursor: SystemMouseCursors.grab,
-                child: Icon(
-                  Icons.drag_handle,
-                  size: 20,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ),
-
-            // Conditional Zone 2: Link Button (Omitted for Relations)
-            if (!isRelationOnly) ...[
-              Container(width: 1, color: Colors.grey.shade300),
-              Expanded(
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: Listener(
-                    onPointerDown: (e) {
-                      // Trigger Sticky RelationDrawing - this will be handled by the InteractionController
-                      // The toolbar hit-testing in CanvasIdle will detect this and transition to RelationDrawing
-                    },
-                    child: Icon(
-                      Icons.link,
-                      size: 20,
-                      color: Colors.blueAccent.shade700,
+        child: isSingleNode
+            ? Column(
+                children: [
+                  // Row 1 (Top): Formatting (Decrease Size, Increase Size, Toggle Font, Cycle Color)
+                  SizedBox(
+                    height: AppConfig.toolbar.height - 0.5,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Tooltip(
+                              message: "Decrease Font Size",
+                              child: Icon(
+                                Icons.remove_rounded,
+                                size: 18,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Container(width: 1, color: Colors.grey.shade200),
+                        Expanded(
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Tooltip(
+                              message: "Increase Font Size",
+                              child: Icon(
+                                Icons.add_rounded,
+                                size: 18,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Container(width: 1, color: Colors.grey.shade200),
+                        Expanded(
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Tooltip(
+                              message: "Toggle Font Family",
+                              child: Icon(
+                                Icons.text_fields_rounded,
+                                size: 18,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Container(width: 1, color: Colors.grey.shade200),
+                        Expanded(
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Tooltip(
+                              message: "Cycle Text Color",
+                              child: Icon(
+                                Icons.palette_outlined,
+                                size: 18,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ),
-            ],
-
-            // Save as Template Button
-            if (canSaveTemplate) ...[
-              Container(width: 1, color: Colors.grey.shade300),
-              Expanded(
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: Icon(
-                    Icons.bookmark_add_outlined,
-                    size: 18,
-                    color: Theme.of(context).colorScheme.primary,
+                  Container(height: 1, color: Colors.grey.shade300),
+                  // Row 2 (Bottom): Existing controls
+                  SizedBox(
+                    height: AppConfig.toolbar.height - 0.5,
+                    child: Row(
+                      children: [
+                        // Drag Handle
+                        Expanded(
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.grab,
+                            child: Icon(
+                              Icons.drag_handle,
+                              size: 20,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ),
+                        Container(width: 1, color: Colors.grey.shade300),
+                        // Link Button
+                        Expanded(
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Icon(
+                              Icons.link,
+                              size: 20,
+                              color: Colors.blueAccent.shade700,
+                            ),
+                          ),
+                        ),
+                        Container(width: 1, color: Colors.grey.shade300),
+                        // Save as Template
+                        Expanded(
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Icon(
+                              Icons.bookmark_add_outlined,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                        Container(width: 1, color: Colors.grey.shade300),
+                        // Delete Button
+                        Expanded(
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Icon(
+                              Icons.delete,
+                              size: 20,
+                              color: Colors.red.shade400,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ),
-            ],
-
-            Container(width: 1, color: Colors.grey.shade300),
-            // Zone 3: Delete Button
-            Expanded(
-              child: MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: GestureDetector(
-                  onTap: onDelete,
-                  child: Icon(
-                    Icons.delete,
-                    size: 20,
-                    color: Colors.red.shade400,
+                ],
+              )
+            : Row(
+                children: [
+                  // Zone 1: Drag Handle
+                  Expanded(
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.grab,
+                      child: Icon(
+                        Icons.drag_handle,
+                        size: 20,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
                   ),
-                ),
+
+                  // Conditional Zone 2: Link Button (Omitted for Relations)
+                  if (!isRelationOnly) ...[
+                    Container(width: 1, color: Colors.grey.shade300),
+                    Expanded(
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: Icon(
+                          Icons.link,
+                          size: 20,
+                          color: Colors.blueAccent.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+
+                  // Save as Template Button
+                  if (canSaveTemplate) ...[
+                    Container(width: 1, color: Colors.grey.shade300),
+                    Expanded(
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: Icon(
+                          Icons.bookmark_add_outlined,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+
+                  Container(width: 1, color: Colors.grey.shade300),
+                  // Zone 3: Delete Button
+                  Expanded(
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: Icon(
+                        Icons.delete,
+                        size: 20,
+                        color: Colors.red.shade400,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

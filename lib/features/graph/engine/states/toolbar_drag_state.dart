@@ -15,64 +15,10 @@ class ToolbarDragging extends CanvasInteractionState {
     Offset pCanvas,
     InteractionContext ctx,
   ) {
-    Offset anchor = Offset.zero;
-
     final selected = ctx.getSelectedEntities();
-    final isMulti = selected.length > 1;
-
-    if (isMulti) {
-      // Calculate mathematically accurate Canvas Space Bounding Box
-      double minX = double.infinity,
-          minY = double.infinity,
-          maxX = double.negativeInfinity,
-          maxY = double.negativeInfinity;
-      for (final id in selected) {
-        final viewState = ctx.nodeViewStates[id];
-        if (viewState == null) continue;
-        final rect = viewState.rect;
-        if (rect.left < minX) minX = rect.left;
-        if (rect.top < minY) minY = rect.top;
-        if (rect.right > maxX) maxX = rect.right;
-        if (rect.bottom > maxY) maxY = rect.bottom;
-      }
-
-      if (minX != double.infinity) {
-        // Center horizontally above the bounding box
-        final centerX = minX + (maxX - minX) / 2;
-        anchor = Offset(
-          centerX - (AppConfig.toolbar.multiWidth / 2),
-          minY - AppConfig.toolbar.height - 10,
-        );
-      }
-    } else {
-      // Check if it's a node or a relation
-      final vs = ctx.nodeViewStates[entityId];
-
-      if (vs != null) {
-        // Node entity: use node position as anchor
-        anchor = vs.positionNotifier.value;
-      } else {
-        // Relation entity: calculate dynamic midpoint anchor
-        try {
-          final rel = ctx.getRelations().firstWhere((r) => r.id == entityId);
-          final sourceVs = ctx.nodeViewStates[rel.fromNodeId];
-          final targetVs = ctx.nodeViewStates[rel.toNodeId];
-          if (sourceVs == null || targetVs == null) return const CanvasIdle();
-
-          final layoutContext = RelationLayoutContext(
-            nodeViewStates: ctx.nodeViewStates,
-            relations: ctx.getRelations().toList(),
-            pathCache: ctx.relationPathCache,
-          );
-
-          final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
-          final (start, end) = layoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
-          anchor = layoutStrategy.computeLabelPosition(start, end, sourceVs, targetVs, rel, layoutContext);
-        } catch (_) {
-          return const CanvasIdle();
-        }
-      }
-    }
+    if (selected.isEmpty) return const CanvasIdle();
+    final anchor = ctx.calculateToolbarAnchor(selected);
+    if (anchor == null) return const CanvasIdle();
 
     // Calculate new absolute position of the toolbar
     final newAbsolutePos = pCanvas - grabOffset;

@@ -14,6 +14,7 @@ import 'interaction_context.dart';
 
 part 'states/idle_state.dart';
 part 'states/node_drag_state.dart';
+part 'states/group_drag_state.dart';
 part 'states/relation_draw_state.dart';
 part 'states/node_resize_state.dart';
 part 'states/toolbar_drag_state.dart';

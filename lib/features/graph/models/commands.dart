@@ -519,3 +519,73 @@ class UpdateCommentsCommand implements GraphCommand {
     onUndo();
   }
 }
+
+class UpdateNodeStyleCommand implements GraphCommand {
+  @override
+  String targetId;
+  final String tableName;
+  final AppHandle api;
+  final NodeStyle? oldStyle;
+  final NodeStyle? newStyle;
+  final Size? oldSize;
+  final Size? newSize;
+  final void Function() onUndo;
+
+  UpdateNodeStyleCommand({
+    required this.targetId,
+    required this.tableName,
+    required this.api,
+    this.oldStyle,
+    this.newStyle,
+    this.oldSize,
+    this.newSize,
+    required this.onUndo,
+  });
+
+  @override
+  CommandCategory get category => CommandCategory.aesthetic;
+
+  @override
+  Future<void> execute() async {
+    final List<NodePatch> forwardPatches = [];
+    final List<NodePatch> reversePatches = [];
+
+    if (newStyle != null || oldStyle != null) {
+      forwardPatches.add(NodePatch.style(newStyle));
+      reversePatches.add(NodePatch.style(oldStyle));
+    }
+
+    if (newSize != null && oldSize != null) {
+      forwardPatches.add(
+        NodePatch.size(
+          frb.Size(
+            width: newSize!.width.round(),
+            height: newSize!.height.round(),
+          ),
+        ),
+      );
+      reversePatches.add(
+        NodePatch.size(
+          frb.Size(
+            width: oldSize!.width.round(),
+            height: oldSize!.height.round(),
+          ),
+        ),
+      );
+    }
+
+    if (forwardPatches.isNotEmpty) {
+      final patch = SymmetricEntityPatch(
+        id: frb.RecordStrings(table: tableName, key: targetId),
+        forward: EntityPatch.node(forwardPatches),
+        reverse: EntityPatch.node(reversePatches),
+      );
+      await api.applyEntityMutation(mutation: patch);
+    }
+  }
+
+  @override
+  void undo() {
+    onUndo();
+  }
+}

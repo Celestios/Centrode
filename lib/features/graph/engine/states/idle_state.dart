@@ -82,54 +82,8 @@ class CanvasIdle extends CanvasInteractionState {
     // Supports both single-selection, multi-selection, and relation toolbars
     if (selectedEntities.isNotEmpty) {
       final isMultiSelect = selectedEntities.length > 1;
-      Offset? anchorTopLeft;
-      bool isRelationOnly = false;
-
-      if (isMultiSelect) {
-        // Calculate mathematically accurate Canvas Space Bounding Box
-        double minX = double.infinity,
-            minY = double.infinity,
-            maxX = double.negativeInfinity,
-            maxY = double.negativeInfinity;
-        for (final id in selectedEntities) {
-          final viewState = ctx.nodeViewStates[id];
-          if (viewState == null) continue;
-          final rect = viewState.rect;
-          if (rect.left < minX) minX = rect.left;
-          if (rect.top < minY) minY = rect.top;
-          if (rect.right > maxX) maxX = rect.right;
-          if (rect.bottom > maxY) maxY = rect.bottom;
-        }
-        if (minX != double.infinity) {
-          // Center horizontally above the bounding box
-          final centerX = minX + (maxX - minX) / 2;
-          anchorTopLeft = Offset(
-            centerX - (AppConfig.toolbar.multiWidth / 2),
-            minY - AppConfig.toolbar.height - 10,
-          );
-        }
-      } else {
-        // Single selection: check if it's a node or a relation
-        final vs = ctx.nodeViewStates[selectedEntities.first];
-        if (vs != null) {
-          anchorTopLeft = vs.positionNotifier.value;
-        } else {
-          // Fallback: Check if it's a relation - calculate midpoint anchor
-          try {
-            final rel = ctx.getRelations().firstWhere(
-              (r) => r.id == selectedEntities.first,
-            );
-            final sourceVs = ctx.nodeViewStates[rel.fromNodeId];
-            final targetVs = ctx.nodeViewStates[rel.toNodeId];
-            if (sourceVs != null && targetVs != null) {
-              final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
-              final (start, end) = layoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
-              anchorTopLeft = layoutStrategy.computeLabelPosition(start, end, sourceVs, targetVs, rel, layoutContext);
-              isRelationOnly = true;
-            }
-          } catch (_) {}
-        }
-      }
+      final anchorTopLeft = ctx.calculateToolbarAnchor(selectedEntities);
+      final isRelationOnly = !isMultiSelect && !ctx.nodeViewStates.containsKey(selectedEntities.first);
 
       // Do not short-circuit if it's a relation - continue to toolbar hit-test
       if (anchorTopLeft != null) {
@@ -152,12 +106,16 @@ class CanvasIdle extends CanvasInteractionState {
           toolbarWidth += AppConfig.toolbar.buttonWidth;
         }
 
+        final double toolbarHeight = (canSaveTemplate && !isMultiSelect)
+            ? AppConfig.toolbar.height * 2
+            : AppConfig.toolbar.height;
+
         // Exact geometric bounds of the toolbar
         final toolbarRect = Rect.fromLTWH(
           toolbarTopLeft.dx,
           toolbarTopLeft.dy,
           toolbarWidth,
-          AppConfig.toolbar.height,
+          toolbarHeight,
         );
 
         if (toolbarRect.contains(pCanvas)) {
@@ -165,45 +123,115 @@ class CanvasIdle extends CanvasInteractionState {
             'Toolbar Hit: Entity ${selectedEntities.first} at $pCanvas',
           ); // [NEW]
           final localX = pCanvas.dx - toolbarTopLeft.dx;
+          final localY = pCanvas.dy - toolbarTopLeft.dy;
 
-          final int numButtons = isRelationOnly
-              ? 2
-              : (canSaveTemplate ? 4 : 3);
-          final double btnWidth = toolbarWidth / numButtons;
-          final int clickedButtonIndex = (localX / btnWidth).floor().clamp(0, numButtons - 1);
+          if (canSaveTemplate && !isMultiSelect) {
+            // Two-row single node selection toolbar (120x64)
+            final double btnWidth = toolbarWidth / 4; // 4 buttons per row (30px each)
+            if (localY < AppConfig.toolbar.height) {
+              // Row 1 (Top): Formatting (Decrease Font Size, Increase Font Size, Toggle Font Family, Cycle Text Color)
+              final clickedButtonIndex = (localX / btnWidth).floor().clamp(0, 3);
+              final nodeId = selectedEntities.first;
 
-          if (isRelationOnly) {
-            // Relation toolbar: Zone 1 (Drag), Zone 2 (Delete) - Link is omitted
-            if (clickedButtonIndex == 0) {
-              // Zone 1: Drag (toolbar repositioning)
-              return ToolbarDragging(
-                selectedEntities.first,
-                pCanvas - toolbarTopLeft,
-              );
-            } else {
-              // Zone 2: Delete
-              ctx.onDeleteSelectedEntities();
+              if (clickedButtonIndex == 0) {
+                // Decrease Font Size
+                ctx.updateNodeStyle(nodeId, (style) {
+                  final newSize = (style.fontSize - 2.0).clamp(8.0, 24.0);
+                  return style.copyWith(fontSize: newSize);
+                });
+              } else if (clickedButtonIndex == 1) {
+                // Increase Font Size
+                ctx.updateNodeStyle(nodeId, (style) {
+                  final newSize = (style.fontSize + 2.0).clamp(8.0, 24.0);
+                  return style.copyWith(fontSize: newSize);
+                });
+              } else if (clickedButtonIndex == 2) {
+                // Toggle Font Family
+                ctx.updateNodeStyle(nodeId, (style) {
+                  final newFont = style.fontFamily == 'Roboto' ? 'Inter' : 'Roboto';
+                  return style.copyWith(fontFamily: newFont);
+                });
+              } else if (clickedButtonIndex == 3) {
+                // Cycle Text Color
+                const textColors = [
+                  0xFF000000, // Black
+                  0xFFFFFFFF, // White
+                  0xFF0D47A1, // Dark Blue
+                  0xFF1B5E20, // Dark Green
+                  0xFF880E4F, // Dark Pink/Rose
+                  0xFFE65100, // Dark Orange
+                  0xFF263238, // Charcoal
+                ];
+                ctx.updateNodeStyle(nodeId, (style) {
+                  final index = textColors.indexOf(style.textColor);
+                  final nextColor = textColors[(index + 1) % textColors.length];
+                  return style.copyWith(textColor: nextColor);
+                });
+              }
               return const CanvasIdle();
+            } else {
+              // Row 2 (Bottom): Existing controls (Drag Handle, Link/Relation, Save Template, Delete)
+              final clickedButtonIndex = (localX / btnWidth).floor().clamp(0, 3);
+              if (clickedButtonIndex == 0) {
+                // Zone 1: Drag (toolbar repositioning)
+                return ToolbarDragging(
+                  selectedEntities.first,
+                  pCanvas - toolbarTopLeft,
+                );
+              } else if (clickedButtonIndex == 1) {
+                // Zone 2: Link (New Relation) - enters sticky RelationDrawing mode
+                return RelationDrawing(selectedEntities, pCanvas, isSticky: true);
+              } else if (clickedButtonIndex == 2) {
+                // Zone 3: Save Template (bookmark_add)
+                ctx.onSaveTemplate();
+                return const CanvasIdle();
+              } else {
+                // Zone 4: Delete
+                ctx.onDeleteSelectedEntities();
+                return const CanvasIdle();
+              }
             }
           } else {
-            // Node toolbar: 3-zone or 4-zone logic depending on canSaveTemplate
-            if (clickedButtonIndex == 0) {
-              // Zone 1: Drag (toolbar repositioning)
-              return ToolbarDragging(
-                selectedEntities.first,
-                pCanvas - toolbarTopLeft,
-              );
-            } else if (clickedButtonIndex == 1) {
-              // Zone 2: Link (New Relation) - enters sticky RelationDrawing mode
-              return RelationDrawing(selectedEntities, pCanvas, isSticky: true);
-            } else if (canSaveTemplate && clickedButtonIndex == 2) {
-              // Zone 3: Save Template (bookmark_add)
-              ctx.onSaveTemplate();
-              return const CanvasIdle();
+            // Existing logic for multi-selection or relation-only toolbar
+            final int numButtons = isRelationOnly
+                ? 2
+                : (canSaveTemplate ? 4 : 3);
+            final double btnWidth = toolbarWidth / numButtons;
+            final int clickedButtonIndex = (localX / btnWidth).floor().clamp(0, numButtons - 1);
+
+            if (isRelationOnly) {
+              // Relation toolbar: Zone 1 (Drag), Zone 2 (Delete) - Link is omitted
+              if (clickedButtonIndex == 0) {
+                // Zone 1: Drag (toolbar repositioning)
+                return ToolbarDragging(
+                  selectedEntities.first,
+                  pCanvas - toolbarTopLeft,
+                );
+              } else {
+                // Zone 2: Delete
+                ctx.onDeleteSelectedEntities();
+                return const CanvasIdle();
+              }
             } else {
-              // Zone 4 (or 3 if no template): Delete
-              ctx.onDeleteSelectedEntities();
-              return const CanvasIdle();
+              // Node toolbar: 3-zone or 4-zone logic depending on canSaveTemplate
+              if (clickedButtonIndex == 0) {
+                // Zone 1: Drag (toolbar repositioning)
+                return ToolbarDragging(
+                  selectedEntities.first,
+                  pCanvas - toolbarTopLeft,
+                );
+              } else if (clickedButtonIndex == 1) {
+                // Zone 2: Link (New Relation) - enters sticky RelationDrawing mode
+                return RelationDrawing(selectedEntities, pCanvas, isSticky: true);
+              } else if (canSaveTemplate && clickedButtonIndex == 2) {
+                // Zone 3: Save Template (bookmark_add)
+                ctx.onSaveTemplate();
+                return const CanvasIdle();
+              } else {
+                // Zone 4 (or 3 if no template): Delete
+                ctx.onDeleteSelectedEntities();
+                return const CanvasIdle();
+              }
             }
           }
         }
@@ -294,7 +322,9 @@ class CanvasIdle extends CanvasInteractionState {
     // Fire selection intent immediately on pointer down.
     // If hitEntityId is null (clicked empty canvas), it clears the selection.
     _canvasIdleLog.fine('Selection Intent: HitEntity=$hitEntityId'); // [NEW]
-    ctx.onSelectEntity(hitEntityId);
+    if (hitEntityId == null || !selectedEntities.contains(hitEntityId)) {
+      ctx.onSelectEntity(hitEntityId);
+    }
 
     // THE FIX: Complete FSM Shielding for the active editor.
     // If the user clicks inside the node currently being edited (and not on its resize handles),
@@ -344,10 +374,26 @@ class CanvasIdle extends CanvasInteractionState {
           initialWidth,
         );
       } else {
-        return NodeDragging(
-          hitNodeId,
-          pCanvas - ctx.nodeViewStates[hitNodeId]!.positionNotifier.value,
-        );
+        final nodeIdsInSelection = selectedEntities
+            .where((id) => ctx.nodeViewStates.containsKey(id))
+            .toList();
+        if (nodeIdsInSelection.length > 1 && nodeIdsInSelection.contains(hitNodeId)) {
+          final originalPositions = {
+            for (final id in nodeIdsInSelection)
+              id: ctx.nodeViewStates[id]!.positionNotifier.value
+          };
+          return GroupDragging(
+            nodeIds: nodeIdsInSelection,
+            anchorNodeId: hitNodeId,
+            grabOffset: pCanvas - ctx.nodeViewStates[hitNodeId]!.positionNotifier.value,
+            originalPositions: originalPositions,
+          );
+        } else {
+          return NodeDragging(
+            hitNodeId,
+            pCanvas - ctx.nodeViewStates[hitNodeId]!.positionNotifier.value,
+          );
+        }
       }
     }
 

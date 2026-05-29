@@ -1,6 +1,8 @@
 import 'dart:ui';
+import 'package:mycelium/src/rust/domain/styles.dart';
 import '../models/models.dart';
 import '../presentation/view_state.dart';
+import '../presentation/strategies/node_style_strategy.dart';
 import 'interaction_context.dart';
 import '../store/graph_data_controller.dart';
 import '../presentation/node_render_state.dart';
@@ -169,4 +171,17 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
   @override
   double get currentScale => _getScale();
+
+  @override
+  void updateNodeStyle(String id, NodeStyle Function(NodeStyle style) updateFn) {
+    final node = _dataController.nodeLookup[id];
+    if (node != null) {
+      final style = node.style ?? NodeStyleStrategy.resolveStyle(node);
+      _dataController.updateNodeStyle(id, updateFn(style));
+    }
+  }
+
+  @override
+  Offset? calculateToolbarAnchor(Iterable<String> selectedIds) =>
+      _renderState.calculateToolbarAnchor(selectedIds);
 }

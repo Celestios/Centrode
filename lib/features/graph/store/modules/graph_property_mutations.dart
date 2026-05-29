@@ -152,15 +152,58 @@ class GraphPropertyMutations {
   void updateNodeStyle(String id, NodeStyle newStyle) {
     final node = controller.store.nodeLookup[id];
     if (node == null) return;
+
+    final oldStyle = node.style;
+    final oldSize = node.size;
+
     node.style = newStyle;
     controller.styleUpdater?.updateStyleForNode(id);
+
+    // Automatically recalculate node dimensions when styling changes
+    final newSize = controller.calculateNodeSize(node);
+    node.size = newSize;
+
+    controller.syncEngine.processor.queueCommand(
+      UpdateNodeStyleCommand(
+        targetId: id,
+        tableName: node.tableName,
+        api: controller.syncEngine.api,
+        oldStyle: oldStyle,
+        newStyle: newStyle,
+        oldSize: oldSize,
+        newSize: newSize,
+        onUndo: () {
+          node.style = oldStyle;
+          node.size = oldSize;
+          controller.styleUpdater?.updateStyleForNode(id);
+          controller.publishUpdate(GraphEntityUpdate(
+            id: id,
+            tableName: node.tableName,
+            type: GraphUpdateType.style,
+            payload: oldStyle,
+          ));
+          controller.publishUpdate(GraphEntityUpdate(
+            id: id,
+            tableName: node.tableName,
+            type: GraphUpdateType.size,
+            payload: oldSize,
+          ));
+        },
+      ),
+    );
+
     controller.publishUpdate(GraphEntityUpdate(
       id: id,
       tableName: node.tableName,
       type: GraphUpdateType.style,
       payload: newStyle,
     ));
-    // TODO: Also persist the change (new style) via a command – TBD later.
+    controller.publishUpdate(GraphEntityUpdate(
+      id: id,
+      tableName: node.tableName,
+      type: GraphUpdateType.size,
+      payload: newSize,
+    ));
   }
 
   void updateNodeTags(String id, List<Tag> newTags) {
