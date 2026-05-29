@@ -29,6 +29,8 @@ pub struct ThemeFields {
     pub name: String,
     // ── Core palette ──
     pub primary_color: u32,
+    pub secondary_color: u32,
+    pub accent_color: u32,
     pub scaffold_background_color: u32,
     pub card_color: u32,
     pub divider_color: u32,

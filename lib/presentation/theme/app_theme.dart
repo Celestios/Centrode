@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 class AppTheme {
   // ── Core palette ──────────────────────────────
   final Color primaryColor;
+  final Color secondaryColor;
+  final Color accentColor;
   final Color scaffoldBackgroundColor;
   final Color cardColor;
   final Color dividerColor;
@@ -32,6 +34,8 @@ class AppTheme {
   const AppTheme({
     // palette
     this.primaryColor = const Color(0xFF1976D2),
+    this.secondaryColor = const Color(0xFF47A2FF),
+    this.accentColor = const Color(0xFFFF4081),
     this.scaffoldBackgroundColor = const Color(0xFFF5F5F5),
     this.cardColor = Colors.white,
     this.dividerColor = const Color(0xFFBDBDBD),
@@ -103,6 +107,8 @@ class AppTheme {
       // ── ColorScheme ──
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
+        secondary: secondaryColor,
+        tertiary: accentColor,
         brightness: brightness,
         surface: cardColor,
       ),
@@ -114,6 +120,8 @@ class AppTheme {
   Map<String, dynamic> toMap() {
     return {
       'primaryColor': primaryColor.toARGB32(),
+      'secondaryColor': secondaryColor.toARGB32(),
+      'accentColor': accentColor.toARGB32(),
       'scaffoldBackgroundColor': scaffoldBackgroundColor.toARGB32(),
       'cardColor': cardColor.toARGB32(),
       'dividerColor': dividerColor.toARGB32(),
@@ -191,6 +199,14 @@ class AppTheme {
       primaryColor: parseColor(
         map['primaryColor'],
         fallback: const Color(0xFF1976D2),
+      ),
+      secondaryColor: parseColor(
+        map['secondaryColor'],
+        fallback: const Color(0xFF47A2FF),
+      ),
+      accentColor: parseColor(
+        map['accentColor'],
+        fallback: const Color(0xFFFF4081),
       ),
       scaffoldBackgroundColor: parseColor(
         map['scaffoldBackgroundColor'],

@@ -45,6 +45,8 @@ enum ThemeBrightness { light, dark }
 class ThemeFields {
   final String name;
   final int primaryColor;
+  final int secondaryColor;
+  final int accentColor;
   final int scaffoldBackgroundColor;
   final int cardColor;
   final int dividerColor;
@@ -65,6 +67,8 @@ class ThemeFields {
   const ThemeFields({
     required this.name,
     required this.primaryColor,
+    required this.secondaryColor,
+    required this.accentColor,
     required this.scaffoldBackgroundColor,
     required this.cardColor,
     required this.dividerColor,
@@ -87,6 +91,8 @@ class ThemeFields {
   int get hashCode =>
       name.hashCode ^
       primaryColor.hashCode ^
+      secondaryColor.hashCode ^
+      accentColor.hashCode ^
       scaffoldBackgroundColor.hashCode ^
       cardColor.hashCode ^
       dividerColor.hashCode ^
@@ -111,6 +117,8 @@ class ThemeFields {
           runtimeType == other.runtimeType &&
           name == other.name &&
           primaryColor == other.primaryColor &&
+          secondaryColor == other.secondaryColor &&
+          accentColor == other.accentColor &&
           scaffoldBackgroundColor == other.scaffoldBackgroundColor &&
           cardColor == other.cardColor &&
           dividerColor == other.dividerColor &&

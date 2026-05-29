@@ -9,6 +9,8 @@ async fn test_theme_crud_and_active_theme() {
     let theme_fields = ThemeFields {
         name: "My Dark Theme".to_string(),
         primary_color: 0x112233,
+        secondary_color: 0x445566,
+        accent_color: 0x778899,
         scaffold_background_color: 0x000000,
         card_color: 0x222222,
         divider_color: 0x333333,
@@ -42,6 +44,8 @@ async fn test_theme_crud_and_active_theme() {
     let fetched_fields = fetched_fields.unwrap();
     assert_eq!(fetched_fields.name, "My Dark Theme");
     assert_eq!(fetched_fields.primary_color, 0x112233);
+    assert_eq!(fetched_fields.secondary_color, 0x445566);
+    assert_eq!(fetched_fields.accent_color, 0x778899);
 
     let mut updated_fields = theme_fields.clone();
     updated_fields.name = "Updated Dark Theme".to_string();
@@ -58,6 +62,8 @@ async fn test_theme_crud_and_active_theme() {
     let fetched_updated: ThemeFields = repo.db().select(theme_id.clone()).await.unwrap().unwrap();
     assert_eq!(fetched_updated.name, "Updated Dark Theme");
     assert_eq!(fetched_updated.primary_color, 0x445566);
+    assert_eq!(fetched_updated.secondary_color, 0x445566);
+    assert_eq!(fetched_updated.accent_color, 0x778899);
 
     let map_data_id = RecordId::new("MapMetaData", "singleton");
     repo.db()
@@ -78,4 +84,6 @@ async fn test_theme_crud_and_active_theme() {
     let themes: Vec<ThemeFields> = repo.db().select("MapTheme").await.unwrap();
     assert_eq!(themes.len(), 1);
     assert_eq!(themes[0].name, "Updated Dark Theme");
+    assert_eq!(themes[0].secondary_color, 0x445566);
+    assert_eq!(themes[0].accent_color, 0x778899);
 }

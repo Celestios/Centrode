@@ -1,5 +1,7 @@
 {
   "primaryColor": "0xFF2E7D32",
+  "secondaryColor": "0xFF81C784",
+  "accentColor": "0xFFFFB74D",
   "scaffoldBackgroundColor": "0xFFF1F8E9",
   "cardColor": "0xFFFFFFFF",
   "dividerColor": "0xFFC5E1A5",

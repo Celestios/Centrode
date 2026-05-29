@@ -3640,6 +3640,8 @@ impl SseDecode for crate::domain::theme::ThemeFields {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_name = <String>::sse_decode(deserializer);
         let mut var_primaryColor = <u32>::sse_decode(deserializer);
+        let mut var_secondaryColor = <u32>::sse_decode(deserializer);
+        let mut var_accentColor = <u32>::sse_decode(deserializer);
         let mut var_scaffoldBackgroundColor = <u32>::sse_decode(deserializer);
         let mut var_cardColor = <u32>::sse_decode(deserializer);
         let mut var_dividerColor = <u32>::sse_decode(deserializer);
@@ -3660,6 +3662,8 @@ impl SseDecode for crate::domain::theme::ThemeFields {
         return crate::domain::theme::ThemeFields {
             name: var_name,
             primary_color: var_primaryColor,
+            secondary_color: var_secondaryColor,
+            accent_color: var_accentColor,
             scaffold_background_color: var_scaffoldBackgroundColor,
             card_color: var_cardColor,
             divider_color: var_dividerColor,
@@ -4995,6 +4999,8 @@ impl flutter_rust_bridge::IntoDart for crate::domain::theme::ThemeFields {
         [
             self.name.into_into_dart().into_dart(),
             self.primary_color.into_into_dart().into_dart(),
+            self.secondary_color.into_into_dart().into_dart(),
+            self.accent_color.into_into_dart().into_dart(),
             self.scaffold_background_color.into_into_dart().into_dart(),
             self.card_color.into_into_dart().into_dart(),
             self.divider_color.into_into_dart().into_dart(),
@@ -6108,6 +6114,8 @@ impl SseEncode for crate::domain::theme::ThemeFields {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.name, serializer);
         <u32>::sse_encode(self.primary_color, serializer);
+        <u32>::sse_encode(self.secondary_color, serializer);
+        <u32>::sse_encode(self.accent_color, serializer);
         <u32>::sse_encode(self.scaffold_background_color, serializer);
         <u32>::sse_encode(self.card_color, serializer);
         <u32>::sse_encode(self.divider_color, serializer);

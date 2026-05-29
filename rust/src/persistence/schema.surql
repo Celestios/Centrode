@@ -301,6 +301,8 @@ DEFINE FIELD OVERWRITE display_mode ON TABLE MapMetaData TYPE any;
 -- ---------------------------------------------------------------------------
 DEFINE FIELD OVERWRITE name ON TABLE MapTheme TYPE string;
 DEFINE FIELD OVERWRITE primary_color ON TABLE MapTheme TYPE int;
+DEFINE FIELD OVERWRITE secondary_color ON TABLE MapTheme TYPE int;
+DEFINE FIELD OVERWRITE accent_color ON TABLE MapTheme TYPE int;
 DEFINE FIELD OVERWRITE scaffold_background_color ON TABLE MapTheme TYPE int;
 DEFINE FIELD OVERWRITE card_color ON TABLE MapTheme TYPE int;
 DEFINE FIELD OVERWRITE divider_color ON TABLE MapTheme TYPE int;

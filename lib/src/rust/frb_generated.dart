@@ -2890,27 +2890,29 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ThemeFields dco_decode_theme_fields(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 18)
-      throw Exception('unexpected arr length: expect 18 but see ${arr.length}');
+    if (arr.length != 20)
+      throw Exception('unexpected arr length: expect 20 but see ${arr.length}');
     return ThemeFields(
       name: dco_decode_String(arr[0]),
       primaryColor: dco_decode_u_32(arr[1]),
-      scaffoldBackgroundColor: dco_decode_u_32(arr[2]),
-      cardColor: dco_decode_u_32(arr[3]),
-      dividerColor: dco_decode_u_32(arr[4]),
-      textColor: dco_decode_u_32(arr[5]),
-      fontFamily: dco_decode_String(arr[6]),
-      bodyFontSize: dco_decode_f_64(arr[7]),
-      bodyFontWeight: dco_decode_font_weight(arr[8]),
-      bodyTextColor: dco_decode_u_32(arr[9]),
-      borderRadius: dco_decode_f_64(arr[10]),
-      appBarBackgroundColor: dco_decode_u_32(arr[11]),
-      appBarForegroundColor: dco_decode_u_32(arr[12]),
-      appBarElevation: dco_decode_f_64(arr[13]),
-      appBarTitleFontSize: dco_decode_f_64(arr[14]),
-      appBarTitleFontWeight: dco_decode_font_weight(arr[15]),
-      useMaterial3: dco_decode_bool(arr[16]),
-      brightness: dco_decode_theme_brightness(arr[17]),
+      secondaryColor: dco_decode_u_32(arr[2]),
+      accentColor: dco_decode_u_32(arr[3]),
+      scaffoldBackgroundColor: dco_decode_u_32(arr[4]),
+      cardColor: dco_decode_u_32(arr[5]),
+      dividerColor: dco_decode_u_32(arr[6]),
+      textColor: dco_decode_u_32(arr[7]),
+      fontFamily: dco_decode_String(arr[8]),
+      bodyFontSize: dco_decode_f_64(arr[9]),
+      bodyFontWeight: dco_decode_font_weight(arr[10]),
+      bodyTextColor: dco_decode_u_32(arr[11]),
+      borderRadius: dco_decode_f_64(arr[12]),
+      appBarBackgroundColor: dco_decode_u_32(arr[13]),
+      appBarForegroundColor: dco_decode_u_32(arr[14]),
+      appBarElevation: dco_decode_f_64(arr[15]),
+      appBarTitleFontSize: dco_decode_f_64(arr[16]),
+      appBarTitleFontWeight: dco_decode_font_weight(arr[17]),
+      useMaterial3: dco_decode_bool(arr[18]),
+      brightness: dco_decode_theme_brightness(arr[19]),
     );
   }
 
@@ -4352,6 +4354,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_name = sse_decode_String(deserializer);
     var var_primaryColor = sse_decode_u_32(deserializer);
+    var var_secondaryColor = sse_decode_u_32(deserializer);
+    var var_accentColor = sse_decode_u_32(deserializer);
     var var_scaffoldBackgroundColor = sse_decode_u_32(deserializer);
     var var_cardColor = sse_decode_u_32(deserializer);
     var var_dividerColor = sse_decode_u_32(deserializer);
@@ -4371,6 +4375,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return ThemeFields(
       name: var_name,
       primaryColor: var_primaryColor,
+      secondaryColor: var_secondaryColor,
+      accentColor: var_accentColor,
       scaffoldBackgroundColor: var_scaffoldBackgroundColor,
       cardColor: var_cardColor,
       dividerColor: var_dividerColor,
@@ -5667,6 +5673,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.name, serializer);
     sse_encode_u_32(self.primaryColor, serializer);
+    sse_encode_u_32(self.secondaryColor, serializer);
+    sse_encode_u_32(self.accentColor, serializer);
     sse_encode_u_32(self.scaffoldBackgroundColor, serializer);
     sse_encode_u_32(self.cardColor, serializer);
     sse_encode_u_32(self.dividerColor, serializer);
