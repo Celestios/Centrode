@@ -75,14 +75,19 @@ class _GraphScreenState extends State<GraphScreen> {
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.easeInOut,
                 child: Scaffold(
-                  body: Column(
+                  body: Stack(
                     children: [
-                      const WorkspaceWindowTitleBar(),
-                      Expanded(
+                      Positioned.fill(
                         child: ActiveSessionWidget(
                           key: ValueKey(activeSession.id),
                           session: activeSession,
                         ),
+                      ),
+                      const Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: WorkspaceWindowTitleBar(),
                       ),
                     ],
                   ),

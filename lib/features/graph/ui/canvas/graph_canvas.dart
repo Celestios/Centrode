@@ -279,16 +279,18 @@ class _GraphCanvasState extends State<GraphCanvas>
                   // Persistent Floating Overlays
                   // Top Deck Area (Ribbon and tabs below it)
                   Positioned(
-                    top: 12,
+                    top: 60.0,
                     left: 0,
                     right: 0,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        CanvasToolRibbon(),
-                        SizedBox(height: 6),
-                        CanvasTabBar(),
-                      ],
+                    child: RepaintBoundary(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          CanvasToolRibbon(),
+                          SizedBox(height: 6),
+                          CanvasTabBar(),
+                        ],
+                      ),
                     ),
                   ),
 

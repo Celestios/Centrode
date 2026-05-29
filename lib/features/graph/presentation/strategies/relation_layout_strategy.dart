@@ -603,17 +603,6 @@ class OrthogonalRelationLayoutStrategy extends RelationLayoutStrategy {
     return AppConfig.interaction.relationLabelHitArea;
   }
 
-  String _resolveSideFromOffset(NodeViewState vs, Offset offset, String? side) {
-    if (side != null && side != 'Auto') {
-      return side;
-    }
-    final closest = vs.getClosestPort(offset);
-    if ((closest.position - offset).distance < 5.0) {
-      return closest.name;
-    }
-    return 'Auto';
-  }
-
   List<Offset> _getOrthogonalWaypoints(
     List<Offset> routed,
     List<Rect> obstacles,
