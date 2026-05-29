@@ -95,7 +95,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
           maxLines: widget.maxLines,
           textAlign: TextAlign.center,
           autofocus: true,
-          cursorColor: Colors.black54,
+          cursorColor: widget.textStyle.color?.withValues(alpha: 0.6) ?? Colors.black54,
           style: widget.textStyle,
           decoration: const InputDecoration(
             border: InputBorder.none,
