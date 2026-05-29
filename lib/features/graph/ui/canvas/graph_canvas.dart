@@ -12,6 +12,9 @@ import '../../presentation/workspace_tabs_controller.dart';
 import 'layers/relation_layer.dart';
 import 'layers/node_layer.dart';
 import 'layers/overlay_layer.dart';
+import '../../models/models.dart';
+import '../../presentation/view_state.dart';
+import '../widgets/overlays/vertical_context_toolbar.dart';
 import 'layers/grid_layer.dart';
 import '../../../../shared/widgets/canvas_interactive_viewer.dart';
 import '../widgets/overlays/canvas_tool_ribbon.dart';
@@ -24,6 +27,8 @@ import '../../../../presentation/widgets/template_manager/global_templates_manag
 import '../../../../presentation/widgets/template_manager/save_template_dialog.dart';
 import '../../models/left_panel_type.dart';
 import '../../../../src/rust/domain/templates.dart';
+import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
+import 'package:mycelium/src/rust/domain/styles.dart';
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
@@ -364,12 +369,184 @@ class _GraphCanvasState extends State<GraphCanvas>
                       );
                     },
                   ),
+
+                  // Floating Contextual Toolbar Overlay (in screen coordinates)
+                  if (renderState.selectedEntities.isNotEmpty)
+                    _buildContextToolbarOverlay(
+                      context,
+                      renderState,
+                      dataController,
+                      viewportController,
+                    ),
                 ],
               );
             },
           );
         },
       ),
+    );
+  }
+
+  Widget _buildContextToolbarOverlay(
+    BuildContext context,
+    NodeRenderState renderState,
+    GraphDataController dataController,
+    ViewportController viewportController,
+  ) {
+    final isMulti = renderState.selectedEntities.length > 1;
+    final offsetNotifier = isMulti
+        ? renderState.multiToolbarOffsetNotifier
+        : renderState.toolbarOffsetNotifier;
+
+    // Track offset, transform, and selected entity positions
+    final List<Listenable> listenables = [
+      offsetNotifier,
+      viewportController.transformController,
+    ];
+    final List<NodeViewState> selectedViewStates = [];
+    final List<UiRelation> selectedRelations = [];
+
+    for (final id in renderState.selectedEntities) {
+      final vs = renderState.viewStates[id];
+      if (vs != null) {
+        listenables.add(vs.positionNotifier);
+        selectedViewStates.add(vs);
+      } else {
+        try {
+          final rel = dataController.relations.firstWhere((r) => r.id == id);
+          selectedRelations.add(rel);
+          final sourceVs = renderState.viewStates[rel.fromNodeId];
+          final targetVs = renderState.viewStates[rel.toNodeId];
+          if (sourceVs != null) listenables.add(sourceVs.positionNotifier);
+          if (targetVs != null) listenables.add(targetVs.positionNotifier);
+        } catch (_) {}
+      }
+    }
+
+    final isRelationOnly =
+        selectedViewStates.isEmpty && selectedRelations.isNotEmpty && !isMulti;
+
+    return ListenableBuilder(
+      listenable: Listenable.merge(listenables),
+      builder: (context, _) {
+        Offset anchor = Offset.zero;
+        if (selectedViewStates.isNotEmpty || selectedRelations.isNotEmpty) {
+          anchor = renderState.calculateToolbarAnchor(renderState.selectedEntities) ?? Offset.zero;
+        }
+
+        final offset = offsetNotifier.value;
+        final canvasPosition = anchor + offset;
+
+        // Project canvas coordinate to screen coordinates using viewport matrix
+        final matrix = viewportController.transformController.value;
+        final screenPosition = MatrixUtils.transformPoint(matrix, canvasPosition);
+
+        final nodeIds = renderState.selectedEntities
+            .where((id) => dataController.nodeLookup.containsKey(id))
+            .toList();
+        final canSaveTemplate = nodeIds.isNotEmpty;
+        final String? singleNodeId = (!isMulti && nodeIds.length == 1) ? nodeIds.first : null;
+
+        return Positioned(
+          left: screenPosition.dx - 340,
+          top: screenPosition.dy,
+          child: VerticalContextToolbar(
+            onDelete: renderState.deleteSelectedEntities,
+            isMulti: isMulti,
+            isRelationOnly: isRelationOnly,
+            canSaveTemplate: canSaveTemplate,
+            singleNodeId: singleNodeId,
+            onDecreaseFontSize: () {
+              if (singleNodeId != null) {
+                _updateNodeStyle(singleNodeId, dataController, (style) {
+                  return style.copyWith(
+                    fontSize: (style.fontSize - 2.0).clamp(8.0, 24.0),
+                  );
+                });
+              }
+            },
+            onIncreaseFontSize: () {
+              if (singleNodeId != null) {
+                _updateNodeStyle(singleNodeId, dataController, (style) {
+                  return style.copyWith(
+                    fontSize: (style.fontSize + 2.0).clamp(8.0, 24.0),
+                  );
+                });
+              }
+            },
+            onToggleFontFamily: () {
+              if (singleNodeId != null) {
+                _updateNodeStyle(singleNodeId, dataController, (style) {
+                  final nextFont = style.fontFamily == 'Roboto' ? 'Inter' : 'Roboto';
+                  return style.copyWith(fontFamily: nextFont);
+                });
+              }
+            },
+            onCycleTextColor: () {
+              if (singleNodeId != null) {
+                const textColors = [
+                  0xFF000000, // Black
+                  0xFFFFFFFF, // White
+                  0xFF0D47A1, // Dark Blue
+                  0xFF1B5E20, // Dark Green
+                  0xFF880E4F, // Dark Pink/Rose
+                  0xFFE65100, // Dark Orange
+                  0xFF263238, // Charcoal
+                ];
+                _updateNodeStyle(singleNodeId, dataController, (style) {
+                  final index = textColors.indexOf(style.textColor);
+                  final nextColor = textColors[(index + 1) % textColors.length];
+                  return style.copyWith(textColor: nextColor);
+                });
+              }
+            },
+            onShapeChanged: (shape) {
+              if (singleNodeId != null) {
+                _updateNodeStyle(singleNodeId, dataController, (style) {
+                  return style.copyWith(shape: shape);
+                });
+              }
+            },
+            onSaveTemplate: () async {
+              final nodeIds = renderState.selectedEntities
+                  .where((id) => dataController.nodeLookup.containsKey(id))
+                  .toList();
+              final relationIds = renderState.selectedEntities
+                  .where((id) => dataController.relationLookup.containsKey(id))
+                  .toList();
+              final name = await showSaveTemplateDialog(context);
+              if (name != null) {
+                await dataController.saveTemplateFromSelection(name, nodeIds, relationIds);
+              }
+            },
+            dragHandle: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onPanUpdate: (details) {
+                  final scale = matrix.getMaxScaleOnAxis();
+                  if (scale > 0) {
+                    offsetNotifier.value += details.delta / scale;
+                  }
+                },
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.grab,
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.drag_handle,
+                      size: 20,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -381,6 +558,22 @@ class _GraphCanvasState extends State<GraphCanvas>
         return const GlobalTemplatesManagerPanel();
       case LeftPanelType.none:
         return const SizedBox.shrink();
+    }
+  }
+
+  NodeStyle _getEffectiveStyle(UiNode node) {
+    return node.style ?? NodeStyleStrategy.resolveStyle(node);
+  }
+
+  void _updateNodeStyle(
+    String nodeId,
+    GraphDataController dataController,
+    NodeStyle Function(NodeStyle style) updateFn,
+  ) {
+    final node = dataController.nodeLookup[nodeId];
+    if (node != null) {
+      final style = _getEffectiveStyle(node);
+      dataController.updateNodeStyle(nodeId, updateFn(style));
     }
   }
 }

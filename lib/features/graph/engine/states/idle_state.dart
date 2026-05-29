@@ -78,52 +78,7 @@ class CanvasIdle extends CanvasInteractionState {
       }
     }
 
-    // Priority 0: Floating Toolbar Hit-Testing (Absolute Top)
-    // Supports both single-selection, multi-selection, and relation toolbars
-    if (selectedEntities.isNotEmpty) {
-      final isMultiSelect = selectedEntities.length > 1;
-      final anchorTopLeft = ctx.calculateToolbarAnchor(selectedEntities);
-      final isRelationOnly = !isMultiSelect && !ctx.nodeViewStates.containsKey(selectedEntities.first);
 
-      if (anchorTopLeft != null) {
-        final tbOffset = ctx.getToolbarOffset();
-        final toolbarTopLeft = anchorTopLeft + tbOffset;
-
-        // Compute vertical toolbar height based on context
-        final double toolbarHeight = isRelationOnly
-            ? 80.0  // Drag Handle + Delete (2 items)
-            : (isMultiSelect ? 190.0 : 230.0); // 5 or 6 items
-
-        // Bounding rect including the main vertical column (width 40)
-        // and the horizontal flyout submenus extending to the left (up to 320px)
-        final toolbarRect = Rect.fromLTRB(
-          toolbarTopLeft.dx - 320.0,
-          toolbarTopLeft.dy,
-          toolbarTopLeft.dx + 40.0,
-          toolbarTopLeft.dy + toolbarHeight,
-        );
-
-        if (toolbarRect.contains(pCanvas)) {
-          _canvasIdleLog.info(
-            'Vertical Toolbar Hit: Entity ${selectedEntities.first} at $pCanvas',
-          );
-          
-          final localX = pCanvas.dx - toolbarTopLeft.dx;
-          final localY = pCanvas.dy - toolbarTopLeft.dy;
-
-          // Drag Handle check: Topmost 36px in the main vertical column (localX >= 0)
-          if (localX >= 0 && localX <= 40.0 && localY >= 0 && localY <= 36.0) {
-            return ToolbarDragging(
-              selectedEntities.first,
-              pCanvas - toolbarTopLeft,
-            );
-          }
-
-          // Otherwise, absorb the pointer down event and let Flutter's widget tree handle the gesture
-          return const CanvasIdle();
-        }
-      }
-    }
 
     // Hit Testing Registry
     final nodeIds = ctx.zOrder.reversed.toList();

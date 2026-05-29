@@ -1,0 +1,160 @@
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart';
+
+void main() {
+  testWidgets('VerticalContextToolbar group buttons open submenus on mouse hover', (WidgetTester tester) async {
+    bool deleteCalled = false;
+
+    // Build the toolbar in a sized container
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.centerRight,
+            child: SizedBox(
+              width: 400,
+              height: 600,
+              child: VerticalContextToolbar(
+                onDelete: () => deleteCalled = true,
+                isMulti: false,
+                isRelationOnly: false,
+                canSaveTemplate: true,
+                singleNodeId: 'node-1',
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Verify trigger button is displayed
+    final triggerFinder = find.byIcon(Icons.text_format_rounded);
+    expect(triggerFinder, findsOneWidget);
+
+    // Verify submenu button (e.g. Bold) is NOT displayed initially
+    expect(find.byIcon(Icons.format_bold_rounded), findsNothing);
+
+    // Create mouse pointer and move to the trigger button
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await gesture.addPointer(location: Offset.zero);
+    
+    final triggerCenter = tester.getCenter(triggerFinder);
+    await gesture.moveTo(triggerCenter);
+    await tester.pumpAndSettle();
+
+    // Verify submenu button (e.g. Bold) IS displayed now
+    expect(find.byIcon(Icons.format_bold_rounded), findsOneWidget);
+
+    // Move pointer slightly left onto the Bold button and verify it's still open
+    final boldFinder = find.byIcon(Icons.format_bold_rounded);
+    final boldCenter = tester.getCenter(boldFinder);
+    await gesture.moveTo(boldCenter);
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.format_bold_rounded), findsOneWidget);
+
+    // Move pointer away
+    await gesture.moveTo(const Offset(0, 0));
+    await tester.pumpAndSettle();
+
+    // Verify submenu is closed again
+    expect(find.byIcon(Icons.format_bold_rounded), findsNothing);
+  });
+
+  testWidgets('VerticalContextToolbar under loose constraints does not shift trigger button on hover', (WidgetTester tester) async {
+    bool deleteCalled = false;
+
+    // Build the toolbar under loose constraints using Positioned in a Stack
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Stack(
+            children: [
+              Positioned(
+                left: 100,
+                top: 100,
+                child: VerticalContextToolbar(
+                  onDelete: () => deleteCalled = true,
+                  isMulti: false,
+                  isRelationOnly: false,
+                  canSaveTemplate: true,
+                  singleNodeId: 'node-1',
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final triggerFinder = find.byIcon(Icons.text_format_rounded);
+    final initialCenter = tester.getCenter(triggerFinder);
+    
+    // Create mouse pointer and move to the trigger button
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await gesture.addPointer(location: Offset.zero);
+    await gesture.moveTo(initialCenter);
+    await tester.pumpAndSettle();
+
+    final hoveredCenter = tester.getCenter(triggerFinder);
+
+    // Verify trigger button did not shift
+    expect(initialCenter.dx, hoveredCenter.dx);
+  });
+
+  testWidgets('VerticalContextToolbar inside scaled and translated Transform opens submenu on hover', (WidgetTester tester) async {
+    bool deleteCalled = false;
+
+    // Use a matrix with scale = 0.8 and translation (400, 200)
+    final matrix = Matrix4.identity()
+      ..translate(400.0, 200.0)
+      ..scale(0.8);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Stack(
+            children: [
+              Positioned(
+                left: 0,
+                top: 0,
+                child: Transform(
+                  transform: matrix,
+                  child: Transform.translate(
+                    offset: const Offset(0, 0) - const Offset(340, 0),
+                    child: VerticalContextToolbar(
+                      onDelete: () => deleteCalled = true,
+                      isMulti: false,
+                      isRelationOnly: false,
+                      canSaveTemplate: true,
+                      singleNodeId: 'node-1',
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final triggerFinder = find.byIcon(Icons.text_format_rounded);
+    expect(triggerFinder, findsOneWidget);
+
+    final triggerCenter = tester.getCenter(triggerFinder);
+    
+    // Verify submenu button is NOT displayed initially
+    expect(find.byIcon(Icons.format_bold_rounded), findsNothing);
+
+    // Hover mouse over the trigger button
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await gesture.addPointer(location: Offset.zero);
+    await gesture.moveTo(triggerCenter);
+    await tester.pumpAndSettle();
+
+    // Verify submenu button IS displayed now
+    expect(find.byIcon(Icons.format_bold_rounded), findsOneWidget);
+  });
+}

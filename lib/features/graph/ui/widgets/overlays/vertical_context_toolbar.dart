@@ -9,6 +9,14 @@ class VerticalContextToolbar extends StatelessWidget {
   final String? singleNodeId;
   final Widget? dragHandle; // Passed from parent to enable gesture dragging
 
+  // Callbacks for text formatting and shape style changes:
+  final VoidCallback? onDecreaseFontSize;
+  final VoidCallback? onIncreaseFontSize;
+  final VoidCallback? onToggleFontFamily;
+  final VoidCallback? onCycleTextColor;
+  final VoidCallback? onSaveTemplate;
+  final ValueChanged<String>? onShapeChanged;
+
   const VerticalContextToolbar({
     super.key,
     required this.onDelete,
@@ -17,6 +25,12 @@ class VerticalContextToolbar extends StatelessWidget {
     this.canSaveTemplate = false,
     this.singleNodeId,
     this.dragHandle,
+    this.onDecreaseFontSize,
+    this.onIncreaseFontSize,
+    this.onToggleFontFamily,
+    this.onCycleTextColor,
+    this.onSaveTemplate,
+    this.onShapeChanged,
   });
 
   @override
@@ -24,24 +38,40 @@ class VerticalContextToolbar extends StatelessWidget {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
 
-    return Stack(
-      clipBehavior: Clip.none,
-      alignment: Alignment.centerRight,
-      children: [
-        GlassPanel(
-          fallbackBorderRadius: 10,
-          blur: 12,
-          alpha: 0.9,
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SizedBox(
+          width: 380,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.topRight,
+        children: [
+          // Background vertical glass bar (fixed width 40, matches column height)
+          Positioned(
+            top: 0,
+            bottom: 0,
+            right: 0,
+            width: 40,
+            child: GlassPanel(
+              fallbackBorderRadius: 10,
+              blur: 12,
+              alpha: 0.9,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+              child: const SizedBox.shrink(),
             ),
-          ],
-          child: Column(
+          ),
+          // Interactive Column (non-positioned, determines the height, aligned to topRight)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+            child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               // 1. Quick Actions Section
               if (dragHandle != null) dragHandle!,
@@ -207,7 +237,7 @@ class VerticalContextToolbar extends StatelessWidget {
                     SubmenuButtonData(
                       icon: Icons.bookmark_add_outlined,
                       tooltip: 'Save Group as Template',
-                      onPressed: () {},
+                      onPressed: onSaveTemplate ?? () {},
                     ),
                   ],
                 ),
@@ -250,22 +280,22 @@ class VerticalContextToolbar extends StatelessWidget {
                     SubmenuButtonData(
                       icon: Icons.remove_rounded,
                       tooltip: 'Decrease Font Size',
-                      onPressed: () {},
+                      onPressed: onDecreaseFontSize ?? () {},
                     ),
                     SubmenuButtonData(
                       icon: Icons.add_rounded,
                       tooltip: 'Increase Font Size',
-                      onPressed: () {},
+                      onPressed: onIncreaseFontSize ?? () {},
                     ),
                     SubmenuButtonData(
                       icon: Icons.text_fields_rounded,
                       tooltip: 'Toggle Font Family',
-                      onPressed: () {},
+                      onPressed: onToggleFontFamily ?? () {},
                     ),
                     SubmenuButtonData(
                       icon: Icons.palette_outlined,
                       tooltip: 'Cycle Text Color',
-                      onPressed: () {},
+                      onPressed: onCycleTextColor ?? () {},
                     ),
                   ],
                 ),
@@ -276,7 +306,7 @@ class VerticalContextToolbar extends StatelessWidget {
                     SubmenuButtonData(
                       icon: Icons.crop_square_rounded,
                       tooltip: 'Rectangle Shape',
-                      onPressed: () {},
+                      onPressed: () => onShapeChanged?.call('rectangle'),
                     ),
                     SubmenuButtonData(
                       icon: Icons.rounded_corner_rounded,
@@ -291,7 +321,7 @@ class VerticalContextToolbar extends StatelessWidget {
                     SubmenuButtonData(
                       icon: Icons.circle_outlined,
                       tooltip: 'Circle Shape',
-                      onPressed: () {},
+                      onPressed: () => onShapeChanged?.call('circle'),
                     ),
                     SubmenuButtonData(
                       icon: Icons.format_color_fill_rounded,
@@ -312,7 +342,7 @@ class VerticalContextToolbar extends StatelessWidget {
                     SubmenuButtonData(
                       icon: Icons.bookmark_add_outlined,
                       tooltip: 'Save as Template',
-                      onPressed: () {},
+                      onPressed: onSaveTemplate ?? () {},
                     ),
                     SubmenuButtonData(
                       icon: Icons.lock_outline_rounded,
@@ -331,8 +361,11 @@ class VerticalContextToolbar extends StatelessWidget {
           ),
         ),
       ],
+    ),
+  );
+      },
     );
-  }
+}
 
   Widget _buildQuickButton({
     required IconData icon,
@@ -392,7 +425,7 @@ class VerticalToolbarGroupButton extends StatefulWidget {
   State<VerticalToolbarGroupButton> createState() => _VerticalToolbarGroupButtonState();
 }
 
-class _VerticalToolbarGroupButtonState extends State<VerticalToolbarGroupButton> with SingleTickerProviderStateMixin {
+class _VerticalToolbarGroupButtonState extends State<VerticalToolbarGroupButton> {
   bool _isHovered = false;
 
   @override
@@ -404,15 +437,15 @@ class _VerticalToolbarGroupButtonState extends State<VerticalToolbarGroupButton>
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.centerRight,
-        children: [
-          // Submenu - Expanded to the left (by offsetting left boundary)
-          if (_isHovered)
-            Positioned(
-              right: 36, // Placed exactly to the left of the trigger button (width 32 + margins)
-              child: Padding(
+      child: Listener(
+        behavior: HitTestBehavior.opaque,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            // Submenu - Expanded to the left (by placing it to the left of the trigger in a Row)
+            if (_isHovered)
+              Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: GlassPanel(
                   fallbackBorderRadius: 8,
@@ -432,32 +465,32 @@ class _VerticalToolbarGroupButtonState extends State<VerticalToolbarGroupButton>
                   ),
                 ),
               ),
-            ),
-          
-          // Trigger Button
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Tooltip(
-              message: widget.triggerTooltip,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: _isHovered ? primaryColor.withValues(alpha: 0.1) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Center(
-                  child: Icon(
-                    widget.triggerIcon,
-                    color: _isHovered ? primaryColor : textColor.withValues(alpha: 0.75),
-                    size: 20,
+            
+            // Trigger Button
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Tooltip(
+                message: widget.triggerTooltip,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: _isHovered ? primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      widget.triggerIcon,
+                      color: _isHovered ? primaryColor : textColor.withValues(alpha: 0.75),
+                      size: 20,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

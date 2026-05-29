@@ -44,10 +44,6 @@ class OverlayLayer extends StatelessWidget {
             ),
           ),
 
-        // 5. THE UNIFIED FLOATING TOOLBAR
-        if (renderState.selectedEntities.isNotEmpty)
-          _buildUnifiedToolbar(context, renderState, dataController),
-
         // 6. Metadata Preview Overlay Card
         ListenableBuilder(
           listenable: renderState.hoveredNodeMetadataNotifier,
@@ -76,100 +72,6 @@ class OverlayLayer extends StatelessWidget {
           },
         ),
       ],
-    );
-  }
-
-  /// Unified toolbar orchestrator that adapts based on selection count.
-  /// For single selection, anchors to node position; for multi, anchors to screen center.
-  /// Supports both NodeViewState entities and UiRelation entities.
-  Widget _buildUnifiedToolbar(
-    BuildContext context,
-    NodeRenderState renderState,
-    GraphDataQuery data,
-  ) {
-    final isMulti = renderState.selectedEntities.length > 1;
-    final offsetNotifier = isMulti
-        ? renderState.multiToolbarOffsetNotifier
-        : renderState.toolbarOffsetNotifier;
-
-    // 1. Track ALL selected nodes so the toolbar moves if a multi-selection group is dragged
-    // Also track relations and their connected nodes for dynamic anchor calculation
-    final List<Listenable> listenables = [offsetNotifier];
-    final List<NodeViewState> selectedViewStates = [];
-    final List<UiRelation> selectedRelations = [];
-
-    for (final id in renderState.selectedEntities) {
-      final vs = renderState.viewStates[id];
-      if (vs != null) {
-        listenables.add(vs.positionNotifier);
-        selectedViewStates.add(vs);
-      } else {
-        // Fallback: Check if it's a relation
-        try {
-          final rel = data.relations.firstWhere((r) => r.id == id);
-          selectedRelations.add(rel);
-          // Listen to connected nodes so toolbar moves when they move
-          final sourceVs = renderState.viewStates[rel.fromNodeId];
-          final targetVs = renderState.viewStates[rel.toNodeId];
-          if (sourceVs != null) listenables.add(sourceVs.positionNotifier);
-          if (targetVs != null) listenables.add(targetVs.positionNotifier);
-        } catch (_) {}
-      }
-    }
-
-    final isRelationOnly =
-        selectedViewStates.isEmpty && selectedRelations.isNotEmpty && !isMulti;
-
-    // Outer Positioned satisfies Stack constraints, Transform.translate handles dynamic movement
-    return Positioned(
-      left: 0,
-      top: 0,
-      child: ListenableBuilder(
-        listenable: Listenable.merge(listenables),
-        builder: (context, _) {
-          final offset = offsetNotifier.value;
-          Offset anchor = Offset.zero;
-
-          if (selectedViewStates.isNotEmpty || selectedRelations.isNotEmpty) {
-            anchor = renderState.calculateToolbarAnchor(renderState.selectedEntities) ?? Offset.zero;
-          }
-
-          final position = anchor + offset;
-
-          final nodeIds = renderState.selectedEntities
-              .where((id) => data.nodeLookup.containsKey(id))
-              .toList();
-          final canSaveTemplate = nodeIds.isNotEmpty;
-          final String? singleNodeId = (!isMulti && nodeIds.length == 1) ? nodeIds.first : null;
-
-          return Transform.translate(
-            offset: position,
-            child: VerticalContextToolbar(
-              onDelete: renderState.deleteSelectedEntities,
-              isMulti: isMulti,
-              isRelationOnly: isRelationOnly,
-              canSaveTemplate: canSaveTemplate,
-              singleNodeId: singleNodeId,
-              dragHandle: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.grab,
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.drag_handle,
-                      size: 20,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 }
