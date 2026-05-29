@@ -331,12 +331,13 @@ class _GraphCanvasState extends State<GraphCanvas>
                           duration: const Duration(milliseconds: 200),
                           opacity: isOpen ? 1.0 : 0.0,
                           child: ClipRect(
-                            child: OverflowBox(
-                              minWidth: 280.0,
-                              maxWidth: 280.0,
+                            child: UnconstrainedBox(
                               alignment: Alignment.topLeft,
+                              clipBehavior: Clip.hardEdge,
                               child: ConstrainedBox(
                                 constraints: BoxConstraints(
+                                  minWidth: 280.0,
+                                  maxWidth: 280.0,
                                   minHeight: 180,
                                   maxHeight: (constraints.maxHeight - 178 - 86).clamp(180, 10000).toDouble(),
                                 ),

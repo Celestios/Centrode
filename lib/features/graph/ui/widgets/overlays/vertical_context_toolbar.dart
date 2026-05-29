@@ -40,10 +40,8 @@ class VerticalContextToolbar extends StatelessWidget {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SizedBox(
-          width: 380,
+    return SizedBox(
+      width: 380,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.topRight,
@@ -360,8 +358,6 @@ class VerticalContextToolbar extends StatelessWidget {
       ],
     ),
   );
-      },
-    );
 }
 
   Widget _buildQuickButton({
