@@ -12,6 +12,7 @@ import 'package:uuid/uuid.dart';
 import '../../../presentation/graph_metrics.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
+import 'package:mycelium/shared/utils/color_utils.dart';
 
 class RightPropertyPanel extends StatefulWidget {
   const RightPropertyPanel({super.key});
@@ -267,12 +268,19 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
+    final isPanelDark = ColorUtils.isDark(theme.cardColor);
+    final activeBgColor = theme.colorScheme.primary;
+    final activeTextColor = ColorUtils.getContrastTextColor(activeBgColor);
+    final inactiveTextColor = isPanelDark
+        ? Colors.white.withValues(alpha: 0.6)
+        : Colors.black.withValues(alpha: 0.6);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isActive ? theme.colorScheme.primary : Colors.transparent,
+          color: isActive ? activeBgColor : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
@@ -280,9 +288,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
           style: TextStyle(
             fontSize: 11,
             fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-            color: isActive
-                ? Colors.white
-                : theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            color: isActive ? activeTextColor : inactiveTextColor,
           ),
         ),
       ),
@@ -468,14 +474,14 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
 
     // List of modern, curated colors
     final colors = [
-      (0xFFBBDEFB, 0xFF0D47A1, 0xFF1E88E5), // Light Blue
-      (0xFFC8E6C9, 0xFF1B5E20, 0xFF4CAF50), // Light Green
-      (0xFFFFF9C4, 0xFFF57F17, 0xFFFBC02D), // Light Yellow
-      (0xFFE1BEE7, 0xFF4A148C, 0xFF8E24AA), // Lavender
-      (0xFFF8BBD0, 0xFF880E4F, 0xFFD81B60), // Rose
-      (0xFFFFE0B2, 0xFFE65100, 0xFFFB8C00), // Orange
-      (0xFFCFD8DC, 0xFF263238, 0xFF546E7A), // Charcoal
-      (0xFFEEEEEE, 0xFF212121, 0xFF9E9E9E), // White/Gray
+      0xFFBBDEFB, // Light Blue
+      0xFFC8E6C9, // Light Green
+      0xFFFFF9C4, // Light Yellow
+      0xFFE1BEE7, // Lavender
+      0xFFF8BBD0, // Rose
+      0xFFFFE0B2, // Orange
+      0xFFCFD8DC, // Charcoal
+      0xFFEEEEEE, // White/Gray
     ];
 
     return Column(
@@ -537,22 +543,22 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
           spacing: 8,
           runSpacing: 8,
           children: colors.map((col) {
-            final isSelected = currentStyle.bgColor == col.$1;
+            final isSelected = currentStyle.bgColor == col;
             return GestureDetector(
               onTap: () => _updateSelectedNodesStyle(
                 nodeIds,
                 dataController,
                 (style) => style.copyWith(
-                  bgColor: col.$1,
-                  textColor: col.$2,
-                  strokeColor: col.$3,
+                  bgColor: col,
+                  textColor: ColorUtils.getContrastTextColorInt(col),
+                  strokeColor: ColorUtils.getContrastStrokeColorInt(col),
                 ),
               ),
               child: Container(
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(
-                  color: Color(col.$1),
+                  color: Color(col),
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: isSelected

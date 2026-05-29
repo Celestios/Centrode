@@ -2,6 +2,7 @@ import 'package:mycelium/src/rust/domain/styles.dart'; // NodeStyle
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
+import 'package:mycelium/shared/utils/color_utils.dart';
 
 /// Responsible for computing the *base* [NodeStyle] for a node,
 /// using per‑node overrides and theme defaults.
@@ -70,14 +71,15 @@ class InfoNodeStyleStrategy extends NodeStyleStrategy {
   @override
   NodeStyle resolve(UiNode node, GraphTheme theme) {
     if (node.style != null) return node.style!;
+    final int bgColor = theme.primaryColor.toARGB32();
     return NodeStyleStrategy.fallbackStyle().copyWith(
-      bgColor: theme.primaryColor.toARGB32(),
-      strokeColor: theme.dividerColor.toARGB32(),
+      bgColor: bgColor,
+      strokeColor: ColorUtils.getContrastStrokeColorInt(bgColor),
       fontFamily: theme.fontFamily,
       fontSize: theme.bodyFontSize,
       width: 150,
       height: 40,
-      textColor: theme.bodyTextColor.toARGB32(),
+      textColor: ColorUtils.getContrastTextColorInt(bgColor),
       borderRadius: theme.borderRadius,
     );
   }
@@ -89,14 +91,15 @@ class TaskNodeStyleStrategy extends NodeStyleStrategy {
   @override
   NodeStyle resolve(UiNode node, GraphTheme theme) {
     if (node.style != null) return node.style!;
+    const int bgColor = 0xFFC8E6C9;
     return NodeStyleStrategy.fallbackStyle().copyWith(
-      bgColor: 0xFFC8E6C9,
-      strokeColor: 0xFF000000,
+      bgColor: bgColor,
+      strokeColor: ColorUtils.getContrastStrokeColorInt(bgColor),
       fontFamily: theme.fontFamily,
       fontSize: theme.bodyFontSize,
       width: 150,
       height: 40,
-      textColor: 0xFF1B5E20,
+      textColor: ColorUtils.getContrastTextColorInt(bgColor),
       borderRadius: theme.borderRadius,
     );
   }
