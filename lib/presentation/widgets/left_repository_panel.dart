@@ -20,6 +20,7 @@ class LeftRepositoryPanel extends StatelessWidget {
       alpha: 0.85,
       fallbackBorderRadius: 16.0,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
@@ -34,7 +35,7 @@ class LeftRepositoryPanel extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(child: child),
+          Flexible(child: child),
         ],
       ),
     );

@@ -59,7 +59,6 @@ class CollapsibleSidebar extends StatelessWidget {
         minWidth: expandedWidth,
         maxWidth: expandedWidth,
         child: SingleChildScrollView(
-          physics: const NeverScrollableScrollPhysics(),
           child: SizedBox(
             width: expandedWidth,
             child: Column(

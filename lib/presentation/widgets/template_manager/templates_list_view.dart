@@ -92,6 +92,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
         });
 
         return Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             // Search Input
             Padding(
@@ -233,8 +234,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
             ),
             const SizedBox(height: 6),
 
-            // Scrollable List Body
-            Expanded(
+            Flexible(
               child: filteredTemplates.isEmpty
                   ? Center(
                       child: Text(
@@ -246,6 +246,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                       ),
                     )
                   : ListView.builder(
+                      shrinkWrap: true,
                       itemCount: filteredTemplates.length,
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       itemBuilder: (context, index) {

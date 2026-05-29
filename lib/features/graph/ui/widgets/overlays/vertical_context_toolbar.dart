@@ -8,6 +8,7 @@ class VerticalContextToolbar extends StatelessWidget {
   final bool canSaveTemplate;
   final String? singleNodeId;
   final Widget? dragHandle; // Passed from parent to enable gesture dragging
+  final VoidCallback? onDrawConnection;
 
   // Callbacks for text formatting and shape style changes:
   final VoidCallback? onDecreaseFontSize;
@@ -31,6 +32,7 @@ class VerticalContextToolbar extends StatelessWidget {
     this.onCycleTextColor,
     this.onSaveTemplate,
     this.onShapeChanged,
+    this.onDrawConnection,
   });
 
   @override
@@ -80,12 +82,7 @@ class VerticalContextToolbar extends StatelessWidget {
                 _buildQuickButton(
                   icon: Icons.link_rounded,
                   tooltip: 'Draw Connection',
-                  onPressed: () {
-                    // Placeholder trigger for relation drawing
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Draw Connection: Drag to another node')),
-                    );
-                  },
+                  onPressed: onDrawConnection ?? () {},
                   color: primaryColor,
                 ),
               ],

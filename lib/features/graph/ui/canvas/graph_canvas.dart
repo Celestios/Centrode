@@ -326,7 +326,6 @@ class _GraphCanvasState extends State<GraphCanvas>
                         curve: Curves.easeInOut,
                         top: 178.0,
                         left: 76.0,
-                        bottom: 86.0,
                         width: isOpen ? 280.0 : 0.0,
                         child: AnimatedOpacity(
                           duration: const Duration(milliseconds: 200),
@@ -336,7 +335,13 @@ class _GraphCanvasState extends State<GraphCanvas>
                               minWidth: 280.0,
                               maxWidth: 280.0,
                               alignment: Alignment.topLeft,
-                              child: _buildLeftPanelContent(),
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minHeight: 180,
+                                  maxHeight: (constraints.maxHeight - 178 - 86).clamp(180, 10000).toDouble(),
+                                ),
+                                child: _buildLeftPanelContent(),
+                              ),
                             ),
                           ),
                         ),
@@ -349,11 +354,16 @@ class _GraphCanvasState extends State<GraphCanvas>
                     valueListenable: session.showRightPanel,
                     builder: (context, visible, _) {
                       if (!visible) return const SizedBox.shrink();
-                      return const Positioned(
+                      return Positioned(
                         top: 120,
-                        bottom: 86,
                         right: 12,
-                        child: RightPropertyPanel(),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: 180,
+                            maxHeight: (constraints.maxHeight - 120 - 224).clamp(180, 10000).toDouble(),
+                          ),
+                          child: const RightPropertyPanel(),
+                        ),
                       );
                     },
                   ),
@@ -458,6 +468,21 @@ class _GraphCanvasState extends State<GraphCanvas>
             isRelationOnly: isRelationOnly,
             canSaveTemplate: canSaveTemplate,
             singleNodeId: singleNodeId,
+            onDrawConnection: () {
+              final nodeIds = renderState.selectedEntities
+                  .where((id) => dataController.nodeLookup.containsKey(id))
+                  .toList();
+              if (nodeIds.isNotEmpty) {
+                final vs = renderState.viewStates[nodeIds.first];
+                final initialPos = vs != null ? vs.rect.center : Offset.zero;
+                _interactionController?.state.value = RelationDrawing(
+                  nodeIds.toSet(),
+                  initialPos,
+                  isSticky: true,
+                  hasReleasedOnce: true,
+                );
+              }
+            },
             onDecreaseFontSize: () {
               if (singleNodeId != null) {
                 _updateNodeStyle(singleNodeId, dataController, (style) {

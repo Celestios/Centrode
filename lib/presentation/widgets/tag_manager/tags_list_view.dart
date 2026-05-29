@@ -276,6 +276,7 @@ class _TagsListViewState extends State<TagsListView> {
         });
 
         return Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             // Search Input
             Padding(
@@ -457,7 +458,7 @@ class _TagsListViewState extends State<TagsListView> {
             const SizedBox(height: 6),
 
             // Scrollable List Body
-            Expanded(
+            Flexible(
               child: filteredTags.isEmpty
                   ? Center(
                       child: Text(
@@ -469,6 +470,7 @@ class _TagsListViewState extends State<TagsListView> {
                       ),
                     )
                   : ListView.builder(
+                      shrinkWrap: true,
                       itemCount: filteredTags.length,
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       itemBuilder: (context, index) {
