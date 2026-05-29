@@ -8,6 +8,7 @@ import '../../../engine/base_interaction_state.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
 import '../metadata_preview_overlay.dart';
+import '../../widgets/overlays/vertical_context_toolbar.dart';
 
 class OverlayLayer extends StatelessWidget {
   final CanvasInteractionState interactionState;
@@ -143,247 +144,31 @@ class OverlayLayer extends StatelessWidget {
 
           return Transform.translate(
             offset: position,
-            child: GestureDetector(
-              onPanUpdate: isMulti
-                  ? (d) => offsetNotifier.value += d.delta
-                  : null,
-              child: _buildToolbarUI(
-                context: context,
-                onDelete: renderState.deleteSelectedEntities,
-                isMulti: isMulti,
-                isRelationOnly: isRelationOnly,
-                canSaveTemplate: canSaveTemplate,
-                singleNodeId: singleNodeId,
+            child: VerticalContextToolbar(
+              onDelete: renderState.deleteSelectedEntities,
+              isMulti: isMulti,
+              isRelationOnly: isRelationOnly,
+              canSaveTemplate: canSaveTemplate,
+              singleNodeId: singleNodeId,
+              dragHandle: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.grab,
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.drag_handle,
+                      size: 20,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ),
               ),
             ),
           );
         },
-      ),
-    );
-  }
-
-  // Helper method to build toolbar UI
-  // Three zones for nodes: Drag (left), Link (center), Delete (right)
-  // Two zones for relations: Drag (left), Delete (right) - Link is omitted
-  Widget _buildToolbarUI({
-    required BuildContext context,
-    required VoidCallback onDelete,
-    required bool isMulti,
-    bool isRelationOnly = false,
-    bool canSaveTemplate = false,
-    String? singleNodeId,
-  }) {
-    // Dynamically size the toolbar based on available buttons
-    double width = isMulti
-        ? AppConfig.toolbar.multiWidth
-        : AppConfig.toolbar.singleWidth;
-
-    if (isRelationOnly) {
-      width = AppConfig.toolbar.buttonWidth * 2; // Only Drag and Delete
-    } else if (canSaveTemplate) {
-      width += AppConfig.toolbar.buttonWidth;
-    }
-
-    final isSingleNode = singleNodeId != null;
-    final height = isSingleNode
-        ? AppConfig.toolbar.height * 2
-        : AppConfig.toolbar.height;
-
-    return Material(
-      color: Colors.white,
-      elevation: 4,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: Colors.blueAccent.withValues(alpha: isMulti ? 0.8 : 0.3),
-          ),
-        ),
-        child: isSingleNode
-            ? Column(
-                children: [
-                  // Row 1 (Top): Formatting (Decrease Size, Increase Size, Toggle Font, Cycle Color)
-                  SizedBox(
-                    height: AppConfig.toolbar.height - 0.5,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: Tooltip(
-                              message: "Decrease Font Size",
-                              child: Icon(
-                                Icons.remove_rounded,
-                                size: 18,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(width: 1, color: Colors.grey.shade200),
-                        Expanded(
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: Tooltip(
-                              message: "Increase Font Size",
-                              child: Icon(
-                                Icons.add_rounded,
-                                size: 18,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(width: 1, color: Colors.grey.shade200),
-                        Expanded(
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: Tooltip(
-                              message: "Toggle Font Family",
-                              child: Icon(
-                                Icons.text_fields_rounded,
-                                size: 18,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(width: 1, color: Colors.grey.shade200),
-                        Expanded(
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: Tooltip(
-                              message: "Cycle Text Color",
-                              child: Icon(
-                                Icons.palette_outlined,
-                                size: 18,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(height: 1, color: Colors.grey.shade300),
-                  // Row 2 (Bottom): Existing controls
-                  SizedBox(
-                    height: AppConfig.toolbar.height - 0.5,
-                    child: Row(
-                      children: [
-                        // Drag Handle
-                        Expanded(
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.grab,
-                            child: Icon(
-                              Icons.drag_handle,
-                              size: 20,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ),
-                        Container(width: 1, color: Colors.grey.shade300),
-                        // Link Button
-                        Expanded(
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: Icon(
-                              Icons.link,
-                              size: 20,
-                              color: Colors.blueAccent.shade700,
-                            ),
-                          ),
-                        ),
-                        Container(width: 1, color: Colors.grey.shade300),
-                        // Save as Template
-                        Expanded(
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: Icon(
-                              Icons.bookmark_add_outlined,
-                              size: 18,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                        Container(width: 1, color: Colors.grey.shade300),
-                        // Delete Button
-                        Expanded(
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: Icon(
-                              Icons.delete,
-                              size: 20,
-                              color: Colors.red.shade400,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-            : Row(
-                children: [
-                  // Zone 1: Drag Handle
-                  Expanded(
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.grab,
-                      child: Icon(
-                        Icons.drag_handle,
-                        size: 20,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ),
-
-                  // Conditional Zone 2: Link Button (Omitted for Relations)
-                  if (!isRelationOnly) ...[
-                    Container(width: 1, color: Colors.grey.shade300),
-                    Expanded(
-                      child: MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: Icon(
-                          Icons.link,
-                          size: 20,
-                          color: Colors.blueAccent.shade700,
-                        ),
-                      ),
-                    ),
-                  ],
-
-                  // Save as Template Button
-                  if (canSaveTemplate) ...[
-                    Container(width: 1, color: Colors.grey.shade300),
-                    Expanded(
-                      child: MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: Icon(
-                          Icons.bookmark_add_outlined,
-                          size: 18,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-
-                  Container(width: 1, color: Colors.grey.shade300),
-                  // Zone 3: Delete Button
-                  Expanded(
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: Icon(
-                        Icons.delete,
-                        size: 20,
-                        color: Colors.red.shade400,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
       ),
     );
   }

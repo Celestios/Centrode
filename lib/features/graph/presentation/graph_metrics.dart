@@ -105,8 +105,8 @@ class _Toolbar {
   final double multiWidth = 105.0;
   final double height = 32.0;
   final double buttonWidth = 30.0;
-  final Offset singleOffset = const Offset(10, -46);
-  final Offset multiOffset = const Offset(0, 40);
+  final Offset singleOffset = const Offset(-52, 0);
+  final Offset multiOffset = const Offset(-52, 0);
 }
 
 class _Visuals {
