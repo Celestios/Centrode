@@ -64,7 +64,16 @@ class _TemplatesListViewState extends State<TemplatesListView> {
           debugPrint('TEMPLATES STACK: ${snapshot.stackTrace}');
         }
         if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const SizedBox(
+            height: 100,
+            child: Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
         }
 
         final allTemplates = snapshot.data ?? [];
@@ -234,190 +243,194 @@ class _TemplatesListViewState extends State<TemplatesListView> {
             ),
             const SizedBox(height: 6),
 
-            Flexible(
-              child: filteredTemplates.isEmpty
-                  ? Center(
-                      child: Text(
-                        _searchQuery.isEmpty ? 'No templates saved' : 'No matching templates',
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                          fontSize: 11,
+            if (filteredTemplates.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32.0),
+                child: Center(
+                  child: Text(
+                    _searchQuery.isEmpty ? 'No templates saved' : 'No matching templates',
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              )
+            else
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: filteredTemplates.length,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  itemBuilder: (context, index) {
+                    final template = filteredTemplates[index];
+                    final nodeCount = template.nodes.length;
+                    final relationCount = template.relations.length;
+
+                    final isHovered = _hoveredTemplateKey == template.key;
+
+                    // Create the tile widget
+                    final tileChild = Container(
+                      height: 60,
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                      decoration: BoxDecoration(
+                        color: isHovered
+                            ? theme.colorScheme.onSurface.withValues(alpha: 0.04)
+                            : Colors.transparent,
+                        border: Border(
+                          bottom: BorderSide(
+                            color: theme.dividerColor.withValues(alpha: 0.05),
+                            width: 1,
+                          ),
                         ),
                       ),
-                    )
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: filteredTemplates.length,
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      itemBuilder: (context, index) {
-                        final template = filteredTemplates[index];
-                        final nodeCount = template.nodes.length;
-                        final relationCount = template.relations.length;
-
-                        final isHovered = _hoveredTemplateKey == template.key;
-
-                        // Create the tile widget
-                        final tileChild = Container(
-                          height: 60,
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                          decoration: BoxDecoration(
-                            color: isHovered
-                                ? theme.colorScheme.onSurface.withValues(alpha: 0.04)
-                                : Colors.transparent,
-                            border: Border(
-                              bottom: BorderSide(
-                                color: theme.dividerColor.withValues(alpha: 0.05),
-                                width: 1,
-                              ),
-                            ),
+                      child: Row(
+                        children: [
+                          // Visual snapshot of the template group
+                          TemplatePreviewWidget(
+                            nodes: template.nodes,
+                            relations: template.relations,
+                            size: 44.0,
                           ),
-                          child: Row(
-                            children: [
-                              // Visual snapshot of the template group
-                              TemplatePreviewWidget(
-                                nodes: template.nodes,
-                                relations: template.relations,
-                                size: 44.0,
-                              ),
-                              const SizedBox(width: 10),
+                          const SizedBox(width: 10),
 
-                              // Template metadata text details
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      template.name,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '$nodeCount nodes · $relationCount relations',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              // Quick action buttons or creation time
-                              if (isHovered)
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    // Instantiate template at viewport center
-                                    IconButton(
-                                      icon: const Icon(Icons.add_circle_outline_rounded, size: 16),
-                                      onPressed: () async {
-                                        final viewportController = context.read<ViewportController>();
-                                        final visibleCenter = viewportController.viewportStateNotifier.value.visibleRect.center;
-                                        await controller.instantiateTemplate(template.key, visibleCenter);
-                                      },
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
-                                      tooltip: 'Place at Center',
-                                    ),
-                                    const SizedBox(width: 4),
-                                    // Delete template button
-                                    IconButton(
-                                      icon: const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.redAccent),
-                                      onPressed: () async {
-                                        final confirm = await showDeleteTemplateDialog(context, template.name);
-                                        if (confirm == true) {
-                                          await controller.deleteTemplate(template.key);
-                                        }
-                                      },
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
-                                      tooltip: 'Delete Template',
-                                    ),
-                                  ],
-                                )
-                              else
+                          // Template metadata text details
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Text(
-                                  _formatTimestamp(template.createdAt.toInt()),
+                                  template.name,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '$nodeCount nodes · $relationCount relations',
                                   style: TextStyle(
-                                    fontSize: 8,
-                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                                    fontSize: 10,
+                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                            ],
+                              ],
+                            ),
                           ),
-                        );
 
-                        // Wrap tile inside a Draggable and MouseRegion for hover detection
-                        return MouseRegion(
-                          onEnter: (_) {
-                            setState(() {
-                              _hoveredTemplateKey = template.key;
-                            });
-                          },
-                          onExit: (_) {
-                            setState(() {
-                              _hoveredTemplateKey = null;
-                            });
-                          },
-                          child: Draggable<Template>(
-                            data: template,
-                            dragAnchorStrategy: pointerDragAnchorStrategy,
-                            feedback: Material(
-                              color: Colors.transparent,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: theme.cardColor.withValues(alpha: 0.9),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: theme.colorScheme.primary.withValues(alpha: 0.4),
-                                    width: 1.5,
-                                  ),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 8,
-                                      offset: Offset(0, 4),
-                                    ),
-                                  ],
+                          // Quick action buttons or creation time
+                          if (isHovered)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Instantiate template at viewport center
+                                IconButton(
+                                  icon: const Icon(Icons.add_circle_outline_rounded, size: 16),
+                                  onPressed: () async {
+                                    final viewportController = context.read<ViewportController>();
+                                    final visibleCenter = viewportController.viewportStateNotifier.value.visibleRect.center;
+                                    await controller.instantiateTemplate(template.key, visibleCenter);
+                                  },
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
+                                  tooltip: 'Place at Center',
                                 ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.copy_all_outlined,
-                                      size: 16,
-                                      color: theme.colorScheme.primary,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      template.name,
-                                      style: theme.textTheme.bodySmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
+                                const SizedBox(width: 4),
+                                // Delete template button
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.redAccent),
+                                  onPressed: () async {
+                                    final confirm = await showDeleteTemplateDialog(context, template.name);
+                                    if (confirm == true) {
+                                      await controller.deleteTemplate(template.key);
+                                    }
+                                  },
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
+                                  tooltip: 'Delete Template',
                                 ),
+                              ],
+                            )
+                          else
+                            Text(
+                              _formatTimestamp(template.createdAt.toInt()),
+                              style: TextStyle(
+                                fontSize: 8,
+                                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
                               ),
                             ),
-                            childWhenDragging: Opacity(
-                              opacity: 0.4,
-                              child: tileChild,
-                            ),
-                            child: tileChild,
-                          ),
-                        );
+                        ],
+                      ),
+                    );
+
+                    // Wrap tile inside a Draggable and MouseRegion for hover detection
+                    return MouseRegion(
+                      onEnter: (_) {
+                        setState(() {
+                          _hoveredTemplateKey = template.key;
+                        });
                       },
-                    ),
-            ),
+                      onExit: (_) {
+                        setState(() {
+                          _hoveredTemplateKey = null;
+                        });
+                      },
+                      child: Draggable<Template>(
+                        data: template,
+                        dragAnchorStrategy: pointerDragAnchorStrategy,
+                        feedback: Material(
+                          color: Colors.transparent,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: theme.cardColor.withValues(alpha: 0.9),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: theme.colorScheme.primary.withValues(alpha: 0.4),
+                                width: 1.5,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.copy_all_outlined,
+                                  size: 16,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  template.name,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        childWhenDragging: Opacity(
+                          opacity: 0.4,
+                          child: tileChild,
+                        ),
+                        child: tileChild,
+                      ),
+                    );
+                  },
+                ),
+              ),
           ],
         );
       },

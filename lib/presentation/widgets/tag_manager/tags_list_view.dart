@@ -248,7 +248,16 @@ class _TagsListViewState extends State<TagsListView> {
       future: controller.getAllTags(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const SizedBox(
+            height: 100,
+            child: Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
         }
 
         final allTags = snapshot.data ?? [];
@@ -458,184 +467,188 @@ class _TagsListViewState extends State<TagsListView> {
             const SizedBox(height: 6),
 
             // Scrollable List Body
-            Flexible(
-              child: filteredTags.isEmpty
-                  ? Center(
-                      child: Text(
-                        _searchQuery.isEmpty ? 'No tags yet' : 'No matching tags',
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                          fontSize: 11,
-                        ),
-                      ),
-                    )
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: filteredTags.length,
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      itemBuilder: (context, index) {
-                        final tag = filteredTags[index];
-                        final usageCount = _getTagUsageCount(tag.key, controller);
-                        final isEditing = _editingTagKey == tag.key;
+            if (filteredTags.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32.0),
+                child: Center(
+                  child: Text(
+                    _searchQuery.isEmpty ? 'No tags yet' : 'No matching tags',
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              )
+            else
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: filteredTags.length,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  itemBuilder: (context, index) {
+                    final tag = filteredTags[index];
+                    final usageCount = _getTagUsageCount(tag.key, controller);
+                    final isEditing = _editingTagKey == tag.key;
 
-                        return MouseRegion(
-                          onEnter: (_) {
-                            setState(() {
-                              _hoveredTagKey = tag.key;
-                            });
-                          },
-                          onExit: (_) {
-                            setState(() {
-                              _hoveredTagKey = null;
-                            });
-                          },
-                          child: Container(
-                            height: 38,
-                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                            color: isEditing
-                                ? theme.colorScheme.primary.withValues(alpha: 0.05)
-                                : _hoveredTagKey == tag.key
-                                    ? theme.colorScheme.onSurface.withValues(alpha: 0.04)
-                                    : Colors.transparent,
-                            child: Row(
-                              children: [
-                                // Tag Color Circle (click to pick color)
-                                GestureDetector(
-                                  onTapDown: (details) {
-                                    _showColorPicker(context, details.globalPosition, tag, controller);
-                                  },
-                                  child: MouseRegion(
-                                    cursor: SystemMouseCursors.click,
-                                    child: Container(
-                                      width: 14,
-                                      height: 14,
-                                      decoration: BoxDecoration(
-                                        color: Color(tag.fields.color),
-                                        shape: BoxShape.circle,
-                                        border: Border.all(color: Colors.white24),
-                                      ),
-                                    ),
+                    return MouseRegion(
+                      onEnter: (_) {
+                        setState(() {
+                          _hoveredTagKey = tag.key;
+                        });
+                      },
+                      onExit: (_) {
+                        setState(() {
+                          _hoveredTagKey = null;
+                        });
+                      },
+                      child: Container(
+                        height: 38,
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                        color: isEditing
+                            ? theme.colorScheme.primary.withValues(alpha: 0.05)
+                            : _hoveredTagKey == tag.key
+                                ? theme.colorScheme.onSurface.withValues(alpha: 0.04)
+                                : Colors.transparent,
+                        child: Row(
+                          children: [
+                            // Tag Color Circle (click to pick color)
+                            GestureDetector(
+                              onTapDown: (details) {
+                                _showColorPicker(context, details.globalPosition, tag, controller);
+                              },
+                              child: MouseRegion(
+                                cursor: SystemMouseCursors.click,
+                                child: Container(
+                                  width: 14,
+                                  height: 14,
+                                  decoration: BoxDecoration(
+                                    color: Color(tag.fields.color),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white24),
                                   ),
                                 ),
-                                const SizedBox(width: 10),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
 
-                                // Tag name / Edit Field
-                                Expanded(
-                                  child: isEditing
-                                      ? Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            SizedBox(
-                                              height: 22,
-                                              child: TextField(
-                                                controller: _renameController,
-                                                focusNode: _renameFocusNode,
-                                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                                                decoration: const InputDecoration(
-                                                  contentPadding: EdgeInsets.zero,
-                                                  isDense: true,
-                                                  border: InputBorder.none,
-                                                ),
-                                                onSubmitted: (_) => _submitRename(tag, controller, allTags),
-                                              ),
+                            // Tag name / Edit Field
+                            Expanded(
+                              child: isEditing
+                                  ? Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        SizedBox(
+                                          height: 22,
+                                          child: TextField(
+                                            controller: _renameController,
+                                            focusNode: _renameFocusNode,
+                                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                            decoration: const InputDecoration(
+                                              contentPadding: EdgeInsets.zero,
+                                              isDense: true,
+                                              border: InputBorder.none,
                                             ),
-                                            if (_validationError != null)
-                                              Text(
-                                                _validationError!,
-                                                style: const TextStyle(color: Colors.redAccent, fontSize: 8),
-                                              ),
-                                          ],
-                                        )
-                                      : GestureDetector(
-                                          onDoubleTap: () => _startEditing(tag),
-                                          child: MouseRegion(
-                                            cursor: SystemMouseCursors.text,
-                                            child: Text(
-                                              tag.fields.name,
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
+                                            onSubmitted: (_) => _submitRename(tag, controller, allTags),
                                           ),
                                         ),
-                                ),
-
-                                // Right side: options on hover, otherwise usage badge
-                                if (isEditing)
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.close_rounded, size: 14),
-                                        onPressed: () {
-                                          setState(() {
-                                            _editingTagKey = null;
-                                            _validationError = null;
-                                          });
-                                        },
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.check_rounded, size: 14, color: Colors.greenAccent),
-                                        onPressed: () => _submitRename(tag, controller, allTags),
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
-                                      ),
-                                    ],
-                                  )
-                                else if (_hoveredTagKey == tag.key)
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.edit_rounded, size: 14),
-                                        onPressed: () => _startEditing(tag),
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
-                                        tooltip: 'Rename tag',
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete_outline_rounded, size: 14, color: Colors.redAccent),
-                                        onPressed: () async {
-                                          final confirm = await showDeleteTagDialog(context, tag.fields.name);
-                                          if (confirm == true) {
-                                            await controller.deleteTag(tag.key);
-                                          }
-                                        },
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
-                                        tooltip: 'Delete tag globally',
-                                      ),
-                                    ],
-                                  )
-                                else
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Text(
-                                      '$usageCount',
-                                      style: TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.bold,
-                                        color: theme.colorScheme.primary,
+                                        if (_validationError != null)
+                                          Text(
+                                            _validationError!,
+                                            style: const TextStyle(color: Colors.redAccent, fontSize: 8),
+                                          ),
+                                      ],
+                                    )
+                                  : GestureDetector(
+                                      onDoubleTap: () => _startEditing(tag),
+                                      child: MouseRegion(
+                                        cursor: SystemMouseCursors.text,
+                                        child: Text(
+                                          tag.fields.name,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                              ],
                             ),
-                          ),
-                        );
-                      },
-                    ),
-            ),
+
+                            // Right side: options on hover, otherwise usage badge
+                            if (isEditing)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.close_rounded, size: 14),
+                                    onPressed: () {
+                                      setState(() {
+                                        _editingTagKey = null;
+                                        _validationError = null;
+                                      });
+                                    },
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.check_rounded, size: 14, color: Colors.greenAccent),
+                                    onPressed: () => _submitRename(tag, controller, allTags),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
+                                  ),
+                                ],
+                              )
+                            else if (_hoveredTagKey == tag.key)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit_rounded, size: 14),
+                                    onPressed: () => _startEditing(tag),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
+                                    tooltip: 'Rename tag',
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline_rounded, size: 14, color: Colors.redAccent),
+                                    onPressed: () async {
+                                      final confirm = await showDeleteTagDialog(context, tag.fields.name);
+                                      if (confirm == true) {
+                                        await controller.deleteTag(tag.key);
+                                      }
+                                    },
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
+                                    tooltip: 'Delete tag globally',
+                                  ),
+                                ],
+                              )
+                            else
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '$usageCount',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
           ],
         );
       },
