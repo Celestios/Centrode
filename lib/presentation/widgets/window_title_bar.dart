@@ -66,11 +66,24 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
     final session = tabsController.activeSession;
     final GraphDataController? dataController = session.dataController;
 
+    final menuButtonStyle = ButtonStyle(
+      minimumSize: WidgetStateProperty.all(Size.zero),
+      padding: WidgetStateProperty.all(
+        const EdgeInsets.only(left: 12, right: 12, top: 10, bottom: 14),
+      ),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      shape: WidgetStateProperty.all(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+        ),
+      ),
+    );
+
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
         child: Container(
-          height: 48,
+          height: 40,
           decoration: BoxDecoration(
             color: theme.cardColor.withValues(alpha: 0.65),
             border: Border(
@@ -123,6 +136,7 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
                       ),
                       children: [
                         SubmenuButton(
+                          style: menuButtonStyle,
                           menuChildren: [
                             MenuItemButton(
                               onPressed: () {
@@ -155,6 +169,7 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
                           ),
                         ),
                         SubmenuButton(
+                          style: menuButtonStyle,
                           menuChildren: [
                             MenuItemButton(
                               onPressed: () {
@@ -196,6 +211,7 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
                           ),
                         ),
                         SubmenuButton(
+                          style: menuButtonStyle,
                           menuChildren: [
                             MenuItemButton(
                               onPressed: () async {
@@ -230,6 +246,7 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
                           ),
                         ),
                         SubmenuButton(
+                          style: menuButtonStyle,
                           menuChildren: [
                             MenuItemButton(
                               onPressed: () {
@@ -470,7 +487,7 @@ class _WindowControlButtonsState extends State<WindowControlButtons>
     required VoidCallback onPressed,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(6),
         child: Material(

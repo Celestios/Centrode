@@ -125,7 +125,7 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
           child: CompositedTransformFollower(
             link: _layerLink,
             showWhenUnlinked: false,
-            offset: const Offset(-80, 36),
+            offset: const Offset(-40, 32),
             child: TapRegion(
               groupId: 'search_palette_group',
               child: Material(
@@ -471,6 +471,7 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hasFocus = _focusNode.hasFocus;
 
     return KeyboardListener(
       focusNode: _keyboardFocusNode,
@@ -495,25 +496,25 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  curve: Curves.easeOutCubic,
-                  width: 380,
-                  height: 32,
+                  duration: const Duration(milliseconds: 250),
+                  curve: hasFocus ? Curves.fastOutSlowIn : Curves.easeOutCubic,
+                  width: hasFocus ? 420.0 : 240.0,
+                  height: 28,
                   decoration: BoxDecoration(
-                    color: _focusNode.hasFocus
+                    color: hasFocus
                         ? theme.cardColor.withValues(alpha: 0.85)
-                        : theme.cardColor.withValues(alpha: 0.45),
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: _focusNode.hasFocus
-                          ? theme.colorScheme.primary.withValues(alpha: 0.25)
-                          : theme.dividerColor.withValues(alpha: 0.15),
-                      width: _focusNode.hasFocus ? 1.5 : 1.0,
+                      color: hasFocus
+                          ? theme.colorScheme.primary.withValues(alpha: 0.5)
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.15),
+                      width: hasFocus ? 1.5 : 1.0,
                     ),
-                    boxShadow: _focusNode.hasFocus
+                    boxShadow: hasFocus
                         ? [
                             BoxShadow(
-                              color: theme.colorScheme.primary.withValues(alpha: 0.25),
+                              color: theme.colorScheme.primary.withValues(alpha: 0.2),
                               blurRadius: 8,
                               spreadRadius: 1,
                             ),
@@ -525,10 +526,10 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                       const SizedBox(width: 8),
                       Icon(
                         Icons.search_rounded,
-                        size: 16,
-                        color: _focusNode.hasFocus
+                        size: 14,
+                        color: hasFocus
                             ? theme.colorScheme.primary
-                            : theme.iconTheme.color?.withValues(alpha: 0.5),
+                            : theme.iconTheme.color?.withValues(alpha: 0.4),
                       ),
                       const SizedBox(width: 6),
                       Expanded(
@@ -550,22 +551,23 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                           ),
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        margin: const EdgeInsets.only(right: 6),
-                        decoration: BoxDecoration(
-                          color: theme.dividerColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'Ctrl P',
-                          style: TextStyle(
-                            fontSize: 8,
-                            color: theme.hintColor,
-                            fontWeight: FontWeight.bold,
+                      if (hasFocus)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          margin: const EdgeInsets.only(right: 6),
+                          decoration: BoxDecoration(
+                            color: theme.dividerColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Ctrl P',
+                            style: TextStyle(
+                              fontSize: 8,
+                              color: theme.hintColor,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),
