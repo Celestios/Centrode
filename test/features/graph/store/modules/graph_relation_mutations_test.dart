@@ -58,7 +58,6 @@ void main() {
   group('GraphRelationMutations', () {
     late GraphDataController controller;
     late MockAppHandle mockApi;
-    late MockThemeController mockThemeController;
 
     setUpAll(() {
       registerFallbackValue(IRelation(
@@ -77,7 +76,6 @@ void main() {
 
     setUp(() {
       mockApi = MockAppHandle();
-      mockThemeController = MockThemeController();
 
       when(() => mockApi.createRelation(input: any(named: 'input')))
           .thenAnswer((_) async {});

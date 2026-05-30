@@ -20,7 +20,6 @@ void main() {
   group('GraphNodeMutations', () {
     late GraphDataController controller;
     late MockAppHandle mockApi;
-    late MockThemeController mockThemeController;
 
     setUpAll(() {
       registerFallbackValue(const Offset(0, 0));
@@ -49,7 +48,6 @@ void main() {
 
     setUp(() {
       mockApi = MockAppHandle();
-      mockThemeController = MockThemeController();
 
       when(() => mockApi.createNode(input: any(named: 'input')))
           .thenAnswer((_) async {});

@@ -5,8 +5,6 @@ import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_context_too
 
 void main() {
   testWidgets('VerticalContextToolbar group buttons open submenus on mouse hover', (WidgetTester tester) async {
-    bool deleteCalled = false;
-
     // Build the toolbar in a sized container
     await tester.pumpWidget(
       MaterialApp(
@@ -17,7 +15,7 @@ void main() {
               width: 400,
               height: 600,
               child: VerticalContextToolbar(
-                onDelete: () => deleteCalled = true,
+                onDelete: () {},
                 isMulti: false,
                 isRelationOnly: false,
                 canSaveTemplate: true,
@@ -64,8 +62,6 @@ void main() {
   });
 
   testWidgets('VerticalContextToolbar under loose constraints does not shift trigger button on hover', (WidgetTester tester) async {
-    bool deleteCalled = false;
-
     // Build the toolbar under loose constraints using Positioned in a Stack
     await tester.pumpWidget(
       MaterialApp(
@@ -76,7 +72,7 @@ void main() {
                 left: 100,
                 top: 100,
                 child: VerticalContextToolbar(
-                  onDelete: () => deleteCalled = true,
+                  onDelete: () {},
                   isMulti: false,
                   isRelationOnly: false,
                   canSaveTemplate: true,
@@ -105,8 +101,6 @@ void main() {
   });
 
   testWidgets('VerticalContextToolbar inside scaled and translated Transform opens submenu on hover', (WidgetTester tester) async {
-    bool deleteCalled = false;
-
     // Use a matrix with scale = 0.8 and translation (400, 200)
     final matrix = Matrix4.identity()
       ..translate(400.0, 200.0)
@@ -125,7 +119,7 @@ void main() {
                   child: Transform.translate(
                     offset: const Offset(0, 0) - const Offset(340, 0),
                     child: VerticalContextToolbar(
-                      onDelete: () => deleteCalled = true,
+                      onDelete: () {},
                       isMulti: false,
                       isRelationOnly: false,
                       canSaveTemplate: true,
