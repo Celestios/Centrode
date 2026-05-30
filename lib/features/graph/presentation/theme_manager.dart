@@ -19,6 +19,18 @@ class ThemeController extends ChangeNotifier {
     if (activeId != null) {
       final frb.Theme? saved = await _appHandle.getTheme(key: activeId);
       if (saved != null) {
+        if (saved.fields.name == 'graph-default') {
+          final syncedTheme = GraphTheme.fromThemeData(globalTheme, name: 'graph-default', id: activeId);
+          _currentGraphTheme = syncedTheme;
+          _log.info('Synced existing graph-default theme with new global theme colors');
+          notifyListeners();
+          
+          _persistAndActivate(syncedTheme).catchError((e, st) {
+            _log.severe('Failed to persist synced default theme', e, st);
+          });
+          return;
+        }
+
         final loaded = GraphTheme.fromRust(saved);
         _currentGraphTheme = GraphTheme.fromRust(saved);
         _log.info('Loaded existing graph theme: ${loaded.name}');

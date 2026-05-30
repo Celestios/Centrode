@@ -290,7 +290,7 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   void updateRelationStyle(
     String id,
     RelationStyle newStyle,
-  ) => relationMutations.updateRelationStyle(id, newStyle);
+  ) => propertyMutations.updateRelationStyle(id, newStyle);
 
   // Property Mutations
   void commitEntityText(String id, String newText, {String? originalText}) =>

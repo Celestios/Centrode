@@ -353,4 +353,60 @@ class GraphPropertyMutations {
     }
     controller.triggerUpdate();
   }
+
+  /// Updates the style of a relation.
+  void updateRelationStyle(String id, RelationStyle newStyle) {
+    final relation = controller.store.relationLookup[id];
+    if (relation == null) return;
+
+    final oldRelation = UiRelation.copy(relation);
+    if (oldRelation == null) return;
+
+    final updatedRelation = (relation as InfoUiRelation).copyWith(
+      style: newStyle,
+    );
+    updatedRelation.resolvedStyle = null;
+
+    // OPTIMISTIC UPDATE
+    controller.store.relationLookup[id] = updatedRelation;
+    controller.styleUpdater?.updateStyleForRelation(id);
+
+    final cmd = UpdateRelationLayoutCommand(
+      targetId: id,
+      tableName: 'IRelation',
+      api: controller.syncEngine.api,
+      oldLayout: oldRelation.layout,
+      newLayout: updatedRelation.layout,
+      oldStyle: oldRelation.style,
+      newStyle: newStyle,
+      onUndo: () {
+        _propLog.warning(
+          'Relation style update failed or rejected. Rolling back.',
+        );
+        controller.store.relationLookup[id] = oldRelation;
+        controller.styleUpdater?.updateStyleForRelation(id);
+        controller.publishUpdate(
+          GraphEntityUpdate(
+            id: id,
+            tableName: 'IRelation',
+            type: GraphUpdateType.style,
+            payload: oldRelation.style,
+          ),
+        );
+        controller.triggerUpdate();
+      },
+    );
+
+    controller.syncEngine.processor.queueCommand(cmd, immediate: true);
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: 'IRelation',
+        type: GraphUpdateType.style,
+        payload: updatedRelation.style,
+      ),
+    );
+
+    controller.triggerUpdate();
+  }
 }

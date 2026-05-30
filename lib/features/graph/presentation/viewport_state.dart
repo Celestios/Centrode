@@ -119,6 +119,16 @@ class ViewportController {
     recalculateElasticMargins();
   }
 
+  /// Updates the zoom scale while preserving the current camera translation.
+  void updateScale(double newScale) {
+    final currentMatrix = transformController.value;
+    final translation = currentMatrix.getTranslation();
+    transformController.value = Matrix4.identity()
+      ..translate(translation.x, translation.y)
+      ..scale(newScale);
+    recalculateElasticMargins();
+  }
+
   void _handleTransform() {
     _recalculate();
   }

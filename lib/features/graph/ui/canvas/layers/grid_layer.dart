@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -24,6 +25,8 @@ class _GridLayerState extends State<GridLayer>
   Offset? _visualGlowPos;
   double _glowOpacity = 0.0;
   Ticker? _ticker;
+  Offset _velocity = Offset.zero;
+  Duration _lastFrameTime = Duration.zero;
 
   @override
   void initState() {
@@ -51,38 +54,63 @@ class _GridLayerState extends State<GridLayer>
   void _onMouseMoved() {
     final mousePos = widget.mousePositionNotifier.value;
     if (mousePos != null && !_ticker!.isActive) {
+      _lastFrameTime = Duration.zero;
       _ticker!.start();
     } else if (mousePos == null && !_ticker!.isActive && _glowOpacity > 0.0) {
+      _lastFrameTime = Duration.zero;
       _ticker!.start();
     }
   }
 
   void _onTick(Duration elapsed) {
+    // Calculate dt in seconds, clamped to protect against extreme spikes
+    double dt = 0.016; // Fallback
+    if (_lastFrameTime != Duration.zero) {
+      dt = (elapsed - _lastFrameTime).inMicroseconds / 1000000.0;
+    }
+    _lastFrameTime = elapsed;
+    dt = dt.clamp(0.008, 0.033);
+
     final physicalMousePos = widget.mousePositionNotifier.value;
 
     if (physicalMousePos == null) {
-      // Smoothly decay/fade out the glow
+      // Smoothly decay opacity and drag visual position to a stop
       setState(() {
-        _glowOpacity = (_glowOpacity - 0.08).clamp(0.0, 1.0);
+        _glowOpacity = (_glowOpacity - 4.0 * dt).clamp(0.0, 1.0);
+        _velocity = _velocity * (1.0 - 10.0 * dt).clamp(0.0, 1.0);
+        
         if (_glowOpacity == 0.0) {
           _visualGlowPos = null;
+          _velocity = Offset.zero;
           _ticker!.stop();
         }
       });
     } else {
-      // Smoothly fade in/interpolate the glow
+      // Smoothly fade in and track position using distance-dependent spring-like dynamics
       setState(() {
-        _glowOpacity = (_glowOpacity + 0.12).clamp(0.0, 1.0);
+        _glowOpacity = (_glowOpacity + 6.0 * dt).clamp(0.0, 1.0);
 
         if (_visualGlowPos == null) {
           _visualGlowPos = physicalMousePos;
+          _velocity = Offset.zero;
         } else {
-          // Fluid spring interpolation: Visual center trails physical position
-          const double damping = 0.22;
-          _visualGlowPos = Offset(
-            lerpDouble(_visualGlowPos!.dx, physicalMousePos.dx, damping)!,
-            lerpDouble(_visualGlowPos!.dy, physicalMousePos.dy, damping)!,
-          );
+          final displacement = physicalMousePos - _visualGlowPos!;
+          final dist = displacement.distance;
+
+          // Distance-dependent easing: soft at close range, tighter far away
+          final double baseEase = 0.05;
+          final double maxAdditionalEase = 0.09;
+          final double halfSatDistance = 150.0;
+          final double easeFactor = baseEase + maxAdditionalEase * (dist / (dist + halfSatDistance));
+
+          // Calculate step, making it frame-rate independent
+          final double step = (easeFactor * 60.0 * dt).clamp(0.0, 1.0);
+
+          // Interpolate visual position
+          _visualGlowPos = Offset.lerp(_visualGlowPos, physicalMousePos, step);
+
+          // Save the displacement/lag vector to pass to the painter
+          _velocity = physicalMousePos - _visualGlowPos!;
         }
       });
     }
@@ -99,47 +127,54 @@ class _GridLayerState extends State<GridLayer>
         : const Color.fromARGB(233, 214, 214, 214);
 
     final Color glowColor = isDark
-        ? theme.colorScheme.primary.withValues(alpha: 0.8)
-        : theme.colorScheme.primary.withValues(alpha: 0.6);
+        ? Colors.white.withValues(alpha: 0.95)
+        : const Color(0xFF1E1E1E).withValues(alpha: 0.85);
 
-    return RepaintBoundary(
-      child: CustomPaint(
-        size: widget.viewportState.viewportSize,
-        painter: _GridPainter(
-          visibleRect: widget.viewportState.visibleRect,
-          scale: widget.viewportState.scale,
-          viewportSize: widget.viewportState.viewportSize,
-          backgroundColor: backgroundColor,
-          dotColor: dotColor,
-          glowColor: glowColor,
-          visualGlowPos: _visualGlowPos,
-          glowOpacity: _glowOpacity,
+    return Stack(
+      children: [
+        RepaintBoundary(
+          child: CustomPaint(
+            size: widget.viewportState.viewportSize,
+            painter: _StaticGridPainter(
+              visibleRect: widget.viewportState.visibleRect,
+              scale: widget.viewportState.scale,
+              backgroundColor: backgroundColor,
+              dotColor: dotColor,
+            ),
+          ),
         ),
-        willChange: true, // high-frequency updates during gestures
-      ),
+        if (_visualGlowPos != null && _glowOpacity > 0.0)
+          RepaintBoundary(
+            child: CustomPaint(
+              size: widget.viewportState.viewportSize,
+              painter: _GlowGridPainter(
+                visibleRect: widget.viewportState.visibleRect,
+                scale: widget.viewportState.scale,
+                dotColor: dotColor,
+                glowColor: glowColor,
+                visualGlowPos: _visualGlowPos,
+                glowOpacity: _glowOpacity,
+                velocity: _velocity,
+              ),
+              willChange: true, // high-frequency updates during gestures
+            ),
+          ),
+      ],
     );
   }
 }
 
-class _GridPainter extends CustomPainter {
+class _StaticGridPainter extends CustomPainter {
   final Rect visibleRect;
   final double scale;
-  final Size viewportSize;
   final Color backgroundColor;
   final Color dotColor;
-  final Color glowColor;
-  final Offset? visualGlowPos;
-  final double glowOpacity;
 
-  _GridPainter({
+  _StaticGridPainter({
     required this.visibleRect,
     required this.scale,
-    required this.viewportSize,
     required this.backgroundColor,
     required this.dotColor,
-    required this.glowColor,
-    required this.visualGlowPos,
-    required this.glowOpacity,
   });
 
   @override
@@ -181,57 +216,125 @@ class _GridPainter extends CustomPainter {
       ..strokeWidth = (AppConfig.grid.dotRadius * 2) / scale;
 
     canvas.drawPoints(PointMode.points, points, paint);
+  }
 
-    // Dynamic Hover Glow overlay
+  @override
+  bool shouldRepaint(covariant _StaticGridPainter oldDelegate) {
+    return oldDelegate.visibleRect != visibleRect ||
+        oldDelegate.scale != scale ||
+        oldDelegate.backgroundColor != backgroundColor ||
+        oldDelegate.dotColor != dotColor;
+  }
+}
+
+class _GlowGridPainter extends CustomPainter {
+  final Rect visibleRect;
+  final double scale;
+  final Color dotColor;
+  final Color glowColor;
+  final Offset? visualGlowPos;
+  final double glowOpacity;
+  final Offset velocity;
+
+  _GlowGridPainter({
+    required this.visibleRect,
+    required this.scale,
+    required this.dotColor,
+    required this.glowColor,
+    required this.visualGlowPos,
+    required this.glowOpacity,
+    required this.velocity,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
     final glowPosLocal = visualGlowPos;
-    if (glowPosLocal != null && glowOpacity > 0.0) {
-      // Calculate logical coordinates for the mouse position
-      final Offset glowPos = visibleRect.topLeft + (glowPosLocal / scale);
-      const double influenceRadius = 160.0;
+    if (glowPosLocal == null || glowOpacity <= 0.0) return;
 
-      // Find boundaries in logical space of grid dots inside the influence radius
-      final double minGlowX = ((glowPos.dx - influenceRadius) / effectiveGridSize).floor() * effectiveGridSize;
-      final double maxGlowX = ((glowPos.dx + influenceRadius) / effectiveGridSize).ceil() * effectiveGridSize;
-      final double minGlowY = ((glowPos.dy - influenceRadius) / effectiveGridSize).floor() * effectiveGridSize;
-      final double maxGlowY = ((glowPos.dy + influenceRadius) / effectiveGridSize).ceil() * effectiveGridSize;
+    final double effectiveGridSize = calculateEffectiveGridSize(scale);
 
-      for (double x = minGlowX; x <= maxGlowX; x += effectiveGridSize) {
-        for (double y = minGlowY; y <= maxGlowY; y += effectiveGridSize) {
-          final Offset dotPos = Offset(x, y);
-          final double distance = (dotPos - glowPos).distance;
+    // Calculate logical coordinates for the mouse position
+    final Offset glowPos = visibleRect.topLeft + (glowPosLocal / scale);
+    
+    // The velocity parameter represents the lag/displacement vector in logical space
+    final Offset displacementLogical = velocity / scale;
+    final double lagDistance = displacementLogical.distance;
 
-          if (distance < influenceRadius) {
-            // Cubic smoothstep interpolation (proximity value: 1 at cursor center, 0 at boundary)
-            final double t = (1.0 - (distance / influenceRadius)).clamp(0.0, 1.0);
-            final double strength = (3 * t * t - 2 * t * t * t) * glowOpacity;
+    const double baseInfluenceRadius = 160.0;
+    
+    double a = baseInfluenceRadius;
+    double b = baseInfluenceRadius;
+    double cosAngle = 1.0;
+    double sinAngle = 0.0;
 
-            // Interpolate radius and color values
-            final double targetRadius = (AppConfig.grid.dotRadius + 1.7 * strength) / scale;
-            final Color dynamicColor = Color.lerp(
-              dotColor,
-              glowColor.withValues(alpha: strength),
-              strength,
-            )!;
+    if (lagDistance > 2.0) {
+      // Saturation-based stretch/compression to prevent the ellipse from collapsing into a line
+      final double saturation = lagDistance / (lagDistance + 60.0);
+      
+      const double maxStretch = 120.0;
+      const double maxCompress = 40.0;
 
-            final glowPaint = Paint()
-              ..color = dynamicColor
-              ..style = PaintingStyle.fill;
+      a = baseInfluenceRadius + maxStretch * saturation;
+      b = baseInfluenceRadius - maxCompress * saturation;
 
-            canvas.drawCircle(dotPos, targetRadius, glowPaint);
-          }
+      // Direction vector aligned with the displacement (motion tail)
+      final Offset dir = displacementLogical / lagDistance;
+      cosAngle = dir.dx;
+      sinAngle = dir.dy;
+    }
+
+    // Find local bounding box of the ellipse to restrict calculation loop
+    final double maxDim = a > b ? a : b;
+    final double minGlowX = ((glowPos.dx - maxDim) / effectiveGridSize).floor() * effectiveGridSize;
+    final double maxGlowX = ((glowPos.dx + maxDim) / effectiveGridSize).ceil() * effectiveGridSize;
+    final double minGlowY = ((glowPos.dy - maxDim) / effectiveGridSize).floor() * effectiveGridSize;
+    final double maxGlowY = ((glowPos.dy + maxDim) / effectiveGridSize).ceil() * effectiveGridSize;
+
+    // Single paint object reused to avoid garbage collection overhead
+    final glowPaint = Paint()..style = PaintingStyle.fill;
+
+    for (double x = minGlowX; x <= maxGlowX; x += effectiveGridSize) {
+      for (double y = minGlowY; y <= maxGlowY; y += effectiveGridSize) {
+        // Translate point to center (using primitives to avoid Offset allocation)
+        final double dx = x - glowPos.dx;
+        final double dy = y - glowPos.dy;
+
+        // Rotate point back by -theta to align with ellipse axes
+        final double rx = dx * cosAngle + dy * sinAngle;
+        final double ry = -dx * sinAngle + dy * cosAngle;
+
+        // Ellipse math: (rx/a)^2 + (ry/b)^2
+        final double ellipseVal = (rx * rx) / (a * a) + (ry * ry) / (b * b);
+
+        if (ellipseVal < 1.0) {
+          // Cubic smoothstep interpolation (proximity value: 1 at center, 0 at boundary)
+          final double t = (1.0 - math.sqrt(ellipseVal)).clamp(0.0, 1.0);
+          final double strength = (3 * t * t - 2 * t * t * t) * glowOpacity;
+
+          // Interpolate radius and color values
+          // Dot growth factor reduced to 0.6 for a subtle/premium glow effect
+          final double targetRadius = (AppConfig.grid.dotRadius + 0.6 * strength) / scale;
+          final Color dynamicColor = Color.lerp(
+            dotColor,
+            glowColor.withValues(alpha: strength),
+            strength,
+          )!;
+
+          glowPaint.color = dynamicColor;
+          canvas.drawCircle(Offset(x, y), targetRadius, glowPaint);
         }
       }
     }
   }
 
   @override
-  bool shouldRepaint(covariant _GridPainter oldDelegate) {
+  bool shouldRepaint(covariant _GlowGridPainter oldDelegate) {
     return oldDelegate.visibleRect != visibleRect ||
         oldDelegate.scale != scale ||
-        oldDelegate.backgroundColor != backgroundColor ||
         oldDelegate.dotColor != dotColor ||
         oldDelegate.glowColor != glowColor ||
         oldDelegate.visualGlowPos != visualGlowPos ||
-        oldDelegate.glowOpacity != glowOpacity;
+        oldDelegate.glowOpacity != glowOpacity ||
+        oldDelegate.velocity != velocity;
   }
 }

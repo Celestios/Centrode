@@ -78,11 +78,6 @@ class ZoomSliderWidget extends StatelessWidget {
   }
 
   void _updateZoom(ViewportController controller, double newScale) {
-    final currentMatrix = controller.transformController.value;
-    final translation = currentMatrix.getTranslation();
-    final newMatrix = Matrix4.identity()
-      ..translate(translation.x, translation.y)
-      ..scale(newScale);
-    controller.transformController.value = newMatrix;
+    controller.updateScale(newScale);
   }
 }

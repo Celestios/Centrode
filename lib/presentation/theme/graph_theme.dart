@@ -35,9 +35,9 @@ class GraphTheme extends AppTheme {
   });
 
   /// One‑time snapshot from the current global [ThemeData].
-  factory GraphTheme.fromThemeData(ThemeData global, {String? name}) {
+  factory GraphTheme.fromThemeData(ThemeData global, {String? name, String? id}) {
     return GraphTheme(
-      id: const Uuid().v4(),
+      id: id ?? const Uuid().v4(),
       name: name ?? 'graph-default',
       primaryColor: global.colorScheme.primary,
       secondaryColor: global.colorScheme.secondary,
