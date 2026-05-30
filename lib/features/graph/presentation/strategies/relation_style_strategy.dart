@@ -58,7 +58,7 @@ class DefaultRelationStyleStrategy extends RelationStyleStrategy {
   RelationStyle resolve(UiRelation relation, GraphTheme theme) {
     if (relation.style != null) return relation.style!;
     return RelationStyleStrategy.fallbackStyle().copyWith(
-      strokeColor: theme.dividerColor.toARGB32(),
+      strokeColor: theme.primaryColor.withValues(alpha: 0.5).toARGB32(),
       fontFamily: theme.fontFamily,
       textColor: theme.bodyTextColor.toARGB32(),
     );

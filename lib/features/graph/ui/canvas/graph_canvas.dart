@@ -587,7 +587,7 @@ class _GraphCanvasState extends State<GraphCanvas>
               }
             },
             dragHandle: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(vertical: 2),
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onPanUpdate: (details) {

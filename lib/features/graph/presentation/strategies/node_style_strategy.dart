@@ -91,7 +91,7 @@ class TaskNodeStyleStrategy extends NodeStyleStrategy {
   @override
   NodeStyle resolve(UiNode node, GraphTheme theme) {
     if (node.style != null) return node.style!;
-    const int bgColor = 0xFFC8E6C9;
+    const int bgColor = 0xFF34D399;
     return NodeStyleStrategy.fallbackStyle().copyWith(
       bgColor: bgColor,
       strokeColor: ColorUtils.getContrastStrokeColorInt(bgColor),

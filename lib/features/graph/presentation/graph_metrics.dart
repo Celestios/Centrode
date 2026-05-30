@@ -114,9 +114,9 @@ class _Visuals {
   const _Visuals();
 
   final Color selectionAccent = const Color(0xFF42A5F5);
-  final Color defaultInfoBg = const Color(0xFFBBDEFB);
-  final Color defaultTaskBg = const Color(0xFFC8E6C9);
-  final Color defaultInterBg = const Color(0xFFFFF9C4);
+  final Color defaultInfoBg = const Color(0xFF818CF8);
+  final Color defaultTaskBg = const Color(0xFF34D399);
+  final Color defaultInterBg = const Color(0xFFFBBF24);
   final String defaultFont = 'Inter';
   final String defaultShape = 'rectangle';
   final String circleShape = 'circle';

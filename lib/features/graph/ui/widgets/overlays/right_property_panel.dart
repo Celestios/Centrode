@@ -474,14 +474,14 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
 
     // List of modern, curated colors
     final colors = [
-      0xFFBBDEFB, // Light Blue
-      0xFFC8E6C9, // Light Green
-      0xFFFFF9C4, // Light Yellow
-      0xFFE1BEE7, // Lavender
-      0xFFF8BBD0, // Rose
-      0xFFFFE0B2, // Orange
-      0xFFCFD8DC, // Charcoal
-      0xFFEEEEEE, // White/Gray
+      0xFF818CF8, // Premium Indigo
+      0xFF34D399, // Premium Mint
+      0xFFFBBF24, // Premium Amber
+      0xFFC084FC, // Premium Lavender
+      0xFFF472B6, // Premium Rose
+      0xFFFB923C, // Premium Orange
+      0xFF94A3B8, // Premium Slate
+      0xFFE2E8F0, // Premium Slate White
     ];
 
     return Column(

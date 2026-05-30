@@ -116,14 +116,26 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _initFuture = widget.session.initialize(Theme.of(context));
+    ThemeData globalTheme;
+    try {
+      globalTheme = themeNotifier.value.toThemeData();
+    } catch (_) {
+      globalTheme = Theme.of(context);
+    }
+    _initFuture = widget.session.initialize(globalTheme);
   }
 
   @override
   void didUpdateWidget(ActiveSessionWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.session.id != widget.session.id) {
-      _initFuture = widget.session.initialize(Theme.of(context));
+      ThemeData globalTheme;
+      try {
+        globalTheme = themeNotifier.value.toThemeData();
+      } catch (_) {
+        globalTheme = Theme.of(context);
+      }
+      _initFuture = widget.session.initialize(globalTheme);
     }
   }
 

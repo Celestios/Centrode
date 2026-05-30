@@ -43,7 +43,7 @@ Future<void> main() async {
     );
     themeNotifier = ValueNotifier(AppTheme());
   } else {
-    final initialTheme = themes['dark'] ?? themes.values.first;
+    final initialTheme = themes['light'] ?? themes.values.first;
     themeNotifier = ValueNotifier(initialTheme);
     log.info('Loaded themes: ${themes.keys.join(', ')}');
   }
