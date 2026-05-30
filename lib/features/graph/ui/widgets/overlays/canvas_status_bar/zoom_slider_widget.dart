@@ -48,7 +48,7 @@ class ZoomSliderWidget extends StatelessWidget {
                     thumbColor: primaryColor,
                   ),
                   child: Slider(
-                    value: scale,
+                    value: scale.clamp(0.2, 3.0),
                     min: 0.2,
                     max: 3.0,
                     onChanged: (val) => _updateZoom(viewportController, val),

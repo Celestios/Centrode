@@ -9,27 +9,42 @@ class CanvasStatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        // Bottom Left: Graph Manual / Conventions Legend
-        const GraphManualWidget(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double maxWidth = constraints.maxWidth;
 
-        // Bottom Center: Graph Metrics & Sync Info
-        const StatusMetricsWidget(),
+        // Guard against zero layout width
+        if (maxWidth <= 0) return const SizedBox.shrink();
 
-        // Bottom Right: Zoom & Mini-Map group
-        Row(
-          mainAxisSize: MainAxisSize.min,
+        final showMiniMap = maxWidth >= 700;
+        final showMetrics = maxWidth >= 500;
+        final showManual = maxWidth >= 300;
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.end,
-          children: const [
-            ZoomSliderWidget(),
-            SizedBox(width: 10),
-            ViewportMiniMapWidget(),
+          children: [
+            // Bottom Left: Graph Manual / Conventions Legend
+            if (showManual) const GraphManualWidget() else const SizedBox.shrink(),
+
+            // Bottom Center: Graph Metrics & Sync Info
+            if (showMetrics) const StatusMetricsWidget() else const SizedBox.shrink(),
+
+            // Bottom Right: Zoom & Mini-Map group
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                const ZoomSliderWidget(),
+                if (showMiniMap) ...[
+                  const SizedBox(width: 10),
+                  const ViewportMiniMapWidget(),
+                ],
+              ],
+            ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 }
