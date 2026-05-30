@@ -4,7 +4,7 @@ part of '../base_interaction_state.dart';
 /// Logger for MarqueeSelecting state telemetry
 final Logger _marqueeLog = Logger('MarqueeSelecting');
 
-/// State when dragging a marquee selection box via right-click.
+/// State when dragging a marquee selection box via left-click on empty space.
 /// Computes overlaps against visible nodes in O(V) time upon release.
 class MarqueeSelecting extends CanvasInteractionState {
   final Offset startPos;

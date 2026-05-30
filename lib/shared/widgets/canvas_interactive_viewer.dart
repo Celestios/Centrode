@@ -526,6 +526,10 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
   double _currentRotation = 0.0; // Rotation of _transformationController.value.
   _GestureType? _gestureType;
   Offset? _trackpadFocalPoint;
+  PointerDeviceKind? _lastPointerKind;
+  int _lastPointerButtons = 0;
+  bool _isSecondaryPanning = false;
+  late VelocityTracker _velocityTracker;
   // TODO(justinmc): Add rotateEnabled parameter to the widget and remove this
   // hardcoded value when the rotation feature is implemented.
   // https://github.com/flutter/flutter/issues/57698
@@ -724,6 +728,12 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
 
   // Returns true iff the given _GestureType is enabled.
   bool _gestureIsSupported(_GestureType? gestureType) {
+    if (gestureType == _GestureType.pan) {
+      if (_lastPointerKind == PointerDeviceKind.mouse &&
+          _lastPointerButtons == kPrimaryMouseButton) {
+        return false;
+      }
+    }
     return switch (gestureType) {
       _GestureType.rotate => _rotateEnabled,
       _GestureType.scale => widget.scaleEnabled,
@@ -881,42 +891,7 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
 
     switch (_gestureType) {
       case _GestureType.pan:
-        if (details.velocity.pixelsPerSecond.distance < kMinFlingVelocity) {
-          _currentAxis = null;
-          return;
-        }
-        final Vector3 translationVector = _transformer.value.getTranslation();
-        final Offset translation = Offset(
-          translationVector.x,
-          translationVector.y,
-        );
-        final FrictionSimulation frictionSimulationX = FrictionSimulation(
-          widget.interactionEndFrictionCoefficient,
-          translation.dx,
-          details.velocity.pixelsPerSecond.dx,
-        );
-        final FrictionSimulation frictionSimulationY = FrictionSimulation(
-          widget.interactionEndFrictionCoefficient,
-          translation.dy,
-          details.velocity.pixelsPerSecond.dy,
-        );
-        final double tFinal = _getFinalTime(
-          details.velocity.pixelsPerSecond.distance,
-          widget.interactionEndFrictionCoefficient,
-        );
-        _animation =
-            Tween<Offset>(
-              begin: translation,
-              end: Offset(
-                frictionSimulationX.finalX,
-                frictionSimulationY.finalX,
-              ),
-            ).animate(
-              CurvedAnimation(parent: _controller, curve: Curves.decelerate),
-            );
-        _controller.duration = Duration(milliseconds: (tFinal * 1000).round());
-        _animation!.addListener(_handleInertiaAnimation);
-        _controller.forward();
+        _applyFrictionInertia(details.velocity.pixelsPerSecond);
       case _GestureType.scale:
         if (details.scaleVelocity.abs() < 0.1) {
           _currentAxis = null;
@@ -953,8 +928,49 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
     }
   }
 
+  void _applyFrictionInertia(Offset velocity) {
+    if (velocity.distance < kMinFlingVelocity) {
+      _currentAxis = null;
+      return;
+    }
+    final Vector3 translationVector = _transformer.value.getTranslation();
+    final Offset translation = Offset(
+      translationVector.x,
+      translationVector.y,
+    );
+    final FrictionSimulation frictionSimulationX = FrictionSimulation(
+      widget.interactionEndFrictionCoefficient,
+      translation.dx,
+      velocity.dx,
+    );
+    final FrictionSimulation frictionSimulationY = FrictionSimulation(
+      widget.interactionEndFrictionCoefficient,
+      translation.dy,
+      velocity.dy,
+    );
+    final double tFinal = _getFinalTime(
+      velocity.distance,
+      widget.interactionEndFrictionCoefficient,
+    );
+    _animation =
+        Tween<Offset>(
+          begin: translation,
+          end: Offset(
+            frictionSimulationX.finalX,
+            frictionSimulationY.finalX,
+          ),
+        ).animate(
+          CurvedAnimation(parent: _controller, curve: Curves.decelerate),
+        );
+    _controller.duration = Duration(milliseconds: (tFinal * 1000).round());
+    _animation!.addListener(_handleInertiaAnimation);
+    _controller.forward();
+  }
+
   // Handle mousewheel and web trackpad scroll events.
   void _receivedPointerSignal(PointerSignalEvent event) {
+    _lastPointerKind = event.kind;
+    _lastPointerButtons = event.buttons;
     final Offset local = event.localPosition;
     final Offset global = event.position;
     final double scaleChange;
@@ -1109,6 +1125,7 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
     super.initState();
     _controller = AnimationController(vsync: this);
     _scaleController = AnimationController(vsync: this);
+    _velocityTracker = VelocityTracker.withKind(PointerDeviceKind.mouse);
 
     _transformer.addListener(_handleTransformation);
   }
@@ -1179,7 +1196,62 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
     return Listener(
       key: _parentKey,
       onPointerSignal: _receivedPointerSignal,
+      onPointerDown: (PointerDownEvent event) {
+        _lastPointerKind = event.kind;
+        _lastPointerButtons = event.buttons;
+
+        if (widget.panEnabled &&
+            event.kind == PointerDeviceKind.mouse &&
+            event.buttons == kSecondaryMouseButton) {
+          _isSecondaryPanning = true;
+          _velocityTracker.addPosition(event.timeStamp, event.position);
+
+          if (_controller.isAnimating) {
+            _controller.stop();
+            _controller.reset();
+            _animation?.removeListener(_handleInertiaAnimation);
+            _animation = null;
+          }
+          _referenceFocalPoint = _transformer.toScene(event.localPosition);
+        }
+      },
+      onPointerMove: (PointerMoveEvent event) {
+        if (_isSecondaryPanning) {
+          _velocityTracker.addPosition(event.timeStamp, event.position);
+
+          if (_referenceFocalPoint != null) {
+            final Offset focalPointScene = _transformer.toScene(event.localPosition);
+            final Offset translationChange = focalPointScene - _referenceFocalPoint!;
+            _transformer.value = _matrixTranslate(
+              _transformer.value,
+              translationChange,
+            );
+            _referenceFocalPoint = _transformer.toScene(event.localPosition);
+          }
+        }
+      },
+      onPointerUp: (PointerUpEvent event) {
+        _lastPointerKind = event.kind;
+        _lastPointerButtons = event.buttons;
+        if (_isSecondaryPanning) {
+          _isSecondaryPanning = false;
+          _referenceFocalPoint = null;
+
+          final Velocity velocity = _velocityTracker.getVelocity();
+          _applyFrictionInertia(velocity.pixelsPerSecond);
+        }
+      },
+      onPointerCancel: (PointerCancelEvent event) {
+        _lastPointerKind = event.kind;
+        _lastPointerButtons = event.buttons;
+        if (_isSecondaryPanning) {
+          _isSecondaryPanning = false;
+          _referenceFocalPoint = null;
+        }
+      },
       onPointerPanZoomStart: (PointerPanZoomStartEvent event) {
+        _lastPointerKind = event.kind;
+        _lastPointerButtons = event.buttons;
         _trackpadFocalPoint = event.localPosition;
       },
       onPointerPanZoomUpdate: (PointerPanZoomUpdateEvent event) {
