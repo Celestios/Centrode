@@ -10,12 +10,14 @@ import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/features/graph/models/content_builder.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
+import 'package:mycelium/src/rust/domain/styles.dart';
 
 class MockAppHandle extends Mock implements AppHandle {}
 class MockThemeController extends Mock implements ThemeController {
   @override
   GraphTheme get currentGraphTheme => const GraphTheme(id: 'test', name: 'test');
 }
+class MockStyleUpdater extends Mock implements GraphStyleUpdater {}
 
 class FakeSymmetricEntityPatch extends Fake implements SymmetricEntityPatch {}
 
@@ -159,6 +161,73 @@ void main() {
       expect(updated.layout?.fromSide, 'Top');
       expect(updated.layout?.toSide, 'Bottom');
       expect(updated.layout?.strategyType, 'bezier');
+
+      await controller.syncEngine.processor.forceFlush();
+      verify(() => mockApi.applyEntityMutation(mutation: any(named: 'mutation'))).called(1);
+    });
+
+    test('updateRelationStyle updates style, clears resolvedStyle, notifies updater, and triggers FFI mutate call', () async {
+      final node1 = controller.createNode(UiNodes.info, const Offset(0, 0));
+      final node2 = controller.createNode(UiNodes.info, const Offset(100, 100));
+
+      controller.createRelation(node1, node2);
+      final relId = controller.relations.first.id;
+
+      final initialRel = controller.store.relationLookup[relId]!;
+      initialRel.resolvedStyle = const RelationStyle(
+        bgColor: 0,
+        strokeColor: 0,
+        strokeWidth: 1,
+        fontFamily: 'Roboto',
+        fontSize: 12,
+        shape: 'line',
+        arrowType: 'none',
+        arrowSize: 0,
+        width: 0,
+        height: 0,
+        textColor: 0,
+        shadowColor: 0,
+        shadowBlur: 0,
+        shadowOffsetX: 0,
+        shadowOffsetY: 0,
+        strategyType: 'default',
+        strokePattern: 'solid',
+      );
+
+      final mockStyleUpdater = MockStyleUpdater();
+      controller.styleUpdater = mockStyleUpdater;
+      
+      when(() => mockStyleUpdater.updateStyleForRelation(relId)).thenAnswer((_) {});
+      when(() => mockApi.applyEntityMutation(mutation: any(named: 'mutation')))
+          .thenAnswer((_) async {});
+
+      final newStyle = const RelationStyle(
+        bgColor: 0,
+        strokeColor: 0,
+        strokeWidth: 2,
+        fontFamily: 'Roboto',
+        fontSize: 12,
+        shape: 'line',
+        arrowType: 'none',
+        arrowSize: 0,
+        width: 0,
+        height: 0,
+        textColor: 0,
+        shadowColor: 0,
+        shadowBlur: 0,
+        shadowOffsetX: 0,
+        shadowOffsetY: 0,
+        strategyType: 'default',
+        strokePattern: 'dashed',
+      );
+
+      controller.updateRelationStyle(relId, newStyle);
+
+      final updated = controller.store.relationLookup[relId]!;
+      expect(updated.style, newStyle);
+      expect(updated.resolvedStyle, isNull);
+
+      verify(() => mockStyleUpdater.updateStyleForRelation(relId)).called(1);
 
       await controller.syncEngine.processor.forceFlush();
       verify(() => mockApi.applyEntityMutation(mutation: any(named: 'mutation'))).called(1);

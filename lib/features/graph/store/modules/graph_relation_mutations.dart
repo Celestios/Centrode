@@ -220,9 +220,11 @@ class GraphRelationMutations {
     final updatedRelation = (relation as InfoUiRelation).copyWith(
       style: newStyle,
     );
+    updatedRelation.resolvedStyle = null;
 
     // OPTIMISTIC UPDATE
     controller.store.relationLookup[id] = updatedRelation;
+    controller.styleUpdater?.updateStyleForRelation(id);
 
     final cmd = UpdateRelationLayoutCommand(
       targetId: id,
@@ -237,6 +239,7 @@ class GraphRelationMutations {
           'Relation style update failed or rejected. Rolling back.',
         );
         controller.store.relationLookup[id] = oldRelation;
+        controller.styleUpdater?.updateStyleForRelation(id);
         controller.publishUpdate(
           GraphEntityUpdate(
             id: id,
