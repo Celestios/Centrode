@@ -327,3 +327,78 @@ async fn test_remaining_patches() {
     );
     assert_eq!(fetched_rel.fields.directionless, true);
 }
+
+#[tokio::test]
+async fn test_undo_redo_update_node_via_createnode_patch() {
+    let repo = setup_test_repo().await;
+
+    let inode = INode {
+        key: "inode_upsert_test".to_string(),
+        fields: INodeFields {
+            content: Content::from_plain_text("Original content"),
+            style: None,
+            resolved_style: None,
+            layout: None,
+            resolved_layout: None,
+            layer: "default".to_string(),
+            position: Coordinates { x: 100, y: 100 },
+            size: Size {
+                width: 50,
+                height: 50,
+            },
+            line_count: 1,
+            expandable: true,
+            is_expanded: false,
+            locked: false,
+            tags: vec![],
+            aliases: vec![],
+            comments: vec![],
+            attachment: None,
+            significance: 0,
+            created_at: 0,
+            updated_at: 0,
+        },
+    };
+    repo.create_node(Nodes::INode(inode.clone())).await.unwrap();
+
+    let record_id = RecordId::new("INode", "inode_upsert_test");
+
+    // 1. Re-create (upsert) node with updated fields
+    let mut updated = inode.clone();
+    updated.fields.content = Content::from_plain_text("Updated content");
+    updated.fields.position.x = 200;
+
+    // Apply the CreateNode patch to an EXISTING record (mimics update undo/redo)
+    let patch = EntityPatch::CreateNode(Nodes::INode(updated.clone()), vec![]);
+    repo.patch_entity(record_id.clone(), &patch).await.unwrap();
+
+    // Verify it was successfully upserted
+    let fetched = repo
+        .get_node("INode".to_string(), "inode_upsert_test".to_string())
+        .await
+        .unwrap()
+        .unwrap();
+    if let Nodes::INode(n) = fetched {
+        assert_eq!(n.fields.content.text, "Updated content");
+        assert_eq!(n.fields.position.x, 200);
+    } else {
+        panic!("Incorrect node type");
+    }
+
+    // 2. Revert using the reverse CreateNode patch of the original node
+    let patch_reverse = EntityPatch::CreateNode(Nodes::INode(inode), vec![]);
+    repo.patch_entity(record_id, &patch_reverse).await.unwrap();
+
+    // Verify it was successfully reverted
+    let fetched_reverted = repo
+        .get_node("INode".to_string(), "inode_upsert_test".to_string())
+        .await
+        .unwrap()
+        .unwrap();
+    if let Nodes::INode(n) = fetched_reverted {
+        assert_eq!(n.fields.content.text, "Original content");
+        assert_eq!(n.fields.position.x, 100);
+    } else {
+        panic!("Incorrect node type");
+    }
+}

@@ -6,9 +6,12 @@
 import '../frb_generated.dart';
 import 'base_models.dart';
 import 'contents.dart';
+import 'nodes.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+import 'relations.dart';
 import 'styles.dart';
+import 'tags.dart';
 part 'patches.freezed.dart';
 
 @freezed
@@ -18,6 +21,14 @@ sealed class EntityPatch with _$EntityPatch {
   const factory EntityPatch.node(List<NodePatch> field0) = EntityPatch_Node;
   const factory EntityPatch.relation(List<RelationPatch> field0) =
       EntityPatch_Relation;
+  const factory EntityPatch.createNode(Nodes field0, List<IRelation> field1) =
+      EntityPatch_CreateNode;
+  const factory EntityPatch.deleteNode(Nodes field0, List<IRelation> field1) =
+      EntityPatch_DeleteNode;
+  const factory EntityPatch.createRelation(IRelation field0) =
+      EntityPatch_CreateRelation;
+  const factory EntityPatch.deleteRelation(IRelation field0) =
+      EntityPatch_DeleteRelation;
 }
 
 @freezed

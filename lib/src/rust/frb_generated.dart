@@ -77,7 +77,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => 1137699566;
+  int get rustContentHash => 541199064;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -213,6 +213,8 @@ abstract class RustLibApi extends BaseApi {
 
   Future<HistoryRecord?> crateBridgeApiAppHandleRedo({required AppHandle that});
 
+  Future<int> crateBridgeApiAppHandleRedoCount({required AppHandle that});
+
   Future<void> crateBridgeApiAppHandleRerouteRelation({
     required AppHandle that,
     required RecordStrings record,
@@ -244,6 +246,8 @@ abstract class RustLibApi extends BaseApi {
   });
 
   Future<HistoryRecord?> crateBridgeApiAppHandleUndo({required AppHandle that});
+
+  Future<int> crateBridgeApiAppHandleUndoCount({required AppHandle that});
 
   Future<void> crateBridgeApiAppHandleUpdateNode({
     required AppHandle that,
@@ -1284,6 +1288,40 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "AppHandle_redo", argNames: ["that"]);
 
   @override
+  Future<int> crateBridgeApiAppHandleRedoCount({required AppHandle that}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+            that,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 27,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_u_32,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiAppHandleRedoCountConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiAppHandleRedoCountConstMeta =>
+      const TaskConstMeta(
+        debugName: "AppHandle_redo_count",
+        argNames: ["that"],
+      );
+
+  @override
   Future<void> crateBridgeApiAppHandleRerouteRelation({
     required AppHandle that,
     required RecordStrings record,
@@ -1304,7 +1342,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 27,
+            funcId: 28,
             port: port_,
           );
         },
@@ -1344,7 +1382,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 28,
+            funcId: 29,
             port: port_,
           );
         },
@@ -1386,7 +1424,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 29,
+            funcId: 30,
             port: port_,
           );
         },
@@ -1425,7 +1463,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 30,
+            funcId: 31,
             port: port_,
           );
         },
@@ -1463,7 +1501,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 31,
+            funcId: 32,
             port: port_,
           );
         },
@@ -1499,7 +1537,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 32,
+            funcId: 33,
             port: port_,
           );
         },
@@ -1519,6 +1557,40 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "AppHandle_undo", argNames: ["that"]);
 
   @override
+  Future<int> crateBridgeApiAppHandleUndoCount({required AppHandle that}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+            that,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 34,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_u_32,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiAppHandleUndoCountConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiAppHandleUndoCountConstMeta =>
+      const TaskConstMeta(
+        debugName: "AppHandle_undo_count",
+        argNames: ["that"],
+      );
+
+  @override
   Future<void> crateBridgeApiAppHandleUpdateNode({
     required AppHandle that,
     required Nodes input,
@@ -1535,7 +1607,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 33,
+            funcId: 35,
             port: port_,
           );
         },
@@ -1573,7 +1645,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 34,
+            funcId: 36,
             port: port_,
           );
         },
@@ -1611,7 +1683,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 35,
+            funcId: 37,
             port: port_,
           );
         },
@@ -1649,7 +1721,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 36,
+            funcId: 38,
             port: port_,
           );
         },
@@ -1687,7 +1759,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 37,
+            funcId: 39,
             port: port_,
           );
         },
@@ -1720,7 +1792,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 38,
+              funcId: 40,
               port: port_,
             );
           },
@@ -1749,7 +1821,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 39,
+            funcId: 41,
             port: port_,
           );
         },
@@ -2144,6 +2216,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         return EntityPatch_Node(dco_decode_list_node_patch(raw[1]));
       case 1:
         return EntityPatch_Relation(dco_decode_list_relation_patch(raw[1]));
+      case 2:
+        return EntityPatch_CreateNode(
+          dco_decode_box_autoadd_nodes(raw[1]),
+          dco_decode_list_i_relation(raw[2]),
+        );
+      case 3:
+        return EntityPatch_DeleteNode(
+          dco_decode_box_autoadd_nodes(raw[1]),
+          dco_decode_list_i_relation(raw[2]),
+        );
+      case 4:
+        return EntityPatch_CreateRelation(
+          dco_decode_box_autoadd_i_relation(raw[1]),
+        );
+      case 5:
+        return EntityPatch_DeleteRelation(
+          dco_decode_box_autoadd_i_relation(raw[1]),
+        );
       default:
         throw Exception("unreachable");
     }
@@ -3343,6 +3433,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       case 1:
         var var_field0 = sse_decode_list_relation_patch(deserializer);
         return EntityPatch_Relation(var_field0);
+      case 2:
+        var var_field0 = sse_decode_box_autoadd_nodes(deserializer);
+        var var_field1 = sse_decode_list_i_relation(deserializer);
+        return EntityPatch_CreateNode(var_field0, var_field1);
+      case 3:
+        var var_field0 = sse_decode_box_autoadd_nodes(deserializer);
+        var var_field1 = sse_decode_list_i_relation(deserializer);
+        return EntityPatch_DeleteNode(var_field0, var_field1);
+      case 4:
+        var var_field0 = sse_decode_box_autoadd_i_relation(deserializer);
+        return EntityPatch_CreateRelation(var_field0);
+      case 5:
+        var var_field0 = sse_decode_box_autoadd_i_relation(deserializer);
+        return EntityPatch_DeleteRelation(var_field0);
       default:
         throw UnimplementedError('');
     }
@@ -4868,6 +4972,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       case EntityPatch_Relation(field0: final field0):
         sse_encode_i_32(1, serializer);
         sse_encode_list_relation_patch(field0, serializer);
+      case EntityPatch_CreateNode(field0: final field0, field1: final field1):
+        sse_encode_i_32(2, serializer);
+        sse_encode_box_autoadd_nodes(field0, serializer);
+        sse_encode_list_i_relation(field1, serializer);
+      case EntityPatch_DeleteNode(field0: final field0, field1: final field1):
+        sse_encode_i_32(3, serializer);
+        sse_encode_box_autoadd_nodes(field0, serializer);
+        sse_encode_list_i_relation(field1, serializer);
+      case EntityPatch_CreateRelation(field0: final field0):
+        sse_encode_i_32(4, serializer);
+        sse_encode_box_autoadd_i_relation(field0, serializer);
+      case EntityPatch_DeleteRelation(field0: final field0):
+        sse_encode_i_32(5, serializer);
+        sse_encode_box_autoadd_i_relation(field0, serializer);
     }
   }
 
@@ -5862,6 +5980,9 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
   Future<HistoryRecord?> redo() =>
       RustLib.instance.api.crateBridgeApiAppHandleRedo(that: this);
 
+  Future<int> redoCount() =>
+      RustLib.instance.api.crateBridgeApiAppHandleRedoCount(that: this);
+
   Future<void> rerouteRelation({
     required RecordStrings record,
     required RecordStrings from,
@@ -5905,6 +6026,9 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
 
   Future<HistoryRecord?> undo() =>
       RustLib.instance.api.crateBridgeApiAppHandleUndo(that: this);
+
+  Future<int> undoCount() =>
+      RustLib.instance.api.crateBridgeApiAppHandleUndoCount(that: this);
 
   Future<void> updateNode({required Nodes input}) => RustLib.instance.api
       .crateBridgeApiAppHandleUpdateNode(that: this, input: input);

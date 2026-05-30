@@ -48,10 +48,10 @@ impl<'a> HistoryManager<'a> {
         // Enforce threshold (clean up old records)
         let mut count_response = self
             .db
-            .query("RETURN count(SELECT * FROM History WHERE status = 'applied')")
+            .query("SELECT VALUE count() FROM History WHERE status = 'applied' GROUP ALL")
             .await?;
-        let count: Option<i64> = count_response.take(0)?;
-        let count = count.unwrap_or(0);
+        let count_vec: Vec<i64> = count_response.take(0)?;
+        let count = count_vec.first().copied().unwrap_or(0);
 
         if count > self.threshold as i64 {
             let limit = count - self.threshold as i64;

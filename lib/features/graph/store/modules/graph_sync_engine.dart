@@ -157,8 +157,9 @@ class GraphSyncEngine {
     await flush();
     final record = await api.undo();
     if (record != null) {
-      _syncLog.info('Undo successful: ${record.actionType}');
+      _syncLog.info('Undo successful');
       await loadGraph();
+      await controller.updateHistoryStatus();
     } else {
       _syncLog.info('Nothing to undo');
     }
@@ -170,8 +171,9 @@ class GraphSyncEngine {
     await flush();
     final record = await api.redo();
     if (record != null) {
-      _syncLog.info('Redo successful: ${record.actionType}');
+      _syncLog.info('Redo successful');
       await loadGraph();
+      await controller.updateHistoryStatus();
     } else {
       _syncLog.info('Nothing to redo');
     }

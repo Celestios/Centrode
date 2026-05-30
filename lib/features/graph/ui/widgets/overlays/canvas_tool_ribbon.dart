@@ -34,27 +34,39 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
     final actions = [
       (
         icon: Icons.undo_rounded,
-        tooltip: 'Undo',
+        tooltip: dataController.canUndo
+            ? 'Undo (${dataController.undoCount} actions remaining)'
+            : 'Undo (No actions available)',
         action: dataController.undo,
         showAlways: true,
+        isEnabled: dataController.canUndo,
+        count: dataController.undoCount,
       ),
       (
         icon: Icons.redo_rounded,
-        tooltip: 'Redo',
+        tooltip: dataController.canRedo
+            ? 'Redo (${dataController.redoCount} actions remaining)'
+            : 'Redo (No actions available)',
         action: dataController.redo,
         showAlways: true,
+        isEnabled: dataController.canRedo,
+        count: dataController.redoCount,
       ),
       (
         icon: Icons.file_download_outlined,
         tooltip: 'Import Map',
         action: () {},
         showAlways: false,
+        isEnabled: true,
+        count: 0,
       ),
       (
         icon: Icons.file_upload_outlined,
         tooltip: 'Export Map',
         action: () {},
         showAlways: false,
+        isEnabled: true,
+        count: 0,
       ),
     ];
 
@@ -115,6 +127,8 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                   tooltip: act.tooltip,
                   onPressed: act.action,
                   textColor: textColor,
+                  isEnabled: act.isEnabled,
+                  count: act.count,
                 ),
 
             const SizedBox(width: 8),
@@ -278,12 +292,16 @@ class _ActionButton extends StatefulWidget {
   final String tooltip;
   final VoidCallback onPressed;
   final Color textColor;
+  final bool isEnabled;
+  final int count;
 
   const _ActionButton({
     required this.icon,
     required this.tooltip,
     required this.onPressed,
     required this.textColor,
+    this.isEnabled = true,
+    this.count = 0,
   });
 
   @override
@@ -296,21 +314,22 @@ class _ActionButtonState extends State<_ActionButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isEnabled = widget.isEnabled;
 
     return Tooltip(
       message: widget.tooltip,
       child: MouseRegion(
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
+        onEnter: isEnabled ? (_) => setState(() => _isHovered = true) : null,
+        onExit: isEnabled ? (_) => setState(() => _isHovered = false) : null,
         child: InkWell(
-          onTap: widget.onPressed,
+          onTap: isEnabled ? widget.onPressed : null,
           borderRadius: BorderRadius.circular(8),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              gradient: _isHovered
+              gradient: isEnabled && _isHovered
                   ? LinearGradient(
                       colors: [
                         theme.colorScheme.primary.withValues(alpha: 0.18),
@@ -320,13 +339,13 @@ class _ActionButtonState extends State<_ActionButton> {
                       end: Alignment.bottomRight,
                     )
                   : null,
-              border: _isHovered
+              border: isEnabled && _isHovered
                   ? Border.all(
                       color: theme.colorScheme.primary.withValues(alpha: 0.3),
                       width: 1.0,
                     )
                   : Border.all(color: Colors.transparent),
-              boxShadow: _isHovered
+              boxShadow: isEnabled && _isHovered
                   ? [
                       BoxShadow(
                         color: theme.colorScheme.primary.withValues(alpha: 0.08),
@@ -336,16 +355,84 @@ class _ActionButtonState extends State<_ActionButton> {
                     ]
                   : [],
             ),
-            child: AnimatedScale(
-              scale: _isHovered ? 1.08 : 1.0,
-              duration: const Duration(milliseconds: 150),
-              child: Icon(
-                widget.icon,
-                color: _isHovered
-                    ? theme.colorScheme.primary
-                    : widget.textColor.withValues(alpha: 0.7),
-                size: 18,
-              ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AnimatedScale(
+                  scale: isEnabled && _isHovered ? 1.08 : 1.0,
+                  duration: const Duration(milliseconds: 150),
+                  child: Icon(
+                    widget.icon,
+                    color: !isEnabled
+                        ? widget.textColor.withValues(alpha: 0.25)
+                        : (_isHovered
+                            ? theme.colorScheme.primary
+                            : widget.textColor.withValues(alpha: 0.7)),
+                    size: 18,
+                  ),
+                ),
+                if (widget.count > 0)
+                  Positioned(
+                    top: -6,
+                    right: -6,
+                    child: IgnorePointer(
+                      child: AnimatedScale(
+                        scale: widget.count > 0 ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOutBack,
+                        child: AnimatedOpacity(
+                          opacity: widget.count > 0 ? 1.0 : 0.0,
+                          duration: const Duration(milliseconds: 150),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withValues(alpha: 0.8),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: theme.colorScheme.onPrimary.withValues(alpha: 0.4),
+                                width: 0.8,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.15),
+                                  blurRadius: 2,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 12,
+                              minHeight: 12,
+                            ),
+                            child: Center(
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 200),
+                                transitionBuilder: (Widget child, Animation<double> animation) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: ScaleTransition(
+                                      scale: animation,
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: Text(
+                                  '${widget.count}',
+                                  key: ValueKey<int>(widget.count),
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.colorScheme.onPrimary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),

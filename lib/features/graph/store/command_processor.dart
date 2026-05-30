@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:ui';
 import 'package:logging/logging.dart';
 import '../models/models.dart';
 
@@ -11,8 +12,9 @@ class CommandProcessor {
   final Map<String, GraphCommand> _pendingCommands = {};
   final ListQueue<GraphCommand> _executionQueue = ListQueue();
   final Function(String) onError;
+  final VoidCallback? onQueueDrained;
 
-  CommandProcessor({required this.onError});
+  CommandProcessor({required this.onError, this.onQueueDrained});
 
   /// Generates a composite key from targetId and category to prevent
   /// different mutation types on the same node from overwriting each other.
@@ -81,6 +83,7 @@ class CommandProcessor {
     } finally {
       _processingFuture = null;
       completer.complete();
+      onQueueDrained?.call();
     }
   }
 

@@ -98,6 +98,8 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<HistoryRecord?> redo();
 
+  Future<int> redoCount();
+
   Future<void> rerouteRelation({
     required RecordStrings record,
     required RecordStrings from,
@@ -120,6 +122,8 @@ abstract class AppHandle implements RustOpaqueInterface {
   Future<void> setActiveThemeId({required String themeId});
 
   Future<HistoryRecord?> undo();
+
+  Future<int> undoCount();
 
   Future<void> updateNode({required Nodes input});
 

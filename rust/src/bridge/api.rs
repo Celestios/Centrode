@@ -90,9 +90,28 @@ impl AppHandle {
 
     pub async fn create_node(&self, input: Nodes) -> anyhow::Result<()> {
         debug!("FFI: create_node called with input: {:?}", input);
-        match self.repo.create_node(input).await {
+        match self.repo.create_node(input.clone()).await {
             Result::Ok(()) => {
                 info!("FFI: Successfully committed node to database");
+                
+                let (table, key) = match &input {
+                    Nodes::INode(n) => (INode::LABEL, &n.key),
+                    Nodes::TaskNode(n) => (TaskNode::LABEL, &n.key),
+                    Nodes::InterNode(n) => (InterNode::LABEL, &n.key),
+                };
+                let patch = SymmetricEntityPatch {
+                    id: RecordStrings { table: table.to_string(), key: key.clone() },
+                    forward: EntityPatch::CreateNode(input.clone(), vec![]),
+                    reverse: EntityPatch::DeleteNode(input, vec![]),
+                };
+                let history_manager = HistoryManager::new(self.repo.db(), 100);
+                let history_payload = PatchHistoryPayload {
+                    id: patch.id.clone(),
+                    forward: patch.forward.clone(),
+                    reverse: patch.reverse.clone(),
+                };
+                history_manager.push_event("entity_patch", history_payload.into_value()).await?;
+
                 self.broadcast_boundaries().await;
                 Ok(())
             }
@@ -109,10 +128,35 @@ impl AppHandle {
     }
 
     pub async fn update_node(&self, input: Nodes) -> anyhow::Result<()> {
-        self.repo.update_node(input).await.map_err(|e| {
-            error!("FFI: Repository failed to update node {}", e);
-            e
-        })?;
+        let (table, key) = match &input {
+            Nodes::INode(n) => (INode::LABEL.to_string(), n.key.clone()),
+            Nodes::TaskNode(n) => (TaskNode::LABEL.to_string(), n.key.clone()),
+            Nodes::InterNode(n) => (InterNode::LABEL.to_string(), n.key.clone()),
+        };
+        if let Some(old) = self.repo.get_node(table.clone(), key.clone()).await? {
+            self.repo.update_node(input.clone()).await.map_err(|e| {
+                error!("FFI: Repository failed to update node {}", e);
+                e
+            })?;
+
+            let patch = SymmetricEntityPatch {
+                id: RecordStrings { table, key },
+                forward: EntityPatch::CreateNode(input.clone(), vec![]),
+                reverse: EntityPatch::CreateNode(old, vec![]),
+            };
+            let history_manager = HistoryManager::new(self.repo.db(), 100);
+            let history_payload = PatchHistoryPayload {
+                id: patch.id.clone(),
+                forward: patch.forward.clone(),
+                reverse: patch.reverse.clone(),
+            };
+            history_manager.push_event("entity_patch", history_payload.into_value()).await?;
+        } else {
+            self.repo.update_node(input).await.map_err(|e| {
+                error!("FFI: Repository failed to update node {}", e);
+                e
+            })?;
+        }
         Ok(())
     }
 
@@ -146,16 +190,44 @@ impl AppHandle {
 
     pub async fn delete_node_entry(&self, table: String, key: String) -> anyhow::Result<()> {
         debug!("Deleting node: {}/{}", table, key);
-        match self.repo.delete_node(table.clone(), key.clone()).await {
-            Ok(()) => {
-                info!("Node {} deleted successfully", key.clone());
-                self.broadcast_boundaries().await;
-                Ok(())
+        if let Some(node) = self.repo.get_node(table.clone(), key.clone()).await? {
+            let relations_raw: Vec<Value> = self.repo.db().select(IRelation::LABEL).await?;
+            let mut connected_relations = Vec::new();
+            for val in relations_raw {
+                if let Ok(rel) = IRelation::from_value(val) {
+                    if rel.in_.key == key || rel.out.key == key {
+                        connected_relations.push(rel);
+                    }
+                }
             }
-            Err(e) => {
-                error!("Failed to delete node {}/{}: {}", table, key, e);
-                Err(e)
+
+            match self.repo.delete_node(table.clone(), key.clone()).await {
+                Ok(()) => {
+                    info!("Node {} deleted successfully", key.clone());
+
+                    let patch = SymmetricEntityPatch {
+                        id: RecordStrings { table: table.clone(), key: key.clone() },
+                        forward: EntityPatch::DeleteNode(node.clone(), connected_relations.clone()),
+                        reverse: EntityPatch::CreateNode(node, connected_relations),
+                    };
+                    let history_manager = HistoryManager::new(self.repo.db(), 100);
+                    let history_payload = PatchHistoryPayload {
+                        id: patch.id.clone(),
+                        forward: patch.forward.clone(),
+                        reverse: patch.reverse.clone(),
+                    };
+                    history_manager.push_event("entity_patch", history_payload.into_value()).await?;
+
+                    self.broadcast_boundaries().await;
+                    Ok(())
+                }
+                Err(e) => {
+                    error!("Failed to delete node {}/{}: {}", table, key, e);
+                    Err(e)
+                }
             }
+        } else {
+            Err(anyhow::anyhow!("Node not found for deletion"))
         }
     }
 
@@ -164,9 +236,23 @@ impl AppHandle {
             "FFI: create_relation called: {} -> {}",
             input.in_, input.out
         );
-        match self.repo.create_relation(input).await {
+        match self.repo.create_relation(input.clone()).await {
             Ok(()) => {
                 info!("FFI: Relation created successfully");
+                
+                let patch = SymmetricEntityPatch {
+                    id: RecordStrings { table: IRelation::LABEL.to_string(), key: input.key.clone() },
+                    forward: EntityPatch::CreateRelation(input.clone()),
+                    reverse: EntityPatch::DeleteRelation(input),
+                };
+                let history_manager = HistoryManager::new(self.repo.db(), 100);
+                let history_payload = PatchHistoryPayload {
+                    id: patch.id.clone(),
+                    forward: patch.forward.clone(),
+                    reverse: patch.reverse.clone(),
+                };
+                history_manager.push_event("entity_patch", history_payload.into_value()).await?;
+
                 Ok(())
             }
             Err(e) => {
@@ -178,9 +264,25 @@ impl AppHandle {
 
     pub async fn delete_relation(&self, table: String, key: String) -> anyhow::Result<()> {
         debug!("Deleting relation: {}", key);
-        match self.repo.delete_relation(table, key.clone()).await {
+        let rel = self.repo.get_relation(table.clone(), key.clone()).await?;
+
+        match self.repo.delete_relation(table.clone(), key.clone()).await {
             Ok(()) => {
                 info!("Relation deleted successfully");
+
+                let patch = SymmetricEntityPatch {
+                    id: RecordStrings { table: table.clone(), key: key.clone() },
+                    forward: EntityPatch::DeleteRelation(rel.clone()),
+                    reverse: EntityPatch::CreateRelation(rel),
+                };
+                let history_manager = HistoryManager::new(self.repo.db(), 100);
+                let history_payload = PatchHistoryPayload {
+                    id: patch.id.clone(),
+                    forward: patch.forward.clone(),
+                    reverse: patch.reverse.clone(),
+                };
+                history_manager.push_event("entity_patch", history_payload.into_value()).await?;
+
                 Ok(())
             }
             Err(e) => {
@@ -478,11 +580,10 @@ impl AppHandle {
                 let record_id = RecordId::new(payload.id.table.as_str(), payload.id.key.as_str());
                 self.repo.patch_entity(record_id, &payload.reverse).await?;
                 
-                // Broadcast boundary changes if spatial coordinates changed in reverse patch
-                let has_position_change = if let EntityPatch::Node(ref patches) = payload.reverse {
-                    patches.iter().any(|p| matches!(p, NodePatch::Position(_)))
-                } else {
-                    false
+                let has_position_change = match &payload.reverse {
+                    EntityPatch::Node(patches) => patches.iter().any(|p| matches!(p, NodePatch::Position(_))),
+                    EntityPatch::CreateNode(_, _) | EntityPatch::DeleteNode(_, _) => true,
+                    _ => false,
                 };
                 if has_position_change {
                     self.broadcast_boundaries().await;
@@ -502,11 +603,10 @@ impl AppHandle {
                 let record_id = RecordId::new(payload.id.table.as_str(), payload.id.key.as_str());
                 self.repo.patch_entity(record_id, &payload.forward).await?;
                 
-                // Broadcast boundary changes if spatial coordinates changed in forward patch
-                let has_position_change = if let EntityPatch::Node(ref patches) = payload.forward {
-                    patches.iter().any(|p| matches!(p, NodePatch::Position(_)))
-                } else {
-                    false
+                let has_position_change = match &payload.forward {
+                    EntityPatch::Node(patches) => patches.iter().any(|p| matches!(p, NodePatch::Position(_))),
+                    EntityPatch::CreateNode(_, _) | EntityPatch::DeleteNode(_, _) => true,
+                    _ => false,
                 };
                 if has_position_change {
                     self.broadcast_boundaries().await;
@@ -514,6 +614,26 @@ impl AppHandle {
             }
         }
         Ok(record)
+    }
+
+    pub async fn undo_count(&self) -> anyhow::Result<u32> {
+        let mut response = self
+            .repo
+            .db()
+            .query("SELECT VALUE count() FROM History WHERE status = 'applied' GROUP ALL")
+            .await?;
+        let count: Vec<i64> = response.take(0)?;
+        Ok(count.first().copied().unwrap_or(0) as u32)
+    }
+
+    pub async fn redo_count(&self) -> anyhow::Result<u32> {
+        let mut response = self
+            .repo
+            .db()
+            .query("SELECT VALUE count() FROM History WHERE status = 'undone' GROUP ALL")
+            .await?;
+        let count: Vec<i64> = response.take(0)?;
+        Ok(count.first().copied().unwrap_or(0) as u32)
     }
 
     pub async fn create_tag(&self, tag: Tag) -> anyhow::Result<()> {

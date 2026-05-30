@@ -78,6 +78,25 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
 
   void Function(String) get onError => _handleError;
 
+  int _undoCount = 0;
+  int _redoCount = 0;
+
+  int get undoCount => _undoCount;
+  int get redoCount => _redoCount;
+
+  bool get canUndo => _undoCount > 0;
+  bool get canRedo => _redoCount > 0;
+
+  Future<void> updateHistoryStatus() async {
+    try {
+      _undoCount = await syncEngine.api.undoCount();
+      _redoCount = await syncEngine.api.redoCount();
+      notifyListeners();
+    } catch (e) {
+      _log.warning('Failed to update history status: $e');
+    }
+  }
+
   // ===========================================================================
   // Backward Compatibility & Facade Mappings
   // ===========================================================================
@@ -151,7 +170,10 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
     syncEngine = GraphSyncEngine(
       controller: this,
       api: apiHandle,
-      processor: CommandProcessor(onError: _handleError),
+      processor: CommandProcessor(
+        onError: _handleError,
+        onQueueDrained: updateHistoryStatus,
+      ),
     );
     nodeMutations = GraphNodeMutations(this);
     relationMutations = GraphRelationMutations(this);
@@ -189,6 +211,7 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
 
     try {
       await syncEngine.loadGraph();
+      await updateHistoryStatus();
       stopwatch.stop();
       _log.info(
         'loadGraph: Completed successfully in ${stopwatch.elapsedMilliseconds}ms.',
@@ -210,12 +233,12 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   Future<void> flush() => syncEngine.flush();
   Future<void> undo() async {
     await syncEngine.undo();
-    notifyListeners();
+    await updateHistoryStatus();
   }
 
   Future<void> redo() async {
     await syncEngine.redo();
-    notifyListeners();
+    await updateHistoryStatus();
   }
 
   // Node Mutations

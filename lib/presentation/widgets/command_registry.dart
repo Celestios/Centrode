@@ -66,7 +66,7 @@ class CommandRegistry {
       },
       isEnabled: (context) {
         final session = context.read<WorkspaceTabsController>().activeSession;
-        return session.dataController != null;
+        return session.dataController?.canUndo == true;
       },
     ),
     Command(
@@ -80,7 +80,7 @@ class CommandRegistry {
       },
       isEnabled: (context) {
         final session = context.read<WorkspaceTabsController>().activeSession;
-        return session.dataController != null;
+        return session.dataController?.canRedo == true;
       },
     ),
     Command(

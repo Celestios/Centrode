@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$EntityPatch {
 
- List<Object> get field0;
+ Object get field0;
 
 
 
@@ -55,12 +55,16 @@ extension EntityPatchPatterns on EntityPatch {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( EntityPatch_Node value)?  node,TResult Function( EntityPatch_Relation value)?  relation,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( EntityPatch_Node value)?  node,TResult Function( EntityPatch_Relation value)?  relation,TResult Function( EntityPatch_CreateNode value)?  createNode,TResult Function( EntityPatch_DeleteNode value)?  deleteNode,TResult Function( EntityPatch_CreateRelation value)?  createRelation,TResult Function( EntityPatch_DeleteRelation value)?  deleteRelation,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case EntityPatch_Node() when node != null:
 return node(_that);case EntityPatch_Relation() when relation != null:
-return relation(_that);case _:
+return relation(_that);case EntityPatch_CreateNode() when createNode != null:
+return createNode(_that);case EntityPatch_DeleteNode() when deleteNode != null:
+return deleteNode(_that);case EntityPatch_CreateRelation() when createRelation != null:
+return createRelation(_that);case EntityPatch_DeleteRelation() when deleteRelation != null:
+return deleteRelation(_that);case _:
   return orElse();
 
 }
@@ -78,12 +82,16 @@ return relation(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( EntityPatch_Node value)  node,required TResult Function( EntityPatch_Relation value)  relation,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( EntityPatch_Node value)  node,required TResult Function( EntityPatch_Relation value)  relation,required TResult Function( EntityPatch_CreateNode value)  createNode,required TResult Function( EntityPatch_DeleteNode value)  deleteNode,required TResult Function( EntityPatch_CreateRelation value)  createRelation,required TResult Function( EntityPatch_DeleteRelation value)  deleteRelation,}){
 final _that = this;
 switch (_that) {
 case EntityPatch_Node():
 return node(_that);case EntityPatch_Relation():
-return relation(_that);}
+return relation(_that);case EntityPatch_CreateNode():
+return createNode(_that);case EntityPatch_DeleteNode():
+return deleteNode(_that);case EntityPatch_CreateRelation():
+return createRelation(_that);case EntityPatch_DeleteRelation():
+return deleteRelation(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -97,12 +105,16 @@ return relation(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( EntityPatch_Node value)?  node,TResult? Function( EntityPatch_Relation value)?  relation,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( EntityPatch_Node value)?  node,TResult? Function( EntityPatch_Relation value)?  relation,TResult? Function( EntityPatch_CreateNode value)?  createNode,TResult? Function( EntityPatch_DeleteNode value)?  deleteNode,TResult? Function( EntityPatch_CreateRelation value)?  createRelation,TResult? Function( EntityPatch_DeleteRelation value)?  deleteRelation,}){
 final _that = this;
 switch (_that) {
 case EntityPatch_Node() when node != null:
 return node(_that);case EntityPatch_Relation() when relation != null:
-return relation(_that);case _:
+return relation(_that);case EntityPatch_CreateNode() when createNode != null:
+return createNode(_that);case EntityPatch_DeleteNode() when deleteNode != null:
+return deleteNode(_that);case EntityPatch_CreateRelation() when createRelation != null:
+return createRelation(_that);case EntityPatch_DeleteRelation() when deleteRelation != null:
+return deleteRelation(_that);case _:
   return null;
 
 }
@@ -119,11 +131,15 @@ return relation(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( List<NodePatch> field0)?  node,TResult Function( List<RelationPatch> field0)?  relation,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( List<NodePatch> field0)?  node,TResult Function( List<RelationPatch> field0)?  relation,TResult Function( Nodes field0,  List<IRelation> field1)?  createNode,TResult Function( Nodes field0,  List<IRelation> field1)?  deleteNode,TResult Function( IRelation field0)?  createRelation,TResult Function( IRelation field0)?  deleteRelation,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case EntityPatch_Node() when node != null:
 return node(_that.field0);case EntityPatch_Relation() when relation != null:
-return relation(_that.field0);case _:
+return relation(_that.field0);case EntityPatch_CreateNode() when createNode != null:
+return createNode(_that.field0,_that.field1);case EntityPatch_DeleteNode() when deleteNode != null:
+return deleteNode(_that.field0,_that.field1);case EntityPatch_CreateRelation() when createRelation != null:
+return createRelation(_that.field0);case EntityPatch_DeleteRelation() when deleteRelation != null:
+return deleteRelation(_that.field0);case _:
   return orElse();
 
 }
@@ -141,11 +157,15 @@ return relation(_that.field0);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( List<NodePatch> field0)  node,required TResult Function( List<RelationPatch> field0)  relation,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( List<NodePatch> field0)  node,required TResult Function( List<RelationPatch> field0)  relation,required TResult Function( Nodes field0,  List<IRelation> field1)  createNode,required TResult Function( Nodes field0,  List<IRelation> field1)  deleteNode,required TResult Function( IRelation field0)  createRelation,required TResult Function( IRelation field0)  deleteRelation,}) {final _that = this;
 switch (_that) {
 case EntityPatch_Node():
 return node(_that.field0);case EntityPatch_Relation():
-return relation(_that.field0);}
+return relation(_that.field0);case EntityPatch_CreateNode():
+return createNode(_that.field0,_that.field1);case EntityPatch_DeleteNode():
+return deleteNode(_that.field0,_that.field1);case EntityPatch_CreateRelation():
+return createRelation(_that.field0);case EntityPatch_DeleteRelation():
+return deleteRelation(_that.field0);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -159,11 +179,15 @@ return relation(_that.field0);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( List<NodePatch> field0)?  node,TResult? Function( List<RelationPatch> field0)?  relation,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( List<NodePatch> field0)?  node,TResult? Function( List<RelationPatch> field0)?  relation,TResult? Function( Nodes field0,  List<IRelation> field1)?  createNode,TResult? Function( Nodes field0,  List<IRelation> field1)?  deleteNode,TResult? Function( IRelation field0)?  createRelation,TResult? Function( IRelation field0)?  deleteRelation,}) {final _that = this;
 switch (_that) {
 case EntityPatch_Node() when node != null:
 return node(_that.field0);case EntityPatch_Relation() when relation != null:
-return relation(_that.field0);case _:
+return relation(_that.field0);case EntityPatch_CreateNode() when createNode != null:
+return createNode(_that.field0,_that.field1);case EntityPatch_DeleteNode() when deleteNode != null:
+return deleteNode(_that.field0,_that.field1);case EntityPatch_CreateRelation() when createRelation != null:
+return createRelation(_that.field0);case EntityPatch_DeleteRelation() when deleteRelation != null:
+return deleteRelation(_that.field0);case _:
   return null;
 
 }
@@ -309,6 +333,304 @@ class _$EntityPatch_RelationCopyWithImpl<$Res>
   return _then(EntityPatch_Relation(
 null == field0 ? _self._field0 : field0 // ignore: cast_nullable_to_non_nullable
 as List<RelationPatch>,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class EntityPatch_CreateNode extends EntityPatch {
+  const EntityPatch_CreateNode(this.field0, final  List<IRelation> field1): _field1 = field1,super._();
+  
+
+@override final  Nodes field0;
+ final  List<IRelation> _field1;
+ List<IRelation> get field1 {
+  if (_field1 is EqualUnmodifiableListView) return _field1;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_field1);
+}
+
+
+/// Create a copy of EntityPatch
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$EntityPatch_CreateNodeCopyWith<EntityPatch_CreateNode> get copyWith => _$EntityPatch_CreateNodeCopyWithImpl<EntityPatch_CreateNode>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EntityPatch_CreateNode&&(identical(other.field0, field0) || other.field0 == field0)&&const DeepCollectionEquality().equals(other._field1, _field1));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0,const DeepCollectionEquality().hash(_field1));
+
+@override
+String toString() {
+  return 'EntityPatch.createNode(field0: $field0, field1: $field1)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $EntityPatch_CreateNodeCopyWith<$Res> implements $EntityPatchCopyWith<$Res> {
+  factory $EntityPatch_CreateNodeCopyWith(EntityPatch_CreateNode value, $Res Function(EntityPatch_CreateNode) _then) = _$EntityPatch_CreateNodeCopyWithImpl;
+@useResult
+$Res call({
+ Nodes field0, List<IRelation> field1
+});
+
+
+$NodesCopyWith<$Res> get field0;
+
+}
+/// @nodoc
+class _$EntityPatch_CreateNodeCopyWithImpl<$Res>
+    implements $EntityPatch_CreateNodeCopyWith<$Res> {
+  _$EntityPatch_CreateNodeCopyWithImpl(this._self, this._then);
+
+  final EntityPatch_CreateNode _self;
+  final $Res Function(EntityPatch_CreateNode) _then;
+
+/// Create a copy of EntityPatch
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,Object? field1 = null,}) {
+  return _then(EntityPatch_CreateNode(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as Nodes,null == field1 ? _self._field1 : field1 // ignore: cast_nullable_to_non_nullable
+as List<IRelation>,
+  ));
+}
+
+/// Create a copy of EntityPatch
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NodesCopyWith<$Res> get field0 {
+  
+  return $NodesCopyWith<$Res>(_self.field0, (value) {
+    return _then(_self.copyWith(field0: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class EntityPatch_DeleteNode extends EntityPatch {
+  const EntityPatch_DeleteNode(this.field0, final  List<IRelation> field1): _field1 = field1,super._();
+  
+
+@override final  Nodes field0;
+ final  List<IRelation> _field1;
+ List<IRelation> get field1 {
+  if (_field1 is EqualUnmodifiableListView) return _field1;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_field1);
+}
+
+
+/// Create a copy of EntityPatch
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$EntityPatch_DeleteNodeCopyWith<EntityPatch_DeleteNode> get copyWith => _$EntityPatch_DeleteNodeCopyWithImpl<EntityPatch_DeleteNode>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EntityPatch_DeleteNode&&(identical(other.field0, field0) || other.field0 == field0)&&const DeepCollectionEquality().equals(other._field1, _field1));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0,const DeepCollectionEquality().hash(_field1));
+
+@override
+String toString() {
+  return 'EntityPatch.deleteNode(field0: $field0, field1: $field1)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $EntityPatch_DeleteNodeCopyWith<$Res> implements $EntityPatchCopyWith<$Res> {
+  factory $EntityPatch_DeleteNodeCopyWith(EntityPatch_DeleteNode value, $Res Function(EntityPatch_DeleteNode) _then) = _$EntityPatch_DeleteNodeCopyWithImpl;
+@useResult
+$Res call({
+ Nodes field0, List<IRelation> field1
+});
+
+
+$NodesCopyWith<$Res> get field0;
+
+}
+/// @nodoc
+class _$EntityPatch_DeleteNodeCopyWithImpl<$Res>
+    implements $EntityPatch_DeleteNodeCopyWith<$Res> {
+  _$EntityPatch_DeleteNodeCopyWithImpl(this._self, this._then);
+
+  final EntityPatch_DeleteNode _self;
+  final $Res Function(EntityPatch_DeleteNode) _then;
+
+/// Create a copy of EntityPatch
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,Object? field1 = null,}) {
+  return _then(EntityPatch_DeleteNode(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as Nodes,null == field1 ? _self._field1 : field1 // ignore: cast_nullable_to_non_nullable
+as List<IRelation>,
+  ));
+}
+
+/// Create a copy of EntityPatch
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NodesCopyWith<$Res> get field0 {
+  
+  return $NodesCopyWith<$Res>(_self.field0, (value) {
+    return _then(_self.copyWith(field0: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class EntityPatch_CreateRelation extends EntityPatch {
+  const EntityPatch_CreateRelation(this.field0): super._();
+  
+
+@override final  IRelation field0;
+
+/// Create a copy of EntityPatch
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$EntityPatch_CreateRelationCopyWith<EntityPatch_CreateRelation> get copyWith => _$EntityPatch_CreateRelationCopyWithImpl<EntityPatch_CreateRelation>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EntityPatch_CreateRelation&&(identical(other.field0, field0) || other.field0 == field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0);
+
+@override
+String toString() {
+  return 'EntityPatch.createRelation(field0: $field0)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $EntityPatch_CreateRelationCopyWith<$Res> implements $EntityPatchCopyWith<$Res> {
+  factory $EntityPatch_CreateRelationCopyWith(EntityPatch_CreateRelation value, $Res Function(EntityPatch_CreateRelation) _then) = _$EntityPatch_CreateRelationCopyWithImpl;
+@useResult
+$Res call({
+ IRelation field0
+});
+
+
+
+
+}
+/// @nodoc
+class _$EntityPatch_CreateRelationCopyWithImpl<$Res>
+    implements $EntityPatch_CreateRelationCopyWith<$Res> {
+  _$EntityPatch_CreateRelationCopyWithImpl(this._self, this._then);
+
+  final EntityPatch_CreateRelation _self;
+  final $Res Function(EntityPatch_CreateRelation) _then;
+
+/// Create a copy of EntityPatch
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(EntityPatch_CreateRelation(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as IRelation,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class EntityPatch_DeleteRelation extends EntityPatch {
+  const EntityPatch_DeleteRelation(this.field0): super._();
+  
+
+@override final  IRelation field0;
+
+/// Create a copy of EntityPatch
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$EntityPatch_DeleteRelationCopyWith<EntityPatch_DeleteRelation> get copyWith => _$EntityPatch_DeleteRelationCopyWithImpl<EntityPatch_DeleteRelation>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EntityPatch_DeleteRelation&&(identical(other.field0, field0) || other.field0 == field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0);
+
+@override
+String toString() {
+  return 'EntityPatch.deleteRelation(field0: $field0)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $EntityPatch_DeleteRelationCopyWith<$Res> implements $EntityPatchCopyWith<$Res> {
+  factory $EntityPatch_DeleteRelationCopyWith(EntityPatch_DeleteRelation value, $Res Function(EntityPatch_DeleteRelation) _then) = _$EntityPatch_DeleteRelationCopyWithImpl;
+@useResult
+$Res call({
+ IRelation field0
+});
+
+
+
+
+}
+/// @nodoc
+class _$EntityPatch_DeleteRelationCopyWithImpl<$Res>
+    implements $EntityPatch_DeleteRelationCopyWith<$Res> {
+  _$EntityPatch_DeleteRelationCopyWithImpl(this._self, this._then);
+
+  final EntityPatch_DeleteRelation _self;
+  final $Res Function(EntityPatch_DeleteRelation) _then;
+
+/// Create a copy of EntityPatch
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(EntityPatch_DeleteRelation(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as IRelation,
   ));
 }
 

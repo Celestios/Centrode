@@ -40,7 +40,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1137699566;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 541199064;
 
 // Section: executor
 
@@ -1525,6 +1525,62 @@ fn wire__crate__bridge__api__AppHandle_redo_impl(
         },
     )
 }
+fn wire__crate__bridge__api__AppHandle_redo_count_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "AppHandle_redo_count",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => {
+                                    api_that_guard =
+                                        Some(api_that.lockable_decode_async_ref().await)
+                                }
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok =
+                            crate::bridge::api::AppHandle::redo_count(&*api_that_guard).await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__bridge__api__AppHandle_reroute_relation_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -1888,6 +1944,62 @@ fn wire__crate__bridge__api__AppHandle_undo_impl(
                         let api_that_guard = api_that_guard.unwrap();
                         let output_ok =
                             crate::bridge::api::AppHandle::undo(&*api_that_guard).await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__bridge__api__AppHandle_undo_count_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "AppHandle_undo_count",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => {
+                                    api_that_guard =
+                                        Some(api_that.lockable_decode_async_ref().await)
+                                }
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok =
+                            crate::bridge::api::AppHandle::undo_count(&*api_that_guard).await?;
                         Ok(output_ok)
                     })()
                     .await,
@@ -2503,6 +2615,28 @@ impl SseDecode for crate::domain::patches::EntityPatch {
                 let mut var_field0 =
                     <Vec<crate::domain::patches::RelationPatch>>::sse_decode(deserializer);
                 return crate::domain::patches::EntityPatch::Relation(var_field0);
+            }
+            2 => {
+                let mut var_field0 = <crate::domain::nodes::Nodes>::sse_decode(deserializer);
+                let mut var_field1 =
+                    <Vec<crate::domain::relations::IRelation>>::sse_decode(deserializer);
+                return crate::domain::patches::EntityPatch::CreateNode(var_field0, var_field1);
+            }
+            3 => {
+                let mut var_field0 = <crate::domain::nodes::Nodes>::sse_decode(deserializer);
+                let mut var_field1 =
+                    <Vec<crate::domain::relations::IRelation>>::sse_decode(deserializer);
+                return crate::domain::patches::EntityPatch::DeleteNode(var_field0, var_field1);
+            }
+            4 => {
+                let mut var_field0 =
+                    <crate::domain::relations::IRelation>::sse_decode(deserializer);
+                return crate::domain::patches::EntityPatch::CreateRelation(var_field0);
+            }
+            5 => {
+                let mut var_field0 =
+                    <crate::domain::relations::IRelation>::sse_decode(deserializer);
+                return crate::domain::patches::EntityPatch::DeleteRelation(var_field0);
             }
             _ => {
                 unimplemented!("");
@@ -3829,60 +3963,66 @@ fn pde_ffi_dispatcher_primary_impl(
             wire__crate__bridge__api__AppHandle_query_search_impl(port, ptr, rust_vec_len, data_len)
         }
         26 => wire__crate__bridge__api__AppHandle_redo_impl(port, ptr, rust_vec_len, data_len),
-        27 => wire__crate__bridge__api__AppHandle_reroute_relation_impl(
+        27 => {
+            wire__crate__bridge__api__AppHandle_redo_count_impl(port, ptr, rust_vec_len, data_len)
+        }
+        28 => wire__crate__bridge__api__AppHandle_reroute_relation_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        28 => wire__crate__bridge__api__AppHandle_save_map_to_file_impl(
+        29 => wire__crate__bridge__api__AppHandle_save_map_to_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        29 => wire__crate__bridge__api__AppHandle_save_template_from_selection_impl(
+        30 => wire__crate__bridge__api__AppHandle_save_template_from_selection_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        30 => wire__crate__bridge__api__AppHandle_set_active_theme_impl(
+        31 => wire__crate__bridge__api__AppHandle_set_active_theme_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        31 => wire__crate__bridge__api__AppHandle_set_active_theme_id_impl(
+        32 => wire__crate__bridge__api__AppHandle_set_active_theme_id_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        32 => wire__crate__bridge__api__AppHandle_undo_impl(port, ptr, rust_vec_len, data_len),
-        33 => {
+        33 => wire__crate__bridge__api__AppHandle_undo_impl(port, ptr, rust_vec_len, data_len),
+        34 => {
+            wire__crate__bridge__api__AppHandle_undo_count_impl(port, ptr, rust_vec_len, data_len)
+        }
+        35 => {
             wire__crate__bridge__api__AppHandle_update_node_impl(port, ptr, rust_vec_len, data_len)
         }
-        34 => wire__crate__bridge__api__AppHandle_update_relation_impl(
+        36 => wire__crate__bridge__api__AppHandle_update_relation_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        35 => {
+        37 => {
             wire__crate__bridge__api__AppHandle_update_tag_impl(port, ptr, rust_vec_len, data_len)
         }
-        36 => {
+        38 => {
             wire__crate__bridge__api__AppHandle_update_theme_impl(port, ptr, rust_vec_len, data_len)
         }
-        37 => wire__crate__bridge__api__AppHandle_update_viewport_state_impl(
+        39 => wire__crate__bridge__api__AppHandle_update_viewport_state_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        38 => wire__crate__bridge__api__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
-        39 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
+        40 => wire__crate__bridge__api__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
+        41 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -4140,6 +4280,24 @@ impl flutter_rust_bridge::IntoDart for crate::domain::patches::EntityPatch {
             }
             crate::domain::patches::EntityPatch::Relation(field0) => {
                 [1.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::domain::patches::EntityPatch::CreateNode(field0, field1) => [
+                2.into_dart(),
+                field0.into_into_dart().into_dart(),
+                field1.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            crate::domain::patches::EntityPatch::DeleteNode(field0, field1) => [
+                3.into_dart(),
+                field0.into_into_dart().into_dart(),
+                field1.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            crate::domain::patches::EntityPatch::CreateRelation(field0) => {
+                [4.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::domain::patches::EntityPatch::DeleteRelation(field0) => {
+                [5.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
             _ => {
                 unimplemented!("");
@@ -5247,6 +5405,24 @@ impl SseEncode for crate::domain::patches::EntityPatch {
             crate::domain::patches::EntityPatch::Relation(field0) => {
                 <i32>::sse_encode(1, serializer);
                 <Vec<crate::domain::patches::RelationPatch>>::sse_encode(field0, serializer);
+            }
+            crate::domain::patches::EntityPatch::CreateNode(field0, field1) => {
+                <i32>::sse_encode(2, serializer);
+                <crate::domain::nodes::Nodes>::sse_encode(field0, serializer);
+                <Vec<crate::domain::relations::IRelation>>::sse_encode(field1, serializer);
+            }
+            crate::domain::patches::EntityPatch::DeleteNode(field0, field1) => {
+                <i32>::sse_encode(3, serializer);
+                <crate::domain::nodes::Nodes>::sse_encode(field0, serializer);
+                <Vec<crate::domain::relations::IRelation>>::sse_encode(field1, serializer);
+            }
+            crate::domain::patches::EntityPatch::CreateRelation(field0) => {
+                <i32>::sse_encode(4, serializer);
+                <crate::domain::relations::IRelation>::sse_encode(field0, serializer);
+            }
+            crate::domain::patches::EntityPatch::DeleteRelation(field0) => {
+                <i32>::sse_encode(5, serializer);
+                <crate::domain::relations::IRelation>::sse_encode(field0, serializer);
             }
             _ => {
                 unimplemented!("");

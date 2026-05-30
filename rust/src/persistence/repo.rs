@@ -417,6 +417,39 @@ impl Repository {
                 }
                 Ok(())
             }
+            EntityPatch::CreateNode(node, relations) => {
+                let (table, key) = match &node {
+                    Nodes::INode(n) => (INode::LABEL.to_string(), n.key.clone()),
+                    Nodes::TaskNode(n) => (TaskNode::LABEL.to_string(), n.key.clone()),
+                    Nodes::InterNode(n) => (InterNode::LABEL.to_string(), n.key.clone()),
+                };
+                if self.get_node(table, key).await?.is_some() {
+                    self.update_node(node.clone()).await?;
+                } else {
+                    self.create_node(node.clone()).await?;
+                }
+                for rel in relations {
+                    self.create_relation(rel.clone()).await?;
+                }
+                Ok(())
+            }
+            EntityPatch::DeleteNode(node, _) => {
+                let (table, key) = match node {
+                    Nodes::INode(n) => (INode::LABEL.to_string(), n.key.clone()),
+                    Nodes::TaskNode(n) => (TaskNode::LABEL.to_string(), n.key.clone()),
+                    Nodes::InterNode(n) => (InterNode::LABEL.to_string(), n.key.clone()),
+                };
+                self.delete_node(table, key).await?;
+                Ok(())
+            }
+            EntityPatch::CreateRelation(rel) => {
+                self.create_relation(rel.clone()).await?;
+                Ok(())
+            }
+            EntityPatch::DeleteRelation(rel) => {
+                self.delete_relation(IRelation::LABEL.to_string(), rel.key.clone()).await?;
+                Ok(())
+            }
         }
     }
 
