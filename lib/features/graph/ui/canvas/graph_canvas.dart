@@ -50,6 +50,7 @@ class _GraphCanvasState extends State<GraphCanvas>
   bool _viewportRestoreAttempted = false;
   bool _viewportRestored = false;
   LeftPanelType _activeLeftPanel = LeftPanelType.none;
+  final ValueNotifier<Offset?> _mousePositionNotifier = ValueNotifier<Offset?>(null);
 
   @override
   void initState() {
@@ -133,6 +134,7 @@ class _GraphCanvasState extends State<GraphCanvas>
     }
     _viewportController?.dispose();
     _interactionController?.dispose();
+    _mousePositionNotifier.dispose();
     super.dispose();
   }
 
@@ -181,17 +183,27 @@ class _GraphCanvasState extends State<GraphCanvas>
                       builder: (context, cursor, child) {
                         return MouseRegion(
                           cursor: cursor,
+                          onExit: (_) {
+                            _mousePositionNotifier.value = null;
+                          },
                           child: child,
                         );
                       },
                       child: Listener(
                         onPointerDown: interactionController.handlePointerDown,
-                        onPointerMove: interactionController.handlePointerMove,
+                        onPointerMove: (event) {
+                          interactionController.handlePointerMove(event);
+                          _mousePositionNotifier.value = event.localPosition;
+                        },
                         onPointerUp: interactionController.handlePointerUp,
-                        onPointerCancel:
-                            interactionController.handlePointerCancel,
-                        onPointerHover:
-                            interactionController.handlePointerHover,
+                        onPointerCancel: (event) {
+                          interactionController.handlePointerCancel(event);
+                          _mousePositionNotifier.value = null;
+                        },
+                        onPointerHover: (event) {
+                          interactionController.handlePointerHover(event);
+                          _mousePositionNotifier.value = event.localPosition;
+                        },
                         child: LayoutBuilder(
                           builder: (context, constraints) {
                             final viewport = constraints.biggest;
@@ -266,6 +278,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                                           builder: (context, state, _) {
                                             return GridLayer(
                                               viewportState: state,
+                                              mousePositionNotifier: _mousePositionNotifier,
                                             );
                                           },
                                         ),
