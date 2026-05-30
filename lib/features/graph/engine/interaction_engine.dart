@@ -35,10 +35,38 @@ class InteractionController {
   DateTime? _lastPointerDownTime;
   Offset? _lastPointerDownPos;
 
+  /// Whether pan and zoom are enabled on the canvas (only during CanvasIdle).
+  late final ValueNotifier<bool> panScaleEnabled = ValueNotifier(
+    state.value is CanvasIdle,
+  );
+
+  /// The active mouse cursor for the canvas.
+  late final ValueNotifier<MouseCursor> cursor = ValueNotifier(
+    state.value.cursor,
+  );
+
   InteractionController({
     required this.transformController,
     required this.environment,
-  });
+  }) {
+    state.addListener(_onStateChanged);
+  }
+
+  void _onStateChanged() {
+    final newState = state.value;
+    
+    // Update panScaleEnabled (true only if idle)
+    final isIdle = newState is CanvasIdle;
+    if (panScaleEnabled.value != isIdle) {
+      panScaleEnabled.value = isIdle;
+    }
+
+    // Update cursor
+    final newCursor = newState.cursor;
+    if (cursor.value != newCursor) {
+      cursor.value = newCursor;
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // FSM Engine
@@ -139,6 +167,9 @@ class InteractionController {
 
   /// Disposes the state notifier.
   void dispose() {
+    state.removeListener(_onStateChanged);
+    panScaleEnabled.dispose();
+    cursor.dispose();
     state.dispose();
   }
 }

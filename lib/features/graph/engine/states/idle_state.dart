@@ -59,7 +59,7 @@ class CanvasIdle extends CanvasInteractionState {
 
       final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
       final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(rel, from, to, layoutContext);
-      if ((pCanvas - handleStart).distance < 12.0) {
+      if ((pCanvas - handleStart).distance < 24.0) {
         _canvasIdleLog.fine('Relation start tip handle hit: $id');
         return RelationTipDragging(
           relationId: rel.id,
@@ -67,7 +67,7 @@ class CanvasIdle extends CanvasInteractionState {
           originalPosition: handleStart,
           currentCursorPosition: pCanvas,
         );
-      } else if ((pCanvas - handleEnd).distance < 12.0) {
+      } else if ((pCanvas - handleEnd).distance < 24.0) {
         _canvasIdleLog.fine('Relation end tip handle hit: $id');
         return RelationTipDragging(
           relationId: rel.id,

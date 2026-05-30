@@ -5,72 +5,77 @@ import '../../../presentation/graph_metrics.dart';
 import '../../../store/graph_data_query.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../engine/base_interaction_state.dart';
+import '../../../engine/interaction_engine.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
 import '../metadata_preview_overlay.dart';
 
 class OverlayLayer extends StatelessWidget {
-  final CanvasInteractionState interactionState;
-
-  const OverlayLayer({super.key, required this.interactionState});
+  const OverlayLayer({super.key});
 
   @override
   Widget build(BuildContext context) {
     final dataController = context.watch<GraphDataQuery>();
     final renderState = context.watch<NodeRenderState>();
+    final interactionController = context.read<InteractionController>();
 
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        // 3. Temporary Relation Drag Line (when drawing relation)
-        if (interactionState is RelationDrawing)
-          Positioned.fill(
-            child: CustomPaint(
-              painter: _TempRelationPainter(
-                state: interactionState as RelationDrawing,
-                nodeViewStates: renderState.viewStates,
+    return ValueListenableBuilder<CanvasInteractionState>(
+      valueListenable: interactionController.state,
+      builder: (context, interactionState, _) {
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // 3. Temporary Relation Drag Line (when drawing relation)
+            if (interactionState is RelationDrawing)
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _TempRelationPainter(
+                    state: interactionState,
+                    nodeViewStates: renderState.viewStates,
+                  ),
+                ),
               ),
+
+            // 4. Marquee Selection Box Layer
+            if (interactionState is MarqueeSelecting)
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _MarqueePainter(
+                    state: interactionState,
+                  ),
+                ),
+              ),
+
+            // 6. Metadata Preview Overlay Card
+            ListenableBuilder(
+              listenable: renderState.hoveredNodeMetadataNotifier,
+              builder: (context, _) {
+                final hoveredNodeId = renderState.hoveredNodeMetadataNotifier.value;
+                if (hoveredNodeId == null) return const SizedBox.shrink();
+
+                final node = dataController.nodeLookup[hoveredNodeId];
+                final vs = renderState.viewStates[hoveredNodeId];
+                if (node is! InfoUiNode || vs == null) return const SizedBox.shrink();
+
+                final rect = vs.rect;
+                final sphereCenter = Offset(
+                  rect.right - AppConfig.node.metadataSphereOffsetFromRight,
+                  rect.top + AppConfig.node.metadataSphereOffsetFromTop,
+                );
+
+                return Positioned(
+                  left: sphereCenter.dx + AppConfig.node.metadataPreviewOffset.dx,
+                  top: sphereCenter.dy + AppConfig.node.metadataPreviewOffset.dy,
+                  child: FractionalTranslation(
+                    translation: const Offset(-0.5, -1.0),
+                    child: MetadataPreviewOverlay(node: node),
+                  ),
+                );
+              },
             ),
-          ),
-
-        // 4. Marquee Selection Box Layer
-        if (interactionState is MarqueeSelecting)
-          Positioned.fill(
-            child: CustomPaint(
-              painter: _MarqueePainter(
-                state: interactionState as MarqueeSelecting,
-              ),
-            ),
-          ),
-
-        // 6. Metadata Preview Overlay Card
-        ListenableBuilder(
-          listenable: renderState.hoveredNodeMetadataNotifier,
-          builder: (context, _) {
-            final hoveredNodeId = renderState.hoveredNodeMetadataNotifier.value;
-            if (hoveredNodeId == null) return const SizedBox.shrink();
-
-            final node = dataController.nodeLookup[hoveredNodeId];
-            final vs = renderState.viewStates[hoveredNodeId];
-            if (node is! InfoUiNode || vs == null) return const SizedBox.shrink();
-
-            final rect = vs.rect;
-            final sphereCenter = Offset(
-              rect.right - AppConfig.node.metadataSphereOffsetFromRight,
-              rect.top + AppConfig.node.metadataSphereOffsetFromTop,
-            );
-
-            return Positioned(
-              left: sphereCenter.dx + AppConfig.node.metadataPreviewOffset.dx,
-              top: sphereCenter.dy + AppConfig.node.metadataPreviewOffset.dy,
-              child: FractionalTranslation(
-                translation: const Offset(-0.5, -1.0),
-                child: MetadataPreviewOverlay(node: node),
-              ),
-            );
-          },
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }

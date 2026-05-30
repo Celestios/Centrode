@@ -70,10 +70,12 @@ class RelationTipDragging extends CanvasInteractionState {
         bestTargetDist = dist;
         snappedId = nodeId;
         snappedPort = closest.name;
-        isExplicit = dist < 16.0;
+        isExplicit = true;
       }
     }
 
+
+    ctx.relationPathCache.remove(relationId);
     ctx.onNodeDragUpdate(); // Pulse MovementNotifier to redraw the drag line
     return RelationTipDragging(
       relationId: relationId,
@@ -91,6 +93,7 @@ class RelationTipDragging extends CanvasInteractionState {
     PointerUpEvent e,
     InteractionContext ctx,
   ) {
+    ctx.relationPathCache.remove(relationId);
     if (snappedTargetNodeId != null) {
       if (isStartTip) {
         ctx.onRelationUpdateLayout(
@@ -116,6 +119,7 @@ class RelationTipDragging extends CanvasInteractionState {
     PointerCancelEvent e,
     InteractionContext ctx,
   ) {
+    ctx.relationPathCache.remove(relationId);
     ctx.onNodeDragUpdate(); // Repaint
     return const CanvasIdle();
   }

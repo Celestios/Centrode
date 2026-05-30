@@ -17,6 +17,7 @@ class VerticalContextToolbar extends StatelessWidget {
   final VoidCallback? onCycleTextColor;
   final VoidCallback? onSaveTemplate;
   final ValueChanged<String>? onShapeChanged;
+  final ValueChanged<String>? onRelationLayoutChanged;
 
   const VerticalContextToolbar({
     super.key,
@@ -33,6 +34,7 @@ class VerticalContextToolbar extends StatelessWidget {
     this.onSaveTemplate,
     this.onShapeChanged,
     this.onDrawConnection,
+    this.onRelationLayoutChanged,
   });
 
   @override
@@ -112,17 +114,17 @@ class VerticalContextToolbar extends StatelessWidget {
                     SubmenuButtonData(
                       icon: Icons.linear_scale_rounded,
                       tooltip: 'Straight Route',
-                      onPressed: () {},
+                      onPressed: () => onRelationLayoutChanged?.call('default'),
                     ),
                     SubmenuButtonData(
                       icon: Icons.gesture_rounded,
                       tooltip: 'Bezier Route',
-                      onPressed: () {},
+                      onPressed: () => onRelationLayoutChanged?.call('bezier'),
                     ),
                     SubmenuButtonData(
                       icon: Icons.route_rounded,
                       tooltip: 'Manhattan Route',
-                      onPressed: () {},
+                      onPressed: () => onRelationLayoutChanged?.call('orthogonal'),
                     ),
                     SubmenuButtonData(
                       icon: Icons.border_style_rounded,

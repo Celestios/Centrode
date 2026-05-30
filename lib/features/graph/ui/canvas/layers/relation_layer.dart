@@ -5,20 +5,21 @@ import '../../../store/graph_data_query.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../presentation/strategies/relation_layout_strategy.dart';
 import '../../../engine/base_interaction_state.dart';
+import '../../../engine/interaction_engine.dart';
 import '../../../models/models.dart';
 import '../relation_painter.dart';
 import '../canvas_text_editor.dart';
 import '../../../presentation/strategies/routing/relation_layout_context.dart';
 
 class RelationLayer extends StatelessWidget {
-  final CanvasInteractionState interactionState;
-
-  const RelationLayer({super.key, required this.interactionState});
+  const RelationLayer({super.key});
 
   @override
   Widget build(BuildContext context) {
     final dataController = context.read<GraphDataQuery>();
     final uiController = context.read<NodeRenderState>();
+    final interactionController = context.read<InteractionController>();
+    final theme = Theme.of(context);
 
     return Positioned.fill(
       child: RepaintBoundary(
@@ -26,12 +27,14 @@ class RelationLayer extends StatelessWidget {
           listenable: Listenable.merge([
             uiController.movementNotifier,
             uiController,
+            interactionController.state,
           ]),
           builder: (context, _) {
+            final interactionState = interactionController.state.value;
             // Compute dragging overrides if a tip is actively being dragged
             final draggingOverrides = <String, (Offset, Offset)>{};
             if (interactionState is RelationTipDragging) {
-              final drag = interactionState as RelationTipDragging;
+              final drag = interactionState;
               UiRelation? rel;
               for (final r in dataController.relations) {
                 if (r.id == drag.relationId) {
@@ -61,7 +64,7 @@ class RelationLayer extends StatelessWidget {
                     overrideStart: drag.isStartTip ? dragPos : null,
                     overrideEnd: !drag.isStartTip ? dragPos : null,
                   );
-                  draggingOverrides[rel.id] = (resolvedStart, resolvedEnd);
+                   draggingOverrides[rel.id] = (resolvedStart, resolvedEnd);
                 }
               }
             }
@@ -148,6 +151,8 @@ class RelationLayer extends StatelessWidget {
                       uiController.selectedEntities,
                       pathCache: uiController.relationPathCache,
                       draggingOverrides: draggingOverrides,
+                      interactionState: interactionState,
+                      theme: theme,
                     ),
                   ),
                 ),

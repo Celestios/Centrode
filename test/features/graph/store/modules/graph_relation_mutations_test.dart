@@ -8,6 +8,7 @@ import 'package:mycelium/src/rust/domain/relations.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/features/graph/models/content_builder.dart';
+import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 
 class MockAppHandle extends Mock implements AppHandle {}
@@ -16,9 +17,11 @@ class MockThemeController extends Mock implements ThemeController {
   GraphTheme get currentGraphTheme => const GraphTheme(id: 'test', name: 'test');
 }
 
+class FakeSymmetricEntityPatch extends Fake implements SymmetricEntityPatch {}
 
 void main() {
   setUpAll(() {
+    registerFallbackValue(FakeSymmetricEntityPatch());
     registerFallbackValue(Nodes.iNode(INode(
       key: 'dummy',
       fields: INodeFields(
@@ -130,6 +133,37 @@ void main() {
 
       await controller.syncEngine.processor.forceFlush();
       verify(() => mockApi.deleteRelation(table: 'IRelation', key: relId)).called(1);
+    });
+
+    test('updateRelationLayout updates layout and triggers FFI mutate call', () async {
+      final node1 = controller.createNode(UiNodes.info, const Offset(0, 0));
+      final node2 = controller.createNode(UiNodes.info, const Offset(100, 100));
+      final node3 = controller.createNode(UiNodes.info, const Offset(200, 200));
+
+      controller.createRelation(node1, node2);
+      final relId = controller.relations.first.id;
+
+      when(() => mockApi.applyEntityMutation(mutation: any(named: 'mutation')))
+          .thenAnswer((_) async {});
+
+      controller.updateRelationLayout(
+        relId,
+        fromNodeId: node1,
+        toNodeId: node3,
+        fromSide: 'Top',
+        toSide: 'Bottom',
+        strategyType: 'bezier',
+      );
+
+      final updated = controller.store.relationLookup[relId]!;
+      expect(updated.fromNodeId, node1);
+      expect(updated.toNodeId, node3);
+      expect(updated.layout?.fromSide, 'Top');
+      expect(updated.layout?.toSide, 'Bottom');
+      expect(updated.layout?.strategyType, 'bezier');
+
+      await controller.syncEngine.processor.forceFlush();
+      verify(() => mockApi.applyEntityMutation(mutation: any(named: 'mutation'))).called(1);
     });
   });
 }

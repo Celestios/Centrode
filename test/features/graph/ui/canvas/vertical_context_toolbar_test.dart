@@ -157,4 +157,67 @@ void main() {
     // Verify submenu button IS displayed now
     expect(find.byIcon(Icons.format_bold_rounded), findsOneWidget);
   });
+
+  testWidgets('VerticalContextToolbar with isRelationOnly triggers onRelationLayoutChanged callback', (WidgetTester tester) async {
+    String? selectedLayout;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.centerRight,
+            child: SizedBox(
+              width: 400,
+              height: 600,
+              child: VerticalContextToolbar(
+                onDelete: () {},
+                isMulti: false,
+                isRelationOnly: true,
+                onRelationLayoutChanged: (layout) => selectedLayout = layout,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Verify relation trigger button is displayed
+    final triggerFinder = find.byIcon(Icons.timeline_rounded);
+    expect(triggerFinder, findsOneWidget);
+
+    // Verify submenu button is NOT displayed initially
+    expect(find.byIcon(Icons.linear_scale_rounded), findsNothing);
+
+    // Hover mouse over the trigger button to open submenu
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await gesture.addPointer(location: Offset.zero);
+    await gesture.moveTo(tester.getCenter(triggerFinder));
+    await tester.pumpAndSettle();
+
+    // Verify Straight Route (linear_scale_rounded) is displayed now
+    final straightFinder = find.byIcon(Icons.linear_scale_rounded);
+    expect(straightFinder, findsOneWidget);
+
+    // Click Straight Route
+    await tester.tap(straightFinder);
+    await tester.pumpAndSettle();
+
+    expect(selectedLayout, 'default');
+
+    // Click Bezier Route (gesture_rounded)
+    final bezierFinder = find.byIcon(Icons.gesture_rounded);
+    expect(bezierFinder, findsOneWidget);
+    await tester.tap(bezierFinder);
+    await tester.pumpAndSettle();
+
+    expect(selectedLayout, 'bezier');
+
+    // Click Manhattan Route (route_rounded)
+    final manhattanFinder = find.byIcon(Icons.route_rounded);
+    expect(manhattanFinder, findsOneWidget);
+    await tester.tap(manhattanFinder);
+    await tester.pumpAndSettle();
+
+    expect(selectedLayout, 'orthogonal');
+  });
 }

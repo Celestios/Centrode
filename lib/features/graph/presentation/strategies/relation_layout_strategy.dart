@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
@@ -120,52 +121,30 @@ abstract class RelationLayoutStrategy {
       overrideEnd: overrideEnd,
     );
 
-    final len = (end - start).distance;
-    if (len < 40.0) {
+    final path = computePath(start, end, fromVs, toVs, relation, context);
+    final metrics = path.computeMetrics().toList();
+    if (metrics.isEmpty) {
+      return (start, end);
+    }
+    final metric = metrics.first;
+    final length = metric.length;
+
+    if (length < 40.0) {
+      final t1 = metric.getTangentForOffset(length * (1 / 3));
+      final t2 = metric.getTangentForOffset(length * (2 / 3));
       return (
-        start + (end - start) * (1 / 3),
-        start + (end - start) * (2 / 3),
+        t1?.position ?? (start + (end - start) * (1 / 3)),
+        t2?.position ?? (start + (end - start) * (2 / 3)),
       );
     }
 
-    final waypoints = getWaypoints(start, end, fromVs, toVs, relation, context);
-    if (waypoints.length < 2) {
-      return (start, end);
-    }
+    final tStart = metric.getTangentForOffset(16.0);
+    final tEnd = metric.getTangentForOffset(length - 16.0);
 
-    // Start handle: 16px along the waypoints path from start
-    Offset hStart = start;
-    double distLeft = 16.0;
-    for (int i = 0; i < waypoints.length - 1; i++) {
-      final p1 = waypoints[i];
-      final p2 = waypoints[i + 1];
-      final segLen = (p2 - p1).distance;
-      if (segLen >= distLeft) {
-        final dir = segLen == 0.0 ? Offset.zero : (p2 - p1) / segLen;
-        hStart = p1 + dir * distLeft;
-        break;
-      } else {
-        distLeft -= segLen;
-      }
-    }
-
-    // End handle: 16px back along the waypoints path from end
-    Offset hEnd = end;
-    distLeft = 16.0;
-    for (int i = waypoints.length - 1; i > 0; i--) {
-      final p2 = waypoints[i];
-      final p1 = waypoints[i - 1];
-      final segLen = (p2 - p1).distance;
-      if (segLen >= distLeft) {
-        final dir = segLen == 0.0 ? Offset.zero : (p2 - p1) / segLen;
-        hEnd = p2 - dir * distLeft;
-        break;
-      } else {
-        distLeft -= segLen;
-      }
-    }
-
-    return (hStart, hEnd);
+    return (
+      tStart?.position ?? start,
+      tEnd?.position ?? end,
+    );
   }
 
   /// Computes the center position where the relation label should be rendered.

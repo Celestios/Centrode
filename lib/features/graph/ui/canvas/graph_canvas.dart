@@ -157,40 +157,43 @@ class _GraphCanvasState extends State<GraphCanvas>
         Provider<ViewportController>.value(value: viewportController),
         Provider<InteractionController>.value(value: interactionController),
       ],
-      child: ValueListenableBuilder<CanvasInteractionState>(
-        valueListenable: interactionController.state,
-        builder: (context, state, _) {
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              return Stack(
-                children: [
-                  // Zoomable / Pannable Interactive Canvas Layer
-                  Positioned.fill(
-                    child: DragTarget<Template>(
-                      onWillAcceptWithDetails: (details) => true,
-                      onAcceptWithDetails: (details) async {
-                        final renderBox = context.findRenderObject() as RenderBox?;
-                        if (renderBox == null) return;
-                        final localOffset = renderBox.globalToLocal(details.offset);
-                        final transform = viewportController.transformController.value;
-                        if (transform.determinant() == 0.0) return;
-                        final inverse = Matrix4.inverted(transform);
-                        final canvasOffset = MatrixUtils.transformPoint(inverse, localOffset);
-                        await dataController.instantiateTemplate(details.data.key, canvasOffset);
-                      },
-                      builder: (context, candidateData, rejectedData) {
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Stack(
+            children: [
+              // Zoomable / Pannable Interactive Canvas Layer
+              Positioned.fill(
+                child: DragTarget<Template>(
+                  onWillAcceptWithDetails: (details) => true,
+                  onAcceptWithDetails: (details) async {
+                    final renderBox = context.findRenderObject() as RenderBox?;
+                    if (renderBox == null) return;
+                    final localOffset = renderBox.globalToLocal(details.offset);
+                    final transform = viewportController.transformController.value;
+                    if (transform.determinant() == 0.0) return;
+                    final inverse = Matrix4.inverted(transform);
+                    final canvasOffset = MatrixUtils.transformPoint(inverse, localOffset);
+                    await dataController.instantiateTemplate(details.data.key, canvasOffset);
+                  },
+                  builder: (context, candidateData, rejectedData) {
+                    return ValueListenableBuilder<MouseCursor>(
+                      valueListenable: interactionController.cursor,
+                      builder: (context, cursor, child) {
                         return MouseRegion(
-                          cursor: state.cursor,
-                          child: Listener(
-                            onPointerDown: interactionController.handlePointerDown,
-                            onPointerMove: interactionController.handlePointerMove,
-                            onPointerUp: interactionController.handlePointerUp,
-                            onPointerCancel:
-                                interactionController.handlePointerCancel,
-                            onPointerHover:
-                                interactionController.handlePointerHover,
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
+                          cursor: cursor,
+                          child: child,
+                        );
+                      },
+                      child: Listener(
+                        onPointerDown: interactionController.handlePointerDown,
+                        onPointerMove: interactionController.handlePointerMove,
+                        onPointerUp: interactionController.handlePointerUp,
+                        onPointerCancel:
+                            interactionController.handlePointerCancel,
+                        onPointerHover:
+                            interactionController.handlePointerHover,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
                             final viewport = constraints.biggest;
 
                             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -225,19 +228,26 @@ class _GraphCanvasState extends State<GraphCanvas>
                               valueListenable:
                                   viewportController.elasticMargins,
                               builder: (context, elasticMargins, _) {
-                                return CanvasInteractiveViewer(
-                                  transformationController:
-                                      viewportController.transformController,
-                                  constrained: true,
-                                  boundaryMargin: elasticMargins,
-                                  minScale: AppConfig.canvas.minScale,
-                                  maxScale: AppConfig.canvas.maxScale,
-                                  scaleFactor: AppConfig.canvas.scaleFactor,
-                                  panEnabled: state is CanvasIdle,
-                                  scaleEnabled: state is CanvasIdle,
-                                  onInteractionEnd: (details) {
-                                    viewportController
-                                        .recalculateElasticMargins();
+                                return ValueListenableBuilder<bool>(
+                                  valueListenable:
+                                      interactionController.panScaleEnabled,
+                                  builder: (context, panScaleEnabled, child) {
+                                    return CanvasInteractiveViewer(
+                                      transformationController:
+                                          viewportController.transformController,
+                                      constrained: true,
+                                      boundaryMargin: elasticMargins,
+                                      minScale: AppConfig.canvas.minScale,
+                                      maxScale: AppConfig.canvas.maxScale,
+                                      scaleFactor: AppConfig.canvas.scaleFactor,
+                                      panEnabled: panScaleEnabled,
+                                      scaleEnabled: panScaleEnabled,
+                                      onInteractionEnd: (details) {
+                                        viewportController
+                                            .recalculateElasticMargins();
+                                      },
+                                      child: child!,
+                                    );
                                   },
                                   child: GestureDetector(
                                     onTap: () {
@@ -259,9 +269,9 @@ class _GraphCanvasState extends State<GraphCanvas>
                                             );
                                           },
                                         ),
-                                        RelationLayer(interactionState: state),
+                                        const RelationLayer(),
                                         const NodeLayer(),
-                                        OverlayLayer(interactionState: state),
+                                        const OverlayLayer(),
                                       ],
                                     ),
                                   ),
@@ -394,9 +404,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                 ],
               );
             },
-          );
-        },
-      ),
+          ),
     );
   }
 
@@ -437,7 +445,7 @@ class _GraphCanvasState extends State<GraphCanvas>
     }
 
     final isRelationOnly =
-        selectedViewStates.isEmpty && selectedRelations.isNotEmpty && !isMulti;
+        selectedViewStates.isEmpty && selectedRelations.isNotEmpty;
 
     return ListenableBuilder(
       listenable: Listenable.merge(listenables),
@@ -469,6 +477,14 @@ class _GraphCanvasState extends State<GraphCanvas>
             isRelationOnly: isRelationOnly,
             canSaveTemplate: canSaveTemplate,
             singleNodeId: singleNodeId,
+            onRelationLayoutChanged: (layoutType) {
+              for (final rel in selectedRelations) {
+                dataController.updateRelationLayout(
+                  rel.id,
+                  strategyType: layoutType,
+                );
+              }
+            },
             onDrawConnection: () {
               final nodeIds = renderState.selectedEntities
                   .where((id) => dataController.nodeLookup.containsKey(id))

@@ -5,6 +5,7 @@ import '../../presentation/view_state.dart';
 import '../../presentation/strategies/relation_style_strategy.dart';
 import '../../presentation/strategies/relation_layout_strategy.dart';
 import '../../presentation/strategies/routing/relation_layout_context.dart';
+import '../../engine/base_interaction_state.dart';
 
 class RelationPainter extends CustomPainter {
   final List<UiRelation> relations;
@@ -12,6 +13,8 @@ class RelationPainter extends CustomPainter {
   final Set<String> selectedEntities; // Selection state from NodeRenderState
   final Map<String, List<Offset>> pathCache;
   final Map<String, (Offset start, Offset end)> draggingOverrides;
+  final CanvasInteractionState? interactionState;
+  final ThemeData theme;
 
   RelationPainter(
     this.relations,
@@ -19,6 +22,8 @@ class RelationPainter extends CustomPainter {
     this.selectedEntities, {
     required this.pathCache,
     this.draggingOverrides = const {},
+    this.interactionState,
+    required this.theme,
   });
 
   @override
@@ -57,14 +62,25 @@ class RelationPainter extends CustomPainter {
       // Centralized Style Resolution
       final resolved = RelationStyleStrategy.resolveStyle(rel);
 
-      // Apply selection styling from NodeRenderState.selectedEntities
+      // Apply selection styling or dragging styling
       final isSelected = selectedEntities.contains(rel.id);
-      paint.color = isSelected
-          ? AppConfig.visuals.selectionAccent
-          : Color(resolved.strokeColor);
-      paint.strokeWidth = isSelected
-          ? AppConfig.relation.selectedStrokeWidth
-          : resolved.strokeWidth.toDouble();
+      final drag = (interactionState is RelationTipDragging && (interactionState as RelationTipDragging).relationId == rel.id)
+          ? interactionState as RelationTipDragging
+          : null;
+
+      if (drag != null) {
+        paint.color = drag.snappedTargetNodeId != null
+            ? Colors.green
+            : Colors.blueAccent;
+        paint.strokeWidth = AppConfig.relation.selectedStrokeWidth;
+      } else {
+        paint.color = isSelected
+            ? AppConfig.visuals.selectionAccent
+            : Color(resolved.strokeColor);
+        paint.strokeWidth = isSelected
+            ? AppConfig.relation.selectedStrokeWidth
+            : resolved.strokeWidth.toDouble();
+      }
 
       // Draw relation path (straight line or Bezier curve)
       final path = layoutStrategy.computePath(start, end, from, to, rel, layoutContext);
@@ -99,25 +115,51 @@ class RelationPainter extends CustomPainter {
       // Draw Label (Centered on the layout path)
       if (rel.verb.isNotEmpty) {
         final mid = layoutStrategy.computeLabelPosition(start, end, from, to, rel, layoutContext);
-        _drawText(canvas, rel.verb, mid);
+        _drawText(canvas, rel.verb, mid, paint.color, paint.strokeWidth);
       }
     }
   }
 
-  void _drawText(Canvas canvas, String text, Offset pos) {
+  void _drawText(Canvas canvas, String text, Offset pos, Color strokeColor, double strokeWidth) {
+    final textStyle = TextStyle(
+      color: theme.colorScheme.onSurface,
+      fontSize: 10,
+      fontWeight: FontWeight.w500,
+    );
     final textSpan = TextSpan(
       text: text,
-      style: const TextStyle(
-        color: Colors.black,
-        fontSize: 10,
-        backgroundColor: Colors.white,
-      ),
+      style: textStyle,
     );
     final textPainter = TextPainter(
       text: textSpan,
       textDirection: TextDirection.ltr,
     );
     textPainter.layout();
+
+    // Compute dimensions with padding for the wrap-around container
+    const double paddingX = 8.0;
+    const double paddingY = 4.0;
+    final double w = textPainter.width + paddingX * 2;
+    final double h = textPainter.height + paddingY * 2;
+
+    // Define the pill-shaped container aligned at center pos
+    final rect = Rect.fromCenter(center: pos, width: w, height: h);
+    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(8.0));
+
+    // Fill with canvas background to mask relation line and grid dots underneath
+    final fillPaint = Paint()
+      ..color = theme.scaffoldBackgroundColor
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(rrect, fillPaint);
+
+    // Stroke with relation line color/thickness to simulate wrapping around it
+    final strokePaint = Paint()
+      ..color = strokeColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+    canvas.drawRRect(rrect, strokePaint);
+
+    // Draw the text
     textPainter.paint(
       canvas,
       pos - Offset(textPainter.width / 2, textPainter.height / 2),

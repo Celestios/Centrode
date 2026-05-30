@@ -88,8 +88,10 @@ void main() {
 
     final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(relation, fromVs, toVs, context);
     // Since distance is 10 (< 40), handles should be at 1/3 and 2/3 of the way
-    expect(handleStart, Offset(110 + 10 / 3, 35));
-    expect(handleEnd, Offset(110 + 20 / 3, 35));
+    expect(handleStart.dx, closeTo(110 + 10 / 3, 0.001));
+    expect(handleStart.dy, closeTo(35, 0.001));
+    expect(handleEnd.dx, closeTo(110 + 20 / 3, 0.001));
+    expect(handleEnd.dy, closeTo(35, 0.001));
   });
 
   test('resolveEndpoints dynamically resolves opposite port during drag override', () {
@@ -174,5 +176,79 @@ void main() {
 
     expect(straightStrategy.isPointNear(testPoint, start, end, fromVs, toVs, relation, 2.0, context), isFalse);
     expect(layoutStrategy.isPointNear(testPoint, start, end, fromVs, toVs, relation, 2.0, context), isTrue);
+  });
+
+  test('BezierRelationLayoutStrategy resolveTipHandles positions handles on the bezier curve', () {
+    final fromNode = InfoUiNode(
+      id: 'from_1',
+      position: const Offset(10, 10),
+      size: const Size(100, 50),
+    );
+    final toNode = InfoUiNode(
+      id: 'to_1',
+      position: const Offset(210, 110),
+      size: const Size(100, 50),
+    );
+
+    final relation = InfoUiRelation(
+      fromNodeId: 'from_1',
+      fromNodeTable: 'inode',
+      toNodeId: 'to_1',
+      toNodeTable: 'inode',
+      layout: RelationLayout(fromSide: 'Auto', toSide: 'Auto', strategyType: 'bezier'),
+    );
+
+    final fromVs = NodeViewState(fromNode);
+    final toVs = NodeViewState(toNode);
+    final context = RelationLayoutContext(
+      nodeViewStates: {fromVs.nodeId: fromVs, toVs.nodeId: toVs},
+      relations: [relation],
+      pathCache: {},
+    );
+
+    const layoutStrategy = BezierRelationLayoutStrategy();
+    final (start, end) = layoutStrategy.resolveEndpoints(relation, fromVs, toVs);
+    final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(relation, fromVs, toVs, context);
+
+    // Verify handles are on the curve (near the curve with small threshold e.g. 1.0)
+    expect(layoutStrategy.isPointNear(handleStart, start, end, fromVs, toVs, relation, 1.0, context), isTrue);
+    expect(layoutStrategy.isPointNear(handleEnd, start, end, fromVs, toVs, relation, 1.0, context), isTrue);
+  });
+
+  test('OrthogonalRelationLayoutStrategy resolveTipHandles positions handles on the orthogonal route', () {
+    final fromNode = InfoUiNode(
+      id: 'from_1',
+      position: const Offset(10, 10),
+      size: const Size(100, 50),
+    );
+    final toNode = InfoUiNode(
+      id: 'to_1',
+      position: const Offset(210, 110),
+      size: const Size(100, 50),
+    );
+
+    final relation = InfoUiRelation(
+      fromNodeId: 'from_1',
+      fromNodeTable: 'inode',
+      toNodeId: 'to_1',
+      toNodeTable: 'inode',
+      layout: RelationLayout(fromSide: 'Auto', toSide: 'Auto', strategyType: 'orthogonal'),
+    );
+
+    final fromVs = NodeViewState(fromNode);
+    final toVs = NodeViewState(toNode);
+    final context = RelationLayoutContext(
+      nodeViewStates: {fromVs.nodeId: fromVs, toVs.nodeId: toVs},
+      relations: [relation],
+      pathCache: {},
+    );
+
+    const layoutStrategy = OrthogonalRelationLayoutStrategy();
+    final (start, end) = layoutStrategy.resolveEndpoints(relation, fromVs, toVs);
+    final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(relation, fromVs, toVs, context);
+
+    // Verify handles are on the orthogonal line (near the line with small threshold e.g. 1.0)
+    expect(layoutStrategy.isPointNear(handleStart, start, end, fromVs, toVs, relation, 1.0, context), isTrue);
+    expect(layoutStrategy.isPointNear(handleEnd, start, end, fromVs, toVs, relation, 1.0, context), isTrue);
   });
 }
