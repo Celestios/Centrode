@@ -296,6 +296,7 @@ async fn test_remaining_patches() {
         shadow_offset_x: 0.0,
         shadow_offset_y: 0.0,
         strategy_type: "default".to_string(),
+        stroke_pattern: "solid".to_string(),
     };
     let rel_layout = RelationLayout {
         from_side: "right".to_string(),

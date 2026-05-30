@@ -44,6 +44,7 @@ pub struct RelationStyle {
     pub shadow_offset_x: f64,
     pub shadow_offset_y: f64,
     pub strategy_type: String,
+    pub stroke_pattern: String,
 }
 
 #[frb(dart_metadata=("freezed"))]

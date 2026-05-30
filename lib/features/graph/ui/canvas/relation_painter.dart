@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../presentation/graph_metrics.dart';
@@ -84,7 +85,14 @@ class RelationPainter extends CustomPainter {
 
       // Draw relation path (straight line or Bezier curve)
       final path = layoutStrategy.computePath(start, end, from, to, rel, layoutContext);
-      canvas.drawPath(path, paint);
+      
+      final strokePattern = resolved.strokePattern;
+      if (strokePattern == 'dashed' || strokePattern == 'dotted') {
+        final decoratedPath = _createPatternedPath(path, strokePattern);
+        canvas.drawPath(decoratedPath, paint);
+      } else {
+        canvas.drawPath(path, paint);
+      }
 
       // If selected, draw the two tip handles
       if (isSelected) {
@@ -164,6 +172,29 @@ class RelationPainter extends CustomPainter {
       canvas,
       pos - Offset(textPainter.width / 2, textPainter.height / 2),
     );
+  }
+
+  Path _createPatternedPath(Path source, String pattern) {
+    final Path dest = Path();
+    final double dashLen = pattern == 'dashed' ? 8.0 : 2.0;
+    final double gapLen = pattern == 'dashed' ? 6.0 : 4.0;
+
+    for (final PathMetric metric in source.computeMetrics()) {
+      double distance = 0.0;
+      bool draw = true;
+      while (distance < metric.length) {
+        final double len = draw ? dashLen : gapLen;
+        if (draw) {
+          dest.addPath(
+            metric.extractPath(distance, (distance + len).clamp(0.0, metric.length)),
+            Offset.zero,
+          );
+        }
+        distance += len;
+        draw = !draw;
+      }
+    }
+    return dest;
   }
 
   @override

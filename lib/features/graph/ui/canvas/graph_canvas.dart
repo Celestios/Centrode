@@ -28,6 +28,7 @@ import '../../../../presentation/widgets/template_manager/save_template_dialog.d
 import '../../models/left_panel_type.dart';
 import '../../../../src/rust/domain/templates.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
+import 'package:mycelium/features/graph/presentation/strategies/relation_style_strategy.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 
 class GraphCanvas extends StatefulWidget {
@@ -495,6 +496,15 @@ class _GraphCanvasState extends State<GraphCanvas>
                 dataController.updateRelationLayout(
                   rel.id,
                   strategyType: layoutType,
+                );
+              }
+            },
+            onRelationStrokePatternChanged: (pattern) {
+              for (final rel in selectedRelations) {
+                final currentStyle = rel.style ?? RelationStyleStrategy.resolveStyle(rel);
+                dataController.updateRelationStyle(
+                  rel.id,
+                  currentStyle.copyWith(strokePattern: pattern),
                 );
               }
             },

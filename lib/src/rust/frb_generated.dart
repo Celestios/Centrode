@@ -2794,8 +2794,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RelationStyle dco_decode_relation_style(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 16)
-      throw Exception('unexpected arr length: expect 16 but see ${arr.length}');
+    if (arr.length != 17)
+      throw Exception('unexpected arr length: expect 17 but see ${arr.length}');
     return RelationStyle(
       bgColor: dco_decode_u_32(arr[0]),
       strokeColor: dco_decode_u_32(arr[1]),
@@ -2813,6 +2813,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       shadowOffsetX: dco_decode_f_64(arr[13]),
       shadowOffsetY: dco_decode_f_64(arr[14]),
       strategyType: dco_decode_String(arr[15]),
+      strokePattern: dco_decode_String(arr[16]),
     );
   }
 
@@ -4264,6 +4265,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_shadowOffsetX = sse_decode_f_64(deserializer);
     var var_shadowOffsetY = sse_decode_f_64(deserializer);
     var var_strategyType = sse_decode_String(deserializer);
+    var var_strokePattern = sse_decode_String(deserializer);
     return RelationStyle(
       bgColor: var_bgColor,
       strokeColor: var_strokeColor,
@@ -4281,6 +4283,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       shadowOffsetX: var_shadowOffsetX,
       shadowOffsetY: var_shadowOffsetY,
       strategyType: var_strategyType,
+      strokePattern: var_strokePattern,
     );
   }
 
@@ -5660,6 +5663,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_f_64(self.shadowOffsetX, serializer);
     sse_encode_f_64(self.shadowOffsetY, serializer);
     sse_encode_String(self.strategyType, serializer);
+    sse_encode_String(self.strokePattern, serializer);
   }
 
   @protected

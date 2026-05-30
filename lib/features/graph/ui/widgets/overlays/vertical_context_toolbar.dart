@@ -18,6 +18,7 @@ class VerticalContextToolbar extends StatelessWidget {
   final VoidCallback? onSaveTemplate;
   final ValueChanged<String>? onShapeChanged;
   final ValueChanged<String>? onRelationLayoutChanged;
+  final ValueChanged<String>? onRelationStrokePatternChanged;
 
   const VerticalContextToolbar({
     super.key,
@@ -35,6 +36,7 @@ class VerticalContextToolbar extends StatelessWidget {
     this.onShapeChanged,
     this.onDrawConnection,
     this.onRelationLayoutChanged,
+    this.onRelationStrokePatternChanged,
   });
 
   @override
@@ -129,12 +131,17 @@ class VerticalContextToolbar extends StatelessWidget {
                     SubmenuButtonData(
                       icon: Icons.border_style_rounded,
                       tooltip: 'Solid Line',
-                      onPressed: () {},
+                      onPressed: () => onRelationStrokePatternChanged?.call('solid'),
                     ),
                     SubmenuButtonData(
                       icon: Icons.border_clear_rounded,
                       tooltip: 'Dashed Line',
-                      onPressed: () {},
+                      onPressed: () => onRelationStrokePatternChanged?.call('dashed'),
+                    ),
+                    SubmenuButtonData(
+                      icon: Icons.blur_on_rounded,
+                      tooltip: 'Dotted Line',
+                      onPressed: () => onRelationStrokePatternChanged?.call('dotted'),
                     ),
                     SubmenuButtonData(
                       icon: Icons.arrow_forward_rounded,
