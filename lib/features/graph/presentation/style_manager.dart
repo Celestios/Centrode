@@ -37,11 +37,13 @@ class StyleManager implements GraphStyleUpdater {
     }
   }
 
+  @override
   void updateStyleForNode(String id) {
     final node = _store.nodeLookup[id];
     if (node != null) _resolveAndCacheNode(node);
   }
 
+  @override
   void updateStyleForRelation(String id) {
     final rel = _store.relationLookup[id];
     if (rel != null) _resolveAndCacheRelation(rel);

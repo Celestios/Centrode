@@ -19,11 +19,9 @@ void main() {
   group('GraphSyncEngine', () {
     late GraphDataController controller;
     late MockAppHandle mockApi;
-    late MockThemeController mockThemeController;
 
     setUp(() {
       mockApi = MockAppHandle();
-      mockThemeController = MockThemeController();
 
       when(() => mockApi.createGraphStream())
           .thenAnswer((_) => const Stream.empty());
