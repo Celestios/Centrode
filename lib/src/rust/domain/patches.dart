@@ -14,77 +14,91 @@ import 'styles.dart';
 import 'tags.dart';
 part 'patches.freezed.dart';
 
-@freezed
-sealed class EntityPatch with _$EntityPatch {
-  const EntityPatch._();
+            
 
-  const factory EntityPatch.node(List<NodePatch> field0) = EntityPatch_Node;
-  const factory EntityPatch.relation(List<RelationPatch> field0) =
-      EntityPatch_Relation;
-  const factory EntityPatch.createNode(Nodes field0, List<IRelation> field1) =
-      EntityPatch_CreateNode;
-  const factory EntityPatch.deleteNode(Nodes field0, List<IRelation> field1) =
-      EntityPatch_DeleteNode;
-  const factory EntityPatch.createRelation(IRelation field0) =
-      EntityPatch_CreateRelation;
-  const factory EntityPatch.deleteRelation(IRelation field0) =
-      EntityPatch_DeleteRelation;
-}
+            
 
-@freezed
-sealed class NodePatch with _$NodePatch {
-  const NodePatch._();
+            @freezed
+                sealed class EntityPatch with _$EntityPatch  {
+                    const EntityPatch._();
 
-  const factory NodePatch.position(Coordinates field0) = NodePatch_Position;
-  const factory NodePatch.size(Size field0) = NodePatch_Size;
-  const factory NodePatch.content(Content field0) = NodePatch_Content;
-  const factory NodePatch.isExpanded(bool field0) = NodePatch_IsExpanded;
-  const factory NodePatch.style([NodeStyle? field0]) = NodePatch_Style;
-  const factory NodePatch.tagOp(TagOperation field0) = NodePatch_TagOp;
-  const factory NodePatch.significance(int field0) = NodePatch_Significance;
-}
+                     const factory EntityPatch.node(  List<NodePatch> field0,) = EntityPatch_Node;
+ const factory EntityPatch.relation(  List<RelationPatch> field0,) = EntityPatch_Relation;
+ const factory EntityPatch.createNode(  Nodes field0,  List<IRelation> field1,) = EntityPatch_CreateNode;
+ const factory EntityPatch.deleteNode(  Nodes field0,  List<IRelation> field1,) = EntityPatch_DeleteNode;
+ const factory EntityPatch.createRelation(  IRelation field0,) = EntityPatch_CreateRelation;
+ const factory EntityPatch.deleteRelation(  IRelation field0,) = EntityPatch_DeleteRelation;
+
+                    
+
+                    
+                }
 
 @freezed
-sealed class RelationPatch with _$RelationPatch {
-  const RelationPatch._();
+                sealed class NodePatch with _$NodePatch  {
+                    const NodePatch._();
 
-  const factory RelationPatch.verb(String field0) = RelationPatch_Verb;
-  const factory RelationPatch.style([RelationStyle? field0]) =
-      RelationPatch_Style;
-  const factory RelationPatch.layout([RelationLayout? field0]) =
-      RelationPatch_Layout;
-  const factory RelationPatch.directionless(bool field0) =
-      RelationPatch_Directionless;
-}
+                     const factory NodePatch.position(  Coordinates field0,) = NodePatch_Position;
+ const factory NodePatch.size(  Size field0,) = NodePatch_Size;
+ const factory NodePatch.content(  Content field0,) = NodePatch_Content;
+ const factory NodePatch.isExpanded(  bool field0,) = NodePatch_IsExpanded;
+ const factory NodePatch.style([  NodeStyle? field0,]) = NodePatch_Style;
+ const factory NodePatch.tagOp(  TagOperation field0,) = NodePatch_TagOp;
+ const factory NodePatch.significance(  int field0,) = NodePatch_Significance;
 
-class SymmetricEntityPatch {
-  final RecordStrings id;
-  final EntityPatch forward;
-  final EntityPatch reverse;
+                    
 
-  const SymmetricEntityPatch({
-    required this.id,
-    required this.forward,
-    required this.reverse,
-  });
-
-  @override
-  int get hashCode => id.hashCode ^ forward.hashCode ^ reverse.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is SymmetricEntityPatch &&
-          runtimeType == other.runtimeType &&
-          id == other.id &&
-          forward == other.forward &&
-          reverse == other.reverse;
-}
+                    
+                }
 
 @freezed
-sealed class TagOperation with _$TagOperation {
-  const TagOperation._();
+                sealed class RelationPatch with _$RelationPatch  {
+                    const RelationPatch._();
 
-  const factory TagOperation.add(String field0) = TagOperation_Add;
-  const factory TagOperation.remove(String field0) = TagOperation_Remove;
-}
+                     const factory RelationPatch.verb(  String field0,) = RelationPatch_Verb;
+ const factory RelationPatch.style([  RelationStyle? field0,]) = RelationPatch_Style;
+ const factory RelationPatch.layout([  RelationLayout? field0,]) = RelationPatch_Layout;
+ const factory RelationPatch.directionless(  bool field0,) = RelationPatch_Directionless;
+
+                    
+
+                    
+                }
+
+class SymmetricEntityPatch  {
+                final RecordStrings id;
+final EntityPatch forward;
+final EntityPatch reverse;
+
+                const SymmetricEntityPatch({required this.id ,required this.forward ,required this.reverse ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => id.hashCode^forward.hashCode^reverse.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is SymmetricEntityPatch &&
+                runtimeType == other.runtimeType
+                && id == other.id&& forward == other.forward&& reverse == other.reverse;
+        
+            }
+
+@freezed
+                sealed class TagOperation with _$TagOperation  {
+                    const TagOperation._();
+
+                     const factory TagOperation.add(  String field0,) = TagOperation_Add;
+ const factory TagOperation.remove(  String field0,) = TagOperation_Remove;
+
+                    
+
+                    
+                }
+            

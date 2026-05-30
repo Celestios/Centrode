@@ -19,119 +19,138 @@ import '../telemetry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'stream.dart';
 
-// These functions are ignored because they are not marked as `pub`: `broadcast_boundaries`
+
+            // These functions are ignored because they are not marked as `pub`: `broadcast_boundaries`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `drop`
 
-Future<void> setupLogger() => RustLib.instance.api.crateBridgeApiSetupLogger();
 
-Stream<LogState> createLogStream() =>
-    RustLib.instance.api.crateBridgeApiCreateLogStream();
+            Future<void>  setupLogger() => RustLib.instance.api.crateBridgeApiSetupLogger();
 
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>>
-abstract class AppHandle implements RustOpaqueInterface {
-  Future<void> applyEntityMutation({required SymmetricEntityPatch mutation});
+Stream<LogState>  createLogStream() => RustLib.instance.api.crateBridgeApiCreateLogStream();
 
-  Repository get repo;
+            
+                // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>>
+                abstract class AppHandle implements RustOpaqueInterface {
+                     Future<void>  applyEntityMutation({required SymmetricEntityPatch mutation });
+
+
+ Repository get repo;
+
 
   set repo(Repository repo);
 
-  Future<void> close();
 
-  Stream<GraphEvent> createGraphStream();
+ Future<void>  close();
 
-  Future<void> createNode({required Nodes input});
 
-  Future<void> createRelation({required IRelation input});
+ Stream<GraphEvent>  createGraphStream();
 
-  Future<void> createTag({required Tag tag});
 
-  Future<void> createTheme({required String key, required ThemeFields fields});
+ Future<void>  createNode({required Nodes input });
 
-  Future<void> deleteNodeEntry({required String table, required String key});
 
-  Future<void> deleteRelation({required String table, required String key});
+ Future<void>  createRelation({required IRelation input });
 
-  Future<void> deleteTag({required String key});
 
-  Future<void> deleteTemplate({required String key});
+ Future<void>  createTag({required Tag tag });
 
-  Future<String?> getActiveThemeId();
 
-  Future<List<Tag>> getAllTags();
+ Future<void>  createTheme({required String key , required ThemeFields fields });
 
-  Future<List<Template>> getAllTemplates();
 
-  Future<List<Theme>> getAllThemes();
+ Future<void>  deleteNodeEntry({required String table , required String key });
 
-  Future<
-    (List<INode>, List<TaskNode>, List<InterNode>, List<IRelation>, MapData)
-  >
-  getGraphSnapshot();
 
-  Future<Nodes?> getNode({required String table, required String key});
+ Future<void>  deleteRelation({required String table , required String key });
 
-  Future<Tag?> getTag({required String key});
 
-  Future<Theme?> getTheme({required String key});
+ Future<void>  deleteTag({required String key });
 
-  Future<void> instantiateTemplate({
-    required String key,
-    required double targetX,
-    required double targetY,
-  });
 
-  Future<void> loadMapFromFile({
-    required String filePath,
-    required String attachmentDir,
-  });
+ Future<void>  deleteTemplate({required String key });
+
+
+ Future<String?>  getActiveThemeId();
+
+
+ Future<List<Tag>>  getAllTags();
+
+
+ Future<List<Template>>  getAllTemplates();
+
+
+ Future<List<Theme>>  getAllThemes();
+
+
+ Future<(List<INode>,List<TaskNode>,List<InterNode>,List<IRelation>,MapData)>  getGraphSnapshot();
+
+
+ Future<Nodes?>  getNode({required String table , required String key });
+
+
+ Future<Tag?>  getTag({required String key });
+
+
+ Future<Theme?>  getTheme({required String key });
+
+
+ Future<void>  instantiateTemplate({required String key , required double targetX , required double targetY });
+
+
+ Future<void>  loadMapFromFile({required String filePath , required String attachmentDir });
+
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
-  static Future<AppHandle> newInstance({
-    required String storagePath,
-    required String name,
-  }) => RustLib.instance.api.crateBridgeApiAppHandleNew(
-    storagePath: storagePath,
-    name: name,
-  );
+static Future<AppHandle>  newInstance({required String storagePath , required String name })=>RustLib.instance.api.crateBridgeApiAppHandleNew(storagePath: storagePath, name: name);
 
-  Future<List<Nodes>> querySearch({required String query});
 
-  Future<HistoryRecord?> redo();
+ Future<List<Nodes>>  querySearch({required String query });
 
-  Future<int> redoCount();
 
-  Future<void> rerouteRelation({
-    required RecordStrings record,
-    required RecordStrings from,
-    required RecordStrings to,
-  });
+ Future<HistoryRecord?>  redo();
 
-  Future<void> saveMapToFile({
-    required String filePath,
-    required String attachmentDir,
-  });
 
-  Future<void> saveTemplateFromSelection({
-    required String name,
-    required List<RecordStrings> nodeKeys,
-    required List<RecordStrings> relationKeys,
-  });
+ Future<int>  redoCount();
 
-  Future<void> setActiveTheme({required String themeKey});
 
-  Future<void> setActiveThemeId({required String themeId});
+ Future<void>  rerouteRelation({required RecordStrings record , required RecordStrings from , required RecordStrings to });
 
-  Future<HistoryRecord?> undo();
 
-  Future<int> undoCount();
+ Future<void>  saveMapToFile({required String filePath , required String attachmentDir });
 
-  Future<void> updateNode({required Nodes input});
 
-  Future<void> updateRelation({required IRelation input});
+ Future<void>  saveTemplateFromSelection({required String name , required List<RecordStrings> nodeKeys , required List<RecordStrings> relationKeys });
 
-  Future<void> updateTag({required Tag tag});
 
-  Future<void> updateTheme({required Theme theme});
+ Future<void>  setActiveTheme({required String themeKey });
 
-  Future<void> updateViewportState({required ViewportState state});
-}
+
+ Future<void>  setActiveThemeId({required String themeId });
+
+
+ Future<HistoryRecord?>  undo();
+
+
+ Future<int>  undoCount();
+
+
+ Future<void>  updateNode({required Nodes input });
+
+
+ Future<void>  updateRelation({required IRelation input });
+
+
+ Future<void>  updateTag({required Tag tag });
+
+
+ Future<void>  updateTheme({required Theme theme });
+
+
+ Future<void>  updateViewportState({required ViewportState state });
+
+
+
+                    
+                }
+                
+            

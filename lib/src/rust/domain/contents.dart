@@ -6,136 +6,185 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-/// Block-level attributes
-class BlockAttrs {
-  final int? level;
-  final String? language;
 
-  const BlockAttrs({this.level, this.language});
+            
 
-  @override
-  int get hashCode => level.hashCode ^ language.hashCode;
+            
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is BlockAttrs &&
-          runtimeType == other.runtimeType &&
-          level == other.level &&
-          language == other.language;
-}
+            /// Block-level attributes
+class BlockAttrs  {
+                final int? level;
+final String? language;
+
+                const BlockAttrs({this.level ,this.language ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => level.hashCode^language.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is BlockAttrs &&
+                runtimeType == other.runtimeType
+                && level == other.level&& language == other.language;
+        
+            }
 
 enum BlockType {
-  paragraph,
-  heading,
-  bulletList,
-  orderedList,
-  codeBlock,
-  blockquote,
-}
+                    paragraph,
+heading,
+bulletList,
+orderedList,
+codeBlock,
+blockquote,
+                    ;
+                    
+                }
 
-class Content {
-  final String text;
-  final List<ContentBlock> blocks;
+class Content  {
+                final String text;
+final List<ContentBlock> blocks;
 
-  const Content({required this.text, required this.blocks});
+                const Content({required this.text ,required this.blocks ,});
 
-  @override
-  int get hashCode => text.hashCode ^ blocks.hashCode;
+                
+                
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Content &&
-          runtimeType == other.runtimeType &&
-          text == other.text &&
-          blocks == other.blocks;
-}
+                
+        @override
+        int get hashCode => text.hashCode^blocks.hashCode;
+        
 
-class ContentBlock {
-  final BlockType blockType;
-  final List<InlineElement> content;
-  final BlockAttrs? attrs;
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is Content &&
+                runtimeType == other.runtimeType
+                && text == other.text&& blocks == other.blocks;
+        
+            }
 
-  const ContentBlock({
-    required this.blockType,
-    required this.content,
-    this.attrs,
-  });
+class ContentBlock  {
+                final BlockType blockType;
+final List<InlineElement> content;
+final BlockAttrs? attrs;
 
-  @override
-  int get hashCode => blockType.hashCode ^ content.hashCode ^ attrs.hashCode;
+                const ContentBlock({required this.blockType ,required this.content ,this.attrs ,});
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ContentBlock &&
-          runtimeType == other.runtimeType &&
-          blockType == other.blockType &&
-          content == other.content &&
-          attrs == other.attrs;
-}
+                
+                
+
+                
+        @override
+        int get hashCode => blockType.hashCode^content.hashCode^attrs.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is ContentBlock &&
+                runtimeType == other.runtimeType
+                && blockType == other.blockType&& content == other.content&& attrs == other.attrs;
+        
+            }
 
 /// Inline content with optional formatting marks
-class InlineElement {
-  final InlineType inlineType;
-  final String text;
-  final List<TextMark>? marks;
+class InlineElement  {
+                final InlineType inlineType;
+final String text;
+final List<TextMark>? marks;
 
-  const InlineElement({
-    required this.inlineType,
-    required this.text,
-    this.marks,
-  });
+                const InlineElement({required this.inlineType ,required this.text ,this.marks ,});
 
-  @override
-  int get hashCode => inlineType.hashCode ^ text.hashCode ^ marks.hashCode;
+                
+                
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is InlineElement &&
-          runtimeType == other.runtimeType &&
-          inlineType == other.inlineType &&
-          text == other.text &&
-          marks == other.marks;
-}
+                
+        @override
+        int get hashCode => inlineType.hashCode^text.hashCode^marks.hashCode;
+        
 
-enum InlineType { text, hardBreak }
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is InlineElement &&
+                runtimeType == other.runtimeType
+                && inlineType == other.inlineType&& text == other.text&& marks == other.marks;
+        
+            }
+
+enum InlineType {
+                    text,
+hardBreak,
+                    ;
+                    
+                }
 
 /// Mark-level attributes
-class MarkAttrs {
-  final String? href;
+class MarkAttrs  {
+                final String? href;
 
-  const MarkAttrs({this.href});
+                const MarkAttrs({this.href ,});
 
-  @override
-  int get hashCode => href.hashCode;
+                
+                
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is MarkAttrs &&
-          runtimeType == other.runtimeType &&
-          href == other.href;
-}
+                
+        @override
+        int get hashCode => href.hashCode;
+        
 
-enum MarkType { bold, italic, underline, strikethrough, code, link }
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is MarkAttrs &&
+                runtimeType == other.runtimeType
+                && href == other.href;
+        
+            }
 
-class TextMark {
-  final MarkType markType;
-  final MarkAttrs? attrs;
+enum MarkType {
+                    bold,
+italic,
+underline,
+strikethrough,
+code,
+link,
+                    ;
+                    
+                }
 
-  const TextMark({required this.markType, this.attrs});
+class TextMark  {
+                final MarkType markType;
+final MarkAttrs? attrs;
 
-  @override
-  int get hashCode => markType.hashCode ^ attrs.hashCode;
+                const TextMark({required this.markType ,this.attrs ,});
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TextMark &&
-          runtimeType == other.runtimeType &&
-          markType == other.markType &&
-          attrs == other.attrs;
-}
+                
+                
+
+                
+        @override
+        int get hashCode => markType.hashCode^attrs.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is TextMark &&
+                runtimeType == other.runtimeType
+                && markType == other.markType&& attrs == other.attrs;
+        
+            }
+            

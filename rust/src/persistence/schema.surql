@@ -14,6 +14,7 @@ DEFINE TABLE OVERWRITE Tag SCHEMAFULL;
 DEFINE TABLE OVERWRITE MapTheme SCHEMAFULL;
 DEFINE TABLE OVERWRITE MapMetaData SCHEMALESS;
 DEFINE TABLE OVERWRITE History SCHEMAFULL;
+DEFINE TABLE OVERWRITE Template SCHEMALESS;
 
 -- ---------------------------------------------------------------------------
 -- 2. Fields for `INode`
@@ -239,6 +240,7 @@ DEFINE FIELD OVERWRITE style.shadow_blur ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE style.shadow_offset_x ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE style.shadow_offset_y ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE style.strategy_type ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE style.stroke_pattern ON TABLE IRelation TYPE string;
 
 DEFINE FIELD OVERWRITE resolved_style ON TABLE IRelation TYPE option<object>;
 DEFINE FIELD OVERWRITE resolved_style.bg_color ON TABLE IRelation TYPE int;
@@ -257,6 +259,7 @@ DEFINE FIELD OVERWRITE resolved_style.shadow_blur ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.shadow_offset_x ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.shadow_offset_y ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.strategy_type ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE resolved_style.stroke_pattern ON TABLE IRelation TYPE string;
 
 DEFINE FIELD OVERWRITE layout ON TABLE IRelation TYPE option<object>;
 DEFINE FIELD OVERWRITE layout.from_side ON TABLE IRelation TYPE string;

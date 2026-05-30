@@ -6,30 +6,34 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-class LogState {
-  final PlatformInt64 tMicro;
-  final PlatformInt64 seqId;
-  final int level;
-  final String message;
 
-  const LogState({
-    required this.tMicro,
-    required this.seqId,
-    required this.level,
-    required this.message,
-  });
+            
 
-  @override
-  int get hashCode =>
-      tMicro.hashCode ^ seqId.hashCode ^ level.hashCode ^ message.hashCode;
+            
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is LogState &&
-          runtimeType == other.runtimeType &&
-          tMicro == other.tMicro &&
-          seqId == other.seqId &&
-          level == other.level &&
-          message == other.message;
-}
+            class LogState  {
+                final PlatformInt64 tMicro;
+final PlatformInt64 seqId;
+final int level;
+final String message;
+
+                const LogState({required this.tMicro ,required this.seqId ,required this.level ,required this.message ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => tMicro.hashCode^seqId.hashCode^level.hashCode^message.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is LogState &&
+                runtimeType == other.runtimeType
+                && tMicro == other.tMicro&& seqId == other.seqId&& level == other.level&& message == other.message;
+        
+            }
+            

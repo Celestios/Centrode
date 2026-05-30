@@ -23,1524 +23,848 @@ import 'persistence/history.dart';
 import 'persistence/repo.dart';
 import 'telemetry.dart';
 
-abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
-  RustLibApiImplPlatform({
-    required super.handler,
-    required super.wire,
-    required super.generalizedFrbRustBinding,
-    required super.portManager,
-  });
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_AppHandlePtr => wire
-      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandlePtr;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_HistoryRecordPtr => wire
-      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecordPtr;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_RepositoryPtr => wire
-      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositoryPtr;
-
-  @protected
-  AnyhowException dco_decode_AnyhowException(dynamic raw);
-
-  @protected
-  AppHandle
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    dynamic raw,
-  );
-
-  @protected
-  HistoryRecord
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    dynamic raw,
-  );
-
-  @protected
-  Repository
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    dynamic raw,
-  );
 
-  @protected
-  AppHandle
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    dynamic raw,
-  );
 
-  @protected
-  AppHandle
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    dynamic raw,
-  );
 
-  @protected
-  AppHandle
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    dynamic raw,
-  );
+                abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
+                  RustLibApiImplPlatform({
+                    required super.handler,
+                    required super.wire,
+                    required super.generalizedFrbRustBinding,
+                    required super.portManager,
+                  });
 
-  @protected
-  HistoryRecord
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    dynamic raw,
-  );
+                  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_AppHandlePtr => wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandlePtr;
 
-  @protected
-  Repository
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    dynamic raw,
-  );
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_HistoryRecordPtr => wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecordPtr;
 
-  @protected
-  RustStreamSink<GraphEvent> dco_decode_StreamSink_graph_event_Sse(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_RepositoryPtr => wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositoryPtr;
 
-  @protected
-  RustStreamSink<LogState> dco_decode_StreamSink_log_state_Sse(dynamic raw);
 
-  @protected
-  String dco_decode_String(dynamic raw);
 
-  @protected
-  BlockAttrs dco_decode_block_attrs(dynamic raw);
+                  @protected AnyhowException dco_decode_AnyhowException(dynamic raw);
 
-  @protected
-  BlockType dco_decode_block_type(dynamic raw);
+@protected AppHandle dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(dynamic raw);
 
-  @protected
-  bool dco_decode_bool(dynamic raw);
+@protected HistoryRecord dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(dynamic raw);
 
-  @protected
-  BoundingBox dco_decode_bounding_box(dynamic raw);
+@protected Repository dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(dynamic raw);
 
-  @protected
-  HistoryRecord
-  dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    dynamic raw,
-  );
+@protected AppHandle dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(dynamic raw);
 
-  @protected
-  BlockAttrs dco_decode_box_autoadd_block_attrs(dynamic raw);
+@protected AppHandle dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(dynamic raw);
 
-  @protected
-  BoundingBox dco_decode_box_autoadd_bounding_box(dynamic raw);
+@protected AppHandle dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(dynamic raw);
 
-  @protected
-  Content dco_decode_box_autoadd_content(dynamic raw);
+@protected HistoryRecord dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(dynamic raw);
 
-  @protected
-  Coordinates dco_decode_box_autoadd_coordinates(dynamic raw);
+@protected Repository dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(dynamic raw);
 
-  @protected
-  PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
+@protected RustStreamSink<GraphEvent> dco_decode_StreamSink_graph_event_Sse(dynamic raw);
 
-  @protected
-  INode dco_decode_box_autoadd_i_node(dynamic raw);
+@protected RustStreamSink<LogState> dco_decode_StreamSink_log_state_Sse(dynamic raw);
 
-  @protected
-  IRelation dco_decode_box_autoadd_i_relation(dynamic raw);
+@protected String dco_decode_String(dynamic raw);
 
-  @protected
-  InterNode dco_decode_box_autoadd_inter_node(dynamic raw);
+@protected BlockAttrs dco_decode_block_attrs(dynamic raw);
 
-  @protected
-  MarkAttrs dco_decode_box_autoadd_mark_attrs(dynamic raw);
+@protected BlockType dco_decode_block_type(dynamic raw);
 
-  @protected
-  NodeLayout dco_decode_box_autoadd_node_layout(dynamic raw);
+@protected bool dco_decode_bool(dynamic raw);
 
-  @protected
-  NodeStyle dco_decode_box_autoadd_node_style(dynamic raw);
+@protected BoundingBox dco_decode_bounding_box(dynamic raw);
 
-  @protected
-  Nodes dco_decode_box_autoadd_nodes(dynamic raw);
+@protected HistoryRecord dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(dynamic raw);
 
-  @protected
-  RecordStrings dco_decode_box_autoadd_record_strings(dynamic raw);
+@protected BlockAttrs dco_decode_box_autoadd_block_attrs(dynamic raw);
 
-  @protected
-  RelationLayout dco_decode_box_autoadd_relation_layout(dynamic raw);
+@protected BoundingBox dco_decode_box_autoadd_bounding_box(dynamic raw);
 
-  @protected
-  RelationStyle dco_decode_box_autoadd_relation_style(dynamic raw);
+@protected Content dco_decode_box_autoadd_content(dynamic raw);
 
-  @protected
-  Size dco_decode_box_autoadd_size(dynamic raw);
+@protected Coordinates dco_decode_box_autoadd_coordinates(dynamic raw);
 
-  @protected
-  SymmetricEntityPatch dco_decode_box_autoadd_symmetric_entity_patch(
-    dynamic raw,
-  );
+@protected PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
 
-  @protected
-  Tag dco_decode_box_autoadd_tag(dynamic raw);
+@protected INode dco_decode_box_autoadd_i_node(dynamic raw);
 
-  @protected
-  TagOperation dco_decode_box_autoadd_tag_operation(dynamic raw);
+@protected IRelation dco_decode_box_autoadd_i_relation(dynamic raw);
 
-  @protected
-  TaskNode dco_decode_box_autoadd_task_node(dynamic raw);
+@protected InterNode dco_decode_box_autoadd_inter_node(dynamic raw);
 
-  @protected
-  Theme dco_decode_box_autoadd_theme(dynamic raw);
+@protected MarkAttrs dco_decode_box_autoadd_mark_attrs(dynamic raw);
 
-  @protected
-  ThemeFields dco_decode_box_autoadd_theme_fields(dynamic raw);
+@protected NodeLayout dco_decode_box_autoadd_node_layout(dynamic raw);
 
-  @protected
-  int dco_decode_box_autoadd_u_8(dynamic raw);
+@protected NodeStyle dco_decode_box_autoadd_node_style(dynamic raw);
 
-  @protected
-  ViewportState dco_decode_box_autoadd_viewport_state(dynamic raw);
+@protected Nodes dco_decode_box_autoadd_nodes(dynamic raw);
 
-  @protected
-  Comment dco_decode_comment(dynamic raw);
+@protected RecordStrings dco_decode_box_autoadd_record_strings(dynamic raw);
 
-  @protected
-  Content dco_decode_content(dynamic raw);
+@protected RelationLayout dco_decode_box_autoadd_relation_layout(dynamic raw);
 
-  @protected
-  ContentBlock dco_decode_content_block(dynamic raw);
+@protected RelationStyle dco_decode_box_autoadd_relation_style(dynamic raw);
 
-  @protected
-  Coordinates dco_decode_coordinates(dynamic raw);
+@protected Size dco_decode_box_autoadd_size(dynamic raw);
 
-  @protected
-  DisplayMode dco_decode_display_mode(dynamic raw);
+@protected SymmetricEntityPatch dco_decode_box_autoadd_symmetric_entity_patch(dynamic raw);
 
-  @protected
-  EntityPatch dco_decode_entity_patch(dynamic raw);
+@protected Tag dco_decode_box_autoadd_tag(dynamic raw);
 
-  @protected
-  double dco_decode_f_64(dynamic raw);
+@protected TagOperation dco_decode_box_autoadd_tag_operation(dynamic raw);
 
-  @protected
-  FontWeight dco_decode_font_weight(dynamic raw);
+@protected TaskNode dco_decode_box_autoadd_task_node(dynamic raw);
 
-  @protected
-  GraphEvent dco_decode_graph_event(dynamic raw);
+@protected Theme dco_decode_box_autoadd_theme(dynamic raw);
 
-  @protected
-  int dco_decode_i_32(dynamic raw);
+@protected ThemeFields dco_decode_box_autoadd_theme_fields(dynamic raw);
 
-  @protected
-  PlatformInt64 dco_decode_i_64(dynamic raw);
+@protected int dco_decode_box_autoadd_u_8(dynamic raw);
 
-  @protected
-  INode dco_decode_i_node(dynamic raw);
+@protected ViewportState dco_decode_box_autoadd_viewport_state(dynamic raw);
 
-  @protected
-  INodeFields dco_decode_i_node_fields(dynamic raw);
+@protected Comment dco_decode_comment(dynamic raw);
 
-  @protected
-  IRelation dco_decode_i_relation(dynamic raw);
+@protected Content dco_decode_content(dynamic raw);
 
-  @protected
-  IRelationFields dco_decode_i_relation_fields(dynamic raw);
+@protected ContentBlock dco_decode_content_block(dynamic raw);
 
-  @protected
-  InlineElement dco_decode_inline_element(dynamic raw);
+@protected Coordinates dco_decode_coordinates(dynamic raw);
 
-  @protected
-  InlineType dco_decode_inline_type(dynamic raw);
+@protected DisplayMode dco_decode_display_mode(dynamic raw);
 
-  @protected
-  InterNode dco_decode_inter_node(dynamic raw);
+@protected EntityPatch dco_decode_entity_patch(dynamic raw);
 
-  @protected
-  InterNodeFields dco_decode_inter_node_fields(dynamic raw);
+@protected double dco_decode_f_64(dynamic raw);
 
-  @protected
-  List<String> dco_decode_list_String(dynamic raw);
+@protected FontWeight dco_decode_font_weight(dynamic raw);
 
-  @protected
-  List<Comment> dco_decode_list_comment(dynamic raw);
+@protected GraphEvent dco_decode_graph_event(dynamic raw);
 
-  @protected
-  List<ContentBlock> dco_decode_list_content_block(dynamic raw);
+@protected int dco_decode_i_32(dynamic raw);
 
-  @protected
-  List<INode> dco_decode_list_i_node(dynamic raw);
+@protected PlatformInt64 dco_decode_i_64(dynamic raw);
 
-  @protected
-  List<IRelation> dco_decode_list_i_relation(dynamic raw);
+@protected INode dco_decode_i_node(dynamic raw);
 
-  @protected
-  List<InlineElement> dco_decode_list_inline_element(dynamic raw);
+@protected INodeFields dco_decode_i_node_fields(dynamic raw);
 
-  @protected
-  List<InterNode> dco_decode_list_inter_node(dynamic raw);
+@protected IRelation dco_decode_i_relation(dynamic raw);
 
-  @protected
-  List<NodePatch> dco_decode_list_node_patch(dynamic raw);
+@protected IRelationFields dco_decode_i_relation_fields(dynamic raw);
 
-  @protected
-  List<Nodes> dco_decode_list_nodes(dynamic raw);
+@protected InlineElement dco_decode_inline_element(dynamic raw);
 
-  @protected
-  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+@protected InlineType dco_decode_inline_type(dynamic raw);
 
-  @protected
-  List<RecordStrings> dco_decode_list_record_strings(dynamic raw);
+@protected InterNode dco_decode_inter_node(dynamic raw);
 
-  @protected
-  List<RelationPatch> dco_decode_list_relation_patch(dynamic raw);
+@protected InterNodeFields dco_decode_inter_node_fields(dynamic raw);
 
-  @protected
-  List<Tag> dco_decode_list_tag(dynamic raw);
+@protected List<String> dco_decode_list_String(dynamic raw);
 
-  @protected
-  List<TagEdge> dco_decode_list_tag_edge(dynamic raw);
+@protected List<Comment> dco_decode_list_comment(dynamic raw);
 
-  @protected
-  List<TaskNode> dco_decode_list_task_node(dynamic raw);
+@protected List<ContentBlock> dco_decode_list_content_block(dynamic raw);
 
-  @protected
-  List<Template> dco_decode_list_template(dynamic raw);
+@protected List<INode> dco_decode_list_i_node(dynamic raw);
 
-  @protected
-  List<TextMark> dco_decode_list_text_mark(dynamic raw);
+@protected List<IRelation> dco_decode_list_i_relation(dynamic raw);
 
-  @protected
-  List<Theme> dco_decode_list_theme(dynamic raw);
+@protected List<InlineElement> dco_decode_list_inline_element(dynamic raw);
 
-  @protected
-  LogState dco_decode_log_state(dynamic raw);
+@protected List<InterNode> dco_decode_list_inter_node(dynamic raw);
 
-  @protected
-  MapData dco_decode_map_data(dynamic raw);
+@protected List<NodePatch> dco_decode_list_node_patch(dynamic raw);
 
-  @protected
-  MarkAttrs dco_decode_mark_attrs(dynamic raw);
+@protected List<Nodes> dco_decode_list_nodes(dynamic raw);
 
-  @protected
-  MarkType dco_decode_mark_type(dynamic raw);
+@protected Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
-  @protected
-  NodeLayout dco_decode_node_layout(dynamic raw);
+@protected List<RecordStrings> dco_decode_list_record_strings(dynamic raw);
 
-  @protected
-  NodePatch dco_decode_node_patch(dynamic raw);
+@protected List<RelationPatch> dco_decode_list_relation_patch(dynamic raw);
 
-  @protected
-  NodeStyle dco_decode_node_style(dynamic raw);
+@protected List<Tag> dco_decode_list_tag(dynamic raw);
 
-  @protected
-  Nodes dco_decode_nodes(dynamic raw);
+@protected List<TagEdge> dco_decode_list_tag_edge(dynamic raw);
 
-  @protected
-  String? dco_decode_opt_String(dynamic raw);
+@protected List<TaskNode> dco_decode_list_task_node(dynamic raw);
 
-  @protected
-  HistoryRecord?
-  dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    dynamic raw,
-  );
+@protected List<Template> dco_decode_list_template(dynamic raw);
 
-  @protected
-  BlockAttrs? dco_decode_opt_box_autoadd_block_attrs(dynamic raw);
+@protected List<TextMark> dco_decode_list_text_mark(dynamic raw);
 
-  @protected
-  PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
+@protected List<Theme> dco_decode_list_theme(dynamic raw);
 
-  @protected
-  MarkAttrs? dco_decode_opt_box_autoadd_mark_attrs(dynamic raw);
+@protected LogState dco_decode_log_state(dynamic raw);
 
-  @protected
-  NodeLayout? dco_decode_opt_box_autoadd_node_layout(dynamic raw);
+@protected MapData dco_decode_map_data(dynamic raw);
 
-  @protected
-  NodeStyle? dco_decode_opt_box_autoadd_node_style(dynamic raw);
+@protected MarkAttrs dco_decode_mark_attrs(dynamic raw);
 
-  @protected
-  Nodes? dco_decode_opt_box_autoadd_nodes(dynamic raw);
+@protected MarkType dco_decode_mark_type(dynamic raw);
 
-  @protected
-  RelationLayout? dco_decode_opt_box_autoadd_relation_layout(dynamic raw);
+@protected NodeLayout dco_decode_node_layout(dynamic raw);
 
-  @protected
-  RelationStyle? dco_decode_opt_box_autoadd_relation_style(dynamic raw);
+@protected NodePatch dco_decode_node_patch(dynamic raw);
 
-  @protected
-  Tag? dco_decode_opt_box_autoadd_tag(dynamic raw);
+@protected NodeStyle dco_decode_node_style(dynamic raw);
 
-  @protected
-  Theme? dco_decode_opt_box_autoadd_theme(dynamic raw);
+@protected Nodes dco_decode_nodes(dynamic raw);
 
-  @protected
-  int? dco_decode_opt_box_autoadd_u_8(dynamic raw);
+@protected String? dco_decode_opt_String(dynamic raw);
 
-  @protected
-  List<TextMark>? dco_decode_opt_list_text_mark(dynamic raw);
+@protected HistoryRecord? dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(dynamic raw);
 
-  @protected
-  (List<INode>, List<TaskNode>, List<InterNode>, List<IRelation>, MapData)
-  dco_decode_record_list_i_node_list_task_node_list_inter_node_list_i_relation_map_data(
-    dynamic raw,
-  );
+@protected BlockAttrs? dco_decode_opt_box_autoadd_block_attrs(dynamic raw);
 
-  @protected
-  RecordStrings dco_decode_record_strings(dynamic raw);
+@protected PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
 
-  @protected
-  RelationLayout dco_decode_relation_layout(dynamic raw);
+@protected MarkAttrs? dco_decode_opt_box_autoadd_mark_attrs(dynamic raw);
 
-  @protected
-  RelationPatch dco_decode_relation_patch(dynamic raw);
+@protected NodeLayout? dco_decode_opt_box_autoadd_node_layout(dynamic raw);
 
-  @protected
-  RelationStyle dco_decode_relation_style(dynamic raw);
+@protected NodeStyle? dco_decode_opt_box_autoadd_node_style(dynamic raw);
 
-  @protected
-  Size dco_decode_size(dynamic raw);
+@protected Nodes? dco_decode_opt_box_autoadd_nodes(dynamic raw);
 
-  @protected
-  SymmetricEntityPatch dco_decode_symmetric_entity_patch(dynamic raw);
+@protected RelationLayout? dco_decode_opt_box_autoadd_relation_layout(dynamic raw);
 
-  @protected
-  Tag dco_decode_tag(dynamic raw);
+@protected RelationStyle? dco_decode_opt_box_autoadd_relation_style(dynamic raw);
 
-  @protected
-  TagEdge dco_decode_tag_edge(dynamic raw);
+@protected Tag? dco_decode_opt_box_autoadd_tag(dynamic raw);
 
-  @protected
-  TagFields dco_decode_tag_fields(dynamic raw);
+@protected Theme? dco_decode_opt_box_autoadd_theme(dynamic raw);
 
-  @protected
-  TagOperation dco_decode_tag_operation(dynamic raw);
+@protected int? dco_decode_opt_box_autoadd_u_8(dynamic raw);
 
-  @protected
-  TaskNode dco_decode_task_node(dynamic raw);
+@protected List<TextMark>? dco_decode_opt_list_text_mark(dynamic raw);
 
-  @protected
-  TaskNodeFields dco_decode_task_node_fields(dynamic raw);
+@protected (List<INode>,List<TaskNode>,List<InterNode>,List<IRelation>,MapData) dco_decode_record_list_i_node_list_task_node_list_inter_node_list_i_relation_map_data(dynamic raw);
 
-  @protected
-  Template dco_decode_template(dynamic raw);
+@protected RecordStrings dco_decode_record_strings(dynamic raw);
 
-  @protected
-  TextMark dco_decode_text_mark(dynamic raw);
+@protected RelationLayout dco_decode_relation_layout(dynamic raw);
 
-  @protected
-  Theme dco_decode_theme(dynamic raw);
+@protected RelationPatch dco_decode_relation_patch(dynamic raw);
 
-  @protected
-  ThemeBrightness dco_decode_theme_brightness(dynamic raw);
+@protected RelationStyle dco_decode_relation_style(dynamic raw);
 
-  @protected
-  ThemeFields dco_decode_theme_fields(dynamic raw);
+@protected Size dco_decode_size(dynamic raw);
 
-  @protected
-  int dco_decode_u_32(dynamic raw);
+@protected SymmetricEntityPatch dco_decode_symmetric_entity_patch(dynamic raw);
 
-  @protected
-  int dco_decode_u_8(dynamic raw);
+@protected Tag dco_decode_tag(dynamic raw);
 
-  @protected
-  void dco_decode_unit(dynamic raw);
+@protected TagEdge dco_decode_tag_edge(dynamic raw);
 
-  @protected
-  BigInt dco_decode_usize(dynamic raw);
+@protected TagFields dco_decode_tag_fields(dynamic raw);
 
-  @protected
-  ViewportState dco_decode_viewport_state(dynamic raw);
+@protected TagOperation dco_decode_tag_operation(dynamic raw);
 
-  @protected
-  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+@protected TaskNode dco_decode_task_node(dynamic raw);
 
-  @protected
-  AppHandle
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    SseDeserializer deserializer,
-  );
+@protected TaskNodeFields dco_decode_task_node_fields(dynamic raw);
 
-  @protected
-  HistoryRecord
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    SseDeserializer deserializer,
-  );
+@protected Template dco_decode_template(dynamic raw);
 
-  @protected
-  Repository
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    SseDeserializer deserializer,
-  );
+@protected TextMark dco_decode_text_mark(dynamic raw);
 
-  @protected
-  AppHandle
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    SseDeserializer deserializer,
-  );
+@protected Theme dco_decode_theme(dynamic raw);
 
-  @protected
-  AppHandle
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    SseDeserializer deserializer,
-  );
+@protected ThemeBrightness dco_decode_theme_brightness(dynamic raw);
 
-  @protected
-  AppHandle
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    SseDeserializer deserializer,
-  );
+@protected ThemeFields dco_decode_theme_fields(dynamic raw);
 
-  @protected
-  HistoryRecord
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    SseDeserializer deserializer,
-  );
+@protected int dco_decode_u_32(dynamic raw);
 
-  @protected
-  Repository
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    SseDeserializer deserializer,
-  );
+@protected int dco_decode_u_8(dynamic raw);
 
-  @protected
-  RustStreamSink<GraphEvent> sse_decode_StreamSink_graph_event_Sse(
-    SseDeserializer deserializer,
-  );
+@protected void dco_decode_unit(dynamic raw);
 
-  @protected
-  RustStreamSink<LogState> sse_decode_StreamSink_log_state_Sse(
-    SseDeserializer deserializer,
-  );
+@protected BigInt dco_decode_usize(dynamic raw);
 
-  @protected
-  String sse_decode_String(SseDeserializer deserializer);
+@protected ViewportState dco_decode_viewport_state(dynamic raw);
 
-  @protected
-  BlockAttrs sse_decode_block_attrs(SseDeserializer deserializer);
+@protected AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
 
-  @protected
-  BlockType sse_decode_block_type(SseDeserializer deserializer);
+@protected AppHandle sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(SseDeserializer deserializer);
 
-  @protected
-  bool sse_decode_bool(SseDeserializer deserializer);
+@protected HistoryRecord sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(SseDeserializer deserializer);
 
-  @protected
-  BoundingBox sse_decode_bounding_box(SseDeserializer deserializer);
+@protected Repository sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(SseDeserializer deserializer);
 
-  @protected
-  HistoryRecord
-  sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    SseDeserializer deserializer,
-  );
+@protected AppHandle sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(SseDeserializer deserializer);
 
-  @protected
-  BlockAttrs sse_decode_box_autoadd_block_attrs(SseDeserializer deserializer);
+@protected AppHandle sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(SseDeserializer deserializer);
 
-  @protected
-  BoundingBox sse_decode_box_autoadd_bounding_box(SseDeserializer deserializer);
+@protected AppHandle sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(SseDeserializer deserializer);
 
-  @protected
-  Content sse_decode_box_autoadd_content(SseDeserializer deserializer);
+@protected HistoryRecord sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(SseDeserializer deserializer);
 
-  @protected
-  Coordinates sse_decode_box_autoadd_coordinates(SseDeserializer deserializer);
+@protected Repository sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(SseDeserializer deserializer);
 
-  @protected
-  PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
+@protected RustStreamSink<GraphEvent> sse_decode_StreamSink_graph_event_Sse(SseDeserializer deserializer);
 
-  @protected
-  INode sse_decode_box_autoadd_i_node(SseDeserializer deserializer);
+@protected RustStreamSink<LogState> sse_decode_StreamSink_log_state_Sse(SseDeserializer deserializer);
 
-  @protected
-  IRelation sse_decode_box_autoadd_i_relation(SseDeserializer deserializer);
+@protected String sse_decode_String(SseDeserializer deserializer);
 
-  @protected
-  InterNode sse_decode_box_autoadd_inter_node(SseDeserializer deserializer);
+@protected BlockAttrs sse_decode_block_attrs(SseDeserializer deserializer);
 
-  @protected
-  MarkAttrs sse_decode_box_autoadd_mark_attrs(SseDeserializer deserializer);
+@protected BlockType sse_decode_block_type(SseDeserializer deserializer);
 
-  @protected
-  NodeLayout sse_decode_box_autoadd_node_layout(SseDeserializer deserializer);
+@protected bool sse_decode_bool(SseDeserializer deserializer);
 
-  @protected
-  NodeStyle sse_decode_box_autoadd_node_style(SseDeserializer deserializer);
+@protected BoundingBox sse_decode_bounding_box(SseDeserializer deserializer);
 
-  @protected
-  Nodes sse_decode_box_autoadd_nodes(SseDeserializer deserializer);
+@protected HistoryRecord sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(SseDeserializer deserializer);
 
-  @protected
-  RecordStrings sse_decode_box_autoadd_record_strings(
-    SseDeserializer deserializer,
-  );
+@protected BlockAttrs sse_decode_box_autoadd_block_attrs(SseDeserializer deserializer);
 
-  @protected
-  RelationLayout sse_decode_box_autoadd_relation_layout(
-    SseDeserializer deserializer,
-  );
+@protected BoundingBox sse_decode_box_autoadd_bounding_box(SseDeserializer deserializer);
 
-  @protected
-  RelationStyle sse_decode_box_autoadd_relation_style(
-    SseDeserializer deserializer,
-  );
+@protected Content sse_decode_box_autoadd_content(SseDeserializer deserializer);
 
-  @protected
-  Size sse_decode_box_autoadd_size(SseDeserializer deserializer);
+@protected Coordinates sse_decode_box_autoadd_coordinates(SseDeserializer deserializer);
 
-  @protected
-  SymmetricEntityPatch sse_decode_box_autoadd_symmetric_entity_patch(
-    SseDeserializer deserializer,
-  );
+@protected PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
 
-  @protected
-  Tag sse_decode_box_autoadd_tag(SseDeserializer deserializer);
+@protected INode sse_decode_box_autoadd_i_node(SseDeserializer deserializer);
 
-  @protected
-  TagOperation sse_decode_box_autoadd_tag_operation(
-    SseDeserializer deserializer,
-  );
+@protected IRelation sse_decode_box_autoadd_i_relation(SseDeserializer deserializer);
 
-  @protected
-  TaskNode sse_decode_box_autoadd_task_node(SseDeserializer deserializer);
+@protected InterNode sse_decode_box_autoadd_inter_node(SseDeserializer deserializer);
 
-  @protected
-  Theme sse_decode_box_autoadd_theme(SseDeserializer deserializer);
+@protected MarkAttrs sse_decode_box_autoadd_mark_attrs(SseDeserializer deserializer);
 
-  @protected
-  ThemeFields sse_decode_box_autoadd_theme_fields(SseDeserializer deserializer);
+@protected NodeLayout sse_decode_box_autoadd_node_layout(SseDeserializer deserializer);
 
-  @protected
-  int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
+@protected NodeStyle sse_decode_box_autoadd_node_style(SseDeserializer deserializer);
 
-  @protected
-  ViewportState sse_decode_box_autoadd_viewport_state(
-    SseDeserializer deserializer,
-  );
+@protected Nodes sse_decode_box_autoadd_nodes(SseDeserializer deserializer);
 
-  @protected
-  Comment sse_decode_comment(SseDeserializer deserializer);
+@protected RecordStrings sse_decode_box_autoadd_record_strings(SseDeserializer deserializer);
 
-  @protected
-  Content sse_decode_content(SseDeserializer deserializer);
+@protected RelationLayout sse_decode_box_autoadd_relation_layout(SseDeserializer deserializer);
 
-  @protected
-  ContentBlock sse_decode_content_block(SseDeserializer deserializer);
+@protected RelationStyle sse_decode_box_autoadd_relation_style(SseDeserializer deserializer);
 
-  @protected
-  Coordinates sse_decode_coordinates(SseDeserializer deserializer);
+@protected Size sse_decode_box_autoadd_size(SseDeserializer deserializer);
 
-  @protected
-  DisplayMode sse_decode_display_mode(SseDeserializer deserializer);
+@protected SymmetricEntityPatch sse_decode_box_autoadd_symmetric_entity_patch(SseDeserializer deserializer);
 
-  @protected
-  EntityPatch sse_decode_entity_patch(SseDeserializer deserializer);
+@protected Tag sse_decode_box_autoadd_tag(SseDeserializer deserializer);
 
-  @protected
-  double sse_decode_f_64(SseDeserializer deserializer);
+@protected TagOperation sse_decode_box_autoadd_tag_operation(SseDeserializer deserializer);
 
-  @protected
-  FontWeight sse_decode_font_weight(SseDeserializer deserializer);
+@protected TaskNode sse_decode_box_autoadd_task_node(SseDeserializer deserializer);
 
-  @protected
-  GraphEvent sse_decode_graph_event(SseDeserializer deserializer);
+@protected Theme sse_decode_box_autoadd_theme(SseDeserializer deserializer);
 
-  @protected
-  int sse_decode_i_32(SseDeserializer deserializer);
+@protected ThemeFields sse_decode_box_autoadd_theme_fields(SseDeserializer deserializer);
 
-  @protected
-  PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+@protected int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
 
-  @protected
-  INode sse_decode_i_node(SseDeserializer deserializer);
+@protected ViewportState sse_decode_box_autoadd_viewport_state(SseDeserializer deserializer);
 
-  @protected
-  INodeFields sse_decode_i_node_fields(SseDeserializer deserializer);
+@protected Comment sse_decode_comment(SseDeserializer deserializer);
 
-  @protected
-  IRelation sse_decode_i_relation(SseDeserializer deserializer);
+@protected Content sse_decode_content(SseDeserializer deserializer);
 
-  @protected
-  IRelationFields sse_decode_i_relation_fields(SseDeserializer deserializer);
+@protected ContentBlock sse_decode_content_block(SseDeserializer deserializer);
 
-  @protected
-  InlineElement sse_decode_inline_element(SseDeserializer deserializer);
+@protected Coordinates sse_decode_coordinates(SseDeserializer deserializer);
 
-  @protected
-  InlineType sse_decode_inline_type(SseDeserializer deserializer);
+@protected DisplayMode sse_decode_display_mode(SseDeserializer deserializer);
 
-  @protected
-  InterNode sse_decode_inter_node(SseDeserializer deserializer);
+@protected EntityPatch sse_decode_entity_patch(SseDeserializer deserializer);
 
-  @protected
-  InterNodeFields sse_decode_inter_node_fields(SseDeserializer deserializer);
+@protected double sse_decode_f_64(SseDeserializer deserializer);
 
-  @protected
-  List<String> sse_decode_list_String(SseDeserializer deserializer);
+@protected FontWeight sse_decode_font_weight(SseDeserializer deserializer);
 
-  @protected
-  List<Comment> sse_decode_list_comment(SseDeserializer deserializer);
+@protected GraphEvent sse_decode_graph_event(SseDeserializer deserializer);
 
-  @protected
-  List<ContentBlock> sse_decode_list_content_block(
-    SseDeserializer deserializer,
-  );
+@protected int sse_decode_i_32(SseDeserializer deserializer);
 
-  @protected
-  List<INode> sse_decode_list_i_node(SseDeserializer deserializer);
+@protected PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
 
-  @protected
-  List<IRelation> sse_decode_list_i_relation(SseDeserializer deserializer);
+@protected INode sse_decode_i_node(SseDeserializer deserializer);
 
-  @protected
-  List<InlineElement> sse_decode_list_inline_element(
-    SseDeserializer deserializer,
-  );
+@protected INodeFields sse_decode_i_node_fields(SseDeserializer deserializer);
 
-  @protected
-  List<InterNode> sse_decode_list_inter_node(SseDeserializer deserializer);
+@protected IRelation sse_decode_i_relation(SseDeserializer deserializer);
 
-  @protected
-  List<NodePatch> sse_decode_list_node_patch(SseDeserializer deserializer);
+@protected IRelationFields sse_decode_i_relation_fields(SseDeserializer deserializer);
 
-  @protected
-  List<Nodes> sse_decode_list_nodes(SseDeserializer deserializer);
+@protected InlineElement sse_decode_inline_element(SseDeserializer deserializer);
 
-  @protected
-  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+@protected InlineType sse_decode_inline_type(SseDeserializer deserializer);
 
-  @protected
-  List<RecordStrings> sse_decode_list_record_strings(
-    SseDeserializer deserializer,
-  );
+@protected InterNode sse_decode_inter_node(SseDeserializer deserializer);
 
-  @protected
-  List<RelationPatch> sse_decode_list_relation_patch(
-    SseDeserializer deserializer,
-  );
+@protected InterNodeFields sse_decode_inter_node_fields(SseDeserializer deserializer);
 
-  @protected
-  List<Tag> sse_decode_list_tag(SseDeserializer deserializer);
+@protected List<String> sse_decode_list_String(SseDeserializer deserializer);
 
-  @protected
-  List<TagEdge> sse_decode_list_tag_edge(SseDeserializer deserializer);
+@protected List<Comment> sse_decode_list_comment(SseDeserializer deserializer);
 
-  @protected
-  List<TaskNode> sse_decode_list_task_node(SseDeserializer deserializer);
+@protected List<ContentBlock> sse_decode_list_content_block(SseDeserializer deserializer);
 
-  @protected
-  List<Template> sse_decode_list_template(SseDeserializer deserializer);
+@protected List<INode> sse_decode_list_i_node(SseDeserializer deserializer);
 
-  @protected
-  List<TextMark> sse_decode_list_text_mark(SseDeserializer deserializer);
+@protected List<IRelation> sse_decode_list_i_relation(SseDeserializer deserializer);
 
-  @protected
-  List<Theme> sse_decode_list_theme(SseDeserializer deserializer);
+@protected List<InlineElement> sse_decode_list_inline_element(SseDeserializer deserializer);
 
-  @protected
-  LogState sse_decode_log_state(SseDeserializer deserializer);
+@protected List<InterNode> sse_decode_list_inter_node(SseDeserializer deserializer);
 
-  @protected
-  MapData sse_decode_map_data(SseDeserializer deserializer);
+@protected List<NodePatch> sse_decode_list_node_patch(SseDeserializer deserializer);
 
-  @protected
-  MarkAttrs sse_decode_mark_attrs(SseDeserializer deserializer);
+@protected List<Nodes> sse_decode_list_nodes(SseDeserializer deserializer);
 
-  @protected
-  MarkType sse_decode_mark_type(SseDeserializer deserializer);
+@protected Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
-  @protected
-  NodeLayout sse_decode_node_layout(SseDeserializer deserializer);
+@protected List<RecordStrings> sse_decode_list_record_strings(SseDeserializer deserializer);
 
-  @protected
-  NodePatch sse_decode_node_patch(SseDeserializer deserializer);
+@protected List<RelationPatch> sse_decode_list_relation_patch(SseDeserializer deserializer);
 
-  @protected
-  NodeStyle sse_decode_node_style(SseDeserializer deserializer);
+@protected List<Tag> sse_decode_list_tag(SseDeserializer deserializer);
 
-  @protected
-  Nodes sse_decode_nodes(SseDeserializer deserializer);
+@protected List<TagEdge> sse_decode_list_tag_edge(SseDeserializer deserializer);
 
-  @protected
-  String? sse_decode_opt_String(SseDeserializer deserializer);
+@protected List<TaskNode> sse_decode_list_task_node(SseDeserializer deserializer);
 
-  @protected
-  HistoryRecord?
-  sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    SseDeserializer deserializer,
-  );
+@protected List<Template> sse_decode_list_template(SseDeserializer deserializer);
 
-  @protected
-  BlockAttrs? sse_decode_opt_box_autoadd_block_attrs(
-    SseDeserializer deserializer,
-  );
+@protected List<TextMark> sse_decode_list_text_mark(SseDeserializer deserializer);
 
-  @protected
-  PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
+@protected List<Theme> sse_decode_list_theme(SseDeserializer deserializer);
 
-  @protected
-  MarkAttrs? sse_decode_opt_box_autoadd_mark_attrs(
-    SseDeserializer deserializer,
-  );
+@protected LogState sse_decode_log_state(SseDeserializer deserializer);
 
-  @protected
-  NodeLayout? sse_decode_opt_box_autoadd_node_layout(
-    SseDeserializer deserializer,
-  );
+@protected MapData sse_decode_map_data(SseDeserializer deserializer);
 
-  @protected
-  NodeStyle? sse_decode_opt_box_autoadd_node_style(
-    SseDeserializer deserializer,
-  );
+@protected MarkAttrs sse_decode_mark_attrs(SseDeserializer deserializer);
 
-  @protected
-  Nodes? sse_decode_opt_box_autoadd_nodes(SseDeserializer deserializer);
+@protected MarkType sse_decode_mark_type(SseDeserializer deserializer);
 
-  @protected
-  RelationLayout? sse_decode_opt_box_autoadd_relation_layout(
-    SseDeserializer deserializer,
-  );
+@protected NodeLayout sse_decode_node_layout(SseDeserializer deserializer);
 
-  @protected
-  RelationStyle? sse_decode_opt_box_autoadd_relation_style(
-    SseDeserializer deserializer,
-  );
+@protected NodePatch sse_decode_node_patch(SseDeserializer deserializer);
 
-  @protected
-  Tag? sse_decode_opt_box_autoadd_tag(SseDeserializer deserializer);
+@protected NodeStyle sse_decode_node_style(SseDeserializer deserializer);
 
-  @protected
-  Theme? sse_decode_opt_box_autoadd_theme(SseDeserializer deserializer);
+@protected Nodes sse_decode_nodes(SseDeserializer deserializer);
 
-  @protected
-  int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer);
+@protected String? sse_decode_opt_String(SseDeserializer deserializer);
 
-  @protected
-  List<TextMark>? sse_decode_opt_list_text_mark(SseDeserializer deserializer);
+@protected HistoryRecord? sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(SseDeserializer deserializer);
 
-  @protected
-  (List<INode>, List<TaskNode>, List<InterNode>, List<IRelation>, MapData)
-  sse_decode_record_list_i_node_list_task_node_list_inter_node_list_i_relation_map_data(
-    SseDeserializer deserializer,
-  );
+@protected BlockAttrs? sse_decode_opt_box_autoadd_block_attrs(SseDeserializer deserializer);
 
-  @protected
-  RecordStrings sse_decode_record_strings(SseDeserializer deserializer);
+@protected PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
 
-  @protected
-  RelationLayout sse_decode_relation_layout(SseDeserializer deserializer);
+@protected MarkAttrs? sse_decode_opt_box_autoadd_mark_attrs(SseDeserializer deserializer);
 
-  @protected
-  RelationPatch sse_decode_relation_patch(SseDeserializer deserializer);
+@protected NodeLayout? sse_decode_opt_box_autoadd_node_layout(SseDeserializer deserializer);
 
-  @protected
-  RelationStyle sse_decode_relation_style(SseDeserializer deserializer);
+@protected NodeStyle? sse_decode_opt_box_autoadd_node_style(SseDeserializer deserializer);
 
-  @protected
-  Size sse_decode_size(SseDeserializer deserializer);
+@protected Nodes? sse_decode_opt_box_autoadd_nodes(SseDeserializer deserializer);
 
-  @protected
-  SymmetricEntityPatch sse_decode_symmetric_entity_patch(
-    SseDeserializer deserializer,
-  );
+@protected RelationLayout? sse_decode_opt_box_autoadd_relation_layout(SseDeserializer deserializer);
 
-  @protected
-  Tag sse_decode_tag(SseDeserializer deserializer);
+@protected RelationStyle? sse_decode_opt_box_autoadd_relation_style(SseDeserializer deserializer);
 
-  @protected
-  TagEdge sse_decode_tag_edge(SseDeserializer deserializer);
+@protected Tag? sse_decode_opt_box_autoadd_tag(SseDeserializer deserializer);
 
-  @protected
-  TagFields sse_decode_tag_fields(SseDeserializer deserializer);
+@protected Theme? sse_decode_opt_box_autoadd_theme(SseDeserializer deserializer);
 
-  @protected
-  TagOperation sse_decode_tag_operation(SseDeserializer deserializer);
+@protected int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer);
 
-  @protected
-  TaskNode sse_decode_task_node(SseDeserializer deserializer);
+@protected List<TextMark>? sse_decode_opt_list_text_mark(SseDeserializer deserializer);
 
-  @protected
-  TaskNodeFields sse_decode_task_node_fields(SseDeserializer deserializer);
+@protected (List<INode>,List<TaskNode>,List<InterNode>,List<IRelation>,MapData) sse_decode_record_list_i_node_list_task_node_list_inter_node_list_i_relation_map_data(SseDeserializer deserializer);
 
-  @protected
-  Template sse_decode_template(SseDeserializer deserializer);
+@protected RecordStrings sse_decode_record_strings(SseDeserializer deserializer);
 
-  @protected
-  TextMark sse_decode_text_mark(SseDeserializer deserializer);
+@protected RelationLayout sse_decode_relation_layout(SseDeserializer deserializer);
 
-  @protected
-  Theme sse_decode_theme(SseDeserializer deserializer);
+@protected RelationPatch sse_decode_relation_patch(SseDeserializer deserializer);
 
-  @protected
-  ThemeBrightness sse_decode_theme_brightness(SseDeserializer deserializer);
+@protected RelationStyle sse_decode_relation_style(SseDeserializer deserializer);
 
-  @protected
-  ThemeFields sse_decode_theme_fields(SseDeserializer deserializer);
+@protected Size sse_decode_size(SseDeserializer deserializer);
 
-  @protected
-  int sse_decode_u_32(SseDeserializer deserializer);
+@protected SymmetricEntityPatch sse_decode_symmetric_entity_patch(SseDeserializer deserializer);
 
-  @protected
-  int sse_decode_u_8(SseDeserializer deserializer);
+@protected Tag sse_decode_tag(SseDeserializer deserializer);
 
-  @protected
-  void sse_decode_unit(SseDeserializer deserializer);
+@protected TagEdge sse_decode_tag_edge(SseDeserializer deserializer);
 
-  @protected
-  BigInt sse_decode_usize(SseDeserializer deserializer);
+@protected TagFields sse_decode_tag_fields(SseDeserializer deserializer);
 
-  @protected
-  ViewportState sse_decode_viewport_state(SseDeserializer deserializer);
+@protected TagOperation sse_decode_tag_operation(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_AnyhowException(
-    AnyhowException self,
-    SseSerializer serializer,
-  );
+@protected TaskNode sse_decode_task_node(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    AppHandle self,
-    SseSerializer serializer,
-  );
+@protected TaskNodeFields sse_decode_task_node_fields(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    HistoryRecord self,
-    SseSerializer serializer,
-  );
+@protected Template sse_decode_template(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    Repository self,
-    SseSerializer serializer,
-  );
+@protected TextMark sse_decode_text_mark(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    AppHandle self,
-    SseSerializer serializer,
-  );
+@protected Theme sse_decode_theme(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    AppHandle self,
-    SseSerializer serializer,
-  );
+@protected ThemeBrightness sse_decode_theme_brightness(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    AppHandle self,
-    SseSerializer serializer,
-  );
+@protected ThemeFields sse_decode_theme_fields(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    HistoryRecord self,
-    SseSerializer serializer,
-  );
+@protected int sse_decode_u_32(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    Repository self,
-    SseSerializer serializer,
-  );
+@protected int sse_decode_u_8(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_StreamSink_graph_event_Sse(
-    RustStreamSink<GraphEvent> self,
-    SseSerializer serializer,
-  );
+@protected void sse_decode_unit(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_StreamSink_log_state_Sse(
-    RustStreamSink<LogState> self,
-    SseSerializer serializer,
-  );
+@protected BigInt sse_decode_usize(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_String(String self, SseSerializer serializer);
+@protected ViewportState sse_decode_viewport_state(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_block_attrs(BlockAttrs self, SseSerializer serializer);
+@protected void sse_encode_AnyhowException(AnyhowException self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_block_type(BlockType self, SseSerializer serializer);
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(AppHandle self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_bool(bool self, SseSerializer serializer);
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(HistoryRecord self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_bounding_box(BoundingBox self, SseSerializer serializer);
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(Repository self, SseSerializer serializer);
 
-  @protected
-  void
-  sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    HistoryRecord self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(AppHandle self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_block_attrs(
-    BlockAttrs self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(AppHandle self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_bounding_box(
-    BoundingBox self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(AppHandle self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_content(Content self, SseSerializer serializer);
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(HistoryRecord self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_coordinates(
-    Coordinates self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(Repository self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_i_64(
-    PlatformInt64 self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_StreamSink_graph_event_Sse(RustStreamSink<GraphEvent> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_i_node(INode self, SseSerializer serializer);
+@protected void sse_encode_StreamSink_log_state_Sse(RustStreamSink<LogState> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_i_relation(
-    IRelation self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_String(String self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_inter_node(
-    InterNode self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_block_attrs(BlockAttrs self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_mark_attrs(
-    MarkAttrs self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_block_type(BlockType self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_node_layout(
-    NodeLayout self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_bool(bool self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_node_style(
-    NodeStyle self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_bounding_box(BoundingBox self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_nodes(Nodes self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(HistoryRecord self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_record_strings(
-    RecordStrings self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_box_autoadd_block_attrs(BlockAttrs self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_relation_layout(
-    RelationLayout self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_box_autoadd_bounding_box(BoundingBox self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_relation_style(
-    RelationStyle self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_box_autoadd_content(Content self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_size(Size self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_coordinates(Coordinates self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_symmetric_entity_patch(
-    SymmetricEntityPatch self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_box_autoadd_i_64(PlatformInt64 self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_tag(Tag self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_i_node(INode self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_tag_operation(
-    TagOperation self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_box_autoadd_i_relation(IRelation self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_task_node(
-    TaskNode self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_box_autoadd_inter_node(InterNode self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_theme(Theme self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_mark_attrs(MarkAttrs self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_theme_fields(
-    ThemeFields self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_box_autoadd_node_layout(NodeLayout self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_node_style(NodeStyle self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_box_autoadd_viewport_state(
-    ViewportState self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_box_autoadd_nodes(Nodes self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_comment(Comment self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_record_strings(RecordStrings self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_content(Content self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_relation_layout(RelationLayout self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_content_block(ContentBlock self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_relation_style(RelationStyle self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_coordinates(Coordinates self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_size(Size self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_display_mode(DisplayMode self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_symmetric_entity_patch(SymmetricEntityPatch self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_entity_patch(EntityPatch self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_tag(Tag self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_f_64(double self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_tag_operation(TagOperation self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_font_weight(FontWeight self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_task_node(TaskNode self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_graph_event(GraphEvent self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_theme(Theme self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_i_32(int self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_theme_fields(ThemeFields self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_i_node(INode self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_viewport_state(ViewportState self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_i_node_fields(INodeFields self, SseSerializer serializer);
+@protected void sse_encode_comment(Comment self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_i_relation(IRelation self, SseSerializer serializer);
+@protected void sse_encode_content(Content self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_i_relation_fields(
-    IRelationFields self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_content_block(ContentBlock self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_inline_element(InlineElement self, SseSerializer serializer);
+@protected void sse_encode_coordinates(Coordinates self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_inline_type(InlineType self, SseSerializer serializer);
+@protected void sse_encode_display_mode(DisplayMode self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_inter_node(InterNode self, SseSerializer serializer);
+@protected void sse_encode_entity_patch(EntityPatch self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_inter_node_fields(
-    InterNodeFields self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_f_64(double self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_String(List<String> self, SseSerializer serializer);
+@protected void sse_encode_font_weight(FontWeight self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_comment(List<Comment> self, SseSerializer serializer);
+@protected void sse_encode_graph_event(GraphEvent self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_content_block(
-    List<ContentBlock> self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_i_32(int self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_i_node(List<INode> self, SseSerializer serializer);
+@protected void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_i_relation(
-    List<IRelation> self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_i_node(INode self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_inline_element(
-    List<InlineElement> self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_i_node_fields(INodeFields self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_inter_node(
-    List<InterNode> self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_i_relation(IRelation self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_node_patch(
-    List<NodePatch> self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_i_relation_fields(IRelationFields self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_nodes(List<Nodes> self, SseSerializer serializer);
+@protected void sse_encode_inline_element(InlineElement self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_prim_u_8_strict(
-    Uint8List self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_inline_type(InlineType self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_record_strings(
-    List<RecordStrings> self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_inter_node(InterNode self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_relation_patch(
-    List<RelationPatch> self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_inter_node_fields(InterNodeFields self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_tag(List<Tag> self, SseSerializer serializer);
+@protected void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_tag_edge(List<TagEdge> self, SseSerializer serializer);
+@protected void sse_encode_list_comment(List<Comment> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_task_node(List<TaskNode> self, SseSerializer serializer);
+@protected void sse_encode_list_content_block(List<ContentBlock> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_template(List<Template> self, SseSerializer serializer);
+@protected void sse_encode_list_i_node(List<INode> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_text_mark(List<TextMark> self, SseSerializer serializer);
+@protected void sse_encode_list_i_relation(List<IRelation> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_theme(List<Theme> self, SseSerializer serializer);
+@protected void sse_encode_list_inline_element(List<InlineElement> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_log_state(LogState self, SseSerializer serializer);
+@protected void sse_encode_list_inter_node(List<InterNode> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_map_data(MapData self, SseSerializer serializer);
+@protected void sse_encode_list_node_patch(List<NodePatch> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_mark_attrs(MarkAttrs self, SseSerializer serializer);
+@protected void sse_encode_list_nodes(List<Nodes> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_mark_type(MarkType self, SseSerializer serializer);
+@protected void sse_encode_list_prim_u_8_strict(Uint8List self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_node_layout(NodeLayout self, SseSerializer serializer);
+@protected void sse_encode_list_record_strings(List<RecordStrings> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_node_patch(NodePatch self, SseSerializer serializer);
+@protected void sse_encode_list_relation_patch(List<RelationPatch> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_node_style(NodeStyle self, SseSerializer serializer);
+@protected void sse_encode_list_tag(List<Tag> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_nodes(Nodes self, SseSerializer serializer);
+@protected void sse_encode_list_tag_edge(List<TagEdge> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_opt_String(String? self, SseSerializer serializer);
+@protected void sse_encode_list_task_node(List<TaskNode> self, SseSerializer serializer);
 
-  @protected
-  void
-  sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    HistoryRecord? self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_list_template(List<Template> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_opt_box_autoadd_block_attrs(
-    BlockAttrs? self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_list_text_mark(List<TextMark> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_opt_box_autoadd_i_64(
-    PlatformInt64? self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_list_theme(List<Theme> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_opt_box_autoadd_mark_attrs(
-    MarkAttrs? self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_log_state(LogState self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_opt_box_autoadd_node_layout(
-    NodeLayout? self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_map_data(MapData self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_opt_box_autoadd_node_style(
-    NodeStyle? self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_mark_attrs(MarkAttrs self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_opt_box_autoadd_nodes(Nodes? self, SseSerializer serializer);
+@protected void sse_encode_mark_type(MarkType self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_opt_box_autoadd_relation_layout(
-    RelationLayout? self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_node_layout(NodeLayout self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_opt_box_autoadd_relation_style(
-    RelationStyle? self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_node_patch(NodePatch self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_opt_box_autoadd_tag(Tag? self, SseSerializer serializer);
+@protected void sse_encode_node_style(NodeStyle self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_opt_box_autoadd_theme(Theme? self, SseSerializer serializer);
+@protected void sse_encode_nodes(Nodes self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer);
+@protected void sse_encode_opt_String(String? self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_opt_list_text_mark(
-    List<TextMark>? self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(HistoryRecord? self, SseSerializer serializer);
 
-  @protected
-  void
-  sse_encode_record_list_i_node_list_task_node_list_inter_node_list_i_relation_map_data(
-    (List<INode>, List<TaskNode>, List<InterNode>, List<IRelation>, MapData)
-    self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_opt_box_autoadd_block_attrs(BlockAttrs? self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_record_strings(RecordStrings self, SseSerializer serializer);
+@protected void sse_encode_opt_box_autoadd_i_64(PlatformInt64? self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_relation_layout(
-    RelationLayout self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_opt_box_autoadd_mark_attrs(MarkAttrs? self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_relation_patch(RelationPatch self, SseSerializer serializer);
+@protected void sse_encode_opt_box_autoadd_node_layout(NodeLayout? self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_relation_style(RelationStyle self, SseSerializer serializer);
+@protected void sse_encode_opt_box_autoadd_node_style(NodeStyle? self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_size(Size self, SseSerializer serializer);
+@protected void sse_encode_opt_box_autoadd_nodes(Nodes? self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_symmetric_entity_patch(
-    SymmetricEntityPatch self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_opt_box_autoadd_relation_layout(RelationLayout? self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_tag(Tag self, SseSerializer serializer);
+@protected void sse_encode_opt_box_autoadd_relation_style(RelationStyle? self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_tag_edge(TagEdge self, SseSerializer serializer);
+@protected void sse_encode_opt_box_autoadd_tag(Tag? self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_tag_fields(TagFields self, SseSerializer serializer);
+@protected void sse_encode_opt_box_autoadd_theme(Theme? self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_tag_operation(TagOperation self, SseSerializer serializer);
+@protected void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_task_node(TaskNode self, SseSerializer serializer);
+@protected void sse_encode_opt_list_text_mark(List<TextMark>? self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_task_node_fields(
-    TaskNodeFields self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_record_list_i_node_list_task_node_list_inter_node_list_i_relation_map_data((List<INode>,List<TaskNode>,List<InterNode>,List<IRelation>,MapData) self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_template(Template self, SseSerializer serializer);
+@protected void sse_encode_record_strings(RecordStrings self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_text_mark(TextMark self, SseSerializer serializer);
+@protected void sse_encode_relation_layout(RelationLayout self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_theme(Theme self, SseSerializer serializer);
+@protected void sse_encode_relation_patch(RelationPatch self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_theme_brightness(
-    ThemeBrightness self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_relation_style(RelationStyle self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_theme_fields(ThemeFields self, SseSerializer serializer);
+@protected void sse_encode_size(Size self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_u_32(int self, SseSerializer serializer);
+@protected void sse_encode_symmetric_entity_patch(SymmetricEntityPatch self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_u_8(int self, SseSerializer serializer);
+@protected void sse_encode_tag(Tag self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_unit(void self, SseSerializer serializer);
+@protected void sse_encode_tag_edge(TagEdge self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_usize(BigInt self, SseSerializer serializer);
+@protected void sse_encode_tag_fields(TagFields self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_viewport_state(ViewportState self, SseSerializer serializer);
-}
+@protected void sse_encode_tag_operation(TagOperation self, SseSerializer serializer);
+
+@protected void sse_encode_task_node(TaskNode self, SseSerializer serializer);
+
+@protected void sse_encode_task_node_fields(TaskNodeFields self, SseSerializer serializer);
+
+@protected void sse_encode_template(Template self, SseSerializer serializer);
+
+@protected void sse_encode_text_mark(TextMark self, SseSerializer serializer);
+
+@protected void sse_encode_theme(Theme self, SseSerializer serializer);
+
+@protected void sse_encode_theme_brightness(ThemeBrightness self, SseSerializer serializer);
+
+@protected void sse_encode_theme_fields(ThemeFields self, SseSerializer serializer);
+
+@protected void sse_encode_u_32(int self, SseSerializer serializer);
+
+@protected void sse_encode_u_8(int self, SseSerializer serializer);
+
+@protected void sse_encode_unit(void self, SseSerializer serializer);
+
+@protected void sse_encode_usize(BigInt self, SseSerializer serializer);
+
+@protected void sse_encode_viewport_state(ViewportState self, SseSerializer serializer);
+                }
+                
+
 
 // Section: wire_class
 
-class RustLibWire implements BaseWire {
-  factory RustLibWire.fromExternalLibrary(ExternalLibrary lib) =>
-      RustLibWire(lib.ffiDynamicLibrary);
 
-  /// Holds the symbol lookup function.
-  final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
-  _lookup;
+        class RustLibWire implements BaseWire {
 
-  /// The symbols are looked up in [dynamicLibrary].
-  RustLibWire(ffi.DynamicLibrary dynamicLibrary)
-    : _lookup = dynamicLibrary.lookup;
+            factory RustLibWire.fromExternalLibrary(ExternalLibrary lib) =>
+              RustLibWire(lib.ffiDynamicLibrary);
+        
+            /// Holds the symbol lookup function.
+            final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
+                _lookup;
+  
+            /// The symbols are looked up in [dynamicLibrary].
+            RustLibWire(ffi.DynamicLibrary dynamicLibrary)
+                : _lookup = dynamicLibrary.lookup;
 
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    ffi.Pointer<ffi.Void> ptr,
-  ) {
-    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-      ptr,
-    );
-  }
+            
+            void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+              ffi.Pointer<ffi.Void> ptr,
+            ) {
+              return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+                ptr,
+              );
+            }
 
-  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandlePtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
-        'frbgen_mycelium_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle',
-      );
-  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle =
-      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandlePtr
-          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+            late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandlePtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>('frbgen_mycelium_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle');
+            late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle = _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandlePtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+            
+            void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+              ffi.Pointer<ffi.Void> ptr,
+            ) {
+              return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+                ptr,
+              );
+            }
 
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    ffi.Pointer<ffi.Void> ptr,
-  ) {
-    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-      ptr,
-    );
-  }
+            late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandlePtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>('frbgen_mycelium_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle');
+            late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle = _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandlePtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+            
+            void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
+              ffi.Pointer<ffi.Void> ptr,
+            ) {
+              return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
+                ptr,
+              );
+            }
 
-  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandlePtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
-        'frbgen_mycelium_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle',
-      );
-  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle =
-      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandlePtr
-          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+            late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecordPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>('frbgen_mycelium_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord');
+            late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord = _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecordPtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+            
+            void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
+              ffi.Pointer<ffi.Void> ptr,
+            ) {
+              return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
+                ptr,
+              );
+            }
 
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    ffi.Pointer<ffi.Void> ptr,
-  ) {
-    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-      ptr,
-    );
-  }
+            late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecordPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>('frbgen_mycelium_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord');
+            late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord = _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecordPtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+            
+            void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+              ffi.Pointer<ffi.Void> ptr,
+            ) {
+              return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+                ptr,
+              );
+            }
 
-  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecordPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
-        'frbgen_mycelium_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord',
-      );
-  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord =
-      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecordPtr
-          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+            late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositoryPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>('frbgen_mycelium_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository');
+            late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository = _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositoryPtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+            
+            void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+              ffi.Pointer<ffi.Void> ptr,
+            ) {
+              return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+                ptr,
+              );
+            }
 
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    ffi.Pointer<ffi.Void> ptr,
-  ) {
-    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-      ptr,
-    );
-  }
-
-  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecordPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
-        'frbgen_mycelium_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord',
-      );
-  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord =
-      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecordPtr
-          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    ffi.Pointer<ffi.Void> ptr,
-  ) {
-    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-      ptr,
-    );
-  }
-
-  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositoryPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
-        'frbgen_mycelium_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository',
-      );
-  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository =
-      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositoryPtr
-          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    ffi.Pointer<ffi.Void> ptr,
-  ) {
-    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-      ptr,
-    );
-  }
-
-  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositoryPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
-        'frbgen_mycelium_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository',
-      );
-  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository =
-      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositoryPtr
-          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
-}
+            late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositoryPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>('frbgen_mycelium_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository');
+            late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository = _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositoryPtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+            
+        }
+        

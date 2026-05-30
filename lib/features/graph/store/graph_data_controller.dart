@@ -287,6 +287,11 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
     strategyType: strategyType,
   );
 
+  void updateRelationStyle(
+    String id,
+    RelationStyle newStyle,
+  ) => relationMutations.updateRelationStyle(id, newStyle);
+
   // Property Mutations
   void commitEntityText(String id, String newText, {String? originalText}) =>
       propertyMutations.commitEntityText(

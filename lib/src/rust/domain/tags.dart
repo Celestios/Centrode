@@ -9,56 +9,69 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'tags.freezed.dart';
 
-class Tag {
-  final String key;
-  final TagFields fields;
+            
 
-  const Tag({required this.key, required this.fields});
+            
 
-  @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
+            class Tag  {
+                final String key;
+final TagFields fields;
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Tag &&
-          runtimeType == other.runtimeType &&
-          key == other.key &&
-          fields == other.fields;
-}
+                const Tag({required this.key ,required this.fields ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => key.hashCode^fields.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is Tag &&
+                runtimeType == other.runtimeType
+                && key == other.key&& fields == other.fields;
+        
+            }
 
 @freezed
-sealed class TagEdge with _$TagEdge {
-  const TagEdge._();
+                sealed class TagEdge with _$TagEdge  {
+                    const TagEdge._();
 
-  const factory TagEdge.hydrated(Tag field0) = TagEdge_Hydrated;
-  const factory TagEdge.pointer(RecordStrings field0) = TagEdge_Pointer;
-}
+                     const factory TagEdge.hydrated(  Tag field0,) = TagEdge_Hydrated;
+ const factory TagEdge.pointer(  RecordStrings field0,) = TagEdge_Pointer;
 
-class TagFields {
-  final String name;
-  final int color;
-  final PlatformInt64 createdAt;
-  final PlatformInt64 updatedAt;
+                    
 
-  const TagFields({
-    required this.name,
-    required this.color,
-    required this.createdAt,
-    required this.updatedAt,
-  });
+                    
+                }
 
-  @override
-  int get hashCode =>
-      name.hashCode ^ color.hashCode ^ createdAt.hashCode ^ updatedAt.hashCode;
+class TagFields  {
+                final String name;
+final int color;
+final PlatformInt64 createdAt;
+final PlatformInt64 updatedAt;
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TagFields &&
-          runtimeType == other.runtimeType &&
-          name == other.name &&
-          color == other.color &&
-          createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
-}
+                const TagFields({required this.name ,required this.color ,required this.createdAt ,required this.updatedAt ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => name.hashCode^color.hashCode^createdAt.hashCode^updatedAt.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is TagFields &&
+                runtimeType == other.runtimeType
+                && name == other.name&& color == other.color&& createdAt == other.createdAt&& updatedAt == other.updatedAt;
+        
+            }
+            

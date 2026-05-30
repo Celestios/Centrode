@@ -46,6 +46,7 @@ abstract class RelationStyleStrategy {
       shadowOffsetX: 1.0,
       shadowOffsetY: 1.0,
       strategyType: 'default',
+      strokePattern: 'solid',
     );
   }
 }

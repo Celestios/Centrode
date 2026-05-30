@@ -12,274 +12,199 @@ import 'styles.dart';
 import 'tags.dart';
 part 'nodes.freezed.dart';
 
-class INode {
-  final String key;
-  final INodeFields fields;
+            
 
-  const INode({required this.key, required this.fields});
+            
 
-  @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
+            class INode  {
+                final String key;
+final INodeFields fields;
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is INode &&
-          runtimeType == other.runtimeType &&
-          key == other.key &&
-          fields == other.fields;
-}
+                const INode({required this.key ,required this.fields ,});
 
-class INodeFields {
-  final Content content;
-  final NodeStyle? style;
-  final NodeStyle? resolvedStyle;
-  final NodeLayout? layout;
-  final NodeLayout? resolvedLayout;
-  final String layer;
-  final Coordinates position;
-  final Size size;
-  final int lineCount;
-  final bool expandable;
-  final bool isExpanded;
-  final bool locked;
-  final List<TagEdge> tags;
-  final List<String> aliases;
-  final List<Comment> comments;
-  final String? attachment;
-  final int significance;
-  final PlatformInt64 createdAt;
-  final PlatformInt64 updatedAt;
+                
+                
 
-  const INodeFields({
-    required this.content,
-    this.style,
-    this.resolvedStyle,
-    this.layout,
-    this.resolvedLayout,
-    required this.layer,
-    required this.position,
-    required this.size,
-    required this.lineCount,
-    required this.expandable,
-    required this.isExpanded,
-    required this.locked,
-    required this.tags,
-    required this.aliases,
-    required this.comments,
-    this.attachment,
-    required this.significance,
-    required this.createdAt,
-    required this.updatedAt,
-  });
+                
+        @override
+        int get hashCode => key.hashCode^fields.hashCode;
+        
 
-  @override
-  int get hashCode =>
-      content.hashCode ^
-      style.hashCode ^
-      resolvedStyle.hashCode ^
-      layout.hashCode ^
-      resolvedLayout.hashCode ^
-      layer.hashCode ^
-      position.hashCode ^
-      size.hashCode ^
-      lineCount.hashCode ^
-      expandable.hashCode ^
-      isExpanded.hashCode ^
-      locked.hashCode ^
-      tags.hashCode ^
-      aliases.hashCode ^
-      comments.hashCode ^
-      attachment.hashCode ^
-      significance.hashCode ^
-      createdAt.hashCode ^
-      updatedAt.hashCode;
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is INode &&
+                runtimeType == other.runtimeType
+                && key == other.key&& fields == other.fields;
+        
+            }
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is INodeFields &&
-          runtimeType == other.runtimeType &&
-          content == other.content &&
-          style == other.style &&
-          resolvedStyle == other.resolvedStyle &&
-          layout == other.layout &&
-          resolvedLayout == other.resolvedLayout &&
-          layer == other.layer &&
-          position == other.position &&
-          size == other.size &&
-          lineCount == other.lineCount &&
-          expandable == other.expandable &&
-          isExpanded == other.isExpanded &&
-          locked == other.locked &&
-          tags == other.tags &&
-          aliases == other.aliases &&
-          comments == other.comments &&
-          attachment == other.attachment &&
-          significance == other.significance &&
-          createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
-}
+class INodeFields  {
+                final Content content;
+final NodeStyle? style;
+final NodeStyle? resolvedStyle;
+final NodeLayout? layout;
+final NodeLayout? resolvedLayout;
+final String layer;
+final Coordinates position;
+final Size size;
+final int lineCount;
+final bool expandable;
+final bool isExpanded;
+final bool locked;
+final List<TagEdge> tags;
+final List<String> aliases;
+final List<Comment> comments;
+final String? attachment;
+final int significance;
+final PlatformInt64 createdAt;
+final PlatformInt64 updatedAt;
 
-class InterNode {
-  final String key;
-  final InterNodeFields fields;
+                const INodeFields({required this.content ,this.style ,this.resolvedStyle ,this.layout ,this.resolvedLayout ,required this.layer ,required this.position ,required this.size ,required this.lineCount ,required this.expandable ,required this.isExpanded ,required this.locked ,required this.tags ,required this.aliases ,required this.comments ,this.attachment ,required this.significance ,required this.createdAt ,required this.updatedAt ,});
 
-  const InterNode({required this.key, required this.fields});
+                
+                
 
-  @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
+                
+        @override
+        int get hashCode => content.hashCode^style.hashCode^resolvedStyle.hashCode^layout.hashCode^resolvedLayout.hashCode^layer.hashCode^position.hashCode^size.hashCode^lineCount.hashCode^expandable.hashCode^isExpanded.hashCode^locked.hashCode^tags.hashCode^aliases.hashCode^comments.hashCode^attachment.hashCode^significance.hashCode^createdAt.hashCode^updatedAt.hashCode;
+        
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is InterNode &&
-          runtimeType == other.runtimeType &&
-          key == other.key &&
-          fields == other.fields;
-}
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is INodeFields &&
+                runtimeType == other.runtimeType
+                && content == other.content&& style == other.style&& resolvedStyle == other.resolvedStyle&& layout == other.layout&& resolvedLayout == other.resolvedLayout&& layer == other.layer&& position == other.position&& size == other.size&& lineCount == other.lineCount&& expandable == other.expandable&& isExpanded == other.isExpanded&& locked == other.locked&& tags == other.tags&& aliases == other.aliases&& comments == other.comments&& attachment == other.attachment&& significance == other.significance&& createdAt == other.createdAt&& updatedAt == other.updatedAt;
+        
+            }
 
-class InterNodeFields {
-  final String verb;
-  final String? behavioralFeatures;
-  final Coordinates position;
-  final String? style;
-  final String layer;
-  final PlatformInt64 createdAt;
-  final PlatformInt64 updatedAt;
+class InterNode  {
+                final String key;
+final InterNodeFields fields;
 
-  const InterNodeFields({
-    required this.verb,
-    this.behavioralFeatures,
-    required this.position,
-    this.style,
-    required this.layer,
-    required this.createdAt,
-    required this.updatedAt,
-  });
+                const InterNode({required this.key ,required this.fields ,});
 
-  @override
-  int get hashCode =>
-      verb.hashCode ^
-      behavioralFeatures.hashCode ^
-      position.hashCode ^
-      style.hashCode ^
-      layer.hashCode ^
-      createdAt.hashCode ^
-      updatedAt.hashCode;
+                
+                
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is InterNodeFields &&
-          runtimeType == other.runtimeType &&
-          verb == other.verb &&
-          behavioralFeatures == other.behavioralFeatures &&
-          position == other.position &&
-          style == other.style &&
-          layer == other.layer &&
-          createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
-}
+                
+        @override
+        int get hashCode => key.hashCode^fields.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is InterNode &&
+                runtimeType == other.runtimeType
+                && key == other.key&& fields == other.fields;
+        
+            }
+
+class InterNodeFields  {
+                final String verb;
+final String? behavioralFeatures;
+final Coordinates position;
+final String? style;
+final String layer;
+final PlatformInt64 createdAt;
+final PlatformInt64 updatedAt;
+
+                const InterNodeFields({required this.verb ,this.behavioralFeatures ,required this.position ,this.style ,required this.layer ,required this.createdAt ,required this.updatedAt ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => verb.hashCode^behavioralFeatures.hashCode^position.hashCode^style.hashCode^layer.hashCode^createdAt.hashCode^updatedAt.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is InterNodeFields &&
+                runtimeType == other.runtimeType
+                && verb == other.verb&& behavioralFeatures == other.behavioralFeatures&& position == other.position&& style == other.style&& layer == other.layer&& createdAt == other.createdAt&& updatedAt == other.updatedAt;
+        
+            }
 
 @freezed
-sealed class Nodes with _$Nodes {
-  const Nodes._();
+                sealed class Nodes with _$Nodes  {
+                    const Nodes._();
 
-  const factory Nodes.iNode(INode field0) = Nodes_INode;
-  const factory Nodes.taskNode(TaskNode field0) = Nodes_TaskNode;
-  const factory Nodes.interNode(InterNode field0) = Nodes_InterNode;
-}
+                     const factory Nodes.iNode(  INode field0,) = Nodes_INode;
+ const factory Nodes.taskNode(  TaskNode field0,) = Nodes_TaskNode;
+ const factory Nodes.interNode(  InterNode field0,) = Nodes_InterNode;
 
-class TaskNode {
-  final String key;
-  final TaskNodeFields fields;
+                    
 
-  const TaskNode({required this.key, required this.fields});
+                    
+                }
 
-  @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
+class TaskNode  {
+                final String key;
+final TaskNodeFields fields;
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TaskNode &&
-          runtimeType == other.runtimeType &&
-          key == other.key &&
-          fields == other.fields;
-}
+                const TaskNode({required this.key ,required this.fields ,});
 
-class TaskNodeFields {
-  final Content content;
-  final PlatformInt64? dueDate;
-  final String state;
-  final Coordinates position;
-  final Size size;
-  final bool expandable;
-  final bool isExpanded;
-  final String layer;
-  final NodeStyle? style;
-  final NodeStyle? resolvedStyle;
-  final NodeLayout? layout;
-  final NodeLayout? resolvedLayout;
-  final int significance;
-  final PlatformInt64 createdAt;
-  final PlatformInt64 updatedAt;
+                
+                
 
-  const TaskNodeFields({
-    required this.content,
-    this.dueDate,
-    required this.state,
-    required this.position,
-    required this.size,
-    required this.expandable,
-    required this.isExpanded,
-    required this.layer,
-    this.style,
-    this.resolvedStyle,
-    this.layout,
-    this.resolvedLayout,
-    required this.significance,
-    required this.createdAt,
-    required this.updatedAt,
-  });
+                
+        @override
+        int get hashCode => key.hashCode^fields.hashCode;
+        
 
-  @override
-  int get hashCode =>
-      content.hashCode ^
-      dueDate.hashCode ^
-      state.hashCode ^
-      position.hashCode ^
-      size.hashCode ^
-      expandable.hashCode ^
-      isExpanded.hashCode ^
-      layer.hashCode ^
-      style.hashCode ^
-      resolvedStyle.hashCode ^
-      layout.hashCode ^
-      resolvedLayout.hashCode ^
-      significance.hashCode ^
-      createdAt.hashCode ^
-      updatedAt.hashCode;
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is TaskNode &&
+                runtimeType == other.runtimeType
+                && key == other.key&& fields == other.fields;
+        
+            }
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TaskNodeFields &&
-          runtimeType == other.runtimeType &&
-          content == other.content &&
-          dueDate == other.dueDate &&
-          state == other.state &&
-          position == other.position &&
-          size == other.size &&
-          expandable == other.expandable &&
-          isExpanded == other.isExpanded &&
-          layer == other.layer &&
-          style == other.style &&
-          resolvedStyle == other.resolvedStyle &&
-          layout == other.layout &&
-          resolvedLayout == other.resolvedLayout &&
-          significance == other.significance &&
-          createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
-}
+class TaskNodeFields  {
+                final Content content;
+final PlatformInt64? dueDate;
+final String state;
+final Coordinates position;
+final Size size;
+final bool expandable;
+final bool isExpanded;
+final String layer;
+final NodeStyle? style;
+final NodeStyle? resolvedStyle;
+final NodeLayout? layout;
+final NodeLayout? resolvedLayout;
+final int significance;
+final PlatformInt64 createdAt;
+final PlatformInt64 updatedAt;
+
+                const TaskNodeFields({required this.content ,this.dueDate ,required this.state ,required this.position ,required this.size ,required this.expandable ,required this.isExpanded ,required this.layer ,this.style ,this.resolvedStyle ,this.layout ,this.resolvedLayout ,required this.significance ,required this.createdAt ,required this.updatedAt ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => content.hashCode^dueDate.hashCode^state.hashCode^position.hashCode^size.hashCode^expandable.hashCode^isExpanded.hashCode^layer.hashCode^style.hashCode^resolvedStyle.hashCode^layout.hashCode^resolvedLayout.hashCode^significance.hashCode^createdAt.hashCode^updatedAt.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is TaskNodeFields &&
+                runtimeType == other.runtimeType
+                && content == other.content&& dueDate == other.dueDate&& state == other.state&& position == other.position&& size == other.size&& expandable == other.expandable&& isExpanded == other.isExpanded&& layer == other.layer&& style == other.style&& resolvedStyle == other.resolvedStyle&& layout == other.layout&& resolvedLayout == other.resolvedLayout&& significance == other.significance&& createdAt == other.createdAt&& updatedAt == other.updatedAt;
+        
+            }
+            

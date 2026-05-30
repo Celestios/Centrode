@@ -8,61 +8,43 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'styles.freezed.dart';
 
-@freezed
-sealed class NodeLayout with _$NodeLayout {
-  const factory NodeLayout({required String strategyType}) = _NodeLayout;
-}
+            
+
+            
+
+            @freezed
+sealed class NodeLayout with _$NodeLayout  {
+                
+                const factory NodeLayout({ required  String strategyType,}) = _NodeLayout;
+                
+                
+                
+            }
 
 @freezed
-sealed class NodeStyle with _$NodeStyle {
-  const factory NodeStyle({
-    required int bgColor,
-    required int strokeColor,
-    required int strokeWidth,
-    required String fontFamily,
-    required double fontSize,
-    required String shape,
-    required int width,
-    required int height,
-    required int textColor,
-    required double borderRadius,
-    required double padding,
-    required int shadowColor,
-    required double shadowBlur,
-    required double shadowSpread,
-    required double shadowOffsetX,
-    required double shadowOffsetY,
-    required String strategyType,
-  }) = _NodeStyle;
-}
+sealed class NodeStyle with _$NodeStyle  {
+                
+                const factory NodeStyle({ required  int bgColor, required  int strokeColor, required  int strokeWidth, required  String fontFamily, required  double fontSize, required  String shape, required  int width, required  int height, required  int textColor, required  double borderRadius, required  double padding, required  int shadowColor, required  double shadowBlur, required  double shadowSpread, required  double shadowOffsetX, required  double shadowOffsetY, required  String strategyType,}) = _NodeStyle;
+                
+                
+                
+            }
 
 @freezed
-sealed class RelationLayout with _$RelationLayout {
-  const factory RelationLayout({
-    required String fromSide,
-    required String toSide,
-    required String strategyType,
-  }) = _RelationLayout;
-}
+sealed class RelationLayout with _$RelationLayout  {
+                
+                const factory RelationLayout({ required  String fromSide, required  String toSide, required  String strategyType,}) = _RelationLayout;
+                
+                
+                
+            }
 
 @freezed
-sealed class RelationStyle with _$RelationStyle {
-  const factory RelationStyle({
-    required int bgColor,
-    required int strokeColor,
-    required int strokeWidth,
-    required String fontFamily,
-    required double fontSize,
-    required String shape,
-    required String arrowType,
-    required double arrowSize,
-    required int width,
-    required int height,
-    required int textColor,
-    required int shadowColor,
-    required double shadowBlur,
-    required double shadowOffsetX,
-    required double shadowOffsetY,
-    required String strategyType,
-  }) = _RelationStyle;
-}
+sealed class RelationStyle with _$RelationStyle  {
+                
+                const factory RelationStyle({ required  int bgColor, required  int strokeColor, required  int strokeWidth, required  String fontFamily, required  double fontSize, required  String shape, required  String arrowType, required  double arrowSize, required  int width, required  int height, required  int textColor, required  int shadowColor, required  double shadowBlur, required  double shadowOffsetX, required  double shadowOffsetY, required  String strategyType, required  String strokePattern,}) = _RelationStyle;
+                
+                
+                
+            }
+            

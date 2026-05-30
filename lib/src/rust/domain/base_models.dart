@@ -6,166 +6,189 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-class BoundingBox {
-  final double minX;
-  final double minY;
-  final double maxX;
-  final double maxY;
 
-  const BoundingBox({
-    required this.minX,
-    required this.minY,
-    required this.maxX,
-    required this.maxY,
-  });
+            
 
-  @override
-  int get hashCode =>
-      minX.hashCode ^ minY.hashCode ^ maxX.hashCode ^ maxY.hashCode;
+            
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is BoundingBox &&
-          runtimeType == other.runtimeType &&
-          minX == other.minX &&
-          minY == other.minY &&
-          maxX == other.maxX &&
-          maxY == other.maxY;
-}
+            class BoundingBox  {
+                final double minX;
+final double minY;
+final double maxX;
+final double maxY;
 
-class Comment {
-  final String text;
-  final PlatformInt64 createdAt;
+                const BoundingBox({required this.minX ,required this.minY ,required this.maxX ,required this.maxY ,});
 
-  const Comment({required this.text, required this.createdAt});
+                
+                
 
-  @override
-  int get hashCode => text.hashCode ^ createdAt.hashCode;
+                
+        @override
+        int get hashCode => minX.hashCode^minY.hashCode^maxX.hashCode^maxY.hashCode;
+        
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Comment &&
-          runtimeType == other.runtimeType &&
-          text == other.text &&
-          createdAt == other.createdAt;
-}
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is BoundingBox &&
+                runtimeType == other.runtimeType
+                && minX == other.minX&& minY == other.minY&& maxX == other.maxX&& maxY == other.maxY;
+        
+            }
 
-class Coordinates {
-  final int x;
-  final int y;
+class Comment  {
+                final String text;
+final PlatformInt64 createdAt;
 
-  const Coordinates({required this.x, required this.y});
+                const Comment({required this.text ,required this.createdAt ,});
 
-  @override
-  int get hashCode => x.hashCode ^ y.hashCode;
+                
+                
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Coordinates &&
-          runtimeType == other.runtimeType &&
-          x == other.x &&
-          y == other.y;
-}
+                
+        @override
+        int get hashCode => text.hashCode^createdAt.hashCode;
+        
 
-enum DisplayMode { importance, leveling }
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is Comment &&
+                runtimeType == other.runtimeType
+                && text == other.text&& createdAt == other.createdAt;
+        
+            }
 
-class MapData {
-  final String mapName;
-  final ViewportState viewportState;
-  final String? activeThemeId;
-  final DisplayMode displayMode;
+class Coordinates  {
+                final int x;
+final int y;
 
-  const MapData({
-    required this.mapName,
-    required this.viewportState,
-    this.activeThemeId,
-    required this.displayMode,
-  });
+                const Coordinates({required this.x ,required this.y ,});
 
-  @override
-  int get hashCode =>
-      mapName.hashCode ^
-      viewportState.hashCode ^
-      activeThemeId.hashCode ^
-      displayMode.hashCode;
+                
+                
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is MapData &&
-          runtimeType == other.runtimeType &&
-          mapName == other.mapName &&
-          viewportState == other.viewportState &&
-          activeThemeId == other.activeThemeId &&
-          displayMode == other.displayMode;
-}
+                
+        @override
+        int get hashCode => x.hashCode^y.hashCode;
+        
 
-class RecordStrings {
-  final String table;
-  final String key;
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is Coordinates &&
+                runtimeType == other.runtimeType
+                && x == other.x&& y == other.y;
+        
+            }
 
-  const RecordStrings({required this.table, required this.key});
+enum DisplayMode {
+                    importance,
+leveling,
+                    ;
+                    
+                }
 
-  @override
-  int get hashCode => table.hashCode ^ key.hashCode;
+class MapData  {
+                final String mapName;
+final ViewportState viewportState;
+final String? activeThemeId;
+final DisplayMode displayMode;
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is RecordStrings &&
-          runtimeType == other.runtimeType &&
-          table == other.table &&
-          key == other.key;
-}
+                const MapData({required this.mapName ,required this.viewportState ,this.activeThemeId ,required this.displayMode ,});
 
-class Size {
-  final int width;
-  final int height;
+                
+                
 
-  const Size({required this.width, required this.height});
+                
+        @override
+        int get hashCode => mapName.hashCode^viewportState.hashCode^activeThemeId.hashCode^displayMode.hashCode;
+        
 
-  @override
-  int get hashCode => width.hashCode ^ height.hashCode;
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is MapData &&
+                runtimeType == other.runtimeType
+                && mapName == other.mapName&& viewportState == other.viewportState&& activeThemeId == other.activeThemeId&& displayMode == other.displayMode;
+        
+            }
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Size &&
-          runtimeType == other.runtimeType &&
-          width == other.width &&
-          height == other.height;
-}
+class RecordStrings  {
+                final String table;
+final String key;
 
-class ViewportState {
-  final double xOffset;
-  final double yOffset;
-  final double zoomLevel;
-  final String activeView;
+                const RecordStrings({required this.table ,required this.key ,});
 
-  const ViewportState({
-    required this.xOffset,
-    required this.yOffset,
-    required this.zoomLevel,
-    required this.activeView,
-  });
+                
+                
 
-  @override
-  int get hashCode =>
-      xOffset.hashCode ^
-      yOffset.hashCode ^
-      zoomLevel.hashCode ^
-      activeView.hashCode;
+                
+        @override
+        int get hashCode => table.hashCode^key.hashCode;
+        
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ViewportState &&
-          runtimeType == other.runtimeType &&
-          xOffset == other.xOffset &&
-          yOffset == other.yOffset &&
-          zoomLevel == other.zoomLevel &&
-          activeView == other.activeView;
-}
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is RecordStrings &&
+                runtimeType == other.runtimeType
+                && table == other.table&& key == other.key;
+        
+            }
+
+class Size  {
+                final int width;
+final int height;
+
+                const Size({required this.width ,required this.height ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => width.hashCode^height.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is Size &&
+                runtimeType == other.runtimeType
+                && width == other.width&& height == other.height;
+        
+            }
+
+class ViewportState  {
+                final double xOffset;
+final double yOffset;
+final double zoomLevel;
+final String activeView;
+
+                const ViewportState({required this.xOffset ,required this.yOffset ,required this.zoomLevel ,required this.activeView ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => xOffset.hashCode^yOffset.hashCode^zoomLevel.hashCode^activeView.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is ViewportState &&
+                runtimeType == other.runtimeType
+                && xOffset == other.xOffset&& yOffset == other.yOffset&& zoomLevel == other.zoomLevel&& activeView == other.activeView;
+        
+            }
+            

@@ -13,14 +13,22 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'stream.freezed.dart';
 
-@freezed
-sealed class GraphEvent with _$GraphEvent {
-  const GraphEvent._();
+            
 
-  const factory GraphEvent.nodeUpdated(Nodes field0) = GraphEvent_NodeUpdated;
-  const factory GraphEvent.nodeDeleted(String field0) = GraphEvent_NodeDeleted;
-  const factory GraphEvent.relationUpdated() = GraphEvent_RelationUpdated;
-  const factory GraphEvent.snapshotLoaded() = GraphEvent_SnapshotLoaded;
-  const factory GraphEvent.boundaryUpdated(BoundingBox field0) =
-      GraphEvent_BoundaryUpdated;
-}
+            
+
+            @freezed
+                sealed class GraphEvent with _$GraphEvent  {
+                    const GraphEvent._();
+
+                     const factory GraphEvent.nodeUpdated(  Nodes field0,) = GraphEvent_NodeUpdated;
+ const factory GraphEvent.nodeDeleted(  String field0,) = GraphEvent_NodeDeleted;
+ const factory GraphEvent.relationUpdated() = GraphEvent_RelationUpdated;
+ const factory GraphEvent.snapshotLoaded() = GraphEvent_SnapshotLoaded;
+ const factory GraphEvent.boundaryUpdated(  BoundingBox field0,) = GraphEvent_BoundaryUpdated;
+
+                    
+
+                    
+                }
+            

@@ -17,6075 +17,3508 @@ import 'domain/tags.dart';
 import 'domain/templates.dart';
 import 'domain/theme.dart';
 import 'frb_generated.dart';
-import 'frb_generated.io.dart'
-    if (dart.library.js_interop) 'frb_generated.web.dart';
+import 'frb_generated.io.dart' if (dart.library.js_interop) 'frb_generated.web.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'persistence/history.dart';
 import 'persistence/repo.dart';
 import 'telemetry.dart';
 
-/// Main entrypoint of the Rust API
-class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
-  @internal
-  static final instance = RustLib._();
 
-  RustLib._();
+                /// Main entrypoint of the Rust API
+                class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
+                  @internal
+                  static final instance = RustLib._();
 
-  /// Initialize flutter_rust_bridge
-  static Future<void> init({
-    RustLibApi? api,
-    BaseHandler? handler,
-    ExternalLibrary? externalLibrary,
-    bool forceSameCodegenVersion = true,
-  }) async {
-    await instance.initImpl(
-      api: api,
-      handler: handler,
-      externalLibrary: externalLibrary,
-      forceSameCodegenVersion: forceSameCodegenVersion,
-    );
-  }
+                  RustLib._();
 
-  /// Initialize flutter_rust_bridge in mock mode.
-  /// No libraries for FFI are loaded.
-  static void initMock({required RustLibApi api}) {
-    instance.initMockImpl(api: api);
-  }
+                  /// Initialize flutter_rust_bridge
+                  static Future<void> init({
+                    RustLibApi? api,
+                    BaseHandler? handler,
+                    ExternalLibrary? externalLibrary,
+                    bool forceSameCodegenVersion = true,
+                  }) async {
+                    await instance.initImpl(
+                      api: api,
+                      handler: handler,
+                      externalLibrary: externalLibrary,
+                      forceSameCodegenVersion: forceSameCodegenVersion,
+                    );
+                  }
 
-  /// Dispose flutter_rust_bridge
-  ///
-  /// The call to this function is optional, since flutter_rust_bridge (and everything else)
-  /// is automatically disposed when the app stops.
-  static void dispose() => instance.disposeImpl();
+                  /// Initialize flutter_rust_bridge in mock mode.
+                  /// No libraries for FFI are loaded.
+                  static void initMock({
+                    required RustLibApi api,
+                  }) {
+                    instance.initMockImpl(
+                      api: api,
+                    );
+                  }
 
-  @override
-  ApiImplConstructor<RustLibApiImpl, RustLibWire> get apiImplConstructor =>
-      RustLibApiImpl.new;
+                  /// Dispose flutter_rust_bridge
+                  ///
+                  /// The call to this function is optional, since flutter_rust_bridge (and everything else)
+                  /// is automatically disposed when the app stops.
+                  static void dispose() => instance.disposeImpl();
 
-  @override
-  WireConstructor<RustLibWire> get wireConstructor =>
-      RustLibWire.fromExternalLibrary;
+                  @override
+                  ApiImplConstructor<RustLibApiImpl, RustLibWire> get apiImplConstructor => RustLibApiImpl.new;
 
-  @override
-  Future<void> executeRustInitializers() async {}
+                  @override
+                  WireConstructor<RustLibWire> get wireConstructor => RustLibWire.fromExternalLibrary;
 
-  @override
-  ExternalLibraryLoaderConfig get defaultExternalLibraryLoaderConfig =>
-      kDefaultExternalLibraryLoaderConfig;
+                  @override
+                  Future<void> executeRustInitializers() async {
+                    
+                  }
 
-  @override
-  String get codegenVersion => '2.11.1';
+                  @override
+                  ExternalLibraryLoaderConfig get defaultExternalLibraryLoaderConfig => kDefaultExternalLibraryLoaderConfig;
 
-  @override
-  int get rustContentHash => 541199064;
+                  @override
+                  String get codegenVersion => '2.11.1';
 
-  static const kDefaultExternalLibraryLoaderConfig =
-      ExternalLibraryLoaderConfig(
-        stem: 'mycelium_core',
-        ioDirectory: 'rust/target/release/',
-        webPrefix: 'pkg/',
-      );
-}
+                  @override
+                  int get rustContentHash => 541199064;
 
-abstract class RustLibApi extends BaseApi {
-  Future<void> crateBridgeApiAppHandleApplyEntityMutation({
-    required AppHandle that,
-    required SymmetricEntityPatch mutation,
-  });
+                  static const kDefaultExternalLibraryLoaderConfig = ExternalLibraryLoaderConfig(
+                    stem: 'mycelium_core',
+                    ioDirectory: 'rust/target/release/',
+                    webPrefix: 'pkg/',
+                  );
+                }
+                
 
-  Repository crateBridgeApiAppHandleAutoAccessorGetRepo({
-    required AppHandle that,
-  });
+                abstract class RustLibApi extends BaseApi {
+                  Future<void> crateBridgeApiAppHandleApplyEntityMutation({required AppHandle that , required SymmetricEntityPatch mutation });
 
-  void crateBridgeApiAppHandleAutoAccessorSetRepo({
-    required AppHandle that,
-    required Repository repo,
-  });
+Repository crateBridgeApiAppHandleAutoAccessorGetRepo({required AppHandle that });
 
-  Future<void> crateBridgeApiAppHandleClose({required AppHandle that});
+void crateBridgeApiAppHandleAutoAccessorSetRepo({required AppHandle that , required Repository repo });
 
-  Stream<GraphEvent> crateBridgeApiAppHandleCreateGraphStream({
-    required AppHandle that,
-  });
+Future<void> crateBridgeApiAppHandleClose({required AppHandle that });
 
-  Future<void> crateBridgeApiAppHandleCreateNode({
-    required AppHandle that,
-    required Nodes input,
-  });
+Stream<GraphEvent> crateBridgeApiAppHandleCreateGraphStream({required AppHandle that });
 
-  Future<void> crateBridgeApiAppHandleCreateRelation({
-    required AppHandle that,
-    required IRelation input,
-  });
+Future<void> crateBridgeApiAppHandleCreateNode({required AppHandle that , required Nodes input });
 
-  Future<void> crateBridgeApiAppHandleCreateTag({
-    required AppHandle that,
-    required Tag tag,
-  });
+Future<void> crateBridgeApiAppHandleCreateRelation({required AppHandle that , required IRelation input });
 
-  Future<void> crateBridgeApiAppHandleCreateTheme({
-    required AppHandle that,
-    required String key,
-    required ThemeFields fields,
-  });
+Future<void> crateBridgeApiAppHandleCreateTag({required AppHandle that , required Tag tag });
 
-  Future<void> crateBridgeApiAppHandleDeleteNodeEntry({
-    required AppHandle that,
-    required String table,
-    required String key,
-  });
+Future<void> crateBridgeApiAppHandleCreateTheme({required AppHandle that , required String key , required ThemeFields fields });
 
-  Future<void> crateBridgeApiAppHandleDeleteRelation({
-    required AppHandle that,
-    required String table,
-    required String key,
-  });
+Future<void> crateBridgeApiAppHandleDeleteNodeEntry({required AppHandle that , required String table , required String key });
 
-  Future<void> crateBridgeApiAppHandleDeleteTag({
-    required AppHandle that,
-    required String key,
-  });
+Future<void> crateBridgeApiAppHandleDeleteRelation({required AppHandle that , required String table , required String key });
 
-  Future<void> crateBridgeApiAppHandleDeleteTemplate({
-    required AppHandle that,
-    required String key,
-  });
+Future<void> crateBridgeApiAppHandleDeleteTag({required AppHandle that , required String key });
 
-  Future<String?> crateBridgeApiAppHandleGetActiveThemeId({
-    required AppHandle that,
-  });
+Future<void> crateBridgeApiAppHandleDeleteTemplate({required AppHandle that , required String key });
 
-  Future<List<Tag>> crateBridgeApiAppHandleGetAllTags({
-    required AppHandle that,
-  });
+Future<String?> crateBridgeApiAppHandleGetActiveThemeId({required AppHandle that });
 
-  Future<List<Template>> crateBridgeApiAppHandleGetAllTemplates({
-    required AppHandle that,
-  });
+Future<List<Tag>> crateBridgeApiAppHandleGetAllTags({required AppHandle that });
 
-  Future<List<Theme>> crateBridgeApiAppHandleGetAllThemes({
-    required AppHandle that,
-  });
+Future<List<Template>> crateBridgeApiAppHandleGetAllTemplates({required AppHandle that });
 
-  Future<
-    (List<INode>, List<TaskNode>, List<InterNode>, List<IRelation>, MapData)
-  >
-  crateBridgeApiAppHandleGetGraphSnapshot({required AppHandle that});
+Future<List<Theme>> crateBridgeApiAppHandleGetAllThemes({required AppHandle that });
 
-  Future<Nodes?> crateBridgeApiAppHandleGetNode({
-    required AppHandle that,
-    required String table,
-    required String key,
-  });
+Future<(List<INode>,List<TaskNode>,List<InterNode>,List<IRelation>,MapData)> crateBridgeApiAppHandleGetGraphSnapshot({required AppHandle that });
 
-  Future<Tag?> crateBridgeApiAppHandleGetTag({
-    required AppHandle that,
-    required String key,
-  });
+Future<Nodes?> crateBridgeApiAppHandleGetNode({required AppHandle that , required String table , required String key });
 
-  Future<Theme?> crateBridgeApiAppHandleGetTheme({
-    required AppHandle that,
-    required String key,
-  });
+Future<Tag?> crateBridgeApiAppHandleGetTag({required AppHandle that , required String key });
 
-  Future<void> crateBridgeApiAppHandleInstantiateTemplate({
-    required AppHandle that,
-    required String key,
-    required double targetX,
-    required double targetY,
-  });
+Future<Theme?> crateBridgeApiAppHandleGetTheme({required AppHandle that , required String key });
 
-  Future<void> crateBridgeApiAppHandleLoadMapFromFile({
-    required AppHandle that,
-    required String filePath,
-    required String attachmentDir,
-  });
+Future<void> crateBridgeApiAppHandleInstantiateTemplate({required AppHandle that , required String key , required double targetX , required double targetY });
 
-  Future<AppHandle> crateBridgeApiAppHandleNew({
-    required String storagePath,
-    required String name,
-  });
+Future<void> crateBridgeApiAppHandleLoadMapFromFile({required AppHandle that , required String filePath , required String attachmentDir });
 
-  Future<List<Nodes>> crateBridgeApiAppHandleQuerySearch({
-    required AppHandle that,
-    required String query,
-  });
+Future<AppHandle> crateBridgeApiAppHandleNew({required String storagePath , required String name });
 
-  Future<HistoryRecord?> crateBridgeApiAppHandleRedo({required AppHandle that});
+Future<List<Nodes>> crateBridgeApiAppHandleQuerySearch({required AppHandle that , required String query });
 
-  Future<int> crateBridgeApiAppHandleRedoCount({required AppHandle that});
+Future<HistoryRecord?> crateBridgeApiAppHandleRedo({required AppHandle that });
 
-  Future<void> crateBridgeApiAppHandleRerouteRelation({
-    required AppHandle that,
-    required RecordStrings record,
-    required RecordStrings from,
-    required RecordStrings to,
-  });
+Future<int> crateBridgeApiAppHandleRedoCount({required AppHandle that });
 
-  Future<void> crateBridgeApiAppHandleSaveMapToFile({
-    required AppHandle that,
-    required String filePath,
-    required String attachmentDir,
-  });
+Future<void> crateBridgeApiAppHandleRerouteRelation({required AppHandle that , required RecordStrings record , required RecordStrings from , required RecordStrings to });
 
-  Future<void> crateBridgeApiAppHandleSaveTemplateFromSelection({
-    required AppHandle that,
-    required String name,
-    required List<RecordStrings> nodeKeys,
-    required List<RecordStrings> relationKeys,
-  });
+Future<void> crateBridgeApiAppHandleSaveMapToFile({required AppHandle that , required String filePath , required String attachmentDir });
 
-  Future<void> crateBridgeApiAppHandleSetActiveTheme({
-    required AppHandle that,
-    required String themeKey,
-  });
+Future<void> crateBridgeApiAppHandleSaveTemplateFromSelection({required AppHandle that , required String name , required List<RecordStrings> nodeKeys , required List<RecordStrings> relationKeys });
 
-  Future<void> crateBridgeApiAppHandleSetActiveThemeId({
-    required AppHandle that,
-    required String themeId,
-  });
+Future<void> crateBridgeApiAppHandleSetActiveTheme({required AppHandle that , required String themeKey });
 
-  Future<HistoryRecord?> crateBridgeApiAppHandleUndo({required AppHandle that});
+Future<void> crateBridgeApiAppHandleSetActiveThemeId({required AppHandle that , required String themeId });
 
-  Future<int> crateBridgeApiAppHandleUndoCount({required AppHandle that});
+Future<HistoryRecord?> crateBridgeApiAppHandleUndo({required AppHandle that });
 
-  Future<void> crateBridgeApiAppHandleUpdateNode({
-    required AppHandle that,
-    required Nodes input,
-  });
+Future<int> crateBridgeApiAppHandleUndoCount({required AppHandle that });
 
-  Future<void> crateBridgeApiAppHandleUpdateRelation({
-    required AppHandle that,
-    required IRelation input,
-  });
+Future<void> crateBridgeApiAppHandleUpdateNode({required AppHandle that , required Nodes input });
 
-  Future<void> crateBridgeApiAppHandleUpdateTag({
-    required AppHandle that,
-    required Tag tag,
-  });
+Future<void> crateBridgeApiAppHandleUpdateRelation({required AppHandle that , required IRelation input });
 
-  Future<void> crateBridgeApiAppHandleUpdateTheme({
-    required AppHandle that,
-    required Theme theme,
-  });
+Future<void> crateBridgeApiAppHandleUpdateTag({required AppHandle that , required Tag tag });
 
-  Future<void> crateBridgeApiAppHandleUpdateViewportState({
-    required AppHandle that,
-    required ViewportState state,
-  });
+Future<void> crateBridgeApiAppHandleUpdateTheme({required AppHandle that , required Theme theme });
 
-  Stream<LogState> crateBridgeApiCreateLogStream();
+Future<void> crateBridgeApiAppHandleUpdateViewportState({required AppHandle that , required ViewportState state });
 
-  Future<void> crateBridgeApiSetupLogger();
+Stream<LogState> crateBridgeApiCreateLogStream();
 
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_AppHandle;
+Future<void> crateBridgeApiSetupLogger();
 
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_AppHandle;
+RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_AppHandle;
 
-  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_AppHandlePtr;
+RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_AppHandle;
 
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_HistoryRecord;
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_AppHandlePtr;
 
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_HistoryRecord;
+RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_HistoryRecord;
 
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_HistoryRecordPtr;
+RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_HistoryRecord;
 
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_Repository;
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_HistoryRecordPtr;
 
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_Repository;
+RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_Repository;
 
-  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_RepositoryPtr;
-}
+RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_Repository;
 
-class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
-  RustLibApiImpl({
-    required super.handler,
-    required super.wire,
-    required super.generalizedFrbRustBinding,
-    required super.portManager,
-  });
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_RepositoryPtr;
 
-  @override
-  Future<void> crateBridgeApiAppHandleApplyEntityMutation({
-    required AppHandle that,
-    required SymmetricEntityPatch mutation,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_box_autoadd_symmetric_entity_patch(mutation, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 1,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+
+                }
+                
+
+                class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
+                  RustLibApiImpl({
+                    required super.handler,
+                    required super.wire,
+                    required super.generalizedFrbRustBinding,
+                    required super.portManager,
+                  });
+
+                  @override Future<void> crateBridgeApiAppHandleApplyEntityMutation({required AppHandle that , required SymmetricEntityPatch mutation })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_box_autoadd_symmetric_entity_patch(mutation, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 1, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleApplyEntityMutationConstMeta,
-        argValues: [that, mutation],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleApplyEntityMutationConstMeta,
+            argValues: [that, mutation],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleApplyEntityMutationConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_apply_entity_mutation",
-        argNames: ["that", "mutation"],
-      );
 
-  @override
-  Repository crateBridgeApiAppHandleAutoAccessorGetRepo({
-    required AppHandle that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository,
+        TaskConstMeta get kCrateBridgeApiAppHandleApplyEntityMutationConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_apply_entity_mutation",
+            argNames: ["that", "mutation"],
+        );
+        
+
+@override Repository crateBridgeApiAppHandleAutoAccessorGetRepo({required AppHandle that })  { return handler.executeSync(SyncTask(
+            callFfi: () {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository,
           decodeErrorData: null,
-        ),
-        constMeta: kCrateBridgeApiAppHandleAutoAccessorGetRepoConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleAutoAccessorGetRepoConstMeta,
+            argValues: [that],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleAutoAccessorGetRepoConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_auto_accessor_get_repo",
-        argNames: ["that"],
-      );
 
-  @override
-  void crateBridgeApiAppHandleAutoAccessorSetRepo({
-    required AppHandle that,
-    required Repository repo,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-            repo,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleAutoAccessorGetRepoConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_auto_accessor_get_repo",
+            argNames: ["that"],
+        );
+        
+
+@override void crateBridgeApiAppHandleAutoAccessorSetRepo({required AppHandle that , required Repository repo })  { return handler.executeSync(SyncTask(
+            callFfi: () {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(repo, serializer);
+            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: null,
-        ),
-        constMeta: kCrateBridgeApiAppHandleAutoAccessorSetRepoConstMeta,
-        argValues: [that, repo],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleAutoAccessorSetRepoConstMeta,
+            argValues: [that, repo],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleAutoAccessorSetRepoConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_auto_accessor_set_repo",
-        argNames: ["that", "repo"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleClose({required AppHandle that}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 4,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleAutoAccessorSetRepoConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_auto_accessor_set_repo",
+            argNames: ["that", "repo"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleClose({required AppHandle that })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleCloseConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleCloseConstMeta,
+            argValues: [that],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleCloseConstMeta =>
-      const TaskConstMeta(debugName: "AppHandle_close", argNames: ["that"]);
 
-  @override
-  Stream<GraphEvent> crateBridgeApiAppHandleCreateGraphStream({
-    required AppHandle that,
-  }) {
-    final sink = RustStreamSink<GraphEvent>();
-    unawaited(
-      handler.executeNormal(
-        NormalTask(
-          callFfi: (port_) {
-            final serializer = SseSerializer(generalizedFrbRustBinding);
-            sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-              that,
-              serializer,
-            );
-            sse_encode_StreamSink_graph_event_Sse(sink, serializer);
-            pdeCallFfi(
-              generalizedFrbRustBinding,
-              serializer,
-              funcId: 5,
-              port: port_,
-            );
-          },
-          codec: SseCodec(
-            decodeSuccessData: sse_decode_unit,
-            decodeErrorData: sse_decode_AnyhowException,
-          ),
-          constMeta: kCrateBridgeApiAppHandleCreateGraphStreamConstMeta,
-          argValues: [that, sink],
-          apiImpl: this,
-        ),
-      ),
-    );
-    return sink.stream;
-  }
+        TaskConstMeta get kCrateBridgeApiAppHandleCloseConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_close",
+            argNames: ["that"],
+        );
+        
 
-  TaskConstMeta get kCrateBridgeApiAppHandleCreateGraphStreamConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_create_graph_stream",
-        argNames: ["that", "sink"],
-      );
-
-  @override
-  Future<void> crateBridgeApiAppHandleCreateNode({
-    required AppHandle that,
-    required Nodes input,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_box_autoadd_nodes(input, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 6,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+@override Stream<GraphEvent> crateBridgeApiAppHandleCreateGraphStream({required AppHandle that })  { 
+            final sink = RustStreamSink<GraphEvent>();
+            unawaited(handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_StreamSink_graph_event_Sse(sink, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleCreateNodeConstMeta,
-        argValues: [that, input],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleCreateGraphStreamConstMeta,
+            argValues: [that, sink],
+            apiImpl: this,
+        )));
+            return sink.stream;
+             }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleCreateNodeConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_create_node",
-        argNames: ["that", "input"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleCreateRelation({
-    required AppHandle that,
-    required IRelation input,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_box_autoadd_i_relation(input, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 7,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleCreateGraphStreamConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_create_graph_stream",
+            argNames: ["that", "sink"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleCreateNode({required AppHandle that , required Nodes input })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_box_autoadd_nodes(input, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleCreateRelationConstMeta,
-        argValues: [that, input],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleCreateNodeConstMeta,
+            argValues: [that, input],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleCreateRelationConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_create_relation",
-        argNames: ["that", "input"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleCreateTag({
-    required AppHandle that,
-    required Tag tag,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_box_autoadd_tag(tag, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 8,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleCreateNodeConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_create_node",
+            argNames: ["that", "input"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleCreateRelation({required AppHandle that , required IRelation input })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_box_autoadd_i_relation(input, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 7, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleCreateTagConstMeta,
-        argValues: [that, tag],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleCreateRelationConstMeta,
+            argValues: [that, input],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleCreateTagConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_create_tag",
-        argNames: ["that", "tag"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleCreateTheme({
-    required AppHandle that,
-    required String key,
-    required ThemeFields fields,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_String(key, serializer);
-          sse_encode_box_autoadd_theme_fields(fields, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 9,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleCreateRelationConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_create_relation",
+            argNames: ["that", "input"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleCreateTag({required AppHandle that , required Tag tag })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_box_autoadd_tag(tag, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 8, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleCreateThemeConstMeta,
-        argValues: [that, key, fields],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleCreateTagConstMeta,
+            argValues: [that, tag],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleCreateThemeConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_create_theme",
-        argNames: ["that", "key", "fields"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleDeleteNodeEntry({
-    required AppHandle that,
-    required String table,
-    required String key,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_String(table, serializer);
-          sse_encode_String(key, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 10,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleCreateTagConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_create_tag",
+            argNames: ["that", "tag"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleCreateTheme({required AppHandle that , required String key , required ThemeFields fields })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_String(key, serializer);
+sse_encode_box_autoadd_theme_fields(fields, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 9, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleDeleteNodeEntryConstMeta,
-        argValues: [that, table, key],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleCreateThemeConstMeta,
+            argValues: [that, key, fields],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleDeleteNodeEntryConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_delete_node_entry",
-        argNames: ["that", "table", "key"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleDeleteRelation({
-    required AppHandle that,
-    required String table,
-    required String key,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_String(table, serializer);
-          sse_encode_String(key, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 11,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleCreateThemeConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_create_theme",
+            argNames: ["that", "key", "fields"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleDeleteNodeEntry({required AppHandle that , required String table , required String key })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_String(table, serializer);
+sse_encode_String(key, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 10, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleDeleteRelationConstMeta,
-        argValues: [that, table, key],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleDeleteNodeEntryConstMeta,
+            argValues: [that, table, key],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleDeleteRelationConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_delete_relation",
-        argNames: ["that", "table", "key"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleDeleteTag({
-    required AppHandle that,
-    required String key,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_String(key, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 12,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleDeleteNodeEntryConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_delete_node_entry",
+            argNames: ["that", "table", "key"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleDeleteRelation({required AppHandle that , required String table , required String key })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_String(table, serializer);
+sse_encode_String(key, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleDeleteTagConstMeta,
-        argValues: [that, key],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleDeleteRelationConstMeta,
+            argValues: [that, table, key],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleDeleteTagConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_delete_tag",
-        argNames: ["that", "key"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleDeleteTemplate({
-    required AppHandle that,
-    required String key,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_String(key, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 13,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleDeleteRelationConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_delete_relation",
+            argNames: ["that", "table", "key"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleDeleteTag({required AppHandle that , required String key })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_String(key, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleDeleteTemplateConstMeta,
-        argValues: [that, key],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleDeleteTagConstMeta,
+            argValues: [that, key],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleDeleteTemplateConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_delete_template",
-        argNames: ["that", "key"],
-      );
 
-  @override
-  Future<String?> crateBridgeApiAppHandleGetActiveThemeId({
-    required AppHandle that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 14,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleDeleteTagConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_delete_tag",
+            argNames: ["that", "key"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleDeleteTemplate({required AppHandle that , required String key })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_String(key, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleDeleteTemplateConstMeta,
+            argValues: [that, key],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateBridgeApiAppHandleDeleteTemplateConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_delete_template",
+            argNames: ["that", "key"],
+        );
+        
+
+@override Future<String?> crateBridgeApiAppHandleGetActiveThemeId({required AppHandle that })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_opt_String,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleGetActiveThemeIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleGetActiveThemeIdConstMeta,
+            argValues: [that],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleGetActiveThemeIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_get_active_theme_id",
-        argNames: ["that"],
-      );
 
-  @override
-  Future<List<Tag>> crateBridgeApiAppHandleGetAllTags({
-    required AppHandle that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 15,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleGetActiveThemeIdConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_get_active_theme_id",
+            argNames: ["that"],
+        );
+        
+
+@override Future<List<Tag>> crateBridgeApiAppHandleGetAllTags({required AppHandle that })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_list_tag,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleGetAllTagsConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleGetAllTagsConstMeta,
+            argValues: [that],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleGetAllTagsConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_get_all_tags",
-        argNames: ["that"],
-      );
 
-  @override
-  Future<List<Template>> crateBridgeApiAppHandleGetAllTemplates({
-    required AppHandle that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 16,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleGetAllTagsConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_get_all_tags",
+            argNames: ["that"],
+        );
+        
+
+@override Future<List<Template>> crateBridgeApiAppHandleGetAllTemplates({required AppHandle that })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_list_template,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleGetAllTemplatesConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleGetAllTemplatesConstMeta,
+            argValues: [that],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleGetAllTemplatesConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_get_all_templates",
-        argNames: ["that"],
-      );
 
-  @override
-  Future<List<Theme>> crateBridgeApiAppHandleGetAllThemes({
-    required AppHandle that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 17,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleGetAllTemplatesConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_get_all_templates",
+            argNames: ["that"],
+        );
+        
+
+@override Future<List<Theme>> crateBridgeApiAppHandleGetAllThemes({required AppHandle that })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_list_theme,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleGetAllThemesConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleGetAllThemesConstMeta,
+            argValues: [that],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleGetAllThemesConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_get_all_themes",
-        argNames: ["that"],
-      );
 
-  @override
-  Future<
-    (List<INode>, List<TaskNode>, List<InterNode>, List<IRelation>, MapData)
-  >
-  crateBridgeApiAppHandleGetGraphSnapshot({required AppHandle that}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 18,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_record_list_i_node_list_task_node_list_inter_node_list_i_relation_map_data,
+        TaskConstMeta get kCrateBridgeApiAppHandleGetAllThemesConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_get_all_themes",
+            argNames: ["that"],
+        );
+        
+
+@override Future<(List<INode>,List<TaskNode>,List<InterNode>,List<IRelation>,MapData)> crateBridgeApiAppHandleGetGraphSnapshot({required AppHandle that })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_record_list_i_node_list_task_node_list_inter_node_list_i_relation_map_data,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleGetGraphSnapshotConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleGetGraphSnapshotConstMeta,
+            argValues: [that],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleGetGraphSnapshotConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_get_graph_snapshot",
-        argNames: ["that"],
-      );
 
-  @override
-  Future<Nodes?> crateBridgeApiAppHandleGetNode({
-    required AppHandle that,
-    required String table,
-    required String key,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_String(table, serializer);
-          sse_encode_String(key, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 19,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleGetGraphSnapshotConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_get_graph_snapshot",
+            argNames: ["that"],
+        );
+        
+
+@override Future<Nodes?> crateBridgeApiAppHandleGetNode({required AppHandle that , required String table , required String key })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_String(table, serializer);
+sse_encode_String(key, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_opt_box_autoadd_nodes,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleGetNodeConstMeta,
-        argValues: [that, table, key],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleGetNodeConstMeta,
+            argValues: [that, table, key],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleGetNodeConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_get_node",
-        argNames: ["that", "table", "key"],
-      );
 
-  @override
-  Future<Tag?> crateBridgeApiAppHandleGetTag({
-    required AppHandle that,
-    required String key,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_String(key, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 20,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleGetNodeConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_get_node",
+            argNames: ["that", "table", "key"],
+        );
+        
+
+@override Future<Tag?> crateBridgeApiAppHandleGetTag({required AppHandle that , required String key })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_String(key, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 20, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_opt_box_autoadd_tag,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleGetTagConstMeta,
-        argValues: [that, key],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleGetTagConstMeta,
+            argValues: [that, key],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleGetTagConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_get_tag",
-        argNames: ["that", "key"],
-      );
 
-  @override
-  Future<Theme?> crateBridgeApiAppHandleGetTheme({
-    required AppHandle that,
-    required String key,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_String(key, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 21,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleGetTagConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_get_tag",
+            argNames: ["that", "key"],
+        );
+        
+
+@override Future<Theme?> crateBridgeApiAppHandleGetTheme({required AppHandle that , required String key })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_String(key, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 21, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_opt_box_autoadd_theme,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleGetThemeConstMeta,
-        argValues: [that, key],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleGetThemeConstMeta,
+            argValues: [that, key],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleGetThemeConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_get_theme",
-        argNames: ["that", "key"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleInstantiateTemplate({
-    required AppHandle that,
-    required String key,
-    required double targetX,
-    required double targetY,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_String(key, serializer);
-          sse_encode_f_64(targetX, serializer);
-          sse_encode_f_64(targetY, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 22,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleGetThemeConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_get_theme",
+            argNames: ["that", "key"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleInstantiateTemplate({required AppHandle that , required String key , required double targetX , required double targetY })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_String(key, serializer);
+sse_encode_f_64(targetX, serializer);
+sse_encode_f_64(targetY, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 22, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleInstantiateTemplateConstMeta,
-        argValues: [that, key, targetX, targetY],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleInstantiateTemplateConstMeta,
+            argValues: [that, key, targetX, targetY],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleInstantiateTemplateConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_instantiate_template",
-        argNames: ["that", "key", "targetX", "targetY"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleLoadMapFromFile({
-    required AppHandle that,
-    required String filePath,
-    required String attachmentDir,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_String(filePath, serializer);
-          sse_encode_String(attachmentDir, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 23,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleInstantiateTemplateConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_instantiate_template",
+            argNames: ["that", "key", "targetX", "targetY"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleLoadMapFromFile({required AppHandle that , required String filePath , required String attachmentDir })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_String(filePath, serializer);
+sse_encode_String(attachmentDir, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 23, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleLoadMapFromFileConstMeta,
-        argValues: [that, filePath, attachmentDir],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleLoadMapFromFileConstMeta,
+            argValues: [that, filePath, attachmentDir],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleLoadMapFromFileConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_load_map_from_file",
-        argNames: ["that", "filePath", "attachmentDir"],
-      );
 
-  @override
-  Future<AppHandle> crateBridgeApiAppHandleNew({
-    required String storagePath,
-    required String name,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(storagePath, serializer);
-          sse_encode_String(name, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 24,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle,
+        TaskConstMeta get kCrateBridgeApiAppHandleLoadMapFromFileConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_load_map_from_file",
+            argNames: ["that", "filePath", "attachmentDir"],
+        );
+        
+
+@override Future<AppHandle> crateBridgeApiAppHandleNew({required String storagePath , required String name })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(storagePath, serializer);
+sse_encode_String(name, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 24, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleNewConstMeta,
-        argValues: [storagePath, name],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleNewConstMeta,
+            argValues: [storagePath, name],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleNewConstMeta => const TaskConstMeta(
-    debugName: "AppHandle_new",
-    argNames: ["storagePath", "name"],
-  );
 
-  @override
-  Future<List<Nodes>> crateBridgeApiAppHandleQuerySearch({
-    required AppHandle that,
-    required String query,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_String(query, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 25,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleNewConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_new",
+            argNames: ["storagePath", "name"],
+        );
+        
+
+@override Future<List<Nodes>> crateBridgeApiAppHandleQuerySearch({required AppHandle that , required String query })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_String(query, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 25, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_list_nodes,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleQuerySearchConstMeta,
-        argValues: [that, query],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleQuerySearchConstMeta,
+            argValues: [that, query],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleQuerySearchConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_query_search",
-        argNames: ["that", "query"],
-      );
 
-  @override
-  Future<HistoryRecord?> crateBridgeApiAppHandleRedo({
-    required AppHandle that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 26,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord,
+        TaskConstMeta get kCrateBridgeApiAppHandleQuerySearchConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_query_search",
+            argNames: ["that", "query"],
+        );
+        
+
+@override Future<HistoryRecord?> crateBridgeApiAppHandleRedo({required AppHandle that })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 26, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleRedoConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleRedoConstMeta,
+            argValues: [that],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleRedoConstMeta =>
-      const TaskConstMeta(debugName: "AppHandle_redo", argNames: ["that"]);
 
-  @override
-  Future<int> crateBridgeApiAppHandleRedoCount({required AppHandle that}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 27,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleRedoConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_redo",
+            argNames: ["that"],
+        );
+        
+
+@override Future<int> crateBridgeApiAppHandleRedoCount({required AppHandle that })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 27, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_u_32,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleRedoCountConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleRedoCountConstMeta,
+            argValues: [that],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleRedoCountConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_redo_count",
-        argNames: ["that"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleRerouteRelation({
-    required AppHandle that,
-    required RecordStrings record,
-    required RecordStrings from,
-    required RecordStrings to,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_box_autoadd_record_strings(record, serializer);
-          sse_encode_box_autoadd_record_strings(from, serializer);
-          sse_encode_box_autoadd_record_strings(to, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 28,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleRedoCountConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_redo_count",
+            argNames: ["that"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleRerouteRelation({required AppHandle that , required RecordStrings record , required RecordStrings from , required RecordStrings to })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_box_autoadd_record_strings(record, serializer);
+sse_encode_box_autoadd_record_strings(from, serializer);
+sse_encode_box_autoadd_record_strings(to, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 28, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleRerouteRelationConstMeta,
-        argValues: [that, record, from, to],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleRerouteRelationConstMeta,
+            argValues: [that, record, from, to],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleRerouteRelationConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_reroute_relation",
-        argNames: ["that", "record", "from", "to"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleSaveMapToFile({
-    required AppHandle that,
-    required String filePath,
-    required String attachmentDir,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_String(filePath, serializer);
-          sse_encode_String(attachmentDir, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 29,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleRerouteRelationConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_reroute_relation",
+            argNames: ["that", "record", "from", "to"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleSaveMapToFile({required AppHandle that , required String filePath , required String attachmentDir })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_String(filePath, serializer);
+sse_encode_String(attachmentDir, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 29, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleSaveMapToFileConstMeta,
-        argValues: [that, filePath, attachmentDir],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleSaveMapToFileConstMeta,
+            argValues: [that, filePath, attachmentDir],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleSaveMapToFileConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_save_map_to_file",
-        argNames: ["that", "filePath", "attachmentDir"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleSaveTemplateFromSelection({
-    required AppHandle that,
-    required String name,
-    required List<RecordStrings> nodeKeys,
-    required List<RecordStrings> relationKeys,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_String(name, serializer);
-          sse_encode_list_record_strings(nodeKeys, serializer);
-          sse_encode_list_record_strings(relationKeys, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 30,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleSaveMapToFileConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_save_map_to_file",
+            argNames: ["that", "filePath", "attachmentDir"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleSaveTemplateFromSelection({required AppHandle that , required String name , required List<RecordStrings> nodeKeys , required List<RecordStrings> relationKeys })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_String(name, serializer);
+sse_encode_list_record_strings(nodeKeys, serializer);
+sse_encode_list_record_strings(relationKeys, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 30, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleSaveTemplateFromSelectionConstMeta,
-        argValues: [that, name, nodeKeys, relationKeys],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleSaveTemplateFromSelectionConstMeta,
+            argValues: [that, name, nodeKeys, relationKeys],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta
-  get kCrateBridgeApiAppHandleSaveTemplateFromSelectionConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_save_template_from_selection",
-        argNames: ["that", "name", "nodeKeys", "relationKeys"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleSetActiveTheme({
-    required AppHandle that,
-    required String themeKey,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_String(themeKey, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 31,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleSaveTemplateFromSelectionConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_save_template_from_selection",
+            argNames: ["that", "name", "nodeKeys", "relationKeys"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleSetActiveTheme({required AppHandle that , required String themeKey })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_String(themeKey, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 31, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleSetActiveThemeConstMeta,
-        argValues: [that, themeKey],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleSetActiveThemeConstMeta,
+            argValues: [that, themeKey],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleSetActiveThemeConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_set_active_theme",
-        argNames: ["that", "themeKey"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleSetActiveThemeId({
-    required AppHandle that,
-    required String themeId,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_String(themeId, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 32,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleSetActiveThemeConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_set_active_theme",
+            argNames: ["that", "themeKey"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleSetActiveThemeId({required AppHandle that , required String themeId })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_String(themeId, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 32, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleSetActiveThemeIdConstMeta,
-        argValues: [that, themeId],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleSetActiveThemeIdConstMeta,
+            argValues: [that, themeId],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleSetActiveThemeIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_set_active_theme_id",
-        argNames: ["that", "themeId"],
-      );
 
-  @override
-  Future<HistoryRecord?> crateBridgeApiAppHandleUndo({
-    required AppHandle that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 33,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord,
+        TaskConstMeta get kCrateBridgeApiAppHandleSetActiveThemeIdConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_set_active_theme_id",
+            argNames: ["that", "themeId"],
+        );
+        
+
+@override Future<HistoryRecord?> crateBridgeApiAppHandleUndo({required AppHandle that })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 33, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleUndoConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleUndoConstMeta,
+            argValues: [that],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleUndoConstMeta =>
-      const TaskConstMeta(debugName: "AppHandle_undo", argNames: ["that"]);
 
-  @override
-  Future<int> crateBridgeApiAppHandleUndoCount({required AppHandle that}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 34,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleUndoConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_undo",
+            argNames: ["that"],
+        );
+        
+
+@override Future<int> crateBridgeApiAppHandleUndoCount({required AppHandle that })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 34, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_u_32,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleUndoCountConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleUndoCountConstMeta,
+            argValues: [that],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleUndoCountConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_undo_count",
-        argNames: ["that"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleUpdateNode({
-    required AppHandle that,
-    required Nodes input,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_box_autoadd_nodes(input, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 35,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleUndoCountConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_undo_count",
+            argNames: ["that"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleUpdateNode({required AppHandle that , required Nodes input })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_box_autoadd_nodes(input, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 35, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleUpdateNodeConstMeta,
-        argValues: [that, input],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleUpdateNodeConstMeta,
+            argValues: [that, input],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleUpdateNodeConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_update_node",
-        argNames: ["that", "input"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleUpdateRelation({
-    required AppHandle that,
-    required IRelation input,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_box_autoadd_i_relation(input, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 36,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleUpdateNodeConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_update_node",
+            argNames: ["that", "input"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleUpdateRelation({required AppHandle that , required IRelation input })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_box_autoadd_i_relation(input, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 36, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleUpdateRelationConstMeta,
-        argValues: [that, input],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleUpdateRelationConstMeta,
+            argValues: [that, input],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleUpdateRelationConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_update_relation",
-        argNames: ["that", "input"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleUpdateTag({
-    required AppHandle that,
-    required Tag tag,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_box_autoadd_tag(tag, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 37,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleUpdateRelationConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_update_relation",
+            argNames: ["that", "input"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleUpdateTag({required AppHandle that , required Tag tag })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_box_autoadd_tag(tag, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 37, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleUpdateTagConstMeta,
-        argValues: [that, tag],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleUpdateTagConstMeta,
+            argValues: [that, tag],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleUpdateTagConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_update_tag",
-        argNames: ["that", "tag"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleUpdateTheme({
-    required AppHandle that,
-    required Theme theme,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_box_autoadd_theme(theme, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 38,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleUpdateTagConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_update_tag",
+            argNames: ["that", "tag"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleUpdateTheme({required AppHandle that , required Theme theme })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_box_autoadd_theme(theme, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 38, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleUpdateThemeConstMeta,
-        argValues: [that, theme],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleUpdateThemeConstMeta,
+            argValues: [that, theme],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleUpdateThemeConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_update_theme",
-        argNames: ["that", "theme"],
-      );
 
-  @override
-  Future<void> crateBridgeApiAppHandleUpdateViewportState({
-    required AppHandle that,
-    required ViewportState state,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-            that,
-            serializer,
-          );
-          sse_encode_box_autoadd_viewport_state(state, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 39,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateBridgeApiAppHandleUpdateThemeConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_update_theme",
+            argNames: ["that", "theme"],
+        );
+        
+
+@override Future<void> crateBridgeApiAppHandleUpdateViewportState({required AppHandle that , required ViewportState state })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(that, serializer);
+sse_encode_box_autoadd_viewport_state(state, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 39, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiAppHandleUpdateViewportStateConstMeta,
-        argValues: [that, state],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiAppHandleUpdateViewportStateConstMeta,
+            argValues: [that, state],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiAppHandleUpdateViewportStateConstMeta =>
-      const TaskConstMeta(
-        debugName: "AppHandle_update_viewport_state",
-        argNames: ["that", "state"],
-      );
 
-  @override
-  Stream<LogState> crateBridgeApiCreateLogStream() {
-    final sink = RustStreamSink<LogState>();
-    unawaited(
-      handler.executeNormal(
-        NormalTask(
-          callFfi: (port_) {
+        TaskConstMeta get kCrateBridgeApiAppHandleUpdateViewportStateConstMeta => const TaskConstMeta(
+            debugName: "AppHandle_update_viewport_state",
+            argNames: ["that", "state"],
+        );
+        
+
+@override Stream<LogState> crateBridgeApiCreateLogStream()  { 
+            final sink = RustStreamSink<LogState>();
+            unawaited(handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_StreamSink_log_state_Sse(sink, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 40, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateBridgeApiCreateLogStreamConstMeta,
+            argValues: [sink],
+            apiImpl: this,
+        )));
+            return sink.stream;
+             }
+
+
+        TaskConstMeta get kCrateBridgeApiCreateLogStreamConstMeta => const TaskConstMeta(
+            debugName: "create_log_stream",
+            argNames: ["sink"],
+        );
+        
+
+@override Future<void> crateBridgeApiSetupLogger()  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
             final serializer = SseSerializer(generalizedFrbRustBinding);
-            sse_encode_StreamSink_log_state_Sse(sink, serializer);
-            pdeCallFfi(
-              generalizedFrbRustBinding,
-              serializer,
-              funcId: 40,
-              port: port_,
-            );
-          },
-          codec: SseCodec(
-            decodeSuccessData: sse_decode_unit,
-            decodeErrorData: sse_decode_AnyhowException,
-          ),
-          constMeta: kCrateBridgeApiCreateLogStreamConstMeta,
-          argValues: [sink],
-          apiImpl: this,
-        ),
-      ),
-    );
-    return sink.stream;
-  }
-
-  TaskConstMeta get kCrateBridgeApiCreateLogStreamConstMeta =>
-      const TaskConstMeta(debugName: "create_log_stream", argNames: ["sink"]);
-
-  @override
-  Future<void> crateBridgeApiSetupLogger() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 41,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 41, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateBridgeApiSetupLoggerConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateBridgeApiSetupLoggerConstMeta,
+            argValues: [],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateBridgeApiSetupLoggerConstMeta =>
-      const TaskConstMeta(debugName: "setup_logger", argNames: []);
 
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_AppHandle => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_AppHandle => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_HistoryRecord => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_HistoryRecord => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_Repository => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_Repository => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository;
-
-  @protected
-  AnyhowException dco_decode_AnyhowException(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return AnyhowException(raw as String);
-  }
-
-  @protected
-  AppHandle
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return AppHandleImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  HistoryRecord
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return HistoryRecordImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  Repository
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return RepositoryImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  AppHandle
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return AppHandleImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  AppHandle
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return AppHandleImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  AppHandle
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return AppHandleImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  HistoryRecord
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return HistoryRecordImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  Repository
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return RepositoryImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  RustStreamSink<GraphEvent> dco_decode_StreamSink_graph_event_Sse(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    throw UnimplementedError();
-  }
-
-  @protected
-  RustStreamSink<LogState> dco_decode_StreamSink_log_state_Sse(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    throw UnimplementedError();
-  }
-
-  @protected
-  String dco_decode_String(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as String;
-  }
-
-  @protected
-  BlockAttrs dco_decode_block_attrs(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return BlockAttrs(
-      level: dco_decode_opt_box_autoadd_u_8(arr[0]),
-      language: dco_decode_opt_String(arr[1]),
-    );
-  }
-
-  @protected
-  BlockType dco_decode_block_type(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return BlockType.values[raw as int];
-  }
-
-  @protected
-  bool dco_decode_bool(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as bool;
-  }
-
-  @protected
-  BoundingBox dco_decode_bounding_box(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 4)
-      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
-    return BoundingBox(
-      minX: dco_decode_f_64(arr[0]),
-      minY: dco_decode_f_64(arr[1]),
-      maxX: dco_decode_f_64(arr[2]),
-      maxY: dco_decode_f_64(arr[3]),
-    );
-  }
-
-  @protected
-  HistoryRecord
-  dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-      raw,
-    );
-  }
-
-  @protected
-  BlockAttrs dco_decode_box_autoadd_block_attrs(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_block_attrs(raw);
-  }
-
-  @protected
-  BoundingBox dco_decode_box_autoadd_bounding_box(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_bounding_box(raw);
-  }
-
-  @protected
-  Content dco_decode_box_autoadd_content(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_content(raw);
-  }
-
-  @protected
-  Coordinates dco_decode_box_autoadd_coordinates(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_coordinates(raw);
-  }
-
-  @protected
-  PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_i_64(raw);
-  }
-
-  @protected
-  INode dco_decode_box_autoadd_i_node(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_i_node(raw);
-  }
-
-  @protected
-  IRelation dco_decode_box_autoadd_i_relation(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_i_relation(raw);
-  }
-
-  @protected
-  InterNode dco_decode_box_autoadd_inter_node(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_inter_node(raw);
-  }
-
-  @protected
-  MarkAttrs dco_decode_box_autoadd_mark_attrs(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_mark_attrs(raw);
-  }
-
-  @protected
-  NodeLayout dco_decode_box_autoadd_node_layout(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_node_layout(raw);
-  }
-
-  @protected
-  NodeStyle dco_decode_box_autoadd_node_style(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_node_style(raw);
-  }
-
-  @protected
-  Nodes dco_decode_box_autoadd_nodes(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_nodes(raw);
-  }
-
-  @protected
-  RecordStrings dco_decode_box_autoadd_record_strings(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_record_strings(raw);
-  }
-
-  @protected
-  RelationLayout dco_decode_box_autoadd_relation_layout(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_relation_layout(raw);
-  }
-
-  @protected
-  RelationStyle dco_decode_box_autoadd_relation_style(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_relation_style(raw);
-  }
-
-  @protected
-  Size dco_decode_box_autoadd_size(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_size(raw);
-  }
-
-  @protected
-  SymmetricEntityPatch dco_decode_box_autoadd_symmetric_entity_patch(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_symmetric_entity_patch(raw);
-  }
-
-  @protected
-  Tag dco_decode_box_autoadd_tag(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_tag(raw);
-  }
-
-  @protected
-  TagOperation dco_decode_box_autoadd_tag_operation(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_tag_operation(raw);
-  }
-
-  @protected
-  TaskNode dco_decode_box_autoadd_task_node(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_task_node(raw);
-  }
-
-  @protected
-  Theme dco_decode_box_autoadd_theme(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_theme(raw);
-  }
-
-  @protected
-  ThemeFields dco_decode_box_autoadd_theme_fields(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_theme_fields(raw);
-  }
-
-  @protected
-  int dco_decode_box_autoadd_u_8(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as int;
-  }
-
-  @protected
-  ViewportState dco_decode_box_autoadd_viewport_state(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_viewport_state(raw);
-  }
-
-  @protected
-  Comment dco_decode_comment(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return Comment(
-      text: dco_decode_String(arr[0]),
-      createdAt: dco_decode_i_64(arr[1]),
-    );
-  }
-
-  @protected
-  Content dco_decode_content(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return Content(
-      text: dco_decode_String(arr[0]),
-      blocks: dco_decode_list_content_block(arr[1]),
-    );
-  }
-
-  @protected
-  ContentBlock dco_decode_content_block(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-    return ContentBlock(
-      blockType: dco_decode_block_type(arr[0]),
-      content: dco_decode_list_inline_element(arr[1]),
-      attrs: dco_decode_opt_box_autoadd_block_attrs(arr[2]),
-    );
-  }
-
-  @protected
-  Coordinates dco_decode_coordinates(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return Coordinates(x: dco_decode_i_32(arr[0]), y: dco_decode_i_32(arr[1]));
-  }
-
-  @protected
-  DisplayMode dco_decode_display_mode(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return DisplayMode.values[raw as int];
-  }
-
-  @protected
-  EntityPatch dco_decode_entity_patch(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    switch (raw[0]) {
-      case 0:
-        return EntityPatch_Node(dco_decode_list_node_patch(raw[1]));
-      case 1:
-        return EntityPatch_Relation(dco_decode_list_relation_patch(raw[1]));
-      case 2:
-        return EntityPatch_CreateNode(
-          dco_decode_box_autoadd_nodes(raw[1]),
-          dco_decode_list_i_relation(raw[2]),
+        TaskConstMeta get kCrateBridgeApiSetupLoggerConstMeta => const TaskConstMeta(
+            debugName: "setup_logger",
+            argNames: [],
         );
-      case 3:
-        return EntityPatch_DeleteNode(
-          dco_decode_box_autoadd_nodes(raw[1]),
-          dco_decode_list_i_relation(raw[2]),
-        );
-      case 4:
-        return EntityPatch_CreateRelation(
-          dco_decode_box_autoadd_i_relation(raw[1]),
-        );
-      case 5:
-        return EntityPatch_DeleteRelation(
-          dco_decode_box_autoadd_i_relation(raw[1]),
-        );
-      default:
-        throw Exception("unreachable");
-    }
-  }
-
-  @protected
-  double dco_decode_f_64(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as double;
-  }
-
-  @protected
-  FontWeight dco_decode_font_weight(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 1)
-      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
-    return FontWeight(field0: dco_decode_u_8(arr[0]));
-  }
-
-  @protected
-  GraphEvent dco_decode_graph_event(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    switch (raw[0]) {
-      case 0:
-        return GraphEvent_NodeUpdated(dco_decode_box_autoadd_nodes(raw[1]));
-      case 1:
-        return GraphEvent_NodeDeleted(dco_decode_String(raw[1]));
-      case 2:
-        return GraphEvent_RelationUpdated();
-      case 3:
-        return GraphEvent_SnapshotLoaded();
-      case 4:
-        return GraphEvent_BoundaryUpdated(
-          dco_decode_box_autoadd_bounding_box(raw[1]),
-        );
-      default:
-        throw Exception("unreachable");
-    }
-  }
-
-  @protected
-  int dco_decode_i_32(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as int;
-  }
-
-  @protected
-  PlatformInt64 dco_decode_i_64(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dcoDecodeI64(raw);
-  }
-
-  @protected
-  INode dco_decode_i_node(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return INode(
-      key: dco_decode_String(arr[0]),
-      fields: dco_decode_i_node_fields(arr[1]),
-    );
-  }
-
-  @protected
-  INodeFields dco_decode_i_node_fields(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 19)
-      throw Exception('unexpected arr length: expect 19 but see ${arr.length}');
-    return INodeFields(
-      content: dco_decode_content(arr[0]),
-      style: dco_decode_opt_box_autoadd_node_style(arr[1]),
-      resolvedStyle: dco_decode_opt_box_autoadd_node_style(arr[2]),
-      layout: dco_decode_opt_box_autoadd_node_layout(arr[3]),
-      resolvedLayout: dco_decode_opt_box_autoadd_node_layout(arr[4]),
-      layer: dco_decode_String(arr[5]),
-      position: dco_decode_coordinates(arr[6]),
-      size: dco_decode_size(arr[7]),
-      lineCount: dco_decode_i_32(arr[8]),
-      expandable: dco_decode_bool(arr[9]),
-      isExpanded: dco_decode_bool(arr[10]),
-      locked: dco_decode_bool(arr[11]),
-      tags: dco_decode_list_tag_edge(arr[12]),
-      aliases: dco_decode_list_String(arr[13]),
-      comments: dco_decode_list_comment(arr[14]),
-      attachment: dco_decode_opt_String(arr[15]),
-      significance: dco_decode_u_8(arr[16]),
-      createdAt: dco_decode_i_64(arr[17]),
-      updatedAt: dco_decode_i_64(arr[18]),
-    );
-  }
-
-  @protected
-  IRelation dco_decode_i_relation(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 4)
-      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
-    return IRelation(
-      key: dco_decode_String(arr[0]),
-      in_: dco_decode_record_strings(arr[1]),
-      out: dco_decode_record_strings(arr[2]),
-      fields: dco_decode_i_relation_fields(arr[3]),
-    );
-  }
-
-  @protected
-  IRelationFields dco_decode_i_relation_fields(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 9)
-      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
-    return IRelationFields(
-      verb: dco_decode_String(arr[0]),
-      style: dco_decode_opt_box_autoadd_relation_style(arr[1]),
-      resolvedStyle: dco_decode_opt_box_autoadd_relation_style(arr[2]),
-      layout: dco_decode_opt_box_autoadd_relation_layout(arr[3]),
-      resolvedLayout: dco_decode_opt_box_autoadd_relation_layout(arr[4]),
-      directionless: dco_decode_bool(arr[5]),
-      layer: dco_decode_String(arr[6]),
-      createdAt: dco_decode_i_64(arr[7]),
-      updatedAt: dco_decode_i_64(arr[8]),
-    );
-  }
-
-  @protected
-  InlineElement dco_decode_inline_element(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-    return InlineElement(
-      inlineType: dco_decode_inline_type(arr[0]),
-      text: dco_decode_String(arr[1]),
-      marks: dco_decode_opt_list_text_mark(arr[2]),
-    );
-  }
-
-  @protected
-  InlineType dco_decode_inline_type(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return InlineType.values[raw as int];
-  }
-
-  @protected
-  InterNode dco_decode_inter_node(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return InterNode(
-      key: dco_decode_String(arr[0]),
-      fields: dco_decode_inter_node_fields(arr[1]),
-    );
-  }
-
-  @protected
-  InterNodeFields dco_decode_inter_node_fields(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 7)
-      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
-    return InterNodeFields(
-      verb: dco_decode_String(arr[0]),
-      behavioralFeatures: dco_decode_opt_String(arr[1]),
-      position: dco_decode_coordinates(arr[2]),
-      style: dco_decode_opt_String(arr[3]),
-      layer: dco_decode_String(arr[4]),
-      createdAt: dco_decode_i_64(arr[5]),
-      updatedAt: dco_decode_i_64(arr[6]),
-    );
-  }
-
-  @protected
-  List<String> dco_decode_list_String(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_String).toList();
-  }
-
-  @protected
-  List<Comment> dco_decode_list_comment(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_comment).toList();
-  }
-
-  @protected
-  List<ContentBlock> dco_decode_list_content_block(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_content_block).toList();
-  }
-
-  @protected
-  List<INode> dco_decode_list_i_node(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_i_node).toList();
-  }
-
-  @protected
-  List<IRelation> dco_decode_list_i_relation(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_i_relation).toList();
-  }
-
-  @protected
-  List<InlineElement> dco_decode_list_inline_element(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_inline_element).toList();
-  }
-
-  @protected
-  List<InterNode> dco_decode_list_inter_node(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_inter_node).toList();
-  }
-
-  @protected
-  List<NodePatch> dco_decode_list_node_patch(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_node_patch).toList();
-  }
-
-  @protected
-  List<Nodes> dco_decode_list_nodes(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_nodes).toList();
-  }
-
-  @protected
-  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as Uint8List;
-  }
-
-  @protected
-  List<RecordStrings> dco_decode_list_record_strings(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_record_strings).toList();
-  }
-
-  @protected
-  List<RelationPatch> dco_decode_list_relation_patch(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_relation_patch).toList();
-  }
-
-  @protected
-  List<Tag> dco_decode_list_tag(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_tag).toList();
-  }
-
-  @protected
-  List<TagEdge> dco_decode_list_tag_edge(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_tag_edge).toList();
-  }
-
-  @protected
-  List<TaskNode> dco_decode_list_task_node(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_task_node).toList();
-  }
-
-  @protected
-  List<Template> dco_decode_list_template(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_template).toList();
-  }
-
-  @protected
-  List<TextMark> dco_decode_list_text_mark(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_text_mark).toList();
-  }
-
-  @protected
-  List<Theme> dco_decode_list_theme(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_theme).toList();
-  }
-
-  @protected
-  LogState dco_decode_log_state(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 4)
-      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
-    return LogState(
-      tMicro: dco_decode_i_64(arr[0]),
-      seqId: dco_decode_i_64(arr[1]),
-      level: dco_decode_u_8(arr[2]),
-      message: dco_decode_String(arr[3]),
-    );
-  }
-
-  @protected
-  MapData dco_decode_map_data(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 4)
-      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
-    return MapData(
-      mapName: dco_decode_String(arr[0]),
-      viewportState: dco_decode_viewport_state(arr[1]),
-      activeThemeId: dco_decode_opt_String(arr[2]),
-      displayMode: dco_decode_display_mode(arr[3]),
-    );
-  }
-
-  @protected
-  MarkAttrs dco_decode_mark_attrs(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 1)
-      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
-    return MarkAttrs(href: dco_decode_opt_String(arr[0]));
-  }
-
-  @protected
-  MarkType dco_decode_mark_type(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return MarkType.values[raw as int];
-  }
-
-  @protected
-  NodeLayout dco_decode_node_layout(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 1)
-      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
-    return NodeLayout(strategyType: dco_decode_String(arr[0]));
-  }
-
-  @protected
-  NodePatch dco_decode_node_patch(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    switch (raw[0]) {
-      case 0:
-        return NodePatch_Position(dco_decode_box_autoadd_coordinates(raw[1]));
-      case 1:
-        return NodePatch_Size(dco_decode_box_autoadd_size(raw[1]));
-      case 2:
-        return NodePatch_Content(dco_decode_box_autoadd_content(raw[1]));
-      case 3:
-        return NodePatch_IsExpanded(dco_decode_bool(raw[1]));
-      case 4:
-        return NodePatch_Style(dco_decode_opt_box_autoadd_node_style(raw[1]));
-      case 5:
-        return NodePatch_TagOp(dco_decode_box_autoadd_tag_operation(raw[1]));
-      case 6:
-        return NodePatch_Significance(dco_decode_u_8(raw[1]));
-      default:
-        throw Exception("unreachable");
-    }
-  }
-
-  @protected
-  NodeStyle dco_decode_node_style(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 17)
-      throw Exception('unexpected arr length: expect 17 but see ${arr.length}');
-    return NodeStyle(
-      bgColor: dco_decode_u_32(arr[0]),
-      strokeColor: dco_decode_u_32(arr[1]),
-      strokeWidth: dco_decode_i_32(arr[2]),
-      fontFamily: dco_decode_String(arr[3]),
-      fontSize: dco_decode_f_64(arr[4]),
-      shape: dco_decode_String(arr[5]),
-      width: dco_decode_i_32(arr[6]),
-      height: dco_decode_i_32(arr[7]),
-      textColor: dco_decode_u_32(arr[8]),
-      borderRadius: dco_decode_f_64(arr[9]),
-      padding: dco_decode_f_64(arr[10]),
-      shadowColor: dco_decode_u_32(arr[11]),
-      shadowBlur: dco_decode_f_64(arr[12]),
-      shadowSpread: dco_decode_f_64(arr[13]),
-      shadowOffsetX: dco_decode_f_64(arr[14]),
-      shadowOffsetY: dco_decode_f_64(arr[15]),
-      strategyType: dco_decode_String(arr[16]),
-    );
-  }
-
-  @protected
-  Nodes dco_decode_nodes(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    switch (raw[0]) {
-      case 0:
-        return Nodes_INode(dco_decode_box_autoadd_i_node(raw[1]));
-      case 1:
-        return Nodes_TaskNode(dco_decode_box_autoadd_task_node(raw[1]));
-      case 2:
-        return Nodes_InterNode(dco_decode_box_autoadd_inter_node(raw[1]));
-      default:
-        throw Exception("unreachable");
-    }
-  }
-
-  @protected
-  String? dco_decode_opt_String(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_String(raw);
-  }
-
-  @protected
-  HistoryRecord?
-  dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null
-        ? null
-        : dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-            raw,
-          );
-  }
-
-  @protected
-  BlockAttrs? dco_decode_opt_box_autoadd_block_attrs(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_box_autoadd_block_attrs(raw);
-  }
-
-  @protected
-  PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_box_autoadd_i_64(raw);
-  }
-
-  @protected
-  MarkAttrs? dco_decode_opt_box_autoadd_mark_attrs(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_box_autoadd_mark_attrs(raw);
-  }
-
-  @protected
-  NodeLayout? dco_decode_opt_box_autoadd_node_layout(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_box_autoadd_node_layout(raw);
-  }
-
-  @protected
-  NodeStyle? dco_decode_opt_box_autoadd_node_style(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_box_autoadd_node_style(raw);
-  }
-
-  @protected
-  Nodes? dco_decode_opt_box_autoadd_nodes(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_box_autoadd_nodes(raw);
-  }
-
-  @protected
-  RelationLayout? dco_decode_opt_box_autoadd_relation_layout(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_box_autoadd_relation_layout(raw);
-  }
-
-  @protected
-  RelationStyle? dco_decode_opt_box_autoadd_relation_style(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_box_autoadd_relation_style(raw);
-  }
-
-  @protected
-  Tag? dco_decode_opt_box_autoadd_tag(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_box_autoadd_tag(raw);
-  }
-
-  @protected
-  Theme? dco_decode_opt_box_autoadd_theme(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_box_autoadd_theme(raw);
-  }
-
-  @protected
-  int? dco_decode_opt_box_autoadd_u_8(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_box_autoadd_u_8(raw);
-  }
-
-  @protected
-  List<TextMark>? dco_decode_opt_list_text_mark(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_list_text_mark(raw);
-  }
-
-  @protected
-  (List<INode>, List<TaskNode>, List<InterNode>, List<IRelation>, MapData)
-  dco_decode_record_list_i_node_list_task_node_list_inter_node_list_i_relation_map_data(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 5) {
-      throw Exception('Expected 5 elements, got ${arr.length}');
-    }
-    return (
-      dco_decode_list_i_node(arr[0]),
-      dco_decode_list_task_node(arr[1]),
-      dco_decode_list_inter_node(arr[2]),
-      dco_decode_list_i_relation(arr[3]),
-      dco_decode_map_data(arr[4]),
-    );
-  }
-
-  @protected
-  RecordStrings dco_decode_record_strings(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return RecordStrings(
-      table: dco_decode_String(arr[0]),
-      key: dco_decode_String(arr[1]),
-    );
-  }
-
-  @protected
-  RelationLayout dco_decode_relation_layout(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-    return RelationLayout(
-      fromSide: dco_decode_String(arr[0]),
-      toSide: dco_decode_String(arr[1]),
-      strategyType: dco_decode_String(arr[2]),
-    );
-  }
-
-  @protected
-  RelationPatch dco_decode_relation_patch(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    switch (raw[0]) {
-      case 0:
-        return RelationPatch_Verb(dco_decode_String(raw[1]));
-      case 1:
-        return RelationPatch_Style(
-          dco_decode_opt_box_autoadd_relation_style(raw[1]),
-        );
-      case 2:
-        return RelationPatch_Layout(
-          dco_decode_opt_box_autoadd_relation_layout(raw[1]),
-        );
-      case 3:
-        return RelationPatch_Directionless(dco_decode_bool(raw[1]));
-      default:
-        throw Exception("unreachable");
-    }
-  }
-
-  @protected
-  RelationStyle dco_decode_relation_style(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 16)
-      throw Exception('unexpected arr length: expect 16 but see ${arr.length}');
-    return RelationStyle(
-      bgColor: dco_decode_u_32(arr[0]),
-      strokeColor: dco_decode_u_32(arr[1]),
-      strokeWidth: dco_decode_i_32(arr[2]),
-      fontFamily: dco_decode_String(arr[3]),
-      fontSize: dco_decode_f_64(arr[4]),
-      shape: dco_decode_String(arr[5]),
-      arrowType: dco_decode_String(arr[6]),
-      arrowSize: dco_decode_f_64(arr[7]),
-      width: dco_decode_i_32(arr[8]),
-      height: dco_decode_i_32(arr[9]),
-      textColor: dco_decode_u_32(arr[10]),
-      shadowColor: dco_decode_u_32(arr[11]),
-      shadowBlur: dco_decode_f_64(arr[12]),
-      shadowOffsetX: dco_decode_f_64(arr[13]),
-      shadowOffsetY: dco_decode_f_64(arr[14]),
-      strategyType: dco_decode_String(arr[15]),
-    );
-  }
-
-  @protected
-  Size dco_decode_size(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return Size(
-      width: dco_decode_i_32(arr[0]),
-      height: dco_decode_i_32(arr[1]),
-    );
-  }
-
-  @protected
-  SymmetricEntityPatch dco_decode_symmetric_entity_patch(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-    return SymmetricEntityPatch(
-      id: dco_decode_record_strings(arr[0]),
-      forward: dco_decode_entity_patch(arr[1]),
-      reverse: dco_decode_entity_patch(arr[2]),
-    );
-  }
-
-  @protected
-  Tag dco_decode_tag(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return Tag(
-      key: dco_decode_String(arr[0]),
-      fields: dco_decode_tag_fields(arr[1]),
-    );
-  }
-
-  @protected
-  TagEdge dco_decode_tag_edge(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    switch (raw[0]) {
-      case 0:
-        return TagEdge_Hydrated(dco_decode_box_autoadd_tag(raw[1]));
-      case 1:
-        return TagEdge_Pointer(dco_decode_box_autoadd_record_strings(raw[1]));
-      default:
-        throw Exception("unreachable");
-    }
-  }
-
-  @protected
-  TagFields dco_decode_tag_fields(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 4)
-      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
-    return TagFields(
-      name: dco_decode_String(arr[0]),
-      color: dco_decode_u_32(arr[1]),
-      createdAt: dco_decode_i_64(arr[2]),
-      updatedAt: dco_decode_i_64(arr[3]),
-    );
-  }
-
-  @protected
-  TagOperation dco_decode_tag_operation(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    switch (raw[0]) {
-      case 0:
-        return TagOperation_Add(dco_decode_String(raw[1]));
-      case 1:
-        return TagOperation_Remove(dco_decode_String(raw[1]));
-      default:
-        throw Exception("unreachable");
-    }
-  }
-
-  @protected
-  TaskNode dco_decode_task_node(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return TaskNode(
-      key: dco_decode_String(arr[0]),
-      fields: dco_decode_task_node_fields(arr[1]),
-    );
-  }
-
-  @protected
-  TaskNodeFields dco_decode_task_node_fields(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 15)
-      throw Exception('unexpected arr length: expect 15 but see ${arr.length}');
-    return TaskNodeFields(
-      content: dco_decode_content(arr[0]),
-      dueDate: dco_decode_opt_box_autoadd_i_64(arr[1]),
-      state: dco_decode_String(arr[2]),
-      position: dco_decode_coordinates(arr[3]),
-      size: dco_decode_size(arr[4]),
-      expandable: dco_decode_bool(arr[5]),
-      isExpanded: dco_decode_bool(arr[6]),
-      layer: dco_decode_String(arr[7]),
-      style: dco_decode_opt_box_autoadd_node_style(arr[8]),
-      resolvedStyle: dco_decode_opt_box_autoadd_node_style(arr[9]),
-      layout: dco_decode_opt_box_autoadd_node_layout(arr[10]),
-      resolvedLayout: dco_decode_opt_box_autoadd_node_layout(arr[11]),
-      significance: dco_decode_u_8(arr[12]),
-      createdAt: dco_decode_i_64(arr[13]),
-      updatedAt: dco_decode_i_64(arr[14]),
-    );
-  }
-
-  @protected
-  Template dco_decode_template(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 6)
-      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
-    return Template(
-      key: dco_decode_String(arr[0]),
-      name: dco_decode_String(arr[1]),
-      createdAt: dco_decode_i_64(arr[2]),
-      updatedAt: dco_decode_i_64(arr[3]),
-      nodes: dco_decode_list_nodes(arr[4]),
-      relations: dco_decode_list_i_relation(arr[5]),
-    );
-  }
-
-  @protected
-  TextMark dco_decode_text_mark(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return TextMark(
-      markType: dco_decode_mark_type(arr[0]),
-      attrs: dco_decode_opt_box_autoadd_mark_attrs(arr[1]),
-    );
-  }
-
-  @protected
-  Theme dco_decode_theme(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return Theme(
-      key: dco_decode_String(arr[0]),
-      fields: dco_decode_theme_fields(arr[1]),
-    );
-  }
-
-  @protected
-  ThemeBrightness dco_decode_theme_brightness(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ThemeBrightness.values[raw as int];
-  }
-
-  @protected
-  ThemeFields dco_decode_theme_fields(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 20)
-      throw Exception('unexpected arr length: expect 20 but see ${arr.length}');
-    return ThemeFields(
-      name: dco_decode_String(arr[0]),
-      primaryColor: dco_decode_u_32(arr[1]),
-      secondaryColor: dco_decode_u_32(arr[2]),
-      accentColor: dco_decode_u_32(arr[3]),
-      scaffoldBackgroundColor: dco_decode_u_32(arr[4]),
-      cardColor: dco_decode_u_32(arr[5]),
-      dividerColor: dco_decode_u_32(arr[6]),
-      textColor: dco_decode_u_32(arr[7]),
-      fontFamily: dco_decode_String(arr[8]),
-      bodyFontSize: dco_decode_f_64(arr[9]),
-      bodyFontWeight: dco_decode_font_weight(arr[10]),
-      bodyTextColor: dco_decode_u_32(arr[11]),
-      borderRadius: dco_decode_f_64(arr[12]),
-      appBarBackgroundColor: dco_decode_u_32(arr[13]),
-      appBarForegroundColor: dco_decode_u_32(arr[14]),
-      appBarElevation: dco_decode_f_64(arr[15]),
-      appBarTitleFontSize: dco_decode_f_64(arr[16]),
-      appBarTitleFontWeight: dco_decode_font_weight(arr[17]),
-      useMaterial3: dco_decode_bool(arr[18]),
-      brightness: dco_decode_theme_brightness(arr[19]),
-    );
-  }
-
-  @protected
-  int dco_decode_u_32(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as int;
-  }
-
-  @protected
-  int dco_decode_u_8(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as int;
-  }
-
-  @protected
-  void dco_decode_unit(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return;
-  }
-
-  @protected
-  BigInt dco_decode_usize(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dcoDecodeU64(raw);
-  }
-
-  @protected
-  ViewportState dco_decode_viewport_state(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 4)
-      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
-    return ViewportState(
-      xOffset: dco_decode_f_64(arr[0]),
-      yOffset: dco_decode_f_64(arr[1]),
-      zoomLevel: dco_decode_f_64(arr[2]),
-      activeView: dco_decode_String(arr[3]),
-    );
-  }
-
-  @protected
-  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_String(deserializer);
-    return AnyhowException(inner);
-  }
-
-  @protected
-  AppHandle
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return AppHandleImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  HistoryRecord
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return HistoryRecordImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  Repository
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return RepositoryImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  AppHandle
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return AppHandleImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  AppHandle
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return AppHandleImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  AppHandle
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return AppHandleImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  HistoryRecord
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return HistoryRecordImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  Repository
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return RepositoryImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  RustStreamSink<GraphEvent> sse_decode_StreamSink_graph_event_Sse(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    throw UnimplementedError('Unreachable ()');
-  }
-
-  @protected
-  RustStreamSink<LogState> sse_decode_StreamSink_log_state_Sse(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    throw UnimplementedError('Unreachable ()');
-  }
-
-  @protected
-  String sse_decode_String(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_list_prim_u_8_strict(deserializer);
-    return utf8.decoder.convert(inner);
-  }
-
-  @protected
-  BlockAttrs sse_decode_block_attrs(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_level = sse_decode_opt_box_autoadd_u_8(deserializer);
-    var var_language = sse_decode_opt_String(deserializer);
-    return BlockAttrs(level: var_level, language: var_language);
-  }
-
-  @protected
-  BlockType sse_decode_block_type(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_i_32(deserializer);
-    return BlockType.values[inner];
-  }
-
-  @protected
-  bool sse_decode_bool(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getUint8() != 0;
-  }
-
-  @protected
-  BoundingBox sse_decode_bounding_box(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_minX = sse_decode_f_64(deserializer);
-    var var_minY = sse_decode_f_64(deserializer);
-    var var_maxX = sse_decode_f_64(deserializer);
-    var var_maxY = sse_decode_f_64(deserializer);
-    return BoundingBox(
-      minX: var_minX,
-      minY: var_minY,
-      maxX: var_maxX,
-      maxY: var_maxY,
-    );
-  }
-
-  @protected
-  HistoryRecord
-  sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-      deserializer,
-    ));
-  }
-
-  @protected
-  BlockAttrs sse_decode_box_autoadd_block_attrs(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_block_attrs(deserializer));
-  }
-
-  @protected
-  BoundingBox sse_decode_box_autoadd_bounding_box(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_bounding_box(deserializer));
-  }
-
-  @protected
-  Content sse_decode_box_autoadd_content(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_content(deserializer));
-  }
-
-  @protected
-  Coordinates sse_decode_box_autoadd_coordinates(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_coordinates(deserializer));
-  }
-
-  @protected
-  PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_i_64(deserializer));
-  }
-
-  @protected
-  INode sse_decode_box_autoadd_i_node(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_i_node(deserializer));
-  }
-
-  @protected
-  IRelation sse_decode_box_autoadd_i_relation(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_i_relation(deserializer));
-  }
-
-  @protected
-  InterNode sse_decode_box_autoadd_inter_node(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_inter_node(deserializer));
-  }
-
-  @protected
-  MarkAttrs sse_decode_box_autoadd_mark_attrs(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_mark_attrs(deserializer));
-  }
-
-  @protected
-  NodeLayout sse_decode_box_autoadd_node_layout(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_node_layout(deserializer));
-  }
-
-  @protected
-  NodeStyle sse_decode_box_autoadd_node_style(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_node_style(deserializer));
-  }
-
-  @protected
-  Nodes sse_decode_box_autoadd_nodes(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_nodes(deserializer));
-  }
-
-  @protected
-  RecordStrings sse_decode_box_autoadd_record_strings(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_record_strings(deserializer));
-  }
-
-  @protected
-  RelationLayout sse_decode_box_autoadd_relation_layout(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_relation_layout(deserializer));
-  }
-
-  @protected
-  RelationStyle sse_decode_box_autoadd_relation_style(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_relation_style(deserializer));
-  }
-
-  @protected
-  Size sse_decode_box_autoadd_size(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_size(deserializer));
-  }
-
-  @protected
-  SymmetricEntityPatch sse_decode_box_autoadd_symmetric_entity_patch(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_symmetric_entity_patch(deserializer));
-  }
-
-  @protected
-  Tag sse_decode_box_autoadd_tag(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_tag(deserializer));
-  }
-
-  @protected
-  TagOperation sse_decode_box_autoadd_tag_operation(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_tag_operation(deserializer));
-  }
-
-  @protected
-  TaskNode sse_decode_box_autoadd_task_node(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_task_node(deserializer));
-  }
-
-  @protected
-  Theme sse_decode_box_autoadd_theme(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_theme(deserializer));
-  }
-
-  @protected
-  ThemeFields sse_decode_box_autoadd_theme_fields(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_theme_fields(deserializer));
-  }
-
-  @protected
-  int sse_decode_box_autoadd_u_8(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_u_8(deserializer));
-  }
-
-  @protected
-  ViewportState sse_decode_box_autoadd_viewport_state(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_viewport_state(deserializer));
-  }
-
-  @protected
-  Comment sse_decode_comment(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_text = sse_decode_String(deserializer);
-    var var_createdAt = sse_decode_i_64(deserializer);
-    return Comment(text: var_text, createdAt: var_createdAt);
-  }
-
-  @protected
-  Content sse_decode_content(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_text = sse_decode_String(deserializer);
-    var var_blocks = sse_decode_list_content_block(deserializer);
-    return Content(text: var_text, blocks: var_blocks);
-  }
-
-  @protected
-  ContentBlock sse_decode_content_block(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_blockType = sse_decode_block_type(deserializer);
-    var var_content = sse_decode_list_inline_element(deserializer);
-    var var_attrs = sse_decode_opt_box_autoadd_block_attrs(deserializer);
-    return ContentBlock(
-      blockType: var_blockType,
-      content: var_content,
-      attrs: var_attrs,
-    );
-  }
-
-  @protected
-  Coordinates sse_decode_coordinates(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_x = sse_decode_i_32(deserializer);
-    var var_y = sse_decode_i_32(deserializer);
-    return Coordinates(x: var_x, y: var_y);
-  }
-
-  @protected
-  DisplayMode sse_decode_display_mode(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_i_32(deserializer);
-    return DisplayMode.values[inner];
-  }
-
-  @protected
-  EntityPatch sse_decode_entity_patch(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var tag_ = sse_decode_i_32(deserializer);
-    switch (tag_) {
-      case 0:
-        var var_field0 = sse_decode_list_node_patch(deserializer);
-        return EntityPatch_Node(var_field0);
-      case 1:
-        var var_field0 = sse_decode_list_relation_patch(deserializer);
-        return EntityPatch_Relation(var_field0);
-      case 2:
-        var var_field0 = sse_decode_box_autoadd_nodes(deserializer);
-        var var_field1 = sse_decode_list_i_relation(deserializer);
-        return EntityPatch_CreateNode(var_field0, var_field1);
-      case 3:
-        var var_field0 = sse_decode_box_autoadd_nodes(deserializer);
-        var var_field1 = sse_decode_list_i_relation(deserializer);
-        return EntityPatch_DeleteNode(var_field0, var_field1);
-      case 4:
-        var var_field0 = sse_decode_box_autoadd_i_relation(deserializer);
-        return EntityPatch_CreateRelation(var_field0);
-      case 5:
-        var var_field0 = sse_decode_box_autoadd_i_relation(deserializer);
-        return EntityPatch_DeleteRelation(var_field0);
-      default:
-        throw UnimplementedError('');
-    }
-  }
-
-  @protected
-  double sse_decode_f_64(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getFloat64();
-  }
-
-  @protected
-  FontWeight sse_decode_font_weight(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_field0 = sse_decode_u_8(deserializer);
-    return FontWeight(field0: var_field0);
-  }
-
-  @protected
-  GraphEvent sse_decode_graph_event(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var tag_ = sse_decode_i_32(deserializer);
-    switch (tag_) {
-      case 0:
-        var var_field0 = sse_decode_box_autoadd_nodes(deserializer);
-        return GraphEvent_NodeUpdated(var_field0);
-      case 1:
-        var var_field0 = sse_decode_String(deserializer);
-        return GraphEvent_NodeDeleted(var_field0);
-      case 2:
-        return GraphEvent_RelationUpdated();
-      case 3:
-        return GraphEvent_SnapshotLoaded();
-      case 4:
-        var var_field0 = sse_decode_box_autoadd_bounding_box(deserializer);
-        return GraphEvent_BoundaryUpdated(var_field0);
-      default:
-        throw UnimplementedError('');
-    }
-  }
-
-  @protected
-  int sse_decode_i_32(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getInt32();
-  }
-
-  @protected
-  PlatformInt64 sse_decode_i_64(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getPlatformInt64();
-  }
-
-  @protected
-  INode sse_decode_i_node(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_key = sse_decode_String(deserializer);
-    var var_fields = sse_decode_i_node_fields(deserializer);
-    return INode(key: var_key, fields: var_fields);
-  }
-
-  @protected
-  INodeFields sse_decode_i_node_fields(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_content = sse_decode_content(deserializer);
-    var var_style = sse_decode_opt_box_autoadd_node_style(deserializer);
-    var var_resolvedStyle = sse_decode_opt_box_autoadd_node_style(deserializer);
-    var var_layout = sse_decode_opt_box_autoadd_node_layout(deserializer);
-    var var_resolvedLayout = sse_decode_opt_box_autoadd_node_layout(
-      deserializer,
-    );
-    var var_layer = sse_decode_String(deserializer);
-    var var_position = sse_decode_coordinates(deserializer);
-    var var_size = sse_decode_size(deserializer);
-    var var_lineCount = sse_decode_i_32(deserializer);
-    var var_expandable = sse_decode_bool(deserializer);
-    var var_isExpanded = sse_decode_bool(deserializer);
-    var var_locked = sse_decode_bool(deserializer);
-    var var_tags = sse_decode_list_tag_edge(deserializer);
-    var var_aliases = sse_decode_list_String(deserializer);
-    var var_comments = sse_decode_list_comment(deserializer);
-    var var_attachment = sse_decode_opt_String(deserializer);
-    var var_significance = sse_decode_u_8(deserializer);
-    var var_createdAt = sse_decode_i_64(deserializer);
-    var var_updatedAt = sse_decode_i_64(deserializer);
-    return INodeFields(
-      content: var_content,
-      style: var_style,
-      resolvedStyle: var_resolvedStyle,
-      layout: var_layout,
-      resolvedLayout: var_resolvedLayout,
-      layer: var_layer,
-      position: var_position,
-      size: var_size,
-      lineCount: var_lineCount,
-      expandable: var_expandable,
-      isExpanded: var_isExpanded,
-      locked: var_locked,
-      tags: var_tags,
-      aliases: var_aliases,
-      comments: var_comments,
-      attachment: var_attachment,
-      significance: var_significance,
-      createdAt: var_createdAt,
-      updatedAt: var_updatedAt,
-    );
-  }
-
-  @protected
-  IRelation sse_decode_i_relation(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_key = sse_decode_String(deserializer);
-    var var_in_ = sse_decode_record_strings(deserializer);
-    var var_out = sse_decode_record_strings(deserializer);
-    var var_fields = sse_decode_i_relation_fields(deserializer);
-    return IRelation(
-      key: var_key,
-      in_: var_in_,
-      out: var_out,
-      fields: var_fields,
-    );
-  }
-
-  @protected
-  IRelationFields sse_decode_i_relation_fields(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_verb = sse_decode_String(deserializer);
-    var var_style = sse_decode_opt_box_autoadd_relation_style(deserializer);
-    var var_resolvedStyle = sse_decode_opt_box_autoadd_relation_style(
-      deserializer,
-    );
-    var var_layout = sse_decode_opt_box_autoadd_relation_layout(deserializer);
-    var var_resolvedLayout = sse_decode_opt_box_autoadd_relation_layout(
-      deserializer,
-    );
-    var var_directionless = sse_decode_bool(deserializer);
-    var var_layer = sse_decode_String(deserializer);
-    var var_createdAt = sse_decode_i_64(deserializer);
-    var var_updatedAt = sse_decode_i_64(deserializer);
-    return IRelationFields(
-      verb: var_verb,
-      style: var_style,
-      resolvedStyle: var_resolvedStyle,
-      layout: var_layout,
-      resolvedLayout: var_resolvedLayout,
-      directionless: var_directionless,
-      layer: var_layer,
-      createdAt: var_createdAt,
-      updatedAt: var_updatedAt,
-    );
-  }
-
-  @protected
-  InlineElement sse_decode_inline_element(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_inlineType = sse_decode_inline_type(deserializer);
-    var var_text = sse_decode_String(deserializer);
-    var var_marks = sse_decode_opt_list_text_mark(deserializer);
-    return InlineElement(
-      inlineType: var_inlineType,
-      text: var_text,
-      marks: var_marks,
-    );
-  }
-
-  @protected
-  InlineType sse_decode_inline_type(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_i_32(deserializer);
-    return InlineType.values[inner];
-  }
-
-  @protected
-  InterNode sse_decode_inter_node(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_key = sse_decode_String(deserializer);
-    var var_fields = sse_decode_inter_node_fields(deserializer);
-    return InterNode(key: var_key, fields: var_fields);
-  }
-
-  @protected
-  InterNodeFields sse_decode_inter_node_fields(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_verb = sse_decode_String(deserializer);
-    var var_behavioralFeatures = sse_decode_opt_String(deserializer);
-    var var_position = sse_decode_coordinates(deserializer);
-    var var_style = sse_decode_opt_String(deserializer);
-    var var_layer = sse_decode_String(deserializer);
-    var var_createdAt = sse_decode_i_64(deserializer);
-    var var_updatedAt = sse_decode_i_64(deserializer);
-    return InterNodeFields(
-      verb: var_verb,
-      behavioralFeatures: var_behavioralFeatures,
-      position: var_position,
-      style: var_style,
-      layer: var_layer,
-      createdAt: var_createdAt,
-      updatedAt: var_updatedAt,
-    );
-  }
-
-  @protected
-  List<String> sse_decode_list_String(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <String>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_String(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<Comment> sse_decode_list_comment(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <Comment>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_comment(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<ContentBlock> sse_decode_list_content_block(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <ContentBlock>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_content_block(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<INode> sse_decode_list_i_node(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <INode>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_i_node(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<IRelation> sse_decode_list_i_relation(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <IRelation>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_i_relation(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<InlineElement> sse_decode_list_inline_element(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <InlineElement>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_inline_element(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<InterNode> sse_decode_list_inter_node(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <InterNode>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_inter_node(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<NodePatch> sse_decode_list_node_patch(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <NodePatch>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_node_patch(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<Nodes> sse_decode_list_nodes(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <Nodes>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_nodes(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var len_ = sse_decode_i_32(deserializer);
-    return deserializer.buffer.getUint8List(len_);
-  }
-
-  @protected
-  List<RecordStrings> sse_decode_list_record_strings(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <RecordStrings>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_record_strings(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<RelationPatch> sse_decode_list_relation_patch(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <RelationPatch>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_relation_patch(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<Tag> sse_decode_list_tag(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <Tag>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_tag(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<TagEdge> sse_decode_list_tag_edge(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <TagEdge>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_tag_edge(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<TaskNode> sse_decode_list_task_node(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <TaskNode>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_task_node(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<Template> sse_decode_list_template(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <Template>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_template(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<TextMark> sse_decode_list_text_mark(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <TextMark>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_text_mark(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<Theme> sse_decode_list_theme(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <Theme>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_theme(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  LogState sse_decode_log_state(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_tMicro = sse_decode_i_64(deserializer);
-    var var_seqId = sse_decode_i_64(deserializer);
-    var var_level = sse_decode_u_8(deserializer);
-    var var_message = sse_decode_String(deserializer);
-    return LogState(
-      tMicro: var_tMicro,
-      seqId: var_seqId,
-      level: var_level,
-      message: var_message,
-    );
-  }
-
-  @protected
-  MapData sse_decode_map_data(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_mapName = sse_decode_String(deserializer);
-    var var_viewportState = sse_decode_viewport_state(deserializer);
-    var var_activeThemeId = sse_decode_opt_String(deserializer);
-    var var_displayMode = sse_decode_display_mode(deserializer);
-    return MapData(
-      mapName: var_mapName,
-      viewportState: var_viewportState,
-      activeThemeId: var_activeThemeId,
-      displayMode: var_displayMode,
-    );
-  }
-
-  @protected
-  MarkAttrs sse_decode_mark_attrs(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_href = sse_decode_opt_String(deserializer);
-    return MarkAttrs(href: var_href);
-  }
-
-  @protected
-  MarkType sse_decode_mark_type(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_i_32(deserializer);
-    return MarkType.values[inner];
-  }
-
-  @protected
-  NodeLayout sse_decode_node_layout(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_strategyType = sse_decode_String(deserializer);
-    return NodeLayout(strategyType: var_strategyType);
-  }
-
-  @protected
-  NodePatch sse_decode_node_patch(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var tag_ = sse_decode_i_32(deserializer);
-    switch (tag_) {
-      case 0:
-        var var_field0 = sse_decode_box_autoadd_coordinates(deserializer);
-        return NodePatch_Position(var_field0);
-      case 1:
-        var var_field0 = sse_decode_box_autoadd_size(deserializer);
-        return NodePatch_Size(var_field0);
-      case 2:
-        var var_field0 = sse_decode_box_autoadd_content(deserializer);
-        return NodePatch_Content(var_field0);
-      case 3:
-        var var_field0 = sse_decode_bool(deserializer);
-        return NodePatch_IsExpanded(var_field0);
-      case 4:
-        var var_field0 = sse_decode_opt_box_autoadd_node_style(deserializer);
-        return NodePatch_Style(var_field0);
-      case 5:
-        var var_field0 = sse_decode_box_autoadd_tag_operation(deserializer);
-        return NodePatch_TagOp(var_field0);
-      case 6:
-        var var_field0 = sse_decode_u_8(deserializer);
-        return NodePatch_Significance(var_field0);
-      default:
-        throw UnimplementedError('');
-    }
-  }
-
-  @protected
-  NodeStyle sse_decode_node_style(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_bgColor = sse_decode_u_32(deserializer);
-    var var_strokeColor = sse_decode_u_32(deserializer);
-    var var_strokeWidth = sse_decode_i_32(deserializer);
-    var var_fontFamily = sse_decode_String(deserializer);
-    var var_fontSize = sse_decode_f_64(deserializer);
-    var var_shape = sse_decode_String(deserializer);
-    var var_width = sse_decode_i_32(deserializer);
-    var var_height = sse_decode_i_32(deserializer);
-    var var_textColor = sse_decode_u_32(deserializer);
-    var var_borderRadius = sse_decode_f_64(deserializer);
-    var var_padding = sse_decode_f_64(deserializer);
-    var var_shadowColor = sse_decode_u_32(deserializer);
-    var var_shadowBlur = sse_decode_f_64(deserializer);
-    var var_shadowSpread = sse_decode_f_64(deserializer);
-    var var_shadowOffsetX = sse_decode_f_64(deserializer);
-    var var_shadowOffsetY = sse_decode_f_64(deserializer);
-    var var_strategyType = sse_decode_String(deserializer);
-    return NodeStyle(
-      bgColor: var_bgColor,
-      strokeColor: var_strokeColor,
-      strokeWidth: var_strokeWidth,
-      fontFamily: var_fontFamily,
-      fontSize: var_fontSize,
-      shape: var_shape,
-      width: var_width,
-      height: var_height,
-      textColor: var_textColor,
-      borderRadius: var_borderRadius,
-      padding: var_padding,
-      shadowColor: var_shadowColor,
-      shadowBlur: var_shadowBlur,
-      shadowSpread: var_shadowSpread,
-      shadowOffsetX: var_shadowOffsetX,
-      shadowOffsetY: var_shadowOffsetY,
-      strategyType: var_strategyType,
-    );
-  }
-
-  @protected
-  Nodes sse_decode_nodes(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var tag_ = sse_decode_i_32(deserializer);
-    switch (tag_) {
-      case 0:
-        var var_field0 = sse_decode_box_autoadd_i_node(deserializer);
-        return Nodes_INode(var_field0);
-      case 1:
-        var var_field0 = sse_decode_box_autoadd_task_node(deserializer);
-        return Nodes_TaskNode(var_field0);
-      case 2:
-        var var_field0 = sse_decode_box_autoadd_inter_node(deserializer);
-        return Nodes_InterNode(var_field0);
-      default:
-        throw UnimplementedError('');
-    }
-  }
-
-  @protected
-  String? sse_decode_opt_String(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_String(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  HistoryRecord?
-  sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-        deserializer,
-      ));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  BlockAttrs? sse_decode_opt_box_autoadd_block_attrs(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_block_attrs(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_i_64(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  MarkAttrs? sse_decode_opt_box_autoadd_mark_attrs(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_mark_attrs(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  NodeLayout? sse_decode_opt_box_autoadd_node_layout(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_node_layout(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  NodeStyle? sse_decode_opt_box_autoadd_node_style(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_node_style(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  Nodes? sse_decode_opt_box_autoadd_nodes(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_nodes(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  RelationLayout? sse_decode_opt_box_autoadd_relation_layout(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_relation_layout(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  RelationStyle? sse_decode_opt_box_autoadd_relation_style(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_relation_style(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  Tag? sse_decode_opt_box_autoadd_tag(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_tag(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  Theme? sse_decode_opt_box_autoadd_theme(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_theme(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_u_8(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  List<TextMark>? sse_decode_opt_list_text_mark(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_list_text_mark(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  (List<INode>, List<TaskNode>, List<InterNode>, List<IRelation>, MapData)
-  sse_decode_record_list_i_node_list_task_node_list_inter_node_list_i_relation_map_data(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_field0 = sse_decode_list_i_node(deserializer);
-    var var_field1 = sse_decode_list_task_node(deserializer);
-    var var_field2 = sse_decode_list_inter_node(deserializer);
-    var var_field3 = sse_decode_list_i_relation(deserializer);
-    var var_field4 = sse_decode_map_data(deserializer);
-    return (var_field0, var_field1, var_field2, var_field3, var_field4);
-  }
-
-  @protected
-  RecordStrings sse_decode_record_strings(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_table = sse_decode_String(deserializer);
-    var var_key = sse_decode_String(deserializer);
-    return RecordStrings(table: var_table, key: var_key);
-  }
-
-  @protected
-  RelationLayout sse_decode_relation_layout(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_fromSide = sse_decode_String(deserializer);
-    var var_toSide = sse_decode_String(deserializer);
-    var var_strategyType = sse_decode_String(deserializer);
-    return RelationLayout(
-      fromSide: var_fromSide,
-      toSide: var_toSide,
-      strategyType: var_strategyType,
-    );
-  }
-
-  @protected
-  RelationPatch sse_decode_relation_patch(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var tag_ = sse_decode_i_32(deserializer);
-    switch (tag_) {
-      case 0:
-        var var_field0 = sse_decode_String(deserializer);
-        return RelationPatch_Verb(var_field0);
-      case 1:
-        var var_field0 = sse_decode_opt_box_autoadd_relation_style(
-          deserializer,
-        );
-        return RelationPatch_Style(var_field0);
-      case 2:
-        var var_field0 = sse_decode_opt_box_autoadd_relation_layout(
-          deserializer,
-        );
-        return RelationPatch_Layout(var_field0);
-      case 3:
-        var var_field0 = sse_decode_bool(deserializer);
-        return RelationPatch_Directionless(var_field0);
-      default:
-        throw UnimplementedError('');
-    }
-  }
-
-  @protected
-  RelationStyle sse_decode_relation_style(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_bgColor = sse_decode_u_32(deserializer);
-    var var_strokeColor = sse_decode_u_32(deserializer);
-    var var_strokeWidth = sse_decode_i_32(deserializer);
-    var var_fontFamily = sse_decode_String(deserializer);
-    var var_fontSize = sse_decode_f_64(deserializer);
-    var var_shape = sse_decode_String(deserializer);
-    var var_arrowType = sse_decode_String(deserializer);
-    var var_arrowSize = sse_decode_f_64(deserializer);
-    var var_width = sse_decode_i_32(deserializer);
-    var var_height = sse_decode_i_32(deserializer);
-    var var_textColor = sse_decode_u_32(deserializer);
-    var var_shadowColor = sse_decode_u_32(deserializer);
-    var var_shadowBlur = sse_decode_f_64(deserializer);
-    var var_shadowOffsetX = sse_decode_f_64(deserializer);
-    var var_shadowOffsetY = sse_decode_f_64(deserializer);
-    var var_strategyType = sse_decode_String(deserializer);
-    return RelationStyle(
-      bgColor: var_bgColor,
-      strokeColor: var_strokeColor,
-      strokeWidth: var_strokeWidth,
-      fontFamily: var_fontFamily,
-      fontSize: var_fontSize,
-      shape: var_shape,
-      arrowType: var_arrowType,
-      arrowSize: var_arrowSize,
-      width: var_width,
-      height: var_height,
-      textColor: var_textColor,
-      shadowColor: var_shadowColor,
-      shadowBlur: var_shadowBlur,
-      shadowOffsetX: var_shadowOffsetX,
-      shadowOffsetY: var_shadowOffsetY,
-      strategyType: var_strategyType,
-    );
-  }
-
-  @protected
-  Size sse_decode_size(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_width = sse_decode_i_32(deserializer);
-    var var_height = sse_decode_i_32(deserializer);
-    return Size(width: var_width, height: var_height);
-  }
-
-  @protected
-  SymmetricEntityPatch sse_decode_symmetric_entity_patch(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_id = sse_decode_record_strings(deserializer);
-    var var_forward = sse_decode_entity_patch(deserializer);
-    var var_reverse = sse_decode_entity_patch(deserializer);
-    return SymmetricEntityPatch(
-      id: var_id,
-      forward: var_forward,
-      reverse: var_reverse,
-    );
-  }
-
-  @protected
-  Tag sse_decode_tag(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_key = sse_decode_String(deserializer);
-    var var_fields = sse_decode_tag_fields(deserializer);
-    return Tag(key: var_key, fields: var_fields);
-  }
-
-  @protected
-  TagEdge sse_decode_tag_edge(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var tag_ = sse_decode_i_32(deserializer);
-    switch (tag_) {
-      case 0:
-        var var_field0 = sse_decode_box_autoadd_tag(deserializer);
-        return TagEdge_Hydrated(var_field0);
-      case 1:
-        var var_field0 = sse_decode_box_autoadd_record_strings(deserializer);
-        return TagEdge_Pointer(var_field0);
-      default:
-        throw UnimplementedError('');
-    }
-  }
-
-  @protected
-  TagFields sse_decode_tag_fields(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_name = sse_decode_String(deserializer);
-    var var_color = sse_decode_u_32(deserializer);
-    var var_createdAt = sse_decode_i_64(deserializer);
-    var var_updatedAt = sse_decode_i_64(deserializer);
-    return TagFields(
-      name: var_name,
-      color: var_color,
-      createdAt: var_createdAt,
-      updatedAt: var_updatedAt,
-    );
-  }
-
-  @protected
-  TagOperation sse_decode_tag_operation(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var tag_ = sse_decode_i_32(deserializer);
-    switch (tag_) {
-      case 0:
-        var var_field0 = sse_decode_String(deserializer);
-        return TagOperation_Add(var_field0);
-      case 1:
-        var var_field0 = sse_decode_String(deserializer);
-        return TagOperation_Remove(var_field0);
-      default:
-        throw UnimplementedError('');
-    }
-  }
-
-  @protected
-  TaskNode sse_decode_task_node(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_key = sse_decode_String(deserializer);
-    var var_fields = sse_decode_task_node_fields(deserializer);
-    return TaskNode(key: var_key, fields: var_fields);
-  }
-
-  @protected
-  TaskNodeFields sse_decode_task_node_fields(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_content = sse_decode_content(deserializer);
-    var var_dueDate = sse_decode_opt_box_autoadd_i_64(deserializer);
-    var var_state = sse_decode_String(deserializer);
-    var var_position = sse_decode_coordinates(deserializer);
-    var var_size = sse_decode_size(deserializer);
-    var var_expandable = sse_decode_bool(deserializer);
-    var var_isExpanded = sse_decode_bool(deserializer);
-    var var_layer = sse_decode_String(deserializer);
-    var var_style = sse_decode_opt_box_autoadd_node_style(deserializer);
-    var var_resolvedStyle = sse_decode_opt_box_autoadd_node_style(deserializer);
-    var var_layout = sse_decode_opt_box_autoadd_node_layout(deserializer);
-    var var_resolvedLayout = sse_decode_opt_box_autoadd_node_layout(
-      deserializer,
-    );
-    var var_significance = sse_decode_u_8(deserializer);
-    var var_createdAt = sse_decode_i_64(deserializer);
-    var var_updatedAt = sse_decode_i_64(deserializer);
-    return TaskNodeFields(
-      content: var_content,
-      dueDate: var_dueDate,
-      state: var_state,
-      position: var_position,
-      size: var_size,
-      expandable: var_expandable,
-      isExpanded: var_isExpanded,
-      layer: var_layer,
-      style: var_style,
-      resolvedStyle: var_resolvedStyle,
-      layout: var_layout,
-      resolvedLayout: var_resolvedLayout,
-      significance: var_significance,
-      createdAt: var_createdAt,
-      updatedAt: var_updatedAt,
-    );
-  }
-
-  @protected
-  Template sse_decode_template(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_key = sse_decode_String(deserializer);
-    var var_name = sse_decode_String(deserializer);
-    var var_createdAt = sse_decode_i_64(deserializer);
-    var var_updatedAt = sse_decode_i_64(deserializer);
-    var var_nodes = sse_decode_list_nodes(deserializer);
-    var var_relations = sse_decode_list_i_relation(deserializer);
-    return Template(
-      key: var_key,
-      name: var_name,
-      createdAt: var_createdAt,
-      updatedAt: var_updatedAt,
-      nodes: var_nodes,
-      relations: var_relations,
-    );
-  }
-
-  @protected
-  TextMark sse_decode_text_mark(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_markType = sse_decode_mark_type(deserializer);
-    var var_attrs = sse_decode_opt_box_autoadd_mark_attrs(deserializer);
-    return TextMark(markType: var_markType, attrs: var_attrs);
-  }
-
-  @protected
-  Theme sse_decode_theme(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_key = sse_decode_String(deserializer);
-    var var_fields = sse_decode_theme_fields(deserializer);
-    return Theme(key: var_key, fields: var_fields);
-  }
-
-  @protected
-  ThemeBrightness sse_decode_theme_brightness(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_i_32(deserializer);
-    return ThemeBrightness.values[inner];
-  }
-
-  @protected
-  ThemeFields sse_decode_theme_fields(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_name = sse_decode_String(deserializer);
-    var var_primaryColor = sse_decode_u_32(deserializer);
-    var var_secondaryColor = sse_decode_u_32(deserializer);
-    var var_accentColor = sse_decode_u_32(deserializer);
-    var var_scaffoldBackgroundColor = sse_decode_u_32(deserializer);
-    var var_cardColor = sse_decode_u_32(deserializer);
-    var var_dividerColor = sse_decode_u_32(deserializer);
-    var var_textColor = sse_decode_u_32(deserializer);
-    var var_fontFamily = sse_decode_String(deserializer);
-    var var_bodyFontSize = sse_decode_f_64(deserializer);
-    var var_bodyFontWeight = sse_decode_font_weight(deserializer);
-    var var_bodyTextColor = sse_decode_u_32(deserializer);
-    var var_borderRadius = sse_decode_f_64(deserializer);
-    var var_appBarBackgroundColor = sse_decode_u_32(deserializer);
-    var var_appBarForegroundColor = sse_decode_u_32(deserializer);
-    var var_appBarElevation = sse_decode_f_64(deserializer);
-    var var_appBarTitleFontSize = sse_decode_f_64(deserializer);
-    var var_appBarTitleFontWeight = sse_decode_font_weight(deserializer);
-    var var_useMaterial3 = sse_decode_bool(deserializer);
-    var var_brightness = sse_decode_theme_brightness(deserializer);
-    return ThemeFields(
-      name: var_name,
-      primaryColor: var_primaryColor,
-      secondaryColor: var_secondaryColor,
-      accentColor: var_accentColor,
-      scaffoldBackgroundColor: var_scaffoldBackgroundColor,
-      cardColor: var_cardColor,
-      dividerColor: var_dividerColor,
-      textColor: var_textColor,
-      fontFamily: var_fontFamily,
-      bodyFontSize: var_bodyFontSize,
-      bodyFontWeight: var_bodyFontWeight,
-      bodyTextColor: var_bodyTextColor,
-      borderRadius: var_borderRadius,
-      appBarBackgroundColor: var_appBarBackgroundColor,
-      appBarForegroundColor: var_appBarForegroundColor,
-      appBarElevation: var_appBarElevation,
-      appBarTitleFontSize: var_appBarTitleFontSize,
-      appBarTitleFontWeight: var_appBarTitleFontWeight,
-      useMaterial3: var_useMaterial3,
-      brightness: var_brightness,
-    );
-  }
-
-  @protected
-  int sse_decode_u_32(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getUint32();
-  }
-
-  @protected
-  int sse_decode_u_8(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getUint8();
-  }
-
-  @protected
-  void sse_decode_unit(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-  }
-
-  @protected
-  BigInt sse_decode_usize(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getBigUint64();
-  }
-
-  @protected
-  ViewportState sse_decode_viewport_state(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_xOffset = sse_decode_f_64(deserializer);
-    var var_yOffset = sse_decode_f_64(deserializer);
-    var var_zoomLevel = sse_decode_f_64(deserializer);
-    var var_activeView = sse_decode_String(deserializer);
-    return ViewportState(
-      xOffset: var_xOffset,
-      yOffset: var_yOffset,
-      zoomLevel: var_zoomLevel,
-      activeView: var_activeView,
-    );
-  }
-
-  @protected
-  void sse_encode_AnyhowException(
-    AnyhowException self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.message, serializer);
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    AppHandle self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as AppHandleImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    HistoryRecord self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as HistoryRecordImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    Repository self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as RepositoryImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    AppHandle self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as AppHandleImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    AppHandle self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as AppHandleImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
-    AppHandle self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as AppHandleImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    HistoryRecord self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as HistoryRecordImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    Repository self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as RepositoryImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void sse_encode_StreamSink_graph_event_Sse(
-    RustStreamSink<GraphEvent> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(
-      self.setupAndSerialize(
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_graph_event,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-      ),
-      serializer,
-    );
-  }
-
-  @protected
-  void sse_encode_StreamSink_log_state_Sse(
-    RustStreamSink<LogState> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(
-      self.setupAndSerialize(
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_log_state,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-      ),
-      serializer,
-    );
-  }
-
-  @protected
-  void sse_encode_String(String self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
-  }
-
-  @protected
-  void sse_encode_block_attrs(BlockAttrs self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_opt_box_autoadd_u_8(self.level, serializer);
-    sse_encode_opt_String(self.language, serializer);
-  }
-
-  @protected
-  void sse_encode_block_type(BlockType self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.index, serializer);
-  }
-
-  @protected
-  void sse_encode_bool(bool self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putUint8(self ? 1 : 0);
-  }
-
-  @protected
-  void sse_encode_bounding_box(BoundingBox self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_f_64(self.minX, serializer);
-    sse_encode_f_64(self.minY, serializer);
-    sse_encode_f_64(self.maxX, serializer);
-    sse_encode_f_64(self.maxY, serializer);
-  }
-
-  @protected
-  void
-  sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    HistoryRecord self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-      self,
-      serializer,
-    );
-  }
-
-  @protected
-  void sse_encode_box_autoadd_block_attrs(
-    BlockAttrs self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_block_attrs(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_bounding_box(
-    BoundingBox self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_bounding_box(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_content(Content self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_content(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_coordinates(
-    Coordinates self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_coordinates(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_i_64(
-    PlatformInt64 self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_64(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_i_node(INode self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_node(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_i_relation(
-    IRelation self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_relation(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_inter_node(
-    InterNode self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_inter_node(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_mark_attrs(
-    MarkAttrs self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_mark_attrs(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_node_layout(
-    NodeLayout self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_node_layout(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_node_style(
-    NodeStyle self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_node_style(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_nodes(Nodes self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_nodes(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_record_strings(
-    RecordStrings self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_record_strings(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_relation_layout(
-    RelationLayout self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_relation_layout(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_relation_style(
-    RelationStyle self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_relation_style(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_size(Size self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_size(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_symmetric_entity_patch(
-    SymmetricEntityPatch self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_symmetric_entity_patch(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_tag(Tag self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_tag(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_tag_operation(
-    TagOperation self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_tag_operation(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_task_node(
-    TaskNode self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_task_node(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_theme(Theme self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_theme(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_theme_fields(
-    ThemeFields self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_theme_fields(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_u_8(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_viewport_state(
-    ViewportState self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_viewport_state(self, serializer);
-  }
-
-  @protected
-  void sse_encode_comment(Comment self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.text, serializer);
-    sse_encode_i_64(self.createdAt, serializer);
-  }
-
-  @protected
-  void sse_encode_content(Content self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.text, serializer);
-    sse_encode_list_content_block(self.blocks, serializer);
-  }
-
-  @protected
-  void sse_encode_content_block(ContentBlock self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_block_type(self.blockType, serializer);
-    sse_encode_list_inline_element(self.content, serializer);
-    sse_encode_opt_box_autoadd_block_attrs(self.attrs, serializer);
-  }
-
-  @protected
-  void sse_encode_coordinates(Coordinates self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.x, serializer);
-    sse_encode_i_32(self.y, serializer);
-  }
-
-  @protected
-  void sse_encode_display_mode(DisplayMode self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.index, serializer);
-  }
-
-  @protected
-  void sse_encode_entity_patch(EntityPatch self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    switch (self) {
-      case EntityPatch_Node(field0: final field0):
-        sse_encode_i_32(0, serializer);
-        sse_encode_list_node_patch(field0, serializer);
-      case EntityPatch_Relation(field0: final field0):
-        sse_encode_i_32(1, serializer);
-        sse_encode_list_relation_patch(field0, serializer);
-      case EntityPatch_CreateNode(field0: final field0, field1: final field1):
-        sse_encode_i_32(2, serializer);
-        sse_encode_box_autoadd_nodes(field0, serializer);
-        sse_encode_list_i_relation(field1, serializer);
-      case EntityPatch_DeleteNode(field0: final field0, field1: final field1):
-        sse_encode_i_32(3, serializer);
-        sse_encode_box_autoadd_nodes(field0, serializer);
-        sse_encode_list_i_relation(field1, serializer);
-      case EntityPatch_CreateRelation(field0: final field0):
-        sse_encode_i_32(4, serializer);
-        sse_encode_box_autoadd_i_relation(field0, serializer);
-      case EntityPatch_DeleteRelation(field0: final field0):
-        sse_encode_i_32(5, serializer);
-        sse_encode_box_autoadd_i_relation(field0, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_f_64(double self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putFloat64(self);
-  }
-
-  @protected
-  void sse_encode_font_weight(FontWeight self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_u_8(self.field0, serializer);
-  }
-
-  @protected
-  void sse_encode_graph_event(GraphEvent self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    switch (self) {
-      case GraphEvent_NodeUpdated(field0: final field0):
-        sse_encode_i_32(0, serializer);
-        sse_encode_box_autoadd_nodes(field0, serializer);
-      case GraphEvent_NodeDeleted(field0: final field0):
-        sse_encode_i_32(1, serializer);
-        sse_encode_String(field0, serializer);
-      case GraphEvent_RelationUpdated():
-        sse_encode_i_32(2, serializer);
-      case GraphEvent_SnapshotLoaded():
-        sse_encode_i_32(3, serializer);
-      case GraphEvent_BoundaryUpdated(field0: final field0):
-        sse_encode_i_32(4, serializer);
-        sse_encode_box_autoadd_bounding_box(field0, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_i_32(int self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putInt32(self);
-  }
-
-  @protected
-  void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putPlatformInt64(self);
-  }
-
-  @protected
-  void sse_encode_i_node(INode self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.key, serializer);
-    sse_encode_i_node_fields(self.fields, serializer);
-  }
-
-  @protected
-  void sse_encode_i_node_fields(INodeFields self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_content(self.content, serializer);
-    sse_encode_opt_box_autoadd_node_style(self.style, serializer);
-    sse_encode_opt_box_autoadd_node_style(self.resolvedStyle, serializer);
-    sse_encode_opt_box_autoadd_node_layout(self.layout, serializer);
-    sse_encode_opt_box_autoadd_node_layout(self.resolvedLayout, serializer);
-    sse_encode_String(self.layer, serializer);
-    sse_encode_coordinates(self.position, serializer);
-    sse_encode_size(self.size, serializer);
-    sse_encode_i_32(self.lineCount, serializer);
-    sse_encode_bool(self.expandable, serializer);
-    sse_encode_bool(self.isExpanded, serializer);
-    sse_encode_bool(self.locked, serializer);
-    sse_encode_list_tag_edge(self.tags, serializer);
-    sse_encode_list_String(self.aliases, serializer);
-    sse_encode_list_comment(self.comments, serializer);
-    sse_encode_opt_String(self.attachment, serializer);
-    sse_encode_u_8(self.significance, serializer);
-    sse_encode_i_64(self.createdAt, serializer);
-    sse_encode_i_64(self.updatedAt, serializer);
-  }
-
-  @protected
-  void sse_encode_i_relation(IRelation self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.key, serializer);
-    sse_encode_record_strings(self.in_, serializer);
-    sse_encode_record_strings(self.out, serializer);
-    sse_encode_i_relation_fields(self.fields, serializer);
-  }
-
-  @protected
-  void sse_encode_i_relation_fields(
-    IRelationFields self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.verb, serializer);
-    sse_encode_opt_box_autoadd_relation_style(self.style, serializer);
-    sse_encode_opt_box_autoadd_relation_style(self.resolvedStyle, serializer);
-    sse_encode_opt_box_autoadd_relation_layout(self.layout, serializer);
-    sse_encode_opt_box_autoadd_relation_layout(self.resolvedLayout, serializer);
-    sse_encode_bool(self.directionless, serializer);
-    sse_encode_String(self.layer, serializer);
-    sse_encode_i_64(self.createdAt, serializer);
-    sse_encode_i_64(self.updatedAt, serializer);
-  }
-
-  @protected
-  void sse_encode_inline_element(InlineElement self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_inline_type(self.inlineType, serializer);
-    sse_encode_String(self.text, serializer);
-    sse_encode_opt_list_text_mark(self.marks, serializer);
-  }
-
-  @protected
-  void sse_encode_inline_type(InlineType self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.index, serializer);
-  }
-
-  @protected
-  void sse_encode_inter_node(InterNode self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.key, serializer);
-    sse_encode_inter_node_fields(self.fields, serializer);
-  }
-
-  @protected
-  void sse_encode_inter_node_fields(
-    InterNodeFields self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.verb, serializer);
-    sse_encode_opt_String(self.behavioralFeatures, serializer);
-    sse_encode_coordinates(self.position, serializer);
-    sse_encode_opt_String(self.style, serializer);
-    sse_encode_String(self.layer, serializer);
-    sse_encode_i_64(self.createdAt, serializer);
-    sse_encode_i_64(self.updatedAt, serializer);
-  }
-
-  @protected
-  void sse_encode_list_String(List<String> self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_String(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_comment(List<Comment> self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_comment(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_content_block(
-    List<ContentBlock> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_content_block(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_i_node(List<INode> self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_i_node(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_i_relation(
-    List<IRelation> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_i_relation(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_inline_element(
-    List<InlineElement> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_inline_element(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_inter_node(
-    List<InterNode> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_inter_node(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_node_patch(
-    List<NodePatch> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_node_patch(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_nodes(List<Nodes> self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_nodes(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_prim_u_8_strict(
-    Uint8List self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    serializer.buffer.putUint8List(self);
-  }
-
-  @protected
-  void sse_encode_list_record_strings(
-    List<RecordStrings> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_record_strings(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_relation_patch(
-    List<RelationPatch> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_relation_patch(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_tag(List<Tag> self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_tag(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_tag_edge(List<TagEdge> self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_tag_edge(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_task_node(
-    List<TaskNode> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_task_node(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_template(List<Template> self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_template(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_text_mark(
-    List<TextMark> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_text_mark(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_theme(List<Theme> self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_theme(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_log_state(LogState self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_64(self.tMicro, serializer);
-    sse_encode_i_64(self.seqId, serializer);
-    sse_encode_u_8(self.level, serializer);
-    sse_encode_String(self.message, serializer);
-  }
-
-  @protected
-  void sse_encode_map_data(MapData self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.mapName, serializer);
-    sse_encode_viewport_state(self.viewportState, serializer);
-    sse_encode_opt_String(self.activeThemeId, serializer);
-    sse_encode_display_mode(self.displayMode, serializer);
-  }
-
-  @protected
-  void sse_encode_mark_attrs(MarkAttrs self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_opt_String(self.href, serializer);
-  }
-
-  @protected
-  void sse_encode_mark_type(MarkType self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.index, serializer);
-  }
-
-  @protected
-  void sse_encode_node_layout(NodeLayout self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.strategyType, serializer);
-  }
-
-  @protected
-  void sse_encode_node_patch(NodePatch self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    switch (self) {
-      case NodePatch_Position(field0: final field0):
-        sse_encode_i_32(0, serializer);
-        sse_encode_box_autoadd_coordinates(field0, serializer);
-      case NodePatch_Size(field0: final field0):
-        sse_encode_i_32(1, serializer);
-        sse_encode_box_autoadd_size(field0, serializer);
-      case NodePatch_Content(field0: final field0):
-        sse_encode_i_32(2, serializer);
-        sse_encode_box_autoadd_content(field0, serializer);
-      case NodePatch_IsExpanded(field0: final field0):
-        sse_encode_i_32(3, serializer);
-        sse_encode_bool(field0, serializer);
-      case NodePatch_Style(field0: final field0):
-        sse_encode_i_32(4, serializer);
-        sse_encode_opt_box_autoadd_node_style(field0, serializer);
-      case NodePatch_TagOp(field0: final field0):
-        sse_encode_i_32(5, serializer);
-        sse_encode_box_autoadd_tag_operation(field0, serializer);
-      case NodePatch_Significance(field0: final field0):
-        sse_encode_i_32(6, serializer);
-        sse_encode_u_8(field0, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_node_style(NodeStyle self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_u_32(self.bgColor, serializer);
-    sse_encode_u_32(self.strokeColor, serializer);
-    sse_encode_i_32(self.strokeWidth, serializer);
-    sse_encode_String(self.fontFamily, serializer);
-    sse_encode_f_64(self.fontSize, serializer);
-    sse_encode_String(self.shape, serializer);
-    sse_encode_i_32(self.width, serializer);
-    sse_encode_i_32(self.height, serializer);
-    sse_encode_u_32(self.textColor, serializer);
-    sse_encode_f_64(self.borderRadius, serializer);
-    sse_encode_f_64(self.padding, serializer);
-    sse_encode_u_32(self.shadowColor, serializer);
-    sse_encode_f_64(self.shadowBlur, serializer);
-    sse_encode_f_64(self.shadowSpread, serializer);
-    sse_encode_f_64(self.shadowOffsetX, serializer);
-    sse_encode_f_64(self.shadowOffsetY, serializer);
-    sse_encode_String(self.strategyType, serializer);
-  }
-
-  @protected
-  void sse_encode_nodes(Nodes self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    switch (self) {
-      case Nodes_INode(field0: final field0):
-        sse_encode_i_32(0, serializer);
-        sse_encode_box_autoadd_i_node(field0, serializer);
-      case Nodes_TaskNode(field0: final field0):
-        sse_encode_i_32(1, serializer);
-        sse_encode_box_autoadd_task_node(field0, serializer);
-      case Nodes_InterNode(field0: final field0):
-        sse_encode_i_32(2, serializer);
-        sse_encode_box_autoadd_inter_node(field0, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_opt_String(String? self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_String(self, serializer);
-    }
-  }
-
-  @protected
-  void
-  sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-    HistoryRecord? self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
-        self,
-        serializer,
-      );
-    }
-  }
-
-  @protected
-  void sse_encode_opt_box_autoadd_block_attrs(
-    BlockAttrs? self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_block_attrs(self, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_opt_box_autoadd_i_64(
-    PlatformInt64? self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_i_64(self, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_opt_box_autoadd_mark_attrs(
-    MarkAttrs? self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_mark_attrs(self, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_opt_box_autoadd_node_layout(
-    NodeLayout? self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_node_layout(self, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_opt_box_autoadd_node_style(
-    NodeStyle? self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_node_style(self, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_opt_box_autoadd_nodes(Nodes? self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_nodes(self, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_opt_box_autoadd_relation_layout(
-    RelationLayout? self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_relation_layout(self, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_opt_box_autoadd_relation_style(
-    RelationStyle? self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_relation_style(self, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_opt_box_autoadd_tag(Tag? self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_tag(self, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_opt_box_autoadd_theme(Theme? self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_theme(self, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_u_8(self, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_opt_list_text_mark(
-    List<TextMark>? self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_list_text_mark(self, serializer);
-    }
-  }
-
-  @protected
-  void
-  sse_encode_record_list_i_node_list_task_node_list_inter_node_list_i_relation_map_data(
-    (List<INode>, List<TaskNode>, List<InterNode>, List<IRelation>, MapData)
-    self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_list_i_node(self.$1, serializer);
-    sse_encode_list_task_node(self.$2, serializer);
-    sse_encode_list_inter_node(self.$3, serializer);
-    sse_encode_list_i_relation(self.$4, serializer);
-    sse_encode_map_data(self.$5, serializer);
-  }
-
-  @protected
-  void sse_encode_record_strings(RecordStrings self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.table, serializer);
-    sse_encode_String(self.key, serializer);
-  }
-
-  @protected
-  void sse_encode_relation_layout(
-    RelationLayout self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.fromSide, serializer);
-    sse_encode_String(self.toSide, serializer);
-    sse_encode_String(self.strategyType, serializer);
-  }
-
-  @protected
-  void sse_encode_relation_patch(RelationPatch self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    switch (self) {
-      case RelationPatch_Verb(field0: final field0):
-        sse_encode_i_32(0, serializer);
-        sse_encode_String(field0, serializer);
-      case RelationPatch_Style(field0: final field0):
-        sse_encode_i_32(1, serializer);
-        sse_encode_opt_box_autoadd_relation_style(field0, serializer);
-      case RelationPatch_Layout(field0: final field0):
-        sse_encode_i_32(2, serializer);
-        sse_encode_opt_box_autoadd_relation_layout(field0, serializer);
-      case RelationPatch_Directionless(field0: final field0):
-        sse_encode_i_32(3, serializer);
-        sse_encode_bool(field0, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_relation_style(RelationStyle self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_u_32(self.bgColor, serializer);
-    sse_encode_u_32(self.strokeColor, serializer);
-    sse_encode_i_32(self.strokeWidth, serializer);
-    sse_encode_String(self.fontFamily, serializer);
-    sse_encode_f_64(self.fontSize, serializer);
-    sse_encode_String(self.shape, serializer);
-    sse_encode_String(self.arrowType, serializer);
-    sse_encode_f_64(self.arrowSize, serializer);
-    sse_encode_i_32(self.width, serializer);
-    sse_encode_i_32(self.height, serializer);
-    sse_encode_u_32(self.textColor, serializer);
-    sse_encode_u_32(self.shadowColor, serializer);
-    sse_encode_f_64(self.shadowBlur, serializer);
-    sse_encode_f_64(self.shadowOffsetX, serializer);
-    sse_encode_f_64(self.shadowOffsetY, serializer);
-    sse_encode_String(self.strategyType, serializer);
-  }
-
-  @protected
-  void sse_encode_size(Size self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.width, serializer);
-    sse_encode_i_32(self.height, serializer);
-  }
-
-  @protected
-  void sse_encode_symmetric_entity_patch(
-    SymmetricEntityPatch self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_record_strings(self.id, serializer);
-    sse_encode_entity_patch(self.forward, serializer);
-    sse_encode_entity_patch(self.reverse, serializer);
-  }
-
-  @protected
-  void sse_encode_tag(Tag self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.key, serializer);
-    sse_encode_tag_fields(self.fields, serializer);
-  }
-
-  @protected
-  void sse_encode_tag_edge(TagEdge self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    switch (self) {
-      case TagEdge_Hydrated(field0: final field0):
-        sse_encode_i_32(0, serializer);
-        sse_encode_box_autoadd_tag(field0, serializer);
-      case TagEdge_Pointer(field0: final field0):
-        sse_encode_i_32(1, serializer);
-        sse_encode_box_autoadd_record_strings(field0, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_tag_fields(TagFields self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.name, serializer);
-    sse_encode_u_32(self.color, serializer);
-    sse_encode_i_64(self.createdAt, serializer);
-    sse_encode_i_64(self.updatedAt, serializer);
-  }
-
-  @protected
-  void sse_encode_tag_operation(TagOperation self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    switch (self) {
-      case TagOperation_Add(field0: final field0):
-        sse_encode_i_32(0, serializer);
-        sse_encode_String(field0, serializer);
-      case TagOperation_Remove(field0: final field0):
-        sse_encode_i_32(1, serializer);
-        sse_encode_String(field0, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_task_node(TaskNode self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.key, serializer);
-    sse_encode_task_node_fields(self.fields, serializer);
-  }
-
-  @protected
-  void sse_encode_task_node_fields(
-    TaskNodeFields self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_content(self.content, serializer);
-    sse_encode_opt_box_autoadd_i_64(self.dueDate, serializer);
-    sse_encode_String(self.state, serializer);
-    sse_encode_coordinates(self.position, serializer);
-    sse_encode_size(self.size, serializer);
-    sse_encode_bool(self.expandable, serializer);
-    sse_encode_bool(self.isExpanded, serializer);
-    sse_encode_String(self.layer, serializer);
-    sse_encode_opt_box_autoadd_node_style(self.style, serializer);
-    sse_encode_opt_box_autoadd_node_style(self.resolvedStyle, serializer);
-    sse_encode_opt_box_autoadd_node_layout(self.layout, serializer);
-    sse_encode_opt_box_autoadd_node_layout(self.resolvedLayout, serializer);
-    sse_encode_u_8(self.significance, serializer);
-    sse_encode_i_64(self.createdAt, serializer);
-    sse_encode_i_64(self.updatedAt, serializer);
-  }
-
-  @protected
-  void sse_encode_template(Template self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.key, serializer);
-    sse_encode_String(self.name, serializer);
-    sse_encode_i_64(self.createdAt, serializer);
-    sse_encode_i_64(self.updatedAt, serializer);
-    sse_encode_list_nodes(self.nodes, serializer);
-    sse_encode_list_i_relation(self.relations, serializer);
-  }
-
-  @protected
-  void sse_encode_text_mark(TextMark self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_mark_type(self.markType, serializer);
-    sse_encode_opt_box_autoadd_mark_attrs(self.attrs, serializer);
-  }
-
-  @protected
-  void sse_encode_theme(Theme self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.key, serializer);
-    sse_encode_theme_fields(self.fields, serializer);
-  }
-
-  @protected
-  void sse_encode_theme_brightness(
-    ThemeBrightness self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.index, serializer);
-  }
-
-  @protected
-  void sse_encode_theme_fields(ThemeFields self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.name, serializer);
-    sse_encode_u_32(self.primaryColor, serializer);
-    sse_encode_u_32(self.secondaryColor, serializer);
-    sse_encode_u_32(self.accentColor, serializer);
-    sse_encode_u_32(self.scaffoldBackgroundColor, serializer);
-    sse_encode_u_32(self.cardColor, serializer);
-    sse_encode_u_32(self.dividerColor, serializer);
-    sse_encode_u_32(self.textColor, serializer);
-    sse_encode_String(self.fontFamily, serializer);
-    sse_encode_f_64(self.bodyFontSize, serializer);
-    sse_encode_font_weight(self.bodyFontWeight, serializer);
-    sse_encode_u_32(self.bodyTextColor, serializer);
-    sse_encode_f_64(self.borderRadius, serializer);
-    sse_encode_u_32(self.appBarBackgroundColor, serializer);
-    sse_encode_u_32(self.appBarForegroundColor, serializer);
-    sse_encode_f_64(self.appBarElevation, serializer);
-    sse_encode_f_64(self.appBarTitleFontSize, serializer);
-    sse_encode_font_weight(self.appBarTitleFontWeight, serializer);
-    sse_encode_bool(self.useMaterial3, serializer);
-    sse_encode_theme_brightness(self.brightness, serializer);
-  }
-
-  @protected
-  void sse_encode_u_32(int self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putUint32(self);
-  }
-
-  @protected
-  void sse_encode_u_8(int self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putUint8(self);
-  }
-
-  @protected
-  void sse_encode_unit(void self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-  }
-
-  @protected
-  void sse_encode_usize(BigInt self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putBigUint64(self);
-  }
-
-  @protected
-  void sse_encode_viewport_state(ViewportState self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_f_64(self.xOffset, serializer);
-    sse_encode_f_64(self.yOffset, serializer);
-    sse_encode_f_64(self.zoomLevel, serializer);
-    sse_encode_String(self.activeView, serializer);
-  }
-}
-
-@sealed
-class AppHandleImpl extends RustOpaque implements AppHandle {
-  // Not to be used by end users
-  AppHandleImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  AppHandleImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
-    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount:
-        RustLib.instance.api.rust_arc_increment_strong_count_AppHandle,
-    rustArcDecrementStrongCount:
-        RustLib.instance.api.rust_arc_decrement_strong_count_AppHandle,
-    rustArcDecrementStrongCountPtr:
-        RustLib.instance.api.rust_arc_decrement_strong_count_AppHandlePtr,
-  );
-
-  Future<void> applyEntityMutation({required SymmetricEntityPatch mutation}) =>
-      RustLib.instance.api.crateBridgeApiAppHandleApplyEntityMutation(
-        that: this,
-        mutation: mutation,
-      );
-
-  Repository get repo => RustLib.instance.api
-      .crateBridgeApiAppHandleAutoAccessorGetRepo(that: this);
-
-  set repo(Repository repo) => RustLib.instance.api
-      .crateBridgeApiAppHandleAutoAccessorSetRepo(that: this, repo: repo);
-
-  Future<void> close() =>
-      RustLib.instance.api.crateBridgeApiAppHandleClose(that: this);
-
-  Stream<GraphEvent> createGraphStream() =>
-      RustLib.instance.api.crateBridgeApiAppHandleCreateGraphStream(that: this);
-
-  Future<void> createNode({required Nodes input}) => RustLib.instance.api
-      .crateBridgeApiAppHandleCreateNode(that: this, input: input);
-
-  Future<void> createRelation({required IRelation input}) => RustLib
-      .instance
-      .api
-      .crateBridgeApiAppHandleCreateRelation(that: this, input: input);
-
-  Future<void> createTag({required Tag tag}) => RustLib.instance.api
-      .crateBridgeApiAppHandleCreateTag(that: this, tag: tag);
-
-  Future<void> createTheme({
-    required String key,
-    required ThemeFields fields,
-  }) => RustLib.instance.api.crateBridgeApiAppHandleCreateTheme(
-    that: this,
-    key: key,
-    fields: fields,
-  );
-
-  Future<void> deleteNodeEntry({required String table, required String key}) =>
-      RustLib.instance.api.crateBridgeApiAppHandleDeleteNodeEntry(
-        that: this,
-        table: table,
-        key: key,
-      );
-
-  Future<void> deleteRelation({required String table, required String key}) =>
-      RustLib.instance.api.crateBridgeApiAppHandleDeleteRelation(
-        that: this,
-        table: table,
-        key: key,
-      );
-
-  Future<void> deleteTag({required String key}) => RustLib.instance.api
-      .crateBridgeApiAppHandleDeleteTag(that: this, key: key);
-
-  Future<void> deleteTemplate({required String key}) => RustLib.instance.api
-      .crateBridgeApiAppHandleDeleteTemplate(that: this, key: key);
-
-  Future<String?> getActiveThemeId() =>
-      RustLib.instance.api.crateBridgeApiAppHandleGetActiveThemeId(that: this);
-
-  Future<List<Tag>> getAllTags() =>
-      RustLib.instance.api.crateBridgeApiAppHandleGetAllTags(that: this);
-
-  Future<List<Template>> getAllTemplates() =>
-      RustLib.instance.api.crateBridgeApiAppHandleGetAllTemplates(that: this);
-
-  Future<List<Theme>> getAllThemes() =>
-      RustLib.instance.api.crateBridgeApiAppHandleGetAllThemes(that: this);
-
-  Future<
-    (List<INode>, List<TaskNode>, List<InterNode>, List<IRelation>, MapData)
-  >
-  getGraphSnapshot() =>
-      RustLib.instance.api.crateBridgeApiAppHandleGetGraphSnapshot(that: this);
-
-  Future<Nodes?> getNode({required String table, required String key}) =>
-      RustLib.instance.api.crateBridgeApiAppHandleGetNode(
-        that: this,
-        table: table,
-        key: key,
-      );
-
-  Future<Tag?> getTag({required String key}) =>
-      RustLib.instance.api.crateBridgeApiAppHandleGetTag(that: this, key: key);
-
-  Future<Theme?> getTheme({required String key}) => RustLib.instance.api
-      .crateBridgeApiAppHandleGetTheme(that: this, key: key);
-
-  Future<void> instantiateTemplate({
-    required String key,
-    required double targetX,
-    required double targetY,
-  }) => RustLib.instance.api.crateBridgeApiAppHandleInstantiateTemplate(
-    that: this,
-    key: key,
-    targetX: targetX,
-    targetY: targetY,
-  );
-
-  Future<void> loadMapFromFile({
-    required String filePath,
-    required String attachmentDir,
-  }) => RustLib.instance.api.crateBridgeApiAppHandleLoadMapFromFile(
-    that: this,
-    filePath: filePath,
-    attachmentDir: attachmentDir,
-  );
-
-  Future<List<Nodes>> querySearch({required String query}) => RustLib
-      .instance
-      .api
-      .crateBridgeApiAppHandleQuerySearch(that: this, query: query);
-
-  Future<HistoryRecord?> redo() =>
-      RustLib.instance.api.crateBridgeApiAppHandleRedo(that: this);
-
-  Future<int> redoCount() =>
-      RustLib.instance.api.crateBridgeApiAppHandleRedoCount(that: this);
-
-  Future<void> rerouteRelation({
-    required RecordStrings record,
-    required RecordStrings from,
-    required RecordStrings to,
-  }) => RustLib.instance.api.crateBridgeApiAppHandleRerouteRelation(
-    that: this,
-    record: record,
-    from: from,
-    to: to,
-  );
-
-  Future<void> saveMapToFile({
-    required String filePath,
-    required String attachmentDir,
-  }) => RustLib.instance.api.crateBridgeApiAppHandleSaveMapToFile(
-    that: this,
-    filePath: filePath,
-    attachmentDir: attachmentDir,
-  );
-
-  Future<void> saveTemplateFromSelection({
-    required String name,
-    required List<RecordStrings> nodeKeys,
-    required List<RecordStrings> relationKeys,
-  }) => RustLib.instance.api.crateBridgeApiAppHandleSaveTemplateFromSelection(
-    that: this,
-    name: name,
-    nodeKeys: nodeKeys,
-    relationKeys: relationKeys,
-  );
-
-  Future<void> setActiveTheme({required String themeKey}) => RustLib
-      .instance
-      .api
-      .crateBridgeApiAppHandleSetActiveTheme(that: this, themeKey: themeKey);
-
-  Future<void> setActiveThemeId({required String themeId}) => RustLib
-      .instance
-      .api
-      .crateBridgeApiAppHandleSetActiveThemeId(that: this, themeId: themeId);
-
-  Future<HistoryRecord?> undo() =>
-      RustLib.instance.api.crateBridgeApiAppHandleUndo(that: this);
-
-  Future<int> undoCount() =>
-      RustLib.instance.api.crateBridgeApiAppHandleUndoCount(that: this);
-
-  Future<void> updateNode({required Nodes input}) => RustLib.instance.api
-      .crateBridgeApiAppHandleUpdateNode(that: this, input: input);
-
-  Future<void> updateRelation({required IRelation input}) => RustLib
-      .instance
-      .api
-      .crateBridgeApiAppHandleUpdateRelation(that: this, input: input);
-
-  Future<void> updateTag({required Tag tag}) => RustLib.instance.api
-      .crateBridgeApiAppHandleUpdateTag(that: this, tag: tag);
-
-  Future<void> updateTheme({required Theme theme}) => RustLib.instance.api
-      .crateBridgeApiAppHandleUpdateTheme(that: this, theme: theme);
-
-  Future<void> updateViewportState({required ViewportState state}) => RustLib
-      .instance
-      .api
-      .crateBridgeApiAppHandleUpdateViewportState(that: this, state: state);
-}
-
-@sealed
-class HistoryRecordImpl extends RustOpaque implements HistoryRecord {
-  // Not to be used by end users
-  HistoryRecordImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  HistoryRecordImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
-    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount:
-        RustLib.instance.api.rust_arc_increment_strong_count_HistoryRecord,
-    rustArcDecrementStrongCount:
-        RustLib.instance.api.rust_arc_decrement_strong_count_HistoryRecord,
-    rustArcDecrementStrongCountPtr:
-        RustLib.instance.api.rust_arc_decrement_strong_count_HistoryRecordPtr,
-  );
-}
-
-@sealed
-class RepositoryImpl extends RustOpaque implements Repository {
-  // Not to be used by end users
-  RepositoryImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  RepositoryImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
-    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount:
-        RustLib.instance.api.rust_arc_increment_strong_count_Repository,
-    rustArcDecrementStrongCount:
-        RustLib.instance.api.rust_arc_decrement_strong_count_Repository,
-    rustArcDecrementStrongCountPtr:
-        RustLib.instance.api.rust_arc_decrement_strong_count_RepositoryPtr,
-  );
-}
+        
+
+RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_AppHandle => wire.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle;
+
+RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_AppHandle => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle;
+
+RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_HistoryRecord => wire.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord;
+
+RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_HistoryRecord => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord;
+
+RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_Repository => wire.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository;
+
+RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_Repository => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository;
+
+
+
+                  @protected AnyhowException dco_decode_AnyhowException(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return AnyhowException(raw as String); }
+
+@protected AppHandle dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return AppHandleImpl.frbInternalDcoDecode(raw as List<dynamic>); }
+
+@protected HistoryRecord dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return HistoryRecordImpl.frbInternalDcoDecode(raw as List<dynamic>); }
+
+@protected Repository dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return RepositoryImpl.frbInternalDcoDecode(raw as List<dynamic>); }
+
+@protected AppHandle dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return AppHandleImpl.frbInternalDcoDecode(raw as List<dynamic>); }
+
+@protected AppHandle dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return AppHandleImpl.frbInternalDcoDecode(raw as List<dynamic>); }
+
+@protected AppHandle dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return AppHandleImpl.frbInternalDcoDecode(raw as List<dynamic>); }
+
+@protected HistoryRecord dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return HistoryRecordImpl.frbInternalDcoDecode(raw as List<dynamic>); }
+
+@protected Repository dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return RepositoryImpl.frbInternalDcoDecode(raw as List<dynamic>); }
+
+@protected RustStreamSink<GraphEvent> dco_decode_StreamSink_graph_event_Sse(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+throw UnimplementedError(); }
+
+@protected RustStreamSink<LogState> dco_decode_StreamSink_log_state_Sse(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+throw UnimplementedError(); }
+
+@protected String dco_decode_String(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw as String; }
+
+@protected BlockAttrs dco_decode_block_attrs(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+                return BlockAttrs(level: dco_decode_opt_box_autoadd_u_8(arr[0]),
+language: dco_decode_opt_String(arr[1]),); }
+
+@protected BlockType dco_decode_block_type(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return BlockType.values[raw as int]; }
+
+@protected bool dco_decode_bool(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw as bool; }
+
+@protected BoundingBox dco_decode_bounding_box(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 4) throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+                return BoundingBox(minX: dco_decode_f_64(arr[0]),
+minY: dco_decode_f_64(arr[1]),
+maxX: dco_decode_f_64(arr[2]),
+maxY: dco_decode_f_64(arr[3]),); }
+
+@protected HistoryRecord dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(raw); }
+
+@protected BlockAttrs dco_decode_box_autoadd_block_attrs(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_block_attrs(raw); }
+
+@protected BoundingBox dco_decode_box_autoadd_bounding_box(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_bounding_box(raw); }
+
+@protected Content dco_decode_box_autoadd_content(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_content(raw); }
+
+@protected Coordinates dco_decode_box_autoadd_coordinates(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_coordinates(raw); }
+
+@protected PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_i_64(raw); }
+
+@protected INode dco_decode_box_autoadd_i_node(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_i_node(raw); }
+
+@protected IRelation dco_decode_box_autoadd_i_relation(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_i_relation(raw); }
+
+@protected InterNode dco_decode_box_autoadd_inter_node(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_inter_node(raw); }
+
+@protected MarkAttrs dco_decode_box_autoadd_mark_attrs(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_mark_attrs(raw); }
+
+@protected NodeLayout dco_decode_box_autoadd_node_layout(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_node_layout(raw); }
+
+@protected NodeStyle dco_decode_box_autoadd_node_style(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_node_style(raw); }
+
+@protected Nodes dco_decode_box_autoadd_nodes(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_nodes(raw); }
+
+@protected RecordStrings dco_decode_box_autoadd_record_strings(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_record_strings(raw); }
+
+@protected RelationLayout dco_decode_box_autoadd_relation_layout(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_relation_layout(raw); }
+
+@protected RelationStyle dco_decode_box_autoadd_relation_style(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_relation_style(raw); }
+
+@protected Size dco_decode_box_autoadd_size(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_size(raw); }
+
+@protected SymmetricEntityPatch dco_decode_box_autoadd_symmetric_entity_patch(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_symmetric_entity_patch(raw); }
+
+@protected Tag dco_decode_box_autoadd_tag(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_tag(raw); }
+
+@protected TagOperation dco_decode_box_autoadd_tag_operation(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_tag_operation(raw); }
+
+@protected TaskNode dco_decode_box_autoadd_task_node(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_task_node(raw); }
+
+@protected Theme dco_decode_box_autoadd_theme(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_theme(raw); }
+
+@protected ThemeFields dco_decode_box_autoadd_theme_fields(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_theme_fields(raw); }
+
+@protected int dco_decode_box_autoadd_u_8(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw as int; }
+
+@protected ViewportState dco_decode_box_autoadd_viewport_state(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_viewport_state(raw); }
+
+@protected Comment dco_decode_comment(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+                return Comment(text: dco_decode_String(arr[0]),
+createdAt: dco_decode_i_64(arr[1]),); }
+
+@protected Content dco_decode_content(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+                return Content(text: dco_decode_String(arr[0]),
+blocks: dco_decode_list_content_block(arr[1]),); }
+
+@protected ContentBlock dco_decode_content_block(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 3) throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+                return ContentBlock(blockType: dco_decode_block_type(arr[0]),
+content: dco_decode_list_inline_element(arr[1]),
+attrs: dco_decode_opt_box_autoadd_block_attrs(arr[2]),); }
+
+@protected Coordinates dco_decode_coordinates(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+                return Coordinates(x: dco_decode_i_32(arr[0]),
+y: dco_decode_i_32(arr[1]),); }
+
+@protected DisplayMode dco_decode_display_mode(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return DisplayMode.values[raw as int]; }
+
+@protected EntityPatch dco_decode_entity_patch(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+switch (raw[0]) {
+                case 0: return EntityPatch_Node(dco_decode_list_node_patch(raw[1]),);
+case 1: return EntityPatch_Relation(dco_decode_list_relation_patch(raw[1]),);
+case 2: return EntityPatch_CreateNode(dco_decode_box_autoadd_nodes(raw[1]),dco_decode_list_i_relation(raw[2]),);
+case 3: return EntityPatch_DeleteNode(dco_decode_box_autoadd_nodes(raw[1]),dco_decode_list_i_relation(raw[2]),);
+case 4: return EntityPatch_CreateRelation(dco_decode_box_autoadd_i_relation(raw[1]),);
+case 5: return EntityPatch_DeleteRelation(dco_decode_box_autoadd_i_relation(raw[1]),);
+                default: throw Exception("unreachable");
+            } }
+
+@protected double dco_decode_f_64(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw as double; }
+
+@protected FontWeight dco_decode_font_weight(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 1) throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
+                return FontWeight(field0: dco_decode_u_8(arr[0]),); }
+
+@protected GraphEvent dco_decode_graph_event(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+switch (raw[0]) {
+                case 0: return GraphEvent_NodeUpdated(dco_decode_box_autoadd_nodes(raw[1]),);
+case 1: return GraphEvent_NodeDeleted(dco_decode_String(raw[1]),);
+case 2: return GraphEvent_RelationUpdated();
+case 3: return GraphEvent_SnapshotLoaded();
+case 4: return GraphEvent_BoundaryUpdated(dco_decode_box_autoadd_bounding_box(raw[1]),);
+                default: throw Exception("unreachable");
+            } }
+
+@protected int dco_decode_i_32(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw as int; }
+
+@protected PlatformInt64 dco_decode_i_64(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dcoDecodeI64(raw); }
+
+@protected INode dco_decode_i_node(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+                return INode(key: dco_decode_String(arr[0]),
+fields: dco_decode_i_node_fields(arr[1]),); }
+
+@protected INodeFields dco_decode_i_node_fields(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 19) throw Exception('unexpected arr length: expect 19 but see ${arr.length}');
+                return INodeFields(content: dco_decode_content(arr[0]),
+style: dco_decode_opt_box_autoadd_node_style(arr[1]),
+resolvedStyle: dco_decode_opt_box_autoadd_node_style(arr[2]),
+layout: dco_decode_opt_box_autoadd_node_layout(arr[3]),
+resolvedLayout: dco_decode_opt_box_autoadd_node_layout(arr[4]),
+layer: dco_decode_String(arr[5]),
+position: dco_decode_coordinates(arr[6]),
+size: dco_decode_size(arr[7]),
+lineCount: dco_decode_i_32(arr[8]),
+expandable: dco_decode_bool(arr[9]),
+isExpanded: dco_decode_bool(arr[10]),
+locked: dco_decode_bool(arr[11]),
+tags: dco_decode_list_tag_edge(arr[12]),
+aliases: dco_decode_list_String(arr[13]),
+comments: dco_decode_list_comment(arr[14]),
+attachment: dco_decode_opt_String(arr[15]),
+significance: dco_decode_u_8(arr[16]),
+createdAt: dco_decode_i_64(arr[17]),
+updatedAt: dco_decode_i_64(arr[18]),); }
+
+@protected IRelation dco_decode_i_relation(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 4) throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+                return IRelation(key: dco_decode_String(arr[0]),
+in_: dco_decode_record_strings(arr[1]),
+out: dco_decode_record_strings(arr[2]),
+fields: dco_decode_i_relation_fields(arr[3]),); }
+
+@protected IRelationFields dco_decode_i_relation_fields(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 9) throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
+                return IRelationFields(verb: dco_decode_String(arr[0]),
+style: dco_decode_opt_box_autoadd_relation_style(arr[1]),
+resolvedStyle: dco_decode_opt_box_autoadd_relation_style(arr[2]),
+layout: dco_decode_opt_box_autoadd_relation_layout(arr[3]),
+resolvedLayout: dco_decode_opt_box_autoadd_relation_layout(arr[4]),
+directionless: dco_decode_bool(arr[5]),
+layer: dco_decode_String(arr[6]),
+createdAt: dco_decode_i_64(arr[7]),
+updatedAt: dco_decode_i_64(arr[8]),); }
+
+@protected InlineElement dco_decode_inline_element(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 3) throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+                return InlineElement(inlineType: dco_decode_inline_type(arr[0]),
+text: dco_decode_String(arr[1]),
+marks: dco_decode_opt_list_text_mark(arr[2]),); }
+
+@protected InlineType dco_decode_inline_type(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return InlineType.values[raw as int]; }
+
+@protected InterNode dco_decode_inter_node(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+                return InterNode(key: dco_decode_String(arr[0]),
+fields: dco_decode_inter_node_fields(arr[1]),); }
+
+@protected InterNodeFields dco_decode_inter_node_fields(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 7) throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+                return InterNodeFields(verb: dco_decode_String(arr[0]),
+behavioralFeatures: dco_decode_opt_String(arr[1]),
+position: dco_decode_coordinates(arr[2]),
+style: dco_decode_opt_String(arr[3]),
+layer: dco_decode_String(arr[4]),
+createdAt: dco_decode_i_64(arr[5]),
+updatedAt: dco_decode_i_64(arr[6]),); }
+
+@protected List<String> dco_decode_list_String(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_String).toList(); }
+
+@protected List<Comment> dco_decode_list_comment(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_comment).toList(); }
+
+@protected List<ContentBlock> dco_decode_list_content_block(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_content_block).toList(); }
+
+@protected List<INode> dco_decode_list_i_node(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_i_node).toList(); }
+
+@protected List<IRelation> dco_decode_list_i_relation(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_i_relation).toList(); }
+
+@protected List<InlineElement> dco_decode_list_inline_element(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_inline_element).toList(); }
+
+@protected List<InterNode> dco_decode_list_inter_node(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_inter_node).toList(); }
+
+@protected List<NodePatch> dco_decode_list_node_patch(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_node_patch).toList(); }
+
+@protected List<Nodes> dco_decode_list_nodes(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_nodes).toList(); }
+
+@protected Uint8List dco_decode_list_prim_u_8_strict(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw as Uint8List; }
+
+@protected List<RecordStrings> dco_decode_list_record_strings(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_record_strings).toList(); }
+
+@protected List<RelationPatch> dco_decode_list_relation_patch(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_relation_patch).toList(); }
+
+@protected List<Tag> dco_decode_list_tag(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_tag).toList(); }
+
+@protected List<TagEdge> dco_decode_list_tag_edge(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_tag_edge).toList(); }
+
+@protected List<TaskNode> dco_decode_list_task_node(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_task_node).toList(); }
+
+@protected List<Template> dco_decode_list_template(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_template).toList(); }
+
+@protected List<TextMark> dco_decode_list_text_mark(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_text_mark).toList(); }
+
+@protected List<Theme> dco_decode_list_theme(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_theme).toList(); }
+
+@protected LogState dco_decode_log_state(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 4) throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+                return LogState(tMicro: dco_decode_i_64(arr[0]),
+seqId: dco_decode_i_64(arr[1]),
+level: dco_decode_u_8(arr[2]),
+message: dco_decode_String(arr[3]),); }
+
+@protected MapData dco_decode_map_data(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 4) throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+                return MapData(mapName: dco_decode_String(arr[0]),
+viewportState: dco_decode_viewport_state(arr[1]),
+activeThemeId: dco_decode_opt_String(arr[2]),
+displayMode: dco_decode_display_mode(arr[3]),); }
+
+@protected MarkAttrs dco_decode_mark_attrs(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 1) throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
+                return MarkAttrs(href: dco_decode_opt_String(arr[0]),); }
+
+@protected MarkType dco_decode_mark_type(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return MarkType.values[raw as int]; }
+
+@protected NodeLayout dco_decode_node_layout(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 1) throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
+                return NodeLayout(strategyType: dco_decode_String(arr[0]),); }
+
+@protected NodePatch dco_decode_node_patch(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+switch (raw[0]) {
+                case 0: return NodePatch_Position(dco_decode_box_autoadd_coordinates(raw[1]),);
+case 1: return NodePatch_Size(dco_decode_box_autoadd_size(raw[1]),);
+case 2: return NodePatch_Content(dco_decode_box_autoadd_content(raw[1]),);
+case 3: return NodePatch_IsExpanded(dco_decode_bool(raw[1]),);
+case 4: return NodePatch_Style(dco_decode_opt_box_autoadd_node_style(raw[1]),);
+case 5: return NodePatch_TagOp(dco_decode_box_autoadd_tag_operation(raw[1]),);
+case 6: return NodePatch_Significance(dco_decode_u_8(raw[1]),);
+                default: throw Exception("unreachable");
+            } }
+
+@protected NodeStyle dco_decode_node_style(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 17) throw Exception('unexpected arr length: expect 17 but see ${arr.length}');
+                return NodeStyle(bgColor: dco_decode_u_32(arr[0]),
+strokeColor: dco_decode_u_32(arr[1]),
+strokeWidth: dco_decode_i_32(arr[2]),
+fontFamily: dco_decode_String(arr[3]),
+fontSize: dco_decode_f_64(arr[4]),
+shape: dco_decode_String(arr[5]),
+width: dco_decode_i_32(arr[6]),
+height: dco_decode_i_32(arr[7]),
+textColor: dco_decode_u_32(arr[8]),
+borderRadius: dco_decode_f_64(arr[9]),
+padding: dco_decode_f_64(arr[10]),
+shadowColor: dco_decode_u_32(arr[11]),
+shadowBlur: dco_decode_f_64(arr[12]),
+shadowSpread: dco_decode_f_64(arr[13]),
+shadowOffsetX: dco_decode_f_64(arr[14]),
+shadowOffsetY: dco_decode_f_64(arr[15]),
+strategyType: dco_decode_String(arr[16]),); }
+
+@protected Nodes dco_decode_nodes(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+switch (raw[0]) {
+                case 0: return Nodes_INode(dco_decode_box_autoadd_i_node(raw[1]),);
+case 1: return Nodes_TaskNode(dco_decode_box_autoadd_task_node(raw[1]),);
+case 2: return Nodes_InterNode(dco_decode_box_autoadd_inter_node(raw[1]),);
+                default: throw Exception("unreachable");
+            } }
+
+@protected String? dco_decode_opt_String(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw == null ? null : dco_decode_String(raw); }
+
+@protected HistoryRecord? dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw == null ? null : dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(raw); }
+
+@protected BlockAttrs? dco_decode_opt_box_autoadd_block_attrs(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw == null ? null : dco_decode_box_autoadd_block_attrs(raw); }
+
+@protected PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw == null ? null : dco_decode_box_autoadd_i_64(raw); }
+
+@protected MarkAttrs? dco_decode_opt_box_autoadd_mark_attrs(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw == null ? null : dco_decode_box_autoadd_mark_attrs(raw); }
+
+@protected NodeLayout? dco_decode_opt_box_autoadd_node_layout(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw == null ? null : dco_decode_box_autoadd_node_layout(raw); }
+
+@protected NodeStyle? dco_decode_opt_box_autoadd_node_style(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw == null ? null : dco_decode_box_autoadd_node_style(raw); }
+
+@protected Nodes? dco_decode_opt_box_autoadd_nodes(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw == null ? null : dco_decode_box_autoadd_nodes(raw); }
+
+@protected RelationLayout? dco_decode_opt_box_autoadd_relation_layout(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw == null ? null : dco_decode_box_autoadd_relation_layout(raw); }
+
+@protected RelationStyle? dco_decode_opt_box_autoadd_relation_style(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw == null ? null : dco_decode_box_autoadd_relation_style(raw); }
+
+@protected Tag? dco_decode_opt_box_autoadd_tag(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw == null ? null : dco_decode_box_autoadd_tag(raw); }
+
+@protected Theme? dco_decode_opt_box_autoadd_theme(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw == null ? null : dco_decode_box_autoadd_theme(raw); }
+
+@protected int? dco_decode_opt_box_autoadd_u_8(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw == null ? null : dco_decode_box_autoadd_u_8(raw); }
+
+@protected List<TextMark>? dco_decode_opt_list_text_mark(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw == null ? null : dco_decode_list_text_mark(raw); }
+
+@protected (List<INode>,List<TaskNode>,List<InterNode>,List<IRelation>,MapData) dco_decode_record_list_i_node_list_task_node_list_inter_node_list_i_relation_map_data(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+            if (arr.length != 5) {
+                throw Exception('Expected 5 elements, got ${arr.length}');
+            }
+            return (dco_decode_list_i_node(arr[0]),dco_decode_list_task_node(arr[1]),dco_decode_list_inter_node(arr[2]),dco_decode_list_i_relation(arr[3]),dco_decode_map_data(arr[4]),); }
+
+@protected RecordStrings dco_decode_record_strings(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+                return RecordStrings(table: dco_decode_String(arr[0]),
+key: dco_decode_String(arr[1]),); }
+
+@protected RelationLayout dco_decode_relation_layout(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 3) throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+                return RelationLayout(fromSide: dco_decode_String(arr[0]),
+toSide: dco_decode_String(arr[1]),
+strategyType: dco_decode_String(arr[2]),); }
+
+@protected RelationPatch dco_decode_relation_patch(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+switch (raw[0]) {
+                case 0: return RelationPatch_Verb(dco_decode_String(raw[1]),);
+case 1: return RelationPatch_Style(dco_decode_opt_box_autoadd_relation_style(raw[1]),);
+case 2: return RelationPatch_Layout(dco_decode_opt_box_autoadd_relation_layout(raw[1]),);
+case 3: return RelationPatch_Directionless(dco_decode_bool(raw[1]),);
+                default: throw Exception("unreachable");
+            } }
+
+@protected RelationStyle dco_decode_relation_style(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 17) throw Exception('unexpected arr length: expect 17 but see ${arr.length}');
+                return RelationStyle(bgColor: dco_decode_u_32(arr[0]),
+strokeColor: dco_decode_u_32(arr[1]),
+strokeWidth: dco_decode_i_32(arr[2]),
+fontFamily: dco_decode_String(arr[3]),
+fontSize: dco_decode_f_64(arr[4]),
+shape: dco_decode_String(arr[5]),
+arrowType: dco_decode_String(arr[6]),
+arrowSize: dco_decode_f_64(arr[7]),
+width: dco_decode_i_32(arr[8]),
+height: dco_decode_i_32(arr[9]),
+textColor: dco_decode_u_32(arr[10]),
+shadowColor: dco_decode_u_32(arr[11]),
+shadowBlur: dco_decode_f_64(arr[12]),
+shadowOffsetX: dco_decode_f_64(arr[13]),
+shadowOffsetY: dco_decode_f_64(arr[14]),
+strategyType: dco_decode_String(arr[15]),
+strokePattern: dco_decode_String(arr[16]),); }
+
+@protected Size dco_decode_size(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+                return Size(width: dco_decode_i_32(arr[0]),
+height: dco_decode_i_32(arr[1]),); }
+
+@protected SymmetricEntityPatch dco_decode_symmetric_entity_patch(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 3) throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+                return SymmetricEntityPatch(id: dco_decode_record_strings(arr[0]),
+forward: dco_decode_entity_patch(arr[1]),
+reverse: dco_decode_entity_patch(arr[2]),); }
+
+@protected Tag dco_decode_tag(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+                return Tag(key: dco_decode_String(arr[0]),
+fields: dco_decode_tag_fields(arr[1]),); }
+
+@protected TagEdge dco_decode_tag_edge(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+switch (raw[0]) {
+                case 0: return TagEdge_Hydrated(dco_decode_box_autoadd_tag(raw[1]),);
+case 1: return TagEdge_Pointer(dco_decode_box_autoadd_record_strings(raw[1]),);
+                default: throw Exception("unreachable");
+            } }
+
+@protected TagFields dco_decode_tag_fields(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 4) throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+                return TagFields(name: dco_decode_String(arr[0]),
+color: dco_decode_u_32(arr[1]),
+createdAt: dco_decode_i_64(arr[2]),
+updatedAt: dco_decode_i_64(arr[3]),); }
+
+@protected TagOperation dco_decode_tag_operation(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+switch (raw[0]) {
+                case 0: return TagOperation_Add(dco_decode_String(raw[1]),);
+case 1: return TagOperation_Remove(dco_decode_String(raw[1]),);
+                default: throw Exception("unreachable");
+            } }
+
+@protected TaskNode dco_decode_task_node(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+                return TaskNode(key: dco_decode_String(arr[0]),
+fields: dco_decode_task_node_fields(arr[1]),); }
+
+@protected TaskNodeFields dco_decode_task_node_fields(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 15) throw Exception('unexpected arr length: expect 15 but see ${arr.length}');
+                return TaskNodeFields(content: dco_decode_content(arr[0]),
+dueDate: dco_decode_opt_box_autoadd_i_64(arr[1]),
+state: dco_decode_String(arr[2]),
+position: dco_decode_coordinates(arr[3]),
+size: dco_decode_size(arr[4]),
+expandable: dco_decode_bool(arr[5]),
+isExpanded: dco_decode_bool(arr[6]),
+layer: dco_decode_String(arr[7]),
+style: dco_decode_opt_box_autoadd_node_style(arr[8]),
+resolvedStyle: dco_decode_opt_box_autoadd_node_style(arr[9]),
+layout: dco_decode_opt_box_autoadd_node_layout(arr[10]),
+resolvedLayout: dco_decode_opt_box_autoadd_node_layout(arr[11]),
+significance: dco_decode_u_8(arr[12]),
+createdAt: dco_decode_i_64(arr[13]),
+updatedAt: dco_decode_i_64(arr[14]),); }
+
+@protected Template dco_decode_template(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 6) throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+                return Template(key: dco_decode_String(arr[0]),
+name: dco_decode_String(arr[1]),
+createdAt: dco_decode_i_64(arr[2]),
+updatedAt: dco_decode_i_64(arr[3]),
+nodes: dco_decode_list_nodes(arr[4]),
+relations: dco_decode_list_i_relation(arr[5]),); }
+
+@protected TextMark dco_decode_text_mark(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+                return TextMark(markType: dco_decode_mark_type(arr[0]),
+attrs: dco_decode_opt_box_autoadd_mark_attrs(arr[1]),); }
+
+@protected Theme dco_decode_theme(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+                return Theme(key: dco_decode_String(arr[0]),
+fields: dco_decode_theme_fields(arr[1]),); }
+
+@protected ThemeBrightness dco_decode_theme_brightness(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return ThemeBrightness.values[raw as int]; }
+
+@protected ThemeFields dco_decode_theme_fields(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 20) throw Exception('unexpected arr length: expect 20 but see ${arr.length}');
+                return ThemeFields(name: dco_decode_String(arr[0]),
+primaryColor: dco_decode_u_32(arr[1]),
+secondaryColor: dco_decode_u_32(arr[2]),
+accentColor: dco_decode_u_32(arr[3]),
+scaffoldBackgroundColor: dco_decode_u_32(arr[4]),
+cardColor: dco_decode_u_32(arr[5]),
+dividerColor: dco_decode_u_32(arr[6]),
+textColor: dco_decode_u_32(arr[7]),
+fontFamily: dco_decode_String(arr[8]),
+bodyFontSize: dco_decode_f_64(arr[9]),
+bodyFontWeight: dco_decode_font_weight(arr[10]),
+bodyTextColor: dco_decode_u_32(arr[11]),
+borderRadius: dco_decode_f_64(arr[12]),
+appBarBackgroundColor: dco_decode_u_32(arr[13]),
+appBarForegroundColor: dco_decode_u_32(arr[14]),
+appBarElevation: dco_decode_f_64(arr[15]),
+appBarTitleFontSize: dco_decode_f_64(arr[16]),
+appBarTitleFontWeight: dco_decode_font_weight(arr[17]),
+useMaterial3: dco_decode_bool(arr[18]),
+brightness: dco_decode_theme_brightness(arr[19]),); }
+
+@protected int dco_decode_u_32(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw as int; }
+
+@protected int dco_decode_u_8(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw as int; }
+
+@protected void dco_decode_unit(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return; }
+
+@protected BigInt dco_decode_usize(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dcoDecodeU64(raw); }
+
+@protected ViewportState dco_decode_viewport_state(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 4) throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+                return ViewportState(xOffset: dco_decode_f_64(arr[0]),
+yOffset: dco_decode_f_64(arr[1]),
+zoomLevel: dco_decode_f_64(arr[2]),
+activeView: dco_decode_String(arr[3]),); }
+
+@protected AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var inner = sse_decode_String(deserializer);
+        return AnyhowException(inner); }
+
+@protected AppHandle sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return AppHandleImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
+
+@protected HistoryRecord sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return HistoryRecordImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
+
+@protected Repository sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return RepositoryImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
+
+@protected AppHandle sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return AppHandleImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
+
+@protected AppHandle sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return AppHandleImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
+
+@protected AppHandle sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return AppHandleImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
+
+@protected HistoryRecord sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return HistoryRecordImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
+
+@protected Repository sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return RepositoryImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
+
+@protected RustStreamSink<GraphEvent> sse_decode_StreamSink_graph_event_Sse(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+throw UnimplementedError('Unreachable ()'); }
+
+@protected RustStreamSink<LogState> sse_decode_StreamSink_log_state_Sse(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+throw UnimplementedError('Unreachable ()'); }
+
+@protected String sse_decode_String(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var inner = sse_decode_list_prim_u_8_strict(deserializer);
+        return utf8.decoder.convert(inner); }
+
+@protected BlockAttrs sse_decode_block_attrs(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_level = sse_decode_opt_box_autoadd_u_8(deserializer);
+var var_language = sse_decode_opt_String(deserializer);
+return BlockAttrs(level: var_level, language: var_language); }
+
+@protected BlockType sse_decode_block_type(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var inner = sse_decode_i_32(deserializer);
+        return BlockType.values[inner]; }
+
+@protected bool sse_decode_bool(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return deserializer.buffer.getUint8() != 0; }
+
+@protected BoundingBox sse_decode_bounding_box(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_minX = sse_decode_f_64(deserializer);
+var var_minY = sse_decode_f_64(deserializer);
+var var_maxX = sse_decode_f_64(deserializer);
+var var_maxY = sse_decode_f_64(deserializer);
+return BoundingBox(minX: var_minX, minY: var_minY, maxX: var_maxX, maxY: var_maxY); }
+
+@protected HistoryRecord sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(deserializer)); }
+
+@protected BlockAttrs sse_decode_box_autoadd_block_attrs(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_block_attrs(deserializer)); }
+
+@protected BoundingBox sse_decode_box_autoadd_bounding_box(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_bounding_box(deserializer)); }
+
+@protected Content sse_decode_box_autoadd_content(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_content(deserializer)); }
+
+@protected Coordinates sse_decode_box_autoadd_coordinates(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_coordinates(deserializer)); }
+
+@protected PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_i_64(deserializer)); }
+
+@protected INode sse_decode_box_autoadd_i_node(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_i_node(deserializer)); }
+
+@protected IRelation sse_decode_box_autoadd_i_relation(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_i_relation(deserializer)); }
+
+@protected InterNode sse_decode_box_autoadd_inter_node(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_inter_node(deserializer)); }
+
+@protected MarkAttrs sse_decode_box_autoadd_mark_attrs(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_mark_attrs(deserializer)); }
+
+@protected NodeLayout sse_decode_box_autoadd_node_layout(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_node_layout(deserializer)); }
+
+@protected NodeStyle sse_decode_box_autoadd_node_style(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_node_style(deserializer)); }
+
+@protected Nodes sse_decode_box_autoadd_nodes(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_nodes(deserializer)); }
+
+@protected RecordStrings sse_decode_box_autoadd_record_strings(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_record_strings(deserializer)); }
+
+@protected RelationLayout sse_decode_box_autoadd_relation_layout(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_relation_layout(deserializer)); }
+
+@protected RelationStyle sse_decode_box_autoadd_relation_style(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_relation_style(deserializer)); }
+
+@protected Size sse_decode_box_autoadd_size(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_size(deserializer)); }
+
+@protected SymmetricEntityPatch sse_decode_box_autoadd_symmetric_entity_patch(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_symmetric_entity_patch(deserializer)); }
+
+@protected Tag sse_decode_box_autoadd_tag(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_tag(deserializer)); }
+
+@protected TagOperation sse_decode_box_autoadd_tag_operation(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_tag_operation(deserializer)); }
+
+@protected TaskNode sse_decode_box_autoadd_task_node(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_task_node(deserializer)); }
+
+@protected Theme sse_decode_box_autoadd_theme(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_theme(deserializer)); }
+
+@protected ThemeFields sse_decode_box_autoadd_theme_fields(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_theme_fields(deserializer)); }
+
+@protected int sse_decode_box_autoadd_u_8(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_u_8(deserializer)); }
+
+@protected ViewportState sse_decode_box_autoadd_viewport_state(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_viewport_state(deserializer)); }
+
+@protected Comment sse_decode_comment(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_text = sse_decode_String(deserializer);
+var var_createdAt = sse_decode_i_64(deserializer);
+return Comment(text: var_text, createdAt: var_createdAt); }
+
+@protected Content sse_decode_content(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_text = sse_decode_String(deserializer);
+var var_blocks = sse_decode_list_content_block(deserializer);
+return Content(text: var_text, blocks: var_blocks); }
+
+@protected ContentBlock sse_decode_content_block(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_blockType = sse_decode_block_type(deserializer);
+var var_content = sse_decode_list_inline_element(deserializer);
+var var_attrs = sse_decode_opt_box_autoadd_block_attrs(deserializer);
+return ContentBlock(blockType: var_blockType, content: var_content, attrs: var_attrs); }
+
+@protected Coordinates sse_decode_coordinates(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_x = sse_decode_i_32(deserializer);
+var var_y = sse_decode_i_32(deserializer);
+return Coordinates(x: var_x, y: var_y); }
+
+@protected DisplayMode sse_decode_display_mode(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var inner = sse_decode_i_32(deserializer);
+        return DisplayMode.values[inner]; }
+
+@protected EntityPatch sse_decode_entity_patch(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            var tag_ = sse_decode_i_32(deserializer);
+            switch (tag_) { case 0: var var_field0 = sse_decode_list_node_patch(deserializer);
+return EntityPatch_Node(var_field0);case 1: var var_field0 = sse_decode_list_relation_patch(deserializer);
+return EntityPatch_Relation(var_field0);case 2: var var_field0 = sse_decode_box_autoadd_nodes(deserializer);
+var var_field1 = sse_decode_list_i_relation(deserializer);
+return EntityPatch_CreateNode(var_field0, var_field1);case 3: var var_field0 = sse_decode_box_autoadd_nodes(deserializer);
+var var_field1 = sse_decode_list_i_relation(deserializer);
+return EntityPatch_DeleteNode(var_field0, var_field1);case 4: var var_field0 = sse_decode_box_autoadd_i_relation(deserializer);
+return EntityPatch_CreateRelation(var_field0);case 5: var var_field0 = sse_decode_box_autoadd_i_relation(deserializer);
+return EntityPatch_DeleteRelation(var_field0); default: throw UnimplementedError(''); }
+             }
+
+@protected double sse_decode_f_64(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return deserializer.buffer.getFloat64(); }
+
+@protected FontWeight sse_decode_font_weight(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_field0 = sse_decode_u_8(deserializer);
+return FontWeight(field0: var_field0); }
+
+@protected GraphEvent sse_decode_graph_event(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            var tag_ = sse_decode_i_32(deserializer);
+            switch (tag_) { case 0: var var_field0 = sse_decode_box_autoadd_nodes(deserializer);
+return GraphEvent_NodeUpdated(var_field0);case 1: var var_field0 = sse_decode_String(deserializer);
+return GraphEvent_NodeDeleted(var_field0);case 2: return GraphEvent_RelationUpdated();case 3: return GraphEvent_SnapshotLoaded();case 4: var var_field0 = sse_decode_box_autoadd_bounding_box(deserializer);
+return GraphEvent_BoundaryUpdated(var_field0); default: throw UnimplementedError(''); }
+             }
+
+@protected int sse_decode_i_32(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return deserializer.buffer.getInt32(); }
+
+@protected PlatformInt64 sse_decode_i_64(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return deserializer.buffer.getPlatformInt64(); }
+
+@protected INode sse_decode_i_node(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_key = sse_decode_String(deserializer);
+var var_fields = sse_decode_i_node_fields(deserializer);
+return INode(key: var_key, fields: var_fields); }
+
+@protected INodeFields sse_decode_i_node_fields(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_content = sse_decode_content(deserializer);
+var var_style = sse_decode_opt_box_autoadd_node_style(deserializer);
+var var_resolvedStyle = sse_decode_opt_box_autoadd_node_style(deserializer);
+var var_layout = sse_decode_opt_box_autoadd_node_layout(deserializer);
+var var_resolvedLayout = sse_decode_opt_box_autoadd_node_layout(deserializer);
+var var_layer = sse_decode_String(deserializer);
+var var_position = sse_decode_coordinates(deserializer);
+var var_size = sse_decode_size(deserializer);
+var var_lineCount = sse_decode_i_32(deserializer);
+var var_expandable = sse_decode_bool(deserializer);
+var var_isExpanded = sse_decode_bool(deserializer);
+var var_locked = sse_decode_bool(deserializer);
+var var_tags = sse_decode_list_tag_edge(deserializer);
+var var_aliases = sse_decode_list_String(deserializer);
+var var_comments = sse_decode_list_comment(deserializer);
+var var_attachment = sse_decode_opt_String(deserializer);
+var var_significance = sse_decode_u_8(deserializer);
+var var_createdAt = sse_decode_i_64(deserializer);
+var var_updatedAt = sse_decode_i_64(deserializer);
+return INodeFields(content: var_content, style: var_style, resolvedStyle: var_resolvedStyle, layout: var_layout, resolvedLayout: var_resolvedLayout, layer: var_layer, position: var_position, size: var_size, lineCount: var_lineCount, expandable: var_expandable, isExpanded: var_isExpanded, locked: var_locked, tags: var_tags, aliases: var_aliases, comments: var_comments, attachment: var_attachment, significance: var_significance, createdAt: var_createdAt, updatedAt: var_updatedAt); }
+
+@protected IRelation sse_decode_i_relation(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_key = sse_decode_String(deserializer);
+var var_in_ = sse_decode_record_strings(deserializer);
+var var_out = sse_decode_record_strings(deserializer);
+var var_fields = sse_decode_i_relation_fields(deserializer);
+return IRelation(key: var_key, in_: var_in_, out: var_out, fields: var_fields); }
+
+@protected IRelationFields sse_decode_i_relation_fields(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_verb = sse_decode_String(deserializer);
+var var_style = sse_decode_opt_box_autoadd_relation_style(deserializer);
+var var_resolvedStyle = sse_decode_opt_box_autoadd_relation_style(deserializer);
+var var_layout = sse_decode_opt_box_autoadd_relation_layout(deserializer);
+var var_resolvedLayout = sse_decode_opt_box_autoadd_relation_layout(deserializer);
+var var_directionless = sse_decode_bool(deserializer);
+var var_layer = sse_decode_String(deserializer);
+var var_createdAt = sse_decode_i_64(deserializer);
+var var_updatedAt = sse_decode_i_64(deserializer);
+return IRelationFields(verb: var_verb, style: var_style, resolvedStyle: var_resolvedStyle, layout: var_layout, resolvedLayout: var_resolvedLayout, directionless: var_directionless, layer: var_layer, createdAt: var_createdAt, updatedAt: var_updatedAt); }
+
+@protected InlineElement sse_decode_inline_element(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_inlineType = sse_decode_inline_type(deserializer);
+var var_text = sse_decode_String(deserializer);
+var var_marks = sse_decode_opt_list_text_mark(deserializer);
+return InlineElement(inlineType: var_inlineType, text: var_text, marks: var_marks); }
+
+@protected InlineType sse_decode_inline_type(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var inner = sse_decode_i_32(deserializer);
+        return InlineType.values[inner]; }
+
+@protected InterNode sse_decode_inter_node(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_key = sse_decode_String(deserializer);
+var var_fields = sse_decode_inter_node_fields(deserializer);
+return InterNode(key: var_key, fields: var_fields); }
+
+@protected InterNodeFields sse_decode_inter_node_fields(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_verb = sse_decode_String(deserializer);
+var var_behavioralFeatures = sse_decode_opt_String(deserializer);
+var var_position = sse_decode_coordinates(deserializer);
+var var_style = sse_decode_opt_String(deserializer);
+var var_layer = sse_decode_String(deserializer);
+var var_createdAt = sse_decode_i_64(deserializer);
+var var_updatedAt = sse_decode_i_64(deserializer);
+return InterNodeFields(verb: var_verb, behavioralFeatures: var_behavioralFeatures, position: var_position, style: var_style, layer: var_layer, createdAt: var_createdAt, updatedAt: var_updatedAt); }
+
+@protected List<String> sse_decode_list_String(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <String>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_String(deserializer)); }
+        return ans_;
+         }
+
+@protected List<Comment> sse_decode_list_comment(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <Comment>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_comment(deserializer)); }
+        return ans_;
+         }
+
+@protected List<ContentBlock> sse_decode_list_content_block(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <ContentBlock>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_content_block(deserializer)); }
+        return ans_;
+         }
+
+@protected List<INode> sse_decode_list_i_node(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <INode>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_i_node(deserializer)); }
+        return ans_;
+         }
+
+@protected List<IRelation> sse_decode_list_i_relation(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <IRelation>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_i_relation(deserializer)); }
+        return ans_;
+         }
+
+@protected List<InlineElement> sse_decode_list_inline_element(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <InlineElement>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_inline_element(deserializer)); }
+        return ans_;
+         }
+
+@protected List<InterNode> sse_decode_list_inter_node(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <InterNode>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_inter_node(deserializer)); }
+        return ans_;
+         }
+
+@protected List<NodePatch> sse_decode_list_node_patch(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <NodePatch>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_node_patch(deserializer)); }
+        return ans_;
+         }
+
+@protected List<Nodes> sse_decode_list_nodes(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <Nodes>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_nodes(deserializer)); }
+        return ans_;
+         }
+
+@protected Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var len_ = sse_decode_i_32(deserializer);
+                return deserializer.buffer.getUint8List(len_); }
+
+@protected List<RecordStrings> sse_decode_list_record_strings(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <RecordStrings>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_record_strings(deserializer)); }
+        return ans_;
+         }
+
+@protected List<RelationPatch> sse_decode_list_relation_patch(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <RelationPatch>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_relation_patch(deserializer)); }
+        return ans_;
+         }
+
+@protected List<Tag> sse_decode_list_tag(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <Tag>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_tag(deserializer)); }
+        return ans_;
+         }
+
+@protected List<TagEdge> sse_decode_list_tag_edge(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <TagEdge>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_tag_edge(deserializer)); }
+        return ans_;
+         }
+
+@protected List<TaskNode> sse_decode_list_task_node(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <TaskNode>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_task_node(deserializer)); }
+        return ans_;
+         }
+
+@protected List<Template> sse_decode_list_template(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <Template>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_template(deserializer)); }
+        return ans_;
+         }
+
+@protected List<TextMark> sse_decode_list_text_mark(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <TextMark>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_text_mark(deserializer)); }
+        return ans_;
+         }
+
+@protected List<Theme> sse_decode_list_theme(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <Theme>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_theme(deserializer)); }
+        return ans_;
+         }
+
+@protected LogState sse_decode_log_state(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_tMicro = sse_decode_i_64(deserializer);
+var var_seqId = sse_decode_i_64(deserializer);
+var var_level = sse_decode_u_8(deserializer);
+var var_message = sse_decode_String(deserializer);
+return LogState(tMicro: var_tMicro, seqId: var_seqId, level: var_level, message: var_message); }
+
+@protected MapData sse_decode_map_data(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_mapName = sse_decode_String(deserializer);
+var var_viewportState = sse_decode_viewport_state(deserializer);
+var var_activeThemeId = sse_decode_opt_String(deserializer);
+var var_displayMode = sse_decode_display_mode(deserializer);
+return MapData(mapName: var_mapName, viewportState: var_viewportState, activeThemeId: var_activeThemeId, displayMode: var_displayMode); }
+
+@protected MarkAttrs sse_decode_mark_attrs(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_href = sse_decode_opt_String(deserializer);
+return MarkAttrs(href: var_href); }
+
+@protected MarkType sse_decode_mark_type(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var inner = sse_decode_i_32(deserializer);
+        return MarkType.values[inner]; }
+
+@protected NodeLayout sse_decode_node_layout(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_strategyType = sse_decode_String(deserializer);
+return NodeLayout(strategyType: var_strategyType); }
+
+@protected NodePatch sse_decode_node_patch(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            var tag_ = sse_decode_i_32(deserializer);
+            switch (tag_) { case 0: var var_field0 = sse_decode_box_autoadd_coordinates(deserializer);
+return NodePatch_Position(var_field0);case 1: var var_field0 = sse_decode_box_autoadd_size(deserializer);
+return NodePatch_Size(var_field0);case 2: var var_field0 = sse_decode_box_autoadd_content(deserializer);
+return NodePatch_Content(var_field0);case 3: var var_field0 = sse_decode_bool(deserializer);
+return NodePatch_IsExpanded(var_field0);case 4: var var_field0 = sse_decode_opt_box_autoadd_node_style(deserializer);
+return NodePatch_Style(var_field0);case 5: var var_field0 = sse_decode_box_autoadd_tag_operation(deserializer);
+return NodePatch_TagOp(var_field0);case 6: var var_field0 = sse_decode_u_8(deserializer);
+return NodePatch_Significance(var_field0); default: throw UnimplementedError(''); }
+             }
+
+@protected NodeStyle sse_decode_node_style(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_bgColor = sse_decode_u_32(deserializer);
+var var_strokeColor = sse_decode_u_32(deserializer);
+var var_strokeWidth = sse_decode_i_32(deserializer);
+var var_fontFamily = sse_decode_String(deserializer);
+var var_fontSize = sse_decode_f_64(deserializer);
+var var_shape = sse_decode_String(deserializer);
+var var_width = sse_decode_i_32(deserializer);
+var var_height = sse_decode_i_32(deserializer);
+var var_textColor = sse_decode_u_32(deserializer);
+var var_borderRadius = sse_decode_f_64(deserializer);
+var var_padding = sse_decode_f_64(deserializer);
+var var_shadowColor = sse_decode_u_32(deserializer);
+var var_shadowBlur = sse_decode_f_64(deserializer);
+var var_shadowSpread = sse_decode_f_64(deserializer);
+var var_shadowOffsetX = sse_decode_f_64(deserializer);
+var var_shadowOffsetY = sse_decode_f_64(deserializer);
+var var_strategyType = sse_decode_String(deserializer);
+return NodeStyle(bgColor: var_bgColor, strokeColor: var_strokeColor, strokeWidth: var_strokeWidth, fontFamily: var_fontFamily, fontSize: var_fontSize, shape: var_shape, width: var_width, height: var_height, textColor: var_textColor, borderRadius: var_borderRadius, padding: var_padding, shadowColor: var_shadowColor, shadowBlur: var_shadowBlur, shadowSpread: var_shadowSpread, shadowOffsetX: var_shadowOffsetX, shadowOffsetY: var_shadowOffsetY, strategyType: var_strategyType); }
+
+@protected Nodes sse_decode_nodes(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            var tag_ = sse_decode_i_32(deserializer);
+            switch (tag_) { case 0: var var_field0 = sse_decode_box_autoadd_i_node(deserializer);
+return Nodes_INode(var_field0);case 1: var var_field0 = sse_decode_box_autoadd_task_node(deserializer);
+return Nodes_TaskNode(var_field0);case 2: var var_field0 = sse_decode_box_autoadd_inter_node(deserializer);
+return Nodes_InterNode(var_field0); default: throw UnimplementedError(''); }
+             }
+
+@protected String? sse_decode_opt_String(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            if (sse_decode_bool(deserializer)) {
+                return (sse_decode_String(deserializer));
+            } else {
+                return null;
+            }
+             }
+
+@protected HistoryRecord? sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            if (sse_decode_bool(deserializer)) {
+                return (sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(deserializer));
+            } else {
+                return null;
+            }
+             }
+
+@protected BlockAttrs? sse_decode_opt_box_autoadd_block_attrs(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            if (sse_decode_bool(deserializer)) {
+                return (sse_decode_box_autoadd_block_attrs(deserializer));
+            } else {
+                return null;
+            }
+             }
+
+@protected PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            if (sse_decode_bool(deserializer)) {
+                return (sse_decode_box_autoadd_i_64(deserializer));
+            } else {
+                return null;
+            }
+             }
+
+@protected MarkAttrs? sse_decode_opt_box_autoadd_mark_attrs(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            if (sse_decode_bool(deserializer)) {
+                return (sse_decode_box_autoadd_mark_attrs(deserializer));
+            } else {
+                return null;
+            }
+             }
+
+@protected NodeLayout? sse_decode_opt_box_autoadd_node_layout(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            if (sse_decode_bool(deserializer)) {
+                return (sse_decode_box_autoadd_node_layout(deserializer));
+            } else {
+                return null;
+            }
+             }
+
+@protected NodeStyle? sse_decode_opt_box_autoadd_node_style(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            if (sse_decode_bool(deserializer)) {
+                return (sse_decode_box_autoadd_node_style(deserializer));
+            } else {
+                return null;
+            }
+             }
+
+@protected Nodes? sse_decode_opt_box_autoadd_nodes(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            if (sse_decode_bool(deserializer)) {
+                return (sse_decode_box_autoadd_nodes(deserializer));
+            } else {
+                return null;
+            }
+             }
+
+@protected RelationLayout? sse_decode_opt_box_autoadd_relation_layout(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            if (sse_decode_bool(deserializer)) {
+                return (sse_decode_box_autoadd_relation_layout(deserializer));
+            } else {
+                return null;
+            }
+             }
+
+@protected RelationStyle? sse_decode_opt_box_autoadd_relation_style(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            if (sse_decode_bool(deserializer)) {
+                return (sse_decode_box_autoadd_relation_style(deserializer));
+            } else {
+                return null;
+            }
+             }
+
+@protected Tag? sse_decode_opt_box_autoadd_tag(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            if (sse_decode_bool(deserializer)) {
+                return (sse_decode_box_autoadd_tag(deserializer));
+            } else {
+                return null;
+            }
+             }
+
+@protected Theme? sse_decode_opt_box_autoadd_theme(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            if (sse_decode_bool(deserializer)) {
+                return (sse_decode_box_autoadd_theme(deserializer));
+            } else {
+                return null;
+            }
+             }
+
+@protected int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            if (sse_decode_bool(deserializer)) {
+                return (sse_decode_box_autoadd_u_8(deserializer));
+            } else {
+                return null;
+            }
+             }
+
+@protected List<TextMark>? sse_decode_opt_list_text_mark(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            if (sse_decode_bool(deserializer)) {
+                return (sse_decode_list_text_mark(deserializer));
+            } else {
+                return null;
+            }
+             }
+
+@protected (List<INode>,List<TaskNode>,List<InterNode>,List<IRelation>,MapData) sse_decode_record_list_i_node_list_task_node_list_inter_node_list_i_relation_map_data(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_field0 = sse_decode_list_i_node(deserializer);
+var var_field1 = sse_decode_list_task_node(deserializer);
+var var_field2 = sse_decode_list_inter_node(deserializer);
+var var_field3 = sse_decode_list_i_relation(deserializer);
+var var_field4 = sse_decode_map_data(deserializer);
+return (var_field0, var_field1, var_field2, var_field3, var_field4); }
+
+@protected RecordStrings sse_decode_record_strings(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_table = sse_decode_String(deserializer);
+var var_key = sse_decode_String(deserializer);
+return RecordStrings(table: var_table, key: var_key); }
+
+@protected RelationLayout sse_decode_relation_layout(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_fromSide = sse_decode_String(deserializer);
+var var_toSide = sse_decode_String(deserializer);
+var var_strategyType = sse_decode_String(deserializer);
+return RelationLayout(fromSide: var_fromSide, toSide: var_toSide, strategyType: var_strategyType); }
+
+@protected RelationPatch sse_decode_relation_patch(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            var tag_ = sse_decode_i_32(deserializer);
+            switch (tag_) { case 0: var var_field0 = sse_decode_String(deserializer);
+return RelationPatch_Verb(var_field0);case 1: var var_field0 = sse_decode_opt_box_autoadd_relation_style(deserializer);
+return RelationPatch_Style(var_field0);case 2: var var_field0 = sse_decode_opt_box_autoadd_relation_layout(deserializer);
+return RelationPatch_Layout(var_field0);case 3: var var_field0 = sse_decode_bool(deserializer);
+return RelationPatch_Directionless(var_field0); default: throw UnimplementedError(''); }
+             }
+
+@protected RelationStyle sse_decode_relation_style(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_bgColor = sse_decode_u_32(deserializer);
+var var_strokeColor = sse_decode_u_32(deserializer);
+var var_strokeWidth = sse_decode_i_32(deserializer);
+var var_fontFamily = sse_decode_String(deserializer);
+var var_fontSize = sse_decode_f_64(deserializer);
+var var_shape = sse_decode_String(deserializer);
+var var_arrowType = sse_decode_String(deserializer);
+var var_arrowSize = sse_decode_f_64(deserializer);
+var var_width = sse_decode_i_32(deserializer);
+var var_height = sse_decode_i_32(deserializer);
+var var_textColor = sse_decode_u_32(deserializer);
+var var_shadowColor = sse_decode_u_32(deserializer);
+var var_shadowBlur = sse_decode_f_64(deserializer);
+var var_shadowOffsetX = sse_decode_f_64(deserializer);
+var var_shadowOffsetY = sse_decode_f_64(deserializer);
+var var_strategyType = sse_decode_String(deserializer);
+var var_strokePattern = sse_decode_String(deserializer);
+return RelationStyle(bgColor: var_bgColor, strokeColor: var_strokeColor, strokeWidth: var_strokeWidth, fontFamily: var_fontFamily, fontSize: var_fontSize, shape: var_shape, arrowType: var_arrowType, arrowSize: var_arrowSize, width: var_width, height: var_height, textColor: var_textColor, shadowColor: var_shadowColor, shadowBlur: var_shadowBlur, shadowOffsetX: var_shadowOffsetX, shadowOffsetY: var_shadowOffsetY, strategyType: var_strategyType, strokePattern: var_strokePattern); }
+
+@protected Size sse_decode_size(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_width = sse_decode_i_32(deserializer);
+var var_height = sse_decode_i_32(deserializer);
+return Size(width: var_width, height: var_height); }
+
+@protected SymmetricEntityPatch sse_decode_symmetric_entity_patch(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_id = sse_decode_record_strings(deserializer);
+var var_forward = sse_decode_entity_patch(deserializer);
+var var_reverse = sse_decode_entity_patch(deserializer);
+return SymmetricEntityPatch(id: var_id, forward: var_forward, reverse: var_reverse); }
+
+@protected Tag sse_decode_tag(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_key = sse_decode_String(deserializer);
+var var_fields = sse_decode_tag_fields(deserializer);
+return Tag(key: var_key, fields: var_fields); }
+
+@protected TagEdge sse_decode_tag_edge(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            var tag_ = sse_decode_i_32(deserializer);
+            switch (tag_) { case 0: var var_field0 = sse_decode_box_autoadd_tag(deserializer);
+return TagEdge_Hydrated(var_field0);case 1: var var_field0 = sse_decode_box_autoadd_record_strings(deserializer);
+return TagEdge_Pointer(var_field0); default: throw UnimplementedError(''); }
+             }
+
+@protected TagFields sse_decode_tag_fields(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_name = sse_decode_String(deserializer);
+var var_color = sse_decode_u_32(deserializer);
+var var_createdAt = sse_decode_i_64(deserializer);
+var var_updatedAt = sse_decode_i_64(deserializer);
+return TagFields(name: var_name, color: var_color, createdAt: var_createdAt, updatedAt: var_updatedAt); }
+
+@protected TagOperation sse_decode_tag_operation(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+            var tag_ = sse_decode_i_32(deserializer);
+            switch (tag_) { case 0: var var_field0 = sse_decode_String(deserializer);
+return TagOperation_Add(var_field0);case 1: var var_field0 = sse_decode_String(deserializer);
+return TagOperation_Remove(var_field0); default: throw UnimplementedError(''); }
+             }
+
+@protected TaskNode sse_decode_task_node(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_key = sse_decode_String(deserializer);
+var var_fields = sse_decode_task_node_fields(deserializer);
+return TaskNode(key: var_key, fields: var_fields); }
+
+@protected TaskNodeFields sse_decode_task_node_fields(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_content = sse_decode_content(deserializer);
+var var_dueDate = sse_decode_opt_box_autoadd_i_64(deserializer);
+var var_state = sse_decode_String(deserializer);
+var var_position = sse_decode_coordinates(deserializer);
+var var_size = sse_decode_size(deserializer);
+var var_expandable = sse_decode_bool(deserializer);
+var var_isExpanded = sse_decode_bool(deserializer);
+var var_layer = sse_decode_String(deserializer);
+var var_style = sse_decode_opt_box_autoadd_node_style(deserializer);
+var var_resolvedStyle = sse_decode_opt_box_autoadd_node_style(deserializer);
+var var_layout = sse_decode_opt_box_autoadd_node_layout(deserializer);
+var var_resolvedLayout = sse_decode_opt_box_autoadd_node_layout(deserializer);
+var var_significance = sse_decode_u_8(deserializer);
+var var_createdAt = sse_decode_i_64(deserializer);
+var var_updatedAt = sse_decode_i_64(deserializer);
+return TaskNodeFields(content: var_content, dueDate: var_dueDate, state: var_state, position: var_position, size: var_size, expandable: var_expandable, isExpanded: var_isExpanded, layer: var_layer, style: var_style, resolvedStyle: var_resolvedStyle, layout: var_layout, resolvedLayout: var_resolvedLayout, significance: var_significance, createdAt: var_createdAt, updatedAt: var_updatedAt); }
+
+@protected Template sse_decode_template(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_key = sse_decode_String(deserializer);
+var var_name = sse_decode_String(deserializer);
+var var_createdAt = sse_decode_i_64(deserializer);
+var var_updatedAt = sse_decode_i_64(deserializer);
+var var_nodes = sse_decode_list_nodes(deserializer);
+var var_relations = sse_decode_list_i_relation(deserializer);
+return Template(key: var_key, name: var_name, createdAt: var_createdAt, updatedAt: var_updatedAt, nodes: var_nodes, relations: var_relations); }
+
+@protected TextMark sse_decode_text_mark(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_markType = sse_decode_mark_type(deserializer);
+var var_attrs = sse_decode_opt_box_autoadd_mark_attrs(deserializer);
+return TextMark(markType: var_markType, attrs: var_attrs); }
+
+@protected Theme sse_decode_theme(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_key = sse_decode_String(deserializer);
+var var_fields = sse_decode_theme_fields(deserializer);
+return Theme(key: var_key, fields: var_fields); }
+
+@protected ThemeBrightness sse_decode_theme_brightness(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var inner = sse_decode_i_32(deserializer);
+        return ThemeBrightness.values[inner]; }
+
+@protected ThemeFields sse_decode_theme_fields(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_name = sse_decode_String(deserializer);
+var var_primaryColor = sse_decode_u_32(deserializer);
+var var_secondaryColor = sse_decode_u_32(deserializer);
+var var_accentColor = sse_decode_u_32(deserializer);
+var var_scaffoldBackgroundColor = sse_decode_u_32(deserializer);
+var var_cardColor = sse_decode_u_32(deserializer);
+var var_dividerColor = sse_decode_u_32(deserializer);
+var var_textColor = sse_decode_u_32(deserializer);
+var var_fontFamily = sse_decode_String(deserializer);
+var var_bodyFontSize = sse_decode_f_64(deserializer);
+var var_bodyFontWeight = sse_decode_font_weight(deserializer);
+var var_bodyTextColor = sse_decode_u_32(deserializer);
+var var_borderRadius = sse_decode_f_64(deserializer);
+var var_appBarBackgroundColor = sse_decode_u_32(deserializer);
+var var_appBarForegroundColor = sse_decode_u_32(deserializer);
+var var_appBarElevation = sse_decode_f_64(deserializer);
+var var_appBarTitleFontSize = sse_decode_f_64(deserializer);
+var var_appBarTitleFontWeight = sse_decode_font_weight(deserializer);
+var var_useMaterial3 = sse_decode_bool(deserializer);
+var var_brightness = sse_decode_theme_brightness(deserializer);
+return ThemeFields(name: var_name, primaryColor: var_primaryColor, secondaryColor: var_secondaryColor, accentColor: var_accentColor, scaffoldBackgroundColor: var_scaffoldBackgroundColor, cardColor: var_cardColor, dividerColor: var_dividerColor, textColor: var_textColor, fontFamily: var_fontFamily, bodyFontSize: var_bodyFontSize, bodyFontWeight: var_bodyFontWeight, bodyTextColor: var_bodyTextColor, borderRadius: var_borderRadius, appBarBackgroundColor: var_appBarBackgroundColor, appBarForegroundColor: var_appBarForegroundColor, appBarElevation: var_appBarElevation, appBarTitleFontSize: var_appBarTitleFontSize, appBarTitleFontWeight: var_appBarTitleFontWeight, useMaterial3: var_useMaterial3, brightness: var_brightness); }
+
+@protected int sse_decode_u_32(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return deserializer.buffer.getUint32(); }
+
+@protected int sse_decode_u_8(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return deserializer.buffer.getUint8(); }
+
+@protected void sse_decode_unit(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+ }
+
+@protected BigInt sse_decode_usize(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return deserializer.buffer.getBigUint64(); }
+
+@protected ViewportState sse_decode_viewport_state(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_xOffset = sse_decode_f_64(deserializer);
+var var_yOffset = sse_decode_f_64(deserializer);
+var var_zoomLevel = sse_decode_f_64(deserializer);
+var var_activeView = sse_decode_String(deserializer);
+return ViewportState(xOffset: var_xOffset, yOffset: var_yOffset, zoomLevel: var_zoomLevel, activeView: var_activeView); }
+
+@protected void sse_encode_AnyhowException(AnyhowException self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.message, serializer); }
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(AppHandle self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_usize((self as AppHandleImpl).frbInternalSseEncode(move: true), serializer); }
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(HistoryRecord self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_usize((self as HistoryRecordImpl).frbInternalSseEncode(move: true), serializer); }
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(Repository self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_usize((self as RepositoryImpl).frbInternalSseEncode(move: true), serializer); }
+
+@protected void sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(AppHandle self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_usize((self as AppHandleImpl).frbInternalSseEncode(move: false), serializer); }
+
+@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(AppHandle self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_usize((self as AppHandleImpl).frbInternalSseEncode(move: false), serializer); }
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(AppHandle self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_usize((self as AppHandleImpl).frbInternalSseEncode(move: null), serializer); }
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(HistoryRecord self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_usize((self as HistoryRecordImpl).frbInternalSseEncode(move: null), serializer); }
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(Repository self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_usize((self as RepositoryImpl).frbInternalSseEncode(move: null), serializer); }
+
+@protected void sse_encode_StreamSink_graph_event_Sse(RustStreamSink<GraphEvent> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.setupAndSerialize(codec: SseCodec(
+            decodeSuccessData: sse_decode_graph_event,
+            decodeErrorData: sse_decode_AnyhowException,
+        )), serializer); }
+
+@protected void sse_encode_StreamSink_log_state_Sse(RustStreamSink<LogState> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.setupAndSerialize(codec: SseCodec(
+            decodeSuccessData: sse_decode_log_state,
+            decodeErrorData: sse_decode_AnyhowException,
+        )), serializer); }
+
+@protected void sse_encode_String(String self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer); }
+
+@protected void sse_encode_block_attrs(BlockAttrs self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_opt_box_autoadd_u_8(self.level, serializer);
+sse_encode_opt_String(self.language, serializer);
+ }
+
+@protected void sse_encode_block_type(BlockType self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.index, serializer); }
+
+@protected void sse_encode_bool(bool self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+serializer.buffer.putUint8(self ? 1 : 0); }
+
+@protected void sse_encode_bounding_box(BoundingBox self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_f_64(self.minX, serializer);
+sse_encode_f_64(self.minY, serializer);
+sse_encode_f_64(self.maxX, serializer);
+sse_encode_f_64(self.maxY, serializer);
+ }
+
+@protected void sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(HistoryRecord self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(self, serializer); }
+
+@protected void sse_encode_box_autoadd_block_attrs(BlockAttrs self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_block_attrs(self, serializer); }
+
+@protected void sse_encode_box_autoadd_bounding_box(BoundingBox self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_bounding_box(self, serializer); }
+
+@protected void sse_encode_box_autoadd_content(Content self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_content(self, serializer); }
+
+@protected void sse_encode_box_autoadd_coordinates(Coordinates self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_coordinates(self, serializer); }
+
+@protected void sse_encode_box_autoadd_i_64(PlatformInt64 self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_64(self, serializer); }
+
+@protected void sse_encode_box_autoadd_i_node(INode self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_node(self, serializer); }
+
+@protected void sse_encode_box_autoadd_i_relation(IRelation self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_relation(self, serializer); }
+
+@protected void sse_encode_box_autoadd_inter_node(InterNode self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_inter_node(self, serializer); }
+
+@protected void sse_encode_box_autoadd_mark_attrs(MarkAttrs self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_mark_attrs(self, serializer); }
+
+@protected void sse_encode_box_autoadd_node_layout(NodeLayout self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_node_layout(self, serializer); }
+
+@protected void sse_encode_box_autoadd_node_style(NodeStyle self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_node_style(self, serializer); }
+
+@protected void sse_encode_box_autoadd_nodes(Nodes self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_nodes(self, serializer); }
+
+@protected void sse_encode_box_autoadd_record_strings(RecordStrings self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_record_strings(self, serializer); }
+
+@protected void sse_encode_box_autoadd_relation_layout(RelationLayout self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_relation_layout(self, serializer); }
+
+@protected void sse_encode_box_autoadd_relation_style(RelationStyle self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_relation_style(self, serializer); }
+
+@protected void sse_encode_box_autoadd_size(Size self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_size(self, serializer); }
+
+@protected void sse_encode_box_autoadd_symmetric_entity_patch(SymmetricEntityPatch self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_symmetric_entity_patch(self, serializer); }
+
+@protected void sse_encode_box_autoadd_tag(Tag self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_tag(self, serializer); }
+
+@protected void sse_encode_box_autoadd_tag_operation(TagOperation self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_tag_operation(self, serializer); }
+
+@protected void sse_encode_box_autoadd_task_node(TaskNode self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_task_node(self, serializer); }
+
+@protected void sse_encode_box_autoadd_theme(Theme self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_theme(self, serializer); }
+
+@protected void sse_encode_box_autoadd_theme_fields(ThemeFields self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_theme_fields(self, serializer); }
+
+@protected void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_u_8(self, serializer); }
+
+@protected void sse_encode_box_autoadd_viewport_state(ViewportState self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_viewport_state(self, serializer); }
+
+@protected void sse_encode_comment(Comment self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.text, serializer);
+sse_encode_i_64(self.createdAt, serializer);
+ }
+
+@protected void sse_encode_content(Content self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.text, serializer);
+sse_encode_list_content_block(self.blocks, serializer);
+ }
+
+@protected void sse_encode_content_block(ContentBlock self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_block_type(self.blockType, serializer);
+sse_encode_list_inline_element(self.content, serializer);
+sse_encode_opt_box_autoadd_block_attrs(self.attrs, serializer);
+ }
+
+@protected void sse_encode_coordinates(Coordinates self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.x, serializer);
+sse_encode_i_32(self.y, serializer);
+ }
+
+@protected void sse_encode_display_mode(DisplayMode self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.index, serializer); }
+
+@protected void sse_encode_entity_patch(EntityPatch self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+switch (self) { case EntityPatch_Node(field0: final field0): sse_encode_i_32(0, serializer); sse_encode_list_node_patch(field0, serializer);
+case EntityPatch_Relation(field0: final field0): sse_encode_i_32(1, serializer); sse_encode_list_relation_patch(field0, serializer);
+case EntityPatch_CreateNode(field0: final field0,field1: final field1): sse_encode_i_32(2, serializer); sse_encode_box_autoadd_nodes(field0, serializer);
+sse_encode_list_i_relation(field1, serializer);
+case EntityPatch_DeleteNode(field0: final field0,field1: final field1): sse_encode_i_32(3, serializer); sse_encode_box_autoadd_nodes(field0, serializer);
+sse_encode_list_i_relation(field1, serializer);
+case EntityPatch_CreateRelation(field0: final field0): sse_encode_i_32(4, serializer); sse_encode_box_autoadd_i_relation(field0, serializer);
+case EntityPatch_DeleteRelation(field0: final field0): sse_encode_i_32(5, serializer); sse_encode_box_autoadd_i_relation(field0, serializer);
+  } }
+
+@protected void sse_encode_f_64(double self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+serializer.buffer.putFloat64(self); }
+
+@protected void sse_encode_font_weight(FontWeight self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_u_8(self.field0, serializer);
+ }
+
+@protected void sse_encode_graph_event(GraphEvent self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+switch (self) { case GraphEvent_NodeUpdated(field0: final field0): sse_encode_i_32(0, serializer); sse_encode_box_autoadd_nodes(field0, serializer);
+case GraphEvent_NodeDeleted(field0: final field0): sse_encode_i_32(1, serializer); sse_encode_String(field0, serializer);
+case GraphEvent_RelationUpdated(): sse_encode_i_32(2, serializer); case GraphEvent_SnapshotLoaded(): sse_encode_i_32(3, serializer); case GraphEvent_BoundaryUpdated(field0: final field0): sse_encode_i_32(4, serializer); sse_encode_box_autoadd_bounding_box(field0, serializer);
+  } }
+
+@protected void sse_encode_i_32(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+serializer.buffer.putInt32(self); }
+
+@protected void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+serializer.buffer.putPlatformInt64(self); }
+
+@protected void sse_encode_i_node(INode self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.key, serializer);
+sse_encode_i_node_fields(self.fields, serializer);
+ }
+
+@protected void sse_encode_i_node_fields(INodeFields self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_content(self.content, serializer);
+sse_encode_opt_box_autoadd_node_style(self.style, serializer);
+sse_encode_opt_box_autoadd_node_style(self.resolvedStyle, serializer);
+sse_encode_opt_box_autoadd_node_layout(self.layout, serializer);
+sse_encode_opt_box_autoadd_node_layout(self.resolvedLayout, serializer);
+sse_encode_String(self.layer, serializer);
+sse_encode_coordinates(self.position, serializer);
+sse_encode_size(self.size, serializer);
+sse_encode_i_32(self.lineCount, serializer);
+sse_encode_bool(self.expandable, serializer);
+sse_encode_bool(self.isExpanded, serializer);
+sse_encode_bool(self.locked, serializer);
+sse_encode_list_tag_edge(self.tags, serializer);
+sse_encode_list_String(self.aliases, serializer);
+sse_encode_list_comment(self.comments, serializer);
+sse_encode_opt_String(self.attachment, serializer);
+sse_encode_u_8(self.significance, serializer);
+sse_encode_i_64(self.createdAt, serializer);
+sse_encode_i_64(self.updatedAt, serializer);
+ }
+
+@protected void sse_encode_i_relation(IRelation self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.key, serializer);
+sse_encode_record_strings(self.in_, serializer);
+sse_encode_record_strings(self.out, serializer);
+sse_encode_i_relation_fields(self.fields, serializer);
+ }
+
+@protected void sse_encode_i_relation_fields(IRelationFields self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.verb, serializer);
+sse_encode_opt_box_autoadd_relation_style(self.style, serializer);
+sse_encode_opt_box_autoadd_relation_style(self.resolvedStyle, serializer);
+sse_encode_opt_box_autoadd_relation_layout(self.layout, serializer);
+sse_encode_opt_box_autoadd_relation_layout(self.resolvedLayout, serializer);
+sse_encode_bool(self.directionless, serializer);
+sse_encode_String(self.layer, serializer);
+sse_encode_i_64(self.createdAt, serializer);
+sse_encode_i_64(self.updatedAt, serializer);
+ }
+
+@protected void sse_encode_inline_element(InlineElement self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_inline_type(self.inlineType, serializer);
+sse_encode_String(self.text, serializer);
+sse_encode_opt_list_text_mark(self.marks, serializer);
+ }
+
+@protected void sse_encode_inline_type(InlineType self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.index, serializer); }
+
+@protected void sse_encode_inter_node(InterNode self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.key, serializer);
+sse_encode_inter_node_fields(self.fields, serializer);
+ }
+
+@protected void sse_encode_inter_node_fields(InterNodeFields self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.verb, serializer);
+sse_encode_opt_String(self.behavioralFeatures, serializer);
+sse_encode_coordinates(self.position, serializer);
+sse_encode_opt_String(self.style, serializer);
+sse_encode_String(self.layer, serializer);
+sse_encode_i_64(self.createdAt, serializer);
+sse_encode_i_64(self.updatedAt, serializer);
+ }
+
+@protected void sse_encode_list_String(List<String> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_String(item, serializer); } }
+
+@protected void sse_encode_list_comment(List<Comment> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_comment(item, serializer); } }
+
+@protected void sse_encode_list_content_block(List<ContentBlock> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_content_block(item, serializer); } }
+
+@protected void sse_encode_list_i_node(List<INode> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_i_node(item, serializer); } }
+
+@protected void sse_encode_list_i_relation(List<IRelation> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_i_relation(item, serializer); } }
+
+@protected void sse_encode_list_inline_element(List<InlineElement> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_inline_element(item, serializer); } }
+
+@protected void sse_encode_list_inter_node(List<InterNode> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_inter_node(item, serializer); } }
+
+@protected void sse_encode_list_node_patch(List<NodePatch> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_node_patch(item, serializer); } }
+
+@protected void sse_encode_list_nodes(List<Nodes> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_nodes(item, serializer); } }
+
+@protected void sse_encode_list_prim_u_8_strict(Uint8List self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+                    serializer.buffer.putUint8List(self); }
+
+@protected void sse_encode_list_record_strings(List<RecordStrings> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_record_strings(item, serializer); } }
+
+@protected void sse_encode_list_relation_patch(List<RelationPatch> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_relation_patch(item, serializer); } }
+
+@protected void sse_encode_list_tag(List<Tag> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_tag(item, serializer); } }
+
+@protected void sse_encode_list_tag_edge(List<TagEdge> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_tag_edge(item, serializer); } }
+
+@protected void sse_encode_list_task_node(List<TaskNode> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_task_node(item, serializer); } }
+
+@protected void sse_encode_list_template(List<Template> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_template(item, serializer); } }
+
+@protected void sse_encode_list_text_mark(List<TextMark> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_text_mark(item, serializer); } }
+
+@protected void sse_encode_list_theme(List<Theme> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_theme(item, serializer); } }
+
+@protected void sse_encode_log_state(LogState self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_64(self.tMicro, serializer);
+sse_encode_i_64(self.seqId, serializer);
+sse_encode_u_8(self.level, serializer);
+sse_encode_String(self.message, serializer);
+ }
+
+@protected void sse_encode_map_data(MapData self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.mapName, serializer);
+sse_encode_viewport_state(self.viewportState, serializer);
+sse_encode_opt_String(self.activeThemeId, serializer);
+sse_encode_display_mode(self.displayMode, serializer);
+ }
+
+@protected void sse_encode_mark_attrs(MarkAttrs self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_opt_String(self.href, serializer);
+ }
+
+@protected void sse_encode_mark_type(MarkType self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.index, serializer); }
+
+@protected void sse_encode_node_layout(NodeLayout self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.strategyType, serializer);
+ }
+
+@protected void sse_encode_node_patch(NodePatch self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+switch (self) { case NodePatch_Position(field0: final field0): sse_encode_i_32(0, serializer); sse_encode_box_autoadd_coordinates(field0, serializer);
+case NodePatch_Size(field0: final field0): sse_encode_i_32(1, serializer); sse_encode_box_autoadd_size(field0, serializer);
+case NodePatch_Content(field0: final field0): sse_encode_i_32(2, serializer); sse_encode_box_autoadd_content(field0, serializer);
+case NodePatch_IsExpanded(field0: final field0): sse_encode_i_32(3, serializer); sse_encode_bool(field0, serializer);
+case NodePatch_Style(field0: final field0): sse_encode_i_32(4, serializer); sse_encode_opt_box_autoadd_node_style(field0, serializer);
+case NodePatch_TagOp(field0: final field0): sse_encode_i_32(5, serializer); sse_encode_box_autoadd_tag_operation(field0, serializer);
+case NodePatch_Significance(field0: final field0): sse_encode_i_32(6, serializer); sse_encode_u_8(field0, serializer);
+  } }
+
+@protected void sse_encode_node_style(NodeStyle self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_u_32(self.bgColor, serializer);
+sse_encode_u_32(self.strokeColor, serializer);
+sse_encode_i_32(self.strokeWidth, serializer);
+sse_encode_String(self.fontFamily, serializer);
+sse_encode_f_64(self.fontSize, serializer);
+sse_encode_String(self.shape, serializer);
+sse_encode_i_32(self.width, serializer);
+sse_encode_i_32(self.height, serializer);
+sse_encode_u_32(self.textColor, serializer);
+sse_encode_f_64(self.borderRadius, serializer);
+sse_encode_f_64(self.padding, serializer);
+sse_encode_u_32(self.shadowColor, serializer);
+sse_encode_f_64(self.shadowBlur, serializer);
+sse_encode_f_64(self.shadowSpread, serializer);
+sse_encode_f_64(self.shadowOffsetX, serializer);
+sse_encode_f_64(self.shadowOffsetY, serializer);
+sse_encode_String(self.strategyType, serializer);
+ }
+
+@protected void sse_encode_nodes(Nodes self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+switch (self) { case Nodes_INode(field0: final field0): sse_encode_i_32(0, serializer); sse_encode_box_autoadd_i_node(field0, serializer);
+case Nodes_TaskNode(field0: final field0): sse_encode_i_32(1, serializer); sse_encode_box_autoadd_task_node(field0, serializer);
+case Nodes_InterNode(field0: final field0): sse_encode_i_32(2, serializer); sse_encode_box_autoadd_inter_node(field0, serializer);
+  } }
+
+@protected void sse_encode_opt_String(String? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+                sse_encode_bool(self != null, serializer);
+                if (self != null) {
+                    sse_encode_String(self, serializer);
+                }
+                 }
+
+@protected void sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(HistoryRecord? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+                sse_encode_bool(self != null, serializer);
+                if (self != null) {
+                    sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(self, serializer);
+                }
+                 }
+
+@protected void sse_encode_opt_box_autoadd_block_attrs(BlockAttrs? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+                sse_encode_bool(self != null, serializer);
+                if (self != null) {
+                    sse_encode_box_autoadd_block_attrs(self, serializer);
+                }
+                 }
+
+@protected void sse_encode_opt_box_autoadd_i_64(PlatformInt64? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+                sse_encode_bool(self != null, serializer);
+                if (self != null) {
+                    sse_encode_box_autoadd_i_64(self, serializer);
+                }
+                 }
+
+@protected void sse_encode_opt_box_autoadd_mark_attrs(MarkAttrs? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+                sse_encode_bool(self != null, serializer);
+                if (self != null) {
+                    sse_encode_box_autoadd_mark_attrs(self, serializer);
+                }
+                 }
+
+@protected void sse_encode_opt_box_autoadd_node_layout(NodeLayout? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+                sse_encode_bool(self != null, serializer);
+                if (self != null) {
+                    sse_encode_box_autoadd_node_layout(self, serializer);
+                }
+                 }
+
+@protected void sse_encode_opt_box_autoadd_node_style(NodeStyle? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+                sse_encode_bool(self != null, serializer);
+                if (self != null) {
+                    sse_encode_box_autoadd_node_style(self, serializer);
+                }
+                 }
+
+@protected void sse_encode_opt_box_autoadd_nodes(Nodes? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+                sse_encode_bool(self != null, serializer);
+                if (self != null) {
+                    sse_encode_box_autoadd_nodes(self, serializer);
+                }
+                 }
+
+@protected void sse_encode_opt_box_autoadd_relation_layout(RelationLayout? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+                sse_encode_bool(self != null, serializer);
+                if (self != null) {
+                    sse_encode_box_autoadd_relation_layout(self, serializer);
+                }
+                 }
+
+@protected void sse_encode_opt_box_autoadd_relation_style(RelationStyle? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+                sse_encode_bool(self != null, serializer);
+                if (self != null) {
+                    sse_encode_box_autoadd_relation_style(self, serializer);
+                }
+                 }
+
+@protected void sse_encode_opt_box_autoadd_tag(Tag? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+                sse_encode_bool(self != null, serializer);
+                if (self != null) {
+                    sse_encode_box_autoadd_tag(self, serializer);
+                }
+                 }
+
+@protected void sse_encode_opt_box_autoadd_theme(Theme? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+                sse_encode_bool(self != null, serializer);
+                if (self != null) {
+                    sse_encode_box_autoadd_theme(self, serializer);
+                }
+                 }
+
+@protected void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+                sse_encode_bool(self != null, serializer);
+                if (self != null) {
+                    sse_encode_box_autoadd_u_8(self, serializer);
+                }
+                 }
+
+@protected void sse_encode_opt_list_text_mark(List<TextMark>? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+                sse_encode_bool(self != null, serializer);
+                if (self != null) {
+                    sse_encode_list_text_mark(self, serializer);
+                }
+                 }
+
+@protected void sse_encode_record_list_i_node_list_task_node_list_inter_node_list_i_relation_map_data((List<INode>,List<TaskNode>,List<InterNode>,List<IRelation>,MapData) self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_list_i_node(self.$1, serializer);
+sse_encode_list_task_node(self.$2, serializer);
+sse_encode_list_inter_node(self.$3, serializer);
+sse_encode_list_i_relation(self.$4, serializer);
+sse_encode_map_data(self.$5, serializer);
+ }
+
+@protected void sse_encode_record_strings(RecordStrings self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.table, serializer);
+sse_encode_String(self.key, serializer);
+ }
+
+@protected void sse_encode_relation_layout(RelationLayout self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.fromSide, serializer);
+sse_encode_String(self.toSide, serializer);
+sse_encode_String(self.strategyType, serializer);
+ }
+
+@protected void sse_encode_relation_patch(RelationPatch self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+switch (self) { case RelationPatch_Verb(field0: final field0): sse_encode_i_32(0, serializer); sse_encode_String(field0, serializer);
+case RelationPatch_Style(field0: final field0): sse_encode_i_32(1, serializer); sse_encode_opt_box_autoadd_relation_style(field0, serializer);
+case RelationPatch_Layout(field0: final field0): sse_encode_i_32(2, serializer); sse_encode_opt_box_autoadd_relation_layout(field0, serializer);
+case RelationPatch_Directionless(field0: final field0): sse_encode_i_32(3, serializer); sse_encode_bool(field0, serializer);
+  } }
+
+@protected void sse_encode_relation_style(RelationStyle self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_u_32(self.bgColor, serializer);
+sse_encode_u_32(self.strokeColor, serializer);
+sse_encode_i_32(self.strokeWidth, serializer);
+sse_encode_String(self.fontFamily, serializer);
+sse_encode_f_64(self.fontSize, serializer);
+sse_encode_String(self.shape, serializer);
+sse_encode_String(self.arrowType, serializer);
+sse_encode_f_64(self.arrowSize, serializer);
+sse_encode_i_32(self.width, serializer);
+sse_encode_i_32(self.height, serializer);
+sse_encode_u_32(self.textColor, serializer);
+sse_encode_u_32(self.shadowColor, serializer);
+sse_encode_f_64(self.shadowBlur, serializer);
+sse_encode_f_64(self.shadowOffsetX, serializer);
+sse_encode_f_64(self.shadowOffsetY, serializer);
+sse_encode_String(self.strategyType, serializer);
+sse_encode_String(self.strokePattern, serializer);
+ }
+
+@protected void sse_encode_size(Size self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.width, serializer);
+sse_encode_i_32(self.height, serializer);
+ }
+
+@protected void sse_encode_symmetric_entity_patch(SymmetricEntityPatch self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_record_strings(self.id, serializer);
+sse_encode_entity_patch(self.forward, serializer);
+sse_encode_entity_patch(self.reverse, serializer);
+ }
+
+@protected void sse_encode_tag(Tag self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.key, serializer);
+sse_encode_tag_fields(self.fields, serializer);
+ }
+
+@protected void sse_encode_tag_edge(TagEdge self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+switch (self) { case TagEdge_Hydrated(field0: final field0): sse_encode_i_32(0, serializer); sse_encode_box_autoadd_tag(field0, serializer);
+case TagEdge_Pointer(field0: final field0): sse_encode_i_32(1, serializer); sse_encode_box_autoadd_record_strings(field0, serializer);
+  } }
+
+@protected void sse_encode_tag_fields(TagFields self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.name, serializer);
+sse_encode_u_32(self.color, serializer);
+sse_encode_i_64(self.createdAt, serializer);
+sse_encode_i_64(self.updatedAt, serializer);
+ }
+
+@protected void sse_encode_tag_operation(TagOperation self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+switch (self) { case TagOperation_Add(field0: final field0): sse_encode_i_32(0, serializer); sse_encode_String(field0, serializer);
+case TagOperation_Remove(field0: final field0): sse_encode_i_32(1, serializer); sse_encode_String(field0, serializer);
+  } }
+
+@protected void sse_encode_task_node(TaskNode self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.key, serializer);
+sse_encode_task_node_fields(self.fields, serializer);
+ }
+
+@protected void sse_encode_task_node_fields(TaskNodeFields self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_content(self.content, serializer);
+sse_encode_opt_box_autoadd_i_64(self.dueDate, serializer);
+sse_encode_String(self.state, serializer);
+sse_encode_coordinates(self.position, serializer);
+sse_encode_size(self.size, serializer);
+sse_encode_bool(self.expandable, serializer);
+sse_encode_bool(self.isExpanded, serializer);
+sse_encode_String(self.layer, serializer);
+sse_encode_opt_box_autoadd_node_style(self.style, serializer);
+sse_encode_opt_box_autoadd_node_style(self.resolvedStyle, serializer);
+sse_encode_opt_box_autoadd_node_layout(self.layout, serializer);
+sse_encode_opt_box_autoadd_node_layout(self.resolvedLayout, serializer);
+sse_encode_u_8(self.significance, serializer);
+sse_encode_i_64(self.createdAt, serializer);
+sse_encode_i_64(self.updatedAt, serializer);
+ }
+
+@protected void sse_encode_template(Template self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.key, serializer);
+sse_encode_String(self.name, serializer);
+sse_encode_i_64(self.createdAt, serializer);
+sse_encode_i_64(self.updatedAt, serializer);
+sse_encode_list_nodes(self.nodes, serializer);
+sse_encode_list_i_relation(self.relations, serializer);
+ }
+
+@protected void sse_encode_text_mark(TextMark self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_mark_type(self.markType, serializer);
+sse_encode_opt_box_autoadd_mark_attrs(self.attrs, serializer);
+ }
+
+@protected void sse_encode_theme(Theme self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.key, serializer);
+sse_encode_theme_fields(self.fields, serializer);
+ }
+
+@protected void sse_encode_theme_brightness(ThemeBrightness self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.index, serializer); }
+
+@protected void sse_encode_theme_fields(ThemeFields self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.name, serializer);
+sse_encode_u_32(self.primaryColor, serializer);
+sse_encode_u_32(self.secondaryColor, serializer);
+sse_encode_u_32(self.accentColor, serializer);
+sse_encode_u_32(self.scaffoldBackgroundColor, serializer);
+sse_encode_u_32(self.cardColor, serializer);
+sse_encode_u_32(self.dividerColor, serializer);
+sse_encode_u_32(self.textColor, serializer);
+sse_encode_String(self.fontFamily, serializer);
+sse_encode_f_64(self.bodyFontSize, serializer);
+sse_encode_font_weight(self.bodyFontWeight, serializer);
+sse_encode_u_32(self.bodyTextColor, serializer);
+sse_encode_f_64(self.borderRadius, serializer);
+sse_encode_u_32(self.appBarBackgroundColor, serializer);
+sse_encode_u_32(self.appBarForegroundColor, serializer);
+sse_encode_f_64(self.appBarElevation, serializer);
+sse_encode_f_64(self.appBarTitleFontSize, serializer);
+sse_encode_font_weight(self.appBarTitleFontWeight, serializer);
+sse_encode_bool(self.useMaterial3, serializer);
+sse_encode_theme_brightness(self.brightness, serializer);
+ }
+
+@protected void sse_encode_u_32(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+serializer.buffer.putUint32(self); }
+
+@protected void sse_encode_u_8(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+serializer.buffer.putUint8(self); }
+
+@protected void sse_encode_unit(void self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+ }
+
+@protected void sse_encode_usize(BigInt self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+serializer.buffer.putBigUint64(self); }
+
+@protected void sse_encode_viewport_state(ViewportState self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_f_64(self.xOffset, serializer);
+sse_encode_f_64(self.yOffset, serializer);
+sse_encode_f_64(self.zoomLevel, serializer);
+sse_encode_String(self.activeView, serializer);
+ }
+                }
+                
+
+            @sealed class AppHandleImpl extends RustOpaque implements AppHandle {
+                // Not to be used by end users
+                AppHandleImpl.frbInternalDcoDecode(List<dynamic> wire):
+                    super.frbInternalDcoDecode(wire, _kStaticData);
+
+                // Not to be used by end users
+                AppHandleImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative):
+                    super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+                static final _kStaticData = RustArcStaticData(
+                    rustArcIncrementStrongCount: RustLib.instance.api.rust_arc_increment_strong_count_AppHandle,
+                    rustArcDecrementStrongCount: RustLib.instance.api.rust_arc_decrement_strong_count_AppHandle,
+                    rustArcDecrementStrongCountPtr: RustLib.instance.api.rust_arc_decrement_strong_count_AppHandlePtr,
+                );
+
+                 Future<void>  applyEntityMutation({required SymmetricEntityPatch mutation })=>RustLib.instance.api.crateBridgeApiAppHandleApplyEntityMutation(that: this, mutation: mutation);
+
+
+ Repository get repo=>RustLib.instance.api.crateBridgeApiAppHandleAutoAccessorGetRepo(that: this, );
+
+
+  set repo(Repository repo)=>RustLib.instance.api.crateBridgeApiAppHandleAutoAccessorSetRepo(that: this, repo: repo);
+
+
+ Future<void>  close()=>RustLib.instance.api.crateBridgeApiAppHandleClose(that: this, );
+
+
+ Stream<GraphEvent>  createGraphStream()=>RustLib.instance.api.crateBridgeApiAppHandleCreateGraphStream(that: this, );
+
+
+ Future<void>  createNode({required Nodes input })=>RustLib.instance.api.crateBridgeApiAppHandleCreateNode(that: this, input: input);
+
+
+ Future<void>  createRelation({required IRelation input })=>RustLib.instance.api.crateBridgeApiAppHandleCreateRelation(that: this, input: input);
+
+
+ Future<void>  createTag({required Tag tag })=>RustLib.instance.api.crateBridgeApiAppHandleCreateTag(that: this, tag: tag);
+
+
+ Future<void>  createTheme({required String key , required ThemeFields fields })=>RustLib.instance.api.crateBridgeApiAppHandleCreateTheme(that: this, key: key, fields: fields);
+
+
+ Future<void>  deleteNodeEntry({required String table , required String key })=>RustLib.instance.api.crateBridgeApiAppHandleDeleteNodeEntry(that: this, table: table, key: key);
+
+
+ Future<void>  deleteRelation({required String table , required String key })=>RustLib.instance.api.crateBridgeApiAppHandleDeleteRelation(that: this, table: table, key: key);
+
+
+ Future<void>  deleteTag({required String key })=>RustLib.instance.api.crateBridgeApiAppHandleDeleteTag(that: this, key: key);
+
+
+ Future<void>  deleteTemplate({required String key })=>RustLib.instance.api.crateBridgeApiAppHandleDeleteTemplate(that: this, key: key);
+
+
+ Future<String?>  getActiveThemeId()=>RustLib.instance.api.crateBridgeApiAppHandleGetActiveThemeId(that: this, );
+
+
+ Future<List<Tag>>  getAllTags()=>RustLib.instance.api.crateBridgeApiAppHandleGetAllTags(that: this, );
+
+
+ Future<List<Template>>  getAllTemplates()=>RustLib.instance.api.crateBridgeApiAppHandleGetAllTemplates(that: this, );
+
+
+ Future<List<Theme>>  getAllThemes()=>RustLib.instance.api.crateBridgeApiAppHandleGetAllThemes(that: this, );
+
+
+ Future<(List<INode>,List<TaskNode>,List<InterNode>,List<IRelation>,MapData)>  getGraphSnapshot()=>RustLib.instance.api.crateBridgeApiAppHandleGetGraphSnapshot(that: this, );
+
+
+ Future<Nodes?>  getNode({required String table , required String key })=>RustLib.instance.api.crateBridgeApiAppHandleGetNode(that: this, table: table, key: key);
+
+
+ Future<Tag?>  getTag({required String key })=>RustLib.instance.api.crateBridgeApiAppHandleGetTag(that: this, key: key);
+
+
+ Future<Theme?>  getTheme({required String key })=>RustLib.instance.api.crateBridgeApiAppHandleGetTheme(that: this, key: key);
+
+
+ Future<void>  instantiateTemplate({required String key , required double targetX , required double targetY })=>RustLib.instance.api.crateBridgeApiAppHandleInstantiateTemplate(that: this, key: key, targetX: targetX, targetY: targetY);
+
+
+ Future<void>  loadMapFromFile({required String filePath , required String attachmentDir })=>RustLib.instance.api.crateBridgeApiAppHandleLoadMapFromFile(that: this, filePath: filePath, attachmentDir: attachmentDir);
+
+
+ Future<List<Nodes>>  querySearch({required String query })=>RustLib.instance.api.crateBridgeApiAppHandleQuerySearch(that: this, query: query);
+
+
+ Future<HistoryRecord?>  redo()=>RustLib.instance.api.crateBridgeApiAppHandleRedo(that: this, );
+
+
+ Future<int>  redoCount()=>RustLib.instance.api.crateBridgeApiAppHandleRedoCount(that: this, );
+
+
+ Future<void>  rerouteRelation({required RecordStrings record , required RecordStrings from , required RecordStrings to })=>RustLib.instance.api.crateBridgeApiAppHandleRerouteRelation(that: this, record: record, from: from, to: to);
+
+
+ Future<void>  saveMapToFile({required String filePath , required String attachmentDir })=>RustLib.instance.api.crateBridgeApiAppHandleSaveMapToFile(that: this, filePath: filePath, attachmentDir: attachmentDir);
+
+
+ Future<void>  saveTemplateFromSelection({required String name , required List<RecordStrings> nodeKeys , required List<RecordStrings> relationKeys })=>RustLib.instance.api.crateBridgeApiAppHandleSaveTemplateFromSelection(that: this, name: name, nodeKeys: nodeKeys, relationKeys: relationKeys);
+
+
+ Future<void>  setActiveTheme({required String themeKey })=>RustLib.instance.api.crateBridgeApiAppHandleSetActiveTheme(that: this, themeKey: themeKey);
+
+
+ Future<void>  setActiveThemeId({required String themeId })=>RustLib.instance.api.crateBridgeApiAppHandleSetActiveThemeId(that: this, themeId: themeId);
+
+
+ Future<HistoryRecord?>  undo()=>RustLib.instance.api.crateBridgeApiAppHandleUndo(that: this, );
+
+
+ Future<int>  undoCount()=>RustLib.instance.api.crateBridgeApiAppHandleUndoCount(that: this, );
+
+
+ Future<void>  updateNode({required Nodes input })=>RustLib.instance.api.crateBridgeApiAppHandleUpdateNode(that: this, input: input);
+
+
+ Future<void>  updateRelation({required IRelation input })=>RustLib.instance.api.crateBridgeApiAppHandleUpdateRelation(that: this, input: input);
+
+
+ Future<void>  updateTag({required Tag tag })=>RustLib.instance.api.crateBridgeApiAppHandleUpdateTag(that: this, tag: tag);
+
+
+ Future<void>  updateTheme({required Theme theme })=>RustLib.instance.api.crateBridgeApiAppHandleUpdateTheme(that: this, theme: theme);
+
+
+ Future<void>  updateViewportState({required ViewportState state })=>RustLib.instance.api.crateBridgeApiAppHandleUpdateViewportState(that: this, state: state);
+
+
+            }
+            @sealed class HistoryRecordImpl extends RustOpaque implements HistoryRecord {
+                // Not to be used by end users
+                HistoryRecordImpl.frbInternalDcoDecode(List<dynamic> wire):
+                    super.frbInternalDcoDecode(wire, _kStaticData);
+
+                // Not to be used by end users
+                HistoryRecordImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative):
+                    super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+                static final _kStaticData = RustArcStaticData(
+                    rustArcIncrementStrongCount: RustLib.instance.api.rust_arc_increment_strong_count_HistoryRecord,
+                    rustArcDecrementStrongCount: RustLib.instance.api.rust_arc_decrement_strong_count_HistoryRecord,
+                    rustArcDecrementStrongCountPtr: RustLib.instance.api.rust_arc_decrement_strong_count_HistoryRecordPtr,
+                );
+
+                
+            }
+            @sealed class RepositoryImpl extends RustOpaque implements Repository {
+                // Not to be used by end users
+                RepositoryImpl.frbInternalDcoDecode(List<dynamic> wire):
+                    super.frbInternalDcoDecode(wire, _kStaticData);
+
+                // Not to be used by end users
+                RepositoryImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative):
+                    super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+                static final _kStaticData = RustArcStaticData(
+                    rustArcIncrementStrongCount: RustLib.instance.api.rust_arc_increment_strong_count_Repository,
+                    rustArcDecrementStrongCount: RustLib.instance.api.rust_arc_decrement_strong_count_Repository,
+                    rustArcDecrementStrongCountPtr: RustLib.instance.api.rust_arc_decrement_strong_count_RepositoryPtr,
+                );
+
+                
+            }

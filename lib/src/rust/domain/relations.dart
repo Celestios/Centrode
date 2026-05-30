@@ -8,81 +8,65 @@ import 'base_models.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'styles.dart';
 
-class IRelation {
-  final String key;
-  final RecordStrings in_;
-  final RecordStrings out;
-  final IRelationFields fields;
 
-  const IRelation({
-    required this.key,
-    required this.in_,
-    required this.out,
-    required this.fields,
-  });
+            
 
-  @override
-  int get hashCode =>
-      key.hashCode ^ in_.hashCode ^ out.hashCode ^ fields.hashCode;
+            
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is IRelation &&
-          runtimeType == other.runtimeType &&
-          key == other.key &&
-          in_ == other.in_ &&
-          out == other.out &&
-          fields == other.fields;
-}
+            class IRelation  {
+                final String key;
+final RecordStrings in_;
+final RecordStrings out;
+final IRelationFields fields;
 
-class IRelationFields {
-  final String verb;
-  final RelationStyle? style;
-  final RelationStyle? resolvedStyle;
-  final RelationLayout? layout;
-  final RelationLayout? resolvedLayout;
-  final bool directionless;
-  final String layer;
-  final PlatformInt64 createdAt;
-  final PlatformInt64 updatedAt;
+                const IRelation({required this.key ,required this.in_ ,required this.out ,required this.fields ,});
 
-  const IRelationFields({
-    required this.verb,
-    this.style,
-    this.resolvedStyle,
-    this.layout,
-    this.resolvedLayout,
-    required this.directionless,
-    required this.layer,
-    required this.createdAt,
-    required this.updatedAt,
-  });
+                
+                
 
-  @override
-  int get hashCode =>
-      verb.hashCode ^
-      style.hashCode ^
-      resolvedStyle.hashCode ^
-      layout.hashCode ^
-      resolvedLayout.hashCode ^
-      directionless.hashCode ^
-      layer.hashCode ^
-      createdAt.hashCode ^
-      updatedAt.hashCode;
+                
+        @override
+        int get hashCode => key.hashCode^in_.hashCode^out.hashCode^fields.hashCode;
+        
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is IRelationFields &&
-          runtimeType == other.runtimeType &&
-          verb == other.verb &&
-          style == other.style &&
-          resolvedStyle == other.resolvedStyle &&
-          layout == other.layout &&
-          resolvedLayout == other.resolvedLayout &&
-          directionless == other.directionless &&
-          layer == other.layer &&
-          createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
-}
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is IRelation &&
+                runtimeType == other.runtimeType
+                && key == other.key&& in_ == other.in_&& out == other.out&& fields == other.fields;
+        
+            }
+
+class IRelationFields  {
+                final String verb;
+final RelationStyle? style;
+final RelationStyle? resolvedStyle;
+final RelationLayout? layout;
+final RelationLayout? resolvedLayout;
+final bool directionless;
+final String layer;
+final PlatformInt64 createdAt;
+final PlatformInt64 updatedAt;
+
+                const IRelationFields({required this.verb ,this.style ,this.resolvedStyle ,this.layout ,this.resolvedLayout ,required this.directionless ,required this.layer ,required this.createdAt ,required this.updatedAt ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => verb.hashCode^style.hashCode^resolvedStyle.hashCode^layout.hashCode^resolvedLayout.hashCode^directionless.hashCode^layer.hashCode^createdAt.hashCode^updatedAt.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is IRelationFields &&
+                runtimeType == other.runtimeType
+                && verb == other.verb&& style == other.style&& resolvedStyle == other.resolvedStyle&& layout == other.layout&& resolvedLayout == other.resolvedLayout&& directionless == other.directionless&& layer == other.layer&& createdAt == other.createdAt&& updatedAt == other.updatedAt;
+        
+            }
+            

@@ -6,133 +6,104 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-class FontWeight {
-  final int field0;
 
-  const FontWeight({required this.field0});
+            
 
-  @override
-  int get hashCode => field0.hashCode;
+            
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is FontWeight &&
-          runtimeType == other.runtimeType &&
-          field0 == other.field0;
-}
+            class FontWeight  {
+                final int field0;
 
-class Theme {
-  final String key;
-  final ThemeFields fields;
+                const FontWeight({required this.field0 ,});
 
-  const Theme({required this.key, required this.fields});
+                
+                
 
-  @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
+                
+        @override
+        int get hashCode => field0.hashCode;
+        
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Theme &&
-          runtimeType == other.runtimeType &&
-          key == other.key &&
-          fields == other.fields;
-}
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is FontWeight &&
+                runtimeType == other.runtimeType
+                && field0 == other.field0;
+        
+            }
 
-enum ThemeBrightness { light, dark }
+class Theme  {
+                final String key;
+final ThemeFields fields;
 
-class ThemeFields {
-  final String name;
-  final int primaryColor;
-  final int secondaryColor;
-  final int accentColor;
-  final int scaffoldBackgroundColor;
-  final int cardColor;
-  final int dividerColor;
-  final int textColor;
-  final String fontFamily;
-  final double bodyFontSize;
-  final FontWeight bodyFontWeight;
-  final int bodyTextColor;
-  final double borderRadius;
-  final int appBarBackgroundColor;
-  final int appBarForegroundColor;
-  final double appBarElevation;
-  final double appBarTitleFontSize;
-  final FontWeight appBarTitleFontWeight;
-  final bool useMaterial3;
-  final ThemeBrightness brightness;
+                const Theme({required this.key ,required this.fields ,});
 
-  const ThemeFields({
-    required this.name,
-    required this.primaryColor,
-    required this.secondaryColor,
-    required this.accentColor,
-    required this.scaffoldBackgroundColor,
-    required this.cardColor,
-    required this.dividerColor,
-    required this.textColor,
-    required this.fontFamily,
-    required this.bodyFontSize,
-    required this.bodyFontWeight,
-    required this.bodyTextColor,
-    required this.borderRadius,
-    required this.appBarBackgroundColor,
-    required this.appBarForegroundColor,
-    required this.appBarElevation,
-    required this.appBarTitleFontSize,
-    required this.appBarTitleFontWeight,
-    required this.useMaterial3,
-    required this.brightness,
-  });
+                
+                
 
-  @override
-  int get hashCode =>
-      name.hashCode ^
-      primaryColor.hashCode ^
-      secondaryColor.hashCode ^
-      accentColor.hashCode ^
-      scaffoldBackgroundColor.hashCode ^
-      cardColor.hashCode ^
-      dividerColor.hashCode ^
-      textColor.hashCode ^
-      fontFamily.hashCode ^
-      bodyFontSize.hashCode ^
-      bodyFontWeight.hashCode ^
-      bodyTextColor.hashCode ^
-      borderRadius.hashCode ^
-      appBarBackgroundColor.hashCode ^
-      appBarForegroundColor.hashCode ^
-      appBarElevation.hashCode ^
-      appBarTitleFontSize.hashCode ^
-      appBarTitleFontWeight.hashCode ^
-      useMaterial3.hashCode ^
-      brightness.hashCode;
+                
+        @override
+        int get hashCode => key.hashCode^fields.hashCode;
+        
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ThemeFields &&
-          runtimeType == other.runtimeType &&
-          name == other.name &&
-          primaryColor == other.primaryColor &&
-          secondaryColor == other.secondaryColor &&
-          accentColor == other.accentColor &&
-          scaffoldBackgroundColor == other.scaffoldBackgroundColor &&
-          cardColor == other.cardColor &&
-          dividerColor == other.dividerColor &&
-          textColor == other.textColor &&
-          fontFamily == other.fontFamily &&
-          bodyFontSize == other.bodyFontSize &&
-          bodyFontWeight == other.bodyFontWeight &&
-          bodyTextColor == other.bodyTextColor &&
-          borderRadius == other.borderRadius &&
-          appBarBackgroundColor == other.appBarBackgroundColor &&
-          appBarForegroundColor == other.appBarForegroundColor &&
-          appBarElevation == other.appBarElevation &&
-          appBarTitleFontSize == other.appBarTitleFontSize &&
-          appBarTitleFontWeight == other.appBarTitleFontWeight &&
-          useMaterial3 == other.useMaterial3 &&
-          brightness == other.brightness;
-}
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is Theme &&
+                runtimeType == other.runtimeType
+                && key == other.key&& fields == other.fields;
+        
+            }
+
+enum ThemeBrightness {
+                    light,
+dark,
+                    ;
+                    
+                }
+
+class ThemeFields  {
+                final String name;
+final int primaryColor;
+final int secondaryColor;
+final int accentColor;
+final int scaffoldBackgroundColor;
+final int cardColor;
+final int dividerColor;
+final int textColor;
+final String fontFamily;
+final double bodyFontSize;
+final FontWeight bodyFontWeight;
+final int bodyTextColor;
+final double borderRadius;
+final int appBarBackgroundColor;
+final int appBarForegroundColor;
+final double appBarElevation;
+final double appBarTitleFontSize;
+final FontWeight appBarTitleFontWeight;
+final bool useMaterial3;
+final ThemeBrightness brightness;
+
+                const ThemeFields({required this.name ,required this.primaryColor ,required this.secondaryColor ,required this.accentColor ,required this.scaffoldBackgroundColor ,required this.cardColor ,required this.dividerColor ,required this.textColor ,required this.fontFamily ,required this.bodyFontSize ,required this.bodyFontWeight ,required this.bodyTextColor ,required this.borderRadius ,required this.appBarBackgroundColor ,required this.appBarForegroundColor ,required this.appBarElevation ,required this.appBarTitleFontSize ,required this.appBarTitleFontWeight ,required this.useMaterial3 ,required this.brightness ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => name.hashCode^primaryColor.hashCode^secondaryColor.hashCode^accentColor.hashCode^scaffoldBackgroundColor.hashCode^cardColor.hashCode^dividerColor.hashCode^textColor.hashCode^fontFamily.hashCode^bodyFontSize.hashCode^bodyFontWeight.hashCode^bodyTextColor.hashCode^borderRadius.hashCode^appBarBackgroundColor.hashCode^appBarForegroundColor.hashCode^appBarElevation.hashCode^appBarTitleFontSize.hashCode^appBarTitleFontWeight.hashCode^useMaterial3.hashCode^brightness.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is ThemeFields &&
+                runtimeType == other.runtimeType
+                && name == other.name&& primaryColor == other.primaryColor&& secondaryColor == other.secondaryColor&& accentColor == other.accentColor&& scaffoldBackgroundColor == other.scaffoldBackgroundColor&& cardColor == other.cardColor&& dividerColor == other.dividerColor&& textColor == other.textColor&& fontFamily == other.fontFamily&& bodyFontSize == other.bodyFontSize&& bodyFontWeight == other.bodyFontWeight&& bodyTextColor == other.bodyTextColor&& borderRadius == other.borderRadius&& appBarBackgroundColor == other.appBarBackgroundColor&& appBarForegroundColor == other.appBarForegroundColor&& appBarElevation == other.appBarElevation&& appBarTitleFontSize == other.appBarTitleFontSize&& appBarTitleFontWeight == other.appBarTitleFontWeight&& useMaterial3 == other.useMaterial3&& brightness == other.brightness;
+        
+            }
+            

@@ -12,41 +12,36 @@ import 'relations.dart';
 import 'styles.dart';
 import 'tags.dart';
 
-class Template {
-  final String key;
-  final String name;
-  final PlatformInt64 createdAt;
-  final PlatformInt64 updatedAt;
-  final List<Nodes> nodes;
-  final List<IRelation> relations;
 
-  const Template({
-    required this.key,
-    required this.name,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.nodes,
-    required this.relations,
-  });
+            
 
-  @override
-  int get hashCode =>
-      key.hashCode ^
-      name.hashCode ^
-      createdAt.hashCode ^
-      updatedAt.hashCode ^
-      nodes.hashCode ^
-      relations.hashCode;
+            
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Template &&
-          runtimeType == other.runtimeType &&
-          key == other.key &&
-          name == other.name &&
-          createdAt == other.createdAt &&
-          updatedAt == other.updatedAt &&
-          nodes == other.nodes &&
-          relations == other.relations;
-}
+            class Template  {
+                final String key;
+final String name;
+final PlatformInt64 createdAt;
+final PlatformInt64 updatedAt;
+final List<Nodes> nodes;
+final List<IRelation> relations;
+
+                const Template({required this.key ,required this.name ,required this.createdAt ,required this.updatedAt ,required this.nodes ,required this.relations ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => key.hashCode^name.hashCode^createdAt.hashCode^updatedAt.hashCode^nodes.hashCode^relations.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is Template &&
+                runtimeType == other.runtimeType
+                && key == other.key&& name == other.name&& createdAt == other.createdAt&& updatedAt == other.updatedAt&& nodes == other.nodes&& relations == other.relations;
+        
+            }
+            
