@@ -103,3 +103,13 @@ pub enum Nodes {
     TaskNode(TaskNode),
     InterNode(InterNode),
 }
+
+impl Nodes {
+    pub fn table_and_key(&self) -> (&'static str, &str) {
+        match self {
+            Nodes::INode(n) => (INode::LABEL, &n.key),
+            Nodes::TaskNode(n) => (TaskNode::LABEL, &n.key),
+            Nodes::InterNode(n) => (InterNode::LABEL, &n.key),
+        }
+    }
+}

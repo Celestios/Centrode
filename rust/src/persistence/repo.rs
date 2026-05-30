@@ -1,12 +1,14 @@
 use crate::domain::analysis::DecaySignificanceStrategy;
-use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings};
+use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings, ViewportState};
 use crate::domain::nodes::{
     INode, INodeFields, InterNode, InterNodeFields, Nodes, TaskNode, TaskNodeFields,
 };
-use crate::domain::patches::{EntityPatch, NodePatch, RelationPatch, TagOperation};
+use crate::domain::patches::{EntityPatch, NodePatch, RelationPatch, TagOperation, PatchHistoryPayload};
 use crate::domain::relations::{IRelation, IRelationFields};
 use crate::domain::tags::{Tag, TagFields};
+use crate::domain::theme::{Theme, ThemeFields};
 use crate::domain::templates::Template;
+use crate::persistence::history::{HistoryManager, HistoryRecord};
 
 
 use anyhow::Result;
@@ -418,12 +420,8 @@ impl Repository {
                 Ok(())
             }
             EntityPatch::CreateNode(node, relations) => {
-                let (table, key) = match &node {
-                    Nodes::INode(n) => (INode::LABEL.to_string(), n.key.clone()),
-                    Nodes::TaskNode(n) => (TaskNode::LABEL.to_string(), n.key.clone()),
-                    Nodes::InterNode(n) => (InterNode::LABEL.to_string(), n.key.clone()),
-                };
-                if self.get_node(table, key).await?.is_some() {
+                let (table, key) = node.table_and_key();
+                if self.get_node(table.to_string(), key.to_string()).await?.is_some() {
                     self.update_node(node.clone()).await?;
                 } else {
                     self.create_node(node.clone()).await?;
@@ -434,12 +432,8 @@ impl Repository {
                 Ok(())
             }
             EntityPatch::DeleteNode(node, _) => {
-                let (table, key) = match node {
-                    Nodes::INode(n) => (INode::LABEL.to_string(), n.key.clone()),
-                    Nodes::TaskNode(n) => (TaskNode::LABEL.to_string(), n.key.clone()),
-                    Nodes::InterNode(n) => (InterNode::LABEL.to_string(), n.key.clone()),
-                };
-                self.delete_node(table, key).await?;
+                let (table, key) = node.table_and_key();
+                self.delete_node(table.to_string(), key.to_string()).await?;
                 Ok(())
             }
             EntityPatch::CreateRelation(rel) => {
@@ -708,13 +702,9 @@ impl Repository {
         use std::collections::HashMap;
         let mut key_map = HashMap::new();
         for node in &template.nodes {
-            let old_key = match node {
-                Nodes::INode(n) => &n.key,
-                Nodes::TaskNode(n) => &n.key,
-                Nodes::InterNode(n) => &n.key,
-            };
+            let old_key = node.table_and_key().1.to_string();
             let new_key = uuid::Uuid::new_v4().to_string();
-            key_map.insert(old_key.clone(), new_key);
+            key_map.insert(old_key, new_key);
         }
 
         let target_xi = target_x.round() as i32;
@@ -814,6 +804,207 @@ impl Repository {
 
         tx.commit().await?;
         Ok(())
+    }
+
+    // --- History & Patch Helpers ---
+
+    pub async fn record_patch_history(
+        &self,
+        id: RecordStrings,
+        forward: EntityPatch,
+        reverse: EntityPatch,
+    ) -> Result<()> {
+        let history_manager = HistoryManager::new(&self.db, 100);
+        let history_payload = PatchHistoryPayload {
+            id,
+            forward,
+            reverse,
+        };
+        history_manager
+            .push_event("entity_patch", history_payload.into_value())
+            .await?;
+        Ok(())
+    }
+
+    pub async fn apply_patch_check_position(&self, id: &RecordStrings, patch: &EntityPatch) -> Result<bool> {
+        let record_id = RecordId::new(id.table.as_str(), id.key.as_str());
+        self.patch_entity(record_id, patch).await?;
+
+        let has_position_change = match patch {
+            EntityPatch::Node(patches) => patches.iter().any(|p| matches!(p, NodePatch::Position(_))),
+            EntityPatch::CreateNode(_, _) | EntityPatch::DeleteNode(_, _) => true,
+            _ => false,
+        };
+        Ok(has_position_change)
+    }
+
+    pub async fn get_connected_relations(&self, node_key: &str) -> Result<Vec<IRelation>> {
+        let relations_raw: Vec<Value> = self.db.select(IRelation::LABEL).await?;
+        let mut connected_relations = Vec::new();
+        for val in relations_raw {
+            if let Ok(rel) = IRelation::from_value(val) {
+                if rel.in_.key == node_key || rel.out.key == node_key {
+                    connected_relations.push(rel);
+                }
+            }
+        }
+        Ok(connected_relations)
+    }
+
+    pub async fn get_all_themes(&self) -> Result<Vec<Theme>> {
+        tracing::debug!("REPO: get_all_themes called");
+        let theme_records: Vec<Value> = self.db.select(Theme::LABEL).await?;
+        let themes: Vec<Theme> = theme_records
+            .into_iter()
+            .filter_map(|val| {
+                let record = Record::from_record_value(val)?;
+                let (key, fields) = record.to_type::<ThemeFields>()?;
+                Some(Theme { key, fields })
+            })
+            .collect();
+        Ok(themes)
+    }
+
+    pub async fn get_theme(&self, key: String) -> Result<Option<Theme>> {
+        tracing::debug!("REPO: get_theme called with key: {}", key);
+        let record_id = RecordId::new(Theme::LABEL, key.clone());
+        let fields: Option<ThemeFields> = self.db.select(record_id).await?;
+        Ok(fields.map(|f| Theme { key, fields: f }))
+    }
+
+    pub async fn set_active_theme_id(&self, theme_id: String) -> Result<()> {
+        tracing::debug!("REPO: set_active_theme_id called with id: {}", theme_id);
+        let record_id = RecordId::new(MapData::LABEL, MapData::KEY);
+        self.db
+            .query("UPDATE $record SET active_theme_id = $theme_id")
+            .bind(("record", record_id))
+            .bind(("theme_id", theme_id))
+            .await?;
+        Ok(())
+    }
+
+    pub async fn update_viewport_state(&self, state: ViewportState) -> Result<()> {
+        tracing::debug!("REPO: update_viewport_state called with state: {:?}", state);
+        let record_id = RecordId::new(MapData::LABEL, MapData::KEY);
+        self.db
+            .query("UPDATE $record SET viewport_state = $state")
+            .bind(("record", record_id))
+            .bind(("state", state))
+            .await?;
+        Ok(())
+    }
+
+    pub async fn get_active_theme_id(&self) -> Result<Option<String>> {
+        tracing::debug!("REPO: get_active_theme_id called");
+        let mut res = self
+            .db
+            .query("SELECT VALUE active_theme_id FROM $record")
+            .bind(("record", RecordId::new(MapData::LABEL, MapData::KEY)))
+            .await?;
+        let result: Option<String> = res.take(0)?;
+        Ok(result)
+    }
+
+    pub async fn set_active_theme(&self, theme_key: String) -> Result<()> {
+        tracing::debug!("REPO: set_active_theme called with key: {}", theme_key);
+        let _: Option<Theme> = self.db.update((MapData::LABEL, theme_key)).await?;
+        Ok(())
+    }
+
+    pub async fn create_theme(&self, key: String, fields: ThemeFields) -> Result<()> {
+        tracing::debug!("REPO: create_theme called");
+        let record_id = RecordId::new(Theme::LABEL, key);
+        self.db
+            .query("CREATE $record_id CONTENT $fields")
+            .bind(("record_id", record_id))
+            .bind(("fields", fields))
+            .await?;
+        Ok(())
+    }
+
+    pub async fn update_theme(&self, theme: Theme) -> Result<()> {
+        tracing::debug!("REPO: update_theme called");
+        let record_id = RecordId::new(Theme::LABEL, theme.key);
+        let fields = theme.fields;
+        self.db
+            .query("UPDATE $record_id MERGE $fields")
+            .bind(("record_id", record_id))
+            .bind(("fields", fields))
+            .await?;
+        Ok(())
+    }
+
+    pub async fn undo_count(&self) -> Result<u32> {
+        let mut response = self
+            .db
+            .query("SELECT VALUE count() FROM History WHERE status = 'applied' GROUP ALL")
+            .await?;
+        let count: Vec<i64> = response.take(0)?;
+        Ok(count.first().copied().unwrap_or(0) as u32)
+    }
+
+    pub async fn redo_count(&self) -> Result<u32> {
+        let mut response = self
+            .db
+            .query("SELECT VALUE count() FROM History WHERE status = 'undone' GROUP ALL")
+            .await?;
+        let count: Vec<i64> = response.take(0)?;
+        Ok(count.first().copied().unwrap_or(0) as u32)
+    }
+
+    pub async fn query_search(&self, query: String) -> Result<Vec<Nodes>> {
+        tracing::debug!("REPO: query_search called with query: {}", query);
+        let trimmed = query.trim();
+        let query_str = if trimmed.to_uppercase().starts_with("WHERE") {
+            format!("SELECT * FROM INode, TaskNode, InterNode {}", trimmed)
+        } else {
+            "SELECT * FROM INode, TaskNode WHERE content.text ~ $query".to_string()
+        };
+
+        let mut req = self.db.query(&query_str);
+        if !trimmed.to_uppercase().starts_with("WHERE") {
+            req = req.bind(("query", query));
+        }
+
+        let mut res = req.await?;
+        let records: Vec<Value> = res.take(0)?;
+        let mut nodes = Vec::new();
+
+        for val in records {
+            if let Some(record) = Record::from_record_value(val) {
+                let table = record.id.table.as_str();
+                match table {
+                    INode::LABEL => {
+                        if let Some((key, fields)) = record.to_type::<INodeFields>() {
+                            nodes.push(Nodes::INode(INode { key, fields }));
+                        }
+                    }
+                    TaskNode::LABEL => {
+                        if let Some((key, fields)) = record.to_type::<TaskNodeFields>() {
+                            nodes.push(Nodes::TaskNode(TaskNode { key, fields }));
+                        }
+                    }
+                    InterNode::LABEL => {
+                        if let Some((key, fields)) = record.to_type::<InterNodeFields>() {
+                            nodes.push(Nodes::InterNode(InterNode { key, fields }));
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        Ok(nodes)
+    }
+
+    pub async fn undo_event(&self) -> Result<Option<HistoryRecord>> {
+        let history_manager = HistoryManager::new(&self.db, 100);
+        history_manager.undo().await
+    }
+
+    pub async fn redo_event(&self) -> Result<Option<HistoryRecord>> {
+        let history_manager = HistoryManager::new(&self.db, 100);
+        history_manager.redo().await
     }
 }
 

@@ -1,23 +1,22 @@
 use crate::bridge::stream::{self, GraphEvent};
 use crate::domain::analysis::GraphAnalysis;
-use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings, ViewportState};
-use crate::domain::nodes::{INode, INodeFields, InterNode, InterNodeFields, Nodes, TaskNode, TaskNodeFields};
+use crate::domain::base_models::{IsTable, MapData, RecordStrings, ViewportState};
+use crate::domain::nodes::{INode, TaskNode, InterNode, Nodes};
 use crate::domain::tags::Tag;
 use crate::domain::templates::Template;
 
-use crate::domain::patches::{EntityPatch, NodePatch, SymmetricEntityPatch, PatchHistoryPayload};
+use crate::domain::patches::{EntityPatch, SymmetricEntityPatch, PatchHistoryPayload};
 use crate::domain::relations::IRelation;
 use crate::domain::theme::{Theme, ThemeFields};
 use crate::format::packager;
 use crate::frb_generated::StreamSink;
 use crate::persistence::db::Database;
-use crate::persistence::history::HistoryManager;
 use crate::persistence::history::HistoryRecord;
 use crate::persistence::repo::Repository;
 use crate::telemetry::{connect_log_stream, init_telemetry, LogState};
 use std::collections::BTreeMap;
 use std::sync::Mutex;
-use surrealdb::types::{RecordId, SurrealValue, Value};
+use surrealdb::types::{SurrealValue, Value};
 use tokio::task::JoinHandle;
 use tracing::{debug, error, info};
 
@@ -90,36 +89,17 @@ impl AppHandle {
 
     pub async fn create_node(&self, input: Nodes) -> anyhow::Result<()> {
         debug!("FFI: create_node called with input: {:?}", input);
-        match self.repo.create_node(input.clone()).await {
-            Result::Ok(()) => {
-                info!("FFI: Successfully committed node to database");
-                
-                let (table, key) = match &input {
-                    Nodes::INode(n) => (INode::LABEL, &n.key),
-                    Nodes::TaskNode(n) => (TaskNode::LABEL, &n.key),
-                    Nodes::InterNode(n) => (InterNode::LABEL, &n.key),
-                };
-                let patch = SymmetricEntityPatch {
-                    id: RecordStrings { table: table.to_string(), key: key.clone() },
-                    forward: EntityPatch::CreateNode(input.clone(), vec![]),
-                    reverse: EntityPatch::DeleteNode(input, vec![]),
-                };
-                let history_manager = HistoryManager::new(self.repo.db(), 100);
-                let history_payload = PatchHistoryPayload {
-                    id: patch.id.clone(),
-                    forward: patch.forward.clone(),
-                    reverse: patch.reverse.clone(),
-                };
-                history_manager.push_event("entity_patch", history_payload.into_value()).await?;
+        self.repo.create_node(input.clone()).await?;
 
-                self.broadcast_boundaries().await;
-                Ok(())
-            }
-            Err(e) => {
-                error!("FFI: Database rejection during node creation: {}", e);
-                Err(e)
-            }
-        }
+        let (table, key) = input.table_and_key();
+        self.repo.record_patch_history(
+            RecordStrings { table: table.to_string(), key: key.to_string() },
+            EntityPatch::CreateNode(input.clone(), vec![]),
+            EntityPatch::DeleteNode(input, vec![]),
+        ).await?;
+
+        self.broadcast_boundaries().await;
+        Ok(())
     }
 
     pub async fn get_node(&self, table: String, key: String) -> anyhow::Result<Option<Nodes>> {
@@ -128,29 +108,18 @@ impl AppHandle {
     }
 
     pub async fn update_node(&self, input: Nodes) -> anyhow::Result<()> {
-        let (table, key) = match &input {
-            Nodes::INode(n) => (INode::LABEL.to_string(), n.key.clone()),
-            Nodes::TaskNode(n) => (TaskNode::LABEL.to_string(), n.key.clone()),
-            Nodes::InterNode(n) => (InterNode::LABEL.to_string(), n.key.clone()),
-        };
-        if let Some(old) = self.repo.get_node(table.clone(), key.clone()).await? {
+        let (table, key) = input.table_and_key();
+        if let Some(old) = self.repo.get_node(table.to_string(), key.to_string()).await? {
             self.repo.update_node(input.clone()).await.map_err(|e| {
                 error!("FFI: Repository failed to update node {}", e);
                 e
             })?;
 
-            let patch = SymmetricEntityPatch {
-                id: RecordStrings { table, key },
-                forward: EntityPatch::CreateNode(input.clone(), vec![]),
-                reverse: EntityPatch::CreateNode(old, vec![]),
-            };
-            let history_manager = HistoryManager::new(self.repo.db(), 100);
-            let history_payload = PatchHistoryPayload {
-                id: patch.id.clone(),
-                forward: patch.forward.clone(),
-                reverse: patch.reverse.clone(),
-            };
-            history_manager.push_event("entity_patch", history_payload.into_value()).await?;
+            self.repo.record_patch_history(
+                RecordStrings { table: table.to_string(), key: key.to_string() },
+                EntityPatch::CreateNode(input.clone(), vec![]),
+                EntityPatch::CreateNode(old, vec![]),
+            ).await?;
         } else {
             self.repo.update_node(input).await.map_err(|e| {
                 error!("FFI: Repository failed to update node {}", e);
@@ -161,71 +130,28 @@ impl AppHandle {
     }
 
     pub async fn apply_entity_mutation(&self, mutation: SymmetricEntityPatch) -> anyhow::Result<()> {
-        let record_id = RecordId::new(mutation.id.table.as_str(), mutation.id.key.as_str());
-        
-        // 1. Apply the forward mutation to SurrealDB
-        self.repo.patch_entity(record_id.clone(), &mutation.forward).await?;
-        
-        // 2. Log to the history stack
-        let history_manager = HistoryManager::new(self.repo.db(), 100);
-        let history_payload = PatchHistoryPayload {
-            id: mutation.id.clone(),
-            forward: mutation.forward.clone(),
-            reverse: mutation.reverse.clone(),
-        };
-        history_manager.push_event("entity_patch", history_payload.into_value()).await?;
-        
-        // 3. Broadcast boundary changes if spatial coordinates changed
-        let has_position_change = if let EntityPatch::Node(ref patches) = mutation.forward {
-            patches.iter().any(|p| matches!(p, NodePatch::Position(_)))
-        } else {
-            false
-        };
-        if has_position_change {
+        if self.repo.apply_patch_check_position(&mutation.id, &mutation.forward).await? {
             self.broadcast_boundaries().await;
         }
-        
+        self.repo.record_patch_history(mutation.id, mutation.forward, mutation.reverse).await?;
         Ok(())
     }
 
     pub async fn delete_node_entry(&self, table: String, key: String) -> anyhow::Result<()> {
         debug!("Deleting node: {}/{}", table, key);
         if let Some(node) = self.repo.get_node(table.clone(), key.clone()).await? {
-            let relations_raw: Vec<Value> = self.repo.db().select(IRelation::LABEL).await?;
-            let mut connected_relations = Vec::new();
-            for val in relations_raw {
-                if let Ok(rel) = IRelation::from_value(val) {
-                    if rel.in_.key == key || rel.out.key == key {
-                        connected_relations.push(rel);
-                    }
-                }
-            }
+            let connected_relations = self.repo.get_connected_relations(&key).await?;
 
-            match self.repo.delete_node(table.clone(), key.clone()).await {
-                Ok(()) => {
-                    info!("Node {} deleted successfully", key.clone());
+            self.repo.delete_node(table.clone(), key.clone()).await?;
 
-                    let patch = SymmetricEntityPatch {
-                        id: RecordStrings { table: table.clone(), key: key.clone() },
-                        forward: EntityPatch::DeleteNode(node.clone(), connected_relations.clone()),
-                        reverse: EntityPatch::CreateNode(node, connected_relations),
-                    };
-                    let history_manager = HistoryManager::new(self.repo.db(), 100);
-                    let history_payload = PatchHistoryPayload {
-                        id: patch.id.clone(),
-                        forward: patch.forward.clone(),
-                        reverse: patch.reverse.clone(),
-                    };
-                    history_manager.push_event("entity_patch", history_payload.into_value()).await?;
+            self.repo.record_patch_history(
+                RecordStrings { table: table.clone(), key: key.clone() },
+                EntityPatch::DeleteNode(node.clone(), connected_relations.clone()),
+                EntityPatch::CreateNode(node, connected_relations),
+            ).await?;
 
-                    self.broadcast_boundaries().await;
-                    Ok(())
-                }
-                Err(e) => {
-                    error!("Failed to delete node {}/{}: {}", table, key, e);
-                    Err(e)
-                }
-            }
+            self.broadcast_boundaries().await;
+            Ok(())
         } else {
             Err(anyhow::anyhow!("Node not found for deletion"))
         }
@@ -236,60 +162,30 @@ impl AppHandle {
             "FFI: create_relation called: {} -> {}",
             input.in_, input.out
         );
-        match self.repo.create_relation(input.clone()).await {
-            Ok(()) => {
-                info!("FFI: Relation created successfully");
-                
-                let patch = SymmetricEntityPatch {
-                    id: RecordStrings { table: IRelation::LABEL.to_string(), key: input.key.clone() },
-                    forward: EntityPatch::CreateRelation(input.clone()),
-                    reverse: EntityPatch::DeleteRelation(input),
-                };
-                let history_manager = HistoryManager::new(self.repo.db(), 100);
-                let history_payload = PatchHistoryPayload {
-                    id: patch.id.clone(),
-                    forward: patch.forward.clone(),
-                    reverse: patch.reverse.clone(),
-                };
-                history_manager.push_event("entity_patch", history_payload.into_value()).await?;
+        self.repo.create_relation(input.clone()).await?;
 
-                Ok(())
-            }
-            Err(e) => {
-                error!("FFI: Failed to create relation: {}", e);
-                Err(e)
-            }
-        }
+        self.repo.record_patch_history(
+            RecordStrings { table: IRelation::LABEL.to_string(), key: input.key.clone() },
+            EntityPatch::CreateRelation(input.clone()),
+            EntityPatch::DeleteRelation(input),
+        ).await?;
+
+        Ok(())
     }
 
     pub async fn delete_relation(&self, table: String, key: String) -> anyhow::Result<()> {
         debug!("Deleting relation: {}", key);
         let rel = self.repo.get_relation(table.clone(), key.clone()).await?;
 
-        match self.repo.delete_relation(table.clone(), key.clone()).await {
-            Ok(()) => {
-                info!("Relation deleted successfully");
+        self.repo.delete_relation(table.clone(), key.clone()).await?;
 
-                let patch = SymmetricEntityPatch {
-                    id: RecordStrings { table: table.clone(), key: key.clone() },
-                    forward: EntityPatch::DeleteRelation(rel.clone()),
-                    reverse: EntityPatch::CreateRelation(rel),
-                };
-                let history_manager = HistoryManager::new(self.repo.db(), 100);
-                let history_payload = PatchHistoryPayload {
-                    id: patch.id.clone(),
-                    forward: patch.forward.clone(),
-                    reverse: patch.reverse.clone(),
-                };
-                history_manager.push_event("entity_patch", history_payload.into_value()).await?;
+        self.repo.record_patch_history(
+            RecordStrings { table: table.clone(), key: key.clone() },
+            EntityPatch::DeleteRelation(rel.clone()),
+            EntityPatch::CreateRelation(rel),
+        ).await?;
 
-                Ok(())
-            }
-            Err(e) => {
-                error!("Failed to delete relation {}: {}", key, e);
-                Err(e)
-            }
-        }
+        Ok(())
     }
 
     pub async fn update_relation(&self, input: IRelation) -> anyhow::Result<()> {
@@ -426,99 +322,35 @@ impl AppHandle {
     }
 
     pub async fn get_all_themes(&self) -> anyhow::Result<Vec<Theme>> {
-        tracing::debug!("FFI: get_all_themes called");
-        let theme_records: Vec<Value> = self.repo.db().select(Theme::LABEL).await?;
-        let themes: Vec<Theme> = theme_records
-            .into_iter()
-            .filter_map(|val| {
-                let record = Record::from_record_value(val)?;
-                let (key, fields) = record.to_type::<ThemeFields>()?;
-                Some(Theme { key, fields })
-            })
-            .collect();
-        Ok(themes)
+        self.repo.get_all_themes().await
     }
 
     pub async fn get_theme(&self, key: String) -> anyhow::Result<Option<Theme>> {
-        tracing::debug!("FFI: get_theme called with key: {}", key);
-
-        let record_id = RecordId::new(Theme::LABEL, key.clone());
-        let fields: Option<ThemeFields> = self.repo.db().select(record_id).await?;
-
-        Ok(fields.map(|f| Theme { key, fields: f }))
+        self.repo.get_theme(key).await
     }
 
     pub async fn set_active_theme_id(&self, theme_id: String) -> anyhow::Result<()> {
-        tracing::debug!("FFI: set_active_theme_id called with id: {}", theme_id);
-
-        let record_id = RecordId::new(MapData::LABEL, MapData::KEY);
-        self.repo
-            .db()
-            .query("UPDATE $record SET active_theme_id = $theme_id")
-            .bind(("record", record_id))
-            .bind(("theme_id", theme_id))
-            .await?;
-        Ok(())
+        self.repo.set_active_theme_id(theme_id).await
     }
 
     pub async fn update_viewport_state(&self, state: ViewportState) -> anyhow::Result<()> {
-        tracing::debug!("FFI: update_viewport_state called with state: {:?}", state);
-
-        let record_id = RecordId::new(MapData::LABEL, MapData::KEY);
-        self.repo
-            .db()
-            .query("UPDATE $record SET viewport_state = $state")
-            .bind(("record", record_id))
-            .bind(("state", state))
-            .await?;
-        Ok(())
+        self.repo.update_viewport_state(state).await
     }
 
     pub async fn get_active_theme_id(&self) -> anyhow::Result<Option<String>> {
-        tracing::debug!("FFI: get_active_theme_id called");
-        let mut res = self
-            .repo
-            .db()
-            .query("SELECT VALUE active_theme_id FROM $record")
-            .bind(("record", RecordId::new(MapData::LABEL, MapData::KEY)))
-            .await?;
-        let result: Option<String> = res.take(0)?;
-        Ok(result)
+        self.repo.get_active_theme_id().await
     }
 
     pub async fn set_active_theme(&self, theme_key: String) -> anyhow::Result<()> {
-        tracing::debug!("FFI: set_active_theme_id called with id: {}", theme_key);
-        let _: Option<Theme> = self.repo.db().update((MapData::LABEL, theme_key)).await?;
-        Ok(())
+        self.repo.set_active_theme(theme_key).await
     }
 
     pub async fn create_theme(&self, key: String, fields: ThemeFields) -> anyhow::Result<()> {
-        tracing::debug!("FFI: create_theme called");
-
-        let record_id = RecordId::new(Theme::LABEL, key);
-        self.repo
-            .db()
-            .query("CREATE $record_id CONTENT $fields")
-            .bind(("record_id", record_id))
-            .bind(("fields", fields))
-            .await?;
-
-        Ok(())
+        self.repo.create_theme(key, fields).await
     }
 
     pub async fn update_theme(&self, theme: Theme) -> anyhow::Result<()> {
-        tracing::debug!("FFI: update_theme called");
-
-        let record_id = RecordId::new(Theme::LABEL, theme.key);
-        let fields = theme.fields;
-        self.repo
-            .db()
-            .query("UPDATE $record_id MERGE $fields")
-            .bind(("record_id", record_id))
-            .bind(("fields", fields))
-            .await?;
-
-        Ok(())
+        self.repo.update_theme(theme).await
     }
 
     pub async fn create_graph_stream(&self, sink: StreamSink<GraphEvent>) -> anyhow::Result<()> {
@@ -572,20 +404,11 @@ impl AppHandle {
 
     pub async fn undo(&self) -> anyhow::Result<Option<HistoryRecord>> {
         tracing::debug!("FFI: undo called");
-        let history_manager = HistoryManager::new(self.repo.db(), 100);
-        let record = history_manager.undo().await?;
+        let record = self.repo.undo_event().await?;
         if let Some(ref rec) = record {
             if rec.action_type == "entity_patch" {
                 let payload = PatchHistoryPayload::from_value(rec.payload.clone())?;
-                let record_id = RecordId::new(payload.id.table.as_str(), payload.id.key.as_str());
-                self.repo.patch_entity(record_id, &payload.reverse).await?;
-                
-                let has_position_change = match &payload.reverse {
-                    EntityPatch::Node(patches) => patches.iter().any(|p| matches!(p, NodePatch::Position(_))),
-                    EntityPatch::CreateNode(_, _) | EntityPatch::DeleteNode(_, _) => true,
-                    _ => false,
-                };
-                if has_position_change {
+                if self.repo.apply_patch_check_position(&payload.id, &payload.reverse).await? {
                     self.broadcast_boundaries().await;
                 }
             }
@@ -595,20 +418,11 @@ impl AppHandle {
 
     pub async fn redo(&self) -> anyhow::Result<Option<HistoryRecord>> {
         tracing::debug!("FFI: redo called");
-        let history_manager = HistoryManager::new(self.repo.db(), 100);
-        let record = history_manager.redo().await?;
+        let record = self.repo.redo_event().await?;
         if let Some(ref rec) = record {
             if rec.action_type == "entity_patch" {
                 let payload = PatchHistoryPayload::from_value(rec.payload.clone())?;
-                let record_id = RecordId::new(payload.id.table.as_str(), payload.id.key.as_str());
-                self.repo.patch_entity(record_id, &payload.forward).await?;
-                
-                let has_position_change = match &payload.forward {
-                    EntityPatch::Node(patches) => patches.iter().any(|p| matches!(p, NodePatch::Position(_))),
-                    EntityPatch::CreateNode(_, _) | EntityPatch::DeleteNode(_, _) => true,
-                    _ => false,
-                };
-                if has_position_change {
+                if self.repo.apply_patch_check_position(&payload.id, &payload.forward).await? {
                     self.broadcast_boundaries().await;
                 }
             }
@@ -617,23 +431,11 @@ impl AppHandle {
     }
 
     pub async fn undo_count(&self) -> anyhow::Result<u32> {
-        let mut response = self
-            .repo
-            .db()
-            .query("SELECT VALUE count() FROM History WHERE status = 'applied' GROUP ALL")
-            .await?;
-        let count: Vec<i64> = response.take(0)?;
-        Ok(count.first().copied().unwrap_or(0) as u32)
+        self.repo.undo_count().await
     }
 
     pub async fn redo_count(&self) -> anyhow::Result<u32> {
-        let mut response = self
-            .repo
-            .db()
-            .query("SELECT VALUE count() FROM History WHERE status = 'undone' GROUP ALL")
-            .await?;
-        let count: Vec<i64> = response.take(0)?;
-        Ok(count.first().copied().unwrap_or(0) as u32)
+        self.repo.redo_count().await
     }
 
     pub async fn create_tag(&self, tag: Tag) -> anyhow::Result<()> {
@@ -683,48 +485,7 @@ impl AppHandle {
 
 
     pub async fn query_search(&self, query: String) -> anyhow::Result<Vec<Nodes>> {
-        tracing::debug!("FFI: query_search called with query: {}", query);
-        let trimmed = query.trim();
-        let query_str = if trimmed.to_uppercase().starts_with("WHERE") {
-            format!("SELECT * FROM INode, TaskNode, InterNode {}", trimmed)
-        } else {
-            "SELECT * FROM INode, TaskNode WHERE content.text ~ $query".to_string()
-        };
-
-        let mut req = self.repo.db().query(&query_str);
-        if !trimmed.to_uppercase().starts_with("WHERE") {
-            req = req.bind(("query", query));
-        }
-
-        let mut res = req.await?;
-        let records: Vec<Value> = res.take(0)?;
-        let mut nodes = Vec::new();
-
-        for val in records {
-            if let Some(record) = Record::from_record_value(val) {
-                let table = record.id.table.as_str();
-                match table {
-                    "INode" => {
-                        if let Some((key, fields)) = record.to_type::<INodeFields>() {
-                            nodes.push(Nodes::INode(INode { key, fields }));
-                        }
-                    }
-                    "TaskNode" => {
-                        if let Some((key, fields)) = record.to_type::<TaskNodeFields>() {
-                            nodes.push(Nodes::TaskNode(TaskNode { key, fields }));
-                        }
-                    }
-                    "InterNode" => {
-                        if let Some((key, fields)) = record.to_type::<InterNodeFields>() {
-                            nodes.push(Nodes::InterNode(InterNode { key, fields }));
-                        }
-                    }
-                    _ => {}
-                }
-            }
-        }
-
-        Ok(nodes)
+        self.repo.query_search(query).await
     }
 }
 

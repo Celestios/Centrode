@@ -22,6 +22,8 @@ You MUST adhere to the following conventions when working in the `/rust` directo
 - **Import Conventions**: In-place imports (within function or block scopes) are preferred for implementing standard traits or using crate-specific errors that might pollute namespace globally.
 - **RecordStrings**: Since `flutter_rust_bridge` cannot bridge Rust's internal `RecordId` directly, use `RecordStrings` (table and key strings) to represent IDs across the FFI.
 - **Freezed Integration**: Use `#[frb(dart_metadata=("freezed"))]` for structs needing copy-capabilities (like styles) in the Dart UI.
+- **FFI Cleanliness & Repository Separation**: The FFI layer (`bridge/api.rs`) should remain a clean interface layer. It must not contain database queries, raw history recording transactions, or complex patch checks. Instead, implement helper operations (e.g. history logging, patch application) in the repository (`persistence/repo.rs`) and orchestrate combinations of these methods directly in the FFI layer's handlers. Avoid creating bulky combined methods inside the repository.
+
 
 ## 3. Database & SurrealDB Guidelines
 - **Schemful Tables**: Core tables must be declared `SCHEMAFULL` with precise constraints.
