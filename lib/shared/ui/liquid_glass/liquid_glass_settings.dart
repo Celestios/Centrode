@@ -1,18 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Defines the rendering backend to use for liquid glass.
-/// This determines the coordinate system and drawing approach.
-enum LiquidGlassRendererBackend {
-  /// Uses Impeller with local logical coordinates and direct shader uniforms.
-  impeller,
-  
-  /// Uses Skia with global physical coordinates and CPU-side bridge calculations.
-  skia,
-}
-
 /// Configuration class that holds all visual parameters for the liquid glass shader effect.
 /// These parameters control various aspects like refraction, blur, lighting, and color.
-class OCLiquidGlassSettings {
+class LiquidGlassSettings {
   // Shader uniform parameters - these control the visual appearance of the glass effect
   final double blendPx;           // Edge blending distance in pixels for smooth transitions
   final double refractStrength;   // Strength of light refraction (-1.0 to 1.0, negative = concave lens)
@@ -45,18 +35,21 @@ class OCLiquidGlassSettings {
   final double specularStrokeWidthScale;
   final double rimHighlightStrokeWidthScale;
 
-  // Rendering backend configuration
-  final LiquidGlassRendererBackend renderBackend;
+  // Coordinate system configuration
+  final bool useLocalCoordinates; // True for Impeller (local logical coordinates), false for Skia (global physical coordinates)
+  
+  // Debug/Test settings
+  final bool forceCpuFallback; // Forcing fallback rendering when shader is not supported or for testing
 
-  const OCLiquidGlassSettings({
-    this.blendPx = 5.0,
-    this.refractStrength = -0.06,
+  const LiquidGlassSettings({
+    this.blendPx = 14.0,
+    this.refractStrength = 0.0,
     this.distortFalloffPx = 45.0,
     this.distortExponent = 4.0,
-    this.blurRadiusPx = 0.0,
+    this.blurRadiusPx = 7.0,
 
     this.specAngle = 4.0,
-    this.specStrength = 20.0,
+    this.specStrength = 2.0,
     this.specPower = 100.0,
     this.specWidth = 10.0,
 
@@ -66,7 +59,7 @@ class OCLiquidGlassSettings {
     this.lightbandColor = Colors.white,
 
     this.bridgeReachFactor = 2.0,
-    this.bridgeThicknessFactor = 0.5,
+    this.bridgeThicknessFactor = 1.0,
     this.fallbackTintAlpha = 0.12,
     this.specularStrengthDivisor = 25.0,
     this.maxSpecularAlpha = 0.9,
@@ -75,11 +68,12 @@ class OCLiquidGlassSettings {
     this.specularStrokeWidthScale = 0.08,
     this.rimHighlightStrokeWidthScale = 0.06,
 
-    this.renderBackend = LiquidGlassRendererBackend.impeller,
+    this.useLocalCoordinates = true,
+    this.forceCpuFallback = false,
   });
 
   /// Creates a copy of this settings object with the given fields replaced with new values.
-  OCLiquidGlassSettings copyWith({
+  LiquidGlassSettings copyWith({
     double? blendPx,
     double? refractStrength,
     double? distortFalloffPx,
@@ -106,9 +100,10 @@ class OCLiquidGlassSettings {
     double? specularStrokeWidthScale,
     double? rimHighlightStrokeWidthScale,
 
-    LiquidGlassRendererBackend? renderBackend,
+    bool? useLocalCoordinates,
+    bool? forceCpuFallback,
   }) {
-    return OCLiquidGlassSettings(
+    return LiquidGlassSettings(
       blendPx: blendPx ?? this.blendPx,
       refractStrength: refractStrength ?? this.refractStrength,
       distortFalloffPx: distortFalloffPx ?? this.distortFalloffPx,
@@ -135,10 +130,8 @@ class OCLiquidGlassSettings {
       specularStrokeWidthScale: specularStrokeWidthScale ?? this.specularStrokeWidthScale,
       rimHighlightStrokeWidthScale: rimHighlightStrokeWidthScale ?? this.rimHighlightStrokeWidthScale,
 
-      renderBackend: renderBackend ?? this.renderBackend,
+      useLocalCoordinates: useLocalCoordinates ?? this.useLocalCoordinates,
+      forceCpuFallback: forceCpuFallback ?? this.forceCpuFallback,
     );
   }
 }
-
-/// Backwards compatibility alias for the old class name.
-typedef LiquidGlassSettings = OCLiquidGlassSettings;

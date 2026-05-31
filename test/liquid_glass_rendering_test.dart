@@ -15,7 +15,7 @@ void main() {
     // Let it settle to trigger any async loading
     await tester.pumpAndSettle();
 
-    expect(find.byType(OCLiquidGlass), findsNWidgets(4));
+    expect(find.byType(LiquidGlass), findsNWidgets(4));
 
     final groupFinder = find.byWidgetPredicate((widget) => widget.runtimeType.toString() == '_LiquidGlassGroupRenderObject');
     expect(groupFinder, findsOneWidget);

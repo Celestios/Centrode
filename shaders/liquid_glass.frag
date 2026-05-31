@@ -6,7 +6,6 @@ precision highp float;
 #define PI         3.14159265359
 #define BLUR_STEPS 12          // per ring
 #define MAX_RECTS  4           // limit of four rectangles
-#define MAX_BRIDGES 6          // all pairs for four rectangles
 
 /* ── Global uniforms ─────────────────────────────────────────── */
 uniform vec2   u_size;             // (w,h)  px
@@ -39,13 +38,7 @@ uniform vec4   uRect1;  uniform float uCorner1;  uniform vec4 uTintColor1;
 uniform vec4   uRect2;  uniform float uCorner2;  uniform vec4 uTintColor2;
 uniform vec4   uRect3;  uniform float uCorner3;  uniform vec4 uTintColor3;
 
-uniform float  uBridgeCount;
-uniform vec4   uBridge0;  uniform float uBridgeRadius0;  uniform vec4 uBridgeTint0;
-uniform vec4   uBridge1;  uniform float uBridgeRadius1;  uniform vec4 uBridgeTint1;
-uniform vec4   uBridge2;  uniform float uBridgeRadius2;  uniform vec4 uBridgeTint2;
-uniform vec4   uBridge3;  uniform float uBridgeRadius3;  uniform vec4 uBridgeTint3;
-uniform vec4   uBridge4;  uniform float uBridgeRadius4;  uniform vec4 uBridgeTint4;
-uniform vec4   uBridge5;  uniform float uBridgeRadius5;  uniform vec4 uBridgeTint5;
+
 
 uniform sampler2D u_texture_input;
 out vec4 fragColor;
@@ -74,23 +67,6 @@ vec4  getTint(int i){
   return (i==0)?uTintColor0 :(i==1)?uTintColor1 :(i==2)?uTintColor2
        :uTintColor3;
 }
-vec4 getBridge(int i){
-  return (i==0)?uBridge0 :(i==1)?uBridge1 :(i==2)?uBridge2
-       :(i==3)?uBridge3 :(i==4)?uBridge4
-       :uBridge5;
-}
-float getBridgeRadius(int i){
-  return (i==0)?uBridgeRadius0 :(i==1)?uBridgeRadius1
-       :(i==2)?uBridgeRadius2 :(i==3)?uBridgeRadius3
-       :(i==4)?uBridgeRadius4
-       :uBridgeRadius5;
-}
-vec4 getBridgeTint(int i){
-  return (i==0)?uBridgeTint0 :(i==1)?uBridgeTint1
-       :(i==2)?uBridgeTint2 :(i==3)?uBridgeTint3
-       :(i==4)?uBridgeTint4
-       :uBridgeTint5;
-}
 
 /* rounded-rect SDF */
 float sdRoundRect(vec2 p, vec2 hsz, float r){
@@ -106,6 +82,23 @@ float smin(float a, float b, float k, float thicknessFactor) {
   return mix(b, a, h) - k * curve;
 }
 
+float calcDynamicBlendK(int currentIdx, vec4 r, float k0) {
+  float minGap = 1e5;
+  float maxOverlap = 0.0;
+  for(int j=0; j<MAX_RECTS; ++j) {
+     if (j >= currentIdx) break;
+     vec4 r_j = getRect(j);
+     vec2 diff = abs(r.xy - r_j.xy);
+     vec2 gap2D = diff - (r.zw + r_j.zw);
+     float gap = length(max(gap2D, vec2(0.0))) + min(max(gap2D.x, gap2D.y), 0.0);
+     if (gap < minGap) {
+         minGap = gap;
+         maxOverlap = min(min(r.z, r.w), min(r_j.z, r_j.w));
+     }
+  }
+  return k0 * smoothstep(-maxOverlap * 2.0, 0.0, minGap);
+}
+
 float unionDistance(vec2 uvCenter, int cnt, float k0){
   float dU = 1e5;
   for(int i=0;i<MAX_RECTS;++i){
@@ -115,20 +108,7 @@ float unionDistance(vec2 uvCenter, int cnt, float k0){
     if (i == 0) {
       dU = d;
     } else {
-      float minGap = 1e5;
-      float maxOverlap = 0.0;
-      for(int j=0; j<MAX_RECTS; ++j) {
-         if (j >= i) break;
-         vec4 r_j = getRect(j);
-         vec2 diff = abs(r.xy - r_j.xy);
-         vec2 gap2D = diff - (r.zw + r_j.zw);
-         float gap = length(max(gap2D, vec2(0.0))) + min(max(gap2D.x, gap2D.y), 0.0);
-         if (gap < minGap) {
-             minGap = gap;
-             maxOverlap = min(min(r.z, r.w), min(r_j.z, r_j.w));
-         }
-      }
-      float k = k0 * smoothstep(-maxOverlap * 2.0, 0.0, minGap);
+      float k = calcDynamicBlendK(i, r, k0);
       dU = smin(dU, d, k, uBridgeThicknessFactor);
     }
   }
@@ -214,20 +194,7 @@ void main(){
     if (i == 0) {
       dU = d[i];
     } else {
-      float minGap = 1e5;
-      float maxOverlap = 0.0;
-      for(int j=0; j<MAX_RECTS; ++j) {
-         if (j >= i) break;
-         vec4 r_j = getRect(j);
-         vec2 diff = abs(r.xy - r_j.xy);
-         vec2 gap2D = diff - (r.zw + r_j.zw);
-         float gap = length(max(gap2D, vec2(0.0))) + min(max(gap2D.x, gap2D.y), 0.0);
-         if (gap < minGap) {
-             minGap = gap;
-             maxOverlap = min(min(r.z, r.w), min(r_j.z, r_j.w));
-         }
-      }
-      float k = k0 * smoothstep(-maxOverlap * 2.0, 0.0, minGap);
+      float k = calcDynamicBlendK(i, r, k0);
       dU = smin(dU, d[i], k, uBridgeThicknessFactor);
     }
   }

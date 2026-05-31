@@ -9,11 +9,13 @@ class LiquidGlassDemo extends StatefulWidget {
 }
 
 class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
-  double _refractStrength = -0.06;
-  double _blurRadius = 2.0;
-  double _specStrength = 4.0;
-  double _blendPx = 20.0;
-  double _bridgeThicknessFactor = 0.5;
+  double _refractStrength = 0.0;
+  double _blurRadius = 7.0;
+  double _specStrength = 2.0;
+  double _blendPx = 14.0;
+  double _bridgeThicknessFactor = 1.0;
+  bool _useLocalCoordinates = true;
+  bool _forceCpuFallback = false;
 
   Offset _position1 = const Offset(50, 100);
   Offset _position2 = const Offset(320, 200);
@@ -22,7 +24,7 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = OCLiquidGlassSettings(
+    final settings = LiquidGlassSettings(
       blendPx: _blendPx,
       specAngle: 0.8,
       refractStrength: _refractStrength,
@@ -32,6 +34,8 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
       specWidth: 1.5,
       specPower: 4,
       bridgeThicknessFactor: _bridgeThicknessFactor,
+      useLocalCoordinates: _useLocalCoordinates,
+      forceCpuFallback: _forceCpuFallback,
     );
 
     return Scaffold(
@@ -42,7 +46,7 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
       body: Column(
         children: [
           Expanded(
-            child: OCLiquidGlassStage(
+            child: LiquidGlassStage(
               settings: settings,
               background: Container(
                 decoration: const BoxDecoration(
@@ -74,7 +78,7 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                               );
                             });
                           },
-                          child: OCLiquidGlass(
+                          child: LiquidGlass(
                             width: 250,
                             height: 80,
                             borderRadius: 40,
@@ -131,7 +135,7 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                               );
                             });
                           },
-                          child: OCLiquidGlass(
+                          child: LiquidGlass(
                             width: 100,
                             height: 100,
                             borderRadius: 50,
@@ -176,7 +180,7 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                               );
                             });
                           },
-                          child: OCLiquidGlass(
+                          child: LiquidGlass(
                             width: 80,
                             height: 120,
                             borderRadius: 20,
@@ -221,7 +225,7 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                               );
                             });
                           },
-                          child: OCLiquidGlass(
+                          child: LiquidGlass(
                             width: 60,
                             height: 60,
                             borderRadius: 30,
@@ -296,6 +300,44 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                   min: 0.1,
                   max: 2.0,
                   onChanged: (value) => setState(() => _bridgeThicknessFactor = value),
+                ),
+                const Divider(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Renderer coordinate system:',
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        const Text('Skia (Global)'),
+                        Switch(
+                          value: _useLocalCoordinates,
+                          onChanged: (value) => setState(() => _useLocalCoordinates = value),
+                        ),
+                        const Text('Impeller (Local)'),
+                      ],
+                    ),
+                  ],
+                ),
+                const Divider(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Force CPU Fallback Path:',
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                    Switch(
+                      value: _forceCpuFallback,
+                      onChanged: (value) => setState(() => _forceCpuFallback = value),
+                    ),
+                  ],
                 ),
               ],
             ),
