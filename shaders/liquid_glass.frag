@@ -31,6 +31,7 @@ uniform vec3   uLightbandColor;
 
 uniform float  uAAPx;
 uniform float  uRectCount;         // actual rects in use
+uniform float  uBridgeThicknessFactor;
 
 /* ── Per-rect data (centre.xy , size.zw), corner radii, tints ── */
 uniform vec4   uRect0;  uniform float uCorner0;  uniform vec4 uTintColor0;
@@ -96,10 +97,13 @@ float sdRoundRect(vec2 p, vec2 hsz, float r){
   vec2 q = abs(p) - (hsz - vec2(r));
   return length(max(q,vec2(0.))) + min(max(q.x,q.y),0.) - r;
 }
-float smin(float a, float b, float k) {
+float smin(float a, float b, float k, float thicknessFactor) {
   if (k <= 0.0) return min(a, b);
   float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
-  return mix(b, a, h) - k * h * (1.0 - h);
+  float h1h = h * (1.0 - h);
+  float c = 4.0 * (1.0 / max(thicknessFactor, 0.001) - 1.0);
+  float curve = h1h / max(1.0 + c * h1h, 0.001);
+  return mix(b, a, h) - k * curve;
 }
 
 float unionDistance(vec2 uvCenter, int cnt, float k0){
@@ -124,8 +128,8 @@ float unionDistance(vec2 uvCenter, int cnt, float k0){
              maxOverlap = min(min(r.z, r.w), min(r_j.z, r_j.w));
          }
       }
-      float k = k0 * 0.5 * smoothstep(-maxOverlap * 2.0, 0.0, minGap);
-      dU = smin(dU, d, k);
+      float k = k0 * smoothstep(-maxOverlap * 2.0, 0.0, minGap);
+      dU = smin(dU, d, k, uBridgeThicknessFactor);
     }
   }
   return dU;
@@ -223,8 +227,8 @@ void main(){
              maxOverlap = min(min(r.z, r.w), min(r_j.z, r_j.w));
          }
       }
-      float k = k0 * 0.5 * smoothstep(-maxOverlap * 2.0, 0.0, minGap);
-      dU = smin(dU, d[i], k);
+      float k = k0 * smoothstep(-maxOverlap * 2.0, 0.0, minGap);
+      dU = smin(dU, d[i], k, uBridgeThicknessFactor);
     }
   }
 

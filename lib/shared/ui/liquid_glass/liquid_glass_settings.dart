@@ -1,5 +1,15 @@
 import 'package:flutter/material.dart';
 
+/// Defines the rendering backend to use for liquid glass.
+/// This determines the coordinate system and drawing approach.
+enum LiquidGlassRendererBackend {
+  /// Uses Impeller with local logical coordinates and direct shader uniforms.
+  impeller,
+  
+  /// Uses Skia with global physical coordinates and CPU-side bridge calculations.
+  skia,
+}
+
 /// Configuration class that holds all visual parameters for the liquid glass shader effect.
 /// These parameters control various aspects like refraction, blur, lighting, and color.
 class OCLiquidGlassSettings {
@@ -22,8 +32,21 @@ class OCLiquidGlassSettings {
   final double lightbandStrength; // Intensity of the light band
   final Color lightbandColor;     // Color of the light band
 
-  // Coordinate system configuration
-  final bool useLocalCoordinates; // True for Impeller (local logical coordinates), false for Skia (global physical coordinates)
+  // Bridge blending parameters
+  final double bridgeReachFactor;     // How far bridges reach between elements
+  final double bridgeThicknessFactor; // Thickness multiplier for the bridges
+
+  // Fallback and specular specific tuning
+  final double fallbackTintAlpha;
+  final double specularStrengthDivisor;
+  final double maxSpecularAlpha;
+  final double minSpecularAngularWidth;
+  final double maxSpecularAngularWidth;
+  final double specularStrokeWidthScale;
+  final double rimHighlightStrokeWidthScale;
+
+  // Rendering backend configuration
+  final LiquidGlassRendererBackend renderBackend;
 
   const OCLiquidGlassSettings({
     this.blendPx = 5.0,
@@ -42,7 +65,17 @@ class OCLiquidGlassSettings {
     this.lightbandStrength = 0.9,
     this.lightbandColor = Colors.white,
 
-    this.useLocalCoordinates = true,
+    this.bridgeReachFactor = 2.0,
+    this.bridgeThicknessFactor = 0.5,
+    this.fallbackTintAlpha = 0.12,
+    this.specularStrengthDivisor = 25.0,
+    this.maxSpecularAlpha = 0.9,
+    this.minSpecularAngularWidth = 0.18,
+    this.maxSpecularAngularWidth = 1.2,
+    this.specularStrokeWidthScale = 0.08,
+    this.rimHighlightStrokeWidthScale = 0.06,
+
+    this.renderBackend = LiquidGlassRendererBackend.impeller,
   });
 
   /// Creates a copy of this settings object with the given fields replaced with new values.
@@ -62,7 +95,18 @@ class OCLiquidGlassSettings {
     double? lightbandWidthPx,
     double? lightbandStrength,
     Color? lightbandColor,
-    bool? useLocalCoordinates,
+
+    double? bridgeReachFactor,
+    double? bridgeThicknessFactor,
+    double? fallbackTintAlpha,
+    double? specularStrengthDivisor,
+    double? maxSpecularAlpha,
+    double? minSpecularAngularWidth,
+    double? maxSpecularAngularWidth,
+    double? specularStrokeWidthScale,
+    double? rimHighlightStrokeWidthScale,
+
+    LiquidGlassRendererBackend? renderBackend,
   }) {
     return OCLiquidGlassSettings(
       blendPx: blendPx ?? this.blendPx,
@@ -80,7 +124,18 @@ class OCLiquidGlassSettings {
       lightbandWidthPx: lightbandWidthPx ?? this.lightbandWidthPx,
       lightbandStrength: lightbandStrength ?? this.lightbandStrength,
       lightbandColor: lightbandColor ?? this.lightbandColor,
-      useLocalCoordinates: useLocalCoordinates ?? this.useLocalCoordinates,
+
+      bridgeReachFactor: bridgeReachFactor ?? this.bridgeReachFactor,
+      bridgeThicknessFactor: bridgeThicknessFactor ?? this.bridgeThicknessFactor,
+      fallbackTintAlpha: fallbackTintAlpha ?? this.fallbackTintAlpha,
+      specularStrengthDivisor: specularStrengthDivisor ?? this.specularStrengthDivisor,
+      maxSpecularAlpha: maxSpecularAlpha ?? this.maxSpecularAlpha,
+      minSpecularAngularWidth: minSpecularAngularWidth ?? this.minSpecularAngularWidth,
+      maxSpecularAngularWidth: maxSpecularAngularWidth ?? this.maxSpecularAngularWidth,
+      specularStrokeWidthScale: specularStrokeWidthScale ?? this.specularStrokeWidthScale,
+      rimHighlightStrokeWidthScale: rimHighlightStrokeWidthScale ?? this.rimHighlightStrokeWidthScale,
+
+      renderBackend: renderBackend ?? this.renderBackend,
     );
   }
 }

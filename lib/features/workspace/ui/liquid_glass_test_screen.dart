@@ -13,6 +13,7 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
   double _blurRadius = 2.0;
   double _specStrength = 4.0;
   double _blendPx = 20.0;
+  double _bridgeThicknessFactor = 0.5;
 
   Offset _position1 = const Offset(50, 100);
   Offset _position2 = const Offset(320, 200);
@@ -30,6 +31,7 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
       specStrength: _specStrength,
       specWidth: 1.5,
       specPower: 4,
+      bridgeThicknessFactor: _bridgeThicknessFactor,
     );
 
     return Scaffold(
@@ -287,6 +289,13 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                   min: 5,
                   max: 40,
                   onChanged: (value) => setState(() => _blendPx = value),
+                ),
+                Text('Bridge Thickness: ${_bridgeThicknessFactor.toStringAsFixed(2)}'),
+                Slider(
+                  value: _bridgeThicknessFactor,
+                  min: 0.1,
+                  max: 2.0,
+                  onChanged: (value) => setState(() => _bridgeThicknessFactor = value),
                 ),
               ],
             ),

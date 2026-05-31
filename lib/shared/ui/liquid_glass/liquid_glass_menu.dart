@@ -330,18 +330,7 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
   static const int maxRects = 4;
   static const int maxBridges = 6;
 
-  // Code Hygiene Constants (Tuning parameters & scaling factors)
-  static const double _kFallbackTintAlpha = 0.12;
-  static const double _kSpecularStrengthDivisor = 25.0;
-  static const double _kMaxSpecularAlpha = 0.9;
-  static const double _kMinSpecularAngularWidth = 0.18;
-  static const double _kMaxSpecularAngularWidth = 1.2;
-  static const double _kSpecularStrokeWidthScale = 0.08;
-  static const double _kRimHighlightStrokeWidthScale = 0.06;
-
-  // Shared mathematical coefficients for bridges
-  static const double _kBridgeReachFactor = 8.0;
-  static const double _kBridgeWidthFactor = 0.5;
+  // Code Hygiene Constants (Tuning parameters & scaling factors)  // Constants removed: moved to OCLiquidGlassSettings
 
   Listenable? _routeAnimations;
   ScrollPosition? _scrollPosition;
@@ -531,7 +520,7 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
       return;
     }
 
-    final useLocal = _settings.useLocalCoordinates;
+    final useLocal = _settings.renderBackend == LiquidGlassRendererBackend.impeller;
 
     if (useLocal) {
       final localRects = activeShapes.map((s) => _localRectForShape(s)).toList();
@@ -640,7 +629,8 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
       ..setFloat(idx++, _settings.lightbandColor.g)
       ..setFloat(idx++, _settings.lightbandColor.b)
       ..setFloat(idx++, 1.0 * pixelScale)
-      ..setFloat(idx++, rectCount.toDouble());
+      ..setFloat(idx++, rectCount.toDouble())
+      ..setFloat(idx++, _settings.bridgeThicknessFactor);
 
     final safeRy = math.max(shaderSize.height, 0.001);
 
@@ -731,86 +721,7 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     return Offset(clampX, clampY);
   }
 
-  List<BridgeData> _computeBridges(List<ShapeData> shapes) {
-    final bridgeData = <BridgeData>[];
-    final count = shapes.length < maxRects ? shapes.length : maxRects;
-    final reach = _settings.blendPx * _kBridgeReachFactor;
-    if (count < 2 || reach <= 0.0) {
-      return bridgeData;
-    }
 
-    for (var i = 0; i < count; i++) {
-      final shapeA = shapes[i];
-      for (var j = i + 1; j < count; j++) {
-        final shapeB = shapes[j];
-        
-        // Midpoint of centers
-        final midpoint = (shapeA.center + shapeB.center) / 2.0;
-        
-        // Closest points on inner rectangles
-        final innerClosestA = _getMidpointClosestPoint(shapeA, midpoint);
-        final innerClosestB = _getMidpointClosestPoint(shapeB, midpoint);
-        
-        final v = innerClosestB - innerClosestA;
-        final d = v.distance;
-        final direction = d > 0.001 ? v / d : Offset.zero;
-        
-        final gap = d - shapeA.borderRadius - shapeB.borderRadius;
-        if (gap >= reach) continue;
-
-        // Calculate dynamic bridge radius
-        final t = 1.0 - gap / reach;
-        // Clamp maximum radius to the half-height of the smaller button to prevent over-bloating
-        final maxRadius = math.min(
-          math.min(shapeA.size.width, shapeA.size.height),
-          math.min(shapeB.size.width, shapeB.size.height),
-        ) / 2.0;
-        final bridgeRadius = math.min(
-          _settings.blendPx * _kBridgeWidthFactor * t,
-          maxRadius,
-        );
-
-        final Offset start;
-        final Offset end;
-        if (gap > 0.0) {
-          start = innerClosestA + direction * shapeA.borderRadius;
-          end = innerClosestB - direction * shapeB.borderRadius;
-        } else {
-          // Overlapping case: collapse segment to the midpoint of the overlap
-          final pA = innerClosestA + direction * shapeA.borderRadius;
-          final pB = innerClosestB - direction * shapeB.borderRadius;
-          final overlapMidpoint = (pA + pB) / 2.0;
-          start = overlapMidpoint;
-          end = overlapMidpoint;
-        }
-
-        bridgeData.add(
-          BridgeData(
-            start,
-            end,
-            bridgeRadius,
-            _mixBridgeColor(shapeA.color, shapeB.color),
-          ),
-        );
-
-        if (bridgeData.length == maxBridges) {
-          return bridgeData;
-        }
-      }
-    }
-
-    return bridgeData;
-  }
-
-  Color _mixBridgeColor(Color a, Color b) {
-    final alpha = math.max(a.a, b.a);
-    return Color.from(
-      alpha: alpha,
-      red: (a.r + b.r) * 0.5,
-      green: (a.g + b.g) * 0.5,
-      blue: (a.b + b.b) * 0.5,
-    );
-  }
 
   ui.Path _buildLocalUnifiedPath(List<ShapeData> localShapes, List<Rect> localRects) {
     var localUnifiedPath = ui.Path();
@@ -831,7 +742,7 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     }
 
     final count = localShapes.length;
-    final reach = _settings.blendPx * _kBridgeReachFactor;
+    final reach = _settings.blendPx * _settings.bridgeReachFactor;
 
     for (var i = 0; i < count; i++) {
       final shapeA = localShapes[i];
@@ -857,7 +768,7 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
           math.min(shapeB.size.width, shapeB.size.height),
         ) / 2.0;
         final width = math.min(
-          _settings.blendPx * _kBridgeWidthFactor,
+          _settings.blendPx * _settings.bridgeThicknessFactor,
           maxRadius,
         );
 
@@ -1004,7 +915,7 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
         rect,
         Radius.circular(shapeData.borderRadius),
       );
-      final paint = Paint()..color = shapeData.color.withValues(alpha: _kFallbackTintAlpha);
+      final paint = Paint()..color = shapeData.color.withValues(alpha: _settings.fallbackTintAlpha);
 
       context.canvas.drawRRect(rrect, paint);
     }
@@ -1016,17 +927,17 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     ui.Path globalUnifiedPath,
     List<Rect> localRects,
   ) {
-    final specAlpha = (_settings.specStrength / _kSpecularStrengthDivisor).clamp(0.0, _kMaxSpecularAlpha);
+    final specAlpha = (_settings.specStrength / _settings.specularStrengthDivisor).clamp(0.0, _settings.maxSpecularAlpha);
     if (specAlpha <= 0.0) return;
 
     for (var i = 0; i < localRects.length; i++) {
       final rect = localRects[i].shift(offset);
       final shortestSide = math.max(1.0, math.min(rect.width, rect.height));
       final angularWidth = (_settings.specWidth / shortestSide * math.pi).clamp(
-        _kMinSpecularAngularWidth,
-        _kMaxSpecularAngularWidth,
+        _settings.minSpecularAngularWidth,
+        _settings.maxSpecularAngularWidth,
       );
-      final strokeWidth = (_settings.lightbandWidthPx * _kSpecularStrokeWidthScale).clamp(1.0, 4.0);
+      final strokeWidth = (_settings.lightbandWidthPx * _settings.specularStrokeWidthScale).clamp(1.0, 4.0);
 
       final paint = Paint()
         ..style = PaintingStyle.stroke
@@ -1059,7 +970,7 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     final bounds = globalUnifiedPath.getBounds();
     if (bounds.isEmpty) return;
 
-    final strokeWidth = (_settings.lightbandWidthPx * _kRimHighlightStrokeWidthScale).clamp(1.0, 3.0);
+    final strokeWidth = (_settings.lightbandWidthPx * _settings.rimHighlightStrokeWidthScale).clamp(1.0, 3.0);
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
