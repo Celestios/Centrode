@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../presentation/widgets/window_title_bar.dart';
 import '../../graph/ui/graph_screen.dart';
+import 'liquid_glass_test_screen.dart';
 
 class ProjectSelectorScreen extends StatelessWidget {
   const ProjectSelectorScreen({super.key});
@@ -13,6 +14,14 @@ class ProjectSelectorScreen extends StatelessWidget {
     );
   }
 
+  void _openLiquidGlassDemo(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const LiquidGlassDemo(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,9 +30,23 @@ class ProjectSelectorScreen extends StatelessWidget {
           const SimpleWindowTitleBar(title: 'Mycelium - Choose Project'),
           Expanded(
             child: Center(
-              child: ElevatedButton(
-                onPressed: () => _openDefaultGraph(context),
-                child: const Text('Open Default Graph'),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _openDefaultGraph(context),
+                    child: const Text('Open Default Graph'),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () => _openLiquidGlassDemo(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Open Liquid Glass Demo'),
+                  ),
+                ],
               ),
             ),
           ),
@@ -32,3 +55,4 @@ class ProjectSelectorScreen extends StatelessWidget {
     );
   }
 }
+

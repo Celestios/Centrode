@@ -10,7 +10,7 @@ import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/features/graph/models/content_builder.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
+
 
 class MockAppHandle extends Mock implements AppHandle {}
 class MockThemeController extends Mock implements ThemeController {

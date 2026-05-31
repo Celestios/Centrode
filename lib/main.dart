@@ -9,6 +9,7 @@ import 'infrastructure/telemetry/log_manager.dart';
 import 'features/workspace/ui/project_selector_screen.dart'; // your existing screen
 import 'presentation/theme/app_theme.dart'; // from previous step
 import 'presentation/theme/theme_repository.dart'; // from previous step
+import 'package:mycelium/shared/ui/liquid_glass/index.dart';
 
 late final ValueNotifier<AppTheme> themeNotifier;
 
@@ -32,6 +33,7 @@ Future<void> main() async {
 
   await RustLib.init();
   await LogManager().init();
+  await LiquidGlassShaderProvider.load();
 
   final log = Logger('BootSequence');
   log.info('Rust FFI loaded. Mycelium core ready.');
