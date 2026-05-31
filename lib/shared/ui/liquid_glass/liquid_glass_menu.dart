@@ -340,8 +340,8 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
   static const double _kRimHighlightStrokeWidthScale = 0.06;
 
   // Shared mathematical coefficients for bridges
-  static const double _kBridgeReachFactor = 2.0;
-  static const double _kBridgeWidthFactor = 1.0;
+  static const double _kBridgeReachFactor = 8.0;
+  static const double _kBridgeWidthFactor = 0.5;
 
   Listenable? _routeAnimations;
   ScrollPosition? _scrollPosition;
@@ -545,7 +545,7 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
         shaderSize: size,
         bounds: Offset.zero & size,
         shapes: localShapes,
-        bridges: _computeBridges(localShapes),
+        bridges: const [],
         pixelScale: 1.0,
       );
     } else {
@@ -562,7 +562,7 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
         shaderSize: _screenSize,
         bounds: boundary,
         shapes: globalShapes,
-        bridges: _computeBridges(globalShapes),
+        bridges: const [],
         pixelScale: _devicePixelRatio,
       );
     }
@@ -710,6 +710,27 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     }
   }
 
+  Offset _getMidpointClosestPoint(ShapeData shape, Offset midpoint) {
+    final halfWidth = shape.size.width / 2.0;
+    final halfHeight = shape.size.height / 2.0;
+    
+    // Calculate the bounds of the inner rectangle (recessed by borderRadius)
+    final innerMinX = shape.center.dx - halfWidth + shape.borderRadius;
+    final innerMaxX = shape.center.dx + halfWidth - shape.borderRadius;
+    final innerMinY = shape.center.dy - halfHeight + shape.borderRadius;
+    final innerMaxY = shape.center.dy + halfHeight - shape.borderRadius;
+    
+    // Clamp midpoint to the inner rectangle bounds
+    final clampX = innerMinX > innerMaxX 
+        ? shape.center.dx 
+        : midpoint.dx.clamp(innerMinX, innerMaxX);
+    final clampY = innerMinY > innerMaxY 
+        ? shape.center.dy 
+        : midpoint.dy.clamp(innerMinY, innerMaxY);
+        
+    return Offset(clampX, clampY);
+  }
+
   List<BridgeData> _computeBridges(List<ShapeData> shapes) {
     final bridgeData = <BridgeData>[];
     final count = shapes.length < maxRects ? shapes.length : maxRects;
@@ -722,28 +743,51 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
       final shapeA = shapes[i];
       for (var j = i + 1; j < count; j++) {
         final shapeB = shapes[j];
-        final delta = shapeB.center - shapeA.center;
-        final maxDx = (shapeA.size.width + shapeB.size.width) / 2.0 + reach;
-        if (delta.dx.abs() >= maxDx) continue;
-        final maxDy = (shapeA.size.height + shapeB.size.height) / 2.0 + reach;
-        if (delta.dy.abs() >= maxDy) continue;
+        
+        // Midpoint of centers
+        final midpoint = (shapeA.center + shapeB.center) / 2.0;
+        
+        // Closest points on inner rectangles
+        final innerClosestA = _getMidpointClosestPoint(shapeA, midpoint);
+        final innerClosestB = _getMidpointClosestPoint(shapeB, midpoint);
+        
+        final v = innerClosestB - innerClosestA;
+        final d = v.distance;
+        final direction = d > 0.001 ? v / d : Offset.zero;
+        
+        final gap = d - shapeA.borderRadius - shapeB.borderRadius;
+        if (gap >= reach) continue;
 
-        final distance = delta.distance;
-        if (distance <= 0.001) continue;
-
-        final direction = delta / distance;
-        final radiusA = _supportDistance(shapeA, direction);
-        final radiusB = _supportDistance(shapeB, -direction);
-        final gap = distance - radiusA - radiusB;
-        if (gap <= 0.0 || gap >= reach) continue;
-
+        // Calculate dynamic bridge radius
         final t = 1.0 - gap / reach;
-        final bridgeRadius = (_settings.blendPx * _kBridgeWidthFactor * t);
+        // Clamp maximum radius to the half-height of the smaller button to prevent over-bloating
+        final maxRadius = math.min(
+          math.min(shapeA.size.width, shapeA.size.height),
+          math.min(shapeB.size.width, shapeB.size.height),
+        ) / 2.0;
+        final bridgeRadius = math.min(
+          _settings.blendPx * _kBridgeWidthFactor * t,
+          maxRadius,
+        );
+
+        final Offset start;
+        final Offset end;
+        if (gap > 0.0) {
+          start = innerClosestA + direction * shapeA.borderRadius;
+          end = innerClosestB - direction * shapeB.borderRadius;
+        } else {
+          // Overlapping case: collapse segment to the midpoint of the overlap
+          final pA = innerClosestA + direction * shapeA.borderRadius;
+          final pB = innerClosestB - direction * shapeB.borderRadius;
+          final overlapMidpoint = (pA + pB) / 2.0;
+          start = overlapMidpoint;
+          end = overlapMidpoint;
+        }
 
         bridgeData.add(
           BridgeData(
-            shapeA.center + direction * radiusA,
-            shapeB.center - direction * radiusB,
+            start,
+            end,
             bridgeRadius,
             _mixBridgeColor(shapeA.color, shapeB.color),
           ),
@@ -756,18 +800,6 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     }
 
     return bridgeData;
-  }
-
-  double _supportDistance(ShapeData shape, Offset direction) {
-    final halfWidth = shape.size.width / 2.0;
-    final halfHeight = shape.size.height / 2.0;
-    final xDistance = direction.dx.abs() < 0.001
-        ? double.infinity
-        : halfWidth / direction.dx.abs();
-    final yDistance = direction.dy.abs() < 0.001
-        ? double.infinity
-        : halfHeight / direction.dy.abs();
-    return math.min(xDistance, yDistance);
   }
 
   Color _mixBridgeColor(Color a, Color b) {
@@ -799,55 +831,104 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     }
 
     final count = localShapes.length;
+    final reach = _settings.blendPx * _kBridgeReachFactor;
+
     for (var i = 0; i < count; i++) {
       final shapeA = localShapes[i];
-      final rectA = localRects[i];
-      final cA = rectA.center;
-
       for (var j = i + 1; j < count; j++) {
         final shapeB = localShapes[j];
-        final rectB = localRects[j];
-        final cB = rectB.center;
 
-        final dir = cB - cA;
-        final distance = dir.distance;
-        if (distance == 0.0) continue;
+        final midpoint = (shapeA.center + shapeB.center) / 2.0;
+        final innerClosestA = _getMidpointClosestPoint(shapeA, midpoint);
+        final innerClosestB = _getMidpointClosestPoint(shapeB, midpoint);
 
-        final direction = dir / distance;
-        final radiusA = _supportDistance(shapeA, direction);
-        final radiusB = _supportDistance(shapeB, -direction);
-        final edgeDistance = distance - (radiusA + radiusB);
-        final maxBridgeDist = _settings.blendPx * _kBridgeReachFactor;
-        if (edgeDistance <= 0.0 || edgeDistance >= maxBridgeDist) {
+        final v = innerClosestB - innerClosestA;
+        final d = v.distance;
+        final direction = d > 0.001 ? v / d : Offset.zero;
+
+        final edgeDistance = d - shapeA.borderRadius - shapeB.borderRadius;
+        if (edgeDistance >= reach) {
           continue;
         }
 
-        final perpendicular = Offset(-direction.dy, direction.dx);
-        final width =
-            _settings.blendPx * _kBridgeWidthFactor * (1.0 - edgeDistance / maxBridgeDist);
-        if (width <= 0.0) continue;
-
-        final pA = cA + direction * radiusA;
-        final pB = cB - direction * radiusB;
-        final a1 = pA + perpendicular * width;
-        final a2 = pA - perpendicular * width;
-        final b1 = pB + perpendicular * width;
-        final b2 = pB - perpendicular * width;
-        final cp1 = (a1 + b1) / 2.0 - perpendicular * (width * 0.5);
-        final cp2 = (a2 + b2) / 2.0 + perpendicular * (width * 0.5);
-
-        final bridgePath = ui.Path()
-          ..moveTo(a1.dx, a1.dy)
-          ..quadraticBezierTo(cp1.dx, cp1.dy, b1.dx, b1.dy)
-          ..lineTo(b2.dx, b2.dy)
-          ..quadraticBezierTo(cp2.dx, cp2.dy, a2.dx, a2.dy)
-          ..close();
-
-        localUnifiedPath = ui.Path.combine(
-          ui.PathOperation.union,
-          localUnifiedPath,
-          bridgePath,
+        final t = 1.0 - edgeDistance / reach;
+        final maxRadius = math.min(
+          math.min(shapeA.size.width, shapeA.size.height),
+          math.min(shapeB.size.width, shapeB.size.height),
+        ) / 2.0;
+        final width = math.min(
+          _settings.blendPx * _kBridgeWidthFactor,
+          maxRadius,
         );
+
+        if (edgeDistance <= 0.0) {
+          // Overlapping case: draw a circle at the midpoint of the overlap to smooth the crease
+          final pA = innerClosestA + direction * shapeA.borderRadius;
+          final pB = innerClosestB - direction * shapeB.borderRadius;
+          final overlapMidpoint = (pA + pB) / 2.0;
+          final bridgeRadius = width * t;
+          final bridgePath = ui.Path()
+            ..addOval(Rect.fromCircle(center: overlapMidpoint, radius: bridgeRadius));
+          localUnifiedPath = ui.Path.combine(
+            ui.PathOperation.union,
+            localUnifiedPath,
+            bridgePath,
+          );
+          continue;
+        }
+
+        final pA = innerClosestA + direction * shapeA.borderRadius;
+        final pB = innerClosestB - direction * shapeB.borderRadius;
+        final mid = (pA + pB) / 2.0;
+
+        const tc = 0.5;
+        if (t <= tc) {
+          // Separated phase: draw two separate circles moving towards each other
+          final factor = t / tc;
+          final r = width * factor;
+          final dTravel = (edgeDistance * 0.5) * factor;
+          final cA = pA + direction * dTravel;
+          final cB = pB - direction * dTravel;
+          
+          if (r > 0.0) {
+            final bridgePath = ui.Path()
+              ..addOval(Rect.fromCircle(center: cA, radius: r))
+              ..addOval(Rect.fromCircle(center: cB, radius: r));
+            localUnifiedPath = ui.Path.combine(
+              ui.PathOperation.union,
+              localUnifiedPath,
+              bridgePath,
+            );
+          }
+        } else {
+          // Merged phase: draw the Bezier curve bridge between cA and cB
+          final r = width * t;
+          final u = (t - tc) / (1.0 - tc);
+          final dTravel = (edgeDistance * 0.5) * u;
+          final cA = mid - direction * dTravel;
+          final cB = mid + direction * dTravel;
+
+          final perpendicular = Offset(-direction.dy, direction.dx);
+          final a1 = cA + perpendicular * r;
+          final a2 = cA - perpendicular * r;
+          final b1 = cB + perpendicular * r;
+          final b2 = cB - perpendicular * r;
+          final cp1 = (a1 + b1) / 2.0 - perpendicular * (r * 0.5);
+          final cp2 = (a2 + b2) / 2.0 + perpendicular * (r * 0.5);
+
+          final bridgePath = ui.Path()
+            ..moveTo(a1.dx, a1.dy)
+            ..quadraticBezierTo(cp1.dx, cp1.dy, b1.dx, b1.dy)
+            ..lineTo(b2.dx, b2.dy)
+            ..quadraticBezierTo(cp2.dx, cp2.dy, a2.dx, a2.dy)
+            ..close();
+
+          localUnifiedPath = ui.Path.combine(
+            ui.PathOperation.union,
+            localUnifiedPath,
+            bridgePath,
+          );
+        }
       }
     }
 
@@ -867,7 +948,7 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
       shaderSize: size,
       bounds: Offset.zero & size,
       shapes: localShapes,
-      bridges: _computeBridges(localShapes),
+      bridges: const [],
       pixelScale: 1.0,
     );
     _shader.setImageSampler(0, image);

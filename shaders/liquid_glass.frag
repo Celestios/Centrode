@@ -96,49 +96,54 @@ float sdRoundRect(vec2 p, vec2 hsz, float r){
   vec2 q = abs(p) - (hsz - vec2(r));
   return length(max(q,vec2(0.))) + min(max(q.x,q.y),0.) - r;
 }
-float sdCapsule(vec2 p, vec2 a, vec2 b, float r){
-  vec2 pa = p - a;
-  vec2 ba = b - a;
-  float h = clamp(dot(pa,ba) / max(dot(ba,ba), 1e-6), 0.0, 1.0);
-  return length(pa - ba*h) - r;
-}
-/* iq polynomial smooth-min */
-float sminPoly(float a,float b,float k){
-  if(k <= 0.0) return min(a,b);
-  float h = clamp(0.5 + 0.5*(b-a)/k, 0.0, 1.0);
-  return mix(b,a,h) - k*h*(1.0-h);
+float smin(float a, float b, float k) {
+  if (k <= 0.0) return min(a, b);
+  float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+  return mix(b, a, h) - k * h * (1.0 - h);
 }
 
-float unionDistance(vec2 uvCenter, int cnt, float k){
+float unionDistance(vec2 uvCenter, int cnt, float k0){
   float dU = 1e5;
   for(int i=0;i<MAX_RECTS;++i){
     if(i>=cnt) break;
     vec4 r = getRect(i);
     float d = sdRoundRect(uvCenter - r.xy, r.zw, getCorner(i));
-    dU = (i==0)?d:sminPoly(dU,d,k);
-  }
-
-  int bridgeCnt = int(uBridgeCount);
-  for(int i=0;i<MAX_BRIDGES;++i){
-    if(i>=bridgeCnt) break;
-    vec4 bridge = getBridge(i);
-    float d = sdCapsule(uvCenter, bridge.xy, bridge.zw, getBridgeRadius(i));
-    dU = sminPoly(dU,d,k);
+    if (i == 0) {
+      dU = d;
+    } else {
+      float minGap = 1e5;
+      float maxOverlap = 0.0;
+      for(int j=0; j<MAX_RECTS; ++j) {
+         if (j >= i) break;
+         vec4 r_j = getRect(j);
+         vec2 diff = abs(r.xy - r_j.xy);
+         vec2 gap2D = diff - (r.zw + r_j.zw);
+         float gap = length(max(gap2D, vec2(0.0))) + min(max(gap2D.x, gap2D.y), 0.0);
+         if (gap < minGap) {
+             minGap = gap;
+             maxOverlap = min(min(r.z, r.w), min(r_j.z, r_j.w));
+         }
+      }
+      float k = k0 * 0.5 * smoothstep(-maxOverlap * 2.0, 0.0, minGap);
+      dU = smin(dU, d, k);
+    }
   }
   return dU;
 }
 
-vec2 unionGradient(vec2 uvCenter, int cnt, float k){
+vec2 unionGradient(vec2 uvCenter, int cnt, float k0){
   float eps = px(1.0);
   vec2 dx = vec2(eps, 0.0);
   vec2 dy = vec2(0.0, eps);
   return vec2(
-    unionDistance(uvCenter + dx, cnt, k) -
-      unionDistance(uvCenter - dx, cnt, k),
-    unionDistance(uvCenter + dy, cnt, k) -
-      unionDistance(uvCenter - dy, cnt, k)
+    unionDistance(uvCenter + dx, cnt, k0) -
+      unionDistance(uvCenter - dx, cnt, k0),
+    unionDistance(uvCenter + dy, cnt, k0) -
+      unionDistance(uvCenter - dy, cnt, k0)
   );
 }
+
+
 
 /* radial blur directions */
 vec2 getBlurDir(int j) {
@@ -192,11 +197,9 @@ void main(){
   vec2 uvCenter = (globalFragPx - 0.5*R) / safeRy;
 
   /* union SDF + store individual distances */
-  float smoothUnionPx = min(uBlendPx * 0.35, 10.0);
-  float k   = smoothUnionPx / safeRy;
-  float tintK = max(k, px(1.0));
+  float k0 = px(uBlendPx * 3.0);
+  float tintK = max(k0, px(1.0));
   int   cnt = int(uRectCount);
-  int   bridgeCnt = int(uBridgeCount);
   float dU  = 1e5;
   float d[MAX_RECTS];
 
@@ -204,20 +207,30 @@ void main(){
     if(i>=cnt){ d[i]=1e5; continue; }
     vec4 r = getRect(i);
     d[i]  = sdRoundRect(uvCenter - r.xy, r.zw, getCorner(i));
-    dU    = (i==0)?d[i]:sminPoly(dU,d[i],k);
-  }
-
-  float bridgeD[MAX_BRIDGES];
-  for(int i=0;i<MAX_BRIDGES;++i){
-    if(i>=bridgeCnt){ bridgeD[i]=1e5; continue; }
-    vec4 bridge = getBridge(i);
-    bridgeD[i] = sdCapsule(uvCenter, bridge.xy, bridge.zw, getBridgeRadius(i));
-    dU = sminPoly(dU, bridgeD[i], k);
+    if (i == 0) {
+      dU = d[i];
+    } else {
+      float minGap = 1e5;
+      float maxOverlap = 0.0;
+      for(int j=0; j<MAX_RECTS; ++j) {
+         if (j >= i) break;
+         vec4 r_j = getRect(j);
+         vec2 diff = abs(r.xy - r_j.xy);
+         vec2 gap2D = diff - (r.zw + r_j.zw);
+         float gap = length(max(gap2D, vec2(0.0))) + min(max(gap2D.x, gap2D.y), 0.0);
+         if (gap < minGap) {
+             minGap = gap;
+             maxOverlap = min(min(r.z, r.w), min(r_j.z, r_j.w));
+         }
+      }
+      float k = k0 * 0.5 * smoothstep(-maxOverlap * 2.0, 0.0, minGap);
+      dU = smin(dU, d[i], k);
+    }
   }
 
   float mask = smoothstep(uAAPx/safeRy, -uAAPx/safeRy, dU);
 
-  vec2 grad = unionGradient(uvCenter,cnt,k);
+  vec2 grad = unionGradient(uvCenter,cnt,k0);
   grad = normalize(grad+1e-6);
 
   vec2 off = grad * pow(smoothstep(-px(uDistortFalloffPx),0.0,dU),
@@ -235,13 +248,6 @@ void main(){
     vec4 tint = getTint(i);          // rgb + strength (a)
     accum += mix(glassBase, tint.rgb, tint.a) * w;
     wSum  += w;
-  }
-  for(int i=0;i<MAX_BRIDGES;++i){
-    if(i>=bridgeCnt) break;
-    float w = exp(-bridgeD[i]/tintK);
-    vec4 tint = getBridgeTint(i);
-    accum += mix(glassBase, tint.rgb, tint.a) * w;
-    wSum += w;
   }
   vec3 glass = accum / max(wSum, 1e-6);
 
