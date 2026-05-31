@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 import 'package:logging/logging.dart';
 
 class LiquidGlassShaderProvider {
+  static const String shaderAssetPath = 'shaders/liquid_glass.frag';
   static final _log = Logger('LiquidGlassShaderProvider');
   static ui.FragmentProgram? _shaderProgram;
 
@@ -12,7 +13,7 @@ class LiquidGlassShaderProvider {
     try {
       _log.info('Preloading liquid glass fragment shader...');
       _shaderProgram = await ui.FragmentProgram.fromAsset(
-        'shaders/liquid_glass.frag',
+        shaderAssetPath,
       );
       _log.info('Liquid glass shader preloaded successfully.');
     } catch (e, stack) {

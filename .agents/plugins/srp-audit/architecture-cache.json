@@ -1,6 +1,6 @@
 {
-  "last_audit_commit": "6b6b002ccd6bb904ef59e2c8d61a85de0cf4bde8",
-  "last_audit_time": "2026-05-29T00:04:54.822256Z",
+  "last_audit_commit": "943db6697beeb34a09bfb323679fa80ece2f1621",
+  "last_audit_time": "2026-05-31T18:28:33.973526Z",
   "layers": {
     "lib/features/graph/ui": {
       "tier": 1,
@@ -51,8 +51,8 @@
     "lib/features/graph/store/graph_data_controller.dart": {
       "class": "GraphDataController",
       "srp_responsibility": "Acts as the high-level orchestrator and Facade for domain store modules.",
-      "sha256": "9bae78fb84a2251e8a6edc4fc7bb65e479742cd0",
-      "status": "COMPLIANT",
+      "sha256": "774ff87deebc9ca2e00321911ff590f5c185687b",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/store/modules/graph_node_mutations.dart": {
@@ -65,7 +65,7 @@
     "lib/features/graph/store/modules/graph_property_mutations.dart": {
       "class": "GraphPropertyMutations",
       "srp_responsibility": "Performs optimistic entity property changes and text modifications.",
-      "sha256": "3addd7537d461142bc00504bb20bf11c57f755b0",
+      "sha256": "14d3a498629a26572891441c9fcd88e045489230",
       "status": "PENDING_AUDIT",
       "violations": []
     },
@@ -100,8 +100,8 @@
     "lib/features/graph/store/modules/graph_sync_engine.dart": {
       "class": "GraphSyncEngine",
       "srp_responsibility": "Maintains communications and state streams between local store modules and the Rust FFI.",
-      "sha256": "54a92fd6fdf0bff053788a792539b9007cce3d97",
-      "status": "COMPLIANT",
+      "sha256": "cb4692d8662f2e1ff2e2e73b97d1b8a4746f517f",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/engine/interaction_facade.dart": {
@@ -114,8 +114,8 @@
     "lib/features/graph/engine/interaction_engine.dart": {
       "class": "InteractionController",
       "srp_responsibility": "Drives the Finite State Machine (FSM) translating viewport gestures to interaction states.",
-      "sha256": "8851dcb4b01342762e940d3a9f8b90f1f15c6153",
-      "status": "COMPLIANT",
+      "sha256": "bfdfa71a7594ac8d189ec57252cb59f37ca92fdd",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/presentation/node_render_state.dart": {
@@ -128,22 +128,22 @@
     "lib/features/graph/presentation/viewport_state.dart": {
       "class": "ViewportController",
       "srp_responsibility": "Controls viewport translation, boundaries, zoom constraints, and elastic viewport framing.",
-      "sha256": "1243f0a364e1b9f6d2b7f9630ba3569deef65bda",
-      "status": "COMPLIANT",
+      "sha256": "bc9ceb209ac326b1a6a3caadbc1eff641235e9b1",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/presentation/theme_manager.dart": {
       "class": "ThemeController",
       "srp_responsibility": "Coordinates active application UI theme state and bridges core styling preferences.",
-      "sha256": "f1697595a2e2309dfab31e7f677586f71a139857",
-      "status": "COMPLIANT",
+      "sha256": "053b03062d0e7ed3ef4052dd0921bcf85a47d000",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/presentation/style_manager.dart": {
       "class": "StyleManager",
       "srp_responsibility": "Maps theme preferences and significance levels to concrete UI node/relation styling metrics.",
-      "sha256": "ff4732c411e4830fcf0e6bbc3f7e600e73f1c196",
-      "status": "COMPLIANT",
+      "sha256": "b6ce588872ced38c3b2ea22ed59366338b1eb8f9",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/presentation/workspace_tabs_controller.dart": {
@@ -170,21 +170,21 @@
     "lib/features/graph/presentation/strategies/node_style_strategy.dart": {
       "class": "NodeStyleStrategy",
       "srp_responsibility": "Resolves base node styles and defaults from global application configuration parameters.",
-      "sha256": "80992a28ff0e5d3596a88d1fc9932e5797f366b6",
-      "status": "COMPLIANT",
+      "sha256": "3bc39cb2b10d9598fe57be126855ac4fccc7f594",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/ui/canvas/graph_canvas.dart": {
       "class": "GraphCanvas",
       "srp_responsibility": "Constructs the layout viewport stack, listens to active controllers, and initializes the FSM environment.",
-      "sha256": "7f767170d27df101a25101e8c433ca44ac6dd0b2",
-      "status": "COMPLIANT",
+      "sha256": "7432b5e86438011d7cfca074780baeb40e20d96c",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/engine/base_interaction_state.dart": {
       "class": "",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "427b475e8c6f8e0faec12d5dd9e59c2702af9689",
+      "sha256": "938716399a244581b79a21ccbafa2a3860d2e744",
       "status": "PENDING_AUDIT",
       "violations": []
     },
@@ -198,7 +198,7 @@
     "lib/features/graph/engine/states/idle_state.dart": {
       "class": "CanvasIdle",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "90ffead4b47ba06cdfdf7ddc8688efc58ab8c400",
+      "sha256": "bf72fff5fbae400946b2e0f2786b614581b7651e",
       "status": "PENDING_AUDIT",
       "violations": []
     },
@@ -233,8 +233,8 @@
     "lib/features/graph/engine/states/relation_tip_drag_state.dart": {
       "class": "RelationTipDragging",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "5301fdae9b143278ef932678bded42588578e76e",
-      "status": "COMPLIANT",
+      "sha256": "f5aee69798ffb0107144e1c0f023173b6d27838b",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/engine/states/toolbar_drag_state.dart": {
@@ -275,22 +275,22 @@
     "lib/features/graph/presentation/graph_metrics.dart": {
       "class": "_Log",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "7af9cc729d084da7456f0cb343b932857346625c",
-      "status": "COMPLIANT",
+      "sha256": "0148af0a3deb20a45140f74eeff122e747d00e83",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/presentation/strategies/relation_layout_strategy.dart": {
       "class": "StraightRelationLayoutStrategy",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "506adbc9198bcfdacbc69045a98cbc47241d6af9",
-      "status": "COMPLIANT",
+      "sha256": "de9a9f05df11d0f8a88d49e015e4007edf8df779",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/presentation/strategies/relation_style_strategy.dart": {
       "class": "DefaultRelationStyleStrategy",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "97acde6c2a6678b2220e530de453915b2a84934f",
-      "status": "COMPLIANT",
+      "sha256": "a4fb87f14bf38ca7e58fd458dc269208d0194467",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/presentation/strategies/routing/relation_layout_context.dart": {
@@ -317,8 +317,8 @@
     "lib/features/graph/store/command_processor.dart": {
       "class": "CommandProcessor",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "1456049c271e310d5347d24911bb524e4917d36c",
-      "status": "COMPLIANT",
+      "sha256": "89c3a371c6e582ad73e1ffbc28c26d258f7f7c75",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/store/graph_data_query.dart": {
@@ -345,15 +345,15 @@
     "lib/features/graph/ui/canvas/canvas_text_editor.dart": {
       "class": "CanvasTextEditor",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "691eaa9422d5bf58ec74a20af1902ea762997c64",
-      "status": "COMPLIANT",
+      "sha256": "733a158589b00413fb66f69602928638f63709de",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/ui/canvas/layers/grid_layer.dart": {
       "class": "GridLayer",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "6416228a5ba2f861a216c74dee8613c4fbd3dc30",
-      "status": "COMPLIANT",
+      "sha256": "01369c2b7a9c65c7dec447cc072e51d7fbd378d8",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/ui/canvas/layers/node_layer.dart": {
@@ -366,15 +366,15 @@
     "lib/features/graph/ui/canvas/layers/overlay_layer.dart": {
       "class": "OverlayLayer",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "5c44f5899a899f67fb9369078e5b291fc5afd690",
+      "sha256": "98152954fb816bb8b972b6222722e33f22427463",
       "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/ui/canvas/layers/relation_layer.dart": {
       "class": "RelationLayer",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "77a4bbac5a05722b44b8e1de0b7cd8187e04ee0f",
-      "status": "COMPLIANT",
+      "sha256": "22317dad3710e4f9f1a41263b9d9d4cdbc22b5f8",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/ui/canvas/metadata_preview_overlay.dart": {
@@ -394,15 +394,15 @@
     "lib/features/graph/ui/canvas/relation_painter.dart": {
       "class": "RelationPainter",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "41873045241530d394892dd266e3b379aff6d3de",
-      "status": "COMPLIANT",
+      "sha256": "ababd43d545988247b340cee5527fd9a963ea03b",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/ui/graph_screen.dart": {
       "class": "GraphScreen",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "ce092e65f48652ae7f8ad86db34ba107384d1072",
-      "status": "COMPLIANT",
+      "sha256": "1cee3eb8ef4c6b371fb40c4ad1ef7c137467a60a",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/ui/widgets/init_error_widget.dart": {
@@ -415,15 +415,15 @@
     "lib/features/graph/ui/widgets/overlays/canvas_status_bar/canvas_status_bar.dart": {
       "class": "CanvasStatusBar",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "a1ddb17218c88d823215c1786defcc432e267e5b",
-      "status": "COMPLIANT",
+      "sha256": "b319e89d5b85084e7c3e7be37f6cd6c07dff30f6",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/ui/widgets/overlays/canvas_status_bar/graph_manual_widget.dart": {
       "class": "GraphManualWidget",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "863554e130602247b3287260ed1a4ca16036aed5",
-      "status": "COMPLIANT",
+      "sha256": "a5dcc1368835eda4042039e0ff1a3d0cb9639b3f",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/ui/widgets/overlays/canvas_status_bar/mini_map_painter.dart": {
@@ -450,57 +450,57 @@
     "lib/features/graph/ui/widgets/overlays/canvas_status_bar/zoom_slider_widget.dart": {
       "class": "ZoomSliderWidget",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "74c7cdeae9ad1e9352c30d6f5ec7192a36bd5ca8",
-      "status": "COMPLIANT",
+      "sha256": "648b78ec7ee153d36640f787575be6c35906d1d6",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/ui/widgets/overlays/canvas_tab_bar.dart": {
       "class": "CanvasTabBar",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "da4a038e6a88e62f4406f0359d327fa1369be6e2",
-      "status": "COMPLIANT",
+      "sha256": "34252bfab9548f94c02a47f63bb18140c0116897",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/ui/widgets/overlays/canvas_tool_ribbon.dart": {
       "class": "CanvasToolRibbon",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "027891fdce962295b8e5a971b6f365ae9cc488fd",
-      "status": "COMPLIANT",
+      "sha256": "e6cedfa6ec4c0e862724652e23093456fc37e8ee",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/ui/widgets/overlays/collapsible_sidebar.dart": {
       "class": "CollapsibleSidebar",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "43df08310bdf13132e2cc279fad066ac7471d9b3",
-      "status": "COMPLIANT",
+      "sha256": "5c22df00197c393ac7ba05596e943b4e4e194e8f",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/ui/widgets/overlays/glass_panel.dart": {
       "class": "GlassPanel",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "7a5ac3b64cb5fe643a8057d14afcb142b2bdbd73",
-      "status": "COMPLIANT",
+      "sha256": "8ee2238ebebce6791dc05d4b453fe63fc26e5ebd",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/ui/widgets/overlays/left_repository_drawer.dart": {
       "class": "LeftRepositoryDrawer",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "158a923f040a6187c4c095cfc71d8e370bd1184d",
-      "status": "COMPLIANT",
+      "sha256": "988f9ca9a7349feb362086bd62521448a019e5f4",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/graph/ui/widgets/overlays/right_property_panel.dart": {
       "class": "RightPropertyPanel",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "1c78f9f8400b9866ac032e376e006da59b1f40f6",
-      "status": "COMPLIANT",
+      "sha256": "ec608a70fdf108d402ab92a47b36b9fcc0da3b1b",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/features/workspace/ui/project_selector_screen.dart": {
       "class": "ProjectSelectorScreen",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "a11b9e1561db98a932701fb4fc925da569654aec",
-      "status": "COMPLIANT",
+      "sha256": "120868701d49e19cee09b159de6d8ff482e9f69b",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/infrastructure/telemetry/log_manager.dart": {
@@ -520,15 +520,15 @@
     "lib/main.dart": {
       "class": "MyApp",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "d78742466598c82470b62a9064282da9894916de",
-      "status": "COMPLIANT",
+      "sha256": "9b49594d3d20eb90e410f77f8fe79767b400d2df",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/presentation/theme/app_theme.dart": {
       "class": "AppTheme",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "f8e8488cdec00fb27e499bd90117ec975bb1f8ba",
-      "status": "COMPLIANT",
+      "sha256": "984f97be3ff2f75ae85569aba3142cd73a94c515",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/presentation/theme/graph_shell.dart": {
@@ -541,8 +541,8 @@
     "lib/presentation/theme/graph_theme.dart": {
       "class": "GraphTheme",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "e6033e7d57f458d5ca35a863c27060c5aa865e53",
-      "status": "COMPLIANT",
+      "sha256": "5063ce1890c7f90e55d1b83235304a6b6c9324fb",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/presentation/theme/theme_repository.dart": {
@@ -555,22 +555,22 @@
     "lib/presentation/widgets/command_registry.dart": {
       "class": "Command",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "639399a9145e0f32436e0d1339d21e351e4bf4bb",
-      "status": "COMPLIANT",
+      "sha256": "a5ed2ee5817d6ab5e348ed76e8a0cdf8026d99d2",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/presentation/widgets/left_repository_panel.dart": {
       "class": "LeftRepositoryPanel",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "c222a3e8a6014431a6d0ade1d6f54a109dd3208b",
-      "status": "COMPLIANT",
+      "sha256": "b06a50991a9bef1bdfcfb81c49828a281780b894",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/presentation/widgets/search_command_palette.dart": {
       "class": "SearchCommandPalette",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "a6f21b1f2042a973c3c16317d6535acb8dfb82ea",
-      "status": "COMPLIANT",
+      "sha256": "3c3e0f735019b23efc626f88158fff3f404092ae",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/presentation/widgets/search_registry.dart": {
@@ -597,8 +597,8 @@
     "lib/presentation/widgets/tag_manager/tags_list_view.dart": {
       "class": "TagsListView",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "928f235716663f8e2872338c3021319f158da793",
-      "status": "COMPLIANT",
+      "sha256": "b7e51ddb859b44213b37e6ad4400194241ef4ddb",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/presentation/widgets/tag_manager/tag_color_picker_panel.dart": {
@@ -632,15 +632,15 @@
     "lib/presentation/widgets/template_manager/templates_list_view.dart": {
       "class": "TemplatesListView",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "a06ca18c2712b31093c568489ee5ce6cf51d8a33",
-      "status": "COMPLIANT",
+      "sha256": "8820c015e94f7d4811b1889b05efb15a7133bc25",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/presentation/widgets/window_title_bar.dart": {
       "class": "SimpleWindowTitleBar",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "661eefdd1ca14e3f8fedf1f4b13dd016723f8039",
-      "status": "COMPLIANT",
+      "sha256": "97b383b571077ac5337a8844df32384ec1cf5225",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/shared/widgets/canvas_interactive_viewer.dart": {
@@ -653,8 +653,8 @@
     "lib/src/rust/bridge/api.dart": {
       "class": "",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "28182260f62190cb05109769f0d5357ec56bc793",
-      "status": "COMPLIANT",
+      "sha256": "8795935b7b8326c46efbcb18c4b5b7ccf4434d52",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/src/rust/bridge/stream.dart": {
@@ -702,15 +702,15 @@
     "lib/src/rust/domain/patches.dart": {
       "class": "SymmetricEntityPatch",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "dd692cf0901c84b3d8defadfd3af6ae58d10c47d",
-      "status": "COMPLIANT",
+      "sha256": "e48e5cf5b2030b2da422adac9c8ecd57ca4f8556",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/src/rust/domain/patches.freezed.dart": {
       "class": "$EntityPatchCopyWith<$Res>",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "0a64a45582dd3dc94366f7887ce015018a6cecbc",
-      "status": "COMPLIANT",
+      "sha256": "305ccf807afe4f7604d297329a456926528edee9",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/src/rust/domain/relations.dart": {
@@ -723,15 +723,15 @@
     "lib/src/rust/domain/styles.dart": {
       "class": "",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "7aa3e617dbfbf08fb2e434515942888ed6fff50e",
-      "status": "COMPLIANT",
+      "sha256": "edee986417705b5b208eb8fe4b975388bc6efe13",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/src/rust/domain/styles.freezed.dart": {
       "class": "_$NodeLayoutCopyWithImpl<$Res>",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "1690a76dbe3f8ac831847051f094f50147b5c965",
-      "status": "COMPLIANT",
+      "sha256": "702ebf98ea30e72aaf220c200804efb47db04cdb",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/src/rust/domain/tags.dart": {
@@ -758,15 +758,15 @@
     "lib/src/rust/domain/theme.dart": {
       "class": "FontWeight",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "c15a58f8936a500947fa307b243469395e6f3c9e",
-      "status": "COMPLIANT",
+      "sha256": "d5dfa3c3c5ae2687c0bda41bcbe8febfee85752b",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/src/rust/frb_generated.dart": {
       "class": "RustLib",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "5c896ade65f9ff7981345d69a212e308a31d7789",
-      "status": "COMPLIANT",
+      "sha256": "b3ed0e8b52f8fc29349882566ec261dd21700b96",
+      "status": "PENDING_AUDIT",
       "violations": []
     },
     "lib/src/rust/frb_generated.io.dart": {
@@ -808,6 +808,55 @@
       "class": "",
       "srp_responsibility": "",
       "sha256": "61bcb2a485e067b3d253902ef2f74a64f84e01ec",
+      "status": "PENDING_AUDIT",
+      "violations": []
+    },
+    "lib/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart": {
+      "class": "",
+      "srp_responsibility": "",
+      "sha256": "50c36ef1ab28a90a0e8bb1952e53967819dd4305",
+      "status": "PENDING_AUDIT",
+      "violations": []
+    },
+    "lib/features/workspace/ui/liquid_glass_test_screen.dart": {
+      "class": "LiquidGlassDemo",
+      "srp_responsibility": "",
+      "sha256": "5e178c5b4e079ae24d9e594eb9ee1ea9e0824115",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/shared/ui/liquid_glass/index.dart": {
+      "class": "",
+      "srp_responsibility": "",
+      "sha256": "cba8b54a8dd7e68eed76ad6b96b2a1e4360474af",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/shared/ui/liquid_glass/liquid_glass_menu.dart": {
+      "class": "ShapeData",
+      "srp_responsibility": "",
+      "sha256": "8e7ea8f0cc788bc0da39dedc33bd84c1af51f6d3",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/shared/ui/liquid_glass/liquid_glass_settings.dart": {
+      "class": "OCLiquidGlassSettings",
+      "srp_responsibility": "",
+      "sha256": "854017caaae7bdcb943dddbce97ffe3a8eeebbc6",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/shared/ui/liquid_glass/liquid_glass_shader_provider.dart": {
+      "class": "LiquidGlassShaderProvider",
+      "srp_responsibility": "",
+      "sha256": "98657c3a0b4b82d2a92fbb069ea9d0d186fe6e05",
+      "status": "COMPLIANT",
+      "violations": []
+    },
+    "lib/shared/utils/color_utils.dart": {
+      "class": "",
+      "srp_responsibility": "",
+      "sha256": "189775a2ee3ab271a287a1a8dfc7430122ef3725",
       "status": "PENDING_AUDIT",
       "violations": []
     }

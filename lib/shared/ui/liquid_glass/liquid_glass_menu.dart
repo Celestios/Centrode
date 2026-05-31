@@ -19,6 +19,15 @@ class ShapeData {
   ShapeData(this.center, this.size, this.borderRadius, this.color);
 }
 
+class BridgeData {
+  final Offset start;
+  final Offset end;
+  final double radius;
+  final Color color;
+
+  BridgeData(this.start, this.end, this.radius, this.color);
+}
+
 /// Renders a backdrop separately from glass controls so Skia can sample the
 /// background without recursively capturing the glass itself.
 class OCLiquidGlassStage extends StatefulWidget {
@@ -94,6 +103,7 @@ class _OCLiquidGlassStageState extends State<OCLiquidGlassStage> {
   }
 
   void _scheduleCapture({int warmupCaptures = 0}) {
+    if (ui.ImageFilter.isShaderFilterSupported) return;
     if (warmupCaptures > _warmupCapturesRemaining) {
       _warmupCapturesRemaining = warmupCaptures;
     }
@@ -107,6 +117,7 @@ class _OCLiquidGlassStageState extends State<OCLiquidGlassStage> {
   }
 
   Future<void> _captureBackdrop() async {
+    if (ui.ImageFilter.isShaderFilterSupported) return;
     if (!mounted) return;
 
     final boundaryContext = _backgroundKey.currentContext;
@@ -123,7 +134,7 @@ class _OCLiquidGlassStageState extends State<OCLiquidGlassStage> {
     final logicalSize = renderObject.size;
     if (logicalSize.isEmpty) return;
 
-    final pixelRatio = MediaQuery.maybeOf(context)?.devicePixelRatio ?? 1.0;
+    final pixelRatio = math.min(1.5, MediaQuery.maybeOf(context)?.devicePixelRatio ?? 1.0);
     final serial = ++_captureSerial;
 
     try {
@@ -157,10 +168,7 @@ class _OCLiquidGlassStageState extends State<OCLiquidGlassStage> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        RepaintBoundary(
-          key: _backgroundKey,
-          child: widget.background,
-        ),
+        RepaintBoundary(key: _backgroundKey, child: widget.background),
         OCLiquidGlassGroup(
           settings: widget.settings,
           repaint: widget.repaint,
@@ -205,7 +213,7 @@ class _OCLiquidGlassGroupState extends State<OCLiquidGlassGroup> {
     if (LiquidGlassShaderProvider.shaderProgram != null) {
       _program = LiquidGlassShaderProvider.shaderProgram;
     } else {
-      ui.FragmentProgram.fromAsset('shaders/liquid_glass.frag').then((p) {
+      ui.FragmentProgram.fromAsset(LiquidGlassShaderProvider.shaderAssetPath).then((p) {
         if (mounted) {
           setState(() => _program = p);
         }
@@ -305,8 +313,9 @@ class _LiquidGlassGroupRenderObject extends SingleChildRenderObjectWidget {
       }
     }
 
-    final mergedRouteAnimations =
-        listenables.isNotEmpty ? Listenable.merge(listenables) : null;
+    final mergedRouteAnimations = listenables.isNotEmpty
+        ? Listenable.merge(listenables)
+        : null;
 
     rb.setRouteAnimations(mergedRouteAnimations);
   }
@@ -319,6 +328,20 @@ class _LiquidGlassGroupRenderObject extends SingleChildRenderObjectWidget {
 
 class _RenderLiquidGlassGroup extends RenderProxyBox {
   static const int maxRects = 4;
+  static const int maxBridges = 6;
+
+  // Code Hygiene Constants (Tuning parameters & scaling factors)
+  static const double _kFallbackTintAlpha = 0.12;
+  static const double _kSpecularStrengthDivisor = 25.0;
+  static const double _kMaxSpecularAlpha = 0.9;
+  static const double _kMinSpecularAngularWidth = 0.18;
+  static const double _kMaxSpecularAngularWidth = 1.2;
+  static const double _kSpecularStrokeWidthScale = 0.08;
+  static const double _kRimHighlightStrokeWidthScale = 0.06;
+
+  // Shared mathematical coefficients for bridges
+  static const double _kBridgeReachFactor = 2.0;
+  static const double _kBridgeWidthFactor = 1.0;
 
   Listenable? _routeAnimations;
   ScrollPosition? _scrollPosition;
@@ -341,10 +364,7 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
        _scrollPosition = position,
        _externalRepaint = externalRepaint,
        _backdropImage = backdropImage,
-       _backdropLogicalSize = backdropLogicalSize {
-    _scrollPosition?.addListener(_onScroll);
-    _externalRepaint?.addListener(markNeedsPaint);
-  }
+       _backdropLogicalSize = backdropLogicalSize;
 
   set screenSize(Size v) {
     if (_screenSize == v) return;
@@ -354,16 +374,25 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
 
   set externalRepaint(Listenable? v) {
     if (identical(v, _externalRepaint)) return;
-    _externalRepaint?.removeListener(markNeedsPaint);
+    if (attached) {
+      _externalRepaint?.removeListener(markNeedsPaint);
+    }
     _externalRepaint = v;
-    _externalRepaint?.addListener(markNeedsPaint);
+    if (attached) {
+      _externalRepaint?.addListener(markNeedsPaint);
+    }
+    markNeedsPaint();
   }
 
   set scrollPosition(ScrollPosition? value) {
     if (value == _scrollPosition) return;
-    _scrollPosition?.removeListener(_onScroll);
+    if (attached) {
+      _scrollPosition?.removeListener(_onScroll);
+    }
     _scrollPosition = value;
-    _scrollPosition?.addListener(_onScroll);
+    if (attached) {
+      _scrollPosition?.addListener(_onScroll);
+    }
     markNeedsPaint();
   }
 
@@ -400,14 +429,18 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
   final Set<RenderLiquidGlass> registeredShapes = {};
 
   void setRouteAnimations(Listenable? routeAnimations) {
-    _routeAnimations?.removeListener(markNeedsPaint);
+    if (identical(routeAnimations, _routeAnimations)) return;
+    if (attached) {
+      _routeAnimations?.removeListener(markNeedsPaint);
+    }
     _routeAnimations = routeAnimations;
-    _routeAnimations?.addListener(markNeedsPaint);
+    if (attached) {
+      _routeAnimations?.addListener(markNeedsPaint);
+    }
   }
 
   void detachRepaintSources() {
     _routeAnimations?.removeListener(markNeedsPaint);
-    _routeAnimations = null;
     _scrollPosition?.removeListener(_onScroll);
     _externalRepaint?.removeListener(markNeedsPaint);
   }
@@ -415,6 +448,9 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
   @override
   void attach(PipelineOwner owner) {
     super.attach(owner);
+    _routeAnimations?.addListener(markNeedsPaint);
+    _scrollPosition?.addListener(_onScroll);
+    _externalRepaint?.addListener(markNeedsPaint);
     markNeedsPaint();
   }
 
@@ -438,25 +474,30 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
         (logicalSize.height - size.height).abs() < 0.5;
   }
 
+  ui.Path? _cachedLocalUnifiedPath;
+  List<Rect>? _cachedLocalRects;
+  double? _cachedBlendPx;
+
+  bool _isLocalPathCacheValid(List<Rect> currentRects) {
+    final cached = _cachedLocalRects;
+    if (cached == null || _cachedLocalUnifiedPath == null || _cachedBlendPx != _settings.blendPx) {
+      return false;
+    }
+    if (cached.length != currentRects.length) {
+      return false;
+    }
+    for (var i = 0; i < cached.length; i++) {
+      if (cached[i] != currentRects[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   @override
   void paint(PaintingContext context, Offset offset) {
-    final globalShapes = <ShapeData>[];
-    final localShapes = <ShapeData>[];
-
-    final boundaryTransform = getTransformTo(null);
-    final boundary = MatrixUtils.transformRect(
-      boundaryTransform,
-      Offset.zero & size,
-    );
-
-    for (final shape in registeredShapes) {
-      if (!shape.attached || shape.size.isEmpty) continue;
-
-      globalShapes.add(_shapeDataForRect(shape, _globalRectForShape(shape)));
-      localShapes.add(_shapeDataForRect(shape, _localRectForShape(shape)));
-    }
-
-    if (localShapes.isEmpty) {
+    final activeShapes = registeredShapes.where((s) => s.attached && !s.size.isEmpty).toList();
+    if (activeShapes.isEmpty) {
       super.paint(context, offset);
       return;
     }
@@ -464,34 +505,70 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     final hasShaderSupport = ui.ImageFilter.isShaderFilterSupported;
 
     if (!hasShaderSupport) {
-      final localUnifiedPath = _buildLocalUnifiedPath();
-      if (_hasUsableBackdrop) {
-        _paintCapturedSkiaShader(
-          context,
-          offset,
-          localShapes,
-          localUnifiedPath,
-        );
+      final localRects = activeShapes.map((s) => _localRectForShape(s)).toList();
+      final localShapes = <ShapeData>[];
+      for (var i = 0; i < activeShapes.length; i++) {
+        localShapes.add(_shapeDataForRect(activeShapes[i], localRects[i]));
+      }
+
+      final ui.Path localUnifiedPath;
+      if (_isLocalPathCacheValid(localRects)) {
+        localUnifiedPath = _cachedLocalUnifiedPath!;
       } else {
-        _paintDecorativeSkiaFallback(context, offset, localUnifiedPath);
+        localUnifiedPath = _buildLocalUnifiedPath(localShapes, localRects);
+        _cachedLocalUnifiedPath = localUnifiedPath;
+        _cachedLocalRects = localRects;
+        _cachedBlendPx = _settings.blendPx;
+      }
+
+      if (_hasUsableBackdrop) {
+        _paintCapturedSkiaShader(context, offset, localShapes);
+      } else {
+        _paintDecorativeSkiaFallback(context, offset, localUnifiedPath, localShapes, localRects);
       }
 
       super.paint(context, offset);
       return;
     }
 
-    _configureShader(
-      _shader,
-      shaderSize: _screenSize,
-      bounds: boundary,
-      shapes: globalShapes,
-      pixelScale: _devicePixelRatio,
-    );
+    final useLocal = _settings.useLocalCoordinates;
+
+    if (useLocal) {
+      final localRects = activeShapes.map((s) => _localRectForShape(s)).toList();
+      final localShapes = <ShapeData>[];
+      for (var i = 0; i < activeShapes.length; i++) {
+        localShapes.add(_shapeDataForRect(activeShapes[i], localRects[i]));
+      }
+
+      _configureShader(
+        _shader,
+        shaderSize: size,
+        bounds: Offset.zero & size,
+        shapes: localShapes,
+        bridges: _computeBridges(localShapes),
+        pixelScale: 1.0,
+      );
+    } else {
+      final boundaryTransform = getTransformTo(null);
+      final boundary = MatrixUtils.transformRect(
+        boundaryTransform,
+        Offset.zero & size,
+      );
+
+      final globalShapes = activeShapes.map((s) => _shapeDataForRect(s, _globalRectForShape(s))).toList();
+
+      _configureShader(
+        _shader,
+        shaderSize: _screenSize,
+        bounds: boundary,
+        shapes: globalShapes,
+        bridges: _computeBridges(globalShapes),
+        pixelScale: _devicePixelRatio,
+      );
+    }
 
     context.pushLayer(
-      BackdropFilterLayer(
-        filter: ui.ImageFilter.shader(_shader),
-      ),
+      BackdropFilterLayer(filter: ui.ImageFilter.shader(_shader)),
       super.paint,
       offset,
     );
@@ -513,8 +590,9 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
 
   ShapeData _shapeDataForRect(RenderLiquidGlass shape, Rect rect) {
     final maxRadius = math.min(rect.width, rect.height) / 2.0;
-    final clampedRadius =
-        shape.borderRadius > maxRadius ? maxRadius : shape.borderRadius;
+    final clampedRadius = shape.borderRadius > maxRadius
+        ? maxRadius
+        : shape.borderRadius;
     return ShapeData(
       rect.center,
       rect.size,
@@ -523,11 +601,13 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     );
   }
 
+  // Pre-configured shader math uniform mappings are set directly.
   void _configureShader(
     ui.FragmentShader shader, {
     required Size shaderSize,
     required Rect bounds,
     required List<ShapeData> shapes,
+    required List<BridgeData> bridges,
     required double pixelScale,
   }) {
     shader.setFloat(0, shaderSize.width * pixelScale);
@@ -535,6 +615,9 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
 
     var idx = 2;
     final rectCount = shapes.length < maxRects ? shapes.length : maxRects;
+    final bridgeCount = bridges.length < maxBridges
+        ? bridges.length
+        : maxBridges;
 
     shader
       ..setFloat(idx++, bounds.left * pixelScale)
@@ -559,28 +642,150 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
       ..setFloat(idx++, 1.0 * pixelScale)
       ..setFloat(idx++, rectCount.toDouble());
 
-    for (var i = 0; i < rectCount; i++) {
-      final shape = shapes[i];
-      shader
-        ..setFloat(idx++, shape.center.dx * pixelScale)
-        ..setFloat(idx++, shape.center.dy * pixelScale)
-        ..setFloat(idx++, shape.size.width * pixelScale)
-        ..setFloat(idx++, shape.size.height * pixelScale)
-        ..setFloat(idx++, shape.borderRadius * pixelScale)
-        ..setFloat(idx++, shape.color.r)
-        ..setFloat(idx++, shape.color.g)
-        ..setFloat(idx++, shape.color.b)
-        ..setFloat(idx++, shape.color.a);
+    final safeRy = math.max(shaderSize.height, 0.001);
+
+    for (var i = 0; i < maxRects; i++) {
+      final shape = i < rectCount ? shapes[i] : null;
+      if (shape != null) {
+        final posNdx = (shape.center.dx - shaderSize.width * 0.5) / safeRy;
+        final posNdy = (shape.center.dy - shaderSize.height * 0.5) / safeRy;
+        final hszW = shape.size.width * 0.5 / safeRy;
+        final hszH = shape.size.height * 0.5 / safeRy;
+        final corner = shape.borderRadius / safeRy;
+        shader
+          ..setFloat(idx++, posNdx)
+          ..setFloat(idx++, posNdy)
+          ..setFloat(idx++, hszW)
+          ..setFloat(idx++, hszH)
+          ..setFloat(idx++, corner)
+          ..setFloat(idx++, shape.color.r)
+          ..setFloat(idx++, shape.color.g)
+          ..setFloat(idx++, shape.color.b)
+          ..setFloat(idx++, shape.color.a);
+      } else {
+        shader
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0);
+      }
+    }
+
+    shader.setFloat(idx++, bridgeCount.toDouble());
+    for (var i = 0; i < maxBridges; i++) {
+      final bridge = i < bridgeCount ? bridges[i] : null;
+      if (bridge != null) {
+        final aX = (bridge.start.dx - shaderSize.width * 0.5) / safeRy;
+        final aY = (bridge.start.dy - shaderSize.height * 0.5) / safeRy;
+        final bX = (bridge.end.dx - shaderSize.width * 0.5) / safeRy;
+        final bY = (bridge.end.dy - shaderSize.height * 0.5) / safeRy;
+        final radius = bridge.radius / safeRy;
+        shader
+          ..setFloat(idx++, aX)
+          ..setFloat(idx++, aY)
+          ..setFloat(idx++, bX)
+          ..setFloat(idx++, bY)
+          ..setFloat(idx++, radius)
+          ..setFloat(idx++, bridge.color.r)
+          ..setFloat(idx++, bridge.color.g)
+          ..setFloat(idx++, bridge.color.b)
+          ..setFloat(idx++, bridge.color.a);
+      } else {
+        shader
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0)
+          ..setFloat(idx++, 0.0);
+      }
     }
   }
 
-  ui.Path _buildLocalUnifiedPath() {
+  List<BridgeData> _computeBridges(List<ShapeData> shapes) {
+    final bridgeData = <BridgeData>[];
+    final count = shapes.length < maxRects ? shapes.length : maxRects;
+    final reach = _settings.blendPx * _kBridgeReachFactor;
+    if (count < 2 || reach <= 0.0) {
+      return bridgeData;
+    }
+
+    for (var i = 0; i < count; i++) {
+      final shapeA = shapes[i];
+      for (var j = i + 1; j < count; j++) {
+        final shapeB = shapes[j];
+        final delta = shapeB.center - shapeA.center;
+        final maxDx = (shapeA.size.width + shapeB.size.width) / 2.0 + reach;
+        if (delta.dx.abs() >= maxDx) continue;
+        final maxDy = (shapeA.size.height + shapeB.size.height) / 2.0 + reach;
+        if (delta.dy.abs() >= maxDy) continue;
+
+        final distance = delta.distance;
+        if (distance <= 0.001) continue;
+
+        final direction = delta / distance;
+        final radiusA = _supportDistance(shapeA, direction);
+        final radiusB = _supportDistance(shapeB, -direction);
+        final gap = distance - radiusA - radiusB;
+        if (gap <= 0.0 || gap >= reach) continue;
+
+        final t = 1.0 - gap / reach;
+        final bridgeRadius = (_settings.blendPx * _kBridgeWidthFactor * t);
+
+        bridgeData.add(
+          BridgeData(
+            shapeA.center + direction * radiusA,
+            shapeB.center - direction * radiusB,
+            bridgeRadius,
+            _mixBridgeColor(shapeA.color, shapeB.color),
+          ),
+        );
+
+        if (bridgeData.length == maxBridges) {
+          return bridgeData;
+        }
+      }
+    }
+
+    return bridgeData;
+  }
+
+  double _supportDistance(ShapeData shape, Offset direction) {
+    final halfWidth = shape.size.width / 2.0;
+    final halfHeight = shape.size.height / 2.0;
+    final xDistance = direction.dx.abs() < 0.001
+        ? double.infinity
+        : halfWidth / direction.dx.abs();
+    final yDistance = direction.dy.abs() < 0.001
+        ? double.infinity
+        : halfHeight / direction.dy.abs();
+    return math.min(xDistance, yDistance);
+  }
+
+  Color _mixBridgeColor(Color a, Color b) {
+    final alpha = math.max(a.a, b.a);
+    return Color.from(
+      alpha: alpha,
+      red: (a.r + b.r) * 0.5,
+      green: (a.g + b.g) * 0.5,
+      blue: (a.b + b.b) * 0.5,
+    );
+  }
+
+  ui.Path _buildLocalUnifiedPath(List<ShapeData> localShapes, List<Rect> localRects) {
     var localUnifiedPath = ui.Path();
 
-    for (final shape in registeredShapes) {
-      if (!shape.attached || shape.size.isEmpty) continue;
-      final rect = _localRectForShape(shape);
-      final shapeData = _shapeDataForRect(shape, rect);
+    for (var i = 0; i < localShapes.length; i++) {
+      final shapeData = localShapes[i];
+      final rect = localRects[i];
       final rrect = RRect.fromRectAndRadius(
         rect,
         Radius.circular(shapeData.borderRadius),
@@ -593,39 +798,37 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
       );
     }
 
-    final shapeList = registeredShapes.toList();
-    for (var i = 0; i < shapeList.length; i++) {
-      final shapeA = shapeList[i];
-      if (!shapeA.attached || shapeA.size.isEmpty) continue;
-      final rectA = _localRectForShape(shapeA);
+    final count = localShapes.length;
+    for (var i = 0; i < count; i++) {
+      final shapeA = localShapes[i];
+      final rectA = localRects[i];
       final cA = rectA.center;
-      final rA = (rectA.width + rectA.height) / 4.0;
 
-      for (var j = i + 1; j < shapeList.length; j++) {
-        final shapeB = shapeList[j];
-        if (!shapeB.attached || shapeB.size.isEmpty) continue;
-        final rectB = _localRectForShape(shapeB);
+      for (var j = i + 1; j < count; j++) {
+        final shapeB = localShapes[j];
+        final rectB = localRects[j];
         final cB = rectB.center;
-        final rB = (rectB.width + rectB.height) / 4.0;
 
         final dir = cB - cA;
         final distance = dir.distance;
         if (distance == 0.0) continue;
 
-        final edgeDistance = distance - (rA + rB);
-        final maxBridgeDist = _settings.blendPx * 1.5;
+        final direction = dir / distance;
+        final radiusA = _supportDistance(shapeA, direction);
+        final radiusB = _supportDistance(shapeB, -direction);
+        final edgeDistance = distance - (radiusA + radiusB);
+        final maxBridgeDist = _settings.blendPx * _kBridgeReachFactor;
         if (edgeDistance <= 0.0 || edgeDistance >= maxBridgeDist) {
           continue;
         }
 
-        final direction = dir / distance;
         final perpendicular = Offset(-direction.dy, direction.dx);
         final width =
-            _settings.blendPx * 0.8 * (1.0 - edgeDistance / maxBridgeDist);
+            _settings.blendPx * _kBridgeWidthFactor * (1.0 - edgeDistance / maxBridgeDist);
         if (width <= 0.0) continue;
 
-        final pA = cA + direction * rA;
-        final pB = cB - direction * rB;
+        final pA = cA + direction * radiusA;
+        final pB = cB - direction * radiusB;
         final a1 = pA + perpendicular * width;
         final a2 = pA - perpendicular * width;
         final b1 = pB + perpendicular * width;
@@ -655,7 +858,6 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     PaintingContext context,
     Offset offset,
     List<ShapeData> localShapes,
-    ui.Path localUnifiedPath,
   ) {
     final image = _backdropImage;
     if (image == null) return;
@@ -665,17 +867,14 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
       shaderSize: size,
       bounds: Offset.zero & size,
       shapes: localShapes,
+      bridges: _computeBridges(localShapes),
       pixelScale: 1.0,
     );
     _shader.setImageSampler(0, image);
 
     context.canvas.save();
     context.canvas.translate(offset.dx, offset.dy);
-    context.canvas.clipPath(localUnifiedPath);
-    context.canvas.drawRect(
-      Offset.zero & size,
-      Paint()..shader = _shader,
-    );
+    context.canvas.drawRect(Offset.zero & size, Paint()..shader = _shader);
     context.canvas.restore();
   }
 
@@ -683,54 +882,48 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     PaintingContext context,
     Offset offset,
     ui.Path localUnifiedPath,
+    List<ShapeData> localShapes,
+    List<Rect> localRects,
   ) {
     final localBounds = localUnifiedPath.getBounds();
     final blurRadius = _settings.blurRadiusPx;
 
-    context.pushClipPath(
-      true,
+    context.pushClipPath(true, offset, localBounds, localUnifiedPath, (
+      context,
       offset,
-      localBounds,
-      localUnifiedPath,
-      (context, offset) {
-        if (blurRadius > 0) {
-          context.pushLayer(
-            BackdropFilterLayer(
-              filter: ui.ImageFilter.blur(
-                sigmaX: blurRadius,
-                sigmaY: blurRadius,
-              ),
-            ),
-            (context, offset) {
-              _drawTints(context, offset);
-            },
-            offset,
-          );
-        } else {
-          _drawTints(context, offset);
-        }
-      },
-    );
+    ) {
+      if (blurRadius > 0) {
+        context.pushLayer(
+          BackdropFilterLayer(
+            filter: ui.ImageFilter.blur(sigmaX: blurRadius, sigmaY: blurRadius),
+          ),
+          (context, offset) {
+            _drawTints(context, offset, localShapes, localRects);
+          },
+          offset,
+        );
+      } else {
+        _drawTints(context, offset, localShapes, localRects);
+      }
+    });
 
     final globalUnifiedPath = localUnifiedPath.shift(offset);
     context.canvas.save();
     context.canvas.clipPath(globalUnifiedPath);
-    _drawDirectionalSpecular(context.canvas, offset, globalUnifiedPath);
+    _drawDirectionalSpecular(context.canvas, offset, globalUnifiedPath, localRects);
     context.canvas.restore();
     _drawRimHighlight(context.canvas, globalUnifiedPath);
   }
 
-  void _drawTints(PaintingContext context, Offset offset) {
-    for (final shape in registeredShapes) {
-      if (!shape.attached || shape.size.isEmpty) continue;
-
-      final rect = _localRectForShape(shape).shift(offset);
-      final shapeData = _shapeDataForRect(shape, rect);
+  void _drawTints(PaintingContext context, Offset offset, List<ShapeData> localShapes, List<Rect> localRects) {
+    for (var i = 0; i < localShapes.length; i++) {
+      final shapeData = localShapes[i];
+      final rect = localRects[i].shift(offset);
       final rrect = RRect.fromRectAndRadius(
         rect,
         Radius.circular(shapeData.borderRadius),
       );
-      final paint = Paint()..color = shape.color.withValues(alpha: 0.12);
+      final paint = Paint()..color = shapeData.color.withValues(alpha: _kFallbackTintAlpha);
 
       context.canvas.drawRRect(rrect, paint);
     }
@@ -740,19 +933,19 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     Canvas canvas,
     Offset offset,
     ui.Path globalUnifiedPath,
+    List<Rect> localRects,
   ) {
-    final specAlpha = (_settings.specStrength / 25.0).clamp(0.0, 0.9);
+    final specAlpha = (_settings.specStrength / _kSpecularStrengthDivisor).clamp(0.0, _kMaxSpecularAlpha);
     if (specAlpha <= 0.0) return;
 
-    for (final shape in registeredShapes) {
-      if (!shape.attached || shape.size.isEmpty) continue;
-
-      final rect = _localRectForShape(shape).shift(offset);
+    for (var i = 0; i < localRects.length; i++) {
+      final rect = localRects[i].shift(offset);
       final shortestSide = math.max(1.0, math.min(rect.width, rect.height));
-      final angularWidth =
-          (_settings.specWidth / shortestSide * math.pi).clamp(0.18, 1.2);
-      final strokeWidth =
-          (_settings.lightbandWidthPx * 0.08).clamp(1.0, 4.0);
+      final angularWidth = (_settings.specWidth / shortestSide * math.pi).clamp(
+        _kMinSpecularAngularWidth,
+        _kMaxSpecularAngularWidth,
+      );
+      final strokeWidth = (_settings.lightbandWidthPx * _kSpecularStrokeWidthScale).clamp(1.0, 4.0);
 
       final paint = Paint()
         ..style = PaintingStyle.stroke
@@ -778,17 +971,14 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     }
   }
 
-  void _drawRimHighlight(
-    Canvas canvas,
-    ui.Path globalUnifiedPath,
-  ) {
+  void _drawRimHighlight(Canvas canvas, ui.Path globalUnifiedPath) {
     final alpha = _settings.lightbandStrength.clamp(0.0, 1.0);
     if (alpha <= 0.0) return;
 
     final bounds = globalUnifiedPath.getBounds();
     if (bounds.isEmpty) return;
 
-    final strokeWidth = (_settings.lightbandWidthPx * 0.06).clamp(1.0, 3.0);
+    final strokeWidth = (_settings.lightbandWidthPx * _kRimHighlightStrokeWidthScale).clamp(1.0, 3.0);
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
@@ -810,13 +1000,14 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
 }
 
 /// Widget that wraps any child to make it appear as a liquid glass droplet.
-class OCLiquidGlass extends SingleChildRenderObjectWidget {
+class OCLiquidGlass extends StatelessWidget {
   final bool enabled;
   final double? width;
   final double? height;
   final Color color;
   final double borderRadius;
   final BoxShadow? shadow;
+  final Widget? child;
 
   const OCLiquidGlass({
     super.key,
@@ -826,23 +1017,11 @@ class OCLiquidGlass extends SingleChildRenderObjectWidget {
     this.color = Colors.transparent,
     this.borderRadius = 0.0,
     this.shadow,
-    super.child,
+    this.child,
   });
 
   @override
-  RenderLiquidGlass createRenderObject(BuildContext context) =>
-      RenderLiquidGlass(enabled, borderRadius, color);
-
-  @override
-  void updateRenderObject(BuildContext context, RenderLiquidGlass renderObject) {
-    renderObject
-      ..enabled = enabled
-      ..color = color
-      ..borderRadius = borderRadius;
-  }
-
-  @override
-  Widget? get child {
+  Widget build(BuildContext context) {
     final outerShadow = shadow?.copyWith(
       blurStyle: BlurStyle.outer,
       offset: const Offset(0, 0),
@@ -855,8 +1034,41 @@ class OCLiquidGlass extends SingleChildRenderObjectWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: outerShadow != null ? [outerShadow] : null,
       ),
-      child: super.child,
+      child: _OCLiquidGlassRenderObjectWidget(
+        enabled: enabled,
+        borderRadius: borderRadius,
+        color: color,
+        child: child,
+      ),
     );
+  }
+}
+
+class _OCLiquidGlassRenderObjectWidget extends SingleChildRenderObjectWidget {
+  final bool enabled;
+  final double borderRadius;
+  final Color color;
+
+  const _OCLiquidGlassRenderObjectWidget({
+    required this.enabled,
+    required this.borderRadius,
+    required this.color,
+    super.child,
+  });
+
+  @override
+  RenderLiquidGlass createRenderObject(BuildContext context) =>
+      RenderLiquidGlass(enabled, borderRadius, color);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    RenderLiquidGlass renderObject,
+  ) {
+    renderObject
+      ..enabled = enabled
+      ..color = color
+      ..borderRadius = borderRadius;
   }
 }
 
@@ -971,3 +1183,4 @@ class LiquidGlassMenu extends StatelessWidget {
 
 typedef LiquidGlass = OCLiquidGlass;
 typedef LiquidGlassGroup = OCLiquidGlassGroup;
+typedef LiquidGlassStage = OCLiquidGlassStage;

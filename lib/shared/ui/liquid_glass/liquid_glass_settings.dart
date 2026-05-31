@@ -22,6 +22,9 @@ class OCLiquidGlassSettings {
   final double lightbandStrength; // Intensity of the light band
   final Color lightbandColor;     // Color of the light band
 
+  // Coordinate system configuration
+  final bool useLocalCoordinates; // True for Impeller (local logical coordinates), false for Skia (global physical coordinates)
+
   const OCLiquidGlassSettings({
     this.blendPx = 5.0,
     this.refractStrength = -0.06,
@@ -38,6 +41,8 @@ class OCLiquidGlassSettings {
     this.lightbandWidthPx = 30.0,
     this.lightbandStrength = 0.9,
     this.lightbandColor = Colors.white,
+
+    this.useLocalCoordinates = true,
   });
 
   /// Creates a copy of this settings object with the given fields replaced with new values.
@@ -57,6 +62,7 @@ class OCLiquidGlassSettings {
     double? lightbandWidthPx,
     double? lightbandStrength,
     Color? lightbandColor,
+    bool? useLocalCoordinates,
   }) {
     return OCLiquidGlassSettings(
       blendPx: blendPx ?? this.blendPx,
@@ -74,6 +80,7 @@ class OCLiquidGlassSettings {
       lightbandWidthPx: lightbandWidthPx ?? this.lightbandWidthPx,
       lightbandStrength: lightbandStrength ?? this.lightbandStrength,
       lightbandColor: lightbandColor ?? this.lightbandColor,
+      useLocalCoordinates: useLocalCoordinates ?? this.useLocalCoordinates,
     );
   }
 }
