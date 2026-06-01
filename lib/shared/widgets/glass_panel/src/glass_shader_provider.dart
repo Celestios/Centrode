@@ -1,20 +1,18 @@
-import 'dart:ui' as ui;
-import 'package:logging/logging.dart';
+part of '../glass_panel.dart';
 
-class LiquidGlassShaderProvider {
+/// Loads and caches the fragment shader used by quality-mode glass panels.
+class GlassShaderProvider {
   static const String shaderAssetPath = 'shaders/liquid_glass.frag';
-  static final _log = Logger('LiquidGlassShaderProvider');
+  static final _log = Logger('GlassShaderProvider');
   static ui.FragmentProgram? _shaderProgram;
 
   static ui.FragmentProgram? get shaderProgram => _shaderProgram;
 
-  /// Preloads the liquid glass fragment shader from assets.
+  /// Preloads the fragment shader from assets.
   static Future<void> load() async {
     try {
       _log.info('Preloading liquid glass fragment shader...');
-      _shaderProgram = await ui.FragmentProgram.fromAsset(
-        shaderAssetPath,
-      );
+      _shaderProgram = await ui.FragmentProgram.fromAsset(shaderAssetPath);
       _log.info('Liquid glass shader preloaded successfully.');
     } catch (e, stack) {
       _log.severe('Failed to preload liquid glass shader: $e', e, stack);

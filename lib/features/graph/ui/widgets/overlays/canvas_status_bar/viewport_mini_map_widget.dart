@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../presentation/viewport_state.dart';
 import '../../../../store/graph_data_controller.dart';
-import '../glass_panel.dart';
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'mini_map_painter.dart';
 
 // -----------------------------------------------------------------------------
@@ -24,7 +24,7 @@ class ViewportMiniMapWidget extends StatelessWidget {
     ]);
 
     return GlassPanel(
-      fallbackBorderRadius: 10,
+      borderRadius: 10,
       width: 200,
       height: 200,
       child: ListenableBuilder(

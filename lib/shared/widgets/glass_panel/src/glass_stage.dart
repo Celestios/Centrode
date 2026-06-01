@@ -1,28 +1,29 @@
-part of 'liquid_glass_menu.dart';
+part of '../glass_panel.dart';
 
-/// Renders a backdrop separately from glass controls so Skia can sample the
-/// background without recursively capturing the glass itself.
-class LiquidGlassStage extends StatefulWidget {
-  final LiquidGlassSettings settings;
+/// Captures the background and exposes backdrop state to descendant glass widgets.
+class GlassStage extends StatefulWidget {
+  final GlassSettings settings;
   final Widget background;
   final Widget child;
+  final GlassMode mode;
   final Listenable? repaint;
   final Listenable? backdropRepaint;
 
-  const LiquidGlassStage({
+  const GlassStage({
     super.key,
     required this.settings,
     required this.background,
     required this.child,
+    this.mode = GlassMode.quality,
     this.repaint,
     this.backdropRepaint,
   });
 
   @override
-  State<LiquidGlassStage> createState() => _LiquidGlassStageState();
+  State<GlassStage> createState() => _GlassStageState();
 }
 
-class _LiquidGlassStageState extends State<LiquidGlassStage> {
+class _GlassStageState extends State<GlassStage> {
   static const int _initialWarmupCaptures = 6;
 
   final GlobalKey _backgroundKey = GlobalKey();
@@ -51,7 +52,7 @@ class _LiquidGlassStageState extends State<LiquidGlassStage> {
   }
 
   @override
-  void didUpdateWidget(LiquidGlassStage oldWidget) {
+  void didUpdateWidget(GlassStage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.backdropRepaint != widget.backdropRepaint) {
       oldWidget.backdropRepaint?.removeListener(_handleBackdropChanged);
@@ -106,7 +107,10 @@ class _LiquidGlassStageState extends State<LiquidGlassStage> {
     final logicalSize = renderObject.size;
     if (logicalSize.isEmpty) return;
 
-    final pixelRatio = math.min(1.5, MediaQuery.maybeOf(context)?.devicePixelRatio ?? 1.0);
+    final pixelRatio = math.min(
+      1.5,
+      MediaQuery.maybeOf(context)?.devicePixelRatio ?? 1.0,
+    );
     final serial = ++_captureSerial;
 
     try {
@@ -137,26 +141,49 @@ class _LiquidGlassStageState extends State<LiquidGlassStage> {
 
   @override
   Widget build(BuildContext context) {
-    return NotificationListener<SizeChangedLayoutNotification>(
-      onNotification: (notification) {
-        _scheduleCapture(warmupCaptures: _initialWarmupCaptures);
-        return true;
-      },
-      child: SizeChangedLayoutNotifier(
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            RepaintBoundary(key: _backgroundKey, child: widget.background),
-            LiquidGlassGroup(
-              settings: widget.settings,
-              repaint: widget.repaint,
-              backdropImage: _backdropImage,
-              backdropLogicalSize: _backdropLogicalSize,
-              child: widget.child,
-            ),
-          ],
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        RepaintBoundary(key: _backgroundKey, child: widget.background),
+        _GlassBackdropScope(
+          settings: widget.settings,
+          mode: widget.mode,
+          repaint: widget.repaint,
+          backdropImage: _backdropImage,
+          backdropLogicalSize: _backdropLogicalSize,
+          child: widget.child,
         ),
-      ),
+      ],
     );
+  }
+}
+
+class _GlassBackdropScope extends InheritedWidget {
+  final GlassSettings settings;
+  final GlassMode mode;
+  final Listenable? repaint;
+  final ui.Image? backdropImage;
+  final Size? backdropLogicalSize;
+
+  const _GlassBackdropScope({
+    required this.settings,
+    required this.mode,
+    required this.repaint,
+    required this.backdropImage,
+    required this.backdropLogicalSize,
+    required super.child,
+  });
+
+  static _GlassBackdropScope? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<_GlassBackdropScope>();
+  }
+
+  @override
+  bool updateShouldNotify(_GlassBackdropScope oldWidget) {
+    return oldWidget.settings != settings ||
+        oldWidget.mode != mode ||
+        oldWidget.repaint != repaint ||
+        oldWidget.backdropImage != backdropImage ||
+        oldWidget.backdropLogicalSize != backdropLogicalSize;
   }
 }

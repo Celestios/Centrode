@@ -22,6 +22,7 @@ import '../widgets/overlays/canvas_tab_bar.dart';
 import '../widgets/overlays/left_repository_drawer.dart';
 import '../widgets/overlays/right_property_panel.dart';
 import '../widgets/overlays/canvas_status_bar/canvas_status_bar.dart';
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import '../../../../presentation/widgets/tag_manager/global_tags_manager_panel.dart';
 import '../../../../presentation/widgets/template_manager/global_templates_manager_panel.dart';
 import '../../../../presentation/widgets/template_manager/save_template_dialog.dart';
@@ -155,6 +156,11 @@ class _GraphCanvasState extends State<GraphCanvas>
       return const Center(child: CircularProgressIndicator());
     }
 
+    final backdropRepaintListenable = Listenable.merge([
+      viewportController.transformController,
+      dataController,
+    ]);
+
     return MultiProvider(
       providers: [
         Provider<ViewportController>.value(value: viewportController),
@@ -162,11 +168,10 @@ class _GraphCanvasState extends State<GraphCanvas>
       ],
       child: LayoutBuilder(
         builder: (context, constraints) {
-          return Stack(
-            children: [
-              // Zoomable / Pannable Interactive Canvas Layer
-              Positioned.fill(
-                child: DragTarget<Template>(
+          return GlassStage(
+            settings: AppConfig.liquidGlass.settings,
+            backdropRepaint: backdropRepaintListenable,
+            background: DragTarget<Template>(
                   onWillAcceptWithDetails: (details) => true,
                   onAcceptWithDetails: (details) async {
                     final renderBox = context.findRenderObject() as RenderBox?;
@@ -298,8 +303,8 @@ class _GraphCanvasState extends State<GraphCanvas>
                     );
                   },
                 ),
-              ),
-
+              child: Stack(
+                children: [
                   // Persistent Floating Overlays
                   // Top Deck Area (Ribbon and tabs below it)
                   Positioned(
@@ -416,9 +421,10 @@ class _GraphCanvasState extends State<GraphCanvas>
                       viewportController,
                     ),
                 ],
-              );
-            },
-          ),
+              ),
+            );
+          },
+        ),
     );
   }
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/ui/liquid_glass/index.dart';
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 
 class LiquidGlassDemo extends StatefulWidget {
   const LiquidGlassDemo({super.key});
@@ -24,7 +24,7 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = LiquidGlassSettings(
+    final settings = GlassSettings(
       blendPx: _blendPx,
       specAngle: 0.8,
       refractStrength: _refractStrength,
@@ -46,7 +46,7 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
       body: Column(
         children: [
           Expanded(
-            child: LiquidGlassStage(
+            child: GlassStage(
               settings: settings,
               background: Container(
                 decoration: const BoxDecoration(
@@ -56,10 +56,12 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                   ),
                 ),
               ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return Stack(
-                    children: [
+              child: GlassGroup(
+                settings: settings,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Stack(
+                      children: [
                       Positioned(
                         left: _position1.dx,
                         top: _position1.dy,
@@ -78,7 +80,7 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                               );
                             });
                           },
-                          child: LiquidGlass(
+                          child: GlassPanel(
                             width: 250,
                             height: 80,
                             borderRadius: 40,
@@ -135,7 +137,7 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                               );
                             });
                           },
-                          child: LiquidGlass(
+                          child: GlassPanel(
                             width: 100,
                             height: 100,
                             borderRadius: 50,
@@ -180,7 +182,7 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                               );
                             });
                           },
-                          child: LiquidGlass(
+                          child: GlassPanel(
                             width: 80,
                             height: 120,
                             borderRadius: 20,
@@ -225,7 +227,7 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                               );
                             });
                           },
-                          child: LiquidGlass(
+                          child: GlassPanel(
                             width: 60,
                             height: 60,
                             borderRadius: 30,
@@ -253,9 +255,10 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                           ),
                         ),
                       ),
-                    ],
-                  );
-                },
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ),

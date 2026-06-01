@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../features/graph/ui/widgets/overlays/glass_panel.dart';
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 
 class LeftRepositoryPanel extends StatelessWidget {
   final String title;
@@ -17,8 +17,7 @@ class LeftRepositoryPanel extends StatelessWidget {
     return GlassPanel(
       padding: EdgeInsets.zero,
       blur: 12.0,
-      alpha: 0.85,
-      fallbackBorderRadius: 16.0,
+      borderRadius: 16.0,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

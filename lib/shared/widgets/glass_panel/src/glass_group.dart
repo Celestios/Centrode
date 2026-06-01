@@ -1,40 +1,34 @@
-part of 'liquid_glass_menu.dart';
+part of '../glass_panel.dart';
 
-/// Container widget that manages multiple liquid glass shapes and applies the shader effect.
-/// This widget loads the fragment shader and creates a render layer that collects
-/// all LiquidGlass children and applies the unified glass effect to them.
-class LiquidGlassGroup extends StatefulWidget {
-  final LiquidGlassSettings settings;
-  final Listenable? repaint;
-  final ui.Image? backdropImage;
-  final Size? backdropLogicalSize;
+/// Explicit scope for bridge blending between descendant glass panels.
+class GlassGroup extends StatefulWidget {
   final Widget child;
+  final GlassSettings? settings;
+  final GlassMode? mode;
 
-  const LiquidGlassGroup({
+  const GlassGroup({
     super.key,
-    required this.settings,
     required this.child,
-    this.repaint,
-    this.backdropImage,
-    this.backdropLogicalSize,
+    this.settings,
+    this.mode,
   });
 
   @override
-  State<LiquidGlassGroup> createState() => _LiquidGlassGroupState();
+  State<GlassGroup> createState() => _GlassGroupState();
 }
 
-class _LiquidGlassGroupState extends State<LiquidGlassGroup> {
+class _GlassGroupState extends State<GlassGroup> {
   ui.FragmentProgram? _program;
 
   @override
   void initState() {
     super.initState();
-    if (LiquidGlassShaderProvider.shaderProgram != null) {
-      _program = LiquidGlassShaderProvider.shaderProgram;
+    if (GlassShaderProvider.shaderProgram != null) {
+      _program = GlassShaderProvider.shaderProgram;
     } else {
-      ui.FragmentProgram.fromAsset(LiquidGlassShaderProvider.shaderAssetPath).then((p) {
+      ui.FragmentProgram.fromAsset(GlassShaderProvider.shaderAssetPath).then((program) {
         if (mounted) {
-          setState(() => _program = p);
+          setState(() => _program = program);
         }
       });
     }
@@ -42,28 +36,73 @@ class _LiquidGlassGroupState extends State<LiquidGlassGroup> {
 
   @override
   Widget build(BuildContext context) {
-    if (_program == null) {
+    final stageScope = _GlassBackdropScope.maybeOf(context);
+    final resolvedSettings = widget.settings ?? stageScope?.settings ?? const GlassSettings();
+    final resolvedMode = widget.mode ?? stageScope?.mode ?? GlassMode.performance;
+
+    final body = _GlassGroupScope(
+      settings: resolvedSettings,
+      mode: resolvedMode,
+      child: _buildGroupBody(
+        context,
+        stageScope,
+        resolvedSettings,
+        resolvedMode,
+      ),
+    );
+
+    return body;
+  }
+
+  Widget _buildGroupBody(
+    BuildContext context,
+    _GlassBackdropScope? stageScope,
+    GlassSettings resolvedSettings,
+    GlassMode resolvedMode,
+  ) {
+    if (_program == null || stageScope == null || resolvedMode == GlassMode.performance) {
       return widget.child;
     }
-    return _LiquidGlassGroupRenderObject(
+
+    return _GlassGroupRenderObject(
       shader: _program!.fragmentShader(),
-      settings: widget.settings,
-      repaint: widget.repaint,
-      backdropImage: widget.backdropImage,
-      backdropLogicalSize: widget.backdropLogicalSize,
+      settings: resolvedSettings,
+      repaint: stageScope.repaint,
+      backdropImage: stageScope.backdropImage,
+      backdropLogicalSize: stageScope.backdropLogicalSize,
       child: widget.child,
     );
   }
 }
 
-class _LiquidGlassGroupRenderObject extends SingleChildRenderObjectWidget {
+class _GlassGroupScope extends InheritedWidget {
+  final GlassSettings settings;
+  final GlassMode mode;
+
+  const _GlassGroupScope({
+    required this.settings,
+    required this.mode,
+    required super.child,
+  });
+
+  static _GlassGroupScope? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<_GlassGroupScope>();
+  }
+
+  @override
+  bool updateShouldNotify(_GlassGroupScope oldWidget) {
+    return oldWidget.settings != settings || oldWidget.mode != mode;
+  }
+}
+
+class _GlassGroupRenderObject extends SingleChildRenderObjectWidget {
   final ui.FragmentShader shader;
-  final LiquidGlassSettings settings;
+  final GlassSettings settings;
   final Listenable? repaint;
   final ui.Image? backdropImage;
   final Size? backdropLogicalSize;
 
-  const _LiquidGlassGroupRenderObject({
+  const _GlassGroupRenderObject({
     required this.shader,
     required this.settings,
     this.repaint,
@@ -73,10 +112,10 @@ class _LiquidGlassGroupRenderObject extends SingleChildRenderObjectWidget {
   });
 
   @override
-  _RenderLiquidGlassGroup createRenderObject(BuildContext context) {
+  _RenderGlassGroup createRenderObject(BuildContext context) {
     final position = Scrollable.maybeOf(context)?.position;
     final mediaQuery = MediaQuery.of(context);
-    final renderObject = _RenderLiquidGlassGroup(
+    final renderObject = _RenderGlassGroup(
       devicePixelRatio: mediaQuery.devicePixelRatio,
       screenSize: mediaQuery.size,
       shader: shader,
@@ -94,7 +133,7 @@ class _LiquidGlassGroupRenderObject extends SingleChildRenderObjectWidget {
   @override
   void updateRenderObject(
     BuildContext context,
-    _RenderLiquidGlassGroup renderObject,
+    _RenderGlassGroup renderObject,
   ) {
     final position = Scrollable.maybeOf(context)?.position;
     final mediaQuery = MediaQuery.of(context);
@@ -110,25 +149,25 @@ class _LiquidGlassGroupRenderObject extends SingleChildRenderObjectWidget {
     _attachRouteAnimation(context, renderObject);
   }
 
-  void _attachRouteAnimation(BuildContext ctx, _RenderLiquidGlassGroup rb) {
+  void _attachRouteAnimation(BuildContext ctx, _RenderGlassGroup rb) {
     final listenables = <Listenable>[];
 
-    final rLocal = ModalRoute.of(ctx);
-    if (rLocal?.animation != null) {
-      listenables.add(rLocal!.animation!);
+    final routeLocal = ModalRoute.of(ctx);
+    if (routeLocal?.animation != null) {
+      listenables.add(routeLocal!.animation!);
     }
-    if (rLocal?.secondaryAnimation != null) {
-      listenables.add(rLocal!.secondaryAnimation!);
+    if (routeLocal?.secondaryAnimation != null) {
+      listenables.add(routeLocal!.secondaryAnimation!);
     }
 
     final rootNav = Navigator.maybeOf(ctx);
     if (rootNav != null) {
-      final rRoot = ModalRoute.of(rootNav.context);
-      if (rRoot?.animation != null) {
-        listenables.add(rRoot!.animation!);
+      final routeRoot = ModalRoute.of(rootNav.context);
+      if (routeRoot?.animation != null) {
+        listenables.add(routeRoot!.animation!);
       }
-      if (rRoot?.secondaryAnimation != null) {
-        listenables.add(rRoot!.secondaryAnimation!);
+      if (routeRoot?.secondaryAnimation != null) {
+        listenables.add(routeRoot!.secondaryAnimation!);
       }
     }
 
@@ -140,12 +179,12 @@ class _LiquidGlassGroupRenderObject extends SingleChildRenderObjectWidget {
   }
 
   @override
-  void didUnmountRenderObject(_RenderLiquidGlassGroup rb) {
-    rb.detachRepaintSources();
+  void didUnmountRenderObject(_RenderGlassGroup renderObject) {
+    renderObject.detachRepaintSources();
   }
 }
 
-class _RenderLiquidGlassGroup extends RenderProxyBox {
+class _RenderGlassGroup extends RenderProxyBox {
   static const int maxRects = 4;
 
   Listenable? _routeAnimations;
@@ -153,23 +192,23 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
   Listenable? _externalRepaint;
   Size _screenSize;
 
-  _RenderLiquidGlassGroup({
+  _RenderGlassGroup({
     required double devicePixelRatio,
     required Size screenSize,
     required ui.FragmentShader shader,
-    required LiquidGlassSettings settings,
+    required GlassSettings settings,
     ScrollPosition? position,
     Listenable? externalRepaint,
     ui.Image? backdropImage,
     Size? backdropLogicalSize,
-  }) : _devicePixelRatio = devicePixelRatio,
-       _screenSize = screenSize,
-       _shader = shader,
-       _settings = settings,
-       _scrollPosition = position,
-       _externalRepaint = externalRepaint,
-       _backdropImage = backdropImage,
-       _backdropLogicalSize = backdropLogicalSize;
+  })  : _devicePixelRatio = devicePixelRatio,
+        _screenSize = screenSize,
+        _shader = shader,
+        _settings = settings,
+        _scrollPosition = position,
+        _externalRepaint = externalRepaint,
+        _backdropImage = backdropImage,
+        _backdropLogicalSize = backdropLogicalSize;
 
   set screenSize(Size v) {
     if (_screenSize == v) return;
@@ -210,8 +249,8 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     markNeedsPaint();
   }
 
-  LiquidGlassSettings _settings;
-  set settings(LiquidGlassSettings v) {
+  GlassSettings _settings;
+  set settings(GlassSettings v) {
     _settings = v;
     markNeedsPaint();
   }
@@ -231,7 +270,7 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
   }
 
   final ui.FragmentShader _shader;
-  final Set<RenderLiquidGlass> registeredShapes = {};
+  final Set<RenderGlassShape> registeredShapes = {};
 
   void setRouteAnimations(Listenable? routeAnimations) {
     if (identical(routeAnimations, _routeAnimations)) return;
@@ -285,7 +324,9 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
 
   bool _isLocalPathCacheValid(List<Rect> currentRects) {
     final cached = _cachedLocalRects;
-    if (cached == null || _cachedLocalUnifiedPath == null || _cachedBlendPx != _settings.blendPx) {
+    if (cached == null ||
+        _cachedLocalUnifiedPath == null ||
+        _cachedBlendPx != _settings.blendPx) {
       return false;
     }
     if (cached.length != currentRects.length) {
@@ -301,16 +342,19 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    final activeShapes = registeredShapes.where((s) => s.attached && !s.size.isEmpty).toList();
+    final activeShapes = registeredShapes
+        .where((shape) => shape.attached && !shape.size.isEmpty)
+        .toList();
     if (activeShapes.isEmpty) {
       super.paint(context, offset);
       return;
     }
 
-    final hasShaderSupport = ui.ImageFilter.isShaderFilterSupported && !_settings.forceCpuFallback;
+    final hasShaderSupport =
+        ui.ImageFilter.isShaderFilterSupported && !_settings.forceCpuFallback;
 
     if (!hasShaderSupport) {
-      final localRects = activeShapes.map((s) => _localRectForShape(s)).toList();
+      final localRects = activeShapes.map(_localRectForShape).toList();
       final localShapes = <ShapeData>[];
       for (var i = 0; i < activeShapes.length; i++) {
         localShapes.add(_shapeDataForRect(activeShapes[i], localRects[i], 1.0));
@@ -329,7 +373,13 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
       if (_hasUsableBackdrop && !_settings.forceCpuFallback) {
         _paintCapturedSkiaShader(context, offset, localShapes);
       } else {
-        _paintDecorativeSkiaFallback(context, offset, localUnifiedPath, localShapes, localRects);
+        _paintDecorativeSkiaFallback(
+          context,
+          offset,
+          localUnifiedPath,
+          localShapes,
+          localRects,
+        );
       }
 
       super.paint(context, offset);
@@ -339,7 +389,7 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     final useLocal = _settings.useLocalCoordinates;
 
     if (useLocal) {
-      final localRects = activeShapes.map((s) => _localRectForShape(s)).toList();
+      final localRects = activeShapes.map(_localRectForShape).toList();
       final localShapes = <ShapeData>[];
       for (var i = 0; i < activeShapes.length; i++) {
         localShapes.add(_shapeDataForRect(activeShapes[i], localRects[i], 1.0));
@@ -359,7 +409,13 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
         Offset.zero & size,
       );
 
-      final globalShapes = activeShapes.map((s) => _shapeDataForRect(s, _globalRectForShape(s), _devicePixelRatio)).toList();
+      final globalShapes = activeShapes
+          .map((shape) => _shapeDataForRect(
+                shape,
+                _globalRectForShape(shape),
+                _devicePixelRatio,
+              ))
+          .toList();
 
       _configureShader(
         _shader,
@@ -377,29 +433,31 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     );
   }
 
-  Rect _globalRectForShape(RenderLiquidGlass shape) {
+  Rect _globalRectForShape(RenderGlassShape shape) {
     return MatrixUtils.transformRect(
       shape.getTransformTo(null),
       Offset.zero & shape.size,
     );
   }
 
-  Rect _localRectForShape(RenderLiquidGlass shape) {
+  Rect _localRectForShape(RenderGlassShape shape) {
     return MatrixUtils.transformRect(
       shape.getTransformTo(this),
       Offset.zero & shape.size,
     );
   }
 
-  ShapeData _shapeDataForRect(RenderLiquidGlass shape, Rect rect, double pixelScale) {
+  ShapeData _shapeDataForRect(
+    RenderGlassShape shape,
+    Rect rect,
+    double pixelScale,
+  ) {
     final scaledBorderRadius = shape.borderRadius * pixelScale;
-    final maxRadius = math.min(rect.width, rect.height) / 2.0;
-    final clampedRadius = scaledBorderRadius > maxRadius
-        ? maxRadius
-        : scaledBorderRadius;
+    final maxRadius = math.min(rect.width * pixelScale, rect.height * pixelScale) / 2.0;
+    final clampedRadius = scaledBorderRadius > maxRadius ? maxRadius : scaledBorderRadius;
     return ShapeData(
-      rect.center,
-      rect.size,
+      rect.center * pixelScale,
+      rect.size * pixelScale,
       math.max(0.0, clampedRadius),
       shape.color,
     );
@@ -442,13 +500,13 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
       ..setFloat(idx++, rectCount.toDouble())
       ..setFloat(idx++, _settings.bridgeThicknessFactor);
 
-    final safeRy = math.max(shaderSize.height, 0.001);
+    final safeRy = math.max(shaderSize.height * pixelScale, 0.001);
 
     for (var i = 0; i < maxRects; i++) {
       final shape = i < rectCount ? shapes[i] : null;
       if (shape != null) {
-        final posNdx = (shape.center.dx - shaderSize.width * 0.5) / safeRy;
-        final posNdy = (shape.center.dy - shaderSize.height * 0.5) / safeRy;
+        final posNdx = (shape.center.dx - (shaderSize.width * pixelScale) * 0.5) / safeRy;
+        final posNdy = (shape.center.dy - (shaderSize.height * pixelScale) * 0.5) / safeRy;
         final hszW = shape.size.width * 0.5 / safeRy;
         final hszH = shape.size.height * 0.5 / safeRy;
         final corner = shape.borderRadius / safeRy;
@@ -558,7 +616,12 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     _drawRimHighlight(context.canvas, globalUnifiedPath);
   }
 
-  void _drawTints(PaintingContext context, Offset offset, List<ShapeData> localShapes, List<Rect> localRects) {
+  void _drawTints(
+    PaintingContext context,
+    Offset offset,
+    List<ShapeData> localShapes,
+    List<Rect> localRects,
+  ) {
     for (var i = 0; i < localShapes.length; i++) {
       final shapeData = localShapes[i];
       final rect = localRects[i].shift(offset);
@@ -566,7 +629,8 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
         rect,
         Radius.circular(shapeData.borderRadius),
       );
-      final paint = Paint()..color = shapeData.color.withValues(alpha: _settings.fallbackTintAlpha);
+      final paint = Paint()
+        ..color = shapeData.color.withValues(alpha: _settings.fallbackTintAlpha);
 
       context.canvas.drawRRect(rrect, paint);
     }
@@ -578,7 +642,8 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     ui.Path globalUnifiedPath,
     List<Rect> localRects,
   ) {
-    final specAlpha = (_settings.specStrength / _settings.specularStrengthDivisor).clamp(0.0, _settings.maxSpecularAlpha);
+    final specAlpha = (_settings.specStrength / _settings.specularStrengthDivisor)
+        .clamp(0.0, _settings.maxSpecularAlpha);
     if (specAlpha <= 0.0) return;
 
     for (var i = 0; i < localRects.length; i++) {
@@ -588,7 +653,8 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
         _settings.minSpecularAngularWidth,
         _settings.maxSpecularAngularWidth,
       );
-      final strokeWidth = (_settings.lightbandWidthPx * _settings.specularStrokeWidthScale).clamp(1.0, 4.0);
+      final strokeWidth =
+          (_settings.lightbandWidthPx * _settings.specularStrokeWidthScale).clamp(1.0, 4.0);
 
       final paint = Paint()
         ..style = PaintingStyle.stroke
@@ -621,7 +687,8 @@ class _RenderLiquidGlassGroup extends RenderProxyBox {
     final bounds = globalUnifiedPath.getBounds();
     if (bounds.isEmpty) return;
 
-    final strokeWidth = (_settings.lightbandWidthPx * _settings.rimHighlightStrokeWidthScale).clamp(1.0, 3.0);
+    final strokeWidth =
+        (_settings.lightbandWidthPx * _settings.rimHighlightStrokeWidthScale).clamp(1.0, 3.0);
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth

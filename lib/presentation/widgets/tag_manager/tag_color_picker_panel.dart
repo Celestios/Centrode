@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../../features/graph/ui/widgets/overlays/glass_panel.dart';
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 
 const List<int> presetColors = [
   0xFFEC407A, // Pink
@@ -60,8 +60,8 @@ class _TagColorPickerPanelState extends State<TagColorPickerPanel> {
     return GlassPanel(
       padding: const EdgeInsets.all(12),
       blur: 16.0,
-      alpha: 0.95,
-      fallbackBorderRadius: 16.0,
+      mode: GlassMode.performance,
+      borderRadius: 16.0,
       width: 176,
       child: Column(
         mainAxisSize: MainAxisSize.min,

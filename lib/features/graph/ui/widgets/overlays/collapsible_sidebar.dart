@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'glass_panel.dart';
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 
 class CollapsibleSidebar extends StatelessWidget {
   final String title;
@@ -37,23 +37,18 @@ class CollapsibleSidebar extends StatelessWidget {
         : 0.0;
 
     return GlassPanel(
-      fallbackBorderRadius: 16,
+      borderRadius: 16,
       blur: isVisible ? 12.0 : 0.0,
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeInOut,
       width: targetWidth,
-      border: isVisible
-          ? null
-          : Border.all(color: Colors.transparent, width: 0),
-      boxShadow: isVisible
-          ? [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 12,
-                offset: Offset(isRight ? -3 : 3, 3),
-              ),
-            ]
-          : [],
+      shadow: isVisible
+          ? BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 12,
+              offset: Offset(isRight ? -3 : 3, 3),
+            )
+          : null,
       child: OverflowBox(
         alignment: isRight ? Alignment.topRight : Alignment.topLeft,
         minWidth: expandedWidth,

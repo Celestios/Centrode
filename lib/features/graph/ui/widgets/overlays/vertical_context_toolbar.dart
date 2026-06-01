@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'glass_panel.dart';
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
 
 class VerticalContextToolbar extends StatelessWidget {
   final VoidCallback onDelete;
@@ -44,32 +45,34 @@ class VerticalContextToolbar extends StatelessWidget {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
 
-    return SizedBox(
-      width: 380,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.topRight,
-        children: [
-          // Background vertical glass bar (fixed width 40, matches column height)
-          Positioned(
-            top: 0,
-            bottom: 0,
-            right: 0,
-            width: 40,
-            child: GlassPanel(
-              fallbackBorderRadius: 10,
-              blur: 12,
-              alpha: 0.9,
-              boxShadow: [
-                BoxShadow(
+    return GlassGroup(
+      settings: AppConfig.liquidGlass.settings.copyWith(
+        bridgeReachFactor: 2.5,
+      ),
+      child: SizedBox(
+        width: 380,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.topRight,
+          children: [
+            // Background vertical glass bar (fixed width 40, matches column height)
+            Positioned(
+              top: 0,
+              bottom: 0,
+              right: 0,
+              width: 40,
+              child: GlassPanel(
+                borderRadius: 10,
+                blur: 12,
+                color: theme.cardColor.withValues(alpha: 0.9),
+                shadow: BoxShadow(
                   color: Colors.black.withValues(alpha: 0.15),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
-              ],
-              child: const SizedBox.shrink(),
+                child: const SizedBox.shrink(),
+              ),
             ),
-          ),
           // Interactive Column (non-positioned, determines the height, aligned to topRight)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 4),
@@ -377,6 +380,7 @@ class VerticalContextToolbar extends StatelessWidget {
           ),
         ],
       ),
+     ),
     );
   }
 
@@ -462,24 +466,22 @@ class _VerticalToolbarGroupButtonState
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             // Submenu - Expanded to the left (by placing it to the left of the trigger in a Row)
-            if (_isHovered)
+              if (_isHovered)
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: GlassPanel(
-                  fallbackBorderRadius: 8,
+                  borderRadius: 8,
                   blur: 10,
-                  alpha: 0.92,
+                  color: theme.cardColor.withValues(alpha: 0.92),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 4,
                     vertical: 2,
                   ),
-                  boxShadow: [
-                    BoxShadow(
+                  shadow: BoxShadow(
                       color: Colors.black.withValues(alpha: 0.12),
                       blurRadius: 8,
                       offset: const Offset(-2, 2),
                     ),
-                  ],
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: widget.submenuButtons

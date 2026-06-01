@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/left_panel_type.dart';
-import 'glass_panel.dart'; // adjust path as needed
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 
 class LeftRepositoryDrawer extends StatelessWidget {
   final LeftPanelType activePanel;
@@ -21,15 +21,12 @@ class LeftRepositoryDrawer extends StatelessWidget {
     return Center(
       child: GlassPanel(
         blur: 12.0, // matches sidebar’s glass
-        alpha: 0.85,
-        fallbackBorderRadius: 16.0,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 12,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        borderRadius: 16.0,
+        shadow: BoxShadow(
+          color: Colors.black.withValues(alpha: 0.2),
+          blurRadius: 12,
+          offset: const Offset(0, 3),
+        ),
         // No internal padding – the child handles its own spacing
         child: Column(
           mainAxisSize: MainAxisSize.min,

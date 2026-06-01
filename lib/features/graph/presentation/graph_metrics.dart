@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart' hide Theme;
 import 'package:mycelium/src/rust/domain/base_models.dart' show BoundingBox;
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
+
 
 abstract final class AppConfig {
   AppConfig._();
@@ -15,6 +17,7 @@ abstract final class AppConfig {
   static const toolbar = _Toolbar();
   static const visuals = _Visuals();
   static const editor = _Editor();
+  static const liquidGlass = _LiquidGlass();
 }
 
 class _Log {
@@ -153,6 +156,16 @@ class ElementStyleConfig {
   static const double defaultStrokeWidth = 1.0;
   static const String defaultFontFamily = 'Roboto';
   static const double defaultWidth = 100.0;
+}
+
+class _LiquidGlass {
+  const _LiquidGlass();
+
+  final GlassSettings settings = const GlassSettings(
+    refractStrength: 2,
+    bridgeReachFactor: 2.0,
+    bridgeThicknessFactor: 1.0,
+  );
 }
 
 /// Calculates the dynamic grid size based on the current zoom level (Dynamic LOD).

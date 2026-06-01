@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'graph_manual_widget.dart';
 import 'status_metrics_widget.dart';
 import 'zoom_slider_widget.dart';
@@ -31,16 +32,18 @@ class CanvasStatusBar extends StatelessWidget {
             if (showMetrics) const StatusMetricsWidget() else const SizedBox.shrink(),
 
             // Bottom Right: Zoom & Mini-Map group
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                const ZoomSliderWidget(),
-                if (showMiniMap) ...[
-                  const SizedBox(width: 10),
-                  const ViewportMiniMapWidget(),
+            GlassGroup(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const ZoomSliderWidget(),
+                  if (showMiniMap) ...[
+                    const SizedBox(width: 10),
+                    const ViewportMiniMapWidget(),
+                  ],
                 ],
-              ],
+              ),
             ),
           ],
         );

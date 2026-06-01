@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
 import '../../../store/graph_data_controller.dart';
-import 'glass_panel.dart';
 
 class CanvasToolRibbon extends StatefulWidget {
   const CanvasToolRibbon({super.key});
@@ -73,19 +73,17 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: GlassPanel(
-        fallbackBorderRadius: 16,
         blur: 12,
+        borderRadius: 16,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        shadow: BoxShadow(
+          color: Colors.black.withValues(alpha: 0.15),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+            mainAxisSize: MainAxisSize.min,
+            children: [
             // Tool Mode selection
             ValueListenableBuilder<String>(
               valueListenable: session.toolModeNotifier,

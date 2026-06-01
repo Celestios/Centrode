@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import '../../../../store/graph_data_controller.dart';
-import '../glass_panel.dart';
 
 // -----------------------------------------------------------------------------
 // BOTTOM CENTER: Graph Metrics & Async Progress Loader
@@ -18,7 +18,7 @@ class StatusMetricsWidget extends StatelessWidget {
     final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
 
     return GlassPanel(
-      fallbackBorderRadius: 10,
+      borderRadius: 10,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       child: Row(
         mainAxisSize: MainAxisSize.min,

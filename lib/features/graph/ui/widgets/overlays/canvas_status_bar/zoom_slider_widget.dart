@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../presentation/viewport_state.dart';
-import '../glass_panel.dart';
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 
 // -----------------------------------------------------------------------------
 // BOTTOM RIGHT: Zoom slider & percentage indicator
@@ -18,7 +18,7 @@ class ZoomSliderWidget extends StatelessWidget {
     final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
 
     return GlassPanel(
-      fallbackBorderRadius: 10,
+      borderRadius: 10,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       child: ValueListenableBuilder<ViewportStateGrid>(
         valueListenable: viewportController.viewportStateNotifier,

@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../glass_panel.dart';
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 
 // -----------------------------------------------------------------------------
 // BOTTOM LEFT: Graph Manual Legend Dialog Trigger
@@ -24,14 +24,7 @@ class GraphManualWidget extends StatelessWidget {
               children: [
                 Icon(Icons.menu_book_rounded, color: primaryColor),
                 const SizedBox(width: 10),
-                Text(
-                  'MAP CONVENTIONS & MANUAL',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: textColor,
-                  ),
-                ),
+                const Text('Keyboard Shortcuts & Guide'),
               ],
             ),
             content: SizedBox(
@@ -134,7 +127,7 @@ class GraphManualWidget extends StatelessWidget {
     final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
 
     return GlassPanel(
-      fallbackBorderRadius: 10,
+      borderRadius: 10,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       onTap: () => _showManualDialog(context, theme, primaryColor, textColor),
       child: Row(
