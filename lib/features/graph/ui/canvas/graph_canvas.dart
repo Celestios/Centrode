@@ -52,7 +52,9 @@ class _GraphCanvasState extends State<GraphCanvas>
   bool _viewportRestoreAttempted = false;
   bool _viewportRestored = false;
   LeftPanelType _activeLeftPanel = LeftPanelType.none;
-  final ValueNotifier<Offset?> _mousePositionNotifier = ValueNotifier<Offset?>(null);
+  final ValueNotifier<Offset?> _mousePositionNotifier = ValueNotifier<Offset?>(
+    null,
+  );
 
   @override
   void initState() {
@@ -84,7 +86,11 @@ class _GraphCanvasState extends State<GraphCanvas>
         onSaveTemplate: (nodeIds, relationIds) async {
           final name = await showSaveTemplateDialog(context);
           if (name != null) {
-            await dataController.saveTemplateFromSelection(name, nodeIds, relationIds);
+            await dataController.saveTemplateFromSelection(
+              name,
+              nodeIds,
+              relationIds,
+            );
           }
         },
       );
@@ -169,262 +175,268 @@ class _GraphCanvasState extends State<GraphCanvas>
       child: LayoutBuilder(
         builder: (context, constraints) {
           return GlassStage(
+            mode: GlassMode.quality,
             settings: AppConfig.liquidGlass.settings,
             backdropRepaint: backdropRepaintListenable,
             background: DragTarget<Template>(
-                  onWillAcceptWithDetails: (details) => true,
-                  onAcceptWithDetails: (details) async {
-                    final renderBox = context.findRenderObject() as RenderBox?;
-                    if (renderBox == null) return;
-                    final localOffset = renderBox.globalToLocal(details.offset);
-                    final transform = viewportController.transformController.value;
-                    if (transform.determinant() == 0.0) return;
-                    final inverse = Matrix4.inverted(transform);
-                    final canvasOffset = MatrixUtils.transformPoint(inverse, localOffset);
-                    await dataController.instantiateTemplate(details.data.key, canvasOffset);
-                  },
-                  builder: (context, candidateData, rejectedData) {
-                    return ValueListenableBuilder<MouseCursor>(
-                      valueListenable: interactionController.cursor,
-                      builder: (context, cursor, child) {
-                        return MouseRegion(
-                          cursor: cursor,
-                          onExit: (_) {
-                            _mousePositionNotifier.value = null;
-                          },
-                          child: child,
-                        );
+              onWillAcceptWithDetails: (details) => true,
+              onAcceptWithDetails: (details) async {
+                final renderBox = context.findRenderObject() as RenderBox?;
+                if (renderBox == null) return;
+                final localOffset = renderBox.globalToLocal(details.offset);
+                final transform = viewportController.transformController.value;
+                if (transform.determinant() == 0.0) return;
+                final inverse = Matrix4.inverted(transform);
+                final canvasOffset = MatrixUtils.transformPoint(
+                  inverse,
+                  localOffset,
+                );
+                await dataController.instantiateTemplate(
+                  details.data.key,
+                  canvasOffset,
+                );
+              },
+              builder: (context, candidateData, rejectedData) {
+                return ValueListenableBuilder<MouseCursor>(
+                  valueListenable: interactionController.cursor,
+                  builder: (context, cursor, child) {
+                    return MouseRegion(
+                      cursor: cursor,
+                      onExit: (_) {
+                        _mousePositionNotifier.value = null;
                       },
-                      child: Listener(
-                        onPointerDown: interactionController.handlePointerDown,
-                        onPointerMove: (event) {
-                          interactionController.handlePointerMove(event);
-                          _mousePositionNotifier.value = event.localPosition;
-                        },
-                        onPointerUp: interactionController.handlePointerUp,
-                        onPointerCancel: (event) {
-                          interactionController.handlePointerCancel(event);
-                          _mousePositionNotifier.value = null;
-                        },
-                        onPointerHover: (event) {
-                          interactionController.handlePointerHover(event);
-                          _mousePositionNotifier.value = event.localPosition;
-                        },
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final viewport = constraints.biggest;
+                      child: child,
+                    );
+                  },
+                  child: Listener(
+                    onPointerDown: interactionController.handlePointerDown,
+                    onPointerMove: (event) {
+                      interactionController.handlePointerMove(event);
+                      _mousePositionNotifier.value = event.localPosition;
+                    },
+                    onPointerUp: interactionController.handlePointerUp,
+                    onPointerCancel: (event) {
+                      interactionController.handlePointerCancel(event);
+                      _mousePositionNotifier.value = null;
+                    },
+                    onPointerHover: (event) {
+                      interactionController.handlePointerHover(event);
+                      _mousePositionNotifier.value = event.localPosition;
+                    },
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final viewport = constraints.biggest;
 
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (context.mounted) {
+                            viewportController.updateViewportSize(viewport);
+                          }
+                        });
+
+                        if (!_hasInitialFramed && viewport != Size.zero) {
+                          _hasInitialFramed = true;
+                          // Only auto-frame if no saved state was restored
+                          if (!_viewportRestored) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (context.mounted) {
-                                viewportController.updateViewportSize(viewport);
-                              }
+                              viewportController.focusOnBounds(
+                                dataController.canvasBounds.value,
+                              );
                             });
+                          } else {
+                            // Still recalc margins after layout
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              viewportController.recalculateElasticMargins();
+                            });
+                          }
+                        }
 
-                            if (!_hasInitialFramed && viewport != Size.zero) {
-                              _hasInitialFramed = true;
-                              // Only auto-frame if no saved state was restored
-                              if (!_viewportRestored) {
-                                WidgetsBinding.instance.addPostFrameCallback((
-                                  _,
-                                ) {
-                                  viewportController.focusOnBounds(
-                                    dataController.canvasBounds.value,
-                                  );
-                                });
-                              } else {
-                                // Still recalc margins after layout
-                                WidgetsBinding.instance.addPostFrameCallback((
-                                  _,
-                                ) {
-                                  viewportController
-                                      .recalculateElasticMargins();
-                                });
-                              }
-                            }
-
-                            return ValueListenableBuilder<EdgeInsets>(
+                        return ValueListenableBuilder<EdgeInsets>(
+                          valueListenable: viewportController.elasticMargins,
+                          builder: (context, elasticMargins, _) {
+                            return ValueListenableBuilder<bool>(
                               valueListenable:
-                                  viewportController.elasticMargins,
-                              builder: (context, elasticMargins, _) {
-                                return ValueListenableBuilder<bool>(
-                                  valueListenable:
-                                      interactionController.panScaleEnabled,
-                                  builder: (context, panScaleEnabled, child) {
-                                    return CanvasInteractiveViewer(
-                                      transformationController:
-                                          viewportController.transformController,
-                                      constrained: true,
-                                      boundaryMargin: elasticMargins,
-                                      minScale: AppConfig.canvas.minScale,
-                                      maxScale: AppConfig.canvas.maxScale,
-                                      scaleFactor: AppConfig.canvas.scaleFactor,
-                                      panEnabled: panScaleEnabled,
-                                      scaleEnabled: panScaleEnabled,
-                                      onInteractionEnd: (details) {
-                                        viewportController
-                                            .recalculateElasticMargins();
-                                      },
-                                      child: child!,
-                                    );
+                                  interactionController.panScaleEnabled,
+                              builder: (context, panScaleEnabled, child) {
+                                return CanvasInteractiveViewer(
+                                  transformationController:
+                                      viewportController.transformController,
+                                  constrained: true,
+                                  boundaryMargin: elasticMargins,
+                                  minScale: AppConfig.canvas.minScale,
+                                  maxScale: AppConfig.canvas.maxScale,
+                                  scaleFactor: AppConfig.canvas.scaleFactor,
+                                  panEnabled: panScaleEnabled,
+                                  scaleEnabled: panScaleEnabled,
+                                  onInteractionEnd: (details) {
+                                    viewportController
+                                        .recalculateElasticMargins();
                                   },
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      renderState.hideFloatingToolbar();
-                                    },
-                                    onDoubleTap: () {},
-                                    onLongPress: () {},
-                                    child: Stack(
-                                      clipBehavior: Clip.none,
-                                      children: [
-                                        ValueListenableBuilder<
-                                          ViewportStateGrid
-                                        >(
-                                          valueListenable: viewportController
-                                              .viewportStateNotifier,
-                                          builder: (context, state, _) {
-                                            return GridLayer(
-                                              viewportState: state,
-                                              mousePositionNotifier: _mousePositionNotifier,
-                                            );
-                                          },
-                                        ),
-                                        const RelationLayer(),
-                                        const NodeLayer(),
-                                        const OverlayLayer(),
-                                      ],
-                                    ),
-                                  ),
+                                  child: child!,
                                 );
                               },
+                              child: GestureDetector(
+                                onTap: () {
+                                  renderState.hideFloatingToolbar();
+                                },
+                                onDoubleTap: () {},
+                                onLongPress: () {},
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    ValueListenableBuilder<ViewportStateGrid>(
+                                      valueListenable: viewportController
+                                          .viewportStateNotifier,
+                                      builder: (context, state, _) {
+                                        return GridLayer(
+                                          viewportState: state,
+                                          mousePositionNotifier:
+                                              _mousePositionNotifier,
+                                        );
+                                      },
+                                    ),
+                                    const RelationLayer(),
+                                    const NodeLayer(),
+                                    const OverlayLayer(),
+                                  ],
+                                ),
+                              ),
                             );
                           },
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+            child: Stack(
+              children: [
+                // Persistent Floating Overlays
+                // Top Deck Area (Ribbon and tabs below it)
+                Positioned(
+                  top: 60.0,
+                  left: 0,
+                  right: 0,
+                  child: RepaintBoundary(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        CanvasToolRibbon(),
+                        SizedBox(height: 6),
+                        CanvasTabBar(),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Left repository drawer (floating compact card, width 52)
+                Positioned(
+                  top: 178.0,
+                  left: 12,
+                  width: 52,
+                  child: ValueListenableBuilder<bool>(
+                    valueListenable: session.showLeftPanel,
+                    builder: (context, leftVisible, _) {
+                      if (!leftVisible) return const SizedBox.shrink();
+                      return LeftRepositoryDrawer(
+                        activePanel: _activeLeftPanel,
+                        onPanelChanged: (panel) {
+                          setState(() {
+                            _activeLeftPanel = panel;
+                          });
+                        },
+                      );
+                    },
+                  ),
+                ),
+
+                // Left repository panel
+                ValueListenableBuilder<bool>(
+                  valueListenable: session.showLeftPanel,
+                  builder: (context, leftVisible, _) {
+                    final isOpen = _activeLeftPanel != LeftPanelType.none;
+                    // Keep Positioned/AnimatedPositioned clean by evaluating constraints here
+                    return AnimatedPositioned(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      top: 178.0,
+                      left: leftVisible
+                          ? 76.0
+                          : -300.0, // Clean off-screen translation
+                      width: (leftVisible && isOpen) ? 280.0 : 0.0,
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: (leftVisible && isOpen) ? 1.0 : 0.0,
+                        child: ClipRect(
+                          child: UnconstrainedBox(
+                            alignment: Alignment.topLeft,
+                            clipBehavior: Clip.hardEdge,
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minWidth: 280.0,
+                                maxWidth: 280.0,
+                                minHeight: 180,
+                                maxHeight: (constraints.maxHeight - 178 - 86)
+                                    .clamp(180, 10000)
+                                    .toDouble(),
+                              ),
+                              child: _buildLeftPanelContent(),
+                            ),
+                          ),
                         ),
                       ),
                     );
                   },
                 ),
-              child: Stack(
-                children: [
-                  // Persistent Floating Overlays
-                  // Top Deck Area (Ribbon and tabs below it)
-                  Positioned(
-                    top: 60.0,
-                    left: 0,
-                    right: 0,
-                    child: RepaintBoundary(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          CanvasToolRibbon(),
-                          SizedBox(height: 6),
-                          CanvasTabBar(),
-                        ],
-                      ),
-                    ),
-                  ),
 
-                  // Left repository drawer (floating compact card, width 52)
-                  ValueListenableBuilder<bool>(
-                    valueListenable: session.showLeftPanel,
-                    builder: (context, leftVisible, _) {
-                      if (!leftVisible) return const SizedBox.shrink();
-                      return Positioned(
-                        top: 178.0,
-                        left: 12,
-                        width: 52,
-                        child: LeftRepositoryDrawer(
-                          activePanel: _activeLeftPanel,
-                          onPanelChanged: (panel) {
-                            setState(() {
-                              _activeLeftPanel = panel;
-                            });
-                          },
-                        ),
-                      );
-                    },
-                  ),
-
-                  // Left repository panel (opens to the right of the left drawer)
-                  ValueListenableBuilder<bool>(
-                    valueListenable: session.showLeftPanel,
-                    builder: (context, leftVisible, _) {
-                      if (!leftVisible) return const SizedBox.shrink();
-                      final isOpen = _activeLeftPanel != LeftPanelType.none;
-                      return AnimatedPositioned(
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOut,
-                        top: 178.0,
-                        left: 76.0,
-                        width: isOpen ? 280.0 : 0.0,
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 200),
-                          opacity: isOpen ? 1.0 : 0.0,
-                          child: ClipRect(
-                            child: UnconstrainedBox(
-                              alignment: Alignment.topLeft,
-                              clipBehavior: Clip.hardEdge,
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minWidth: 280.0,
-                                  maxWidth: 280.0,
-                                  minHeight: 180,
-                                  maxHeight: (constraints.maxHeight - 178 - 86).clamp(180, 10000).toDouble(),
-                                ),
-                                child: _buildLeftPanelContent(),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-
-                  // Right property inspector panel
-                  ValueListenableBuilder<bool>(
+                // Right property inspector panel
+                Positioned(
+                  top: 120,
+                  right: 12,
+                  child: ValueListenableBuilder<bool>(
                     valueListenable: session.showRightPanel,
                     builder: (context, visible, _) {
                       if (!visible) return const SizedBox.shrink();
-                      return Positioned(
-                        top: 120,
-                        right: 12,
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: 180,
-                            maxHeight: (constraints.maxHeight - 120 - 224).clamp(180, 10000).toDouble(),
-                          ),
-                          child: const RightPropertyPanel(),
+                      return ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: 180,
+                          maxHeight: (constraints.maxHeight - 120 - 224)
+                              .clamp(180, 10000)
+                              .toDouble(),
                         ),
+                        child: const RightPropertyPanel(),
                       );
                     },
                   ),
+                ),
 
-                  // Bottom control status bar
-                  ValueListenableBuilder<bool>(
+                // Bottom control status bar
+                Positioned(
+                  bottom: 12,
+                  left: 12,
+                  right: 12,
+                  child: ValueListenableBuilder<bool>(
                     valueListenable: session.showBottomPanel,
                     builder: (context, visible, _) {
                       if (!visible) return const SizedBox.shrink();
-                      return const Positioned(
-                        bottom: 12,
-                        left: 12,
-                        right: 12,
-                        child: CanvasStatusBar(),
-                      );
+                      return const CanvasStatusBar();
                     },
                   ),
+                ),
 
-                  // Floating Contextual Toolbar Overlay (in screen coordinates)
-                  if (renderState.selectedEntities.isNotEmpty)
-                    _buildContextToolbarOverlay(
-                      context,
-                      renderState,
-                      dataController,
-                      viewportController,
-                    ),
-                ],
-              ),
-            );
-          },
-        ),
+                // Floating Contextual Toolbar Overlay (in screen coordinates)
+                if (renderState.selectedEntities.isNotEmpty)
+                  _buildContextToolbarOverlay(
+                    context,
+                    renderState,
+                    dataController,
+                    viewportController,
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -472,7 +484,11 @@ class _GraphCanvasState extends State<GraphCanvas>
       builder: (context, _) {
         Offset anchor = Offset.zero;
         if (selectedViewStates.isNotEmpty || selectedRelations.isNotEmpty) {
-          anchor = renderState.calculateToolbarAnchor(renderState.selectedEntities) ?? Offset.zero;
+          anchor =
+              renderState.calculateToolbarAnchor(
+                renderState.selectedEntities,
+              ) ??
+              Offset.zero;
         }
 
         final offset = offsetNotifier.value;
@@ -480,13 +496,18 @@ class _GraphCanvasState extends State<GraphCanvas>
 
         // Project canvas coordinate to screen coordinates using viewport matrix
         final matrix = viewportController.transformController.value;
-        final screenPosition = MatrixUtils.transformPoint(matrix, canvasPosition);
+        final screenPosition = MatrixUtils.transformPoint(
+          matrix,
+          canvasPosition,
+        );
 
         final nodeIds = renderState.selectedEntities
             .where((id) => dataController.nodeLookup.containsKey(id))
             .toList();
         final canSaveTemplate = nodeIds.isNotEmpty;
-        final String? singleNodeId = (!isMulti && nodeIds.length == 1) ? nodeIds.first : null;
+        final String? singleNodeId = (!isMulti && nodeIds.length == 1)
+            ? nodeIds.first
+            : null;
 
         return Positioned(
           left: screenPosition.dx - 340,
@@ -507,7 +528,8 @@ class _GraphCanvasState extends State<GraphCanvas>
             },
             onRelationStrokePatternChanged: (pattern) {
               for (final rel in selectedRelations) {
-                final currentStyle = rel.style ?? RelationStyleStrategy.resolveStyle(rel);
+                final currentStyle =
+                    rel.style ?? RelationStyleStrategy.resolveStyle(rel);
                 dataController.updateRelationStyle(
                   rel.id,
                   currentStyle.copyWith(strokePattern: pattern),
@@ -550,7 +572,9 @@ class _GraphCanvasState extends State<GraphCanvas>
             onToggleFontFamily: () {
               if (singleNodeId != null) {
                 _updateNodeStyle(singleNodeId, dataController, (style) {
-                  final nextFont = style.fontFamily == 'Roboto' ? 'Inter' : 'Roboto';
+                  final nextFont = style.fontFamily == 'Roboto'
+                      ? 'Inter'
+                      : 'Roboto';
                   return style.copyWith(fontFamily: nextFont);
                 });
               }
@@ -589,7 +613,11 @@ class _GraphCanvasState extends State<GraphCanvas>
                   .toList();
               final name = await showSaveTemplateDialog(context);
               if (name != null) {
-                await dataController.saveTemplateFromSelection(name, nodeIds, relationIds);
+                await dataController.saveTemplateFromSelection(
+                  name,
+                  nodeIds,
+                  relationIds,
+                );
               }
             },
             dragHandle: Padding(

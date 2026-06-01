@@ -6,12 +6,7 @@ class GlassGroup extends StatefulWidget {
   final GlassSettings? settings;
   final GlassMode? mode;
 
-  const GlassGroup({
-    super.key,
-    required this.child,
-    this.settings,
-    this.mode,
-  });
+  const GlassGroup({super.key, required this.child, this.settings, this.mode});
 
   @override
   State<GlassGroup> createState() => _GlassGroupState();
@@ -26,7 +21,9 @@ class _GlassGroupState extends State<GlassGroup> {
     if (GlassShaderProvider.shaderProgram != null) {
       _program = GlassShaderProvider.shaderProgram;
     } else {
-      ui.FragmentProgram.fromAsset(GlassShaderProvider.shaderAssetPath).then((program) {
+      ui.FragmentProgram.fromAsset(GlassShaderProvider.shaderAssetPath).then((
+        program,
+      ) {
         if (mounted) {
           setState(() => _program = program);
         }
@@ -37,8 +34,10 @@ class _GlassGroupState extends State<GlassGroup> {
   @override
   Widget build(BuildContext context) {
     final stageScope = _GlassBackdropScope.maybeOf(context);
-    final resolvedSettings = widget.settings ?? stageScope?.settings ?? const GlassSettings();
-    final resolvedMode = widget.mode ?? stageScope?.mode ?? GlassMode.performance;
+    final resolvedSettings =
+        widget.settings ?? stageScope?.settings ?? const GlassSettings();
+    final resolvedMode =
+        widget.mode ?? stageScope?.mode ?? GlassMode.performance;
 
     final body = _GlassGroupScope(
       settings: resolvedSettings,
@@ -60,16 +59,23 @@ class _GlassGroupState extends State<GlassGroup> {
     GlassSettings resolvedSettings,
     GlassMode resolvedMode,
   ) {
-    if (_program == null || stageScope == null || resolvedMode == GlassMode.performance) {
+    if (_program == null || resolvedMode == GlassMode.performance) {
+      return widget.child;
+    }
+
+    final bool nativeShaderSupported = ui.ImageFilter.isShaderFilterSupported &&
+        !resolvedSettings.forceCpuFallback;
+
+    if (stageScope == null && !nativeShaderSupported) {
       return widget.child;
     }
 
     return _GlassGroupRenderObject(
       shader: _program!.fragmentShader(),
       settings: resolvedSettings,
-      repaint: stageScope.repaint,
-      backdropImage: stageScope.backdropImage,
-      backdropLogicalSize: stageScope.backdropLogicalSize,
+      repaint: null, // Stage now drives repaints via setState→updateRenderObject
+      backdropImage: stageScope?.backdropImage,
+      backdropLogicalSize: stageScope?.backdropLogicalSize,
       child: widget.child,
     );
   }
@@ -201,14 +207,14 @@ class _RenderGlassGroup extends RenderProxyBox {
     Listenable? externalRepaint,
     ui.Image? backdropImage,
     Size? backdropLogicalSize,
-  })  : _devicePixelRatio = devicePixelRatio,
-        _screenSize = screenSize,
-        _shader = shader,
-        _settings = settings,
-        _scrollPosition = position,
-        _externalRepaint = externalRepaint,
-        _backdropImage = backdropImage,
-        _backdropLogicalSize = backdropLogicalSize;
+  }) : _devicePixelRatio = devicePixelRatio,
+       _screenSize = screenSize,
+       _shader = shader,
+       _settings = settings,
+       _scrollPosition = position,
+       _externalRepaint = externalRepaint,
+       _backdropImage = backdropImage,
+       _backdropLogicalSize = backdropLogicalSize;
 
   set screenSize(Size v) {
     if (_screenSize == v) return;
@@ -307,17 +313,6 @@ class _RenderGlassGroup extends RenderProxyBox {
   @override
   bool get alwaysNeedsCompositing => true;
 
-  bool get _hasUsableBackdrop {
-    final image = _backdropImage;
-    final logicalSize = _backdropLogicalSize;
-    if (image == null || logicalSize == null || logicalSize.isEmpty) {
-      return false;
-    }
-
-    return (logicalSize.width - size.width).abs() < 0.5 &&
-        (logicalSize.height - size.height).abs() < 0.5;
-  }
-
   ui.Path? _cachedLocalUnifiedPath;
   List<Rect>? _cachedLocalRects;
   double? _cachedBlendPx;
@@ -340,7 +335,7 @@ class _RenderGlassGroup extends RenderProxyBox {
     return true;
   }
 
-  @override
+    @override
   void paint(PaintingContext context, Offset offset) {
     final activeShapes = registeredShapes
         .where((shape) => shape.attached && !shape.size.isEmpty)
@@ -350,95 +345,134 @@ class _RenderGlassGroup extends RenderProxyBox {
       return;
     }
 
-    final hasShaderSupport =
-        ui.ImageFilter.isShaderFilterSupported && !_settings.forceCpuFallback;
+    final bool nativeShaderSupported = ui.ImageFilter.isShaderFilterSupported &&
+        !_settings.forceCpuFallback;
 
-    if (!hasShaderSupport) {
-      final localRects = activeShapes.map(_localRectForShape).toList();
-      final localShapes = <ShapeData>[];
-      for (var i = 0; i < activeShapes.length; i++) {
-        localShapes.add(_shapeDataForRect(activeShapes[i], localRects[i], 1.0));
-      }
+    final inflatedBounds = _inflatedBoundsForPaint();
+    final localShapes = activeShapes.map((shape) {
+      final localRect = _localRectForShape(shape);
+      return _shapeDataForRect(shape, localRect, _devicePixelRatio);
+    }).toList();
 
-      final ui.Path localUnifiedPath;
-      if (_isLocalPathCacheValid(localRects)) {
-        localUnifiedPath = _cachedLocalUnifiedPath!;
-      } else {
-        localUnifiedPath = _buildLocalUnifiedPath(localShapes, localRects);
-        _cachedLocalUnifiedPath = localUnifiedPath;
-        _cachedLocalRects = localRects;
-        _cachedBlendPx = _settings.blendPx;
-      }
+    final boundaryTransform = getTransformTo(null);
+    final globalTopLeft = MatrixUtils.transformPoint(
+      boundaryTransform,
+      Offset.zero,
+    );
 
-      if (_hasUsableBackdrop && !_settings.forceCpuFallback) {
-        _paintCapturedSkiaShader(context, offset, localShapes);
-      } else {
-        _paintDecorativeSkiaFallback(
-          context,
-          offset,
-          localUnifiedPath,
-          localShapes,
-          localRects,
-        );
-      }
+    final uLayerSize = inflatedBounds.size * _devicePixelRatio;
+    final uInflatedOffset = inflatedBounds.topLeft * _devicePixelRatio;
+    final uGlobalOffset = _settings.useLocalCoordinates
+        ? Offset.zero
+        : (globalTopLeft * _devicePixelRatio);
+
+    if (nativeShaderSupported) {
+      _configureShader(
+        _shader,
+        pathMode: 0.0,
+        layerSize: uLayerSize,
+        inflatedOffset: uInflatedOffset,
+        globalOffset: uGlobalOffset,
+        bgSize: uLayerSize,
+        shapes: localShapes,
+        pixelScale: _devicePixelRatio,
+      );
+
+      context.pushClipRect(
+        true,
+        offset,
+        inflatedBounds,
+        (innerCtx, innerOffset) {
+          innerCtx.pushLayer(
+            BackdropFilterLayer(filter: ui.ImageFilter.shader(_shader)),
+            (filterCtx, filterOffset) {
+              filterCtx.canvas.drawRect(
+                inflatedBounds.shift(filterOffset),
+                Paint()..color = const Color(0x01000000),
+              );
+              super.paint(filterCtx, filterOffset);
+            },
+            innerOffset,
+          );
+        },
+      );
+      return;
+    }
+
+    final backdropImage = _backdropImage;
+    final backdropLogicalSize = _backdropLogicalSize;
+
+    if (backdropImage != null && backdropLogicalSize != null) {
+      final physicalScreenSize = backdropLogicalSize * _devicePixelRatio;
+
+      _configureShader(
+        _shader,
+        pathMode: 1.0,
+        layerSize: uLayerSize,
+        inflatedOffset: uInflatedOffset,
+        globalOffset: uGlobalOffset,
+        bgSize: physicalScreenSize,
+        shapes: localShapes,
+        pixelScale: _devicePixelRatio,
+      );
+
+      _shader.setImageSampler(0, backdropImage);
+
+      final drawBounds = inflatedBounds.shift(offset);
+      final localDrawBounds = Offset.zero & drawBounds.size;
+
+      context.canvas.save();
+      context.canvas.translate(drawBounds.left, drawBounds.top);
+      context.canvas.clipRect(localDrawBounds);
+      context.canvas.saveLayer(localDrawBounds, Paint());
+      context.canvas.drawRect(localDrawBounds, Paint()..shader = _shader);
+      context.canvas.restore();
+      context.canvas.restore();
 
       super.paint(context, offset);
       return;
     }
 
-    final useLocal = _settings.useLocalCoordinates;
-
-    if (useLocal) {
-      final localRects = activeShapes.map(_localRectForShape).toList();
-      final localShapes = <ShapeData>[];
-      for (var i = 0; i < activeShapes.length; i++) {
-        localShapes.add(_shapeDataForRect(activeShapes[i], localRects[i], 1.0));
-      }
-
-      _configureShader(
-        _shader,
-        shaderSize: size,
-        bounds: Offset.zero & size,
-        shapes: localShapes,
-        pixelScale: 1.0,
-      );
-    } else {
-      final boundaryTransform = getTransformTo(null);
-      final boundary = MatrixUtils.transformRect(
-        boundaryTransform,
-        Offset.zero & size,
-      );
-
-      final globalShapes = activeShapes
-          .map((shape) => _shapeDataForRect(
-                shape,
-                _globalRectForShape(shape),
-                _devicePixelRatio,
-              ))
-          .toList();
-
-      _configureShader(
-        _shader,
-        shaderSize: _screenSize,
-        bounds: boundary,
-        shapes: globalShapes,
-        pixelScale: _devicePixelRatio,
-      );
+    // =========================================================================
+    // PATH C: PURE CPU FALLBACK (If image capture is not initialized yet)
+    // =========================================================================
+    final localRects = activeShapes.map(_localRectForShape).toList();
+    final fallbackLocalShapes = <ShapeData>[];
+    for (var i = 0; i < activeShapes.length; i++) {
+      fallbackLocalShapes.add(_shapeDataForRect(activeShapes[i], localRects[i], 1.0));
     }
 
-    context.pushLayer(
-      BackdropFilterLayer(filter: ui.ImageFilter.shader(_shader)),
-      super.paint,
+    final ui.Path localUnifiedPath;
+    if (_isLocalPathCacheValid(localRects)) {
+      localUnifiedPath = _cachedLocalUnifiedPath!;
+    } else {
+      localUnifiedPath = _buildLocalUnifiedPath(fallbackLocalShapes, localRects);
+      _cachedLocalUnifiedPath = localUnifiedPath;
+      _cachedLocalRects = localRects;
+      _cachedBlendPx = _settings.blendPx;
+    }
+
+    _paintDecorativeSkiaFallback(
+      context,
       offset,
+      localUnifiedPath,
+      fallbackLocalShapes,
+      localRects,
     );
+
+    super.paint(context, offset);
   }
 
-  Rect _globalRectForShape(RenderGlassShape shape) {
-    return MatrixUtils.transformRect(
-      shape.getTransformTo(null),
-      Offset.zero & shape.size,
-    );
+
+  /// Returns the widget's logical bounds inflated by enough margin for the
+  /// refraction and blur vectors to always land on valid texture memory.
+  /// Note: blurRadiusPx is intentionally excluded — it samples existing pixels
+  /// centripetally and does not need outward texture headroom.
+  Rect _inflatedBoundsForPaint() {
+    final inflation = _settings.distortFalloffPx + _settings.blendPx;
+    return (Offset.zero & size).inflate(inflation);
   }
+
 
   Rect _localRectForShape(RenderGlassShape shape) {
     return MatrixUtils.transformRect(
@@ -453,8 +487,11 @@ class _RenderGlassGroup extends RenderProxyBox {
     double pixelScale,
   ) {
     final scaledBorderRadius = shape.borderRadius * pixelScale;
-    final maxRadius = math.min(rect.width * pixelScale, rect.height * pixelScale) / 2.0;
-    final clampedRadius = scaledBorderRadius > maxRadius ? maxRadius : scaledBorderRadius;
+    final maxRadius =
+        math.min(rect.width * pixelScale, rect.height * pixelScale) / 2.0;
+    final clampedRadius = scaledBorderRadius > maxRadius
+        ? maxRadius
+        : scaledBorderRadius;
     return ShapeData(
       rect.center * pixelScale,
       rect.size * pixelScale,
@@ -465,77 +502,70 @@ class _RenderGlassGroup extends RenderProxyBox {
 
   void _configureShader(
     ui.FragmentShader shader, {
-    required Size shaderSize,
-    required Rect bounds,
+    required double pathMode,
+    required Size layerSize,
+    required Offset inflatedOffset,
+    required Offset globalOffset,
+    required Size bgSize,
     required List<ShapeData> shapes,
     required double pixelScale,
   }) {
-    shader.setFloat(0, shaderSize.width * pixelScale);
-    shader.setFloat(1, shaderSize.height * pixelScale);
+    var idx = 0;
+    shader.setFloat(idx++, pathMode);
+    shader.setFloat(idx++, layerSize.width);
+    shader.setFloat(idx++, layerSize.height);
+    shader.setFloat(idx++, inflatedOffset.dx);
+    shader.setFloat(idx++, inflatedOffset.dy);
+    shader.setFloat(idx++, globalOffset.dx);
+    shader.setFloat(idx++, globalOffset.dy);
+    shader.setFloat(idx++, bgSize.width);
+    shader.setFloat(idx++, bgSize.height);
 
-    var idx = 2;
+    shader.setFloat(idx++, _settings.blendPx * pixelScale);
+    shader.setFloat(idx++, _settings.refractStrength);
+    shader.setFloat(idx++, _settings.distortFalloffPx * pixelScale);
+    shader.setFloat(idx++, _settings.distortExponent);
+    shader.setFloat(idx++, _settings.blurRadiusPx * pixelScale);
+    shader.setFloat(idx++, _settings.specAngle);
+    shader.setFloat(idx++, _settings.specStrength);
+    shader.setFloat(idx++, _settings.specPower);
+    shader.setFloat(idx++, _settings.specWidth * pixelScale);
+    shader.setFloat(idx++, _settings.lightbandOffsetPx * pixelScale);
+    shader.setFloat(idx++, _settings.lightbandWidthPx * pixelScale);
+    shader.setFloat(idx++, _settings.lightbandStrength);
+    shader.setFloat(idx++, _settings.lightbandColor.r);
+    shader.setFloat(idx++, _settings.lightbandColor.g);
+    shader.setFloat(idx++, _settings.lightbandColor.b);
+    shader.setFloat(idx++, 1.5 * pixelScale);
+
     final rectCount = shapes.length < maxRects ? shapes.length : maxRects;
-
-    shader
-      ..setFloat(idx++, bounds.left * pixelScale)
-      ..setFloat(idx++, bounds.top * pixelScale)
-      ..setFloat(idx++, bounds.right * pixelScale)
-      ..setFloat(idx++, bounds.bottom * pixelScale)
-      ..setFloat(idx++, _settings.blendPx * pixelScale)
-      ..setFloat(idx++, _settings.refractStrength)
-      ..setFloat(idx++, _settings.distortFalloffPx * pixelScale)
-      ..setFloat(idx++, _settings.distortExponent)
-      ..setFloat(idx++, _settings.blurRadiusPx * pixelScale)
-      ..setFloat(idx++, _settings.specAngle)
-      ..setFloat(idx++, _settings.specStrength)
-      ..setFloat(idx++, _settings.specPower)
-      ..setFloat(idx++, _settings.specWidth * pixelScale)
-      ..setFloat(idx++, _settings.lightbandOffsetPx * pixelScale)
-      ..setFloat(idx++, _settings.lightbandWidthPx * pixelScale)
-      ..setFloat(idx++, _settings.lightbandStrength)
-      ..setFloat(idx++, _settings.lightbandColor.r)
-      ..setFloat(idx++, _settings.lightbandColor.g)
-      ..setFloat(idx++, _settings.lightbandColor.b)
-      ..setFloat(idx++, 1.0 * pixelScale)
-      ..setFloat(idx++, rectCount.toDouble())
-      ..setFloat(idx++, _settings.bridgeThicknessFactor);
-
-    final safeRy = math.max(shaderSize.height * pixelScale, 0.001);
+    shader.setFloat(idx++, rectCount.toDouble());
+    shader.setFloat(idx++, _settings.bridgeThicknessFactor);
 
     for (var i = 0; i < maxRects; i++) {
       final shape = i < rectCount ? shapes[i] : null;
       if (shape != null) {
-        final posNdx = (shape.center.dx - (shaderSize.width * pixelScale) * 0.5) / safeRy;
-        final posNdy = (shape.center.dy - (shaderSize.height * pixelScale) * 0.5) / safeRy;
-        final hszW = shape.size.width * 0.5 / safeRy;
-        final hszH = shape.size.height * 0.5 / safeRy;
-        final corner = shape.borderRadius / safeRy;
-        shader
-          ..setFloat(idx++, posNdx)
-          ..setFloat(idx++, posNdy)
-          ..setFloat(idx++, hszW)
-          ..setFloat(idx++, hszH)
-          ..setFloat(idx++, corner)
-          ..setFloat(idx++, shape.color.r)
-          ..setFloat(idx++, shape.color.g)
-          ..setFloat(idx++, shape.color.b)
-          ..setFloat(idx++, shape.color.a);
+        shader.setFloat(idx++, shape.center.dx);
+        shader.setFloat(idx++, shape.center.dy);
+        shader.setFloat(idx++, shape.size.width * 0.5);
+        shader.setFloat(idx++, shape.size.height * 0.5);
+        shader.setFloat(idx++, shape.borderRadius);
+        shader.setFloat(idx++, shape.color.r);
+        shader.setFloat(idx++, shape.color.g);
+        shader.setFloat(idx++, shape.color.b);
+        shader.setFloat(idx++, shape.color.a);
       } else {
-        shader
-          ..setFloat(idx++, 0.0)
-          ..setFloat(idx++, 0.0)
-          ..setFloat(idx++, 0.0)
-          ..setFloat(idx++, 0.0)
-          ..setFloat(idx++, 0.0)
-          ..setFloat(idx++, 0.0)
-          ..setFloat(idx++, 0.0)
-          ..setFloat(idx++, 0.0)
-          ..setFloat(idx++, 0.0);
+        for (var j = 0; j < 9; j++) {
+          shader.setFloat(idx++, 0.0);
+        }
       }
     }
   }
 
-  ui.Path _buildLocalUnifiedPath(List<ShapeData> localShapes, List<Rect> localRects) {
+  ui.Path _buildLocalUnifiedPath(
+    List<ShapeData> localShapes,
+    List<Rect> localRects,
+  ) {
     var localUnifiedPath = ui.Path();
 
     for (var i = 0; i < localShapes.length; i++) {
@@ -554,29 +584,6 @@ class _RenderGlassGroup extends RenderProxyBox {
     }
 
     return localUnifiedPath;
-  }
-
-  void _paintCapturedSkiaShader(
-    PaintingContext context,
-    Offset offset,
-    List<ShapeData> localShapes,
-  ) {
-    final image = _backdropImage;
-    if (image == null) return;
-
-    _configureShader(
-      _shader,
-      shaderSize: size,
-      bounds: Offset.zero & size,
-      shapes: localShapes,
-      pixelScale: 1.0,
-    );
-    _shader.setImageSampler(0, image);
-
-    context.canvas.save();
-    context.canvas.translate(offset.dx, offset.dy);
-    context.canvas.drawRect(Offset.zero & size, Paint()..shader = _shader);
-    context.canvas.restore();
   }
 
   void _paintDecorativeSkiaFallback(
@@ -611,7 +618,12 @@ class _RenderGlassGroup extends RenderProxyBox {
     final globalUnifiedPath = localUnifiedPath.shift(offset);
     context.canvas.save();
     context.canvas.clipPath(globalUnifiedPath);
-    _drawDirectionalSpecular(context.canvas, offset, globalUnifiedPath, localRects);
+    _drawDirectionalSpecular(
+      context.canvas,
+      offset,
+      globalUnifiedPath,
+      localRects,
+    );
     context.canvas.restore();
     _drawRimHighlight(context.canvas, globalUnifiedPath);
   }
@@ -630,7 +642,9 @@ class _RenderGlassGroup extends RenderProxyBox {
         Radius.circular(shapeData.borderRadius),
       );
       final paint = Paint()
-        ..color = shapeData.color.withValues(alpha: _settings.fallbackTintAlpha);
+        ..color = shapeData.color.withValues(
+          alpha: _settings.fallbackTintAlpha,
+        );
 
       context.canvas.drawRRect(rrect, paint);
     }
@@ -642,8 +656,11 @@ class _RenderGlassGroup extends RenderProxyBox {
     ui.Path globalUnifiedPath,
     List<Rect> localRects,
   ) {
-    final specAlpha = (_settings.specStrength / _settings.specularStrengthDivisor)
-        .clamp(0.0, _settings.maxSpecularAlpha);
+    final specAlpha =
+        (_settings.specStrength / _settings.specularStrengthDivisor).clamp(
+          0.0,
+          _settings.maxSpecularAlpha,
+        );
     if (specAlpha <= 0.0) return;
 
     for (var i = 0; i < localRects.length; i++) {
@@ -654,7 +671,8 @@ class _RenderGlassGroup extends RenderProxyBox {
         _settings.maxSpecularAngularWidth,
       );
       final strokeWidth =
-          (_settings.lightbandWidthPx * _settings.specularStrokeWidthScale).clamp(1.0, 4.0);
+          (_settings.lightbandWidthPx * _settings.specularStrokeWidthScale)
+              .clamp(1.0, 4.0);
 
       final paint = Paint()
         ..style = PaintingStyle.stroke
@@ -688,7 +706,8 @@ class _RenderGlassGroup extends RenderProxyBox {
     if (bounds.isEmpty) return;
 
     final strokeWidth =
-        (_settings.lightbandWidthPx * _settings.rimHighlightStrokeWidthScale).clamp(1.0, 3.0);
+        (_settings.lightbandWidthPx * _settings.rimHighlightStrokeWidthScale)
+            .clamp(1.0, 3.0);
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth

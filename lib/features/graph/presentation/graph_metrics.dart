@@ -162,9 +162,10 @@ class _LiquidGlass {
   const _LiquidGlass();
 
   final GlassSettings settings = const GlassSettings(
-    refractStrength: 2,
+    refractStrength: 0.8,
     bridgeReachFactor: 2.0,
     bridgeThicknessFactor: 1.0,
+    useLocalCoordinates: true,
   );
 }
 
