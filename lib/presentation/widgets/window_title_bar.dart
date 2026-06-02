@@ -1,11 +1,11 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import '../../features/graph/presentation/workspace_tabs_controller.dart';
 import '../../features/graph/store/graph_data_controller.dart';
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'search_command_palette.dart';
 
 class SimpleWindowTitleBar extends StatelessWidget {
@@ -79,21 +79,17 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
       ),
     );
 
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
-        child: Container(
-          height: 40,
-          decoration: BoxDecoration(
-            color: theme.cardColor.withValues(alpha: 0.65),
-            border: Border(
-              bottom: BorderSide(
-                color: theme.dividerColor.withValues(alpha: 0.2),
-                width: 0.8,
-              ),
-            ),
-          ),
-          child: Row(
+    return GlassPanel(
+      borderRadius: 0,
+      blur: 16.0,
+      color: theme.cardColor.withValues(alpha: 0.65),
+      height: 40,
+      shadow: BoxShadow(
+        color: theme.dividerColor.withValues(alpha: 0.2),
+        blurRadius: 0,
+        offset: const Offset(0, 1),
+      ),
+      child: Row(
         children: [
           // Logo & Standard Menu Options
           Container(
@@ -379,7 +375,7 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
           ),
         ],
       ),
-    ),),);
+    );
   }
 }
 

@@ -29,6 +29,7 @@ class GlassSettings {
   final double specularStrokeWidthScale;
   final double rimHighlightStrokeWidthScale;
 
+  final double aaPx;
   final bool useLocalCoordinates;
   final bool forceCpuFallback;
 
@@ -55,6 +56,7 @@ class GlassSettings {
     this.maxSpecularAngularWidth = 1.2,
     this.specularStrokeWidthScale = 0.08,
     this.rimHighlightStrokeWidthScale = 0.06,
+    this.aaPx = 1.5,
     this.useLocalCoordinates = false,
     this.forceCpuFallback = false,
   });
@@ -82,6 +84,7 @@ class GlassSettings {
     double? maxSpecularAngularWidth,
     double? specularStrokeWidthScale,
     double? rimHighlightStrokeWidthScale,
+    double? aaPx,
     bool? useLocalCoordinates,
     bool? forceCpuFallback,
   }) {
@@ -108,6 +111,7 @@ class GlassSettings {
       maxSpecularAngularWidth: maxSpecularAngularWidth ?? this.maxSpecularAngularWidth,
       specularStrokeWidthScale: specularStrokeWidthScale ?? this.specularStrokeWidthScale,
       rimHighlightStrokeWidthScale: rimHighlightStrokeWidthScale ?? this.rimHighlightStrokeWidthScale,
+      aaPx: aaPx ?? this.aaPx,
       useLocalCoordinates: useLocalCoordinates ?? this.useLocalCoordinates,
       forceCpuFallback: forceCpuFallback ?? this.forceCpuFallback,
     );

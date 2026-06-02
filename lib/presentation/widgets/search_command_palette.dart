@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import '../../features/graph/presentation/workspace_tabs_controller.dart';
 import '../../features/graph/models/graph_node.dart';
 import 'search_registry.dart';
@@ -129,25 +129,23 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
             child: TapRegion(
               groupId: 'search_palette_group',
               child: Material(
-                elevation: 8,
-                borderRadius: BorderRadius.circular(12),
-                color: theme.cardColor.withValues(alpha: 0.95),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: theme.dividerColor.withValues(alpha: 0.2),
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      constraints: const BoxConstraints(maxHeight: 300),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
+                elevation: 0,
+                color: Colors.transparent,
+                child: GlassPanel(
+                  borderRadius: 12,
+                  blur: 12,
+                  color: theme.cardColor.withValues(alpha: 0.92),
+                  shadow: BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 300),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                           if (_isLoading)
                             LinearProgressIndicator(
                               minHeight: 2,
@@ -373,19 +371,18 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                                 },
                               ),
                             ),
-                        ],
-                      ),
-                    ),
+                    ],
                   ),
                 ),
               ),
             ),
           ),
-        );
-      },
-    );
+        ),
+      );
+    },
+  );
 
-    overlay.insert(_overlayEntry!);
+  overlay.insert(_overlayEntry!);
   }
 
   void _hideOverlay() {
@@ -491,86 +488,71 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                 _focusNode.requestFocus();
               }
             },
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  curve: hasFocus ? Curves.fastOutSlowIn : Curves.easeOutCubic,
-                  width: hasFocus ? 420.0 : 240.0,
-                  height: 28,
-                  decoration: BoxDecoration(
+            child: GlassPanel(
+              borderRadius: 8,
+              blur: 10.0,
+              duration: const Duration(milliseconds: 250),
+              curve: hasFocus ? Curves.fastOutSlowIn : Curves.easeOutCubic,
+              width: hasFocus ? 420.0 : 240.0,
+              height: 28,
+              color: hasFocus
+                  ? theme.cardColor.withValues(alpha: 0.85)
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.06),
+              shadow: hasFocus
+                  ? BoxShadow(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    )
+                  : null,
+              child: Row(
+                children: [
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.search_rounded,
+                    size: 14,
                     color: hasFocus
-                        ? theme.cardColor.withValues(alpha: 0.85)
-                        : theme.colorScheme.onSurface.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: hasFocus
-                          ? theme.colorScheme.primary.withValues(alpha: 0.5)
-                          : theme.colorScheme.onSurface.withValues(alpha: 0.15),
-                      width: hasFocus ? 1.5 : 1.0,
+                        ? theme.colorScheme.primary
+                        : theme.iconTheme.color?.withValues(alpha: 0.4),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      focusNode: _focusNode,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontSize: 12,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: "Search ('>' cmd, '#' tag, '?' db)...",
+                        hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.hintColor.withValues(alpha: 0.7),
+                          fontSize: 12,
+                        ),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
                     ),
-                    boxShadow: hasFocus
-                        ? [
-                            BoxShadow(
-                              color: theme.colorScheme.primary.withValues(alpha: 0.2),
-                              blurRadius: 8,
-                              spreadRadius: 1,
-                            ),
-                          ]
-                        : [],
                   ),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 8),
-                      Icon(
-                        Icons.search_rounded,
-                        size: 14,
-                        color: hasFocus
-                            ? theme.colorScheme.primary
-                            : theme.iconTheme.color?.withValues(alpha: 0.4),
+                  if (hasFocus)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      margin: const EdgeInsets.only(right: 6),
+                      decoration: BoxDecoration(
+                        color: theme.dividerColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          focusNode: _focusNode,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontSize: 12,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: "Search ('>' cmd, '#' tag, '?' db)...",
-                            hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.hintColor.withValues(alpha: 0.7),
-                              fontSize: 12,
-                            ),
-                            border: InputBorder.none,
-                            isDense: true,
-                            contentPadding: EdgeInsets.zero,
-                          ),
+                      child: Text(
+                        'Ctrl P',
+                        style: TextStyle(
+                          fontSize: 8,
+                          color: theme.hintColor,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (hasFocus)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          margin: const EdgeInsets.only(right: 6),
-                          decoration: BoxDecoration(
-                            color: theme.dividerColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'Ctrl P',
-                            style: TextStyle(
-                              fontSize: 8,
-                              color: theme.hintColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
+                    ),
+                ],
               ),
             ),
           ),

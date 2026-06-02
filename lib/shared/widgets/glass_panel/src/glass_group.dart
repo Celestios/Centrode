@@ -405,12 +405,17 @@ class _RenderGlassGroup extends RenderProxyBox {
     if (backdropImage != null && backdropLogicalSize != null) {
       final physicalScreenSize = backdropLogicalSize * _devicePixelRatio;
 
+      // BUG FIX: The CPU snapshot path samples a full-screen buffer. UV mapping
+      // fundamentally requires absolute physical screen coordinates — useLocalCoordinates
+      // must not zero-out the origin or every panel maps to the same (0,0) pixel.
+      final absoluteGlobalOffset = globalTopLeft * _devicePixelRatio;
+
       _configureShader(
         _shader,
         pathMode: 1.0,
         layerSize: uLayerSize,
         inflatedOffset: uInflatedOffset,
-        globalOffset: uGlobalOffset,
+        globalOffset: absoluteGlobalOffset,
         bgSize: physicalScreenSize,
         shapes: localShapes,
         pixelScale: _devicePixelRatio,
@@ -536,7 +541,7 @@ class _RenderGlassGroup extends RenderProxyBox {
     shader.setFloat(idx++, _settings.lightbandColor.r);
     shader.setFloat(idx++, _settings.lightbandColor.g);
     shader.setFloat(idx++, _settings.lightbandColor.b);
-    shader.setFloat(idx++, 1.5 * pixelScale);
+    shader.setFloat(idx++, _settings.aaPx * pixelScale);
 
     final rectCount = shapes.length < maxRects ? shapes.length : maxRects;
     shader.setFloat(idx++, rectCount.toDouble());
@@ -625,7 +630,8 @@ class _RenderGlassGroup extends RenderProxyBox {
       localRects,
     );
     context.canvas.restore();
-    _drawRimHighlight(context.canvas, globalUnifiedPath);
+    // FIX: Pass local geometry so the rim highlight can project per-shape
+    _drawRimHighlight(context.canvas, offset, globalUnifiedPath, localRects, localShapes);
   }
 
   void _drawTints(
@@ -698,32 +704,56 @@ class _RenderGlassGroup extends RenderProxyBox {
     }
   }
 
-  void _drawRimHighlight(Canvas canvas, ui.Path globalUnifiedPath) {
+  void _drawRimHighlight(
+    Canvas canvas,
+    Offset offset,
+    ui.Path globalUnifiedPath,
+    List<Rect> localRects,
+    List<ShapeData> localShapes,
+  ) {
     final alpha = _settings.lightbandStrength.clamp(0.0, 1.0);
     if (alpha <= 0.0) return;
-
-    final bounds = globalUnifiedPath.getBounds();
-    if (bounds.isEmpty) return;
 
     final strokeWidth =
         (_settings.lightbandWidthPx * _settings.rimHighlightStrokeWidthScale)
             .clamp(1.0, 3.0);
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeJoin = StrokeJoin.round
-      ..strokeCap = StrokeCap.round
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          _settings.lightbandColor.withValues(alpha: alpha * 0.7),
-          _settings.lightbandColor.withValues(alpha: alpha * 0.2),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.35, 1.0],
-      ).createShader(bounds);
 
-    canvas.drawPath(globalUnifiedPath, paint);
+    canvas.save();
+    // Clip to the unified path so only the inner half of each doubled stroke
+    // is visible — equivalent to an inner stroke without a dedicated path op.
+    canvas.clipPath(globalUnifiedPath);
+
+    for (var i = 0; i < localRects.length; i++) {
+      final rect = localRects[i].shift(offset);
+      final shapeData = localShapes[i];
+
+      // Anchor the SweepGradient to each individual shape rect so the
+      // gradient centre and radius are local — the correct fix for the
+      // macro-gradient corner clipping that affected the unified-bounds approach.
+      final paint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth * 2.0 // doubled; outer half clipped above
+        ..strokeJoin = StrokeJoin.round
+        ..strokeCap = StrokeCap.round
+        ..shader = SweepGradient(
+          center: Alignment.center,
+          colors: [
+            _settings.lightbandColor.withValues(alpha: alpha * 0.7),
+            _settings.lightbandColor.withValues(alpha: 0.0),
+            _settings.lightbandColor.withValues(alpha: 0.0),
+            _settings.lightbandColor.withValues(alpha: alpha * 0.7),
+          ],
+          stops: const [0.0, 0.3, 0.7, 1.0],
+          transform: GradientRotation(_settings.specAngle),
+        ).createShader(rect);
+
+      final rrect = RRect.fromRectAndRadius(
+        rect,
+        Radius.circular(shapeData.borderRadius),
+      );
+      canvas.drawRRect(rrect, paint);
+    }
+
+    canvas.restore();
   }
 }

@@ -150,11 +150,36 @@ class _GlassPanelBody extends StatelessWidget {
       return panelChild;
     }
 
+    final performanceShadows = <BoxShadow>[
+      if (shadow != null) shadow!,
+      BoxShadow(
+        color: Colors.white.withValues(alpha: 0.18),
+        offset: const Offset(1.2, 1.2),
+        blurRadius: 2.0,
+        spreadRadius: 0.0,
+        blurStyle: BlurStyle.inner,
+      ),
+      BoxShadow(
+        color: Colors.black.withValues(alpha: 0.10),
+        offset: const Offset(-1.2, -1.2),
+        blurRadius: 2.0,
+        spreadRadius: 0.0,
+        blurStyle: BlurStyle.inner,
+      ),
+    ];
+
     final decoration = BoxDecoration(
-      color: resolvedColor.withValues(alpha: 0.12),
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          resolvedColor.withValues(alpha: 0.18),
+          resolvedColor.withValues(alpha: 0.08),
+        ],
+      ),
       borderRadius: borderRadiusValue,
-      border: Border.all(color: border, width: 1.0),
-      boxShadow: shadow != null ? [shadow!] : null,
+      border: Border.all(color: border.withValues(alpha: 0.9), width: 0.75),
+      boxShadow: performanceShadows,
     );
 
     final surface = _buildAnimatedSurface(

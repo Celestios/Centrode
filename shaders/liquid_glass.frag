@@ -194,8 +194,17 @@ void main() {
   glass += (pow(max(dot(N3,L1),0.0),uSpecPower) +
             pow(max(dot(N3,L2),0.0),uSpecPower)) * uSpecStrength * rim;
 
-  float lb = smoothstep(0.0, uLightbandWidthPx, dU + uLightbandOffsetPx);
-  glass += uLightbandColor * lb * uLightbandStrength;
+  // Directional rim light: decouple edge-proximity from angular intensity.
+  // 'grad' is already the normalized SDF surface normal (computed above for refraction).
+  // Projecting it against the light direction ensures the highlight traces the
+  // perimeter continuously — the old 1D Cartesian smoothstep sliced a 2D distance
+  // field, which produces triangle artifacts at rounded corners.
+  vec2  rimLightDir  = vec2(cos(uSpecAngle), sin(uSpecAngle));
+  float rimIntensity = max(0.0, dot(grad, rimLightDir));
+  // Band centred on the uLightbandOffsetPx isoline of the SDF.
+  // 1.0 at the exact isoline, falling to 0 over uLightbandWidthPx.
+  float edgeMask     = 1.0 - smoothstep(0.0, uLightbandWidthPx, abs(dU - uLightbandOffsetPx));
+  glass += uLightbandColor * (rimIntensity * edgeMask * uLightbandStrength);
 
   fragColor = vec4(glass * mask, mask);
 }

@@ -175,7 +175,7 @@ class _GraphCanvasState extends State<GraphCanvas>
       child: LayoutBuilder(
         builder: (context, constraints) {
           return GlassStage(
-            mode: GlassMode.quality,
+            mode: GlassMode.performance,
             settings: AppConfig.liquidGlass.settings,
             backdropRepaint: backdropRepaintListenable,
             background: DragTarget<Template>(
