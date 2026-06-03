@@ -5,7 +5,7 @@ import '../../features/graph/models/graph_node.dart';
 import '../../features/graph/models/graph_relation.dart';
 import '../../src/rust/domain/nodes.dart';
 import '../../src/rust/domain/base_models.dart' show BoundingBox;
-import 'command_registry.dart';
+import 'palette_action_registry.dart';
 
 enum SearchResultType { command, node, tag, relation, relationHeader }
 
@@ -60,15 +60,15 @@ class SearchRegistry {
     // 1. Command Palette Prefix ('>')
     if (query.startsWith('>')) {
       final term = query.substring(1).trim().toLowerCase();
-      final commands = CommandRegistry.instance.getCommands(context);
-      return commands
-          .where((cmd) => cmd.title.toLowerCase().contains(term))
-          .map((cmd) => SearchResult(
-                title: cmd.title,
-                subtitle: cmd.subtitle,
-                icon: cmd.icon,
+      final actions = PaletteActionRegistry.instance.getActions(context);
+      return actions
+          .where((act) => act.title.toLowerCase().contains(term))
+          .map((act) => SearchResult(
+                title: act.title,
+                subtitle: act.subtitle,
+                icon: act.icon,
                 type: SearchResultType.command,
-                onSelected: cmd.onSelected,
+                onSelected: act.onSelected,
               ))
           .toList();
     }

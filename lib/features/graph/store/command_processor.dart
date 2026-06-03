@@ -68,7 +68,7 @@ class CommandProcessor {
       final key = _getCompositeKey(cmd);
       try {
         await cmd.execute();
-        if (cmd is MoveNodeCommand) cmd.onSuccess();
+        cmd.onSuccess();
       } catch (e) {
         _log.severe(
           'FFI Synchronization failed for ${cmd.targetId}. Rollback.',

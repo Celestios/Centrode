@@ -59,35 +59,7 @@ class GraphPropertyMutations {
         newSize: node?.size,
         oldVerb: rel == null ? null : effectiveOriginalText,
         newVerb: rel == null ? null : newText,
-        onUndo: () {
-          // Restore exactly the field and dimensions that were changed
-          if (node != null) {
-            node.content = ContentFactory.fromText(effectiveOriginalText);
-            if (preEditSize != null) {
-              node.size = preEditSize;
-            }
-            controller.publishUpdate(GraphEntityUpdate(
-              id: id,
-              tableName: node.tableName,
-              type: GraphUpdateType.text,
-              payload: effectiveOriginalText,
-            ));
-            controller.publishUpdate(GraphEntityUpdate(
-              id: id,
-              tableName: node.tableName,
-              type: GraphUpdateType.size,
-              payload: preEditSize,
-            ));
-          } else if (rel != null) {
-            rel.verb = effectiveOriginalText;
-            controller.publishUpdate(GraphEntityUpdate(
-              id: id,
-              tableName: 'IRelation',
-              type: GraphUpdateType.text,
-              payload: effectiveOriginalText,
-            ));
-          }
-        },
+        controller: controller,
       ),
     );
 
@@ -172,23 +144,7 @@ class GraphPropertyMutations {
         newStyle: newStyle,
         oldSize: oldSize,
         newSize: newSize,
-        onUndo: () {
-          node.style = oldStyle;
-          node.size = oldSize;
-          controller.styleUpdater?.updateStyleForNode(id);
-          controller.publishUpdate(GraphEntityUpdate(
-            id: id,
-            tableName: node.tableName,
-            type: GraphUpdateType.style,
-            payload: oldStyle,
-          ));
-          controller.publishUpdate(GraphEntityUpdate(
-            id: id,
-            tableName: node.tableName,
-            type: GraphUpdateType.size,
-            payload: oldSize,
-          ));
-        },
+        controller: controller,
       ),
     );
 
@@ -222,26 +178,7 @@ class GraphPropertyMutations {
         api: controller.syncEngine.api,
         oldTags: oldTags,
         newTags: newTags,
-        onSuccess: (resolvedTags) {
-          node.tags = resolvedTags;
-          controller.publishUpdate(GraphEntityUpdate(
-            id: id,
-            tableName: node.tableName,
-            type: GraphUpdateType.tags,
-            payload: resolvedTags,
-          ));
-          controller.triggerUpdate();
-        },
-        onUndo: () {
-          node.tags = oldTags;
-          controller.publishUpdate(GraphEntityUpdate(
-            id: id,
-            tableName: node.tableName,
-            type: GraphUpdateType.tags,
-            payload: oldTags,
-          ));
-          controller.triggerUpdate();
-        },
+        controller: controller,
       ),
     );
 
@@ -268,16 +205,8 @@ class GraphPropertyMutations {
         targetId: id,
         api: controller.syncEngine.api,
         node: node,
-        onUndo: () {
-          node.comments = oldComments;
-          controller.publishUpdate(GraphEntityUpdate(
-            id: id,
-            tableName: node.tableName,
-            type: GraphUpdateType.comments,
-            payload: oldComments,
-          ));
-          controller.triggerUpdate();
-        },
+        oldComments: oldComments,
+        controller: controller,
       ),
     );
 
@@ -379,22 +308,8 @@ class GraphPropertyMutations {
       newLayout: updatedRelation.layout,
       oldStyle: oldRelation.style,
       newStyle: newStyle,
-      onUndo: () {
-        _propLog.warning(
-          'Relation style update failed or rejected. Rolling back.',
-        );
-        controller.store.relationLookup[id] = oldRelation;
-        controller.styleUpdater?.updateStyleForRelation(id);
-        controller.publishUpdate(
-          GraphEntityUpdate(
-            id: id,
-            tableName: 'IRelation',
-            type: GraphUpdateType.style,
-            payload: oldRelation.style,
-          ),
-        );
-        controller.triggerUpdate();
-      },
+      oldRelation: oldRelation,
+      controller: controller,
     );
 
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);

@@ -61,21 +61,7 @@ class GraphRelationMutations {
       targetId: relation.id,
       api: controller.syncEngine.api,
       relation: relation,
-      reloadGraph: controller.loadGraph,
-      onUndo: () {
-        _relLog.warning(
-          'Relation creation rejected or failed. Removing relation: ${relation.id}',
-        );
-        controller.store.relationLookup.remove(relation.id);
-        controller.publishUpdate(
-          GraphEntityUpdate(
-            id: relation.id,
-            tableName: 'IRelation',
-            type: GraphUpdateType.relationDeleted,
-          ),
-        );
-        controller.triggerUpdate();
-      },
+      controller: controller,
     );
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
     controller.publishUpdate(
@@ -101,20 +87,8 @@ class GraphRelationMutations {
       targetId: id,
       api: controller.syncEngine.api,
       tableName: 'IRelation',
-      onUndo: () {
-        _relLog.warning('Deletion rejected. Re-hydrating relation: $id');
-        controller.store.relationLookup[id] = relation;
-        controller.publishUpdate(
-          GraphEntityUpdate(
-            id: id,
-            tableName: 'IRelation',
-            type: GraphUpdateType.relationAdded,
-            payload: relation,
-          ),
-        );
-        controller
-            .triggerUpdate(); // Force canvas rebuild to re-mount the rehydrated relation
-      },
+      relation: relation,
+      controller: controller,
     );
 
     // OPTIMISTIC TEARDOWN
@@ -179,21 +153,8 @@ class GraphRelationMutations {
       newLayout: updatedRelation.layout,
       oldStyle: oldRelation.style,
       newStyle: updatedRelation.style,
-      onUndo: () {
-        _relLog.warning(
-          'Relation layout update failed or rejected. Rolling back.',
-        );
-        controller.store.relationLookup[id] = oldRelation;
-        controller.publishUpdate(
-          GraphEntityUpdate(
-            id: id,
-            tableName: 'IRelation',
-            type: GraphUpdateType.relationLayout,
-            payload: oldRelation.layout,
-          ),
-        );
-        controller.triggerUpdate();
-      },
+      oldRelation: oldRelation,
+      controller: controller,
     );
 
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);

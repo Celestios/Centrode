@@ -39,18 +39,7 @@ class GraphNodeMutations {
       targetId: id,
       api: controller.syncEngine.api,
       node: node,
-      onUndo: () {
-        _nodeLog.warning('Creation rejected or failed. Removing node: $id');
-        controller.store.nodeLookup.remove(id);
-        controller.spatial.spatialGrid.remove(id, position);
-        controller.spatial.clearConfirmedPosition(id);
-        controller.publishUpdate(GraphEntityUpdate(
-          id: id,
-          tableName: node.tableName,
-          type: GraphUpdateType.nodeDeleted,
-        ));
-        controller.triggerUpdate();
-      },
+      controller: controller,
     );
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
 
@@ -76,17 +65,8 @@ class GraphNodeMutations {
       targetId: id,
       api: controller.syncEngine.api,
       tableName: node.tableName, // Use canonical name instead of hardcoded string
-      onUndo: () {
-        _nodeLog.warning('Deletion rejected. Re-hydrating node: $id');
-        controller.store.nodeLookup[id] = node;
-        controller.spatial.spatialGrid.insert(id, node.position);
-        controller.publishUpdate(GraphEntityUpdate(
-          id: id,
-          tableName: node.tableName,
-          type: GraphUpdateType.nodeAdded,
-        ));
-        controller.triggerUpdate(); // Force canvas rebuild to re-mount the rehydrated node
-      },
+      node: node,
+      controller: controller,
     );
 
     // OPTIMISTIC TEARDOWN
@@ -122,19 +102,9 @@ class GraphNodeMutations {
       targetId: id,
       tableName: node.tableName,
       api: controller.syncEngine.api,
+      controller: controller,
       oldPosition: oldPosition,
       newPosition: newPosition,
-      onSuccess: () => controller.spatial.saveConfirmedPosition(id, newPosition),
-      onUndo: () {
-        node.position = oldPosition;
-        controller.spatial.spatialGrid.update(id, newPosition, oldPosition);
-        controller.publishUpdate(GraphEntityUpdate(
-          id: id,
-          tableName: node.tableName,
-          type: GraphUpdateType.position,
-          payload: oldPosition,
-        ));
-      },
     );
 
     // Queue command with debouncing (300ms delay)
@@ -181,31 +151,13 @@ class GraphNodeMutations {
       targetId: id,
       tableName: node.tableName,
       api: controller.syncEngine.api,
+      controller: controller,
       oldPosition: oldPosition,
       newPosition: newPosition,
       oldSize: oldSize,
       newSize: node.size,
       oldStyle: oldStyle,
       newStyle: node.style,
-      onSuccess: () => controller.spatial.saveConfirmedPosition(id, newPosition),
-      onUndo: () {
-        node.position = oldPosition;
-        node.size = oldSize;
-        node.style = oldStyle;
-        controller.spatial.spatialGrid.update(id, newPosition, oldPosition);
-        controller.publishUpdate(GraphEntityUpdate(
-          id: id,
-          tableName: node.tableName,
-          type: GraphUpdateType.size,
-          payload: oldSize,
-        ));
-        controller.publishUpdate(GraphEntityUpdate(
-          id: id,
-          tableName: node.tableName,
-          type: GraphUpdateType.position,
-          payload: oldPosition,
-        ));
-      },
     );
 
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
@@ -245,27 +197,11 @@ class GraphNodeMutations {
       targetId: id,
       tableName: node.tableName,
       api: controller.syncEngine.api,
+      controller: controller,
       oldSize: oldSize,
       newSize: node.size,
       oldExpanded: oldExpanded,
       newExpanded: newExpanded,
-      onSuccess: () => controller.spatial.saveConfirmedPosition(id, node.position),
-      onUndo: () {
-        node.isExpanded = oldExpanded;
-        node.size = oldSize;
-        controller.publishUpdate(GraphEntityUpdate(
-          id: id,
-          tableName: node.tableName,
-          type: GraphUpdateType.expansion,
-          payload: oldExpanded,
-        ));
-        controller.publishUpdate(GraphEntityUpdate(
-          id: id,
-          tableName: node.tableName,
-          type: GraphUpdateType.size,
-          payload: oldSize,
-        ));
-      },
     );
 
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);

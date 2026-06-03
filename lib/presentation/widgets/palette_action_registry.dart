@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../features/graph/presentation/workspace_tabs_controller.dart';
 
-class Command {
+class PaletteAction {
   final String id;
   final String title;
   final String subtitle;
@@ -10,7 +10,7 @@ class Command {
   final void Function(BuildContext context) onSelected;
   final bool Function(BuildContext context)? isEnabled;
 
-  const Command({
+  const PaletteAction({
     required this.id,
     required this.title,
     required this.subtitle,
@@ -20,12 +20,12 @@ class Command {
   });
 }
 
-class CommandRegistry {
-  CommandRegistry._();
-  static final CommandRegistry instance = CommandRegistry._();
+class PaletteActionRegistry {
+  PaletteActionRegistry._();
+  static final PaletteActionRegistry instance = PaletteActionRegistry._();
 
-  final List<Command> _commands = [
-    Command(
+  final List<PaletteAction> _actions = [
+    PaletteAction(
       id: 'toggle_left_panel',
       title: 'Toggle Left Panel',
       subtitle: 'Command',
@@ -35,7 +35,7 @@ class CommandRegistry {
         session.showLeftPanel.value = !session.showLeftPanel.value;
       },
     ),
-    Command(
+    PaletteAction(
       id: 'toggle_right_panel',
       title: 'Toggle Right Panel',
       subtitle: 'Command',
@@ -45,7 +45,7 @@ class CommandRegistry {
         session.showRightPanel.value = !session.showRightPanel.value;
       },
     ),
-    Command(
+    PaletteAction(
       id: 'toggle_bottom_panel',
       title: 'Toggle Bottom Panel',
       subtitle: 'Command',
@@ -55,7 +55,7 @@ class CommandRegistry {
         session.showBottomPanel.value = !session.showBottomPanel.value;
       },
     ),
-    Command(
+    PaletteAction(
       id: 'undo',
       title: 'Undo last action',
       subtitle: 'Command',
@@ -69,7 +69,7 @@ class CommandRegistry {
         return session.dataController?.canUndo == true;
       },
     ),
-    Command(
+    PaletteAction(
       id: 'redo',
       title: 'Redo action',
       subtitle: 'Command',
@@ -83,7 +83,7 @@ class CommandRegistry {
         return session.dataController?.canRedo == true;
       },
     ),
-    Command(
+    PaletteAction(
       id: 'zoom_to_fit',
       title: 'Zoom to Fit Map Boundaries',
       subtitle: 'Command',
@@ -103,17 +103,17 @@ class CommandRegistry {
     ),
   ];
 
-  List<Command> getCommands(BuildContext context) {
-    return _commands.where((cmd) => cmd.isEnabled == null || cmd.isEnabled!(context)).toList();
+  List<PaletteAction> getActions(BuildContext context) {
+    return _actions.where((action) => action.isEnabled == null || action.isEnabled!(context)).toList();
   }
 
-  void registerCommand(Command command) {
-    if (!_commands.any((cmd) => cmd.id == command.id)) {
-      _commands.add(command);
+  void registerAction(PaletteAction action) {
+    if (!_actions.any((act) => act.id == action.id)) {
+      _actions.add(action);
     }
   }
 
-  void unregisterCommand(String id) {
-    _commands.removeWhere((cmd) => cmd.id == id);
+  void unregisterAction(String id) {
+    _actions.removeWhere((act) => act.id == id);
   }
 }

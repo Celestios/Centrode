@@ -341,7 +341,7 @@
     "lib/features/graph/engine/interaction_facade.dart": {
       "class": "CanvasInteractionEnvironment",
       "srp_responsibility": "Implements InteractionContext to act as the unified facade bridging interaction FSM to controllers.",
-      "sha256": "60f1f8c33fb2eab3d944e9232276e5d3d336215c",
+      "sha256": "6b17255d2531599550e8b52fb526b5e5457d7d4b",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
@@ -385,13 +385,14 @@
         "void onSaveTemplate()",
         "Set<String> getVisibleNodeIds() => _viewportController.visibleNodeIds.value;",
         "void updateNodeStyle(String id, NodeStyle Function(NodeStyle style) updateFn)",
-        "Offset? calculateToolbarAnchor(Iterable<String> selectedIds) =>"
+        "Offset? calculateToolbarAnchor(Iterable<String> selectedIds) =>",
+        "void setHoveredNodeMetadata(String? nodeId)"
       ]
     },
     "lib/features/graph/engine/interaction_engine.dart": {
       "class": "InteractionController",
       "srp_responsibility": "Drives the Finite State Machine (FSM) translating viewport gestures to interaction states.",
-      "sha256": "bfdfa71a7594ac8d189ec57252cb59f37ca92fdd",
+      "sha256": "de79097d565f49c26151f12e4757177cf04c05f9",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
@@ -649,7 +650,7 @@
     "lib/features/graph/ui/canvas/graph_canvas.dart": {
       "class": "GraphCanvas",
       "srp_responsibility": "Constructs the layout viewport stack, listens to active controllers, and initializes the FSM environment.",
-      "sha256": "b9662dacf8351ceb38516cb0034441495c66e39f",
+      "sha256": "c7e83ec1fbade5aae850a84e6254c8263e799ef0",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 1,
@@ -731,7 +732,7 @@
     "lib/features/graph/engine/interaction_context.dart": {
       "class": "",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "bb89c1c792c50c7e998ad123e77002b2e0e185b7",
+      "sha256": "d46178f13d5366f5f0bba27dc51309d0cc836db9",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
@@ -769,13 +770,14 @@
         "void openDataInspector(String nodeId);",
         "UiNode? getNode(String id);",
         "void updateNodeStyle(String id, NodeStyle Function(NodeStyle style) updateFn);",
-        "Offset? calculateToolbarAnchor(Iterable<String> selectedIds);"
+        "Offset? calculateToolbarAnchor(Iterable<String> selectedIds);",
+        "void setHoveredNodeMetadata(String? nodeId);"
       ]
     },
     "lib/features/graph/engine/states/idle_state.dart": {
       "class": "CanvasIdle",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "bf72fff5fbae400946b2e0f2786b614581b7651e",
+      "sha256": "6191c50b1ec2c01b38fb0851d33cdecd1e47dac3",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
@@ -1352,7 +1354,7 @@
     "lib/features/graph/ui/canvas/node_widget.dart": {
       "class": "NodeWidget",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "71f93ba3e65a9b68ca45749b534f5593955d5c13",
+      "sha256": "53a7acafc871d522edf983208c368f6a5aaa490a",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 1,

@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mycelium/features/graph/models/commands.dart';
 import 'package:mycelium/features/graph/store/command_processor.dart';
 
-class FakeCommand implements GraphCommand {
+class FakeCommand extends GraphCommand {
   @override
   String targetId;
   
