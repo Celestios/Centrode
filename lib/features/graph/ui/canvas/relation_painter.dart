@@ -5,7 +5,7 @@ import '../../presentation/graph_metrics.dart';
 import '../../presentation/view_state.dart';
 import '../../presentation/strategies/relation_style_strategy.dart';
 import '../../presentation/strategies/relation_layout_strategy.dart';
-import '../../presentation/strategies/routing/relation_layout_context.dart';
+import '../../presentation/routing/relation_layout_context.dart';
 import '../../engine/base_interaction_state.dart';
 
 class RelationPainter extends CustomPainter {

@@ -1,7 +1,7 @@
 import 'package:mycelium/src/rust/domain/styles.dart' show NodeStyle;
 
-class SignificanceModifier {
-  const SignificanceModifier();
+class SignificanceStrategy {
+  const SignificanceStrategy();
 
   /// Scales width and stroke proportionally to significance.
   /// Only applied when DisplayMode.significance is active.

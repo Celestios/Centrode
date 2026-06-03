@@ -6,7 +6,7 @@ import '../store/graph_data_controller.dart';
 import '../store/graph_data_query.dart';
 import 'view_state.dart';
 import 'strategies/relation_layout_strategy.dart';
-import 'strategies/routing/relation_layout_context.dart';
+import 'routing/relation_layout_context.dart';
 
 /// Notifier pulsed to trigger relation painter repaints when node coordinates change.
 class MovementNotifier extends ChangeNotifier {

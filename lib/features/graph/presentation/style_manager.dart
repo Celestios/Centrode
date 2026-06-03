@@ -3,7 +3,7 @@ import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/relation_style_strategy.dart';
-import 'package:mycelium/features/graph/presentation/strategies/significance_modifier.dart';
+import 'package:mycelium/features/graph/presentation/strategies/significance_strategy.dart';
 import 'package:mycelium/features/graph/store/modules/graph_store.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' show DisplayMode;
 import 'package:mycelium/features/graph/store/graph_data_controller.dart' show GraphStyleUpdater;
@@ -16,7 +16,7 @@ class StyleManager implements GraphStyleUpdater {
   final NodeStyleStrategy _taskStrategy = const TaskNodeStyleStrategy();
   final RelationStyleStrategy _relationStrategy =
       const DefaultRelationStyleStrategy();
-  final SignificanceModifier _modifier = const SignificanceModifier();
+  final SignificanceStrategy _modifier = const SignificanceStrategy();
 
   GraphTheme? _theme;
   DisplayMode _displayMode = DisplayMode.leveling;

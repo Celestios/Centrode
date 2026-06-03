@@ -1,6 +1,6 @@
 import 'package:flutter/painting.dart';
-import '../../view_state.dart';
-import '../../../models/graph_relation.dart';
+import '../view_state.dart';
+import '../../models/graph_relation.dart';
 
 /// Context containing the spatial information of the graph.
 /// Passed down to layout strategies to enable obstacle avoidance.

@@ -9,7 +9,7 @@ import '../../../engine/interaction_engine.dart';
 import '../../../models/models.dart';
 import '../relation_painter.dart';
 import '../canvas_text_editor.dart';
-import '../../../presentation/strategies/routing/relation_layout_context.dart';
+import '../../../presentation/routing/relation_layout_context.dart';
 
 class RelationLayer extends StatelessWidget {
   const RelationLayer({super.key});

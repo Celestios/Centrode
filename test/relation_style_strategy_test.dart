@@ -4,7 +4,7 @@ import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
 import 'package:mycelium/features/graph/presentation/strategies/relation_layout_strategy.dart';
-import 'package:mycelium/features/graph/presentation/strategies/routing/relation_layout_context.dart';
+import 'package:mycelium/features/graph/presentation/routing/relation_layout_context.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 
 void main() {

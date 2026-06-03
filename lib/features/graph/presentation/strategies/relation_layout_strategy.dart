@@ -5,8 +5,8 @@ import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
-import 'routing/relation_layout_context.dart';
-import 'routing/relation_router.dart';
+import '../routing/relation_layout_context.dart';
+import '../routing/relation_router.dart';
 
 /// Responsible for computing the physical size, bounds, or layout positions for a relation.
 abstract class RelationLayoutStrategy {
