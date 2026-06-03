@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/left_panel_type.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
 
 class LeftRepositoryDrawer extends StatelessWidget {
   final LeftPanelType activePanel;
@@ -15,160 +16,127 @@ class LeftRepositoryDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final dividerColor = theme.dividerColor.withValues(alpha: 0.3);
+    final cardColor = theme.cardColor.withValues(alpha: 0.9);
 
-    // The whole button group sits inside a single GlassPanel
-    return Center(
-      child: GlassPanel(
-        blur: 12.0, // matches sidebar’s glass
-        borderRadius: 16.0,
-        shadow: BoxShadow(
-          color: Colors.black.withValues(alpha: 0.2),
-          blurRadius: 12,
-          offset: const Offset(0, 3),
-        ),
-        // No internal padding – the child handles its own spacing
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _GlassIconTile(
-              icon: activePanel == LeftPanelType.tags ? Icons.arrow_back_rounded : Icons.local_offer,
-              onTap: () {
-                if (activePanel == LeftPanelType.tags) {
-                  onPanelChanged(LeftPanelType.none);
-                } else {
-                  onPanelChanged(LeftPanelType.tags);
-                }
-              },
-              animateIcon: true,
-            ),
-            Divider(height: 1, color: dividerColor),
-            _GlassIconTile(
-              icon: activePanel == LeftPanelType.templates ? Icons.arrow_back_rounded : Icons.copy_all_outlined,
-              onTap: () {
-                if (activePanel == LeftPanelType.templates) {
-                  onPanelChanged(LeftPanelType.none);
-                } else {
-                  onPanelChanged(LeftPanelType.templates);
-                }
-              },
-              animateIcon: true,
-            ),
-            Divider(height: 1, color: dividerColor),
-            _GlassIconTile(
-              icon: Icons.file_open_outlined,
-              onTap: () => debugPrint('Open tapped'),
-            ),
-            Divider(height: 1, color: dividerColor),
-            _GlassIconTile(
-              icon: Icons.save_alt_outlined,
-              onTap: () => debugPrint('Save tapped'),
-            ),
-            Divider(height: 1, color: dividerColor),
-            _GlassIconTile(
-              icon: Icons.settings_outlined,
-              onTap: () => debugPrint('Settings tapped'),
-            ),
-          ],
-        ),
+    return GlassPanel(
+      borderRadius: 10,
+      blur: 12.0,
+      color: cardColor,
+      shadow: BoxShadow(
+        color: Colors.black.withValues(alpha: 0.15),
+        blurRadius: 10,
+        offset: const Offset(3, 3),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _GlassIconTile(
+            icon: Icons.local_offer_outlined,
+            animateIcon: activePanel == LeftPanelType.tags,
+            onTap: () {
+              onPanelChanged(
+                activePanel == LeftPanelType.tags
+                    ? LeftPanelType.none
+                    : LeftPanelType.tags,
+              );
+            },
+          ),
+          Divider(
+            height: 1,
+            color: theme.dividerColor.withValues(alpha: 0.3),
+            indent: 8,
+            endIndent: 8,
+          ),
+          _GlassIconTile(
+            icon: Icons.layers_outlined,
+            animateIcon: activePanel == LeftPanelType.templates,
+            onTap: () {
+              onPanelChanged(
+                activePanel == LeftPanelType.templates
+                    ? LeftPanelType.none
+                    : LeftPanelType.templates,
+              );
+            },
+          ),
+        ],
       ),
     );
   }
 }
 
-/// A tappable icon row that sits inside the glass group.
-/// It uses [InkWell] for the ripple and respects the theme.
-class _GlassIconTile extends StatefulWidget {
+// -----------------------------------------------------------------------------
+// Glass icon tile
+// -----------------------------------------------------------------------------
+
+class _GlassIconTile extends StatelessWidget {
   final IconData icon;
-  final VoidCallback? onTap;
+  final VoidCallback onTap;
   final bool animateIcon;
 
   const _GlassIconTile({
     required this.icon,
-    this.onTap,
+    required this.onTap,
     this.animateIcon = false,
   });
-
-  @override
-  State<_GlassIconTile> createState() => _GlassIconTileState();
-}
-
-class _GlassIconTileState extends State<_GlassIconTile> {
-  bool _isHovered = false;
-  bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
-    final iconColor = _isHovered ? primaryColor : primaryColor.withValues(alpha: 0.7);
     final iconSize = IconTheme.of(context).size ?? 24.0;
 
-    Widget iconWidget = Icon(
-      widget.icon,
-      key: ValueKey(widget.icon),
-      color: iconColor,
-      size: iconSize,
-    );
+    return HoverScaleButton(
+      onTap: onTap,
+      hoverScale: 1.08,
+      pressScale: 0.94,
+      borderRadius: BorderRadius.zero,
+      builder: (context, isHovered, isPressed) {
+        final iconColor = isHovered ? primaryColor : primaryColor.withValues(alpha: 0.7);
 
-    if (widget.animateIcon) {
-      iconWidget = AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        transitionBuilder: (child, animation) => ScaleTransition(
-          scale: animation,
-          child: FadeTransition(opacity: animation, child: child),
-        ),
-        child: iconWidget,
-      );
-    }
+        Widget iconWidget = Icon(
+          icon,
+          key: ValueKey(icon),
+          color: iconColor,
+          size: iconSize,
+        );
 
-    double scale = 1.0;
-    if (_isHovered) scale = 1.08;
-    if (_isPressed) scale = 0.94;
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() {
-        _isHovered = false;
-        _isPressed = false;
-      }),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: widget.onTap,
-          onHighlightChanged: (highlighted) =>
-              setState(() => _isPressed = highlighted),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            decoration: BoxDecoration(
-              gradient: _isHovered
-                  ? LinearGradient(
-                      colors: [
-                        theme.colorScheme.primary.withValues(alpha: 0.18),
-                        theme.colorScheme.primary.withValues(alpha: 0.05),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                  : null,
-              border: _isHovered
-                  ? Border.all(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                      width: 1.0,
-                    )
-                  : null,
+        if (animateIcon) {
+          iconWidget = AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            transitionBuilder: (child, animation) => ScaleTransition(
+              scale: animation,
+              child: FadeTransition(opacity: animation, child: child),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-            child: Center(
-              child: AnimatedScale(
-                scale: scale,
-                duration: const Duration(milliseconds: 100),
-                child: iconWidget,
-              ),
-            ),
+            child: iconWidget,
+          );
+        }
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          decoration: BoxDecoration(
+            gradient: isHovered
+                ? LinearGradient(
+                    colors: [
+                      theme.colorScheme.primary.withValues(alpha: 0.18),
+                      theme.colorScheme.primary.withValues(alpha: 0.05),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            border: isHovered
+                ? Border.all(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                    width: 1.0,
+                  )
+                : null,
           ),
-        ),
-      ),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+          child: Center(
+            child: iconWidget,
+          ),
+        );
+      },
     );
   }
 }

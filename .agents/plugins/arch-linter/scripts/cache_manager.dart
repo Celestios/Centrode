@@ -52,7 +52,7 @@ void main(List<String> args) async {
 void printUsage() {
   print('Usage:');
   print('  dart cache_manager.dart scan [directory_path (default: lib)]');
-  print('  dart cache_manager.dart update <file_path> <status> [violations_separated_by_pipe] [responsibility] [pattern]');
+  print('  dart cache_manager.dart update <file_path> <status> [violations_separated_by_pipe] [role] [pattern]');
   print('  dart cache_manager.dart check [directory_path (default: lib)]');
   print('  dart cache_manager.dart query [filter_key=value ...]');
   print('  dart cache_manager.dart query_method [name=val] [return_type=val] [pattern=regex]');
@@ -154,7 +154,7 @@ Future<void> handleScan(List<String> args) async {
     if (components[filePath] == null) {
       cachedEntry = {
         'class': '',
-        'srp_responsibility': '',
+        'architectural_role': '',
         'sha256': currentHash,
         'status': 'PENDING_AUDIT',
         'violations': []
@@ -372,7 +372,7 @@ Future<void> handleUpdate(List<String> args) async {
 
   // Extract responsibility if provided
   if (args.length > 3 && args[3].isNotEmpty) {
-    cachedEntry['srp_responsibility'] = args[3].trim();
+    cachedEntry['architectural_role'] = args[3].trim();
   }
 
   // Extract pattern if provided
@@ -1065,8 +1065,8 @@ Future<void> handleQuery(List<String> args) async {
     print('  Tier:      ${data['tier']}');
     print('  Pattern:   ${data['pattern']}');
     print('  Status:    ${data['status']}');
-    if (data['srp_responsibility'] != null && data['srp_responsibility'].toString().isNotEmpty) {
-      print('  SRP Resp:  ${data['srp_responsibility']}');
+    if (data['architectural_role'] != null && data['architectural_role'].toString().isNotEmpty) {
+      print('  Arch Role: ${data['architectural_role']}');
     }
     if (data['violations'] != null && data['violations'].toString() != '[]') {
       print('  Violations: ${data['violations']}');

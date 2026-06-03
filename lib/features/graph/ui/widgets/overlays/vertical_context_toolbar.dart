@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
+import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
 
 class VerticalContextToolbar extends StatelessWidget {
   final VoidCallback onDelete;
@@ -544,7 +545,7 @@ class _VerticalToolbarGroupButtonState
   }
 }
 
-class HoverIconButton extends StatefulWidget {
+class HoverIconButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;
   final VoidCallback onPressed;
@@ -561,86 +562,58 @@ class HoverIconButton extends StatefulWidget {
   });
 
   @override
-  State<HoverIconButton> createState() => _HoverIconButtonState();
-}
-
-class _HoverIconButtonState extends State<HoverIconButton> {
-  bool _isHovered = false;
-  bool _isPressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    double scale = 1.0;
-    if (_isHovered) scale = 1.08;
-    if (_isPressed) scale = 0.94;
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() {
-        _isHovered = false;
-        _isPressed = false;
-      }),
-      child: Tooltip(
-        message: widget.tooltip,
-        child: Padding(
+    return HoverScaleButton(
+      onTap: onPressed,
+      hoverScale: 1.08,
+      pressScale: 0.94,
+      tooltip: tooltip,
+      borderRadius: BorderRadius.circular(6),
+      builder: (context, isHovered, isPressed) {
+        return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 100),
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(6),
-              onTap: widget.onPressed,
-              onHighlightChanged: (highlighted) =>
-                  setState(() => _isPressed = highlighted),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 100),
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(6),
-                  gradient: _isHovered
-                      ? LinearGradient(
-                          colors: [
-                            widget.hoverColor.withValues(alpha: 0.18),
-                            widget.hoverColor.withValues(alpha: 0.05),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
-                      : null,
-                  border: _isHovered
-                      ? Border.all(
-                          color: widget.hoverColor.withValues(alpha: 0.3),
-                          width: 1.0,
-                        )
-                      : Border.all(color: Colors.transparent),
-                  boxShadow: _isHovered
-                      ? [
-                          BoxShadow(
-                            color: widget.hoverColor.withValues(alpha: 0.08),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
-                          ),
-                        ]
-                      : [],
-                ),
-                child: Center(
-                  child: AnimatedScale(
-                    scale: scale,
-                    duration: const Duration(milliseconds: 100),
-                    child: Icon(
-                      widget.icon,
-                      color: _isHovered
-                          ? widget.hoverColor
-                          : widget.defaultColor,
-                      size: 18,
-                    ),
-                  ),
-                ),
+              gradient: isHovered
+                  ? LinearGradient(
+                      colors: [
+                        hoverColor.withValues(alpha: 0.18),
+                        hoverColor.withValues(alpha: 0.05),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              border: isHovered
+                  ? Border.all(
+                      color: hoverColor.withValues(alpha: 0.3),
+                      width: 1.0,
+                    )
+                  : Border.all(color: Colors.transparent),
+              boxShadow: isHovered
+                  ? [
+                      BoxShadow(
+                        color: hoverColor.withValues(alpha: 0.08),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Center(
+              child: Icon(
+                icon,
+                color: isHovered ? hoverColor : defaultColor,
+                size: 18,
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

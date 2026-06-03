@@ -1,6 +1,6 @@
 {
-  "last_audit_commit": "237ea5663775b2c84a5bc8c43072d473360c55df",
-  "last_audit_time": "2026-06-03T09:49:55.662928Z",
+  "last_audit_commit": "e4cbfb85c830d02736ff3689b7599f6336aecef1",
+  "last_audit_time": "2026-06-03T21:00:38.529376Z",
   "layers": {
     "lib/features/graph/ui": {
       "tier": 1,
@@ -36,7 +36,6 @@
   "components": {
     "lib/features/graph/models/graph_node.dart": {
       "class": "UiNode",
-      "srp_responsibility": "Provides abstract domain model representation for all graph nodes.",
       "sha256": "389423302d44742fc319e5c40552ab02c874e703",
       "status": "COMPLIANT",
       "violations": [],
@@ -59,11 +58,11 @@
         "Nodes toRust()",
         "InfoUiNode copyWith(",
         "TaskUiNode copyWith("
-      ]
+      ],
+      "architectural_role": "Wraps low-level Rust node types with presentational getters, acting as the domain entity model for layout calculations."
     },
     "lib/features/graph/models/graph_relation.dart": {
       "class": "UiRelation",
-      "srp_responsibility": "Defines presentational relation models wrapping low-level Rust relation models.",
       "sha256": "4eb70fead524a13839db2c6f00eaddd44017a64e",
       "status": "COMPLIANT",
       "violations": [],
@@ -82,13 +81,13 @@
         "IRelation toRust();",
         "InfoUiRelation copyWith(",
         "IRelation toRust()"
-      ]
+      ],
+      "architectural_role": "Wraps low-level Rust relation types with layout coordinates and port IDs to paint link lines on the canvas."
     },
     "lib/features/graph/store/graph_data_controller.dart": {
       "class": "GraphDataController",
-      "srp_responsibility": "Acts as the high-level orchestrator and Facade for domain store modules.",
       "sha256": "91536d5f2ae6edbbf1a3af568e80e7bddd596f31",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -158,13 +157,13 @@
         "void addCommentToNode(String nodeId, String text)",
         "void removeCommentFromNode(String nodeId, Comment comment)",
         "void dispose()"
-      ]
+      ],
+      "architectural_role": "Acts as the primary facade orchestrating sync engines, spatial caches, in-memory lookups, and transaction commands."
     },
     "lib/features/graph/store/modules/graph_node_mutations.dart": {
       "class": "GraphNodeMutations",
-      "srp_responsibility": "Performs optimistic node mutations and queues FFI command executions.",
       "sha256": "d089bcca5c6e13c7579e6e1d2a07247e0de9a51f",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -185,13 +184,13 @@
         "void updateNodePosition(String id, Offset newPosition)",
         "void updateNodeWidth(String id, double leftEdge, double rightEdge)",
         "void toggleNodeExpansion(String id)"
-      ]
+      ],
+      "architectural_role": "Handles local optimistic nodes additions/deletions, managing ID swaps when backend records are successfully committed."
     },
     "lib/features/graph/store/modules/graph_property_mutations.dart": {
       "class": "GraphPropertyMutations",
-      "srp_responsibility": "Performs optimistic entity property changes and text modifications.",
       "sha256": "f8681c79cf921928a10d4c0f8e32a6f8319bab15",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -217,13 +216,13 @@
         "Future<void> updateTag(Tag tag) async",
         "Future<void> deleteTag(String tagKey) async",
         "void updateRelationStyle(String id, RelationStyle newStyle)"
-      ]
+      ],
+      "architectural_role": "Manages local property states (like text editing or comment list swaps) before persisting them to the database."
     },
     "lib/features/graph/store/modules/graph_relation_mutations.dart": {
       "class": "GraphRelationMutations",
-      "srp_responsibility": "Performs optimistic relation creation and deletions.",
       "sha256": "2dc63fde8f3f34fb630e1fadedaf1a0ee8c0a12c",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -242,11 +241,11 @@
         "void createRelation(",
         "Future<void> deleteRelation(String id) async",
         "void updateRelationLayout("
-      ]
+      ],
+      "architectural_role": "Manages optimistic relation connections, computing routing path parameters before scheduling command executions."
     },
     "lib/features/graph/store/modules/graph_template_mutations.dart": {
       "class": "GraphTemplateMutations",
-      "srp_responsibility": "Manages graph template saves and instantiations.",
       "sha256": "9f3552dfa24b34c6ec0d87c6c92efb90f7d49c81",
       "status": "COMPLIANT",
       "violations": [],
@@ -265,11 +264,11 @@
         "Future<void> saveTemplateFromSelection(",
         "Future<void> instantiateTemplate(String key, Offset canvasCoords) async",
         "Future<void> deleteTemplate(String key) async"
-      ]
+      ],
+      "architectural_role": "Handles template serialization and deserialization, matching coordinates to instantiate template components on the canvas."
     },
     "lib/features/graph/store/modules/graph_store.dart": {
       "class": "GraphStore",
-      "srp_responsibility": "Provides fast O(1) lookups for active in-memory nodes and relations.",
       "sha256": "ac46dd957fc41b50ba28e3868425d584b4977921",
       "status": "COMPLIANT",
       "violations": [],
@@ -283,11 +282,11 @@
       "pattern": "Data Store",
       "public_apis": [
         "void clearStore()"
-      ]
+      ],
+      "architectural_role": "Maintains quick O(1) in-memory lookup maps for active graph nodes and relations, keeping data synchrony with backend databases."
     },
     "lib/features/graph/store/modules/graph_spatial.dart": {
       "class": "GraphSpatial",
-      "srp_responsibility": "Tracks dynamic element locations and performs spatial hash indexing for viewport culling.",
       "sha256": "1d868ff5d0c46e469206d34d3a9dfc5413cbed50",
       "status": "COMPLIANT",
       "violations": [],
@@ -306,13 +305,13 @@
         "void clearConfirmedPosition(String id) => _lastConfirmedPositions.remove(id);",
         "void reindexAll(Map<String, UiNode> nodes)",
         "void dispose()"
-      ]
+      ],
+      "architectural_role": "Maintains spatial hash maps of node positions on the coordinate system to optimize viewport collision queries and culling."
     },
     "lib/features/graph/store/modules/graph_sync_engine.dart": {
       "class": "GraphSyncEngine",
-      "srp_responsibility": "Maintains communications and state streams between local store modules and the Rust FFI.",
       "sha256": "2a121d4c61d9cebd83f92b60741d5eb1d5b00a58",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -339,13 +338,13 @@
         "await loadGraph();",
         "Future<void> redo() async",
         "void dispose()"
-      ]
+      ],
+      "architectural_role": "Coordinates real-time stream handlers between the SurrealDB instance and local store indices, managing recovery pipelines."
     },
     "lib/features/graph/engine/interaction_facade.dart": {
       "class": "CanvasInteractionEnvironment",
-      "srp_responsibility": "Implements InteractionContext to act as the unified facade bridging interaction FSM to controllers.",
       "sha256": "c73f269090be9512354088a0ec9e5f9219b82249",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -389,13 +388,13 @@
         "void updateNodeStyle(String id, NodeStyle Function(NodeStyle style) updateFn)",
         "Offset? calculateToolbarAnchor(Iterable<String> selectedIds) =>",
         "void setHoveredNodeMetadata(String? nodeId)"
-      ]
+      ],
+      "architectural_role": "Implements InteractionContext to act as the unified facade bridging interaction FSM to controllers."
     },
     "lib/features/graph/engine/interaction_engine.dart": {
       "class": "InteractionController",
-      "srp_responsibility": "Drives the Finite State Machine (FSM) translating viewport gestures to interaction states.",
       "sha256": "de79097d565f49c26151f12e4757177cf04c05f9",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -417,13 +416,13 @@
         "void handlePointerCancel(PointerCancelEvent e)",
         "void handlePointerHover(PointerHoverEvent e)",
         "void dispose()"
-      ]
+      ],
+      "architectural_role": "Translates pointer gestures (hover, move, zoom, pan) into active canvas FSM state transitions and updates."
     },
     "lib/features/graph/presentation/node_render_state.dart": {
       "class": "NodeRenderState",
-      "srp_responsibility": "Translates database/store truth into responsive view states and z-order layouts.",
-      "sha256": "992829fca848a9618a8ab3b6cc5452f4af767887",
-      "status": "PENDING_AUDIT",
+      "sha256": "8757b5629c40b7cd21805e5c22ba5712407375dd",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -435,7 +434,7 @@
         "lib/features/graph/store/graph_data_query.dart",
         "lib/features/graph/presentation/view_state.dart",
         "lib/features/graph/presentation/strategies/relation_layout_strategy.dart",
-        "lib/features/graph/presentation/strategies/routing/relation_layout_context.dart"
+        "lib/features/graph/presentation/routing/relation_layout_context.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -455,13 +454,13 @@
         "void showFloatingToolbar(String nodeId)",
         "void hideFloatingToolbar()",
         "void dispose()"
-      ]
+      ],
+      "architectural_role": "Translates store models into visual nodes viewstates, maintaining selection sets, edit modes, and coordinates cache."
     },
     "lib/features/graph/presentation/viewport_state.dart": {
       "class": "ViewportController",
-      "srp_responsibility": "Controls viewport translation, boundaries, zoom constraints, and elastic viewport framing.",
       "sha256": "872c70a94d9d8077a79724432c039421d45d00b4",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -487,13 +486,13 @@
         "Offset projectCanvasToScreen(Offset canvasPos)",
         "Rect projectCanvasRectToScreen(Rect canvasRect)",
         "void dispose()"
-      ]
+      ],
+      "architectural_role": "Controls translation matrices, zoom limits, coordinate projections, and elastic boundaries of the viewport canvas."
     },
     "lib/features/graph/presentation/theme_manager.dart": {
       "class": "ThemeController",
-      "srp_responsibility": "Coordinates active application UI theme state and bridges core styling preferences.",
       "sha256": "053b03062d0e7ed3ef4052dd0921bcf85a47d000",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -509,13 +508,13 @@
       "public_apis": [
         "Future<void> initialize(ThemeData globalTheme) async",
         "Future<void> selectTheme(String themeId) async"
-      ]
+      ],
+      "architectural_role": "Bridges global application color schemas and font maps into canvas styling properties dynamically."
     },
     "lib/features/graph/presentation/style_manager.dart": {
       "class": "StyleManager",
-      "srp_responsibility": "Maps theme preferences and significance levels to concrete UI node/relation styling metrics.",
-      "sha256": "090f229bd4ceb9287991f86c9a0da4fce228d236",
-      "status": "PENDING_AUDIT",
+      "sha256": "aeda081563ab6acbeffbce2c4fc8221a7921eca8",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -524,7 +523,7 @@
         "lib/presentation/theme/graph_theme.dart",
         "lib/features/graph/presentation/strategies/node_style_strategy.dart",
         "lib/features/graph/presentation/strategies/relation_style_strategy.dart",
-        "lib/features/graph/presentation/strategies/significance_modifier.dart",
+        "lib/features/graph/presentation/strategies/significance_strategy.dart",
         "lib/features/graph/store/modules/graph_store.dart"
       ],
       "test_file": "",
@@ -537,13 +536,13 @@
         "void updateStyleForRelation(String id)",
         "void setTheme(GraphTheme? theme)",
         "void setDisplayMode(DisplayMode mode)"
-      ]
+      ],
+      "architectural_role": "Applies visual properties based on node significance scores, formatting background colors, fonts, and borders."
     },
     "lib/features/graph/presentation/workspace_tabs_controller.dart": {
       "class": "WorkspaceTabsController",
-      "srp_responsibility": "Coordinates multiple tab sessions, handles initialization, and controls the active workspace.",
       "sha256": "7d21672c6f8cd3989e60ef9d744e4bdee811fbba",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -571,11 +570,11 @@
         "void addTab(String storagePath, String name)",
         "void selectTab(int index)",
         "Future<void> closeTab(int index) async"
-      ]
+      ],
+      "architectural_role": "Coordinates multi-tab workspace sessions, saving/loading viewport positions and managing file load triggers."
     },
     "lib/features/graph/presentation/view_state.dart": {
       "class": "NodeViewState",
-      "srp_responsibility": "Manages transient UI-bound node states (hover, dragging, editing, focus).",
       "sha256": "38b678aede5e97c9d8e67896d85b6d75c50b5850",
       "status": "COMPLIANT",
       "violations": [],
@@ -600,11 +599,11 @@
         "void onContentOrStyleChanged(UiNode node,",
         "void updateDragWidth(double width)",
         "void dispose()"
-      ]
+      ],
+      "architectural_role": "Tracks transient presentation attributes (hover flags, resize states, port locations) for individual node renderers."
     },
     "lib/features/graph/presentation/strategies/node_layout_strategy.dart": {
       "class": "NodeLayoutStrategy",
-      "srp_responsibility": "Computes visual bounds and line-wrapping counts based on font sizes and configurations.",
       "sha256": "782b915b7b8aa6817ccea4c8bd62f862eb488786",
       "status": "COMPLIANT",
       "violations": [],
@@ -622,13 +621,13 @@
       "pattern": "Strategy Pattern",
       "public_apis": [
         "Size calculate(UiNode node, NodeStyle? style,"
-      ]
+      ],
+      "architectural_role": "Computes visual bounds and line-wrapping counts based on font sizes and configurations."
     },
     "lib/features/graph/presentation/strategies/node_style_strategy.dart": {
       "class": "NodeStyleStrategy",
-      "srp_responsibility": "Resolves base node styles and defaults from global application configuration parameters.",
       "sha256": "3bc39cb2b10d9598fe57be126855ac4fccc7f594",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -646,13 +645,13 @@
         "NodeStyle resolve(UiNode node, GraphTheme theme);",
         "return fallbackStyle(node.size.width, node.size.height);",
         "NodeStyle resolve(UiNode node, GraphTheme theme)"
-      ]
+      ],
+      "architectural_role": "Resolves base node styles and defaults from global application configuration parameters."
     },
     "lib/features/graph/ui/canvas/graph_canvas.dart": {
       "class": "GraphCanvas",
-      "srp_responsibility": "Constructs the layout viewport stack, listens to active controllers, and initializes the FSM environment.",
-      "sha256": "f6523fb3ea71a531605692948f66ffb9b675e276",
-      "status": "PENDING_AUDIT",
+      "sha256": "a4f2a6ee43793fd099163cddfa0bd432fbf76480",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -664,15 +663,12 @@
         "lib/features/graph/presentation/node_render_state.dart",
         "lib/features/graph/presentation/viewport_state.dart",
         "lib/features/graph/engine/interaction_engine.dart",
-        "lib/features/graph/engine/base_interaction_state.dart",
         "lib/features/graph/engine/interaction_facade.dart",
         "lib/features/graph/presentation/workspace_tabs_controller.dart",
         "lib/features/graph/ui/canvas/layers/relation_layer.dart",
         "lib/features/graph/ui/canvas/layers/node_layer.dart",
         "lib/features/graph/ui/canvas/layers/overlay_layer.dart",
         "lib/features/graph/models/models.dart",
-        "lib/features/graph/presentation/view_state.dart",
-        "lib/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart",
         "lib/features/graph/ui/canvas/layers/grid_layer.dart",
         "lib/shared/widgets/canvas_interactive_viewer.dart",
         "lib/features/graph/ui/widgets/overlays/canvas_tool_ribbon.dart",
@@ -681,12 +677,11 @@
         "lib/features/graph/ui/widgets/overlays/right_property_panel.dart",
         "lib/features/graph/ui/widgets/overlays/canvas_status_bar/canvas_status_bar.dart",
         "lib/shared/widgets/glass_panel/glass_panel.dart",
+        "lib/features/graph/ui/canvas/context_toolbar_overlay.dart",
         "lib/presentation/widgets/tag_manager/global_tags_manager_panel.dart",
         "lib/presentation/widgets/template_manager/global_templates_manager_panel.dart",
         "lib/presentation/widgets/template_manager/save_template_dialog.dart",
-        "lib/features/graph/models/left_panel_type.dart",
-        "lib/features/graph/presentation/strategies/node_style_strategy.dart",
-        "lib/features/graph/presentation/strategies/relation_style_strategy.dart"
+        "lib/features/graph/models/left_panel_type.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -697,13 +692,13 @@
         "void initState()",
         "void dispose()",
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Hosts the canvas interactive layers stack, binds mouse events to FSM controllers, and aligns sidebar overlay panels."
     },
     "lib/features/graph/engine/base_interaction_state.dart": {
       "class": "",
-      "srp_responsibility": "Verified compliant.",
-      "sha256": "938716399a244581b79a21ccbafa2a3860d2e744",
-      "status": "PENDING_AUDIT",
+      "sha256": "ce011b76ba2d74feffb2c4800cb9ff271f152383",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -712,7 +707,7 @@
         "package:logging/logging.dart",
         "lib/features/graph/presentation/graph_metrics.dart",
         "lib/features/graph/presentation/strategies/relation_layout_strategy.dart",
-        "lib/features/graph/presentation/strategies/routing/relation_layout_context.dart",
+        "lib/features/graph/presentation/routing/relation_layout_context.dart",
         "lib/features/graph/models/models.dart",
         "lib/features/graph/engine/interaction_context.dart"
       ],
@@ -726,13 +721,13 @@
         "CanvasInteractionState handlePointerUp(",
         "CanvasInteractionState handlePointerCancel(",
         "CanvasInteractionState handlePointerHover("
-      ]
+      ],
+      "architectural_role": "Defines standard event interfaces and default handlers for gesture events driving the canvas Finite State Machine (FSM)."
     },
     "lib/features/graph/engine/interaction_context.dart": {
       "class": "",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "c52245dfdaa334adfe3bf8878f3eb93f9c13777b",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -770,13 +765,13 @@
         "void updateNodeStyle(String id, NodeStyle Function(NodeStyle style) updateFn);",
         "Offset? calculateToolbarAnchor(Iterable<String> selectedIds);",
         "void setHoveredNodeMetadata(String? nodeId);"
-      ]
+      ],
+      "architectural_role": "Segregates FSM access interfaces to prevent states from directly coupling with concrete controllers or layout parameters."
     },
     "lib/features/graph/engine/states/idle_state.dart": {
       "class": "CanvasIdle",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "6191c50b1ec2c01b38fb0851d33cdecd1e47dac3",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "test_file": "",
@@ -786,11 +781,11 @@
       "public_apis": [
         "CanvasInteractionState handlePointerDown(",
         "CanvasInteractionState handlePointerHover("
-      ]
+      ],
+      "architectural_role": "Coordinates basic pointer hover detections and triggers marquee selection or node drag states from idle mouse moves."
     },
     "lib/features/graph/engine/states/marquee_state.dart": {
       "class": "MarqueeSelecting",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "b1ecec59314152262e464e18e5581cccdec82801",
       "status": "COMPLIANT",
       "violations": [],
@@ -802,13 +797,13 @@
       "public_apis": [
         "CanvasInteractionState handlePointerMove(",
         "CanvasInteractionState handlePointerUp("
-      ]
+      ],
+      "architectural_role": "Calculates intersection rectangles between pointer drag coordinates and node coordinates to update selection sets."
     },
     "lib/features/graph/engine/states/node_drag_state.dart": {
       "class": "NodeDragging",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "c676c9825ee9f80c05482a1e238312d0ae72971c",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "test_file": "",
@@ -819,13 +814,13 @@
         "CanvasInteractionState handlePointerMove(",
         "CanvasInteractionState handlePointerUp(",
         "CanvasInteractionState handlePointerCancel("
-      ]
+      ],
+      "architectural_role": "Computes dynamic canvas coordinate offsets during single-node drag gestures, triggering layout boundary checks."
     },
     "lib/features/graph/engine/states/node_resize_state.dart": {
       "class": "NodeResizing",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "1a37ce3757ade33fc8098b23ef52b2169a42f13f",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "test_file": "",
@@ -835,13 +830,13 @@
       "public_apis": [
         "CanvasInteractionState handlePointerMove(",
         "CanvasInteractionState handlePointerUp("
-      ]
+      ],
+      "architectural_role": "Tracks mouse resizing drags on node handles, updating constraints metrics to trigger font and text-wrapping updates."
     },
     "lib/features/graph/engine/states/relation_draw_state.dart": {
       "class": "RelationDrawing",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "fbeb0f219a9f464c79f4f7169b00397ced1f1005",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "test_file": "",
@@ -853,13 +848,13 @@
         "CanvasInteractionState handlePointerMove(",
         "CanvasInteractionState handlePointerUp(",
         "CanvasInteractionState handlePointerHover("
-      ]
+      ],
+      "architectural_role": "Handles port hover snapping and renders interactive connection path previews during dynamic mouse-drag relation creation."
     },
     "lib/features/graph/engine/states/relation_tip_drag_state.dart": {
       "class": "RelationTipDragging",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "6e26165b0bf6542a15768d006f4c0c24878a11f4",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "test_file": "",
@@ -870,13 +865,13 @@
         "CanvasInteractionState handlePointerMove(",
         "CanvasInteractionState handlePointerUp(",
         "CanvasInteractionState handlePointerCancel("
-      ]
+      ],
+      "architectural_role": "Tracks pointer adjustments to relation connection tips, handling snap queries for adjacent nodes ports."
     },
     "lib/features/graph/engine/states/toolbar_drag_state.dart": {
       "class": "ToolbarDragging",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "e3936fb94c5f8b47fae250573c5a26ea2652ec0e",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "test_file": "",
@@ -885,13 +880,13 @@
       "pattern": "Component",
       "public_apis": [
         "CanvasInteractionState handlePointerMove("
-      ]
+      ],
+      "architectural_role": "Coordinates drag offset transformations for floating canvas menus to avoid covering active canvas elements."
     },
     "lib/features/graph/models/commands.dart": {
       "class": "MoveNodeCommand",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "1b95252ce1ce121af1572e1b72c8ab29864ffffd",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [],
@@ -899,11 +894,11 @@
       "has_tests": false,
       "is_ffi_bridge": false,
       "pattern": "Data Model",
-      "public_apis": []
+      "public_apis": [],
+      "architectural_role": "Exposes a consolidated library of undoable mutations for direct import by presenter controllers and interactive systems."
     },
     "lib/features/graph/models/content_builder.dart": {
       "class": "ContentBuilder",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "8b30f6465c5d8effab051f374bfccd2351a698b7",
       "status": "COMPLIANT",
       "violations": [],
@@ -928,11 +923,11 @@
         "Content build()",
         "void clear()",
         "String toPlainText()"
-      ]
+      ],
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/features/graph/models/left_panel_type.dart": {
       "class": "",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "deabb073dd87c30ac1162e32c273cf23dbecb891",
       "status": "COMPLIANT",
       "violations": [],
@@ -940,25 +935,25 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Data Model"
+      "pattern": "Data Model",
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/features/graph/models/models.dart": {
       "class": "",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "549ab08c5a7d892d4ae0449a1bfc66bcd4b6dae1",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Data Model"
+      "pattern": "Data Model",
+      "architectural_role": "Aggregates presentational models wrapping Rust core types, exposing serializable entities across the FFI boundaries."
     },
     "lib/features/graph/presentation/graph_metrics.dart": {
       "class": "_Log",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "d8d33b49a61393262a9c2e90aca1f9d0748ff972",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -968,13 +963,13 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Component"
+      "pattern": "Component",
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/features/graph/presentation/strategies/relation_layout_strategy.dart": {
       "class": "StraightRelationLayoutStrategy",
-      "srp_responsibility": "Verified compliant.",
-      "sha256": "de9a9f05df11d0f8a88d49e015e4007edf8df779",
-      "status": "PENDING_AUDIT",
+      "sha256": "364ae1c06d0a408e00d97a3594e3fef083efc223",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -985,8 +980,8 @@
         "lib/features/graph/models/graph_relation.dart",
         "lib/src/rust/domain/styles.dart",
         "lib/features/graph/presentation/view_state.dart",
-        "lib/features/graph/presentation/strategies/routing/relation_layout_context.dart",
-        "lib/features/graph/presentation/strategies/routing/relation_router.dart"
+        "lib/features/graph/presentation/routing/relation_layout_context.dart",
+        "lib/features/graph/presentation/routing/relation_router.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -1002,13 +997,13 @@
         "Size calculate(UiRelation relation, RelationStyle style)",
         "return distanceToSegment(p, start, end) <= threshold;",
         "List<Offset> getOrthoPoints("
-      ]
+      ],
+      "architectural_role": "Computes connection line control points using selected routing algorithms (Straight, Bezier, Orthogonal)."
     },
     "lib/features/graph/presentation/strategies/relation_style_strategy.dart": {
       "class": "DefaultRelationStyleStrategy",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "a4fb87f14bf38ca7e58fd458dc269208d0194467",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -1026,68 +1021,13 @@
         "RelationStyle resolve(UiRelation relation, GraphTheme theme);",
         "return fallbackStyle();",
         "RelationStyle resolve(UiRelation relation, GraphTheme theme)"
-      ]
-    },
-    "lib/features/graph/presentation/strategies/routing/relation_layout_context.dart": {
-      "class": "RelationLayoutContext",
-      "srp_responsibility": "Verified compliant.",
-      "sha256": "6cc516b1470ee6e36f0eb20591213ebedae4a49a",
-      "status": "COMPLIANT",
-      "violations": [],
-      "tier": 2,
-      "imports": [
-        "package:flutter/painting.dart",
-        "lib/features/graph/presentation/view_state.dart",
-        "lib/features/graph/models/graph_relation.dart"
       ],
-      "test_file": "",
-      "has_tests": false,
-      "is_ffi_bridge": false,
-      "pattern": "Component",
-      "public_apis": [
-        "List<Rect> getObstacles("
-      ]
-    },
-    "lib/features/graph/presentation/strategies/routing/relation_router.dart": {
-      "class": "RelationRouter",
-      "srp_responsibility": "Verified compliant.",
-      "sha256": "1adf0fce148ef845b6a4ffee164121de17dc1232",
-      "status": "COMPLIANT",
-      "violations": [],
-      "tier": 2,
-      "imports": [
-        "dart:math",
-        "package:flutter/painting.dart"
-      ],
-      "test_file": "",
-      "has_tests": false,
-      "is_ffi_bridge": false,
-      "pattern": "Component",
-      "public_apis": [
-        "double ccw(Offset p1, Offset p2, Offset p3)",
-        "bool onSegment(Offset p, Offset q, Offset r)"
-      ]
-    },
-    "lib/features/graph/presentation/strategies/significance_modifier.dart": {
-      "class": "SignificanceModifier",
-      "srp_responsibility": "Verified compliant.",
-      "sha256": "af0a9962f3691178a5a97d4cc4e4d20d16f8fcfb",
-      "status": "COMPLIANT",
-      "violations": [],
-      "tier": 2,
-      "test_file": "",
-      "has_tests": false,
-      "is_ffi_bridge": false,
-      "pattern": "Component",
-      "public_apis": [
-        "NodeStyle apply(NodeStyle base, int significance)"
-      ]
+      "architectural_role": "Resolves visual styling rules (line thickness, color, dashes) matching connection status parameters."
     },
     "lib/features/graph/store/command_processor.dart": {
       "class": "CommandProcessor",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "1ce515af1fdc137dbffd54b4a79206298df78a37",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -1107,13 +1047,13 @@
         "Future<void> forceFlush() async",
         "void flushSync()",
         "void notifyIdSwap(String tempId, String realId)"
-      ]
+      ],
+      "architectural_role": "Debounces and queues optimistic mutations, executing them asynchronously on background worker threads to protect UI frame budgets."
     },
     "lib/features/graph/store/graph_data_query.dart": {
       "class": "GraphEntityUpdate",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "13aa20541e91676c00f445baf09eff12ba825456",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -1124,13 +1064,13 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Component"
+      "pattern": "Component",
+      "architectural_role": "Implements efficient local queries (such as lookup by ID or type) directly on the in-memory store index."
     },
     "lib/features/graph/store/modules/graph_state_facade.dart": {
       "class": "",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "4aab7fb269da12c6d93e3593b2819a46668e89ee",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -1145,11 +1085,11 @@
       "public_apis": [
         "void triggerUpdate();"
       ],
-      "boundary_violations": []
+      "boundary_violations": [],
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/features/graph/store/spatial_index.dart": {
       "class": "SpatialHashGrid",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "1a2072429240fc6e68d22a11c225526ef954c93b",
       "status": "COMPLIANT",
       "violations": [],
@@ -1170,13 +1110,13 @@
         "void remove(String nodeId, Offset position)",
         "Set<String> queryRect(Rect bounds)",
         "void clear()"
-      ]
+      ],
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/features/graph/ui/canvas/canvas_text_editor.dart": {
       "class": "CanvasTextEditor",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "733a158589b00413fb66f69602928638f63709de",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1196,13 +1136,13 @@
         "void initState()",
         "void dispose()",
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Renders inline input text boxes, handling text commits and layout resizing."
     },
     "lib/features/graph/ui/canvas/layers/grid_layer.dart": {
       "class": "GridLayer",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "01369c2b7a9c65c7dec447cc072e51d7fbd378d8",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1226,11 +1166,11 @@
         "void paint(Canvas canvas, Size size)",
         "bool shouldRepaint(covariant _StaticGridPainter oldDelegate)",
         "bool shouldRepaint(covariant _GlowGridPainter oldDelegate)"
-      ]
+      ],
+      "architectural_role": "Paints background coordinate grids, adapting layouts dynamically matching viewport zoom factor."
     },
     "lib/features/graph/ui/canvas/layers/node_layer.dart": {
       "class": "NodeLayer",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "59282ef6ccf98d4536d8efea46f7e76f3ffa075c",
       "status": "COMPLIANT",
       "violations": [],
@@ -1249,13 +1189,13 @@
       "pattern": "UI Component",
       "public_apis": [
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Manages coordinate alignment and rebuild loops for individual node widgets placed on the canvas."
     },
     "lib/features/graph/ui/canvas/layers/overlay_layer.dart": {
       "class": "OverlayLayer",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "98152954fb816bb8b972b6222722e33f22427463",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1280,13 +1220,13 @@
         "void paint(Canvas canvas, Size size)",
         "bool shouldRepaint(covariant _TempRelationPainter oldDelegate)",
         "bool shouldRepaint(covariant _MarqueePainter oldDelegate)"
-      ]
+      ],
+      "architectural_role": "Draws dragging lines, selection indicators, resizing boxes, and connection ports overlays."
     },
     "lib/features/graph/ui/canvas/layers/relation_layer.dart": {
       "class": "RelationLayer",
-      "srp_responsibility": "Verified compliant.",
-      "sha256": "22317dad3710e4f9f1a41263b9d9d4cdbc22b5f8",
-      "status": "PENDING_AUDIT",
+      "sha256": "7d291e9cd5b289a3a19d80129962f50cfbc61941",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1301,7 +1241,7 @@
         "lib/features/graph/models/models.dart",
         "lib/features/graph/ui/canvas/relation_painter.dart",
         "lib/features/graph/ui/canvas/canvas_text_editor.dart",
-        "lib/features/graph/presentation/strategies/routing/relation_layout_context.dart"
+        "lib/features/graph/presentation/routing/relation_layout_context.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -1309,13 +1249,13 @@
       "pattern": "UI Component",
       "public_apis": [
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Arranges custom painters to trace connection paths across active coordinate spaces."
     },
     "lib/features/graph/ui/canvas/metadata_preview_overlay.dart": {
       "class": "MetadataPreviewOverlay",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "d887712e8489e7ca0222e3bc8ddbfbfd410639aa",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1331,13 +1271,13 @@
       "public_apis": [
         "Widget build(BuildContext context)",
         "String pad(int n) => n.toString().padLeft(2, '0');"
-      ]
+      ],
+      "architectural_role": "Projects floating preview cards summarizing tags and comments when hovering over nodes."
     },
     "lib/features/graph/ui/canvas/node_widget.dart": {
       "class": "NodeWidget",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "60e143e278c620bf61a346214651aab562c4785e",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1356,13 +1296,13 @@
       "public_apis": [
         "String capitalize()",
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Renders node cards using liquid-glass gradients, shapes, borders, and templates."
     },
     "lib/features/graph/ui/canvas/relation_painter.dart": {
       "class": "RelationPainter",
-      "srp_responsibility": "Verified compliant.",
-      "sha256": "ababd43d545988247b340cee5527fd9a963ea03b",
-      "status": "PENDING_AUDIT",
+      "sha256": "e2a1a8dfa9aa49a428e53881794eda0cf0d6f0db",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1373,7 +1313,7 @@
         "lib/features/graph/presentation/view_state.dart",
         "lib/features/graph/presentation/strategies/relation_style_strategy.dart",
         "lib/features/graph/presentation/strategies/relation_layout_strategy.dart",
-        "lib/features/graph/presentation/strategies/routing/relation_layout_context.dart",
+        "lib/features/graph/presentation/routing/relation_layout_context.dart",
         "lib/features/graph/engine/base_interaction_state.dart"
       ],
       "test_file": "",
@@ -1383,13 +1323,13 @@
       "public_apis": [
         "void paint(Canvas canvas, Size size)",
         "bool shouldRepaint(covariant RelationPainter oldDelegate)"
-      ]
+      ],
+      "architectural_role": "Uses routing control points to draw connection lines, curves, arrow tips, and selection outlines."
     },
     "lib/features/graph/ui/graph_screen.dart": {
       "class": "GraphScreen",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "d374cfeae58ba0ac3527a48ae4761979b3a689a1",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1419,11 +1359,11 @@
         "State<ActiveSessionWidget> createState() => _ActiveSessionWidgetState();",
         "void didChangeDependencies()",
         "void didUpdateWidget(ActiveSessionWidget oldWidget)"
-      ]
+      ],
+      "architectural_role": "Coordinates workspace canvas setup, loading spinners, file selectors, and window configurations."
     },
     "lib/features/graph/ui/widgets/init_error_widget.dart": {
       "class": "InitErrorWidget",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "7abb386d72354193b1846c0faec90040e092bbcb",
       "status": "COMPLIANT",
       "violations": [],
@@ -1437,13 +1377,13 @@
       "pattern": "UI Component",
       "public_apis": [
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/features/graph/ui/widgets/overlays/canvas_status_bar/canvas_status_bar.dart": {
       "class": "CanvasStatusBar",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "9156060d1f3e255b854978a287514de215c3dfad",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1460,13 +1400,13 @@
       "pattern": "UI Component",
       "public_apis": [
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Arranges the footer toolbar elements, displaying viewport stats, mini-map trackers, and help guides."
     },
     "lib/features/graph/ui/widgets/overlays/canvas_status_bar/graph_manual_widget.dart": {
       "class": "GraphManualWidget",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "58fa0fb2176da263b4ce419ed96b8dd10a5badf2",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1480,11 +1420,11 @@
       "pattern": "UI Component",
       "public_apis": [
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Renders keyboard shortcuts guide matrices in overlay panels."
     },
     "lib/features/graph/ui/widgets/overlays/canvas_status_bar/mini_map_painter.dart": {
       "class": "MiniMapPainter",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "e72677b7d17ff2f34eaff0260c05771aae0e95c6",
       "status": "COMPLIANT",
       "violations": [],
@@ -1502,13 +1442,13 @@
         "void paint(Canvas canvas, Size size)",
         "Offset toMini(double cx, double cy)",
         "bool shouldRepaint(covariant MiniMapPainter oldDelegate) => true;"
-      ]
+      ],
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/features/graph/ui/widgets/overlays/canvas_status_bar/status_metrics_widget.dart": {
       "class": "StatusMetricsWidget",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "1139dd27b1703528331122df9d67fa5cbd26a8a6",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1523,13 +1463,13 @@
       "pattern": "UI Component",
       "public_apis": [
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Displays real-time viewport information counters (node counts, connection totals, zoom levels)."
     },
     "lib/features/graph/ui/widgets/overlays/canvas_status_bar/viewport_mini_map_widget.dart": {
       "class": "ViewportMiniMapWidget",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "fc6cc63dd3041d90061b664ac1a88d89fdee2ba8",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1546,13 +1486,13 @@
       "pattern": "UI Component",
       "public_apis": [
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Renders an interactive overview of the entire canvas boundary, letting users pan the viewport via the thumbnail."
     },
     "lib/features/graph/ui/widgets/overlays/canvas_status_bar/zoom_slider_widget.dart": {
       "class": "ZoomSliderWidget",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "23e4c9037cf1087e548f0a88e6d3978e63db746a",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1567,36 +1507,13 @@
       "pattern": "UI Component",
       "public_apis": [
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Renders viewport zoom sliders, binding slider actions to presentation zoom managers."
     },
     "lib/features/graph/ui/widgets/overlays/canvas_tab_bar.dart": {
       "class": "CanvasTabBar",
-      "srp_responsibility": "Verified compliant.",
-      "sha256": "3866c12bafeda04f6dbd8c744acfec8f8a5f9a80",
-      "status": "PENDING_AUDIT",
-      "violations": [],
-      "tier": 1,
-      "imports": [
-        "package:flutter/material.dart",
-        "package:provider/provider.dart",
-        "lib/shared/widgets/glass_panel/glass_panel.dart",
-        "lib/features/graph/presentation/workspace_tabs_controller.dart"
-      ],
-      "test_file": "",
-      "has_tests": false,
-      "is_ffi_bridge": false,
-      "pattern": "UI Component",
-      "public_apis": [
-        "Widget build(BuildContext context)",
-        "State<_TabItem> createState() => _TabItemState();",
-        "State<_AddTabButton> createState() => _AddTabButtonState();"
-      ]
-    },
-    "lib/features/graph/ui/widgets/overlays/canvas_tool_ribbon.dart": {
-      "class": "CanvasToolRibbon",
-      "srp_responsibility": "Verified compliant.",
-      "sha256": "444029fe379e151df7975420c12ab9877db3ecc7",
-      "status": "PENDING_AUDIT",
+      "sha256": "a2464e19244d91bc145d2cf66e88ec53da6ff8d5",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1604,7 +1521,30 @@
         "package:provider/provider.dart",
         "lib/shared/widgets/glass_panel/glass_panel.dart",
         "lib/features/graph/presentation/workspace_tabs_controller.dart",
-        "lib/features/graph/store/graph_data_controller.dart"
+        "lib/presentation/widgets/hover_scale_button.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "UI Component",
+      "public_apis": [
+        "Widget build(BuildContext context)"
+      ],
+      "architectural_role": "Renders active session tabs, binding click actions to workspace controllers to swap documents."
+    },
+    "lib/features/graph/ui/widgets/overlays/canvas_tool_ribbon.dart": {
+      "class": "CanvasToolRibbon",
+      "sha256": "f13d54278cb737a6f2961a742863c178898caa09",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 1,
+      "imports": [
+        "package:flutter/material.dart",
+        "package:provider/provider.dart",
+        "lib/shared/widgets/glass_panel/glass_panel.dart",
+        "lib/features/graph/presentation/workspace_tabs_controller.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/presentation/widgets/hover_scale_button.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -1612,16 +1552,14 @@
       "pattern": "UI Component",
       "public_apis": [
         "State<CanvasToolRibbon> createState() => _CanvasToolRibbonState();",
-        "Widget build(BuildContext context)",
-        "State<_ToolButton> createState() => _ToolButtonState();",
-        "State<_ActionButton> createState() => _ActionButtonState();"
-      ]
+        "Widget build(BuildContext context)"
+      ],
+      "architectural_role": "Renders visual ribbon buttons for active tool selectors (Cursor, Connect, Node shapes) and FSM options."
     },
     "lib/features/graph/ui/widgets/overlays/collapsible_sidebar.dart": {
       "class": "CollapsibleSidebar",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "ee208e4ab6d0e784fbbce86a5b3fa6707b7c7b7e",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1634,34 +1572,34 @@
       "pattern": "UI Component",
       "public_apis": [
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Implements smooth sliding slide-out panel containers with blurred glass layouts."
     },
     "lib/features/graph/ui/widgets/overlays/left_repository_drawer.dart": {
       "class": "LeftRepositoryDrawer",
-      "srp_responsibility": "Verified compliant.",
-      "sha256": "33e1f6808d625a008c5537dbac184ab6a925913c",
-      "status": "PENDING_AUDIT",
+      "sha256": "aa6e0e7b87454fb78ecf9d51d7e930adac50aa48",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
         "lib/features/graph/models/left_panel_type.dart",
-        "lib/shared/widgets/glass_panel/glass_panel.dart"
+        "lib/shared/widgets/glass_panel/glass_panel.dart",
+        "lib/presentation/widgets/hover_scale_button.dart"
       ],
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
       "pattern": "UI Component",
       "public_apis": [
-        "Widget build(BuildContext context)",
-        "State<_GlassIconTile> createState() => _GlassIconTileState();"
-      ]
+        "Widget build(BuildContext context)"
+      ],
+      "architectural_role": "Hosts the left sidebar drawer layout, exposing project selectors, tag managers, and template drawers."
     },
     "lib/features/graph/ui/widgets/overlays/right_property_panel.dart": {
       "class": "RightPropertyPanel",
-      "srp_responsibility": "Verified compliant.",
-      "sha256": "e1a5b16d896eb90f6d7c7f51fafb415a9e7a636b",
-      "status": "PENDING_AUDIT",
+      "sha256": "47a0e9a0aa17b55fe675aa03b268d443898c708b",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1670,10 +1608,9 @@
         "lib/features/graph/presentation/node_render_state.dart",
         "lib/features/graph/ui/widgets/overlays/collapsible_sidebar.dart",
         "lib/features/graph/store/graph_data_controller.dart",
-        "lib/features/graph/models/models.dart",
-        "lib/features/graph/presentation/graph_metrics.dart",
-        "lib/features/graph/presentation/strategies/node_style_strategy.dart",
-        "lib/shared/utils/color_utils.dart"
+        "lib/shared/utils/color_utils.dart",
+        "lib/features/graph/ui/widgets/overlays/inspector/appearance_tab.dart",
+        "lib/features/graph/ui/widgets/overlays/inspector/data_tab.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -1681,16 +1618,14 @@
       "pattern": "UI Component",
       "public_apis": [
         "State<RightPropertyPanel> createState() => _RightPropertyPanelState();",
-        "void dispose()",
-        "Widget build(BuildContext context)",
-        "String pad(int n) => n.toString().padLeft(2, '0');"
-      ]
+        "Widget build(BuildContext context)"
+      ],
+      "architectural_role": "Arranges collapsible styling and metadata tabs for selected elements inside the right sidebar panels."
     },
     "lib/features/workspace/ui/project_selector_screen.dart": {
       "class": "ProjectSelectorScreen",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "891881afa85ba938f36035469505174e49256b68",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1705,11 +1640,11 @@
       "pattern": "UI Component",
       "public_apis": [
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Renders high-level application pages, mapping store updates to page UI components."
     },
     "lib/infrastructure/telemetry/log_manager.dart": {
       "class": "LogManager",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "17de66744b5aefa524eb4f525942c59d3a1db52f",
       "status": "COMPLIANT",
       "violations": [],
@@ -1731,11 +1666,11 @@
         "Future<void> init() async",
         "await setupLogger();",
         "Future<void> dispose() async"
-      ]
+      ],
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/infrastructure/telemetry/log_models.dart": {
       "class": "LogPayload",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "a0b79731822aa2b6835040776c5b9afbdff3c9ce",
       "status": "COMPLIANT",
       "violations": [],
@@ -1747,11 +1682,11 @@
       "public_apis": [
         "int compareTo(LogPayload other)",
         "String toString()"
-      ]
+      ],
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/main.dart": {
       "class": "MyApp",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "2f4d6cdb5ff4d89720afe7229340f048d7ec7d8f",
       "status": "COMPLIANT",
       "violations": [],
@@ -1777,13 +1712,13 @@
       "public_apis": [
         "Widget build(BuildContext context)"
       ],
-      "boundary_violations": []
+      "boundary_violations": [],
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/presentation/theme/app_theme.dart": {
       "class": "AppTheme",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "8b73ca05868ed3a01d21d73830422bef2bab13d5",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -1797,11 +1732,11 @@
         "ThemeData toThemeData()",
         "Color parseColor(dynamic value,",
         "FontWeight parseWeight("
-      ]
+      ],
+      "architectural_role": "Defines visual theme parameters, configuring glass settings, typography, and palettes."
     },
     "lib/presentation/theme/graph_shell.dart": {
       "class": "GraphShell",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "2217db74ff791520550f3e17cabceb19cffff481",
       "status": "COMPLIANT",
       "violations": [],
@@ -1815,13 +1750,13 @@
       "pattern": "Component",
       "public_apis": [
         "ThemeData toThemeData()"
-      ]
+      ],
+      "architectural_role": "Defines visual theme parameters, configuring glass settings, typography, and palettes."
     },
     "lib/presentation/theme/graph_theme.dart": {
       "class": "GraphTheme",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "ffdc07dcf133cdd5829283bfbbda16c110ed1919",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -1832,11 +1767,11 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Component"
+      "pattern": "Component",
+      "architectural_role": "Defines visual theme parameters, configuring glass settings, typography, and palettes."
     },
     "lib/presentation/theme/theme_repository.dart": {
       "class": "ThemeLoader",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "14f721457a11cfcf6762a5833f0165ef88989dfd",
       "status": "COMPLIANT",
       "violations": [],
@@ -1849,13 +1784,13 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Component"
+      "pattern": "Component",
+      "architectural_role": "Defines visual theme parameters, configuring glass settings, typography, and palettes."
     },
     "lib/presentation/widgets/left_repository_panel.dart": {
       "class": "LeftRepositoryPanel",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "5ba7d7d36f54b0692739e4498a9729d98da6c42d",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -1868,13 +1803,13 @@
       "pattern": "Component",
       "public_apis": [
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/presentation/widgets/search_command_palette.dart": {
       "class": "SearchCommandPalette",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "aaece55bff121f6f1c271cd5da5bfb41262785ad",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -1896,13 +1831,13 @@
         "void initState()",
         "void dispose()",
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/presentation/widgets/search_registry.dart": {
       "class": "SearchResult",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "5065a14537992466da0442663986ba9c01bca63e",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -1918,11 +1853,11 @@
       "pattern": "Component",
       "public_apis": [
         "Future<List<SearchResult>?> search(String rawQuery, BuildContext context) async"
-      ]
+      ],
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/presentation/widgets/tag_manager/delete_tag_dialog.dart": {
       "class": "",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "42bed4a5d6683d747f33f86adc0895015cb0866c",
       "status": "COMPLIANT",
       "violations": [],
@@ -1934,11 +1869,11 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Component"
+      "pattern": "Component",
+      "architectural_role": "Exposes interactive panel components and dialogs for global tag registration and color customization."
     },
     "lib/presentation/widgets/tag_manager/global_tags_manager_panel.dart": {
       "class": "GlobalTagsManagerPanel",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "20aa6a922016d5551dd22009cf7b9f4fb6154bd0",
       "status": "COMPLIANT",
       "violations": [],
@@ -1954,13 +1889,13 @@
       "pattern": "Component",
       "public_apis": [
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Exposes interactive panel components and dialogs for global tag registration and color customization."
     },
     "lib/presentation/widgets/tag_manager/tags_list_view.dart": {
       "class": "TagsListView",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "b7e51ddb859b44213b37e6ad4400194241ef4ddb",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -1982,13 +1917,13 @@
         "void initState()",
         "void dispose()",
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Exposes interactive panel components and dialogs for global tag registration and color customization."
     },
     "lib/presentation/widgets/tag_manager/tag_color_picker_panel.dart": {
       "class": "TagColorPickerPanel",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "6ad5aaba4bb00be169e308d5e541c31ead83e4eb",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -2003,11 +1938,11 @@
         "State<TagColorPickerPanel> createState() => _TagColorPickerPanelState();",
         "void initState()",
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Exposes interactive panel components and dialogs for global tag registration and color customization."
     },
     "lib/presentation/widgets/template_manager/delete_template_dialog.dart": {
       "class": "",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "ca09130d62d16d8c6a6eb8a1839710d003e95439",
       "status": "COMPLIANT",
       "violations": [],
@@ -2019,11 +1954,11 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Component"
+      "pattern": "Component",
+      "architectural_role": "Exposes templates configuration elements and instantiation grids."
     },
     "lib/presentation/widgets/template_manager/global_templates_manager_panel.dart": {
       "class": "GlobalTemplatesManagerPanel",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "5f7046d520c391fe0a8044c23af25396caba2057",
       "status": "COMPLIANT",
       "violations": [],
@@ -2039,11 +1974,11 @@
       "pattern": "Component",
       "public_apis": [
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Exposes templates configuration elements and instantiation grids."
     },
     "lib/presentation/widgets/template_manager/save_template_dialog.dart": {
       "class": "",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "4aba9f300a81226e23e295d99086ebbc82d33c79",
       "status": "COMPLIANT",
       "violations": [],
@@ -2055,13 +1990,13 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Component"
+      "pattern": "Component",
+      "architectural_role": "Exposes templates configuration elements and instantiation grids."
     },
     "lib/presentation/widgets/template_manager/templates_list_view.dart": {
       "class": "TemplatesListView",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "8820c015e94f7d4811b1889b05efb15a7133bc25",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -2087,13 +2022,13 @@
         "void paint(Canvas canvas, Size size)",
         "Offset transform(Offset p)",
         "bool shouldRepaint(covariant TemplatePreviewPainter oldDelegate)"
-      ]
+      ],
+      "architectural_role": "Exposes templates configuration elements and instantiation grids."
     },
     "lib/presentation/widgets/window_title_bar.dart": {
       "class": "SimpleWindowTitleBar",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "996d4388c23310f7b0e4393c0fe242cb4875aadf",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -2119,11 +2054,11 @@
         "void onWindowMaximize()",
         "void onWindowUnmaximize()",
         "State<HoverBuilder> createState() => _HoverBuilderState();"
-      ]
+      ],
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/shared/widgets/canvas_interactive_viewer.dart": {
       "class": "CanvasInteractiveViewer",
-      "srp_responsibility": "Verified compliant.",
       "sha256": "5eb2e15f4e5241e16bef0d897dc999becd0111aa",
       "status": "COMPLIANT",
       "violations": [],
@@ -2143,13 +2078,13 @@
         "void didUpdateWidget(CanvasInteractiveViewer oldWidget)",
         "void dispose()",
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/features/graph/engine/states/group_drag_state.dart": {
       "class": "GroupDragging",
-      "srp_responsibility": "",
       "sha256": "73ce4e5f94644620eaac126ebe1e6dc43e6e07b1",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "test_file": "",
@@ -2160,19 +2095,20 @@
         "CanvasInteractionState handlePointerMove(",
         "CanvasInteractionState handlePointerUp(",
         "CanvasInteractionState handlePointerCancel("
-      ]
+      ],
+      "architectural_role": "Coordinates multi-node translations, enforcing bounding box updates and coordinate delta offsets without layout collisions."
     },
     "lib/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart": {
       "class": "VerticalContextToolbar, SubmenuButtonData, VerticalToolbarGroupButton, _VerticalToolbarGroupButtonState, HoverIconButton, _HoverIconButtonState",
-      "srp_responsibility": "",
-      "sha256": "cfae928f2005239aee1ab5e09ebb00727e5fb0b7",
-      "status": "PENDING_AUDIT",
+      "sha256": "ad67cebe715d46fb918a0f04912e8302508d158d",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
         "lib/shared/widgets/glass_panel/glass_panel.dart",
-        "lib/features/graph/presentation/graph_metrics.dart"
+        "lib/features/graph/presentation/graph_metrics.dart",
+        "lib/presentation/widgets/hover_scale_button.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -2180,15 +2116,14 @@
       "pattern": "UI Component",
       "public_apis": [
         "Widget build(BuildContext context)",
-        "State<VerticalToolbarGroupButton> createState() =>",
-        "State<HoverIconButton> createState() => _HoverIconButtonState();"
-      ]
+        "State<VerticalToolbarGroupButton> createState() =>"
+      ],
+      "architectural_role": "Renders visual context-sensitive action menus (delete, copy, grouping) beside active canvas focus points."
     },
     "lib/features/workspace/ui/liquid_glass_test_screen.dart": {
       "class": "LiquidGlassDemo",
-      "srp_responsibility": "",
       "sha256": "fedcdb0b405a71e16211a095c99105e781fdd649",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -2202,13 +2137,13 @@
       "public_apis": [
         "State<LiquidGlassDemo> createState() => _LiquidGlassDemoState();",
         "Widget build(BuildContext context)"
-      ]
+      ],
+      "architectural_role": "Renders high-level application pages, mapping store updates to page UI components."
     },
     "lib/shared/utils/color_utils.dart": {
       "class": "ColorUtils",
-      "srp_responsibility": "",
       "sha256": "189775a2ee3ab271a287a1a8dfc7430122ef3725",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -2223,13 +2158,13 @@
         "return isDark(Color(colorValue));",
         "return isDarkInt(bgColorVal) ? 0xFFFFFFFF : 0xFF000000;",
         "return isDarkInt(bgColorVal) ? 0x4DFFFFFF : 0x33000000; // 30% white vs 20% black"
-      ]
+      ],
+      "architectural_role": "Exposes reusable mathematical tools (color conversions, coordinate systems math) to presentation systems."
     },
     "lib/shared/widgets/glass_panel/glass_panel.dart": {
       "class": "",
-      "srp_responsibility": "",
       "sha256": "7dd24a33afd21931c16efc8715fee4f7b2ccf54a",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -2242,13 +2177,13 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Component"
+      "pattern": "Component",
+      "architectural_role": "Provides high-end liquid-glass-morphic shading filters and stage container layouts for premium visual aesthetics."
     },
     "lib/shared/widgets/glass_panel/src/glass_group.dart": {
       "class": "GlassGroup, _GlassGroupState, _GlassGroupScope, _GlassGroupRenderObject, _RenderGlassGroup",
-      "srp_responsibility": "",
       "sha256": "f97a59dab0f50cee98c531cf7e5937d91923e9a6",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "test_file": "",
@@ -2275,25 +2210,25 @@
         "void attach(PipelineOwner owner)",
         "void detach()",
         "void paint(PaintingContext context, Offset offset)"
-      ]
+      ],
+      "architectural_role": "Provides high-end liquid-glass-morphic shading filters and stage container layouts for premium visual aesthetics."
     },
     "lib/shared/widgets/glass_panel/src/glass_mode.dart": {
       "class": "",
-      "srp_responsibility": "",
       "sha256": "34ccddfe611f648636153c5b9504c465c57bcec8",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Component"
+      "pattern": "Component",
+      "architectural_role": "Provides high-end liquid-glass-morphic shading filters and stage container layouts for premium visual aesthetics."
     },
     "lib/shared/widgets/glass_panel/src/glass_panel_widget.dart": {
       "class": "GlassPanel, _GlassPanelBody, _GlassShapeRenderObjectWidget, RenderGlassShape, ShapeData",
-      "srp_responsibility": "",
       "sha256": "c0d1a020e4b73e0dd66436e9ec25d9234c3093cb",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "test_file": "",
@@ -2308,13 +2243,13 @@
         "set color(Color value)",
         "void attach(PipelineOwner owner)",
         "void detach()"
-      ]
+      ],
+      "architectural_role": "Provides high-end liquid-glass-morphic shading filters and stage container layouts for premium visual aesthetics."
     },
     "lib/shared/widgets/glass_panel/src/glass_settings.dart": {
       "class": "GlassSettings",
-      "srp_responsibility": "",
       "sha256": "30ada896aaf269c113c024900d360691eea7d331",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "test_file": "",
@@ -2323,25 +2258,25 @@
       "pattern": "Component",
       "public_apis": [
         "GlassSettings copyWith("
-      ]
+      ],
+      "architectural_role": "Provides high-end liquid-glass-morphic shading filters and stage container layouts for premium visual aesthetics."
     },
     "lib/shared/widgets/glass_panel/src/glass_shader_provider.dart": {
       "class": "GlassShaderProvider",
-      "srp_responsibility": "",
       "sha256": "4f4968d4bf1c6616686664104c25bb1f1dceebe1",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Component"
+      "pattern": "Component",
+      "architectural_role": "Provides high-end liquid-glass-morphic shading filters and stage container layouts for premium visual aesthetics."
     },
     "lib/shared/widgets/glass_panel/src/glass_stage.dart": {
       "class": "GlassStage, _GlassStageState, _GlassBackdropScope",
-      "srp_responsibility": "",
-      "sha256": "0e9b1164438a8ae1ea42fa4d235c30fd0d31261e",
-      "status": "PENDING_AUDIT",
+      "sha256": "105584967b402cd168c0459914fc7f2778d6b481",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "test_file": "",
@@ -2355,13 +2290,13 @@
         "void dispose()",
         "Widget build(BuildContext context)",
         "bool updateShouldNotify(_GlassBackdropScope oldWidget)"
-      ]
+      ],
+      "architectural_role": "Provides high-end liquid-glass-morphic shading filters and stage container layouts for premium visual aesthetics."
     },
     "lib/features/graph/models/commands/base.dart": {
       "class": "",
-      "srp_responsibility": "",
       "sha256": "53b95feed837c396e15da696292fff6feb349fc9",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "test_file": "",
@@ -2372,13 +2307,13 @@
         "Future<void> execute();",
         "void undo();",
         "void onSuccess()"
-      ]
+      ],
+      "architectural_role": "Defines standard structural contracts for undoable actions, coordinating execution and transactional recovery across store boundaries."
     },
     "lib/features/graph/models/commands/create_node.dart": {
       "class": "CreateNodeCommand",
-      "srp_responsibility": "",
       "sha256": "b67dd658735d89985372bf35e544c3caf530b4bb",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -2395,13 +2330,13 @@
       "public_apis": [
         "Future<void> execute() async",
         "void undo()"
-      ]
+      ],
+      "architectural_role": "Manages database transaction node insertions, handling optimistic UI creation and rollback operations upon backend write failures."
     },
     "lib/features/graph/models/commands/create_relation.dart": {
       "class": "CreateRelationCommand",
-      "srp_responsibility": "",
       "sha256": "b23fe99c92678192002259dfd598f728e5d81f96",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -2419,13 +2354,13 @@
       "public_apis": [
         "Future<void> execute() async",
         "void undo()"
-      ]
+      ],
+      "architectural_role": "Manages connection link creations between ports, resolving node references and performing rollback cleanup if connection fails."
     },
     "lib/features/graph/models/commands/delete_node.dart": {
       "class": "DeleteNodeCommand",
-      "srp_responsibility": "",
       "sha256": "ede123d5a4aa393419f4ceb47b21c1cf9d6058ff",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -2441,13 +2376,13 @@
       "public_apis": [
         "Future<void> execute() async",
         "void undo()"
-      ]
+      ],
+      "architectural_role": "Orchestrates node deletions and adjacent connection cascade removals, maintaining undo backups to restore the full network subtree."
     },
     "lib/features/graph/models/commands/delete_relation.dart": {
       "class": "DeleteRelationCommand",
-      "srp_responsibility": "",
       "sha256": "0883b4b5b6f359a45f02b0f645926f1c388b270b",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -2464,13 +2399,13 @@
       "public_apis": [
         "Future<void> execute() async",
         "void undo()"
-      ]
+      ],
+      "architectural_role": "Orchestrates relation removals, storing reference endpoints to cleanly restore the connection lines upon transaction rollback."
     },
     "lib/features/graph/models/commands/move_node.dart": {
       "class": "MoveNodeCommand",
-      "srp_responsibility": "",
       "sha256": "8b836104604a0cfcc7829b7334eefec62a24a6b8",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -2489,13 +2424,13 @@
       "public_apis": [
         "Future<void> execute() async",
         "void undo()"
-      ]
+      ],
+      "architectural_role": "Translates nodes coordinates, tracking coordinate delta changes to enable exact geometry restorations during undo cycles."
     },
     "lib/features/graph/models/commands/update_comments.dart": {
       "class": "UpdateCommentsCommand",
-      "srp_responsibility": "",
       "sha256": "05db9acd864bd2fbd327c83819e5c5c71dac615f",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -2512,13 +2447,13 @@
       "public_apis": [
         "Future<void> execute() async",
         "void undo()"
-      ]
+      ],
+      "architectural_role": "Pushes additions or deletions of text comment nodes to the database, caching comment histories for rollback safety."
     },
     "lib/features/graph/models/commands/update_node_style.dart": {
       "class": "UpdateNodeStyleCommand",
-      "srp_responsibility": "",
       "sha256": "e0827389ade0bcb5c583e77d54246e6caea0031b",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -2537,13 +2472,13 @@
       "public_apis": [
         "Future<void> execute() async",
         "void undo()"
-      ]
+      ],
+      "architectural_role": "Pushes node styling modifications (bg, border, fonts) to the database, triggering reactive style manager refreshes."
     },
     "lib/features/graph/models/commands/update_relation_layout.dart": {
       "class": "UpdateRelationLayoutCommand",
-      "srp_responsibility": "",
       "sha256": "5fc445abfaf5402e9e1f9e1dd11eec6cc532bd5f",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -2562,13 +2497,13 @@
       "public_apis": [
         "Future<void> execute() async",
         "void undo()"
-      ]
+      ],
+      "architectural_role": "Pushes layout parameters changes to relation paths (straight, bezier, ortho), recalculating coordinate lists upon updates."
     },
     "lib/features/graph/models/commands/update_tags.dart": {
       "class": "UpdateTagsCommand",
-      "srp_responsibility": "",
       "sha256": "1dd6c68f8b28ccb51c86149ea58323877059e998",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -2588,13 +2523,13 @@
         "Future<void> execute() async",
         "void onSuccess()",
         "void undo()"
-      ]
+      ],
+      "architectural_role": "Pushes tag list mapping modifications to database records, caching original mappings to revert tag lists on undo."
     },
     "lib/features/graph/models/commands/update_text.dart": {
       "class": "UpdateTextCommand",
-      "srp_responsibility": "",
       "sha256": "3b9910fea2e31f632f29cb90cdcf1ca32f08d1e4",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -2613,25 +2548,25 @@
       "public_apis": [
         "Future<void> execute() async",
         "void undo()"
-      ]
+      ],
+      "architectural_role": "Pushes label and metadata text adjustments to database records, triggering size recalculations and layout shifts on the canvas."
     },
     "lib/features/graph/models/search_result.dart": {
       "class": "UiSearchResult",
-      "srp_responsibility": "",
       "sha256": "b5e2810714f3d5211632aac8e0c906c2b20a8fcd",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Data Model"
+      "pattern": "Data Model",
+      "architectural_role": "Wraps database search query matches, structuring scoring metrics and text snippet locations for query palettes."
     },
     "lib/presentation/widgets/palette_action_registry.dart": {
       "class": "PaletteAction, PaletteActionRegistry",
-      "srp_responsibility": "",
       "sha256": "a895520830e1aea99778cd606341b6bb4a47e647",
-      "status": "PENDING_AUDIT",
+      "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -2647,7 +2582,157 @@
         "List<PaletteAction> getActions(BuildContext context)",
         "void registerAction(PaletteAction action)",
         "void unregisterAction(String id)"
-      ]
+      ],
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
+    },
+    "lib/features/graph/presentation/routing/relation_layout_context.dart": {
+      "class": "RelationLayoutContext",
+      "sha256": "9bb664a17bb77c6fbef74b49cadb88e44062c22c",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 2,
+      "imports": [
+        "package:flutter/painting.dart",
+        "lib/features/graph/presentation/view_state.dart",
+        "lib/features/graph/models/graph_relation.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Component",
+      "public_apis": [
+        "List<Rect> getObstacles("
+      ],
+      "architectural_role": "Indexes visual node rectangles as obstacles to feed paths routing calculations for orthogonal or curved lines."
+    },
+    "lib/features/graph/presentation/routing/relation_router.dart": {
+      "class": "RelationRouter",
+      "sha256": "1adf0fce148ef845b6a4ffee164121de17dc1232",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 2,
+      "imports": [
+        "dart:math",
+        "package:flutter/painting.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Component",
+      "public_apis": [
+        "double ccw(Offset p1, Offset p2, Offset p3)",
+        "bool onSegment(Offset p, Offset q, Offset r)"
+      ],
+      "architectural_role": "Provides math models (segments intersections, path routing vectors) to map connection lines around nodes."
+    },
+    "lib/features/graph/presentation/strategies/significance_strategy.dart": {
+      "class": "SignificanceStrategy",
+      "sha256": "caf2d8b672b6c3a307209e9793d3ffd9df465446",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 2,
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Component",
+      "public_apis": [
+        "NodeStyle apply(NodeStyle base, int significance)"
+      ],
+      "architectural_role": "Adjusts visual weight and sizes of nodes based on node link density metrics."
+    },
+    "lib/features/graph/ui/canvas/context_toolbar_overlay.dart": {
+      "class": "ContextToolbarOverlay",
+      "sha256": "53866f053de0743033454999c4d60562dedc2a76",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 1,
+      "imports": [
+        "package:flutter/material.dart",
+        "lib/features/graph/presentation/node_render_state.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/presentation/viewport_state.dart",
+        "lib/features/graph/engine/interaction_engine.dart",
+        "lib/features/graph/engine/base_interaction_state.dart",
+        "lib/features/graph/presentation/view_state.dart",
+        "lib/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart",
+        "lib/features/graph/presentation/strategies/node_style_strategy.dart",
+        "lib/features/graph/presentation/strategies/relation_style_strategy.dart",
+        "lib/presentation/widgets/template_manager/save_template_dialog.dart",
+        "lib/features/graph/models/models.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "UI Component",
+      "public_apis": [
+        "Widget build(BuildContext context)"
+      ],
+      "architectural_role": "Tracks active viewport projections to render floating context menus immediately adjacent to selected canvas elements."
+    },
+    "lib/features/graph/ui/widgets/overlays/inspector/appearance_tab.dart": {
+      "class": "AppearanceTab",
+      "sha256": "0431dba47b122f89ad03b7bed2a0253a5659518a",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 1,
+      "imports": [
+        "package:flutter/material.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/models/models.dart",
+        "lib/features/graph/presentation/strategies/node_style_strategy.dart",
+        "lib/shared/utils/color_utils.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "UI Component",
+      "public_apis": [
+        "Widget build(BuildContext context)"
+      ],
+      "architectural_role": "Renders styling controls for colors, shapes, fonts, and borders to customize nodes and relation configurations."
+    },
+    "lib/features/graph/ui/widgets/overlays/inspector/data_tab.dart": {
+      "class": "DataTab, _DataTabState",
+      "sha256": "6ab6f5db14cb9b84b6ef06d3015a774d2e1f0114",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 1,
+      "imports": [
+        "package:flutter/material.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/models/models.dart",
+        "lib/features/graph/presentation/graph_metrics.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "UI Component",
+      "public_apis": [
+        "State<DataTab> createState() => _DataTabState();",
+        "void dispose()",
+        "String pad(int n) => n.toString().padLeft(2, '0');",
+        "Widget build(BuildContext context)"
+      ],
+      "architectural_role": "Renders metadata manager views, hosting comments threads, tags lists, and data inspectors."
+    },
+    "lib/presentation/widgets/hover_scale_button.dart": {
+      "class": "HoverScaleButton, _HoverScaleButtonState",
+      "sha256": "aeec1283ec49f799f73384568db01af8a9d0377f",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 2,
+      "imports": [
+        "package:flutter/material.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Component",
+      "public_apis": [
+        "State<HoverScaleButton> createState() => _HoverScaleButtonState();",
+        "Widget build(BuildContext context)"
+      ],
+      "architectural_role": "Provides high-fidelity, reusable micro-animation scaling behaviors and tooltip wrappers for icon buttons."
     }
   }
 }

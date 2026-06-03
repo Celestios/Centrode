@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
 
+import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
+
 class CanvasTabBar extends StatelessWidget {
   const CanvasTabBar({super.key});
 
@@ -54,7 +56,7 @@ class CanvasTabBar extends StatelessWidget {
 // Tab item
 // -----------------------------------------------------------------------------
 
-class _TabItem extends StatefulWidget {
+class _TabItem extends StatelessWidget {
   final String name;
   final bool isActive;
   final bool canClose;
@@ -70,14 +72,6 @@ class _TabItem extends StatefulWidget {
   });
 
   @override
-  State<_TabItem> createState() => _TabItemState();
-}
-
-class _TabItemState extends State<_TabItem> {
-  bool _isHovered = false;
-  bool _isPressed = false;
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
@@ -86,87 +80,69 @@ class _TabItemState extends State<_TabItem> {
     final activeColor = onSurface;
     final inactiveColor = onSurface.withValues(alpha: 0.6);
 
-    double scale = 1.0;
-    if (_isHovered) scale = 1.04;
-    if (_isPressed) scale = 0.96;
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() {
-        _isHovered = false;
-        _isPressed = false;
-      }),
-      child: AnimatedScale(
-        scale: scale,
-        duration: const Duration(milliseconds: 100),
-        child: GlassPanel(
+    return HoverScaleButton(
+      onTap: onTap,
+      hoverScale: 1.04,
+      pressScale: 0.96,
+      borderRadius: BorderRadius.circular(10),
+      builder: (context, isHovered, isPressed) {
+        return GlassPanel(
           borderRadius: 10,
-          color: widget.isActive
+          color: isActive
               ? theme.cardColor.withValues(alpha: 0.72)
-              : (_isHovered
+              : (isHovered
                   ? theme.cardColor.withValues(alpha: 0.60)
                   : theme.cardColor.withValues(alpha: 0.45)),
-          shadow: widget.isActive
+          shadow: isActive
               ? BoxShadow(
                   color: primaryColor.withValues(alpha: 0.08),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 )
               : null,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: widget.onTap,
-              onHighlightChanged: (highlighted) =>
-                  setState(() => _isPressed = highlighted),
-              borderRadius: BorderRadius.circular(10),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.insert_drive_file_outlined,
-                      color: widget.isActive
-                          ? activeColor
-                          : (_isHovered ? primaryColor : inactiveColor),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.insert_drive_file_outlined,
+                  color: isActive
+                      ? activeColor
+                      : (isHovered ? primaryColor : inactiveColor),
+                  size: 14,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                    color: isActive
+                        ? activeColor
+                        : (isHovered ? primaryColor : inactiveColor),
+                  ),
+                ),
+                if (canClose) ...[
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: onClose,
+                    child: Icon(
+                      Icons.close_rounded,
+                      color: isActive
+                          ? activeColor.withValues(alpha: 0.6)
+                          : (isHovered
+                              ? primaryColor.withValues(alpha: 0.6)
+                              : inactiveColor.withValues(alpha: 0.6)),
                       size: 14,
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      widget.name,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: widget.isActive
-                            ? FontWeight.w600
-                            : FontWeight.normal,
-                        color: widget.isActive
-                            ? activeColor
-                            : (_isHovered ? primaryColor : inactiveColor),
-                      ),
-                    ),
-                    if (widget.canClose) ...[
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: widget.onClose,
-                        child: Icon(
-                          Icons.close_rounded,
-                          color: widget.isActive
-                              ? activeColor.withValues(alpha: 0.6)
-                              : (_isHovered
-                                  ? primaryColor.withValues(alpha: 0.6)
-                                  : inactiveColor.withValues(alpha: 0.6)),
-                          size: 14,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+                  ),
+                ],
+              ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -175,76 +151,52 @@ class _TabItemState extends State<_TabItem> {
 // Add tab button
 // -----------------------------------------------------------------------------
 
-class _AddTabButton extends StatefulWidget {
+class _AddTabButton extends StatelessWidget {
   final WorkspaceTabsController tabsController;
 
   const _AddTabButton({required this.tabsController});
-
-  @override
-  State<_AddTabButton> createState() => _AddTabButtonState();
-}
-
-class _AddTabButtonState extends State<_AddTabButton> {
-  bool _isHovered = false;
-  bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
 
-    double scale = 1.0;
-    if (_isHovered) scale = 1.05;
-    if (_isPressed) scale = 0.95;
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() {
-        _isHovered = false;
-        _isPressed = false;
-      }),
-      child: AnimatedScale(
-        scale: scale,
-        duration: const Duration(milliseconds: 100),
-        child: GlassPanel(
+    return HoverScaleButton(
+      onTap: () {
+        final newIndex = tabsController.tabs.length + 1;
+        tabsController.addTab(
+          'maps/mycelium_tab_$newIndex.db',
+          'Map $newIndex',
+        );
+      },
+      hoverScale: 1.05,
+      pressScale: 0.95,
+      borderRadius: BorderRadius.circular(10),
+      builder: (context, isHovered, isPressed) {
+        return GlassPanel(
           borderRadius: 10,
-          color: _isHovered
+          color: isHovered
               ? theme.cardColor.withValues(alpha: 0.68)
               : theme.cardColor.withValues(alpha: 0.45),
-          shadow: _isHovered
+          shadow: isHovered
               ? BoxShadow(
                   color: primaryColor.withValues(alpha: 0.08),
                   blurRadius: 4,
                   offset: const Offset(0, 1),
                 )
               : null,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                final newIndex = widget.tabsController.tabs.length + 1;
-                widget.tabsController.addTab(
-                  'maps/mycelium_tab_$newIndex.db',
-                  'Map $newIndex',
-                );
-              },
-              onHighlightChanged: (highlighted) =>
-                  setState(() => _isPressed = highlighted),
-              borderRadius: BorderRadius.circular(10),
-              child: Padding(
-                padding: const EdgeInsets.all(7),
-                child: Icon(
-                  Icons.add_rounded,
-                  color: _isHovered
-                      ? primaryColor
-                      : theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  size: 14,
-                ),
-              ),
+          child: Padding(
+            padding: const EdgeInsets.all(7),
+            child: Icon(
+              Icons.add_rounded,
+              color: isHovered
+                  ? primaryColor
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              size: 14,
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

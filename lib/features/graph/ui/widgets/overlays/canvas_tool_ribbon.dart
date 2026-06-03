@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
 import '../../../store/graph_data_controller.dart';
+import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
 
 class CanvasToolRibbon extends StatefulWidget {
   const CanvasToolRibbon({super.key});
@@ -160,7 +161,7 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
   }
 }
 
-class _ToolButton extends StatefulWidget {
+class _ToolButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool isActive;
@@ -180,69 +181,62 @@ class _ToolButton extends StatefulWidget {
   });
 
   @override
-  State<_ToolButton> createState() => _ToolButtonState();
-}
-
-class _ToolButtonState extends State<_ToolButton> {
-  bool _isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final activeColor = widget.primaryColor;
-    final inactiveColor = widget.textColor.withValues(alpha: 0.7);
+    final activeColor = primaryColor;
+    final inactiveColor = textColor.withValues(alpha: 0.7);
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: InkWell(
-        onTap: widget.onPressed,
-        borderRadius: BorderRadius.circular(10),
-        child: AnimatedContainer(
+    return HoverScaleButton(
+      onTap: onPressed,
+      hoverScale: 1.04,
+      pressScale: 0.96,
+      borderRadius: BorderRadius.circular(10),
+      builder: (context, isHovered, isPressed) {
+        return AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           padding: EdgeInsets.symmetric(
-            horizontal: widget.isCompact ? 8 : 12,
+            horizontal: isCompact ? 8 : 12,
             vertical: 6,
           ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            gradient: widget.isActive
+            gradient: isActive
                 ? LinearGradient(
                     colors: [
-                      widget.primaryColor.withValues(alpha: 0.28),
-                      widget.primaryColor.withValues(alpha: 0.12),
+                      primaryColor.withValues(alpha: 0.28),
+                      primaryColor.withValues(alpha: 0.12),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   )
-                : (_isHovered
+                : (isHovered
                     ? LinearGradient(
                         colors: [
-                          widget.primaryColor.withValues(alpha: 0.18),
-                          widget.primaryColor.withValues(alpha: 0.05),
+                          primaryColor.withValues(alpha: 0.18),
+                          primaryColor.withValues(alpha: 0.05),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       )
                     : null),
             border: Border.all(
-              color: widget.isActive
+              color: isActive
                   ? activeColor.withValues(alpha: 0.45)
-                  : (_isHovered ? activeColor.withValues(alpha: 0.25) : Colors.transparent),
+                  : (isHovered ? activeColor.withValues(alpha: 0.25) : Colors.transparent),
               width: 1.0,
             ),
-            boxShadow: widget.isActive
+            boxShadow: isActive
                 ? [
                     BoxShadow(
-                      color: widget.primaryColor.withValues(alpha: 0.18),
+                      color: primaryColor.withValues(alpha: 0.18),
                       blurRadius: 8,
                       spreadRadius: -1,
                       offset: const Offset(0, 2),
                     )
                   ]
-                : (_isHovered
+                : (isHovered
                     ? [
                         BoxShadow(
-                          color: widget.primaryColor.withValues(alpha: 0.08),
+                          color: primaryColor.withValues(alpha: 0.08),
                           blurRadius: 4,
                           spreadRadius: -1,
                           offset: const Offset(0, 1),
@@ -253,39 +247,35 @@ class _ToolButtonState extends State<_ToolButton> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              AnimatedScale(
-                scale: _isHovered ? 1.08 : 1.0,
-                duration: const Duration(milliseconds: 150),
-                child: Icon(
-                  widget.icon,
-                  color: widget.isActive
-                      ? widget.textColor
-                      : (_isHovered ? activeColor : inactiveColor),
-                  size: 18,
-                ),
+              Icon(
+                icon,
+                color: isActive
+                    ? textColor
+                    : (isHovered ? activeColor : inactiveColor),
+                size: 18,
               ),
-              if (!widget.isCompact) ...[
+              if (!isCompact) ...[
                 const SizedBox(width: 6),
                 Text(
-                  widget.label,
+                  label,
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight: widget.isActive ? FontWeight.bold : FontWeight.normal,
-                    color: widget.isActive
-                        ? widget.textColor
-                        : (_isHovered ? activeColor : inactiveColor),
+                    fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                    color: isActive
+                        ? textColor
+                        : (isHovered ? activeColor : inactiveColor),
                   ),
                 ),
               ],
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
 
-class _ActionButton extends StatefulWidget {
+class _ActionButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;
   final VoidCallback onPressed;
@@ -303,125 +293,112 @@ class _ActionButton extends StatefulWidget {
   });
 
   @override
-  State<_ActionButton> createState() => _ActionButtonState();
-}
-
-class _ActionButtonState extends State<_ActionButton> {
-  bool _isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isEnabled = widget.isEnabled;
 
-    return Tooltip(
-      message: widget.tooltip,
-      child: MouseRegion(
-        onEnter: isEnabled ? (_) => setState(() => _isHovered = true) : null,
-        onExit: isEnabled ? (_) => setState(() => _isHovered = false) : null,
-        child: InkWell(
-          onTap: isEnabled ? widget.onPressed : null,
-          borderRadius: BorderRadius.circular(8),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              gradient: isEnabled && _isHovered
-                  ? LinearGradient(
-                      colors: [
-                        theme.colorScheme.primary.withValues(alpha: 0.18),
-                        theme.colorScheme.primary.withValues(alpha: 0.05),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+    return HoverScaleButton(
+      onTap: isEnabled ? onPressed : null,
+      isEnabled: isEnabled,
+      hoverScale: 1.08,
+      pressScale: 0.94,
+      tooltip: tooltip,
+      borderRadius: BorderRadius.circular(8),
+      builder: (context, isHovered, isPressed) {
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            gradient: isEnabled && isHovered
+                ? LinearGradient(
+                    colors: [
+                      theme.colorScheme.primary.withValues(alpha: 0.18),
+                      theme.colorScheme.primary.withValues(alpha: 0.05),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            border: isEnabled && isHovered
+                ? Border.all(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                    width: 1.0,
+                  )
+                : Border.all(color: Colors.transparent),
+            boxShadow: isEnabled && isHovered
+                ? [
+                    BoxShadow(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
                     )
-                  : null,
-              border: isEnabled && _isHovered
-                  ? Border.all(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                      width: 1.0,
-                    )
-                  : Border.all(color: Colors.transparent),
-              boxShadow: isEnabled && _isHovered
-                  ? [
-                      BoxShadow(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      )
-                    ]
-                  : [],
-            ),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                AnimatedScale(
-                  scale: isEnabled && _isHovered ? 1.08 : 1.0,
-                  duration: const Duration(milliseconds: 150),
-                  child: Icon(
-                    widget.icon,
-                    color: !isEnabled
-                        ? widget.textColor.withValues(alpha: 0.25)
-                        : (_isHovered
-                            ? theme.colorScheme.primary
-                            : widget.textColor.withValues(alpha: 0.7)),
-                    size: 18,
-                  ),
-                ),
-                if (widget.count > 0)
-                  Positioned(
-                    top: -6,
-                    right: -6,
-                    child: IgnorePointer(
-                      child: AnimatedScale(
-                        scale: widget.count > 0 ? 1.0 : 0.0,
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeOutBack,
-                        child: AnimatedOpacity(
-                          opacity: widget.count > 0 ? 1.0 : 0.0,
-                          duration: const Duration(milliseconds: 150),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primary.withValues(alpha: 0.8),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: theme.colorScheme.onPrimary.withValues(alpha: 0.4),
-                                width: 0.8,
+                  ]
+                : [],
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Icon(
+                icon,
+                color: !isEnabled
+                    ? textColor.withValues(alpha: 0.25)
+                    : (isHovered
+                        ? theme.colorScheme.primary
+                        : textColor.withValues(alpha: 0.7)),
+                size: 18,
+              ),
+              if (count > 0)
+                Positioned(
+                  top: -6,
+                  right: -6,
+                  child: IgnorePointer(
+                    child: AnimatedScale(
+                      scale: count > 0 ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOutBack,
+                      child: AnimatedOpacity(
+                        opacity: count > 0 ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 150),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withValues(alpha: 0.8),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: theme.colorScheme.onPrimary.withValues(alpha: 0.4),
+                              width: 0.8,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 2,
+                                offset: const Offset(0, 1),
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.15),
-                                  blurRadius: 2,
-                                  offset: const Offset(0, 1),
-                                ),
-                              ],
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 12,
-                              minHeight: 12,
-                            ),
-                            child: Center(
-                              child: AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 200),
-                                transitionBuilder: (Widget child, Animation<double> animation) {
-                                  return FadeTransition(
-                                    opacity: animation,
-                                    child: ScaleTransition(
-                                      scale: animation,
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                                child: Text(
-                                  '${widget.count}',
-                                  key: ValueKey<int>(widget.count),
-                                  style: TextStyle(
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.bold,
-                                    color: theme.colorScheme.onPrimary,
+                            ],
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 12,
+                            minHeight: 12,
+                          ),
+                          child: Center(
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 200),
+                              transitionBuilder: (Widget child, Animation<double> animation) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: ScaleTransition(
+                                    scale: animation,
+                                    child: child,
                                   ),
+                                );
+                              },
+                              child: Text(
+                                '$count',
+                                key: ValueKey<int>(count),
+                                style: TextStyle(
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.onPrimary,
                                 ),
                               ),
                             ),
@@ -430,11 +407,11 @@ class _ActionButtonState extends State<_ActionButton> {
                       ),
                     ),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
