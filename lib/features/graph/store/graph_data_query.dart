@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart' show BoundingBox;
 import '../models/models.dart';
 
 enum GraphUpdateType {

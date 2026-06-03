@@ -27,10 +27,8 @@ import '../../../../presentation/widgets/tag_manager/global_tags_manager_panel.d
 import '../../../../presentation/widgets/template_manager/global_templates_manager_panel.dart';
 import '../../../../presentation/widgets/template_manager/save_template_dialog.dart';
 import '../../models/left_panel_type.dart';
-import '../../../../src/rust/domain/templates.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/relation_style_strategy.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});

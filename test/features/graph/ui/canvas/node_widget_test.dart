@@ -11,7 +11,6 @@ import 'package:mycelium/features/graph/store/graph_data_query.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
 
 class MockGraphDataQuery extends Mock with ChangeNotifier implements GraphDataQuery {
   @override

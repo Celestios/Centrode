@@ -25,7 +25,7 @@ class GroupDragging extends CanvasInteractionState {
   CanvasInteractionState handlePointerMove(
     PointerMoveEvent e,
     Offset pCanvas,
-    InteractionContext ctx,
+    GeometryAndViewportCapability ctx,
   ) {
     final anchorVs = ctx.nodeViewStates[anchorNodeId];
     if (anchorVs == null) {
@@ -71,7 +71,7 @@ class GroupDragging extends CanvasInteractionState {
   @override
   CanvasInteractionState handlePointerUp(
     PointerUpEvent e,
-    InteractionContext ctx,
+    GeometryAndViewportCapability ctx,
   ) {
     _groupDragLog.info('Group Drag Commit for ${nodeIds.length} nodes');
     for (final id in nodeIds) {
@@ -87,7 +87,7 @@ class GroupDragging extends CanvasInteractionState {
   @override
   CanvasInteractionState handlePointerCancel(
     PointerCancelEvent e,
-    InteractionContext ctx,
+    GeometryAndViewportCapability ctx,
   ) {
     for (final id in nodeIds) {
       ctx.setNodeDragging(id, false);

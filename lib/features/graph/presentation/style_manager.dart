@@ -5,7 +5,6 @@ import 'package:mycelium/features/graph/presentation/strategies/node_style_strat
 import 'package:mycelium/features/graph/presentation/strategies/relation_style_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/significance_modifier.dart';
 import 'package:mycelium/features/graph/store/modules/graph_store.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' show DisplayMode;
 import 'package:mycelium/features/graph/store/graph_data_controller.dart' show GraphStyleUpdater;
 

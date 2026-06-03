@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
-import 'package:mycelium/src/rust/bridge/api.dart';
 import '../../../../presentation/widgets/window_title_bar.dart';
 import '../../../main.dart';
 import '../presentation/theme_manager.dart';
@@ -143,7 +142,6 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
     return MultiProvider(
       key: ValueKey(widget.session.id), // Reconstruct providers and context hierarchy
       providers: [
-        Provider<AppHandle>.value(value: widget.session.handle!),
         ChangeNotifierProvider<ThemeController>.value(
           value: widget.session.themeController!,
         ),

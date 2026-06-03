@@ -29,7 +29,7 @@ class NodeResizing extends CanvasInteractionState {
   CanvasInteractionState handlePointerMove(
     PointerMoveEvent e,
     Offset pCanvas,
-    InteractionContext ctx,
+    GeometryAndViewportCapability ctx,
   ) {
     final vs = ctx.nodeViewStates[nodeId];
     if (vs == null) return const CanvasIdle();
@@ -99,7 +99,7 @@ class NodeResizing extends CanvasInteractionState {
   @override
   CanvasInteractionState handlePointerUp(
     PointerUpEvent e,
-    InteractionContext ctx,
+    GeometryAndViewportCapability ctx,
   ) {
     final vs = ctx.nodeViewStates[nodeId];
     if (vs != null && vs.dragWidthNotifier.value != null) {

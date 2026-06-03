@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../presentation/graph_metrics.dart';
 import '../../models/models.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 
 class MetadataPreviewOverlay extends StatelessWidget {
   final InfoUiNode node;
@@ -19,7 +18,7 @@ class MetadataPreviewOverlay extends StatelessWidget {
     }
 
     // Get the latest comment
-    frb.Comment? latestComment;
+    Comment? latestComment;
     if (hasComments) {
       latestComment = node.comments.reduce((a, b) =>
           a.createdAt.toInt() > b.createdAt.toInt() ? a : b);

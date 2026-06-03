@@ -61,7 +61,7 @@ class RelationDrawing extends CanvasInteractionState {
   CanvasInteractionState handlePointerDown(
     PointerDownEvent e,
     Offset pCanvas,
-    InteractionContext ctx,
+    GeometryCapability ctx,
     bool isDoubleTap,
   ) {
     // Abort on Right-Click
@@ -84,7 +84,7 @@ class RelationDrawing extends CanvasInteractionState {
   CanvasInteractionState handlePointerMove(
     PointerMoveEvent e,
     Offset pCanvas,
-    InteractionContext ctx,
+    GeometryCapability ctx,
   ) {
     // L2 Snapping Logic - find nearby target node
     String? snappedId;
@@ -124,7 +124,7 @@ class RelationDrawing extends CanvasInteractionState {
   @override
   CanvasInteractionState handlePointerUp(
     PointerUpEvent e,
-    InteractionContext ctx,
+    GeometryCapability ctx,
   ) {
     if (isSticky) {
       // First release (from the toolbar button): just flip the latch to start following
@@ -157,7 +157,7 @@ class RelationDrawing extends CanvasInteractionState {
   CanvasInteractionState handlePointerHover(
     PointerHoverEvent e,
     Offset pCanvas,
-    InteractionContext ctx,
+    GeometryCapability ctx,
   ) {
     if (!isSticky) return this; // Opt-out if not in sticky mode
 

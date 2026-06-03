@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../features/graph/presentation/workspace_tabs_controller.dart';
-import '../../features/graph/models/graph_node.dart';
-import '../../features/graph/models/graph_relation.dart';
-import '../../src/rust/domain/nodes.dart';
-import '../../src/rust/domain/base_models.dart' show BoundingBox;
+import '../../features/graph/models/models.dart';
 import 'palette_action_registry.dart';
 
 enum SearchResultType { command, node, tag, relation, relationHeader }
@@ -99,48 +96,34 @@ class SearchRegistry {
     // 3. Database Query Prefix ('?')
     if (query.startsWith('?')) {
       final term = query.substring(1).trim();
-      final handle = session.handle;
-      if (handle == null) return [];
+      final dc = dataController;
+      if (dc == null) return [];
 
       try {
-        final rustNodes = await handle.querySearch(query: term);
+        final dbResults = await dc.searchDatabase(term);
         final results = <SearchResult>[];
 
-        for (final rustNode in rustNodes) {
-          String key = '';
-          String title = 'Untitled Node';
-          String subtitle = 'Database';
-          IconData icon = Icons.help_outline_rounded;
-
-          if (rustNode is Nodes_INode) {
-            final node = rustNode.field0;
-            key = node.key;
-            title = node.fields.content.text.isEmpty ? 'Untitled Node' : node.fields.content.text;
-            subtitle = 'Database • Info';
-            icon = Icons.description_outlined;
-          } else if (rustNode is Nodes_TaskNode) {
-            final node = rustNode.field0;
-            key = node.key;
-            title = node.fields.content.text.isEmpty ? 'Untitled Node' : node.fields.content.text;
-            subtitle = 'Database • Task • State: ${node.fields.state}';
-            icon = Icons.task_alt_outlined;
-          } else if (rustNode is Nodes_InterNode) {
-            final node = rustNode.field0;
-            key = node.key;
-            title = node.fields.verb.isEmpty ? 'Untitled Relation' : node.fields.verb;
-            subtitle = 'Database • Inter';
-            icon = Icons.alt_route_rounded;
+        for (final res in dbResults) {
+          IconData icon;
+          switch (res.type) {
+            case UiSearchResultType.infoNode:
+              icon = Icons.description_outlined;
+              break;
+            case UiSearchResultType.taskNode:
+              icon = Icons.task_alt_outlined;
+              break;
+            case UiSearchResultType.relation:
+              icon = Icons.alt_route_rounded;
+              break;
           }
 
-          if (key.isNotEmpty) {
-            results.add(SearchResult(
-              title: title,
-              subtitle: subtitle,
-              icon: icon,
-              type: SearchResultType.node,
-              onSelected: (ctx) => _focusOnUiNode(ctx, key),
-            ));
-          }
+          results.add(SearchResult(
+            title: res.title,
+            subtitle: res.subtitle,
+            icon: icon,
+            type: SearchResultType.node,
+            onSelected: (ctx) => _focusOnUiNode(ctx, res.key),
+          ));
         }
         return results;
       } catch (e) {

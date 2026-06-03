@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:mycelium/features/graph/presentation/viewport_state.dart';
 import 'package:mycelium/features/graph/store/graph_data_query.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart' show BoundingBox;
 import 'package:mycelium/features/graph/models/models.dart';
 
 class MockGraphDataQuery extends Mock implements GraphDataQuery {}
@@ -40,10 +39,11 @@ void main() {
       controller.dispose();
     });
 
-    test('updateViewportSize sets dimensions and triggers math', () {
+    test('updateViewportSize sets dimensions and triggers math', () async {
       controller.updateViewportSize(const Size(800, 600));
 
       expect(controller.viewportStateNotifier.value.viewportSize, const Size(800, 600));
+      await Future.delayed(Duration.zero);
       expect(controller.visibleNodeIds.value.contains('node-1'), isTrue);
     });
 

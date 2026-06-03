@@ -61,6 +61,7 @@ class UpdateRelationLayoutCommand extends GraphCommand {
   @override
   void undo() {
     controller.store.relationLookup[targetId] = oldRelation;
+    controller.styleUpdater?.updateStyleForRelation(targetId);
     controller.publishUpdate(
       GraphEntityUpdate(
         id: targetId,

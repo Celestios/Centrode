@@ -18,7 +18,7 @@ class NodeDragging extends CanvasInteractionState {
   CanvasInteractionState handlePointerMove(
     PointerMoveEvent e,
     Offset pCanvas,
-    InteractionContext ctx,
+    GeometryAndViewportCapability ctx,
   ) {
     final vs = ctx.nodeViewStates[nodeId];
     if (vs == null) {
@@ -44,7 +44,7 @@ class NodeDragging extends CanvasInteractionState {
   @override
   CanvasInteractionState handlePointerUp(
     PointerUpEvent e,
-    InteractionContext ctx,
+    GeometryAndViewportCapability ctx,
   ) {
     final vs = ctx.nodeViewStates[nodeId];
     ctx.setNodeDragging(nodeId, false);
@@ -61,7 +61,7 @@ class NodeDragging extends CanvasInteractionState {
   @override
   CanvasInteractionState handlePointerCancel(
     PointerCancelEvent e,
-    InteractionContext ctx,
+    GeometryAndViewportCapability ctx,
   ) {
     ctx.setNodeDragging(nodeId, false);
     return const CanvasIdle();

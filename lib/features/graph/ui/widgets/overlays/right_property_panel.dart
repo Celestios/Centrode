@@ -5,12 +5,7 @@ import '../../../presentation/node_render_state.dart';
 import 'collapsible_sidebar.dart';
 import '../../../store/graph_data_controller.dart';
 import '../../../models/models.dart';
-import 'package:mycelium/features/graph/models/graph_node.dart';
-import 'package:mycelium/src/rust/domain/tags.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
-import 'package:uuid/uuid.dart';
 import '../../../presentation/graph_metrics.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/shared/utils/color_utils.dart';
 
@@ -732,12 +727,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                       ),
                       const SizedBox(width: 4),
                       GestureDetector(
-                        onTap: () {
-                          final updatedTags = node.tags
-                              .where((t) => t.key != tag.key)
-                              .toList();
-                          dataController.updateNodeTags(node.id, updatedTags);
-                        },
+                        onTap: () => dataController.removeTagFromNode(node.id, tag.key),
                         child: Icon(
                           Icons.close,
                           size: 10,
@@ -844,15 +834,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                               ),
                             ),
                             GestureDetector(
-                              onTap: () {
-                                final updatedComments = node.comments
-                                    .where((c) => c != comment)
-                                    .toList();
-                                dataController.updateNodeComments(
-                                  node.id,
-                                  updatedComments,
-                                );
-                              },
+                              onTap: () => dataController.removeCommentFromNode(node.id, comment),
                               child: Icon(
                                 Icons.delete_outline_rounded,
                                 size: 12,
@@ -909,18 +891,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
     }
 
     final color = _selectedTagColor ?? _currentPalette.first;
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-
-    final newTag = Tag(
-      key: const Uuid().v4(),
-      fields: TagFields(
-        name: text,
-        color: color,
-        createdAt: timestamp,
-        updatedAt: timestamp,
-      ),
-    );
-    dataController.updateNodeTags(node.id, [...node.tags, newTag]);
+    dataController.addTagToNode(node.id, text, color);
 
     _tagController.clear();
     setState(() {
@@ -932,11 +903,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
     final text = _commentController.text.trim();
     if (text.isEmpty) return;
 
-    final newComment = frb.Comment(
-      text: text,
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-    );
-    dataController.updateNodeComments(node.id, [newComment, ...node.comments]);
+    dataController.addCommentToNode(node.id, text);
 
     _commentController.clear();
     _commentFocusNode.requestFocus();

@@ -87,28 +87,27 @@
     "lib/features/graph/store/graph_data_controller.dart": {
       "class": "GraphDataController",
       "srp_responsibility": "Acts as the high-level orchestrator and Facade for domain store modules.",
-      "sha256": "774ff87deebc9ca2e00321911ff590f5c185687b",
+      "sha256": "91536d5f2ae6edbbf1a3af568e80e7bddd596f31",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
       "imports": [
         "dart:async",
         "dart:ui",
+        "package:uuid/uuid.dart",
         "package:flutter/foundation.dart",
         "package:logging/logging.dart",
         "lib/features/graph/store/graph_data_query.dart",
         "lib/features/graph/models/models.dart",
         "lib/features/graph/store/command_processor.dart",
-        "lib/src/rust/domain/styles.dart",
-        "lib/src/rust/domain/tags.dart",
+        "lib/src/rust/domain/nodes.dart",
         "lib/features/graph/store/modules/graph_store.dart",
         "lib/features/graph/store/modules/graph_spatial.dart",
         "lib/features/graph/store/modules/graph_sync_engine.dart",
         "lib/features/graph/store/modules/graph_node_mutations.dart",
         "lib/features/graph/store/modules/graph_relation_mutations.dart",
         "lib/features/graph/store/modules/graph_property_mutations.dart",
-        "lib/features/graph/store/modules/graph_template_mutations.dart",
-        "lib/src/rust/domain/templates.dart"
+        "lib/features/graph/store/modules/graph_template_mutations.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -152,14 +151,20 @@
         "Future<void> saveTemplateFromSelection(",
         "Future<void> instantiateTemplate(String key, Offset canvasCoords) =>",
         "Future<void> deleteTemplate(String key) => templateMutations.deleteTemplate(key);",
+        "Future<void> saveViewportState(ViewportState state) async",
+        "Future<List<UiSearchResult>> searchDatabase(String term) async",
+        "void addTagToNode(String nodeId, String name, int color)",
+        "void removeTagFromNode(String nodeId, String tagKey)",
+        "void addCommentToNode(String nodeId, String text)",
+        "void removeCommentFromNode(String nodeId, Comment comment)",
         "void dispose()"
       ]
     },
     "lib/features/graph/store/modules/graph_node_mutations.dart": {
       "class": "GraphNodeMutations",
       "srp_responsibility": "Performs optimistic node mutations and queues FFI command executions.",
-      "sha256": "8558b9fd828a87b31b9cf8381bcd7f14234258fb",
-      "status": "COMPLIANT",
+      "sha256": "d089bcca5c6e13c7579e6e1d2a07247e0de9a51f",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -185,7 +190,7 @@
     "lib/features/graph/store/modules/graph_property_mutations.dart": {
       "class": "GraphPropertyMutations",
       "srp_responsibility": "Performs optimistic entity property changes and text modifications.",
-      "sha256": "14d3a498629a26572891441c9fcd88e045489230",
+      "sha256": "f8681c79cf921928a10d4c0f8e32a6f8319bab15",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
@@ -193,11 +198,9 @@
         "dart:ui",
         "package:logging/logging.dart",
         "lib/features/graph/models/models.dart",
-        "lib/src/rust/domain/styles.dart",
         "lib/features/graph/models/content_builder.dart",
         "lib/features/graph/store/graph_data_controller.dart",
-        "lib/features/graph/store/graph_data_query.dart",
-        "lib/src/rust/domain/tags.dart"
+        "lib/features/graph/store/graph_data_query.dart"
       ],
       "test_file": "test/features/graph/store/modules/graph_property_mutations_test.dart",
       "has_tests": true,
@@ -219,8 +222,8 @@
     "lib/features/graph/store/modules/graph_relation_mutations.dart": {
       "class": "GraphRelationMutations",
       "srp_responsibility": "Performs optimistic relation creation and deletions.",
-      "sha256": "6662aa97061e9693d0fa1911253d5a415845dc99",
-      "status": "COMPLIANT",
+      "sha256": "2dc63fde8f3f34fb630e1fadedaf1a0ee8c0a12c",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -341,13 +344,12 @@
     "lib/features/graph/engine/interaction_facade.dart": {
       "class": "CanvasInteractionEnvironment",
       "srp_responsibility": "Implements InteractionContext to act as the unified facade bridging interaction FSM to controllers.",
-      "sha256": "6b17255d2531599550e8b52fb526b5e5457d7d4b",
+      "sha256": "c73f269090be9512354088a0ec9e5f9219b82249",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
       "imports": [
         "dart:ui",
-        "lib/src/rust/domain/styles.dart",
         "lib/features/graph/models/models.dart",
         "lib/features/graph/presentation/view_state.dart",
         "lib/features/graph/presentation/strategies/node_style_strategy.dart",
@@ -359,7 +361,7 @@
       ],
       "test_file": "",
       "has_tests": false,
-      "is_ffi_bridge": true,
+      "is_ffi_bridge": false,
       "pattern": "Component",
       "public_apis": [
         "Iterable<UiRelation> getRelations() => _dataController.relations;",
@@ -458,8 +460,8 @@
     "lib/features/graph/presentation/viewport_state.dart": {
       "class": "ViewportController",
       "srp_responsibility": "Controls viewport translation, boundaries, zoom constraints, and elastic viewport framing.",
-      "sha256": "0742b15fd8db6b7d1d216a730b8f8bd5c77cade0",
-      "status": "COMPLIANT",
+      "sha256": "872c70a94d9d8077a79724432c039421d45d00b4",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -512,7 +514,7 @@
     "lib/features/graph/presentation/style_manager.dart": {
       "class": "StyleManager",
       "srp_responsibility": "Maps theme preferences and significance levels to concrete UI node/relation styling metrics.",
-      "sha256": "b6ce588872ced38c3b2ea22ed59366338b1eb8f9",
+      "sha256": "090f229bd4ceb9287991f86c9a0da4fce228d236",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
@@ -523,12 +525,11 @@
         "lib/features/graph/presentation/strategies/node_style_strategy.dart",
         "lib/features/graph/presentation/strategies/relation_style_strategy.dart",
         "lib/features/graph/presentation/strategies/significance_modifier.dart",
-        "lib/features/graph/store/modules/graph_store.dart",
-        "lib/src/rust/domain/styles.dart"
+        "lib/features/graph/store/modules/graph_store.dart"
       ],
       "test_file": "",
       "has_tests": false,
-      "is_ffi_bridge": true,
+      "is_ffi_bridge": false,
       "pattern": "Controller/Manager",
       "public_apis": [
         "void updateAllStyles(Iterable<UiNode> nodes, Iterable<UiRelation> relations)",
@@ -541,8 +542,8 @@
     "lib/features/graph/presentation/workspace_tabs_controller.dart": {
       "class": "WorkspaceTabsController",
       "srp_responsibility": "Coordinates multiple tab sessions, handles initialization, and controls the active workspace.",
-      "sha256": "4845f53fd5b828163d894768eef8a5ce63d41004",
-      "status": "COMPLIANT",
+      "sha256": "7d21672c6f8cd3989e60ef9d744e4bdee811fbba",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -650,7 +651,7 @@
     "lib/features/graph/ui/canvas/graph_canvas.dart": {
       "class": "GraphCanvas",
       "srp_responsibility": "Constructs the layout viewport stack, listens to active controllers, and initializes the FSM environment.",
-      "sha256": "c7e83ec1fbade5aae850a84e6254c8263e799ef0",
+      "sha256": "f6523fb3ea71a531605692948f66ffb9b675e276",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 1,
@@ -684,14 +685,12 @@
         "lib/presentation/widgets/template_manager/global_templates_manager_panel.dart",
         "lib/presentation/widgets/template_manager/save_template_dialog.dart",
         "lib/features/graph/models/left_panel_type.dart",
-        "lib/src/rust/domain/templates.dart",
         "lib/features/graph/presentation/strategies/node_style_strategy.dart",
-        "lib/features/graph/presentation/strategies/relation_style_strategy.dart",
-        "lib/src/rust/domain/styles.dart"
+        "lib/features/graph/presentation/strategies/relation_style_strategy.dart"
       ],
       "test_file": "",
       "has_tests": false,
-      "is_ffi_bridge": true,
+      "is_ffi_bridge": false,
       "pattern": "UI Component",
       "public_apis": [
         "State<GraphCanvas> createState() => _GraphCanvasState();",
@@ -732,19 +731,18 @@
     "lib/features/graph/engine/interaction_context.dart": {
       "class": "",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "d46178f13d5366f5f0bba27dc51309d0cc836db9",
+      "sha256": "c52245dfdaa334adfe3bf8878f3eb93f9c13777b",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
       "imports": [
         "dart:ui",
-        "lib/src/rust/domain/styles.dart",
         "lib/features/graph/models/models.dart",
         "lib/features/graph/presentation/view_state.dart"
       ],
       "test_file": "",
       "has_tests": false,
-      "is_ffi_bridge": true,
+      "is_ffi_bridge": false,
       "pattern": "Component",
       "public_apis": [
         "Iterable<UiRelation> getRelations();",
@@ -809,8 +807,8 @@
     "lib/features/graph/engine/states/node_drag_state.dart": {
       "class": "NodeDragging",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "217a4ad41b666b58944cb9ff38455316ece0bf23",
-      "status": "COMPLIANT",
+      "sha256": "c676c9825ee9f80c05482a1e238312d0ae72971c",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
       "test_file": "",
@@ -826,8 +824,8 @@
     "lib/features/graph/engine/states/node_resize_state.dart": {
       "class": "NodeResizing",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "fed8f3cd5325b5deae41302aae93d6a5f974a01f",
-      "status": "COMPLIANT",
+      "sha256": "1a37ce3757ade33fc8098b23ef52b2169a42f13f",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
       "test_file": "",
@@ -842,8 +840,8 @@
     "lib/features/graph/engine/states/relation_draw_state.dart": {
       "class": "RelationDrawing",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "abfd251408cbeef126e4f29ab95884e1c49bab19",
-      "status": "COMPLIANT",
+      "sha256": "fbeb0f219a9f464c79f4f7169b00397ced1f1005",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
       "test_file": "",
@@ -860,7 +858,7 @@
     "lib/features/graph/engine/states/relation_tip_drag_state.dart": {
       "class": "RelationTipDragging",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "f5aee69798ffb0107144e1c0f023173b6d27838b",
+      "sha256": "6e26165b0bf6542a15768d006f4c0c24878a11f4",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
@@ -877,7 +875,7 @@
     "lib/features/graph/engine/states/toolbar_drag_state.dart": {
       "class": "ToolbarDragging",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "900e3e2a24ff194fbd12d11a091c60b2467baf2a",
+      "sha256": "e3936fb94c5f8b47fae250573c5a26ea2652ec0e",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
@@ -892,32 +890,16 @@
     "lib/features/graph/models/commands.dart": {
       "class": "MoveNodeCommand",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "efa572ac0332fd0c9fed9956e33f8c626908e1a4",
+      "sha256": "1b95252ce1ce121af1572e1b72c8ab29864ffffd",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
-      "imports": [
-        "dart:ui",
-        "package:logging/logging.dart",
-        "lib/src/rust/bridge/api.dart",
-        "lib/features/graph/models/graph_node.dart",
-        "lib/features/graph/models/graph_relation.dart",
-        "lib/src/rust/domain/patches.dart",
-        "lib/src/rust/domain/tags.dart",
-        "lib/src/rust/domain/styles.dart",
-        "lib/src/rust/domain/contents.dart"
-      ],
+      "imports": [],
       "test_file": "",
       "has_tests": false,
-      "is_ffi_bridge": true,
+      "is_ffi_bridge": false,
       "pattern": "Data Model",
-      "public_apis": [
-        "Future<void> execute();",
-        "void undo();",
-        "Future<void> execute() async",
-        "void undo()",
-        "await reloadGraph();"
-      ]
+      "public_apis": []
     },
     "lib/features/graph/models/content_builder.dart": {
       "class": "ContentBuilder",
@@ -963,8 +945,8 @@
     "lib/features/graph/models/models.dart": {
       "class": "",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "bdd6e7e3033c90909964ed0ea816caa83ce7dbd0",
-      "status": "COMPLIANT",
+      "sha256": "549ab08c5a7d892d4ae0449a1bfc66bcd4b6dae1",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
       "test_file": "",
@@ -1104,7 +1086,7 @@
     "lib/features/graph/store/command_processor.dart": {
       "class": "CommandProcessor",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "89c3a371c6e582ad73e1ffbc28c26d258f7f7c75",
+      "sha256": "1ce515af1fdc137dbffd54b4a79206298df78a37",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
@@ -1130,8 +1112,8 @@
     "lib/features/graph/store/graph_data_query.dart": {
       "class": "GraphEntityUpdate",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "ad650ae7d022a176582433b6cccf8ca696ddb71a",
-      "status": "COMPLIANT",
+      "sha256": "13aa20541e91676c00f445baf09eff12ba825456",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -1332,8 +1314,8 @@
     "lib/features/graph/ui/canvas/metadata_preview_overlay.dart": {
       "class": "MetadataPreviewOverlay",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "967d027f1cc9bbc0edaa65656169221be4345a43",
-      "status": "COMPLIANT",
+      "sha256": "d887712e8489e7ca0222e3bc8ddbfbfd410639aa",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1354,7 +1336,7 @@
     "lib/features/graph/ui/canvas/node_widget.dart": {
       "class": "NodeWidget",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "53a7acafc871d522edf983208c368f6a5aaa490a",
+      "sha256": "60e143e278c620bf61a346214651aab562c4785e",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 1,
@@ -1365,13 +1347,11 @@
         "lib/features/graph/models/models.dart",
         "lib/features/graph/store/graph_data_query.dart",
         "lib/features/graph/presentation/view_state.dart",
-        "lib/features/graph/presentation/node_render_state.dart",
-        "lib/src/rust/domain/styles.dart",
         "lib/features/graph/ui/canvas/canvas_text_editor.dart"
       ],
       "test_file": "test/features/graph/ui/canvas/node_widget_test.dart",
       "has_tests": true,
-      "is_ffi_bridge": true,
+      "is_ffi_bridge": false,
       "pattern": "UI Component",
       "public_apis": [
         "String capitalize()",
@@ -1408,7 +1388,7 @@
     "lib/features/graph/ui/graph_screen.dart": {
       "class": "GraphScreen",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "1cee3eb8ef4c6b371fb40c4ad1ef7c137467a60a",
+      "sha256": "d374cfeae58ba0ac3527a48ae4761979b3a689a1",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 1,
@@ -1416,7 +1396,6 @@
         "package:flutter/material.dart",
         "package:provider/provider.dart",
         "package:logging/logging.dart",
-        "lib/src/rust/bridge/api.dart",
         "presentation/widgets/window_title_bar.dart",
         "lib/main.dart",
         "lib/features/graph/presentation/theme_manager.dart",
@@ -1429,7 +1408,7 @@
       ],
       "test_file": "test/features/graph/ui/graph_screen_test.dart",
       "has_tests": true,
-      "is_ffi_bridge": true,
+      "is_ffi_bridge": false,
       "pattern": "UI Component",
       "public_apis": [
         "State<GraphScreen> createState() => _GraphScreenState();",
@@ -1681,7 +1660,7 @@
     "lib/features/graph/ui/widgets/overlays/right_property_panel.dart": {
       "class": "RightPropertyPanel",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "ec608a70fdf108d402ab92a47b36b9fcc0da3b1b",
+      "sha256": "e1a5b16d896eb90f6d7c7f51fafb415a9e7a636b",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 1,
@@ -1692,17 +1671,13 @@
         "lib/features/graph/ui/widgets/overlays/collapsible_sidebar.dart",
         "lib/features/graph/store/graph_data_controller.dart",
         "lib/features/graph/models/models.dart",
-        "lib/features/graph/models/graph_node.dart",
-        "lib/src/rust/domain/tags.dart",
-        "package:uuid/uuid.dart",
         "lib/features/graph/presentation/graph_metrics.dart",
-        "lib/src/rust/domain/styles.dart",
         "lib/features/graph/presentation/strategies/node_style_strategy.dart",
         "lib/shared/utils/color_utils.dart"
       ],
       "test_file": "",
       "has_tests": false,
-      "is_ffi_bridge": true,
+      "is_ffi_bridge": false,
       "pattern": "UI Component",
       "public_apis": [
         "State<RightPropertyPanel> createState() => _RightPropertyPanelState();",
@@ -1807,7 +1782,7 @@
     "lib/presentation/theme/app_theme.dart": {
       "class": "AppTheme",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "984f97be3ff2f75ae85569aba3142cd73a94c515",
+      "sha256": "8b73ca05868ed3a01d21d73830422bef2bab13d5",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
@@ -1845,7 +1820,7 @@
     "lib/presentation/theme/graph_theme.dart": {
       "class": "GraphTheme",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "5063ce1890c7f90e55d1b83235304a6b6c9324fb",
+      "sha256": "ffdc07dcf133cdd5829283bfbbda16c110ed1919",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
@@ -1875,28 +1850,6 @@
       "has_tests": false,
       "is_ffi_bridge": false,
       "pattern": "Component"
-    },
-    "lib/presentation/widgets/command_registry.dart": {
-      "class": "Command",
-      "srp_responsibility": "Verified compliant.",
-      "sha256": "a5ed2ee5817d6ab5e348ed76e8a0cdf8026d99d2",
-      "status": "PENDING_AUDIT",
-      "violations": [],
-      "tier": 2,
-      "imports": [
-        "package:flutter/material.dart",
-        "package:provider/provider.dart",
-        "lib/features/graph/presentation/workspace_tabs_controller.dart"
-      ],
-      "test_file": "",
-      "has_tests": false,
-      "is_ffi_bridge": false,
-      "pattern": "Command Pattern",
-      "public_apis": [
-        "List<Command> getCommands(BuildContext context)",
-        "void registerCommand(Command command)",
-        "void unregisterCommand(String id)"
-      ]
     },
     "lib/presentation/widgets/left_repository_panel.dart": {
       "class": "LeftRepositoryPanel",
@@ -1948,22 +1901,20 @@
     "lib/presentation/widgets/search_registry.dart": {
       "class": "SearchResult",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "018ec0bfc9207386250b178a8cadb15e3e925900",
-      "status": "COMPLIANT",
+      "sha256": "5065a14537992466da0442663986ba9c01bca63e",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
       "imports": [
         "package:flutter/material.dart",
         "package:provider/provider.dart",
         "lib/features/graph/presentation/workspace_tabs_controller.dart",
-        "lib/features/graph/models/graph_node.dart",
-        "lib/features/graph/models/graph_relation.dart",
-        "lib/src/rust/domain/nodes.dart",
-        "lib/presentation/widgets/command_registry.dart"
+        "lib/features/graph/models/models.dart",
+        "lib/presentation/widgets/palette_action_registry.dart"
       ],
       "test_file": "",
       "has_tests": false,
-      "is_ffi_bridge": true,
+      "is_ffi_bridge": false,
       "pattern": "Component",
       "public_apis": [
         "Future<List<SearchResult>?> search(String rawQuery, BuildContext context) async"
@@ -2141,7 +2092,7 @@
     "lib/presentation/widgets/window_title_bar.dart": {
       "class": "SimpleWindowTitleBar",
       "srp_responsibility": "Verified compliant.",
-      "sha256": "090ad312635c341ad51f346e9e230c1a0cc7175c",
+      "sha256": "996d4388c23310f7b0e4393c0fe242cb4875aadf",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
@@ -2197,7 +2148,7 @@
     "lib/features/graph/engine/states/group_drag_state.dart": {
       "class": "GroupDragging",
       "srp_responsibility": "",
-      "sha256": "61bcb2a485e067b3d253902ef2f74a64f84e01ec",
+      "sha256": "73ce4e5f94644620eaac126ebe1e6dc43e6e07b1",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
@@ -2404,6 +2355,298 @@
         "void dispose()",
         "Widget build(BuildContext context)",
         "bool updateShouldNotify(_GlassBackdropScope oldWidget)"
+      ]
+    },
+    "lib/features/graph/models/commands/base.dart": {
+      "class": "",
+      "srp_responsibility": "",
+      "sha256": "53b95feed837c396e15da696292fff6feb349fc9",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 3,
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Data Model",
+      "public_apis": [
+        "Future<void> execute();",
+        "void undo();",
+        "void onSuccess()"
+      ]
+    },
+    "lib/features/graph/models/commands/create_node.dart": {
+      "class": "CreateNodeCommand",
+      "srp_responsibility": "",
+      "sha256": "b67dd658735d89985372bf35e544c3caf530b4bb",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "lib/src/rust/bridge/api.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/store/graph_data_query.dart",
+        "lib/features/graph/models/graph_node.dart",
+        "lib/features/graph/models/commands/base.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": true,
+      "pattern": "Data Model",
+      "public_apis": [
+        "Future<void> execute() async",
+        "void undo()"
+      ]
+    },
+    "lib/features/graph/models/commands/create_relation.dart": {
+      "class": "CreateRelationCommand",
+      "srp_responsibility": "",
+      "sha256": "b23fe99c92678192002259dfd598f728e5d81f96",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "package:logging/logging.dart",
+        "lib/src/rust/bridge/api.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/store/graph_data_query.dart",
+        "lib/features/graph/models/graph_relation.dart",
+        "lib/features/graph/models/commands/base.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": true,
+      "pattern": "Data Model",
+      "public_apis": [
+        "Future<void> execute() async",
+        "void undo()"
+      ]
+    },
+    "lib/features/graph/models/commands/delete_node.dart": {
+      "class": "DeleteNodeCommand",
+      "srp_responsibility": "",
+      "sha256": "ede123d5a4aa393419f4ceb47b21c1cf9d6058ff",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "lib/src/rust/bridge/api.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/store/graph_data_query.dart",
+        "lib/features/graph/models/models.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": true,
+      "pattern": "Data Model",
+      "public_apis": [
+        "Future<void> execute() async",
+        "void undo()"
+      ]
+    },
+    "lib/features/graph/models/commands/delete_relation.dart": {
+      "class": "DeleteRelationCommand",
+      "srp_responsibility": "",
+      "sha256": "0883b4b5b6f359a45f02b0f645926f1c388b270b",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "lib/src/rust/bridge/api.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/store/graph_data_query.dart",
+        "lib/features/graph/models/graph_relation.dart",
+        "lib/features/graph/models/commands/base.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": true,
+      "pattern": "Data Model",
+      "public_apis": [
+        "Future<void> execute() async",
+        "void undo()"
+      ]
+    },
+    "lib/features/graph/models/commands/move_node.dart": {
+      "class": "MoveNodeCommand",
+      "srp_responsibility": "",
+      "sha256": "8b836104604a0cfcc7829b7334eefec62a24a6b8",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "dart:ui",
+        "lib/src/rust/bridge/api.dart",
+        "lib/src/rust/domain/styles.dart",
+        "lib/src/rust/domain/patches.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/store/graph_data_query.dart",
+        "lib/features/graph/models/commands/base.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": true,
+      "pattern": "Data Model",
+      "public_apis": [
+        "Future<void> execute() async",
+        "void undo()"
+      ]
+    },
+    "lib/features/graph/models/commands/update_comments.dart": {
+      "class": "UpdateCommentsCommand",
+      "srp_responsibility": "",
+      "sha256": "05db9acd864bd2fbd327c83819e5c5c71dac615f",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "lib/src/rust/bridge/api.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/store/graph_data_query.dart",
+        "lib/features/graph/models/graph_node.dart",
+        "lib/features/graph/models/commands/base.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": true,
+      "pattern": "Data Model",
+      "public_apis": [
+        "Future<void> execute() async",
+        "void undo()"
+      ]
+    },
+    "lib/features/graph/models/commands/update_node_style.dart": {
+      "class": "UpdateNodeStyleCommand",
+      "srp_responsibility": "",
+      "sha256": "e0827389ade0bcb5c583e77d54246e6caea0031b",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "dart:ui",
+        "lib/src/rust/bridge/api.dart",
+        "lib/src/rust/domain/styles.dart",
+        "lib/src/rust/domain/patches.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/store/graph_data_query.dart",
+        "lib/features/graph/models/commands/base.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": true,
+      "pattern": "Data Model",
+      "public_apis": [
+        "Future<void> execute() async",
+        "void undo()"
+      ]
+    },
+    "lib/features/graph/models/commands/update_relation_layout.dart": {
+      "class": "UpdateRelationLayoutCommand",
+      "srp_responsibility": "",
+      "sha256": "5fc445abfaf5402e9e1f9e1dd11eec6cc532bd5f",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "lib/src/rust/bridge/api.dart",
+        "lib/src/rust/domain/styles.dart",
+        "lib/src/rust/domain/patches.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/store/graph_data_query.dart",
+        "lib/features/graph/models/graph_relation.dart",
+        "lib/features/graph/models/commands/base.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": true,
+      "pattern": "Data Model",
+      "public_apis": [
+        "Future<void> execute() async",
+        "void undo()"
+      ]
+    },
+    "lib/features/graph/models/commands/update_tags.dart": {
+      "class": "UpdateTagsCommand",
+      "srp_responsibility": "",
+      "sha256": "1dd6c68f8b28ccb51c86149ea58323877059e998",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "lib/src/rust/bridge/api.dart",
+        "lib/src/rust/domain/tags.dart",
+        "lib/src/rust/domain/patches.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/store/graph_data_query.dart",
+        "lib/features/graph/models/graph_node.dart",
+        "lib/features/graph/models/commands/base.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": true,
+      "pattern": "Data Model",
+      "public_apis": [
+        "Future<void> execute() async",
+        "void onSuccess()",
+        "void undo()"
+      ]
+    },
+    "lib/features/graph/models/commands/update_text.dart": {
+      "class": "UpdateTextCommand",
+      "srp_responsibility": "",
+      "sha256": "3b9910fea2e31f632f29cb90cdcf1ca32f08d1e4",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "dart:ui",
+        "lib/src/rust/bridge/api.dart",
+        "lib/src/rust/domain/contents.dart",
+        "lib/src/rust/domain/patches.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/store/graph_data_query.dart",
+        "lib/features/graph/models/commands/base.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": true,
+      "pattern": "Data Model",
+      "public_apis": [
+        "Future<void> execute() async",
+        "void undo()"
+      ]
+    },
+    "lib/features/graph/models/search_result.dart": {
+      "class": "UiSearchResult",
+      "srp_responsibility": "",
+      "sha256": "b5e2810714f3d5211632aac8e0c906c2b20a8fcd",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 3,
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Data Model"
+    },
+    "lib/presentation/widgets/palette_action_registry.dart": {
+      "class": "PaletteAction, PaletteActionRegistry",
+      "srp_responsibility": "",
+      "sha256": "a895520830e1aea99778cd606341b6bb4a47e647",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 2,
+      "imports": [
+        "package:flutter/material.dart",
+        "package:provider/provider.dart",
+        "lib/features/graph/presentation/workspace_tabs_controller.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Component",
+      "public_apis": [
+        "List<PaletteAction> getActions(BuildContext context)",
+        "void registerAction(PaletteAction action)",
+        "void unregisterAction(String id)"
       ]
     }
   }

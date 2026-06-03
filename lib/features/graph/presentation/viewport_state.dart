@@ -39,6 +39,7 @@ class ViewportController {
 
   Rect _overscanBuffer = Rect.zero;
   Size _currentViewportSize = Size.zero;
+  bool _isDisposed = false;
 
   AnimationController? _viewportAnimationController;
 
@@ -218,8 +219,10 @@ class ViewportController {
 
     // Dispatch the spatial grid query asynchronously on the event loop
     Future(() {
+      if (_isDisposed) return;
       if (_overscanBuffer != currentOverscan) return;
       final newVisible = _dataController.spatialGrid.queryRect(currentOverscan);
+      if (_isDisposed) return;
       if (_overscanBuffer == currentOverscan) {
         _log.finest(
           'updateVisibleSet: Spatial index returned ${newVisible.length} visible nodes.',
@@ -315,6 +318,7 @@ class ViewportController {
 
   void dispose() {
     _log.fine('Disposing ViewportController.');
+    _isDisposed = true;
     _viewportAnimationController?.stop();
     _viewportAnimationController?.dispose();
     transformController.removeListener(_handleTransform);

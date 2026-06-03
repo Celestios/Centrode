@@ -1,15 +1,13 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:uuid/uuid.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'graph_data_query.dart';
 import '../models/models.dart';
 import 'command_processor.dart';
 import 'package:mycelium/src/rust/bridge/api.dart' as rust;
-import 'package:mycelium/src/rust/domain/base_models.dart'
-    show BoundingBox, Comment, ViewportState;
-import 'package:mycelium/src/rust/domain/styles.dart';
-import 'package:mycelium/src/rust/domain/tags.dart';
+import 'package:mycelium/src/rust/domain/nodes.dart';
 
 import 'modules/graph_store.dart';
 import 'modules/graph_spatial.dart';
@@ -18,7 +16,6 @@ import 'modules/graph_node_mutations.dart';
 import 'modules/graph_relation_mutations.dart';
 import 'modules/graph_property_mutations.dart';
 import 'modules/graph_template_mutations.dart';
-import 'package:mycelium/src/rust/domain/templates.dart';
 
 abstract class GraphStyleUpdater {
   void updateStyleForNode(String id);
@@ -328,6 +325,88 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   Future<void> instantiateTemplate(String key, Offset canvasCoords) =>
       templateMutations.instantiateTemplate(key, canvasCoords);
   Future<void> deleteTemplate(String key) => templateMutations.deleteTemplate(key);
+
+  Future<void> saveViewportState(ViewportState state) async {
+    updateSavedViewportState(state);
+    await syncEngine.api.updateViewportState(state: state);
+  }
+
+  Future<List<UiSearchResult>> searchDatabase(String term) async {
+    final rustNodes = await syncEngine.api.querySearch(query: term);
+    final results = <UiSearchResult>[];
+    for (final rustNode in rustNodes) {
+      if (rustNode is Nodes_INode) {
+        final node = rustNode.field0;
+        results.add(UiSearchResult(
+          key: node.key,
+          title: node.fields.content.text.isEmpty ? 'Untitled Node' : node.fields.content.text,
+          subtitle: 'Database • Info',
+          type: UiSearchResultType.infoNode,
+        ));
+      } else if (rustNode is Nodes_TaskNode) {
+        final node = rustNode.field0;
+        results.add(UiSearchResult(
+          key: node.key,
+          title: node.fields.content.text.isEmpty ? 'Untitled Node' : node.fields.content.text,
+          subtitle: 'Database • Task • State: ${node.fields.state}',
+          type: UiSearchResultType.taskNode,
+        ));
+      } else if (rustNode is Nodes_InterNode) {
+        final node = rustNode.field0;
+        results.add(UiSearchResult(
+          key: node.key,
+          title: node.fields.verb.isEmpty ? 'Untitled Relation' : node.fields.verb,
+          subtitle: 'Database • Inter',
+          type: UiSearchResultType.relation,
+        ));
+      }
+    }
+    return results;
+  }
+
+  void addTagToNode(String nodeId, String name, int color) {
+    final node = nodeLookup[nodeId];
+    if (node is InfoUiNode) {
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final newTag = Tag(
+        key: const Uuid().v4(),
+        fields: TagFields(
+          name: name,
+          color: color,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        ),
+      );
+      updateNodeTags(nodeId, [...node.tags, newTag]);
+    }
+  }
+
+  void removeTagFromNode(String nodeId, String tagKey) {
+    final node = nodeLookup[nodeId];
+    if (node is InfoUiNode) {
+      final updatedTags = node.tags.where((t) => t.key != tagKey).toList();
+      updateNodeTags(nodeId, updatedTags);
+    }
+  }
+
+  void addCommentToNode(String nodeId, String text) {
+    final node = nodeLookup[nodeId];
+    if (node is InfoUiNode) {
+      final newComment = Comment(
+        text: text,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+      );
+      updateNodeComments(nodeId, [newComment, ...node.comments]);
+    }
+  }
+
+  void removeCommentFromNode(String nodeId, Comment comment) {
+    final node = nodeLookup[nodeId];
+    if (node is InfoUiNode) {
+      final updatedComments = node.comments.where((c) => c != comment).toList();
+      updateNodeComments(nodeId, updatedComments);
+    }
+  }
 
   // ===========================================================================
   // Lifecycle

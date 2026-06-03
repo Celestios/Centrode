@@ -33,7 +33,7 @@ class RelationTipDragging extends CanvasInteractionState {
   CanvasInteractionState handlePointerMove(
     PointerMoveEvent e,
     Offset pCanvas,
-    InteractionContext ctx,
+    GeometryCapability ctx,
   ) {
     // 1. Snapping logic to find nearby target node & its closest port (same as RelationDrawing)
     String? snappedId;
@@ -91,7 +91,7 @@ class RelationTipDragging extends CanvasInteractionState {
   @override
   CanvasInteractionState handlePointerUp(
     PointerUpEvent e,
-    InteractionContext ctx,
+    GeometryCapability ctx,
   ) {
     ctx.relationPathCache.remove(relationId);
     if (snappedTargetNodeId != null) {
@@ -117,7 +117,7 @@ class RelationTipDragging extends CanvasInteractionState {
   @override
   CanvasInteractionState handlePointerCancel(
     PointerCancelEvent e,
-    InteractionContext ctx,
+    GeometryCapability ctx,
   ) {
     ctx.relationPathCache.remove(relationId);
     ctx.onNodeDragUpdate(); // Repaint

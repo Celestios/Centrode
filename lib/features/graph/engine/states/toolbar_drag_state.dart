@@ -13,7 +13,7 @@ class ToolbarDragging extends CanvasInteractionState {
   CanvasInteractionState handlePointerMove(
     PointerMoveEvent e,
     Offset pCanvas,
-    InteractionContext ctx,
+    SelectionCapability ctx,
   ) {
     final selected = ctx.getSelectedEntities();
     if (selected.isEmpty) return const CanvasIdle();

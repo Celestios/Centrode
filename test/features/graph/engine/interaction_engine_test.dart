@@ -6,7 +6,6 @@ import 'package:mycelium/features/graph/engine/interaction_context.dart';
 import 'package:mycelium/features/graph/engine/base_interaction_state.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
 
 class MockInteractionContext extends Mock implements InteractionContext {}
 class MockTransformationController extends Mock implements TransformationController {}

@@ -42,8 +42,8 @@ class TabSession extends ChangeNotifier {
   Future<void> saveViewportState() async {
     _debounceTimer?.cancel();
     final vp = _viewportController;
-    final h = handle;
-    if (vp != null && h != null) {
+    final dc = dataController;
+    if (vp != null && dc != null) {
       final matrix = vp.transformController.value;
       final xOffset = matrix.getTranslation().x;
       final yOffset = matrix.getTranslation().y;
@@ -57,10 +57,8 @@ class TabSession extends ChangeNotifier {
         activeView: activeView,
       );
 
-      dataController?.updateSavedViewportState(state);
-
       try {
-        await h.updateViewportState(state: state);
+        await dc.saveViewportState(state);
       } catch (e) {
         debugPrint('Failed to save viewport state for session $name: $e');
       }

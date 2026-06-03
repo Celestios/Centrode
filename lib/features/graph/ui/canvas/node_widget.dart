@@ -6,7 +6,6 @@ import '../../presentation/graph_metrics.dart';
 import '../../models/models.dart';
 import '../../store/graph_data_query.dart';
 import '../../presentation/view_state.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
 import 'canvas_text_editor.dart';
 
 extension StringExtension on String {

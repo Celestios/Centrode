@@ -1,6 +1,5 @@
 // lib/features/graph/state/interaction_context.dart
 import 'dart:ui';
-import 'package:mycelium/src/rust/domain/styles.dart';
 import '../models/models.dart';
 import '../presentation/view_state.dart';
 
@@ -10,7 +9,47 @@ import '../presentation/view_state.dart';
 /// controller's lifecycle methods, enabling the GoF State Pattern where
 /// state objects can interact with the context without direct coupling
 /// to the controller implementation.
-abstract interface class InteractionContext {
+/// Interface segregating viewport capability from the rest of the context.
+abstract interface class ViewportCapability {
+  /// Gets the current scale factor of the canvas viewport.
+  double get currentScale;
+
+  /// Returns the current set of visible node IDs for O(V) hit testing.
+  Set<String> getVisibleNodeIds();
+}
+
+/// Interface segregating selection and toolbar actions.
+abstract interface class SelectionCapability {
+  /// Callback to set the active selected entity (node or relation), or clear if null.
+  void onSelectEntity(String? id);
+
+  /// Gets the IDs of the currently selected entities.
+  Set<String> getSelectedEntities();
+
+  /// Callback to set multiple entities as selected (Marquee).
+  void onSelectEntities(Iterable<String> ids);
+
+  /// Gets the current relative offset for the floating toolbar.
+  Offset getToolbarOffset();
+
+  /// Sets the relative offset for the floating toolbar.
+  void setToolbarOffset(Offset offset);
+
+  /// Executes the delete command for all currently selected entities.
+  void onDeleteSelectedEntities();
+
+  /// Triggers saving the current selection as a template.
+  void onSaveTemplate();
+
+  /// Opens the right property panel and switches to the Data tab for the specified node.
+  void openDataInspector(String nodeId);
+
+  /// Calculates the visual anchor point for the floating toolbar based on selected entities.
+  Offset? calculateToolbarAnchor(Iterable<String> selectedIds);
+}
+
+/// Interface segregating structural layout, node/relation geometry, and edits.
+abstract interface class GeometryCapability {
   /// Registry of all node view states for hit-testing and position updates.
   Map<String, NodeViewState> get nodeViewStates;
 
@@ -22,6 +61,9 @@ abstract interface class InteractionContext {
 
   /// Returns all relations for hit-testing relation labels.
   Iterable<UiRelation> getRelations();
+
+  /// Retrieves a node by its ID from the data store lookup.
+  UiNode? getNode(String id);
 
   /// Callback when a node move operation completes.
   void onNodeMove(String id, Offset pos);
@@ -62,45 +104,22 @@ abstract interface class InteractionContext {
   /// Callback when a node expansion state is toggled.
   void toggleNodeExpansion(String id);
 
-  /// Callback to set the active selected entity (node or relation), or clear if null.
-  void onSelectEntity(String? id);
-
-  /// Gets the IDs of the currently selected entities.
-  Set<String> getSelectedEntities();
-
-  /// Callback to set multiple entities as selected (Marquee).
-  void onSelectEntities(Iterable<String> ids);
-
-  /// Gets the current relative offset for the floating toolbar.
-  Offset getToolbarOffset();
-
-  /// Sets the relative offset for the floating toolbar.
-  void setToolbarOffset(Offset offset);
-
-  /// Executes the delete command for all currently selected entities.
-  void onDeleteSelectedEntities();
-
-  /// Triggers saving the current selection as a template.
-  void onSaveTemplate();
-
-  /// Returns the current set of visible node IDs for O(V) hit testing.
-  Set<String> getVisibleNodeIds();
-
-  /// Opens the right property panel and switches to the Data tab for the specified node.
-  void openDataInspector(String nodeId);
-
-  /// Retrieves a node by its ID from the data store lookup.
-  UiNode? getNode(String id);
-
-  /// Gets the current scale factor of the canvas viewport.
-  double get currentScale;
-
   /// Updates the style of the specified node.
   void updateNodeStyle(String id, NodeStyle Function(NodeStyle style) updateFn);
-
-  /// Calculates the visual anchor point for the floating toolbar based on selected entities.
-  Offset? calculateToolbarAnchor(Iterable<String> selectedIds);
 
   /// Sets the currently hovered metadata node ID to show/hide the preview card.
   void setHoveredNodeMetadata(String? nodeId);
 }
+
+/// Composite interface for capabilities that need both geometry and viewport access.
+abstract interface class GeometryAndViewportCapability implements GeometryCapability, ViewportCapability {}
+
+/// Scoped capability interface for active interaction states.
+///
+/// This interface isolates the environment data and callbacks from the
+/// controller's lifecycle methods, enabling the GoF State Pattern where
+/// state objects can interact with the context without direct coupling
+/// to the controller implementation.
+abstract interface class InteractionContext implements
+    SelectionCapability,
+    GeometryAndViewportCapability {}
