@@ -1,0 +1,13 @@
+# Include only lib/ and rust/ source dirs
+*
+!lib/
+!lib/**
+!rust/
+!rust/**
+
+# Ignore generated code files
+*.freezed.dart
+*.g.dart
+*.mocks.dart
+lib/src/rust/
+

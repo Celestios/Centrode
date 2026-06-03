@@ -14,7 +14,7 @@ This workflow directs the agent to perform an automated, zero-input inspection o
 2. **Constraint & Style Alignment**: Ideas must align strictly with:
    - [smart-glass.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/spatial-ui/rules/smart-glass.md) (Glassmorphism 2.0 aesthetics).
    - [motion-performance.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/spatial-ui/rules/motion-performance.md) (Repaint boundary conventions and spring physics).
-   - [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/srp-audit/rules/abstraction-levels.md) (3-tier architecture: Canvas UI, Interaction, Domain Store).
+   - [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/arch-linter/rules/abstraction-levels.md) (3-tier architecture: Canvas UI, Interaction, Domain Store).
 3. **Idea Triad**: Generate exactly 3 distinct, creative feature or UX improvements ranging in complexity and focus (e.g., one visual polish, one structural tool, one interactive system).
 4. **SRP, Symmetry, & Performance Safeguards**: For each concept, explicitly identify potential Single Responsibility Principle (SRP) boundary crossings, design symmetry alignment, and performance hotspots (BackdropFilter limits, FFI bandwidth, and SurrealDB query complexity).
 5. **Actionable Roadmap**: End with a structured comparison matrix and direct action items, making it seamless for the user to choose an idea and transition directly to development.
@@ -40,8 +40,8 @@ Brainstorm 3 concrete, premium feature ideas. For each idea, detail:
   - `[Tier 2: Interaction]`: Gesture listeners, command patterns, FFI bridge events.
   - `[Tier 3: Domain/Store]`: Database tables, queries, Rust core data structures.
 - **SRP & Symmetry Cautions**:
-  - Analyze SRP compliance using [architecture-auditor](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/srp-audit/skills/architecture-auditor/SKILL.md) guidelines.
-  - Define symmetry patterns (e.g. aligning undo commands, matching widget controller lifetimes) using [symmetry-checker](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/srp-audit/skills/symmetry-checker/SKILL.md) guidelines.
+  - Analyze SRP compliance using [architecture-auditor](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/arch-linter/skills/architecture-auditor/SKILL.md) guidelines.
+  - Define symmetry patterns (e.g. aligning undo commands, matching widget controller lifetimes) using [symmetry-checker](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/arch-linter/skills/symmetry-checker/SKILL.md) guidelines.
 - **Performance & Bottleneck Analysis**:
   - Evaluate potential FFI bridge serialization overhead or database transaction blocks.
   - Identify rendering bottlenecks (e.g. BackdropFilters or repaint limits) and mitigation strategies.

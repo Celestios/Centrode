@@ -1,0 +1,47 @@
+{
+  "graphify-update": {
+    "enabled": true,
+    "PostToolUse": [
+      {
+        "matcher": "write_to_file|replace_file_content|multi_replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File ./scripts/hook_graphify_update.ps1",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  },
+  "graphify-query-nudge": {
+    "enabled": true,
+    "PreToolUse": [
+      {
+        "matcher": "grep_search|find_by_name|view_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File ./scripts/hook_graphify_query_nudge.ps1",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  },
+  "git-commit-gate": {
+    "enabled": true,
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File ./scripts/hook_git_commit_gate.ps1",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

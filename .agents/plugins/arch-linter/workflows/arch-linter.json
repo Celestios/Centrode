@@ -1,0 +1,40 @@
+{
+  "name": "arch-linter",
+  "description": "Run the Architecture Linter audit using a live Graphify cache",
+  "steps": [
+    {
+      "name": "update_graph",
+      "tool": "run_command",
+      "args": [
+        "powershell",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspace.path}\\.agents\\plugins\\arch-linter\\scripts\\graphify_update.ps1"
+      ],
+      "description": "Run Graphify incremental update to keep graph.json fresh"
+    },
+    {
+      "name": "refresh_cache",
+      "tool": "run_command",
+      "args": [
+        "powershell",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspace.path}\\.agents\\plugins\\arch-linter\\scripts\\update_arch_cache.ps1"
+      ],
+      "description": "Re‑generate architecture‑cache.json from local files"
+    },
+    {
+      "name": "run_audit",
+      "tool": "run_command",
+      "args": [
+        "dart",
+        "${workspace.path}\\.agents\\plugins\\arch-linter\\scripts\\cache_manager.dart",
+        "check"
+      ],
+      "description": "Execute the compliance check (verifies all files are compliant)"
+    }
+  ]
+}
