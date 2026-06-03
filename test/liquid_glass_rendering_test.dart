@@ -11,8 +11,8 @@ void main() {
       ),
     );
 
-    // Let it settle to trigger any async loading
-    await tester.pumpAndSettle();
+    // Let it pump to trigger initial layout
+    await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.byType(GlassPanel), findsNWidgets(4));
     expect(find.byType(GlassGroup), findsOneWidget);

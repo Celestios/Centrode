@@ -30,15 +30,20 @@ class _GlassStageState extends State<GlassStage>
   ui.Image? _backdropImage;
   Size? _backdropLogicalSize;
   late Ticker _ticker;
+  Duration _lastCaptureDuration = Duration.zero;
 
   /// Atomic lock: prevents concurrent captures from flooding the memory bus.
   bool _isCapturing = false;
+  bool _pendingCapture = false;
 
   @override
   void initState() {
     super.initState();
     _ticker = createTicker(_tick)..start();
     widget.backdropRepaint?.addListener(_onRepaint);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _requestCapture();
+    });
   }
 
   @override
@@ -47,70 +52,88 @@ class _GlassStageState extends State<GlassStage>
     if (oldWidget.backdropRepaint != widget.backdropRepaint) {
       oldWidget.backdropRepaint?.removeListener(_onRepaint);
       widget.backdropRepaint?.addListener(_onRepaint);
+      _requestCapture();
     }
   }
 
   void _onRepaint() {
-    _captureSnapshot();
+    _requestCapture();
   }
 
   void _tick(Duration elapsed) {
+    if (elapsed - _lastCaptureDuration < const Duration(milliseconds: 33)) {
+      return;
+    }
+    _lastCaptureDuration = elapsed;
+    _requestCapture();
+  }
+
+  void _requestCapture() {
+    if (widget.mode != GlassMode.quality) return;
+    if (_isCapturing) {
+      _pendingCapture = true;
+      return;
+    }
     _captureSnapshot();
   }
 
-    Future<void> _captureSnapshot() async {
-      if (widget.mode != GlassMode.quality || _isCapturing) return;
+  Future<void> _captureSnapshot() async {
+    final ctx = _bgKey.currentContext;
+    if (ctx == null || !mounted) return;
 
-      final ctx = _bgKey.currentContext;
-      if (ctx == null || !mounted) return;
+    final boundary = ctx.findRenderObject() as RenderRepaintBoundary?;
+    if (boundary == null || boundary.debugNeedsPaint) return;
 
-      final boundary = ctx.findRenderObject() as RenderRepaintBoundary?;
-      if (boundary == null || boundary.debugNeedsPaint) return;
+    _isCapturing = true;
+    try {
+      // 1. Exploit the existing display cache (Fast, zero poisoning)
+      final nativeRatio = MediaQuery.devicePixelRatioOf(ctx);
+      final fullResImage = await boundary.toImage(pixelRatio: nativeRatio);
 
-      _isCapturing = true;
-      try {
-        // 1. Exploit the existing display cache (Fast, zero poisoning)
-        final nativeRatio = MediaQuery.devicePixelRatioOf(ctx);
-        final fullResImage = await boundary.toImage(pixelRatio: nativeRatio);
+      if (!mounted) {
+        fullResImage.dispose();
+        return;
+      }
 
-        if (!mounted) {
-          fullResImage.dispose();
-          return;
+      // 2. Decouple and downsample offline
+      const scale = 0.25;
+      final scaledWidth = (fullResImage.width * scale).ceil();
+      final scaledHeight = (fullResImage.height * scale).ceil();
+
+      final recorder = ui.PictureRecorder();
+      final canvas = ui.Canvas(recorder);
+      
+      // Perform a GPU texture blit with bilinear filtering
+      canvas.drawImageRect(
+        fullResImage,
+        Rect.fromLTWH(0, 0, fullResImage.width.toDouble(), fullResImage.height.toDouble()),
+        Rect.fromLTWH(0, 0, scaledWidth.toDouble(), scaledHeight.toDouble()),
+        Paint()..filterQuality = FilterQuality.medium, 
+      );
+
+      final downsampledImage = await recorder.endRecording().toImage(scaledWidth, scaledHeight);
+      
+      // Immediately free the high-res texture memory
+      fullResImage.dispose(); 
+
+      final oldImage = _backdropImage;
+      setState(() {
+        _backdropImage = downsampledImage;
+        _backdropLogicalSize = boundary.size;
+      });
+      oldImage?.dispose();
+    } catch (_) {
+      // Silently swallow transient layout state failures
+    } finally {
+      if (mounted) {
+        _isCapturing = false;
+        if (_pendingCapture) {
+          _pendingCapture = false;
+          Future.microtask(_requestCapture);
         }
-
-        // 2. Decouple and downsample offline
-        const scale = 0.25;
-        final scaledWidth = (fullResImage.width * scale).ceil();
-        final scaledHeight = (fullResImage.height * scale).ceil();
-
-        final recorder = ui.PictureRecorder();
-        final canvas = ui.Canvas(recorder);
-        
-        // Perform a GPU texture blit with bilinear filtering
-        canvas.drawImageRect(
-          fullResImage,
-          Rect.fromLTWH(0, 0, fullResImage.width.toDouble(), fullResImage.height.toDouble()),
-          Rect.fromLTWH(0, 0, scaledWidth.toDouble(), scaledHeight.toDouble()),
-          Paint()..filterQuality = FilterQuality.medium, 
-        );
-
-        final downsampledImage = await recorder.endRecording().toImage(scaledWidth, scaledHeight);
-        
-        // Immediately free the high-res texture memory
-        fullResImage.dispose(); 
-
-        final oldImage = _backdropImage;
-        setState(() {
-          _backdropImage = downsampledImage;
-          _backdropLogicalSize = boundary.size;
-        });
-        oldImage?.dispose();
-      } catch (_) {
-        // Silently swallow transient layout state failures
-      } finally {
-        if (mounted) _isCapturing = false;
       }
     }
+  }
 
   @override
   void dispose() {

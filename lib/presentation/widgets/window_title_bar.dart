@@ -94,7 +94,7 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
             children: [
               // Logo & Standard Menu Options
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.only(left: 12, right: 8),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
