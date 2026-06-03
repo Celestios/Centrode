@@ -24,12 +24,19 @@ crate-type = ["cdylib", "staticlib", "rlib"] # 'cdylib' for Android/Desktop dyna
 
 [profile.dev]
 opt-level = 0
+lto = "off"
 debug = 0              # No debug info for fastest compilation and smallest DLL
 split-debuginfo = "off"
 debug-assertions = true
 incremental = true
 codegen-units = 512    # Parallelize build to the maximum
-lto = "off"
+
+[profile.release]
+opt-level = 3        # Maximum aggressive speed optimization
+lto = true           # Enable Link-Time Optimization across crates
+codegen-units = 1    # Reduce parallel compilation blocks to maximize LTO optimizations
+panic = "abort"      # Remove panic unwinding overhead (reduces binary size significantly)
+strip = true         # Strip symbols and debug info automatically (Rust 1.59+)
 
 [dependencies]
 # --- Core Runtime ---

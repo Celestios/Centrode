@@ -73,9 +73,7 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
       ),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       shape: WidgetStateProperty.all(
-        RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-        ),
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       ),
     );
 
@@ -89,289 +87,288 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
         blurRadius: 0,
         offset: const Offset(0, 1),
       ),
-      child: Row(
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          // Logo & Standard Menu Options
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ShaderMask(
-                  shaderCallback: (bounds) => LinearGradient(
-                    colors: [
-                      theme.colorScheme.primary,
-                      theme.colorScheme.primary.withValues(alpha: 0.7),
-                    ],
-                  ).createShader(bounds),
-                  child: const Text(
-                    'MYCELIUM',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  height: 32,
-                  child: Theme(
-                    data: theme.copyWith(
-                      hoverColor: theme.colorScheme.primary.withValues(
-                        alpha: 0.1,
-                      ),
-                    ),
-                    child: MenuBar(
-                      style: MenuStyle(
-                        backgroundColor: WidgetStateProperty.all(
-                          Colors.transparent,
-                        ),
-                        elevation: WidgetStateProperty.all(0),
-                        padding: WidgetStateProperty.all(EdgeInsets.zero),
-                      ),
-                      children: [
-                        SubmenuButton(
-                          style: menuButtonStyle,
-                          menuChildren: [
-                            MenuItemButton(
-                              onPressed: () {
-                                Navigator.of(
-                                  context,
-                                ).pop(); // Go back to Project Selection
-                              },
-                              leadingIcon: const Icon(
-                                Icons.folder_open_outlined,
-                                size: 16,
-                              ),
-                              child: const Text('Open Project Selector'),
-                            ),
-                            MenuItemButton(
-                              onPressed: () {
-                                if (dataController != null) {
-                                  dataController.flushSync();
-                                }
-                              },
-                              leadingIcon: const Icon(
-                                Icons.save_outlined,
-                                size: 16,
-                              ),
-                              child: const Text('Force Sync Save'),
-                            ),
-                          ],
-                          child: const Text(
-                            'File',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        ),
-                        SubmenuButton(
-                          style: menuButtonStyle,
-                          menuChildren: [
-                            MenuItemButton(
-                              onPressed: () {
-                                session.showLeftPanel.value =
-                                    !session.showLeftPanel.value;
-                              },
-                              leadingIcon: const Icon(
-                                Icons.menu_open_rounded,
-                                size: 16,
-                              ),
-                              child: const Text('Toggle Left Sidebar'),
-                            ),
-                            MenuItemButton(
-                              onPressed: () {
-                                session.showRightPanel.value =
-                                    !session.showRightPanel.value;
-                              },
-                              leadingIcon: const Icon(
-                                Icons.chrome_reader_mode_outlined,
-                                size: 16,
-                              ),
-                              child: const Text('Toggle Right Inspector'),
-                            ),
-                            MenuItemButton(
-                              onPressed: () {
-                                session.showBottomPanel.value =
-                                    !session.showBottomPanel.value;
-                              },
-                              leadingIcon: const Icon(
-                                Icons.call_to_action_outlined,
-                                size: 16,
-                              ),
-                              child: const Text('Toggle Status Bar'),
-                            ),
-                          ],
-                          child: const Text(
-                            'View',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        ),
-                        SubmenuButton(
-                          style: menuButtonStyle,
-                          menuChildren: [
-                            MenuItemButton(
-                              onPressed: () async {
-                                final isMaximized = await windowManager
-                                    .isMaximized();
-                                if (isMaximized) {
-                                  await windowManager.unmaximize();
-                                } else {
-                                  await windowManager.maximize();
-                                }
-                              },
-                              leadingIcon: const Icon(
-                                Icons.crop_square_rounded,
-                                size: 16,
-                              ),
-                              child: const Text('Toggle Maximize'),
-                            ),
-                            MenuItemButton(
-                              onPressed: () async {
-                                await windowManager.minimize();
-                              },
-                              leadingIcon: const Icon(
-                                Icons.minimize_rounded,
-                                size: 16,
-                              ),
-                              child: const Text('Minimize Window'),
-                            ),
-                          ],
-                          child: const Text(
-                            'Window',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        ),
-                        SubmenuButton(
-                          style: menuButtonStyle,
-                          menuChildren: [
-                            MenuItemButton(
-                              onPressed: () {
-                                showAboutDialog(
-                                  context: context,
-                                  applicationName: 'Mycelium',
-                                  applicationVersion: '1.0.0',
-                                  applicationIcon: Icon(
-                                    Icons.hub_outlined,
-                                    color: theme.colorScheme.primary,
-                                    size: 36,
-                                  ),
-                                  children: const [
-                                    Text(
-                                      'Mycelium is a fast Labeled Property Graph Editor designed in Flutter, powered by SurrealDB and Rust.',
-                                    ),
-                                  ],
-                                );
-                              },
-                              leadingIcon: const Icon(
-                                Icons.info_outline,
-                                size: 16,
-                              ),
-                              child: const Text('About Mycelium'),
-                            ),
-                          ],
-                          child: const Text(
-                            'Help',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Central Drag Area with Search Bar in the middle
-          Expanded(
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                const DragToMoveArea(
-                  child: SizedBox.expand(),
-                ),
-                const SearchCommandPalette(),
-              ],
-            ),
-          ),
-
-          // Layout Toggles & Native Control Buttons
           Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              // Panel layout toggles
-              ValueListenableBuilder<bool>(
-                valueListenable: session.showLeftPanel,
-                builder: (context, visible, _) {
-                  return IconButton(
-                    icon: Icon(
-                      Icons.menu_open_rounded,
-                      color: visible
-                          ? theme.colorScheme.primary
-                          : theme.hintColor.withValues(alpha: 0.6),
-                    ),
-                    tooltip: 'Toggle Left Panel',
-                    iconSize: 18,
-                    splashRadius: 18,
-                    padding: const EdgeInsets.all(6),
-                    constraints: const BoxConstraints(),
-                    onPressed: () => session.showLeftPanel.value =
-                        !session.showLeftPanel.value,
-                  );
-                },
-              ),
-              const SizedBox(width: 4),
-              ValueListenableBuilder<bool>(
-                valueListenable: session.showRightPanel,
-                builder: (context, visible, _) {
-                  return IconButton(
-                    icon: Icon(
-                      Icons.chrome_reader_mode_outlined,
-                      color: visible
-                          ? theme.colorScheme.primary
-                          : theme.hintColor.withValues(alpha: 0.6),
-                    ),
-                    tooltip: 'Toggle Right Panel',
-                    iconSize: 18,
-                    splashRadius: 18,
-                    padding: const EdgeInsets.all(6),
-                    constraints: const BoxConstraints(),
-                    onPressed: () => session.showRightPanel.value =
-                        !session.showRightPanel.value,
-                  );
-                },
-              ),
-              const SizedBox(width: 4),
-              ValueListenableBuilder<bool>(
-                valueListenable: session.showBottomPanel,
-                builder: (context, visible, _) {
-                  return IconButton(
-                    icon: Icon(
-                      Icons.call_to_action_outlined,
-                      color: visible
-                          ? theme.colorScheme.primary
-                          : theme.hintColor.withValues(alpha: 0.6),
-                    ),
-                    tooltip: 'Toggle Bottom Panel',
-                    iconSize: 18,
-                    splashRadius: 18,
-                    padding: const EdgeInsets.all(6),
-                    constraints: const BoxConstraints(),
-                    onPressed: () => session.showBottomPanel.value =
-                        !session.showBottomPanel.value,
-                  );
-                },
-              ),
-              const SizedBox(width: 12),
-              // Separator
+              // Logo & Standard Menu Options
               Container(
-                width: 1,
-                height: 20,
-                color: theme.dividerColor.withValues(alpha: 0.2),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ShaderMask(
+                      shaderCallback: (bounds) => LinearGradient(
+                        colors: [
+                          theme.colorScheme.primary,
+                          theme.colorScheme.primary.withValues(alpha: 0.7),
+                        ],
+                      ).createShader(bounds),
+                      child: const Text(
+                        'MYCELIUM',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      height: 32,
+                      child: Theme(
+                        data: theme.copyWith(
+                          hoverColor: theme.colorScheme.primary.withValues(
+                            alpha: 0.1,
+                          ),
+                        ),
+                        child: MenuBar(
+                          style: MenuStyle(
+                            backgroundColor: WidgetStateProperty.all(
+                              Colors.transparent,
+                            ),
+                            elevation: WidgetStateProperty.all(0),
+                            padding: WidgetStateProperty.all(EdgeInsets.zero),
+                          ),
+                          children: [
+                            SubmenuButton(
+                              style: menuButtonStyle,
+                              menuChildren: [
+                                MenuItemButton(
+                                  onPressed: () {
+                                    Navigator.of(
+                                      context,
+                                    ).pop(); // Go back to Project Selection
+                                  },
+                                  leadingIcon: const Icon(
+                                    Icons.folder_open_outlined,
+                                    size: 16,
+                                  ),
+                                  child: const Text('Open Project Selector'),
+                                ),
+                                MenuItemButton(
+                                  onPressed: () {
+                                    if (dataController != null) {
+                                      dataController.flushSync();
+                                    }
+                                  },
+                                  leadingIcon: const Icon(
+                                    Icons.save_outlined,
+                                    size: 16,
+                                  ),
+                                  child: const Text('Force Sync Save'),
+                                ),
+                              ],
+                              child: const Text(
+                                'File',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ),
+                            SubmenuButton(
+                              style: menuButtonStyle,
+                              menuChildren: [
+                                MenuItemButton(
+                                  onPressed: () {
+                                    session.showLeftPanel.value =
+                                        !session.showLeftPanel.value;
+                                  },
+                                  leadingIcon: const Icon(
+                                    Icons.menu_open_rounded,
+                                    size: 16,
+                                  ),
+                                  child: const Text('Toggle Left Sidebar'),
+                                ),
+                                MenuItemButton(
+                                  onPressed: () {
+                                    session.showRightPanel.value =
+                                        !session.showRightPanel.value;
+                                  },
+                                  leadingIcon: const Icon(
+                                    Icons.chrome_reader_mode_outlined,
+                                    size: 16,
+                                  ),
+                                  child: const Text('Toggle Right Inspector'),
+                                ),
+                                MenuItemButton(
+                                  onPressed: () {
+                                    session.showBottomPanel.value =
+                                        !session.showBottomPanel.value;
+                                  },
+                                  leadingIcon: const Icon(
+                                    Icons.call_to_action_outlined,
+                                    size: 16,
+                                  ),
+                                  child: const Text('Toggle Status Bar'),
+                                ),
+                              ],
+                              child: const Text(
+                                'View',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ),
+                            SubmenuButton(
+                              style: menuButtonStyle,
+                              menuChildren: [
+                                MenuItemButton(
+                                  onPressed: () async {
+                                    final isMaximized = await windowManager
+                                        .isMaximized();
+                                    if (isMaximized) {
+                                      await windowManager.unmaximize();
+                                    } else {
+                                      await windowManager.maximize();
+                                    }
+                                  },
+                                  leadingIcon: const Icon(
+                                    Icons.crop_square_rounded,
+                                    size: 16,
+                                  ),
+                                  child: const Text('Toggle Maximize'),
+                                ),
+                                MenuItemButton(
+                                  onPressed: () async {
+                                    await windowManager.minimize();
+                                  },
+                                  leadingIcon: const Icon(
+                                    Icons.minimize_rounded,
+                                    size: 16,
+                                  ),
+                                  child: const Text('Minimize Window'),
+                                ),
+                              ],
+                              child: const Text(
+                                'Window',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ),
+                            SubmenuButton(
+                              style: menuButtonStyle,
+                              menuChildren: [
+                                MenuItemButton(
+                                  onPressed: () {
+                                    showAboutDialog(
+                                      context: context,
+                                      applicationName: 'Mycelium',
+                                      applicationVersion: '1.0.0',
+                                      applicationIcon: Icon(
+                                        Icons.hub_outlined,
+                                        color: theme.colorScheme.primary,
+                                        size: 36,
+                                      ),
+                                      children: const [
+                                        Text(
+                                          'Mycelium is a fast Labeled Property Graph Editor designed in Flutter, powered by SurrealDB and Rust.',
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                  leadingIcon: const Icon(
+                                    Icons.info_outline,
+                                    size: 16,
+                                  ),
+                                  child: const Text('About Mycelium'),
+                                ),
+                              ],
+                              child: const Text(
+                                'Help',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(width: 4),
-              const WindowControlButtons(),
+
+              Expanded(
+                child: const DragToMoveArea(child: SizedBox.expand()),
+              ), // Layout Toggles & Native Control Buttons
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Panel layout toggles
+                  ValueListenableBuilder<bool>(
+                    valueListenable: session.showLeftPanel,
+                    builder: (context, visible, _) {
+                      return IconButton(
+                        icon: Icon(
+                          Icons.menu_open_rounded,
+                          color: visible
+                              ? theme.colorScheme.primary
+                              : theme.hintColor.withValues(alpha: 0.6),
+                        ),
+                        tooltip: 'Toggle Left Panel',
+                        iconSize: 18,
+                        splashRadius: 18,
+                        padding: const EdgeInsets.all(6),
+                        constraints: const BoxConstraints(),
+                        onPressed: () => session.showLeftPanel.value =
+                            !session.showLeftPanel.value,
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 4),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: session.showRightPanel,
+                    builder: (context, visible, _) {
+                      return IconButton(
+                        icon: Icon(
+                          Icons.chrome_reader_mode_outlined,
+                          color: visible
+                              ? theme.colorScheme.primary
+                              : theme.hintColor.withValues(alpha: 0.6),
+                        ),
+                        tooltip: 'Toggle Right Panel',
+                        iconSize: 18,
+                        splashRadius: 18,
+                        padding: const EdgeInsets.all(6),
+                        constraints: const BoxConstraints(),
+                        onPressed: () => session.showRightPanel.value =
+                            !session.showRightPanel.value,
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 4),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: session.showBottomPanel,
+                    builder: (context, visible, _) {
+                      return IconButton(
+                        icon: Icon(
+                          Icons.call_to_action_outlined,
+                          color: visible
+                              ? theme.colorScheme.primary
+                              : theme.hintColor.withValues(alpha: 0.6),
+                        ),
+                        tooltip: 'Toggle Bottom Panel',
+                        iconSize: 18,
+                        splashRadius: 18,
+                        padding: const EdgeInsets.all(6),
+                        constraints: const BoxConstraints(),
+                        onPressed: () => session.showBottomPanel.value =
+                            !session.showBottomPanel.value,
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  // Separator
+                  Container(
+                    width: 1,
+                    height: 20,
+                    color: theme.dividerColor.withValues(alpha: 0.2),
+                  ),
+                  const SizedBox(width: 4),
+                  const WindowControlButtons(),
+                ],
+              ),
             ],
+          ),
+          const IgnorePointer(
+            ignoring:
+                false, // Ensures click events target the search palette hit-test area
+            child: SearchCommandPalette(),
           ),
         ],
       ),

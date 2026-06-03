@@ -214,13 +214,21 @@ class ViewportController {
 
   void updateVisibleSet(Rect bufferRect) {
     _overscanBuffer = bufferRect;
-    final newVisible = _dataController.spatialGrid.queryRect(bufferRect);
-    _log.finest(
-      'updateVisibleSet: Spatial index returned ${newVisible.length} visible nodes.',
-    );
-    if (!setEquals(visibleNodeIds.value, newVisible)) {
-      visibleNodeIds.value = newVisible;
-    }
+    final currentOverscan = bufferRect;
+
+    // Dispatch the spatial grid query asynchronously on the event loop
+    Future(() {
+      if (_overscanBuffer != currentOverscan) return;
+      final newVisible = _dataController.spatialGrid.queryRect(currentOverscan);
+      if (_overscanBuffer == currentOverscan) {
+        _log.finest(
+          'updateVisibleSet: Spatial index returned ${newVisible.length} visible nodes.',
+        );
+        if (!setEquals(visibleNodeIds.value, newVisible)) {
+          visibleNodeIds.value = newVisible;
+        }
+      }
+    });
   }
 
   Rect _calculateCanvasViewport() {
@@ -288,8 +296,21 @@ class ViewportController {
         });
       }
     });
-
     _viewportAnimationController!.forward();
+  }
+
+  /// Projects canvas coordinates to screen-space coordinates.
+  Offset projectCanvasToScreen(Offset canvasPos) {
+    final Matrix4 transform = transformController.value;
+    if (transform.determinant() == 0.0) return canvasPos;
+    return MatrixUtils.transformPoint(transform, canvasPos);
+  }
+
+  /// Projects a canvas Rect to a screen-space Rect.
+  Rect projectCanvasRectToScreen(Rect canvasRect) {
+    final topLeft = projectCanvasToScreen(canvasRect.topLeft);
+    final bottomRight = projectCanvasToScreen(canvasRect.bottomRight);
+    return Rect.fromPoints(topLeft, bottomRight);
   }
 
   void dispose() {

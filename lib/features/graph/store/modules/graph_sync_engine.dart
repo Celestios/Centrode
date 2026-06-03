@@ -117,13 +117,10 @@ class GraphSyncEngine {
   /// Handles incoming graph events from the Rust stream.
   /// Updates local state based on asynchronous boundary updates.
   void _handleGraphEvent(GraphEvent event) {
-    _syncLog.info(
-      'FFI EVENT: Incoming $event',
-    ); // instrumentation for all events
-    // Map the FFI generated union to the local reactive state
+    _syncLog.info('FFI EVENT: Incoming $event');
+
     switch (event) {
       case GraphEvent_BoundaryUpdated(:final field0):
-        // Explicitly print the integer bounds to prove dynamic expansion
         _syncLog.fine(
           'Elastic Boundaries updated from Core: minX:${field0.minX}, maxX:${field0.maxX}, minY:${field0.minY}, maxY:${field0.maxY}',
         );
@@ -133,8 +130,68 @@ class GraphSyncEngine {
           maxX: field0.maxX,
           maxY: field0.maxY,
         );
+        controller.publishUpdate(GraphEntityUpdate(
+          id: '',
+          tableName: '',
+          type: GraphUpdateType.reset,
+        ));
+        break;
+
+      case GraphEvent_NodeUpdated(:final field0):
+        final uiNode = UiNode.fromRust(field0);
+        final existing = controller.store.nodeLookup[uiNode.id];
+        if (existing != null) {
+          final oldPos = existing.position;
+          // Merge core layout and position properties from the FFI event
+          existing.position = uiNode.position;
+          existing.size = uiNode.size;
+          existing.lineCount = uiNode.lineCount;
+          existing.isExpanded = uiNode.isExpanded;
+          existing.content = uiNode.content;
+          existing.layer = uiNode.layer;
+          existing.style = uiNode.style;
+          existing.resolvedStyle = uiNode.resolvedStyle;
+          existing.layout = uiNode.layout;
+          existing.resolvedLayout = uiNode.resolvedLayout;
+
+          if (existing is InfoUiNode && uiNode is InfoUiNode) {
+            existing.aliases = uiNode.aliases;
+            existing.attachment = uiNode.attachment;
+            // Crucial: preserve existing.tags and existing.comments to avoid overwriting them with unhydrated lists!
+          } else if (existing is TaskUiNode && uiNode is TaskUiNode) {
+            existing.state = uiNode.state;
+            existing.dueDate = uiNode.dueDate;
+          }
+          controller.spatial.spatialGrid.update(existing.id, oldPos, existing.position);
+          controller.spatial.saveConfirmedPosition(existing.id, existing.position);
+        } else {
+          controller.store.nodeLookup[uiNode.id] = uiNode;
+          controller.spatial.spatialGrid.insert(uiNode.id, uiNode.position);
+          controller.spatial.saveConfirmedPosition(uiNode.id, uiNode.position);
+        }
+        controller.publishUpdate(GraphEntityUpdate(
+          id: uiNode.id,
+          tableName: uiNode.tableName,
+          type: GraphUpdateType.reset,
+        ));
+        break;
+
+      case GraphEvent_NodeDeleted(:final field0):
+        final existing = controller.store.nodeLookup[field0];
+        if (existing != null) {
+          final pos = controller.spatial.getConfirmedPosition(field0) ?? existing.position;
+          controller.spatial.spatialGrid.remove(field0, pos);
+          controller.spatial.clearConfirmedPosition(field0);
+          controller.store.nodeLookup.remove(field0);
+        }
+        controller.publishUpdate(GraphEntityUpdate(
+          id: field0,
+          tableName: '',
+          type: GraphUpdateType.nodeDeleted,
+        ));
+        break;
+
       case _:
-        // Other events handled
         break;
     }
   }

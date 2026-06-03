@@ -168,37 +168,29 @@ class NodeWidget extends StatelessWidget {
                       AppConfig.node.metadataSphereRadius,
                   top: AppConfig.node.metadataSphereOffsetFromTop -
                       AppConfig.node.metadataSphereRadius,
-                  child: MouseRegion(
-                    onEnter: (_) {
-                      context.read<NodeRenderState>().hoveredNodeMetadataNotifier.value = liveNode.id;
-                    },
-                    onExit: (_) {
-                      context.read<NodeRenderState>().hoveredNodeMetadataNotifier.value = null;
-                    },
-                    child: Container(
-                      width: AppConfig.node.metadataSphereRadius * 2,
-                      height: AppConfig.node.metadataSphereRadius * 2,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(
-                          (liveNode.tags.isNotEmpty && liveNode.comments.isNotEmpty)
-                              ? 0xFFEC407A
-                              : liveNode.tags.isNotEmpty
-                                  ? 0xFF5C6BC0
-                                  : 0xFF26A69A,
-                        ),
-                        border: Border.all(
-                          color: Colors.white,
-                          width: AppConfig.node.metadataSphereStrokeWidth,
-                        ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 2,
-                            offset: Offset(0, 1),
-                          ),
-                        ],
+                  child: Container(
+                    width: AppConfig.node.metadataSphereRadius * 2,
+                    height: AppConfig.node.metadataSphereRadius * 2,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(
+                        (liveNode.tags.isNotEmpty && liveNode.comments.isNotEmpty)
+                            ? 0xFFEC407A
+                            : liveNode.tags.isNotEmpty
+                                ? 0xFF5C6BC0
+                                : 0xFF26A69A,
                       ),
+                      border: Border.all(
+                        color: Colors.white,
+                        width: AppConfig.node.metadataSphereStrokeWidth,
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 2,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
                     ),
                   ),
                 ),

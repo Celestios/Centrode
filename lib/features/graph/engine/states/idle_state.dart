@@ -281,6 +281,8 @@ class CanvasIdle extends CanvasInteractionState {
       nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
     }
 
+    String? hoveredMetadataNodeId;
+
     for (final nodeId in nodeIds) {
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
@@ -294,10 +296,22 @@ class CanvasIdle extends CanvasInteractionState {
           nodeRect.top + AppConfig.node.metadataSphereOffsetFromTop,
         );
         if ((pCanvas - center).distance < AppConfig.node.metadataSphereHitboxRadius) {
-          return cursor == SystemMouseCursors.click
-              ? this
-              : const CanvasIdle(cursor: SystemMouseCursors.click);
+          hoveredMetadataNodeId = nodeId;
+          break;
         }
+      }
+    }
+
+    ctx.setHoveredNodeMetadata(hoveredMetadataNodeId);
+
+    for (final nodeId in nodeIds) {
+      final vs = ctx.nodeViewStates[nodeId];
+      if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
+
+      if (nodeId == hoveredMetadataNodeId) {
+        return cursor == SystemMouseCursors.click
+            ? this
+            : const CanvasIdle(cursor: SystemMouseCursors.click);
       }
 
       if (vs.rightResizeHitbox.contains(pCanvas) ||

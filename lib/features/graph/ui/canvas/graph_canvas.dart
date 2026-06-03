@@ -204,6 +204,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                       cursor: cursor,
                       onExit: (_) {
                         _mousePositionNotifier.value = null;
+                        interactionController.environment.setHoveredNodeMetadata(null);
                       },
                       child: child,
                     );

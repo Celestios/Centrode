@@ -54,11 +54,16 @@ class InteractionController {
 
   void _onStateChanged() {
     final newState = state.value;
-    
+
     // Update panScaleEnabled (true only if idle)
     final isIdle = newState is CanvasIdle;
     if (panScaleEnabled.value != isIdle) {
       panScaleEnabled.value = isIdle;
+    }
+
+    // Clear hover metadata when transitioning away from CanvasIdle
+    if (!isIdle) {
+      environment.setHoveredNodeMetadata(null);
     }
 
     // Update cursor

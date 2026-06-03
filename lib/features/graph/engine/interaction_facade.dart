@@ -184,4 +184,11 @@ class CanvasInteractionEnvironment implements InteractionContext {
   @override
   Offset? calculateToolbarAnchor(Iterable<String> selectedIds) =>
       _renderState.calculateToolbarAnchor(selectedIds);
+
+  @override
+  void setHoveredNodeMetadata(String? nodeId) {
+    if (_renderState.hoveredNodeMetadataNotifier.value != nodeId) {
+      _renderState.hoveredNodeMetadataNotifier.value = nodeId;
+    }
+  }
 }

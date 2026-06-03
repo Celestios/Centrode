@@ -100,4 +100,7 @@ abstract interface class InteractionContext {
 
   /// Calculates the visual anchor point for the floating toolbar based on selected entities.
   Offset? calculateToolbarAnchor(Iterable<String> selectedIds);
+
+  /// Sets the currently hovered metadata node ID to show/hide the preview card.
+  void setHoveredNodeMetadata(String? nodeId);
 }
