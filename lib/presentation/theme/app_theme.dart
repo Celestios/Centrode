@@ -2,6 +2,22 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
+  static const List<FontWeight> fontWeights = [
+    FontWeight.w100,
+    FontWeight.w200,
+    FontWeight.w300,
+    FontWeight.w400,
+    FontWeight.w500,
+    FontWeight.w600,
+    FontWeight.w700,
+    FontWeight.w800,
+    FontWeight.w900,
+  ];
+
+  static int fontWeightToIndex(FontWeight weight) {
+    return (weight.value ~/ 100) - 1;
+  }
+
   // ── Core palette ──────────────────────────────
   final Color primaryColor;
   final Color secondaryColor;
@@ -128,14 +144,14 @@ class AppTheme {
       'textColor': textColor.toARGB32(),
       'fontFamily': fontFamily,
       'bodyFontSize': bodyFontSize,
-      'bodyFontWeight': bodyFontWeight.index, // save as int
+      'bodyFontWeight': fontWeightToIndex(bodyFontWeight), // save as int
       'bodyTextColor': bodyTextColor.toARGB32(),
       'borderRadius': borderRadius,
       'appBarBackgroundColor': appBarBackgroundColor.toARGB32(),
       'appBarForegroundColor': appBarForegroundColor.toARGB32(),
       'appBarElevation': appBarElevation,
       'appBarTitleFontSize': appBarTitleFontSize,
-      'appBarTitleFontWeight': appBarTitleFontWeight.index,
+      'appBarTitleFontWeight': fontWeightToIndex(appBarTitleFontWeight),
       'useMaterial3': useMaterial3,
       'brightness': brightness.name,
     };
@@ -159,7 +175,7 @@ class AppTheme {
     }) {
       if (value == null) return fallback;
       if (value is int) {
-        return FontWeight.values[value.clamp(0, FontWeight.values.length - 1)];
+        return fontWeights[value.clamp(0, fontWeights.length - 1)];
       }
       if (value is String) {
         switch (value.toLowerCase()) {

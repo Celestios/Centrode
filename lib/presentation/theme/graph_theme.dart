@@ -85,7 +85,7 @@ class GraphTheme extends AppTheme {
         textColor: textColor.toARGB32(),
         fontFamily: fontFamily,
         bodyFontSize: bodyFontSize,
-        bodyFontWeight: frb.FontWeight(field0: bodyFontWeight.index),
+        bodyFontWeight: frb.FontWeight(field0: AppTheme.fontWeightToIndex(bodyFontWeight)),
         bodyTextColor: bodyTextColor.toARGB32(),
         borderRadius: borderRadius,
         appBarBackgroundColor: appBarBackgroundColor.toARGB32(),
@@ -93,7 +93,7 @@ class GraphTheme extends AppTheme {
         appBarElevation: appBarElevation,
         appBarTitleFontSize: appBarTitleFontSize,
         appBarTitleFontWeight: frb.FontWeight(
-          field0: appBarTitleFontWeight.index,
+          field0: AppTheme.fontWeightToIndex(appBarTitleFontWeight),
         ),
         useMaterial3: useMaterial3,
         brightness: brightness == Brightness.dark
@@ -117,14 +117,14 @@ class GraphTheme extends AppTheme {
       textColor: Color(f.textColor),
       fontFamily: f.fontFamily,
       bodyFontSize: f.bodyFontSize,
-      bodyFontWeight: FontWeight.values[f.bodyFontWeight.field0],
+      bodyFontWeight: AppTheme.fontWeights[f.bodyFontWeight.field0.clamp(0, 8)],
       bodyTextColor: Color(f.bodyTextColor),
       borderRadius: f.borderRadius,
       appBarBackgroundColor: Color(f.appBarBackgroundColor),
       appBarForegroundColor: Color(f.appBarForegroundColor),
       appBarElevation: f.appBarElevation,
       appBarTitleFontSize: f.appBarTitleFontSize,
-      appBarTitleFontWeight: FontWeight.values[f.appBarTitleFontWeight.field0],
+      appBarTitleFontWeight: AppTheme.fontWeights[f.appBarTitleFontWeight.field0.clamp(0, 8)],
       useMaterial3: f.useMaterial3,
       brightness: f.brightness == frb.ThemeBrightness.dark
           ? Brightness.dark
