@@ -24,3 +24,6 @@ mod templates;
 #[path = "core_tests/flatten_test.rs"]
 mod flatten_test;
 
+#[path = "core_tests/schema_gen.rs"]
+mod schema_gen;
+

@@ -11,3 +11,4 @@ pub mod tags;
 pub mod theme;
 pub mod templates;
 pub mod snapshot;
+pub mod schema;

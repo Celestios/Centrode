@@ -103,7 +103,6 @@ class InlineElement {
 
 enum InlineType { text, hardBreak }
 
-/// Mark-level attributes
 class MarkAttrs {
   final String? href;
 

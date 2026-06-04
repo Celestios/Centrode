@@ -3,6 +3,7 @@ use crate::domain::contents::Content;
 use crate::domain::styles::{NodeLayout, NodeStyle};
 use crate::domain::tags::TagEdge;
 use surrealdb::types::{SurrealValue, Value};
+pub use crate::domain::schema::{SurqlSchema, SurqlSchemaField, generate_field_schema_lines};
 
 pub trait IsNode {
     fn id(&self) -> &RecordStrings;
@@ -45,20 +46,25 @@ define_nodes! {
         pub layer: String,
         pub position: Coordinates,
         pub size: Size,
+        #[surql_default = "1"]
         pub line_count: i32,
         pub expandable: bool,
         pub is_expanded: bool,
         pub locked: bool,
+        #[surql_type = "array<record<Tag>>"]
         pub tags: Vec<TagEdge>,
+        #[surql_type = "array<string>"]
         pub aliases: Vec<String>,
         pub comments: Vec<Comment>,
         pub attachment: Option<String>,
+        #[surql_default = "0"]
         pub significance: u8,
     };
 
     TaskNode, "TaskNode", [] {
         pub content: Content,
         pub due_date: Option<i64>,
+        #[surql_type = "any"]
         pub state: String,
         pub position: Coordinates,
         pub size: Size,
@@ -69,6 +75,7 @@ define_nodes! {
         pub resolved_style: Option<NodeStyle>,
         pub layout: Option<NodeLayout>,
         pub resolved_layout: Option<NodeLayout>,
+        #[surql_default = "0"]
         pub significance: u8,
     };
 
@@ -117,3 +124,5 @@ define_nodes! {
         pub layer: String,
     };
 }
+
+

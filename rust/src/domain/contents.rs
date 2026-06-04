@@ -1,4 +1,5 @@
 use surrealdb::types::SurrealValue;
+use crate::domain::schema::SurqlSchemaField;
 
 #[derive(Debug, Clone, SurrealValue, Default, PartialEq, Eq)]
 pub struct Content {
@@ -263,10 +264,33 @@ pub enum MarkType {
     Link,
 }
 
-/// Mark-level attributes
 #[derive(Debug, Clone, SurrealValue, Default, PartialEq, Eq)]
 pub struct MarkAttrs {
-    pub href: Option<String>, // For links
+    pub href: Option<String>,
+}
+
+impl SurqlSchemaField for Content {
+    fn field_type() -> String { "object".to_string() }
+    fn sub_field_paths() -> Vec<(String, String)> {
+        vec![
+            ("text".to_string(), "string".to_string()),
+            ("blocks".to_string(), "array".to_string()),
+            ("blocks.*".to_string(), "object".to_string()),
+            ("blocks.*.block_type".to_string(), "any".to_string()),
+            ("blocks.*.content".to_string(), "array".to_string()),
+            ("blocks.*.content.*".to_string(), "object".to_string()),
+            ("blocks.*.content.*.inline_type".to_string(), "any".to_string()),
+            ("blocks.*.content.*.text".to_string(), "string".to_string()),
+            ("blocks.*.content.*.marks".to_string(), "option<array>".to_string()),
+            ("blocks.*.content.*.marks.*".to_string(), "object".to_string()),
+            ("blocks.*.content.*.marks.*.mark_type".to_string(), "any".to_string()),
+            ("blocks.*.content.*.marks.*.attrs".to_string(), "option<object>".to_string()),
+            ("blocks.*.content.*.marks.*.attrs.href".to_string(), "option<string>".to_string()),
+            ("blocks.*.attrs".to_string(), "option<object>".to_string()),
+            ("blocks.*.attrs.level".to_string(), "option<int>".to_string()),
+            ("blocks.*.attrs.language".to_string(), "option<string>".to_string()),
+        ]
+    }
 }
 
 #[cfg(test)]

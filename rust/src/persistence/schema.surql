@@ -22,10 +22,15 @@ DEFINE TABLE OVERWRITE History SCHEMAFULL;
 DEFINE TABLE OVERWRITE Template SCHEMALESS;
 
 -- ---------------------------------------------------------------------------
--- 2. Fields for `INode`
+-- 2. Fields for Nodes (Auto-generated)
 -- ---------------------------------------------------------------------------
+-- BEGIN GENERATED NODE FIELDS
 
--- content: object
+-- ---------------------------------------------------------------------------
+-- Fields for `INode`
+-- ---------------------------------------------------------------------------
+DEFINE FIELD OVERWRITE created_at ON TABLE INode TYPE int DEFAULT time::millis(time::now()) READONLY;
+DEFINE FIELD OVERWRITE updated_at ON TABLE INode TYPE int VALUE $value OR time::millis(time::now());
 DEFINE FIELD OVERWRITE content ON TABLE INode TYPE object;
 DEFINE FIELD OVERWRITE content.text ON TABLE INode TYPE string;
 DEFINE FIELD OVERWRITE content.blocks ON TABLE INode TYPE array;
@@ -43,24 +48,6 @@ DEFINE FIELD OVERWRITE content.blocks.*.content.*.marks.*.attrs.href ON TABLE IN
 DEFINE FIELD OVERWRITE content.blocks.*.attrs ON TABLE INode TYPE option<object>;
 DEFINE FIELD OVERWRITE content.blocks.*.attrs.level ON TABLE INode TYPE option<int>;
 DEFINE FIELD OVERWRITE content.blocks.*.attrs.language ON TABLE INode TYPE option<string>;
-
--- position: object
-DEFINE FIELD OVERWRITE position ON TABLE INode TYPE object;
-DEFINE FIELD OVERWRITE position.x ON TABLE INode TYPE int;
-DEFINE FIELD OVERWRITE position.y ON TABLE INode TYPE int;
-
--- size: object
-DEFINE FIELD OVERWRITE size ON TABLE INode TYPE object;
-DEFINE FIELD OVERWRITE size.width ON TABLE INode TYPE int;
-DEFINE FIELD OVERWRITE size.height ON TABLE INode TYPE int;
-
--- comments: array<object>
-DEFINE FIELD OVERWRITE comments ON TABLE INode TYPE array;
-DEFINE FIELD OVERWRITE comments.* ON TABLE INode TYPE object;
-DEFINE FIELD OVERWRITE comments.*.text ON TABLE INode TYPE string;
-DEFINE FIELD OVERWRITE comments.*.created_at ON TABLE INode TYPE int;
-
--- style: option<object>
 DEFINE FIELD OVERWRITE style ON TABLE INode TYPE option<object>;
 DEFINE FIELD OVERWRITE style.bg_color ON TABLE INode TYPE int;
 DEFINE FIELD OVERWRITE style.stroke_color ON TABLE INode TYPE int;
@@ -79,8 +66,6 @@ DEFINE FIELD OVERWRITE style.shadow_spread ON TABLE INode TYPE float;
 DEFINE FIELD OVERWRITE style.shadow_offset_x ON TABLE INode TYPE float;
 DEFINE FIELD OVERWRITE style.shadow_offset_y ON TABLE INode TYPE float;
 DEFINE FIELD OVERWRITE style.strategy_type ON TABLE INode TYPE string;
-
--- resolved_style: option<object>
 DEFINE FIELD OVERWRITE resolved_style ON TABLE INode TYPE option<object>;
 DEFINE FIELD OVERWRITE resolved_style.bg_color ON TABLE INode TYPE int;
 DEFINE FIELD OVERWRITE resolved_style.stroke_color ON TABLE INode TYPE int;
@@ -99,32 +84,35 @@ DEFINE FIELD OVERWRITE resolved_style.shadow_spread ON TABLE INode TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.shadow_offset_x ON TABLE INode TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.shadow_offset_y ON TABLE INode TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.strategy_type ON TABLE INode TYPE string;
-
--- layout: option<object>
 DEFINE FIELD OVERWRITE layout ON TABLE INode TYPE option<object>;
 DEFINE FIELD OVERWRITE layout.strategy_type ON TABLE INode TYPE string;
-
--- resolved_layout: option<object>
 DEFINE FIELD OVERWRITE resolved_layout ON TABLE INode TYPE option<object>;
 DEFINE FIELD OVERWRITE resolved_layout.strategy_type ON TABLE INode TYPE string;
-
-DEFINE FIELD OVERWRITE is_expanded ON TABLE INode TYPE bool;
-DEFINE FIELD OVERWRITE expandable ON TABLE INode TYPE bool;
 DEFINE FIELD OVERWRITE layer ON TABLE INode TYPE string;
+DEFINE FIELD OVERWRITE position ON TABLE INode TYPE object;
+DEFINE FIELD OVERWRITE position.x ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE position.y ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE size ON TABLE INode TYPE object;
+DEFINE FIELD OVERWRITE size.width ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE size.height ON TABLE INode TYPE int;
+DEFINE FIELD OVERWRITE line_count ON TABLE INode TYPE int DEFAULT 1;
+DEFINE FIELD OVERWRITE expandable ON TABLE INode TYPE bool;
+DEFINE FIELD OVERWRITE is_expanded ON TABLE INode TYPE bool;
 DEFINE FIELD OVERWRITE locked ON TABLE INode TYPE bool;
 DEFINE FIELD OVERWRITE tags ON TABLE INode TYPE array<record<Tag>>;
 DEFINE FIELD OVERWRITE aliases ON TABLE INode TYPE array<string>;
+DEFINE FIELD OVERWRITE comments ON TABLE INode TYPE array;
+DEFINE FIELD OVERWRITE comments.* ON TABLE INode TYPE object;
+DEFINE FIELD OVERWRITE comments.*.text ON TABLE INode TYPE string;
+DEFINE FIELD OVERWRITE comments.*.created_at ON TABLE INode TYPE int;
 DEFINE FIELD OVERWRITE attachment ON TABLE INode TYPE option<string>;
 DEFINE FIELD OVERWRITE significance ON TABLE INode TYPE int DEFAULT 0;
-DEFINE FIELD OVERWRITE line_count ON TABLE INode TYPE int DEFAULT 1;
-DEFINE FIELD OVERWRITE created_at ON TABLE INode TYPE int;
-DEFINE FIELD OVERWRITE updated_at ON TABLE INode COMPUTED time::millis(time::now());
 
 -- ---------------------------------------------------------------------------
--- 3. Fields for `TaskNode`
+-- Fields for `TaskNode`
 -- ---------------------------------------------------------------------------
-
--- content: object
+DEFINE FIELD OVERWRITE created_at ON TABLE TaskNode TYPE int DEFAULT time::millis(time::now()) READONLY;
+DEFINE FIELD OVERWRITE updated_at ON TABLE TaskNode TYPE int VALUE $value OR time::millis(time::now());
 DEFINE FIELD OVERWRITE content ON TABLE TaskNode TYPE object;
 DEFINE FIELD OVERWRITE content.text ON TABLE TaskNode TYPE string;
 DEFINE FIELD OVERWRITE content.blocks ON TABLE TaskNode TYPE array;
@@ -142,18 +130,17 @@ DEFINE FIELD OVERWRITE content.blocks.*.content.*.marks.*.attrs.href ON TABLE Ta
 DEFINE FIELD OVERWRITE content.blocks.*.attrs ON TABLE TaskNode TYPE option<object>;
 DEFINE FIELD OVERWRITE content.blocks.*.attrs.level ON TABLE TaskNode TYPE option<int>;
 DEFINE FIELD OVERWRITE content.blocks.*.attrs.language ON TABLE TaskNode TYPE option<string>;
-
--- position: object
+DEFINE FIELD OVERWRITE due_date ON TABLE TaskNode TYPE option<int>;
+DEFINE FIELD OVERWRITE state ON TABLE TaskNode TYPE any;
 DEFINE FIELD OVERWRITE position ON TABLE TaskNode TYPE object;
 DEFINE FIELD OVERWRITE position.x ON TABLE TaskNode TYPE int;
 DEFINE FIELD OVERWRITE position.y ON TABLE TaskNode TYPE int;
-
--- size: object
 DEFINE FIELD OVERWRITE size ON TABLE TaskNode TYPE object;
 DEFINE FIELD OVERWRITE size.width ON TABLE TaskNode TYPE int;
 DEFINE FIELD OVERWRITE size.height ON TABLE TaskNode TYPE int;
-
--- style: option<object>
+DEFINE FIELD OVERWRITE expandable ON TABLE TaskNode TYPE bool;
+DEFINE FIELD OVERWRITE is_expanded ON TABLE TaskNode TYPE bool;
+DEFINE FIELD OVERWRITE layer ON TABLE TaskNode TYPE string;
 DEFINE FIELD OVERWRITE style ON TABLE TaskNode TYPE option<object>;
 DEFINE FIELD OVERWRITE style.bg_color ON TABLE TaskNode TYPE int;
 DEFINE FIELD OVERWRITE style.stroke_color ON TABLE TaskNode TYPE int;
@@ -172,8 +159,6 @@ DEFINE FIELD OVERWRITE style.shadow_spread ON TABLE TaskNode TYPE float;
 DEFINE FIELD OVERWRITE style.shadow_offset_x ON TABLE TaskNode TYPE float;
 DEFINE FIELD OVERWRITE style.shadow_offset_y ON TABLE TaskNode TYPE float;
 DEFINE FIELD OVERWRITE style.strategy_type ON TABLE TaskNode TYPE string;
-
--- resolved_style: option<object>
 DEFINE FIELD OVERWRITE resolved_style ON TABLE TaskNode TYPE option<object>;
 DEFINE FIELD OVERWRITE resolved_style.bg_color ON TABLE TaskNode TYPE int;
 DEFINE FIELD OVERWRITE resolved_style.stroke_color ON TABLE TaskNode TYPE int;
@@ -192,37 +177,130 @@ DEFINE FIELD OVERWRITE resolved_style.shadow_spread ON TABLE TaskNode TYPE float
 DEFINE FIELD OVERWRITE resolved_style.shadow_offset_x ON TABLE TaskNode TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.shadow_offset_y ON TABLE TaskNode TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.strategy_type ON TABLE TaskNode TYPE string;
-
--- layout: option<object>
 DEFINE FIELD OVERWRITE layout ON TABLE TaskNode TYPE option<object>;
 DEFINE FIELD OVERWRITE layout.strategy_type ON TABLE TaskNode TYPE string;
-
--- resolved_layout: option<object>
 DEFINE FIELD OVERWRITE resolved_layout ON TABLE TaskNode TYPE option<object>;
 DEFINE FIELD OVERWRITE resolved_layout.strategy_type ON TABLE TaskNode TYPE string;
-
-DEFINE FIELD OVERWRITE is_expanded ON TABLE TaskNode TYPE bool;
-DEFINE FIELD OVERWRITE expandable ON TABLE TaskNode TYPE bool;
-DEFINE FIELD OVERWRITE layer ON TABLE TaskNode TYPE string;
-DEFINE FIELD OVERWRITE due_date ON TABLE TaskNode TYPE option<int>;
-DEFINE FIELD OVERWRITE state ON TABLE TaskNode TYPE any;
-DEFINE FIELD OVERWRITE created_at ON TABLE TaskNode TYPE int;
 DEFINE FIELD OVERWRITE significance ON TABLE TaskNode TYPE int DEFAULT 0;
-DEFINE FIELD OVERWRITE updated_at ON TABLE TaskNode COMPUTED time::millis(time::now());
 
 -- ---------------------------------------------------------------------------
--- 4. Fields for `InterNode`
+-- Fields for `InterNode`
 -- ---------------------------------------------------------------------------
+DEFINE FIELD OVERWRITE created_at ON TABLE InterNode TYPE int DEFAULT time::millis(time::now()) READONLY;
+DEFINE FIELD OVERWRITE updated_at ON TABLE InterNode TYPE int VALUE $value OR time::millis(time::now());
 DEFINE FIELD OVERWRITE position ON TABLE InterNode TYPE object;
 DEFINE FIELD OVERWRITE position.x ON TABLE InterNode TYPE int;
 DEFINE FIELD OVERWRITE position.y ON TABLE InterNode TYPE int;
-
 DEFINE FIELD OVERWRITE style ON TABLE InterNode TYPE option<string>;
 DEFINE FIELD OVERWRITE verb ON TABLE InterNode TYPE string;
 DEFINE FIELD OVERWRITE behavioral_features ON TABLE InterNode TYPE option<string>;
 DEFINE FIELD OVERWRITE layer ON TABLE InterNode TYPE string;
-DEFINE FIELD OVERWRITE created_at ON TABLE InterNode TYPE int;
-DEFINE FIELD OVERWRITE updated_at ON TABLE InterNode COMPUTED time::millis(time::now());
+
+-- ---------------------------------------------------------------------------
+-- Fields for `CommentNode`
+-- ---------------------------------------------------------------------------
+DEFINE FIELD OVERWRITE created_at ON TABLE CommentNode TYPE int DEFAULT time::millis(time::now()) READONLY;
+DEFINE FIELD OVERWRITE updated_at ON TABLE CommentNode TYPE int VALUE $value OR time::millis(time::now());
+DEFINE FIELD OVERWRITE text ON TABLE CommentNode TYPE string;
+DEFINE FIELD OVERWRITE position ON TABLE CommentNode TYPE object;
+DEFINE FIELD OVERWRITE position.x ON TABLE CommentNode TYPE int;
+DEFINE FIELD OVERWRITE position.y ON TABLE CommentNode TYPE int;
+DEFINE FIELD OVERWRITE size ON TABLE CommentNode TYPE object;
+DEFINE FIELD OVERWRITE size.width ON TABLE CommentNode TYPE int;
+DEFINE FIELD OVERWRITE size.height ON TABLE CommentNode TYPE int;
+DEFINE FIELD OVERWRITE layer ON TABLE CommentNode TYPE string;
+
+-- ---------------------------------------------------------------------------
+-- Fields for `DrawingNode`
+-- ---------------------------------------------------------------------------
+DEFINE FIELD OVERWRITE created_at ON TABLE DrawingNode TYPE int DEFAULT time::millis(time::now()) READONLY;
+DEFINE FIELD OVERWRITE updated_at ON TABLE DrawingNode TYPE int VALUE $value OR time::millis(time::now());
+DEFINE FIELD OVERWRITE paths ON TABLE DrawingNode TYPE array;
+DEFINE FIELD OVERWRITE position ON TABLE DrawingNode TYPE object;
+DEFINE FIELD OVERWRITE position.x ON TABLE DrawingNode TYPE int;
+DEFINE FIELD OVERWRITE position.y ON TABLE DrawingNode TYPE int;
+DEFINE FIELD OVERWRITE layer ON TABLE DrawingNode TYPE string;
+
+-- ---------------------------------------------------------------------------
+-- Fields for `ShapeNode`
+-- ---------------------------------------------------------------------------
+DEFINE FIELD OVERWRITE created_at ON TABLE ShapeNode TYPE int DEFAULT time::millis(time::now()) READONLY;
+DEFINE FIELD OVERWRITE updated_at ON TABLE ShapeNode TYPE int VALUE $value OR time::millis(time::now());
+DEFINE FIELD OVERWRITE shape_type ON TABLE ShapeNode TYPE string;
+DEFINE FIELD OVERWRITE style ON TABLE ShapeNode TYPE option<object>;
+DEFINE FIELD OVERWRITE style.bg_color ON TABLE ShapeNode TYPE int;
+DEFINE FIELD OVERWRITE style.stroke_color ON TABLE ShapeNode TYPE int;
+DEFINE FIELD OVERWRITE style.stroke_width ON TABLE ShapeNode TYPE int;
+DEFINE FIELD OVERWRITE style.font_family ON TABLE ShapeNode TYPE string;
+DEFINE FIELD OVERWRITE style.font_size ON TABLE ShapeNode TYPE float;
+DEFINE FIELD OVERWRITE style.shape ON TABLE ShapeNode TYPE string;
+DEFINE FIELD OVERWRITE style.width ON TABLE ShapeNode TYPE int;
+DEFINE FIELD OVERWRITE style.height ON TABLE ShapeNode TYPE int;
+DEFINE FIELD OVERWRITE style.text_color ON TABLE ShapeNode TYPE int;
+DEFINE FIELD OVERWRITE style.border_radius ON TABLE ShapeNode TYPE float;
+DEFINE FIELD OVERWRITE style.padding ON TABLE ShapeNode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_color ON TABLE ShapeNode TYPE int;
+DEFINE FIELD OVERWRITE style.shadow_blur ON TABLE ShapeNode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_spread ON TABLE ShapeNode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_offset_x ON TABLE ShapeNode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_offset_y ON TABLE ShapeNode TYPE float;
+DEFINE FIELD OVERWRITE style.strategy_type ON TABLE ShapeNode TYPE string;
+DEFINE FIELD OVERWRITE position ON TABLE ShapeNode TYPE object;
+DEFINE FIELD OVERWRITE position.x ON TABLE ShapeNode TYPE int;
+DEFINE FIELD OVERWRITE position.y ON TABLE ShapeNode TYPE int;
+DEFINE FIELD OVERWRITE size ON TABLE ShapeNode TYPE object;
+DEFINE FIELD OVERWRITE size.width ON TABLE ShapeNode TYPE int;
+DEFINE FIELD OVERWRITE size.height ON TABLE ShapeNode TYPE int;
+DEFINE FIELD OVERWRITE layer ON TABLE ShapeNode TYPE string;
+
+-- ---------------------------------------------------------------------------
+-- Fields for `FrameNode`
+-- ---------------------------------------------------------------------------
+DEFINE FIELD OVERWRITE created_at ON TABLE FrameNode TYPE int DEFAULT time::millis(time::now()) READONLY;
+DEFINE FIELD OVERWRITE updated_at ON TABLE FrameNode TYPE int VALUE $value OR time::millis(time::now());
+DEFINE FIELD OVERWRITE title ON TABLE FrameNode TYPE string;
+DEFINE FIELD OVERWRITE style ON TABLE FrameNode TYPE option<object>;
+DEFINE FIELD OVERWRITE style.bg_color ON TABLE FrameNode TYPE int;
+DEFINE FIELD OVERWRITE style.stroke_color ON TABLE FrameNode TYPE int;
+DEFINE FIELD OVERWRITE style.stroke_width ON TABLE FrameNode TYPE int;
+DEFINE FIELD OVERWRITE style.font_family ON TABLE FrameNode TYPE string;
+DEFINE FIELD OVERWRITE style.font_size ON TABLE FrameNode TYPE float;
+DEFINE FIELD OVERWRITE style.shape ON TABLE FrameNode TYPE string;
+DEFINE FIELD OVERWRITE style.width ON TABLE FrameNode TYPE int;
+DEFINE FIELD OVERWRITE style.height ON TABLE FrameNode TYPE int;
+DEFINE FIELD OVERWRITE style.text_color ON TABLE FrameNode TYPE int;
+DEFINE FIELD OVERWRITE style.border_radius ON TABLE FrameNode TYPE float;
+DEFINE FIELD OVERWRITE style.padding ON TABLE FrameNode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_color ON TABLE FrameNode TYPE int;
+DEFINE FIELD OVERWRITE style.shadow_blur ON TABLE FrameNode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_spread ON TABLE FrameNode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_offset_x ON TABLE FrameNode TYPE float;
+DEFINE FIELD OVERWRITE style.shadow_offset_y ON TABLE FrameNode TYPE float;
+DEFINE FIELD OVERWRITE style.strategy_type ON TABLE FrameNode TYPE string;
+DEFINE FIELD OVERWRITE position ON TABLE FrameNode TYPE object;
+DEFINE FIELD OVERWRITE position.x ON TABLE FrameNode TYPE int;
+DEFINE FIELD OVERWRITE position.y ON TABLE FrameNode TYPE int;
+DEFINE FIELD OVERWRITE size ON TABLE FrameNode TYPE object;
+DEFINE FIELD OVERWRITE size.width ON TABLE FrameNode TYPE int;
+DEFINE FIELD OVERWRITE size.height ON TABLE FrameNode TYPE int;
+DEFINE FIELD OVERWRITE layer ON TABLE FrameNode TYPE string;
+
+-- ---------------------------------------------------------------------------
+-- Fields for `MediaNode`
+-- ---------------------------------------------------------------------------
+DEFINE FIELD OVERWRITE created_at ON TABLE MediaNode TYPE int DEFAULT time::millis(time::now()) READONLY;
+DEFINE FIELD OVERWRITE updated_at ON TABLE MediaNode TYPE int VALUE $value OR time::millis(time::now());
+DEFINE FIELD OVERWRITE source_url ON TABLE MediaNode TYPE string;
+DEFINE FIELD OVERWRITE media_type ON TABLE MediaNode TYPE string;
+DEFINE FIELD OVERWRITE position ON TABLE MediaNode TYPE object;
+DEFINE FIELD OVERWRITE position.x ON TABLE MediaNode TYPE int;
+DEFINE FIELD OVERWRITE position.y ON TABLE MediaNode TYPE int;
+DEFINE FIELD OVERWRITE size ON TABLE MediaNode TYPE object;
+DEFINE FIELD OVERWRITE size.width ON TABLE MediaNode TYPE int;
+DEFINE FIELD OVERWRITE size.height ON TABLE MediaNode TYPE int;
+DEFINE FIELD OVERWRITE layer ON TABLE MediaNode TYPE string;
+
+-- END GENERATED NODE FIELDS
 
 -- ---------------------------------------------------------------------------
 -- 5. Fields for `IRelation` (a relation table)
@@ -375,67 +453,4 @@ DEFINE INDEX OVERWRITE task_content_headings ON TABLE TaskNode
 DEFINE INDEX OVERWRITE task_content_text_search ON TABLE TaskNode
     FIELDS content.text
     FULLTEXT ANALYZER simple BM25 HIGHLIGHTS;
-
--- ---------------------------------------------------------------------------
--- 3.a Fields for Spatial Extensions (Comment, Drawing, Shape, Frame, Media)
--- ---------------------------------------------------------------------------
-
--- CommentNode
-DEFINE FIELD OVERWRITE text ON TABLE CommentNode TYPE string;
-DEFINE FIELD OVERWRITE position ON TABLE CommentNode TYPE object;
-DEFINE FIELD OVERWRITE position.x ON TABLE CommentNode TYPE int;
-DEFINE FIELD OVERWRITE position.y ON TABLE CommentNode TYPE int;
-DEFINE FIELD OVERWRITE size ON TABLE CommentNode TYPE object;
-DEFINE FIELD OVERWRITE size.width ON TABLE CommentNode TYPE int;
-DEFINE FIELD OVERWRITE size.height ON TABLE CommentNode TYPE int;
-DEFINE FIELD OVERWRITE layer ON TABLE CommentNode TYPE string;
-DEFINE FIELD OVERWRITE created_at ON TABLE CommentNode TYPE int;
-DEFINE FIELD OVERWRITE updated_at ON TABLE CommentNode COMPUTED time::millis(time::now());
-
--- DrawingNode
-DEFINE FIELD OVERWRITE paths ON TABLE DrawingNode TYPE array;
-DEFINE FIELD OVERWRITE position ON TABLE DrawingNode TYPE object;
-DEFINE FIELD OVERWRITE position.x ON TABLE DrawingNode TYPE int;
-DEFINE FIELD OVERWRITE position.y ON TABLE DrawingNode TYPE int;
-DEFINE FIELD OVERWRITE layer ON TABLE DrawingNode TYPE string;
-DEFINE FIELD OVERWRITE created_at ON TABLE DrawingNode TYPE int;
-DEFINE FIELD OVERWRITE updated_at ON TABLE DrawingNode COMPUTED time::millis(time::now());
-
--- ShapeNode
-DEFINE FIELD OVERWRITE shape_type ON TABLE ShapeNode TYPE string;
-DEFINE FIELD OVERWRITE style ON TABLE ShapeNode TYPE option<object>;
-DEFINE FIELD OVERWRITE position ON TABLE ShapeNode TYPE object;
-DEFINE FIELD OVERWRITE position.x ON TABLE ShapeNode TYPE int;
-DEFINE FIELD OVERWRITE position.y ON TABLE ShapeNode TYPE int;
-DEFINE FIELD OVERWRITE size ON TABLE ShapeNode TYPE object;
-DEFINE FIELD OVERWRITE size.width ON TABLE ShapeNode TYPE int;
-DEFINE FIELD OVERWRITE size.height ON TABLE ShapeNode TYPE int;
-DEFINE FIELD OVERWRITE layer ON TABLE ShapeNode TYPE string;
-DEFINE FIELD OVERWRITE created_at ON TABLE ShapeNode TYPE int;
-DEFINE FIELD OVERWRITE updated_at ON TABLE ShapeNode COMPUTED time::millis(time::now());
-
--- FrameNode
-DEFINE FIELD OVERWRITE title ON TABLE FrameNode TYPE string;
-DEFINE FIELD OVERWRITE style ON TABLE FrameNode TYPE option<object>;
-DEFINE FIELD OVERWRITE position ON TABLE FrameNode TYPE object;
-DEFINE FIELD OVERWRITE position.x ON TABLE FrameNode TYPE int;
-DEFINE FIELD OVERWRITE position.y ON TABLE FrameNode TYPE int;
-DEFINE FIELD OVERWRITE size ON TABLE FrameNode TYPE object;
-DEFINE FIELD OVERWRITE size.width ON TABLE FrameNode TYPE int;
-DEFINE FIELD OVERWRITE size.height ON TABLE FrameNode TYPE int;
-DEFINE FIELD OVERWRITE layer ON TABLE FrameNode TYPE string;
-DEFINE FIELD OVERWRITE created_at ON TABLE FrameNode TYPE int;
-DEFINE FIELD OVERWRITE updated_at ON TABLE FrameNode COMPUTED time::millis(time::now());
-
--- MediaNode
-DEFINE FIELD OVERWRITE source_url ON TABLE MediaNode TYPE string;
-DEFINE FIELD OVERWRITE media_type ON TABLE MediaNode TYPE string;
-DEFINE FIELD OVERWRITE position ON TABLE MediaNode TYPE object;
-DEFINE FIELD OVERWRITE position.x ON TABLE MediaNode TYPE int;
-DEFINE FIELD OVERWRITE position.y ON TABLE MediaNode TYPE int;
-DEFINE FIELD OVERWRITE size ON TABLE MediaNode TYPE object;
-DEFINE FIELD OVERWRITE size.width ON TABLE MediaNode TYPE int;
-DEFINE FIELD OVERWRITE size.height ON TABLE MediaNode TYPE int;
-DEFINE FIELD OVERWRITE layer ON TABLE MediaNode TYPE string;
-DEFINE FIELD OVERWRITE created_at ON TABLE MediaNode TYPE int;
-DEFINE FIELD OVERWRITE updated_at ON TABLE MediaNode COMPUTED time::millis(time::now());
+

@@ -1,5 +1,6 @@
 use crate::domain::base_models::{IsTable, Record, RecordStrings};
 use surrealdb::types::{RecordId, SurrealValue, Value};
+use crate::domain::schema::SurqlSchemaField;
 
 #[derive(Debug, Clone)]
 pub enum TagEdge {
@@ -64,4 +65,21 @@ pub struct TagFields {
     pub color: u32,
     pub created_at: i64,
     pub updated_at: i64,
+}
+
+impl SurqlSchemaField for TagEdge {
+    fn field_type() -> String { "any".to_string() }
+    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
+}
+
+impl SurqlSchemaField for TagFields {
+    fn field_type() -> String { "object".to_string() }
+    fn sub_field_paths() -> Vec<(String, String)> {
+        vec![
+            ("name".to_string(), "string".to_string()),
+            ("color".to_string(), "int".to_string()),
+            ("created_at".to_string(), "int".to_string()),
+            ("updated_at".to_string(), "int".to_string()),
+        ]
+    }
 }

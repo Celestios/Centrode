@@ -1,5 +1,6 @@
 use core::convert::Into;
 use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
+use crate::domain::schema::SurqlSchemaField;
 
 // -----------------------------------------------------------------------------
 // Core Identity & Spatial Types (Restored)
@@ -236,5 +237,35 @@ impl Default for BoundingBox {
             max_x: 500.0,
             max_y: 500.0,
         }
+    }
+}
+
+impl SurqlSchemaField for Coordinates {
+    fn field_type() -> String { "object".to_string() }
+    fn sub_field_paths() -> Vec<(String, String)> {
+        vec![
+            ("x".to_string(), "int".to_string()),
+            ("y".to_string(), "int".to_string()),
+        ]
+    }
+}
+
+impl SurqlSchemaField for Size {
+    fn field_type() -> String { "object".to_string() }
+    fn sub_field_paths() -> Vec<(String, String)> {
+        vec![
+            ("width".to_string(), "int".to_string()),
+            ("height".to_string(), "int".to_string()),
+        ]
+    }
+}
+
+impl SurqlSchemaField for Comment {
+    fn field_type() -> String { "object".to_string() }
+    fn sub_field_paths() -> Vec<(String, String)> {
+        vec![
+            ("text".to_string(), "string".to_string()),
+            ("created_at".to_string(), "int".to_string()),
+        ]
     }
 }

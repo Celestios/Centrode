@@ -3,7 +3,12 @@ macro_rules! define_nodes {
     (
         $(
             $struct_name:ident, $label:expr, [ $($fetch_field:expr),* ] {
-                $( pub $field_name:ident : $field_type:ty ),* $(,)?
+                $(
+                    $(#[surql_type = $type_override:expr])?
+                    $(#[surql_default = $default_override:expr])?
+                    $(#[surql_computed = $computed_override:expr])?
+                    pub $field_name:ident : $field_type:ty
+                ),* $(,)?
             };
         )*
     ) => {
@@ -62,6 +67,30 @@ macro_rules! define_nodes {
                 }
                 fn serialize_node(self) -> surrealdb::types::Value {
                     < Self as surrealdb::types::SurrealValue >::into_value(self)
+                }
+            }
+
+            impl $crate::domain::nodes::SurqlSchema for $struct_name {
+                fn generate_fields_schema(table: &str) -> Vec<String> {
+                    let mut lines = Vec::new();
+                    lines.push($crate::domain::schema::generate_created_at(table, true));
+                    lines.push($crate::domain::schema::generate_updated_at(table));
+                    $(
+                        let type_override: Option<&str> = None $(.or(Some($type_override)))?;
+                        let default_override: Option<&str> = None $(.or(Some($default_override)))?;
+                        let computed_override: Option<&str> = None $(.or(Some($computed_override)))?;
+
+                        lines.extend($crate::domain::nodes::generate_field_schema_lines(
+                            table,
+                            stringify!($field_name),
+                            type_override,
+                            default_override,
+                            computed_override,
+                            < $field_type as $crate::domain::nodes::SurqlSchemaField >::field_type(),
+                            < $field_type as $crate::domain::nodes::SurqlSchemaField >::sub_field_paths(),
+                        ));
+                    )*
+                    lines
                 }
             }
         )*

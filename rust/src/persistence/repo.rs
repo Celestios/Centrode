@@ -1,9 +1,6 @@
 use crate::domain::analysis::DecaySignificanceStrategy;
 use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings, ViewportState};
-use crate::domain::nodes::{
-    CommentNode, DrawingNode, FrameNode, INode, InterNode, IsNode, MediaNode, Nodes, ShapeNode,
-    TaskNode,
-};
+use crate::domain::nodes::{IsNode, Nodes};
 use crate::domain::patches::{
     EntityPatch, NodePatch, PatchHistoryPayload, RelationPatch, TagOperation,
 };
