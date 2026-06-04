@@ -1,6 +1,6 @@
 use core::convert::Into;
 use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
-use crate::domain::schema::SurqlSchemaField;
+use crate::define_surql_schema_struct;
 
 // -----------------------------------------------------------------------------
 // Core Identity & Spatial Types (Restored)
@@ -129,22 +129,28 @@ pub trait IsTable {
     }
 }
 
-#[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
-pub struct Comment {
-    pub text: String,
-    pub created_at: i64,
+define_surql_schema_struct! {
+    #[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
+    pub struct Comment {
+        pub text: String,
+        pub created_at: i64,
+    }
 }
 
-#[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
-pub struct Coordinates {
-    pub x: i32,
-    pub y: i32,
+define_surql_schema_struct! {
+    #[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
+    pub struct Coordinates {
+        pub x: i32,
+        pub y: i32,
+    }
 }
 
-#[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
-pub struct Size {
-    pub width: i32,
-    pub height: i32,
+define_surql_schema_struct! {
+    #[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
+    pub struct Size {
+        pub width: i32,
+        pub height: i32,
+    }
 }
 
 #[derive(Debug, Clone, SurrealValue, PartialEq)]
@@ -240,32 +246,3 @@ impl Default for BoundingBox {
     }
 }
 
-impl SurqlSchemaField for Coordinates {
-    fn field_type() -> String { "object".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> {
-        vec![
-            ("x".to_string(), "int".to_string()),
-            ("y".to_string(), "int".to_string()),
-        ]
-    }
-}
-
-impl SurqlSchemaField for Size {
-    fn field_type() -> String { "object".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> {
-        vec![
-            ("width".to_string(), "int".to_string()),
-            ("height".to_string(), "int".to_string()),
-        ]
-    }
-}
-
-impl SurqlSchemaField for Comment {
-    fn field_type() -> String { "object".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> {
-        vec![
-            ("text".to_string(), "string".to_string()),
-            ("created_at".to_string(), "int".to_string()),
-        ]
-    }
-}

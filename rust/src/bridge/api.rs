@@ -383,16 +383,22 @@ impl AppHandle {
         Ok(())
     }
 
+    async fn apply_history_record_patch(&self, record: &HistoryRecord, is_forward: bool) -> anyhow::Result<()> {
+        if record.action_type == "entity_patch" {
+            let payload = PatchHistoryPayload::from_value(record.payload.clone())?;
+            let patch = if is_forward { &payload.forward } else { &payload.reverse };
+            if self.repo.apply_patch_check_position(&payload.id, patch).await? {
+                self.broadcast_boundaries().await;
+            }
+        }
+        Ok(())
+    }
+
     pub async fn undo(&self) -> anyhow::Result<Option<HistoryRecord>> {
         tracing::debug!("FFI: undo called");
         let record = self.repo.undo_event().await?;
         if let Some(ref rec) = record {
-            if rec.action_type == "entity_patch" {
-                let payload = PatchHistoryPayload::from_value(rec.payload.clone())?;
-                if self.repo.apply_patch_check_position(&payload.id, &payload.reverse).await? {
-                    self.broadcast_boundaries().await;
-                }
-            }
+            self.apply_history_record_patch(rec, false).await?;
         }
         Ok(record)
     }
@@ -401,12 +407,7 @@ impl AppHandle {
         tracing::debug!("FFI: redo called");
         let record = self.repo.redo_event().await?;
         if let Some(ref rec) = record {
-            if rec.action_type == "entity_patch" {
-                let payload = PatchHistoryPayload::from_value(rec.payload.clone())?;
-                if self.repo.apply_patch_check_position(&payload.id, &payload.forward).await? {
-                    self.broadcast_boundaries().await;
-                }
-            }
+            self.apply_history_record_patch(rec, true).await?;
         }
         Ok(record)
     }

@@ -81,6 +81,10 @@ impl<'a> HistoryManager<'a> {
     }
 
     pub async fn push_event(&self, action_type: &str, payload: Value) -> Result<()> {
+        self.push_event_with_time(action_type, payload, chrono::Utc::now().timestamp_millis()).await
+    }
+
+    pub async fn push_event_with_time(&self, action_type: &str, payload: Value, timestamp: i64) -> Result<()> {
         // Clear the "undone" redo stack when a new action is performed
         self.db
             .query("DELETE History WHERE status = 'undone'")
@@ -91,7 +95,7 @@ impl<'a> HistoryManager<'a> {
             action_type: action_type.to_string(),
             payload,
             status: HistoryStatus::Applied,
-            created_at: chrono::Utc::now().timestamp_millis(),
+            created_at: timestamp,
         };
 
         // Insert into DB (deserialize result as generic Value to bypass strict struct mapping)

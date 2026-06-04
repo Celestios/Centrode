@@ -123,3 +123,47 @@ impl<T: SurqlSchemaField> SurqlSchemaField for Vec<T> {
         }
     }
 }
+
+impl SurqlSchemaField for f64 {
+    fn field_type() -> String { "float".to_string() }
+    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
+}
+
+impl SurqlSchemaField for f32 {
+    fn field_type() -> String { "float".to_string() }
+    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
+}
+
+#[macro_export]
+macro_rules! define_surql_schema_struct {
+    (
+        $(#[$meta:meta])*
+        pub struct $struct_name:ident {
+            $(
+                $(#[$field_meta:meta])*
+                pub $field_name:ident : $field_type:ty
+            ),* $(,)?
+        }
+    ) => {
+        $(#[$meta])*
+        pub struct $struct_name {
+            $(
+                $(#[$field_meta])*
+                pub $field_name : $field_type,
+            )*
+        }
+
+        impl $crate::domain::schema::SurqlSchemaField for $struct_name {
+            fn field_type() -> String {
+                "object".to_string()
+            }
+            fn sub_field_paths() -> Vec<(String, String)> {
+                vec![
+                    $(
+                        (stringify!($field_name).to_string(), <$field_type as $crate::domain::schema::SurqlSchemaField>::field_type()),
+                    )*
+                ]
+            }
+        }
+    };
+}

@@ -1,6 +1,6 @@
 {
-  "last_audit_commit": "65f9ba46c05038f1ed3411648970f417446e259c",
-  "last_audit_time": "2026-06-04T22:02:31.325491Z",
+  "last_audit_commit": "d87759c013f0f45dc40a9046b753ddafa24ed3c2",
+  "last_audit_time": "2026-06-04T22:19:54.815277Z",
   "layers": {
     "rust/src/bridge": {
       "tier": 1,
@@ -22,7 +22,7 @@
     "rust/src/bridge/api.rs": {
       "class": "AppHandle",
       "architectural_role": "FFI boundary, entry points for Flutter interactions, mapping events and data types.",
-      "sha256": "feb510861a6c2979c2617533068399c2bc76e854",
+      "sha256": "8c3ec5c2f48fa97431402866e11ef3f5c730cc7d",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -137,20 +137,18 @@
     },
     "rust/src/domain/base_models.rs": {
       "class": "Record, RecordStrings, IsTable, Comment, Coordinates, Size, ViewportState, DisplayMode, MapData, BoundingBox",
-      "architectural_role": "Core domain value objects",
-      "sha256": "ddd5ce2312a1c6d8e9244f108d5da23c25092b39",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "DRY: Boilerplate schema field mapping"
-      ],
+      "architectural_role": "Core identity and spatial types.",
+      "sha256": "681b4750af7776ed64a413de70b42d2e4552b391",
+      "status": "COMPLIANT",
+      "violations": [],
       "tier": 3,
       "imports": [
-        "rust/src/domain/schema.rs"
+        "rust/src/define_surql_schema_struct.rs"
       ],
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Domain Logic",
+      "pattern": "Domain Entity",
       "public_apis": [
         "pub fn from_record_value(value: Value) -> Option<Self>",
         "pub fn to_str(&self) -> String",
@@ -286,15 +284,15 @@
     },
     "rust/src/domain/schema.rs": {
       "class": "SurqlSchema, SurqlSchemaField",
-      "architectural_role": "Surql Schema Generator",
-      "sha256": "dadc140d5d90a30da732679ee5eaa3779acd724c",
+      "architectural_role": "Database schema field mapping traits and define struct macros.",
+      "sha256": "71c204d2c773d6508141c4090fca5887218a4330",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
       "test_file": "inline or integration test",
       "has_tests": true,
       "is_ffi_bridge": false,
-      "pattern": "Domain Logic",
+      "pattern": "Metadata Schema",
       "public_apis": [
         "pub fn generate_field_schema_lines(",
         "pub fn generate_created_at(table: &str, readonly: bool) -> String",
@@ -320,38 +318,35 @@
     },
     "rust/src/domain/styles.rs": {
       "class": "NodeStyle, RelationStyle, RelationLayout, NodeLayout",
-      "architectural_role": "Visual Node/Relation styles models",
-      "sha256": "38304a8a83ff0ab0980262401bfcbde21de3e70d",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "DRY: Hardcoded style field mapping builders"
-      ],
+      "architectural_role": "Styles and layouts field mapping structs.",
+      "sha256": "c3e99749fdff580d1c7c88e43ca5a3490e1fb689",
+      "status": "COMPLIANT",
+      "violations": [],
       "tier": 3,
       "imports": [
-        "rust/src/domain/schema.rs"
+        "rust/src/define_surql_schema_struct.rs"
       ],
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Domain Logic"
+      "pattern": "Domain Entity"
     },
     "rust/src/domain/tags.rs": {
       "class": "TagEdge, Tag, TagFields",
-      "architectural_role": "Tag entity & cascading disassociations",
-      "sha256": "204ac04a71613c839b95ead4e5b8695e1d640b0c",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "DRY: Boilerplate tag fields schema mapping"
-      ],
+      "architectural_role": "Tag fields mapping, attachments, and edges.",
+      "sha256": "cbb130065fa176b76f95dd16ae3af11c24b00db4",
+      "status": "COMPLIANT",
+      "violations": [],
       "tier": 3,
       "imports": [
         "rust/src/domain/base_models.rs",
-        "rust/src/domain/schema.rs"
+        "rust/src/domain/schema.rs",
+        "rust/src/define_surql_schema_struct.rs"
       ],
       "test_file": "inline or integration test",
       "has_tests": true,
       "is_ffi_bridge": false,
-      "pattern": "Domain Logic"
+      "pattern": "Domain Entity"
     },
     "rust/src/domain/templates.rs": {
       "class": "Template",
@@ -466,8 +461,8 @@
     },
     "rust/src/persistence/history.rs": {
       "class": "HistoryStatus, HistoryRecord, HistoryManager, HistoryPrune",
-      "architectural_role": "Undo/redo history record persistence and state mapping.",
-      "sha256": "45d738d1e227dc4a8f023f6ebfc12c6639ae072d",
+      "architectural_role": "Undo/redo history stack management, serialization, and testable timestamps.",
+      "sha256": "224cbd557f23873d5d6e9d7810edfd6c33d3decd",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -479,6 +474,7 @@
         "pub fn as_str(&self) -> &'static str",
         "pub fn new(db: &'a Surreal<Db>, threshold: usize) -> Self",
         "pub async fn push_event(&self, action_type: &str, payload: Value) -> Result<()>",
+        "pub async fn push_event_with_time(&self, action_type: &str, payload: Value, timestamp: i64) -> Result<()>",
         "pub async fn undo(&self) -> Result<Option<HistoryRecord>>",
         "pub async fn redo(&self) -> Result<Option<HistoryRecord>>"
       ]
