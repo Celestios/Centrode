@@ -158,21 +158,21 @@ Write-Host "Debug: CommitMsgFile='$CommitMsgFile'"
 Write-Host "Debug: CommitMsg='$CommitMsg'"
 if (-not [string]::IsNullOrEmpty($CommitMsgFile) -or -not [string]::IsNullOrEmpty($CommitMsg)) {
     $tempMsgFile = ""
-    $commitMsg = ""
+    $resolvedMsg = ""
     if (-not [string]::IsNullOrEmpty($CommitMsgFile)) {
         if (-not (Test-Path $CommitMsgFile)) {
             Write-Error "Error: Commit message file '$CommitMsgFile' not found."
             exit 1
         }
-        $commitMsg = (Get-Content -Path $CommitMsgFile -Raw).Trim()
+        $resolvedMsg = (Get-Content -Path $CommitMsgFile -Raw).Trim()
         $tempMsgFile = $CommitMsgFile
     } else {
-        $commitMsg = $CommitMsg.Trim()
+        $resolvedMsg = $CommitMsg.Trim()
         $tempMsgFile = Join-Path $gitDir "temp_proposed_commit_msg.txt"
-        $commitMsg | Out-File -FilePath $tempMsgFile -Encoding utf8
+        $resolvedMsg | Out-File -FilePath $tempMsgFile -Encoding utf8
     }
     
-    if ([string]::IsNullOrEmpty($commitMsg)) {
+    if ([string]::IsNullOrEmpty($resolvedMsg)) {
         Write-Error "Error: Commit message is empty."
         if ([string]::IsNullOrEmpty($CommitMsgFile)) {
             Remove-Item $tempMsgFile -ErrorAction SilentlyContinue
@@ -181,7 +181,7 @@ if (-not [string]::IsNullOrEmpty($CommitMsgFile) -or -not [string]::IsNullOrEmpt
     }
     
     # Read first line as header
-    $header = ($commitMsg -split "`r?`n")[0]
+    $header = ($resolvedMsg -split "`r?`n")[0]
     
     # Validate Conventional Commit format: <type>(<scope>): <subject> or <type>: <subject>
     # Types: feat|fix|refactor|perf|docs|chore|test

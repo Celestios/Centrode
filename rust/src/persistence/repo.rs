@@ -1,7 +1,8 @@
 use crate::domain::analysis::DecaySignificanceStrategy;
 use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings, ViewportState};
 use crate::domain::nodes::{
-    INode, INodeFields, InterNode, InterNodeFields, IsNode, Nodes, TaskNode, TaskNodeFields,
+    CommentNode, DrawingNode, FrameNode, INode, InterNode, IsNode, MediaNode, Nodes, ShapeNode,
+    TaskNode,
 };
 use crate::domain::patches::{
     EntityPatch, NodePatch, PatchHistoryPayload, RelationPatch, TagOperation,
@@ -38,12 +39,12 @@ impl Repository {
         N: IsNode,
     {
         let table = input.table_name();
-        let key = input.key();
-        let fields = input.fields_value();
+        let key = input.key().to_string();
+        let val = input.serialize_node();
         let _: Option<Value> = self
             .db
-            .create((table, key.to_string()))
-            .content(fields)
+            .create((table, key.clone()))
+            .content(val)
             .await?;
         info!("REPO: Created Node of table {} with ID: {}", table, key);
         Ok(())
@@ -102,15 +103,13 @@ impl Repository {
         let mut res = self
             .db
             .query(query_str)
-            .bind(("id", RecordId::new(table.clone(), key.clone())))
+            .bind(("id", RecordId::new(table.clone(), key)))
             .await?;
         let val: Option<Value> = res.take(0)?;
 
         if let Some(v) = val {
-            if let Some(record) = Record::from_record_value(v) {
-                let node = Nodes::from_table_and_value(&table, key, record.fields)?;
-                return Ok(Some(node));
-            }
+            let node = Nodes::from_struct_value(&table, v)?;
+            return Ok(Some(node));
         }
         Ok(None)
     }
@@ -160,17 +159,13 @@ impl Repository {
             let raw: Vec<Value> = res.take(0)?;
 
             for val in raw {
-                if let Some(record) = Record::from_record_value(val) {
-                    if let surrealdb::types::RecordIdKey::String(key) = record.id.key {
-                        match Nodes::from_table_and_value(table, key, record.fields) {
-                            Ok(node) => nodes.push(node),
-                            Err(e) => tracing::error!(
-                                "Failed to parse node from table {}: {:?}",
-                                table,
-                                e
-                            ),
-                        }
-                    }
+                match Nodes::from_struct_value(table, val) {
+                    Ok(node) => nodes.push(node),
+                    Err(e) => tracing::error!(
+                        "Failed to parse node from table {}: {:?}",
+                        table,
+                        e
+                    ),
                 }
             }
         }
@@ -234,8 +229,8 @@ impl Repository {
                 let (t, k) = node.table_and_key();
                 (t, k.to_string())
             };
-            let fields = node.fields_into_value();
-            let _: Option<Value> = tx.create((table, key)).content(fields).await?;
+            let document = node.serialize_node();
+            let _: Option<Value> = tx.create((table, key)).content(document).await?;
         }
 
         tracing::debug!("Inserting {} IRelations...", snapshot.relations.len());
@@ -271,12 +266,12 @@ impl Repository {
         N: IsNode,
     {
         let table = input.table_name();
-        let key = input.key();
-        let fields = input.fields_value();
+        let key = input.key().to_string();
+        let val = input.serialize_node();
         let _: Option<Value> = self
             .db
-            .update((table, key.to_string()))
-            .content(fields)
+            .update((table, key.clone()))
+            .content(val)
             .await?;
         info!("REPO: Updated Node of table {} with ID: {}", table, key);
         Ok(())
@@ -711,8 +706,8 @@ impl Repository {
                 let (t, k) = node.table_and_key();
                 (t, k.to_string())
             };
-            let fields = node.fields_into_value();
-            let _: Option<Value> = tx.create((table, key)).content(fields).await?;
+            let document = node.serialize_node();
+            let _: Option<Value> = tx.create((table, key)).content(document).await?;
         }
 
         for relation in new_relations {
@@ -905,25 +900,12 @@ impl Repository {
         let mut nodes = Vec::new();
 
         for val in records {
-            if let Some(record) = Record::from_record_value(val) {
-                let table = record.id.table.as_str();
-                match table {
-                    INode::LABEL => {
-                        if let Some((key, fields)) = record.to_type::<INodeFields>() {
-                            nodes.push(Nodes::INode(INode { key, fields }));
-                        }
+            if let Value::Object(ref obj) = val {
+                if let Some(Value::RecordId(rid)) = obj.get("id") {
+                    let table = rid.table.clone();
+                    if let Ok(node) = Nodes::from_struct_value(&table, val) {
+                        nodes.push(node);
                     }
-                    TaskNode::LABEL => {
-                        if let Some((key, fields)) = record.to_type::<TaskNodeFields>() {
-                            nodes.push(Nodes::TaskNode(TaskNode { key, fields }));
-                        }
-                    }
-                    InterNode::LABEL => {
-                        if let Some((key, fields)) = record.to_type::<InterNodeFields>() {
-                            nodes.push(Nodes::InterNode(InterNode { key, fields }));
-                        }
-                    }
-                    _ => {}
                 }
             }
         }

@@ -5,7 +5,7 @@ use mycelium_core::domain::base_models::{
 };
 use mycelium_core::domain::contents::Content;
 use mycelium_core::domain::nodes::{
-    INode, INodeFields, InterNode, InterNodeFields, Nodes, TaskNode, TaskNodeFields,
+    INode, InterNode, Nodes, TaskNode,
 };
 use mycelium_core::domain::relations::{IRelation, IRelationFields};
 
@@ -21,8 +21,8 @@ async fn assert_significance_eventually(
     while start.elapsed() < timeout {
         if let Ok(Some(node)) = repo.get_node(table.to_string(), key.to_string()).await {
             let sig = match node {
-                Nodes::INode(n) => n.fields.significance,
-                Nodes::TaskNode(t) => t.fields.significance,
+                Nodes::INode(n) => n.significance,
+                Nodes::TaskNode(t) => t.significance,
                 _ => 0,
             };
             if sig == expected {
@@ -37,8 +37,8 @@ async fn assert_significance_eventually(
         .unwrap()
         .unwrap();
     let sig = match node {
-        Nodes::INode(n) => n.fields.significance,
-        Nodes::TaskNode(t) => t.fields.significance,
+        Nodes::INode(n) => n.significance,
+        Nodes::TaskNode(t) => t.significance,
         _ => 0,
     };
     assert_eq!(
@@ -54,31 +54,32 @@ async fn test_graph_snapshot() {
 
     // Create initial nodes
     let inode = INode {
-        key: "inode_snap".to_string(),
-        fields: INodeFields {
-            content: Content::from_plain_text("Snapshot Node"),
-            style: None,
-            resolved_style: None,
-            layout: None,
-            resolved_layout: None,
-            layer: "default".to_string(),
-            position: Coordinates { x: 10, y: 10 },
-            size: Size {
-                width: 100,
-                height: 50,
-            },
-            line_count: 1,
-            expandable: true,
-            is_expanded: false,
-            locked: false,
-            tags: vec![],
-            aliases: vec![],
-            comments: vec![],
-            attachment: None,
-            significance: 0,
-            created_at: 0,
-            updated_at: 0,
+        id: RecordStrings {
+            table: "INode".to_string(),
+            key: "inode_snap".to_string(),
         },
+        content: Content::from_plain_text("Snapshot Node"),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x: 10, y: 10 },
+        size: Size {
+            width: 100,
+            height: 50,
+        },
+        line_count: 1,
+        expandable: true,
+        is_expanded: false,
+        locked: false,
+        tags: vec![],
+        aliases: vec![],
+        comments: vec![],
+        attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
     };
     repo.create_node(Nodes::INode(inode.clone()))
         .await
@@ -104,7 +105,7 @@ async fn test_graph_snapshot() {
     let relations = snapshot.relations;
     let metadata = snapshot.metadata;
     assert_eq!(inodes.len(), 1);
-    assert_eq!(inodes[0].key, "inode_snap");
+    assert_eq!(inodes[0].id.key, "inode_snap");
     assert_eq!(tasks.len(), 0);
     assert_eq!(inters.len(), 0);
     assert_eq!(relations.len(), 0);
@@ -112,10 +113,35 @@ async fn test_graph_snapshot() {
 
     // Overwrite snapshot atomically with all entity types
     let new_inodes = vec![INode {
-        key: "new_inode_snap".to_string(),
-        fields: inode.fields.clone(),
+        id: RecordStrings {
+            table: "INode".to_string(),
+            key: "new_inode_snap".to_string(),
+        },
+        content: inode.content.clone(),
+        style: inode.style.clone(),
+        resolved_style: inode.resolved_style.clone(),
+        layout: inode.layout.clone(),
+        resolved_layout: inode.resolved_layout.clone(),
+        layer: inode.layer.clone(),
+        position: inode.position.clone(),
+        size: inode.size.clone(),
+        line_count: inode.line_count,
+        expandable: inode.expandable,
+        is_expanded: inode.is_expanded,
+        locked: inode.locked,
+        tags: inode.tags.clone(),
+        aliases: inode.aliases.clone(),
+        comments: inode.comments.clone(),
+        attachment: inode.attachment.clone(),
+        significance: inode.significance,
+        created_at: inode.created_at,
+        updated_at: inode.updated_at,
     }];
-    let task_fields = TaskNodeFields {
+    let new_tasks = vec![TaskNode {
+        id: RecordStrings {
+            table: "TaskNode".to_string(),
+            key: "new_task_snap".to_string(),
+        },
         content: Content::from_plain_text("Snapshot Task"),
         due_date: Some(99999),
         state: "todo".to_string(),
@@ -134,12 +160,12 @@ async fn test_graph_snapshot() {
         significance: 0,
         created_at: 0,
         updated_at: 0,
-    };
-    let new_tasks = vec![TaskNode {
-        key: "new_task_snap".to_string(),
-        fields: task_fields,
     }];
-    let inter_fields = InterNodeFields {
+    let new_inters = vec![InterNode {
+        id: RecordStrings {
+            table: "InterNode".to_string(),
+            key: "new_inter_snap".to_string(),
+        },
         verb: "leads_to".to_string(),
         behavioral_features: None,
         position: Coordinates { x: 200, y: 200 },
@@ -147,10 +173,6 @@ async fn test_graph_snapshot() {
         layer: "default".to_string(),
         created_at: 0,
         updated_at: 0,
-    };
-    let new_inters = vec![InterNode {
-        key: "new_inter_snap".to_string(),
-        fields: inter_fields,
     }];
     let new_relations = vec![IRelation {
         key: "new_rel_snap".to_string(),
@@ -218,11 +240,11 @@ async fn test_graph_snapshot() {
     let relations_v2 = snapshot_v2.relations;
     let metadata_v2 = snapshot_v2.metadata;
     assert_eq!(inodes_v2.len(), 1);
-    assert_eq!(inodes_v2[0].key, "new_inode_snap");
+    assert_eq!(inodes_v2[0].id.key, "new_inode_snap");
     assert_eq!(tasks_v2.len(), 1);
-    assert_eq!(tasks_v2[0].key, "new_task_snap");
+    assert_eq!(tasks_v2[0].id.key, "new_task_snap");
     assert_eq!(inters_v2.len(), 1);
-    assert_eq!(inters_v2[0].key, "new_inter_snap");
+    assert_eq!(inters_v2[0].id.key, "new_inter_snap");
     assert_eq!(relations_v2.len(), 1);
     assert_eq!(relations_v2[0].key, "new_rel_snap");
     assert_eq!(relations_v2[0].in_.to_str(), "INode:new_inode_snap");
@@ -242,60 +264,62 @@ async fn test_graph_boundary_calculation() {
 
     // 2. Insert nodes at extremes
     let node_1 = INode {
-        key: "n1".to_string(),
-        fields: INodeFields {
-            content: Content::from_plain_text("n1"),
-            style: None,
-            resolved_style: None,
-            layout: None,
-            resolved_layout: None,
-            layer: "default".to_string(),
-            position: Coordinates { x: -100, y: 300 },
-            size: Size {
-                width: 50,
-                height: 50,
-            },
-            line_count: 1,
-            expandable: false,
-            is_expanded: false,
-            locked: false,
-            tags: vec![],
-            aliases: vec![],
-            comments: vec![],
-            attachment: None,
-            significance: 0,
-            created_at: 0,
-            updated_at: 0,
+        id: RecordStrings {
+            table: "INode".to_string(),
+            key: "n1".to_string(),
         },
+        content: Content::from_plain_text("n1"),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x: -100, y: 300 },
+        size: Size {
+            width: 50,
+            height: 50,
+        },
+        line_count: 1,
+        expandable: false,
+        is_expanded: false,
+        locked: false,
+        tags: vec![],
+        aliases: vec![],
+        comments: vec![],
+        attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
     };
     repo.create_node(Nodes::INode(node_1)).await.unwrap();
 
     let node_2 = INode {
-        key: "n2".to_string(),
-        fields: INodeFields {
-            content: Content::from_plain_text("n2"),
-            style: None,
-            resolved_style: None,
-            layout: None,
-            resolved_layout: None,
-            layer: "default".to_string(),
-            position: Coordinates { x: 500, y: -200 },
-            size: Size {
-                width: 50,
-                height: 50,
-            },
-            line_count: 1,
-            expandable: false,
-            is_expanded: false,
-            locked: false,
-            tags: vec![],
-            aliases: vec![],
-            comments: vec![],
-            attachment: None,
-            significance: 0,
-            created_at: 0,
-            updated_at: 0,
+        id: RecordStrings {
+            table: "INode".to_string(),
+            key: "n2".to_string(),
         },
+        content: Content::from_plain_text("n2"),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x: 500, y: -200 },
+        size: Size {
+            width: 50,
+            height: 50,
+        },
+        line_count: 1,
+        expandable: false,
+        is_expanded: false,
+        locked: false,
+        tags: vec![],
+        aliases: vec![],
+        comments: vec![],
+        attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
     };
     repo.create_node(Nodes::INode(node_2)).await.unwrap();
 
@@ -315,7 +339,11 @@ async fn test_decay_significance_propagation() {
 
     // Create 5 InfoNodes to form a linear graph:
     // A -> B -> C -> D -> E
-    let fields = INodeFields {
+    let fields = INode {
+        id: RecordStrings {
+            table: "INode".to_string(),
+            key: "TEMP".to_string(),
+        },
         content: Content::from_plain_text("Node"),
         style: None,
         resolved_style: None,
@@ -342,10 +370,9 @@ async fn test_decay_significance_propagation() {
 
     let keys = vec!["A", "B", "C", "D", "E"];
     for key in &keys {
-        repo.create_node(Nodes::INode(INode {
-            key: key.to_string(),
-            fields: fields.clone(),
-        }))
+        let mut n = fields.clone();
+        n.id.key = key.to_string();
+        repo.create_node(Nodes::INode(n))
         .await
         .unwrap();
     }
@@ -381,16 +408,7 @@ async fn test_decay_significance_propagation() {
         .unwrap();
     }
 
-    // Let's manually trigger recalculation on Center Node "A" synchronously so we can immediately assert.
-    // Neighbors within 2-step radius of A:
-    // A -> B (1 step) -> C (2 steps)
-    // A -> B (1 step) -> D (2 steps)
-    // A -> B -> C -> E (3 steps - should NOT be in targets of A's 2-step traversal)
-    // Let's assert B's score:
-    // Outgoing from B: B -> C and B -> D. So d1 = 2.
-    // Outgoing from outgoing of B (C and D): C has C -> E (1 relation), D has 0. So d2 = 1.
-    // B's raw score = d1 * 1.0 + d2 * 0.5 = 2.0 + 0.5 = 2.5.
-    // B's level = min(4, floor(2.5 / 2.0)) = floor(1.25) = 1.
+    // Center Node "A"
     let strategy = DecaySignificanceStrategy;
     strategy
         .recalculate_area(

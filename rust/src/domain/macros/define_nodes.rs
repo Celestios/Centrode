@@ -2,66 +2,66 @@
 macro_rules! define_nodes {
     (
         $(
-            $struct_name:ident, $fields_struct:ident, $label:expr, [ $($fetch_field:expr),* ];
+            $struct_name:ident, $label:expr, [ $($fetch_field:expr),* ] {
+                $( pub $field_name:ident : $field_type:ty ),* $(,)?
+            };
         )*
     ) => {
         $(
             #[derive(Debug, Clone, surrealdb::types::SurrealValue)]
             pub struct $struct_name {
-                pub key: String,
-                pub fields: $fields_struct,
+                pub id: $crate::domain::base_models::RecordStrings,
+                pub created_at: i64,
+                pub updated_at: i64,
+                $(
+                    pub $field_name : $field_type,
+                )*
             }
 
             impl $crate::domain::base_models::IsTable for $struct_name {
                 const LABEL: &'static str = $label;
                 const FETCH_FIELDS: &'static [&'static str] = &[ $($fetch_field),* ];
                 fn get_key(&self) -> &str {
-                    &self.key
-                }
-            }
-
-            impl From<(String, $fields_struct)> for $struct_name {
-                fn from((key, fields): (String, $fields_struct)) -> Self {
-                    Self { key, fields }
+                    &self.id.key
                 }
             }
 
             impl $crate::domain::nodes::IsNode for $struct_name {
-                fn key(&self) -> &str {
-                    &self.key
+                fn id(&self) -> &$crate::domain::base_models::RecordStrings {
+                    &self.id
                 }
-                fn set_key(&mut self, key: String) {
-                    self.key = key;
+                fn set_id(&mut self, id: $crate::domain::base_models::RecordStrings) {
+                    self.id = id;
                 }
                 fn position(&self) -> &$crate::domain::base_models::Coordinates {
-                    &self.fields.position
+                    &self.position
                 }
                 fn position_mut(&mut self) -> &mut $crate::domain::base_models::Coordinates {
-                    &mut self.fields.position
+                    &mut self.position
                 }
                 fn layer(&self) -> &str {
-                    &self.fields.layer
+                    &self.layer
                 }
                 fn set_layer(&mut self, layer: String) {
-                    self.fields.layer = layer;
+                    self.layer = layer;
                 }
                 fn created_at(&self) -> i64 {
-                    self.fields.created_at
+                    self.created_at
                 }
                 fn set_created_at(&mut self, val: i64) {
-                    self.fields.created_at = val;
+                    self.created_at = val;
                 }
                 fn updated_at(&self) -> i64 {
-                    self.fields.updated_at
+                    self.updated_at
                 }
                 fn set_updated_at(&mut self, val: i64) {
-                    self.fields.updated_at = val;
+                    self.updated_at = val;
                 }
                 fn table_name(&self) -> &'static str {
                     Self::LABEL
                 }
-                fn fields_value(&self) -> surrealdb::types::Value {
-                    < $fields_struct as surrealdb::types::SurrealValue >::into_value(self.fields.clone())
+                fn serialize_node(self) -> surrealdb::types::Value {
+                    < Self as surrealdb::types::SurrealValue >::into_value(self)
                 }
             }
         )*
@@ -74,17 +74,17 @@ macro_rules! define_nodes {
         }
 
         impl $crate::domain::nodes::IsNode for Nodes {
-            fn key(&self) -> &str {
+            fn id(&self) -> &$crate::domain::base_models::RecordStrings {
                 match self {
                     $(
-                        Nodes::$struct_name(n) => n.key(),
+                        Nodes::$struct_name(n) => n.id(),
                     )*
                 }
             }
-            fn set_key(&mut self, key: String) {
+            fn set_id(&mut self, id: $crate::domain::base_models::RecordStrings) {
                 match self {
                     $(
-                        Nodes::$struct_name(n) => n.set_key(key),
+                        Nodes::$struct_name(n) => n.set_id(id),
                     )*
                 }
             }
@@ -151,10 +151,10 @@ macro_rules! define_nodes {
                     )*
                 }
             }
-            fn fields_value(&self) -> surrealdb::types::Value {
+            fn serialize_node(self) -> surrealdb::types::Value {
                 match self {
                     $(
-                        Nodes::$struct_name(n) => n.fields_value(),
+                        Nodes::$struct_name(n) => n.serialize_node(),
                     )*
                 }
             }
@@ -177,23 +177,7 @@ macro_rules! define_nodes {
             pub fn table_and_key(&self) -> (&'static str, &str) {
                 match self {
                     $(
-                        Nodes::$struct_name(n) => ($struct_name::LABEL, &n.key),
-                    )*
-                }
-            }
-
-            pub fn fields_into_value(self) -> surrealdb::types::Value {
-                match self {
-                    $(
-                        Nodes::$struct_name(n) => n.fields.into_value(),
-                    )*
-                }
-            }
-
-            pub fn into_value(self) -> surrealdb::types::Value {
-                match self {
-                    $(
-                        Nodes::$struct_name(n) => n.into_value(),
+                        Nodes::$struct_name(n) => ($struct_name::LABEL, n.key()),
                     )*
                 }
             }
@@ -202,18 +186,6 @@ macro_rules! define_nodes {
                 match table {
                     $(
                         $struct_name::LABEL => Ok(Nodes::$struct_name(<$struct_name as surrealdb::types::SurrealValue>::from_value(val)?)),
-                    )*
-                    _ => Err(surrealdb::types::Error::thrown(format!("Unknown node table: {}", table))),
-                }
-            }
-
-            pub fn from_table_and_value(table: &str, key: String, val: surrealdb::types::Value) -> Result<Self, surrealdb::types::Error> {
-                match table {
-                    $(
-                        $struct_name::LABEL => Ok(Nodes::$struct_name($struct_name {
-                            key,
-                            fields: <$fields_struct as surrealdb::types::SurrealValue>::from_value(val)?,
-                        })),
                     )*
                     _ => Err(surrealdb::types::Error::thrown(format!("Unknown node table: {}", table))),
                 }

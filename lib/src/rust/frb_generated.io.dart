@@ -218,9 +218,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CommentNode dco_decode_comment_node(dynamic raw);
 
   @protected
-  CommentNodeFields dco_decode_comment_node_fields(dynamic raw);
-
-  @protected
   Content dco_decode_content(dynamic raw);
 
   @protected
@@ -236,9 +233,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DrawingNode dco_decode_drawing_node(dynamic raw);
 
   @protected
-  DrawingNodeFields dco_decode_drawing_node_fields(dynamic raw);
-
-  @protected
   EntityPatch dco_decode_entity_patch(dynamic raw);
 
   @protected
@@ -249,9 +243,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FrameNode dco_decode_frame_node(dynamic raw);
-
-  @protected
-  FrameNodeFields dco_decode_frame_node_fields(dynamic raw);
 
   @protected
   GraphEvent dco_decode_graph_event(dynamic raw);
@@ -269,9 +260,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   INode dco_decode_i_node(dynamic raw);
 
   @protected
-  INodeFields dco_decode_i_node_fields(dynamic raw);
-
-  @protected
   IRelation dco_decode_i_relation(dynamic raw);
 
   @protected
@@ -285,9 +273,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   InterNode dco_decode_inter_node(dynamic raw);
-
-  @protected
-  InterNodeFields dco_decode_inter_node_fields(dynamic raw);
 
   @protected
   List<String> dco_decode_list_String(dynamic raw);
@@ -348,9 +333,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MediaNode dco_decode_media_node(dynamic raw);
-
-  @protected
-  MediaNodeFields dco_decode_media_node_fields(dynamic raw);
 
   @protected
   NodeLayout dco_decode_node_layout(dynamic raw);
@@ -425,9 +407,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ShapeNode dco_decode_shape_node(dynamic raw);
 
   @protected
-  ShapeNodeFields dco_decode_shape_node_fields(dynamic raw);
-
-  @protected
   Size dco_decode_size(dynamic raw);
 
   @protected
@@ -447,9 +426,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TaskNode dco_decode_task_node(dynamic raw);
-
-  @protected
-  TaskNodeFields dco_decode_task_node_fields(dynamic raw);
 
   @protected
   Template dco_decode_template(dynamic raw);
@@ -669,11 +645,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CommentNode sse_decode_comment_node(SseDeserializer deserializer);
 
   @protected
-  CommentNodeFields sse_decode_comment_node_fields(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   Content sse_decode_content(SseDeserializer deserializer);
 
   @protected
@@ -689,11 +660,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DrawingNode sse_decode_drawing_node(SseDeserializer deserializer);
 
   @protected
-  DrawingNodeFields sse_decode_drawing_node_fields(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   EntityPatch sse_decode_entity_patch(SseDeserializer deserializer);
 
   @protected
@@ -704,9 +670,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FrameNode sse_decode_frame_node(SseDeserializer deserializer);
-
-  @protected
-  FrameNodeFields sse_decode_frame_node_fields(SseDeserializer deserializer);
 
   @protected
   GraphEvent sse_decode_graph_event(SseDeserializer deserializer);
@@ -724,9 +687,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   INode sse_decode_i_node(SseDeserializer deserializer);
 
   @protected
-  INodeFields sse_decode_i_node_fields(SseDeserializer deserializer);
-
-  @protected
   IRelation sse_decode_i_relation(SseDeserializer deserializer);
 
   @protected
@@ -740,9 +700,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   InterNode sse_decode_inter_node(SseDeserializer deserializer);
-
-  @protected
-  InterNodeFields sse_decode_inter_node_fields(SseDeserializer deserializer);
 
   @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
@@ -811,9 +768,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MediaNode sse_decode_media_node(SseDeserializer deserializer);
-
-  @protected
-  MediaNodeFields sse_decode_media_node_fields(SseDeserializer deserializer);
 
   @protected
   NodeLayout sse_decode_node_layout(SseDeserializer deserializer);
@@ -900,9 +854,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ShapeNode sse_decode_shape_node(SseDeserializer deserializer);
 
   @protected
-  ShapeNodeFields sse_decode_shape_node_fields(SseDeserializer deserializer);
-
-  @protected
   Size sse_decode_size(SseDeserializer deserializer);
 
   @protected
@@ -924,9 +875,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TaskNode sse_decode_task_node(SseDeserializer deserializer);
-
-  @protected
-  TaskNodeFields sse_decode_task_node_fields(SseDeserializer deserializer);
 
   @protected
   Template sse_decode_template(SseDeserializer deserializer);
@@ -1214,12 +1162,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_comment_node(CommentNode self, SseSerializer serializer);
 
   @protected
-  void sse_encode_comment_node_fields(
-    CommentNodeFields self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_content(Content self, SseSerializer serializer);
 
   @protected
@@ -1235,12 +1177,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_drawing_node(DrawingNode self, SseSerializer serializer);
 
   @protected
-  void sse_encode_drawing_node_fields(
-    DrawingNodeFields self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_entity_patch(EntityPatch self, SseSerializer serializer);
 
   @protected
@@ -1251,12 +1187,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_frame_node(FrameNode self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_frame_node_fields(
-    FrameNodeFields self,
-    SseSerializer serializer,
-  );
 
   @protected
   void sse_encode_graph_event(GraphEvent self, SseSerializer serializer);
@@ -1272,9 +1202,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_i_node(INode self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_i_node_fields(INodeFields self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_relation(IRelation self, SseSerializer serializer);
@@ -1293,12 +1220,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_inter_node(InterNode self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_inter_node_fields(
-    InterNodeFields self,
-    SseSerializer serializer,
-  );
 
   @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
@@ -1380,12 +1301,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_media_node(MediaNode self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_media_node_fields(
-    MediaNodeFields self,
-    SseSerializer serializer,
-  );
 
   @protected
   void sse_encode_node_layout(NodeLayout self, SseSerializer serializer);
@@ -1488,12 +1403,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_shape_node(ShapeNode self, SseSerializer serializer);
 
   @protected
-  void sse_encode_shape_node_fields(
-    ShapeNodeFields self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_size(Size self, SseSerializer serializer);
 
   @protected
@@ -1516,12 +1425,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_task_node(TaskNode self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_task_node_fields(
-    TaskNodeFields self,
-    SseSerializer serializer,
-  );
 
   @protected
   void sse_encode_template(Template self, SseSerializer serializer);

@@ -1,7 +1,7 @@
 use crate::common::setup_test_repo;
 use mycelium_core::domain::base_models::{Coordinates, RecordStrings, Size};
 use mycelium_core::domain::contents::Content;
-use mycelium_core::domain::nodes::{INode, INodeFields, Nodes};
+use mycelium_core::domain::nodes::{INode, Nodes};
 use mycelium_core::domain::patches::{EntityPatch, NodePatch, RelationPatch};
 use mycelium_core::domain::relations::{IRelation, IRelationFields};
 use mycelium_core::domain::styles::{NodeStyle, RelationLayout, RelationStyle};
@@ -17,31 +17,32 @@ async fn test_targeted_patch_and_history() {
 
     // 1. Create a node
     let inode = INode {
-        key: "inode_patch_test".to_string(),
-        fields: INodeFields {
-            content: Content::from_plain_text("Patch test node"),
-            style: None,
-            resolved_style: None,
-            layout: None,
-            resolved_layout: None,
-            layer: "default".to_string(),
-            position: Coordinates { x: 10, y: 20 },
-            size: Size {
-                width: 100,
-                height: 50,
-            },
-            line_count: 1,
-            expandable: true,
-            is_expanded: false,
-            locked: false,
-            tags: vec![],
-            aliases: vec![],
-            comments: vec![],
-            attachment: None,
-            significance: 0,
-            created_at: 0,
-            updated_at: 0,
+        id: RecordStrings {
+            table: "INode".to_string(),
+            key: "inode_patch_test".to_string(),
         },
+        content: Content::from_plain_text("Patch test node"),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x: 10, y: 20 },
+        size: Size {
+            width: 100,
+            height: 50,
+        },
+        line_count: 1,
+        expandable: true,
+        is_expanded: false,
+        locked: false,
+        tags: vec![],
+        aliases: vec![],
+        comments: vec![],
+        attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
     };
     repo.create_node(Nodes::INode(inode)).await.unwrap();
 
@@ -69,9 +70,9 @@ async fn test_targeted_patch_and_history() {
         .unwrap()
         .unwrap();
     if let Nodes::INode(ref n) = fetched {
-        assert_eq!(n.fields.position.x, 50);
-        assert_eq!(n.fields.position.y, 60);
-        assert_eq!(n.fields.is_expanded, true);
+        assert_eq!(n.position.x, 50);
+        assert_eq!(n.position.y, 60);
+        assert_eq!(n.is_expanded, true);
     } else {
         panic!("Incorrect node type");
     }
@@ -112,9 +113,9 @@ async fn test_targeted_patch_and_history() {
         .unwrap()
         .unwrap();
     if let Nodes::INode(ref n) = fetched_undone {
-        assert_eq!(n.fields.position.x, 10);
-        assert_eq!(n.fields.position.y, 20);
-        assert_eq!(n.fields.is_expanded, false);
+        assert_eq!(n.position.x, 10);
+        assert_eq!(n.position.y, 20);
+        assert_eq!(n.is_expanded, false);
     } else {
         panic!("Incorrect node type");
     }
@@ -141,9 +142,9 @@ async fn test_targeted_patch_and_history() {
         .unwrap()
         .unwrap();
     if let Nodes::INode(ref n) = fetched_redone {
-        assert_eq!(n.fields.position.x, 50);
-        assert_eq!(n.fields.position.y, 60);
-        assert_eq!(n.fields.is_expanded, true);
+        assert_eq!(n.position.x, 50);
+        assert_eq!(n.position.y, 60);
+        assert_eq!(n.is_expanded, true);
     } else {
         panic!("Incorrect node type");
     }
@@ -154,31 +155,32 @@ async fn test_remaining_patches() {
     let repo = setup_test_repo().await;
 
     let inode = INode {
-        key: "n_patch".to_string(),
-        fields: INodeFields {
-            content: Content::from_plain_text("original"),
-            style: None,
-            resolved_style: None,
-            layout: None,
-            resolved_layout: None,
-            layer: "default".to_string(),
-            position: Coordinates { x: 0, y: 0 },
-            size: Size {
-                width: 10,
-                height: 10,
-            },
-            line_count: 1,
-            expandable: false,
-            is_expanded: false,
-            locked: false,
-            tags: vec![],
-            aliases: vec![],
-            comments: vec![],
-            attachment: None,
-            significance: 0,
-            created_at: 0,
-            updated_at: 0,
+        id: RecordStrings {
+            table: "INode".to_string(),
+            key: "n_patch".to_string(),
         },
+        content: Content::from_plain_text("original"),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x: 0, y: 0 },
+        size: Size {
+            width: 10,
+            height: 10,
+        },
+        line_count: 1,
+        expandable: false,
+        is_expanded: false,
+        locked: false,
+        tags: vec![],
+        aliases: vec![],
+        comments: vec![],
+        attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
     };
     repo.create_node(Nodes::INode(inode)).await.unwrap();
     let node_id = RecordId::new("INode", "n_patch");
@@ -222,41 +224,42 @@ async fn test_remaining_patches() {
         .unwrap()
         .unwrap();
     if let Nodes::INode(n) = fetched {
-        assert_eq!(n.fields.size.width, 42);
-        assert_eq!(n.fields.size.height, 42);
-        assert_eq!(n.fields.content.text, "patched content");
-        assert_eq!(n.fields.style.as_ref().unwrap().bg_color, 0x123456);
-        assert_eq!(n.fields.significance, 3);
+        assert_eq!(n.size.width, 42);
+        assert_eq!(n.size.height, 42);
+        assert_eq!(n.content.text, "patched content");
+        assert_eq!(n.style.as_ref().unwrap().bg_color, 0x123456);
+        assert_eq!(n.significance, 3);
     } else {
         panic!("Not an INode");
     }
 
     let target = INode {
-        key: "n_patch_target".to_string(),
-        fields: INodeFields {
-            content: Content::from_plain_text("target"),
-            style: None,
-            resolved_style: None,
-            layout: None,
-            resolved_layout: None,
-            layer: "default".to_string(),
-            position: Coordinates { x: 50, y: 50 },
-            size: Size {
-                width: 10,
-                height: 10,
-            },
-            line_count: 1,
-            expandable: false,
-            is_expanded: false,
-            locked: false,
-            tags: vec![],
-            aliases: vec![],
-            comments: vec![],
-            attachment: None,
-            significance: 0,
-            created_at: 0,
-            updated_at: 0,
+        id: RecordStrings {
+            table: "INode".to_string(),
+            key: "n_patch_target".to_string(),
         },
+        content: Content::from_plain_text("target"),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x: 50, y: 50 },
+        size: Size {
+            width: 10,
+            height: 10,
+        },
+        line_count: 1,
+        expandable: false,
+        is_expanded: false,
+        locked: false,
+        tags: vec![],
+        aliases: vec![],
+        comments: vec![],
+        attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
     };
     repo.create_node(Nodes::INode(target)).await.unwrap();
 
@@ -334,31 +337,32 @@ async fn test_undo_redo_update_node_via_createnode_patch() {
     let repo = setup_test_repo().await;
 
     let inode = INode {
-        key: "inode_upsert_test".to_string(),
-        fields: INodeFields {
-            content: Content::from_plain_text("Original content"),
-            style: None,
-            resolved_style: None,
-            layout: None,
-            resolved_layout: None,
-            layer: "default".to_string(),
-            position: Coordinates { x: 100, y: 100 },
-            size: Size {
-                width: 50,
-                height: 50,
-            },
-            line_count: 1,
-            expandable: true,
-            is_expanded: false,
-            locked: false,
-            tags: vec![],
-            aliases: vec![],
-            comments: vec![],
-            attachment: None,
-            significance: 0,
-            created_at: 0,
-            updated_at: 0,
+        id: RecordStrings {
+            table: "INode".to_string(),
+            key: "inode_upsert_test".to_string(),
         },
+        content: Content::from_plain_text("Original content"),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x: 100, y: 100 },
+        size: Size {
+            width: 50,
+            height: 50,
+        },
+        line_count: 1,
+        expandable: true,
+        is_expanded: false,
+        locked: false,
+        tags: vec![],
+        aliases: vec![],
+        comments: vec![],
+        attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
     };
     repo.create_node(Nodes::INode(inode.clone())).await.unwrap();
 
@@ -366,8 +370,8 @@ async fn test_undo_redo_update_node_via_createnode_patch() {
 
     // 1. Re-create (upsert) node with updated fields
     let mut updated = inode.clone();
-    updated.fields.content = Content::from_plain_text("Updated content");
-    updated.fields.position.x = 200;
+    updated.content = Content::from_plain_text("Updated content");
+    updated.position.x = 200;
 
     // Apply the CreateNode patch to an EXISTING record (mimics update undo/redo)
     let patch = EntityPatch::CreateNode(Nodes::INode(updated.clone()), vec![]);
@@ -380,8 +384,8 @@ async fn test_undo_redo_update_node_via_createnode_patch() {
         .unwrap()
         .unwrap();
     if let Nodes::INode(n) = fetched {
-        assert_eq!(n.fields.content.text, "Updated content");
-        assert_eq!(n.fields.position.x, 200);
+        assert_eq!(n.content.text, "Updated content");
+        assert_eq!(n.position.x, 200);
     } else {
         panic!("Incorrect node type");
     }
@@ -397,8 +401,8 @@ async fn test_undo_redo_update_node_via_createnode_patch() {
         .unwrap()
         .unwrap();
     if let Nodes::INode(n) = fetched_reverted {
-        assert_eq!(n.fields.content.text, "Original content");
-        assert_eq!(n.fields.position.x, 100);
+        assert_eq!(n.content.text, "Original content");
+        assert_eq!(n.position.x, 100);
     } else {
         panic!("Incorrect node type");
     }

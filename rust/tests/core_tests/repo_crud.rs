@@ -1,9 +1,7 @@
 use crate::common::setup_test_repo;
 use mycelium_core::domain::base_models::{Coordinates, RecordStrings, Size};
 use mycelium_core::domain::contents::Content;
-use mycelium_core::domain::nodes::{
-    INode, INodeFields, InterNode, InterNodeFields, Nodes, TaskNode, TaskNodeFields,
-};
+use mycelium_core::domain::nodes::{INode, InterNode, Nodes, TaskNode};
 use mycelium_core::domain::relations::{IRelation, IRelationFields};
 use mycelium_core::domain::tags::TagEdge;
 use std::time::Duration;
@@ -29,34 +27,35 @@ async fn test_repo_crud() {
 
     // 1. Create InfoNode (INode)
     let inode = INode {
-        key: "inode_1".to_string(),
-        fields: INodeFields {
-            content: Content::from_plain_text("This is an Info Node"),
-            style: None,
-            resolved_style: None,
-            layout: None,
-            resolved_layout: None,
-            layer: "default".to_string(),
-            position: Coordinates { x: 100, y: 150 },
-            size: Size {
-                width: 10,
-                height: 10,
-            },
-            line_count: 1,
-            expandable: true,
-            is_expanded: false,
-            locked: false,
-            tags: vec![TagEdge::Pointer(RecordStrings {
-                table: "Tag".to_string(),
-                key: "tag1".to_string(),
-            })],
-            aliases: vec![],
-            comments: vec![],
-            attachment: None,
-            significance: 0,
-            created_at: 0,
-            updated_at: 0,
+        id: RecordStrings {
+            table: "INode".to_string(),
+            key: "inode_1".to_string(),
         },
+        content: Content::from_plain_text("This is an Info Node"),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x: 100, y: 150 },
+        size: Size {
+            width: 10,
+            height: 10,
+        },
+        line_count: 1,
+        expandable: true,
+        is_expanded: false,
+        locked: false,
+        tags: vec![TagEdge::Pointer(RecordStrings {
+            table: "Tag".to_string(),
+            key: "tag1".to_string(),
+        })],
+        aliases: vec![],
+        comments: vec![],
+        attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
     };
 
     repo.create_node(Nodes::INode(inode.clone()))
@@ -70,17 +69,17 @@ async fn test_repo_crud() {
         .expect("Failed to fetch INode");
     assert!(fetched.is_some());
     if let Some(Nodes::INode(n)) = fetched {
-        assert_eq!(n.key, "inode_1");
-        assert_eq!(n.fields.content.text, "This is an Info Node");
-        assert_eq!(n.fields.position.x, 100);
+        assert_eq!(n.id.key, "inode_1");
+        assert_eq!(n.content.text, "This is an Info Node");
+        assert_eq!(n.position.x, 100);
     } else {
         panic!("Fetched node was not an INode");
     }
 
     // Update INode
     let mut updated_inode = inode.clone();
-    updated_inode.fields.content = Content::from_plain_text("Updated Info Node");
-    updated_inode.fields.position.x = 200;
+    updated_inode.content = Content::from_plain_text("Updated Info Node");
+    updated_inode.position.x = 200;
     repo.update_node(Nodes::INode(updated_inode))
         .await
         .expect("Failed to update INode");
@@ -90,35 +89,36 @@ async fn test_repo_crud() {
         .await
         .expect("Failed to fetch updated INode");
     if let Some(Nodes::INode(n)) = fetched_updated {
-        assert_eq!(n.fields.content.text, "Updated Info Node");
-        assert_eq!(n.fields.position.x, 200);
+        assert_eq!(n.content.text, "Updated Info Node");
+        assert_eq!(n.position.x, 200);
     } else {
         panic!("Updated node not found or incorrect type");
     }
 
     // 2. Create TaskNode
     let tasknode = TaskNode {
-        key: "task_1".to_string(),
-        fields: TaskNodeFields {
-            content: Content::from_plain_text("Test Task"),
-            due_date: Some(123456789),
-            state: "todo".to_string(),
-            position: Coordinates { x: -50, y: -50 },
-            size: Size {
-                width: 20,
-                height: 20,
-            },
-            expandable: false,
-            is_expanded: false,
-            layer: "default".to_string(),
-            style: None,
-            resolved_style: None,
-            layout: None,
-            resolved_layout: None,
-            significance: 1,
-            created_at: 0,
-            updated_at: 0,
+        id: RecordStrings {
+            table: "TaskNode".to_string(),
+            key: "task_1".to_string(),
         },
+        content: Content::from_plain_text("Test Task"),
+        due_date: Some(123456789),
+        state: "todo".to_string(),
+        position: Coordinates { x: -50, y: -50 },
+        size: Size {
+            width: 20,
+            height: 20,
+        },
+        expandable: false,
+        is_expanded: false,
+        layer: "default".to_string(),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        significance: 1,
+        created_at: 0,
+        updated_at: 0,
     };
     repo.create_node(Nodes::TaskNode(tasknode.clone()))
         .await
@@ -131,24 +131,25 @@ async fn test_repo_crud() {
         .expect("Failed to fetch TaskNode");
     assert!(fetched_task.is_some());
     if let Some(Nodes::TaskNode(t)) = fetched_task {
-        assert_eq!(t.key, "task_1");
-        assert_eq!(t.fields.state, "todo");
+        assert_eq!(t.id.key, "task_1");
+        assert_eq!(t.state, "todo");
     } else {
         panic!("Fetched node was not a TaskNode");
     }
 
     // 3. Create InterNode
     let internode = InterNode {
-        key: "inter_1".to_string(),
-        fields: InterNodeFields {
-            verb: "implies".to_string(),
-            behavioral_features: None,
-            position: Coordinates { x: 25, y: 50 },
-            style: None,
-            layer: "default".to_string(),
-            created_at: 0,
-            updated_at: 0,
+        id: RecordStrings {
+            table: "InterNode".to_string(),
+            key: "inter_1".to_string(),
         },
+        verb: "implies".to_string(),
+        behavioral_features: None,
+        position: Coordinates { x: 25, y: 50 },
+        style: None,
+        layer: "default".to_string(),
+        created_at: 0,
+        updated_at: 0,
     };
     repo.create_node(Nodes::InterNode(internode.clone()))
         .await
@@ -161,8 +162,8 @@ async fn test_repo_crud() {
         .expect("Failed to fetch InterNode");
     assert!(fetched_inter.is_some());
     if let Some(Nodes::InterNode(i)) = fetched_inter {
-        assert_eq!(i.key, "inter_1");
-        assert_eq!(i.fields.verb, "implies");
+        assert_eq!(i.id.key, "inter_1");
+        assert_eq!(i.verb, "implies");
     } else {
         panic!("Fetched node was not an InterNode");
     }
@@ -189,7 +190,7 @@ async fn test_repo_crud() {
         .expect("Failed to create relation");
 
     // Give background significance update a moment to trigger/log
-    tokio::time::sleep(Duration::from_millis(50)).await;
+    let _ = tokio::time::sleep(Duration::from_millis(50)).await;
 
     // Fetch Relation
     let fetched_rel = repo
@@ -281,7 +282,11 @@ async fn test_error_cases() {
     assert!(res.is_err());
 
     // 3. Duplicate relation (unique constraint)
-    let node_fields = INodeFields {
+    let node = INode {
+        id: RecordStrings {
+            table: "INode".to_string(),
+            key: "n1".to_string(),
+        },
         content: Content::from_plain_text("node"),
         style: None,
         resolved_style: None,
@@ -305,18 +310,15 @@ async fn test_error_cases() {
         created_at: 0,
         updated_at: 0,
     };
-    repo.create_node(Nodes::INode(INode {
-        key: "n1".to_string(),
-        fields: node_fields.clone(),
-    }))
-    .await
-    .unwrap();
-    repo.create_node(Nodes::INode(INode {
-        key: "n2".to_string(),
-        fields: node_fields.clone(),
-    }))
-    .await
-    .unwrap();
+    repo.create_node(Nodes::INode(node.clone()))
+        .await
+        .unwrap();
+
+    let mut n2 = node.clone();
+    n2.id.key = "n2".to_string();
+    repo.create_node(Nodes::INode(n2))
+        .await
+        .unwrap();
 
     let rel = IRelation {
         key: "rel_dup_1".to_string(),
@@ -352,7 +354,11 @@ async fn test_error_cases() {
 async fn test_relation_rerouting_and_deletion() {
     let repo = setup_test_repo().await;
 
-    let node_fields = INodeFields {
+    let node = INode {
+        id: RecordStrings {
+            table: "INode".to_string(),
+            key: "n1".to_string(),
+        },
         content: Content::from_plain_text("node"),
         style: None,
         resolved_style: None,
@@ -376,24 +382,21 @@ async fn test_relation_rerouting_and_deletion() {
         created_at: 0,
         updated_at: 0,
     };
-    repo.create_node(Nodes::INode(INode {
-        key: "n1".to_string(),
-        fields: node_fields.clone(),
-    }))
-    .await
-    .unwrap();
-    repo.create_node(Nodes::INode(INode {
-        key: "n2".to_string(),
-        fields: node_fields.clone(),
-    }))
-    .await
-    .unwrap();
-    repo.create_node(Nodes::INode(INode {
-        key: "n3".to_string(),
-        fields: node_fields.clone(),
-    }))
-    .await
-    .unwrap();
+    repo.create_node(Nodes::INode(node.clone()))
+        .await
+        .unwrap();
+
+    let mut n2 = node.clone();
+    n2.id.key = "n2".to_string();
+    repo.create_node(Nodes::INode(n2))
+        .await
+        .unwrap();
+
+    let mut n3 = node.clone();
+    n3.id.key = "n3".to_string();
+    repo.create_node(Nodes::INode(n3))
+        .await
+        .unwrap();
 
     let rel = IRelation {
         key: "rel_route".to_string(),

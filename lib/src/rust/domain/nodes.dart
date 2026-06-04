@@ -13,195 +13,138 @@ import 'tags.dart';
 part 'nodes.freezed.dart';
 
 class CommentNode {
-  final String key;
-  final CommentNodeFields fields;
+  final RecordStrings id;
+  final PlatformInt64 createdAt;
+  final PlatformInt64 updatedAt;
+  final String text;
+  final Coordinates position;
+  final Size size;
+  final String layer;
 
-  const CommentNode({required this.key, required this.fields});
+  const CommentNode({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.text,
+    required this.position,
+    required this.size,
+    required this.layer,
+  });
 
   @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
+  int get hashCode =>
+      id.hashCode ^
+      createdAt.hashCode ^
+      updatedAt.hashCode ^
+      text.hashCode ^
+      position.hashCode ^
+      size.hashCode ^
+      layer.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is CommentNode &&
           runtimeType == other.runtimeType &&
-          key == other.key &&
-          fields == other.fields;
+          id == other.id &&
+          createdAt == other.createdAt &&
+          updatedAt == other.updatedAt &&
+          text == other.text &&
+          position == other.position &&
+          size == other.size &&
+          layer == other.layer;
 }
 
-class CommentNodeFields {
-  final String text;
-  final Coordinates position;
-  final Size size;
-  final String layer;
+class DrawingNode {
+  final RecordStrings id;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
+  final List<String> paths;
+  final Coordinates position;
+  final String layer;
 
-  const CommentNodeFields({
-    required this.text,
-    required this.position,
-    required this.size,
-    required this.layer,
+  const DrawingNode({
+    required this.id,
     required this.createdAt,
     required this.updatedAt,
+    required this.paths,
+    required this.position,
+    required this.layer,
   });
 
   @override
   int get hashCode =>
-      text.hashCode ^
-      position.hashCode ^
-      size.hashCode ^
-      layer.hashCode ^
+      id.hashCode ^
       createdAt.hashCode ^
-      updatedAt.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is CommentNodeFields &&
-          runtimeType == other.runtimeType &&
-          text == other.text &&
-          position == other.position &&
-          size == other.size &&
-          layer == other.layer &&
-          createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
-}
-
-class DrawingNode {
-  final String key;
-  final DrawingNodeFields fields;
-
-  const DrawingNode({required this.key, required this.fields});
-
-  @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
+      updatedAt.hashCode ^
+      paths.hashCode ^
+      position.hashCode ^
+      layer.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is DrawingNode &&
           runtimeType == other.runtimeType &&
-          key == other.key &&
-          fields == other.fields;
+          id == other.id &&
+          createdAt == other.createdAt &&
+          updatedAt == other.updatedAt &&
+          paths == other.paths &&
+          position == other.position &&
+          layer == other.layer;
 }
 
-class DrawingNodeFields {
-  final List<String> paths;
-  final Coordinates position;
-  final String layer;
+class FrameNode {
+  final RecordStrings id;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
+  final String title;
+  final NodeStyle? style;
+  final Coordinates position;
+  final Size size;
+  final String layer;
 
-  const DrawingNodeFields({
-    required this.paths,
-    required this.position,
-    required this.layer,
+  const FrameNode({
+    required this.id,
     required this.createdAt,
     required this.updatedAt,
+    required this.title,
+    this.style,
+    required this.position,
+    required this.size,
+    required this.layer,
   });
 
   @override
   int get hashCode =>
-      paths.hashCode ^
-      position.hashCode ^
-      layer.hashCode ^
+      id.hashCode ^
       createdAt.hashCode ^
-      updatedAt.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is DrawingNodeFields &&
-          runtimeType == other.runtimeType &&
-          paths == other.paths &&
-          position == other.position &&
-          layer == other.layer &&
-          createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
-}
-
-class FrameNode {
-  final String key;
-  final FrameNodeFields fields;
-
-  const FrameNode({required this.key, required this.fields});
-
-  @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
+      updatedAt.hashCode ^
+      title.hashCode ^
+      style.hashCode ^
+      position.hashCode ^
+      size.hashCode ^
+      layer.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is FrameNode &&
           runtimeType == other.runtimeType &&
-          key == other.key &&
-          fields == other.fields;
-}
-
-class FrameNodeFields {
-  final String title;
-  final NodeStyle? style;
-  final Coordinates position;
-  final Size size;
-  final String layer;
-  final PlatformInt64 createdAt;
-  final PlatformInt64 updatedAt;
-
-  const FrameNodeFields({
-    required this.title,
-    this.style,
-    required this.position,
-    required this.size,
-    required this.layer,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  @override
-  int get hashCode =>
-      title.hashCode ^
-      style.hashCode ^
-      position.hashCode ^
-      size.hashCode ^
-      layer.hashCode ^
-      createdAt.hashCode ^
-      updatedAt.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is FrameNodeFields &&
-          runtimeType == other.runtimeType &&
+          id == other.id &&
+          createdAt == other.createdAt &&
+          updatedAt == other.updatedAt &&
           title == other.title &&
           style == other.style &&
           position == other.position &&
           size == other.size &&
-          layer == other.layer &&
-          createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
+          layer == other.layer;
 }
 
 class INode {
-  final String key;
-  final INodeFields fields;
-
-  const INode({required this.key, required this.fields});
-
-  @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is INode &&
-          runtimeType == other.runtimeType &&
-          key == other.key &&
-          fields == other.fields;
-}
-
-class INodeFields {
+  final RecordStrings id;
+  final PlatformInt64 createdAt;
+  final PlatformInt64 updatedAt;
   final Content content;
   final NodeStyle? style;
   final NodeStyle? resolvedStyle;
@@ -219,10 +162,11 @@ class INodeFields {
   final List<Comment> comments;
   final String? attachment;
   final int significance;
-  final PlatformInt64 createdAt;
-  final PlatformInt64 updatedAt;
 
-  const INodeFields({
+  const INode({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
     required this.content,
     this.style,
     this.resolvedStyle,
@@ -240,12 +184,13 @@ class INodeFields {
     required this.comments,
     this.attachment,
     required this.significance,
-    required this.createdAt,
-    required this.updatedAt,
   });
 
   @override
   int get hashCode =>
+      id.hashCode ^
+      createdAt.hashCode ^
+      updatedAt.hashCode ^
       content.hashCode ^
       style.hashCode ^
       resolvedStyle.hashCode ^
@@ -262,15 +207,16 @@ class INodeFields {
       aliases.hashCode ^
       comments.hashCode ^
       attachment.hashCode ^
-      significance.hashCode ^
-      createdAt.hashCode ^
-      updatedAt.hashCode;
+      significance.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is INodeFields &&
+      other is INode &&
           runtimeType == other.runtimeType &&
+          id == other.id &&
+          createdAt == other.createdAt &&
+          updatedAt == other.updatedAt &&
           content == other.content &&
           style == other.style &&
           resolvedStyle == other.resolvedStyle &&
@@ -287,131 +233,101 @@ class INodeFields {
           aliases == other.aliases &&
           comments == other.comments &&
           attachment == other.attachment &&
-          significance == other.significance &&
-          createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
+          significance == other.significance;
 }
 
 class InterNode {
-  final String key;
-  final InterNodeFields fields;
+  final RecordStrings id;
+  final PlatformInt64 createdAt;
+  final PlatformInt64 updatedAt;
+  final Coordinates position;
+  final String? style;
+  final String verb;
+  final String? behavioralFeatures;
+  final String layer;
 
-  const InterNode({required this.key, required this.fields});
+  const InterNode({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.position,
+    this.style,
+    required this.verb,
+    this.behavioralFeatures,
+    required this.layer,
+  });
 
   @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
+  int get hashCode =>
+      id.hashCode ^
+      createdAt.hashCode ^
+      updatedAt.hashCode ^
+      position.hashCode ^
+      style.hashCode ^
+      verb.hashCode ^
+      behavioralFeatures.hashCode ^
+      layer.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is InterNode &&
           runtimeType == other.runtimeType &&
-          key == other.key &&
-          fields == other.fields;
-}
-
-class InterNodeFields {
-  final Coordinates position;
-  final String? style;
-  final String verb;
-  final String? behavioralFeatures;
-  final String layer;
-  final PlatformInt64 createdAt;
-  final PlatformInt64 updatedAt;
-
-  const InterNodeFields({
-    required this.position,
-    this.style,
-    required this.verb,
-    this.behavioralFeatures,
-    required this.layer,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  @override
-  int get hashCode =>
-      position.hashCode ^
-      style.hashCode ^
-      verb.hashCode ^
-      behavioralFeatures.hashCode ^
-      layer.hashCode ^
-      createdAt.hashCode ^
-      updatedAt.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is InterNodeFields &&
-          runtimeType == other.runtimeType &&
+          id == other.id &&
+          createdAt == other.createdAt &&
+          updatedAt == other.updatedAt &&
           position == other.position &&
           style == other.style &&
           verb == other.verb &&
           behavioralFeatures == other.behavioralFeatures &&
-          layer == other.layer &&
-          createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
+          layer == other.layer;
 }
 
 class MediaNode {
-  final String key;
-  final MediaNodeFields fields;
+  final RecordStrings id;
+  final PlatformInt64 createdAt;
+  final PlatformInt64 updatedAt;
+  final String sourceUrl;
+  final String mediaType;
+  final Coordinates position;
+  final Size size;
+  final String layer;
 
-  const MediaNode({required this.key, required this.fields});
+  const MediaNode({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.sourceUrl,
+    required this.mediaType,
+    required this.position,
+    required this.size,
+    required this.layer,
+  });
 
   @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
+  int get hashCode =>
+      id.hashCode ^
+      createdAt.hashCode ^
+      updatedAt.hashCode ^
+      sourceUrl.hashCode ^
+      mediaType.hashCode ^
+      position.hashCode ^
+      size.hashCode ^
+      layer.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is MediaNode &&
           runtimeType == other.runtimeType &&
-          key == other.key &&
-          fields == other.fields;
-}
-
-class MediaNodeFields {
-  final String sourceUrl;
-  final String mediaType;
-  final Coordinates position;
-  final Size size;
-  final String layer;
-  final PlatformInt64 createdAt;
-  final PlatformInt64 updatedAt;
-
-  const MediaNodeFields({
-    required this.sourceUrl,
-    required this.mediaType,
-    required this.position,
-    required this.size,
-    required this.layer,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  @override
-  int get hashCode =>
-      sourceUrl.hashCode ^
-      mediaType.hashCode ^
-      position.hashCode ^
-      size.hashCode ^
-      layer.hashCode ^
-      createdAt.hashCode ^
-      updatedAt.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is MediaNodeFields &&
-          runtimeType == other.runtimeType &&
+          id == other.id &&
+          createdAt == other.createdAt &&
+          updatedAt == other.updatedAt &&
           sourceUrl == other.sourceUrl &&
           mediaType == other.mediaType &&
           position == other.position &&
           size == other.size &&
-          layer == other.layer &&
-          createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
+          layer == other.layer;
 }
 
 @freezed
@@ -429,85 +345,56 @@ sealed class Nodes with _$Nodes {
 }
 
 class ShapeNode {
-  final String key;
-  final ShapeNodeFields fields;
+  final RecordStrings id;
+  final PlatformInt64 createdAt;
+  final PlatformInt64 updatedAt;
+  final String shapeType;
+  final NodeStyle? style;
+  final Coordinates position;
+  final Size size;
+  final String layer;
 
-  const ShapeNode({required this.key, required this.fields});
+  const ShapeNode({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.shapeType,
+    this.style,
+    required this.position,
+    required this.size,
+    required this.layer,
+  });
 
   @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
+  int get hashCode =>
+      id.hashCode ^
+      createdAt.hashCode ^
+      updatedAt.hashCode ^
+      shapeType.hashCode ^
+      style.hashCode ^
+      position.hashCode ^
+      size.hashCode ^
+      layer.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is ShapeNode &&
           runtimeType == other.runtimeType &&
-          key == other.key &&
-          fields == other.fields;
-}
-
-class ShapeNodeFields {
-  final String shapeType;
-  final NodeStyle? style;
-  final Coordinates position;
-  final Size size;
-  final String layer;
-  final PlatformInt64 createdAt;
-  final PlatformInt64 updatedAt;
-
-  const ShapeNodeFields({
-    required this.shapeType,
-    this.style,
-    required this.position,
-    required this.size,
-    required this.layer,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  @override
-  int get hashCode =>
-      shapeType.hashCode ^
-      style.hashCode ^
-      position.hashCode ^
-      size.hashCode ^
-      layer.hashCode ^
-      createdAt.hashCode ^
-      updatedAt.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ShapeNodeFields &&
-          runtimeType == other.runtimeType &&
+          id == other.id &&
+          createdAt == other.createdAt &&
+          updatedAt == other.updatedAt &&
           shapeType == other.shapeType &&
           style == other.style &&
           position == other.position &&
           size == other.size &&
-          layer == other.layer &&
-          createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
+          layer == other.layer;
 }
 
 class TaskNode {
-  final String key;
-  final TaskNodeFields fields;
-
-  const TaskNode({required this.key, required this.fields});
-
-  @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TaskNode &&
-          runtimeType == other.runtimeType &&
-          key == other.key &&
-          fields == other.fields;
-}
-
-class TaskNodeFields {
+  final RecordStrings id;
+  final PlatformInt64 createdAt;
+  final PlatformInt64 updatedAt;
   final Content content;
   final PlatformInt64? dueDate;
   final String state;
@@ -521,10 +408,11 @@ class TaskNodeFields {
   final NodeLayout? layout;
   final NodeLayout? resolvedLayout;
   final int significance;
-  final PlatformInt64 createdAt;
-  final PlatformInt64 updatedAt;
 
-  const TaskNodeFields({
+  const TaskNode({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
     required this.content,
     this.dueDate,
     required this.state,
@@ -538,12 +426,13 @@ class TaskNodeFields {
     this.layout,
     this.resolvedLayout,
     required this.significance,
-    required this.createdAt,
-    required this.updatedAt,
   });
 
   @override
   int get hashCode =>
+      id.hashCode ^
+      createdAt.hashCode ^
+      updatedAt.hashCode ^
       content.hashCode ^
       dueDate.hashCode ^
       state.hashCode ^
@@ -556,15 +445,16 @@ class TaskNodeFields {
       resolvedStyle.hashCode ^
       layout.hashCode ^
       resolvedLayout.hashCode ^
-      significance.hashCode ^
-      createdAt.hashCode ^
-      updatedAt.hashCode;
+      significance.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is TaskNodeFields &&
+      other is TaskNode &&
           runtimeType == other.runtimeType &&
+          id == other.id &&
+          createdAt == other.createdAt &&
+          updatedAt == other.updatedAt &&
           content == other.content &&
           dueDate == other.dueDate &&
           state == other.state &&
@@ -577,7 +467,5 @@ class TaskNodeFields {
           resolvedStyle == other.resolvedStyle &&
           layout == other.layout &&
           resolvedLayout == other.resolvedLayout &&
-          significance == other.significance &&
-          createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
+          significance == other.significance;
 }

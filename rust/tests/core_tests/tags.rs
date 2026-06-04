@@ -1,7 +1,7 @@
 use crate::common::setup_test_repo;
-use mycelium_core::domain::base_models::{Coordinates, Size};
+use mycelium_core::domain::base_models::{Coordinates, RecordStrings, Size};
 use mycelium_core::domain::contents::Content;
-use mycelium_core::domain::nodes::{INode, INodeFields, Nodes};
+use mycelium_core::domain::nodes::{INode, Nodes};
 use mycelium_core::domain::patches::{EntityPatch, NodePatch, TagOperation};
 use mycelium_core::domain::tags::{Tag, TagEdge, TagFields};
 use surrealdb::types::RecordId;
@@ -43,31 +43,29 @@ async fn test_tags_crud_and_patching() {
 
     // 4. Create an INode
     let inode = INode {
-        key: "inode_tag_test".to_string(),
-        fields: INodeFields {
-            content: Content::from_plain_text("Tag test node"),
-            style: None,
-            resolved_style: None,
-            layout: None,
-            resolved_layout: None,
-            layer: "default".to_string(),
-            position: Coordinates { x: 10, y: 20 },
-            size: Size {
-                width: 100,
-                height: 50,
-            },
-            line_count: 1,
-            expandable: true,
-            is_expanded: false,
-            locked: false,
-            tags: vec![],
-            aliases: vec![],
-            comments: vec![],
-            attachment: None,
-            significance: 0,
-            created_at: 0,
-            updated_at: 0,
+        id: RecordStrings::from("INode:inode_tag_test"),
+        content: Content::from_plain_text("Tag test node"),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x: 10, y: 20 },
+        size: Size {
+            width: 100,
+            height: 50,
         },
+        line_count: 1,
+        expandable: true,
+        is_expanded: false,
+        locked: false,
+        tags: vec![],
+        aliases: vec![],
+        comments: vec![],
+        attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
     };
     repo.create_node(Nodes::INode(inode)).await.unwrap();
 
@@ -88,8 +86,8 @@ async fn test_tags_crud_and_patching() {
         .unwrap()
         .unwrap();
     if let Nodes::INode(n) = fetched_node {
-        assert_eq!(n.fields.tags.len(), 1);
-        match &n.fields.tags[0] {
+        assert_eq!(n.tags.len(), 1);
+        match &n.tags[0] {
             TagEdge::Hydrated(t) => {
                 assert_eq!(t.key, "test_tag_rust_uuid");
                 assert_eq!(t.fields.name, "test_tag_rust");
@@ -118,7 +116,7 @@ async fn test_tags_crud_and_patching() {
         .unwrap()
         .unwrap();
     if let Nodes::INode(n) = fetched_node_after_remove {
-        assert_eq!(n.fields.tags.len(), 0);
+        assert_eq!(n.tags.len(), 0);
     } else {
         panic!("Incorrect node type");
     }
@@ -154,31 +152,29 @@ async fn test_tag_cascading_disassociation_on_delete() {
 
     // 2. Create a node and associate the tag
     let inode = INode {
-        key: "inode_cascade_test".to_string(),
-        fields: INodeFields {
-            content: Content::from_plain_text("Cascade test node"),
-            style: None,
-            resolved_style: None,
-            layout: None,
-            resolved_layout: None,
-            layer: "default".to_string(),
-            position: Coordinates { x: 10, y: 20 },
-            size: Size {
-                width: 100,
-                height: 50,
-            },
-            line_count: 1,
-            expandable: true,
-            is_expanded: false,
-            locked: false,
-            tags: vec![],
-            aliases: vec![],
-            comments: vec![],
-            attachment: None,
-            significance: 0,
-            created_at: 0,
-            updated_at: 0,
+        id: RecordStrings::from("INode:inode_cascade_test"),
+        content: Content::from_plain_text("Cascade test node"),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x: 10, y: 20 },
+        size: Size {
+            width: 100,
+            height: 50,
         },
+        line_count: 1,
+        expandable: true,
+        is_expanded: false,
+        locked: false,
+        tags: vec![],
+        aliases: vec![],
+        comments: vec![],
+        attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
     };
     repo.create_node(Nodes::INode(inode)).await.unwrap();
     let record_id = RecordId::new("INode", "inode_cascade_test");
@@ -198,7 +194,7 @@ async fn test_tag_cascading_disassociation_on_delete() {
         .unwrap()
         .unwrap();
     if let Nodes::INode(n) = fetched_node {
-        assert_eq!(n.fields.tags.len(), 1);
+        assert_eq!(n.tags.len(), 1);
     } else {
         panic!("Incorrect node type");
     }
@@ -215,7 +211,7 @@ async fn test_tag_cascading_disassociation_on_delete() {
         .unwrap()
         .unwrap();
     if let Nodes::INode(n) = fetched_node_after_delete {
-        assert_eq!(n.fields.tags.len(), 0);
+        assert_eq!(n.tags.len(), 0);
     } else {
         panic!("Incorrect node type");
     }
