@@ -68,14 +68,19 @@ Where:
   - **Footer**: Include breaking changes (`BREAKING CHANGE: <description>`) if it is a breaking change.
 
 #### B. Execution
-- Write the drafted commit message to a temporary file: `.git/proposed_commit_msg.txt`.
-- Display the drafted message and list of affected files to the user.
-- Execute the commit:
+- Run the commit command with direct parameters (recommended for speed and automation):
   ```powershell
-  powershell -ExecutionPolicy Bypass -File ./scripts/git-commit.ps1 -CommitMsgFile .git/proposed_commit_msg.txt
+  powershell -ExecutionPolicy Bypass -File ./scripts/git-commit.ps1 -CommitMsg "<message-text>" -Stage "file/path/or/pattern1", "pattern2"
   ```
-- The script automatically stages all changes (`git add -A`), executes the commit, and removes all temporary files (`active_status.txt`, `active_branch.txt`, `active_diff.patch`, `active_validation.json`, and the commit message file).
-- If the user aborts, delete the temporary `.git/proposed_commit_msg.txt` file manually.
+  *(Pass `-StageAll` instead of `-Stage` to automatically stage all changes in the workspace).*
+- Alternatively, draft the message in a file first:
+  - Write the message to a temporary file: `.git/proposed_commit_msg.txt`.
+  - Display the drafted message and list of affected files to the user.
+  - Execute the commit:
+    ```powershell
+    powershell -ExecutionPolicy Bypass -File ./scripts/git-commit.ps1 -CommitMsgFile .git/proposed_commit_msg.txt
+    ```
+- When committing, the script automatically applies your staging preferences, validates the commit format, commits, and removes temporary workspace report files (`active_status.txt`, `active_branch.txt`, `active_diff.patch`, `active_validation.json`).
 
 ---
 

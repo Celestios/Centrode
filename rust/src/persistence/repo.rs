@@ -1,15 +1,17 @@
 use crate::domain::analysis::DecaySignificanceStrategy;
 use crate::domain::base_models::{IsTable, MapData, Record, RecordStrings, ViewportState};
 use crate::domain::nodes::{
-    INode, INodeFields, InterNode, InterNodeFields, Nodes, TaskNode, TaskNodeFields,
+    INode, INodeFields, InterNode, InterNodeFields, IsNode, Nodes, TaskNode, TaskNodeFields,
 };
-use crate::domain::patches::{EntityPatch, NodePatch, RelationPatch, TagOperation, PatchHistoryPayload};
+use crate::domain::patches::{
+    EntityPatch, NodePatch, PatchHistoryPayload, RelationPatch, TagOperation,
+};
 use crate::domain::relations::{IRelation, IRelationFields};
+use crate::domain::snapshot::GraphSnapshot;
 use crate::domain::tags::{Tag, TagFields};
-use crate::domain::theme::{Theme, ThemeFields};
 use crate::domain::templates::Template;
+use crate::domain::theme::{Theme, ThemeFields};
 use crate::persistence::history::{HistoryManager, HistoryRecord};
-
 
 use anyhow::Result;
 use surrealdb::engine::local::Db;
@@ -31,39 +33,20 @@ impl Repository {
         &self.db
     }
 
-    pub async fn create_node(&self, input: Nodes) -> Result<()> {
-        match input {
-            Nodes::INode(node) => {
-                let key = node.key.clone();
-                let _: Option<INodeFields> = self
-                    .db
-                    .create((INode::LABEL, key.clone()))
-                    .content(node.fields)
-                    .await?;
-                info!("REPO: Created InfoNode with ID: {}", key);
-                Ok(())
-            }
-            Nodes::TaskNode(node) => {
-                let key = node.key.clone();
-                let _: Option<TaskNodeFields> = self
-                    .db
-                    .create((TaskNode::LABEL, key.clone()))
-                    .content(node.fields)
-                    .await?;
-                info!("REPO: Created TaskNode with ID: {}", key);
-                Ok(())
-            }
-            Nodes::InterNode(node) => {
-                let key = node.key.clone();
-                let _: Option<InterNodeFields> = self
-                    .db
-                    .create((InterNode::LABEL, key.clone()))
-                    .content(node.fields)
-                    .await?;
-                info!("REPO: Created InterNode with ID: {}", key);
-                Ok(())
-            }
-        }
+    pub async fn create_node<N>(&self, input: N) -> Result<()>
+    where
+        N: IsNode,
+    {
+        let table = input.table_name();
+        let key = input.key();
+        let fields = input.fields_value();
+        let _: Option<Value> = self
+            .db
+            .create((table, key.to_string()))
+            .content(fields)
+            .await?;
+        info!("REPO: Created Node of table {} with ID: {}", table, key);
+        Ok(())
     }
 
     pub async fn create_relation(&self, input: IRelation) -> Result<()> {
@@ -109,78 +92,88 @@ impl Repository {
     }
 
     pub async fn get_node(&self, table: String, key: String) -> Result<Option<Nodes>> {
-        match table.as_str() {
-            INode::LABEL => {
-                let mut res = self
-                    .db
-                    .query("SELECT * FROM INode WHERE id = $id FETCH tags")
-                    .bind(("id", RecordId::new(table, key.clone())))
-                    .await?;
-                let fields: Option<INodeFields> = res.take(0)?;
-                Ok(fields.map(|f| Nodes::INode(INode { key, fields: f })))
+        let fetch_fields = Nodes::fetch_fields_for_table(&table);
+        let query_str = if fetch_fields.is_empty() {
+            "SELECT * FROM $id".to_string()
+        } else {
+            format!("SELECT * FROM $id FETCH {}", fetch_fields.join(", "))
+        };
+
+        let mut res = self
+            .db
+            .query(query_str)
+            .bind(("id", RecordId::new(table.clone(), key.clone())))
+            .await?;
+        let val: Option<Value> = res.take(0)?;
+
+        if let Some(v) = val {
+            if let Some(record) = Record::from_record_value(v) {
+                let node = Nodes::from_table_and_value(&table, key, record.fields)?;
+                return Ok(Some(node));
             }
-            TaskNode::LABEL => {
-                let fields: Option<TaskNodeFields> = self.db.select((table, key.clone())).await?;
-                Ok(fields.map(|f| Nodes::TaskNode(TaskNode { key, fields: f })))
-            }
-            InterNode::LABEL => {
-                let fields: Option<InterNodeFields> = self.db.select((table, key.clone())).await?;
-                Ok(fields.map(|f| Nodes::InterNode(InterNode { key, fields: f })))
-            }
-            _ => Err(anyhow::anyhow!("Unknown node type with id: {:?}", key)),
         }
+        Ok(None)
     }
 
-    pub async fn get_graph_snapshot(
-        &self,
-    ) -> Result<(
-        Vec<INode>,
-        Vec<TaskNode>,
-        Vec<InterNode>,
-        Vec<IRelation>,
-        MapData,
-    )> {
+    pub async fn fetch_table_nodes<N, F>(&self) -> Result<Vec<N>>
+    where
+        N: IsTable + From<(String, F)>,
+        F: surrealdb::types::SurrealValue,
+    {
+        let table = N::LABEL;
+        let fetch_fields = N::FETCH_FIELDS;
+        let query_str = if fetch_fields.is_empty() {
+            format!("SELECT * FROM {}", table)
+        } else {
+            format!("SELECT * FROM {} FETCH {}", table, fetch_fields.join(", "))
+        };
+
+        let mut res = self.db.query(query_str).await?;
+        let raw: Vec<Value> = res.take(0)?;
+
+        let nodes = raw
+            .into_iter()
+            .filter_map(|val| {
+                let record = Record::from_record_value(val)?;
+                let (key, fields) = record.to_type::<F>()?;
+                Some(N::from((key, fields)))
+            })
+            .collect();
+
+        Ok(nodes)
+    }
+
+    pub async fn get_graph_snapshot(&self) -> Result<GraphSnapshot> {
         tracing::info!("Fetching graph snapshot...");
 
-        tracing::debug!("Fetching INodes...");
+        let mut nodes = Vec::new();
+        for &table in Nodes::TABLES {
+            tracing::debug!("Fetching {}...", table);
+            let fetch_fields = Nodes::fetch_fields_for_table(table);
+            let query_str = if fetch_fields.is_empty() {
+                format!("SELECT * FROM {}", table)
+            } else {
+                format!("SELECT * FROM {} FETCH {}", table, fetch_fields.join(", "))
+            };
 
-        let mut res = self.db.query("SELECT * FROM INode FETCH tags").await?;
-        let inodes_raw: Vec<Value> = res.take(0)?;
+            let mut res = self.db.query(query_str).await?;
+            let raw: Vec<Value> = res.take(0)?;
 
-        let inodes: Vec<INode> = inodes_raw
-            .into_iter()
-            .filter_map(|val| {
-                let record = Record::from_record_value(val)?;
-                let (key, fields) = record.to_type::<INodeFields>()?;
-                Some(INode { key, fields })
-            })
-            .collect();
-
-        tracing::debug!("Fetched {} INodes", inodes.len());
-
-        tracing::debug!("Fetching TaskNodes...");
-        let tasks_raw: Vec<Value> = self.db.select(TaskNode::LABEL).await?;
-        let tasks: Vec<TaskNode> = tasks_raw
-            .into_iter()
-            .filter_map(|val| {
-                let record = Record::from_record_value(val)?;
-                let (key, fields) = record.to_type::<TaskNodeFields>()?;
-                Some(TaskNode { key, fields })
-            })
-            .collect();
-        tracing::debug!("Fetched {} TaskNodes", tasks.len());
-
-        tracing::debug!("Fetching InterNodes...");
-        let inters_raw: Vec<Value> = self.db.select(InterNode::LABEL).await?;
-        let inters: Vec<InterNode> = inters_raw
-            .into_iter()
-            .filter_map(|val| {
-                let record = Record::from_record_value(val)?;
-                let (key, fields) = record.to_type::<InterNodeFields>()?;
-                Some(InterNode { key, fields })
-            })
-            .collect();
-        tracing::debug!("Fetched {} InterNodes", inters.len());
+            for val in raw {
+                if let Some(record) = Record::from_record_value(val) {
+                    if let surrealdb::types::RecordIdKey::String(key) = record.id.key {
+                        match Nodes::from_table_and_value(table, key, record.fields) {
+                            Ok(node) => nodes.push(node),
+                            Err(e) => tracing::error!(
+                                "Failed to parse node from table {}: {:?}",
+                                table,
+                                e
+                            ),
+                        }
+                    }
+                }
+            }
+        }
 
         tracing::debug!("Fetching IRelations...");
         let relations_raw: Vec<Value> = self.db.select(IRelation::LABEL).await?;
@@ -194,7 +187,11 @@ impl Repository {
         let metadata: Option<MapData> = self.db.select((MapData::LABEL, MapData::KEY)).await?;
         let metadata = metadata.ok_or_else(|| anyhow::anyhow!("MapMetadata not found"))?;
 
-        Ok((inodes, tasks, inters, relations, metadata))
+        Ok(GraphSnapshot {
+            nodes,
+            relations,
+            metadata,
+        })
     }
 
     /// Clear all graph-related tables in the correct dependency order.
@@ -209,17 +206,11 @@ impl Repository {
         let _: Vec<Value> = tx.delete(IRelation::LABEL).await?;
         tracing::debug!("Deleted all IRelations");
 
-        tracing::debug!("Deleting existing InterNodes...");
-        let _: Vec<Value> = tx.delete(InterNode::LABEL).await?;
-        tracing::debug!("Deleted all InterNodes");
-
-        tracing::debug!("Deleting existing TaskNodes...");
-        let _: Vec<Value> = tx.delete(TaskNode::LABEL).await?;
-        tracing::debug!("Deleted all TaskNodes");
-
-        tracing::debug!("Deleting existing INodes...");
-        let _: Vec<Value> = tx.delete(INode::LABEL).await?;
-        tracing::debug!("Deleted all INodes");
+        for &table in Nodes::TABLES {
+            tracing::debug!("Deleting existing {}...", table);
+            let _: Vec<Value> = tx.delete(table).await?;
+            tracing::debug!("Deleted all {}", table);
+        }
 
         tracing::debug!("Deleting existing MapMetadata...");
         let _: Vec<Value> = tx.delete(MapData::LABEL).await?;
@@ -230,46 +221,25 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn set_graph_snapshot(
-        &self,
-        inodes: Vec<INode>,
-        tasknodes: Vec<TaskNode>,
-        internodes: Vec<InterNode>,
-        irelations: Vec<IRelation>,
-        metadata: MapData,
-    ) -> Result<()> {
+    pub async fn set_graph_snapshot(&self, snapshot: GraphSnapshot) -> Result<()> {
         tracing::info!("Storing graph snapshot atomically...");
 
         self.clear_graph().await?;
         let db = self.db.clone();
         let tx = db.begin().await?;
 
-        tracing::debug!("Inserting {} INodes...", inodes.len());
-        for inode in inodes {
-            let _: Option<INodeFields> = tx
-                .create(inode.get_record_id())
-                .content(inode.fields)
-                .await?;
+        tracing::debug!("Inserting {} nodes...", snapshot.nodes.len());
+        for node in snapshot.nodes {
+            let (table, key) = {
+                let (t, k) = node.table_and_key();
+                (t, k.to_string())
+            };
+            let fields = node.fields_into_value();
+            let _: Option<Value> = tx.create((table, key)).content(fields).await?;
         }
 
-        tracing::debug!("Inserting {} TaskNodes...", tasknodes.len());
-        for task in tasknodes {
-            let _: Option<TaskNodeFields> = tx
-                .create((TaskNode::LABEL, task.key.clone()))
-                .content(task.fields)
-                .await?;
-        }
-
-        tracing::debug!("Inserting {} InterNodes...", internodes.len());
-        for inter in internodes {
-            let _: Option<InterNodeFields> = tx
-                .create((InterNode::LABEL, inter.key.clone()))
-                .content(inter.fields)
-                .await?;
-        }
-
-        tracing::debug!("Inserting {} IRelations...", irelations.len());
-        for relation in irelations {
+        tracing::debug!("Inserting {} IRelations...", snapshot.relations.len());
+        for relation in snapshot.relations {
             let in_id = relation.in_.clone();
             let out_id = relation.out.clone();
             let record = RecordId::new(IRelation::LABEL, relation.key.clone());
@@ -287,7 +257,7 @@ impl Repository {
         tracing::debug!("Inserting MapMetadata...");
         let _: Option<MapData> = tx
             .create((MapData::LABEL, MapData::KEY))
-            .content(metadata)
+            .content(snapshot.metadata)
             .await?;
 
         tx.commit().await?;
@@ -296,39 +266,20 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn update_node(&self, input: Nodes) -> Result<()> {
-        match input {
-            Nodes::INode(node) => {
-                let key = node.key.clone();
-                let _: Option<INodeFields> = self
-                    .db
-                    .update((INode::LABEL, key.clone()))
-                    .content(node.fields)
-                    .await?;
-                info!("REPO: Updated InfoNode with ID: {}", key);
-                Ok(())
-            }
-            Nodes::TaskNode(node) => {
-                let key = node.key.clone();
-                let _: Option<TaskNodeFields> = self
-                    .db
-                    .update((TaskNode::LABEL, key.clone()))
-                    .content(node.fields)
-                    .await?;
-                info!("REPO: Updated TaskNode with ID: {}", key);
-                Ok(())
-            }
-            Nodes::InterNode(node) => {
-                let key = node.key.clone();
-                let _: Option<InterNodeFields> = self
-                    .db
-                    .update((InterNode::LABEL, key.clone()))
-                    .content(node.fields)
-                    .await?;
-                info!("REPO: Updated InterNode with ID: {}", key);
-                Ok(())
-            }
-        }
+    pub async fn update_node<N>(&self, input: N) -> Result<()>
+    where
+        N: IsNode,
+    {
+        let table = input.table_name();
+        let key = input.key();
+        let fields = input.fields_value();
+        let _: Option<Value> = self
+            .db
+            .update((table, key.to_string()))
+            .content(fields)
+            .await?;
+        info!("REPO: Updated Node of table {} with ID: {}", table, key);
+        Ok(())
     }
 
     pub async fn delete_node(&self, table: String, key: String) -> Result<()> {
@@ -421,7 +372,11 @@ impl Repository {
             }
             EntityPatch::CreateNode(node, relations) => {
                 let (table, key) = node.table_and_key();
-                if self.get_node(table.to_string(), key.to_string()).await?.is_some() {
+                if self
+                    .get_node(table.to_string(), key.to_string())
+                    .await?
+                    .is_some()
+                {
                     self.update_node(node.clone()).await?;
                 } else {
                     self.create_node(node.clone()).await?;
@@ -441,7 +396,8 @@ impl Repository {
                 Ok(())
             }
             EntityPatch::DeleteRelation(rel) => {
-                self.delete_relation(IRelation::LABEL.to_string(), rel.key.clone()).await?;
+                self.delete_relation(IRelation::LABEL.to_string(), rel.key.clone())
+                    .await?;
                 Ok(())
             }
         }
@@ -639,7 +595,9 @@ impl Repository {
 
         let mut relations = Vec::new();
         for rstr in &relation_keys {
-            let rel = self.get_relation(rstr.table.clone(), rstr.key.clone()).await?;
+            let rel = self
+                .get_relation(rstr.table.clone(), rstr.key.clone())
+                .await?;
             relations.push(rel);
         }
 
@@ -651,11 +609,7 @@ impl Repository {
         let mut sum_x = 0.0;
         let mut sum_y = 0.0;
         for node in &nodes {
-            let pos = match node {
-                Nodes::INode(n) => &n.fields.position,
-                Nodes::TaskNode(n) => &n.fields.position,
-                Nodes::InterNode(n) => &n.fields.position,
-            };
+            let pos = node.position();
             sum_x += pos.x as f64;
             sum_y += pos.y as f64;
         }
@@ -666,11 +620,7 @@ impl Repository {
         // Shift coordinates relative to (0, 0)
         let mut shifted_nodes = nodes;
         for node in &mut shifted_nodes {
-            let pos = match node {
-                Nodes::INode(n) => &mut n.fields.position,
-                Nodes::TaskNode(n) => &mut n.fields.position,
-                Nodes::InterNode(n) => &mut n.fields.position,
-            };
+            let pos = node.position_mut();
             pos.x -= centroid_x;
             pos.y -= centroid_y;
         }
@@ -691,7 +641,12 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn instantiate_template(&self, key: String, target_x: f64, target_y: f64) -> Result<()> {
+    pub async fn instantiate_template(
+        &self,
+        key: String,
+        target_x: f64,
+        target_y: f64,
+    ) -> Result<()> {
         let record_id = RecordId::new(Template::LABEL, key.clone());
         let template_val: Option<Value> = self.db.select(record_id).await?;
         let template_val = template_val.ok_or_else(|| anyhow::anyhow!("Template not found"))?;
@@ -702,7 +657,7 @@ impl Repository {
         use std::collections::HashMap;
         let mut key_map = HashMap::new();
         for node in &template.nodes {
-            let old_key = node.table_and_key().1.to_string();
+            let old_key = node.key().to_string();
             let new_key = uuid::Uuid::new_v4().to_string();
             key_map.insert(old_key, new_key);
         }
@@ -713,32 +668,19 @@ impl Repository {
         let mut new_nodes = Vec::new();
         for node in &template.nodes {
             let mut cloned_node = node.clone();
-            match &mut cloned_node {
-                Nodes::INode(n) => {
-                    n.key = key_map.get(&n.key).unwrap().clone();
-                    n.fields.position.x += target_xi;
-                    n.fields.position.y += target_yi;
-                    let now = chrono::Utc::now().timestamp_millis();
-                    n.fields.created_at = now;
-                    n.fields.updated_at = now;
-                }
-                Nodes::TaskNode(n) => {
-                    n.key = key_map.get(&n.key).unwrap().clone();
-                    n.fields.position.x += target_xi;
-                    n.fields.position.y += target_yi;
-                    let now = chrono::Utc::now().timestamp_millis();
-                    n.fields.created_at = now;
-                    n.fields.updated_at = now;
-                }
-                Nodes::InterNode(n) => {
-                    n.key = key_map.get(&n.key).unwrap().clone();
-                    n.fields.position.x += target_xi;
-                    n.fields.position.y += target_yi;
-                    let now = chrono::Utc::now().timestamp_millis();
-                    n.fields.created_at = now;
-                    n.fields.updated_at = now;
-                }
-            }
+            let old_key = cloned_node.key().to_string();
+            let new_key = key_map.get(&old_key).unwrap().clone();
+
+            cloned_node.set_key(new_key);
+
+            let pos = cloned_node.position_mut();
+            pos.x += target_xi;
+            pos.y += target_yi;
+
+            let now = chrono::Utc::now().timestamp_millis();
+            cloned_node.set_created_at(now);
+            cloned_node.set_updated_at(now);
+
             new_nodes.push(cloned_node);
         }
 
@@ -765,26 +707,12 @@ impl Repository {
         let tx = db.begin().await?;
 
         for node in new_nodes {
-            match node {
-                Nodes::INode(n) => {
-                    let _: Option<INodeFields> = tx
-                        .create((INode::LABEL, n.key.clone()))
-                        .content(n.fields)
-                        .await?;
-                }
-                Nodes::TaskNode(n) => {
-                    let _: Option<TaskNodeFields> = tx
-                        .create((TaskNode::LABEL, n.key.clone()))
-                        .content(n.fields)
-                        .await?;
-                }
-                Nodes::InterNode(n) => {
-                    let _: Option<InterNodeFields> = tx
-                        .create((InterNode::LABEL, n.key.clone()))
-                        .content(n.fields)
-                        .await?;
-                }
-            }
+            let (table, key) = {
+                let (t, k) = node.table_and_key();
+                (t, k.to_string())
+            };
+            let fields = node.fields_into_value();
+            let _: Option<Value> = tx.create((table, key)).content(fields).await?;
         }
 
         for relation in new_relations {
@@ -826,12 +754,18 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn apply_patch_check_position(&self, id: &RecordStrings, patch: &EntityPatch) -> Result<bool> {
+    pub async fn apply_patch_check_position(
+        &self,
+        id: &RecordStrings,
+        patch: &EntityPatch,
+    ) -> Result<bool> {
         let record_id = RecordId::new(id.table.as_str(), id.key.as_str());
         self.patch_entity(record_id, patch).await?;
 
         let has_position_change = match patch {
-            EntityPatch::Node(patches) => patches.iter().any(|p| matches!(p, NodePatch::Position(_))),
+            EntityPatch::Node(patches) => {
+                patches.iter().any(|p| matches!(p, NodePatch::Position(_)))
+            }
             EntityPatch::CreateNode(_, _) | EntityPatch::DeleteNode(_, _) => true,
             _ => false,
         };
@@ -1007,4 +941,3 @@ impl Repository {
         history_manager.redo().await
     }
 }
-

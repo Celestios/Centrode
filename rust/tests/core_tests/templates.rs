@@ -139,7 +139,16 @@ async fn test_templates_save_and_instantiate() {
         .expect("Failed to instantiate template");
 
     // 6. Get all graph data and verify instantiated nodes and relations
-    let (inodes, tasknodes, _internodes, relations, _metadata) = repo.get_graph_snapshot().await.unwrap();
+    let snapshot = repo.get_graph_snapshot().await.unwrap();
+    let inodes: Vec<INode> = snapshot.nodes.iter().filter_map(|n| match n {
+        Nodes::INode(inode) => Some(inode.clone()),
+        _ => None,
+    }).collect();
+    let tasknodes: Vec<TaskNode> = snapshot.nodes.iter().filter_map(|n| match n {
+        Nodes::TaskNode(tn) => Some(tn.clone()),
+        _ => None,
+    }).collect();
+    let relations = snapshot.relations;
     
     // We expect 2 original inodes/tasknodes + 1 new for each
     assert_eq!(inodes.len(), 2); // original + new

@@ -8,6 +8,7 @@ import '../domain/contents.dart';
 import '../domain/nodes.dart';
 import '../domain/patches.dart';
 import '../domain/relations.dart';
+import '../domain/snapshot.dart';
 import '../domain/styles.dart';
 import '../domain/tags.dart';
 import '../domain/templates.dart';
@@ -63,10 +64,7 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<List<Theme>> getAllThemes();
 
-  Future<
-    (List<INode>, List<TaskNode>, List<InterNode>, List<IRelation>, MapData)
-  >
-  getGraphSnapshot();
+  Future<GraphSnapshot> getGraphSnapshot();
 
   Future<Nodes?> getNode({required String table, required String key});
 

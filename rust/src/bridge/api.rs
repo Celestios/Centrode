@@ -1,7 +1,8 @@
 use crate::bridge::stream::{self, GraphEvent};
 use crate::domain::analysis::GraphAnalysis;
-use crate::domain::base_models::{IsTable, MapData, RecordStrings, ViewportState};
-use crate::domain::nodes::{INode, TaskNode, InterNode, Nodes};
+use crate::domain::base_models::{IsTable, RecordStrings, ViewportState};
+use crate::domain::nodes::Nodes;
+use crate::domain::snapshot::GraphSnapshot;
 use crate::domain::tags::Tag;
 use crate::domain::templates::Template;
 
@@ -230,15 +231,7 @@ impl AppHandle {
         }
     }
 
-    pub async fn get_graph_snapshot(
-        &self,
-    ) -> anyhow::Result<(
-        Vec<INode>,
-        Vec<TaskNode>,
-        Vec<InterNode>,
-        Vec<IRelation>,
-        MapData,
-    )> {
+    pub async fn get_graph_snapshot(&self) -> anyhow::Result<GraphSnapshot> {
         let res = self.repo.get_graph_snapshot().await?;
         Ok(res)
     }
@@ -248,30 +241,22 @@ impl AppHandle {
         file_path: String,
         attachment_dir: String,
     ) -> anyhow::Result<()> {
-        let (inodes, task_nodes, inter_nodes, relations, metadata) =
-            self.repo.get_graph_snapshot().await?;
+        let snapshot = self.repo.get_graph_snapshot().await?;
 
         let mut content: BTreeMap<String, Vec<Value>> = BTreeMap::new();
 
-        content.insert(
-            INode::LABEL.into(),
-            inodes.into_iter().map(|n| n.into_value()).collect(),
-        );
-        content.insert(
-            TaskNode::LABEL.into(),
-            task_nodes.into_iter().map(|n| n.into_value()).collect(),
-        );
-        content.insert(
-            InterNode::LABEL.into(),
-            inter_nodes.into_iter().map(|n| n.into_value()).collect(),
-        );
+        for node in snapshot.nodes {
+            let label = node.table_and_key().0.to_string();
+            content.entry(label).or_default().push(node.into_value());
+        }
+
         content.insert(
             IRelation::LABEL.into(),
-            relations.into_iter().map(|r| r.into_value()).collect(),
+            snapshot.relations.into_iter().map(|r| r.into_value()).collect(),
         );
 
         tokio::task::spawn_blocking(move || {
-            packager::save_project_to_celi(&file_path, &attachment_dir, content, metadata)
+            packager::save_project_to_celi(&file_path, &attachment_dir, content, snapshot.metadata)
         })
         .await??;
 
@@ -288,25 +273,18 @@ impl AppHandle {
         })
         .await??;
 
-        let inodes: Vec<INode> = content
-            .remove(INode::LABEL)
-            .unwrap_or_default()
-            .iter()
-            .map(|v| INode::from_value(v.clone()).unwrap())
-            .collect();
+        let mut nodes = Vec::new();
+        for &table in Nodes::TABLES {
+            if let Some(list) = content.remove(table) {
+                for val in list {
+                    match Nodes::from_struct_value(table, val) {
+                        Ok(node) => nodes.push(node),
+                        Err(e) => tracing::error!("Failed to deserialize node from table {}: {:?}", table, e),
+                    }
+                }
+            }
+        }
 
-        let tasknodes: Vec<TaskNode> = content
-            .remove(TaskNode::LABEL)
-            .unwrap_or_default()
-            .iter()
-            .map(|v| TaskNode::from_value(v.clone()).unwrap())
-            .collect();
-        let internodes: Vec<InterNode> = content
-            .remove(InterNode::LABEL)
-            .unwrap_or_default()
-            .iter()
-            .map(|v| InterNode::from_value(v.clone()).unwrap())
-            .collect();
         let irelations: Vec<IRelation> = content
             .remove(IRelation::LABEL)
             .unwrap_or_default()
@@ -315,7 +293,11 @@ impl AppHandle {
             .collect();
 
         self.repo
-            .set_graph_snapshot(inodes, tasknodes, internodes, irelations, metadata)
+            .set_graph_snapshot(GraphSnapshot {
+                nodes,
+                relations: irelations,
+                metadata,
+            })
             .await?;
 
         Ok(())

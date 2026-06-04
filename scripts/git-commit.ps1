@@ -20,6 +20,8 @@
 param(
     [switch]$Prepare,
     [string]$CommitMsgFile,
+    [string]$CommitMsg,
+    [string[]]$Stage,
     [switch]$StageAll,
     [string]$SyncVersion,
     [string]$PrepareRelease
@@ -47,6 +49,7 @@ $ScopeKeywords = @{
     "ffi"      = @("ffi", "bridge", "rust", "frb", "binding")
     "db"       = @("db", "surreal", "persistence", "store")
     "workflow" = @("workflow", "agent", "script", "hook", "hooks.json")
+    "model"    = @("model", "domain", "type", "struct")
 }
 
 # Helper to clean up all temporary workspace validation files
@@ -82,7 +85,7 @@ if ($Prepare) {
         $warnings += "Direct commits to main/master are strictly blocked. You must use a feature/fix branch or perform a release flow."
     } else {
         # Format: <type>/<scope>-<kebab-case-description>
-        if ($currentBranch -match "^(?<type>feat|fix|refactor|perf|docs|chore|test)/(?<scope>[a-z0-9\-]+)-(?<desc>[a-z0-9\-]+)$") {
+        if ($currentBranch -match "^(?<type>feat|fix|refactor|perf|docs|chore|test)/(?<scope>[a-z0-9]+)-(?<desc>[a-z0-9\-]+)$") {
             $branchValid = $true
             $detectedType = $Matches.type
             $detectedScope = $Matches.scope
@@ -91,7 +94,7 @@ if ($Prepare) {
             if ($ScopeKeywords.ContainsKey($detectedScope)) {
                 $scopeValid = $true
             } else {
-                $warnings += "Branch scope '$detectedScope' is not one of the standard scopes: (graph, node, relation, tags, ui, ffi, db, workflow)."
+                $warnings += "Branch scope '$detectedScope' is not one of the standard scopes: (graph, node, relation, tags, ui, ffi, db, workflow, model)."
             }
         } else {
             $warnings += "Branch name '$currentBranch' does not conform to the standard format '<type>/<scope>-<kebab-case-description>'."
@@ -151,15 +154,29 @@ if ($Prepare) {
 }
 
 # --- COMMIT PHASE ---
-if (-not [string]::IsNullOrEmpty($CommitMsgFile)) {
-    if (-not (Test-Path $CommitMsgFile)) {
-        Write-Error "Error: Commit message file '$CommitMsgFile' not found."
-        exit 1
+Write-Host "Debug: CommitMsgFile='$CommitMsgFile'"
+Write-Host "Debug: CommitMsg='$CommitMsg'"
+if (-not [string]::IsNullOrEmpty($CommitMsgFile) -or -not [string]::IsNullOrEmpty($CommitMsg)) {
+    $tempMsgFile = ""
+    $commitMsg = ""
+    if (-not [string]::IsNullOrEmpty($CommitMsgFile)) {
+        if (-not (Test-Path $CommitMsgFile)) {
+            Write-Error "Error: Commit message file '$CommitMsgFile' not found."
+            exit 1
+        }
+        $commitMsg = (Get-Content -Path $CommitMsgFile -Raw).Trim()
+        $tempMsgFile = $CommitMsgFile
+    } else {
+        $commitMsg = $CommitMsg.Trim()
+        $tempMsgFile = Join-Path $gitDir "temp_proposed_commit_msg.txt"
+        $commitMsg | Out-File -FilePath $tempMsgFile -Encoding utf8
     }
     
-    $commitMsg = (Get-Content -Path $CommitMsgFile -Raw).Trim()
     if ([string]::IsNullOrEmpty($commitMsg)) {
         Write-Error "Error: Commit message is empty."
+        if ([string]::IsNullOrEmpty($CommitMsgFile)) {
+            Remove-Item $tempMsgFile -ErrorAction SilentlyContinue
+        }
         exit 1
     }
     
@@ -172,6 +189,9 @@ if (-not [string]::IsNullOrEmpty($CommitMsgFile)) {
     if ($header -notmatch $ccPattern) {
         Write-Error "Error: Commit header '$header' does not conform to Conventional Commits format."
         Write-Error "Example: feat(ui): add zoom support"
+        if ([string]::IsNullOrEmpty($CommitMsgFile)) {
+            Remove-Item $tempMsgFile -ErrorAction SilentlyContinue
+        }
         exit 1
     }
     
@@ -179,27 +199,44 @@ if (-not [string]::IsNullOrEmpty($CommitMsgFile)) {
     $currentBranch = (git branch --show-current).Trim()
     if (($currentBranch -eq "main" -or $currentBranch -eq "master") -and $header -notmatch "^chore\(release\)") {
         Write-Error "Error: Direct commits to main/master are blocked unless they are release commits (e.g. chore(release): ...)."
+        if ([string]::IsNullOrEmpty($CommitMsgFile)) {
+            Remove-Item $tempMsgFile -ErrorAction SilentlyContinue
+        }
         exit 1
     }
     
+    # Stage specified files or patterns
+    if ($Stage -and $Stage.Count -gt 0) {
+        foreach ($pattern in $Stage) {
+            Write-Host "Staging pattern: $pattern"
+            git add $pattern
+        }
+    }
     # Stage all changes automatically before committing if StageAll is specified
-    if ($StageAll) {
+    elseif ($StageAll) {
         Write-Host "Staging all changes..."
         git add -A
     }
     
     # Execute the commit
     Write-Host "Committing changes using conventional commit message..."
-    git commit -F $CommitMsgFile
+    git commit -F $tempMsgFile
     
-    if ($LASTEXITCODE -eq 0) {
+    $commitExitCode = $LASTEXITCODE
+    if ([string]::IsNullOrEmpty($CommitMsgFile)) {
+        Remove-Item $tempMsgFile -ErrorAction SilentlyContinue
+    }
+    
+    if ($commitExitCode -eq 0) {
         Write-Host "✅ Commit successful!"
         # Automatically clean up all temporary files
         Clear-TempFiles
-        Remove-Item $CommitMsgFile -ErrorAction SilentlyContinue
+        if (-not [string]::IsNullOrEmpty($CommitMsgFile)) {
+            Remove-Item $CommitMsgFile -ErrorAction SilentlyContinue
+        }
     } else {
         Write-Error "Error: git commit failed."
-        exit $LASTEXITCODE
+        exit $commitExitCode
     }
     exit 0
 }

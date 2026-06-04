@@ -23,7 +23,7 @@ async fn assert_significance_eventually(
             let sig = match node {
                 Nodes::INode(n) => n.fields.significance,
                 Nodes::TaskNode(t) => t.fields.significance,
-                Nodes::InterNode(_) => 0,
+                _ => 0,
             };
             if sig == expected {
                 return;
@@ -39,7 +39,7 @@ async fn assert_significance_eventually(
     let sig = match node {
         Nodes::INode(n) => n.fields.significance,
         Nodes::TaskNode(t) => t.fields.significance,
-        Nodes::InterNode(_) => 0,
+        _ => 0,
     };
     assert_eq!(
         sig, expected,
@@ -85,10 +85,24 @@ async fn test_graph_snapshot() {
         .expect("Failed to seed snapshot test node");
 
     // Verify snapshot query
-    let (inodes, tasks, inters, relations, metadata) = repo
+    let snapshot = repo
         .get_graph_snapshot()
         .await
         .expect("Failed to fetch graph snapshot");
+    let inodes: Vec<INode> = snapshot.nodes.iter().filter_map(|n| match n {
+        Nodes::INode(inode) => Some(inode.clone()),
+        _ => None,
+    }).collect();
+    let tasks: Vec<TaskNode> = snapshot.nodes.iter().filter_map(|n| match n {
+        Nodes::TaskNode(tn) => Some(tn.clone()),
+        _ => None,
+    }).collect();
+    let inters: Vec<InterNode> = snapshot.nodes.iter().filter_map(|n| match n {
+        Nodes::InterNode(in_) => Some(in_.clone()),
+        _ => None,
+    }).collect();
+    let relations = snapshot.relations;
+    let metadata = snapshot.metadata;
     assert_eq!(inodes.len(), 1);
     assert_eq!(inodes[0].key, "inode_snap");
     assert_eq!(tasks.len(), 0);
@@ -165,21 +179,44 @@ async fn test_graph_snapshot() {
         ..Default::default()
     };
 
-    repo.set_graph_snapshot(
-        new_inodes,
-        new_tasks,
-        new_inters,
-        new_relations,
-        new_metadata,
-    )
+    let mut new_nodes = Vec::new();
+    for n in new_inodes {
+        new_nodes.push(Nodes::INode(n));
+    }
+    for n in new_tasks {
+        new_nodes.push(Nodes::TaskNode(n));
+    }
+    for n in new_inters {
+        new_nodes.push(Nodes::InterNode(n));
+    }
+
+    repo.set_graph_snapshot(mycelium_core::domain::snapshot::GraphSnapshot {
+        nodes: new_nodes,
+        relations: new_relations,
+        metadata: new_metadata,
+    })
     .await
     .expect("Failed to write new graph snapshot");
 
     // Retrieve again and verify state has changed completely and contains all types
-    let (inodes_v2, tasks_v2, inters_v2, relations_v2, metadata_v2) = repo
+    let snapshot_v2 = repo
         .get_graph_snapshot()
         .await
         .expect("Failed to fetch overwritten graph snapshot");
+    let inodes_v2: Vec<INode> = snapshot_v2.nodes.iter().filter_map(|n| match n {
+        Nodes::INode(inode) => Some(inode.clone()),
+        _ => None,
+    }).collect();
+    let tasks_v2: Vec<TaskNode> = snapshot_v2.nodes.iter().filter_map(|n| match n {
+        Nodes::TaskNode(tn) => Some(tn.clone()),
+        _ => None,
+    }).collect();
+    let inters_v2: Vec<InterNode> = snapshot_v2.nodes.iter().filter_map(|n| match n {
+        Nodes::InterNode(in_) => Some(in_.clone()),
+        _ => None,
+    }).collect();
+    let relations_v2 = snapshot_v2.relations;
+    let metadata_v2 = snapshot_v2.metadata;
     assert_eq!(inodes_v2.len(), 1);
     assert_eq!(inodes_v2[0].key, "new_inode_snap");
     assert_eq!(tasks_v2.len(), 1);

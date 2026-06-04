@@ -115,6 +115,7 @@ impl SurrealValue for RecordStrings {
 
 pub trait IsTable {
     const LABEL: &'static str;
+    const FETCH_FIELDS: &'static [&'static str] = &[];
 
     fn get_label() -> &'static str {
         Self::LABEL
