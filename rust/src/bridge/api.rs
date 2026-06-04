@@ -68,11 +68,15 @@ pub struct AppHandle {
 
 impl AppHandle {
     pub async fn new(storage_path: String, name: String) -> anyhow::Result<Self> {
-        let db = Database::connect(&storage_path, name).await?;
-        Ok(Self {
-            repo: Repository::new(db),
+        let db = Database::connect(&storage_path, name, None, None).await?;
+        Ok(Self::with_repository(Repository::new(db)))
+    }
+
+    pub fn with_repository(repo: Repository) -> Self {
+        Self {
+            repo,
             tasks: Mutex::new(Vec::new()),
-        })
+        }
     }
 
     async fn broadcast_boundaries(&self) {

@@ -7,7 +7,12 @@ pub struct Database;
 impl Database {
     /// Connects to the embedded SurrealDB (SurrealKV) and initializes the schema.
     /// Returns the database instance directly (No global state).
-    pub async fn connect(path: &str, name: String) -> anyhow::Result<Surreal<Db>> {
+    pub async fn connect(
+        path: &str,
+        name: String,
+        namespace: Option<&str>,
+        database: Option<&str>,
+    ) -> anyhow::Result<Surreal<Db>> {
         tracing::info!("DB: Initializing SurrealKV at path: {}", path);
 
         // Initialize SurrealKV (file-based)
@@ -16,16 +21,21 @@ impl Database {
             e
         })?;
 
+        let ns = namespace.unwrap_or("mycelium");
+        let db_name = database.unwrap_or("core");
+
         // Select Namespace/Database
-        db.use_ns("mycelium").use_db("core").await.map_err(|e| {
+        db.use_ns(ns).use_db(db_name).await.map_err(|e| {
             tracing::error!(
-                "DB: Failed to select namespace 'mycelium' and db 'core': {}",
+                "DB: Failed to select namespace '{}' and db '{}': {}",
+                ns,
+                db_name,
                 e
             );
             e
         })?;
 
-        tracing::info!("DB: Namespace 'mycelium', database 'core' selected.");
+        tracing::info!("DB: Namespace '{}', database '{}' selected.", ns, db_name);
 
         // Initialize Schema
         schema::Schema::init(&db, name).await.map_err(|e| {

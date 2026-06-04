@@ -366,6 +366,7 @@ DEFINE FIELD OVERWRITE updated_at ON TABLE IRelation COMPUTED time::millis(time:
 -- 6. Fields for `Tag`
 -- ---------------------------------------------------------------------------
 DEFINE FIELD OVERWRITE name ON TABLE Tag TYPE string;
+DEFINE FIELD OVERWRITE name_lower ON TABLE Tag COMPUTED string::lowercase(name);
 DEFINE FIELD OVERWRITE color ON TABLE Tag TYPE int;
 DEFINE FIELD OVERWRITE created_at ON TABLE Tag TYPE int;
 DEFINE FIELD OVERWRITE updated_at ON TABLE Tag COMPUTED time::millis(time::now());
@@ -427,6 +428,7 @@ DEFINE ANALYZER IF NOT EXISTS simple TOKENIZERS blank, class FILTERS lowercase;
 DEFINE INDEX OVERWRITE node_tags ON TABLE INode FIELDS tags[*];
 DEFINE INDEX OVERWRITE task_due_date ON TABLE TaskNode FIELDS due_date;
 DEFINE INDEX OVERWRITE unique_relation ON TABLE IRelation FIELDS in, out, verb UNIQUE;
+DEFINE INDEX OVERWRITE unique_tag_name ON TABLE Tag FIELDS name_lower UNIQUE;
 
 -- Content structure indexes for `INode`
 DEFINE INDEX OVERWRITE content_bold_marks ON TABLE INode
