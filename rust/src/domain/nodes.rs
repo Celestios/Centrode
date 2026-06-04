@@ -43,8 +43,6 @@ define_nodes! {
         pub resolved_style: Option<NodeStyle>,
         pub layout: Option<NodeLayout>,
         pub resolved_layout: Option<NodeLayout>,
-        pub layer: String,
-        pub position: Coordinates,
         pub size: Size,
         #[surql_default = "1"]
         pub line_count: i32,
@@ -66,11 +64,9 @@ define_nodes! {
         pub due_date: Option<i64>,
         #[surql_type = "any"]
         pub state: String,
-        pub position: Coordinates,
         pub size: Size,
         pub expandable: bool,
         pub is_expanded: bool,
-        pub layer: String,
         pub style: Option<NodeStyle>,
         pub resolved_style: Option<NodeStyle>,
         pub layout: Option<NodeLayout>,
@@ -80,48 +76,36 @@ define_nodes! {
     };
 
     InterNode, "InterNode", [] {
-        pub position: Coordinates,
         pub style: Option<String>,
         pub verb: String,
         pub behavioral_features: Option<String>,
-        pub layer: String,
     };
 
     CommentNode, "CommentNode", [] {
         pub text: String,
-        pub position: Coordinates,
         pub size: Size,
-        pub layer: String,
     };
 
     DrawingNode, "DrawingNode", [] {
         pub paths: Vec<String>,
-        pub position: Coordinates,
-        pub layer: String,
     };
 
     ShapeNode, "ShapeNode", [] {
         pub shape_type: String,
         pub style: Option<NodeStyle>,
-        pub position: Coordinates,
         pub size: Size,
-        pub layer: String,
     };
 
     FrameNode, "FrameNode", [] {
         pub title: String,
         pub style: Option<NodeStyle>,
-        pub position: Coordinates,
         pub size: Size,
-        pub layer: String,
     };
 
     MediaNode, "MediaNode", [] {
         pub source_url: String,
         pub media_type: String,
-        pub position: Coordinates,
         pub size: Size,
-        pub layer: String,
     };
 }
 

@@ -1,12 +1,64 @@
 use anyhow::Result;
+use serde::{Deserialize, Serialize};
 use surrealdb::engine::local::Db;
 use surrealdb::types::{RecordId, SurrealValue, Value};
 use surrealdb::Surreal;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, SurrealValue)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HistoryStatus {
     Applied,
     Undone,
+}
+
+impl HistoryStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            HistoryStatus::Applied => "applied",
+            HistoryStatus::Undone => "undone",
+        }
+    }
+}
+
+impl Serialize for HistoryStatus {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
+impl<'de> Deserialize<'de> for HistoryStatus {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        match s.as_str() {
+            "applied" => Ok(HistoryStatus::Applied),
+            "undone" => Ok(HistoryStatus::Undone),
+            _ => Err(serde::de::Error::custom("expected applied or undone")),
+        }
+    }
+}
+
+impl SurrealValue for HistoryStatus {
+    fn kind_of() -> surrealdb::types::Kind {
+        surrealdb::types::Kind::Any
+    }
+
+    fn into_value(self) -> Value {
+        self.as_str().to_string().into_value()
+    }
+
+    fn from_value(value: Value) -> std::result::Result<Self, surrealdb::types::Error> {
+        let s = String::from_value(value)?;
+        match s.as_str() {
+            "applied" => Ok(HistoryStatus::Applied),
+            "undone" => Ok(HistoryStatus::Undone),
+            _ => Err(surrealdb::types::Error::thrown(format!("Expected applied or undone, found: {}", s))),
+        }
+    }
 }
 
 #[derive(Debug, SurrealValue)]
@@ -14,7 +66,7 @@ pub struct HistoryRecord {
     pub id: Option<String>,
     pub action_type: String,
     pub payload: Value,
-    pub status: String,
+    pub status: HistoryStatus,
     pub created_at: i64,
 }
 
@@ -38,7 +90,7 @@ impl<'a> HistoryManager<'a> {
             id: None,
             action_type: action_type.to_string(),
             payload,
-            status: "applied".to_string(),
+            status: HistoryStatus::Applied,
             created_at: chrono::Utc::now().timestamp_millis(),
         };
 
@@ -94,7 +146,7 @@ impl<'a> HistoryManager<'a> {
                     .bind(("id", record_id))
                     .await?;
 
-                rec.status = "undone".to_string();
+                rec.status = HistoryStatus::Undone;
                 return Ok(Some(rec));
             }
         }
@@ -122,7 +174,7 @@ impl<'a> HistoryManager<'a> {
                     .bind(("id", record_id))
                     .await?;
 
-                rec.status = "applied".to_string();
+                rec.status = HistoryStatus::Applied;
                 return Ok(Some(rec));
             }
         }

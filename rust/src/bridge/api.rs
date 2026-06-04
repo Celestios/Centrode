@@ -1,5 +1,4 @@
 use crate::bridge::stream::{self, GraphEvent};
-use crate::domain::analysis::GraphAnalysis;
 use crate::domain::base_models::{IsTable, RecordStrings, ViewportState};
 use crate::domain::nodes::Nodes;
 use crate::domain::snapshot::GraphSnapshot;
@@ -77,7 +76,7 @@ impl AppHandle {
     }
 
     async fn broadcast_boundaries(&self) {
-        match GraphAnalysis::calculate_global_bounds(self.repo.db()).await {
+        match self.repo.calculate_global_bounds().await {
             Ok(bounds) => {
                 info!("FFI: Broadcasting bounds: {:?}", bounds);
                 stream::publish_event(GraphEvent::BoundaryUpdated(bounds));

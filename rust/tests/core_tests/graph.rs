@@ -1,5 +1,4 @@
 use crate::common::setup_test_repo;
-use mycelium_core::domain::analysis::{DecaySignificanceStrategy, GraphAnalysis};
 use mycelium_core::domain::base_models::{
     BoundingBox, Coordinates, IsTable, MapData, RecordStrings, Size,
 };
@@ -257,7 +256,7 @@ async fn test_graph_boundary_calculation() {
     let repo = setup_test_repo().await;
 
     // 1. Zero node fallback check
-    let empty_bounds = GraphAnalysis::calculate_global_bounds(repo.db())
+    let empty_bounds = repo.calculate_global_bounds()
         .await
         .expect("Failed to calculate empty bounds");
     assert_eq!(empty_bounds, BoundingBox::default());
@@ -324,7 +323,7 @@ async fn test_graph_boundary_calculation() {
     repo.create_node(Nodes::INode(node_2)).await.unwrap();
 
     // Verify calculated strict boundaries
-    let bounds = GraphAnalysis::calculate_global_bounds(repo.db())
+    let bounds = repo.calculate_global_bounds()
         .await
         .expect("Failed to calculate bounds");
     assert_eq!(bounds.min_x, -100.0);
@@ -409,10 +408,7 @@ async fn test_decay_significance_propagation() {
     }
 
     // Center Node "A"
-    let strategy = DecaySignificanceStrategy;
-    strategy
-        .recalculate_area(
-            repo.db(),
+    repo.recalculate_significance_area(
             RecordStrings {
                 table: "INode".to_string(),
                 key: "A".to_string(),

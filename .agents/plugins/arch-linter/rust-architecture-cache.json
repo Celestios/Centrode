@@ -1,6 +1,6 @@
 {
-  "last_audit_commit": "94684151b260ef7ec6765b4d99416d5a718364ab",
-  "last_audit_time": "2026-06-04T20:25:00.443735Z",
+  "last_audit_commit": "f50557924b799e18401016f07a1b5cba72cc7d88",
+  "last_audit_time": "2026-06-04T21:31:54.465049Z",
   "layers": {
     "rust/src/bridge": {
       "tier": 1,
@@ -21,17 +21,13 @@
   "components": {
     "rust/src/bridge/api.rs": {
       "class": "AppHandle",
-      "architectural_role": "FFI Bridge API Gateway",
-      "sha256": "ef50021a78af810bb8fddf2025057c0eb9b32d40",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "DRY: Duplicate code in Undo/Redo",
-        "DIP: Direct concretion instantiation"
-      ],
+      "architectural_role": "FFI boundary, entry points for Flutter interactions, mapping events and data types.",
+      "sha256": "feb510861a6c2979c2617533068399c2bc76e854",
+      "status": "COMPLIANT",
+      "violations": [],
       "tier": 1,
       "imports": [
         "rust/src/bridge/stream.rs",
-        "rust/src/domain/analysis.rs",
         "rust/src/domain/base_models.rs",
         "rust/src/domain/nodes.rs",
         "rust/src/domain/snapshot.rs",
@@ -127,27 +123,17 @@
     },
     "rust/src/domain/analysis.rs": {
       "class": "DecaySignificanceStrategy, GraphAnalysis",
-      "architectural_role": "Graph significance calculations strategy",
-      "sha256": "9fcc22104c2dd757c0f3213763347d0702c0f10b",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "DIP: DB driver leak in Domain",
-        "SRP: Inline SurrealQL in domain methods"
-      ],
+      "architectural_role": "Domain analysis logic, significance computations, boundary algorithms.",
+      "sha256": "bfb3b564f47239fc53d9ba7cc62806050d522549",
+      "status": "COMPLIANT",
+      "violations": [],
       "tier": 3,
-      "imports": [
-        "rust/src/domain/base_models.rs",
-        "rust/src/domain/nodes.rs",
-        "rust/src/domain/relations.rs"
-      ],
+      "imports": [],
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
       "pattern": "Domain Logic",
-      "public_apis": [
-        "pub async fn recalculate_area(",
-        "pub async fn calculate_global_bounds(db: &Surreal<Db>) -> anyhow::Result<BoundingBox>"
-      ]
+      "public_apis": []
     },
     "rust/src/domain/base_models.rs": {
       "class": "Record, RecordStrings, IsTable, Comment, Coordinates, Size, ViewportState, DisplayMode, MapData, BoundingBox",
@@ -175,13 +161,10 @@
     },
     "rust/src/domain/contents.rs": {
       "class": "Content, ContentBlock, BlockType, BlockAttrs, InlineElement, InlineType, TextMark, MarkType, MarkAttrs",
-      "architectural_role": "Rich text content blocks structure",
-      "sha256": "cf7e299598fbee40492e48393858c57cb5620649",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "Correctness: Plain text breaks bug on HardBreak",
-        "DRY: Duplicate block creator helper logic"
-      ],
+      "architectural_role": "Rich content representation, structures, markdown utilities, plain text formatting.",
+      "sha256": "ca79ce67a97b0595abea91465b61462b786fc203",
+      "status": "COMPLIANT",
+      "violations": [],
       "tier": 3,
       "imports": [
         "rust/src/domain/schema.rs"
@@ -189,7 +172,7 @@
       "test_file": "inline or integration test",
       "has_tests": true,
       "is_ffi_bridge": false,
-      "pattern": "Domain Logic",
+      "pattern": "Domain Entity",
       "public_apis": [
         "pub fn new(blocks: Vec<ContentBlock>) -> Self",
         "pub fn from_plain_text(text: impl Into<String>) -> Self",
@@ -215,17 +198,15 @@
     },
     "rust/src/domain/macros/define_nodes.rs": {
       "class": "Nodes",
-      "architectural_role": "Domain nodes code generation macro",
-      "sha256": "856e6e94253011efb5464b3c26c90eddbeb37b62",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "DRY: Macro doesn't auto-define position/layer fields"
-      ],
+      "architectural_role": "Metaprogramming macro generator for node definitions.",
+      "sha256": "a15de0c2c56ff19e6fc775a6e503161d5895a8f2",
+      "status": "COMPLIANT",
+      "violations": [],
       "tier": 3,
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Domain Logic",
+      "pattern": "Macro",
       "public_apis": [
         "pub fn fetch_fields_for_table(table: &str) -> &'static [&'static str]",
         "pub fn table_and_key(&self) -> (&'static str, &str)",
@@ -246,13 +227,10 @@
     },
     "rust/src/domain/nodes.rs": {
       "class": "IsNode",
-      "architectural_role": "Domain graph nodes definition",
-      "sha256": "39de0201125bab7f5bcfdc3c4d9836e47c1b90ea",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "OCP: Macro requires position/layer fields",
-        "Design Symmetry: InterNode style type is asymmetric"
-      ],
+      "architectural_role": "Node definition domain entities and spatial models.",
+      "sha256": "ab0fe661f7422a2a7b9c44fb803e84c325b3d27f",
+      "status": "COMPLIANT",
+      "violations": [],
       "tier": 3,
       "imports": [
         "rust/src/domain/base_models.rs",
@@ -264,7 +242,7 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Domain Logic"
+      "pattern": "Domain Entity"
     },
     "rust/src/domain/patches.rs": {
       "class": "TagOperation, NodePatch, RelationPatch, EntityPatch, SymmetricEntityPatch, PatchHistoryPayload",
@@ -485,19 +463,17 @@
     },
     "rust/src/persistence/history.rs": {
       "class": "HistoryStatus, HistoryRecord, HistoryManager, HistoryPrune",
-      "architectural_role": "Undo/Redo command history caretaker",
-      "sha256": "7c55c00224250dba7b686c9e3d7e54c4df97a682",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "Type Safety: Raw strings used instead of HistoryStatus enum",
-        "DIP: UTC clock dependency"
-      ],
+      "architectural_role": "Undo/redo history record persistence and state mapping.",
+      "sha256": "45d738d1e227dc4a8f023f6ebfc12c6639ae072d",
+      "status": "COMPLIANT",
+      "violations": [],
       "tier": 2,
       "test_file": "inline or integration test",
       "has_tests": true,
       "is_ffi_bridge": false,
-      "pattern": "Persistence Engine",
+      "pattern": "Repository Helper",
       "public_apis": [
+        "pub fn as_str(&self) -> &'static str",
         "pub fn new(db: &'a Surreal<Db>, threshold: usize) -> Self",
         "pub async fn push_event(&self, action_type: &str, payload: Value) -> Result<()>",
         "pub async fn undo(&self) -> Result<Option<HistoryRecord>>",
@@ -506,18 +482,12 @@
     },
     "rust/src/persistence/repo.rs": {
       "class": "Repository",
-      "architectural_role": "Central persistence repository",
-      "sha256": "7496f677ac3865d85529eba6f06e3f6d421f88f9",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "SRP: God Repository",
-        "DIP: DecaySignificanceStrategy direct instantiation",
-        "ISP: Inconsistent theme queries",
-        "Race condition: Uniqueness check TOCTOU"
-      ],
+      "architectural_role": "Repository persistence for CRUD, structural transactions, and area queries.",
+      "sha256": "f920dd66c4cca062f68ac2899878b576a110be1d",
+      "status": "COMPLIANT",
+      "violations": [],
       "tier": 2,
       "imports": [
-        "rust/src/domain/analysis.rs",
         "rust/src/domain/base_models.rs",
         "rust/src/domain/nodes.rs",
         "rust/src/domain/patches.rs",
@@ -531,12 +501,14 @@
       "test_file": "inline or integration test",
       "has_tests": true,
       "is_ffi_bridge": false,
-      "pattern": "Persistence Engine",
+      "pattern": "Repository",
       "public_apis": [
         "pub fn new(db: Surreal<Db>) -> Self",
         "pub fn db(&self) -> &Surreal<Db>",
         "pub async fn create_relation(&self, input: IRelation) -> Result<()>",
         "pub async fn trigger_significance_update(&self, node_id: &RecordStrings) -> Result<()>",
+        "pub async fn recalculate_significance_area(&self, center_node_id: RecordStrings) -> Result<()>",
+        "pub async fn calculate_global_bounds(&self) -> Result<BoundingBox>",
         "pub async fn get_node(&self, table: String, key: String) -> Result<Option<Nodes>>",
         "pub async fn get_graph_snapshot(&self) -> Result<GraphSnapshot>",
         "pub async fn set_graph_snapshot(&self, snapshot: GraphSnapshot) -> Result<()>",

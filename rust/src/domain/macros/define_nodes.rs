@@ -16,6 +16,8 @@ macro_rules! define_nodes {
             #[derive(Debug, Clone, surrealdb::types::SurrealValue)]
             pub struct $struct_name {
                 pub id: $crate::domain::base_models::RecordStrings,
+                pub position: $crate::domain::base_models::Coordinates,
+                pub layer: String,
                 pub created_at: i64,
                 pub updated_at: i64,
                 $(
@@ -75,6 +77,24 @@ macro_rules! define_nodes {
                     let mut lines = Vec::new();
                     lines.push($crate::domain::schema::generate_created_at(table, true));
                     lines.push($crate::domain::schema::generate_updated_at(table));
+                    lines.extend($crate::domain::nodes::generate_field_schema_lines(
+                        table,
+                        "position",
+                        None,
+                        None,
+                        None,
+                        < $crate::domain::base_models::Coordinates as $crate::domain::nodes::SurqlSchemaField >::field_type(),
+                        < $crate::domain::base_models::Coordinates as $crate::domain::nodes::SurqlSchemaField >::sub_field_paths(),
+                    ));
+                    lines.extend($crate::domain::nodes::generate_field_schema_lines(
+                        table,
+                        "layer",
+                        None,
+                        None,
+                        None,
+                        < String as $crate::domain::nodes::SurqlSchemaField >::field_type(),
+                        < String as $crate::domain::nodes::SurqlSchemaField >::sub_field_paths(),
+                    ));
                     $(
                         let type_override: Option<&str> = None $(.or(Some($type_override)))?;
                         let default_override: Option<&str> = None $(.or(Some($default_override)))?;

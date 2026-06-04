@@ -31,7 +31,10 @@ impl Content {
         let mut result = String::new();
         for block in blocks {
             for inline in &block.content {
-                result.push_str(&inline.text);
+                match inline.inline_type {
+                    InlineType::Text => result.push_str(&inline.text),
+                    InlineType::HardBreak => result.push('\n'),
+                }
             }
             result.push('\n');
         }
@@ -395,5 +398,22 @@ mod tests {
         content.blocks[1].content[1].text = "updated bold".to_string();
         content.refresh_text();
         assert_eq!(content.text, "My Document Heading\nThis is updated bold text.");
+    }
+
+    #[test]
+    fn test_hard_break_plain_text() {
+        let blocks = vec![
+            ContentBlock {
+                block_type: BlockType::Paragraph,
+                content: vec![
+                    InlineElement::text("Line 1"),
+                    InlineElement::hard_break(),
+                    InlineElement::text("Line 2"),
+                ],
+                attrs: None,
+            }
+        ];
+        let content = Content::new(blocks);
+        assert_eq!(content.text, "Line 1\nLine 2");
     }
 }
