@@ -34,10 +34,7 @@ if (-not (Test-Path $gitDir)) {
 }
 
 # Resolve absolute paths for outputs
-$statusFile = Join-Path $gitDir "active_status.txt"
-$branchFile = Join-Path $gitDir "active_branch.txt"
-$diffFile = Join-Path $gitDir "active_diff.patch"
-$validationFile = Join-Path $gitDir "active_validation.json"
+$diffsDir = Join-Path $gitDir "active_diffs"
 
 # Scope validation configuration
 $ScopeKeywords = @{
@@ -54,10 +51,9 @@ $ScopeKeywords = @{
 
 # Helper to clean up all temporary workspace validation files
 function Clear-TempFiles {
-    Remove-Item $statusFile -ErrorAction SilentlyContinue
-    Remove-Item $branchFile -ErrorAction SilentlyContinue
-    Remove-Item $diffFile -ErrorAction SilentlyContinue
-    Remove-Item $validationFile -ErrorAction SilentlyContinue
+    if (Test-Path $diffsDir) {
+        Remove-Item -Recurse -Force $diffsDir -ErrorAction SilentlyContinue
+    }
 }
 
 # --- PREPARATION PHASE ---
@@ -67,12 +63,28 @@ if ($Prepare) {
     # 1. Gather git info
     $currentBranch = (git branch --show-current).Trim()
     $statusText = git status
-    $diffText = git diff HEAD
     
-    # Write raw output files for agent consumption
-    $statusText | Out-File -FilePath $statusFile -Encoding utf8
-    $currentBranch | Out-File -FilePath $branchFile -Encoding utf8
-    $diffText | Out-File -FilePath $diffFile -Encoding utf8
+    # Clean up old diffs directory and recreate it
+    if (Test-Path $diffsDir) {
+        Remove-Item -Recurse -Force $diffsDir -ErrorAction SilentlyContinue
+    }
+    New-Item -ItemType Directory -Force -Path $diffsDir | Out-Null
+    
+    # Save diffs per file
+    $changedFiles = git diff --name-only HEAD
+    $savedDiffPaths = @()
+    foreach ($file in $changedFiles) {
+        if (-not [string]::IsNullOrWhiteSpace($file)) {
+            $fileDiffPath = Join-Path $diffsDir ($file + ".patch")
+            $parentDir = Split-Path $fileDiffPath
+            if (-not (Test-Path $parentDir)) {
+                New-Item -ItemType Directory -Force -Path $parentDir | Out-Null
+            }
+            git diff HEAD -- $file | Out-File -FilePath $fileDiffPath -Encoding utf8
+            # Cleanly format the path with forward slashes for cross-platform/agent compatibility
+            $savedDiffPaths += ".git/active_diffs/$($file.Replace('\', '/')).patch"
+        }
+    }
     
     # 2. Validate Branch
     $branchValid = $false
@@ -104,12 +116,12 @@ if ($Prepare) {
     # 3. Check Scope Relevance of Modified Files
     $scopeMatch = $true
     if ($branchValid -and $scopeValid) {
-        $changedFiles = git diff --name-only HEAD | ForEach-Object { $_.ToLower() }
-        if ($changedFiles.Count -gt 0) {
+        $changedFilesList = git diff --name-only HEAD | ForEach-Object { $_.ToLower() }
+        if ($changedFilesList.Count -gt 0) {
             $keywords = $ScopeKeywords[$detectedScope]
             $matchedFileCount = 0
             
-            foreach ($file in $changedFiles) {
+            foreach ($file in $changedFilesList) {
                 foreach ($kw in $keywords) {
                     if ($file.Contains($kw)) {
                         $matchedFileCount++
@@ -125,7 +137,7 @@ if ($Prepare) {
         }
     }
     
-    # Write JSON report
+    # Build JSON report
     $report = @{
         branchName    = $currentBranch
         branchValid   = $branchValid
@@ -136,20 +148,21 @@ if ($Prepare) {
         warnings      = $warnings
     }
     
-    $report | ConvertTo-Json -Depth 5 | Out-File -FilePath $validationFile -Encoding utf8
-    
-    Write-Host "Workspace analysis complete. Reports written to .git/ directory:"
-    Write-Host "  - .git/active_status.txt"
-    Write-Host "  - .git/active_branch.txt"
-    Write-Host "  - .git/active_diff.patch"
-    Write-Host "  - .git/active_validation.json"
-    
-    if ($warnings.Count -gt 0) {
-        Write-Warning "Warnings detected:"
-        foreach ($w in $warnings) {
-            Write-Warning "  - $w"
-        }
+    Write-Host "--- ACTIVE BRANCH ---"
+    Write-Host $currentBranch
+    Write-Host ""
+    Write-Host "--- ACTIVE STATUS ---"
+    Write-Host $statusText
+    Write-Host ""
+    Write-Host "--- ACTIVE VALIDATION ---"
+    $report | ConvertTo-Json -Depth 5
+    Write-Host ""
+    Write-Host "--- ACTIVE DIFF FILES ---"
+    foreach ($path in $savedDiffPaths) {
+        Write-Host $path
     }
+    Write-Host ""
+    Write-Host "Workspace analysis complete. Diffs saved per file in .git/active_diffs/"
     exit 0
 }
 

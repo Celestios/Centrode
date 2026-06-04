@@ -47,40 +47,43 @@ Where:
     powershell -ExecutionPolicy Bypass -File ./scripts/git-commit.ps1 -Prepare
     ```
   - **Read Analysis Outputs**:
-    - Read `file:///.git/active_branch.txt` to see the current branch name.
-    - Read `file:///.git/active_status.txt` to inspect the git status.
-    - Read `file:///.git/active_diff.patch` to review the unified diff of changes.
-    - Read `file:///.git/active_validation.json` to verify the branch validation status and check for scope mismatch warnings.
+    - Parse the console output of the preparation command to find the **Active Branch**, **Active Status**, and **Active Validation** JSON.
+    - Review the paths listed under the **Active Diff Files** section of the console output, then inspect those individual patch files saved under the `.git/active_diffs/` directory to review the diffs for each modified file.
   - **Verify Branch Context**:
-    - If `active_validation.json` reports any warnings (e.g. branch name format is invalid, scope does not match the modified files, or user is committing to `main`/`master`), display these warnings to the user.
+    - If the validation JSON reports any warnings (e.g. branch name format is invalid, scope does not match the modified files, or user is committing to `main`/`master`), display these warnings to the user.
     - If the branch name is invalid (e.g. not in `<type>/<scope>-<kebab-case-description>` format), prompt the user and offer to rename it using `git branch -m <new-name>`.
+
 
 ---
 
 ### Action Option 1: Standard Commit
 
 #### A. Commit Message Drafting
-- Formulate a Conventional Commit message based on the changes in `.git/active_diff.patch`:
+- Formulate a Conventional Commit message based on the changes reviewed in `.git/active_diffs/`:
   - **Header format**: `<type>(<scope>): <subject>` (or `<type>: <subject>` if no scope).
   - **Type**: Must match the branch type (e.g., `feat`, `fix`, `refactor`).
   - **Subject rules**: Standard lowercase, imperative mood ("add feature" not "added feature"), no trailing period, strictly under `max_subject_length` (default 50) characters.
-  - **Body**: (Optional) Explain *why* the changes were made and *what* was done. Wrap lines at `72` characters.
+  - **Body**: **Mandatory** (exempt only for `chore(release)` commits). Explain *why* the changes were made and *what* was done. Separate the header and body by a blank line, and wrap lines at `72` characters.
   - **Footer**: Include breaking changes (`BREAKING CHANGE: <description>`) if it is a breaking change.
 
 #### B. Execution
-- Run the commit command with direct parameters (recommended for speed and automation):
-  ```powershell
-  powershell -ExecutionPolicy Bypass -File ./scripts/git-commit.ps1 -CommitMsg "<message-text>" -Stage "file/path/or/pattern1", "pattern2"
-  ```
-  *(Pass `-StageAll` instead of `-Stage` to automatically stage all changes in the workspace).*
-- Alternatively, draft the message in a file first:
-  - Write the message to a temporary file: `.git/proposed_commit_msg.txt`.
+- **Drafting in a file (Strongly Recommended)**:
+  To avoid issues formatting multiline strings with newlines and quotes in PowerShell, write the commit message to a temporary file:
+  - Write the complete message (header, blank line, and mandatory body) to a file: `.git/proposed_commit_msg.txt`.
   - Display the drafted message and list of affected files to the user.
   - Execute the commit:
     ```powershell
-    powershell -ExecutionPolicy Bypass -File ./scripts/git-commit.ps1 -CommitMsgFile .git/proposed_commit_msg.txt
+    powershell -ExecutionPolicy Bypass -File ./scripts/git-commit.ps1 -CommitMsgFile .git/proposed_commit_msg.txt -StageAll
     ```
-- When committing, the script automatically applies your staging preferences, validates the commit format, commits, and removes temporary workspace report files (`active_status.txt`, `active_branch.txt`, `active_diff.patch`, `active_validation.json`).
+    *(Or pass `-Stage "file/path1", "file/path2"` instead of `-StageAll` to stage specific files).*
+
+- **Direct CommandLine Parameter (Alternative)**:
+  If running directly, you MUST supply a multiline string containing both the header and the body:
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File ./scripts/git-commit.ps1 -CommitMsg "refactor(model): batch 1 code health refactoring of rust core`n`n- Refactored domain structures to adhere to naming conventions`n- Updated serialization models for better performance" -StageAll
+  ```
+- When committing, the script automatically applies your staging preferences, validates the commit format, commits, and removes the temporary workspace report directory (`.git/active_diffs/`).
+
 
 ---
 

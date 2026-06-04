@@ -354,8 +354,8 @@ DEFINE FIELD OVERWRITE resolved_layout.from_side ON TABLE IRelation TYPE string;
 DEFINE FIELD OVERWRITE resolved_layout.to_side ON TABLE IRelation TYPE string;
 DEFINE FIELD OVERWRITE resolved_layout.strategy_type ON TABLE IRelation TYPE string;
 
-DEFINE FIELD OVERWRITE in ON TABLE IRelation TYPE record<INode | TaskNode | InterNode>;
-DEFINE FIELD OVERWRITE out ON TABLE IRelation TYPE record<INode | TaskNode | InterNode>;
+DEFINE FIELD OVERWRITE in ON TABLE IRelation TYPE record< INode | TaskNode | InterNode | CommentNode | DrawingNode | ShapeNode | FrameNode | MediaNode>;
+DEFINE FIELD OVERWRITE out ON TABLE IRelation TYPE record< INode | TaskNode | InterNode | CommentNode | DrawingNode | ShapeNode | FrameNode | MediaNode>;
 DEFINE FIELD OVERWRITE verb ON TABLE IRelation TYPE string;
 DEFINE FIELD OVERWRITE directionless ON TABLE IRelation TYPE bool;
 DEFINE FIELD OVERWRITE layer ON TABLE IRelation TYPE string;
@@ -453,4 +453,4 @@ DEFINE INDEX OVERWRITE task_content_headings ON TABLE TaskNode
 DEFINE INDEX OVERWRITE task_content_text_search ON TABLE TaskNode
     FIELDS content.text
     FULLTEXT ANALYZER simple BM25 HIGHLIGHTS;
-
+

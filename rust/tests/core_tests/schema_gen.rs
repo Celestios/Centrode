@@ -19,7 +19,7 @@ fn test_generate_schema_file() {
         ("MediaNode", MediaNode::generate_fields_schema("MediaNode")),
     ];
 
-    for (name, lines) in node_schemas {
+    for (name, lines) in &node_schemas {
         generated_schema.push_str(&format!("-- ---------------------------------------------------------------------------\n"));
         generated_schema.push_str(&format!("-- Fields for `{}`\n", name));
         generated_schema.push_str(&format!("-- ---------------------------------------------------------------------------\n"));
@@ -50,6 +50,25 @@ fn test_generate_schema_file() {
     new_content.push_str(end_marker);
     new_content.push_str(&content[end_idx + end_marker.len()..]);
 
-    fs::write(schema_path, new_content).expect("Failed to write updated schema.surql");
+    // Dynamically replace IRelation 'in' and 'out' record constraints
+    let node_names: Vec<&str> = node_schemas.iter().map(|(name, _)| *name).collect();
+    let union_types = node_names.join(" | ");
+    let in_prefix = "DEFINE FIELD OVERWRITE in ON TABLE IRelation TYPE record<";
+    let out_prefix = "DEFINE FIELD OVERWRITE out ON TABLE IRelation TYPE record<";
+
+    let mut lines = Vec::new();
+    for line in new_content.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(in_prefix) {
+            lines.push(format!("{} {}>;", in_prefix, union_types));
+        } else if trimmed.starts_with(out_prefix) {
+            lines.push(format!("{} {}>;", out_prefix, union_types));
+        } else {
+            lines.push(line.to_string());
+        }
+    }
+    let final_content = lines.join("\n") + "\n";
+
+    fs::write(schema_path, final_content).expect("Failed to write updated schema.surql");
     println!("schema.surql has been updated successfully.");
 }

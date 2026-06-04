@@ -1,6 +1,6 @@
 {
-  "last_audit_commit": "f50557924b799e18401016f07a1b5cba72cc7d88",
-  "last_audit_time": "2026-06-04T21:31:54.465049Z",
+  "last_audit_commit": "65f9ba46c05038f1ed3411648970f417446e259c",
+  "last_audit_time": "2026-06-04T22:02:31.325491Z",
   "layers": {
     "rust/src/bridge": {
       "tier": 1,
@@ -355,8 +355,8 @@
     },
     "rust/src/domain/templates.rs": {
       "class": "Template",
-      "architectural_role": "Domain Template Prototype representation",
-      "sha256": "8b3c05ab1da1c1dd0493e6ab2bd2591a0ab05a2c",
+      "architectural_role": "Domain model representing templates and instantiations, containing selection centroid math.",
+      "sha256": "532a2bbe9dc4d5144ef06b955881d1098e6a53e5",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -368,7 +368,10 @@
       "test_file": "inline or integration test",
       "has_tests": true,
       "is_ffi_bridge": false,
-      "pattern": "Domain Logic"
+      "pattern": "Domain Entity",
+      "public_apis": [
+        "pub fn from_selection("
+      ]
     },
     "rust/src/domain/theme.rs": {
       "class": "Theme, ThemeBrightness, FontWeight, ThemeFields",
@@ -482,68 +485,19 @@
     },
     "rust/src/persistence/repo.rs": {
       "class": "Repository",
-      "architectural_role": "Repository persistence for CRUD, structural transactions, and area queries.",
-      "sha256": "f920dd66c4cca062f68ac2899878b576a110be1d",
+      "architectural_role": "Persistence layer module entry point declaring sub-repositories.",
+      "sha256": "3454b18717f33f1eaf0acca184bad1846176e425",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
-      "imports": [
-        "rust/src/domain/base_models.rs",
-        "rust/src/domain/nodes.rs",
-        "rust/src/domain/patches.rs",
-        "rust/src/domain/relations.rs",
-        "rust/src/domain/snapshot.rs",
-        "rust/src/domain/tags.rs",
-        "rust/src/domain/templates.rs",
-        "rust/src/domain/theme.rs",
-        "rust/src/persistence/history.rs"
-      ],
+      "imports": [],
       "test_file": "inline or integration test",
       "has_tests": true,
       "is_ffi_bridge": false,
-      "pattern": "Repository",
+      "pattern": "Facade",
       "public_apis": [
         "pub fn new(db: Surreal<Db>) -> Self",
-        "pub fn db(&self) -> &Surreal<Db>",
-        "pub async fn create_relation(&self, input: IRelation) -> Result<()>",
-        "pub async fn trigger_significance_update(&self, node_id: &RecordStrings) -> Result<()>",
-        "pub async fn recalculate_significance_area(&self, center_node_id: RecordStrings) -> Result<()>",
-        "pub async fn calculate_global_bounds(&self) -> Result<BoundingBox>",
-        "pub async fn get_node(&self, table: String, key: String) -> Result<Option<Nodes>>",
-        "pub async fn get_graph_snapshot(&self) -> Result<GraphSnapshot>",
-        "pub async fn set_graph_snapshot(&self, snapshot: GraphSnapshot) -> Result<()>",
-        "pub async fn delete_node(&self, table: String, key: String) -> Result<()>",
-        "pub async fn get_relation(&self, table: String, key: String) -> Result<IRelation>",
-        "pub async fn delete_relation(&self, table: String, key: String) -> Result<()>",
-        "pub async fn update_relation(",
-        "pub async fn reroute_relation(",
-        "pub async fn patch_entity(&self, id: RecordId, patch: &EntityPatch) -> Result<()>",
-        "pub async fn create_tag(&self, tag: Tag) -> Result<()>",
-        "pub async fn update_tag(&self, tag: Tag) -> Result<()>",
-        "pub async fn get_tag(&self, key: String) -> Result<Option<Tag>>",
-        "pub async fn get_all_tags(&self) -> Result<Vec<Tag>>",
-        "pub async fn delete_tag(&self, key: String) -> Result<()>",
-        "pub async fn create_template(&self, template: Template) -> Result<()>",
-        "pub async fn get_all_templates(&self) -> Result<Vec<Template>>",
-        "pub async fn delete_template(&self, key: String) -> Result<()>",
-        "pub async fn save_template_from_selection(",
-        "pub async fn instantiate_template(",
-        "pub async fn record_patch_history(",
-        "pub async fn apply_patch_check_position(",
-        "pub async fn get_connected_relations(&self, node_key: &str) -> Result<Vec<IRelation>>",
-        "pub async fn get_all_themes(&self) -> Result<Vec<Theme>>",
-        "pub async fn get_theme(&self, key: String) -> Result<Option<Theme>>",
-        "pub async fn set_active_theme_id(&self, theme_id: String) -> Result<()>",
-        "pub async fn update_viewport_state(&self, state: ViewportState) -> Result<()>",
-        "pub async fn get_active_theme_id(&self) -> Result<Option<String>>",
-        "pub async fn set_active_theme(&self, theme_key: String) -> Result<()>",
-        "pub async fn create_theme(&self, key: String, fields: ThemeFields) -> Result<()>",
-        "pub async fn update_theme(&self, theme: Theme) -> Result<()>",
-        "pub async fn undo_count(&self) -> Result<u32>",
-        "pub async fn redo_count(&self) -> Result<u32>",
-        "pub async fn query_search(&self, query: String) -> Result<Vec<Nodes>>",
-        "pub async fn undo_event(&self) -> Result<Option<HistoryRecord>>",
-        "pub async fn redo_event(&self) -> Result<Option<HistoryRecord>>"
+        "pub fn db(&self) -> &Surreal<Db>"
       ]
     },
     "rust/src/persistence/schema.rs": {
@@ -607,6 +561,171 @@
         "pub fn init_telemetry()",
         "pub fn connect_log_stream()",
         "pub fn subscribe_to_logs() -> broadcast::Receiver<LogState>"
+      ]
+    },
+    "rust/src/persistence/repo/analysis.rs": {
+      "class": "",
+      "architectural_role": "Repository module for significance and bounding box queries.",
+      "sha256": "8fd7694b4a84b3226d230ef71239a6b3ede2186c",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 2,
+      "imports": [
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/nodes.rs",
+        "rust/src/domain/relations.rs",
+        "rust/src/persistence/repo.rs"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Repository Submodule",
+      "public_apis": [
+        "pub async fn trigger_significance_update(&self, node_id: &RecordStrings) -> Result<()>",
+        "pub async fn recalculate_significance_area(&self, center_node_id: RecordStrings) -> Result<()>",
+        "pub async fn calculate_global_bounds(&self) -> Result<BoundingBox>"
+      ]
+    },
+    "rust/src/persistence/repo/nodes.rs": {
+      "class": "",
+      "architectural_role": "Repository module for Node CRUD operations and snapshots.",
+      "sha256": "2fd221d45969c8d0004cce3ec6d933631971a89e",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 2,
+      "imports": [
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/nodes.rs",
+        "rust/src/domain/relations.rs",
+        "rust/src/domain/snapshot.rs",
+        "rust/src/persistence/repo.rs"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Repository Submodule",
+      "public_apis": [
+        "pub async fn get_node(&self, table: String, key: String) -> Result<Option<Nodes>>",
+        "pub async fn delete_node(&self, table: String, key: String) -> Result<()>",
+        "pub async fn get_graph_snapshot(&self) -> Result<GraphSnapshot>",
+        "pub async fn clear_graph(&self) -> Result<()>",
+        "pub async fn set_graph_snapshot(&self, snapshot: GraphSnapshot) -> Result<()>",
+        "pub async fn query_search(&self, query: String) -> Result<Vec<Nodes>>"
+      ]
+    },
+    "rust/src/persistence/repo/patches.rs": {
+      "class": "",
+      "architectural_role": "Repository module for Entity patches, transaction execution, and history stack checks.",
+      "sha256": "c25cbb8b38ebf0222412836144ffdce25eabee8b",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 2,
+      "imports": [
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/patches.rs",
+        "rust/src/domain/relations.rs",
+        "rust/src/domain/tags.rs",
+        "rust/src/persistence/history.rs",
+        "rust/src/persistence/repo.rs"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Repository Submodule",
+      "public_apis": [
+        "pub async fn patch_entity(&self, id: RecordId, patch: &EntityPatch) -> Result<()>",
+        "pub async fn patch_node(&self, id: RecordId, patch: &NodePatch) -> Result<()>",
+        "pub async fn patch_relation(&self, id: RecordId, patch: &RelationPatch) -> Result<()>",
+        "pub async fn record_patch_history(",
+        "pub async fn apply_patch_check_position(",
+        "pub async fn undo_count(&self) -> Result<u32>",
+        "pub async fn redo_count(&self) -> Result<u32>",
+        "pub async fn undo_event(&self) -> Result<Option<HistoryRecord>>",
+        "pub async fn redo_event(&self) -> Result<Option<HistoryRecord>>"
+      ]
+    },
+    "rust/src/persistence/repo/relations.rs": {
+      "class": "",
+      "architectural_role": "Repository module for relating nodes and rerouting relations.",
+      "sha256": "affdb1da84703dc81fd1086461c12a047ea5a91e",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 2,
+      "imports": [
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/relations.rs",
+        "rust/src/persistence/repo.rs"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Repository Submodule",
+      "public_apis": [
+        "pub async fn create_relation(&self, input: IRelation) -> Result<()>",
+        "pub async fn get_relation(&self, table: String, key: String) -> Result<IRelation>",
+        "pub async fn delete_relation(&self, table: String, key: String) -> Result<()>",
+        "pub async fn update_relation(",
+        "pub async fn reroute_relation(",
+        "pub async fn get_connected_relations(&self, node_key: &str) -> Result<Vec<IRelation>>"
+      ]
+    },
+    "rust/src/persistence/repo/tags.rs": {
+      "class": "",
+      "architectural_role": "Repository module for Tag CRUD and cascading disassociation.",
+      "sha256": "0cfa8659d22e2aa2702f03036c4c9000329c21b5",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 2,
+      "imports": [
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/tags.rs",
+        "rust/src/persistence/repo.rs"
+      ],
+      "test_file": "inline or integration test",
+      "has_tests": true,
+      "is_ffi_bridge": false,
+      "pattern": "Repository Submodule",
+      "public_apis": [
+        "pub async fn create_tag(&self, tag: Tag) -> Result<()>",
+        "pub async fn update_tag(&self, tag: Tag) -> Result<()>",
+        "pub async fn get_tag(&self, key: String) -> Result<Option<Tag>>",
+        "pub async fn get_all_tags(&self) -> Result<Vec<Tag>>",
+        "pub async fn delete_tag(&self, key: String) -> Result<()>"
+      ]
+    },
+    "rust/src/persistence/repo/templates.rs": {
+      "class": "",
+      "architectural_role": "Repository module for Theme CRUD, template management, and instantiation.",
+      "sha256": "d94aabccca447226fe61972a13380846740ee114",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 2,
+      "imports": [
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/nodes.rs",
+        "rust/src/domain/relations.rs",
+        "rust/src/domain/templates.rs",
+        "rust/src/domain/theme.rs",
+        "rust/src/persistence/repo.rs"
+      ],
+      "test_file": "inline or integration test",
+      "has_tests": true,
+      "is_ffi_bridge": false,
+      "pattern": "Repository Submodule",
+      "public_apis": [
+        "pub async fn create_template(&self, template: Template) -> Result<()>",
+        "pub async fn get_all_templates(&self) -> Result<Vec<Template>>",
+        "pub async fn delete_template(&self, key: String) -> Result<()>",
+        "pub async fn save_template_from_selection(",
+        "pub async fn instantiate_template(",
+        "pub async fn get_all_themes(&self) -> Result<Vec<Theme>>",
+        "pub async fn get_theme(&self, key: String) -> Result<Option<Theme>>",
+        "pub async fn set_active_theme_id(&self, theme_id: String) -> Result<()>",
+        "pub async fn update_viewport_state(&self, state: ViewportState) -> Result<()>",
+        "pub async fn get_active_theme_id(&self) -> Result<Option<String>>",
+        "pub async fn set_active_theme(&self, theme_key: String) -> Result<()>",
+        "pub async fn create_theme(&self, key: String, fields: ThemeFields) -> Result<()>",
+        "pub async fn update_theme(&self, theme: Theme) -> Result<()>"
       ]
     }
   }
