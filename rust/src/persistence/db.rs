@@ -38,12 +38,18 @@ impl Database {
         tracing::info!("DB: Namespace '{}', database '{}' selected.", ns, db_name);
 
         // Initialize Schema
-        schema::Schema::init(&db, name).await.map_err(|e| {
+        schema::Schema::init(&db).await.map_err(|e| {
             tracing::error!("DB: Schema initialization failed: {}", e);
             e
         })?;
 
-        tracing::info!("DB: Connection and schema initialization complete.");
+        // Seed default data
+        schema::Seeder::seed_default_data(&db, name).await.map_err(|e| {
+            tracing::error!("DB: Default data seeding failed: {}", e);
+            e
+        })?;
+
+        tracing::info!("DB: Connection, schema initialization, and seeding complete.");
         Ok(db)
     }
 }

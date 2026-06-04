@@ -14,32 +14,32 @@ part 'nodes.freezed.dart';
 
 class CommentNode {
   final RecordStrings id;
+  final Coordinates position;
+  final String layer;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
   final String text;
-  final Coordinates position;
   final Size size;
-  final String layer;
 
   const CommentNode({
     required this.id,
+    required this.position,
+    required this.layer,
     required this.createdAt,
     required this.updatedAt,
     required this.text,
-    required this.position,
     required this.size,
-    required this.layer,
   });
 
   @override
   int get hashCode =>
       id.hashCode ^
+      position.hashCode ^
+      layer.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode ^
       text.hashCode ^
-      position.hashCode ^
-      size.hashCode ^
-      layer.hashCode;
+      size.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -47,39 +47,39 @@ class CommentNode {
       other is CommentNode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          position == other.position &&
+          layer == other.layer &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt &&
           text == other.text &&
-          position == other.position &&
-          size == other.size &&
-          layer == other.layer;
+          size == other.size;
 }
 
 class DrawingNode {
   final RecordStrings id;
+  final Coordinates position;
+  final String layer;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
   final List<String> paths;
-  final Coordinates position;
-  final String layer;
 
   const DrawingNode({
     required this.id,
+    required this.position,
+    required this.layer,
     required this.createdAt,
     required this.updatedAt,
     required this.paths,
-    required this.position,
-    required this.layer,
   });
 
   @override
   int get hashCode =>
       id.hashCode ^
+      position.hashCode ^
+      layer.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode ^
-      paths.hashCode ^
-      position.hashCode ^
-      layer.hashCode;
+      paths.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -87,44 +87,44 @@ class DrawingNode {
       other is DrawingNode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          position == other.position &&
+          layer == other.layer &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt &&
-          paths == other.paths &&
-          position == other.position &&
-          layer == other.layer;
+          paths == other.paths;
 }
 
 class FrameNode {
   final RecordStrings id;
+  final Coordinates position;
+  final String layer;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
   final String title;
   final NodeStyle? style;
-  final Coordinates position;
   final Size size;
-  final String layer;
 
   const FrameNode({
     required this.id,
+    required this.position,
+    required this.layer,
     required this.createdAt,
     required this.updatedAt,
     required this.title,
     this.style,
-    required this.position,
     required this.size,
-    required this.layer,
   });
 
   @override
   int get hashCode =>
       id.hashCode ^
+      position.hashCode ^
+      layer.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode ^
       title.hashCode ^
       style.hashCode ^
-      position.hashCode ^
-      size.hashCode ^
-      layer.hashCode;
+      size.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -132,17 +132,19 @@ class FrameNode {
       other is FrameNode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          position == other.position &&
+          layer == other.layer &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt &&
           title == other.title &&
           style == other.style &&
-          position == other.position &&
-          size == other.size &&
-          layer == other.layer;
+          size == other.size;
 }
 
 class INode {
   final RecordStrings id;
+  final Coordinates position;
+  final String layer;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
   final Content content;
@@ -150,8 +152,6 @@ class INode {
   final NodeStyle? resolvedStyle;
   final NodeLayout? layout;
   final NodeLayout? resolvedLayout;
-  final String layer;
-  final Coordinates position;
   final Size size;
   final int lineCount;
   final bool expandable;
@@ -165,6 +165,8 @@ class INode {
 
   const INode({
     required this.id,
+    required this.position,
+    required this.layer,
     required this.createdAt,
     required this.updatedAt,
     required this.content,
@@ -172,8 +174,6 @@ class INode {
     this.resolvedStyle,
     this.layout,
     this.resolvedLayout,
-    required this.layer,
-    required this.position,
     required this.size,
     required this.lineCount,
     required this.expandable,
@@ -189,6 +189,8 @@ class INode {
   @override
   int get hashCode =>
       id.hashCode ^
+      position.hashCode ^
+      layer.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode ^
       content.hashCode ^
@@ -196,8 +198,6 @@ class INode {
       resolvedStyle.hashCode ^
       layout.hashCode ^
       resolvedLayout.hashCode ^
-      layer.hashCode ^
-      position.hashCode ^
       size.hashCode ^
       lineCount.hashCode ^
       expandable.hashCode ^
@@ -215,6 +215,8 @@ class INode {
       other is INode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          position == other.position &&
+          layer == other.layer &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt &&
           content == other.content &&
@@ -222,8 +224,6 @@ class INode {
           resolvedStyle == other.resolvedStyle &&
           layout == other.layout &&
           resolvedLayout == other.resolvedLayout &&
-          layer == other.layer &&
-          position == other.position &&
           size == other.size &&
           lineCount == other.lineCount &&
           expandable == other.expandable &&
@@ -238,35 +238,35 @@ class INode {
 
 class InterNode {
   final RecordStrings id;
+  final Coordinates position;
+  final String layer;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
-  final Coordinates position;
   final String? style;
   final String verb;
   final String? behavioralFeatures;
-  final String layer;
 
   const InterNode({
     required this.id,
+    required this.position,
+    required this.layer,
     required this.createdAt,
     required this.updatedAt,
-    required this.position,
     this.style,
     required this.verb,
     this.behavioralFeatures,
-    required this.layer,
   });
 
   @override
   int get hashCode =>
       id.hashCode ^
+      position.hashCode ^
+      layer.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode ^
-      position.hashCode ^
       style.hashCode ^
       verb.hashCode ^
-      behavioralFeatures.hashCode ^
-      layer.hashCode;
+      behavioralFeatures.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -274,46 +274,46 @@ class InterNode {
       other is InterNode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          position == other.position &&
+          layer == other.layer &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt &&
-          position == other.position &&
           style == other.style &&
           verb == other.verb &&
-          behavioralFeatures == other.behavioralFeatures &&
-          layer == other.layer;
+          behavioralFeatures == other.behavioralFeatures;
 }
 
 class MediaNode {
   final RecordStrings id;
+  final Coordinates position;
+  final String layer;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
   final String sourceUrl;
   final String mediaType;
-  final Coordinates position;
   final Size size;
-  final String layer;
 
   const MediaNode({
     required this.id,
+    required this.position,
+    required this.layer,
     required this.createdAt,
     required this.updatedAt,
     required this.sourceUrl,
     required this.mediaType,
-    required this.position,
     required this.size,
-    required this.layer,
   });
 
   @override
   int get hashCode =>
       id.hashCode ^
+      position.hashCode ^
+      layer.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode ^
       sourceUrl.hashCode ^
       mediaType.hashCode ^
-      position.hashCode ^
-      size.hashCode ^
-      layer.hashCode;
+      size.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -321,13 +321,13 @@ class MediaNode {
       other is MediaNode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          position == other.position &&
+          layer == other.layer &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt &&
           sourceUrl == other.sourceUrl &&
           mediaType == other.mediaType &&
-          position == other.position &&
-          size == other.size &&
-          layer == other.layer;
+          size == other.size;
 }
 
 @freezed
@@ -346,35 +346,35 @@ sealed class Nodes with _$Nodes {
 
 class ShapeNode {
   final RecordStrings id;
+  final Coordinates position;
+  final String layer;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
   final String shapeType;
   final NodeStyle? style;
-  final Coordinates position;
   final Size size;
-  final String layer;
 
   const ShapeNode({
     required this.id,
+    required this.position,
+    required this.layer,
     required this.createdAt,
     required this.updatedAt,
     required this.shapeType,
     this.style,
-    required this.position,
     required this.size,
-    required this.layer,
   });
 
   @override
   int get hashCode =>
       id.hashCode ^
+      position.hashCode ^
+      layer.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode ^
       shapeType.hashCode ^
       style.hashCode ^
-      position.hashCode ^
-      size.hashCode ^
-      layer.hashCode;
+      size.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -382,27 +382,27 @@ class ShapeNode {
       other is ShapeNode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          position == other.position &&
+          layer == other.layer &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt &&
           shapeType == other.shapeType &&
           style == other.style &&
-          position == other.position &&
-          size == other.size &&
-          layer == other.layer;
+          size == other.size;
 }
 
 class TaskNode {
   final RecordStrings id;
+  final Coordinates position;
+  final String layer;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
   final Content content;
   final PlatformInt64? dueDate;
   final String state;
-  final Coordinates position;
   final Size size;
   final bool expandable;
   final bool isExpanded;
-  final String layer;
   final NodeStyle? style;
   final NodeStyle? resolvedStyle;
   final NodeLayout? layout;
@@ -411,16 +411,16 @@ class TaskNode {
 
   const TaskNode({
     required this.id,
+    required this.position,
+    required this.layer,
     required this.createdAt,
     required this.updatedAt,
     required this.content,
     this.dueDate,
     required this.state,
-    required this.position,
     required this.size,
     required this.expandable,
     required this.isExpanded,
-    required this.layer,
     this.style,
     this.resolvedStyle,
     this.layout,
@@ -431,16 +431,16 @@ class TaskNode {
   @override
   int get hashCode =>
       id.hashCode ^
+      position.hashCode ^
+      layer.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode ^
       content.hashCode ^
       dueDate.hashCode ^
       state.hashCode ^
-      position.hashCode ^
       size.hashCode ^
       expandable.hashCode ^
       isExpanded.hashCode ^
-      layer.hashCode ^
       style.hashCode ^
       resolvedStyle.hashCode ^
       layout.hashCode ^
@@ -453,16 +453,16 @@ class TaskNode {
       other is TaskNode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          position == other.position &&
+          layer == other.layer &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt &&
           content == other.content &&
           dueDate == other.dueDate &&
           state == other.state &&
-          position == other.position &&
           size == other.size &&
           expandable == other.expandable &&
           isExpanded == other.isExpanded &&
-          layer == other.layer &&
           style == other.style &&
           resolvedStyle == other.resolvedStyle &&
           layout == other.layout &&

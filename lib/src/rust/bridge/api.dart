@@ -20,7 +20,7 @@ import '../telemetry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'stream.dart';
 
-// These functions are ignored because they are not marked as `pub`: `broadcast_boundaries`
+// These functions are ignored because they are not marked as `pub`: `apply_history_record_patch`, `broadcast_boundaries`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `drop`
 
 Future<void> setupLogger() => RustLib.instance.api.crateBridgeApiSetupLogger();
@@ -132,4 +132,7 @@ abstract class AppHandle implements RustOpaqueInterface {
   Future<void> updateTheme({required Theme theme});
 
   Future<void> updateViewportState({required ViewportState state});
+
+  static Future<AppHandle> withRepository({required Repository repo}) =>
+      RustLib.instance.api.crateBridgeApiAppHandleWithRepository(repo: repo);
 }

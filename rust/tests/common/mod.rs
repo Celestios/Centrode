@@ -16,9 +16,14 @@ pub async fn setup_test_repo() -> Repository {
         .expect("Failed to select test namespace and database");
 
     // Initialize Schema
-    Schema::init(&db, "Test Map".to_string())
+    Schema::init(&db)
         .await
         .expect("Failed to initialize DB schema in tests");
+
+    use mycelium_core::persistence::schema::Seeder;
+    Seeder::seed_default_data(&db, "Test Map".to_string())
+        .await
+        .expect("Failed to seed default data in tests");
 
     Repository::new(db)
 }

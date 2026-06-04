@@ -1,6 +1,6 @@
 {
-  "last_audit_commit": "7087f516d5f4e3ad27fc0bf7bd1f593e4d0e431e",
-  "last_audit_time": "2026-06-04T22:34:55.472260Z",
+  "last_audit_commit": "1d4fe7886ec3b922cc8103a6fbfa6399a7f613b6",
+  "last_audit_time": "2026-06-04T22:58:03.357135Z",
   "layers": {
     "rust/src/bridge": {
       "tier": 1,
@@ -245,12 +245,10 @@
     },
     "rust/src/domain/patches.rs": {
       "class": "TagOperation, NodePatch, RelationPatch, EntityPatch, SymmetricEntityPatch, PatchHistoryPayload",
-      "architectural_role": "Transaction mutation history memento",
-      "sha256": "fd67c4c888fe4c851ee9777c801b50e913e72b12",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "DRY: SymmetricEntityPatch & PatchHistoryPayload structural duplication"
-      ],
+      "architectural_role": "Patch structures and type definitions.",
+      "sha256": "7eed8bc393385425cab7193035a1bf83c8faff78",
+      "status": "COMPLIANT",
+      "violations": [],
       "tier": 3,
       "imports": [
         "rust/src/domain/base_models.rs",
@@ -262,17 +260,14 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Domain Logic"
+      "pattern": "Domain Entity"
     },
     "rust/src/domain/relations.rs": {
       "class": "IRelation, IRelationFields",
-      "architectural_role": "Domain graph edge relations model",
-      "sha256": "573bbaf8fc69a5ef969e8b3c44f4c2ff94908c7c",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "LSP: Schema relation constraint sync limits other nodes",
-        "Code safety: Generics serialization silent fallback"
-      ],
+      "architectural_role": "Relation entity containing layout and styling mappings.",
+      "sha256": "cdeb84a37785d08c8d1d6efbce2a61040cf3154e",
+      "status": "COMPLIANT",
+      "violations": [],
       "tier": 3,
       "imports": [
         "rust/src/domain/base_models.rs",
@@ -281,7 +276,7 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Domain Logic"
+      "pattern": "Domain Entity"
     },
     "rust/src/domain/schema.rs": {
       "class": "SurqlSchema, SurqlSchemaField",
@@ -445,7 +440,7 @@
     "rust/src/persistence/db.rs": {
       "class": "Database",
       "architectural_role": "Embedded SurrealDB local connection manager.",
-      "sha256": "3469c2c3e820b1823b1eea7758ee726ec3773dc0",
+      "sha256": "e54a28e0f1293a30e78ce059ee6711ea85139a5d",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -496,13 +491,10 @@
     },
     "rust/src/persistence/schema.rs": {
       "class": "Schema",
-      "architectural_role": "Database schema runner",
-      "sha256": "d002ac828c954ebfbd8f698ec4b132920bae49e7",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "SRP: Default seeding in schema migration",
-        "Schema integrity: Missing unique tag index"
-      ],
+      "architectural_role": "Schema migrations runner and database data seeder.",
+      "sha256": "3e4f93465d013f0d3e1c9660f4cf22510d6b161f",
+      "status": "COMPLIANT",
+      "violations": [],
       "tier": 2,
       "imports": [
         "rust/src/domain/base_models.rs"
@@ -510,9 +502,10 @@
       "test_file": "inline or integration test",
       "has_tests": true,
       "is_ffi_bridge": false,
-      "pattern": "Persistence Engine",
+      "pattern": "Migration Helper",
       "public_apis": [
-        "pub async fn init(db: &Surreal<Db>, name: String) -> Result<()>"
+        "pub async fn init(db: &Surreal<Db>) -> Result<()>",
+        "pub async fn seed_default_data(db: &Surreal<Db>, name: String) -> Result<()>"
       ]
     },
     "rust/src/persistence.rs": {

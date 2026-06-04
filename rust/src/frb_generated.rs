@@ -40,7 +40,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 541199064;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1635675554;
 
 // Section: executor
 
@@ -2305,6 +2305,41 @@ fn wire__crate__bridge__api__AppHandle_update_viewport_state_impl(
         },
     )
 }
+fn wire__crate__bridge__api__AppHandle_with_repository_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "AppHandle_with_repository",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_repo = <Repository>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok(
+                        crate::bridge::api::AppHandle::with_repository(api_repo),
+                    )?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__bridge__api__create_log_stream_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -2557,20 +2592,20 @@ impl SseDecode for crate::domain::nodes::CommentNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_id = <crate::domain::base_models::RecordStrings>::sse_decode(deserializer);
+        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
+        let mut var_layer = <String>::sse_decode(deserializer);
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
         let mut var_text = <String>::sse_decode(deserializer);
-        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
         let mut var_size = <crate::domain::base_models::Size>::sse_decode(deserializer);
-        let mut var_layer = <String>::sse_decode(deserializer);
         return crate::domain::nodes::CommentNode {
             id: var_id,
+            position: var_position,
+            layer: var_layer,
             created_at: var_createdAt,
             updated_at: var_updatedAt,
             text: var_text,
-            position: var_position,
             size: var_size,
-            layer: var_layer,
         };
     }
 }
@@ -2627,18 +2662,18 @@ impl SseDecode for crate::domain::nodes::DrawingNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_id = <crate::domain::base_models::RecordStrings>::sse_decode(deserializer);
+        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
+        let mut var_layer = <String>::sse_decode(deserializer);
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
         let mut var_paths = <Vec<String>>::sse_decode(deserializer);
-        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
-        let mut var_layer = <String>::sse_decode(deserializer);
         return crate::domain::nodes::DrawingNode {
             id: var_id,
+            position: var_position,
+            layer: var_layer,
             created_at: var_createdAt,
             updated_at: var_updatedAt,
             paths: var_paths,
-            position: var_position,
-            layer: var_layer,
         };
     }
 }
@@ -2706,22 +2741,22 @@ impl SseDecode for crate::domain::nodes::FrameNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_id = <crate::domain::base_models::RecordStrings>::sse_decode(deserializer);
+        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
+        let mut var_layer = <String>::sse_decode(deserializer);
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
         let mut var_title = <String>::sse_decode(deserializer);
         let mut var_style = <Option<crate::domain::styles::NodeStyle>>::sse_decode(deserializer);
-        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
         let mut var_size = <crate::domain::base_models::Size>::sse_decode(deserializer);
-        let mut var_layer = <String>::sse_decode(deserializer);
         return crate::domain::nodes::FrameNode {
             id: var_id,
+            position: var_position,
+            layer: var_layer,
             created_at: var_createdAt,
             updated_at: var_updatedAt,
             title: var_title,
             style: var_style,
-            position: var_position,
             size: var_size,
-            layer: var_layer,
         };
     }
 }
@@ -2790,6 +2825,8 @@ impl SseDecode for crate::domain::nodes::INode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_id = <crate::domain::base_models::RecordStrings>::sse_decode(deserializer);
+        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
+        let mut var_layer = <String>::sse_decode(deserializer);
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
         let mut var_content = <crate::domain::contents::Content>::sse_decode(deserializer);
@@ -2799,8 +2836,6 @@ impl SseDecode for crate::domain::nodes::INode {
         let mut var_layout = <Option<crate::domain::styles::NodeLayout>>::sse_decode(deserializer);
         let mut var_resolvedLayout =
             <Option<crate::domain::styles::NodeLayout>>::sse_decode(deserializer);
-        let mut var_layer = <String>::sse_decode(deserializer);
-        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
         let mut var_size = <crate::domain::base_models::Size>::sse_decode(deserializer);
         let mut var_lineCount = <i32>::sse_decode(deserializer);
         let mut var_expandable = <bool>::sse_decode(deserializer);
@@ -2813,6 +2848,8 @@ impl SseDecode for crate::domain::nodes::INode {
         let mut var_significance = <u8>::sse_decode(deserializer);
         return crate::domain::nodes::INode {
             id: var_id,
+            position: var_position,
+            layer: var_layer,
             created_at: var_createdAt,
             updated_at: var_updatedAt,
             content: var_content,
@@ -2820,8 +2857,6 @@ impl SseDecode for crate::domain::nodes::INode {
             resolved_style: var_resolvedStyle,
             layout: var_layout,
             resolved_layout: var_resolvedLayout,
-            layer: var_layer,
-            position: var_position,
             size: var_size,
             line_count: var_lineCount,
             expandable: var_expandable,
@@ -2913,22 +2948,22 @@ impl SseDecode for crate::domain::nodes::InterNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_id = <crate::domain::base_models::RecordStrings>::sse_decode(deserializer);
+        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
+        let mut var_layer = <String>::sse_decode(deserializer);
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
-        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
         let mut var_style = <Option<String>>::sse_decode(deserializer);
         let mut var_verb = <String>::sse_decode(deserializer);
         let mut var_behavioralFeatures = <Option<String>>::sse_decode(deserializer);
-        let mut var_layer = <String>::sse_decode(deserializer);
         return crate::domain::nodes::InterNode {
             id: var_id,
+            position: var_position,
+            layer: var_layer,
             created_at: var_createdAt,
             updated_at: var_updatedAt,
-            position: var_position,
             style: var_style,
             verb: var_verb,
             behavioral_features: var_behavioralFeatures,
-            layer: var_layer,
         };
     }
 }
@@ -3193,22 +3228,22 @@ impl SseDecode for crate::domain::nodes::MediaNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_id = <crate::domain::base_models::RecordStrings>::sse_decode(deserializer);
+        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
+        let mut var_layer = <String>::sse_decode(deserializer);
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
         let mut var_sourceUrl = <String>::sse_decode(deserializer);
         let mut var_mediaType = <String>::sse_decode(deserializer);
-        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
         let mut var_size = <crate::domain::base_models::Size>::sse_decode(deserializer);
-        let mut var_layer = <String>::sse_decode(deserializer);
         return crate::domain::nodes::MediaNode {
             id: var_id,
+            position: var_position,
+            layer: var_layer,
             created_at: var_createdAt,
             updated_at: var_updatedAt,
             source_url: var_sourceUrl,
             media_type: var_mediaType,
-            position: var_position,
             size: var_size,
-            layer: var_layer,
         };
     }
 }
@@ -3620,22 +3655,22 @@ impl SseDecode for crate::domain::nodes::ShapeNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_id = <crate::domain::base_models::RecordStrings>::sse_decode(deserializer);
+        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
+        let mut var_layer = <String>::sse_decode(deserializer);
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
         let mut var_shapeType = <String>::sse_decode(deserializer);
         let mut var_style = <Option<crate::domain::styles::NodeStyle>>::sse_decode(deserializer);
-        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
         let mut var_size = <crate::domain::base_models::Size>::sse_decode(deserializer);
-        let mut var_layer = <String>::sse_decode(deserializer);
         return crate::domain::nodes::ShapeNode {
             id: var_id,
+            position: var_position,
+            layer: var_layer,
             created_at: var_createdAt,
             updated_at: var_updatedAt,
             shape_type: var_shapeType,
             style: var_style,
-            position: var_position,
             size: var_size,
-            layer: var_layer,
         };
     }
 }
@@ -3739,16 +3774,16 @@ impl SseDecode for crate::domain::nodes::TaskNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_id = <crate::domain::base_models::RecordStrings>::sse_decode(deserializer);
+        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
+        let mut var_layer = <String>::sse_decode(deserializer);
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
         let mut var_content = <crate::domain::contents::Content>::sse_decode(deserializer);
         let mut var_dueDate = <Option<i64>>::sse_decode(deserializer);
         let mut var_state = <String>::sse_decode(deserializer);
-        let mut var_position = <crate::domain::base_models::Coordinates>::sse_decode(deserializer);
         let mut var_size = <crate::domain::base_models::Size>::sse_decode(deserializer);
         let mut var_expandable = <bool>::sse_decode(deserializer);
         let mut var_isExpanded = <bool>::sse_decode(deserializer);
-        let mut var_layer = <String>::sse_decode(deserializer);
         let mut var_style = <Option<crate::domain::styles::NodeStyle>>::sse_decode(deserializer);
         let mut var_resolvedStyle =
             <Option<crate::domain::styles::NodeStyle>>::sse_decode(deserializer);
@@ -3758,16 +3793,16 @@ impl SseDecode for crate::domain::nodes::TaskNode {
         let mut var_significance = <u8>::sse_decode(deserializer);
         return crate::domain::nodes::TaskNode {
             id: var_id,
+            position: var_position,
+            layer: var_layer,
             created_at: var_createdAt,
             updated_at: var_updatedAt,
             content: var_content,
             due_date: var_dueDate,
             state: var_state,
-            position: var_position,
             size: var_size,
             expandable: var_expandable,
             is_expanded: var_isExpanded,
-            layer: var_layer,
             style: var_style,
             resolved_style: var_resolvedStyle,
             layout: var_layout,
@@ -4086,8 +4121,14 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        40 => wire__crate__bridge__api__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
-        41 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
+        40 => wire__crate__bridge__api__AppHandle_with_repository_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        41 => wire__crate__bridge__api__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
+        42 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -4256,12 +4297,12 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::CommentNode {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.id.into_into_dart().into_dart(),
+            self.position.into_into_dart().into_dart(),
+            self.layer.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
             self.text.into_into_dart().into_dart(),
-            self.position.into_into_dart().into_dart(),
             self.size.into_into_dart().into_dart(),
-            self.layer.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -4367,11 +4408,11 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::DrawingNode {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.id.into_into_dart().into_dart(),
+            self.position.into_into_dart().into_dart(),
+            self.layer.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
             self.paths.into_into_dart().into_dart(),
-            self.position.into_into_dart().into_dart(),
-            self.layer.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -4454,13 +4495,13 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::FrameNode {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.id.into_into_dart().into_dart(),
+            self.position.into_into_dart().into_dart(),
+            self.layer.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
             self.title.into_into_dart().into_dart(),
             self.style.into_into_dart().into_dart(),
-            self.position.into_into_dart().into_dart(),
             self.size.into_into_dart().into_dart(),
-            self.layer.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -4535,6 +4576,8 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::INode {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.id.into_into_dart().into_dart(),
+            self.position.into_into_dart().into_dart(),
+            self.layer.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
             self.content.into_into_dart().into_dart(),
@@ -4542,8 +4585,6 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::INode {
             self.resolved_style.into_into_dart().into_dart(),
             self.layout.into_into_dart().into_dart(),
             self.resolved_layout.into_into_dart().into_dart(),
-            self.layer.into_into_dart().into_dart(),
-            self.position.into_into_dart().into_dart(),
             self.size.into_into_dart().into_dart(),
             self.line_count.into_into_dart().into_dart(),
             self.expandable.into_into_dart().into_dart(),
@@ -4665,13 +4706,13 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::InterNode {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.id.into_into_dart().into_dart(),
+            self.position.into_into_dart().into_dart(),
+            self.layer.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
-            self.position.into_into_dart().into_dart(),
             self.style.into_into_dart().into_dart(),
             self.verb.into_into_dart().into_dart(),
             self.behavioral_features.into_into_dart().into_dart(),
-            self.layer.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -4775,13 +4816,13 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::MediaNode {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.id.into_into_dart().into_dart(),
+            self.position.into_into_dart().into_dart(),
+            self.layer.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
             self.source_url.into_into_dart().into_dart(),
             self.media_type.into_into_dart().into_dart(),
-            self.position.into_into_dart().into_dart(),
             self.size.into_into_dart().into_dart(),
-            self.layer.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -5051,13 +5092,13 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::ShapeNode {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.id.into_into_dart().into_dart(),
+            self.position.into_into_dart().into_dart(),
+            self.layer.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
             self.shape_type.into_into_dart().into_dart(),
             self.style.into_into_dart().into_dart(),
-            self.position.into_into_dart().into_dart(),
             self.size.into_into_dart().into_dart(),
-            self.layer.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -5211,16 +5252,16 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::TaskNode {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.id.into_into_dart().into_dart(),
+            self.position.into_into_dart().into_dart(),
+            self.layer.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
             self.content.into_into_dart().into_dart(),
             self.due_date.into_into_dart().into_dart(),
             self.state.into_into_dart().into_dart(),
-            self.position.into_into_dart().into_dart(),
             self.size.into_into_dart().into_dart(),
             self.expandable.into_into_dart().into_dart(),
             self.is_expanded.into_into_dart().into_dart(),
-            self.layer.into_into_dart().into_dart(),
             self.style.into_into_dart().into_dart(),
             self.resolved_style.into_into_dart().into_dart(),
             self.layout.into_into_dart().into_dart(),
@@ -5532,12 +5573,12 @@ impl SseEncode for crate::domain::nodes::CommentNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <crate::domain::base_models::RecordStrings>::sse_encode(self.id, serializer);
+        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
+        <String>::sse_encode(self.layer, serializer);
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);
         <String>::sse_encode(self.text, serializer);
-        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
         <crate::domain::base_models::Size>::sse_encode(self.size, serializer);
-        <String>::sse_encode(self.layer, serializer);
     }
 }
 
@@ -5586,11 +5627,11 @@ impl SseEncode for crate::domain::nodes::DrawingNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <crate::domain::base_models::RecordStrings>::sse_encode(self.id, serializer);
+        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
+        <String>::sse_encode(self.layer, serializer);
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);
         <Vec<String>>::sse_encode(self.paths, serializer);
-        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
-        <String>::sse_encode(self.layer, serializer);
     }
 }
 
@@ -5649,13 +5690,13 @@ impl SseEncode for crate::domain::nodes::FrameNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <crate::domain::base_models::RecordStrings>::sse_encode(self.id, serializer);
+        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
+        <String>::sse_encode(self.layer, serializer);
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);
         <String>::sse_encode(self.title, serializer);
         <Option<crate::domain::styles::NodeStyle>>::sse_encode(self.style, serializer);
-        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
         <crate::domain::base_models::Size>::sse_encode(self.size, serializer);
-        <String>::sse_encode(self.layer, serializer);
     }
 }
 
@@ -5715,6 +5756,8 @@ impl SseEncode for crate::domain::nodes::INode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <crate::domain::base_models::RecordStrings>::sse_encode(self.id, serializer);
+        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
+        <String>::sse_encode(self.layer, serializer);
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);
         <crate::domain::contents::Content>::sse_encode(self.content, serializer);
@@ -5722,8 +5765,6 @@ impl SseEncode for crate::domain::nodes::INode {
         <Option<crate::domain::styles::NodeStyle>>::sse_encode(self.resolved_style, serializer);
         <Option<crate::domain::styles::NodeLayout>>::sse_encode(self.layout, serializer);
         <Option<crate::domain::styles::NodeLayout>>::sse_encode(self.resolved_layout, serializer);
-        <String>::sse_encode(self.layer, serializer);
-        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
         <crate::domain::base_models::Size>::sse_encode(self.size, serializer);
         <i32>::sse_encode(self.line_count, serializer);
         <bool>::sse_encode(self.expandable, serializer);
@@ -5794,13 +5835,13 @@ impl SseEncode for crate::domain::nodes::InterNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <crate::domain::base_models::RecordStrings>::sse_encode(self.id, serializer);
+        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
+        <String>::sse_encode(self.layer, serializer);
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);
-        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
         <Option<String>>::sse_encode(self.style, serializer);
         <String>::sse_encode(self.verb, serializer);
         <Option<String>>::sse_encode(self.behavioral_features, serializer);
-        <String>::sse_encode(self.layer, serializer);
     }
 }
 
@@ -6005,13 +6046,13 @@ impl SseEncode for crate::domain::nodes::MediaNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <crate::domain::base_models::RecordStrings>::sse_encode(self.id, serializer);
+        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
+        <String>::sse_encode(self.layer, serializer);
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);
         <String>::sse_encode(self.source_url, serializer);
         <String>::sse_encode(self.media_type, serializer);
-        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
         <crate::domain::base_models::Size>::sse_encode(self.size, serializer);
-        <String>::sse_encode(self.layer, serializer);
     }
 }
 
@@ -6338,13 +6379,13 @@ impl SseEncode for crate::domain::nodes::ShapeNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <crate::domain::base_models::RecordStrings>::sse_encode(self.id, serializer);
+        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
+        <String>::sse_encode(self.layer, serializer);
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);
         <String>::sse_encode(self.shape_type, serializer);
         <Option<crate::domain::styles::NodeStyle>>::sse_encode(self.style, serializer);
-        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
         <crate::domain::base_models::Size>::sse_encode(self.size, serializer);
-        <String>::sse_encode(self.layer, serializer);
     }
 }
 
@@ -6425,16 +6466,16 @@ impl SseEncode for crate::domain::nodes::TaskNode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <crate::domain::base_models::RecordStrings>::sse_encode(self.id, serializer);
+        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
+        <String>::sse_encode(self.layer, serializer);
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);
         <crate::domain::contents::Content>::sse_encode(self.content, serializer);
         <Option<i64>>::sse_encode(self.due_date, serializer);
         <String>::sse_encode(self.state, serializer);
-        <crate::domain::base_models::Coordinates>::sse_encode(self.position, serializer);
         <crate::domain::base_models::Size>::sse_encode(self.size, serializer);
         <bool>::sse_encode(self.expandable, serializer);
         <bool>::sse_encode(self.is_expanded, serializer);
-        <String>::sse_encode(self.layer, serializer);
         <Option<crate::domain::styles::NodeStyle>>::sse_encode(self.style, serializer);
         <Option<crate::domain::styles::NodeStyle>>::sse_encode(self.resolved_style, serializer);
         <Option<crate::domain::styles::NodeLayout>>::sse_encode(self.layout, serializer);

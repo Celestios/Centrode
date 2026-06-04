@@ -4,7 +4,7 @@ use surrealdb::Surreal;
 
 pub struct Schema;
 impl Schema {
-    pub async fn init(db: &Surreal<Db>, name: String) -> Result<()> {
+    pub async fn init(db: &Surreal<Db>) -> Result<()> {
         let surql = include_str!("schema.surql");
         tracing::info!("Applying schema from schema.surql...");
         db.query(surql).await.map_err(|e| {
@@ -13,13 +13,13 @@ impl Schema {
         })?;
         tracing::info!("Schema file applied successfully.");
 
-        // Initialize default metadata if missing
-        Self::init_metadata(db, name).await?;
-
         Ok(())
     }
+}
 
-    async fn init_metadata(db: &Surreal<Db>, name: String) -> Result<()> {
+pub struct Seeder;
+impl Seeder {
+    pub async fn seed_default_data(db: &Surreal<Db>, name: String) -> Result<()> {
         use crate::domain::base_models::MapData;
 
         tracing::debug!("Checking for existing MapMetadata...");

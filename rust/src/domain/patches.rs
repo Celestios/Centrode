@@ -47,10 +47,5 @@ pub struct SymmetricEntityPatch {
     pub reverse: EntityPatch,
 }
 
-#[derive(Debug, Clone, SurrealValue)]
-pub struct PatchHistoryPayload {
-    pub id: RecordStrings,
-    pub forward: EntityPatch,
-    pub reverse: EntityPatch,
-}
+pub type PatchHistoryPayload = SymmetricEntityPatch;
 

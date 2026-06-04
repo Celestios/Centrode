@@ -70,13 +70,16 @@ impl SurrealValue for IRelation {
     }
 
     fn into_value(self) -> Value {
-        let mut val = self.fields.into_value();
-        if let Value::Object(ref mut obj) = val {
-            obj.insert("id".to_string(), RecordId::new(Self::LABEL, self.key).into_value());
-            obj.insert("in".to_string(), self.in_.into_value());
-            obj.insert("out".to_string(), self.out.into_value());
+        let val = self.fields.into_value();
+        match val {
+            Value::Object(mut obj) => {
+                obj.insert("id".to_string(), RecordId::new(Self::LABEL, self.key).into_value());
+                obj.insert("in".to_string(), self.in_.into_value());
+                obj.insert("out".to_string(), self.out.into_value());
+                Value::Object(obj)
+            }
+            _ => panic!("Expected IRelationFields to serialize to Value::Object, found: {:?}", val),
         }
-        val
     }
 
 }
