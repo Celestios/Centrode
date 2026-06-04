@@ -1,0 +1,641 @@
+{
+  "last_audit_commit": "94684151b260ef7ec6765b4d99416d5a718364ab",
+  "last_audit_time": "2026-06-04T20:25:00.443735Z",
+  "layers": {
+    "rust/src/bridge": {
+      "tier": 1,
+      "responsibility": "FFI boundary, entry points for Flutter interactions, mapping events and data types.",
+      "exclusions": "MUST NOT house persistence engine commands or low-level domain mutations directly."
+    },
+    "rust/src/persistence": {
+      "tier": 2,
+      "responsibility": "Database and persistence engine, transactions, and SurrealDB client interactions.",
+      "exclusions": "MUST NOT depend on or import FFI bridge packages/modules."
+    },
+    "rust/src/domain": {
+      "tier": 3,
+      "responsibility": "Core domain logic, structures, and business rules.",
+      "exclusions": "MUST NOT import or depend on persistence engine or FFI bridge modules."
+    }
+  },
+  "components": {
+    "rust/src/bridge/api.rs": {
+      "class": "AppHandle",
+      "architectural_role": "FFI Bridge API Gateway",
+      "sha256": "ef50021a78af810bb8fddf2025057c0eb9b32d40",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "DRY: Duplicate code in Undo/Redo",
+        "DIP: Direct concretion instantiation"
+      ],
+      "tier": 1,
+      "imports": [
+        "rust/src/bridge/stream.rs",
+        "rust/src/domain/analysis.rs",
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/nodes.rs",
+        "rust/src/domain/snapshot.rs",
+        "rust/src/domain/tags.rs",
+        "rust/src/domain/templates.rs",
+        "rust/src/domain/patches.rs",
+        "rust/src/domain/relations.rs",
+        "rust/src/domain/theme.rs",
+        "rust/src/format/packager.rs",
+        "rust/src/frb_generated.rs",
+        "rust/src/persistence/db.rs",
+        "rust/src/persistence/history.rs",
+        "rust/src/persistence/repo.rs",
+        "rust/src/telemetry.rs"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": true,
+      "pattern": "FFI Bridge",
+      "public_apis": [
+        "pub async fn setup_logger() -> anyhow::Result<()>",
+        "pub async fn create_log_stream(sink: StreamSink<LogState>) -> anyhow::Result<()>",
+        "pub async fn new(storage_path: String, name: String) -> anyhow::Result<Self>",
+        "pub async fn create_node(&self, input: Nodes) -> anyhow::Result<()>",
+        "pub async fn get_node(&self, table: String, key: String) -> anyhow::Result<Option<Nodes>>",
+        "pub async fn update_node(&self, input: Nodes) -> anyhow::Result<()>",
+        "pub async fn apply_entity_mutation(&self, mutation: SymmetricEntityPatch) -> anyhow::Result<()>",
+        "pub async fn delete_node_entry(&self, table: String, key: String) -> anyhow::Result<()>",
+        "pub async fn create_relation(&self, input: IRelation) -> anyhow::Result<()>",
+        "pub async fn delete_relation(&self, table: String, key: String) -> anyhow::Result<()>",
+        "pub async fn update_relation(&self, input: IRelation) -> anyhow::Result<()>",
+        "pub async fn reroute_relation(",
+        "pub async fn get_graph_snapshot(&self) -> anyhow::Result<GraphSnapshot>",
+        "pub async fn save_map_to_file(",
+        "pub async fn load_map_from_file(",
+        "pub async fn get_all_themes(&self) -> anyhow::Result<Vec<Theme>>",
+        "pub async fn get_theme(&self, key: String) -> anyhow::Result<Option<Theme>>",
+        "pub async fn set_active_theme_id(&self, theme_id: String) -> anyhow::Result<()>",
+        "pub async fn update_viewport_state(&self, state: ViewportState) -> anyhow::Result<()>",
+        "pub async fn get_active_theme_id(&self) -> anyhow::Result<Option<String>>",
+        "pub async fn set_active_theme(&self, theme_key: String) -> anyhow::Result<()>",
+        "pub async fn create_theme(&self, key: String, fields: ThemeFields) -> anyhow::Result<()>",
+        "pub async fn update_theme(&self, theme: Theme) -> anyhow::Result<()>",
+        "pub async fn create_graph_stream(&self, sink: StreamSink<GraphEvent>) -> anyhow::Result<()>",
+        "pub fn close(self) -> anyhow::Result<()>",
+        "pub async fn undo(&self) -> anyhow::Result<Option<HistoryRecord>>",
+        "pub async fn redo(&self) -> anyhow::Result<Option<HistoryRecord>>",
+        "pub async fn undo_count(&self) -> anyhow::Result<u32>",
+        "pub async fn redo_count(&self) -> anyhow::Result<u32>",
+        "pub async fn create_tag(&self, tag: Tag) -> anyhow::Result<()>",
+        "pub async fn update_tag(&self, tag: Tag) -> anyhow::Result<()>",
+        "pub async fn get_tag(&self, key: String) -> anyhow::Result<Option<Tag>>",
+        "pub async fn get_all_tags(&self) -> anyhow::Result<Vec<Tag>>",
+        "pub async fn delete_tag(&self, key: String) -> anyhow::Result<()>",
+        "pub async fn save_template_from_selection(",
+        "pub async fn instantiate_template(&self, key: String, target_x: f64, target_y: f64) -> anyhow::Result<()>",
+        "pub async fn get_all_templates(&self) -> anyhow::Result<Vec<Template>>",
+        "pub async fn delete_template(&self, key: String) -> anyhow::Result<()>",
+        "pub async fn query_search(&self, query: String) -> anyhow::Result<Vec<Nodes>>"
+      ]
+    },
+    "rust/src/bridge/stream.rs": {
+      "class": "GraphEvent",
+      "architectural_role": "FFI Outbound Event Emitter",
+      "sha256": "fcb5aab99d21bc0939ad240a5df0faab6a71121e",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 1,
+      "imports": [
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/nodes.rs"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": true,
+      "pattern": "FFI Bridge",
+      "public_apis": [
+        "pub fn publish_event(event: GraphEvent)",
+        "pub fn subscribe_to_graph() -> broadcast::Receiver<GraphEvent>"
+      ]
+    },
+    "rust/src/bridge.rs": {
+      "class": "",
+      "architectural_role": "Submodule Registration Root",
+      "sha256": "4ecebaae153ba2a2e4e043bb673da29f4b030916",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 1,
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Rust Module"
+    },
+    "rust/src/domain/analysis.rs": {
+      "class": "DecaySignificanceStrategy, GraphAnalysis",
+      "architectural_role": "Graph significance calculations strategy",
+      "sha256": "9fcc22104c2dd757c0f3213763347d0702c0f10b",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "DIP: DB driver leak in Domain",
+        "SRP: Inline SurrealQL in domain methods"
+      ],
+      "tier": 3,
+      "imports": [
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/nodes.rs",
+        "rust/src/domain/relations.rs"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Domain Logic",
+      "public_apis": [
+        "pub async fn recalculate_area(",
+        "pub async fn calculate_global_bounds(db: &Surreal<Db>) -> anyhow::Result<BoundingBox>"
+      ]
+    },
+    "rust/src/domain/base_models.rs": {
+      "class": "Record, RecordStrings, IsTable, Comment, Coordinates, Size, ViewportState, DisplayMode, MapData, BoundingBox",
+      "architectural_role": "Core domain value objects",
+      "sha256": "ddd5ce2312a1c6d8e9244f108d5da23c25092b39",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "DRY: Boilerplate schema field mapping"
+      ],
+      "tier": 3,
+      "imports": [
+        "rust/src/domain/schema.rs"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Domain Logic",
+      "public_apis": [
+        "pub fn from_record_value(value: Value) -> Option<Self>",
+        "pub fn to_str(&self) -> String",
+        "pub fn into_record(&self) -> RecordId",
+        "pub fn get_record_id(&self) -> RecordId",
+        "pub fn new("
+      ]
+    },
+    "rust/src/domain/contents.rs": {
+      "class": "Content, ContentBlock, BlockType, BlockAttrs, InlineElement, InlineType, TextMark, MarkType, MarkAttrs",
+      "architectural_role": "Rich text content blocks structure",
+      "sha256": "cf7e299598fbee40492e48393858c57cb5620649",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Correctness: Plain text breaks bug on HardBreak",
+        "DRY: Duplicate block creator helper logic"
+      ],
+      "tier": 3,
+      "imports": [
+        "rust/src/domain/schema.rs"
+      ],
+      "test_file": "inline or integration test",
+      "has_tests": true,
+      "is_ffi_bridge": false,
+      "pattern": "Domain Logic",
+      "public_apis": [
+        "pub fn new(blocks: Vec<ContentBlock>) -> Self",
+        "pub fn from_plain_text(text: impl Into<String>) -> Self",
+        "pub fn to_plain_text(&self) -> String",
+        "pub fn refresh_text(&mut self)",
+        "pub fn paragraph(text: impl Into<String>) -> Self",
+        "pub fn heading(text: impl Into<String>, level: u8) -> Self",
+        "pub fn code_block(text: impl Into<String>, language: Option<String>) -> Self",
+        "pub fn bullet_list(text: impl Into<String>) -> Self",
+        "pub fn ordered_list(text: impl Into<String>) -> Self",
+        "pub fn blockquote(text: impl Into<String>) -> Self",
+        "pub fn text(text: impl Into<String>) -> Self",
+        "pub fn text_with_marks(text: impl Into<String>, marks: Vec<TextMark>) -> Self",
+        "pub fn hard_break() -> Self",
+        "pub fn add_mark(&mut self, mark: TextMark)",
+        "pub fn bold() -> Self",
+        "pub fn italic() -> Self",
+        "pub fn underline() -> Self",
+        "pub fn strikethrough() -> Self",
+        "pub fn code() -> Self",
+        "pub fn link(href: impl Into<String>) -> Self"
+      ]
+    },
+    "rust/src/domain/macros/define_nodes.rs": {
+      "class": "Nodes",
+      "architectural_role": "Domain nodes code generation macro",
+      "sha256": "856e6e94253011efb5464b3c26c90eddbeb37b62",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "DRY: Macro doesn't auto-define position/layer fields"
+      ],
+      "tier": 3,
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Domain Logic",
+      "public_apis": [
+        "pub fn fetch_fields_for_table(table: &str) -> &'static [&'static str]",
+        "pub fn table_and_key(&self) -> (&'static str, &str)",
+        "pub fn from_struct_value(table: &str, val: surrealdb::types::Value) -> Result<Self, surrealdb::types::Error>"
+      ]
+    },
+    "rust/src/domain/macros.rs": {
+      "class": "",
+      "architectural_role": "Domain Macros Registry",
+      "sha256": "8ebc53e9480a90fc3fb0652bb36b7899c0888d72",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 3,
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Rust Module"
+    },
+    "rust/src/domain/nodes.rs": {
+      "class": "IsNode",
+      "architectural_role": "Domain graph nodes definition",
+      "sha256": "39de0201125bab7f5bcfdc3c4d9836e47c1b90ea",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "OCP: Macro requires position/layer fields",
+        "Design Symmetry: InterNode style type is asymmetric"
+      ],
+      "tier": 3,
+      "imports": [
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/contents.rs",
+        "rust/src/domain/styles.rs",
+        "rust/src/domain/tags.rs",
+        "rust/src/domain/schema.rs"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Domain Logic"
+    },
+    "rust/src/domain/patches.rs": {
+      "class": "TagOperation, NodePatch, RelationPatch, EntityPatch, SymmetricEntityPatch, PatchHistoryPayload",
+      "architectural_role": "Transaction mutation history memento",
+      "sha256": "fd67c4c888fe4c851ee9777c801b50e913e72b12",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "DRY: SymmetricEntityPatch & PatchHistoryPayload structural duplication"
+      ],
+      "tier": 3,
+      "imports": [
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/contents.rs",
+        "rust/src/domain/styles.rs",
+        "rust/src/domain/nodes.rs",
+        "rust/src/domain/relations.rs"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Domain Logic"
+    },
+    "rust/src/domain/relations.rs": {
+      "class": "IRelation, IRelationFields",
+      "architectural_role": "Domain graph edge relations model",
+      "sha256": "573bbaf8fc69a5ef969e8b3c44f4c2ff94908c7c",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "LSP: Schema relation constraint sync limits other nodes",
+        "Code safety: Generics serialization silent fallback"
+      ],
+      "tier": 3,
+      "imports": [
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/styles.rs"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Domain Logic"
+    },
+    "rust/src/domain/schema.rs": {
+      "class": "SurqlSchema, SurqlSchemaField",
+      "architectural_role": "Surql Schema Generator",
+      "sha256": "dadc140d5d90a30da732679ee5eaa3779acd724c",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 3,
+      "test_file": "inline or integration test",
+      "has_tests": true,
+      "is_ffi_bridge": false,
+      "pattern": "Domain Logic",
+      "public_apis": [
+        "pub fn generate_field_schema_lines(",
+        "pub fn generate_created_at(table: &str, readonly: bool) -> String",
+        "pub fn generate_updated_at(table: &str) -> String"
+      ]
+    },
+    "rust/src/domain/snapshot.rs": {
+      "class": "GraphSnapshot",
+      "architectural_role": "Domain Graph Snapshot representation",
+      "sha256": "89239ec027396c20cc3d00a0a78f200d26c41586",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/nodes.rs",
+        "rust/src/domain/relations.rs"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Domain Logic"
+    },
+    "rust/src/domain/styles.rs": {
+      "class": "NodeStyle, RelationStyle, RelationLayout, NodeLayout",
+      "architectural_role": "Visual Node/Relation styles models",
+      "sha256": "38304a8a83ff0ab0980262401bfcbde21de3e70d",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "DRY: Hardcoded style field mapping builders"
+      ],
+      "tier": 3,
+      "imports": [
+        "rust/src/domain/schema.rs"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Domain Logic"
+    },
+    "rust/src/domain/tags.rs": {
+      "class": "TagEdge, Tag, TagFields",
+      "architectural_role": "Tag entity & cascading disassociations",
+      "sha256": "204ac04a71613c839b95ead4e5b8695e1d640b0c",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "DRY: Boilerplate tag fields schema mapping"
+      ],
+      "tier": 3,
+      "imports": [
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/schema.rs"
+      ],
+      "test_file": "inline or integration test",
+      "has_tests": true,
+      "is_ffi_bridge": false,
+      "pattern": "Domain Logic"
+    },
+    "rust/src/domain/templates.rs": {
+      "class": "Template",
+      "architectural_role": "Domain Template Prototype representation",
+      "sha256": "8b3c05ab1da1c1dd0493e6ab2bd2591a0ab05a2c",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/nodes.rs",
+        "rust/src/domain/relations.rs"
+      ],
+      "test_file": "inline or integration test",
+      "has_tests": true,
+      "is_ffi_bridge": false,
+      "pattern": "Domain Logic"
+    },
+    "rust/src/domain/theme.rs": {
+      "class": "Theme, ThemeBrightness, FontWeight, ThemeFields",
+      "architectural_role": "Domain Theme configurations",
+      "sha256": "9fbc184380dfcd96ea9afeb72a5066d7bb268075",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "rust/src/domain/base_models.rs"
+      ],
+      "test_file": "inline or integration test",
+      "has_tests": true,
+      "is_ffi_bridge": false,
+      "pattern": "Domain Logic"
+    },
+    "rust/src/domain.rs": {
+      "class": "",
+      "architectural_role": "Domain Module Registry",
+      "sha256": "52fef95b686d91b81b0c524f6e142e446f35c505",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 3,
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Rust Module"
+    },
+    "rust/src/format/packager.rs": {
+      "class": "",
+      "architectural_role": "Project packaging and archive serialization",
+      "sha256": "2c1d02da967b1d543038dcb6d7b9d0b39ed4ecb1",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "rust/src/domain/base_models.rs"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Rust Module",
+      "public_apis": [
+        "pub fn save_project_to_celi(",
+        "pub fn load_project_from_celi("
+      ]
+    },
+    "rust/src/format.rs": {
+      "class": "",
+      "architectural_role": "Serialization Module Registry",
+      "sha256": "6a72c584cbb4541f2fbeb9a6192eaca5853bb02b",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 3,
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Rust Module"
+    },
+    "rust/src/lib.rs": {
+      "class": "",
+      "architectural_role": "Crate Root / System Bootstrapper",
+      "sha256": "74c67277164a704f858268df65bce1cec532ae99",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 3,
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Rust Module",
+      "public_apis": [
+        "pub fn init_core()"
+      ]
+    },
+    "rust/src/persistence/db.rs": {
+      "class": "Database",
+      "architectural_role": "DB connection factory",
+      "sha256": "4f08dbffa7b632f83fe265f31d452fc84f0416a5",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "DIP: Hardcoded connection params",
+        "SRP: Coupled schema migrations with connection"
+      ],
+      "tier": 2,
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Persistence Engine",
+      "public_apis": [
+        "pub async fn connect(path: &str, name: String) -> anyhow::Result<Surreal<Db>>"
+      ]
+    },
+    "rust/src/persistence/history.rs": {
+      "class": "HistoryStatus, HistoryRecord, HistoryManager, HistoryPrune",
+      "architectural_role": "Undo/Redo command history caretaker",
+      "sha256": "7c55c00224250dba7b686c9e3d7e54c4df97a682",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Type Safety: Raw strings used instead of HistoryStatus enum",
+        "DIP: UTC clock dependency"
+      ],
+      "tier": 2,
+      "test_file": "inline or integration test",
+      "has_tests": true,
+      "is_ffi_bridge": false,
+      "pattern": "Persistence Engine",
+      "public_apis": [
+        "pub fn new(db: &'a Surreal<Db>, threshold: usize) -> Self",
+        "pub async fn push_event(&self, action_type: &str, payload: Value) -> Result<()>",
+        "pub async fn undo(&self) -> Result<Option<HistoryRecord>>",
+        "pub async fn redo(&self) -> Result<Option<HistoryRecord>>"
+      ]
+    },
+    "rust/src/persistence/repo.rs": {
+      "class": "Repository",
+      "architectural_role": "Central persistence repository",
+      "sha256": "7496f677ac3865d85529eba6f06e3f6d421f88f9",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "SRP: God Repository",
+        "DIP: DecaySignificanceStrategy direct instantiation",
+        "ISP: Inconsistent theme queries",
+        "Race condition: Uniqueness check TOCTOU"
+      ],
+      "tier": 2,
+      "imports": [
+        "rust/src/domain/analysis.rs",
+        "rust/src/domain/base_models.rs",
+        "rust/src/domain/nodes.rs",
+        "rust/src/domain/patches.rs",
+        "rust/src/domain/relations.rs",
+        "rust/src/domain/snapshot.rs",
+        "rust/src/domain/tags.rs",
+        "rust/src/domain/templates.rs",
+        "rust/src/domain/theme.rs",
+        "rust/src/persistence/history.rs"
+      ],
+      "test_file": "inline or integration test",
+      "has_tests": true,
+      "is_ffi_bridge": false,
+      "pattern": "Persistence Engine",
+      "public_apis": [
+        "pub fn new(db: Surreal<Db>) -> Self",
+        "pub fn db(&self) -> &Surreal<Db>",
+        "pub async fn create_relation(&self, input: IRelation) -> Result<()>",
+        "pub async fn trigger_significance_update(&self, node_id: &RecordStrings) -> Result<()>",
+        "pub async fn get_node(&self, table: String, key: String) -> Result<Option<Nodes>>",
+        "pub async fn get_graph_snapshot(&self) -> Result<GraphSnapshot>",
+        "pub async fn set_graph_snapshot(&self, snapshot: GraphSnapshot) -> Result<()>",
+        "pub async fn delete_node(&self, table: String, key: String) -> Result<()>",
+        "pub async fn get_relation(&self, table: String, key: String) -> Result<IRelation>",
+        "pub async fn delete_relation(&self, table: String, key: String) -> Result<()>",
+        "pub async fn update_relation(",
+        "pub async fn reroute_relation(",
+        "pub async fn patch_entity(&self, id: RecordId, patch: &EntityPatch) -> Result<()>",
+        "pub async fn create_tag(&self, tag: Tag) -> Result<()>",
+        "pub async fn update_tag(&self, tag: Tag) -> Result<()>",
+        "pub async fn get_tag(&self, key: String) -> Result<Option<Tag>>",
+        "pub async fn get_all_tags(&self) -> Result<Vec<Tag>>",
+        "pub async fn delete_tag(&self, key: String) -> Result<()>",
+        "pub async fn create_template(&self, template: Template) -> Result<()>",
+        "pub async fn get_all_templates(&self) -> Result<Vec<Template>>",
+        "pub async fn delete_template(&self, key: String) -> Result<()>",
+        "pub async fn save_template_from_selection(",
+        "pub async fn instantiate_template(",
+        "pub async fn record_patch_history(",
+        "pub async fn apply_patch_check_position(",
+        "pub async fn get_connected_relations(&self, node_key: &str) -> Result<Vec<IRelation>>",
+        "pub async fn get_all_themes(&self) -> Result<Vec<Theme>>",
+        "pub async fn get_theme(&self, key: String) -> Result<Option<Theme>>",
+        "pub async fn set_active_theme_id(&self, theme_id: String) -> Result<()>",
+        "pub async fn update_viewport_state(&self, state: ViewportState) -> Result<()>",
+        "pub async fn get_active_theme_id(&self) -> Result<Option<String>>",
+        "pub async fn set_active_theme(&self, theme_key: String) -> Result<()>",
+        "pub async fn create_theme(&self, key: String, fields: ThemeFields) -> Result<()>",
+        "pub async fn update_theme(&self, theme: Theme) -> Result<()>",
+        "pub async fn undo_count(&self) -> Result<u32>",
+        "pub async fn redo_count(&self) -> Result<u32>",
+        "pub async fn query_search(&self, query: String) -> Result<Vec<Nodes>>",
+        "pub async fn undo_event(&self) -> Result<Option<HistoryRecord>>",
+        "pub async fn redo_event(&self) -> Result<Option<HistoryRecord>>"
+      ]
+    },
+    "rust/src/persistence/schema.rs": {
+      "class": "Schema",
+      "architectural_role": "Database schema runner",
+      "sha256": "d002ac828c954ebfbd8f698ec4b132920bae49e7",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "SRP: Default seeding in schema migration",
+        "Schema integrity: Missing unique tag index"
+      ],
+      "tier": 2,
+      "imports": [
+        "rust/src/domain/base_models.rs"
+      ],
+      "test_file": "inline or integration test",
+      "has_tests": true,
+      "is_ffi_bridge": false,
+      "pattern": "Persistence Engine",
+      "public_apis": [
+        "pub async fn init(db: &Surreal<Db>, name: String) -> Result<()>"
+      ]
+    },
+    "rust/src/persistence.rs": {
+      "class": "",
+      "architectural_role": "Persistence Module Registry",
+      "sha256": "05467238f93df180380bdade8cf839f7d088c587",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 2,
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Rust Module"
+    },
+    "rust/src/plugin_system/runner.rs": {
+      "class": "",
+      "architectural_role": "WASM plugin system runner",
+      "sha256": "48ac21a4ad44dbeaa95452fbc581552ff8810560",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 3,
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Rust Module"
+    },
+    "rust/src/telemetry.rs": {
+      "class": "LogState, TelemetryState, TelemetryLayer, StringVisitor",
+      "architectural_role": "Telemetry system log engine",
+      "sha256": "770609d4d96fc0ea0cac51f0c38180e45c0b6529",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 3,
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Rust Module",
+      "public_apis": [
+        "pub fn instance() -> Self",
+        "pub fn init_telemetry()",
+        "pub fn connect_log_stream()",
+        "pub fn subscribe_to_logs() -> broadcast::Receiver<LogState>"
+      ]
+    }
+  }
+}

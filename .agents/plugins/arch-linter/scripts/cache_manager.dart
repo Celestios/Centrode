@@ -1,46 +1,72 @@
 import 'dart:convert';
 import 'dart:io';
 
-const String cachePath = '.agents/plugins/arch-linter/architecture-cache.json';
+String cachePath = '.agents/plugins/arch-linter/dart-architecture-cache.json';
+bool isRustMode = false;
 
 void main(List<String> args) async {
-  if (args.isEmpty) {
+  final hasDart = args.contains('--dart');
+  final hasRust = args.contains('--rust');
+
+  if (!hasDart && !hasRust) {
+    print('Error: Explicit mode flag required. Please specify either --dart or --rust.');
+    print('Example: dart cache_manager.dart scan --rust');
+    exit(1);
+  }
+
+  if (hasDart && hasRust) {
+    print('Error: Cannot specify both --dart and --rust flags.');
+    exit(1);
+  }
+
+  isRustMode = hasRust;
+  cachePath = isRustMode
+      ? '.agents/plugins/arch-linter/rust-architecture-cache.json'
+      : '.agents/plugins/arch-linter/dart-architecture-cache.json';
+
+  final cleanArgs = args.where((arg) => arg != '--dart' && arg != '--rust').toList();
+
+  if (cleanArgs.isEmpty) {
     printUsage();
     exit(1);
   }
 
-  final command = args[0];
+  final command = cleanArgs[0];
+  final cmdArgs = cleanArgs.skip(1).toList();
 
   switch (command) {
     case 'scan':
-      await handleScan(args.skip(1).toList());
+      await handleScan(cmdArgs);
       break;
     case 'check':
-      await handleCheck(args.skip(1).toList());
+      await handleCheck(cmdArgs);
       break;
     case 'update':
-      await handleUpdate(args.skip(1).toList());
+      await handleUpdate(cmdArgs);
+      break;
+    case 'update_bulk':
+      await handleUpdateBulk(cmdArgs);
       break;
     case 'query':
-      await handleQuery(args.skip(1).toList());
+      await handleQuery(cmdArgs);
       break;
     case 'query_method':
-      await handleQueryMethod(args.skip(1).toList());
+      await handleQueryMethod(cmdArgs);
       break;
     case 'dependents':
-      await handleDependents(args.skip(1).toList());
+      await handleDependents(cmdArgs);
       break;
     case 'trace_path':
-      await handleTracePath(args.skip(1).toList());
+      await handleTracePath(cmdArgs);
       break;
     case 'query_metrics':
-      await handleQueryMetrics(args.skip(1).toList());
+      await handleQueryMetrics(cmdArgs);
       break;
     case 'assert_naming':
-      await handleAssertNaming(args.skip(1).toList());
+      await handleAssertNaming(cmdArgs);
       break;
     case 'assert_tests':
-      await handleAssertTests(args.skip(1).toList());
+      await handleAssertTests(cmdArgs);
       break;
     default:
       print('Unknown command: $command');
@@ -51,16 +77,19 @@ void main(List<String> args) async {
 
 void printUsage() {
   print('Usage:');
-  print('  dart cache_manager.dart scan [directory_path (default: lib)]');
-  print('  dart cache_manager.dart update <file_path> <status> [violations_separated_by_pipe] [role] [pattern]');
-  print('  dart cache_manager.dart check [directory_path (default: lib)]');
-  print('  dart cache_manager.dart query [filter_key=value ...]');
-  print('  dart cache_manager.dart query_method [name=val] [return_type=val] [pattern=regex]');
-  print('  dart cache_manager.dart dependents <file_path>');
-  print('  dart cache_manager.dart trace_path <source_file> <target_file>');
-  print('  dart cache_manager.dart query_metrics [api_count>=val] [size>=val] [missing_tests=true|false]');
-  print('  dart cache_manager.dart assert_naming');
-  print('  dart cache_manager.dart assert_tests');
+  print('  dart cache_manager.dart <command> [--dart | --rust] [arguments]');
+  print('\nCommands:');
+  print('  scan [directory_path (default: lib for --dart, rust/src for --rust)]');
+  print('  update <file_path> <status> [violations_separated_by_pipe] [role] [pattern]');
+  print('  update_bulk <json_file_path>');
+  print('  check [directory_path (default: lib for --dart, rust/src for --rust)]');
+  print('  query [filter_key=value ...]');
+  print('  query_method [name=val] [return_type=val] [pattern=regex]');
+  print('  dependents <file_path>');
+  print('  trace_path <source_file> <target_file>');
+  print('  query_metrics [api_count>=val] [size>=val] [missing_tests=true|false]');
+  print('  assert_naming');
+  print('  assert_tests');
   print('\nStatuses: COMPLIANT, VIOLATION_DETECTED, PENDING_AUDIT');
 }
 
@@ -70,13 +99,62 @@ Map<String, dynamic> loadCache() {
   if (!file.existsSync()) {
     // Create parent directories if they don't exist
     file.parent.createSync(recursive: true);
+    final layers = isRustMode ? {
+      "rust/src/bridge": {
+        "tier": 1,
+        "responsibility": "FFI boundary, entry points for Flutter interactions, mapping events and data types.",
+        "exclusions": "MUST NOT house persistence engine commands or low-level domain mutations directly."
+      },
+      "rust/src/persistence": {
+        "tier": 2,
+        "responsibility": "Database and persistence engine, transactions, and SurrealDB client interactions.",
+        "exclusions": "MUST NOT depend on or import FFI bridge packages/modules."
+      },
+      "rust/src/domain": {
+        "tier": 3,
+        "responsibility": "Core domain logic, structures, and business rules.",
+        "exclusions": "MUST NOT import or depend on persistence engine or FFI bridge modules."
+      }
+    } : {
+      "lib/features/graph/ui": {
+        "tier": 1,
+        "responsibility": "Renders visual UI components, canvas viewports, and overlays for user interaction.",
+        "exclusions": "MUST NOT house domain state mutation logic, direct database/FFI calls, or low-level mathematical coordinate calculations."
+      },
+      "lib/features/graph/engine": {
+        "tier": 2,
+        "responsibility": "Manages user interaction state (dragging, panning, zooming), processes canvas gestures, and drives the gesture Finite State Machine (FSM).",
+        "exclusions": "MUST NOT paint UI widgets directly or interact directly with the database or storage controllers."
+      },
+      "lib/features/graph/presentation": {
+        "tier": 2,
+        "responsibility": "Manages UI-specific transient presentation state, view projections, layout strategies, viewport calculations, and theme mappings.",
+        "exclusions": "MUST NOT directly mutate database structures or issue raw FFI commands."
+      },
+      "lib/features/graph/store": {
+        "tier": 3,
+        "responsibility": "Coordinates in-memory lookup cache, spatial queries, FFI synchronization, and local reactive state updates.",
+        "exclusions": "MUST NOT import, listen to, or depend on UI presentation controllers, style managers, or theme controllers."
+      },
+      "lib/features/graph/models": {
+        "tier": 3,
+        "responsibility": "Defines UI domain models wrapping core Rust models, providing serialization/deserialization across the FFI boundary.",
+        "exclusions": "MUST NOT import or depend on presentation-tier configuration parameters or metrics."
+      },
+      "lib/infrastructure": {
+        "tier": 3,
+        "responsibility": "Handles low-level platform infrastructure concerns (logger isolates, uncaught asynchronous telemetry reporting).",
+        "exclusions": "MUST NOT import or depend on domain business logic or presentation-tier state."
+      }
+    };
     final initial = {
       'last_audit_commit': '',
       'last_audit_time': '',
-      'layers': {},
+      'layers': layers,
       'components': {}
     };
-    file.writeAsStringSync(jsonEncode(initial));
+    final encoder = JsonEncoder.withIndent('  ');
+    file.writeAsStringSync(encoder.convert(initial) + '\n');
     return initial;
   }
 
@@ -98,7 +176,7 @@ Map<String, dynamic> loadCache() {
 void saveCache(Map<String, dynamic> cache) {
   final file = File(cachePath);
   final encoder = JsonEncoder.withIndent('  ');
-  file.writeAsStringSync(encoder.convert(cache));
+  file.writeAsStringSync(encoder.convert(cache) + '\n');
 }
 
 // Helper to compute a file's hash using git hash-object, with modified-time fallback.
@@ -117,7 +195,8 @@ Future<String> getFileHash(String filePath) async {
 }
 
 Future<void> handleScan(List<String> args) async {
-  final targetDir = args.isNotEmpty ? args[0] : 'lib';
+  final defaultDir = isRustMode ? 'rust/src' : 'lib';
+  final targetDir = args.isNotEmpty ? args[0] : defaultDir;
   final dir = Directory(targetDir);
 
   if (!dir.existsSync()) {
@@ -127,25 +206,29 @@ Future<void> handleScan(List<String> args) async {
 
   final cache = loadCache();
   final components = cache['components'] as Map<String, dynamic>;
-  final layersMap = cache['layers'] as Map<String, dynamic>? ?? {};
+  final layersMap = cache['layers'] != null ? Map<String, dynamic>.from(cache['layers'] as Map) : <String, dynamic>{};
   bool cacheChanged = false;
 
   final pendingAudit = <String>[];
   final violationDetected = <String>[];
   final compliant = <String>[];
 
-  // Recursively find all .dart files (excluding generated code under lib/src/rust/)
+  final extension = isRustMode ? '.rs' : '.dart';
+
   final files = dir
       .listSync(recursive: true)
       .where((entity) {
-        if (entity is! File || !entity.path.endsWith('.dart')) return false;
+        if (entity is! File || !entity.path.endsWith(extension)) return false;
         final path = entity.path.replaceAll('\\', '/');
-        return !path.contains('/src/rust/');
+        if (isRustMode) {
+          return !path.contains('/frb_generated.rs') && !path.contains('/target/');
+        } else {
+          return !path.contains('/src/rust/');
+        }
       })
-      .map((entity) => entity.path.replaceAll('\\', '/')) // Normalize paths to forward slashes
+      .map((entity) => entity.path.replaceAll('\\', '/'))
       .toList();
 
-  // First pass: scan and compute hashes, create/update entries, and extract local metadata
   for (final filePath in files) {
     final file = File(filePath);
     final currentHash = await getFileHash(filePath);
@@ -184,7 +267,6 @@ Future<void> handleScan(List<String> args) async {
       }
     }
 
-    // Populate / Refresh rich metadata
     final tier = getTierForFile(filePath, layersMap);
     if (cachedEntry['tier'] != tier) {
       cachedEntry['tier'] = tier;
@@ -192,24 +274,33 @@ Future<void> handleScan(List<String> args) async {
     }
 
     final content = file.existsSync() ? file.readAsStringSync() : '';
-    final parsedImports = parseImports(content);
-    final resolvedImports = parsedImports.map((imp) => resolveImport(filePath, imp)).toList();
+    final cleanContent = stripComments(content);
+    final parsedImports = isRustMode ? parseRustImports(cleanContent) : parseImports(cleanContent);
+    final resolvedImports = isRustMode ? parsedImports : parsedImports.map((imp) => resolveImport(filePath, imp)).toList();
     
-    // Check if imports changed
     final oldImports = List<String>.from(cachedEntry['imports'] as List? ?? []);
     if (oldImports.length != resolvedImports.length || !oldImports.every(resolvedImports.contains)) {
       cachedEntry['imports'] = resolvedImports;
       cacheChanged = true;
     }
 
-    final testFile = getTestFilePath(filePath);
+    final String testFile;
+    final bool hasTests;
+    if (isRustMode) {
+      hasTests = rustFileHasTests(filePath, content);
+      testFile = hasTests ? 'inline or integration test' : '';
+    } else {
+      testFile = getTestFilePath(filePath);
+      hasTests = testFile.isNotEmpty;
+    }
+
     if (cachedEntry['test_file'] != testFile) {
       cachedEntry['test_file'] = testFile;
-      cachedEntry['has_tests'] = testFile.isNotEmpty;
+      cachedEntry['has_tests'] = hasTests;
       cacheChanged = true;
     }
 
-    final isFfi = detectsRustFFI(content, resolvedImports);
+    final isFfi = isRustMode ? filePath.contains('/bridge/') : detectsRustFFI(content, resolvedImports);
     if (cachedEntry['is_ffi_bridge'] != isFfi) {
       cachedEntry['is_ffi_bridge'] = isFfi;
       cacheChanged = true;
@@ -221,7 +312,7 @@ Future<void> handleScan(List<String> args) async {
       cacheChanged = true;
     }
 
-    final publicApis = parsePublicApis(file);
+    final publicApis = isRustMode ? parseRustPublicApis(file) : parsePublicApis(file);
     final oldApis = List<String>.from(cachedEntry['public_apis'] as List? ?? []);
     if (oldApis.length != publicApis.length || !oldApis.every(publicApis.contains)) {
       cachedEntry['public_apis'] = publicApis;
@@ -229,7 +320,7 @@ Future<void> handleScan(List<String> args) async {
     }
 
     if (cachedEntry['class'] == null || cachedEntry['class'] == '') {
-      cachedEntry['class'] = parseClassName(file);
+      cachedEntry['class'] = isRustMode ? parseRustClassNames(file) : parseClassName(file);
       cacheChanged = true;
     }
   }
@@ -407,27 +498,28 @@ Future<void> handleUpdate(List<String> args) async {
 }
 
 String parseClassName(File file) {
-  final classNames = <String>[];
+  final names = <String>[];
   try {
-    final lines = file.readAsLinesSync();
+    final content = file.readAsStringSync();
+    final clean = stripComments(content);
+    final lines = clean.split('\n');
     for (final line in lines) {
       final trimmed = line.trim();
-      if (trimmed.startsWith('class ')) {
-        final parts = trimmed.split(' ');
-        if (parts.length > 1) {
-          final className = parts[1].replaceAll('{', '').trim();
-          if (className.isNotEmpty) {
-            classNames.add(className);
-          }
+      final match = RegExp(r'^(?:(?:abstract|base|interface|final|sealed)\s+)?(?:class|mixin|enum|extension)\s+([a-zA-Z0-9_]+)').firstMatch(trimmed);
+      if (match != null) {
+        final name = match.group(1);
+        if (name != null && !names.contains(name)) {
+          names.add(name);
         }
       }
     }
   } catch (_) {}
-  return classNames.join(', ');
+  return names.join(', ');
 }
 
 Future<void> handleCheck(List<String> args) async {
-  final targetDir = args.isNotEmpty ? args[0] : 'lib';
+  final defaultDir = isRustMode ? 'rust/src' : 'lib';
+  final targetDir = args.isNotEmpty ? args[0] : defaultDir;
   final dir = Directory(targetDir);
 
   if (!dir.existsSync()) {
@@ -443,12 +535,18 @@ Future<void> handleCheck(List<String> args) async {
   final pendingAudit = <String>[];
   final violationDetected = <String>[];
 
+  final extension = isRustMode ? '.rs' : '.dart';
+
   final files = dir
       .listSync(recursive: true)
       .where((entity) {
-        if (entity is! File || !entity.path.endsWith('.dart')) return false;
+        if (entity is! File || !entity.path.endsWith(extension)) return false;
         final path = entity.path.replaceAll('\\', '/');
-        return !path.contains('/src/rust/');
+        if (isRustMode) {
+          return !path.contains('/frb_generated.rs') && !path.contains('/target/');
+        } else {
+          return !path.contains('/src/rust/');
+        }
       })
       .map((entity) => entity.path.replaceAll('\\', '/'))
       .toList();
@@ -506,6 +604,13 @@ int getTierForFile(String filePath, Map<String, dynamic> layers) {
       }
     }
   }
+  if (isRustMode) {
+    if (filePath.contains('/bridge/')) return 1;
+    if (filePath.contains('/persistence/')) return 2;
+    if (filePath.contains('/domain/')) return 3;
+    if (filePath.contains('/format/') || filePath.contains('/telemetry.rs')) return 3;
+    return 3;
+  }
   if (filePath.contains('/ui/')) return 1;
   if (filePath.contains('/engine/') || filePath.contains('/presentation/')) return 2;
   if (filePath.contains('/store/') || filePath.contains('/models/') || filePath.contains('/infrastructure/')) return 3;
@@ -552,11 +657,14 @@ String resolveImport(String currentFilePath, String importUri) {
 
 List<String> checkBoundaryViolations(String filePath, int fileTier, List<String> resolvedImports, Map<String, dynamic> components, Map<String, dynamic> layers) {
   final violations = <String>[];
-  if (filePath == 'lib/main.dart') {
+  if (!isRustMode && filePath == 'lib/main.dart') {
     return violations;
   }
   for (final imp in resolvedImports) {
-    if (imp.startsWith('package:') || imp.startsWith('dart:')) {
+    if (!isRustMode && (imp.startsWith('package:') || imp.startsWith('dart:'))) {
+      continue;
+    }
+    if (isRustMode && !imp.startsWith('rust/src/')) {
       continue;
     }
     final importedEntry = components[imp] as Map<String, dynamic>?;
@@ -594,6 +702,18 @@ bool detectsRustFFI(String content, List<String> resolvedImports) {
 String detectPattern(String filePath, String className) {
   final lowerPath = filePath.toLowerCase();
   final lowerClass = className.toLowerCase();
+  if (isRustMode) {
+    if (lowerPath.contains('/bridge/')) return 'FFI Bridge';
+    if (lowerPath.contains('/persistence/')) return 'Persistence Engine';
+    if (lowerPath.contains('/domain/')) return 'Domain Logic';
+    if (lowerClass.contains('state')) return 'FSM State';
+    if (lowerClass.contains('command')) return 'Command Pattern';
+    if (lowerClass.contains('strategy')) return 'Strategy Pattern';
+    if (lowerClass.contains('facade')) return 'Facade Pattern';
+    if (lowerClass.contains('error')) return 'Error Type';
+    if (lowerClass.contains('helper') || lowerClass.contains('utils')) return 'Utility/Helper';
+    return 'Rust Module';
+  }
   if (lowerPath.contains('/ui/')) return 'UI Component';
   if (lowerPath.contains('/models/')) return 'Data Model';
   if (lowerClass.endsWith('controller') || lowerClass.endsWith('manager')) return 'Controller/Manager';
@@ -610,11 +730,12 @@ String detectPattern(String filePath, String className) {
 List<String> parsePublicApis(File file) {
   final apis = <String>[];
   try {
-    final lines = file.readAsLinesSync();
+    final content = file.readAsStringSync();
+    final clean = stripComments(content);
+    final lines = clean.split('\n');
     final methodRegex = RegExp(r'^\s+(?:[a-zA-Z0-9<>_?]+)\s+([a-z][a-zA-Z0-9_]*)\s*\(');
     for (final line in lines) {
       final trimmed = line.trim();
-      if (trimmed.startsWith('//') || trimmed.startsWith('/*')) continue;
       final match = methodRegex.firstMatch(line);
       if (match != null) {
         final methodName = match.group(1);
@@ -895,6 +1016,14 @@ Future<void> handleAssertNaming(List<String> args) async {
     final path = filePath.toLowerCase();
     final name = className.toLowerCase();
 
+    if (isRustMode) {
+      final fileName = filePath.split('/').last;
+      if (!RegExp(r'^[a-z0-9_]+\.rs$').hasMatch(fileName)) {
+        violations.add('Naming Violation: Rust source file names must be snake_case. Found: $filePath');
+      }
+      return;
+    }
+
     // 1. Strategies directory naming rule
     if (path.contains('/strategies/')) {
       if (!filePath.endsWith('_strategy.dart') || !name.endsWith('strategy')) {
@@ -950,6 +1079,15 @@ Future<void> handleAssertTests(List<String> args) async {
     final tier = data['tier'] as int? ?? 3;
     final hasTests = data['has_tests'] as bool? ?? false;
     final testFile = data['test_file'] as String? ?? '';
+
+    if (isRustMode) {
+      if (tier >= 2) {
+        if (!hasTests) {
+          violations.add('Test Coverage Violation: Tier $tier Rust component does not have inline or integration tests. Found: $filePath');
+        }
+      }
+      return;
+    }
 
     // Check test coverage for Tier 2 and Tier 3 files
     if (tier >= 2) {
@@ -1074,4 +1212,215 @@ Future<void> handleQuery(List<String> args) async {
     print('  Has Tests: ${data['has_tests']} (${data['test_file']})');
     print('  FFI Bridge: ${data['is_ffi_bridge']}');
   });
+}
+
+String stripComments(String content) {
+  final blockCommentRegex = RegExp(r'/\*[\s\S]*?\*/');
+  final lineCommentRegex = RegExp(r'//.*');
+  var result = content.replaceAll(blockCommentRegex, '');
+  result = result.replaceAll(lineCommentRegex, '');
+  return result;
+}
+
+String resolveRustImport(String importUri) {
+  if (!importUri.startsWith('crate::')) {
+    return importUri;
+  }
+  
+  final parts = importUri.replaceFirst('crate::', '').split('::');
+  for (int i = parts.length; i > 0; i--) {
+    final subPath = parts.sublist(0, i).join('/');
+    final file1 = 'rust/src/$subPath.rs';
+    final file2 = 'rust/src/$subPath/mod.rs';
+    if (File(file1).existsSync()) {
+      return file1;
+    }
+    if (File(file2).existsSync()) {
+      return file2;
+    }
+  }
+  return 'rust/src/${parts[0]}.rs';
+}
+
+List<String> parseRustImports(String content) {
+  final imports = <String>[];
+  final regex = RegExp(r'use\s+(crate::[a-zA-Z0-9_:]+(?:\s*::\s*\{[^}]*\})?)\s*;');
+  final matches = regex.allMatches(content);
+  for (final match in matches) {
+    var imp = match.group(1)?.replaceAll(RegExp(r'\s+'), '') ?? '';
+    if (imp.isEmpty) continue;
+    
+    if (imp.contains('{')) {
+      final parts = imp.split('{');
+      final base = parts[0];
+      final items = parts[1].replaceAll('}', '').split(',');
+      for (final item in items) {
+        if (item.trim().isNotEmpty) {
+          imports.add(resolveRustImport('$base${item.trim()}'));
+        }
+      }
+    } else {
+      imports.add(resolveRustImport(imp));
+    }
+  }
+  return imports.toSet().toList();
+}
+
+String parseRustClassNames(File file) {
+  final names = <String>[];
+  try {
+    final content = file.readAsStringSync();
+    final clean = stripComments(content);
+    final lines = clean.split('\n');
+    for (final line in lines) {
+      final trimmed = line.trim();
+      final structMatch = RegExp(r'^(?:pub\s+)?(?:struct|enum|trait)\s+([a-zA-Z0-9_]+)').firstMatch(trimmed);
+      if (structMatch != null) {
+        final name = structMatch.group(1);
+        if (name != null && !names.contains(name)) {
+          names.add(name);
+        }
+      }
+    }
+  } catch (_) {}
+  return names.join(', ');
+}
+
+List<String> parseRustPublicApis(File file) {
+  final apis = <String>[];
+  try {
+    final content = file.readAsStringSync();
+    final clean = stripComments(content);
+    final lines = clean.split('\n');
+    for (final line in lines) {
+      final trimmed = line.trim();
+      final fnMatch = RegExp(r'^\s*pub\s+(?:async\s+)?fn\s+([a-z0-9_]+)\s*\(').firstMatch(line);
+      if (fnMatch != null) {
+        final decl = trimmed.split('{').first.trim();
+        if (!apis.contains(decl)) {
+          apis.add(decl);
+        }
+      }
+    }
+  } catch (_) {}
+  return apis;
+}
+
+bool rustFileHasTests(String filePath, String fileContent) {
+  if (fileContent.contains('#[cfg(test)]') || fileContent.contains('#[test]')) {
+    return true;
+  }
+  final parts = filePath.split('/');
+  if (parts.length > 2) {
+    final fileName = parts.last;
+    final testFileName = fileName.replaceFirst('.rs', '_test.rs');
+    final integrationTestPath = 'rust/tests/$testFileName';
+    if (File(integrationTestPath).existsSync()) {
+      return true;
+    }
+    final testsDir = Directory('rust/tests');
+    if (testsDir.existsSync()) {
+      final list = testsDir.listSync(recursive: true);
+      for (final entity in list) {
+        if (entity is File && entity.path.contains(fileName.replaceFirst('.rs', ''))) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+Future<void> handleUpdateBulk(List<String> args) async {
+  if (args.isEmpty) {
+    print('Error: Missing JSON file path for update_bulk command.');
+    printUsage();
+    exit(1);
+  }
+
+  final jsonPath = args[0];
+  final jsonFile = File(jsonPath);
+  if (!jsonFile.existsSync()) {
+    print('Error: JSON file not found at $jsonPath');
+    exit(1);
+  }
+
+  final Map<String, dynamic> bulkData;
+  try {
+    final jsonContent = jsonFile.readAsStringSync();
+    bulkData = jsonDecode(jsonContent) as Map<String, dynamic>;
+  } catch (e) {
+    print('Error decoding bulk JSON: $e');
+    exit(1);
+  }
+
+  final cache = loadCache();
+  final components = cache['components'] as Map<String, dynamic>;
+  bool changed = false;
+
+  for (final entry in bulkData.entries) {
+    final filePath = entry.key.replaceAll('\\', '/');
+    final data = entry.value;
+    if (data is! Map<String, dynamic>) {
+      print('Warning: Invalid format for $filePath, skipping.');
+      continue;
+    }
+
+    final file = File(filePath);
+    if (!file.existsSync()) {
+      print('Warning: File does not exist: $filePath, skipping.');
+      continue;
+    }
+
+    final status = (data['status'] as String? ?? '').toUpperCase();
+    if (status != 'COMPLIANT' && status != 'VIOLATION_DETECTED' && status != 'PENDING_AUDIT') {
+      print('Warning: Invalid status "$status" for $filePath, skipping.');
+      continue;
+    }
+
+    final cachedEntry = components[filePath] as Map<String, dynamic>? ?? {};
+    final currentHash = await getFileHash(filePath);
+
+    final violationsList = <String>[];
+    if (data['violations'] != null) {
+      if (data['violations'] is List) {
+        violationsList.addAll((data['violations'] as List).map((v) => v.toString()));
+      } else if (data['violations'] is String && data['violations'].isNotEmpty) {
+        violationsList.addAll(data['violations'].split('|').map((v) => v.trim()).where((v) => v.isNotEmpty));
+      }
+    }
+
+    if (data['architectural_role'] != null) {
+      cachedEntry['architectural_role'] = data['architectural_role'].toString().trim();
+    }
+    if (data['pattern'] != null) {
+      cachedEntry['pattern'] = data['pattern'].toString().trim();
+    }
+
+    cachedEntry['sha256'] = currentHash;
+    cachedEntry['status'] = status;
+    cachedEntry['violations'] = violationsList;
+
+    if (cachedEntry['class'] == null || cachedEntry['class'] == '') {
+      cachedEntry['class'] = isRustMode ? parseRustClassNames(file) : parseClassName(file);
+    }
+
+    components[filePath] = cachedEntry;
+    changed = true;
+  }
+
+  if (changed) {
+    try {
+      final gitCommitResult = await Process.run('git', ['rev-parse', 'HEAD']);
+      if (gitCommitResult.exitCode == 0) {
+        cache['last_audit_commit'] = gitCommitResult.stdout.toString().trim();
+      }
+    } catch (_) {}
+
+    cache['last_audit_time'] = DateTime.now().toUtc().toIso8601String();
+    saveCache(cache);
+    print('Successfully bulk-updated cache.');
+  } else {
+    print('No components were updated.');
+  }
 }

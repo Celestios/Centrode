@@ -24,17 +24,29 @@
         "-File",
         "${workspace.path}\\.agents\\plugins\\arch-linter\\scripts\\update_arch_cache.ps1"
       ],
-      "description": "Re‑generate architecture‑cache.json from local files"
+      "description": "Re‑generate dart-architecture-cache.json and rust-architecture-cache.json from local files"
     },
     {
-      "name": "run_audit",
+      "name": "run_audit_dart",
       "tool": "run_command",
       "args": [
         "dart",
         "${workspace.path}\\.agents\\plugins\\arch-linter\\scripts\\cache_manager.dart",
-        "check"
+        "check",
+        "--dart"
       ],
-      "description": "Execute the compliance check (verifies all files are compliant)"
+      "description": "Execute the compliance check for Dart (verifies all Dart files are compliant)"
+    },
+    {
+      "name": "run_audit_rust",
+      "tool": "run_command",
+      "args": [
+        "dart",
+        "${workspace.path}\\.agents\\plugins\\arch-linter\\scripts\\cache_manager.dart",
+        "check",
+        "--rust"
+      ],
+      "description": "Execute the compliance check for Rust (verifies all Rust files are compliant)"
     }
   ]
 }

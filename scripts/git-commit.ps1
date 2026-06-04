@@ -181,7 +181,8 @@ if (-not [string]::IsNullOrEmpty($CommitMsgFile) -or -not [string]::IsNullOrEmpt
     }
     
     # Read first line as header
-    $header = ($resolvedMsg -split "`r?`n")[0]
+    $lines = $resolvedMsg -split "`r?`n"
+    $header = $lines[0]
     
     # Validate Conventional Commit format: <type>(<scope>): <subject> or <type>: <subject>
     # Types: feat|fix|refactor|perf|docs|chore|test
@@ -193,6 +194,24 @@ if (-not [string]::IsNullOrEmpty($CommitMsgFile) -or -not [string]::IsNullOrEmpt
             Remove-Item $tempMsgFile -ErrorAction SilentlyContinue
         }
         exit 1
+    }
+    
+    # Enforce commit body presence (exempting release commits)
+    if ($header -notmatch "^chore\(release\)") {
+        $hasBody = $false
+        for ($i = 1; $i -lt $lines.Count; $i++) {
+            if (-not [string]::IsNullOrWhiteSpace($lines[$i])) {
+                $hasBody = $true
+                break
+            }
+        }
+        if (-not $hasBody) {
+            Write-Error "Error: Commit message must include a body describing the changes."
+            if ([string]::IsNullOrEmpty($CommitMsgFile)) {
+                Remove-Item $tempMsgFile -ErrorAction SilentlyContinue
+            }
+            exit 1
+        }
     }
     
     # Branch guard checks

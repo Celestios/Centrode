@@ -696,7 +696,7 @@
       "architectural_role": "Hosts the canvas interactive layers stack, binds mouse events to FSM controllers, and aligns sidebar overlay panels."
     },
     "lib/features/graph/engine/base_interaction_state.dart": {
-      "class": "",
+      "class": "CanvasInteractionState",
       "sha256": "ce011b76ba2d74feffb2c4800cb9ff271f152383",
       "status": "COMPLIANT",
       "violations": [],
@@ -927,7 +927,7 @@
       "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
     },
     "lib/features/graph/models/left_panel_type.dart": {
-      "class": "",
+      "class": "LeftPanelType",
       "sha256": "deabb073dd87c30ac1162e32c273cf23dbecb891",
       "status": "COMPLIANT",
       "violations": [],
@@ -1068,7 +1068,7 @@
       "architectural_role": "Implements efficient local queries (such as lookup by ID or type) directly on the in-memory store index."
     },
     "lib/features/graph/store/modules/graph_state_facade.dart": {
-      "class": "",
+      "class": "GraphStateFacade",
       "sha256": "4aab7fb269da12c6d93e3593b2819a46668e89ee",
       "status": "COMPLIANT",
       "violations": [],
@@ -2157,7 +2157,7 @@
       "public_apis": [
         "return isDark(Color(colorValue));",
         "return isDarkInt(bgColorVal) ? 0xFFFFFFFF : 0xFF000000;",
-        "return isDarkInt(bgColorVal) ? 0x4DFFFFFF : 0x33000000; // 30% white vs 20% black"
+        "return isDarkInt(bgColorVal) ? 0x4DFFFFFF : 0x33000000;"
       ],
       "architectural_role": "Exposes reusable mathematical tools (color conversions, coordinate systems math) to presentation systems."
     },
@@ -2214,7 +2214,7 @@
       "architectural_role": "Provides high-end liquid-glass-morphic shading filters and stage container layouts for premium visual aesthetics."
     },
     "lib/shared/widgets/glass_panel/src/glass_mode.dart": {
-      "class": "",
+      "class": "GlassMode",
       "sha256": "34ccddfe611f648636153c5b9504c465c57bcec8",
       "status": "COMPLIANT",
       "violations": [],
@@ -2294,7 +2294,7 @@
       "architectural_role": "Provides high-end liquid-glass-morphic shading filters and stage container layouts for premium visual aesthetics."
     },
     "lib/features/graph/models/commands/base.dart": {
-      "class": "",
+      "class": "CommandCategory, GraphCommand",
       "sha256": "53b95feed837c396e15da696292fff6feb349fc9",
       "status": "COMPLIANT",
       "violations": [],
