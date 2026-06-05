@@ -15,23 +15,11 @@
       "description": "Run Graphify incremental update to keep graph.json fresh"
     },
     {
-      "name": "refresh_cache",
-      "tool": "run_command",
-      "args": [
-        "powershell",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspace.path}\\.agents\\plugins\\arch-linter\\scripts\\update_arch_cache.ps1"
-      ],
-      "description": "Re‑generate dart-architecture-cache.json and rust-architecture-cache.json from local files"
-    },
-    {
       "name": "run_audit_dart",
       "tool": "run_command",
       "args": [
         "dart",
-        "${workspace.path}\\.agents\\plugins\\arch-linter\\scripts\\cache_manager.dart",
+        "${workspace.path}\\.agents\\plugins\\arch-linter\\scripts\\arch_linter.dart",
         "check",
         "--dart"
       ],
@@ -42,7 +30,7 @@
       "tool": "run_command",
       "args": [
         "dart",
-        "${workspace.path}\\.agents\\plugins\\arch-linter\\scripts\\cache_manager.dart",
+        "${workspace.path}\\.agents\\plugins\\arch-linter\\scripts\\arch_linter.dart",
         "check",
         "--rust"
       ],

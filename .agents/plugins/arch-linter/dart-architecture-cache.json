@@ -1,6 +1,6 @@
 {
-  "last_audit_commit": "e4cbfb85c830d02736ff3689b7599f6336aecef1",
-  "last_audit_time": "2026-06-03T21:00:38.529376Z",
+  "last_audit_commit": "f687f81236a52b0c4e8a5bbd41b039a043311fe8",
+  "last_audit_time": "2026-06-05T08:48:11.698217Z",
   "layers": {
     "lib/features/graph/ui": {
       "tier": 1,
@@ -36,9 +36,11 @@
   "components": {
     "lib/features/graph/models/graph_node.dart": {
       "class": "UiNode",
-      "sha256": "389423302d44742fc319e5c40552ab02c874e703",
+      "sha256": "c735db9ebeb8cc3d5a5a5511b2cb28531e91bc63",
       "status": "COMPLIANT",
-      "violations": [],
+      "violations": [
+        "Wraps low-level Rust node types with presentational getters, acting as the domain entity model for layout calculations."
+      ],
       "tier": 3,
       "imports": [
         "package:flutter/painting.dart",
@@ -54,12 +56,9 @@
       "is_ffi_bridge": true,
       "pattern": "Data Model",
       "public_apis": [
-        "Nodes toRust();",
-        "Nodes toRust()",
-        "InfoUiNode copyWith(",
-        "TaskUiNode copyWith("
+        "Nodes toRust();"
       ],
-      "architectural_role": "Wraps low-level Rust node types with presentational getters, acting as the domain entity model for layout calculations."
+      "architectural_role": "Data Model"
     },
     "lib/features/graph/models/graph_relation.dart": {
       "class": "UiRelation",
@@ -86,9 +85,12 @@
     },
     "lib/features/graph/store/graph_data_controller.dart": {
       "class": "GraphDataController",
-      "sha256": "91536d5f2ae6edbbf1a3af568e80e7bddd596f31",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "6027409506c3444dff9212da9047305e4f341a3b",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "DIP / Layer Leak (ViewportState): Tier 3 Store component imports and uses Tier 2 ViewportState.",
+        "DIP / Style Coupling: Inline default theme fallbacks inside Tier 3."
+      ],
       "tier": 3,
       "imports": [
         "dart:async",
@@ -1995,9 +1997,13 @@
     },
     "lib/presentation/widgets/template_manager/templates_list_view.dart": {
       "class": "TemplatesListView",
-      "sha256": "8820c015e94f7d4811b1889b05efb15a7133bc25",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "f644979342830113a51ec8bb6bae6ae8a4bab4f1",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "SRP / Code Complexity: TemplatePreviewPainter contains 170+ lines of low-level math/drawing instructions.",
+        "DRY / Hardcoded Style Map: Hardcoded style mappings.",
+        "DIP / FFI Model Coupling: Directly depends on Rust model properties instead of UI models."
+      ],
       "tier": 2,
       "imports": [
         "package:flutter/material.dart",
@@ -2733,6 +2739,31 @@
         "Widget build(BuildContext context)"
       ],
       "architectural_role": "Provides high-fidelity, reusable micro-animation scaling behaviors and tooltip wrappers for icon buttons."
+    },
+    "lib/features/graph/models/graph_node.ui.dart": {
+      "class": "CommentUiNode, DrawingUiNode, FrameUiNode, InfoUiNode, InterUiNode, MediaUiNode, ShapeUiNode, TaskUiNode",
+      "architectural_role": "",
+      "sha256": "4da5e694e899f6d4583a9294fd351a99b7701f33",
+      "status": "COMPLIANT",
+      "violations": [
+        "Data Model"
+      ],
+      "tier": 3,
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Data Model",
+      "public_apis": [
+        "Nodes toRust()",
+        "CommentUiNode copyWith(",
+        "DrawingUiNode copyWith(",
+        "FrameUiNode copyWith(",
+        "InfoUiNode copyWith(",
+        "InterUiNode copyWith(",
+        "MediaUiNode copyWith(",
+        "ShapeUiNode copyWith(",
+        "TaskUiNode copyWith("
+      ]
     }
   }
 }

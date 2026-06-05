@@ -13,13 +13,13 @@ Use this skill when evaluating whether a specific component or file respects its
 Before performing any manual code inspection, **always** query the [arch-linter](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/arch-linter/SKILL.md) cache first to gather the file's metadata:
 ```powershell
 # Get the file's tier, pattern, FFI status, and test coverage
-dart .agents/plugins/arch-linter/scripts/cache_manager.dart query dir=<directory>
+dart .agents/plugins/arch-linter/scripts/arch_linter.dart query dir=<directory>
 
 # Check who depends on this file (blast radius)
-dart .agents/plugins/arch-linter/scripts/cache_manager.dart dependents <file_path>
+dart .agents/plugins/arch-linter/scripts/arch_linter.dart dependents <file_path>
 
 # Check the file's public API surface
-dart .agents/plugins/arch-linter/scripts/cache_manager.dart query_method name=<search>
+dart .agents/plugins/arch-linter/scripts/arch_linter.dart query_method name=<search>
 ```
 
 ## The Zero-Trust Checklist

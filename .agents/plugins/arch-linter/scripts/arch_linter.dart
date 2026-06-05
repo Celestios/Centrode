@@ -10,7 +10,7 @@ void main(List<String> args) async {
 
   if (!hasDart && !hasRust) {
     print('Error: Explicit mode flag required. Please specify either --dart or --rust.');
-    print('Example: dart cache_manager.dart scan --rust');
+    print('Example: dart arch_linter.dart scan --rust');
     exit(1);
   }
 
@@ -35,9 +35,6 @@ void main(List<String> args) async {
   final cmdArgs = cleanArgs.skip(1).toList();
 
   switch (command) {
-    case 'scan':
-      await handleScan(cmdArgs);
-      break;
     case 'check':
       await handleCheck(cmdArgs);
       break;
@@ -77,12 +74,11 @@ void main(List<String> args) async {
 
 void printUsage() {
   print('Usage:');
-  print('  dart cache_manager.dart <command> [--dart | --rust] [arguments]');
+  print('  dart arch_linter.dart <command> [--dart | --rust] [arguments]');
   print('\nCommands:');
-  print('  scan [directory_path (default: lib for --dart, rust/src for --rust)]');
+  print('  check [directory_path (default: lib for --dart, rust/src for --rust)]');
   print('  update <file_path> <status> [violations_separated_by_pipe] [role] [pattern]');
   print('  update_bulk <json_file_path>');
-  print('  check [directory_path (default: lib for --dart, rust/src for --rust)]');
   print('  query [filter_key=value ...]');
   print('  query_method [name=val] [return_type=val] [pattern=regex]');
   print('  dependents <file_path>');
@@ -194,7 +190,7 @@ Future<String> getFileHash(String filePath) async {
   return '${stat.modified.millisecondsSinceEpoch}_${stat.size}';
 }
 
-Future<void> handleScan(List<String> args) async {
+Future<void> handleCheck(List<String> args) async {
   final defaultDir = isRustMode ? 'rust/src' : 'lib';
   final targetDir = args.isNotEmpty ? args[0] : defaultDir;
   final dir = Directory(targetDir);
@@ -405,27 +401,33 @@ Future<void> handleScan(List<String> args) async {
   }
 
   // Print results to stdout in a clean, structured format for the agent to parse
-  print('\n=== SRP AUDIT CACHE SCAN RESULTS ===');
-  print('Total Files Scanned: ${files.length}');
-  print('Bypassed (Compliant): ${compliant.length}');
-  print('Queue - Pending Audit: ${pendingAudit.length}');
-  print('Queue - Violation Detected: ${violationDetected.length}');
+  print('\n=== SRP AUDIT COMPLIANCE CHECK ===');
+  print('Total Files Checked: ${files.length}');
+  print('Pending Audit Queue: ${pendingAudit.length}');
+  print('Violation Queue: ${violationDetected.length}');
   
   if (pendingAudit.isNotEmpty) {
-    print('\n[AUDIT_REQUIRED - PENDING]');
+    print('\n⚠️ PENDING AUDITS (needs to be audited or has modified hashes):');
     for (final file in pendingAudit) {
       print('  $file');
     }
   }
 
   if (violationDetected.isNotEmpty) {
-    print('\n[AUDIT_REQUIRED - VIOLATION]');
+    print('\n❌ VIOLATIONS DETECTED:');
     for (final file in violationDetected) {
       final entry = components[file] as Map<String, dynamic>;
       final list = entry['violations'] as List? ?? [];
       print('  $file - Violations: $list');
     }
   }
+
+  if (violationDetected.isNotEmpty || pendingAudit.isNotEmpty) {
+    print('\n❌ Compliance check failed. Please resolve violations or run the /arch-linter workflow.');
+    exit(1);
+  }
+  print('\n✅ All files are COMPLIANT.');
+  exit(0);
 }
 
 Future<void> handleUpdate(List<String> args) async {
@@ -517,83 +519,7 @@ String parseClassName(File file) {
   return names.join(', ');
 }
 
-Future<void> handleCheck(List<String> args) async {
-  final defaultDir = isRustMode ? 'rust/src' : 'lib';
-  final targetDir = args.isNotEmpty ? args[0] : defaultDir;
-  final dir = Directory(targetDir);
 
-  if (!dir.existsSync()) {
-    print('Target directory does not exist: $targetDir');
-    exit(1);
-  }
-
-  // Pre-run scan to update all hashes, rich metadata, and boundary violations
-  await handleScan([targetDir]);
-
-  final cache = loadCache();
-  final components = cache['components'] as Map<String, dynamic>;
-  final pendingAudit = <String>[];
-  final violationDetected = <String>[];
-
-  final extension = isRustMode ? '.rs' : '.dart';
-
-  final files = dir
-      .listSync(recursive: true)
-      .where((entity) {
-        if (entity is! File || !entity.path.endsWith(extension)) return false;
-        final path = entity.path.replaceAll('\\', '/');
-        if (isRustMode) {
-          return !path.contains('/frb_generated.rs') && !path.contains('/target/');
-        } else {
-          return !path.contains('/src/rust/');
-        }
-      })
-      .map((entity) => entity.path.replaceAll('\\', '/'))
-      .toList();
-
-  for (final filePath in files) {
-    final cachedEntry = components[filePath] as Map<String, dynamic>?;
-
-    if (cachedEntry == null) {
-      pendingAudit.add(filePath);
-    } else {
-      final cachedStatus = cachedEntry['status'] as String?;
-      if (cachedStatus == 'VIOLATION_DETECTED') {
-        violationDetected.add(filePath);
-      } else if (cachedStatus != 'COMPLIANT') {
-        pendingAudit.add(filePath);
-      }
-    }
-  }
-
-  print('\n=== SRP AUDIT COMPLIANCE CHECK ===');
-  print('Total Files Checked: ${files.length}');
-  print('Pending Audit Queue: ${pendingAudit.length}');
-  print('Violation Queue: ${violationDetected.length}');
-
-  if (violationDetected.isNotEmpty) {
-    print('\n❌ VIOLATIONS DETECTED:');
-    for (final file in violationDetected) {
-      final entry = components[file] as Map<String, dynamic>;
-      print('  $file - Violations: ${entry['violations']}');
-    }
-  }
-
-  if (pendingAudit.isNotEmpty) {
-    print('\n⚠️ PENDING AUDITS (needs to be audited or has modified hashes):');
-    for (final file in pendingAudit) {
-      print('  $file');
-    }
-  }
-
-  if (violationDetected.isNotEmpty || pendingAudit.isNotEmpty) {
-    print('\n❌ Compliance check failed. Please resolve violations or run the /arch-linter workflow.');
-    exit(1);
-  }
-
-  print('\n✅ All files are COMPLIANT.');
-  exit(0);
-}
 
 int getTierForFile(String filePath, Map<String, dynamic> layers) {
   for (final layerPath in layers.keys) {
@@ -754,7 +680,7 @@ List<String> parsePublicApis(File file) {
 Future<void> handleQueryMethod(List<String> args) async {
   if (args.isEmpty) {
     print('Usage:');
-    print('  dart cache_manager.dart query_method [filter_key=value ...]');
+    print('  dart arch_linter.dart query_method [filter_key=value ...]');
     print('\nAvailable filters:');
     print('  name=<method_name>');
     print('  return_type=<type>');
@@ -841,7 +767,7 @@ Map<String, String>? parseMethodSignature(String signature) {
 
 Future<void> handleDependents(List<String> args) async {
   if (args.isEmpty) {
-    print('Usage: dart cache_manager.dart dependents <file_path>');
+    print('Usage: dart arch_linter.dart dependents <file_path>');
     exit(1);
   }
 
@@ -865,7 +791,7 @@ Future<void> handleDependents(List<String> args) async {
 
 Future<void> handleTracePath(List<String> args) async {
   if (args.length < 2) {
-    print('Usage: dart cache_manager.dart trace_path <source_file> <target_file>');
+    print('Usage: dart arch_linter.dart trace_path <source_file> <target_file>');
     exit(1);
   }
 
@@ -923,7 +849,7 @@ List<String>? traceImportPath(String source, String target, Map<String, dynamic>
 Future<void> handleQueryMetrics(List<String> args) async {
   if (args.isEmpty) {
     print('Usage:');
-    print('  dart cache_manager.dart query_metrics [filter_key>=value ...]');
+    print('  dart arch_linter.dart query_metrics [filter_key>=value ...]');
     print('\nAvailable filters (shell-safe alternatives in brackets):');
     print('  api_count>=<val>  (or api_count_gte=<val>)');
     print('  size>=<val>       (or size_gte=<val>)');
@@ -1116,7 +1042,7 @@ Future<void> handleAssertTests(List<String> args) async {
 Future<void> handleQuery(List<String> args) async {
   if (args.isEmpty) {
     print('Usage:');
-    print('  dart cache_manager.dart query [filter_key=value ...]');
+    print('  dart arch_linter.dart query [filter_key=value ...]');
     print('\nAvailable filters:');
     print('  tier=<1|2|3>');
     print('  pattern=<PatternName>');

@@ -13,13 +13,13 @@ Use this skill when moving code, adding helper functions, or refactoring logic t
 Before performing any manual symmetry analysis, use the [arch-linter](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/arch-linter/SKILL.md) to find sibling classes and check for duplicated methods:
 ```powershell
 # Find all classes in the same directory
-dart .agents/plugins/arch-linter/scripts/cache_manager.dart query dir=<directory>
+dart .agents/plugins/arch-linter/scripts/arch_linter.dart query dir=<directory>
 
 # Search for a method name across the entire codebase to detect duplication
-dart .agents/plugins/arch-linter/scripts/cache_manager.dart query_method name=<method_name>
+dart .agents/plugins/arch-linter/scripts/arch_linter.dart query_method name=<method_name>
 
 # Check if the same pattern is used consistently across siblings
-dart .agents/plugins/arch-linter/scripts/cache_manager.dart query pattern=<pattern_name>
+dart .agents/plugins/arch-linter/scripts/arch_linter.dart query pattern=<pattern_name>
 ```
 
 ## The Symmetry Mandate
