@@ -510,19 +510,34 @@ class TemplatePreviewPainter extends CustomPainter {
 
     for (final node in nodes) {
       final String key = node.map(
-        iNode: (n) => n.field0.key,
-        taskNode: (n) => n.field0.key,
-        interNode: (n) => n.field0.key,
+        iNode: (n) => n.field0.id.key,
+        taskNode: (n) => n.field0.id.key,
+        interNode: (n) => n.field0.id.key,
+        commentNode: (n) => n.field0.id.key,
+        drawingNode: (n) => n.field0.id.key,
+        shapeNode: (n) => n.field0.id.key,
+        frameNode: (n) => n.field0.id.key,
+        mediaNode: (n) => n.field0.id.key,
       );
       final ffi.Coordinates pos = node.map(
-        iNode: (n) => n.field0.fields.position,
-        taskNode: (n) => n.field0.fields.position,
-        interNode: (n) => n.field0.fields.position,
+        iNode: (n) => n.field0.position,
+        taskNode: (n) => n.field0.position,
+        interNode: (n) => n.field0.position,
+        commentNode: (n) => n.field0.position,
+        drawingNode: (n) => n.field0.position,
+        shapeNode: (n) => n.field0.position,
+        frameNode: (n) => n.field0.position,
+        mediaNode: (n) => n.field0.position,
       );
       final ffi.Size nodeSize = node.map(
-        iNode: (n) => n.field0.fields.size,
-        taskNode: (n) => n.field0.fields.size,
+        iNode: (n) => n.field0.size,
+        taskNode: (n) => n.field0.size,
         interNode: (n) => const ffi.Size(width: 60, height: 36),
+        commentNode: (n) => n.field0.size,
+        drawingNode: (n) => const ffi.Size(width: 60, height: 36),
+        shapeNode: (n) => n.field0.size,
+        frameNode: (n) => n.field0.size,
+        mediaNode: (n) => n.field0.size,
       );
 
       final double nx = pos.x.toDouble();
@@ -537,6 +552,11 @@ class TemplatePreviewPainter extends CustomPainter {
         iNode: (n) => const Color(0xFF90CAF9), // light blue
         taskNode: (n) => const Color(0xFFA5D6A7), // light green
         interNode: (n) => const Color(0xFFFFF59D), // light yellow
+        commentNode: (n) => const Color(0xFFB0BEC5), // grey
+        drawingNode: (n) => const Color(0xFFCE93D8), // purple
+        shapeNode: (n) => const Color(0xFFFFCC80), // orange
+        frameNode: (n) => const Color(0xFFBCAAA4), // brown
+        mediaNode: (n) => const Color(0xFF80CBC4), // teal
       );
       nodeColors[key] = color;
 
@@ -593,9 +613,14 @@ class TemplatePreviewPainter extends CustomPainter {
     // 3. Draw nodes
     for (final node in nodes) {
       final String key = node.map(
-        iNode: (n) => n.field0.key,
-        taskNode: (n) => n.field0.key,
-        interNode: (n) => n.field0.key,
+        iNode: (n) => n.field0.id.key,
+        taskNode: (n) => n.field0.id.key,
+        interNode: (n) => n.field0.id.key,
+        commentNode: (n) => n.field0.id.key,
+        drawingNode: (n) => n.field0.id.key,
+        shapeNode: (n) => n.field0.id.key,
+        frameNode: (n) => n.field0.id.key,
+        mediaNode: (n) => n.field0.id.key,
       );
       final rect = nodeRects[key];
       final color = nodeColors[key];

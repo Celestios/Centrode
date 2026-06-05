@@ -4,8 +4,7 @@ import 'package:mycelium/features/graph/store/graph_data_controller.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
-import 'package:mycelium/src/rust/domain/nodes.dart';
-import 'package:mycelium/src/rust/domain/relations.dart';
+import 'package:mycelium/src/rust/domain/snapshot.dart';
 
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 
@@ -26,11 +25,15 @@ void main() {
       when(() => mockApi.createGraphStream())
           .thenAnswer((_) => const Stream.empty());
       when(() => mockApi.getGraphSnapshot())
-          .thenAnswer((_) async => (<INode>[], <TaskNode>[], <InterNode>[], <IRelation>[], const frb.MapData(
-            mapName: '',
-            viewportState: frb.ViewportState(xOffset: 0, yOffset: 0, zoomLevel: 1, activeView: ''),
-            displayMode: frb.DisplayMode.importance,
-          )));
+          .thenAnswer((_) async => const GraphSnapshot(
+            nodes: [],
+            relations: [],
+            metadata: frb.MapData(
+              mapName: '',
+              viewportState: frb.ViewportState(xOffset: 0, yOffset: 0, zoomLevel: 1, activeView: ''),
+              displayMode: frb.DisplayMode.importance,
+            ),
+          ));
 
       controller = GraphDataController(mockApi);
     });
@@ -45,11 +48,15 @@ void main() {
       when(() => mockApi.createGraphStream())
           .thenAnswer((_) => const Stream.empty());
       when(() => mockApi.getGraphSnapshot())
-          .thenAnswer((_) async => (<INode>[], <TaskNode>[], <InterNode>[], <IRelation>[], const frb.MapData(
-            mapName: '',
-            viewportState: frb.ViewportState(xOffset: 0, yOffset: 0, zoomLevel: 1, activeView: ''),
-            displayMode: frb.DisplayMode.importance,
-          )));
+          .thenAnswer((_) async => const GraphSnapshot(
+            nodes: [],
+            relations: [],
+            metadata: frb.MapData(
+              mapName: '',
+              viewportState: frb.ViewportState(xOffset: 0, yOffset: 0, zoomLevel: 1, activeView: ''),
+              displayMode: frb.DisplayMode.importance,
+            ),
+          ));
 
       verify(() => mockApi.getGraphSnapshot()).called(1);
       verify(() => mockApi.createGraphStream()).called(1);

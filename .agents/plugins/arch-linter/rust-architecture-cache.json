@@ -1,6 +1,6 @@
 {
-  "last_audit_commit": "1d4fe7886ec3b922cc8103a6fbfa6399a7f613b6",
-  "last_audit_time": "2026-06-04T22:58:03.357135Z",
+  "last_audit_commit": "f4e8e767463057ecfc080af7592fecbaae70bfec",
+  "last_audit_time": "2026-06-05T01:13:59.282047Z",
   "layers": {
     "rust/src/bridge": {
       "tier": 1,
@@ -21,8 +21,8 @@
   "components": {
     "rust/src/bridge/api.rs": {
       "class": "AppHandle",
-      "architectural_role": "FFI boundary, entry points for Flutter interactions, mapping events and data types.",
-      "sha256": "bc96e0bad3240efb57337bdf798cec93bc689db7",
+      "architectural_role": "FFI Bridge API Gateway",
+      "sha256": "13e1f25ab191fa57453707cd16b13a2485f08700",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -246,7 +246,7 @@
     "rust/src/domain/patches.rs": {
       "class": "TagOperation, NodePatch, RelationPatch, EntityPatch, SymmetricEntityPatch, PatchHistoryPayload",
       "architectural_role": "Patch structures and type definitions.",
-      "sha256": "7eed8bc393385425cab7193035a1bf83c8faff78",
+      "sha256": "59094e2f565e11e5e95d165fb9d7f4dc9a4294a6",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -602,8 +602,8 @@
     },
     "rust/src/persistence/repo/patches.rs": {
       "class": "",
-      "architectural_role": "Repository module for Entity patches, transaction execution, and history stack checks.",
-      "sha256": "c25cbb8b38ebf0222412836144ffdce25eabee8b",
+      "architectural_role": "Central persistence repository patches logic.",
+      "sha256": "0a314114d0b531c252d9dccb19be23c20d6d459f",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -618,7 +618,7 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Repository Submodule",
+      "pattern": "Persistence Engine",
       "public_apis": [
         "pub async fn patch_entity(&self, id: RecordId, patch: &EntityPatch) -> Result<()>",
         "pub async fn patch_node(&self, id: RecordId, patch: &NodePatch) -> Result<()>",

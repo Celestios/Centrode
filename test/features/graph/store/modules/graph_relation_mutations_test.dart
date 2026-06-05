@@ -7,6 +7,7 @@ import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/relations.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
+import 'package:mycelium/src/rust/domain/snapshot.dart';
 import 'package:mycelium/features/graph/models/content_builder.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
@@ -25,23 +26,21 @@ void main() {
   setUpAll(() {
     registerFallbackValue(FakeSymmetricEntityPatch());
     registerFallbackValue(Nodes.iNode(INode(
-      key: 'dummy',
-      fields: INodeFields(
-        content: ContentFactory.empty(),
-        layer: 'default',
-        position: frb.Coordinates(x: 0, y: 0),
-        size: frb.Size(width: 10, height: 10),
-        expandable: false,
-        isExpanded: false,
-        locked: false,
-        tags: [],
-        aliases: [],
-        comments: [],
-        significance: 0,
-        createdAt: 0,
-        updatedAt: 0,
-        lineCount: 1,
-      ),
+      id: const frb.RecordStrings(table: 'INode', key: 'dummy'),
+      content: ContentFactory.empty(),
+      layer: 'default',
+      position: const frb.Coordinates(x: 0, y: 0),
+      size: const frb.Size(width: 10, height: 10),
+      expandable: false,
+      isExpanded: false,
+      locked: false,
+      tags: const [],
+      aliases: const [],
+      comments: const [],
+      significance: 0,
+      createdAt: 0,
+      updatedAt: 0,
+      lineCount: 1,
     )));
     registerFallbackValue(IRelation(
       key: 'dummy',
@@ -88,11 +87,15 @@ void main() {
       when(() => mockApi.createGraphStream())
           .thenAnswer((_) => const Stream.empty());
       when(() => mockApi.getGraphSnapshot())
-          .thenAnswer((_) async => (<INode>[], <TaskNode>[], <InterNode>[], <IRelation>[], const frb.MapData(
-            mapName: '',
-            viewportState: frb.ViewportState(xOffset: 0, yOffset: 0, zoomLevel: 1, activeView: ''),
-            displayMode: frb.DisplayMode.importance,
-          )));
+          .thenAnswer((_) async => const GraphSnapshot(
+            nodes: [],
+            relations: [],
+            metadata: frb.MapData(
+              mapName: '',
+              viewportState: frb.ViewportState(xOffset: 0, yOffset: 0, zoomLevel: 1, activeView: ''),
+              displayMode: frb.DisplayMode.importance,
+            ),
+          ));
 
       controller = GraphDataController(mockApi);
     });

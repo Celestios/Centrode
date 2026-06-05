@@ -338,24 +338,24 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
       if (rustNode is Nodes_INode) {
         final node = rustNode.field0;
         results.add(UiSearchResult(
-          key: node.key,
-          title: node.fields.content.text.isEmpty ? 'Untitled Node' : node.fields.content.text,
+          key: node.id.key,
+          title: node.content.text.isEmpty ? 'Untitled Node' : node.content.text,
           subtitle: 'Database • Info',
           type: UiSearchResultType.infoNode,
         ));
       } else if (rustNode is Nodes_TaskNode) {
         final node = rustNode.field0;
         results.add(UiSearchResult(
-          key: node.key,
-          title: node.fields.content.text.isEmpty ? 'Untitled Node' : node.fields.content.text,
-          subtitle: 'Database • Task • State: ${node.fields.state}',
+          key: node.id.key,
+          title: node.content.text.isEmpty ? 'Untitled Node' : node.content.text,
+          subtitle: 'Database • Task • State: ${node.state}',
           type: UiSearchResultType.taskNode,
         ));
       } else if (rustNode is Nodes_InterNode) {
         final node = rustNode.field0;
         results.add(UiSearchResult(
-          key: node.key,
-          title: node.fields.verb.isEmpty ? 'Untitled Relation' : node.fields.verb,
+          key: node.id.key,
+          title: node.verb.isEmpty ? 'Untitled Relation' : node.verb,
           subtitle: 'Database • Inter',
           type: UiSearchResultType.relation,
         ));

@@ -10,7 +10,7 @@ use surrealdb::types::{RecordId, SurrealValue};
 
 #[tokio::test]
 async fn test_targeted_patch_and_history() {
-    use mycelium_core::domain::patches::PatchHistoryPayload;
+    use mycelium_core::domain::patches::SymmetricEntityPatch;
 
     let repo = setup_test_repo().await;
     let history = HistoryManager::new(repo.db(), 5);
@@ -78,7 +78,7 @@ async fn test_targeted_patch_and_history() {
     }
 
     // 4. Log to history
-    let payload = PatchHistoryPayload {
+    let payload = SymmetricEntityPatch {
         id: RecordStrings {
             table: "INode".to_string(),
             key: "inode_patch_test".to_string(),
@@ -97,7 +97,7 @@ async fn test_targeted_patch_and_history() {
     let rec_undone = undone.unwrap();
     assert_eq!(rec_undone.action_type, "entity_patch");
 
-    let payload_undone = PatchHistoryPayload::from_value(rec_undone.payload).unwrap();
+    let payload_undone = SymmetricEntityPatch::from_value(rec_undone.payload).unwrap();
     let target_id = RecordId::new(
         payload_undone.id.table.as_str(),
         payload_undone.id.key.as_str(),
@@ -126,7 +126,7 @@ async fn test_targeted_patch_and_history() {
     let rec_redone = redone.unwrap();
     assert_eq!(rec_redone.action_type, "entity_patch");
 
-    let payload_redone = PatchHistoryPayload::from_value(rec_redone.payload).unwrap();
+    let payload_redone = SymmetricEntityPatch::from_value(rec_redone.payload).unwrap();
     let target_id_redone = RecordId::new(
         payload_redone.id.table.as_str(),
         payload_redone.id.key.as_str(),

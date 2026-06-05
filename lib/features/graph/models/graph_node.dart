@@ -128,60 +128,57 @@ class InfoUiNode extends UiNode {
   Nodes toRust() {
     return Nodes.iNode(
       INode(
-        key: id,
-        fields: INodeFields(
-          content: content,
-          style: style,
-          resolvedStyle: resolvedStyle,
-          layout: layout,
-          resolvedLayout: resolvedLayout,
-          layer: layer,
-          position: frb.Coordinates(
-            x: position.dx.round(),
-            y: position.dy.round(),
-          ),
-          size: frb.Size(
-            width: size.width.round(),
-            height: size.height.round(),
-          ),
-          lineCount: lineCount,
-          expandable: expandable,
-          isExpanded: isExpanded,
-          locked: locked,
-          tags: tags.map((tag) => TagEdge.hydrated(tag)).toList(),
-          aliases: aliases,
-          comments: comments,
-          attachment: attachment,
-          significance: significance,
-          createdAt: createdAt,
-          updatedAt: updatedAt,
+        id: frb.RecordStrings(table: tableName, key: id),
+        content: content,
+        style: style,
+        resolvedStyle: resolvedStyle,
+        layout: layout,
+        resolvedLayout: resolvedLayout,
+        layer: layer,
+        position: frb.Coordinates(
+          x: position.dx.round(),
+          y: position.dy.round(),
         ),
+        size: frb.Size(
+          width: size.width.round(),
+          height: size.height.round(),
+        ),
+        lineCount: lineCount,
+        expandable: expandable,
+        isExpanded: isExpanded,
+        locked: locked,
+        tags: tags.map((tag) => TagEdge.hydrated(tag)).toList(),
+        aliases: aliases,
+        comments: comments,
+        attachment: attachment,
+        significance: significance,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
       ),
     );
   }
 
   factory InfoUiNode.fromRust(INode node) {
-    final fields = node.fields;
     return InfoUiNode(
-      id: node.key,
-      createdAt: fields.createdAt,
-      updatedAt: fields.updatedAt,
-      locked: fields.locked,
-      style: fields.style,
-      resolvedStyle: fields.resolvedStyle,
-      layout: fields.layout,
-      resolvedLayout: fields.resolvedLayout,
-      layer: fields.layer,
+      id: node.id.key,
+      createdAt: node.createdAt,
+      updatedAt: node.updatedAt,
+      locked: node.locked,
+      style: node.style,
+      resolvedStyle: node.resolvedStyle,
+      layout: node.layout,
+      resolvedLayout: node.resolvedLayout,
+      layer: node.layer,
       position: Offset(
-        fields.position.x.toDouble(),
-        fields.position.y.toDouble(),
+        node.position.x.toDouble(),
+        node.position.y.toDouble(),
       ),
-      size: Size(fields.size.width.toDouble(), fields.size.height.toDouble()),
-      isExpanded: fields.isExpanded,
-      significance: fields.significance,
-      content: fields.content,
-      lineCount: fields.lineCount,
-      tags: fields.tags.map((edge) {
+      size: Size(node.size.width.toDouble(), node.size.height.toDouble()),
+      isExpanded: node.isExpanded,
+      significance: node.significance,
+      content: node.content,
+      lineCount: node.lineCount,
+      tags: node.tags.map((edge) {
         return edge.when(
           hydrated: (tag) => tag,
           pointer: (record) => Tag(
@@ -195,9 +192,9 @@ class InfoUiNode extends UiNode {
           ),
         );
       }).toList(),
-      aliases: fields.aliases,
-      comments: fields.comments,
-      attachment: fields.attachment,
+      aliases: node.aliases,
+      comments: node.comments,
+      attachment: node.attachment,
     );
   }
 
@@ -277,55 +274,52 @@ class TaskUiNode extends UiNode {
   Nodes toRust() {
     return Nodes.taskNode(
       TaskNode(
-        key: id,
-        fields: TaskNodeFields(
-          content: content,
-          dueDate: dueDate,
-          state: state,
-          position: frb.Coordinates(
-            x: position.dx.round(),
-            y: position.dy.round(),
-          ),
-          size: frb.Size(
-            width: size.width.round(),
-            height: size.height.round(),
-          ),
-          expandable: expandable,
-          isExpanded: isExpanded,
-          layer: layer,
-          style: style,
-          resolvedStyle: resolvedStyle,
-          layout: layout,
-          resolvedLayout: resolvedLayout,
-          significance: significance,
-          createdAt: createdAt,
-          updatedAt: updatedAt,
+        id: frb.RecordStrings(table: tableName, key: id),
+        content: content,
+        dueDate: dueDate,
+        state: state,
+        position: frb.Coordinates(
+          x: position.dx.round(),
+          y: position.dy.round(),
         ),
+        size: frb.Size(
+          width: size.width.round(),
+          height: size.height.round(),
+        ),
+        expandable: expandable,
+        isExpanded: isExpanded,
+        layer: layer,
+        style: style,
+        resolvedStyle: resolvedStyle,
+        layout: layout,
+        resolvedLayout: resolvedLayout,
+        significance: significance,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
       ),
     );
   }
 
   factory TaskUiNode.fromRust(TaskNode node) {
-    final fields = node.fields;
     return TaskUiNode(
-      id: node.key,
-      createdAt: fields.createdAt,
-      updatedAt: fields.updatedAt,
-      style: fields.style,
-      resolvedStyle: fields.resolvedStyle,
-      layout: fields.layout,
-      resolvedLayout: fields.resolvedLayout,
-      layer: fields.layer,
+      id: node.id.key,
+      createdAt: node.createdAt,
+      updatedAt: node.updatedAt,
+      style: node.style,
+      resolvedStyle: node.resolvedStyle,
+      layout: node.layout,
+      resolvedLayout: node.resolvedLayout,
+      layer: node.layer,
       position: Offset(
-        fields.position.x.toDouble(),
-        fields.position.y.toDouble(),
+        node.position.x.toDouble(),
+        node.position.y.toDouble(),
       ),
-      size: Size(fields.size.width.toDouble(), fields.size.height.toDouble()),
-      isExpanded: fields.isExpanded,
-      significance: fields.significance,
-      content: fields.content,
-      dueDate: fields.dueDate,
-      state: fields.state,
+      size: Size(node.size.width.toDouble(), node.size.height.toDouble()),
+      isExpanded: node.isExpanded,
+      significance: node.significance,
+      content: node.content,
+      dueDate: node.dueDate,
+      state: node.state,
     );
   }
 

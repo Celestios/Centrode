@@ -5,7 +5,7 @@ use crate::domain::snapshot::GraphSnapshot;
 use crate::domain::tags::Tag;
 use crate::domain::templates::Template;
 
-use crate::domain::patches::{EntityPatch, SymmetricEntityPatch, PatchHistoryPayload};
+use crate::domain::patches::{EntityPatch, SymmetricEntityPatch};
 use crate::domain::relations::IRelation;
 use crate::domain::theme::{Theme, ThemeFields};
 use crate::format::packager;
@@ -389,7 +389,7 @@ impl AppHandle {
 
     async fn apply_history_record_patch(&self, record: &HistoryRecord, is_forward: bool) -> anyhow::Result<()> {
         if record.action_type == "entity_patch" {
-            let payload = PatchHistoryPayload::from_value(record.payload.clone())?;
+            let payload = SymmetricEntityPatch::from_value(record.payload.clone())?;
             let patch = if is_forward { &payload.forward } else { &payload.reverse };
             if self.repo.apply_patch_check_position(&payload.id, patch).await? {
                 self.broadcast_boundaries().await;

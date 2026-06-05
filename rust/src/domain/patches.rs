@@ -47,5 +47,3 @@ pub struct SymmetricEntityPatch {
     pub reverse: EntityPatch,
 }
 
-pub type PatchHistoryPayload = SymmetricEntityPatch;
-

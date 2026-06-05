@@ -80,12 +80,12 @@ void main() {
       );
       
       expect(asINode, isNotNull);
-      expect(asINode!.key, 'node-ffi-1');
-      expect(asINode.fields.layer, 'bg');
-      expect(asINode.fields.position.x, 15);
-      expect(asINode.fields.position.y, 25);
-      expect(asINode.fields.size.width, 100);
-      expect(asINode.fields.size.height, 200);
+      expect(asINode!.id.key, 'node-ffi-1');
+      expect(asINode.layer, 'bg');
+      expect(asINode.position.x, 15);
+      expect(asINode.position.y, 25);
+      expect(asINode.size.width, 100);
+      expect(asINode.size.height, 200);
     });
 
     test('TaskUiNode toRust generates valid FFI object', () {
@@ -103,10 +103,10 @@ void main() {
       );
       
       expect(asTaskNode, isNotNull);
-      expect(asTaskNode!.key, 'task-ffi-1');
-      expect(asTaskNode.fields.state, 'In Progress');
-      expect(asTaskNode.fields.position.x, 50);
-      expect(asTaskNode.fields.position.y, 60);
+      expect(asTaskNode!.id.key, 'task-ffi-1');
+      expect(asTaskNode.state, 'In Progress');
+      expect(asTaskNode.position.x, 50);
+      expect(asTaskNode.position.y, 60);
     });
   });
 }

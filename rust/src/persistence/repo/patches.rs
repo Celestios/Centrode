@@ -1,6 +1,6 @@
 use crate::domain::base_models::{IsTable, RecordStrings};
 use crate::domain::patches::{
-    EntityPatch, NodePatch, PatchHistoryPayload, RelationPatch, TagOperation,
+    EntityPatch, NodePatch, RelationPatch, TagOperation, SymmetricEntityPatch,
 };
 use crate::domain::relations::IRelation;
 use crate::domain::tags::Tag;
@@ -140,7 +140,7 @@ impl Repository {
         reverse: EntityPatch,
     ) -> Result<()> {
         let history_manager = HistoryManager::new(&self.db, 100);
-        let history_payload = PatchHistoryPayload {
+        let history_payload = SymmetricEntityPatch {
             id,
             forward,
             reverse,
