@@ -81,4 +81,25 @@ sealed class UiNode {
   static UiNode? copy(UiNode? node) => _$uiNodeCopy(node);
 
   // ──────────────────── layout engine ─────────────────────────────────────
+  Color get defaultPreviewColor {
+    final self = this;
+    if (self is InfoUiNode) return const Color(0xFF90CAF9);
+    if (self is TaskUiNode) return const Color(0xFFA5D6A7);
+    if (self is CommentUiNode) return const Color(0xFFB0BEC5);
+    if (self is DrawingUiNode) return const Color(0xFFCE93D8);
+    if (self is ShapeUiNode) return const Color(0xFFFFCC80);
+    if (self is FrameUiNode) return const Color(0xFFBCAAA4);
+    if (self is MediaUiNode) return const Color(0xFF80CBC4);
+    if (self is InterUiNode) return const Color(0xFFFFF59D);
+    return const Color(0xFF90CAF9);
+  }
+
+  Size get previewSize {
+    final self = this;
+    if (self is InterUiNode || self is DrawingUiNode) {
+      return const Size(60.0, 36.0);
+    }
+    return size;
+  }
 }
+

@@ -1,6 +1,6 @@
 {
-  "last_audit_commit": "f687f81236a52b0c4e8a5bbd41b039a043311fe8",
-  "last_audit_time": "2026-06-05T08:48:11.698217Z",
+  "last_audit_commit": "0309bdce9e6619887cd7032395f218ba7d7a2fc4",
+  "last_audit_time": "2026-06-05T10:49:21.697972Z",
   "layers": {
     "lib/features/graph/ui": {
       "tier": 1,
@@ -36,11 +36,9 @@
   "components": {
     "lib/features/graph/models/graph_node.dart": {
       "class": "UiNode",
-      "sha256": "c735db9ebeb8cc3d5a5a5511b2cb28531e91bc63",
+      "sha256": "2f38ff46117b11baa94ca5509f69d3016fd2e17f",
       "status": "COMPLIANT",
-      "violations": [
-        "Wraps low-level Rust node types with presentational getters, acting as the domain entity model for layout calculations."
-      ],
+      "violations": [],
       "tier": 3,
       "imports": [
         "package:flutter/painting.dart",
@@ -85,12 +83,9 @@
     },
     "lib/features/graph/store/graph_data_controller.dart": {
       "class": "GraphDataController",
-      "sha256": "6027409506c3444dff9212da9047305e4f341a3b",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "DIP / Layer Leak (ViewportState): Tier 3 Store component imports and uses Tier 2 ViewportState.",
-        "DIP / Style Coupling: Inline default theme fallbacks inside Tier 3."
-      ],
+      "sha256": "ce8af4aab1c7b4ab35ff0c442f57a0cb732040b6",
+      "status": "COMPLIANT",
+      "violations": [],
       "tier": 3,
       "imports": [
         "dart:async",
@@ -123,6 +118,7 @@
         "void updateSavedViewportState(ViewportState state)",
         "Size calculateNodeSize(UiNode node,",
         "NodeStyle resolveNodeStyle(UiNode node)",
+        "return resolver(node);",
         "void triggerUpdate()",
         "Future<void> loadGraph() async",
         "await updateHistoryStatus();",
@@ -695,7 +691,11 @@
         "void dispose()",
         "Widget build(BuildContext context)"
       ],
-      "architectural_role": "Hosts the canvas interactive layers stack, binds mouse events to FSM controllers, and aligns sidebar overlay panels."
+      "architectural_role": "Hosts the canvas interactive layers stack, binds mouse events to FSM controllers, and aligns sidebar overlay panels.",
+      "special_objects": [
+        "Provider",
+        "instance"
+      ]
     },
     "lib/features/graph/engine/base_interaction_state.dart": {
       "class": "CanvasInteractionState",
@@ -772,7 +772,7 @@
     },
     "lib/features/graph/engine/states/idle_state.dart": {
       "class": "CanvasIdle",
-      "sha256": "6191c50b1ec2c01b38fb0851d33cdecd1e47dac3",
+      "sha256": "57bc5510ebf9fe2dd64fe09ec31aa0cfa48c0cd2",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -788,7 +788,7 @@
     },
     "lib/features/graph/engine/states/marquee_state.dart": {
       "class": "MarqueeSelecting",
-      "sha256": "b1ecec59314152262e464e18e5581cccdec82801",
+      "sha256": "5552b4247632fcbfd5fdaecda4124b4c865bc470",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -966,7 +966,13 @@
       "has_tests": false,
       "is_ffi_bridge": false,
       "pattern": "Component",
-      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features.",
+      "public_apis": [
+        "double calculateEffectiveGridSize(double scale)"
+      ],
+      "stray_functions": [
+        "calculateEffectiveGridSize"
+      ]
     },
     "lib/features/graph/presentation/strategies/relation_layout_strategy.dart": {
       "class": "StraightRelationLayoutStrategy",
@@ -1139,7 +1145,10 @@
         "void dispose()",
         "Widget build(BuildContext context)"
       ],
-      "architectural_role": "Renders inline input text boxes, handling text commits and layout resizing."
+      "architectural_role": "Renders inline input text boxes, handling text commits and layout resizing.",
+      "special_objects": [
+        "instance"
+      ]
     },
     "lib/features/graph/ui/canvas/layers/grid_layer.dart": {
       "class": "GridLayer",
@@ -1669,7 +1678,10 @@
         "await setupLogger();",
         "Future<void> dispose() async"
       ],
-      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features.",
+      "special_objects": [
+        "instance"
+      ]
     },
     "lib/infrastructure/telemetry/log_models.dart": {
       "class": "LogPayload",
@@ -1712,10 +1724,14 @@
       "is_ffi_bridge": true,
       "pattern": "Component",
       "public_apis": [
+        "Future<void> main() async",
         "Widget build(BuildContext context)"
       ],
       "boundary_violations": [],
-      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features.",
+      "stray_functions": [
+        "main"
+      ]
     },
     "lib/presentation/theme/app_theme.dart": {
       "class": "AppTheme",
@@ -1834,7 +1850,11 @@
         "void dispose()",
         "Widget build(BuildContext context)"
       ],
-      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features.",
+      "special_objects": [
+        "SearchRegistry",
+        "instance"
+      ]
     },
     "lib/presentation/widgets/search_registry.dart": {
       "class": "SearchResult",
@@ -1856,7 +1876,12 @@
       "public_apis": [
         "Future<List<SearchResult>?> search(String rawQuery, BuildContext context) async"
       ],
-      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features.",
+      "special_objects": [
+        "SearchRegistry",
+        "PaletteActionRegistry",
+        "instance"
+      ]
     },
     "lib/presentation/widgets/tag_manager/delete_tag_dialog.dart": {
       "class": "",
@@ -1872,7 +1897,13 @@
       "has_tests": false,
       "is_ffi_bridge": false,
       "pattern": "Component",
-      "architectural_role": "Exposes interactive panel components and dialogs for global tag registration and color customization."
+      "architectural_role": "Exposes interactive panel components and dialogs for global tag registration and color customization.",
+      "public_apis": [
+        "Future<bool?> showDeleteTagDialog(BuildContext context, String tagName)"
+      ],
+      "stray_functions": [
+        "showDeleteTagDialog"
+      ]
     },
     "lib/presentation/widgets/tag_manager/global_tags_manager_panel.dart": {
       "class": "GlobalTagsManagerPanel",
@@ -1920,7 +1951,10 @@
         "void dispose()",
         "Widget build(BuildContext context)"
       ],
-      "architectural_role": "Exposes interactive panel components and dialogs for global tag registration and color customization."
+      "architectural_role": "Exposes interactive panel components and dialogs for global tag registration and color customization.",
+      "special_objects": [
+        "instance"
+      ]
     },
     "lib/presentation/widgets/tag_manager/tag_color_picker_panel.dart": {
       "class": "TagColorPickerPanel",
@@ -1957,7 +1991,13 @@
       "has_tests": false,
       "is_ffi_bridge": false,
       "pattern": "Component",
-      "architectural_role": "Exposes templates configuration elements and instantiation grids."
+      "architectural_role": "Exposes templates configuration elements and instantiation grids.",
+      "public_apis": [
+        "Future<bool?> showDeleteTemplateDialog(BuildContext context, String templateName)"
+      ],
+      "stray_functions": [
+        "showDeleteTemplateDialog"
+      ]
     },
     "lib/presentation/widgets/template_manager/global_templates_manager_panel.dart": {
       "class": "GlobalTemplatesManagerPanel",
@@ -1993,23 +2033,26 @@
       "has_tests": false,
       "is_ffi_bridge": false,
       "pattern": "Component",
-      "architectural_role": "Exposes templates configuration elements and instantiation grids."
+      "architectural_role": "Exposes templates configuration elements and instantiation grids.",
+      "public_apis": [
+        "Future<String?> showSaveTemplateDialog(BuildContext context)"
+      ],
+      "stray_functions": [
+        "showSaveTemplateDialog"
+      ]
     },
     "lib/presentation/widgets/template_manager/templates_list_view.dart": {
       "class": "TemplatesListView",
-      "sha256": "f644979342830113a51ec8bb6bae6ae8a4bab4f1",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "SRP / Code Complexity: TemplatePreviewPainter contains 170+ lines of low-level math/drawing instructions.",
-        "DRY / Hardcoded Style Map: Hardcoded style mappings.",
-        "DIP / FFI Model Coupling: Directly depends on Rust model properties instead of UI models."
-      ],
+      "sha256": "f9cdb5f1f4fcc296886c8272a6e3a9c55bc50e94",
+      "status": "COMPLIANT",
+      "violations": [],
       "tier": 2,
       "imports": [
         "package:flutter/material.dart",
         "package:provider/provider.dart",
         "features/graph/store/graph_data_controller.dart",
         "features/graph/presentation/viewport_state.dart",
+        "features/graph/models/models.dart",
         "src/rust/domain/templates.dart",
         "src/rust/domain/nodes.dart",
         "src/rust/domain/relations.dart",
@@ -2065,7 +2108,7 @@
     },
     "lib/shared/widgets/canvas_interactive_viewer.dart": {
       "class": "CanvasInteractiveViewer",
-      "sha256": "5eb2e15f4e5241e16bef0d897dc999becd0111aa",
+      "sha256": "817815306f916bb33e34a6b21c488dbc2956c20a",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2297,7 +2340,10 @@
         "Widget build(BuildContext context)",
         "bool updateShouldNotify(_GlassBackdropScope oldWidget)"
       ],
-      "architectural_role": "Provides high-end liquid-glass-morphic shading filters and stage container layouts for premium visual aesthetics."
+      "architectural_role": "Provides high-end liquid-glass-morphic shading filters and stage container layouts for premium visual aesthetics.",
+      "special_objects": [
+        "instance"
+      ]
     },
     "lib/features/graph/models/commands/base.dart": {
       "class": "CommandCategory, GraphCommand",
@@ -2589,7 +2635,11 @@
         "void registerAction(PaletteAction action)",
         "void unregisterAction(String id)"
       ],
-      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
+      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features.",
+      "special_objects": [
+        "PaletteActionRegistry",
+        "instance"
+      ]
     },
     "lib/features/graph/presentation/routing/relation_layout_context.dart": {
       "class": "RelationLayoutContext",
@@ -2719,7 +2769,10 @@
         "String pad(int n) => n.toString().padLeft(2, '0');",
         "Widget build(BuildContext context)"
       ],
-      "architectural_role": "Renders metadata manager views, hosting comments threads, tags lists, and data inspectors."
+      "architectural_role": "Renders metadata manager views, hosting comments threads, tags lists, and data inspectors.",
+      "special_objects": [
+        "instance"
+      ]
     },
     "lib/presentation/widgets/hover_scale_button.dart": {
       "class": "HoverScaleButton, _HoverScaleButtonState",

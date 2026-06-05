@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../features/graph/store/graph_data_controller.dart';
 import '../../../../features/graph/presentation/viewport_state.dart';
+import '../../../../features/graph/models/models.dart';
 import '../../../../src/rust/domain/templates.dart';
 import '../../../../src/rust/domain/nodes.dart';
 import '../../../../src/rust/domain/relations.dart';
@@ -455,6 +456,9 @@ class TemplatePreviewWidget extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    final uiNodes = nodes.map((n) => UiNode.fromRust(n)).toList();
+    final uiRelations = relations.map((r) => UiRelation.fromRust(r)).toList();
+
     return Container(
       width: size,
       height: size,
@@ -474,8 +478,8 @@ class TemplatePreviewWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(5),
         child: CustomPaint(
           painter: TemplatePreviewPainter(
-            nodes: nodes,
-            relations: relations,
+            nodes: uiNodes,
+            relations: uiRelations,
             isDark: isDark,
           ),
         ),
@@ -485,8 +489,8 @@ class TemplatePreviewWidget extends StatelessWidget {
 }
 
 class TemplatePreviewPainter extends CustomPainter {
-  final List<Nodes> nodes;
-  final List<IRelation> relations;
+  final List<UiNode> nodes;
+  final List<UiRelation> relations;
   final bool isDark;
 
   TemplatePreviewPainter({
@@ -506,59 +510,15 @@ class TemplatePreviewPainter extends CustomPainter {
     double maxY = double.negativeInfinity;
 
     final Map<String, Rect> nodeRects = {};
-    final Map<String, Color> nodeColors = {};
 
     for (final node in nodes) {
-      final String key = node.map(
-        iNode: (n) => n.field0.id.key,
-        taskNode: (n) => n.field0.id.key,
-        interNode: (n) => n.field0.id.key,
-        commentNode: (n) => n.field0.id.key,
-        drawingNode: (n) => n.field0.id.key,
-        shapeNode: (n) => n.field0.id.key,
-        frameNode: (n) => n.field0.id.key,
-        mediaNode: (n) => n.field0.id.key,
-      );
-      final ffi.Coordinates pos = node.map(
-        iNode: (n) => n.field0.position,
-        taskNode: (n) => n.field0.position,
-        interNode: (n) => n.field0.position,
-        commentNode: (n) => n.field0.position,
-        drawingNode: (n) => n.field0.position,
-        shapeNode: (n) => n.field0.position,
-        frameNode: (n) => n.field0.position,
-        mediaNode: (n) => n.field0.position,
-      );
-      final ffi.Size nodeSize = node.map(
-        iNode: (n) => n.field0.size,
-        taskNode: (n) => n.field0.size,
-        interNode: (n) => const ffi.Size(width: 60, height: 36),
-        commentNode: (n) => n.field0.size,
-        drawingNode: (n) => const ffi.Size(width: 60, height: 36),
-        shapeNode: (n) => n.field0.size,
-        frameNode: (n) => n.field0.size,
-        mediaNode: (n) => n.field0.size,
-      );
-
-      final double nx = pos.x.toDouble();
-      final double ny = pos.y.toDouble();
-      final double nw = nodeSize.width.toDouble();
-      final double nh = nodeSize.height.toDouble();
+      final double nx = node.position.dx;
+      final double ny = node.position.dy;
+      final double nw = node.previewSize.width;
+      final double nh = node.previewSize.height;
 
       final rect = Rect.fromLTWH(nx, ny, nw, nh);
-      nodeRects[key] = rect;
-
-      final color = node.map(
-        iNode: (n) => const Color(0xFF90CAF9), // light blue
-        taskNode: (n) => const Color(0xFFA5D6A7), // light green
-        interNode: (n) => const Color(0xFFFFF59D), // light yellow
-        commentNode: (n) => const Color(0xFFB0BEC5), // grey
-        drawingNode: (n) => const Color(0xFFCE93D8), // purple
-        shapeNode: (n) => const Color(0xFFFFCC80), // orange
-        frameNode: (n) => const Color(0xFFBCAAA4), // brown
-        mediaNode: (n) => const Color(0xFF80CBC4), // teal
-      );
-      nodeColors[key] = color;
+      nodeRects[node.id] = rect;
 
       if (rect.left < minX) minX = rect.left;
       if (rect.top < minY) minY = rect.top;
@@ -601,8 +561,8 @@ class TemplatePreviewPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     for (final rel in relations) {
-      final startRect = nodeRects[rel.in_.key];
-      final endRect = nodeRects[rel.out.key];
+      final startRect = nodeRects[rel.fromNodeId];
+      final endRect = nodeRects[rel.toNodeId];
       if (startRect != null && endRect != null) {
         final startCenter = transform(startRect.center);
         final endCenter = transform(endRect.center);
@@ -612,26 +572,15 @@ class TemplatePreviewPainter extends CustomPainter {
 
     // 3. Draw nodes
     for (final node in nodes) {
-      final String key = node.map(
-        iNode: (n) => n.field0.id.key,
-        taskNode: (n) => n.field0.id.key,
-        interNode: (n) => n.field0.id.key,
-        commentNode: (n) => n.field0.id.key,
-        drawingNode: (n) => n.field0.id.key,
-        shapeNode: (n) => n.field0.id.key,
-        frameNode: (n) => n.field0.id.key,
-        mediaNode: (n) => n.field0.id.key,
-      );
-      final rect = nodeRects[key];
-      final color = nodeColors[key];
-      if (rect != null && color != null) {
+      final rect = nodeRects[node.id];
+      if (rect != null) {
         final scaledRect = Rect.fromPoints(
           transform(rect.topLeft),
           transform(rect.bottomRight),
         );
 
         final nodePaint = Paint()
-          ..color = color
+          ..color = node.defaultPreviewColor
           ..style = PaintingStyle.fill;
 
         final borderPaint = Paint()
@@ -654,3 +603,4 @@ class TemplatePreviewPainter extends CustomPainter {
         oldDelegate.isDark != isDark;
   }
 }
+

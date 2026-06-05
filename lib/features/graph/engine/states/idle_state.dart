@@ -33,12 +33,10 @@ class CanvasIdle extends CanvasInteractionState {
       pathCache: ctx.relationPathCache,
     );
 
-    // Priority -1: Right-Click Marquee Routing
+    // Priority -1.5: Right-click immediately remains in Idle (for panning capability)
     if (e.buttons == kSecondaryMouseButton) {
-      _canvasIdleLog.fine(
-        'Right-click detected: Transitioning to MarqueeSelecting',
-      ); // [NEW]
-      return MarqueeSelecting(pCanvas, pCanvas);
+      _canvasIdleLog.fine('Right-click detected: Preserving idle for panning');
+      return this;
     }
 
     // Priority -0.5: Selected Relation Tip Handles Hit-Testing
@@ -176,6 +174,14 @@ class CanvasIdle extends CanvasInteractionState {
         'FSM Shielding Active: Event absorbed by Editor for $hitEntityId',
       ); // [NEW]
       return this;
+    }
+
+    // Priority -1.0: Left-click on empty space starts Marquee selection
+    if (e.buttons == kPrimaryMouseButton && hitEntityId == null && !isDoubleTap) {
+      _canvasIdleLog.fine(
+        'Left-click on empty space: Transitioning to MarqueeSelecting',
+      );
+      return MarqueeSelecting(pCanvas, pCanvas);
     }
 
     // Double Tap Execution

@@ -135,24 +135,16 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   }
 
   NodeStyle resolveNodeStyle(UiNode node) {
-    return styleResolver?.call(node) ?? node.style ?? NodeStyle(
-      bgColor: 0xFFFFFFFF,
-      strokeColor: 0xFF000000,
-      strokeWidth: 1,
-      fontFamily: 'Roboto',
-      fontSize: 12.0,
-      shape: 'rectangle',
-      width: 100,
-      height: 60,
-      textColor: 0xFF000000,
-      borderRadius: 8.0,
-      padding: 8.0,
-      shadowColor: 0x33000000,
-      shadowBlur: 4.0,
-      shadowSpread: 0.0,
-      shadowOffsetX: 2.0,
-      shadowOffsetY: 2.0,
-      strategyType: 'default',
+    final resolver = styleResolver;
+    if (resolver != null) {
+      return resolver(node);
+    }
+    final ns = node.style;
+    if (ns != null) {
+      return ns;
+    }
+    throw StateError(
+      'styleResolver must be configured on GraphDataController before resolving styles for unstyled nodes.',
     );
   }
 
