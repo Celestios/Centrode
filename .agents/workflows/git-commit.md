@@ -90,6 +90,8 @@ Where:
 ### Action Option 2: Bilingual Version Sync
 
 #### A. Action
+> [!NOTE]
+> Use this option only to synchronize versions during normal development on a feature or bugfix branch. If you are preparing a tagged release, skip this and use Option 3 directly to avoid double-bumping the version.
 - Prompt the user to choose a bump strategy: `minor`, `patch`, `build`, or a custom version string (e.g., `0.2.0`).
 - Run the version sync command:
   ```powershell
@@ -106,6 +108,8 @@ Where:
 - Determine whether a `minor` or `patch` bump is appropriate.
 
 #### B. Execute Release
+> [!IMPORTANT]
+> Do NOT run Option 2 (Bilingual Version Sync) before running this option. The script will automatically perform the version bump and synchronization in one step.
 - Run the release preparation command:
   ```powershell
   powershell -ExecutionPolicy Bypass -File ./scripts/git-commit.ps1 -PrepareRelease <bump-strategy>

@@ -1,6 +1,6 @@
 [package]
 name = "mycelium_core"
-version = "0.1.0"
+version = "0.3.0"
 edition = "2021"
 description = "Core logic and persistence layer for Mycelium, exposed via FFI."
 authors = ["Celestios <shahin.id5638@gmail.com>"]
