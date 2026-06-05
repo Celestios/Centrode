@@ -1,6 +1,6 @@
 {
-  "last_audit_commit": "76cde07d2b08d1ba39de6031d15c26334dd1fd49",
-  "last_audit_time": "2026-06-05T12:31:56.292590Z",
+  "last_audit_commit": "e923ab5e302ab4d38ac5c4494bc5012841b2870a",
+  "last_audit_time": "2026-06-05T14:50:51.321824Z",
   "layers": {
     "lib/features/graph/ui": {
       "tier": 1,
@@ -308,9 +308,11 @@
     },
     "lib/features/graph/store/modules/graph_sync_engine.dart": {
       "class": "GraphSyncEngine",
-      "sha256": "2a121d4c61d9cebd83f92b60741d5eb1d5b00a58",
+      "sha256": "b432254ff42df4c76e148060749e88df6fd38da0",
       "status": "COMPLIANT",
-      "violations": [],
+      "violations": [
+        "Coordinates real-time stream handlers between the SurrealDB instance and local store indices, managing recovery pipelines."
+      ],
       "tier": 3,
       "imports": [
         "dart:async",
@@ -337,7 +339,7 @@
         "Future<void> redo() async",
         "void dispose()"
       ],
-      "architectural_role": "Coordinates real-time stream handlers between the SurrealDB instance and local store indices, managing recovery pipelines."
+      "architectural_role": "Component"
     },
     "lib/features/graph/engine/interaction_facade.dart": {
       "class": "CanvasInteractionEnvironment",
@@ -648,9 +650,11 @@
     },
     "lib/features/graph/ui/canvas/graph_canvas.dart": {
       "class": "GraphCanvas",
-      "sha256": "a4f2a6ee43793fd099163cddfa0bd432fbf76480",
+      "sha256": "8e32bab8f9db1667eb9d3c568227a451ce2d8b7c",
       "status": "COMPLIANT",
-      "violations": [],
+      "violations": [
+        "Hosts the canvas interactive layers stack, binds mouse events to FSM controllers, and aligns sidebar overlay panels."
+      ],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
@@ -691,7 +695,7 @@
         "void dispose()",
         "Widget build(BuildContext context)"
       ],
-      "architectural_role": "Hosts the canvas interactive layers stack, binds mouse events to FSM controllers, and aligns sidebar overlay panels.",
+      "architectural_role": "UI Component",
       "special_objects": [
         "Provider",
         "instance"
@@ -2326,7 +2330,9 @@
       "class": "GlassStage, _GlassStageState, _GlassBackdropScope",
       "sha256": "105584967b402cd168c0459914fc7f2778d6b481",
       "status": "COMPLIANT",
-      "violations": [],
+      "violations": [
+        "Provides high-end liquid-glass-morphic shading filters and stage container layouts for premium visual aesthetics."
+      ],
       "tier": 3,
       "test_file": "",
       "has_tests": false,
@@ -2340,7 +2346,7 @@
         "Widget build(BuildContext context)",
         "bool updateShouldNotify(_GlassBackdropScope oldWidget)"
       ],
-      "architectural_role": "Provides high-end liquid-glass-morphic shading filters and stage container layouts for premium visual aesthetics.",
+      "architectural_role": "Component",
       "special_objects": [
         "instance"
       ]

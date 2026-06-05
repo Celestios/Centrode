@@ -73,29 +73,20 @@ class GraphSyncEngine {
       _graphStreamSub ??= api.createGraphStream().listen(_handleGraphEvent);
 
       final snapshot = await api.getGraphSnapshot();
-      _lastLoadedMetadata = snapshot.$5;
+      _lastLoadedMetadata = snapshot.metadata;
 
       _syncLog.info(
-        'Snapshot received: ${snapshot.$1.length} nodes, ${snapshot.$2.length} relations.',
+        'Snapshot received: ${snapshot.nodes.length} nodes, ${snapshot.relations.length} relations.',
       );
 
       controller.store.clearStore();
 
-      for (final ffiNode in snapshot.$1) {
+      for (final ffiNode in snapshot.nodes) {
         final uiNode = UiNode.fromRust(ffiNode);
         controller.store.nodeLookup[uiNode.id] = uiNode;
       }
 
-      for (final ffiNode in snapshot.$2) {
-        final uiNode = UiNode.fromRust(ffiNode);
-        controller.store.nodeLookup[uiNode.id] = uiNode;
-      }
-
-      for (final _ in snapshot.$3) {
-        _syncLog.warning('InterNodes not yet fully supported in UI');
-      }
-
-      for (final ffiRel in snapshot.$4) {
+      for (final ffiRel in snapshot.relations) {
         final uiRel = UiRelation.fromRust(ffiRel);
         controller.store.relationLookup[uiRel.id] = uiRel;
       }

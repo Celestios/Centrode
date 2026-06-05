@@ -1,0 +1,5 @@
+{
+  "name": "code-health-plugin",
+  "version": "1.0.0",
+  "description": "Code health auditing plugin that houses abstraction, no-mutation, and symmetry rules."
+}

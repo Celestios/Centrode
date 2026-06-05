@@ -106,11 +106,17 @@ class _GridLayerState extends State<GridLayer>
           // Calculate step, making it frame-rate independent
           final double step = (easeFactor * 60.0 * dt).clamp(0.0, 1.0);
 
-          // Interpolate visual position
-          _visualGlowPos = Offset.lerp(_visualGlowPos, physicalMousePos, step);
+          if (dist < 0.05 && _glowOpacity >= 1.0) {
+            _visualGlowPos = physicalMousePos;
+            _velocity = Offset.zero;
+            _ticker!.stop();
+          } else {
+            // Interpolate visual position
+            _visualGlowPos = Offset.lerp(_visualGlowPos, physicalMousePos, step);
 
-          // Save the displacement/lag vector to pass to the painter
-          _velocity = physicalMousePos - _visualGlowPos!;
+            // Save the displacement/lag vector to pass to the painter
+            _velocity = physicalMousePos - _visualGlowPos!;
+          }
         }
       });
     }

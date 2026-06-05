@@ -6,7 +6,7 @@ description: Multi-agent deep audit of the entire codebase for SOLID principles,
 
 This workflow transforms the agent into a **Principal Code Health Auditor**. It performs a comprehensive, multi-agent analysis of the entire codebase across multiple software engineering dimensions — not just SRP, but the full spectrum of SOLID principles, DRY compliance, design pattern fitness, complexity hotspots, and naming/test coverage assertions.
 
-It leverages the [arch-linter](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/arch-linter/SKILL.md) skill for fast cached metadata queries and the [architecture-auditor](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/arch-linter/skills/architecture-auditor/SKILL.md) / [symmetry-checker](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/arch-linter/skills/symmetry-checker/SKILL.md) skills for deep structural reasoning.
+It leverages the [arch-linter](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/arch-linter/SKILL.md) skill for fast cached metadata queries and the [architecture-auditor](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/skills/architecture-auditor/SKILL.md) / [symmetry-checker](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/skills/symmetry-checker/SKILL.md) skills for deep structural reasoning.
 
 ---
 
@@ -19,7 +19,7 @@ It leverages the [arch-linter](file:///d:/Projects/Open/flutter/code/mycelium/.a
 5. **Context-Aware Auditing**: When auditing pending files, do not inspect changes in complete isolation. The audit must be fully informed by the surrounding context of the modified/added lines, including the enclosing class, parent classes, annotations, imports, and sister methods.
 6. **Context-Specific Rule Loading**: Enforce targeted rules based on the codebase language:
    - For `/rust` components, enforce [rust-style-guide.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/rust-core-plugin/rules/rust-style-guide.md).
-   - For `/lib` (Flutter/Dart) components, enforce [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/arch-linter/rules/abstraction-levels.md), [no-cross-layer-mutation.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/arch-linter/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/arch-linter/rules/symmetry-invariants.md).
+   - For `/lib` (Flutter/Dart) components, enforce [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md), [no-cross-layer-mutation.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/symmetry-invariants.md).
 7. **Actionable Output**: Every finding must include a severity level, the principle violated, clickable file links with line ranges, and a concrete remediation suggestion.
 
 ---
@@ -89,7 +89,7 @@ For each file in the Audit Queue, gather its cached context:
 - Use `query` to retrieve its tier, pattern, FFI status, and test coverage.
 - Use `dependents` on high-risk files to assess blast radius.
 - Use `trace_path` if you suspect a transitive layer leak.
-- Read the [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/arch-linter/rules/abstraction-levels.md), [no-cross-layer-mutation.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/arch-linter/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/arch-linter/rules/symmetry-invariants.md) rules files to load the enforcement criteria.
+- Read the [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md), [no-cross-layer-mutation.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/symmetry-invariants.md) rules files to load the enforcement criteria.
 
 ### Step 3: Multi-Agent Deep Audit (Delegated Verification)
 Batch the Audit Queue into groups of 3–5 files (grouped by feature area or tier when possible). For each batch, spawn a subagent:
@@ -121,7 +121,7 @@ Batch the Audit Queue into groups of 3–5 files (grouped by feature area or tie
   - Zero-Trust Checklist from architecture-auditor skill.
   - Symmetry rules from symmetry-checker skill.
   - [rust-style-guide.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/rust-core-plugin/rules/rust-style-guide.md) for Rust core components.
-  - [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/arch-linter/rules/abstraction-levels.md), [no-cross-layer-mutation.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/arch-linter/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/arch-linter/rules/symmetry-invariants.md) for Flutter/Dart components.
+  - [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md), [no-cross-layer-mutation.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/symmetry-invariants.md) for Flutter/Dart components.
 
   For each finding, report:
   - File path (clickable link)

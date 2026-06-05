@@ -140,7 +140,7 @@ impl<S: tracing::Subscriber> Layer<S> for TelemetryLayer {
 pub fn init_telemetry() {
     use tracing_subscriber::prelude::*;
 
-    let filter = EnvFilter::new("info,mycelium_core=trace,surrealdb=warn");
+    let filter = EnvFilter::new("info,mycelium_core=debug,surrealdb=warn");
     let layer = TelemetryLayer::instance();
     let subscriber = tracing_subscriber::registry().with(filter).with(layer);
     let _ = tracing::subscriber::set_global_default(subscriber);

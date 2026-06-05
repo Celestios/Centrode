@@ -593,8 +593,8 @@
     "rust/src/persistence/schema.rs": {
       "class": "Schema",
       "architectural_role": "Schema migrations runner and database data seeder.",
-      "sha256": "3e4f93465d013f0d3e1c9660f4cf22510d6b161f",
-      "status": "COMPLIANT",
+      "sha256": "7f2fdd9c06a575d2daa0e86b809a40c6eb405810",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
       "imports": [

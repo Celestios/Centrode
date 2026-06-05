@@ -34,7 +34,7 @@ Draft the blueprint for implementation:
 ### Phase 3: Implementation & Coding
 Execute the approved plan:
 - Apply the code modifications surgically to the target files, preserving unrelated comments/docstrings.
-- Ensure that UI widgets do not perform inline database modifications (enforce `/plugins/arch-linter/rules/no-cross-layer-mutation.md`).
+- Ensure that UI widgets do not perform inline database modifications (enforce `/plugins/code-health/rules/no-cross-layer-mutation.md`).
 - Ensure Rust code modifications adhere to `/plugins/rust-core-plugin/rules/rust-style-guide.md`.
 
 ### Phase 4: Verification & Testing

@@ -24,22 +24,20 @@ class GlassStage extends StatefulWidget {
   State<GlassStage> createState() => _GlassStageState();
 }
 
-class _GlassStageState extends State<GlassStage>
-    with SingleTickerProviderStateMixin {
+class _GlassStageState extends State<GlassStage> {
   final GlobalKey _bgKey = GlobalKey();
   ui.Image? _backdropImage;
   Size? _backdropLogicalSize;
-  late Ticker _ticker;
-  Duration _lastCaptureDuration = Duration.zero;
+  DateTime? _lastCaptureTime;
+  Timer? _throttleTimer;
 
   /// Atomic lock: prevents concurrent captures from flooding the memory bus.
   bool _isCapturing = false;
-  bool _pendingCapture = false;
+  bool _hasPendingCaptureRequest = false;
 
   @override
   void initState() {
     super.initState();
-    _ticker = createTicker(_tick)..start();
     widget.backdropRepaint?.addListener(_onRepaint);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _requestCapture();
@@ -60,29 +58,60 @@ class _GlassStageState extends State<GlassStage>
     _requestCapture();
   }
 
-  void _tick(Duration elapsed) {
-    if (elapsed - _lastCaptureDuration < const Duration(milliseconds: 33)) {
-      return;
-    }
-    _lastCaptureDuration = elapsed;
-    _requestCapture();
-  }
-
   void _requestCapture() {
     if (widget.mode != GlassMode.quality) return;
     if (_isCapturing) {
-      _pendingCapture = true;
+      _hasPendingCaptureRequest = true;
       return;
     }
-    _captureSnapshot();
+
+    final now = DateTime.now();
+    final timeSinceLastCapture = _lastCaptureTime == null
+        ? Duration.zero
+        : now.difference(_lastCaptureTime!);
+
+    const throttleDuration = Duration(milliseconds: 33);
+
+    if (timeSinceLastCapture >= throttleDuration) {
+      _throttleTimer?.cancel();
+      _throttleTimer = null;
+      _captureSnapshot();
+    } else {
+      _hasPendingCaptureRequest = true;
+      if (_throttleTimer == null) {
+        final remaining = throttleDuration - timeSinceLastCapture;
+        _throttleTimer = Timer(remaining, () {
+          _throttleTimer = null;
+          if (mounted && _hasPendingCaptureRequest) {
+            _hasPendingCaptureRequest = false;
+            _requestCapture();
+          }
+        });
+      }
+    }
+  }
+
+  void _retryCapture() {
+    if (!mounted || widget.mode != GlassMode.quality) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _requestCapture();
+      }
+    });
   }
 
   Future<void> _captureSnapshot() async {
     final ctx = _bgKey.currentContext;
-    if (ctx == null || !mounted) return;
+    if (ctx == null || !mounted) {
+      _retryCapture();
+      return;
+    }
 
     final boundary = ctx.findRenderObject() as RenderRepaintBoundary?;
-    if (boundary == null || boundary.debugNeedsPaint) return;
+    if (boundary == null || boundary.debugNeedsPaint) {
+      _retryCapture();
+      return;
+    }
 
     _isCapturing = true;
     try {
@@ -120,16 +149,17 @@ class _GlassStageState extends State<GlassStage>
       setState(() {
         _backdropImage = downsampledImage;
         _backdropLogicalSize = boundary.size;
+        _lastCaptureTime = DateTime.now();
       });
       oldImage?.dispose();
     } catch (_) {
-      // Silently swallow transient layout state failures
+      _retryCapture();
     } finally {
       if (mounted) {
         _isCapturing = false;
-        if (_pendingCapture) {
-          _pendingCapture = false;
-          Future.microtask(_requestCapture);
+        if (_hasPendingCaptureRequest) {
+          _hasPendingCaptureRequest = false;
+          _requestCapture();
         }
       }
     }
@@ -137,7 +167,7 @@ class _GlassStageState extends State<GlassStage>
 
   @override
   void dispose() {
-    _ticker.dispose();
+    _throttleTimer?.cancel();
     widget.backdropRepaint?.removeListener(_onRepaint);
     _backdropImage?.dispose();
     super.dispose();

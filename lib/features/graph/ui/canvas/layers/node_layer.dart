@@ -31,11 +31,13 @@ class NodeLayer extends StatelessWidget {
               key: ValueKey(id),
               left: 0,
               top: 0,
-              child: NodeWidget(
-                viewState: viewState,
-                node: node,
-                isSelected: isSelected,
-                isEditing: isEditing,
+              child: RepaintBoundary(
+                child: NodeWidget(
+                  viewState: viewState,
+                  node: node,
+                  isSelected: isSelected,
+                  isEditing: isEditing,
+                ),
               ),
             );
           }).toList(),

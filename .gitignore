@@ -33,12 +33,8 @@
 
 # === Project Specific & Data ===
 /.Archive
-/.constitution
-.constitution
 graphify-out/
 maps/
-result.json
-tavily-cli.exe
 
 # === Symbols and Obfuscation ===
 app.*.map.json
