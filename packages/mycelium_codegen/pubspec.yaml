@@ -1,0 +1,12 @@
+name: mycelium_codegen
+description: Automatically generates Flutter UiNode wrappers from FFI models.
+version: 1.0.0
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  build: any
+  source_gen: any
+  analyzer: any
+  code_builder: any
+  dart_style: any

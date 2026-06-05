@@ -1,0 +1,7 @@
+builders:
+  ui_node_builder:
+    import: "package:mycelium_codegen/mycelium_codegen.dart"
+    builder_factories: ["uiNodeBuilderFactory"]
+    build_extensions: {".dart": [".ui.dart"]}
+    auto_apply: dependents
+    build_to: source
