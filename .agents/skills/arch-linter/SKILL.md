@@ -1,106 +1,166 @@
 ---
 name: arch-linter
-description: Query component metadata, method signatures, dependents/blast-radius, shortest import paths, and assert layering, naming compliance, and test coverage.
+description: Run compliance checks, enforce layer boundaries, name patterns, and test coverage for Dart, Rust, Go, Python, TypeScript, and C++.
 ---
 
 # Skill: Architecture Linter (arch-linter)
 
-Use this skill when you need to inspect class structures, find public methods, trace dependency lines, calculate the blast radius of proposed changes, verify layer bounds, or run compliance checks. This tool is completely offline, runs instantly, and is highly useful for a wide range of coding and refactoring tasks.
+Use this skill to configure, audit, query, and enforce architectural guidelines using the generalized, self-contained `arch-linter` tool.
 
-## Core Capabilities & Commands
+---
 
-The underlying tool is a Dart script located at [arch_linter.dart](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/arch-linter/scripts/arch_linter.dart). All commands require specifying either the `--dart` or `--rust` mode flag.
+## 1. Directory Structure
 
-### 1. File & Component Queries (`query`)
-Filters components by tier, pattern name, audit status, test presence, FFI boundaries, or directory.
-```powershell
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart query [--dart | --rust] [tier=1|2|3] [pattern=name] [status=COMPLIANT|VIOLATION_DETECTED|PENDING_AUDIT] [has_tests=true|false] [is_ffi=true|false] [dir=folder]
+The plugin is designed to be completely self-contained. All binaries, scripts, rules, and configuration templates live inside the plugin directory:
+
 ```
-*Example (Find untested Tier 3 Rust components):*
-```powershell
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart query --rust tier=3 has_tests=false
-```
-
-### 2. Method-Level Search (`query_method`)
-Locates public class/struct methods by name, return type, or regular expression pattern.
-```powershell
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart query_method [--dart | --rust] [name=query] [return_type=query] [pattern=regex]
-```
-*Example (Search for all methods converting elements to Rust format in Dart files):*
-```powershell
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart query_method --dart name=torust
-```
-
-### 3. Blast Radius Discovery (`dependents`)
-Finds all components that directly import and depend on the target file. Run this before making changes to estimate their impact.
-```powershell
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart dependents [--dart | --rust] <file_path>
-```
-
-### 4. BFS Import Pathfinder (`trace_path`)
-Runs a Breadth-First Search (BFS) over resolved imports to print the exact import sequence connecting a source file to a target file.
-```powershell
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart trace_path [--dart | --rust] <source_file> <target_file>
-```
-
-### 5. Codebase Metrics & Complexity (`query_metrics`)
-Filter classes based on line count, public API counts, or missing tests.
-> [!NOTE]
-> To prevent shell redirection errors in Windows environments, use shell-safe operators like `_gte=` or `=` instead of `>=`.
-*   `api_count_gte=val` (or `api_count=val`)
-*   `size_gte=val` (or `size=val`)
-*   `missing_tests=true|false`
-
-*Example (Locate highly complex components with at least 15 public methods):*
-```powershell
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart query_metrics --dart api_count_gte=15
+<plugin-dir>/
+├── plugin.json
+├── config/
+│   ├── project_config.json      # Layer definitions, tiers, exclusions, and linter settings
+│   ├── languages_config.json    # Language parser rules (regex, keywords, test patterns)
+│   └── design_patterns.json     # Definitions for creational, structural, and behavioral patterns
+├── scripts/
+│   ├── arch_linter.dart         # Dart source code of the linter
+│   └── arch_linter.exe          # Compiled standalone Windows executable
+├── skills/
+│   └── arch-linter/
+│       └── SKILL.md             # This instruction manual
+└── rules/
+    └── architecture-cache.md    # Architecture rules and compliance guidance
 ```
 
 ---
 
-## Compliance & Verification Commands
+## 2. Configuration Files
 
-### 6. Architectural Layers Audit (`check`)
-Scans the directories, updates the architecture cache metadata, and asserts layer boundaries. Exits with code `0` on success, or code `1` (failing the shell execution) if boundary violations or pending audits exist.
+Before running commands, verify/edit the configuration files in the `config/` directory:
+
+### A. Project Configuration (`project_config.json`)
+Defines the structure of your specific project, layer tiers, naming conventions, and test coverage requirements.
+- **`cache_dir`**: Specifies where the JSON linter cache files are read/written (set to `<plugin-dir>` or target relative cache path to keep it local).
+- **`exclusions`**: Lists global and language-specific file exclusions (e.g., node_modules, generated code like `*.g.dart`).
+- **`layers`**: Defines directory paths, their layer **Tier** (1 = UI/Client, 2 = Controller/Logic, 3 = Domain/Persistence), responsibilities, and import constraints.
+- **`naming_rules`**: Regular expressions matching file/class names for different directories.
+- **`test_assertions`**: Minimum tier requirements for tests (e.g., Tier 2 and Tier 3 components must have tests).
+
+### B. Language Configuration (`languages_config.json`)
+Defines how different languages are parsed. Supports `dart`, `rust`, `go`, `python`, `typescript`, and `cpp` out of the box.
+- **`extensions`**: List of file extensions to scan.
+- **`default_dir`**: The root directory to scan by default.
+- **`class_pattern`**: Regex to match and capture class/struct/trait/union names.
+- **`method_pattern`**: Regex to capture methods/functions.
+- **`import_pattern`**: Regex to capture imported packages or paths.
+- **`test_file_suffix`** / **`test_inline_keywords`**: Patterns to identify corresponding test suites.
+- **`ffi_keywords`**: Indicators of low-level FFI boundaries.
+
+### C. Design Patterns (`design_patterns.json`)
+Defines structural pattern blueprints (e.g., Strategy, Factory, Command, Adapter, Facade) for auditing architecture symmetry.
+
+---
+
+## 3. How to Run
+
+You can execute the linter using either the raw Dart script or the pre-compiled standalone binary (useful in environments without the Dart SDK).
+
+### Execution Commands
+- **Using the Standalone Binary (Windows)**:
+  From the workspace root:
+  ```powershell
+  <plugin-dir>/scripts/arch_linter.exe <command> --lang=<language> [arguments]
+  ```
+  Or from inside the plugin directory itself:
+  ```powershell
+  scripts/arch_linter.exe <command> --lang=<language> [arguments]
+  ```
+- **Using the Dart SDK**:
+  From the workspace root:
+  ```powershell
+  dart <plugin-dir>/scripts/arch_linter.dart <command> --lang=<language> [arguments]
+  ```
+  *(Note: You can use `--dart` or `--rust` as shorthands for `--lang=dart` or `--lang=rust` respectively).*
+
+---
+
+## 4. Command Reference
+
+*(Note: Replace `<plugin-dir>` with the relative path to the plugin folder, e.g., `.Archive/arch-linter` or `.agents/plugins/arch-linter`).*
+
+### 1. `check` (Audit Project Compliance)
+Scans the directories defined in configurations, parses file imports/FFI/stray methods, and validates layer-boundary compliance.
 ```powershell
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart check [--dart | --rust]
-```
+# Scan and verify Dart files
+<plugin-dir>/scripts/arch_linter.exe check --dart
 
-### 8. Bulk Cache Updates (`update_bulk`)
-Updates the compliance status, architectural role, design pattern, and violation details of multiple files simultaneously using a temporary JSON file.
+# Scan and verify Rust files
+<plugin-dir>/scripts/arch_linter.exe check --rust
+```
+- **Exit Code `0`**: All files are compliant.
+- **Exit Code `1`**: Violations or pending audits detected.
+
+### 2. `update` (Mark a Component Compliant/Audited)
+Manually updates the cached status of a file. Use this after auditing a modified file.
 ```powershell
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart update_bulk [--dart | --rust] <json_file_path>
-```
-The JSON file should have the following schema:
-```json
-{
-  "rust/src/bridge/api.rs": {
-    "status": "VIOLATION_DETECTED",
-    "violations": [
-      "SRP: Transaction Orchestration Leak",
-      "SRP: Serialization & Data Mapping Leak"
-    ],
-    "architectural_role": "FFI Bridge API Gateway",
-    "pattern": "FFI Bridge"
-  },
-  "rust/src/bridge/stream.rs": {
-    "status": "COMPLIANT",
-    "violations": [],
-    "architectural_role": "FFI Outbound Event Emitter",
-    "pattern": "FFI Bridge"
-  }
-}
+<plugin-dir>/scripts/arch_linter.exe update <file_path> COMPLIANT --dart
 ```
 
-### 9. Naming Compliance Assertion (`assert_naming`)
-Verifies naming conventions for strategies, FSM states, and store modules (for `--dart`), or snake_case format rules (for `--rust`).
+### 3. `query` (Search Cached Components)
+Finds components matching specific metadata.
 ```powershell
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart assert_naming [--dart | --rust]
+# List all Tier 3 Dart files
+<plugin-dir>/scripts/arch_linter.exe query tier=3 --dart
+
+# Find files utilizing the "Strategy" pattern
+<plugin-dir>/scripts/arch_linter.exe query pattern=Strategy --dart
 ```
 
-### 10. Test Coverage Assertion (`assert_tests`)
-Asserts that all Tier 2 and Tier 3 components have test coverage.
+### 4. `query_method` (Search Public API Methods)
+Searches for specific methods or API surfaces across the codebase to identify design symmetry or duplication.
 ```powershell
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart assert_tests [--dart | --rust]
+# Find files containing method names matching "load"
+<plugin-dir>/scripts/arch_linter.exe query_method name=load --dart
 ```
 
+### 5. `dependents` (Audit Blast Radius)
+Lists all files that import the specified target file.
+```powershell
+<plugin-dir>/scripts/arch_linter.exe dependents lib/features/graph/models/graph_node.dart --dart
+```
+
+### 6. `trace_path` (Find Dependency Paths)
+Traces the shortest import path from source to target. Helpful for identifying why a tier leak occurs.
+```powershell
+<plugin-dir>/scripts/arch_linter.exe trace_path lib/features/graph/ui/canvas.dart lib/features/graph/store/graph_store.dart --dart
+```
+
+### 7. `assert_naming` (Enforce Class/File Suffixes)
+Asserts that all scanned files adhere to naming conventions specified in `project_config.json`.
+```powershell
+<plugin-dir>/scripts/arch_linter.exe assert_naming --dart
+```
+
+### 8. `assert_tests` (Enforce Test Coverage)
+Asserts that components in Tier 2 and above have corresponding tests (inline tests for Rust, separate test files for other languages).
+```powershell
+<plugin-dir>/scripts/arch_linter.exe assert_tests --dart
+```
+
+---
+
+## 5. Integrating with Git & CI/CD
+
+To automate boundary compliance checks, include the assertions in pre-commit hooks or CI/CD scripts:
+
+```powershell
+# Validate naming rules
+<plugin-dir>/scripts/arch_linter.exe assert_naming --dart
+<plugin-dir>/scripts/arch_linter.exe assert_naming --rust
+
+# Validate test coverage
+<plugin-dir>/scripts/arch_linter.exe assert_tests --dart
+<plugin-dir>/scripts/arch_linter.exe assert_tests --rust
+
+# Check overall boundary compliance
+<plugin-dir>/scripts/arch_linter.exe check --dart
+<plugin-dir>/scripts/arch_linter.exe check --rust
+```

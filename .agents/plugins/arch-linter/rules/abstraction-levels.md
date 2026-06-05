@@ -4,33 +4,27 @@ activation: always_on
 
 # Rule: Abstraction Levels
 
-You MUST adhere to strict abstraction levels. Code must never leak between these layers:
+You MUST adhere to strict abstraction levels. Code must never leak between these layer tiers. The specific folders, extensions, and responsibilities for each tier are fully customizable in `project_config.json`.
 
-### Dart (Flutter) Codebase Tiers
-1. **Tier 1: High-Level UI / View (e.g., GraphCanvas)**
-   - **Responsibility**: Rendering UI components, layout orchestrations, and visual user feedback.
-   - **Restriction**: MUST NOT contain domain state mutation logic, direct database/FFI calls, or low-level mathematical coordinate calculations.
-   - **Interaction**: Delegates actions to Interaction Controllers or Environments.
+## General Architecture Tiers
 
-2. **Tier 2: Interaction Environment (e.g., CanvasInteractionEnvironment)**
-   - **Responsibility**: Managing the state of user interactions (panning, selecting, zooming), processing gestures, and housing helper functions (e.g., `getScale()`).
-   - **Restriction**: MUST NOT paint UI widgets or directly touch database storage. Acts as the intermediate bridge.
+### Tier 1: Presentation & Interface (e.g., UI, FFI Bridge, API Endpoints)
+- **Responsibility**: Handles user interaction, external calls, FFI mapping, rendering UI components, and input event translation.
+- **Restriction**: MUST NOT contain domain state mutation logic, direct database/persistence commands, or core business calculations.
 
-3. **Tier 3: Domain / Store (e.g., GraphDataController)**
-   - **Responsibility**: Managing persistent application truth, database interactions, and graph nodes.
-   - **Restriction**: MUST NOT listen to or depend on UI concerns (e.g., Theme Controllers, UI state). Dependency inversion is forbidden here.
+### Tier 2: Interaction, Processing & Controllers (e.g., State Managers, Orchestrators)
+- **Responsibility**: Coordinates workflows, handles gestures, commands, queries, and acts as the intermediate translation layer between Tier 1 and Tier 3.
+- **Restriction**: MUST NOT paint UI widgets directly or perform raw database modifications.
 
-### Rust (Core) Codebase Tiers
-1. **Tier 1: FFI Bridge / External Gateway (e.g., `rust/src/bridge`)**
-   - **Responsibility**: FFI entry points, real-time event streams, log streams, type mapping/serialization for bridge transactions.
-   - **Restriction**: MUST NOT house persistence engine commands or core domain rules directly.
+### Tier 3: Core Domain, Services & Storage (e.g., Entities, Repositories, Database Models)
+- **Responsibility**: Manages persistent application truth, business logic, transactions, and core entity validation.
+- **Restriction**: MUST NOT depend on or import UI presentation packages, styling managers, or external delivery channels. Dependency inversion must be strictly respected.
 
-2. **Tier 2: Persistence Engine (e.g., `rust/src/persistence`)**
-   - **Responsibility**: Database repository abstractions, connection setups, transaction handlers, SurrealDB query executions, and history tracking.
-   - **Restriction**: MUST NOT depend on or import FFI bridge packages/modules.
+## Boundary Enforcement
 
-3. **Tier 3: Domain Core / Shared Utilities (e.g., `rust/src/domain`, `rust/src/format`, `rust/src/telemetry`)**
-   - **Responsibility**: Core entities (nodes, relations, tags), database schemas, traits, serializing, formatting, and logging telemetry.
-   - **Restriction**: MUST NOT import or depend on persistence engine or FFI bridge modules.
+The Architectural Linter automatically enforces these boundaries based on the tiers defined in the `project_config.json` file. A higher tier (e.g., Tier 3) MUST NOT import or depend on a lower tier (e.g., Tier 1 or Tier 2).
 
-When modifying code, explicitly state which abstraction layer the file belongs to, and ensure your additions do not pull responsibilities from other tiers.
+When modifying code:
+1. Identify the tier of the file you are editing.
+2. Ensure you do not add dependencies to components belonging to lower-tier layers.
+3. Keep logic clean and focused on the single responsibility of that tier.

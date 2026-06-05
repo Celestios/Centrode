@@ -1,0 +1,100 @@
+{
+  "creational": {
+    "Singleton": {
+      "keywords": ["instance", "shared", "singleton", "getInstance"],
+      "description": "Ensures a class has only one instance and provides a global point of access to it."
+    },
+    "Factory Method": {
+      "keywords": ["factory", "create", "build", "of", "from"],
+      "description": "Defines an interface for creating an object, but lets subclasses decide which class to instantiate."
+    },
+    "Abstract Factory": {
+      "keywords": ["provider", "factoryprovider", "kit"],
+      "description": "Provides an interface for creating families of related or dependent objects without specifying their concrete classes."
+    },
+    "Builder": {
+      "keywords": ["builder", "build"],
+      "description": "Separates the construction of a complex object from its representation so that the same construction process can create different representations."
+    },
+    "Prototype": {
+      "keywords": ["clone", "copy", "copyWith"],
+      "description": "Specifies the kinds of objects to create using a prototypical instance, and creates new objects by copying this prototype."
+    }
+  },
+  "structural": {
+    "Adapter": {
+      "keywords": ["adapter", "bridge", "wrapper", "to"],
+      "description": "Converts the interface of a class into another interface clients expect."
+    },
+    "Bridge": {
+      "keywords": ["bridge", "impl", "implementation"],
+      "description": "Decouples an abstraction from its implementation so that the two can vary independently."
+    },
+    "Composite": {
+      "keywords": ["composite", "node", "tree", "leaf", "component"],
+      "description": "Composes objects into tree structures to represent part-whole hierarchies."
+    },
+    "Decorator": {
+      "keywords": ["decorator", "wrapper", "decorated"],
+      "description": "Attaches additional responsibilities to an object dynamically."
+    },
+    "Facade": {
+      "keywords": ["facade", "api", "service", "gateway"],
+      "description": "Provides a unified interface to a set of interfaces in a subsystem."
+    },
+    "Flyweight": {
+      "keywords": ["flyweight", "cache", "pool"],
+      "description": "Uses sharing to support large numbers of fine-grained objects efficiently."
+    },
+    "Proxy": {
+      "keywords": ["proxy", "stub", "delegate", "handler"],
+      "description": "Provides a surrogate or placeholder for another object to control access to it."
+    }
+  },
+  "behavioral": {
+    "Chain of Responsibility": {
+      "keywords": ["chain", "handler", "middleware", "interceptor", "next"],
+      "description": "Avoids coupling the sender of a request to its receiver by giving more than one object a chance to handle the request."
+    },
+    "Command": {
+      "keywords": ["command", "action", "intent", "execute", "run"],
+      "description": "Encapsulates a request as an object, thereby letting you parameterize clients with different requests."
+    },
+    "Interpreter": {
+      "keywords": ["interpreter", "parser", "expression", "eval"],
+      "description": "Given a language, defines a representation for its grammar along with an interpreter that uses the representation to interpret sentences in the language."
+    },
+    "Iterator": {
+      "keywords": ["iterator", "cursor", "generator", "next"],
+      "description": "Provides a way to access the elements of an aggregate object sequentially without exposing its underlying representation."
+    },
+    "Mediator": {
+      "keywords": ["mediator", "dispatcher", "broker", "hub"],
+      "description": "Defines an object that encapsulates how a set of objects interact."
+    },
+    "Memento": {
+      "keywords": ["memento", "state", "snapshot", "restore", "save"],
+      "description": "Without violating encapsulation, captures and externalizes an object's internal state so that the object can be restored to this state later."
+    },
+    "Observer": {
+      "keywords": ["observer", "listener", "subscriber", "watcher", "stream", "subject", "notify", "publish"],
+      "description": "Defines a one-to-many dependency between objects so that when one object changes state, all its dependents are notified and updated automatically."
+    },
+    "State": {
+      "keywords": ["state", "status", "phase", "fsm"],
+      "description": "Allows an object to alter its behavior when its internal state changes."
+    },
+    "Strategy": {
+      "keywords": ["strategy", "algorithm", "policy", "matcher"],
+      "description": "Defines a family of algorithms, encapsulates each one, and makes them interchangeable."
+    },
+    "Template Method": {
+      "keywords": ["template", "base", "abstract"],
+      "description": "Defines the skeleton of an algorithm in an operation, deferring some steps to subclasses."
+    },
+    "Visitor": {
+      "keywords": ["visitor", "accept", "visit"],
+      "description": "Represents an operation to be performed on the elements of an object structure."
+    }
+  }
+}

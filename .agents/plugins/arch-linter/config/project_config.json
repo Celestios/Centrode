@@ -1,0 +1,115 @@
+{
+  "name": "Mycelium Project",
+  "cache_dir": ".agents/plugins/arch-linter",
+  "exclusions": {
+    "global": [
+      "/.git/",
+      "/node_modules/",
+      "/target/",
+      "/build/"
+    ],
+    "dart": [
+      "/src/rust/",
+      "\\.g\\.dart$",
+      "\\.freezed\\.dart$",
+      "/frb_generated\\.dart$",
+      "/frb_generated\\.io\\.dart$",
+      "/frb_generated\\.web\\.dart$"
+    ],
+    "rust": [
+      "/frb_generated\\.rs$"
+    ]
+  },
+  "layers": {
+    "dart": {
+      "lib/features/graph/ui": {
+        "tier": 1,
+        "responsibility": "Renders visual UI components, canvas viewports, and overlays for user interaction.",
+        "exclusions": "MUST NOT house domain state mutation logic, direct database/FFI calls, or low-level mathematical coordinate calculations."
+      },
+      "lib/features/graph/engine": {
+        "tier": 2,
+        "responsibility": "Manages user interaction state (dragging, panning, zooming), processes canvas gestures, and drives the gesture Finite State Machine (FSM).",
+        "exclusions": "MUST NOT paint UI widgets directly or interact directly with the database or storage controllers."
+      },
+      "lib/features/graph/presentation": {
+        "tier": 2,
+        "responsibility": "Manages UI-specific transient presentation state, view projections, layout strategies, viewport calculations, and theme mappings.",
+        "exclusions": "MUST NOT directly mutate database structures or issue raw FFI commands."
+      },
+      "lib/features/graph/store": {
+        "tier": 3,
+        "responsibility": "Coordinates in-memory lookup cache, spatial queries, FFI synchronization, and local reactive state updates.",
+        "exclusions": "MUST NOT import, listen to, or depend on UI presentation controllers, style managers, or theme controllers."
+      },
+      "lib/features/graph/models": {
+        "tier": 3,
+        "responsibility": "Defines UI domain models wrapping core Rust models, providing serialization/deserialization across the FFI boundary.",
+        "exclusions": "MUST NOT import or depend on presentation-tier configuration parameters or metrics."
+      },
+      "lib/infrastructure": {
+        "tier": 3,
+        "responsibility": "Handles low-level platform infrastructure concerns (logger isolates, uncaught asynchronous telemetry reporting).",
+        "exclusions": "MUST NOT import or depend on domain business logic or presentation-tier state."
+      }
+    },
+    "rust": {
+      "rust/src/bridge": {
+        "tier": 1,
+        "responsibility": "FFI boundary, entry points for Flutter interactions, mapping events and data types.",
+        "exclusions": "MUST NOT house persistence engine commands or low-level domain mutations directly."
+      },
+      "rust/src/persistence": {
+        "tier": 2,
+        "responsibility": "Database and persistence engine, transactions, and SurrealDB client interactions.",
+        "exclusions": "MUST NOT depend on or import FFI bridge packages/modules."
+      },
+      "rust/src/domain": {
+        "tier": 3,
+        "responsibility": "Core domain logic, structures, and business rules.",
+        "exclusions": "MUST NOT import or depend on persistence engine or FFI bridge modules."
+      }
+    }
+  },
+  "naming_rules": {
+    "rust": [
+      {
+        "type": "file_regex",
+        "pattern": "^[a-z0-9_]+\\.rs$",
+        "message": "Naming Violation: Rust source file names must be snake_case."
+      }
+    ],
+    "dart": [
+      {
+        "type": "path_contains",
+        "path": "/strategies/",
+        "file_suffix": "_strategy.dart",
+        "class_suffix": "strategy",
+        "message": "Naming Violation: File under strategies/ folder must suffix with _strategy.dart and contain class ending in Strategy."
+      },
+      {
+        "type": "path_contains",
+        "path": "/states/",
+        "class_suffixes": ["state", "idle", "dragging", "drawing", "resizing", "selecting", "active"],
+        "message": "Naming Violation: File under states/ folder must contain State or active state FSM suffix (e.g. Idle, Resizing, Dragging)."
+      },
+      {
+        "type": "path_contains",
+        "path": "/store/modules/",
+        "class_suffixes": ["mutations", "store", "spatial", "engine", "facade", "index"],
+        "message": "Naming Violation: File under store/modules/ folder must suffix with Mutations, Store, Spatial, Engine, Facade, or Index."
+      }
+    ]
+  },
+  "test_assertions": {
+    "rust": {
+      "min_tier": 2,
+      "message": "Test Coverage Violation: Tier {tier} Rust component does not have inline or integration tests."
+    },
+    "dart": {
+      "min_tier": 2,
+      "exclude_paths": ["lib/main.dart", "/shared/"],
+      "message": "Test Coverage Violation: Tier {tier} component does not have an associated test file."
+    }
+  }
+}

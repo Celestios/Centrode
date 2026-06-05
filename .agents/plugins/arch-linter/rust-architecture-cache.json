@@ -52,6 +52,7 @@
         "pub async fn create_log_stream(sink: StreamSink<LogState>) -> anyhow::Result<()>",
         "pub async fn new(storage_path: String, name: String) -> anyhow::Result<Self>",
         "pub fn with_repository(repo: Repository) -> Self",
+        "async fn broadcast_boundaries(&self)",
         "pub async fn create_node(&self, input: Nodes) -> anyhow::Result<()>",
         "pub async fn get_node(&self, table: String, key: String) -> anyhow::Result<Option<Nodes>>",
         "pub async fn update_node(&self, input: Nodes) -> anyhow::Result<()>",
@@ -74,6 +75,7 @@
         "pub async fn update_theme(&self, theme: Theme) -> anyhow::Result<()>",
         "pub async fn create_graph_stream(&self, sink: StreamSink<GraphEvent>) -> anyhow::Result<()>",
         "pub fn close(self) -> anyhow::Result<()>",
+        "async fn apply_history_record_patch(&self, record: &HistoryRecord, is_forward: bool) -> anyhow::Result<()>",
         "pub async fn undo(&self) -> anyhow::Result<Option<HistoryRecord>>",
         "pub async fn redo(&self) -> anyhow::Result<Option<HistoryRecord>>",
         "pub async fn undo_count(&self) -> anyhow::Result<u32>",
@@ -87,7 +89,12 @@
         "pub async fn instantiate_template(&self, key: String, target_x: f64, target_y: f64) -> anyhow::Result<()>",
         "pub async fn get_all_templates(&self) -> anyhow::Result<Vec<Template>>",
         "pub async fn delete_template(&self, key: String) -> anyhow::Result<()>",
-        "pub async fn query_search(&self, query: String) -> anyhow::Result<Vec<Nodes>>"
+        "pub async fn query_search(&self, query: String) -> anyhow::Result<Vec<Nodes>>",
+        "fn drop(&mut self)"
+      ],
+      "stray_functions": [
+        "setup_logger",
+        "create_log_stream"
       ]
     },
     "rust/src/bridge/stream.rs": {
@@ -108,6 +115,13 @@
       "public_apis": [
         "pub fn publish_event(event: GraphEvent)",
         "pub fn subscribe_to_graph() -> broadcast::Receiver<GraphEvent>"
+      ],
+      "stray_functions": [
+        "publish_event",
+        "subscribe_to_graph"
+      ],
+      "special_objects": [
+        "static ref"
       ]
     },
     "rust/src/bridge.rs": {
@@ -152,8 +166,18 @@
       "pattern": "Domain Entity",
       "public_apis": [
         "pub fn from_record_value(value: Value) -> Option<Self>",
+        "fn from_str(s: &str) -> Result<Self, Self::Err>",
+        "fn from(s: &str) -> Self",
+        "fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result",
         "pub fn to_str(&self) -> String",
         "pub fn into_record(&self) -> RecordId",
+        "fn kind_of() -> surrealdb::types::Kind",
+        "fn into_value(self) -> Value",
+        "fn from_value(value: Value) -> Result<Self, surrealdb::types::Error>",
+        "fn get_label() -> &'static str",
+        "fn get_key(&self) -> &str;",
+        "fn get_record_id(&self) -> RecordId",
+        "fn default() -> Self",
         "pub fn get_record_id(&self) -> RecordId",
         "pub fn new("
       ]
@@ -176,7 +200,9 @@
         "pub fn new(blocks: Vec<ContentBlock>) -> Self",
         "pub fn from_plain_text(text: impl Into<String>) -> Self",
         "pub fn to_plain_text(&self) -> String",
+        "fn compute_plain_text(blocks: &[ContentBlock]) -> String",
         "pub fn refresh_text(&mut self)",
+        "fn default() -> Self",
         "pub fn paragraph(text: impl Into<String>) -> Self",
         "pub fn heading(text: impl Into<String>, level: u8) -> Self",
         "pub fn code_block(text: impl Into<String>, language: Option<String>) -> Self",
@@ -192,7 +218,14 @@
         "pub fn underline() -> Self",
         "pub fn strikethrough() -> Self",
         "pub fn code() -> Self",
-        "pub fn link(href: impl Into<String>) -> Self"
+        "pub fn link(href: impl Into<String>) -> Self",
+        "fn field_type() -> String",
+        "fn sub_field_paths() -> Vec<(String, String)>",
+        "fn test_content_from_plain_text()",
+        "fn test_content_block_constructors()",
+        "fn test_inline_element_and_marks()",
+        "fn test_content_plain_text_computation_and_refresh()",
+        "fn test_hard_break_plain_text()"
       ]
     },
     "rust/src/domain/macros/define_nodes.rs": {
@@ -207,6 +240,20 @@
       "is_ffi_bridge": false,
       "pattern": "Macro",
       "public_apis": [
+        "fn get_key(&self) -> &str",
+        "fn id(&self) -> &$crate::domain::base_models::RecordStrings",
+        "fn set_id(&mut self, id: $crate::domain::base_models::RecordStrings)",
+        "fn position(&self) -> &$crate::domain::base_models::Coordinates",
+        "fn position_mut(&mut self) -> &mut $crate::domain::base_models::Coordinates",
+        "fn layer(&self) -> &str",
+        "fn set_layer(&mut self, layer: String)",
+        "fn created_at(&self) -> i64",
+        "fn set_created_at(&mut self, val: i64)",
+        "fn updated_at(&self) -> i64",
+        "fn set_updated_at(&mut self, val: i64)",
+        "fn table_name(&self) -> &'static str",
+        "fn serialize_node(self) -> surrealdb::types::Value",
+        "fn generate_fields_schema(table: &str) -> Vec<String>",
         "pub fn fetch_fields_for_table(table: &str) -> &'static [&'static str]",
         "pub fn table_and_key(&self) -> (&'static str, &str)",
         "pub fn from_struct_value(table: &str, val: surrealdb::types::Value) -> Result<Self, surrealdb::types::Error>"
@@ -241,7 +288,23 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Domain Entity"
+      "pattern": "Domain Entity",
+      "public_apis": [
+        "fn id(&self) -> &RecordStrings;",
+        "fn set_id(&mut self, id: RecordStrings);",
+        "fn key(&self) -> &str",
+        "fn set_key(&mut self, key: String)",
+        "fn position(&self) -> &Coordinates;",
+        "fn position_mut(&mut self) -> &mut Coordinates;",
+        "fn layer(&self) -> &str;",
+        "fn set_layer(&mut self, layer: String);",
+        "fn created_at(&self) -> i64;",
+        "fn set_created_at(&mut self, val: i64);",
+        "fn updated_at(&self) -> i64;",
+        "fn set_updated_at(&mut self, val: i64);",
+        "fn table_name(&self) -> &'static str;",
+        "fn serialize_node(self) -> Value;"
+      ]
     },
     "rust/src/domain/patches.rs": {
       "class": "TagOperation, NodePatch, RelationPatch, EntityPatch, SymmetricEntityPatch, PatchHistoryPayload",
@@ -276,7 +339,13 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Domain Entity"
+      "pattern": "Domain Entity",
+      "public_apis": [
+        "fn get_key(&self) -> &str",
+        "fn kind_of() -> surrealdb::types::Kind",
+        "fn from_value(value: Value) -> Result<Self, surrealdb::types::Error>",
+        "fn into_value(self) -> Value"
+      ]
     },
     "rust/src/domain/schema.rs": {
       "class": "SurqlSchema, SurqlSchemaField",
@@ -290,9 +359,19 @@
       "is_ffi_bridge": false,
       "pattern": "Metadata Schema",
       "public_apis": [
+        "fn generate_fields_schema(table: &str) -> Vec<String>;",
+        "fn field_type() -> String;",
+        "fn sub_field_paths() -> Vec<(String, String)>;",
         "pub fn generate_field_schema_lines(",
         "pub fn generate_created_at(table: &str, readonly: bool) -> String",
-        "pub fn generate_updated_at(table: &str) -> String"
+        "pub fn generate_updated_at(table: &str) -> String",
+        "fn field_type() -> String",
+        "fn sub_field_paths() -> Vec<(String, String)>"
+      ],
+      "stray_functions": [
+        "generate_field_schema_lines",
+        "generate_created_at",
+        "generate_updated_at"
       ]
     },
     "rust/src/domain/snapshot.rs": {
@@ -342,7 +421,15 @@
       "test_file": "inline or integration test",
       "has_tests": true,
       "is_ffi_bridge": false,
-      "pattern": "Domain Entity"
+      "pattern": "Domain Entity",
+      "public_apis": [
+        "fn kind_of() -> surrealdb::types::Kind",
+        "fn from_value(value: Value) -> Result<Self, surrealdb::types::Error>",
+        "fn into_value(self) -> Value",
+        "fn get_key(&self) -> &str",
+        "fn field_type() -> String",
+        "fn sub_field_paths() -> Vec<(String, String)>"
+      ]
     },
     "rust/src/domain/templates.rs": {
       "class": "Template",
@@ -361,6 +448,7 @@
       "is_ffi_bridge": false,
       "pattern": "Domain Entity",
       "public_apis": [
+        "fn get_key(&self) -> &str",
         "pub fn from_selection("
       ]
     },
@@ -377,7 +465,10 @@
       "test_file": "inline or integration test",
       "has_tests": true,
       "is_ffi_bridge": false,
-      "pattern": "Domain Logic"
+      "pattern": "Domain Logic",
+      "public_apis": [
+        "fn get_key(&self) -> &str"
+      ]
     },
     "rust/src/domain.rs": {
       "class": "",
@@ -408,6 +499,10 @@
       "public_apis": [
         "pub fn save_project_to_celi(",
         "pub fn load_project_from_celi("
+      ],
+      "stray_functions": [
+        "save_project_to_celi",
+        "load_project_from_celi"
       ]
     },
     "rust/src/format.rs": {
@@ -435,6 +530,9 @@
       "pattern": "Rust Module",
       "public_apis": [
         "pub fn init_core()"
+      ],
+      "stray_functions": [
+        "init_core"
       ]
     },
     "rust/src/persistence/db.rs": {
@@ -465,6 +563,9 @@
       "pattern": "Repository Helper",
       "public_apis": [
         "pub fn as_str(&self) -> &'static str",
+        "fn kind_of() -> surrealdb::types::Kind",
+        "fn into_value(self) -> Value",
+        "fn from_value(value: Value) -> std::result::Result<Self, surrealdb::types::Error>",
         "pub fn new(db: &'a Surreal<Db>, threshold: usize) -> Self",
         "pub async fn push_event(&self, action_type: &str, payload: Value) -> Result<()>",
         "pub async fn push_event_with_time(&self, action_type: &str, payload: Value, timestamp: i64) -> Result<()>",
@@ -544,10 +645,19 @@
       "is_ffi_bridge": false,
       "pattern": "Rust Module",
       "public_apis": [
+        "fn new() -> Self",
         "pub fn instance() -> Self",
+        "fn record_debug(&mut self, field: &tracing::field::Field, value: &dyn std::fmt::Debug)",
+        "fn record_str(&mut self, field: &tracing::field::Field, value: &str)",
+        "fn on_event(",
         "pub fn init_telemetry()",
         "pub fn connect_log_stream()",
         "pub fn subscribe_to_logs() -> broadcast::Receiver<LogState>"
+      ],
+      "stray_functions": [
+        "init_telemetry",
+        "connect_log_stream",
+        "subscribe_to_logs"
       ]
     },
     "rust/src/persistence/repo/analysis.rs": {

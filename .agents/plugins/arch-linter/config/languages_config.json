@@ -1,0 +1,104 @@
+{
+  "dart": {
+    "extensions": [".dart"],
+    "default_dir": "lib",
+    "class_pattern": "^(?:(?:abstract|base|interface|final|sealed)\\s+)?(?:class|mixin|enum|extension)\\s+([a-zA-Z0-9_]+)",
+    "method_pattern": "^\\s*(?:[a-zA-Z0-9<>_?]+)\\s+([a-z][a-zA-Z0-9_]*)\\s*\\(",
+    "import_pattern": "import\\s+['\\\"]([^'\\\"]+)['\\\"];",
+    "comment_patterns": ["/\\*[\\s\\S]*?\\*/", "//.*"],
+    "stray_function_pattern": "^(?:[a-zA-Z0-9<>_?]+)\\s+([a-z][a-zA-Z0-9_]*)\\s*\\(",
+    "special_object_patterns": [
+      "\\b(?:GetIt|Locator|Provider)\\b",
+      "\\b[A-Z][a-zA-Z0-9_]*Registry\\b",
+      "\\binstance\\b"
+    ],
+    "test_file_suffix": "_test.dart",
+    "test_folder_mapping": {
+      "from": "lib/",
+      "to": "test/"
+    },
+    "ffi_keywords": ["rustLib", "api.", "frb_generated"]
+  },
+  "rust": {
+    "extensions": [".rs"],
+    "default_dir": "rust/src",
+    "class_pattern": "^(?:pub\\s+)?(?:struct|enum|trait|union)\\s+([a-zA-Z0-9_]+)",
+    "method_pattern": "^\\s*(?:pub\\s+)?(?:async\\s+)?fn\\s+([a-z0-9_]+)\\s*\\(",
+    "import_pattern": "use\\s+(crate::[a-zA-Z0-9_:]+(?:\\s*::\\s*\\{[^}]*\\})?)\\s*;",
+    "comment_patterns": ["/\\*[\\s\\S]*?\\*/", "//.*"],
+    "stray_function_pattern": "^(?:pub\\s+)?(?:async\\s+)?fn\\s+([a-z0-9_]+)\\s*\\(",
+    "special_object_patterns": [
+      "\\bstatic\\s+ref\\b",
+      "\\blazy_static!\\b",
+      "\\bthread_local!\\b"
+    ],
+    "test_inline_keywords": ["#[cfg(test)]", "#[test]"],
+    "test_file_suffix": "_test.rs",
+    "test_folder_mapping": {
+      "from": "src/",
+      "to": "tests/"
+    },
+    "ffi_keywords": ["extern \"C\"", "no_mangle"]
+  },
+  "go": {
+    "extensions": [".go"],
+    "default_dir": ".",
+    "class_pattern": "^type\\s+([a-zA-Z0-9_]+)\\s+(?:struct|interface)",
+    "method_pattern": "^func\\s+(?:\\([^\\)]+\\)\\s+)?([a-zA-Z0-9_]+)\\s*\\(",
+    "import_pattern": "import\\s+(?:['\\\"]([^'\\\"]+)['\\\"]|\\(([^\\)]+)\\))",
+    "comment_patterns": ["/\\*[\\s\\S]*?\\*/", "//.*"],
+    "stray_function_pattern": "^func\\s+([a-zA-Z0-9_]+)\\s*\\(",
+    "special_object_patterns": [
+      "\\bvar\\s+\\b",
+      "\\bInit\\b"
+    ],
+    "test_file_suffix": "_test.go",
+    "ffi_keywords": ["import \"C\"", "C."]
+  },
+  "python": {
+    "extensions": [".py"],
+    "default_dir": ".",
+    "class_pattern": "^class\\s+([a-zA-Z0-9_]+)",
+    "method_pattern": "^\\s*def\\s+([a-zA-Z0-9_]+)\\s*\\(",
+    "import_pattern": "(?:import\\s+([a-zA-Z0-9_\\.,\\s]+)|from\\s+([a-zA-Z0-9_\\.]+)\\s+import)",
+    "comment_patterns": ["#.*", "r?\"\"\"[\\s\\S]*?\"\"\"", "r?'''[\\s\\S]*?'''"],
+    "stray_function_pattern": "^def\\s+([a-zA-Z0-9_]+)\\s*\\(",
+    "special_object_patterns": [
+      "\\bglobals\\(\\)\\b",
+      "\\b__dict__\\b"
+    ],
+    "test_file_prefix": "test_",
+    "ffi_keywords": ["ctypes", "c_dll", "c_void_p"]
+  },
+  "typescript": {
+    "extensions": [".ts", ".tsx"],
+    "default_dir": "src",
+    "class_pattern": "^(?:export\\s+)?(?:class|interface|type|enum)\\s+([a-zA-Z0-9_]+)",
+    "method_pattern": "^\\s*(?:public|private|protected|async)?\\s*([a-zA-Z0-9_]+)\\s*\\([^\\)]*\\)\\s*(?::|{)",
+    "import_pattern": "import\\s+.*?from\\s+['\\\"]([^'\\\"]+)['\\\"]",
+    "comment_patterns": ["/\\*[\\s\\S]*?\\*/", "//.*"],
+    "stray_function_pattern": "^(?:export\\s+)?(?:async\\s+)?function\\s+([a-zA-Z0-9_]+)\\s*\\(",
+    "special_object_patterns": [
+      "\\bwindow\\b",
+      "\\bglobalThis\\b",
+      "\\bprocess\\b"
+    ],
+    "test_file_suffix": ".test.ts",
+    "ffi_keywords": ["Napi", "node-addon-api"]
+  },
+  "cpp": {
+    "extensions": [".cpp", ".h", ".hpp", ".cc"],
+    "default_dir": "src",
+    "class_pattern": "^(?:class|struct)\\s+([a-zA-Z0-9_]+)",
+    "method_pattern": "^\\s*(?:[a-zA-Z0-9_::<>]+\\s+)+([a-zA-Z0-9_]+)\\s*\\(",
+    "import_pattern": "#include\\s+[\"<]([^>\"\\n]+)[\">]",
+    "comment_patterns": ["/\\*[\\s\\S]*?\\*/", "//.*"],
+    "stray_function_pattern": "^(?:[a-zA-Z0-9_::<>]+\\s+)+([a-zA-Z0-9_]+)\\s*\\([^)]*\\)\\s*{",
+    "special_object_patterns": [
+      "\\bextern\\b",
+      "\\bstatic\\b"
+    ],
+    "test_file_suffix": "_test.cpp",
+    "ffi_keywords": ["extern \"C\""]
+  }
+}
