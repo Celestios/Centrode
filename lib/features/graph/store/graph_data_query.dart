@@ -15,7 +15,7 @@ enum GraphUpdateType {
   relationLayout,
   tags,
   comments,
-  reset
+  reset,
 }
 
 class GraphEntityUpdate {
@@ -45,5 +45,3 @@ abstract interface class GraphDataQuery implements Listenable {
   ValueNotifier<BoundingBox> get canvasBounds;
   Stream<GraphEntityUpdate> get onEntityUpdate;
 }
-
-

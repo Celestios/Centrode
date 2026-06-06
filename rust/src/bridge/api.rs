@@ -14,7 +14,9 @@ use crate::persistence::db::Database;
 use crate::persistence::history::HistoryRecord;
 use crate::persistence::repo::Repository;
 use crate::telemetry::{connect_log_stream, init_telemetry, LogState};
+use directories::ProjectDirs;
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 use std::sync::Mutex;
 use surrealdb::types::{SurrealValue, Value};
 use tokio::task::JoinHandle;
@@ -68,7 +70,16 @@ pub struct AppHandle {
 
 impl AppHandle {
     pub async fn new(storage_path: String, name: String) -> anyhow::Result<Self> {
-        let db = Database::connect(&storage_path, name, None, None).await?;
+        let path = if storage_path.is_empty() {
+            ProjectDirs::from("com", "mycelium", "mycelium")
+                .map(|pd| pd.data_local_dir().join("data.db"))
+                .unwrap_or_else(|| PathBuf::from("mycelium.db"))
+        } else {
+            PathBuf::from(&storage_path)
+        };
+
+        let db =
+            Database::connect(path.to_str().unwrap_or(&storage_path), name, None, None).await?;
         Ok(Self::with_repository(Repository::new(db)))
     }
 
@@ -96,11 +107,16 @@ impl AppHandle {
         self.repo.create_node(input.clone()).await?;
 
         let (table, key) = input.table_and_key();
-        self.repo.record_patch_history(
-            RecordStrings { table: table.to_string(), key: key.to_string() },
-            EntityPatch::CreateNode(input.clone(), vec![]),
-            EntityPatch::DeleteNode(input, vec![]),
-        ).await?;
+        self.repo
+            .record_patch_history(
+                RecordStrings {
+                    table: table.to_string(),
+                    key: key.to_string(),
+                },
+                EntityPatch::CreateNode(input.clone(), vec![]),
+                EntityPatch::DeleteNode(input, vec![]),
+            )
+            .await?;
 
         self.broadcast_boundaries().await;
         Ok(())
@@ -113,17 +129,26 @@ impl AppHandle {
 
     pub async fn update_node(&self, input: Nodes) -> anyhow::Result<()> {
         let (table, key) = input.table_and_key();
-        if let Some(old) = self.repo.get_node(table.to_string(), key.to_string()).await? {
+        if let Some(old) = self
+            .repo
+            .get_node(table.to_string(), key.to_string())
+            .await?
+        {
             self.repo.update_node(input.clone()).await.map_err(|e| {
                 error!("FFI: Repository failed to update node {}", e);
                 e
             })?;
 
-            self.repo.record_patch_history(
-                RecordStrings { table: table.to_string(), key: key.to_string() },
-                EntityPatch::CreateNode(input.clone(), vec![]),
-                EntityPatch::CreateNode(old, vec![]),
-            ).await?;
+            self.repo
+                .record_patch_history(
+                    RecordStrings {
+                        table: table.to_string(),
+                        key: key.to_string(),
+                    },
+                    EntityPatch::CreateNode(input.clone(), vec![]),
+                    EntityPatch::CreateNode(old, vec![]),
+                )
+                .await?;
         } else {
             self.repo.update_node(input).await.map_err(|e| {
                 error!("FFI: Repository failed to update node {}", e);
@@ -133,11 +158,20 @@ impl AppHandle {
         Ok(())
     }
 
-    pub async fn apply_entity_mutation(&self, mutation: SymmetricEntityPatch) -> anyhow::Result<()> {
-        if self.repo.apply_patch_check_position(&mutation.id, &mutation.forward).await? {
+    pub async fn apply_entity_mutation(
+        &self,
+        mutation: SymmetricEntityPatch,
+    ) -> anyhow::Result<()> {
+        if self
+            .repo
+            .apply_patch_check_position(&mutation.id, &mutation.forward)
+            .await?
+        {
             self.broadcast_boundaries().await;
         }
-        self.repo.record_patch_history(mutation.id, mutation.forward, mutation.reverse).await?;
+        self.repo
+            .record_patch_history(mutation.id, mutation.forward, mutation.reverse)
+            .await?;
         Ok(())
     }
 
@@ -148,11 +182,16 @@ impl AppHandle {
 
             self.repo.delete_node(table.clone(), key.clone()).await?;
 
-            self.repo.record_patch_history(
-                RecordStrings { table: table.clone(), key: key.clone() },
-                EntityPatch::DeleteNode(node.clone(), connected_relations.clone()),
-                EntityPatch::CreateNode(node, connected_relations),
-            ).await?;
+            self.repo
+                .record_patch_history(
+                    RecordStrings {
+                        table: table.clone(),
+                        key: key.clone(),
+                    },
+                    EntityPatch::DeleteNode(node.clone(), connected_relations.clone()),
+                    EntityPatch::CreateNode(node, connected_relations),
+                )
+                .await?;
 
             self.broadcast_boundaries().await;
             Ok(())
@@ -168,11 +207,16 @@ impl AppHandle {
         );
         self.repo.create_relation(input.clone()).await?;
 
-        self.repo.record_patch_history(
-            RecordStrings { table: IRelation::LABEL.to_string(), key: input.key.clone() },
-            EntityPatch::CreateRelation(input.clone()),
-            EntityPatch::DeleteRelation(input),
-        ).await?;
+        self.repo
+            .record_patch_history(
+                RecordStrings {
+                    table: IRelation::LABEL.to_string(),
+                    key: input.key.clone(),
+                },
+                EntityPatch::CreateRelation(input.clone()),
+                EntityPatch::DeleteRelation(input),
+            )
+            .await?;
 
         Ok(())
     }
@@ -181,13 +225,20 @@ impl AppHandle {
         debug!("Deleting relation: {}", key);
         let rel = self.repo.get_relation(table.clone(), key.clone()).await?;
 
-        self.repo.delete_relation(table.clone(), key.clone()).await?;
+        self.repo
+            .delete_relation(table.clone(), key.clone())
+            .await?;
 
-        self.repo.record_patch_history(
-            RecordStrings { table: table.clone(), key: key.clone() },
-            EntityPatch::DeleteRelation(rel.clone()),
-            EntityPatch::CreateRelation(rel),
-        ).await?;
+        self.repo
+            .record_patch_history(
+                RecordStrings {
+                    table: table.clone(),
+                    key: key.clone(),
+                },
+                EntityPatch::DeleteRelation(rel.clone()),
+                EntityPatch::CreateRelation(rel),
+            )
+            .await?;
 
         Ok(())
     }
@@ -255,7 +306,11 @@ impl AppHandle {
 
         content.insert(
             IRelation::LABEL.into(),
-            snapshot.relations.into_iter().map(|r| r.into_value()).collect(),
+            snapshot
+                .relations
+                .into_iter()
+                .map(|r| r.into_value())
+                .collect(),
         );
 
         tokio::task::spawn_blocking(move || {
@@ -282,7 +337,11 @@ impl AppHandle {
                 for val in list {
                     match Nodes::from_struct_value(table, val) {
                         Ok(node) => nodes.push(node),
-                        Err(e) => tracing::error!("Failed to deserialize node from table {}: {:?}", table, e),
+                        Err(e) => tracing::error!(
+                            "Failed to deserialize node from table {}: {:?}",
+                            table,
+                            e
+                        ),
                     }
                 }
             }
@@ -387,11 +446,23 @@ impl AppHandle {
         Ok(())
     }
 
-    async fn apply_history_record_patch(&self, record: &HistoryRecord, is_forward: bool) -> anyhow::Result<()> {
+    async fn apply_history_record_patch(
+        &self,
+        record: &HistoryRecord,
+        is_forward: bool,
+    ) -> anyhow::Result<()> {
         if record.action_type == "entity_patch" {
             let payload = SymmetricEntityPatch::from_value(record.payload.clone())?;
-            let patch = if is_forward { &payload.forward } else { &payload.reverse };
-            if self.repo.apply_patch_check_position(&payload.id, patch).await? {
+            let patch = if is_forward {
+                &payload.forward
+            } else {
+                &payload.reverse
+            };
+            if self
+                .repo
+                .apply_patch_check_position(&payload.id, patch)
+                .await?
+            {
                 self.broadcast_boundaries().await;
             }
         }
@@ -452,11 +523,20 @@ impl AppHandle {
         node_keys: Vec<RecordStrings>,
         relation_keys: Vec<RecordStrings>,
     ) -> anyhow::Result<()> {
-        self.repo.save_template_from_selection(name, node_keys, relation_keys).await
+        self.repo
+            .save_template_from_selection(name, node_keys, relation_keys)
+            .await
     }
 
-    pub async fn instantiate_template(&self, key: String, target_x: f64, target_y: f64) -> anyhow::Result<()> {
-        self.repo.instantiate_template(key, target_x, target_y).await?;
+    pub async fn instantiate_template(
+        &self,
+        key: String,
+        target_x: f64,
+        target_y: f64,
+    ) -> anyhow::Result<()> {
+        self.repo
+            .instantiate_template(key, target_x, target_y)
+            .await?;
         stream::publish_event(GraphEvent::SnapshotLoaded);
         Ok(())
     }
@@ -468,7 +548,6 @@ impl AppHandle {
     pub async fn delete_template(&self, key: String) -> anyhow::Result<()> {
         self.repo.delete_template(key).await
     }
-
 
     pub async fn query_search(&self, query: String) -> anyhow::Result<Vec<Nodes>> {
         self.repo.query_search(query).await
@@ -492,6 +571,3 @@ impl Drop for AppHandle {
         }
     }
 }
-
-
-

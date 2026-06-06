@@ -14,9 +14,6 @@ abstract class RelationStyleStrategy {
 
   RelationStyle resolve(UiRelation relation, GraphTheme theme);
 
-
-
-
   /// Centralized static helper to resolve a relation's populated style.
   static RelationStyle resolveStyle(UiRelation relation, {GraphTheme? theme}) {
     if (relation.resolvedStyle != null) return relation.resolvedStyle!;

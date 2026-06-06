@@ -214,6 +214,14 @@ macro_rules! define_nodes {
                 $( $struct_name::LABEL ),*
             ];
 
+            pub fn generate_all_fields_schemas() -> Vec<(&'static str, Vec<String>)> {
+                vec![
+                    $(
+                        ($struct_name::LABEL, <$struct_name as $crate::domain::nodes::SurqlSchema>::generate_fields_schema($struct_name::LABEL)),
+                    )*
+                ]
+            }
+
             pub fn fetch_fields_for_table(table: &str) -> &'static [&'static str] {
                 match table {
                     $(

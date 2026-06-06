@@ -1,15 +1,15 @@
 use crate::common::setup_test_repo;
-use mycelium_core::domain::base_models::{
+use rust_lib_mycelium::domain::base_models::{
     BoundingBox, Coordinates, IsTable, MapData, RecordStrings, Size,
 };
-use mycelium_core::domain::contents::Content;
-use mycelium_core::domain::nodes::{
+use rust_lib_mycelium::domain::contents::Content;
+use rust_lib_mycelium::domain::nodes::{
     INode, InterNode, Nodes, TaskNode,
 };
-use mycelium_core::domain::relations::{IRelation, IRelationFields};
+use rust_lib_mycelium::domain::relations::{IRelation, IRelationFields};
 
 async fn assert_significance_eventually(
-    repo: &mycelium_core::persistence::repo::Repository,
+    repo: &rust_lib_mycelium::persistence::repo::Repository,
     table: &str,
     key: &str,
     expected: u8,
@@ -211,7 +211,7 @@ async fn test_graph_snapshot() {
         new_nodes.push(Nodes::InterNode(n));
     }
 
-    repo.set_graph_snapshot(mycelium_core::domain::snapshot::GraphSnapshot {
+    repo.set_graph_snapshot(rust_lib_mycelium::domain::snapshot::GraphSnapshot {
         nodes: new_nodes,
         relations: new_relations,
         metadata: new_metadata,
@@ -421,3 +421,4 @@ async fn test_decay_significance_propagation() {
     assert_significance_eventually(&repo, "INode", "B", 1).await;
     assert_significance_eventually(&repo, "INode", "C", 0).await;
 }
+

@@ -114,7 +114,9 @@ class _GlassIconTile extends StatelessWidget {
       pressScale: 0.94,
       borderRadius: BorderRadius.zero,
       builder: (context, isHovered, isPressed) {
-        final iconColor = isHovered ? primaryColor : primaryColor.withValues(alpha: 0.7);
+        final iconColor = isHovered
+            ? primaryColor
+            : primaryColor.withValues(alpha: 0.7);
 
         Widget iconWidget = Icon(
           icon,
@@ -155,9 +157,7 @@ class _GlassIconTile extends StatelessWidget {
                 : null,
           ),
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-          child: Center(
-            child: iconWidget,
-          ),
+          child: Center(child: iconWidget),
         );
       },
     );

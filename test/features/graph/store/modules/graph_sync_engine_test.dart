@@ -9,9 +9,11 @@ import 'package:mycelium/src/rust/domain/snapshot.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 
 class MockAppHandle extends Mock implements AppHandle {}
+
 class MockThemeController extends Mock implements ThemeController {
   @override
-  GraphTheme get currentGraphTheme => const GraphTheme(id: 'test', name: 'test');
+  GraphTheme get currentGraphTheme =>
+      const GraphTheme(id: 'test', name: 'test');
 }
 
 void main() {
@@ -22,18 +24,25 @@ void main() {
     setUp(() {
       mockApi = MockAppHandle();
 
-      when(() => mockApi.createGraphStream())
-          .thenAnswer((_) => const Stream.empty());
-      when(() => mockApi.getGraphSnapshot())
-          .thenAnswer((_) async => const GraphSnapshot(
-            nodes: [],
-            relations: [],
-            metadata: frb.MapData(
-              mapName: '',
-              viewportState: frb.ViewportState(xOffset: 0, yOffset: 0, zoomLevel: 1, activeView: ''),
-              displayMode: frb.DisplayMode.importance,
+      when(
+        () => mockApi.createGraphStream(),
+      ).thenAnswer((_) => const Stream.empty());
+      when(() => mockApi.getGraphSnapshot()).thenAnswer(
+        (_) async => const GraphSnapshot(
+          nodes: [],
+          relations: [],
+          metadata: frb.MapData(
+            mapName: '',
+            viewportState: frb.ViewportState(
+              xOffset: 0,
+              yOffset: 0,
+              zoomLevel: 1,
+              activeView: '',
             ),
-          ));
+            displayMode: frb.DisplayMode.importance,
+          ),
+        ),
+      );
 
       controller = GraphDataController(mockApi);
     });
@@ -45,18 +54,25 @@ void main() {
     test('loadGraph fetches state and updates canvas bounds', () async {
       await controller.loadGraph();
 
-      when(() => mockApi.createGraphStream())
-          .thenAnswer((_) => const Stream.empty());
-      when(() => mockApi.getGraphSnapshot())
-          .thenAnswer((_) async => const GraphSnapshot(
-            nodes: [],
-            relations: [],
-            metadata: frb.MapData(
-              mapName: '',
-              viewportState: frb.ViewportState(xOffset: 0, yOffset: 0, zoomLevel: 1, activeView: ''),
-              displayMode: frb.DisplayMode.importance,
+      when(
+        () => mockApi.createGraphStream(),
+      ).thenAnswer((_) => const Stream.empty());
+      when(() => mockApi.getGraphSnapshot()).thenAnswer(
+        (_) async => const GraphSnapshot(
+          nodes: [],
+          relations: [],
+          metadata: frb.MapData(
+            mapName: '',
+            viewportState: frb.ViewportState(
+              xOffset: 0,
+              yOffset: 0,
+              zoomLevel: 1,
+              activeView: '',
             ),
-          ));
+            displayMode: frb.DisplayMode.importance,
+          ),
+        ),
+      );
 
       verify(() => mockApi.getGraphSnapshot()).called(1);
       verify(() => mockApi.createGraphStream()).called(1);
@@ -64,18 +80,18 @@ void main() {
 
     test('undo triggers FFI undo and reloads graph', () async {
       when(() => mockApi.undo()).thenAnswer((_) async => null);
-      
+
       await controller.undo();
-      
+
       verify(() => mockApi.undo()).called(1);
       // It should call getGraphSnapshot twice (one on init, one after undo is not called because return is null, wait let's return a fake HistoryRecord)
     });
 
     test('redo triggers FFI redo and reloads graph', () async {
       when(() => mockApi.redo()).thenAnswer((_) async => null);
-      
+
       await controller.redo();
-      
+
       verify(() => mockApi.redo()).called(1);
     });
   });

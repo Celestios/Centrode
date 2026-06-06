@@ -42,4 +42,3 @@ class DeleteRelationCommand extends GraphCommand {
     controller.triggerUpdate();
   }
 }
-

@@ -12,21 +12,23 @@ import 'package:mycelium/features/graph/presentation/theme_manager.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 
-class MockGraphDataQuery extends Mock with ChangeNotifier implements GraphDataQuery {
+class MockGraphDataQuery extends Mock
+    with ChangeNotifier
+    implements GraphDataQuery {
   @override
   Map<String, UiNode> get nodeLookup => {};
 }
 
 class MockThemeController extends Mock implements ThemeController {
   @override
-  GraphTheme get currentGraphTheme => const GraphTheme(
-    id: 'test',
-    name: 'test',
-  );
+  GraphTheme get currentGraphTheme =>
+      const GraphTheme(id: 'test', name: 'test');
 }
 
 void main() {
-  testWidgets('NodeWidget renders InfoUiNode correctly', (WidgetTester tester) async {
+  testWidgets('NodeWidget renders InfoUiNode correctly', (
+    WidgetTester tester,
+  ) async {
     final mockQuery = MockGraphDataQuery();
     final mockTheme = MockThemeController();
 

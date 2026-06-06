@@ -15,7 +15,8 @@ class CanvasInteractionEnvironment implements InteractionContext {
   final ViewportController _viewportController;
   final double Function() _getScale;
   final TabSession? _boundSession;
-  final void Function(List<String> nodeIds, List<String> relationIds)? _onSaveTemplate;
+  final void Function(List<String> nodeIds, List<String> relationIds)?
+  _onSaveTemplate;
 
   CanvasInteractionEnvironment({
     required GraphDataController dataController,
@@ -23,7 +24,8 @@ class CanvasInteractionEnvironment implements InteractionContext {
     required ViewportController viewportController,
     required double Function() getScale,
     TabSession? boundSession,
-    void Function(List<String> nodeIds, List<String> relationIds)? onSaveTemplate,
+    void Function(List<String> nodeIds, List<String> relationIds)?
+    onSaveTemplate,
   }) : _dataController = dataController,
        _renderState = renderState,
        _viewportController = viewportController,
@@ -35,7 +37,8 @@ class CanvasInteractionEnvironment implements InteractionContext {
   Map<String, NodeViewState> get nodeViewStates => _renderState.viewStates;
 
   @override
-  Map<String, List<Offset>> get relationPathCache => _renderState.relationPathCache;
+  Map<String, List<Offset>> get relationPathCache =>
+      _renderState.relationPathCache;
 
   @override
   List<String> get zOrder => _renderState.zOrder;
@@ -58,8 +61,17 @@ class CanvasInteractionEnvironment implements InteractionContext {
       _dataController.updateNodePosition(id, pos);
 
   @override
-  void onRelationCreate(String from, String to, {String? fromSide, String? toSide}) =>
-      _dataController.createRelation(from, to, fromSide: fromSide, toSide: toSide);
+  void onRelationCreate(
+    String from,
+    String to, {
+    String? fromSide,
+    String? toSide,
+  }) => _dataController.createRelation(
+    from,
+    to,
+    fromSide: fromSide,
+    toSide: toSide,
+  );
 
   @override
   void onRelationUpdateLayout(
@@ -156,9 +168,12 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
     final nodeIdsSet = nodeIds.toSet();
     final relationIds = _dataController.relationLookup.values
-        .where((r) =>
-            (nodeIdsSet.contains(r.fromNodeId) && nodeIdsSet.contains(r.toNodeId)) ||
-            _renderState.selectedEntities.contains(r.id))
+        .where(
+          (r) =>
+              (nodeIdsSet.contains(r.fromNodeId) &&
+                  nodeIdsSet.contains(r.toNodeId)) ||
+              _renderState.selectedEntities.contains(r.id),
+        )
         .map((r) => r.id)
         .toList();
 
@@ -172,7 +187,10 @@ class CanvasInteractionEnvironment implements InteractionContext {
   double get currentScale => _getScale();
 
   @override
-  void updateNodeStyle(String id, NodeStyle Function(NodeStyle style) updateFn) {
+  void updateNodeStyle(
+    String id,
+    NodeStyle Function(NodeStyle style) updateFn,
+  ) {
     final node = _dataController.nodeLookup[id];
     if (node != null) {
       final style = node.style ?? NodeStyleStrategy.resolveStyle(node);

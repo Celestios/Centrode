@@ -22,8 +22,8 @@
     "rust/src/bridge/api.rs": {
       "class": "AppHandle",
       "architectural_role": "FFI Bridge API Gateway",
-      "sha256": "13e1f25ab191fa57453707cd16b13a2485f08700",
-      "status": "COMPLIANT",
+      "sha256": "dd5ae53b91d6149109cb8f155f4970bd80536eab",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -56,7 +56,7 @@
         "pub async fn create_node(&self, input: Nodes) -> anyhow::Result<()>",
         "pub async fn get_node(&self, table: String, key: String) -> anyhow::Result<Option<Nodes>>",
         "pub async fn update_node(&self, input: Nodes) -> anyhow::Result<()>",
-        "pub async fn apply_entity_mutation(&self, mutation: SymmetricEntityPatch) -> anyhow::Result<()>",
+        "pub async fn apply_entity_mutation(",
         "pub async fn delete_node_entry(&self, table: String, key: String) -> anyhow::Result<()>",
         "pub async fn create_relation(&self, input: IRelation) -> anyhow::Result<()>",
         "pub async fn delete_relation(&self, table: String, key: String) -> anyhow::Result<()>",
@@ -75,7 +75,7 @@
         "pub async fn update_theme(&self, theme: Theme) -> anyhow::Result<()>",
         "pub async fn create_graph_stream(&self, sink: StreamSink<GraphEvent>) -> anyhow::Result<()>",
         "pub fn close(self) -> anyhow::Result<()>",
-        "async fn apply_history_record_patch(&self, record: &HistoryRecord, is_forward: bool) -> anyhow::Result<()>",
+        "async fn apply_history_record_patch(",
         "pub async fn undo(&self) -> anyhow::Result<Option<HistoryRecord>>",
         "pub async fn redo(&self) -> anyhow::Result<Option<HistoryRecord>>",
         "pub async fn undo_count(&self) -> anyhow::Result<u32>",
@@ -86,7 +86,7 @@
         "pub async fn get_all_tags(&self) -> anyhow::Result<Vec<Tag>>",
         "pub async fn delete_tag(&self, key: String) -> anyhow::Result<()>",
         "pub async fn save_template_from_selection(",
-        "pub async fn instantiate_template(&self, key: String, target_x: f64, target_y: f64) -> anyhow::Result<()>",
+        "pub async fn instantiate_template(",
         "pub async fn get_all_templates(&self) -> anyhow::Result<Vec<Template>>",
         "pub async fn delete_template(&self, key: String) -> anyhow::Result<()>",
         "pub async fn query_search(&self, query: String) -> anyhow::Result<Vec<Nodes>>",
@@ -231,8 +231,8 @@
     "rust/src/domain/macros/define_nodes.rs": {
       "class": "Nodes",
       "architectural_role": "Metaprogramming macro generator for node definitions.",
-      "sha256": "a15de0c2c56ff19e6fc775a6e503161d5895a8f2",
-      "status": "COMPLIANT",
+      "sha256": "248cdb333a847534db1801b118b1e77941508516",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
       "test_file": "",
@@ -254,6 +254,7 @@
         "fn table_name(&self) -> &'static str",
         "fn serialize_node(self) -> surrealdb::types::Value",
         "fn generate_fields_schema(table: &str) -> Vec<String>",
+        "pub fn generate_all_fields_schemas() -> Vec<(&'static str, Vec<String>)>",
         "pub fn fetch_fields_for_table(table: &str) -> &'static [&'static str]",
         "pub fn table_and_key(&self) -> (&'static str, &str)",
         "pub fn from_struct_value(table: &str, val: surrealdb::types::Value) -> Result<Self, surrealdb::types::Error>"
@@ -274,8 +275,8 @@
     "rust/src/domain/nodes.rs": {
       "class": "IsNode",
       "architectural_role": "Node definition domain entities and spatial models.",
-      "sha256": "ab0fe661f7422a2a7b9c44fb803e84c325b3d27f",
-      "status": "COMPLIANT",
+      "sha256": "07b1b6b68facf3b21a61a9aa34fbd468c374490d",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -354,8 +355,8 @@
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
-      "test_file": "inline or integration test",
-      "has_tests": true,
+      "test_file": "",
+      "has_tests": false,
       "is_ffi_bridge": false,
       "pattern": "Metadata Schema",
       "public_apis": [
@@ -593,15 +594,15 @@
     "rust/src/persistence/schema.rs": {
       "class": "Schema",
       "architectural_role": "Schema migrations runner and database data seeder.",
-      "sha256": "7f2fdd9c06a575d2daa0e86b809a40c6eb405810",
+      "sha256": "3e4f93465d013f0d3e1c9660f4cf22510d6b161f",
       "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
       "imports": [
         "rust/src/domain/base_models.rs"
       ],
-      "test_file": "inline or integration test",
-      "has_tests": true,
+      "test_file": "",
+      "has_tests": false,
       "is_ffi_bridge": false,
       "pattern": "Migration Helper",
       "public_apis": [
@@ -636,8 +637,8 @@
     "rust/src/telemetry.rs": {
       "class": "LogState, TelemetryState, TelemetryLayer, StringVisitor",
       "architectural_role": "Telemetry system log engine",
-      "sha256": "770609d4d96fc0ea0cac51f0c38180e45c0b6529",
-      "status": "COMPLIANT",
+      "sha256": "d37ed014287347f15ee784283f7bf556ff3ef7bc",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
       "test_file": "",

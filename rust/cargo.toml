@@ -1,5 +1,5 @@
 [package]
-name = "mycelium_core"
+name = "rust_lib_mycelium"
 version = "0.3.0"
 edition = "2021"
 description = "Core logic and persistence layer for Mycelium, exposed via FFI."
@@ -8,6 +8,10 @@ authors = ["Celestios <shahin.id5638@gmail.com>"]
 
 [lib]
 crate-type = ["cdylib", "staticlib", "rlib"] # 'cdylib' for Android/Desktop dynamic loading, 'staticlib' for iOS, 'rlib' for tests and dependencies
+
+[[bin]]
+name = "generate-schema"
+path = "scripts/generate_schema.rs"
 
 # [profile.dev]
 # opt-level = 0
@@ -60,6 +64,7 @@ uuid = { version = "1.10", features = ["v4", "serde"] }
 
 # --- Utilities ---
 chrono = { version = "0.4", features = ["serde"] }
+directories = "5.0"
 zip = "0.6"
 walkdir = "2.4"
 

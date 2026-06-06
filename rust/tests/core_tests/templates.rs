@@ -1,17 +1,17 @@
 use crate::common::setup_test_repo;
-use mycelium_core::domain::base_models::{Coordinates, RecordStrings, Size};
-use mycelium_core::domain::contents::Content;
-use mycelium_core::domain::nodes::{INode, Nodes, TaskNode};
-use mycelium_core::domain::relations::{IRelation, IRelationFields};
+use rust_lib_mycelium::domain::base_models::{Coordinates, RecordStrings, Size};
+use rust_lib_mycelium::domain::contents::Content;
+use rust_lib_mycelium::domain::nodes::{INode, Nodes, TaskNode};
+use rust_lib_mycelium::domain::relations::{IRelation, IRelationFields};
 
 #[tokio::test]
 async fn test_templates_save_and_instantiate() {
     let repo = setup_test_repo().await;
 
     // 1. Create a tag
-    let tag = mycelium_core::domain::tags::Tag {
+    let tag = rust_lib_mycelium::domain::tags::Tag {
         key: "test_tag_uuid".to_string(),
-        fields: mycelium_core::domain::tags::TagFields {
+        fields: rust_lib_mycelium::domain::tags::TagFields {
             name: "test_tag".to_string(),
             color: 0x00FF00,
             created_at: 0,
@@ -35,9 +35,9 @@ async fn test_templates_save_and_instantiate() {
         expandable: true,
         is_expanded: false,
         locked: false,
-        tags: vec![mycelium_core::domain::tags::TagEdge::Hydrated(tag)],
+        tags: vec![rust_lib_mycelium::domain::tags::TagEdge::Hydrated(tag)],
         aliases: vec![],
-        comments: vec![mycelium_core::domain::base_models::Comment {
+        comments: vec![rust_lib_mycelium::domain::base_models::Comment {
             text: "test comment".to_string(),
             created_at: 0,
         }],
@@ -168,3 +168,4 @@ async fn test_templates_save_and_instantiate() {
     let templates_after_delete = repo.get_all_templates().await.unwrap();
     assert_eq!(templates_after_delete.len(), 0);
 }
+

@@ -21,12 +21,7 @@ class GraphSyncEngine {
 
   // The reactive bounding box updated asynchronously by Rust
   final ValueNotifier<BoundingBox> canvasBounds = ValueNotifier(
-    const BoundingBox(
-      minX: -500,
-      minY: -500,
-      maxX: 500,
-      maxY: 500,
-    ),
+    const BoundingBox(minX: -500, minY: -500, maxX: 500, maxY: 500),
   );
 
   StreamSubscription? _graphStreamSub;
@@ -121,11 +116,9 @@ class GraphSyncEngine {
           maxX: field0.maxX,
           maxY: field0.maxY,
         );
-        controller.publishUpdate(GraphEntityUpdate(
-          id: '',
-          tableName: '',
-          type: GraphUpdateType.reset,
-        ));
+        controller.publishUpdate(
+          GraphEntityUpdate(id: '', tableName: '', type: GraphUpdateType.reset),
+        );
         break;
 
       case GraphEvent_NodeUpdated(:final field0):
@@ -153,33 +146,46 @@ class GraphSyncEngine {
             existing.state = uiNode.state;
             existing.dueDate = uiNode.dueDate;
           }
-          controller.spatial.spatialGrid.update(existing.id, oldPos, existing.position);
-          controller.spatial.saveConfirmedPosition(existing.id, existing.position);
+          controller.spatial.spatialGrid.update(
+            existing.id,
+            oldPos,
+            existing.position,
+          );
+          controller.spatial.saveConfirmedPosition(
+            existing.id,
+            existing.position,
+          );
         } else {
           controller.store.nodeLookup[uiNode.id] = uiNode;
           controller.spatial.spatialGrid.insert(uiNode.id, uiNode.position);
           controller.spatial.saveConfirmedPosition(uiNode.id, uiNode.position);
         }
-        controller.publishUpdate(GraphEntityUpdate(
-          id: uiNode.id,
-          tableName: uiNode.tableName,
-          type: GraphUpdateType.reset,
-        ));
+        controller.publishUpdate(
+          GraphEntityUpdate(
+            id: uiNode.id,
+            tableName: uiNode.tableName,
+            type: GraphUpdateType.reset,
+          ),
+        );
         break;
 
       case GraphEvent_NodeDeleted(:final field0):
         final existing = controller.store.nodeLookup[field0];
         if (existing != null) {
-          final pos = controller.spatial.getConfirmedPosition(field0) ?? existing.position;
+          final pos =
+              controller.spatial.getConfirmedPosition(field0) ??
+              existing.position;
           controller.spatial.spatialGrid.remove(field0, pos);
           controller.spatial.clearConfirmedPosition(field0);
           controller.store.nodeLookup.remove(field0);
         }
-        controller.publishUpdate(GraphEntityUpdate(
-          id: field0,
-          tableName: '',
-          type: GraphUpdateType.nodeDeleted,
-        ));
+        controller.publishUpdate(
+          GraphEntityUpdate(
+            id: field0,
+            tableName: '',
+            type: GraphUpdateType.nodeDeleted,
+          ),
+        );
         break;
 
       case _:

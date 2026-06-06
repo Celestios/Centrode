@@ -78,7 +78,7 @@ class _GridLayerState extends State<GridLayer>
       setState(() {
         _glowOpacity = (_glowOpacity - 4.0 * dt).clamp(0.0, 1.0);
         _velocity = _velocity * (1.0 - 10.0 * dt).clamp(0.0, 1.0);
-        
+
         if (_glowOpacity == 0.0) {
           _visualGlowPos = null;
           _velocity = Offset.zero;
@@ -101,7 +101,8 @@ class _GridLayerState extends State<GridLayer>
           final double baseEase = 0.05;
           final double maxAdditionalEase = 0.09;
           final double halfSatDistance = 150.0;
-          final double easeFactor = baseEase + maxAdditionalEase * (dist / (dist + halfSatDistance));
+          final double easeFactor =
+              baseEase + maxAdditionalEase * (dist / (dist + halfSatDistance));
 
           // Calculate step, making it frame-rate independent
           final double step = (easeFactor * 60.0 * dt).clamp(0.0, 1.0);
@@ -112,7 +113,11 @@ class _GridLayerState extends State<GridLayer>
             _ticker!.stop();
           } else {
             // Interpolate visual position
-            _visualGlowPos = Offset.lerp(_visualGlowPos, physicalMousePos, step);
+            _visualGlowPos = Offset.lerp(
+              _visualGlowPos,
+              physicalMousePos,
+              step,
+            );
 
             // Save the displacement/lag vector to pass to the painter
             _velocity = physicalMousePos - _visualGlowPos!;
@@ -186,10 +191,7 @@ class _StaticGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // Draw background color
-    canvas.drawRect(
-      visibleRect,
-      Paint()..color = backgroundColor,
-    );
+    canvas.drawRect(visibleRect, Paint()..color = backgroundColor);
 
     final double effectiveGridSize = calculateEffectiveGridSize(scale);
 
@@ -261,13 +263,13 @@ class _GlowGridPainter extends CustomPainter {
 
     // Calculate logical coordinates for the mouse position
     final Offset glowPos = visibleRect.topLeft + (glowPosLocal / scale);
-    
+
     // The velocity parameter represents the lag/displacement vector in logical space
     final Offset displacementLogical = velocity / scale;
     final double lagDistance = displacementLogical.distance;
 
     const double baseInfluenceRadius = 160.0;
-    
+
     double a = baseInfluenceRadius;
     double b = baseInfluenceRadius;
     double cosAngle = 1.0;
@@ -276,7 +278,7 @@ class _GlowGridPainter extends CustomPainter {
     if (lagDistance > 2.0) {
       // Saturation-based stretch/compression to prevent the ellipse from collapsing into a line
       final double saturation = lagDistance / (lagDistance + 60.0);
-      
+
       const double maxStretch = 120.0;
       const double maxCompress = 40.0;
 
@@ -291,10 +293,14 @@ class _GlowGridPainter extends CustomPainter {
 
     // Find local bounding box of the ellipse to restrict calculation loop
     final double maxDim = a > b ? a : b;
-    final double minGlowX = ((glowPos.dx - maxDim) / effectiveGridSize).floor() * effectiveGridSize;
-    final double maxGlowX = ((glowPos.dx + maxDim) / effectiveGridSize).ceil() * effectiveGridSize;
-    final double minGlowY = ((glowPos.dy - maxDim) / effectiveGridSize).floor() * effectiveGridSize;
-    final double maxGlowY = ((glowPos.dy + maxDim) / effectiveGridSize).ceil() * effectiveGridSize;
+    final double minGlowX =
+        ((glowPos.dx - maxDim) / effectiveGridSize).floor() * effectiveGridSize;
+    final double maxGlowX =
+        ((glowPos.dx + maxDim) / effectiveGridSize).ceil() * effectiveGridSize;
+    final double minGlowY =
+        ((glowPos.dy - maxDim) / effectiveGridSize).floor() * effectiveGridSize;
+    final double maxGlowY =
+        ((glowPos.dy + maxDim) / effectiveGridSize).ceil() * effectiveGridSize;
 
     // Single paint object reused to avoid garbage collection overhead
     final glowPaint = Paint()..style = PaintingStyle.fill;
@@ -319,7 +325,8 @@ class _GlowGridPainter extends CustomPainter {
 
           // Interpolate radius and color values
           // Dot growth factor reduced to 0.6 for a subtle/premium glow effect
-          final double targetRadius = (AppConfig.grid.dotRadius + 0.6 * strength) / scale;
+          final double targetRadius =
+              (AppConfig.grid.dotRadius + 0.6 * strength) / scale;
           final Color dynamicColor = Color.lerp(
             dotColor,
             glowColor.withValues(alpha: strength),

@@ -69,7 +69,12 @@ abstract interface class GeometryCapability {
   void onNodeMove(String id, Offset pos);
 
   /// Callback when a relation is created between two nodes.
-  void onRelationCreate(String from, String to, {String? fromSide, String? toSide});
+  void onRelationCreate(
+    String from,
+    String to, {
+    String? fromSide,
+    String? toSide,
+  });
 
   /// Callback when a relation layout/endpoints are updated.
   void onRelationUpdateLayout(
@@ -112,7 +117,8 @@ abstract interface class GeometryCapability {
 }
 
 /// Composite interface for capabilities that need both geometry and viewport access.
-abstract interface class GeometryAndViewportCapability implements GeometryCapability, ViewportCapability {}
+abstract interface class GeometryAndViewportCapability
+    implements GeometryCapability, ViewportCapability {}
 
 /// Scoped capability interface for active interaction states.
 ///
@@ -120,6 +126,5 @@ abstract interface class GeometryAndViewportCapability implements GeometryCapabi
 /// controller's lifecycle methods, enabling the GoF State Pattern where
 /// state objects can interact with the context without direct coupling
 /// to the controller implementation.
-abstract interface class InteractionContext implements
-    SelectionCapability,
-    GeometryAndViewportCapability {}
+abstract interface class InteractionContext
+    implements SelectionCapability, GeometryAndViewportCapability {}

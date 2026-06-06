@@ -6,9 +6,15 @@ void main(List<String> arguments) {
   if (arguments.isEmpty) {
     print('Usage:');
     print('  dart scripts/sync_version.dart <new-version>   (e.g., 0.2.0)');
-    print('  dart scripts/sync_version.dart minor           (bumps minor version & increments build)');
-    print('  dart scripts/sync_version.dart patch           (bumps patch version & increments build)');
-    print('  dart scripts/sync_version.dart build           (only increments build number)');
+    print(
+      '  dart scripts/sync_version.dart minor           (bumps minor version & increments build)',
+    );
+    print(
+      '  dart scripts/sync_version.dart patch           (bumps patch version & increments build)',
+    );
+    print(
+      '  dart scripts/sync_version.dart build           (only increments build number)',
+    );
     exit(1);
   }
 
@@ -76,7 +82,9 @@ void main(List<String> arguments) {
     // Treat as explicit version string
     final targetMatch = RegExp(r'^(\d+)\.(\d+)\.(\d+)$').firstMatch(command);
     if (targetMatch == null) {
-      print('Error: Invalid command or version format. Expected "minor", "patch", "build" or "x.y.z".');
+      print(
+        'Error: Invalid command or version format. Expected "minor", "patch", "build" or "x.y.z".',
+      );
       exit(1);
     }
     newVersion = command;
@@ -86,19 +94,29 @@ void main(List<String> arguments) {
   final newFullPubspecVersion = '$newVersion+$newBuild';
 
   // 3. Write new version to pubspec.yaml
-  pubspecContent = pubspecContent.replaceFirst(pubspecRegex, 'version: $newFullPubspecVersion');
+  pubspecContent = pubspecContent.replaceFirst(
+    pubspecRegex,
+    'version: $newFullPubspecVersion',
+  );
   pubspecFile.writeAsStringSync(pubspecContent);
-  print('✅ Updated pubspec.yaml: $currentFullVersion ➡️ $newFullPubspecVersion');
+  print(
+    '✅ Updated pubspec.yaml: $currentFullVersion ➡️ $newFullPubspecVersion',
+  );
 
   // 4. Write new version to rust/Cargo.toml
   var cargoContent = cargoFile.readAsStringSync();
   final cargoRegex = RegExp(r'^version\s*=\s*"[^"]+"', multiLine: true);
-  
+
   if (cargoRegex.hasMatch(cargoContent)) {
-    cargoContent = cargoContent.replaceFirst(cargoRegex, 'version = "$newVersion"');
+    cargoContent = cargoContent.replaceFirst(
+      cargoRegex,
+      'version = "$newVersion"',
+    );
     cargoFile.writeAsStringSync(cargoContent);
     print('✅ Updated rust/Cargo.toml: version ➡️ "$newVersion"');
   } else {
-    print('⚠️ Warning: Could not find version line in rust/Cargo.toml. Skipping Cargo update.');
+    print(
+      '⚠️ Warning: Could not find version line in rust/Cargo.toml. Skipping Cargo update.',
+    );
   }
 }

@@ -19,14 +19,14 @@ class MockGraphDataController extends Mock implements GraphDataController {
 
 class MockThemeController extends Mock implements ThemeController {
   @override
-  GraphTheme get currentGraphTheme => const GraphTheme(
-    id: 'test',
-    name: 'test',
-  );
+  GraphTheme get currentGraphTheme =>
+      const GraphTheme(id: 'test', name: 'test');
 }
 
 void main() {
-  testWidgets('GraphScreen renders without crashing', (WidgetTester tester) async {
+  testWidgets('GraphScreen renders without crashing', (
+    WidgetTester tester,
+  ) async {
     final mockController = MockGraphDataController();
     final mockTheme = MockThemeController();
 
@@ -35,7 +35,9 @@ void main() {
       MaterialApp(
         home: MultiProvider(
           providers: [
-            ChangeNotifierProvider<GraphDataController>.value(value: mockController),
+            ChangeNotifierProvider<GraphDataController>.value(
+              value: mockController,
+            ),
             ChangeNotifierProvider<ThemeController>.value(value: mockTheme),
           ],
           child: const GraphScreen(storagePath: ''),

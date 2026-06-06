@@ -15,11 +15,9 @@ class ProjectSelectorScreen extends StatelessWidget {
   }
 
   void _openGlassTestScreen(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const LiquidGlassDemo(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const LiquidGlassDemo()));
   }
 
   @override
@@ -51,4 +49,3 @@ class ProjectSelectorScreen extends StatelessWidget {
     );
   }
 }
-

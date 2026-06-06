@@ -3,7 +3,8 @@ part of '../base_interaction_state.dart';
 
 class RelationTipDragging extends CanvasInteractionState {
   final String relationId;
-  final bool isStartTip; // true = dragging from/source tip, false = dragging to/target tip
+  final bool
+  isStartTip; // true = dragging from/source tip, false = dragging to/target tip
   final Offset originalPosition;
   final Offset currentCursorPosition;
 
@@ -74,7 +75,6 @@ class RelationTipDragging extends CanvasInteractionState {
       }
     }
 
-
     ctx.relationPathCache.remove(relationId);
     ctx.onNodeDragUpdate(); // Pulse MovementNotifier to redraw the drag line
     return RelationTipDragging(
@@ -109,7 +109,7 @@ class RelationTipDragging extends CanvasInteractionState {
         );
       }
     }
-    
+
     ctx.onNodeDragUpdate(); // Repaint
     return const CanvasIdle();
   }

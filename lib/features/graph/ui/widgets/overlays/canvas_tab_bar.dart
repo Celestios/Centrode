@@ -18,34 +18,34 @@ class CanvasTabBar extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-            Flexible(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: List.generate(tabs.length, (index) {
-                    final session = tabs[index];
-                    final isActive = index == activeIndex;
+          Flexible(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(tabs.length, (index) {
+                  final session = tabs[index];
+                  final isActive = index == activeIndex;
 
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: _TabItem(
-                        name: session.name,
-                        isActive: isActive,
-                        canClose: tabs.length > 1,
-                        onTap: () => tabsController.selectTab(index),
-                        onClose: () => tabsController.closeTab(index),
-                      ),
-                    );
-                  }),
-                ),
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: _TabItem(
+                      name: session.name,
+                      isActive: isActive,
+                      canClose: tabs.length > 1,
+                      onTap: () => tabsController.selectTab(index),
+                      onClose: () => tabsController.closeTab(index),
+                    ),
+                  );
+                }),
               ),
             ),
-            const SizedBox(width: 4),
-            _AddTabButton(tabsController: tabsController),
-          ],
-        ),
-      );
+          ),
+          const SizedBox(width: 4),
+          _AddTabButton(tabsController: tabsController),
+        ],
+      ),
+    );
   }
 }
 
@@ -88,8 +88,8 @@ class _TabItem extends StatelessWidget {
           color: isActive
               ? theme.cardColor.withValues(alpha: 0.72)
               : (isHovered
-                  ? theme.cardColor.withValues(alpha: 0.60)
-                  : theme.cardColor.withValues(alpha: 0.45)),
+                    ? theme.cardColor.withValues(alpha: 0.60)
+                    : theme.cardColor.withValues(alpha: 0.45)),
           shadow: isActive
               ? BoxShadow(
                   color: primaryColor.withValues(alpha: 0.08),
@@ -129,8 +129,8 @@ class _TabItem extends StatelessWidget {
                       color: isActive
                           ? activeColor.withValues(alpha: 0.6)
                           : (isHovered
-                              ? primaryColor.withValues(alpha: 0.6)
-                              : inactiveColor.withValues(alpha: 0.6)),
+                                ? primaryColor.withValues(alpha: 0.6)
+                                : inactiveColor.withValues(alpha: 0.6)),
                       size: 14,
                     ),
                   ),

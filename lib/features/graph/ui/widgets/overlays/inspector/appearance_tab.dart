@@ -163,7 +163,8 @@ class AppearanceTab extends StatelessWidget {
                   icon: Icon(
                     Icons.horizontal_rule_rounded,
                     size: 16,
-                    color: currentStrategy == 'default' ||
+                    color:
+                        currentStrategy == 'default' ||
                             (currentStrategy != 'bezier' &&
                                 currentStrategy != 'orthogonal')
                         ? theme.colorScheme.primary
@@ -173,12 +174,14 @@ class AppearanceTab extends StatelessWidget {
                     'Straight',
                     style: TextStyle(
                       fontSize: 10,
-                      fontWeight: currentStrategy == 'default' ||
+                      fontWeight:
+                          currentStrategy == 'default' ||
                               (currentStrategy != 'bezier' &&
                                   currentStrategy != 'orthogonal')
                           ? FontWeight.bold
                           : FontWeight.normal,
-                      color: currentStrategy == 'default' ||
+                      color:
+                          currentStrategy == 'default' ||
                               (currentStrategy != 'bezier' &&
                                   currentStrategy != 'orthogonal')
                           ? theme.colorScheme.primary
@@ -186,12 +189,16 @@ class AppearanceTab extends StatelessWidget {
                     ),
                   ),
                   style: TextButton.styleFrom(
-                    backgroundColor: currentStrategy == 'default' ||
+                    backgroundColor:
+                        currentStrategy == 'default' ||
                             (currentStrategy != 'bezier' &&
                                 currentStrategy != 'orthogonal')
                         ? theme.colorScheme.primary.withValues(alpha: 0.1)
                         : Colors.transparent,
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 4,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -232,7 +239,10 @@ class AppearanceTab extends StatelessWidget {
                     backgroundColor: currentStrategy == 'bezier'
                         ? theme.colorScheme.primary.withValues(alpha: 0.1)
                         : Colors.transparent,
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 4,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -273,7 +283,10 @@ class AppearanceTab extends StatelessWidget {
                     backgroundColor: currentStrategy == 'orthogonal'
                         ? theme.colorScheme.primary.withValues(alpha: 0.1)
                         : Colors.transparent,
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 4,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -377,7 +390,9 @@ class AppearanceTab extends StatelessWidget {
                   color: Color(col),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isSelected ? theme.colorScheme.primary : Colors.white24,
+                    color: isSelected
+                        ? theme.colorScheme.primary
+                        : Colors.white24,
                     width: isSelected ? 2.5 : 1,
                   ),
                   boxShadow: const [

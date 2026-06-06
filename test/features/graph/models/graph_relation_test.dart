@@ -29,10 +29,7 @@ void main() {
         verb: 'relates_to',
       );
 
-      final copied = relation.copyWith(
-        verb: 'depends_on',
-        directionless: true,
-      );
+      final copied = relation.copyWith(verb: 'depends_on', directionless: true);
 
       expect(copied.id, 'rel-1');
       expect(copied.fromNodeId, 'n1');

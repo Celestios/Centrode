@@ -8,16 +8,14 @@ void main() {
       final builder = ContentBuilder();
       expect(builder.isEmpty, isTrue);
       expect(builder.length, 0);
-      
+
       final content = builder.build();
       expect(content.blocks, isEmpty);
       expect(content.text, isEmpty);
     });
 
     test('builds single paragraph', () {
-      final content = ContentBuilder()
-          .paragraph('Hello World')
-          .build();
+      final content = ContentBuilder().paragraph('Hello World').build();
 
       expect(content.blocks.length, 1);
       expect(content.blocks.first.blockType, BlockType.paragraph);
@@ -36,9 +34,7 @@ void main() {
     });
 
     test('builds heading with correct level', () {
-      final content = ContentBuilder()
-          .heading('My Title', level: 2)
-          .build();
+      final content = ContentBuilder().heading('My Title', level: 2).build();
 
       expect(content.blocks.length, 1);
       expect(content.blocks.first.blockType, BlockType.heading);
@@ -68,7 +64,7 @@ void main() {
     test('clear resets builder state', () {
       final builder = ContentBuilder().paragraph('Test');
       expect(builder.isNotEmpty, isTrue);
-      
+
       builder.clear();
       expect(builder.isEmpty, isTrue);
       expect(builder.length, 0);
@@ -117,7 +113,7 @@ void main() {
     test('preview truncates long text', () {
       final longText = List.filled(150, 'A').join('');
       final content = ContentFactory.fromText(longText);
-      
+
       final preview = content.preview;
       expect(preview.length, 103); // 100 + '...'
       expect(preview.endsWith('...'), isTrue);

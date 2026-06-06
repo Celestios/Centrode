@@ -31,7 +31,6 @@ abstract class NodeStyleStrategy {
     return const InfoNodeStyleStrategy();
   }
 
-
   /// Returns a fully populated [NodeStyle] for rendering.
   /// [node.style] may be null → use theme defaults.
   NodeStyle resolve(UiNode node, GraphTheme theme);
@@ -62,7 +61,8 @@ abstract class NodeStyleStrategy {
   /// Centralized static helper to resolve a node's populated style.
   static NodeStyle resolveStyle(UiNode node, {GraphTheme? theme}) {
     if (node.resolvedStyle != null) return node.resolvedStyle!;
-    final strategyType = node.resolvedStyle?.strategyType ?? node.style?.strategyType;
+    final strategyType =
+        node.resolvedStyle?.strategyType ?? node.style?.strategyType;
     final strategy = fromType(strategyType, fallbackNode: node);
     if (theme != null) {
       return strategy.resolve(node, theme);

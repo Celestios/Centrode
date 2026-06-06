@@ -6,7 +6,6 @@ import '../graph_data_controller.dart';
 import '../graph_data_query.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 
-
 /// Property mutation operations for the graph.
 class GraphPropertyMutations {
   final Logger _propLog = Logger('GraphPropertyMutations');
@@ -15,13 +14,16 @@ class GraphPropertyMutations {
   GraphPropertyMutations(this.controller);
 
   void commitEntityText(String id, String newText, {String? originalText}) {
-    _propLog.info('Committing text for $id: "$newText" (original: "$originalText")');
+    _propLog.info(
+      'Committing text for $id: "$newText" (original: "$originalText")',
+    );
     final node = controller.store.nodeLookup[id];
     final rel = controller.store.relationLookup[id];
 
     // Determine the pre-edited state to check for changes and configure rollbacks
-    final String effectiveOriginalText = originalText ?? (node?.content.text ?? rel?.verb ?? '');
-    
+    final String effectiveOriginalText =
+        originalText ?? (node?.content.text ?? rel?.verb ?? '');
+
     // If the text didn't actually change from the original starting text, no-op
     if (effectiveOriginalText == newText) return;
 
@@ -51,7 +53,9 @@ class GraphPropertyMutations {
         targetId: id,
         tableName: node?.tableName ?? 'IRelation',
         api: controller.syncEngine.api,
-        oldContent: node == null ? null : ContentFactory.fromText(effectiveOriginalText),
+        oldContent: node == null
+            ? null
+            : ContentFactory.fromText(effectiveOriginalText),
         newContent: node == null ? null : ContentFactory.fromText(newText),
         oldSize: node == null ? null : preEditSize,
         newSize: node?.size,
@@ -62,25 +66,31 @@ class GraphPropertyMutations {
     );
 
     if (node != null) {
-      controller.publishUpdate(GraphEntityUpdate(
-        id: id,
-        tableName: node.tableName,
-        type: GraphUpdateType.text,
-        payload: newText,
-      ));
-      controller.publishUpdate(GraphEntityUpdate(
-        id: id,
-        tableName: node.tableName,
-        type: GraphUpdateType.size,
-        payload: node.size,
-      ));
+      controller.publishUpdate(
+        GraphEntityUpdate(
+          id: id,
+          tableName: node.tableName,
+          type: GraphUpdateType.text,
+          payload: newText,
+        ),
+      );
+      controller.publishUpdate(
+        GraphEntityUpdate(
+          id: id,
+          tableName: node.tableName,
+          type: GraphUpdateType.size,
+          payload: node.size,
+        ),
+      );
     } else if (rel != null) {
-      controller.publishUpdate(GraphEntityUpdate(
-        id: id,
-        tableName: 'IRelation',
-        type: GraphUpdateType.text,
-        payload: newText,
-      ));
+      controller.publishUpdate(
+        GraphEntityUpdate(
+          id: id,
+          tableName: 'IRelation',
+          type: GraphUpdateType.text,
+          payload: newText,
+        ),
+      );
     }
   }
 
@@ -94,27 +104,33 @@ class GraphPropertyMutations {
       if (node.content.text == newText) return;
       node.content = ContentFactory.fromText(newText);
       node.size = controller.calculateNodeSize(node);
-      controller.publishUpdate(GraphEntityUpdate(
-        id: id,
-        tableName: node.tableName,
-        type: GraphUpdateType.text,
-        payload: newText,
-      ));
-      controller.publishUpdate(GraphEntityUpdate(
-        id: id,
-        tableName: node.tableName,
-        type: GraphUpdateType.size,
-        payload: node.size,
-      ));
+      controller.publishUpdate(
+        GraphEntityUpdate(
+          id: id,
+          tableName: node.tableName,
+          type: GraphUpdateType.text,
+          payload: newText,
+        ),
+      );
+      controller.publishUpdate(
+        GraphEntityUpdate(
+          id: id,
+          tableName: node.tableName,
+          type: GraphUpdateType.size,
+          payload: node.size,
+        ),
+      );
     } else if (rel != null) {
       if (rel.verb == newText) return;
       rel.verb = newText;
-      controller.publishUpdate(GraphEntityUpdate(
-        id: id,
-        tableName: 'IRelation',
-        type: GraphUpdateType.text,
-        payload: newText,
-      ));
+      controller.publishUpdate(
+        GraphEntityUpdate(
+          id: id,
+          tableName: 'IRelation',
+          type: GraphUpdateType.text,
+          payload: newText,
+        ),
+      );
     }
   }
 
@@ -146,18 +162,22 @@ class GraphPropertyMutations {
       ),
     );
 
-    controller.publishUpdate(GraphEntityUpdate(
-      id: id,
-      tableName: node.tableName,
-      type: GraphUpdateType.style,
-      payload: newStyle,
-    ));
-    controller.publishUpdate(GraphEntityUpdate(
-      id: id,
-      tableName: node.tableName,
-      type: GraphUpdateType.size,
-      payload: newSize,
-    ));
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.style,
+        payload: newStyle,
+      ),
+    );
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.size,
+        payload: newSize,
+      ),
+    );
   }
 
   void updateNodeTags(String id, List<Tag> newTags) {
@@ -180,12 +200,14 @@ class GraphPropertyMutations {
       ),
     );
 
-    controller.publishUpdate(GraphEntityUpdate(
-      id: id,
-      tableName: node.tableName,
-      type: GraphUpdateType.tags,
-      payload: newTags,
-    ));
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.tags,
+        payload: newTags,
+      ),
+    );
     controller.triggerUpdate();
   }
 
@@ -208,12 +230,14 @@ class GraphPropertyMutations {
       ),
     );
 
-    controller.publishUpdate(GraphEntityUpdate(
-      id: id,
-      tableName: node.tableName,
-      type: GraphUpdateType.comments,
-      payload: newComments,
-    ));
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.comments,
+        payload: newComments,
+      ),
+    );
     controller.triggerUpdate();
   }
 
@@ -246,12 +270,14 @@ class GraphPropertyMutations {
         }).toList();
         if (changed) {
           node.tags = updatedTags;
-          controller.publishUpdate(GraphEntityUpdate(
-            id: node.id,
-            tableName: node.tableName,
-            type: GraphUpdateType.tags,
-            payload: updatedTags,
-          ));
+          controller.publishUpdate(
+            GraphEntityUpdate(
+              id: node.id,
+              tableName: node.tableName,
+              type: GraphUpdateType.tags,
+              payload: updatedTags,
+            ),
+          );
         }
       }
     }
@@ -269,12 +295,14 @@ class GraphPropertyMutations {
         final updatedTags = node.tags.where((t) => t.key != tagKey).toList();
         if (updatedTags.length != originalCount) {
           node.tags = updatedTags;
-          controller.publishUpdate(GraphEntityUpdate(
-            id: node.id,
-            tableName: node.tableName,
-            type: GraphUpdateType.tags,
-            payload: updatedTags,
-          ));
+          controller.publishUpdate(
+            GraphEntityUpdate(
+              id: node.id,
+              tableName: node.tableName,
+              type: GraphUpdateType.tags,
+              payload: updatedTags,
+            ),
+          );
         }
       }
     }

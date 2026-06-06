@@ -4,12 +4,10 @@ import 'package:mycelium/features/workspace/ui/liquid_glass_test_screen.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 
 void main() {
-  testWidgets('LiquidGlassDemo renders and registers shapes', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: LiquidGlassDemo(),
-      ),
-    );
+  testWidgets('LiquidGlassDemo renders and registers shapes', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: LiquidGlassDemo()));
 
     // Let it pump to trigger initial layout
     await tester.pump(const Duration(milliseconds: 100));

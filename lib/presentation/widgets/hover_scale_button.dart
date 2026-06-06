@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 /// interactive widgets in the codebase.
 class HoverScaleButton extends StatefulWidget {
   final Widget? child;
-  final Widget Function(BuildContext context, bool isHovered, bool isPressed)? builder;
+  final Widget Function(BuildContext context, bool isHovered, bool isPressed)?
+  builder;
   final VoidCallback? onTap;
   final double hoverScale;
   final double pressScale;
@@ -27,7 +28,10 @@ class HoverScaleButton extends StatefulWidget {
     this.tooltip,
     this.borderRadius,
     this.onHoverChanged,
-  }) : assert(child != null || builder != null, 'Either child or builder must be provided');
+  }) : assert(
+         child != null || builder != null,
+         'Either child or builder must be provided',
+       );
 
   @override
   State<HoverScaleButton> createState() => _HoverScaleButtonState();
@@ -85,10 +89,7 @@ class _HoverScaleButtonState extends State<HoverScaleButton> {
     );
 
     if (widget.tooltip != null) {
-      result = Tooltip(
-        message: widget.tooltip!,
-        child: result,
-      );
+      result = Tooltip(message: widget.tooltip!, child: result);
     }
 
     return result;

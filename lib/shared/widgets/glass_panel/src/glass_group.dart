@@ -63,7 +63,8 @@ class _GlassGroupState extends State<GlassGroup> {
       return widget.child;
     }
 
-    final bool nativeShaderSupported = ui.ImageFilter.isShaderFilterSupported &&
+    final bool nativeShaderSupported =
+        ui.ImageFilter.isShaderFilterSupported &&
         !resolvedSettings.forceCpuFallback;
 
     if (stageScope == null && !nativeShaderSupported) {
@@ -73,7 +74,8 @@ class _GlassGroupState extends State<GlassGroup> {
     return _GlassGroupRenderObject(
       shader: _program!.fragmentShader(),
       settings: resolvedSettings,
-      repaint: null, // Stage now drives repaints via setState→updateRenderObject
+      repaint:
+          null, // Stage now drives repaints via setState→updateRenderObject
       backdropImage: stageScope?.backdropImage,
       backdropLogicalSize: stageScope?.backdropLogicalSize,
       child: widget.child,
@@ -335,7 +337,7 @@ class _RenderGlassGroup extends RenderProxyBox {
     return true;
   }
 
-    @override
+  @override
   void paint(PaintingContext context, Offset offset) {
     final activeShapes = registeredShapes
         .where((shape) => shape.attached && !shape.size.isEmpty)
@@ -345,8 +347,8 @@ class _RenderGlassGroup extends RenderProxyBox {
       return;
     }
 
-    final bool nativeShaderSupported = ui.ImageFilter.isShaderFilterSupported &&
-        !_settings.forceCpuFallback;
+    final bool nativeShaderSupported =
+        ui.ImageFilter.isShaderFilterSupported && !_settings.forceCpuFallback;
 
     final inflatedBounds = _inflatedBoundsForPaint();
     final localShapes = activeShapes.map((shape) {
@@ -378,24 +380,22 @@ class _RenderGlassGroup extends RenderProxyBox {
         pixelScale: _devicePixelRatio,
       );
 
-      context.pushClipRect(
-        true,
-        offset,
-        inflatedBounds,
-        (innerCtx, innerOffset) {
-          innerCtx.pushLayer(
-            BackdropFilterLayer(filter: ui.ImageFilter.shader(_shader)),
-            (filterCtx, filterOffset) {
-              filterCtx.canvas.drawRect(
-                inflatedBounds.shift(filterOffset),
-                Paint()..color = const Color(0x01000000),
-              );
-              super.paint(filterCtx, filterOffset);
-            },
-            innerOffset,
-          );
-        },
-      );
+      context.pushClipRect(true, offset, inflatedBounds, (
+        innerCtx,
+        innerOffset,
+      ) {
+        innerCtx.pushLayer(
+          BackdropFilterLayer(filter: ui.ImageFilter.shader(_shader)),
+          (filterCtx, filterOffset) {
+            filterCtx.canvas.drawRect(
+              inflatedBounds.shift(filterOffset),
+              Paint()..color = const Color(0x01000000),
+            );
+            super.paint(filterCtx, filterOffset);
+          },
+          innerOffset,
+        );
+      });
       return;
     }
 
@@ -444,14 +444,19 @@ class _RenderGlassGroup extends RenderProxyBox {
     final localRects = activeShapes.map(_localRectForShape).toList();
     final fallbackLocalShapes = <ShapeData>[];
     for (var i = 0; i < activeShapes.length; i++) {
-      fallbackLocalShapes.add(_shapeDataForRect(activeShapes[i], localRects[i], 1.0));
+      fallbackLocalShapes.add(
+        _shapeDataForRect(activeShapes[i], localRects[i], 1.0),
+      );
     }
 
     final ui.Path localUnifiedPath;
     if (_isLocalPathCacheValid(localRects)) {
       localUnifiedPath = _cachedLocalUnifiedPath!;
     } else {
-      localUnifiedPath = _buildLocalUnifiedPath(fallbackLocalShapes, localRects);
+      localUnifiedPath = _buildLocalUnifiedPath(
+        fallbackLocalShapes,
+        localRects,
+      );
       _cachedLocalUnifiedPath = localUnifiedPath;
       _cachedLocalRects = localRects;
       _cachedBlendPx = _settings.blendPx;
@@ -468,7 +473,6 @@ class _RenderGlassGroup extends RenderProxyBox {
     super.paint(context, offset);
   }
 
-
   /// Returns the widget's logical bounds inflated by enough margin for the
   /// refraction and blur vectors to always land on valid texture memory.
   /// Note: blurRadiusPx is intentionally excluded — it samples existing pixels
@@ -477,7 +481,6 @@ class _RenderGlassGroup extends RenderProxyBox {
     final inflation = _settings.distortFalloffPx + _settings.blendPx;
     return (Offset.zero & size).inflate(inflation);
   }
-
 
   Rect _localRectForShape(RenderGlassShape shape) {
     return MatrixUtils.transformRect(
@@ -631,7 +634,13 @@ class _RenderGlassGroup extends RenderProxyBox {
     );
     context.canvas.restore();
     // FIX: Pass local geometry so the rim highlight can project per-shape
-    _drawRimHighlight(context.canvas, offset, globalUnifiedPath, localRects, localShapes);
+    _drawRimHighlight(
+      context.canvas,
+      offset,
+      globalUnifiedPath,
+      localRects,
+      localShapes,
+    );
   }
 
   void _drawTints(
@@ -732,7 +741,9 @@ class _RenderGlassGroup extends RenderProxyBox {
       // macro-gradient corner clipping that affected the unified-bounds approach.
       final paint = Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth * 2.0 // doubled; outer half clipped above
+        ..strokeWidth =
+            strokeWidth *
+            2.0 // doubled; outer half clipped above
         ..strokeJoin = StrokeJoin.round
         ..strokeCap = StrokeCap.round
         ..shader = SweepGradient(

@@ -16,7 +16,10 @@ class RelationLayoutContext {
   });
 
   /// Retrieves bounding boxes of all nodes except the source and target nodes.
-  List<Rect> getObstacles({required String excludeFromId, required String excludeToId}) {
+  List<Rect> getObstacles({
+    required String excludeFromId,
+    required String excludeToId,
+  }) {
     final obstacles = <Rect>[];
     for (final entry in nodeViewStates.entries) {
       if (entry.key == excludeFromId || entry.key == excludeToId) continue;

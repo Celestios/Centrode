@@ -35,7 +35,11 @@ class GraphTheme extends AppTheme {
   });
 
   /// One‑time snapshot from the current global [ThemeData].
-  factory GraphTheme.fromThemeData(ThemeData global, {String? name, String? id}) {
+  factory GraphTheme.fromThemeData(
+    ThemeData global, {
+    String? name,
+    String? id,
+  }) {
     return GraphTheme(
       id: id ?? const Uuid().v4(),
       name: name ?? 'graph-default',
@@ -85,7 +89,9 @@ class GraphTheme extends AppTheme {
         textColor: textColor.toARGB32(),
         fontFamily: fontFamily,
         bodyFontSize: bodyFontSize,
-        bodyFontWeight: frb.FontWeight(field0: AppTheme.fontWeightToIndex(bodyFontWeight)),
+        bodyFontWeight: frb.FontWeight(
+          field0: AppTheme.fontWeightToIndex(bodyFontWeight),
+        ),
         bodyTextColor: bodyTextColor.toARGB32(),
         borderRadius: borderRadius,
         appBarBackgroundColor: appBarBackgroundColor.toARGB32(),
@@ -124,7 +130,8 @@ class GraphTheme extends AppTheme {
       appBarForegroundColor: Color(f.appBarForegroundColor),
       appBarElevation: f.appBarElevation,
       appBarTitleFontSize: f.appBarTitleFontSize,
-      appBarTitleFontWeight: AppTheme.fontWeights[f.appBarTitleFontWeight.field0.clamp(0, 8)],
+      appBarTitleFontWeight:
+          AppTheme.fontWeights[f.appBarTitleFontWeight.field0.clamp(0, 8)],
       useMaterial3: f.useMaterial3,
       brightness: f.brightness == frb.ThemeBrightness.dark
           ? Brightness.dark

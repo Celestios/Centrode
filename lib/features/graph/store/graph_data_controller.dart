@@ -239,16 +239,15 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
     double? brushThickness,
     String? brushColor,
     Size? size,
-  }) =>
-      nodeMutations.createNode(
-        type,
-        position,
-        paths: paths,
-        brushType: brushType,
-        brushThickness: brushThickness,
-        brushColor: brushColor,
-        size: size,
-      );
+  }) => nodeMutations.createNode(
+    type,
+    position,
+    paths: paths,
+    brushType: brushType,
+    brushThickness: brushThickness,
+    brushColor: brushColor,
+    size: size,
+  );
 
   Future<void> deleteNode(String id) => nodeMutations.deleteNode(id);
 
@@ -292,10 +291,8 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
     strategyType: strategyType,
   );
 
-  void updateRelationStyle(
-    String id,
-    RelationStyle newStyle,
-  ) => propertyMutations.updateRelationStyle(id, newStyle);
+  void updateRelationStyle(String id, RelationStyle newStyle) =>
+      propertyMutations.updateRelationStyle(id, newStyle);
 
   // Property Mutations
   void commitEntityText(String id, String newText, {String? originalText}) =>
@@ -324,7 +321,8 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   Future<void> deleteTag(String tagKey) => propertyMutations.deleteTag(tagKey);
 
   // Global Templates Manager CRUD
-  Future<List<Template>> getAllTemplates() => templateMutations.getAllTemplates();
+  Future<List<Template>> getAllTemplates() =>
+      templateMutations.getAllTemplates();
   Future<void> saveTemplateFromSelection(
     String name,
     List<String> nodeIds,
@@ -332,7 +330,8 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   ) => templateMutations.saveTemplateFromSelection(name, nodeIds, relationIds);
   Future<void> instantiateTemplate(String key, Offset canvasCoords) =>
       templateMutations.instantiateTemplate(key, canvasCoords);
-  Future<void> deleteTemplate(String key) => templateMutations.deleteTemplate(key);
+  Future<void> deleteTemplate(String key) =>
+      templateMutations.deleteTemplate(key);
 
   Future<void> saveViewportState(ViewportState state) async {
     updateSavedViewportState(state);
@@ -345,28 +344,38 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
     for (final rustNode in rustNodes) {
       if (rustNode is Nodes_INode) {
         final node = rustNode.field0;
-        results.add(UiSearchResult(
-          key: node.id.key,
-          title: node.content.text.isEmpty ? 'Untitled Node' : node.content.text,
-          subtitle: 'Database • Info',
-          type: UiSearchResultType.infoNode,
-        ));
+        results.add(
+          UiSearchResult(
+            key: node.id.key,
+            title: node.content.text.isEmpty
+                ? 'Untitled Node'
+                : node.content.text,
+            subtitle: 'Database • Info',
+            type: UiSearchResultType.infoNode,
+          ),
+        );
       } else if (rustNode is Nodes_TaskNode) {
         final node = rustNode.field0;
-        results.add(UiSearchResult(
-          key: node.id.key,
-          title: node.content.text.isEmpty ? 'Untitled Node' : node.content.text,
-          subtitle: 'Database • Task • State: ${node.state}',
-          type: UiSearchResultType.taskNode,
-        ));
+        results.add(
+          UiSearchResult(
+            key: node.id.key,
+            title: node.content.text.isEmpty
+                ? 'Untitled Node'
+                : node.content.text,
+            subtitle: 'Database • Task • State: ${node.state}',
+            type: UiSearchResultType.taskNode,
+          ),
+        );
       } else if (rustNode is Nodes_InterNode) {
         final node = rustNode.field0;
-        results.add(UiSearchResult(
-          key: node.id.key,
-          title: node.verb.isEmpty ? 'Untitled Relation' : node.verb,
-          subtitle: 'Database • Inter',
-          type: UiSearchResultType.relation,
-        ));
+        results.add(
+          UiSearchResult(
+            key: node.id.key,
+            title: node.verb.isEmpty ? 'Untitled Relation' : node.verb,
+            subtitle: 'Database • Inter',
+            type: UiSearchResultType.relation,
+          ),
+        );
       }
     }
     return results;

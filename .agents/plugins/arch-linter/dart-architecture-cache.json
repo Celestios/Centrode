@@ -1,6 +1,6 @@
 {
-  "last_audit_commit": "e923ab5e302ab4d38ac5c4494bc5012841b2870a",
-  "last_audit_time": "2026-06-05T14:50:51.321824Z",
+  "last_audit_commit": "8976ad127db743aaa92a44d1b1d2138b30b3414d",
+  "last_audit_time": "2026-06-07T11:47:23.658098Z",
   "layers": {
     "lib/features/graph/ui": {
       "tier": 1,
@@ -36,9 +36,11 @@
   "components": {
     "lib/features/graph/models/graph_node.dart": {
       "class": "UiNode",
-      "sha256": "2f38ff46117b11baa94ca5509f69d3016fd2e17f",
+      "sha256": "8069a6f019548c687f42fb956dc8e4a28ca0ad79",
       "status": "COMPLIANT",
-      "violations": [],
+      "violations": [
+        "UiNode base class"
+      ],
       "tier": 3,
       "imports": [
         "package:flutter/painting.dart",
@@ -56,7 +58,7 @@
       "public_apis": [
         "Nodes toRust();"
       ],
-      "architectural_role": "Data Model"
+      "architectural_role": "Factory/Base"
     },
     "lib/features/graph/models/graph_relation.dart": {
       "class": "UiRelation",
@@ -83,7 +85,7 @@
     },
     "lib/features/graph/store/graph_data_controller.dart": {
       "class": "GraphDataController",
-      "sha256": "ce8af4aab1c7b4ab35ff0c442f57a0cb732040b6",
+      "sha256": "c7fd1846d170379bec3e370f1f0394d679413e55",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -126,7 +128,7 @@
         "Future<void> flush() => syncEngine.flush();",
         "Future<void> undo() async",
         "Future<void> redo() async",
-        "String createNode(UiNodes type, Offset position) =>",
+        "String createNode(",
         "Future<void> deleteNode(String id) => nodeMutations.deleteNode(id);",
         "void updateNodePosition(String id, Offset newPosition) =>",
         "void updateNodeWidth(String id, double leftEdge, double rightEdge) =>",
@@ -134,7 +136,7 @@
         "void createRelation(",
         "Future<void> deleteRelation(String id) =>",
         "void updateRelationLayout(",
-        "void updateRelationStyle(",
+        "void updateRelationStyle(String id, RelationStyle newStyle) =>",
         "void commitEntityText(String id, String newText,",
         "void updateEntityTextLive(String id, String newText) =>",
         "void updateNodeStyle(String id, NodeStyle newStyle) =>",
@@ -144,10 +146,10 @@
         "Future<void> createTag(Tag tag) => propertyMutations.createTag(tag);",
         "Future<void> updateTag(Tag tag) => propertyMutations.updateTag(tag);",
         "Future<void> deleteTag(String tagKey) => propertyMutations.deleteTag(tagKey);",
-        "Future<List<Template>> getAllTemplates() => templateMutations.getAllTemplates();",
+        "Future<List<Template>> getAllTemplates() =>",
         "Future<void> saveTemplateFromSelection(",
         "Future<void> instantiateTemplate(String key, Offset canvasCoords) =>",
-        "Future<void> deleteTemplate(String key) => templateMutations.deleteTemplate(key);",
+        "Future<void> deleteTemplate(String key) =>",
         "Future<void> saveViewportState(ViewportState state) async",
         "Future<List<UiSearchResult>> searchDatabase(String term) async",
         "void addTagToNode(String nodeId, String name, int color)",
@@ -160,9 +162,11 @@
     },
     "lib/features/graph/store/modules/graph_node_mutations.dart": {
       "class": "GraphNodeMutations",
-      "sha256": "d089bcca5c6e13c7579e6e1d2a07247e0de9a51f",
+      "sha256": "ca6346e63bb2810846451ec333dc080c6294f153",
       "status": "COMPLIANT",
-      "violations": [],
+      "violations": [
+        "Node mutation state management"
+      ],
       "tier": 3,
       "imports": [
         "dart:async",
@@ -177,18 +181,18 @@
       "is_ffi_bridge": false,
       "pattern": "Mutation Helper",
       "public_apis": [
-        "String createNode(UiNodes type, Offset position)",
+        "String createNode(",
         "Future<void> deleteNode(String id) async",
         "void updateNodePosition(String id, Offset newPosition)",
         "void updateNodeWidth(String id, double leftEdge, double rightEdge)",
         "void toggleNodeExpansion(String id)"
       ],
-      "architectural_role": "Handles local optimistic nodes additions/deletions, managing ID swaps when backend records are successfully committed."
+      "architectural_role": "Mutations/Store"
     },
     "lib/features/graph/store/modules/graph_property_mutations.dart": {
       "class": "GraphPropertyMutations",
-      "sha256": "f8681c79cf921928a10d4c0f8e32a6f8319bab15",
-      "status": "COMPLIANT",
+      "sha256": "e09d02cc86c7eea6d24e70136674d3c6f6481826",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -244,8 +248,8 @@
     },
     "lib/features/graph/store/modules/graph_template_mutations.dart": {
       "class": "GraphTemplateMutations",
-      "sha256": "9f3552dfa24b34c6ec0d87c6c92efb90f7d49c81",
-      "status": "COMPLIANT",
+      "sha256": "82b8b292e3ea971fc0fc47d507cb689fa7e27f0e",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -308,11 +312,9 @@
     },
     "lib/features/graph/store/modules/graph_sync_engine.dart": {
       "class": "GraphSyncEngine",
-      "sha256": "b432254ff42df4c76e148060749e88df6fd38da0",
-      "status": "COMPLIANT",
-      "violations": [
-        "Coordinates real-time stream handlers between the SurrealDB instance and local store indices, managing recovery pipelines."
-      ],
+      "sha256": "3e77039d3a0fbe5746bc1d37acf5133c297a6a0e",
+      "status": "PENDING_AUDIT",
+      "violations": [],
       "tier": 3,
       "imports": [
         "dart:async",
@@ -343,7 +345,7 @@
     },
     "lib/features/graph/engine/interaction_facade.dart": {
       "class": "CanvasInteractionEnvironment",
-      "sha256": "c73f269090be9512354088a0ec9e5f9219b82249",
+      "sha256": "7363f54b2757041a3cabea53cbd2b8c7a6f66099",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -367,7 +369,7 @@
         "UiNode? getNode(String id) => _dataController.nodeLookup[id];",
         "void openDataInspector(String nodeId)",
         "void onNodeMove(String id, Offset pos) =>",
-        "void onRelationCreate(String from, String to,",
+        "void onRelationCreate(",
         "void onRelationUpdateLayout(",
         "void onNodeDragUpdate() => _renderState.notifyNodeDragUpdate();",
         "void setNodeDragging(String id, bool dragging) =>",
@@ -385,7 +387,7 @@
         "void onDeleteSelectedEntities() => _renderState.deleteSelectedEntities();",
         "void onSaveTemplate()",
         "Set<String> getVisibleNodeIds() => _viewportController.visibleNodeIds.value;",
-        "void updateNodeStyle(String id, NodeStyle Function(NodeStyle style) updateFn)",
+        "void updateNodeStyle(",
         "Offset? calculateToolbarAnchor(Iterable<String> selectedIds) =>",
         "void setHoveredNodeMetadata(String? nodeId)"
       ],
@@ -421,7 +423,7 @@
     },
     "lib/features/graph/presentation/node_render_state.dart": {
       "class": "NodeRenderState",
-      "sha256": "8757b5629c40b7cd21805e5c22ba5712407375dd",
+      "sha256": "9e9a6f6f7bc7cfb2dc1d68b5b0bbec3225aca574",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -513,7 +515,7 @@
     },
     "lib/features/graph/presentation/style_manager.dart": {
       "class": "StyleManager",
-      "sha256": "aeda081563ab6acbeffbce2c4fc8221a7921eca8",
+      "sha256": "dd11aa8a8d49d0f80123dae4865f60880b39caa8",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -541,7 +543,7 @@
     },
     "lib/features/graph/presentation/workspace_tabs_controller.dart": {
       "class": "WorkspaceTabsController",
-      "sha256": "7d21672c6f8cd3989e60ef9d744e4bdee811fbba",
+      "sha256": "084c723ebe67927e036a86a3c633965591636730",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -575,7 +577,7 @@
     },
     "lib/features/graph/presentation/view_state.dart": {
       "class": "NodeViewState",
-      "sha256": "38b678aede5e97c9d8e67896d85b6d75c50b5850",
+      "sha256": "1b66c4bb45c17fc953d626b5ef729f7e73ed4d63",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -604,7 +606,7 @@
     },
     "lib/features/graph/presentation/strategies/node_layout_strategy.dart": {
       "class": "NodeLayoutStrategy",
-      "sha256": "782b915b7b8aa6817ccea4c8bd62f862eb488786",
+      "sha256": "cb635d7a39c49eff844511e11a67b846d5a19bef",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -626,7 +628,7 @@
     },
     "lib/features/graph/presentation/strategies/node_style_strategy.dart": {
       "class": "NodeStyleStrategy",
-      "sha256": "3bc39cb2b10d9598fe57be126855ac4fccc7f594",
+      "sha256": "50a731fc26ac6c58db9e4b694c36faeb29efeede",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -643,6 +645,7 @@
       "pattern": "Strategy Pattern",
       "public_apis": [
         "NodeStyle resolve(UiNode node, GraphTheme theme);",
+        "return fallbackStyle(node.size.width, node.size.height).copyWith(",
         "return fallbackStyle(node.size.width, node.size.height);",
         "NodeStyle resolve(UiNode node, GraphTheme theme)"
       ],
@@ -650,11 +653,9 @@
     },
     "lib/features/graph/ui/canvas/graph_canvas.dart": {
       "class": "GraphCanvas",
-      "sha256": "8e32bab8f9db1667eb9d3c568227a451ce2d8b7c",
+      "sha256": "32ea338cfe98691db4d9c5e2c7859fc8b2290a22",
       "status": "COMPLIANT",
-      "violations": [
-        "Hosts the canvas interactive layers stack, binds mouse events to FSM controllers, and aligns sidebar overlay panels."
-      ],
+      "violations": [],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
@@ -682,6 +683,7 @@
         "lib/features/graph/ui/canvas/context_toolbar_overlay.dart",
         "lib/presentation/widgets/tag_manager/global_tags_manager_panel.dart",
         "lib/presentation/widgets/template_manager/global_templates_manager_panel.dart",
+        "lib/presentation/widgets/drawing_manager/global_drawing_panel.dart",
         "lib/presentation/widgets/template_manager/save_template_dialog.dart",
         "lib/features/graph/models/left_panel_type.dart"
       ],
@@ -693,7 +695,9 @@
         "State<GraphCanvas> createState() => _GraphCanvasState();",
         "void initState()",
         "void dispose()",
-        "Widget build(BuildContext context)"
+        "Widget build(BuildContext context)",
+        "void paint(Canvas canvas, Size size)",
+        "bool shouldRepaint(covariant ActiveDrawingPainter oldDelegate)"
       ],
       "architectural_role": "UI Component",
       "special_objects": [
@@ -732,7 +736,7 @@
     },
     "lib/features/graph/engine/interaction_context.dart": {
       "class": "",
-      "sha256": "c52245dfdaa334adfe3bf8878f3eb93f9c13777b",
+      "sha256": "9ea7687f61c7d193ba01d21471f641d57a728986",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -746,9 +750,20 @@
       "is_ffi_bridge": false,
       "pattern": "Component",
       "public_apis": [
+        "Set<String> getVisibleNodeIds();",
+        "void onSelectEntity(String? id);",
+        "Set<String> getSelectedEntities();",
+        "void onSelectEntities(Iterable<String> ids);",
+        "Offset getToolbarOffset();",
+        "void setToolbarOffset(Offset offset);",
+        "void onDeleteSelectedEntities();",
+        "void onSaveTemplate();",
+        "void openDataInspector(String nodeId);",
+        "Offset? calculateToolbarAnchor(Iterable<String> selectedIds);",
         "Iterable<UiRelation> getRelations();",
+        "UiNode? getNode(String id);",
         "void onNodeMove(String id, Offset pos);",
-        "void onRelationCreate(String from, String to,",
+        "void onRelationCreate(",
         "void onRelationUpdateLayout(",
         "void onNodeDragUpdate();",
         "void setNodeDragging(String id, bool dragging);",
@@ -758,25 +773,14 @@
         "void onCreateNode(Offset position);",
         "void updateNodeWidth(String id, double leftEdge, double rightEdge);",
         "void toggleNodeExpansion(String id);",
-        "void onSelectEntity(String? id);",
-        "Set<String> getSelectedEntities();",
-        "void onSelectEntities(Iterable<String> ids);",
-        "Offset getToolbarOffset();",
-        "void setToolbarOffset(Offset offset);",
-        "void onDeleteSelectedEntities();",
-        "void onSaveTemplate();",
-        "Set<String> getVisibleNodeIds();",
-        "void openDataInspector(String nodeId);",
-        "UiNode? getNode(String id);",
         "void updateNodeStyle(String id, NodeStyle Function(NodeStyle style) updateFn);",
-        "Offset? calculateToolbarAnchor(Iterable<String> selectedIds);",
         "void setHoveredNodeMetadata(String? nodeId);"
       ],
       "architectural_role": "Segregates FSM access interfaces to prevent states from directly coupling with concrete controllers or layout parameters."
     },
     "lib/features/graph/engine/states/idle_state.dart": {
       "class": "CanvasIdle",
-      "sha256": "57bc5510ebf9fe2dd64fe09ec31aa0cfa48c0cd2",
+      "sha256": "df3788753b38f893095eff27f3d4ae503f91a80f",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -841,7 +845,7 @@
     },
     "lib/features/graph/engine/states/relation_draw_state.dart": {
       "class": "RelationDrawing",
-      "sha256": "fbeb0f219a9f464c79f4f7169b00397ced1f1005",
+      "sha256": "f7cbd357d1d878ae7c2573458ebaa499d47e8097",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -859,7 +863,7 @@
     },
     "lib/features/graph/engine/states/relation_tip_drag_state.dart": {
       "class": "RelationTipDragging",
-      "sha256": "6e26165b0bf6542a15768d006f4c0c24878a11f4",
+      "sha256": "414208abf675126fb78e696bef60f8b0fc9090a1",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -934,7 +938,7 @@
     },
     "lib/features/graph/models/left_panel_type.dart": {
       "class": "LeftPanelType",
-      "sha256": "deabb073dd87c30ac1162e32c273cf23dbecb891",
+      "sha256": "83ee5f98c806e548224002f6dff29d02cf6dfc86",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -946,7 +950,7 @@
     },
     "lib/features/graph/models/models.dart": {
       "class": "",
-      "sha256": "549ab08c5a7d892d4ae0449a1bfc66bcd4b6dae1",
+      "sha256": "1ecb828db4bbfe5bf2678b787618fc4f31d5d89e",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -958,8 +962,8 @@
     },
     "lib/features/graph/presentation/graph_metrics.dart": {
       "class": "_Log",
-      "sha256": "d8d33b49a61393262a9c2e90aca1f9d0748ff972",
-      "status": "COMPLIANT",
+      "sha256": "c989d1f5892bf1f9408d9170476cb1ece641acf9",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -980,7 +984,7 @@
     },
     "lib/features/graph/presentation/strategies/relation_layout_strategy.dart": {
       "class": "StraightRelationLayoutStrategy",
-      "sha256": "364ae1c06d0a408e00d97a3594e3fef083efc223",
+      "sha256": "084ce9fa1917dba688902ba9feefda06ecabb68a",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -1014,7 +1018,7 @@
     },
     "lib/features/graph/presentation/strategies/relation_style_strategy.dart": {
       "class": "DefaultRelationStyleStrategy",
-      "sha256": "a4fb87f14bf38ca7e58fd458dc269208d0194467",
+      "sha256": "e394fb2aa22ecb4a7a33cca194f10d628d530ea0",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -1038,7 +1042,7 @@
     },
     "lib/features/graph/store/command_processor.dart": {
       "class": "CommandProcessor",
-      "sha256": "1ce515af1fdc137dbffd54b4a79206298df78a37",
+      "sha256": "da533d87eb8d9d35556ca47d51289d35119acbc0",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -1064,7 +1068,7 @@
     },
     "lib/features/graph/store/graph_data_query.dart": {
       "class": "GraphEntityUpdate",
-      "sha256": "13aa20541e91676c00f445baf09eff12ba825456",
+      "sha256": "eee0b526f6be73ecfa600ed31d30a0dfecfd0118",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -1127,7 +1131,7 @@
     },
     "lib/features/graph/ui/canvas/canvas_text_editor.dart": {
       "class": "CanvasTextEditor",
-      "sha256": "733a158589b00413fb66f69602928638f63709de",
+      "sha256": "65f7736cc3abd413e36963904a3eb9d02218527e",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -1156,7 +1160,7 @@
     },
     "lib/features/graph/ui/canvas/layers/grid_layer.dart": {
       "class": "GridLayer",
-      "sha256": "01369c2b7a9c65c7dec447cc072e51d7fbd378d8",
+      "sha256": "28f8cff79efd100cc245a066fb0fe6a082a85167",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -1186,14 +1190,17 @@
     },
     "lib/features/graph/ui/canvas/layers/node_layer.dart": {
       "class": "NodeLayer",
-      "sha256": "59282ef6ccf98d4536d8efea46f7e76f3ffa075c",
+      "sha256": "b4902f0582e527bf71af47540e71886243830487",
       "status": "COMPLIANT",
-      "violations": [],
+      "violations": [
+        "Canvas layer rendering nodes"
+      ],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
         "package:provider/provider.dart",
         "lib/features/graph/store/graph_data_query.dart",
+        "lib/features/graph/models/models.dart",
         "lib/features/graph/presentation/node_render_state.dart",
         "lib/features/graph/presentation/viewport_state.dart",
         "lib/features/graph/ui/canvas/node_widget.dart"
@@ -1205,11 +1212,11 @@
       "public_apis": [
         "Widget build(BuildContext context)"
       ],
-      "architectural_role": "Manages coordinate alignment and rebuild loops for individual node widgets placed on the canvas."
+      "architectural_role": "Layer/UI"
     },
     "lib/features/graph/ui/canvas/layers/overlay_layer.dart": {
       "class": "OverlayLayer",
-      "sha256": "98152954fb816bb8b972b6222722e33f22427463",
+      "sha256": "e3cc14403f6a984df8311168f24a021a536ffd53",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -1240,7 +1247,7 @@
     },
     "lib/features/graph/ui/canvas/layers/relation_layer.dart": {
       "class": "RelationLayer",
-      "sha256": "7d291e9cd5b289a3a19d80129962f50cfbc61941",
+      "sha256": "abd145541564a59644b4f98cb14cd058419411d0",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -1269,7 +1276,7 @@
     },
     "lib/features/graph/ui/canvas/metadata_preview_overlay.dart": {
       "class": "MetadataPreviewOverlay",
-      "sha256": "d887712e8489e7ca0222e3bc8ddbfbfd410639aa",
+      "sha256": "14835d868a93c84d4def2538bce15e645b8b1505",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -1291,9 +1298,11 @@
     },
     "lib/features/graph/ui/canvas/node_widget.dart": {
       "class": "NodeWidget",
-      "sha256": "60e143e278c620bf61a346214651aab562c4785e",
+      "sha256": "521cbff11f329ff094253a6953d90e085d17a064",
       "status": "COMPLIANT",
-      "violations": [],
+      "violations": [
+        "NodeWidget and DrawNodeWidget widgets"
+      ],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
@@ -1310,13 +1319,15 @@
       "pattern": "UI Component",
       "public_apis": [
         "String capitalize()",
-        "Widget build(BuildContext context)"
+        "Widget build(BuildContext context)",
+        "void paint(Canvas canvas, Size size)",
+        "bool shouldRepaint(covariant DrawingNodePainter oldDelegate)"
       ],
-      "architectural_role": "Renders node cards using liquid-glass gradients, shapes, borders, and templates."
+      "architectural_role": "Widget/UI"
     },
     "lib/features/graph/ui/canvas/relation_painter.dart": {
       "class": "RelationPainter",
-      "sha256": "e2a1a8dfa9aa49a428e53881794eda0cf0d6f0db",
+      "sha256": "5f25e0e0140b42055c2c64c06423d39519bf8208",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -1343,7 +1354,7 @@
     },
     "lib/features/graph/ui/graph_screen.dart": {
       "class": "GraphScreen",
-      "sha256": "d374cfeae58ba0ac3527a48ae4761979b3a689a1",
+      "sha256": "cbc15e84af0cc649b84e685002bbda2b8d06f442",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -1397,7 +1408,7 @@
     },
     "lib/features/graph/ui/widgets/overlays/canvas_status_bar/canvas_status_bar.dart": {
       "class": "CanvasStatusBar",
-      "sha256": "9156060d1f3e255b854978a287514de215c3dfad",
+      "sha256": "8b6b3026d1e5aaf8d22accabc48e69a5aa683f47",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -1420,7 +1431,7 @@
     },
     "lib/features/graph/ui/widgets/overlays/canvas_status_bar/graph_manual_widget.dart": {
       "class": "GraphManualWidget",
-      "sha256": "58fa0fb2176da263b4ce419ed96b8dd10a5badf2",
+      "sha256": "e8d4f7bea89c962eaa8635fd744d8e742098f3fb",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -1506,7 +1517,7 @@
     },
     "lib/features/graph/ui/widgets/overlays/canvas_status_bar/zoom_slider_widget.dart": {
       "class": "ZoomSliderWidget",
-      "sha256": "23e4c9037cf1087e548f0a88e6d3978e63db746a",
+      "sha256": "dc13347484aa8f9d18ab2c3b6eee62c7e67087af",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -1527,7 +1538,7 @@
     },
     "lib/features/graph/ui/widgets/overlays/canvas_tab_bar.dart": {
       "class": "CanvasTabBar",
-      "sha256": "a2464e19244d91bc145d2cf66e88ec53da6ff8d5",
+      "sha256": "ab8737efc2b1abfedfe226c9f38f8cac74dcf529",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -1549,7 +1560,7 @@
     },
     "lib/features/graph/ui/widgets/overlays/canvas_tool_ribbon.dart": {
       "class": "CanvasToolRibbon",
-      "sha256": "f13d54278cb737a6f2961a742863c178898caa09",
+      "sha256": "e27d7922c224b72b080adf220ecac883c1f8bc32",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -1573,7 +1584,7 @@
     },
     "lib/features/graph/ui/widgets/overlays/collapsible_sidebar.dart": {
       "class": "CollapsibleSidebar",
-      "sha256": "ee208e4ab6d0e784fbbce86a5b3fa6707b7c7b7e",
+      "sha256": "670ec43ea885ca54e89b7bc5f4cbd1bbd525bd4c",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -1592,7 +1603,7 @@
     },
     "lib/features/graph/ui/widgets/overlays/left_repository_drawer.dart": {
       "class": "LeftRepositoryDrawer",
-      "sha256": "aa6e0e7b87454fb78ecf9d51d7e930adac50aa48",
+      "sha256": "383cb35cbe8a294bf09fa3c2e3ec5b540b8e1558",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -1639,7 +1650,7 @@
     },
     "lib/features/workspace/ui/project_selector_screen.dart": {
       "class": "ProjectSelectorScreen",
-      "sha256": "891881afa85ba938f36035469505174e49256b68",
+      "sha256": "6fd8dde856902524ce1888fe969232d6971978f0",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -1777,7 +1788,7 @@
     },
     "lib/presentation/theme/graph_theme.dart": {
       "class": "GraphTheme",
-      "sha256": "ffdc07dcf133cdd5829283bfbbda16c110ed1919",
+      "sha256": "0e5c0870727673797258589b73c7cff631769d30",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -1830,7 +1841,7 @@
     },
     "lib/presentation/widgets/search_command_palette.dart": {
       "class": "SearchCommandPalette",
-      "sha256": "aaece55bff121f6f1c271cd5da5bfb41262785ad",
+      "sha256": "ba7155574ee3b8541df45bc2adb490bc96aab0e2",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -1862,7 +1873,7 @@
     },
     "lib/presentation/widgets/search_registry.dart": {
       "class": "SearchResult",
-      "sha256": "5065a14537992466da0442663986ba9c01bca63e",
+      "sha256": "664ade9e4b683b2878df405bf2e6255d6838c61b",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -1878,7 +1889,7 @@
       "is_ffi_bridge": false,
       "pattern": "Component",
       "public_apis": [
-        "Future<List<SearchResult>?> search(String rawQuery, BuildContext context) async"
+        "Future<List<SearchResult>?> search("
       ],
       "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features.",
       "special_objects": [
@@ -1889,7 +1900,7 @@
     },
     "lib/presentation/widgets/tag_manager/delete_tag_dialog.dart": {
       "class": "",
-      "sha256": "42bed4a5d6683d747f33f86adc0895015cb0866c",
+      "sha256": "0d69aced45a7747cad3c4ea07199a53b43b05209",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -1931,7 +1942,7 @@
     },
     "lib/presentation/widgets/tag_manager/tags_list_view.dart": {
       "class": "TagsListView",
-      "sha256": "b7e51ddb859b44213b37e6ad4400194241ef4ddb",
+      "sha256": "f325dfd3a6ad9448779245eeab2eca941a533ae6",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -1962,7 +1973,7 @@
     },
     "lib/presentation/widgets/tag_manager/tag_color_picker_panel.dart": {
       "class": "TagColorPickerPanel",
-      "sha256": "6ad5aaba4bb00be169e308d5e541c31ead83e4eb",
+      "sha256": "ea3feef9a7164a6f9409b78a9198fca72263918c",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -1983,7 +1994,7 @@
     },
     "lib/presentation/widgets/template_manager/delete_template_dialog.dart": {
       "class": "",
-      "sha256": "ca09130d62d16d8c6a6eb8a1839710d003e95439",
+      "sha256": "a337dd14ead616cab2fcd04e2959a6fd46e58705",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -1997,7 +2008,7 @@
       "pattern": "Component",
       "architectural_role": "Exposes templates configuration elements and instantiation grids.",
       "public_apis": [
-        "Future<bool?> showDeleteTemplateDialog(BuildContext context, String templateName)"
+        "Future<bool?> showDeleteTemplateDialog("
       ],
       "stray_functions": [
         "showDeleteTemplateDialog"
@@ -2025,7 +2036,7 @@
     },
     "lib/presentation/widgets/template_manager/save_template_dialog.dart": {
       "class": "",
-      "sha256": "4aba9f300a81226e23e295d99086ebbc82d33c79",
+      "sha256": "91a159187f648cc963e61d666ef90e47b655bd2e",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -2047,7 +2058,7 @@
     },
     "lib/presentation/widgets/template_manager/templates_list_view.dart": {
       "class": "TemplatesListView",
-      "sha256": "f9cdb5f1f4fcc296886c8272a6e3a9c55bc50e94",
+      "sha256": "9658ea037f666cb986d13def2258884a5ac403a0",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -2057,7 +2068,6 @@
         "features/graph/store/graph_data_controller.dart",
         "features/graph/presentation/viewport_state.dart",
         "features/graph/models/models.dart",
-        "src/rust/domain/templates.dart",
         "src/rust/domain/nodes.dart",
         "src/rust/domain/relations.dart",
         "lib/presentation/widgets/template_manager/delete_template_dialog.dart"
@@ -2072,6 +2082,7 @@
         "void dispose()",
         "String pad(int n) => n.toString().padLeft(2, '0');",
         "Widget build(BuildContext context)",
+        "await showDeleteTemplateDialog(",
         "void paint(Canvas canvas, Size size)",
         "Offset transform(Offset p)",
         "bool shouldRepaint(covariant TemplatePreviewPainter oldDelegate)"
@@ -2112,7 +2123,7 @@
     },
     "lib/shared/widgets/canvas_interactive_viewer.dart": {
       "class": "CanvasInteractiveViewer",
-      "sha256": "817815306f916bb33e34a6b21c488dbc2956c20a",
+      "sha256": "4fe78184f64cda72e2f10de1c652613893d8acda",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2136,7 +2147,7 @@
     },
     "lib/features/graph/engine/states/group_drag_state.dart": {
       "class": "GroupDragging",
-      "sha256": "73ce4e5f94644620eaac126ebe1e6dc43e6e07b1",
+      "sha256": "42930508b94eb5fde7e1fdc3a5e18d28a8d24f69",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -2153,7 +2164,7 @@
     },
     "lib/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart": {
       "class": "VerticalContextToolbar, SubmenuButtonData, VerticalToolbarGroupButton, _VerticalToolbarGroupButtonState, HoverIconButton, _HoverIconButtonState",
-      "sha256": "ad67cebe715d46fb918a0f04912e8302508d158d",
+      "sha256": "af3d0ebdcc5aa222e97a7340e1b8e6ef2b70c631",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -2175,7 +2186,7 @@
     },
     "lib/features/workspace/ui/liquid_glass_test_screen.dart": {
       "class": "LiquidGlassDemo",
-      "sha256": "fedcdb0b405a71e16211a095c99105e781fdd649",
+      "sha256": "bcd5807bb556b9c7f8e26ac70e445be2ef6b7fb7",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -2195,7 +2206,7 @@
     },
     "lib/shared/utils/color_utils.dart": {
       "class": "ColorUtils",
-      "sha256": "189775a2ee3ab271a287a1a8dfc7430122ef3725",
+      "sha256": "0691866502babdc2e2359dbd30f0ce0c1219fc7a",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2210,13 +2221,13 @@
       "public_apis": [
         "return isDark(Color(colorValue));",
         "return isDarkInt(bgColorVal) ? 0xFFFFFFFF : 0xFF000000;",
-        "return isDarkInt(bgColorVal) ? 0x4DFFFFFF : 0x33000000;"
+        "return isDarkInt(bgColorVal)"
       ],
       "architectural_role": "Exposes reusable mathematical tools (color conversions, coordinate systems math) to presentation systems."
     },
     "lib/shared/widgets/glass_panel/glass_panel.dart": {
       "class": "",
-      "sha256": "7dd24a33afd21931c16efc8715fee4f7b2ccf54a",
+      "sha256": "a1f507f2d465f59a534c94b6b81bb04db969d6de",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2224,7 +2235,6 @@
         "dart:async",
         "package:flutter/material.dart",
         "package:flutter/rendering.dart",
-        "package:flutter/scheduler.dart",
         "package:logging/logging.dart"
       ],
       "test_file": "",
@@ -2235,7 +2245,7 @@
     },
     "lib/shared/widgets/glass_panel/src/glass_group.dart": {
       "class": "GlassGroup, _GlassGroupState, _GlassGroupScope, _GlassGroupRenderObject, _RenderGlassGroup",
-      "sha256": "f97a59dab0f50cee98c531cf7e5937d91923e9a6",
+      "sha256": "2eea57e522443af3bb396c71904524dc88043bb3",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2280,7 +2290,7 @@
     },
     "lib/shared/widgets/glass_panel/src/glass_panel_widget.dart": {
       "class": "GlassPanel, _GlassPanelBody, _GlassShapeRenderObjectWidget, RenderGlassShape, ShapeData",
-      "sha256": "c0d1a020e4b73e0dd66436e9ec25d9234c3093cb",
+      "sha256": "0e2d9e2a76e7648b7ac8c4ecd70e54fad32febb5",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2291,7 +2301,7 @@
       "public_apis": [
         "Widget build(BuildContext context)",
         "RenderGlassShape createRenderObject(BuildContext context) =>",
-        "void updateRenderObject(",
+        "void updateRenderObject(BuildContext context, RenderGlassShape renderObject)",
         "set borderRadius(double value)",
         "set color(Color value)",
         "void attach(PipelineOwner owner)",
@@ -2301,7 +2311,7 @@
     },
     "lib/shared/widgets/glass_panel/src/glass_settings.dart": {
       "class": "GlassSettings",
-      "sha256": "30ada896aaf269c113c024900d360691eea7d331",
+      "sha256": "9a70402dd86abdd351d0ca92ae5165d7bedb70e7",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2328,11 +2338,9 @@
     },
     "lib/shared/widgets/glass_panel/src/glass_stage.dart": {
       "class": "GlassStage, _GlassStageState, _GlassBackdropScope",
-      "sha256": "105584967b402cd168c0459914fc7f2778d6b481",
+      "sha256": "26d473e47a1cda6c171cf07660f9b53f49fb5b8b",
       "status": "COMPLIANT",
-      "violations": [
-        "Provides high-end liquid-glass-morphic shading filters and stage container layouts for premium visual aesthetics."
-      ],
+      "violations": [],
       "tier": 3,
       "test_file": "",
       "has_tests": false,
@@ -2353,7 +2361,7 @@
     },
     "lib/features/graph/models/commands/base.dart": {
       "class": "CommandCategory, GraphCommand",
-      "sha256": "53b95feed837c396e15da696292fff6feb349fc9",
+      "sha256": "6494b6dcc8b7863184a6f1f509e2eacfb2a530ae",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2370,7 +2378,7 @@
     },
     "lib/features/graph/models/commands/create_node.dart": {
       "class": "CreateNodeCommand",
-      "sha256": "b67dd658735d89985372bf35e544c3caf530b4bb",
+      "sha256": "d8cc6e23b06a6d1d4da51973a13862e06b51c588",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2393,7 +2401,7 @@
     },
     "lib/features/graph/models/commands/create_relation.dart": {
       "class": "CreateRelationCommand",
-      "sha256": "b23fe99c92678192002259dfd598f728e5d81f96",
+      "sha256": "ffa90942a722a510d525a81c5484b9b76cf22e5b",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2417,7 +2425,7 @@
     },
     "lib/features/graph/models/commands/delete_node.dart": {
       "class": "DeleteNodeCommand",
-      "sha256": "ede123d5a4aa393419f4ceb47b21c1cf9d6058ff",
+      "sha256": "f65fc36bb2977b9e15574f5bb7f907727e1883b0",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2439,7 +2447,7 @@
     },
     "lib/features/graph/models/commands/delete_relation.dart": {
       "class": "DeleteRelationCommand",
-      "sha256": "0883b4b5b6f359a45f02b0f645926f1c388b270b",
+      "sha256": "a8789c30a18945c7001126f1b46cfe960b53b2ef",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2462,7 +2470,7 @@
     },
     "lib/features/graph/models/commands/move_node.dart": {
       "class": "MoveNodeCommand",
-      "sha256": "8b836104604a0cfcc7829b7334eefec62a24a6b8",
+      "sha256": "b59e0866bb0e18e58ac3b83a6f9d85449e2a4752",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2487,7 +2495,7 @@
     },
     "lib/features/graph/models/commands/update_comments.dart": {
       "class": "UpdateCommentsCommand",
-      "sha256": "05db9acd864bd2fbd327c83819e5c5c71dac615f",
+      "sha256": "f3e516c4b89d414a765b327ce83271fc20597d8a",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2510,7 +2518,7 @@
     },
     "lib/features/graph/models/commands/update_node_style.dart": {
       "class": "UpdateNodeStyleCommand",
-      "sha256": "e0827389ade0bcb5c583e77d54246e6caea0031b",
+      "sha256": "dc25c75fd1ca0075606655d9fa6102e4830dba89",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2535,7 +2543,7 @@
     },
     "lib/features/graph/models/commands/update_relation_layout.dart": {
       "class": "UpdateRelationLayoutCommand",
-      "sha256": "5fc445abfaf5402e9e1f9e1dd11eec6cc532bd5f",
+      "sha256": "c0fa2963f571c632e4b84c69363407a9e77e5745",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2560,7 +2568,7 @@
     },
     "lib/features/graph/models/commands/update_tags.dart": {
       "class": "UpdateTagsCommand",
-      "sha256": "1dd6c68f8b28ccb51c86149ea58323877059e998",
+      "sha256": "3830aea1776d0c0865eff543c69b93cf7c950478",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2586,7 +2594,7 @@
     },
     "lib/features/graph/models/commands/update_text.dart": {
       "class": "UpdateTextCommand",
-      "sha256": "3b9910fea2e31f632f29cb90cdcf1ca32f08d1e4",
+      "sha256": "4b1041019b366c364a67a1c98ea1fda3fd0523ff",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 3,
@@ -2623,7 +2631,7 @@
     },
     "lib/presentation/widgets/palette_action_registry.dart": {
       "class": "PaletteAction, PaletteActionRegistry",
-      "sha256": "a895520830e1aea99778cd606341b6bb4a47e647",
+      "sha256": "6463947c233c94a2bc2a65d273c469a79b25045e",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -2649,7 +2657,7 @@
     },
     "lib/features/graph/presentation/routing/relation_layout_context.dart": {
       "class": "RelationLayoutContext",
-      "sha256": "9bb664a17bb77c6fbef74b49cadb88e44062c22c",
+      "sha256": "863aa5bca8d3fe7cf395ff6cfcca42a83ca1448d",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -2669,7 +2677,7 @@
     },
     "lib/features/graph/presentation/routing/relation_router.dart": {
       "class": "RelationRouter",
-      "sha256": "1adf0fce148ef845b6a4ffee164121de17dc1232",
+      "sha256": "029b5102e1958bb22df42afd420cdf23a270464d",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -2704,7 +2712,7 @@
     },
     "lib/features/graph/ui/canvas/context_toolbar_overlay.dart": {
       "class": "ContextToolbarOverlay",
-      "sha256": "53866f053de0743033454999c4d60562dedc2a76",
+      "sha256": "14fe35623540135a913156ab375943055ef00fd6",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -2733,7 +2741,7 @@
     },
     "lib/features/graph/ui/widgets/overlays/inspector/appearance_tab.dart": {
       "class": "AppearanceTab",
-      "sha256": "0431dba47b122f89ad03b7bed2a0253a5659518a",
+      "sha256": "99823622542aef9c3b2826914bd46053fb999d4a",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -2755,7 +2763,7 @@
     },
     "lib/features/graph/ui/widgets/overlays/inspector/data_tab.dart": {
       "class": "DataTab, _DataTabState",
-      "sha256": "6ab6f5db14cb9b84b6ef06d3015a774d2e1f0114",
+      "sha256": "0aaffc935c8bde393d8410ce26cb3b8b9de91808",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 1,
@@ -2782,7 +2790,7 @@
     },
     "lib/presentation/widgets/hover_scale_button.dart": {
       "class": "HoverScaleButton, _HoverScaleButtonState",
-      "sha256": "aeec1283ec49f799f73384568db01af8a9d0377f",
+      "sha256": "d68afa319e4f0953fc2c735ff7ea2f20e212a157",
       "status": "COMPLIANT",
       "violations": [],
       "tier": 2,
@@ -2801,11 +2809,11 @@
     },
     "lib/features/graph/models/graph_node.ui.dart": {
       "class": "CommentUiNode, DrawingUiNode, FrameUiNode, InfoUiNode, InterUiNode, MediaUiNode, ShapeUiNode, TaskUiNode",
-      "architectural_role": "",
-      "sha256": "4da5e694e899f6d4583a9294fd351a99b7701f33",
+      "architectural_role": "Factory/Generation",
+      "sha256": "72ea17912f58a031e89fa5f420ab82db518837e6",
       "status": "COMPLIANT",
       "violations": [
-        "Data Model"
+        "Generated UiNode subclasses"
       ],
       "tier": 3,
       "test_file": "",
@@ -2823,6 +2831,129 @@
         "ShapeUiNode copyWith(",
         "TaskUiNode copyWith("
       ]
+    },
+    "lib/presentation/widgets/drawing_manager/global_drawing_panel.dart": {
+      "class": "GlobalDrawingPanel",
+      "architectural_role": "",
+      "sha256": "42485438c8ec7a98f868b89f88a97311a9138820",
+      "status": "COMPLIANT",
+      "violations": [],
+      "tier": 2,
+      "imports": [
+        "package:flutter/material.dart",
+        "package:provider/provider.dart",
+        "lib/features/graph/presentation/workspace_tabs_controller.dart",
+        "lib/presentation/widgets/left_repository_panel.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Component",
+      "public_apis": [
+        "Widget build(BuildContext context)"
+      ]
+    },
+    "test/features/graph/engine/interaction_engine_test.dart": {
+      "sha256": "11ded10b2a38812f6b6c6ae2149d0044e68f6faf",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": "MockInteractionContext, MockTransformationController"
+    },
+    "test/features/graph/models/content_builder_test.dart": {
+      "sha256": "238b4deac75d123399055535bc627533288976c1",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": ""
+    },
+    "test/features/graph/models/graph_node_test.dart": {
+      "sha256": "729cc170f0d26d390bd401fbfe3fe4960fd1b079",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": ""
+    },
+    "test/features/graph/models/graph_relation_test.dart": {
+      "sha256": "98eab6f848c487308c0a4163989b088ae6e67bc7",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": ""
+    },
+    "test/features/graph/presentation/view_state_test.dart": {
+      "sha256": "c21f7e09a923add916c587f8634ef32a7042050e",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": ""
+    },
+    "test/features/graph/presentation/viewport_state_test.dart": {
+      "sha256": "1e59522a7a44921f079d94eed2fda899b8e81885",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": "MockGraphDataQuery, MockSpatialHashGrid"
+    },
+    "test/features/graph/store/command_processor_test.dart": {
+      "sha256": "c9fcd29fef90668f1e9fb3a16db9a27e41f61a3e",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": "FakeCommand"
+    },
+    "test/features/graph/store/modules/graph_node_mutations_test.dart": {
+      "sha256": "a08ca44082954069f399f02e1a5f251058aa8d75",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": "MockAppHandle, MockThemeController"
+    },
+    "test/features/graph/store/modules/graph_property_mutations_test.dart": {
+      "sha256": "e493d45cde1ce021a4335c524c92bd6513ff0fdf",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": "MockAppHandle, MockThemeController, MockStyleUpdater, FakeSymmetricEntityPatch"
+    },
+    "test/features/graph/store/modules/graph_relation_mutations_test.dart": {
+      "sha256": "75bb0fd6bc26d31a3fdd33065fb5ddc03bb20c64",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": "MockAppHandle, MockThemeController, MockStyleUpdater, FakeSymmetricEntityPatch"
+    },
+    "test/features/graph/store/modules/graph_sync_engine_test.dart": {
+      "sha256": "52bad786779106d0b4ef242b1e32d17588a75d12",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": "MockAppHandle, MockThemeController"
+    },
+    "test/features/graph/ui/canvas/node_widget_test.dart": {
+      "sha256": "1be3a0452749849bfa5305e35224878ffe96a070",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": "MockGraphDataQuery, MockThemeController"
+    },
+    "test/features/graph/ui/canvas/relation_drag_realtime_test.dart": {
+      "sha256": "811bbd9e8c6fab429fafcbf56f38b8f984553fdc",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": "MockGraphDataController, MockThemeController, MockSpatialHashGrid, MockInteractionController"
+    },
+    "test/features/graph/ui/canvas/vertical_context_toolbar_test.dart": {
+      "sha256": "c1b3d108ba6766e52bac27fd04988937615396ce",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": ""
+    },
+    "test/features/graph/ui/graph_screen_test.dart": {
+      "sha256": "bdc7c539e53f98c3096b707be0fb765f2f4659bb",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": "MockGraphDataController, MockThemeController"
+    },
+    "test/liquid_glass_rendering_test.dart": {
+      "sha256": "0358c57fa17b35b6ea155b0996b2ef130a91e5ec",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": ""
+    },
+    "test/relation_style_strategy_test.dart": {
+      "sha256": "e046ae565325277444f15fe954320e402aae2db3",
+      "status": "COMPLIANT",
+      "violations": [],
+      "class": ""
     }
   }
 }

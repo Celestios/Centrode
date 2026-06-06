@@ -44,19 +44,31 @@ void main() {
     // Test layout resolution
     expect(NodeLayoutStrategy.fromType('task'), isA<TaskNodeLayoutStrategy>());
     expect(NodeLayoutStrategy.fromType('info'), isA<InfoNodeLayoutStrategy>());
-    
+
     final infoNode = InfoUiNode(id: 'info-1', position: Offset.zero);
     final taskNode = TaskUiNode(id: 'task-1', position: Offset.zero);
-    
-    expect(NodeLayoutStrategy.fromType(null, fallbackNode: infoNode), isA<InfoNodeLayoutStrategy>());
-    expect(NodeLayoutStrategy.fromType(null, fallbackNode: taskNode), isA<TaskNodeLayoutStrategy>());
+
+    expect(
+      NodeLayoutStrategy.fromType(null, fallbackNode: infoNode),
+      isA<InfoNodeLayoutStrategy>(),
+    );
+    expect(
+      NodeLayoutStrategy.fromType(null, fallbackNode: taskNode),
+      isA<TaskNodeLayoutStrategy>(),
+    );
 
     // Test style resolution
     expect(NodeStyleStrategy.fromType('task'), isA<TaskNodeStyleStrategy>());
     expect(NodeStyleStrategy.fromType('info'), isA<InfoNodeStyleStrategy>());
-    
-    expect(NodeStyleStrategy.fromType(null, fallbackNode: infoNode), isA<InfoNodeStyleStrategy>());
-    expect(NodeStyleStrategy.fromType(null, fallbackNode: taskNode), isA<TaskNodeStyleStrategy>());
+
+    expect(
+      NodeStyleStrategy.fromType(null, fallbackNode: infoNode),
+      isA<InfoNodeStyleStrategy>(),
+    );
+    expect(
+      NodeStyleStrategy.fromType(null, fallbackNode: taskNode),
+      isA<TaskNodeStyleStrategy>(),
+    );
   });
 
   test('NodeViewState getClosestPort finds the correct closest port', () {
@@ -106,4 +118,3 @@ void main() {
     expect(closest.endPos, const Offset(300.0, 150.0));
   });
 }
-

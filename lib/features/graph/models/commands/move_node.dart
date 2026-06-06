@@ -109,37 +109,46 @@ class MoveNodeCommand extends GraphCommand {
     if (node != null) {
       if (oldPosition != null && newPosition != null) {
         node.position = oldPosition!;
-        controller.spatial.spatialGrid.update(targetId, newPosition!, oldPosition!);
-        controller.publishUpdate(GraphEntityUpdate(
-          id: targetId,
-          tableName: tableName,
-          type: GraphUpdateType.position,
-          payload: oldPosition,
-        ));
+        controller.spatial.spatialGrid.update(
+          targetId,
+          newPosition!,
+          oldPosition!,
+        );
+        controller.publishUpdate(
+          GraphEntityUpdate(
+            id: targetId,
+            tableName: tableName,
+            type: GraphUpdateType.position,
+            payload: oldPosition,
+          ),
+        );
       }
       if (oldSize != null) {
         node.size = oldSize!;
-        controller.publishUpdate(GraphEntityUpdate(
-          id: targetId,
-          tableName: tableName,
-          type: GraphUpdateType.size,
-          payload: oldSize,
-        ));
+        controller.publishUpdate(
+          GraphEntityUpdate(
+            id: targetId,
+            tableName: tableName,
+            type: GraphUpdateType.size,
+            payload: oldSize,
+          ),
+        );
       }
       if (oldStyle != null) {
         node.style = oldStyle;
       }
       if (oldExpanded != null) {
         node.isExpanded = oldExpanded!;
-        controller.publishUpdate(GraphEntityUpdate(
-          id: targetId,
-          tableName: tableName,
-          type: GraphUpdateType.expansion,
-          payload: oldExpanded,
-        ));
+        controller.publishUpdate(
+          GraphEntityUpdate(
+            id: targetId,
+            tableName: tableName,
+            type: GraphUpdateType.expansion,
+            payload: oldExpanded,
+          ),
+        );
       }
       controller.triggerUpdate();
     }
   }
 }
-

@@ -47,8 +47,10 @@ class RelationLayer extends StatelessWidget {
                 final to = uiController.viewStates[rel.toNodeId];
                 if (from != null && to != null) {
                   final Offset dragPos;
-                  if (drag.snappedTargetNodeId != null && drag.snappedTargetSide != null) {
-                    final targetVs = uiController.viewStates[drag.snappedTargetNodeId!];
+                  if (drag.snappedTargetNodeId != null &&
+                      drag.snappedTargetSide != null) {
+                    final targetVs =
+                        uiController.viewStates[drag.snappedTargetNodeId!];
                     dragPos = targetVs != null
                         ? targetVs.getPortPosition(drag.snappedTargetSide!)
                         : drag.currentCursorPosition;
@@ -56,15 +58,18 @@ class RelationLayer extends StatelessWidget {
                     dragPos = drag.currentCursorPosition;
                   }
 
-                  final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
-                  final (resolvedStart, resolvedEnd) = layoutStrategy.resolveEndpoints(
-                    rel,
-                    from,
-                    to,
-                    overrideStart: drag.isStartTip ? dragPos : null,
-                    overrideEnd: !drag.isStartTip ? dragPos : null,
+                  final layoutStrategy = RelationLayoutStrategy.fromType(
+                    rel.layout?.strategyType,
                   );
-                   draggingOverrides[rel.id] = (resolvedStart, resolvedEnd);
+                  final (resolvedStart, resolvedEnd) = layoutStrategy
+                      .resolveEndpoints(
+                        rel,
+                        from,
+                        to,
+                        overrideStart: drag.isStartTip ? dragPos : null,
+                        overrideEnd: !drag.isStartTip ? dragPos : null,
+                      );
+                  draggingOverrides[rel.id] = (resolvedStart, resolvedEnd);
                 }
               }
             }
@@ -89,10 +94,23 @@ class RelationLayer extends StatelessWidget {
               final toVs = uiController.viewStates[editedRel.toNodeId];
 
               if (fromVs != null && toVs != null) {
-                final layoutStrategy = RelationLayoutStrategy.fromType(editedRel.layout?.strategyType);
-                final (start, end) = layoutStrategy.resolveEndpoints(editedRel, fromVs, toVs);
+                final layoutStrategy = RelationLayoutStrategy.fromType(
+                  editedRel.layout?.strategyType,
+                );
+                final (start, end) = layoutStrategy.resolveEndpoints(
+                  editedRel,
+                  fromVs,
+                  toVs,
+                );
 
-                final labelPos = layoutStrategy.computeLabelPosition(start, end, fromVs, toVs, editedRel, layoutContext);
+                final labelPos = layoutStrategy.computeLabelPosition(
+                  start,
+                  end,
+                  fromVs,
+                  toVs,
+                  editedRel,
+                  layoutContext,
+                );
 
                 final width = AppConfig.relation.editorMinWidth;
                 final position =

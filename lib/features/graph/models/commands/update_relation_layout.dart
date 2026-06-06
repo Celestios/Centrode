@@ -73,4 +73,3 @@ class UpdateRelationLayoutCommand extends GraphCommand {
     controller.triggerUpdate();
   }
 }
-

@@ -27,8 +27,6 @@
 # === Rust / Cargo / FFI ===
 /rust/Cargo.lock
 /rust/target/
-/rust/tavily-cli.exe
-/rust_builder/
 
 # === Project Specific & Data ===
 /.Archive

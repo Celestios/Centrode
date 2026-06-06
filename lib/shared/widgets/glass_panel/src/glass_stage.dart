@@ -161,19 +161,27 @@ class _GlassStageState extends State<GlassStage> {
 
       final recorder = ui.PictureRecorder();
       final canvas = ui.Canvas(recorder);
-      
+
       // Perform a GPU texture blit with bilinear filtering
       canvas.drawImageRect(
         fullResImage,
-        Rect.fromLTWH(0, 0, fullResImage.width.toDouble(), fullResImage.height.toDouble()),
+        Rect.fromLTWH(
+          0,
+          0,
+          fullResImage.width.toDouble(),
+          fullResImage.height.toDouble(),
+        ),
         Rect.fromLTWH(0, 0, scaledWidth.toDouble(), scaledHeight.toDouble()),
-        Paint()..filterQuality = FilterQuality.medium, 
+        Paint()..filterQuality = FilterQuality.medium,
       );
 
-      final downsampledImage = await recorder.endRecording().toImage(scaledWidth, scaledHeight);
-      
+      final downsampledImage = await recorder.endRecording().toImage(
+        scaledWidth,
+        scaledHeight,
+      );
+
       // Immediately free the high-res texture memory
-      fullResImage.dispose(); 
+      fullResImage.dispose();
 
       final oldImage = _backdropImage;
       setState(() {

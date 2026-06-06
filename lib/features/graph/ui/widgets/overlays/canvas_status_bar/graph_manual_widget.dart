@@ -8,7 +8,12 @@ import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 class GraphManualWidget extends StatelessWidget {
   const GraphManualWidget({super.key});
 
-  void _showManualDialog(BuildContext context, ThemeData theme, Color primaryColor, Color textColor) {
+  void _showManualDialog(
+    BuildContext context,
+    ThemeData theme,
+    Color primaryColor,
+    Color textColor,
+  ) {
     showDialog(
       context: context,
       builder: (context) {
@@ -34,21 +39,53 @@ class GraphManualWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSectionHeader('Node Types', primaryColor),
-                  _buildLegendRow(primaryColor, 'Info Node', 'Core informational units, general content.', textColor),
-                  _buildLegendRow(Colors.greenAccent, 'Task Node', 'Actionable checklist nodes or tracking items.', textColor),
-                  _buildLegendRow(Colors.yellowAccent, 'Inter Node', 'Intermediate linkage or transition entities.', textColor),
+                  _buildLegendRow(
+                    primaryColor,
+                    'Info Node',
+                    'Core informational units, general content.',
+                    textColor,
+                  ),
+                  _buildLegendRow(
+                    Colors.greenAccent,
+                    'Task Node',
+                    'Actionable checklist nodes or tracking items.',
+                    textColor,
+                  ),
+                  _buildLegendRow(
+                    Colors.yellowAccent,
+                    'Inter Node',
+                    'Intermediate linkage or transition entities.',
+                    textColor,
+                  ),
                   const SizedBox(height: 12),
                   _buildSectionHeader('Connection Lines', primaryColor),
-                  _buildLegendRow(textColor.withValues(alpha: 0.7), 'Solid Line', 'Direct association, standard labeled relation.', textColor),
-                  _buildLegendRow(textColor.withValues(alpha: 0.5), 'Dashed Line', 'Soft association or conditional dependency.', textColor),
+                  _buildLegendRow(
+                    textColor.withValues(alpha: 0.7),
+                    'Solid Line',
+                    'Direct association, standard labeled relation.',
+                    textColor,
+                  ),
+                  _buildLegendRow(
+                    textColor.withValues(alpha: 0.5),
+                    'Dashed Line',
+                    'Soft association or conditional dependency.',
+                    textColor,
+                  ),
                   const SizedBox(height: 12),
-                  _buildSectionHeader('Canvas Interaction Controls', primaryColor),
+                  _buildSectionHeader(
+                    'Canvas Interaction Controls',
+                    primaryColor,
+                  ),
                   Text(
                     '• Pan View: Hold Middle Click or Space + Drag.\n'
                     '• Zoom: Use Mouse Scroll Wheel.\n'
                     '• Double Tap Canvas: Create a new Node.\n'
                     '• Drag Selection: Hold shift and drag selection marquee.',
-                    style: TextStyle(color: textColor.withValues(alpha: 0.7), fontSize: 12, height: 1.5),
+                    style: TextStyle(
+                      color: textColor.withValues(alpha: 0.7),
+                      fontSize: 12,
+                      height: 1.5,
+                    ),
                   ),
                 ],
               ),
@@ -80,7 +117,12 @@ class GraphManualWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildLegendRow(Color color, String name, String desc, Color textColor) {
+  Widget _buildLegendRow(
+    Color color,
+    String name,
+    String desc,
+    Color textColor,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(

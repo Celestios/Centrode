@@ -55,8 +55,15 @@ class CanvasIdle extends CanvasInteractionState {
       final to = ctx.nodeViewStates[rel.toNodeId];
       if (from == null || to == null) continue;
 
-      final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
-      final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(rel, from, to, layoutContext);
+      final layoutStrategy = RelationLayoutStrategy.fromType(
+        rel.layout?.strategyType,
+      );
+      final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(
+        rel,
+        from,
+        to,
+        layoutContext,
+      );
       if ((pCanvas - handleStart).distance < 24.0) {
         _canvasIdleLog.fine('Relation start tip handle hit: $id');
         return RelationTipDragging(
@@ -76,8 +83,6 @@ class CanvasIdle extends CanvasInteractionState {
       }
     }
 
-
-
     // Hit Testing Registry
     final nodeIds = ctx.zOrder.reversed.toList();
     if (nodeIds.isEmpty) {
@@ -89,13 +94,15 @@ class CanvasIdle extends CanvasInteractionState {
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
       final node = ctx.getNode(nodeId);
-      if (node is InfoUiNode && (node.tags.isNotEmpty || node.comments.isNotEmpty)) {
+      if (node is InfoUiNode &&
+          (node.tags.isNotEmpty || node.comments.isNotEmpty)) {
         final nodeRect = vs.rect;
         final center = Offset(
           nodeRect.right - AppConfig.node.metadataSphereOffsetFromRight,
           nodeRect.top + AppConfig.node.metadataSphereOffsetFromTop,
         );
-        if ((pCanvas - center).distance < AppConfig.node.metadataSphereHitboxRadius) {
+        if ((pCanvas - center).distance <
+            AppConfig.node.metadataSphereHitboxRadius) {
           _canvasIdleLog.fine('Metadata sphere hit: $nodeId');
           ctx.openDataInspector(nodeId);
           return this;
@@ -152,7 +159,8 @@ class CanvasIdle extends CanvasInteractionState {
     }
 
     // Relation label hit testing
-    final hitEntityId = hitNodeId ?? _hitTestRelations(pCanvas, ctx, layoutContext);
+    final hitEntityId =
+        hitNodeId ?? _hitTestRelations(pCanvas, ctx, layoutContext);
 
     // Commit active edit if clicking elsewhere or if clicking a resize handle of the edited node
     if (activeEditId != null && (hitEntityId != activeEditId || hitResize)) {
@@ -177,7 +185,9 @@ class CanvasIdle extends CanvasInteractionState {
     }
 
     // Priority -1.0: Left-click on empty space starts Marquee selection
-    if (e.buttons == kPrimaryMouseButton && hitEntityId == null && !isDoubleTap) {
+    if (e.buttons == kPrimaryMouseButton &&
+        hitEntityId == null &&
+        !isDoubleTap) {
       _canvasIdleLog.fine(
         'Left-click on empty space: Transitioning to MarqueeSelecting',
       );
@@ -225,15 +235,17 @@ class CanvasIdle extends CanvasInteractionState {
         final nodeIdsInSelection = selectedEntities
             .where((id) => ctx.nodeViewStates.containsKey(id))
             .toList();
-        if (nodeIdsInSelection.length > 1 && nodeIdsInSelection.contains(hitNodeId)) {
+        if (nodeIdsInSelection.length > 1 &&
+            nodeIdsInSelection.contains(hitNodeId)) {
           final originalPositions = {
             for (final id in nodeIdsInSelection)
-              id: ctx.nodeViewStates[id]!.positionNotifier.value
+              id: ctx.nodeViewStates[id]!.positionNotifier.value,
           };
           return GroupDragging(
             nodeIds: nodeIdsInSelection,
             anchorNodeId: hitNodeId,
-            grabOffset: pCanvas - ctx.nodeViewStates[hitNodeId]!.positionNotifier.value,
+            grabOffset:
+                pCanvas - ctx.nodeViewStates[hitNodeId]!.positionNotifier.value,
             originalPositions: originalPositions,
           );
         } else {
@@ -249,15 +261,28 @@ class CanvasIdle extends CanvasInteractionState {
   }
 
   /// Hit-tests relation labels at the midpoint between connected nodes.
-  String? _hitTestRelations(Offset p, InteractionContext ctx, RelationLayoutContext layoutContext) {
+  String? _hitTestRelations(
+    Offset p,
+    InteractionContext ctx,
+    RelationLayoutContext layoutContext,
+  ) {
     for (final rel in ctx.getRelations()) {
       final fVs = ctx.nodeViewStates[rel.fromNodeId];
       final tVs = ctx.nodeViewStates[rel.toNodeId];
       if (fVs == null || tVs == null) continue;
 
-      final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
+      final layoutStrategy = RelationLayoutStrategy.fromType(
+        rel.layout?.strategyType,
+      );
       final (start, end) = layoutStrategy.resolveEndpoints(rel, fVs, tVs);
-      final mid = layoutStrategy.computeLabelPosition(start, end, fVs, tVs, rel, layoutContext);
+      final mid = layoutStrategy.computeLabelPosition(
+        start,
+        end,
+        fVs,
+        tVs,
+        rel,
+        layoutContext,
+      );
 
       // Hit-test the label bounding box
       if (Rect.fromCenter(
@@ -269,7 +294,16 @@ class CanvasIdle extends CanvasInteractionState {
       }
 
       // Hit-test the line/curve path (8px threshold)
-      if (layoutStrategy.isPointNear(p, start, end, fVs, tVs, rel, 8.0, layoutContext)) {
+      if (layoutStrategy.isPointNear(
+        p,
+        start,
+        end,
+        fVs,
+        tVs,
+        rel,
+        8.0,
+        layoutContext,
+      )) {
         return rel.id;
       }
     }
@@ -295,13 +329,15 @@ class CanvasIdle extends CanvasInteractionState {
 
       // Metadata sphere hover hit test
       final node = ctx.getNode(nodeId);
-      if (node is InfoUiNode && (node.tags.isNotEmpty || node.comments.isNotEmpty)) {
+      if (node is InfoUiNode &&
+          (node.tags.isNotEmpty || node.comments.isNotEmpty)) {
         final nodeRect = vs.rect;
         final center = Offset(
           nodeRect.right - AppConfig.node.metadataSphereOffsetFromRight,
           nodeRect.top + AppConfig.node.metadataSphereOffsetFromTop,
         );
-        if ((pCanvas - center).distance < AppConfig.node.metadataSphereHitboxRadius) {
+        if ((pCanvas - center).distance <
+            AppConfig.node.metadataSphereHitboxRadius) {
           hoveredMetadataNodeId = nodeId;
           break;
         }

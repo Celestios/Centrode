@@ -51,4 +51,3 @@ class CreateRelationCommand extends GraphCommand {
     controller.triggerUpdate();
   }
 }
-

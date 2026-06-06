@@ -3,18 +3,11 @@ import 'package:provider/provider.dart';
 import '../../../../features/graph/store/graph_data_controller.dart';
 import '../../../../features/graph/presentation/viewport_state.dart';
 import '../../../../features/graph/models/models.dart';
-import '../../../../src/rust/domain/templates.dart';
 import '../../../../src/rust/domain/nodes.dart';
 import '../../../../src/rust/domain/relations.dart';
-import '../../../../src/rust/domain/base_models.dart' as ffi;
 import 'delete_template_dialog.dart';
 
-enum TemplateSortOption {
-  alphabeticalAsc,
-  alphabeticalDesc,
-  newest,
-  oldest,
-}
+enum TemplateSortOption { alphabeticalAsc, alphabeticalDesc, newest, oldest }
 
 class TemplatesListView extends StatefulWidget {
   const TemplatesListView({super.key});
@@ -64,7 +57,8 @@ class _TemplatesListViewState extends State<TemplatesListView> {
           debugPrint('TEMPLATES ERROR: ${snapshot.error}');
           debugPrint('TEMPLATES STACK: ${snapshot.stackTrace}');
         }
-        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
           return const SizedBox(
             height: 100,
             child: Center(
@@ -83,7 +77,10 @@ class _TemplatesListViewState extends State<TemplatesListView> {
         var filteredTemplates = allTemplates;
         if (_searchQuery.isNotEmpty) {
           filteredTemplates = allTemplates
-              .where((t) => t.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+              .where(
+                (t) =>
+                    t.name.toLowerCase().contains(_searchQuery.toLowerCase()),
+              )
               .toList();
         }
 
@@ -106,7 +103,10 @@ class _TemplatesListViewState extends State<TemplatesListView> {
           children: [
             // Search Input
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.0,
+                vertical: 6.0,
+              ),
               child: SizedBox(
                 height: 32,
                 child: TextField(
@@ -137,7 +137,10 @@ class _TemplatesListViewState extends State<TemplatesListView> {
 
             // Sorting bar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.0,
+                vertical: 4.0,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -185,7 +188,12 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                               color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 6),
-                            Text('Newest First', style: theme.textTheme.bodySmall?.copyWith(fontSize: 10)),
+                            Text(
+                              'Newest First',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 10,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -201,7 +209,12 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                               color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 6),
-                            Text('Oldest First', style: theme.textTheme.bodySmall?.copyWith(fontSize: 10)),
+                            Text(
+                              'Oldest First',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 10,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -217,7 +230,12 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                               color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 6),
-                            Text('Name A-Z', style: theme.textTheme.bodySmall?.copyWith(fontSize: 10)),
+                            Text(
+                              'Name A-Z',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 10,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -233,7 +251,12 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                               color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 6),
-                            Text('Name Z-A', style: theme.textTheme.bodySmall?.copyWith(fontSize: 10)),
+                            Text(
+                              'Name Z-A',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 10,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -249,7 +272,9 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                 padding: const EdgeInsets.symmetric(vertical: 32.0),
                 child: Center(
                   child: Text(
-                    _searchQuery.isEmpty ? 'No templates saved' : 'No matching templates',
+                    _searchQuery.isEmpty
+                        ? 'No templates saved'
+                        : 'No matching templates',
                     style: TextStyle(
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                       fontSize: 11,
@@ -273,10 +298,15 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                     // Create the tile widget
                     final tileChild = Container(
                       height: 60,
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 8.0,
+                      ),
                       decoration: BoxDecoration(
                         color: isHovered
-                            ? theme.colorScheme.onSurface.withValues(alpha: 0.04)
+                            ? theme.colorScheme.onSurface.withValues(
+                                alpha: 0.04,
+                              )
                             : Colors.transparent,
                         border: Border(
                           bottom: BorderSide(
@@ -315,7 +345,8 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                   '$nodeCount nodes · $relationCount relations',
                                   style: TextStyle(
                                     fontSize: 10,
-                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.5),
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -331,28 +362,59 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                               children: [
                                 // Instantiate template at viewport center
                                 IconButton(
-                                  icon: const Icon(Icons.add_circle_outline_rounded, size: 16),
+                                  icon: const Icon(
+                                    Icons.add_circle_outline_rounded,
+                                    size: 16,
+                                  ),
                                   onPressed: () async {
-                                    final viewportController = context.read<ViewportController>();
-                                    final visibleCenter = viewportController.viewportStateNotifier.value.visibleRect.center;
-                                    await controller.instantiateTemplate(template.key, visibleCenter);
+                                    final viewportController = context
+                                        .read<ViewportController>();
+                                    final visibleCenter = viewportController
+                                        .viewportStateNotifier
+                                        .value
+                                        .visibleRect
+                                        .center;
+                                    await controller.instantiateTemplate(
+                                      template.key,
+                                      visibleCenter,
+                                    );
                                   },
                                   padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 24,
+                                    minHeight: 24,
+                                    maxWidth: 24,
+                                    maxHeight: 24,
+                                  ),
                                   tooltip: 'Place at Center',
                                 ),
                                 const SizedBox(width: 4),
                                 // Delete template button
                                 IconButton(
-                                  icon: const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.redAccent),
+                                  icon: const Icon(
+                                    Icons.delete_outline_rounded,
+                                    size: 16,
+                                    color: Colors.redAccent,
+                                  ),
                                   onPressed: () async {
-                                    final confirm = await showDeleteTemplateDialog(context, template.name);
+                                    final confirm =
+                                        await showDeleteTemplateDialog(
+                                          context,
+                                          template.name,
+                                        );
                                     if (confirm == true) {
-                                      await controller.deleteTemplate(template.key);
+                                      await controller.deleteTemplate(
+                                        template.key,
+                                      );
                                     }
                                   },
                                   padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 24,
+                                    minHeight: 24,
+                                    maxWidth: 24,
+                                    maxHeight: 24,
+                                  ),
                                   tooltip: 'Delete Template',
                                 ),
                               ],
@@ -362,7 +424,9 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                               _formatTimestamp(template.createdAt.toInt()),
                               style: TextStyle(
                                 fontSize: 8,
-                                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.3,
+                                ),
                               ),
                             ),
                         ],
@@ -387,12 +451,17 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                         feedback: Material(
                           color: Colors.transparent,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               color: theme.cardColor.withValues(alpha: 0.9),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: theme.colorScheme.primary.withValues(alpha: 0.4),
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.4,
+                                ),
                                 width: 1.5,
                               ),
                               boxShadow: const [
@@ -538,16 +607,22 @@ class TemplatePreviewPainter extends CustomPainter {
 
     double scale = 1.0;
     if (groupWidth > 0 || groupHeight > 0) {
-      final double scaleX = groupWidth > 0 ? targetWidth / groupWidth : double.infinity;
-      final double scaleY = groupHeight > 0 ? targetHeight / groupHeight : double.infinity;
+      final double scaleX = groupWidth > 0
+          ? targetWidth / groupWidth
+          : double.infinity;
+      final double scaleY = groupHeight > 0
+          ? targetHeight / groupHeight
+          : double.infinity;
       scale = scaleX < scaleY ? scaleX : scaleY;
       // Cap scale to prevent single nodes from looking huge
       if (scale > 0.4) scale = 0.4;
     }
 
     // Center the group within the size
-    final double offsetX = padding + (targetWidth - (groupWidth * scale)) / 2 - minX * scale;
-    final double offsetY = padding + (targetHeight - (groupHeight * scale)) / 2 - minY * scale;
+    final double offsetX =
+        padding + (targetWidth - (groupWidth * scale)) / 2 - minX * scale;
+    final double offsetY =
+        padding + (targetHeight - (groupHeight * scale)) / 2 - minY * scale;
 
     // Helper to transform coordinates
     Offset transform(Offset p) {
@@ -556,7 +631,9 @@ class TemplatePreviewPainter extends CustomPainter {
 
     // 2. Draw relations/links
     final relationPaint = Paint()
-      ..color = isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.25)
+      ..color = isDark
+          ? Colors.white.withValues(alpha: 0.3)
+          : Colors.black.withValues(alpha: 0.25)
       ..strokeWidth = 1.2
       ..style = PaintingStyle.stroke;
 
@@ -584,12 +661,17 @@ class TemplatePreviewPainter extends CustomPainter {
           ..style = PaintingStyle.fill;
 
         final borderPaint = Paint()
-          ..color = isDark ? Colors.white.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.15)
+          ..color = isDark
+              ? Colors.white.withValues(alpha: 0.2)
+              : Colors.black.withValues(alpha: 0.15)
           ..strokeWidth = 0.6
           ..style = PaintingStyle.stroke;
 
         // Draw a tiny rounded rect
-        final rrect = RRect.fromRectAndRadius(scaledRect, const Radius.circular(3.0));
+        final rrect = RRect.fromRectAndRadius(
+          scaledRect,
+          const Radius.circular(3.0),
+        );
         canvas.drawRRect(rrect, nodePaint);
         canvas.drawRRect(rrect, borderPaint);
       }
@@ -603,4 +685,3 @@ class TemplatePreviewPainter extends CustomPainter {
         oldDelegate.isDark != isDark;
   }
 }
-

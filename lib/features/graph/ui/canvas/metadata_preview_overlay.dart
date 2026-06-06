@@ -20,14 +20,17 @@ class MetadataPreviewOverlay extends StatelessWidget {
     // Get the latest comment
     Comment? latestComment;
     if (hasComments) {
-      latestComment = node.comments.reduce((a, b) =>
-          a.createdAt.toInt() > b.createdAt.toInt() ? a : b);
+      latestComment = node.comments.reduce(
+        (a, b) => a.createdAt.toInt() > b.createdAt.toInt() ? a : b,
+      );
     }
 
     return Container(
       width: AppConfig.node.metadataPreviewWidth,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppConfig.node.metadataPreviewBorderRadius),
+        borderRadius: BorderRadius.circular(
+          AppConfig.node.metadataPreviewBorderRadius,
+        ),
         boxShadow: const [
           BoxShadow(
             color: Colors.black26,
@@ -37,7 +40,9 @@ class MetadataPreviewOverlay extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppConfig.node.metadataPreviewBorderRadius),
+        borderRadius: BorderRadius.circular(
+          AppConfig.node.metadataPreviewBorderRadius,
+        ),
         child: BackdropFilter(
           filter: ImageFilter.blur(
             sigmaX: AppConfig.node.metadataPreviewBlur,
@@ -88,12 +93,17 @@ class MetadataPreviewOverlay extends StatelessWidget {
                     runSpacing: 4,
                     children: node.tags.map((tag) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: Color(tag.fields.color).withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(
-                            color: Color(tag.fields.color).withValues(alpha: 0.4),
+                            color: Color(
+                              tag.fields.color,
+                            ).withValues(alpha: 0.4),
                             width: 1,
                           ),
                         ),
@@ -108,10 +118,11 @@ class MetadataPreviewOverlay extends StatelessWidget {
                       );
                     }).toList(),
                   ),
-                  if (hasComments) const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
-                    child: Divider(color: Colors.white12, height: 1),
-                  ),
+                  if (hasComments)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Divider(color: Colors.white12, height: 1),
+                    ),
                 ],
 
                 // Comments section

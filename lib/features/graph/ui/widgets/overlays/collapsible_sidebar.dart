@@ -62,7 +62,10 @@ class CollapsibleSidebar extends StatelessWidget {
                 if (showHeader) ...[
                   // Header
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 12,
+                    ),
                     child: SizedBox(
                       height: 32,
                       child: Row(
@@ -93,7 +96,10 @@ class CollapsibleSidebar extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.3)),
+                  Divider(
+                    height: 1,
+                    color: theme.dividerColor.withValues(alpha: 0.3),
+                  ),
                 ],
                 child,
               ],

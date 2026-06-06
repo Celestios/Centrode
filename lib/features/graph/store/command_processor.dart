@@ -62,24 +62,23 @@ class CommandProcessor {
     _processingFuture = completer.future;
 
     try {
-
-    while (_executionQueue.isNotEmpty) {
-      final cmd = _executionQueue.removeFirst();
-      final key = _getCompositeKey(cmd);
-      try {
-        await cmd.execute();
-        cmd.onSuccess();
-      } catch (e) {
-        _log.severe(
-          'FFI Synchronization failed for ${cmd.targetId}. Rollback.',
-          e,
-        );
-        cmd.undo();
-        _executionQueue.removeWhere((c) => _getCompositeKey(c) == key);
-        _pendingCommands.remove(key);
-        onError("Sync failed: $e");
+      while (_executionQueue.isNotEmpty) {
+        final cmd = _executionQueue.removeFirst();
+        final key = _getCompositeKey(cmd);
+        try {
+          await cmd.execute();
+          cmd.onSuccess();
+        } catch (e) {
+          _log.severe(
+            'FFI Synchronization failed for ${cmd.targetId}. Rollback.',
+            e,
+          );
+          cmd.undo();
+          _executionQueue.removeWhere((c) => _getCompositeKey(c) == key);
+          _pendingCommands.remove(key);
+          onError("Sync failed: $e");
+        }
       }
-    }
     } finally {
       _processingFuture = null;
       completer.complete();

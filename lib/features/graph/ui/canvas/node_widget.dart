@@ -162,9 +162,11 @@ class NodeWidget extends StatelessWidget {
               if (liveNode is InfoUiNode &&
                   (liveNode.tags.isNotEmpty || liveNode.comments.isNotEmpty))
                 Positioned(
-                  right: AppConfig.node.metadataSphereOffsetFromRight -
+                  right:
+                      AppConfig.node.metadataSphereOffsetFromRight -
                       AppConfig.node.metadataSphereRadius,
-                  top: AppConfig.node.metadataSphereOffsetFromTop -
+                  top:
+                      AppConfig.node.metadataSphereOffsetFromTop -
                       AppConfig.node.metadataSphereRadius,
                   child: Container(
                     width: AppConfig.node.metadataSphereRadius * 2,
@@ -172,11 +174,12 @@ class NodeWidget extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Color(
-                        (liveNode.tags.isNotEmpty && liveNode.comments.isNotEmpty)
+                        (liveNode.tags.isNotEmpty &&
+                                liveNode.comments.isNotEmpty)
                             ? 0xFFEC407A
                             : liveNode.tags.isNotEmpty
-                                ? 0xFF5C6BC0
-                                : 0xFF26A69A,
+                            ? 0xFF5C6BC0
+                            : 0xFF26A69A,
                       ),
                       border: Border.all(
                         color: Colors.white,
@@ -273,6 +276,67 @@ class NodeWidget extends StatelessWidget {
   }
 }
 
+class DrawNodeWidget extends StatelessWidget {
+  final DrawingUiNode node;
+  final NodeViewState viewState;
+  final bool isSelected;
+  final bool isEditing;
+
+  const DrawNodeWidget({
+    super.key,
+    required this.node,
+    required this.viewState,
+    required this.isSelected,
+    required this.isEditing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Reactively select the canonical node from the central store.
+    // This prevents the widget from rendering stale aesthetics (like old width)
+    // when the FSM drops the volatile drag state before the parent layer rebuilds.
+    final liveNode = context.select<GraphDataQuery, DrawingUiNode>(
+      (c) => (c.nodeLookup[node.id] ?? node) as DrawingUiNode,
+    );
+
+    // We merge the notifiers so the widget repaints when position, size,
+    // or expanded state changes.
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        viewState.positionNotifier,
+        viewState.sizeNotifier,
+        viewState.dragWidthNotifier,
+      ]),
+      builder: (context, _) {
+        final pos = viewState.positionNotifier.value;
+        final rawSize = viewState.sizeNotifier.value;
+        final size = Size(
+          viewState.dragWidthNotifier.value ?? rawSize.width,
+          rawSize.height,
+        );
+
+        return Transform.translate(
+          offset: pos,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              CustomPaint(
+                size: size,
+                painter: DrawingNodePainter(
+                  brushColor: liveNode.brushColor,
+                  brushThickness: liveNode.brushThickness,
+                  brushType: liveNode.brushType,
+                  paths: liveNode.paths,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class DrawingNodePainter extends CustomPainter {
   final List<String> paths;
   final String brushColor;
@@ -312,14 +376,18 @@ class DrawingNodePainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round;
 
     for (final pathStr in paths) {
-      final points = pathStr.split(';').map((p) {
-        final coords = p.split(',');
-        if (coords.length < 2) return null;
-        final x = double.tryParse(coords[0]);
-        final y = double.tryParse(coords[1]);
-        if (x == null || y == null) return null;
-        return Offset(x, y);
-      }).whereType<Offset>().toList();
+      final points = pathStr
+          .split(';')
+          .map((p) {
+            final coords = p.split(',');
+            if (coords.length < 2) return null;
+            final x = double.tryParse(coords[0]);
+            final y = double.tryParse(coords[1]);
+            if (x == null || y == null) return null;
+            return Offset(x, y);
+          })
+          .whereType<Offset>()
+          .toList();
 
       if (points.isEmpty) continue;
       final path = Path();
@@ -339,4 +407,3 @@ class DrawingNodePainter extends CustomPainter {
         oldDelegate.brushType != brushType;
   }
 }
-

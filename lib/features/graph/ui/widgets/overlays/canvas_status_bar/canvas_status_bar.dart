@@ -26,10 +26,16 @@ class CanvasStatusBar extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             // Bottom Left: Graph Manual / Conventions Legend
-            if (showManual) const GraphManualWidget() else const SizedBox.shrink(),
+            if (showManual)
+              const GraphManualWidget()
+            else
+              const SizedBox.shrink(),
 
             // Bottom Center: Graph Metrics & Sync Info
-            if (showMetrics) const StatusMetricsWidget() else const SizedBox.shrink(),
+            if (showMetrics)
+              const StatusMetricsWidget()
+            else
+              const SizedBox.shrink(),
 
             // Bottom Right: Zoom & Mini-Map group
             GlassGroup(

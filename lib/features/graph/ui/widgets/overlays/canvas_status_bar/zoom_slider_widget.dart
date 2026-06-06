@@ -30,8 +30,15 @@ class ZoomSliderWidget extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: Icon(Icons.zoom_out, color: textColor.withValues(alpha: 0.7), size: 14),
-                onPressed: () => _updateZoom(viewportController, (scale - 0.1).clamp(0.2, 3.0)),
+                icon: Icon(
+                  Icons.zoom_out,
+                  color: textColor.withValues(alpha: 0.7),
+                  size: 14,
+                ),
+                onPressed: () => _updateZoom(
+                  viewportController,
+                  (scale - 0.1).clamp(0.2, 3.0),
+                ),
                 constraints: const BoxConstraints(),
                 padding: EdgeInsets.zero,
               ),
@@ -41,10 +48,16 @@ class ZoomSliderWidget extends StatelessWidget {
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     trackHeight: 2,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
-                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 5,
+                    ),
+                    overlayShape: const RoundSliderOverlayShape(
+                      overlayRadius: 10,
+                    ),
                     activeTrackColor: primaryColor,
-                    inactiveTrackColor: theme.dividerColor.withValues(alpha: 0.3),
+                    inactiveTrackColor: theme.dividerColor.withValues(
+                      alpha: 0.3,
+                    ),
                     thumbColor: primaryColor,
                   ),
                   child: Slider(
@@ -56,8 +69,15 @@ class ZoomSliderWidget extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.zoom_in, color: textColor.withValues(alpha: 0.7), size: 14),
-                onPressed: () => _updateZoom(viewportController, (scale + 0.1).clamp(0.2, 3.0)),
+                icon: Icon(
+                  Icons.zoom_in,
+                  color: textColor.withValues(alpha: 0.7),
+                  size: 14,
+                ),
+                onPressed: () => _updateZoom(
+                  viewportController,
+                  (scale + 0.1).clamp(0.2, 3.0),
+                ),
                 constraints: const BoxConstraints(),
                 padding: EdgeInsets.zero,
               ),

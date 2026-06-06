@@ -61,7 +61,10 @@ Future<String?> showSaveTemplateDialog(BuildContext context) {
                 hintStyle: TextStyle(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 filled: true,
                 fillColor: Colors.black.withValues(alpha: 0.15),
                 border: OutlineInputBorder(
@@ -82,7 +85,9 @@ Future<String?> showSaveTemplateDialog(BuildContext context) {
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             style: TextButton.styleFrom(
-              foregroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              foregroundColor: theme.colorScheme.onSurface.withValues(
+                alpha: 0.6,
+              ),
             ),
             child: const Text('CANCEL'),
           ),
@@ -94,7 +99,9 @@ Future<String?> showSaveTemplateDialog(BuildContext context) {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+              backgroundColor: theme.colorScheme.primary.withValues(
+                alpha: 0.15,
+              ),
               foregroundColor: theme.colorScheme.primary,
               elevation: 0,
               shape: RoundedRectangleBorder(

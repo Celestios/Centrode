@@ -33,7 +33,7 @@ class UpdateTagsCommand extends GraphCommand {
   Future<void> execute() async {
     final allTags = await api.getAllTags();
     final Map<String, Tag> nameToTag = {
-      for (final t in allTags) t.fields.name.toLowerCase(): t
+      for (final t in allTags) t.fields.name.toLowerCase(): t,
     };
 
     final List<Tag> resolvedNewTags = [];
@@ -48,16 +48,24 @@ class UpdateTagsCommand extends GraphCommand {
       }
     }
 
-    final oldLowerNames = oldTags.map((t) => t.fields.name.toLowerCase()).toSet();
-    final newLowerNames = resolvedNewTags.map((t) => t.fields.name.toLowerCase()).toSet();
+    final oldLowerNames = oldTags
+        .map((t) => t.fields.name.toLowerCase())
+        .toSet();
+    final newLowerNames = resolvedNewTags
+        .map((t) => t.fields.name.toLowerCase())
+        .toSet();
 
     final List<NodePatch> forwardPatches = [];
     final List<NodePatch> reversePatches = [];
 
     // Tags that are truly new (their lowercase name is in resolvedNewTags but not in oldTags)
-    final added = resolvedNewTags.where((t) => !oldLowerNames.contains(t.fields.name.toLowerCase())).toList();
+    final added = resolvedNewTags
+        .where((t) => !oldLowerNames.contains(t.fields.name.toLowerCase()))
+        .toList();
     // Tags that are truly removed (their lowercase name is in oldTags but not in resolvedNewTags)
-    final removed = oldTags.where((t) => !newLowerNames.contains(t.fields.name.toLowerCase())).toList();
+    final removed = oldTags
+        .where((t) => !newLowerNames.contains(t.fields.name.toLowerCase()))
+        .toList();
 
     for (final tag in added) {
       forwardPatches.add(NodePatch.tagOp(TagOperation.add(tag.key)));
@@ -86,12 +94,14 @@ class UpdateTagsCommand extends GraphCommand {
     final node = controller.store.nodeLookup[targetId];
     if (node is InfoUiNode && _resolvedNewTags != null) {
       node.tags = _resolvedNewTags!;
-      controller.publishUpdate(GraphEntityUpdate(
-        id: targetId,
-        tableName: tableName,
-        type: GraphUpdateType.tags,
-        payload: _resolvedNewTags!,
-      ));
+      controller.publishUpdate(
+        GraphEntityUpdate(
+          id: targetId,
+          tableName: tableName,
+          type: GraphUpdateType.tags,
+          payload: _resolvedNewTags!,
+        ),
+      );
       controller.triggerUpdate();
     }
   }
@@ -101,14 +111,15 @@ class UpdateTagsCommand extends GraphCommand {
     final node = controller.store.nodeLookup[targetId];
     if (node is InfoUiNode) {
       node.tags = oldTags;
-      controller.publishUpdate(GraphEntityUpdate(
-        id: targetId,
-        tableName: tableName,
-        type: GraphUpdateType.tags,
-        payload: oldTags,
-      ));
+      controller.publishUpdate(
+        GraphEntityUpdate(
+          id: targetId,
+          tableName: tableName,
+          type: GraphUpdateType.tags,
+          payload: oldTags,
+        ),
+      );
       controller.triggerUpdate();
     }
   }
 }
-

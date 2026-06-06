@@ -13,7 +13,7 @@ class RelationRouter {
   }) {
     final path = _route(start, end, obstacles, margin, 0, maxDepth);
     final simplified = _simplifyPath(path, obstacles);
-    
+
     final cleanPath = <Offset>[];
     for (final p in simplified) {
       if (cleanPath.isEmpty || (cleanPath.last - p).distance > 0.01) {
@@ -32,7 +32,11 @@ class RelationRouter {
 
     while (current < path.length - 1) {
       int furthest = current + 1;
-      for (int candidate = path.length - 1; candidate > current + 1; candidate--) {
+      for (
+        int candidate = path.length - 1;
+        candidate > current + 1;
+        candidate--
+      ) {
         bool intersects = false;
         for (final rect in obstacles) {
           if (segmentIntersectsRect(path[current], path[candidate], rect)) {
@@ -119,9 +123,30 @@ class RelationRouter {
       }
       if (candInsideObstacle) continue;
 
-      final segment1 = _route(a, cand[0], obstacles, margin, depth + 1, maxDepth);
-      final segment2 = _route(cand[0], cand[1], obstacles, margin, depth + 1, maxDepth);
-      final segment3 = _route(cand[1], b, obstacles, margin, depth + 1, maxDepth);
+      final segment1 = _route(
+        a,
+        cand[0],
+        obstacles,
+        margin,
+        depth + 1,
+        maxDepth,
+      );
+      final segment2 = _route(
+        cand[0],
+        cand[1],
+        obstacles,
+        margin,
+        depth + 1,
+        maxDepth,
+      );
+      final segment3 = _route(
+        cand[1],
+        b,
+        obstacles,
+        margin,
+        depth + 1,
+        maxDepth,
+      );
 
       final merged = <Offset>[];
       merged.addAll(segment1);
@@ -147,7 +172,8 @@ class RelationRouter {
       }
 
       if (intersectionsCount < minIntersectionsCount ||
-          (intersectionsCount == minIntersectionsCount && length < bestLength)) {
+          (intersectionsCount == minIntersectionsCount &&
+              length < bestLength)) {
         minIntersectionsCount = intersectionsCount;
         bestLength = length;
         bestRoute = merged;
@@ -157,17 +183,42 @@ class RelationRouter {
     // Fallback: If all candidates are inside other obstacles (dense cluster), relax candidate check
     if (bestRoute == null) {
       for (final cand in candidates) {
-        final segment1 = _route(a, cand[0], obstacles, margin, depth + 1, maxDepth);
-        final segment2 = _route(cand[0], cand[1], obstacles, margin, depth + 1, maxDepth);
-        final segment3 = _route(cand[1], b, obstacles, margin, depth + 1, maxDepth);
+        final segment1 = _route(
+          a,
+          cand[0],
+          obstacles,
+          margin,
+          depth + 1,
+          maxDepth,
+        );
+        final segment2 = _route(
+          cand[0],
+          cand[1],
+          obstacles,
+          margin,
+          depth + 1,
+          maxDepth,
+        );
+        final segment3 = _route(
+          cand[1],
+          b,
+          obstacles,
+          margin,
+          depth + 1,
+          maxDepth,
+        );
 
         final merged = <Offset>[];
         merged.addAll(segment1);
         for (final p in segment2) {
-          if (merged.isEmpty || (merged.last - p).distance > 0.01) merged.add(p);
+          if (merged.isEmpty || (merged.last - p).distance > 0.01) {
+            merged.add(p);
+          }
         }
         for (final p in segment3) {
-          if (merged.isEmpty || (merged.last - p).distance > 0.01) merged.add(p);
+          if (merged.isEmpty || (merged.last - p).distance > 0.01) {
+            merged.add(p);
+          }
         }
 
         double length = 0.0;
@@ -185,7 +236,8 @@ class RelationRouter {
         }
 
         if (intersectionsCount < minIntersectionsCount ||
-            (intersectionsCount == minIntersectionsCount && length < bestLength)) {
+            (intersectionsCount == minIntersectionsCount &&
+                length < bestLength)) {
           minIntersectionsCount = intersectionsCount;
           bestLength = length;
           bestRoute = merged;
@@ -206,15 +258,16 @@ class RelationRouter {
     final rBR = rect.bottomRight;
 
     return _segmentsIntersect(p1, p2, rTL, rTR) ||
-           _segmentsIntersect(p1, p2, rTR, rBR) ||
-           _segmentsIntersect(p1, p2, rBR, rBL) ||
-           _segmentsIntersect(p1, p2, rBL, rTL);
+        _segmentsIntersect(p1, p2, rTR, rBR) ||
+        _segmentsIntersect(p1, p2, rBR, rBL) ||
+        _segmentsIntersect(p1, p2, rBL, rTL);
   }
 
   /// Checks if segment [a]-[b] intersects segment [c]-[d] using orientation checks.
   static bool _segmentsIntersect(Offset a, Offset b, Offset c, Offset d) {
     double ccw(Offset p1, Offset p2, Offset p3) {
-      return (p3.dy - p1.dy) * (p2.dx - p1.dx) - (p2.dy - p1.dy) * (p3.dx - p1.dx);
+      return (p3.dy - p1.dy) * (p2.dx - p1.dx) -
+          (p2.dy - p1.dy) * (p3.dx - p1.dx);
     }
 
     final val1 = ccw(a, b, c);
@@ -230,8 +283,10 @@ class RelationRouter {
 
     // Special cases: collinear touching segments
     bool onSegment(Offset p, Offset q, Offset r) {
-      return q.dx <= max(p.dx, r.dx) && q.dx >= min(p.dx, r.dx) &&
-             q.dy <= max(p.dy, r.dy) && q.dy >= min(p.dy, r.dy);
+      return q.dx <= max(p.dx, r.dx) &&
+          q.dx >= min(p.dx, r.dx) &&
+          q.dy <= max(p.dy, r.dy) &&
+          q.dy >= min(p.dy, r.dy);
     }
 
     if (val1 == 0 && onSegment(a, c, b)) return true;

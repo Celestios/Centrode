@@ -98,13 +98,18 @@ class PaletteActionRegistry {
       },
       isEnabled: (context) {
         final session = context.read<WorkspaceTabsController>().activeSession;
-        return session.viewportController != null && session.dataController != null;
+        return session.viewportController != null &&
+            session.dataController != null;
       },
     ),
   ];
 
   List<PaletteAction> getActions(BuildContext context) {
-    return _actions.where((action) => action.isEnabled == null || action.isEnabled!(context)).toList();
+    return _actions
+        .where(
+          (action) => action.isEnabled == null || action.isEnabled!(context),
+        )
+        .toList();
   }
 
   void registerAction(PaletteAction action) {

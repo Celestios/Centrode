@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../store/graph_data_query.dart';
+import '../../../models/models.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../presentation/viewport_state.dart';
 import '../node_widget.dart';
@@ -32,12 +33,20 @@ class NodeLayer extends StatelessWidget {
               left: 0,
               top: 0,
               child: RepaintBoundary(
-                child: NodeWidget(
-                  viewState: viewState,
-                  node: node,
-                  isSelected: isSelected,
-                  isEditing: isEditing,
-                ),
+                child: switch (node) {
+                  DrawingUiNode drawingNode => DrawNodeWidget(
+                    viewState: viewState,
+                    node: drawingNode,
+                    isSelected: isSelected,
+                    isEditing: isEditing,
+                  ),
+                  _ => NodeWidget(
+                    viewState: viewState,
+                    node: node,
+                    isSelected: isSelected,
+                    isEditing: isEditing,
+                  ),
+                },
               ),
             );
           }).toList(),

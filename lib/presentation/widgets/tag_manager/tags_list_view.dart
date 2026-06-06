@@ -7,12 +7,7 @@ import '../../../../src/rust/domain/tags.dart';
 import 'delete_tag_dialog.dart';
 import 'tag_color_picker_panel.dart';
 
-enum TagSortOption {
-  alphabeticalAsc,
-  alphabeticalDesc,
-  usageDesc,
-  usageAsc,
-}
+enum TagSortOption { alphabeticalAsc, alphabeticalDesc, usageDesc, usageAsc }
 
 class TagsListView extends StatefulWidget {
   const TagsListView({super.key});
@@ -71,7 +66,12 @@ class _TagsListViewState extends State<TagsListView> {
     return count;
   }
 
-  void _showColorPicker(BuildContext context, Offset anchorPos, Tag tag, GraphDataController controller) {
+  void _showColorPicker(
+    BuildContext context,
+    Offset anchorPos,
+    Tag tag,
+    GraphDataController controller,
+  ) {
     showDialog(
       context: context,
       barrierColor: Colors.transparent,
@@ -87,7 +87,10 @@ class _TagsListViewState extends State<TagsListView> {
             ),
             Positioned(
               left: anchorPos.dx + 28,
-              top: (anchorPos.dy - 60).clamp(20.0, MediaQuery.of(context).size.height - 200.0),
+              top: (anchorPos.dy - 60).clamp(
+                20.0,
+                MediaQuery.of(context).size.height - 200.0,
+              ),
               child: Material(
                 color: Colors.transparent,
                 child: TagColorPickerPanel(
@@ -129,7 +132,10 @@ class _TagsListViewState extends State<TagsListView> {
             ),
             Positioned(
               left: anchorPos.dx + 28,
-              top: (anchorPos.dy - 60).clamp(20.0, MediaQuery.of(context).size.height - 200.0),
+              top: (anchorPos.dy - 60).clamp(
+                20.0,
+                MediaQuery.of(context).size.height - 200.0,
+              ),
               child: Material(
                 color: Colors.transparent,
                 child: TagColorPickerPanel(
@@ -148,7 +154,10 @@ class _TagsListViewState extends State<TagsListView> {
     );
   }
 
-  void _submitCreateTag(GraphDataController controller, List<Tag> allTags) async {
+  void _submitCreateTag(
+    GraphDataController controller,
+    List<Tag> allTags,
+  ) async {
     final name = _createController.text.trim();
     if (name.isEmpty) return;
 
@@ -183,13 +192,17 @@ class _TagsListViewState extends State<TagsListView> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
-  void _submitRename(Tag tag, GraphDataController controller, List<Tag> allTags) async {
+  void _submitRename(
+    Tag tag,
+    GraphDataController controller,
+    List<Tag> allTags,
+  ) async {
     final newName = _renameController.text.trim();
     if (newName.isEmpty) {
       setState(() => _validationError = 'Name cannot be empty');
@@ -203,7 +216,11 @@ class _TagsListViewState extends State<TagsListView> {
       return;
     }
     // Check duplicates
-    if (allTags.any((t) => t.key != tag.key && t.fields.name.toLowerCase() == newName.toLowerCase())) {
+    if (allTags.any(
+      (t) =>
+          t.key != tag.key &&
+          t.fields.name.toLowerCase() == newName.toLowerCase(),
+    )) {
       setState(() => _validationError = 'Tag name must be unique');
       return;
     }
@@ -247,7 +264,8 @@ class _TagsListViewState extends State<TagsListView> {
     return FutureBuilder<List<Tag>>(
       future: controller.getAllTags(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
           return const SizedBox(
             height: 100,
             child: Center(
@@ -266,7 +284,11 @@ class _TagsListViewState extends State<TagsListView> {
         var filteredTags = allTags;
         if (_searchQuery.isNotEmpty) {
           filteredTags = allTags
-              .where((t) => t.fields.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+              .where(
+                (t) => t.fields.name.toLowerCase().contains(
+                  _searchQuery.toLowerCase(),
+                ),
+              )
               .toList();
         }
 
@@ -274,13 +296,23 @@ class _TagsListViewState extends State<TagsListView> {
         filteredTags.sort((a, b) {
           switch (_sortOption) {
             case TagSortOption.alphabeticalAsc:
-              return a.fields.name.toLowerCase().compareTo(b.fields.name.toLowerCase());
+              return a.fields.name.toLowerCase().compareTo(
+                b.fields.name.toLowerCase(),
+              );
             case TagSortOption.alphabeticalDesc:
-              return b.fields.name.toLowerCase().compareTo(a.fields.name.toLowerCase());
+              return b.fields.name.toLowerCase().compareTo(
+                a.fields.name.toLowerCase(),
+              );
             case TagSortOption.usageDesc:
-              return _getTagUsageCount(b.key, controller).compareTo(_getTagUsageCount(a.key, controller));
+              return _getTagUsageCount(
+                b.key,
+                controller,
+              ).compareTo(_getTagUsageCount(a.key, controller));
             case TagSortOption.usageAsc:
-              return _getTagUsageCount(a.key, controller).compareTo(_getTagUsageCount(b.key, controller));
+              return _getTagUsageCount(
+                a.key,
+                controller,
+              ).compareTo(_getTagUsageCount(b.key, controller));
           }
         });
 
@@ -289,7 +321,10 @@ class _TagsListViewState extends State<TagsListView> {
           children: [
             // Search Input
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.0,
+                vertical: 6.0,
+              ),
               child: SizedBox(
                 height: 32,
                 child: TextField(
@@ -320,7 +355,10 @@ class _TagsListViewState extends State<TagsListView> {
 
             // Create tag & Sort controls row
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.0,
+                vertical: 4.0,
+              ),
               child: Row(
                 children: [
                   Expanded(
@@ -333,10 +371,15 @@ class _TagsListViewState extends State<TagsListView> {
                         decoration: InputDecoration(
                           hintText: 'Create tag...',
                           hintStyle: TextStyle(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.4,
+                            ),
                             fontSize: 11,
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
                           filled: true,
                           fillColor: Colors.black.withValues(alpha: 0.1),
                           border: OutlineInputBorder(
@@ -344,7 +387,8 @@ class _TagsListViewState extends State<TagsListView> {
                             borderSide: BorderSide.none,
                           ),
                         ),
-                        onSubmitted: (_) => _submitCreateTag(controller, allTags),
+                        onSubmitted: (_) =>
+                            _submitCreateTag(controller, allTags),
                       ),
                     ),
                   ),
@@ -407,7 +451,12 @@ class _TagsListViewState extends State<TagsListView> {
                               color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 6),
-                            Text('Most Used', style: theme.textTheme.bodySmall?.copyWith(fontSize: 10)),
+                            Text(
+                              'Most Used',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 10,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -423,7 +472,12 @@ class _TagsListViewState extends State<TagsListView> {
                               color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 6),
-                            Text('Least Used', style: theme.textTheme.bodySmall?.copyWith(fontSize: 10)),
+                            Text(
+                              'Least Used',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 10,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -439,7 +493,12 @@ class _TagsListViewState extends State<TagsListView> {
                               color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 6),
-                            Text('Name A-Z', style: theme.textTheme.bodySmall?.copyWith(fontSize: 10)),
+                            Text(
+                              'Name A-Z',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 10,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -455,7 +514,12 @@ class _TagsListViewState extends State<TagsListView> {
                               color: theme.colorScheme.primary,
                             ),
                             const SizedBox(width: 6),
-                            Text('Name Z-A', style: theme.textTheme.bodySmall?.copyWith(fontSize: 10)),
+                            Text(
+                              'Name Z-A',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 10,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -508,14 +572,21 @@ class _TagsListViewState extends State<TagsListView> {
                         color: isEditing
                             ? theme.colorScheme.primary.withValues(alpha: 0.05)
                             : _hoveredTagKey == tag.key
-                                ? theme.colorScheme.onSurface.withValues(alpha: 0.04)
-                                : Colors.transparent,
+                            ? theme.colorScheme.onSurface.withValues(
+                                alpha: 0.04,
+                              )
+                            : Colors.transparent,
                         child: Row(
                           children: [
                             // Tag Color Circle (click to pick color)
                             GestureDetector(
                               onTapDown: (details) {
-                                _showColorPicker(context, details.globalPosition, tag, controller);
+                                _showColorPicker(
+                                  context,
+                                  details.globalPosition,
+                                  tag,
+                                  controller,
+                                );
                               },
                               child: MouseRegion(
                                 cursor: SystemMouseCursors.click,
@@ -536,27 +607,39 @@ class _TagsListViewState extends State<TagsListView> {
                             Expanded(
                               child: isEditing
                                   ? Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         SizedBox(
                                           height: 22,
                                           child: TextField(
                                             controller: _renameController,
                                             focusNode: _renameFocusNode,
-                                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                             decoration: const InputDecoration(
                                               contentPadding: EdgeInsets.zero,
                                               isDense: true,
                                               border: InputBorder.none,
                                             ),
-                                            onSubmitted: (_) => _submitRename(tag, controller, allTags),
+                                            onSubmitted: (_) => _submitRename(
+                                              tag,
+                                              controller,
+                                              allTags,
+                                            ),
                                           ),
                                         ),
                                         if (_validationError != null)
                                           Text(
                                             _validationError!,
-                                            style: const TextStyle(color: Colors.redAccent, fontSize: 8),
+                                            style: const TextStyle(
+                                              color: Colors.redAccent,
+                                              fontSize: 8,
+                                            ),
                                           ),
                                       ],
                                     )
@@ -583,7 +666,10 @@ class _TagsListViewState extends State<TagsListView> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.close_rounded, size: 14),
+                                    icon: const Icon(
+                                      Icons.close_rounded,
+                                      size: 14,
+                                    ),
                                     onPressed: () {
                                       setState(() {
                                         _editingTagKey = null;
@@ -591,13 +677,28 @@ class _TagsListViewState extends State<TagsListView> {
                                       });
                                     },
                                     padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 24,
+                                      minHeight: 24,
+                                      maxWidth: 24,
+                                      maxHeight: 24,
+                                    ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.check_rounded, size: 14, color: Colors.greenAccent),
-                                    onPressed: () => _submitRename(tag, controller, allTags),
+                                    icon: const Icon(
+                                      Icons.check_rounded,
+                                      size: 14,
+                                      color: Colors.greenAccent,
+                                    ),
+                                    onPressed: () =>
+                                        _submitRename(tag, controller, allTags),
                                     padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 24,
+                                      minHeight: 24,
+                                      maxWidth: 24,
+                                      maxHeight: 24,
+                                    ),
                                   ),
                                 ],
                               )
@@ -606,31 +707,56 @@ class _TagsListViewState extends State<TagsListView> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.edit_rounded, size: 14),
+                                    icon: const Icon(
+                                      Icons.edit_rounded,
+                                      size: 14,
+                                    ),
                                     onPressed: () => _startEditing(tag),
                                     padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 24,
+                                      minHeight: 24,
+                                      maxWidth: 24,
+                                      maxHeight: 24,
+                                    ),
                                     tooltip: 'Rename tag',
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete_outline_rounded, size: 14, color: Colors.redAccent),
+                                    icon: const Icon(
+                                      Icons.delete_outline_rounded,
+                                      size: 14,
+                                      color: Colors.redAccent,
+                                    ),
                                     onPressed: () async {
-                                      final confirm = await showDeleteTagDialog(context, tag.fields.name);
+                                      final confirm = await showDeleteTagDialog(
+                                        context,
+                                        tag.fields.name,
+                                      );
                                       if (confirm == true) {
                                         await controller.deleteTag(tag.key);
                                       }
                                     },
                                     padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(minWidth: 24, minHeight: 24, maxWidth: 24, maxHeight: 24),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 24,
+                                      minHeight: 24,
+                                      maxWidth: 24,
+                                      maxHeight: 24,
+                                    ),
                                     tooltip: 'Delete tag globally',
                                   ),
                                 ],
                               )
                             else
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                                  color: theme.colorScheme.primary.withValues(
+                                    alpha: 0.1,
+                                  ),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(

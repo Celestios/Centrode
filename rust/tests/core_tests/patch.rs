@@ -1,16 +1,16 @@
 use crate::common::setup_test_repo;
-use mycelium_core::domain::base_models::{Coordinates, RecordStrings, Size};
-use mycelium_core::domain::contents::Content;
-use mycelium_core::domain::nodes::{INode, Nodes};
-use mycelium_core::domain::patches::{EntityPatch, NodePatch, RelationPatch};
-use mycelium_core::domain::relations::{IRelation, IRelationFields};
-use mycelium_core::domain::styles::{NodeStyle, RelationLayout, RelationStyle};
-use mycelium_core::persistence::history::HistoryManager;
+use rust_lib_mycelium::domain::base_models::{Coordinates, RecordStrings, Size};
+use rust_lib_mycelium::domain::contents::Content;
+use rust_lib_mycelium::domain::nodes::{INode, Nodes};
+use rust_lib_mycelium::domain::patches::{EntityPatch, NodePatch, RelationPatch};
+use rust_lib_mycelium::domain::relations::{IRelation, IRelationFields};
+use rust_lib_mycelium::domain::styles::{NodeStyle, RelationLayout, RelationStyle};
+use rust_lib_mycelium::persistence::history::HistoryManager;
 use surrealdb::types::{RecordId, SurrealValue};
 
 #[tokio::test]
 async fn test_targeted_patch_and_history() {
-    use mycelium_core::domain::patches::SymmetricEntityPatch;
+    use rust_lib_mycelium::domain::patches::SymmetricEntityPatch;
 
     let repo = setup_test_repo().await;
     let history = HistoryManager::new(repo.db(), 5);
@@ -407,3 +407,4 @@ async fn test_undo_redo_update_node_via_createnode_patch() {
         panic!("Incorrect node type");
     }
 }
+

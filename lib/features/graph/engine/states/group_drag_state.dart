@@ -50,7 +50,9 @@ class GroupDragging extends CanvasInteractionState {
 
     final originalAnchorPos = originalPositions[anchorNodeId];
     if (originalAnchorPos == null) {
-      _groupDragLog.severe('Anchor node $anchorNodeId missing original position.');
+      _groupDragLog.severe(
+        'Anchor node $anchorNodeId missing original position.',
+      );
       return const CanvasIdle();
     }
 
@@ -60,7 +62,10 @@ class GroupDragging extends CanvasInteractionState {
       final vs = ctx.nodeViewStates[id];
       final originalPos = originalPositions[id];
       if (vs != null && originalPos != null) {
-        vs.positionNotifier.value = _snapToGrid(originalPos + delta, effectiveGridSize);
+        vs.positionNotifier.value = _snapToGrid(
+          originalPos + delta,
+          effectiveGridSize,
+        );
       }
     }
 

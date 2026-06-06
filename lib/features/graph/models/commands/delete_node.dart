@@ -33,12 +33,13 @@ class DeleteNodeCommand extends GraphCommand {
   void undo() {
     controller.store.nodeLookup[targetId] = node;
     controller.spatial.spatialGrid.insert(targetId, node.position);
-    controller.publishUpdate(GraphEntityUpdate(
-      id: targetId,
-      tableName: tableName,
-      type: GraphUpdateType.nodeAdded,
-    ));
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: targetId,
+        tableName: tableName,
+        type: GraphUpdateType.nodeAdded,
+      ),
+    );
     controller.triggerUpdate();
   }
 }
-

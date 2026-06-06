@@ -934,10 +934,7 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
       return;
     }
     final Vector3 translationVector = _transformer.value.getTranslation();
-    final Offset translation = Offset(
-      translationVector.x,
-      translationVector.y,
-    );
+    final Offset translation = Offset(translationVector.x, translationVector.y);
     final FrictionSimulation frictionSimulationX = FrictionSimulation(
       widget.interactionEndFrictionCoefficient,
       translation.dx,
@@ -952,16 +949,10 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
       velocity.distance,
       widget.interactionEndFrictionCoefficient,
     );
-    _animation =
-        Tween<Offset>(
-          begin: translation,
-          end: Offset(
-            frictionSimulationX.finalX,
-            frictionSimulationY.finalX,
-          ),
-        ).animate(
-          CurvedAnimation(parent: _controller, curve: Curves.decelerate),
-        );
+    _animation = Tween<Offset>(
+      begin: translation,
+      end: Offset(frictionSimulationX.finalX, frictionSimulationY.finalX),
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.decelerate));
     _controller.duration = Duration(milliseconds: (tFinal * 1000).round());
     _animation!.addListener(_handleInertiaAnimation);
     _controller.forward();
@@ -1220,8 +1211,11 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
           _velocityTracker.addPosition(event.timeStamp, event.position);
 
           if (_referenceFocalPoint != null) {
-            final Offset focalPointScene = _transformer.toScene(event.localPosition);
-            final Offset translationChange = focalPointScene - _referenceFocalPoint!;
+            final Offset focalPointScene = _transformer.toScene(
+              event.localPosition,
+            );
+            final Offset translationChange =
+                focalPointScene - _referenceFocalPoint!;
             _transformer.value = _matrixTranslate(
               _transformer.value,
               translationChange,

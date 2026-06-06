@@ -80,22 +80,25 @@ class UpdateNodeStyleCommand extends GraphCommand {
         node.size = oldSize!;
       }
       controller.styleUpdater?.updateStyleForNode(targetId);
-      controller.publishUpdate(GraphEntityUpdate(
-        id: targetId,
-        tableName: tableName,
-        type: GraphUpdateType.style,
-        payload: oldStyle,
-      ));
-      if (oldSize != null) {
-        controller.publishUpdate(GraphEntityUpdate(
+      controller.publishUpdate(
+        GraphEntityUpdate(
           id: targetId,
           tableName: tableName,
-          type: GraphUpdateType.size,
-          payload: oldSize,
-        ));
+          type: GraphUpdateType.style,
+          payload: oldStyle,
+        ),
+      );
+      if (oldSize != null) {
+        controller.publishUpdate(
+          GraphEntityUpdate(
+            id: targetId,
+            tableName: tableName,
+            type: GraphUpdateType.size,
+            payload: oldSize,
+          ),
+        );
       }
       controller.triggerUpdate();
     }
   }
 }
-

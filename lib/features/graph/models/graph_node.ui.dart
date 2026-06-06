@@ -9,6 +9,8 @@
 
 part of 'graph_node.dart';
 
+enum UiNodes { comment, drawing, frame, info, inter, media, shape, task }
+
 class CommentUiNode extends UiNode {
   String text;
 
@@ -88,6 +90,8 @@ class DrawingUiNode extends UiNode {
     super.layer,
     super.createdAt,
     super.updatedAt,
+    super.size,
+    super.locked,
     this.paths = const [],
     required this.brushType,
     required this.brushThickness,
@@ -109,6 +113,8 @@ class DrawingUiNode extends UiNode {
         layer: layer,
         createdAt: createdAt,
         updatedAt: updatedAt,
+        size: frb.Size(width: size.width.round(), height: size.height.round()),
+        locked: locked,
         paths: paths,
         brushType: brushType,
         brushThickness: brushThickness,
@@ -124,6 +130,8 @@ class DrawingUiNode extends UiNode {
       updatedAt: node.updatedAt,
       layer: node.layer,
       position: Offset(node.position.x.toDouble(), node.position.y.toDouble()),
+      size: Size(node.size.width.toDouble(), node.size.height.toDouble()),
+      locked: node.locked,
       paths: node.paths,
       brushType: node.brushType,
       brushThickness: node.brushThickness,
@@ -137,6 +145,8 @@ class DrawingUiNode extends UiNode {
     int? updatedAt,
     String? layer,
     Offset? position,
+    Size? size,
+    bool? locked,
     List<String>? paths,
     String? brushType,
     double? brushThickness,
@@ -148,6 +158,8 @@ class DrawingUiNode extends UiNode {
       updatedAt: updatedAt ?? this.updatedAt,
       layer: layer ?? this.layer,
       position: position ?? this.position,
+      size: size ?? this.size,
+      locked: locked ?? this.locked,
       paths: paths ?? this.paths,
       brushType: brushType ?? this.brushType,
       brushThickness: brushThickness ?? this.brushThickness,

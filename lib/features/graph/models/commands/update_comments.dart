@@ -34,14 +34,15 @@ class UpdateCommentsCommand extends GraphCommand {
     final node = controller.store.nodeLookup[targetId];
     if (node is InfoUiNode) {
       node.comments = oldComments;
-      controller.publishUpdate(GraphEntityUpdate(
-        id: targetId,
-        tableName: node.tableName,
-        type: GraphUpdateType.comments,
-        payload: oldComments,
-      ));
+      controller.publishUpdate(
+        GraphEntityUpdate(
+          id: targetId,
+          tableName: node.tableName,
+          type: GraphUpdateType.comments,
+          payload: oldComments,
+        ),
+      );
       controller.triggerUpdate();
     }
   }
 }
-

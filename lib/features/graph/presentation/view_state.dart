@@ -5,7 +5,6 @@ import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
 import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
 
-
 class NodeViewState {
   final String nodeId;
   final ValueNotifier<Offset> positionNotifier;
@@ -56,10 +55,10 @@ class NodeViewState {
       positionNotifier.value + Offset(sizeNotifier.value.width / 2, 0);
 
   Offset get bottomPort =>
-      positionNotifier.value + Offset(sizeNotifier.value.width / 2, sizeNotifier.value.height);
+      positionNotifier.value +
+      Offset(sizeNotifier.value.width / 2, sizeNotifier.value.height);
 
-  Offset get topLeftPort =>
-      positionNotifier.value + Offset.zero;
+  Offset get topLeftPort => positionNotifier.value + Offset.zero;
 
   Offset get topRightPort =>
       positionNotifier.value + Offset(sizeNotifier.value.width, 0);
@@ -68,7 +67,8 @@ class NodeViewState {
       positionNotifier.value + Offset(0, sizeNotifier.value.height);
 
   Offset get bottomRightPort =>
-      positionNotifier.value + Offset(sizeNotifier.value.width, sizeNotifier.value.height);
+      positionNotifier.value +
+      Offset(sizeNotifier.value.width, sizeNotifier.value.height);
 
   static const List<String> portNames = [
     'Left',
@@ -105,15 +105,15 @@ class NodeViewState {
   }
 
   Map<String, Offset> getAllPorts() => {
-        'Left': leftPort,
-        'Right': rightPort,
-        'Top': topPort,
-        'Bottom': bottomPort,
-        'TopLeft': topLeftPort,
-        'TopRight': topRightPort,
-        'BottomLeft': bottomLeftPort,
-        'BottomRight': bottomRightPort,
-      };
+    'Left': leftPort,
+    'Right': rightPort,
+    'Top': topPort,
+    'Bottom': bottomPort,
+    'TopLeft': topLeftPort,
+    'TopRight': topRightPort,
+    'BottomLeft': bottomLeftPort,
+    'BottomRight': bottomRightPort,
+  };
 
   /// Finds the name and position of the port on this node closest to a given point.
   ({String name, Offset position}) getClosestPort(Offset point) {
@@ -134,12 +134,8 @@ class NodeViewState {
 
   /// Finds the closest pair of ports between two nodes (from and to).
   /// Returns a record containing the start port name/position and the end port name/position.
-  static ({
-    String startName,
-    Offset startPos,
-    String endName,
-    Offset endPos,
-  }) getClosestPortsBetween(NodeViewState fromVs, NodeViewState toVs) {
+  static ({String startName, Offset startPos, String endName, Offset endPos})
+  getClosestPortsBetween(NodeViewState fromVs, NodeViewState toVs) {
     double bestDist = double.infinity;
     String bestStartName = 'Right';
     Offset bestStartPos = fromVs.rightPort;
@@ -169,20 +165,19 @@ class NodeViewState {
     );
   }
 
-
   Rect get rightResizeHitbox => Rect.fromLTRB(
-        rect.right - AppConfig.interaction.resizeEdgeWidth,
-        rect.top + 24.0,
-        rect.right,
-        rect.bottom,
-      );
+    rect.right - AppConfig.interaction.resizeEdgeWidth,
+    rect.top + 24.0,
+    rect.right,
+    rect.bottom,
+  );
 
   Rect get leftResizeHitbox => Rect.fromLTRB(
-        rect.left,
-        rect.top,
-        rect.left + AppConfig.interaction.resizeEdgeWidth,
-        rect.bottom,
-      );
+    rect.left,
+    rect.top,
+    rect.left + AppConfig.interaction.resizeEdgeWidth,
+    rect.bottom,
+  );
 
   Rect get expandToggleHitbox =>
       Rect.fromLTRB(rect.left, rect.bottom - 24, rect.right, rect.bottom);
@@ -196,8 +191,6 @@ class NodeViewState {
     positionNotifier.value += screenDelta / currentScale;
   }
 
-
-
   /// Called when content or aesthetics change.
   void onContentOrStyleChanged(UiNode node, {bool isEditing = false}) {
     isExpandedNotifier.value = node.isExpanded;
@@ -210,8 +203,6 @@ class NodeViewState {
   void updateDragWidth(double width) {
     dragWidthNotifier.value = width;
   }
-
-
 
   void dispose() {
     positionNotifier.dispose();

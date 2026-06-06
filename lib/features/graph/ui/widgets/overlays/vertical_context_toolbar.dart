@@ -47,9 +47,7 @@ class VerticalContextToolbar extends StatelessWidget {
     final primaryColor = theme.colorScheme.primary;
 
     return GlassGroup(
-      settings: AppConfig.liquidGlass.settings.copyWith(
-        bridgeReachFactor: 2.5,
-      ),
+      settings: AppConfig.liquidGlass.settings.copyWith(bridgeReachFactor: 2.5),
       child: SizedBox(
         width: 380,
         child: Stack(
@@ -74,314 +72,314 @@ class VerticalContextToolbar extends StatelessWidget {
                 child: const SizedBox.shrink(),
               ),
             ),
-          // Interactive Column (non-positioned, determines the height, aligned to topRight)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 4),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                // 1. Quick Actions Section
-                if (dragHandle != null) dragHandle!,
+            // Interactive Column (non-positioned, determines the height, aligned to topRight)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // 1. Quick Actions Section
+                  if (dragHandle != null) dragHandle!,
 
-                if (!isRelationOnly) ...[
+                  if (!isRelationOnly) ...[
+                    _buildQuickButton(
+                      icon: Icons.link_rounded,
+                      tooltip: 'Draw Connection',
+                      onPressed: onDrawConnection ?? () {},
+                      color: primaryColor,
+                    ),
+                  ],
+
                   _buildQuickButton(
-                    icon: Icons.link_rounded,
-                    tooltip: 'Draw Connection',
-                    onPressed: onDrawConnection ?? () {},
-                    color: primaryColor,
+                    icon: Icons.delete_outline_rounded,
+                    tooltip: 'Delete',
+                    onPressed: onDelete,
+                    color: Colors.red.shade400,
                   ),
+
+                  // Divider between Quick Actions and Group Buttons
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 1,
+                      horizontal: 4,
+                    ),
+                    child: Container(
+                      width: 24,
+                      height: 1,
+                      color: theme.dividerColor.withValues(alpha: 0.3),
+                    ),
+                  ),
+
+                  // 2. Group Buttons Section
+                  if (isRelationOnly) ...[
+                    // Relation-specific style groups
+                    VerticalToolbarGroupButton(
+                      triggerIcon: Icons.timeline_rounded,
+                      triggerTooltip: 'Relation Style',
+                      submenuButtons: [
+                        SubmenuButtonData(
+                          icon: Icons.linear_scale_rounded,
+                          tooltip: 'Straight Route',
+                          onPressed: () =>
+                              onRelationLayoutChanged?.call('default'),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.gesture_rounded,
+                          tooltip: 'Bezier Route',
+                          onPressed: () =>
+                              onRelationLayoutChanged?.call('bezier'),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.route_rounded,
+                          tooltip: 'Manhattan Route',
+                          onPressed: () =>
+                              onRelationLayoutChanged?.call('orthogonal'),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.border_style_rounded,
+                          tooltip: 'Solid Line',
+                          onPressed: () =>
+                              onRelationStrokePatternChanged?.call('solid'),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.border_clear_rounded,
+                          tooltip: 'Dashed Line',
+                          onPressed: () =>
+                              onRelationStrokePatternChanged?.call('dashed'),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.blur_on_rounded,
+                          tooltip: 'Dotted Line',
+                          onPressed: () =>
+                              onRelationStrokePatternChanged?.call('dotted'),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.arrow_forward_rounded,
+                          tooltip: 'One-Way Direction',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.swap_horiz_rounded,
+                          tooltip: 'Bi-Directional',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.colorize_rounded,
+                          tooltip: 'Relation Color',
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
+                  ] else if (isMulti) ...[
+                    // Multi-selection specific groups
+                    VerticalToolbarGroupButton(
+                      triggerIcon: Icons.align_horizontal_left_rounded,
+                      triggerTooltip: 'Align & Distribute',
+                      submenuButtons: [
+                        SubmenuButtonData(
+                          icon: Icons.align_horizontal_left_rounded,
+                          tooltip: 'Align Left',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.align_horizontal_center_rounded,
+                          tooltip: 'Align Center (Horiz)',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.align_horizontal_right_rounded,
+                          tooltip: 'Align Right',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.align_vertical_top_rounded,
+                          tooltip: 'Align Top',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.align_vertical_center_rounded,
+                          tooltip: 'Align Middle (Vert)',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.align_vertical_bottom_rounded,
+                          tooltip: 'Align Bottom',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.horizontal_distribute_rounded,
+                          tooltip: 'Distribute Horizontally',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.vertical_distribute_rounded,
+                          tooltip: 'Distribute Vertically',
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
+                    VerticalToolbarGroupButton(
+                      triggerIcon: Icons.text_format_rounded,
+                      triggerTooltip: 'Batch Format Text',
+                      iconSize: 26,
+                      submenuButtons: [
+                        SubmenuButtonData(
+                          icon: Icons.format_bold_rounded,
+                          tooltip: 'Bold',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.format_italic_rounded,
+                          tooltip: 'Italic',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.palette_outlined,
+                          tooltip: 'Text Color',
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
+                    VerticalToolbarGroupButton(
+                      triggerIcon: Icons.settings_outlined,
+                      triggerTooltip: 'Group Actions',
+                      submenuButtons: [
+                        SubmenuButtonData(
+                          icon: Icons.group_work_outlined,
+                          tooltip: 'Group Items',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.bookmark_add_outlined,
+                          tooltip: 'Save Group as Template',
+                          onPressed: onSaveTemplate ?? () {},
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    // Single Node style & format groups
+                    VerticalToolbarGroupButton(
+                      triggerIcon: Icons.text_format_rounded,
+                      triggerTooltip: 'Text Formatting',
+                      iconSize: 26,
+                      submenuButtons: [
+                        SubmenuButtonData(
+                          icon: Icons.format_bold_rounded,
+                          tooltip: 'Bold',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.format_italic_rounded,
+                          tooltip: 'Italic',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.format_underlined_rounded,
+                          tooltip: 'Underline',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.format_align_left_rounded,
+                          tooltip: 'Align Left',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.format_align_center_rounded,
+                          tooltip: 'Align Center',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.format_align_right_rounded,
+                          tooltip: 'Align Right',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.remove_rounded,
+                          tooltip: 'Decrease Font Size',
+                          onPressed: onDecreaseFontSize ?? () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.add_rounded,
+                          tooltip: 'Increase Font Size',
+                          onPressed: onIncreaseFontSize ?? () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.text_fields_rounded,
+                          tooltip: 'Toggle Font Family',
+                          onPressed: onToggleFontFamily ?? () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.palette_outlined,
+                          tooltip: 'Cycle Text Color',
+                          onPressed: onCycleTextColor ?? () {},
+                        ),
+                      ],
+                    ),
+                    VerticalToolbarGroupButton(
+                      triggerIcon: Icons.category_rounded,
+                      triggerTooltip: 'Shape & Style',
+                      submenuButtons: [
+                        SubmenuButtonData(
+                          icon: Icons.crop_square_rounded,
+                          tooltip: 'Rectangle Shape',
+                          onPressed: () => onShapeChanged?.call('rectangle'),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.rounded_corner_rounded,
+                          tooltip: 'Rounded Rectangle Shape',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.stadium_outlined,
+                          tooltip: 'Pill Shape',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.circle_outlined,
+                          tooltip: 'Circle Shape',
+                          onPressed: () => onShapeChanged?.call('circle'),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.format_color_fill_rounded,
+                          tooltip: 'Background Fill Color',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.line_weight_rounded,
+                          tooltip: 'Border Style',
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
+                    VerticalToolbarGroupButton(
+                      triggerIcon: Icons.settings_outlined,
+                      triggerTooltip: 'Node Settings',
+                      submenuButtons: [
+                        SubmenuButtonData(
+                          icon: Icons.bookmark_add_outlined,
+                          tooltip: 'Save as Template',
+                          onPressed: onSaveTemplate ?? () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.lock_outline_rounded,
+                          tooltip: 'Lock/Unlock Position',
+                          onPressed: () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.unfold_less_rounded,
+                          tooltip: 'Collapse/Expand Subtree',
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
-
-                _buildQuickButton(
-                  icon: Icons.delete_outline_rounded,
-                  tooltip: 'Delete',
-                  onPressed: onDelete,
-                  color: Colors.red.shade400,
-                ),
-
-                // Divider between Quick Actions and Group Buttons
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 1,
-                    horizontal: 4,
-                  ),
-                  child: Container(
-                    width: 24,
-                    height: 1,
-                    color: theme.dividerColor.withValues(alpha: 0.3),
-                  ),
-                ),
-
-                // 2. Group Buttons Section
-                if (isRelationOnly) ...[
-                  // Relation-specific style groups
-                  VerticalToolbarGroupButton(
-                    triggerIcon: Icons.timeline_rounded,
-                    triggerTooltip: 'Relation Style',
-                    submenuButtons: [
-                      SubmenuButtonData(
-                        icon: Icons.linear_scale_rounded,
-                        tooltip: 'Straight Route',
-                        onPressed: () =>
-                            onRelationLayoutChanged?.call('default'),
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.gesture_rounded,
-                        tooltip: 'Bezier Route',
-                        onPressed: () =>
-                            onRelationLayoutChanged?.call('bezier'),
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.route_rounded,
-                        tooltip: 'Manhattan Route',
-                        onPressed: () =>
-                            onRelationLayoutChanged?.call('orthogonal'),
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.border_style_rounded,
-                        tooltip: 'Solid Line',
-                        onPressed: () =>
-                            onRelationStrokePatternChanged?.call('solid'),
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.border_clear_rounded,
-                        tooltip: 'Dashed Line',
-                        onPressed: () =>
-                            onRelationStrokePatternChanged?.call('dashed'),
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.blur_on_rounded,
-                        tooltip: 'Dotted Line',
-                        onPressed: () =>
-                            onRelationStrokePatternChanged?.call('dotted'),
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.arrow_forward_rounded,
-                        tooltip: 'One-Way Direction',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.swap_horiz_rounded,
-                        tooltip: 'Bi-Directional',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.colorize_rounded,
-                        tooltip: 'Relation Color',
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                ] else if (isMulti) ...[
-                  // Multi-selection specific groups
-                  VerticalToolbarGroupButton(
-                    triggerIcon: Icons.align_horizontal_left_rounded,
-                    triggerTooltip: 'Align & Distribute',
-                    submenuButtons: [
-                      SubmenuButtonData(
-                        icon: Icons.align_horizontal_left_rounded,
-                        tooltip: 'Align Left',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.align_horizontal_center_rounded,
-                        tooltip: 'Align Center (Horiz)',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.align_horizontal_right_rounded,
-                        tooltip: 'Align Right',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.align_vertical_top_rounded,
-                        tooltip: 'Align Top',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.align_vertical_center_rounded,
-                        tooltip: 'Align Middle (Vert)',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.align_vertical_bottom_rounded,
-                        tooltip: 'Align Bottom',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.horizontal_distribute_rounded,
-                        tooltip: 'Distribute Horizontally',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.vertical_distribute_rounded,
-                        tooltip: 'Distribute Vertically',
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                  VerticalToolbarGroupButton(
-                    triggerIcon: Icons.text_format_rounded,
-                    triggerTooltip: 'Batch Format Text',
-                    iconSize: 26,
-                    submenuButtons: [
-                      SubmenuButtonData(
-                        icon: Icons.format_bold_rounded,
-                        tooltip: 'Bold',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.format_italic_rounded,
-                        tooltip: 'Italic',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.palette_outlined,
-                        tooltip: 'Text Color',
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                  VerticalToolbarGroupButton(
-                    triggerIcon: Icons.settings_outlined,
-                    triggerTooltip: 'Group Actions',
-                    submenuButtons: [
-                      SubmenuButtonData(
-                        icon: Icons.group_work_outlined,
-                        tooltip: 'Group Items',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.bookmark_add_outlined,
-                        tooltip: 'Save Group as Template',
-                        onPressed: onSaveTemplate ?? () {},
-                      ),
-                    ],
-                  ),
-                ] else ...[
-                  // Single Node style & format groups
-                  VerticalToolbarGroupButton(
-                    triggerIcon: Icons.text_format_rounded,
-                    triggerTooltip: 'Text Formatting',
-                    iconSize: 26,
-                    submenuButtons: [
-                      SubmenuButtonData(
-                        icon: Icons.format_bold_rounded,
-                        tooltip: 'Bold',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.format_italic_rounded,
-                        tooltip: 'Italic',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.format_underlined_rounded,
-                        tooltip: 'Underline',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.format_align_left_rounded,
-                        tooltip: 'Align Left',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.format_align_center_rounded,
-                        tooltip: 'Align Center',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.format_align_right_rounded,
-                        tooltip: 'Align Right',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.remove_rounded,
-                        tooltip: 'Decrease Font Size',
-                        onPressed: onDecreaseFontSize ?? () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.add_rounded,
-                        tooltip: 'Increase Font Size',
-                        onPressed: onIncreaseFontSize ?? () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.text_fields_rounded,
-                        tooltip: 'Toggle Font Family',
-                        onPressed: onToggleFontFamily ?? () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.palette_outlined,
-                        tooltip: 'Cycle Text Color',
-                        onPressed: onCycleTextColor ?? () {},
-                      ),
-                    ],
-                  ),
-                  VerticalToolbarGroupButton(
-                    triggerIcon: Icons.category_rounded,
-                    triggerTooltip: 'Shape & Style',
-                    submenuButtons: [
-                      SubmenuButtonData(
-                        icon: Icons.crop_square_rounded,
-                        tooltip: 'Rectangle Shape',
-                        onPressed: () => onShapeChanged?.call('rectangle'),
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.rounded_corner_rounded,
-                        tooltip: 'Rounded Rectangle Shape',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.stadium_outlined,
-                        tooltip: 'Pill Shape',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.circle_outlined,
-                        tooltip: 'Circle Shape',
-                        onPressed: () => onShapeChanged?.call('circle'),
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.format_color_fill_rounded,
-                        tooltip: 'Background Fill Color',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.line_weight_rounded,
-                        tooltip: 'Border Style',
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                  VerticalToolbarGroupButton(
-                    triggerIcon: Icons.settings_outlined,
-                    triggerTooltip: 'Node Settings',
-                    submenuButtons: [
-                      SubmenuButtonData(
-                        icon: Icons.bookmark_add_outlined,
-                        tooltip: 'Save as Template',
-                        onPressed: onSaveTemplate ?? () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.lock_outline_rounded,
-                        tooltip: 'Lock/Unlock Position',
-                        onPressed: () {},
-                      ),
-                      SubmenuButtonData(
-                        icon: Icons.unfold_less_rounded,
-                        tooltip: 'Collapse/Expand Subtree',
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                ],
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-     ),
     );
   }
 
@@ -467,7 +465,7 @@ class _VerticalToolbarGroupButtonState
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             // Submenu - Expanded to the left (by placing it to the left of the trigger in a Row)
-              if (_isHovered)
+            if (_isHovered)
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: GlassPanel(
@@ -479,10 +477,10 @@ class _VerticalToolbarGroupButtonState
                     vertical: 2,
                   ),
                   shadow: BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.12),
-                      blurRadius: 8,
-                      offset: const Offset(-2, 2),
-                    ),
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 8,
+                    offset: const Offset(-2, 2),
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: widget.submenuButtons

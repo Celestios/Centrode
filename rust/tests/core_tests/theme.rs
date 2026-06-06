@@ -1,5 +1,5 @@
 use crate::common::setup_test_repo;
-use mycelium_core::domain::theme::{FontWeight, ThemeBrightness, ThemeFields};
+use rust_lib_mycelium::domain::theme::{FontWeight, ThemeBrightness, ThemeFields};
 use surrealdb::types::RecordId;
 
 #[tokio::test]
@@ -87,3 +87,4 @@ async fn test_theme_crud_and_active_theme() {
     assert_eq!(themes[0].secondary_color, 0x445566);
     assert_eq!(themes[0].accent_color, 0x778899);
 }
+

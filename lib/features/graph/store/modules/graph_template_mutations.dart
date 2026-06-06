@@ -22,20 +22,15 @@ class GraphTemplateMutations {
     final dynamic api = controller.syncEngine.api;
     final nodeRecords = nodeIds.map((id) {
       final node = controller.store.nodeLookup[id];
-      final table = node?.tableName ?? (id.contains(':') ? id.split(':').first : 'INode');
+      final table =
+          node?.tableName ?? (id.contains(':') ? id.split(':').first : 'INode');
       final key = id.contains(':') ? id.split(':').last : id;
-      return RecordStrings(
-        table: table,
-        key: key,
-      );
+      return RecordStrings(table: table, key: key);
     }).toList();
     final relationRecords = relationIds.map((id) {
       final table = id.contains(':') ? id.split(':').first : 'IRelation';
       final key = id.contains(':') ? id.split(':').last : id;
-      return RecordStrings(
-        table: table,
-        key: key,
-      );
+      return RecordStrings(table: table, key: key);
     }).toList();
 
     await api.saveTemplateFromSelection(

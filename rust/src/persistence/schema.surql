@@ -223,6 +223,10 @@ DEFINE FIELD OVERWRITE paths ON TABLE DrawingNode TYPE array;
 DEFINE FIELD OVERWRITE brush_type ON TABLE DrawingNode TYPE string;
 DEFINE FIELD OVERWRITE brush_thickness ON TABLE DrawingNode TYPE float;
 DEFINE FIELD OVERWRITE brush_color ON TABLE DrawingNode TYPE string;
+DEFINE FIELD OVERWRITE size ON TABLE DrawingNode TYPE object;
+DEFINE FIELD OVERWRITE size.width ON TABLE DrawingNode TYPE int;
+DEFINE FIELD OVERWRITE size.height ON TABLE DrawingNode TYPE int;
+DEFINE FIELD OVERWRITE locked ON TABLE DrawingNode TYPE bool;
 
 -- ---------------------------------------------------------------------------
 -- Fields for `ShapeNode`

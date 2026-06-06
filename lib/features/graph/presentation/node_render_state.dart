@@ -25,10 +25,14 @@ class NodeRenderState extends ChangeNotifier {
   final GraphDataController _dataController;
 
   /// Tracks the currently active inspector tab.
-  final ValueNotifier<InspectorTab> activeInspectorTabNotifier = ValueNotifier(InspectorTab.appearance);
+  final ValueNotifier<InspectorTab> activeInspectorTabNotifier = ValueNotifier(
+    InspectorTab.appearance,
+  );
 
   /// ID of the node whose metadata is currently hovered on canvas.
-  final ValueNotifier<String?> hoveredNodeMetadataNotifier = ValueNotifier(null);
+  final ValueNotifier<String?> hoveredNodeMetadataNotifier = ValueNotifier(
+    null,
+  );
 
   /// Map of currently active visual view states.
   final Map<String, NodeViewState> viewStates = {};
@@ -72,7 +76,9 @@ class NodeRenderState extends ChangeNotifier {
 
   NodeRenderState(this._dataController) {
     _dataController.addListener(_onDataChanged);
-    _updateSubscription = _dataController.onEntityUpdate.listen(_handleEntityUpdate);
+    _updateSubscription = _dataController.onEntityUpdate.listen(
+      _handleEntityUpdate,
+    );
     _syncAtomicUIState(); // Initial synchronization projection
   }
 
@@ -103,10 +109,7 @@ class NodeRenderState extends ChangeNotifier {
             relationPathCache.clear();
             final node = _dataController.nodeLookup[id];
             if (node != null) {
-              vs.onContentOrStyleChanged(
-                node,
-                isEditing: id == activeEditId,
-              );
+              vs.onContentOrStyleChanged(node, isEditing: id == activeEditId);
             }
           }
         }
@@ -133,10 +136,7 @@ class NodeRenderState extends ChangeNotifier {
         if (vs != null) {
           final node = _dataController.nodeLookup[id];
           if (node != null) {
-            vs.onContentOrStyleChanged(
-              node,
-              isEditing: id == activeEditId,
-            );
+            vs.onContentOrStyleChanged(node, isEditing: id == activeEditId);
           }
         }
         break;
@@ -174,7 +174,8 @@ class NodeRenderState extends ChangeNotifier {
     relationPathCache.removeWhere((relId, _) {
       final rel = _dataController.relationLookup[relId];
       if (rel == null) return true;
-      return draggingNodes.contains(rel.fromNodeId) || draggingNodes.contains(rel.toNodeId);
+      return draggingNodes.contains(rel.fromNodeId) ||
+          draggingNodes.contains(rel.toNodeId);
     });
     movementNotifier.pulse();
   }
@@ -318,9 +319,22 @@ class NodeRenderState extends ChangeNotifier {
                 relations: _dataController.relations.toList(),
                 pathCache: relationPathCache,
               );
-              final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
-              final (start, end) = layoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
-              return layoutStrategy.computeLabelPosition(start, end, sourceVs, targetVs, rel, layoutContext);
+              final layoutStrategy = RelationLayoutStrategy.fromType(
+                rel.layout?.strategyType,
+              );
+              final (start, end) = layoutStrategy.resolveEndpoints(
+                rel,
+                sourceVs,
+                targetVs,
+              );
+              return layoutStrategy.computeLabelPosition(
+                start,
+                end,
+                sourceVs,
+                targetVs,
+                rel,
+                layoutContext,
+              );
             }
           }
         } catch (_) {}

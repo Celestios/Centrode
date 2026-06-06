@@ -50,7 +50,8 @@ class GlassPanel extends StatelessWidget {
     final useQuality = hasStage && resolvedMode == GlassMode.quality;
 
     final shouldIsolate =
-        useQuality && (groupScope == null || groupScope.mode != GlassMode.quality);
+        useQuality &&
+        (groupScope == null || groupScope.mode != GlassMode.quality);
     if (shouldIsolate) {
       final resolvedSettings = groupScope?.settings ?? stageScope.settings;
       return GlassGroup(
@@ -207,20 +208,12 @@ class _GlassPanelBody extends StatelessWidget {
           onTap: onTap,
           onLongPress: onLongPress,
           borderRadius: borderRadiusValue,
-          child: Padding(
-            padding: padding ?? EdgeInsets.zero,
-            child: child,
-          ),
+          child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
         ),
       );
     }
 
-    return padding != null
-        ? Padding(
-            padding: padding!,
-            child: child,
-          )
-        : child;
+    return padding != null ? Padding(padding: padding!, child: child) : child;
   }
 
   Widget _buildQualityPanel({
@@ -306,10 +299,7 @@ class _GlassShapeRenderObjectWidget extends SingleChildRenderObjectWidget {
       RenderGlassShape(borderRadius, color);
 
   @override
-  void updateRenderObject(
-    BuildContext context,
-    RenderGlassShape renderObject,
-  ) {
+  void updateRenderObject(BuildContext context, RenderGlassShape renderObject) {
     renderObject
       ..borderRadius = borderRadius
       ..color = color;
@@ -355,7 +345,8 @@ class RenderGlassShape extends RenderProxyBox {
 
   _RenderGlassGroup? _findLayer() {
     var parentRenderObject = parent;
-    while (parentRenderObject != null && parentRenderObject is! _RenderGlassGroup) {
+    while (parentRenderObject != null &&
+        parentRenderObject is! _RenderGlassGroup) {
       parentRenderObject = parentRenderObject.parent;
     }
     return parentRenderObject as _RenderGlassGroup?;

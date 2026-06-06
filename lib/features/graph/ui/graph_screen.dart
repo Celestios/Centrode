@@ -47,10 +47,12 @@ class _GraphScreenState extends State<GraphScreen> {
           final activeSession = tabsController.activeSession;
 
           return ListenableBuilder(
-            listenable: Listenable.merge([
-              activeSession,
-              activeSession.themeController,
-            ].whereType<Listenable>()),
+            listenable: Listenable.merge(
+              [
+                activeSession,
+                activeSession.themeController,
+              ].whereType<Listenable>(),
+            ),
             builder: (context, _) {
               final mapTheme = activeSession.themeController?.currentGraphTheme;
               ThemeData fallbackTheme() {
@@ -140,7 +142,9 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
 
   Widget _buildSessionContent(BuildContext context) {
     return MultiProvider(
-      key: ValueKey(widget.session.id), // Reconstruct providers and context hierarchy
+      key: ValueKey(
+        widget.session.id,
+      ), // Reconstruct providers and context hierarchy
       providers: [
         ChangeNotifierProvider<ThemeController>.value(
           value: widget.session.themeController!,
@@ -148,14 +152,14 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
         ChangeNotifierProvider<GraphDataController>.value(
           value: widget.session.dataController!,
         ),
-        ListenableProvider<GraphDataQuery>.value(value: widget.session.dataController!),
+        ListenableProvider<GraphDataQuery>.value(
+          value: widget.session.dataController!,
+        ),
         ChangeNotifierProvider<NodeRenderState>.value(
           value: widget.session.nodeRenderState!,
         ),
       ],
-      child: const Material(
-        child: GraphCanvas(),
-      ),
+      child: const Material(child: GraphCanvas()),
     );
   }
 
@@ -184,10 +188,9 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
           );
         }
 
-        if (snapshot.connectionState != ConnectionState.done || !widget.session.isInitialized) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+        if (snapshot.connectionState != ConnectionState.done ||
+            !widget.session.isInitialized) {
+          return const Center(child: CircularProgressIndicator());
         }
 
         return _buildSessionContent(context);

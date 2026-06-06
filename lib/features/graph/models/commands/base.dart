@@ -19,5 +19,3 @@ abstract class GraphCommand {
   /// Lifecycle hook called after successful FFI execution.
   void onSuccess() {}
 }
-
-

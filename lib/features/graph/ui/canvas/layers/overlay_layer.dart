@@ -40,9 +40,7 @@ class OverlayLayer extends StatelessWidget {
             if (interactionState is MarqueeSelecting)
               Positioned.fill(
                 child: CustomPaint(
-                  painter: _MarqueePainter(
-                    state: interactionState,
-                  ),
+                  painter: _MarqueePainter(state: interactionState),
                 ),
               ),
 
@@ -50,12 +48,15 @@ class OverlayLayer extends StatelessWidget {
             ListenableBuilder(
               listenable: renderState.hoveredNodeMetadataNotifier,
               builder: (context, _) {
-                final hoveredNodeId = renderState.hoveredNodeMetadataNotifier.value;
+                final hoveredNodeId =
+                    renderState.hoveredNodeMetadataNotifier.value;
                 if (hoveredNodeId == null) return const SizedBox.shrink();
 
                 final node = dataController.nodeLookup[hoveredNodeId];
                 final vs = renderState.viewStates[hoveredNodeId];
-                if (node is! InfoUiNode || vs == null) return const SizedBox.shrink();
+                if (node is! InfoUiNode || vs == null) {
+                  return const SizedBox.shrink();
+                }
 
                 final rect = vs.rect;
                 final sphereCenter = Offset(
@@ -64,8 +65,10 @@ class OverlayLayer extends StatelessWidget {
                 );
 
                 return Positioned(
-                  left: sphereCenter.dx + AppConfig.node.metadataPreviewOffset.dx,
-                  top: sphereCenter.dy + AppConfig.node.metadataPreviewOffset.dy,
+                  left:
+                      sphereCenter.dx + AppConfig.node.metadataPreviewOffset.dx,
+                  top:
+                      sphereCenter.dy + AppConfig.node.metadataPreviewOffset.dy,
                   child: FractionalTranslation(
                     translation: const Offset(-0.5, -1.0),
                     child: MetadataPreviewOverlay(node: node),
@@ -109,7 +112,10 @@ class _TempRelationPainter extends CustomPainter {
         final sourceVs = nodeViewStates[sourceId];
         if (sourceVs == null) continue;
 
-        final closest = NodeViewState.getClosestPortsBetween(sourceVs, targetVs);
+        final closest = NodeViewState.getClosestPortsBetween(
+          sourceVs,
+          targetVs,
+        );
         canvas.drawLine(closest.startPos, closest.endPos, paint);
       }
     } else {

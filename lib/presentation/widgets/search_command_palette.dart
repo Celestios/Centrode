@@ -93,7 +93,7 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
       setState(() {
         _results = results;
         _isLoading = false;
-        
+
         int firstSelectable = 0;
         for (int i = 0; i < _results.length; i++) {
           if (_results[i].type != SearchResultType.relationHeader) {
@@ -114,7 +114,10 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
     _overlayEntry = OverlayEntry(
       builder: (overlayContext) {
         final theme = Theme.of(overlayContext);
-        final dataController = context.read<WorkspaceTabsController>().activeSession.dataController;
+        final dataController = context
+            .read<WorkspaceTabsController>()
+            .activeSession
+            .dataController;
 
         if (_searchController.text.trim().isEmpty) {
           return const SizedBox.shrink();
@@ -146,243 +149,310 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                          if (_isLoading)
-                            LinearProgressIndicator(
-                              minHeight: 2,
-                              backgroundColor: Colors.transparent,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                theme.colorScheme.primary,
+                        if (_isLoading)
+                          LinearProgressIndicator(
+                            minHeight: 2,
+                            backgroundColor: Colors.transparent,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              theme.colorScheme.primary,
+                            ),
+                          ),
+                        if (!_isLoading && _results.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text(
+                              'No matching results',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.hintColor,
                               ),
                             ),
-                           if (!_isLoading && _results.isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Text(
-                                'No matching results',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.hintColor,
-                                ),
-                              ),
-                            )
-                          else if (_results.isNotEmpty)
-                            Flexible(
-                              child: ListView.builder(
-                                controller: _scrollController,
-                                shrinkWrap: true,
-                                padding: EdgeInsets.zero,
-                                itemCount: _results.length,
-                                itemBuilder: (context, index) {
-                                  final item = _results[index];
-                                  final isSelected = index == _selectedIndex;
+                          )
+                        else if (_results.isNotEmpty)
+                          Flexible(
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              shrinkWrap: true,
+                              padding: EdgeInsets.zero,
+                              itemCount: _results.length,
+                              itemBuilder: (context, index) {
+                                final item = _results[index];
+                                final isSelected = index == _selectedIndex;
 
-                                  if (item.type == SearchResultType.relationHeader) {
-                                    final verbColor = _getVerbColor(item.relationVerb, theme);
-                                    return Container(
-                                      padding: const EdgeInsets.only(left: 14, right: 14, top: 14, bottom: 8),
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                            decoration: BoxDecoration(
-                                              color: verbColor.withValues(alpha: 0.1),
-                                              border: Border.all(
-                                                color: verbColor.withValues(alpha: 0.4),
-                                                width: 1,
-                                              ),
-                                              borderRadius: BorderRadius.circular(6),
+                                if (item.type ==
+                                    SearchResultType.relationHeader) {
+                                  final verbColor = _getVerbColor(
+                                    item.relationVerb,
+                                    theme,
+                                  );
+                                  return Container(
+                                    padding: const EdgeInsets.only(
+                                      left: 14,
+                                      right: 14,
+                                      top: 14,
+                                      bottom: 8,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 3,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: verbColor.withValues(
+                                              alpha: 0.1,
                                             ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(
-                                                  Icons.alt_route_rounded,
-                                                  size: 10,
-                                                  color: verbColor,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  item.relationVerb?.toUpperCase() ?? 'RELATION',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    letterSpacing: 1.1,
-                                                    color: verbColor,
-                                                    fontSize: 9,
-                                                  ),
-                                                ),
-                                              ],
+                                            border: Border.all(
+                                              color: verbColor.withValues(
+                                                alpha: 0.4,
+                                              ),
+                                              width: 1,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
                                             ),
                                           ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Container(
-                                              height: 1,
-                                              color: theme.dividerColor.withValues(alpha: 0.15),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }
-
-                                  if (item.type == SearchResultType.relation) {
-                                    final rel = item.relation;
-                                    final fromNode = rel != null ? dataController?.nodeLookup[rel.fromNodeId] : null;
-                                    final toNode = rel != null ? dataController?.nodeLookup[rel.toNodeId] : null;
-                                    final verbColor = _getVerbColor(item.relationVerb, theme);
-
-                                    return InkWell(
-                                      onTap: () => _selectItem(item),
-                                      child: Container(
-                                        padding: const EdgeInsets.only(
-                                          left: 28,
-                                          right: 14,
-                                          top: 8,
-                                          bottom: 8,
-                                        ),
-                                        color: isSelected
-                                            ? theme.colorScheme.primary.withValues(alpha: 0.15)
-                                            : Colors.transparent,
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              item.icon,
-                                              size: 14,
-                                              color: isSelected
-                                                  ? theme.colorScheme.primary
-                                                  : verbColor.withValues(alpha: 0.7),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            _buildNodePreview(fromNode, theme),
-                                            Expanded(
-                                              child: Container(
-                                                margin: const EdgeInsets.symmetric(horizontal: 8),
-                                                child: Stack(
-                                                  alignment: Alignment.center,
-                                                  children: [
-                                                    Container(
-                                                      height: 1.5,
-                                                      color: verbColor.withValues(alpha: 0.3),
-                                                    ),
-                                                    Align(
-                                                      alignment: Alignment.centerRight,
-                                                      child: Icon(
-                                                        Icons.chevron_right_rounded,
-                                                        size: 14,
-                                                        color: verbColor.withValues(alpha: 0.5),
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                                                      decoration: BoxDecoration(
-                                                        color: theme.cardColor,
-                                                        border: Border.all(
-                                                          color: verbColor.withValues(alpha: 0.4),
-                                                          width: 1,
-                                                        ),
-                                                        borderRadius: BorderRadius.circular(4),
-                                                      ),
-                                                      child: Text(
-                                                        item.relationVerb ?? '',
-                                                        style: TextStyle(
-                                                          fontSize: 8,
-                                                          fontWeight: FontWeight.bold,
-                                                          color: verbColor,
-                                                        ),
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow.ellipsis,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.alt_route_rounded,
+                                                size: 10,
+                                                color: verbColor,
                                               ),
-                                            ),
-                                            _buildNodePreview(toNode, theme),
-                                            if (isSelected) ...[
-                                              const SizedBox(width: 8),
+                                              const SizedBox(width: 4),
                                               Text(
-                                                'Enter',
-                                                style: theme.textTheme.bodySmall?.copyWith(
-                                                  color: theme.colorScheme.primary,
-                                                  fontSize: 10,
+                                                item.relationVerb
+                                                        ?.toUpperCase() ??
+                                                    'RELATION',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: 1.1,
+                                                  color: verbColor,
+                                                  fontSize: 9,
                                                 ),
                                               ),
                                             ],
-                                          ],
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  }
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Container(
+                                            height: 1,
+                                            color: theme.dividerColor
+                                                .withValues(alpha: 0.15),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+
+                                if (item.type == SearchResultType.relation) {
+                                  final rel = item.relation;
+                                  final fromNode = rel != null
+                                      ? dataController?.nodeLookup[rel
+                                            .fromNodeId]
+                                      : null;
+                                  final toNode = rel != null
+                                      ? dataController?.nodeLookup[rel.toNodeId]
+                                      : null;
+                                  final verbColor = _getVerbColor(
+                                    item.relationVerb,
+                                    theme,
+                                  );
 
                                   return InkWell(
                                     onTap: () => _selectItem(item),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 8,
+                                      padding: const EdgeInsets.only(
+                                        left: 28,
+                                        right: 14,
+                                        top: 8,
+                                        bottom: 8,
                                       ),
                                       color: isSelected
-                                          ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                                          ? theme.colorScheme.primary
+                                                .withValues(alpha: 0.15)
                                           : Colors.transparent,
                                       child: Row(
                                         children: [
                                           Icon(
                                             item.icon,
-                                            size: 18,
+                                            size: 14,
                                             color: isSelected
                                                 ? theme.colorScheme.primary
-                                                : theme.iconTheme.color?.withValues(alpha: 0.7),
+                                                : verbColor.withValues(
+                                                    alpha: 0.7,
+                                                  ),
                                           ),
-                                          const SizedBox(width: 12),
+                                          const SizedBox(width: 8),
+                                          _buildNodePreview(fromNode, theme),
                                           Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  item.title,
-                                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                                    fontWeight: isSelected
-                                                        ? FontWeight.bold
-                                                        : FontWeight.normal,
+                                            child: Container(
+                                              margin:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
                                                   ),
-                                                ),
-                                                Text(
-                                                  item.subtitle,
-                                                  style: theme.textTheme.bodySmall?.copyWith(
-                                                    color: theme.hintColor,
-                                                    fontSize: 10,
+                                              child: Stack(
+                                                alignment: Alignment.center,
+                                                children: [
+                                                  Container(
+                                                    height: 1.5,
+                                                    color: verbColor.withValues(
+                                                      alpha: 0.3,
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          if (isSelected)
-                                            Text(
-                                              'Enter',
-                                              style: theme.textTheme.bodySmall?.copyWith(
-                                                color: theme.colorScheme.primary,
-                                                fontSize: 10,
+                                                  Align(
+                                                    alignment:
+                                                        Alignment.centerRight,
+                                                    child: Icon(
+                                                      Icons
+                                                          .chevron_right_rounded,
+                                                      size: 14,
+                                                      color: verbColor
+                                                          .withValues(
+                                                            alpha: 0.5,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 6,
+                                                          vertical: 1.5,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: theme.cardColor,
+                                                      border: Border.all(
+                                                        color: verbColor
+                                                            .withValues(
+                                                              alpha: 0.4,
+                                                            ),
+                                                        width: 1,
+                                                      ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            4,
+                                                          ),
+                                                    ),
+                                                    child: Text(
+                                                      item.relationVerb ?? '',
+                                                      style: TextStyle(
+                                                        fontSize: 8,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: verbColor,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
+                                          ),
+                                          _buildNodePreview(toNode, theme),
+                                          if (isSelected) ...[
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Enter',
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: theme
+                                                        .colorScheme
+                                                        .primary,
+                                                    fontSize: 10,
+                                                  ),
+                                            ),
+                                          ],
                                         ],
                                       ),
                                     ),
                                   );
-                                },
-                              ),
+                                }
+
+                                return InkWell(
+                                  onTap: () => _selectItem(item),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 8,
+                                    ),
+                                    color: isSelected
+                                        ? theme.colorScheme.primary.withValues(
+                                            alpha: 0.15,
+                                          )
+                                        : Colors.transparent,
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          item.icon,
+                                          size: 18,
+                                          color: isSelected
+                                              ? theme.colorScheme.primary
+                                              : theme.iconTheme.color
+                                                    ?.withValues(alpha: 0.7),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                item.title,
+                                                style: theme
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
+                                                      fontWeight: isSelected
+                                                          ? FontWeight.bold
+                                                          : FontWeight.normal,
+                                                    ),
+                                              ),
+                                              Text(
+                                                item.subtitle,
+                                                style: theme.textTheme.bodySmall
+                                                    ?.copyWith(
+                                                      color: theme.hintColor,
+                                                      fontSize: 10,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        if (isSelected)
+                                          Text(
+                                            'Enter',
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                                  color:
+                                                      theme.colorScheme.primary,
+                                                  fontSize: 10,
+                                                ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
-                    ],
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      );
-    },
-  );
+        );
+      },
+    );
 
-  overlay.insert(_overlayEntry!);
+    overlay.insert(_overlayEntry!);
   }
 
   void _hideOverlay() {
@@ -424,13 +494,17 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
       if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
         setState(() {
           if (_results.isNotEmpty) {
-            final hasSelectable = _results.any((r) => r.type != SearchResultType.relationHeader);
+            final hasSelectable = _results.any(
+              (r) => r.type != SearchResultType.relationHeader,
+            );
             if (hasSelectable) {
               int attempts = 0;
               do {
                 _selectedIndex = (_selectedIndex + 1) % _results.length;
                 attempts++;
-              } while (_results[_selectedIndex].type == SearchResultType.relationHeader && attempts < _results.length);
+              } while (_results[_selectedIndex].type ==
+                      SearchResultType.relationHeader &&
+                  attempts < _results.length);
               _scrollToIndex(_selectedIndex);
             }
           }
@@ -439,13 +513,18 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
       } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
         setState(() {
           if (_results.isNotEmpty) {
-            final hasSelectable = _results.any((r) => r.type != SearchResultType.relationHeader);
+            final hasSelectable = _results.any(
+              (r) => r.type != SearchResultType.relationHeader,
+            );
             if (hasSelectable) {
               int attempts = 0;
               do {
-                _selectedIndex = (_selectedIndex - 1 + _results.length) % _results.length;
+                _selectedIndex =
+                    (_selectedIndex - 1 + _results.length) % _results.length;
                 attempts++;
-              } while (_results[_selectedIndex].type == SearchResultType.relationHeader && attempts < _results.length);
+              } while (_results[_selectedIndex].type ==
+                      SearchResultType.relationHeader &&
+                  attempts < _results.length);
               _scrollToIndex(_selectedIndex);
             }
           }
@@ -520,9 +599,7 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                     child: TextField(
                       controller: _searchController,
                       focusNode: _focusNode,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontSize: 12,
-                      ),
+                      style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
                       decoration: InputDecoration(
                         hintText: "Search ('>' cmd, '#' tag, '?' db)...",
                         hintStyle: theme.textTheme.bodyMedium?.copyWith(
@@ -537,7 +614,10 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                   ),
                   if (hasFocus)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       margin: const EdgeInsets.only(right: 6),
                       decoration: BoxDecoration(
                         color: theme.dividerColor.withValues(alpha: 0.1),
@@ -578,8 +658,12 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
 
     final style = node.resolvedStyle;
     final bgColor = style != null ? Color(style.bgColor) : theme.cardColor;
-    final strokeColor = style != null ? Color(style.strokeColor) : theme.dividerColor;
-    final textColor = style != null ? Color(style.textColor) : theme.textTheme.bodyMedium?.color;
+    final strokeColor = style != null
+        ? Color(style.strokeColor)
+        : theme.dividerColor;
+    final textColor = style != null
+        ? Color(style.textColor)
+        : theme.textTheme.bodyMedium?.color;
     final borderRadius = style != null ? style.borderRadius : 4.0;
     final isCircle = style?.shape == 'circle';
 
@@ -588,11 +672,10 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: isCircle ? BorderRadius.circular(100) : BorderRadius.circular(borderRadius),
-        border: Border.all(
-          color: strokeColor,
-          width: 1,
-        ),
+        borderRadius: isCircle
+            ? BorderRadius.circular(100)
+            : BorderRadius.circular(borderRadius),
+        border: Border.all(color: strokeColor, width: 1),
       ),
       child: Text(
         node.text.isEmpty ? 'Untitled Node' : node.text,
@@ -609,25 +692,27 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
   }
 
   Color _getVerbColor(String? verb, ThemeData theme) {
-    if (verb == null || verb.isEmpty || verb.trim().toLowerCase() == 'default') {
+    if (verb == null ||
+        verb.isEmpty ||
+        verb.trim().toLowerCase() == 'default') {
       return theme.colorScheme.primary;
     }
     final verbClean = verb.trim().toLowerCase();
-    
+
     // Hash the string to get a deterministic hue value
     int hash = 0;
     for (int i = 0; i < verbClean.length; i++) {
       hash = verbClean.codeUnitAt(i) + ((hash << 5) - hash);
     }
-    
+
     // Convert hash to hue (0-360)
     final double hue = (hash.abs() % 360).toDouble();
-    
+
     // Adjust saturation and lightness for visibility based on theme brightness
     final isDark = theme.brightness == Brightness.dark;
     final double saturation = isDark ? 0.75 : 0.65;
     final double lightness = isDark ? 0.65 : 0.45;
-    
+
     return HSLColor.fromAHSL(1.0, hue, saturation, lightness).toColor();
   }
 }

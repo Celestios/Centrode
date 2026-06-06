@@ -68,27 +68,37 @@ class ContextToolbarOverlay extends StatelessWidget {
       }
     }
 
-    final isRelationOnly = selectedViewStates.isEmpty && selectedRelations.isNotEmpty;
+    final isRelationOnly =
+        selectedViewStates.isEmpty && selectedRelations.isNotEmpty;
 
     return ListenableBuilder(
       listenable: Listenable.merge(listenables),
       builder: (context, _) {
         Offset anchor = Offset.zero;
         if (selectedViewStates.isNotEmpty || selectedRelations.isNotEmpty) {
-          anchor = renderState.calculateToolbarAnchor(renderState.selectedEntities) ?? Offset.zero;
+          anchor =
+              renderState.calculateToolbarAnchor(
+                renderState.selectedEntities,
+              ) ??
+              Offset.zero;
         }
 
         final offset = offsetNotifier.value;
         final canvasPosition = anchor + offset;
 
         final matrix = viewportController.transformController.value;
-        final screenPosition = MatrixUtils.transformPoint(matrix, canvasPosition);
+        final screenPosition = MatrixUtils.transformPoint(
+          matrix,
+          canvasPosition,
+        );
 
         final nodeIds = renderState.selectedEntities
             .where((id) => dataController.nodeLookup.containsKey(id))
             .toList();
         final canSaveTemplate = nodeIds.isNotEmpty;
-        final String? singleNodeId = (!isMulti && nodeIds.length == 1) ? nodeIds.first : null;
+        final String? singleNodeId = (!isMulti && nodeIds.length == 1)
+            ? nodeIds.first
+            : null;
 
         return Positioned(
           left: screenPosition.dx - 340,
@@ -109,7 +119,8 @@ class ContextToolbarOverlay extends StatelessWidget {
             },
             onRelationStrokePatternChanged: (pattern) {
               for (final rel in selectedRelations) {
-                final currentStyle = rel.style ?? RelationStyleStrategy.resolveStyle(rel);
+                final currentStyle =
+                    rel.style ?? RelationStyleStrategy.resolveStyle(rel);
                 dataController.updateRelationStyle(
                   rel.id,
                   currentStyle.copyWith(strokePattern: pattern),
@@ -152,7 +163,9 @@ class ContextToolbarOverlay extends StatelessWidget {
             onToggleFontFamily: () {
               if (singleNodeId != null) {
                 _updateNodeStyle(singleNodeId, dataController, (style) {
-                  final nextFont = style.fontFamily == 'Roboto' ? 'Inter' : 'Roboto';
+                  final nextFont = style.fontFamily == 'Roboto'
+                      ? 'Inter'
+                      : 'Roboto';
                   return style.copyWith(fontFamily: nextFont);
                 });
               }

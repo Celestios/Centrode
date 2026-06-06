@@ -66,16 +66,26 @@ abstract class RelationLayoutStrategy {
     }
 
     // 1. Dragging start tip: resolve end port dynamically relative to active start if end side is Auto
-    if (overrideStart != null && overrideEnd == null && endSize != Size.zero && (toSide == null || toSide == 'Auto')) {
+    if (overrideStart != null &&
+        overrideEnd == null &&
+        endSize != Size.zero &&
+        (toSide == null || toSide == 'Auto')) {
       end = toVs.getClosestPort(overrideStart).position;
     }
     // 2. Dragging end tip: resolve start port dynamically relative to active end if start side is Auto
-    else if (overrideEnd != null && overrideStart == null && startSize != Size.zero && (fromSide == null || fromSide == 'Auto')) {
+    else if (overrideEnd != null &&
+        overrideStart == null &&
+        startSize != Size.zero &&
+        (fromSide == null || fromSide == 'Auto')) {
       start = fromVs.getClosestPort(overrideEnd).position;
     }
     // 3. Normal routing (neither side is overridden)
-    else if (overrideStart == null && overrideEnd == null && startSize != Size.zero && endSize != Size.zero &&
-        ((fromSide == null || fromSide == 'Auto') || (toSide == null || toSide == 'Auto'))) {
+    else if (overrideStart == null &&
+        overrideEnd == null &&
+        startSize != Size.zero &&
+        endSize != Size.zero &&
+        ((fromSide == null || fromSide == 'Auto') ||
+            (toSide == null || toSide == 'Auto'))) {
       if (fromSide != null && fromSide != 'Auto') {
         final explicitStart = fromVs.getPortPosition(fromSide);
         start = explicitStart;
@@ -141,10 +151,7 @@ abstract class RelationLayoutStrategy {
     final tStart = metric.getTangentForOffset(16.0);
     final tEnd = metric.getTangentForOffset(length - 16.0);
 
-    return (
-      tStart?.position ?? start,
-      tEnd?.position ?? end,
-    );
+    return (tStart?.position ?? start, tEnd?.position ?? end);
   }
 
   /// Computes the center position where the relation label should be rendered.
@@ -383,7 +390,11 @@ class BezierRelationLayoutStrategy extends RelationLayoutStrategy {
     final toSide = _resolveSideFromOffset(toVs, end, layout?.toSide);
 
     final startNormal = _getPortNormal(fromSide, start, waypoints[1]);
-    final endNormal = _getPortNormal(toSide, end, waypoints[waypoints.length - 2]);
+    final endNormal = _getPortNormal(
+      toSide,
+      end,
+      waypoints[waypoints.length - 2],
+    );
 
     final points = <Offset>[];
     // Virtual start point to force orthogonal exit
@@ -445,7 +456,8 @@ class BezierRelationLayoutStrategy extends RelationLayoutStrategy {
       for (int i = 0; i <= 10; i++) {
         final t = i / 10.0;
         final mt = 1.0 - t;
-        final pt = start * (mt * mt * mt) +
+        final pt =
+            start * (mt * mt * mt) +
             p1 * (3 * mt * mt * t) +
             p2 * (3 * mt * t * t) +
             end * (t * t * t);
@@ -461,7 +473,11 @@ class BezierRelationLayoutStrategy extends RelationLayoutStrategy {
     final toSide = _resolveSideFromOffset(toVs, end, layout?.toSide);
 
     final startNormal = _getPortNormal(fromSide, start, waypoints[1]);
-    final endNormal = _getPortNormal(toSide, end, waypoints[waypoints.length - 2]);
+    final endNormal = _getPortNormal(
+      toSide,
+      end,
+      waypoints[waypoints.length - 2],
+    );
 
     final points = <Offset>[];
     points.add(start - startNormal * 30.0);
@@ -490,7 +506,8 @@ class BezierRelationLayoutStrategy extends RelationLayoutStrategy {
       for (int k = 1; k <= 3; k++) {
         final t = k / 3.0;
         final mt = 1.0 - t;
-        final pt = startPoint * (mt * mt) + pCurr * (2 * mt * t) + endPoint * (t * t);
+        final pt =
+            startPoint * (mt * mt) + pCurr * (2 * mt * t) + endPoint * (t * t);
         samples.add(pt);
       }
     }
@@ -663,7 +680,14 @@ class OrthogonalRelationLayoutStrategy extends RelationLayoutStrategy {
     UiRelation relation,
     RelationLayoutContext context,
   ) {
-    final orthoPoints = getOrthoPoints(start, end, fromVs, toVs, relation, context);
+    final orthoPoints = getOrthoPoints(
+      start,
+      end,
+      fromVs,
+      toVs,
+      relation,
+      context,
+    );
     final path = Path();
     if (orthoPoints.isNotEmpty) {
       path.moveTo(orthoPoints.first.dx, orthoPoints.first.dy);
@@ -683,7 +707,14 @@ class OrthogonalRelationLayoutStrategy extends RelationLayoutStrategy {
     UiRelation relation,
     RelationLayoutContext context,
   ) {
-    final orthoPoints = getOrthoPoints(start, end, fromVs, toVs, relation, context);
+    final orthoPoints = getOrthoPoints(
+      start,
+      end,
+      fromVs,
+      toVs,
+      relation,
+      context,
+    );
     if (orthoPoints.length < 2) return (start + end) / 2;
 
     double totalLength = 0.0;
@@ -721,12 +752,20 @@ class OrthogonalRelationLayoutStrategy extends RelationLayoutStrategy {
     double threshold,
     RelationLayoutContext context,
   ) {
-    final orthoPoints = getOrthoPoints(start, end, fromVs, toVs, relation, context);
+    final orthoPoints = getOrthoPoints(
+      start,
+      end,
+      fromVs,
+      toVs,
+      relation,
+      context,
+    );
     if (orthoPoints.length < 2) {
       return distanceToSegment(p, start, end) <= threshold;
     }
     for (int i = 0; i < orthoPoints.length - 1; i++) {
-      if (distanceToSegment(p, orthoPoints[i], orthoPoints[i + 1]) <= threshold) {
+      if (distanceToSegment(p, orthoPoints[i], orthoPoints[i + 1]) <=
+          threshold) {
         return true;
       }
     }

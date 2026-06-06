@@ -1,16 +1,16 @@
 use crate::common::setup_test_repo;
-use mycelium_core::domain::base_models::{Coordinates, RecordStrings, Size};
-use mycelium_core::domain::contents::Content;
-use mycelium_core::domain::nodes::{INode, InterNode, Nodes, TaskNode};
-use mycelium_core::domain::relations::{IRelation, IRelationFields};
-use mycelium_core::domain::tags::TagEdge;
+use rust_lib_mycelium::domain::base_models::{Coordinates, RecordStrings, Size};
+use rust_lib_mycelium::domain::contents::Content;
+use rust_lib_mycelium::domain::nodes::{INode, InterNode, Nodes, TaskNode};
+use rust_lib_mycelium::domain::relations::{IRelation, IRelationFields};
+use rust_lib_mycelium::domain::tags::TagEdge;
 use std::time::Duration;
 
 #[tokio::test]
 async fn test_repo_crud() {
     let repo = setup_test_repo().await;
 
-    use mycelium_core::domain::tags::{Tag, TagFields};
+    use rust_lib_mycelium::domain::tags::{Tag, TagFields};
     let tag = Tag {
         key: "tag1".to_string(),
         fields: TagFields {
@@ -454,3 +454,4 @@ async fn test_relation_rerouting_and_deletion() {
     assert_eq!(fetched.in_, RecordStrings::from("INode:n1"));
     assert_eq!(fetched.out, RecordStrings::from("INode:n3"));
 }
+

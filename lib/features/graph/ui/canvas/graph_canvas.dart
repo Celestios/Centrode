@@ -26,6 +26,7 @@ import '../../../../presentation/widgets/template_manager/global_templates_manag
 import '../../../../presentation/widgets/drawing_manager/global_drawing_panel.dart';
 import '../../../../presentation/widgets/template_manager/save_template_dialog.dart';
 import '../../models/left_panel_type.dart';
+import 'package:flutter/gestures.dart';
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
@@ -210,21 +211,24 @@ class _GraphCanvasState extends State<GraphCanvas>
                       cursor: cursor,
                       onExit: (_) {
                         _mousePositionNotifier.value = null;
-                        interactionController.environment.setHoveredNodeMetadata(null);
+                        interactionController.environment
+                            .setHoveredNodeMetadata(null);
                       },
                       child: child,
                     );
                   },
                   child: Listener(
                     onPointerDown: (event) {
-                      if (session.toolModeNotifier.value == 'draw') {
+                      if (session.toolModeNotifier.value == 'draw' &&
+                          event.buttons == kPrimaryMouseButton) {
                         _startDrawing(event, viewportController);
                       } else {
                         interactionController.handlePointerDown(event);
                       }
                     },
                     onPointerMove: (event) {
-                      if (session.toolModeNotifier.value == 'draw') {
+                      if (session.toolModeNotifier.value == 'draw' &&
+                          _activeStroke.isNotEmpty) {
                         _updateDrawing(event, viewportController);
                       } else {
                         interactionController.handlePointerMove(event);
@@ -232,14 +236,16 @@ class _GraphCanvasState extends State<GraphCanvas>
                       }
                     },
                     onPointerUp: (event) {
-                      if (session.toolModeNotifier.value == 'draw') {
+                      if (session.toolModeNotifier.value == 'draw' &&
+                          _activeStroke.isNotEmpty) {
                         _endDrawing(dataController, session);
                       } else {
                         interactionController.handlePointerUp(event);
                       }
                     },
                     onPointerCancel: (event) {
-                      if (session.toolModeNotifier.value == 'draw') {
+                      if (session.toolModeNotifier.value == 'draw' &&
+                          event.buttons == kPrimaryMouseButton) {
                         _cancelDrawing();
                       } else {
                         interactionController.handlePointerCancel(event);
@@ -287,11 +293,15 @@ class _GraphCanvasState extends State<GraphCanvas>
                                 return ValueListenableBuilder<String>(
                                   valueListenable: session.toolModeNotifier,
                                   builder: (context, currentMode, _) {
-                                    final isDrawMode = currentMode == 'draw';
-                                    final viewerPanEnabled = isDrawMode ? false : panScaleEnabled;
+                                    // final isDrawMode = currentMode == 'draw';
+                                    // final viewerPanEnabled = isDrawMode
+                                    //     ? false
+                                    //     : panScaleEnabled;
+                                    final viewerPanEnabled = panScaleEnabled;
                                     return CanvasInteractiveViewer(
                                       transformationController:
-                                          viewportController.transformController,
+                                          viewportController
+                                              .transformController,
                                       constrained: true,
                                       boundaryMargin: elasticMargins,
                                       minScale: AppConfig.canvas.minScale,
@@ -336,9 +346,14 @@ class _GraphCanvasState extends State<GraphCanvas>
                                         child: CustomPaint(
                                           painter: ActiveDrawingPainter(
                                             points: _activeStroke,
-                                            brushColor: session.brushColorNotifier.value,
-                                            brushThickness: session.brushThicknessNotifier.value,
-                                            brushType: session.brushTypeNotifier.value,
+                                            brushColor: session
+                                                .brushColorNotifier
+                                                .value,
+                                            brushThickness: session
+                                                .brushThicknessNotifier
+                                                .value,
+                                            brushType:
+                                                session.brushTypeNotifier.value,
                                           ),
                                         ),
                                       ),
@@ -374,13 +389,13 @@ class _GraphCanvasState extends State<GraphCanvas>
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w300,
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.3),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Flexible(
-                          child: CanvasTabBar(),
-                        ),
+                        const Flexible(child: CanvasTabBar()),
                       ],
                     ),
                   ),
@@ -517,21 +532,35 @@ class _GraphCanvasState extends State<GraphCanvas>
 
   List<Offset> _activeStroke = [];
 
-  Offset _getLocalCanvasCoords(Offset localPosition, ViewportController viewportController) {
+  Offset _getLocalCanvasCoords(
+    Offset localPosition,
+    ViewportController viewportController,
+  ) {
     final transform = viewportController.transformController.value;
     if (transform.determinant() == 0.0) return localPosition;
     final inverse = Matrix4.inverted(transform);
     return MatrixUtils.transformPoint(inverse, localPosition);
   }
 
-  void _startDrawing(PointerDownEvent event, ViewportController viewportController) {
+  void _startDrawing(
+    PointerDownEvent event,
+    ViewportController viewportController,
+  ) {
     setState(() {
-      _activeStroke = [_getLocalCanvasCoords(event.localPosition, viewportController)];
+      _activeStroke = [
+        _getLocalCanvasCoords(event.localPosition, viewportController),
+      ];
     });
   }
 
-  void _updateDrawing(PointerMoveEvent event, ViewportController viewportController) {
-    final currentPoint = _getLocalCanvasCoords(event.localPosition, viewportController);
+  void _updateDrawing(
+    PointerMoveEvent event,
+    ViewportController viewportController,
+  ) {
+    final currentPoint = _getLocalCanvasCoords(
+      event.localPosition,
+      viewportController,
+    );
     final type = _boundSession?.brushTypeNotifier.value ?? 'pen';
     setState(() {
       if (type == 'line') {
@@ -573,11 +602,13 @@ class _GraphCanvasState extends State<GraphCanvas>
     }
 
     const padding = 12.0;
-    final normalizedPoints = _activeStroke.map((p) {
-      final rx = p.dx - minX + padding;
-      final ry = p.dy - minY + padding;
-      return '${rx.toStringAsFixed(1)},${ry.toStringAsFixed(1)}';
-    }).join(';');
+    final normalizedPoints = _activeStroke
+        .map((p) {
+          final rx = p.dx - minX + padding;
+          final ry = p.dy - minY + padding;
+          return '${rx.toStringAsFixed(1)},${ry.toStringAsFixed(1)}';
+        })
+        .join(';');
 
     final nodePosition = Offset(minX - padding, minY - padding);
     final nodeSize = Size(width + padding * 2, height + padding * 2);
@@ -662,4 +693,3 @@ class ActiveDrawingPainter extends CustomPainter {
         oldDelegate.brushType != brushType;
   }
 }
-

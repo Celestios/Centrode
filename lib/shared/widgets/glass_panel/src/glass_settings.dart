@@ -103,14 +103,20 @@ class GlassSettings {
       lightbandStrength: lightbandStrength ?? this.lightbandStrength,
       lightbandColor: lightbandColor ?? this.lightbandColor,
       bridgeReachFactor: bridgeReachFactor ?? this.bridgeReachFactor,
-      bridgeThicknessFactor: bridgeThicknessFactor ?? this.bridgeThicknessFactor,
+      bridgeThicknessFactor:
+          bridgeThicknessFactor ?? this.bridgeThicknessFactor,
       fallbackTintAlpha: fallbackTintAlpha ?? this.fallbackTintAlpha,
-      specularStrengthDivisor: specularStrengthDivisor ?? this.specularStrengthDivisor,
+      specularStrengthDivisor:
+          specularStrengthDivisor ?? this.specularStrengthDivisor,
       maxSpecularAlpha: maxSpecularAlpha ?? this.maxSpecularAlpha,
-      minSpecularAngularWidth: minSpecularAngularWidth ?? this.minSpecularAngularWidth,
-      maxSpecularAngularWidth: maxSpecularAngularWidth ?? this.maxSpecularAngularWidth,
-      specularStrokeWidthScale: specularStrokeWidthScale ?? this.specularStrokeWidthScale,
-      rimHighlightStrokeWidthScale: rimHighlightStrokeWidthScale ?? this.rimHighlightStrokeWidthScale,
+      minSpecularAngularWidth:
+          minSpecularAngularWidth ?? this.minSpecularAngularWidth,
+      maxSpecularAngularWidth:
+          maxSpecularAngularWidth ?? this.maxSpecularAngularWidth,
+      specularStrokeWidthScale:
+          specularStrokeWidthScale ?? this.specularStrokeWidthScale,
+      rimHighlightStrokeWidthScale:
+          rimHighlightStrokeWidthScale ?? this.rimHighlightStrokeWidthScale,
       aaPx: aaPx ?? this.aaPx,
       useLocalCoordinates: useLocalCoordinates ?? this.useLocalCoordinates,
       forceCpuFallback: forceCpuFallback ?? this.forceCpuFallback,

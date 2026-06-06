@@ -99,33 +99,38 @@ class UpdateTextCommand extends GraphCommand {
     if (node != null) {
       if (oldContent != null) {
         node.content = oldContent!;
-        controller.publishUpdate(GraphEntityUpdate(
-          id: targetId,
-          tableName: node.tableName,
-          type: GraphUpdateType.text,
-          payload: oldContent!.text,
-        ));
+        controller.publishUpdate(
+          GraphEntityUpdate(
+            id: targetId,
+            tableName: node.tableName,
+            type: GraphUpdateType.text,
+            payload: oldContent!.text,
+          ),
+        );
       }
       if (oldSize != null) {
         node.size = oldSize!;
-        controller.publishUpdate(GraphEntityUpdate(
-          id: targetId,
-          tableName: node.tableName,
-          type: GraphUpdateType.size,
-          payload: oldSize,
-        ));
+        controller.publishUpdate(
+          GraphEntityUpdate(
+            id: targetId,
+            tableName: node.tableName,
+            type: GraphUpdateType.size,
+            payload: oldSize,
+          ),
+        );
       }
     } else if (rel != null) {
       if (oldVerb != null) {
         rel.verb = oldVerb!;
-        controller.publishUpdate(GraphEntityUpdate(
-          id: targetId,
-          tableName: 'IRelation',
-          type: GraphUpdateType.text,
-          payload: oldVerb,
-        ));
+        controller.publishUpdate(
+          GraphEntityUpdate(
+            id: targetId,
+            tableName: 'IRelation',
+            type: GraphUpdateType.text,
+            payload: oldVerb,
+          ),
+        );
       }
     }
   }
 }
-

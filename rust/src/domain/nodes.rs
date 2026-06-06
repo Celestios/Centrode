@@ -91,6 +91,8 @@ define_nodes! {
         pub brush_type: String,
         pub brush_thickness: f64,
         pub brush_color: String,
+        pub size: Size,
+        pub locked: bool,
     };
 
     ShapeNode, "ShapeNode", [] {

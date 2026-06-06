@@ -122,7 +122,7 @@ fn test_nested_control_has_nested_key() {
 }
 
 // ----- Generic record wrapper test -----
-use mycelium_core::domain::base_models::RecordStrings;
+use rust_lib_mycelium::domain::base_models::RecordStrings;
 
 #[derive(Debug, Clone, SurrealValue)]
 pub struct GenericRecord<T: SurrealValue> {
@@ -177,3 +177,4 @@ fn test_generic_record_flatten_roundtrip() {
     assert_eq!(deserialized.data.value, "Hello");
     assert_eq!(deserialized.data.active, true);
 }
+

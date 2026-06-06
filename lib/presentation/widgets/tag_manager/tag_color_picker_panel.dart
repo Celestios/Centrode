@@ -106,8 +106,10 @@ class _TagColorPickerPanelState extends State<TagColorPickerPanel> {
                       child: Icon(
                         Icons.local_offer,
                         size: 14,
-                        color: ThemeData.estimateBrightnessForColor(
-                                    Color(_selectedColor)) ==
+                        color:
+                            ThemeData.estimateBrightnessForColor(
+                                  Color(_selectedColor),
+                                ) ==
                                 Brightness.dark
                             ? Colors.white
                             : Colors.black87,
@@ -121,7 +123,7 @@ class _TagColorPickerPanelState extends State<TagColorPickerPanel> {
                   final colorVal = presetColors[index];
                   final angle = index * 30.0 * math.pi / 180.0;
                   const radius = 48.0;
-                  
+
                   // Coordinate offset calculation
                   final x = 65.0 + radius * math.cos(angle) - 11.0;
                   final y = 65.0 + radius * math.sin(angle) - 11.0;
@@ -157,8 +159,10 @@ class _TagColorPickerPanelState extends State<TagColorPickerPanel> {
                               ? Icon(
                                   Icons.check_rounded,
                                   size: 10,
-                                  color: ThemeData.estimateBrightnessForColor(
-                                              Color(colorVal)) ==
+                                  color:
+                                      ThemeData.estimateBrightnessForColor(
+                                            Color(colorVal),
+                                          ) ==
                                           Brightness.dark
                                       ? Colors.white
                                       : Colors.black87,
@@ -239,8 +243,10 @@ class _TagColorPickerPanelState extends State<TagColorPickerPanel> {
                         ? Icon(
                             Icons.check_rounded,
                             size: 10,
-                            color: ThemeData.estimateBrightnessForColor(
-                                        Color(colorVal)) ==
+                            color:
+                                ThemeData.estimateBrightnessForColor(
+                                      Color(colorVal),
+                                    ) ==
                                     Brightness.dark
                                 ? Colors.white
                                 : Colors.black87,

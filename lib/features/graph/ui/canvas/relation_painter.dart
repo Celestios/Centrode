@@ -10,7 +10,8 @@ import '../../engine/base_interaction_state.dart';
 
 class RelationPainter extends CustomPainter {
   final List<UiRelation> relations;
-  final Map<String, NodeViewState> nodeViewStates; // Use ViewStates for real-time positions
+  final Map<String, NodeViewState>
+  nodeViewStates; // Use ViewStates for real-time positions
   final Set<String> selectedEntities; // Selection state from NodeRenderState
   final Map<String, List<Offset>> pathCache;
   final Map<String, (Offset start, Offset end)> draggingOverrides;
@@ -45,7 +46,9 @@ class RelationPainter extends CustomPainter {
 
       if (from == null || to == null) continue;
 
-      final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
+      final layoutStrategy = RelationLayoutStrategy.fromType(
+        rel.layout?.strategyType,
+      );
 
       Offset start;
       Offset end;
@@ -55,7 +58,11 @@ class RelationPainter extends CustomPainter {
         start = override.$1;
         end = override.$2;
       } else {
-        final (resolvedStart, resolvedEnd) = layoutStrategy.resolveEndpoints(rel, from, to);
+        final (resolvedStart, resolvedEnd) = layoutStrategy.resolveEndpoints(
+          rel,
+          from,
+          to,
+        );
         start = resolvedStart;
         end = resolvedEnd;
       }
@@ -65,7 +72,9 @@ class RelationPainter extends CustomPainter {
 
       // Apply selection styling or dragging styling
       final isSelected = selectedEntities.contains(rel.id);
-      final drag = (interactionState is RelationTipDragging && (interactionState as RelationTipDragging).relationId == rel.id)
+      final drag =
+          (interactionState is RelationTipDragging &&
+              (interactionState as RelationTipDragging).relationId == rel.id)
           ? interactionState as RelationTipDragging
           : null;
 
@@ -84,8 +93,15 @@ class RelationPainter extends CustomPainter {
       }
 
       // Draw relation path (straight line or Bezier curve)
-      final path = layoutStrategy.computePath(start, end, from, to, rel, layoutContext);
-      
+      final path = layoutStrategy.computePath(
+        start,
+        end,
+        from,
+        to,
+        rel,
+        layoutContext,
+      );
+
       final strokePattern = resolved.strokePattern;
       if (strokePattern == 'dashed' || strokePattern == 'dotted') {
         final decoratedPath = _createPatternedPath(path, strokePattern);
@@ -122,22 +138,32 @@ class RelationPainter extends CustomPainter {
 
       // Draw Label (Centered on the layout path)
       if (rel.verb.isNotEmpty) {
-        final mid = layoutStrategy.computeLabelPosition(start, end, from, to, rel, layoutContext);
+        final mid = layoutStrategy.computeLabelPosition(
+          start,
+          end,
+          from,
+          to,
+          rel,
+          layoutContext,
+        );
         _drawText(canvas, rel.verb, mid, paint.color, paint.strokeWidth);
       }
     }
   }
 
-  void _drawText(Canvas canvas, String text, Offset pos, Color strokeColor, double strokeWidth) {
+  void _drawText(
+    Canvas canvas,
+    String text,
+    Offset pos,
+    Color strokeColor,
+    double strokeWidth,
+  ) {
     final textStyle = TextStyle(
       color: theme.colorScheme.onSurface,
       fontSize: 10,
       fontWeight: FontWeight.w500,
     );
-    final textSpan = TextSpan(
-      text: text,
-      style: textStyle,
-    );
+    final textSpan = TextSpan(text: text, style: textStyle);
     final textPainter = TextPainter(
       text: textSpan,
       textDirection: TextDirection.ltr,
@@ -186,7 +212,10 @@ class RelationPainter extends CustomPainter {
         final double len = draw ? dashLen : gapLen;
         if (draw) {
           dest.addPath(
-            metric.extractPath(distance, (distance + len).clamp(0.0, metric.length)),
+            metric.extractPath(
+              distance,
+              (distance + len).clamp(0.0, metric.length),
+            ),
             Offset.zero,
           );
         }

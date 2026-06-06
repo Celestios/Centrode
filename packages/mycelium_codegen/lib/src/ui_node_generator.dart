@@ -23,17 +23,33 @@ class UiNodeGenerator extends Generator {
 
     // List of classes ending in Node, excluding the Nodes union wrappers
     final nodeClasses = ffiReader.classes
-        .where((c) => c.name != null && c.name!.endsWith('Node') && !c.name!.startsWith('Nodes_'))
+        .where(
+          (c) =>
+              c.name != null &&
+              c.name!.endsWith('Node') &&
+              !c.name!.startsWith('Nodes_'),
+        )
         .toList();
 
     final buffer = StringBuffer();
     buffer.writeln("// GENERATED CODE - DO NOT MODIFY BY HAND\n");
     buffer.writeln("part of 'graph_node.dart';\n");
 
+    // Generate the UiNodes enum dynamically based on the FFI classes!
+    buffer.writeln("enum UiNodes {");
+    for (int i = 0; i < nodeClasses.length; i++) {
+      final ffiClassName = nodeClasses[i].name ?? '';
+      if (ffiClassName.isEmpty) continue;
+      final enumName = _getEnumName(ffiClassName);
+      final comma = i == nodeClasses.length - 1 ? "" : ",";
+      buffer.writeln("  $enumName$comma");
+    }
+    buffer.writeln("}\n");
+
     for (final clazz in nodeClasses) {
       final ffiClassName = clazz.name ?? '';
       if (ffiClassName.isEmpty) continue;
-      
+
       final uiClassName = _getUiClassName(ffiClassName);
 
       // Extract all fields
@@ -41,32 +57,49 @@ class UiNodeGenerator extends Generator {
 
       // Group fields into common (inherited from UiNode) and subclass-specific
       final commonFieldNames = {
-        'id', 'position', 'layer', 'createdAt', 'updatedAt', 'size', 'content',
-        'style', 'resolvedStyle', 'layout', 'resolvedLayout', 'lineCount',
-        'expandable', 'isExpanded', 'locked', 'significance'
+        'id',
+        'position',
+        'layer',
+        'createdAt',
+        'updatedAt',
+        'size',
+        'content',
+        'style',
+        'resolvedStyle',
+        'layout',
+        'resolvedLayout',
+        'lineCount',
+        'expandable',
+        'isExpanded',
+        'locked',
+        'significance',
       };
 
       final subclassFields = fields.where((f) {
         final name = f.name ?? '';
-        if (name.isEmpty || name == 'hashCode' || name == 'runtimeType') return false;
-        
+        if (name.isEmpty || name == 'hashCode' || name == 'runtimeType') {
+          return false;
+        }
+
         // Mismatch: InterNode's style is String?, but UiNode's style is NodeStyle?
         if (name == 'style' && f.type.toString() != 'NodeStyle?') {
           return true; // Treat as subclass specific
         }
-        
+
         return !commonFieldNames.contains(name);
       }).toList();
-      
+
       final commonFields = fields.where((f) {
         final name = f.name ?? '';
-        if (name.isEmpty || name == 'hashCode' || name == 'runtimeType') return false;
-        
+        if (name.isEmpty || name == 'hashCode' || name == 'runtimeType') {
+          return false;
+        }
+
         // Mismatch: InterNode's style is String?, but UiNode's style is NodeStyle?
         if (name == 'style' && f.type.toString() != 'NodeStyle?') {
           return false; // Not a common field for this class
         }
-        
+
         return commonFieldNames.contains(name);
       }).toList();
 
@@ -88,12 +121,12 @@ class UiNodeGenerator extends Generator {
       buffer.writeln("  $uiClassName({");
       // Required common fields: position is required in UiNode
       buffer.writeln("    required super.position,");
-      
+
       // Other common fields that are present in this FFI class
       for (final field in commonFields) {
         final fieldName = field.name ?? '';
         if (fieldName == 'position' || fieldName.isEmpty) continue;
-        
+
         if (fieldName == 'expandable') {
           buffer.writeln("    super.initialExpandable,");
         } else {
@@ -106,7 +139,7 @@ class UiNodeGenerator extends Generator {
         final fieldName = field.name ?? '';
         if (fieldName.isEmpty) continue;
         final uiFieldName = _getUiFieldName(fieldName, field.type);
-        
+
         if (uiFieldName == 'state' && ffiClassName == 'TaskNode') {
           buffer.writeln("    this.state = 'Not Done',");
         } else {
@@ -132,10 +165,16 @@ class UiNodeGenerator extends Generator {
       // toRust() method
       buffer.writeln("  @override");
       buffer.writeln("  Nodes toRust() {");
-      buffer.writeln("    return Nodes.${_decapitalize(_getVariantName(ffiClassName))}(");
+      buffer.writeln(
+        "    return Nodes.${_decapitalize(_getVariantName(ffiClassName))}(",
+      );
       buffer.writeln("      $ffiClassName(");
-      buffer.writeln("        id: frb.RecordStrings(table: tableName, key: id),");
-      buffer.writeln("        position: frb.Coordinates(x: position.dx.round(), y: position.dy.round()),");
+      buffer.writeln(
+        "        id: frb.RecordStrings(table: tableName, key: id),",
+      );
+      buffer.writeln(
+        "        position: frb.Coordinates(x: position.dx.round(), y: position.dy.round()),",
+      );
       buffer.writeln("        layer: layer,");
       buffer.writeln("        createdAt: createdAt,");
       buffer.writeln("        updatedAt: updatedAt,");
@@ -143,9 +182,20 @@ class UiNodeGenerator extends Generator {
       // Common fields present in FFI
       for (final field in commonFields) {
         final fieldName = field.name ?? '';
-        if (fieldName.isEmpty || ['id', 'position', 'layer', 'createdAt', 'updatedAt'].contains(fieldName)) continue;
+        if (fieldName.isEmpty ||
+            [
+              'id',
+              'position',
+              'layer',
+              'createdAt',
+              'updatedAt',
+            ].contains(fieldName)) {
+          continue;
+        }
         if (fieldName == 'size') {
-          buffer.writeln("        size: frb.Size(width: size.width.round(), height: size.height.round()),");
+          buffer.writeln(
+            "        size: frb.Size(width: size.width.round(), height: size.height.round()),",
+          );
         } else {
           buffer.writeln("        $fieldName: $fieldName,");
         }
@@ -171,14 +221,27 @@ class UiNodeGenerator extends Generator {
       buffer.writeln("      createdAt: node.createdAt,");
       buffer.writeln("      updatedAt: node.updatedAt,");
       buffer.writeln("      layer: node.layer,");
-      buffer.writeln("      position: Offset(node.position.x.toDouble(), node.position.y.toDouble()),");
+      buffer.writeln(
+        "      position: Offset(node.position.x.toDouble(), node.position.y.toDouble()),",
+      );
 
       // Check common fields present in FFI
       for (final field in commonFields) {
         final fieldName = field.name ?? '';
-        if (fieldName.isEmpty || ['id', 'position', 'layer', 'createdAt', 'updatedAt'].contains(fieldName)) continue;
+        if (fieldName.isEmpty ||
+            [
+              'id',
+              'position',
+              'layer',
+              'createdAt',
+              'updatedAt',
+            ].contains(fieldName)) {
+          continue;
+        }
         if (fieldName == 'size') {
-          buffer.writeln("      size: Size(node.size.width.toDouble(), node.size.height.toDouble()),");
+          buffer.writeln(
+            "      size: Size(node.size.width.toDouble(), node.size.height.toDouble()),",
+          );
         } else if (fieldName == 'expandable') {
           buffer.writeln("      initialExpandable: node.expandable,");
         } else {
@@ -210,7 +273,16 @@ class UiNodeGenerator extends Generator {
       // Common fields in copyWith
       for (final field in commonFields) {
         final fieldName = field.name ?? '';
-        if (fieldName.isEmpty || ['id', 'position', 'layer', 'createdAt', 'updatedAt'].contains(fieldName)) continue;
+        if (fieldName.isEmpty ||
+            [
+              'id',
+              'position',
+              'layer',
+              'createdAt',
+              'updatedAt',
+            ].contains(fieldName)) {
+          continue;
+        }
         final uiType = _mapFfiTypeToUi(field.type);
         final finalType = uiType.endsWith('?') ? uiType : '$uiType?';
         buffer.writeln("    $finalType $fieldName,");
@@ -236,9 +308,20 @@ class UiNodeGenerator extends Generator {
       // Common fields instantiation in copyWith
       for (final field in commonFields) {
         final fieldName = field.name ?? '';
-        if (fieldName.isEmpty || ['id', 'position', 'layer', 'createdAt', 'updatedAt'].contains(fieldName)) continue;
+        if (fieldName.isEmpty ||
+            [
+              'id',
+              'position',
+              'layer',
+              'createdAt',
+              'updatedAt',
+            ].contains(fieldName)) {
+          continue;
+        }
         if (fieldName == 'expandable') {
-          buffer.writeln("      initialExpandable: expandable ?? this.expandable,");
+          buffer.writeln(
+            "      initialExpandable: expandable ?? this.expandable,",
+          );
         } else {
           buffer.writeln("      $fieldName: $fieldName ?? this.$fieldName,");
         }
@@ -249,7 +332,9 @@ class UiNodeGenerator extends Generator {
         final fieldName = field.name ?? '';
         if (fieldName.isEmpty) continue;
         final uiFieldName = _getUiFieldName(fieldName, field.type);
-        buffer.writeln("      $uiFieldName: $uiFieldName ?? this.$uiFieldName,");
+        buffer.writeln(
+          "      $uiFieldName: $uiFieldName ?? this.$uiFieldName,",
+        );
       }
 
       buffer.writeln("    );");
@@ -265,16 +350,22 @@ class UiNodeGenerator extends Generator {
       final ffiClassName = clazz.name ?? '';
       if (ffiClassName.isEmpty) continue;
       final uiClassName = _getUiClassName(ffiClassName);
-      buffer.writeln("  if (rustNode is $ffiClassName) return $uiClassName.fromRust(rustNode);");
+      buffer.writeln(
+        "  if (rustNode is $ffiClassName) return $uiClassName.fromRust(rustNode);",
+      );
     }
     // Also handle when the object wrapped inside Nodes enum is passed directly
     for (final clazz in nodeClasses) {
       final ffiClassName = clazz.name ?? '';
       if (ffiClassName.isEmpty) continue;
       final uiClassName = _getUiClassName(ffiClassName);
-      buffer.writeln("  if (rustNode is Nodes_$ffiClassName) return $uiClassName.fromRust(rustNode.field0);");
+      buffer.writeln(
+        "  if (rustNode is Nodes_$ffiClassName) return $uiClassName.fromRust(rustNode.field0);",
+      );
     }
-    buffer.writeln("  throw ArgumentError('Unsupported Rust node type: \${rustNode.runtimeType}');");
+    buffer.writeln(
+      "  throw ArgumentError('Unsupported Rust node type: \${rustNode.runtimeType}');",
+    );
     buffer.writeln("}\n");
 
     // 2. _$uiNodeCopy(UiNode? node)
@@ -287,7 +378,7 @@ class UiNodeGenerator extends Generator {
       buffer.writeln("  if (node is $uiClassName) return node.copyWith();");
     }
     buffer.writeln("  throw ArgumentError('Unsupported node type: \${node.runtimeType}');");
-    buffer.writeln("}");
+    buffer.writeln("}\n");
 
     return buffer.toString();
   }
@@ -295,6 +386,23 @@ class UiNodeGenerator extends Generator {
   String _getUiClassName(String ffiName) {
     if (ffiName == 'INode') return 'InfoUiNode';
     return ffiName.replaceAll('Node', 'UiNode');
+  }
+
+  String _getEnumName(String ffiName) {
+    if (ffiName == 'INode') return 'info';
+    return _decapitalize(ffiName.replaceAll('Node', ''));
+  }
+
+  String _getFallbackValueForType(String type, String fieldName) {
+    if (type == 'String') {
+      if (fieldName == 'shapeType') return "'rectangle'";
+      return "''";
+    }
+    if (type == 'double') return '0.0';
+    if (type == 'int') return '0';
+    if (type == 'bool') return 'false';
+    if (type.startsWith('List')) return 'const []';
+    return 'null';
   }
 
   String _getVariantName(String ffiName) {
@@ -309,7 +417,8 @@ class UiNodeGenerator extends Generator {
     return ffiName;
   }
 
-  String _decapitalize(String s) => s.isEmpty ? s : s[0].toLowerCase() + s.substring(1);
+  String _decapitalize(String s) =>
+      s.isEmpty ? s : s[0].toLowerCase() + s.substring(1);
 
   String _mapFfiTypeToUi(DartType ffiType) {
     final typeStr = ffiType.toString();
@@ -326,17 +435,27 @@ class UiNodeGenerator extends Generator {
     final typeStr = field.type.toString();
     final fieldName = field.name ?? '';
     final uiFieldName = _getUiFieldName(fieldName, field.type);
-    if (typeStr == 'Offset') return 'frb.Coordinates(x: $uiFieldName.dx.round(), y: $uiFieldName.dy.round())';
-    if (typeStr == 'Size') return 'frb.Size(width: $uiFieldName.width.round(), height: $uiFieldName.height.round())';
-    if (typeStr == 'List<TagEdge>') return '$uiFieldName.map((tag) => TagEdge.hydrated(tag)).toList()';
+    if (typeStr == 'Offset') {
+      return 'frb.Coordinates(x: $uiFieldName.dx.round(), y: $uiFieldName.dy.round())';
+    }
+    if (typeStr == 'Size') {
+      return 'frb.Size(width: $uiFieldName.width.round(), height: $uiFieldName.height.round())';
+    }
+    if (typeStr == 'List<TagEdge>') {
+      return '$uiFieldName.map((tag) => TagEdge.hydrated(tag)).toList()';
+    }
     return uiFieldName;
   }
 
   String _fromRustConversion(FieldElement field) {
     final typeStr = field.type.toString();
     final fieldName = field.name ?? '';
-    if (typeStr == 'Coordinates') return 'Offset(node.$fieldName.x.toDouble(), node.$fieldName.y.toDouble())';
-    if (typeStr == 'Size') return 'Size(node.$fieldName.width.toDouble(), node.$fieldName.height.toDouble())';
+    if (typeStr == 'Coordinates') {
+      return 'Offset(node.$fieldName.x.toDouble(), node.$fieldName.y.toDouble())';
+    }
+    if (typeStr == 'Size') {
+      return 'Size(node.$fieldName.width.toDouble(), node.$fieldName.height.toDouble())';
+    }
     if (typeStr == 'List<TagEdge>') {
       return '''node.$fieldName.map((edge) {
         return edge.when(

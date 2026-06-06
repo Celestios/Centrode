@@ -31,12 +31,13 @@ class CreateNodeCommand extends GraphCommand {
     controller.store.nodeLookup.remove(targetId);
     controller.spatial.spatialGrid.remove(targetId, node.position);
     controller.spatial.clearConfirmedPosition(targetId);
-    controller.publishUpdate(GraphEntityUpdate(
-      id: targetId,
-      tableName: node.tableName,
-      type: GraphUpdateType.nodeDeleted,
-    ));
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: targetId,
+        tableName: node.tableName,
+        type: GraphUpdateType.nodeDeleted,
+      ),
+    );
     controller.triggerUpdate();
   }
 }
-

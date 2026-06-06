@@ -1,30 +1,18 @@
-use mycelium_core::domain::nodes::{
-    INode, TaskNode, InterNode, CommentNode, DrawingNode, ShapeNode, FrameNode, MediaNode, SurqlSchema
-};
+use rust_lib_mycelium::domain::nodes::Nodes;
 use std::fs;
 use std::path::Path;
 
-#[test]
-fn test_generate_schema_file() {
+fn main() {
     let mut generated_schema = String::new();
 
-    let node_schemas = vec![
-        ("INode", INode::generate_fields_schema("INode")),
-        ("TaskNode", TaskNode::generate_fields_schema("TaskNode")),
-        ("InterNode", InterNode::generate_fields_schema("InterNode")),
-        ("CommentNode", CommentNode::generate_fields_schema("CommentNode")),
-        ("DrawingNode", DrawingNode::generate_fields_schema("DrawingNode")),
-        ("ShapeNode", ShapeNode::generate_fields_schema("ShapeNode")),
-        ("FrameNode", FrameNode::generate_fields_schema("FrameNode")),
-        ("MediaNode", MediaNode::generate_fields_schema("MediaNode")),
-    ];
+    let node_schemas = Nodes::generate_all_fields_schemas();
 
     for (name, lines) in &node_schemas {
         generated_schema.push_str(&format!("-- ---------------------------------------------------------------------------\n"));
         generated_schema.push_str(&format!("-- Fields for `{}`\n", name));
         generated_schema.push_str(&format!("-- ---------------------------------------------------------------------------\n"));
         for line in lines {
-            generated_schema.push_str(&line);
+            generated_schema.push_str(line);
             generated_schema.push_str("\n");
         }
         generated_schema.push_str("\n");

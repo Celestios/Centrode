@@ -71,7 +71,9 @@ class _DataTabState extends State<DataTab> {
     final text = _tagController.text.trim();
     if (text.isEmpty) return;
 
-    if (node.tags.any((t) => t.fields.name.toLowerCase() == text.toLowerCase())) {
+    if (node.tags.any(
+      (t) => t.fields.name.toLowerCase() == text.toLowerCase(),
+    )) {
       _tagController.clear();
       return;
     }
@@ -192,7 +194,9 @@ class _DataTabState extends State<DataTab> {
                     decoration: InputDecoration(
                       hintText: 'Tag name...',
                       hintStyle: TextStyle(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.4,
+                        ),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -215,7 +219,9 @@ class _DataTabState extends State<DataTab> {
                 onPressed: _cancelAddingTag,
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.transparent,
-                  foregroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  foregroundColor: theme.colorScheme.onSurface.withValues(
+                    alpha: 0.6,
+                  ),
                   padding: const EdgeInsets.all(8),
                   minimumSize: const Size(32, 32),
                 ),
@@ -225,7 +231,9 @@ class _DataTabState extends State<DataTab> {
                 icon: const Icon(Icons.check_rounded, size: 14),
                 onPressed: () => _addTag(node),
                 style: IconButton.styleFrom(
-                  backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  backgroundColor: theme.colorScheme.primary.withValues(
+                    alpha: 0.15,
+                  ),
                   foregroundColor: theme.colorScheme.primary,
                   padding: const EdgeInsets.all(8),
                   minimumSize: const Size(32, 32),
@@ -257,7 +265,9 @@ class _DataTabState extends State<DataTab> {
                             color: Color(colorValue),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: isSelected ? theme.colorScheme.primary : Colors.white24,
+                              color: isSelected
+                                  ? theme.colorScheme.primary
+                                  : Colors.white24,
                               width: isSelected ? 2 : 1,
                             ),
                           ),
@@ -265,7 +275,11 @@ class _DataTabState extends State<DataTab> {
                               ? Icon(
                                   Icons.check,
                                   size: 10,
-                                  color: ThemeData.estimateBrightnessForColor(Color(colorValue)) == Brightness.dark
+                                  color:
+                                      ThemeData.estimateBrightnessForColor(
+                                            Color(colorValue),
+                                          ) ==
+                                          Brightness.dark
                                       ? Colors.white
                                       : Colors.black,
                                 )
@@ -360,7 +374,10 @@ class _DataTabState extends State<DataTab> {
                       ),
                       const SizedBox(width: 4),
                       GestureDetector(
-                        onTap: () => widget.dataController.removeTagFromNode(node.id, tag.key),
+                        onTap: () => widget.dataController.removeTagFromNode(
+                          node.id,
+                          tag.key,
+                        ),
                         child: Icon(
                           Icons.close,
                           size: 10,
@@ -422,7 +439,9 @@ class _DataTabState extends State<DataTab> {
               icon: const Icon(Icons.send_rounded, size: 14),
               onPressed: () => _addComment(node),
               style: IconButton.styleFrom(
-                backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                backgroundColor: theme.colorScheme.primary.withValues(
+                  alpha: 0.15,
+                ),
                 foregroundColor: theme.colorScheme.primary,
                 padding: const EdgeInsets.all(8),
               ),
@@ -459,15 +478,20 @@ class _DataTabState extends State<DataTab> {
                               _formatTimestamp(comment.createdAt.toInt()),
                               style: TextStyle(
                                 fontSize: 9,
-                                color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.4,
+                                ),
                               ),
                             ),
                             GestureDetector(
-                              onTap: () => widget.dataController.removeCommentFromNode(node.id, comment),
+                              onTap: () => widget.dataController
+                                  .removeCommentFromNode(node.id, comment),
                               child: Icon(
                                 Icons.delete_outline_rounded,
                                 size: 12,
-                                color: theme.colorScheme.error.withValues(alpha: 0.6),
+                                color: theme.colorScheme.error.withValues(
+                                  alpha: 0.6,
+                                ),
                               ),
                             ),
                           ],
@@ -477,7 +501,9 @@ class _DataTabState extends State<DataTab> {
                           comment.text,
                           style: TextStyle(
                             fontSize: 11,
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.85,
+                            ),
                             height: 1.3,
                           ),
                         ),

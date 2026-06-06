@@ -1,9 +1,9 @@
 use crate::common::setup_test_repo;
-use mycelium_core::domain::base_models::{Coordinates, RecordStrings, Size};
-use mycelium_core::domain::contents::Content;
-use mycelium_core::domain::nodes::{INode, Nodes};
-use mycelium_core::domain::patches::{EntityPatch, NodePatch, TagOperation};
-use mycelium_core::domain::tags::{Tag, TagEdge, TagFields};
+use rust_lib_mycelium::domain::base_models::{Coordinates, RecordStrings, Size};
+use rust_lib_mycelium::domain::contents::Content;
+use rust_lib_mycelium::domain::nodes::{INode, Nodes};
+use rust_lib_mycelium::domain::patches::{EntityPatch, NodePatch, TagOperation};
+use rust_lib_mycelium::domain::tags::{Tag, TagEdge, TagFields};
 use surrealdb::types::RecordId;
 
 #[tokio::test]
@@ -216,3 +216,4 @@ async fn test_tag_cascading_disassociation_on_delete() {
         panic!("Incorrect node type");
     }
 }
+

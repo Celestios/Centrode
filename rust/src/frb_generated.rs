@@ -2670,6 +2670,8 @@ impl SseDecode for crate::domain::nodes::DrawingNode {
         let mut var_brushType = <String>::sse_decode(deserializer);
         let mut var_brushThickness = <f64>::sse_decode(deserializer);
         let mut var_brushColor = <String>::sse_decode(deserializer);
+        let mut var_size = <crate::domain::base_models::Size>::sse_decode(deserializer);
+        let mut var_locked = <bool>::sse_decode(deserializer);
         return crate::domain::nodes::DrawingNode {
             id: var_id,
             position: var_position,
@@ -2680,6 +2682,8 @@ impl SseDecode for crate::domain::nodes::DrawingNode {
             brush_type: var_brushType,
             brush_thickness: var_brushThickness,
             brush_color: var_brushColor,
+            size: var_size,
+            locked: var_locked,
         };
     }
 }
@@ -4422,6 +4426,8 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::DrawingNode {
             self.brush_type.into_into_dart().into_dart(),
             self.brush_thickness.into_into_dart().into_dart(),
             self.brush_color.into_into_dart().into_dart(),
+            self.size.into_into_dart().into_dart(),
+            self.locked.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -5644,6 +5650,8 @@ impl SseEncode for crate::domain::nodes::DrawingNode {
         <String>::sse_encode(self.brush_type, serializer);
         <f64>::sse_encode(self.brush_thickness, serializer);
         <String>::sse_encode(self.brush_color, serializer);
+        <crate::domain::base_models::Size>::sse_encode(self.size, serializer);
+        <bool>::sse_encode(self.locked, serializer);
     }
 }
 

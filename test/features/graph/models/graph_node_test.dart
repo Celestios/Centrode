@@ -7,7 +7,7 @@ void main() {
   group('UiNode', () {
     test('InfoUiNode creates with defaults', () {
       final node = InfoUiNode(position: const Offset(10, 20));
-      
+
       expect(node.id, isNotEmpty);
       expect(node.position, const Offset(10, 20));
       expect(node.layer, 'default');
@@ -18,7 +18,7 @@ void main() {
 
     test('TaskUiNode creates with defaults', () {
       final node = TaskUiNode(position: const Offset(30, 40));
-      
+
       expect(node.id, isNotEmpty);
       expect(node.position, const Offset(30, 40));
       expect(node.layer, 'default');
@@ -52,10 +52,7 @@ void main() {
         state: 'Not Done',
       );
 
-      final copied = node.copyWith(
-        state: 'Done',
-        dueDate: 1620000000000,
-      );
+      final copied = node.copyWith(state: 'Done', dueDate: 1620000000000);
 
       expect(copied.id, 'task-1');
       expect(copied.state, 'Done');
@@ -73,12 +70,12 @@ void main() {
 
       final rustObj = node.toRust();
       expect(rustObj, isA<Nodes>());
-      
+
       final asINode = rustObj.maybeMap(
         iNode: (iNode) => iNode.field0,
         orElse: () => null,
       );
-      
+
       expect(asINode, isNotNull);
       expect(asINode!.id.key, 'node-ffi-1');
       expect(asINode.layer, 'bg');
@@ -96,12 +93,12 @@ void main() {
       );
 
       final rustObj = node.toRust();
-      
+
       final asTaskNode = rustObj.maybeMap(
         taskNode: (taskNode) => taskNode.field0,
         orElse: () => null,
       );
-      
+
       expect(asTaskNode, isNotNull);
       expect(asTaskNode!.id.key, 'task-ffi-1');
       expect(asTaskNode.state, 'In Progress');

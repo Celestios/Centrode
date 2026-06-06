@@ -76,11 +76,7 @@ class TabSession extends ChangeNotifier {
 
   Future<void>? _initFuture;
 
-  TabSession({
-    required this.id,
-    required this.storagePath,
-    required this.name,
-  });
+  TabSession({required this.id, required this.storagePath, required this.name});
 
   Future<void> initialize(ThemeData globalTheme) {
     return _initFuture ??= _doInitialize(globalTheme).catchError((e) {
@@ -106,7 +102,7 @@ class TabSession extends ChangeNotifier {
     final dc = GraphDataController(activeHandle);
     dataController = dc;
     nodeRenderState = NodeRenderState(dc);
-    
+
     final styleManager = StyleManager(dc.store);
     dc.sizeCalculator = NodeLayoutStrategy.calculateSize;
     dc.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
@@ -118,7 +114,7 @@ class TabSession extends ChangeNotifier {
       styleManager.updateAllStyles(dc.store.nodes, dc.store.relations);
       dc.triggerUpdate();
     });
-    
+
     await tc.initialize(globalTheme);
     // Seeding initial theme style
     styleManager.setTheme(tc.currentGraphTheme);
@@ -153,7 +149,10 @@ class WorkspaceTabsController extends ChangeNotifier {
   final List<TabSession> _tabs = [];
   int _activeIndex = 0;
 
-  WorkspaceTabsController({required String initialPath, required String initialName}) {
+  WorkspaceTabsController({
+    required String initialPath,
+    required String initialName,
+  }) {
     addTab(initialPath, initialName);
   }
 
@@ -163,12 +162,9 @@ class WorkspaceTabsController extends ChangeNotifier {
   TabSession get activeSession => _tabs[_activeIndex];
 
   void addTab(String storagePath, String name) {
-    final id = '${DateTime.now().millisecondsSinceEpoch}_${storagePath.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}';
-    final newSession = TabSession(
-      id: id,
-      storagePath: storagePath,
-      name: name,
-    );
+    final id =
+        '${DateTime.now().millisecondsSinceEpoch}_${storagePath.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}';
+    final newSession = TabSession(id: id, storagePath: storagePath, name: name);
     _tabs.add(newSession);
     _activeIndex = _tabs.length - 1;
     notifyListeners();

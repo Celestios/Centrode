@@ -50,7 +50,9 @@ Future<bool?> showDeleteTagDialog(BuildContext context, String tagName) {
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
             style: TextButton.styleFrom(
-              foregroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              foregroundColor: theme.colorScheme.onSurface.withValues(
+                alpha: 0.6,
+              ),
             ),
             child: const Text('CANCEL'),
           ),

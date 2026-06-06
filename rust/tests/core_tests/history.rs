@@ -1,5 +1,5 @@
 use crate::common::setup_test_repo;
-use mycelium_core::persistence::history::HistoryManager;
+use rust_lib_mycelium::persistence::history::HistoryManager;
 use surrealdb::types::SurrealValue;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, SurrealValue)]

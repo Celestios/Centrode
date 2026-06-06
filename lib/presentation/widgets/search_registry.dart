@@ -34,7 +34,10 @@ class SearchRegistry {
 
   /// Performs search based on the query and handles sequence numbers to ignore stale results.
   /// Returns null if this query was superseded by a newer query.
-  Future<List<SearchResult>?> search(String rawQuery, BuildContext context) async {
+  Future<List<SearchResult>?> search(
+    String rawQuery,
+    BuildContext context,
+  ) async {
     final queryId = ++_activeQueryId;
     final results = await _performSearch(rawQuery, context);
 
@@ -44,7 +47,10 @@ class SearchRegistry {
     return results;
   }
 
-  Future<List<SearchResult>> _performSearch(String rawQuery, BuildContext context) async {
+  Future<List<SearchResult>> _performSearch(
+    String rawQuery,
+    BuildContext context,
+  ) async {
     final query = rawQuery.trim();
     if (query.isEmpty) {
       return [];
@@ -60,13 +66,15 @@ class SearchRegistry {
       final actions = PaletteActionRegistry.instance.getActions(context);
       return actions
           .where((act) => act.title.toLowerCase().contains(term))
-          .map((act) => SearchResult(
-                title: act.title,
-                subtitle: act.subtitle,
-                icon: act.icon,
-                type: SearchResultType.command,
-                onSelected: act.onSelected,
-              ))
+          .map(
+            (act) => SearchResult(
+              title: act.title,
+              subtitle: act.subtitle,
+              icon: act.icon,
+              type: SearchResultType.command,
+              onSelected: act.onSelected,
+            ),
+          )
           .toList();
     }
 
@@ -78,15 +86,20 @@ class SearchRegistry {
 
       for (final node in dataController.nodesIterable) {
         if (node is InfoUiNode) {
-          final matchesTag = node.tags.any((t) => t.fields.name.toLowerCase().contains(term));
+          final matchesTag = node.tags.any(
+            (t) => t.fields.name.toLowerCase().contains(term),
+          );
           if (matchesTag) {
-            results.add(SearchResult(
-              title: node.text.isEmpty ? 'Untitled Node' : node.text,
-              subtitle: 'Node • Tagged • ${node.tags.map((t) => '#${t.fields.name}').join(', ')}',
-              icon: Icons.tag_rounded,
-              type: SearchResultType.tag,
-              onSelected: (ctx) => _focusOnUiNode(ctx, node.id),
-            ));
+            results.add(
+              SearchResult(
+                title: node.text.isEmpty ? 'Untitled Node' : node.text,
+                subtitle:
+                    'Node • Tagged • ${node.tags.map((t) => '#${t.fields.name}').join(', ')}',
+                icon: Icons.tag_rounded,
+                type: SearchResultType.tag,
+                onSelected: (ctx) => _focusOnUiNode(ctx, node.id),
+              ),
+            );
           }
         }
       }
@@ -117,13 +130,15 @@ class SearchRegistry {
               break;
           }
 
-          results.add(SearchResult(
-            title: res.title,
-            subtitle: res.subtitle,
-            icon: icon,
-            type: SearchResultType.node,
-            onSelected: (ctx) => _focusOnUiNode(ctx, res.key),
-          ));
+          results.add(
+            SearchResult(
+              title: res.title,
+              subtitle: res.subtitle,
+              icon: icon,
+              type: SearchResultType.node,
+              onSelected: (ctx) => _focusOnUiNode(ctx, res.key),
+            ),
+          );
         }
         return results;
       } catch (e) {
@@ -135,7 +150,7 @@ class SearchRegistry {
             icon: Icons.error_outline_rounded,
             type: SearchResultType.command,
             onSelected: (_) {},
-          )
+          ),
         ];
       }
     }
@@ -148,13 +163,17 @@ class SearchRegistry {
     // Search Nodes
     for (final node in dataController.nodesIterable) {
       if (node.text.toLowerCase().contains(term)) {
-        results.add(SearchResult(
-          title: node.text.isEmpty ? 'Untitled Node' : node.text,
-          subtitle: 'Node • ${node.tableName == 'INode' ? 'Info' : 'Task'}',
-          icon: node.tableName == 'INode' ? Icons.description_outlined : Icons.task_alt_outlined,
-          type: SearchResultType.node,
-          onSelected: (ctx) => _focusOnUiNode(ctx, node.id),
-        ));
+        results.add(
+          SearchResult(
+            title: node.text.isEmpty ? 'Untitled Node' : node.text,
+            subtitle: 'Node • ${node.tableName == 'INode' ? 'Info' : 'Task'}',
+            icon: node.tableName == 'INode'
+                ? Icons.description_outlined
+                : Icons.task_alt_outlined,
+            type: SearchResultType.node,
+            onSelected: (ctx) => _focusOnUiNode(ctx, node.id),
+          ),
+        );
       }
     }
 
@@ -165,8 +184,10 @@ class SearchRegistry {
       final toNode = dataController.nodeLookup[relation.toNodeId];
 
       final matchesVerb = relation.verb.toLowerCase().contains(term);
-      final matchesFrom = fromNode != null && fromNode.text.toLowerCase().contains(term);
-      final matchesTo = toNode != null && toNode.text.toLowerCase().contains(term);
+      final matchesFrom =
+          fromNode != null && fromNode.text.toLowerCase().contains(term);
+      final matchesTo =
+          toNode != null && toNode.text.toLowerCase().contains(term);
 
       if (matchesVerb || matchesFrom || matchesTo) {
         matchingRelations.add(relation);
@@ -185,16 +206,18 @@ class SearchRegistry {
       for (final entry in groupedRelations.entries) {
         // Find canonical verb casing from the first relation in the group
         final canonicalVerb = entry.value.first.verb;
-        
+
         // Add header
-        results.add(SearchResult(
-          title: '',
-          subtitle: '',
-          icon: Icons.alt_route_rounded,
-          type: SearchResultType.relationHeader,
-          relationVerb: canonicalVerb,
-          onSelected: (_) {},
-        ));
+        results.add(
+          SearchResult(
+            title: '',
+            subtitle: '',
+            icon: Icons.alt_route_rounded,
+            type: SearchResultType.relationHeader,
+            relationVerb: canonicalVerb,
+            onSelected: (_) {},
+          ),
+        );
 
         // Add matching relations
         for (final rel in entry.value) {
@@ -203,15 +226,17 @@ class SearchRegistry {
           final fromText = fromNode?.text ?? 'Untitled Node';
           final toText = toNode?.text ?? 'Untitled Node';
 
-          results.add(SearchResult(
-            title: '$fromText ➔ $toText',
-            subtitle: 'Relation • ${rel.verb}',
-            icon: Icons.trending_flat_rounded,
-            type: SearchResultType.relation,
-            relation: rel,
-            relationVerb: rel.verb,
-            onSelected: (ctx) => _focusOnUiRelation(ctx, rel),
-          ));
+          results.add(
+            SearchResult(
+              title: '$fromText ➔ $toText',
+              subtitle: 'Relation • ${rel.verb}',
+              icon: Icons.trending_flat_rounded,
+              type: SearchResultType.relation,
+              relation: rel,
+              relationVerb: rel.verb,
+              onSelected: (ctx) => _focusOnUiRelation(ctx, rel),
+            ),
+          );
         }
       }
     }
@@ -255,11 +280,13 @@ class SearchRegistry {
         final double minY = fromNode.position.dy < toNode.position.dy
             ? fromNode.position.dy
             : toNode.position.dy;
-        final double maxX = (fromNode.position.dx + fromNode.size.width) >
+        final double maxX =
+            (fromNode.position.dx + fromNode.size.width) >
                 (toNode.position.dx + toNode.size.width)
             ? (fromNode.position.dx + fromNode.size.width)
             : (toNode.position.dx + toNode.size.width);
-        final double maxY = (fromNode.position.dy + fromNode.size.height) >
+        final double maxY =
+            (fromNode.position.dy + fromNode.size.height) >
                 (toNode.position.dy + toNode.size.height)
             ? (fromNode.position.dy + fromNode.size.height)
             : (toNode.position.dy + toNode.size.height);

@@ -34,12 +34,14 @@ class GraphNodeMutations {
       case UiNodes.drawing:
         node = DrawingUiNode(
           position: position,
-          paths: paths ?? [],
+          paths: paths ?? const [],
           brushType: brushType ?? 'pen',
           brushThickness: brushThickness ?? 4.0,
           brushColor: brushColor ?? '#00E5FF',
         );
         break;
+      default:
+        throw ArgumentError('Unsupported or unhandled node type: $type');
     }
     String id = node.id;
     controller.store.nodeLookup[id] = node;
@@ -52,7 +54,6 @@ class GraphNodeMutations {
     // Compute the correct initial size using the centralized layout strategy helper
     node.size = size ?? controller.calculateNodeSize(node);
 
-
     final cmd = CreateNodeCommand(
       targetId: id,
       api: controller.syncEngine.api,
@@ -61,11 +62,13 @@ class GraphNodeMutations {
     );
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
 
-    controller.publishUpdate(GraphEntityUpdate(
-      id: id,
-      tableName: node.tableName,
-      type: GraphUpdateType.nodeAdded,
-    ));
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.nodeAdded,
+      ),
+    );
     controller.triggerUpdate();
     return id;
   }
@@ -82,7 +85,8 @@ class GraphNodeMutations {
     final cmd = DeleteNodeCommand(
       targetId: id,
       api: controller.syncEngine.api,
-      tableName: node.tableName, // Use canonical name instead of hardcoded string
+      tableName:
+          node.tableName, // Use canonical name instead of hardcoded string
       node: node,
       controller: controller,
     );
@@ -94,11 +98,13 @@ class GraphNodeMutations {
 
     // Queue command with immediate execution
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
-    controller.publishUpdate(GraphEntityUpdate(
-      id: id,
-      tableName: node.tableName,
-      type: GraphUpdateType.nodeDeleted,
-    ));
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.nodeDeleted,
+      ),
+    );
     controller.triggerUpdate();
   }
 
@@ -109,7 +115,8 @@ class GraphNodeMutations {
     if (node == null) return;
 
     // Track the LAST confirmed position if this is a new sequence of moves
-    final confirmedPos = controller.spatial.getConfirmedPosition(id) ?? node.position;
+    final confirmedPos =
+        controller.spatial.getConfirmedPosition(id) ?? node.position;
     controller.spatial.saveConfirmedPosition(id, confirmedPos);
 
     final oldPosition = node.position;
@@ -127,12 +134,14 @@ class GraphNodeMutations {
 
     // Queue command with debouncing (300ms delay)
     controller.syncEngine.processor.queueCommand(cmd);
-    controller.publishUpdate(GraphEntityUpdate(
-      id: id,
-      tableName: node.tableName,
-      type: GraphUpdateType.position,
-      payload: newPosition,
-    ));
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.position,
+        payload: newPosition,
+      ),
+    );
   }
 
   /// Updates node width based on left and right edges.
@@ -157,7 +166,9 @@ class GraphNodeMutations {
     // Use centralized NodeStyleStrategy to dynamically resolve node's populated style,
     // and save manual target width in style config to lock manual mode.
     final resolvedStyle = controller.resolveNodeStyle(node);
-    node.style = (node.style ?? resolvedStyle).copyWith(width: newWidth.round());
+    node.style = (node.style ?? resolvedStyle).copyWith(
+      width: newWidth.round(),
+    );
 
     // Centralized layout recomputation snaps width, snaps height, and calculates
     // the dynamic line count, fully preventing stale DB states prior to command queuing!
@@ -179,18 +190,22 @@ class GraphNodeMutations {
     );
 
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
-    controller.publishUpdate(GraphEntityUpdate(
-      id: id,
-      tableName: node.tableName,
-      type: GraphUpdateType.size,
-      payload: node.size,
-    ));
-    controller.publishUpdate(GraphEntityUpdate(
-      id: id,
-      tableName: node.tableName,
-      type: GraphUpdateType.position,
-      payload: node.position,
-    ));
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.size,
+        payload: node.size,
+      ),
+    );
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.position,
+        payload: node.position,
+      ),
+    );
   }
 
   /// Toggles the node's expanded/collapsed state and recalculates height.
@@ -223,17 +238,21 @@ class GraphNodeMutations {
     );
 
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
-    controller.publishUpdate(GraphEntityUpdate(
-      id: id,
-      tableName: node.tableName,
-      type: GraphUpdateType.expansion,
-      payload: newExpanded,
-    ));
-    controller.publishUpdate(GraphEntityUpdate(
-      id: id,
-      tableName: node.tableName,
-      type: GraphUpdateType.size,
-      payload: node.size,
-    ));
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.expansion,
+        payload: newExpanded,
+      ),
+    );
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.size,
+        payload: node.size,
+      ),
+    );
   }
 }

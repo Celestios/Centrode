@@ -25,14 +25,14 @@ abstract class NodeLayoutStrategy {
     return const InfoNodeLayoutStrategy();
   }
 
-
   /// Calculates the size of the node.
   /// Snaps the result to the grid defined in [AppConfig].
   Size calculate(UiNode node, NodeStyle? style, {bool isEditing = false});
 
   /// Centralized helper to compute a node's physical size based on its runtime type.
   static Size calculateSize(UiNode node, {bool isEditing = false}) {
-    final strategyType = node.resolvedLayout?.strategyType ?? node.layout?.strategyType;
+    final strategyType =
+        node.resolvedLayout?.strategyType ?? node.layout?.strategyType;
     final strategy = fromType(strategyType, fallbackNode: node);
     return strategy.calculate(node, node.resolvedStyle, isEditing: isEditing);
   }
@@ -56,7 +56,11 @@ class TaskNodeLayoutStrategy extends NodeLayoutStrategy {
   }
 }
 
-Size _calculateDefaultLayout(UiNode node, NodeStyle? style, {bool isEditing = false}) {
+Size _calculateDefaultLayout(
+  UiNode node,
+  NodeStyle? style, {
+  bool isEditing = false,
+}) {
   final content = node.content;
   // Fallback if text is empty
   if (content.text.isEmpty) {
@@ -83,10 +87,11 @@ Size _calculateDefaultLayout(UiNode node, NodeStyle? style, {bool isEditing = fa
       text: TextSpan(text: content.text, style: textStyle),
       textDirection: TextDirection.ltr,
     )..layout(); // infinite maxWidth default
-    
+
     // In edit mode, add a horizontal breathing room/buffer space
     // to prevent late wrapping visual glitches in the inline text field.
-    final neededWidth = tempPainter.width +
+    final neededWidth =
+        tempPainter.width +
         16.0 +
         (isEditing ? AppConfig.node.editingBufferWidth : 0.0);
     // Auto-grow between defaultWidth and autoWrapThreshold
@@ -114,7 +119,8 @@ Size _calculateDefaultLayout(UiNode node, NodeStyle? style, {bool isEditing = fa
 
   final lineMetrics = tp.computeLineMetrics();
   final lineCount = lineMetrics.length;
-  node.lineCount = lineCount; // Write the actual computed line count back to the node dynamically
+  node.lineCount =
+      lineCount; // Write the actual computed line count back to the node dynamically
   double textHeight;
 
   // Handle "Show More" logic based on line count

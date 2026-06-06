@@ -88,7 +88,9 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             icon: Icon(
-              _isCompact ? Icons.chevron_right_rounded : Icons.chevron_left_rounded,
+              _isCompact
+                  ? Icons.chevron_right_rounded
+                  : Icons.chevron_left_rounded,
               color: textColor.withValues(alpha: 0.7),
               size: 20,
             ),
@@ -205,19 +207,21 @@ class _ToolButton extends StatelessWidget {
                     end: Alignment.bottomRight,
                   )
                 : (isHovered
-                    ? LinearGradient(
-                        colors: [
-                          primaryColor.withValues(alpha: 0.18),
-                          primaryColor.withValues(alpha: 0.05),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : null),
+                      ? LinearGradient(
+                          colors: [
+                            primaryColor.withValues(alpha: 0.18),
+                            primaryColor.withValues(alpha: 0.05),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : null),
             border: Border.all(
               color: isActive
                   ? activeColor.withValues(alpha: 0.45)
-                  : (isHovered ? activeColor.withValues(alpha: 0.25) : Colors.transparent),
+                  : (isHovered
+                        ? activeColor.withValues(alpha: 0.25)
+                        : Colors.transparent),
               width: 1.0,
             ),
             boxShadow: isActive
@@ -227,18 +231,18 @@ class _ToolButton extends StatelessWidget {
                       blurRadius: 8,
                       spreadRadius: -1,
                       offset: const Offset(0, 2),
-                    )
+                    ),
                   ]
                 : (isHovered
-                    ? [
-                        BoxShadow(
-                          color: primaryColor.withValues(alpha: 0.08),
-                          blurRadius: 4,
-                          spreadRadius: -1,
-                          offset: const Offset(0, 1),
-                        )
-                      ]
-                    : []),
+                      ? [
+                          BoxShadow(
+                            color: primaryColor.withValues(alpha: 0.08),
+                            blurRadius: 4,
+                            spreadRadius: -1,
+                            offset: const Offset(0, 1),
+                          ),
+                        ]
+                      : []),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -327,7 +331,7 @@ class _ActionButton extends StatelessWidget {
                       color: theme.colorScheme.primary.withValues(alpha: 0.08),
                       blurRadius: 4,
                       offset: const Offset(0, 1),
-                    )
+                    ),
                   ]
                 : [],
           ),
@@ -339,8 +343,8 @@ class _ActionButton extends StatelessWidget {
                 color: !isEnabled
                     ? textColor.withValues(alpha: 0.25)
                     : (isHovered
-                        ? theme.colorScheme.primary
-                        : textColor.withValues(alpha: 0.7)),
+                          ? theme.colorScheme.primary
+                          : textColor.withValues(alpha: 0.7)),
                 size: 18,
               ),
               if (count > 0)
@@ -356,12 +360,19 @@ class _ActionButton extends StatelessWidget {
                         opacity: count > 0 ? 1.0 : 0.0,
                         duration: const Duration(milliseconds: 150),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 1,
+                          ),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.8),
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.8,
+                            ),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: theme.colorScheme.onPrimary.withValues(alpha: 0.4),
+                              color: theme.colorScheme.onPrimary.withValues(
+                                alpha: 0.4,
+                              ),
                               width: 0.8,
                             ),
                             boxShadow: [
@@ -379,15 +390,16 @@ class _ActionButton extends StatelessWidget {
                           child: Center(
                             child: AnimatedSwitcher(
                               duration: const Duration(milliseconds: 200),
-                              transitionBuilder: (Widget child, Animation<double> animation) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: ScaleTransition(
-                                    scale: animation,
-                                    child: child,
-                                  ),
-                                );
-                              },
+                              transitionBuilder:
+                                  (Widget child, Animation<double> animation) {
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: ScaleTransition(
+                                        scale: animation,
+                                        child: child,
+                                      ),
+                                    );
+                                  },
                               child: Text(
                                 '$count',
                                 key: ValueKey<int>(count),

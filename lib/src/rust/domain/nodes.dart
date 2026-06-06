@@ -65,6 +65,8 @@ class DrawingNode {
   final String brushType;
   final double brushThickness;
   final String brushColor;
+  final Size size;
+  final bool locked;
 
   const DrawingNode({
     required this.id,
@@ -76,6 +78,8 @@ class DrawingNode {
     required this.brushType,
     required this.brushThickness,
     required this.brushColor,
+    required this.size,
+    required this.locked,
   });
 
   @override
@@ -88,7 +92,9 @@ class DrawingNode {
       paths.hashCode ^
       brushType.hashCode ^
       brushThickness.hashCode ^
-      brushColor.hashCode;
+      brushColor.hashCode ^
+      size.hashCode ^
+      locked.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -103,7 +109,9 @@ class DrawingNode {
           paths == other.paths &&
           brushType == other.brushType &&
           brushThickness == other.brushThickness &&
-          brushColor == other.brushColor;
+          brushColor == other.brushColor &&
+          size == other.size &&
+          locked == other.locked;
 }
 
 class FrameNode {

@@ -2,7 +2,8 @@
 //! Telemetry Layer for Mycelium – Pre-Stream Buffer with FFI Sink
 
 use chrono::Utc;
-use std::fs::OpenOptions;
+use directories::ProjectDirs;
+use std::fs::{create_dir_all, OpenOptions};
 use std::io::Write;
 use std::sync::atomic::{AtomicBool, AtomicI64, Ordering};
 use std::sync::{Arc, LazyLock, Mutex};
@@ -162,6 +163,21 @@ pub fn init_telemetry() {
             "[{}] [5] [RUST-FATAL] Panic at {}: {}\n",
             timestamp, location, msg
         );
+        
+        // Try to save to AppData, fallback to local directory
+        let log_path = ProjectDirs::from("com", "mycelium", "mycelium")
+            .map(|pd| pd.data_local_dir().to_path_buf());
+
+        if let Some(path) = log_path {
+            let _ = create_dir_all(&path);
+            let log_file = path.join("mycelium.log");
+            if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(log_file) {
+                let _ = file.write_all(fatal_log.as_bytes());
+                let _ = file.flush();
+            }
+        }
+        
+        // Keep current behavior: always try local log
         if let Ok(mut file) = OpenOptions::new()
             .create(true)
             .append(true)

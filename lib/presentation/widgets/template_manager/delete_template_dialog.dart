@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 
 /// Shows a dialog asking the user to confirm deletion of a template.
 /// Styled with a beautiful backdrop blur.
-Future<bool?> showDeleteTemplateDialog(BuildContext context, String templateName) {
+Future<bool?> showDeleteTemplateDialog(
+  BuildContext context,
+  String templateName,
+) {
   final theme = Theme.of(context);
   return showDialog<bool>(
     context: context,
@@ -50,7 +53,9 @@ Future<bool?> showDeleteTemplateDialog(BuildContext context, String templateName
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
             style: TextButton.styleFrom(
-              foregroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              foregroundColor: theme.colorScheme.onSurface.withValues(
+                alpha: 0.6,
+              ),
             ),
             child: const Text('CANCEL'),
           ),
