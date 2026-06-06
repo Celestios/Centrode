@@ -1,0 +1,78 @@
+name: Package and Publish Windows Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  CARGO_NET_OFFLINE: false
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    
+    steps:
+      - name: Checkout Private Source Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          target: x86_64-pc-windows-msvc
+
+      - name: Cache Rust Dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "../rust -> target"
+
+      - name: Install Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Verify Flutter & Windows Build Tools
+        run: |
+          flutter doctor
+          flutter config --enable-windows-desktop
+
+      - name: Install Project Dependencies
+        run: flutter pub get
+
+      - name: Build Windows Executable & Bundle
+        run: flutter build windows --release
+
+      - name: Compile Windows Installer (EXE)
+        shell: powershell
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DMyAppVersion="${{ github.ref_name }}" windows/installer.iss
+
+      - name: Compress Release Bundle
+        shell: powershell
+        run: |
+          $sourceDir = "build\windows\x64\runner\Release"
+          $outputZip = "mycelium-windows-x64.zip"
+          if (Test-Path $sourceDir) {
+              Compress-Archive -Path "$sourceDir\*" -DestinationPath $outputZip -Force
+          } else {
+              Write-Error "Flutter build output directory not found"
+              exit 1
+          }
+
+      - name: Publish Archive to Public GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.PUBLIC_REPO_TOKEN }}
+          repository: Celestios/Mycelium
+          tag_name: ${{ github.ref_name }}
+          target_commitish: main
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: true
+          files: |
+            mycelium-windows-x64.zip
+            mycelium-windows-x64-installer.exe

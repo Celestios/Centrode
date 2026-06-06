@@ -23,7 +23,6 @@
 /macos/
 /pubspec.lock
 /web/
-/windows/
 
 # === Rust / Cargo / FFI ===
 /rust/Cargo.lock
