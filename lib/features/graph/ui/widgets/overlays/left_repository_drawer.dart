@@ -31,8 +31,29 @@ class LeftRepositoryDrawer extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _GlassIconTile(
-            icon: Icons.local_offer_outlined,
-            animateIcon: activePanel == LeftPanelType.tags,
+            icon: activePanel == LeftPanelType.draw
+                ? Icons.arrow_back_rounded
+                : Icons.draw_rounded,
+            animateIcon: true,
+            onTap: () {
+              onPanelChanged(
+                activePanel == LeftPanelType.draw
+                    ? LeftPanelType.none
+                    : LeftPanelType.draw,
+              );
+            },
+          ),
+          Divider(
+            height: 1,
+            color: theme.dividerColor.withValues(alpha: 0.3),
+            indent: 8,
+            endIndent: 8,
+          ),
+          _GlassIconTile(
+            icon: activePanel == LeftPanelType.tags
+                ? Icons.arrow_back_rounded
+                : Icons.local_offer_outlined,
+            animateIcon: true,
             onTap: () {
               onPanelChanged(
                 activePanel == LeftPanelType.tags
@@ -48,8 +69,10 @@ class LeftRepositoryDrawer extends StatelessWidget {
             endIndent: 8,
           ),
           _GlassIconTile(
-            icon: Icons.layers_outlined,
-            animateIcon: activePanel == LeftPanelType.templates,
+            icon: activePanel == LeftPanelType.templates
+                ? Icons.arrow_back_rounded
+                : Icons.layers_outlined,
+            animateIcon: true,
             onTap: () {
               onPanelChanged(
                 activePanel == LeftPanelType.templates

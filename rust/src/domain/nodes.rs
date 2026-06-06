@@ -88,6 +88,9 @@ define_nodes! {
 
     DrawingNode, "DrawingNode", [] {
         pub paths: Vec<String>,
+        pub brush_type: String,
+        pub brush_thickness: f64,
+        pub brush_color: String,
     };
 
     ShapeNode, "ShapeNode", [] {

@@ -220,6 +220,9 @@ DEFINE FIELD OVERWRITE position.x ON TABLE DrawingNode TYPE int;
 DEFINE FIELD OVERWRITE position.y ON TABLE DrawingNode TYPE int;
 DEFINE FIELD OVERWRITE layer ON TABLE DrawingNode TYPE string;
 DEFINE FIELD OVERWRITE paths ON TABLE DrawingNode TYPE array;
+DEFINE FIELD OVERWRITE brush_type ON TABLE DrawingNode TYPE string;
+DEFINE FIELD OVERWRITE brush_thickness ON TABLE DrawingNode TYPE float;
+DEFINE FIELD OVERWRITE brush_color ON TABLE DrawingNode TYPE string;
 
 -- ---------------------------------------------------------------------------
 -- Fields for `ShapeNode`

@@ -17,7 +17,13 @@ abstract class NodeStyleStrategy {
     if (type == 'info') {
       return const InfoNodeStyleStrategy();
     }
+    if (type == 'drawing') {
+      return const DrawingNodeStyleStrategy();
+    }
     if (fallbackNode != null) {
+      if (fallbackNode is DrawingUiNode) {
+        return const DrawingNodeStyleStrategy();
+      }
       return fallbackNode is TaskUiNode
           ? const TaskNodeStyleStrategy()
           : const InfoNodeStyleStrategy();
@@ -61,7 +67,31 @@ abstract class NodeStyleStrategy {
     if (theme != null) {
       return strategy.resolve(node, theme);
     }
+    if (node is DrawingUiNode) {
+      return fallbackStyle(node.size.width, node.size.height).copyWith(
+        bgColor: 0x00000000,
+        strokeColor: 0x00000000,
+        strategyType: 'drawing',
+      );
+    }
     return fallbackStyle(node.size.width, node.size.height);
+  }
+}
+
+class DrawingNodeStyleStrategy extends NodeStyleStrategy {
+  const DrawingNodeStyleStrategy();
+
+  @override
+  NodeStyle resolve(UiNode node, GraphTheme theme) {
+    if (node.style != null) return node.style!;
+    return NodeStyleStrategy.fallbackStyle().copyWith(
+      bgColor: 0x00000000,
+      strokeColor: 0x00000000,
+      textColor: 0x00000000,
+      width: node.size.width.round(),
+      height: node.size.height.round(),
+      strategyType: 'drawing',
+    );
   }
 }
 

@@ -78,6 +78,9 @@ class CommentUiNode extends UiNode {
 
 class DrawingUiNode extends UiNode {
   List<String> paths;
+  String brushType;
+  double brushThickness;
+  String brushColor;
 
   DrawingUiNode({
     required super.position,
@@ -86,6 +89,9 @@ class DrawingUiNode extends UiNode {
     super.createdAt,
     super.updatedAt,
     this.paths = const [],
+    required this.brushType,
+    required this.brushThickness,
+    required this.brushColor,
   });
 
   @override
@@ -104,6 +110,9 @@ class DrawingUiNode extends UiNode {
         createdAt: createdAt,
         updatedAt: updatedAt,
         paths: paths,
+        brushType: brushType,
+        brushThickness: brushThickness,
+        brushColor: brushColor,
       ),
     );
   }
@@ -116,6 +125,9 @@ class DrawingUiNode extends UiNode {
       layer: node.layer,
       position: Offset(node.position.x.toDouble(), node.position.y.toDouble()),
       paths: node.paths,
+      brushType: node.brushType,
+      brushThickness: node.brushThickness,
+      brushColor: node.brushColor,
     );
   }
 
@@ -126,6 +138,9 @@ class DrawingUiNode extends UiNode {
     String? layer,
     Offset? position,
     List<String>? paths,
+    String? brushType,
+    double? brushThickness,
+    String? brushColor,
   }) {
     return DrawingUiNode(
       id: id ?? this.id,
@@ -134,6 +149,9 @@ class DrawingUiNode extends UiNode {
       layer: layer ?? this.layer,
       position: position ?? this.position,
       paths: paths ?? this.paths,
+      brushType: brushType ?? this.brushType,
+      brushThickness: brushThickness ?? this.brushThickness,
+      brushColor: brushColor ?? this.brushColor,
     );
   }
 }

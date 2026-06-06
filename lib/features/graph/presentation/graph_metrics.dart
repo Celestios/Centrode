@@ -1,13 +1,10 @@
 import 'dart:math';
 import 'package:flutter/material.dart' hide Theme;
-import 'package:mycelium/src/rust/domain/base_models.dart' show BoundingBox;
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 
 abstract final class AppConfig {
   AppConfig._();
 
-  static const log = _Log();
-  static const schema = _Schema();
   static const grid = _Grid();
   static const canvas = _Canvas();
   static const interaction = _Interaction();
@@ -19,44 +16,21 @@ abstract final class AppConfig {
   static const liquidGlass = _LiquidGlass();
 }
 
-class _Log {
-  const _Log();
-}
-
-class _Schema {
-  const _Schema();
-
-  final String infoTable = 'inode';
-  final String taskTable = 'task_node';
-  final String interTable = 'inter_node';
-  final String themeTable = 'theme';
-}
-
 class _Grid {
   const _Grid();
 
   final double baseSize = 20.0;
   final double dotRadius = 1.5;
-  final Color dotColor = const Color.fromARGB(233, 214, 214, 214);
 }
 
 class _Canvas {
   const _Canvas();
 
-  final Color backgroundColor = const Color.fromARGB(255, 255, 255, 255);
   final double boundaryMargin = 500.0;
   final double minScale = 0.2;
   final double maxScale = 3.0;
   final double scaleFactor = 1000.0;
-  final double initialSize = 4000.0;
   final double overscanRatio = 0.25;
-
-  final BoundingBox defaultBounds = const BoundingBox(
-    minX: -500,
-    minY: -500,
-    maxX: 500,
-    maxY: 500,
-  );
 }
 
 class _Interaction {
@@ -65,7 +39,6 @@ class _Interaction {
   final int doubleTapMs = 300;
   final double doubleTapDistance = 20.0;
   final double snapDistance = 40.0;
-  final double portHitArea = 30.0;
   final double resizeEdgeWidth = 15.0;
   final Size relationLabelHitArea = const Size(100, 40);
 }
@@ -81,7 +54,6 @@ class _Node {
   final double editingBufferWidth = 35.0;
   final int collapsedLineLimit = 3;
   final Size defaultSize = const Size(100, 60);
-  final Offset editorOffset = const Offset(8, 25);
 
   final double metadataSphereOffsetFromRight = 10.0;
   final double metadataSphereOffsetFromTop = 10.0;
@@ -107,7 +79,6 @@ class _Toolbar {
   final double singleWidth = 90.0;
   final double multiWidth = 105.0;
   final double height = 32.0;
-  final double buttonWidth = 30.0;
   final Offset singleOffset = const Offset(-52, 0);
   final Offset multiOffset = const Offset(-52, 0);
 }
@@ -116,12 +87,8 @@ class _Visuals {
   const _Visuals();
 
   final Color selectionAccent = const Color(0xFF42A5F5);
-  final Color defaultInfoBg = const Color(0xFF818CF8);
-  final Color defaultTaskBg = const Color(0xFF34D399);
-  final Color defaultInterBg = const Color(0xFFFBBF24);
   final String defaultFont = 'Inter';
   final String defaultShape = 'rectangle';
-  final String circleShape = 'circle';
 }
 
 class _Relation {
@@ -140,21 +107,7 @@ class _Relation {
 class _Editor {
   const _Editor();
 
-  final double minWidth = 84.0;
-  final double padding = 16.0;
-  final double fontSizeNode = 12.0;
   final double fontSizeRelation = 10.0;
-}
-
-class ElementStyleConfig {
-  const ElementStyleConfig();
-
-  static const String defaultShape = 'rectangle';
-  static const Color defaultBgColor = Colors.white;
-  static const Color defaultStrokeColor = Colors.black;
-  static const double defaultStrokeWidth = 1.0;
-  static const String defaultFontFamily = 'Roboto';
-  static const double defaultWidth = 100.0;
 }
 
 class _LiquidGlass {

@@ -62,6 +62,9 @@ class DrawingNode {
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
   final List<String> paths;
+  final String brushType;
+  final double brushThickness;
+  final String brushColor;
 
   const DrawingNode({
     required this.id,
@@ -70,6 +73,9 @@ class DrawingNode {
     required this.createdAt,
     required this.updatedAt,
     required this.paths,
+    required this.brushType,
+    required this.brushThickness,
+    required this.brushColor,
   });
 
   @override
@@ -79,7 +85,10 @@ class DrawingNode {
       layer.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode ^
-      paths.hashCode;
+      paths.hashCode ^
+      brushType.hashCode ^
+      brushThickness.hashCode ^
+      brushColor.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -91,7 +100,10 @@ class DrawingNode {
           layer == other.layer &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt &&
-          paths == other.paths;
+          paths == other.paths &&
+          brushType == other.brushType &&
+          brushThickness == other.brushThickness &&
+          brushColor == other.brushColor;
 }
 
 class FrameNode {

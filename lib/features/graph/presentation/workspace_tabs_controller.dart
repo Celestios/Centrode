@@ -66,6 +66,9 @@ class TabSession extends ChangeNotifier {
   }
 
   final ValueNotifier<String> toolModeNotifier = ValueNotifier('select');
+  final ValueNotifier<String> brushColorNotifier = ValueNotifier('#00E5FF');
+  final ValueNotifier<double> brushThicknessNotifier = ValueNotifier(4.0);
+  final ValueNotifier<String> brushTypeNotifier = ValueNotifier('pen');
   final ValueNotifier<bool> showLeftPanel = ValueNotifier(true);
   final ValueNotifier<bool> showRightPanel = ValueNotifier(true);
   final ValueNotifier<bool> showBottomPanel = ValueNotifier(true);
@@ -134,6 +137,9 @@ class TabSession extends ChangeNotifier {
     dataController?.dispose();
     nodeRenderState?.dispose();
     toolModeNotifier.dispose();
+    brushColorNotifier.dispose();
+    brushThicknessNotifier.dispose();
+    brushTypeNotifier.dispose();
     showLeftPanel.dispose();
     showRightPanel.dispose();
     showBottomPanel.dispose();

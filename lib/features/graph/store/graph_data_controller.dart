@@ -231,8 +231,24 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   }
 
   // Node Mutations
-  String createNode(UiNodes type, Offset position) =>
-      nodeMutations.createNode(type, position);
+  String createNode(
+    UiNodes type,
+    Offset position, {
+    List<String>? paths,
+    String? brushType,
+    double? brushThickness,
+    String? brushColor,
+    Size? size,
+  }) =>
+      nodeMutations.createNode(
+        type,
+        position,
+        paths: paths,
+        brushType: brushType,
+        brushThickness: brushThickness,
+        brushColor: brushColor,
+        size: size,
+      );
 
   Future<void> deleteNode(String id) => nodeMutations.deleteNode(id);
 

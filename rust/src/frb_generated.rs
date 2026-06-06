@@ -2667,6 +2667,9 @@ impl SseDecode for crate::domain::nodes::DrawingNode {
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
         let mut var_paths = <Vec<String>>::sse_decode(deserializer);
+        let mut var_brushType = <String>::sse_decode(deserializer);
+        let mut var_brushThickness = <f64>::sse_decode(deserializer);
+        let mut var_brushColor = <String>::sse_decode(deserializer);
         return crate::domain::nodes::DrawingNode {
             id: var_id,
             position: var_position,
@@ -2674,6 +2677,9 @@ impl SseDecode for crate::domain::nodes::DrawingNode {
             created_at: var_createdAt,
             updated_at: var_updatedAt,
             paths: var_paths,
+            brush_type: var_brushType,
+            brush_thickness: var_brushThickness,
+            brush_color: var_brushColor,
         };
     }
 }
@@ -4413,6 +4419,9 @@ impl flutter_rust_bridge::IntoDart for crate::domain::nodes::DrawingNode {
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
             self.paths.into_into_dart().into_dart(),
+            self.brush_type.into_into_dart().into_dart(),
+            self.brush_thickness.into_into_dart().into_dart(),
+            self.brush_color.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -5632,6 +5641,9 @@ impl SseEncode for crate::domain::nodes::DrawingNode {
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);
         <Vec<String>>::sse_encode(self.paths, serializer);
+        <String>::sse_encode(self.brush_type, serializer);
+        <f64>::sse_encode(self.brush_thickness, serializer);
+        <String>::sse_encode(self.brush_color, serializer);
     }
 }
 

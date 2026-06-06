@@ -2298,8 +2298,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   DrawingNode dco_decode_drawing_node(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 6)
-      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
     return DrawingNode(
       id: dco_decode_record_strings(arr[0]),
       position: dco_decode_coordinates(arr[1]),
@@ -2307,6 +2307,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       createdAt: dco_decode_i_64(arr[3]),
       updatedAt: dco_decode_i_64(arr[4]),
       paths: dco_decode_list_String(arr[5]),
+      brushType: dco_decode_String(arr[6]),
+      brushThickness: dco_decode_f_64(arr[7]),
+      brushColor: dco_decode_String(arr[8]),
     );
   }
 
@@ -3595,6 +3598,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_createdAt = sse_decode_i_64(deserializer);
     var var_updatedAt = sse_decode_i_64(deserializer);
     var var_paths = sse_decode_list_String(deserializer);
+    var var_brushType = sse_decode_String(deserializer);
+    var var_brushThickness = sse_decode_f_64(deserializer);
+    var var_brushColor = sse_decode_String(deserializer);
     return DrawingNode(
       id: var_id,
       position: var_position,
@@ -3602,6 +3608,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       createdAt: var_createdAt,
       updatedAt: var_updatedAt,
       paths: var_paths,
+      brushType: var_brushType,
+      brushThickness: var_brushThickness,
+      brushColor: var_brushColor,
     );
   }
 
@@ -5243,6 +5252,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_64(self.createdAt, serializer);
     sse_encode_i_64(self.updatedAt, serializer);
     sse_encode_list_String(self.paths, serializer);
+    sse_encode_String(self.brushType, serializer);
+    sse_encode_f_64(self.brushThickness, serializer);
+    sse_encode_String(self.brushColor, serializer);
   }
 
   @protected

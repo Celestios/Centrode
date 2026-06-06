@@ -204,6 +204,17 @@ class NodeWidget extends StatelessWidget {
     UiNode liveNode,
     NodeStyle style,
   ) {
+    if (liveNode is DrawingUiNode) {
+      return CustomPaint(
+        painter: DrawingNodePainter(
+          paths: liveNode.paths,
+          brushColor: liveNode.brushColor,
+          brushThickness: liveNode.brushThickness,
+          brushType: liveNode.brushType,
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -261,3 +272,71 @@ class NodeWidget extends StatelessWidget {
     );
   }
 }
+
+class DrawingNodePainter extends CustomPainter {
+  final List<String> paths;
+  final String brushColor;
+  final double brushThickness;
+  final String brushType;
+
+  DrawingNodePainter({
+    required this.paths,
+    required this.brushColor,
+    required this.brushThickness,
+    required this.brushType,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    Color color;
+    try {
+      final hex = brushColor.replaceFirst('#', '').replaceFirst('0x', '');
+      if (hex.length == 6) {
+        color = Color(int.parse('FF$hex', radix: 16));
+      } else {
+        color = Color(int.parse(hex, radix: 16));
+      }
+    } catch (_) {
+      color = const Color(0xFF00E5FF);
+    }
+
+    if (brushType == 'highlighter') {
+      color = color.withValues(alpha: 0.4);
+    }
+
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = brushThickness
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    for (final pathStr in paths) {
+      final points = pathStr.split(';').map((p) {
+        final coords = p.split(',');
+        if (coords.length < 2) return null;
+        final x = double.tryParse(coords[0]);
+        final y = double.tryParse(coords[1]);
+        if (x == null || y == null) return null;
+        return Offset(x, y);
+      }).whereType<Offset>().toList();
+
+      if (points.isEmpty) continue;
+      final path = Path();
+      path.moveTo(points[0].dx, points[0].dy);
+      for (int i = 1; i < points.length; i++) {
+        path.lineTo(points[i].dx, points[i].dy);
+      }
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant DrawingNodePainter oldDelegate) {
+    return oldDelegate.paths != paths ||
+        oldDelegate.brushColor != brushColor ||
+        oldDelegate.brushThickness != brushThickness ||
+        oldDelegate.brushType != brushType;
+  }
+}
+

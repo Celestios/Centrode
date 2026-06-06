@@ -10,7 +10,7 @@ import 'package:mycelium/src/rust/domain/tags.dart';
 
 part 'graph_node.ui.dart';
 
-enum UiNodes { info, task }
+enum UiNodes { info, task, drawing }
 
 // -----------------------------------------------------------------------------
 // UiNode Abstract Base Class

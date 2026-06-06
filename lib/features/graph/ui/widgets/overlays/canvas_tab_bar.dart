@@ -14,12 +14,10 @@ class CanvasTabBar extends StatelessWidget {
     final tabs = tabsController.tabs;
     final activeIndex = tabsController.activeIndex;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: GlassGroup(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+    return GlassGroup(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
             Flexible(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -47,8 +45,7 @@ class CanvasTabBar extends StatelessWidget {
             _AddTabButton(tabsController: tabsController),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 

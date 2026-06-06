@@ -13,7 +13,15 @@ class GraphNodeMutations {
   GraphNodeMutations(this.controller);
 
   /// Creates a node with immediate UI injection (T=0.0ms pattern).
-  String createNode(UiNodes type, Offset position) {
+  String createNode(
+    UiNodes type,
+    Offset position, {
+    List<String>? paths,
+    String? brushType,
+    double? brushThickness,
+    String? brushColor,
+    Size? size,
+  }) {
     _nodeLog.fine("Creating node...");
     UiNode node;
     switch (type) {
@@ -22,6 +30,16 @@ class GraphNodeMutations {
         break;
       case UiNodes.task:
         node = TaskUiNode(position: position);
+        break;
+      case UiNodes.drawing:
+        node = DrawingUiNode(
+          position: position,
+          paths: paths ?? [],
+          brushType: brushType ?? 'pen',
+          brushThickness: brushThickness ?? 4.0,
+          brushColor: brushColor ?? '#00E5FF',
+        );
+        break;
     }
     String id = node.id;
     controller.store.nodeLookup[id] = node;
@@ -32,7 +50,7 @@ class GraphNodeMutations {
     controller.styleUpdater?.updateStyleForNode(id);
 
     // Compute the correct initial size using the centralized layout strategy helper
-    node.size = controller.calculateNodeSize(node);
+    node.size = size ?? controller.calculateNodeSize(node);
 
 
     final cmd = CreateNodeCommand(

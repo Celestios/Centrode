@@ -129,8 +129,8 @@ class _GridLayerState extends State<GridLayer>
     final isDark = ColorUtils.isDark(backgroundColor);
 
     final Color dotColor = isDark
-        ? Colors.white.withValues(alpha: 0.15)
-        : const Color.fromARGB(233, 214, 214, 214);
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.black.withValues(alpha: 0.06);
 
     final Color glowColor = isDark
         ? Colors.white.withValues(alpha: 0.95)

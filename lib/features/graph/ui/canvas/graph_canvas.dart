@@ -23,6 +23,7 @@ import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'context_toolbar_overlay.dart';
 import '../../../../presentation/widgets/tag_manager/global_tags_manager_panel.dart';
 import '../../../../presentation/widgets/template_manager/global_templates_manager_panel.dart';
+import '../../../../presentation/widgets/drawing_manager/global_drawing_panel.dart';
 import '../../../../presentation/widgets/template_manager/save_template_dialog.dart';
 import '../../models/left_panel_type.dart';
 
@@ -68,6 +69,7 @@ class _GraphCanvasState extends State<GraphCanvas>
       final tabsController = context.read<WorkspaceTabsController>();
       _boundSession = tabsController.activeSession;
       _boundSession?.viewportController = vpController;
+      _boundSession?.toolModeNotifier.addListener(_onToolModeChanged);
 
       // 2. Build the Environment Facade with separate ViewportController access
       final environment = CanvasInteractionEnvironment(
@@ -131,6 +133,7 @@ class _GraphCanvasState extends State<GraphCanvas>
   @override
   void dispose() {
     _dataController?.removeListener(_onDataControllerChanged);
+    _boundSession?.toolModeNotifier.removeListener(_onToolModeChanged);
     if (_boundSession?.viewportController == _viewportController) {
       _boundSession?.viewportController = null;
     }
@@ -138,6 +141,15 @@ class _GraphCanvasState extends State<GraphCanvas>
     _interactionController?.dispose();
     _mousePositionNotifier.dispose();
     super.dispose();
+  }
+
+  void _onToolModeChanged() {
+    final mode = _boundSession?.toolModeNotifier.value;
+    if (mode != 'draw' && _activeLeftPanel == LeftPanelType.draw) {
+      setState(() {
+        _activeLeftPanel = LeftPanelType.none;
+      });
+    }
   }
 
   @override
@@ -204,15 +216,35 @@ class _GraphCanvasState extends State<GraphCanvas>
                     );
                   },
                   child: Listener(
-                    onPointerDown: interactionController.handlePointerDown,
-                    onPointerMove: (event) {
-                      interactionController.handlePointerMove(event);
-                      _mousePositionNotifier.value = event.localPosition;
+                    onPointerDown: (event) {
+                      if (session.toolModeNotifier.value == 'draw') {
+                        _startDrawing(event, viewportController);
+                      } else {
+                        interactionController.handlePointerDown(event);
+                      }
                     },
-                    onPointerUp: interactionController.handlePointerUp,
+                    onPointerMove: (event) {
+                      if (session.toolModeNotifier.value == 'draw') {
+                        _updateDrawing(event, viewportController);
+                      } else {
+                        interactionController.handlePointerMove(event);
+                        _mousePositionNotifier.value = event.localPosition;
+                      }
+                    },
+                    onPointerUp: (event) {
+                      if (session.toolModeNotifier.value == 'draw') {
+                        _endDrawing(dataController, session);
+                      } else {
+                        interactionController.handlePointerUp(event);
+                      }
+                    },
                     onPointerCancel: (event) {
-                      interactionController.handlePointerCancel(event);
-                      _mousePositionNotifier.value = null;
+                      if (session.toolModeNotifier.value == 'draw') {
+                        _cancelDrawing();
+                      } else {
+                        interactionController.handlePointerCancel(event);
+                        _mousePositionNotifier.value = null;
+                      }
                     },
                     onPointerHover: (event) {
                       interactionController.handlePointerHover(event);
@@ -252,21 +284,28 @@ class _GraphCanvasState extends State<GraphCanvas>
                               valueListenable:
                                   interactionController.panScaleEnabled,
                               builder: (context, panScaleEnabled, child) {
-                                return CanvasInteractiveViewer(
-                                  transformationController:
-                                      viewportController.transformController,
-                                  constrained: true,
-                                  boundaryMargin: elasticMargins,
-                                  minScale: AppConfig.canvas.minScale,
-                                  maxScale: AppConfig.canvas.maxScale,
-                                  scaleFactor: AppConfig.canvas.scaleFactor,
-                                  panEnabled: panScaleEnabled,
-                                  scaleEnabled: panScaleEnabled,
-                                  onInteractionEnd: (details) {
-                                    viewportController
-                                        .recalculateElasticMargins();
+                                return ValueListenableBuilder<String>(
+                                  valueListenable: session.toolModeNotifier,
+                                  builder: (context, currentMode, _) {
+                                    final isDrawMode = currentMode == 'draw';
+                                    final viewerPanEnabled = isDrawMode ? false : panScaleEnabled;
+                                    return CanvasInteractiveViewer(
+                                      transformationController:
+                                          viewportController.transformController,
+                                      constrained: true,
+                                      boundaryMargin: elasticMargins,
+                                      minScale: AppConfig.canvas.minScale,
+                                      maxScale: AppConfig.canvas.maxScale,
+                                      scaleFactor: AppConfig.canvas.scaleFactor,
+                                      panEnabled: viewerPanEnabled,
+                                      scaleEnabled: viewerPanEnabled,
+                                      onInteractionEnd: (details) {
+                                        viewportController
+                                            .recalculateElasticMargins();
+                                      },
+                                      child: child!,
+                                    );
                                   },
-                                  child: child!,
                                 );
                               },
                               child: GestureDetector(
@@ -292,6 +331,17 @@ class _GraphCanvasState extends State<GraphCanvas>
                                     const RelationLayer(),
                                     const NodeLayer(),
                                     const OverlayLayer(),
+                                    if (_activeStroke.isNotEmpty)
+                                      IgnorePointer(
+                                        child: CustomPaint(
+                                          painter: ActiveDrawingPainter(
+                                            points: _activeStroke,
+                                            brushColor: session.brushColorNotifier.value,
+                                            brushThickness: session.brushThicknessNotifier.value,
+                                            brushType: session.brushTypeNotifier.value,
+                                          ),
+                                        ),
+                                      ),
                                   ],
                                 ),
                               ),
@@ -307,18 +357,30 @@ class _GraphCanvasState extends State<GraphCanvas>
             child: Stack(
               children: [
                 // Persistent Floating Overlays
-                // Top Deck Area (Ribbon and tabs below it)
+                // Top Deck Area (Ribbon, slash separator, and tabs bar on one line)
                 Positioned(
-                  top: 60.0,
-                  left: 0,
-                  right: 0,
+                  top: 52.0,
+                  left: 16.0,
+                  right: 16.0,
                   child: RepaintBoundary(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        CanvasToolRibbon(),
-                        SizedBox(height: 6),
-                        CanvasTabBar(),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const CanvasToolRibbon(),
+                        const SizedBox(width: 8),
+                        Text(
+                          '\\',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w300,
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Flexible(
+                          child: CanvasTabBar(),
+                        ),
                       ],
                     ),
                   ),
@@ -326,7 +388,7 @@ class _GraphCanvasState extends State<GraphCanvas>
 
                 // Left repository drawer (floating compact card, width 52)
                 Positioned(
-                  top: 178.0,
+                  top: 112.0,
                   left: 12,
                   width: 52,
                   child: ValueListenableBuilder<bool>(
@@ -338,6 +400,11 @@ class _GraphCanvasState extends State<GraphCanvas>
                         onPanelChanged: (panel) {
                           setState(() {
                             _activeLeftPanel = panel;
+                            if (panel == LeftPanelType.draw) {
+                              session.toolModeNotifier.value = 'draw';
+                            } else {
+                              session.toolModeNotifier.value = 'select';
+                            }
                           });
                         },
                       );
@@ -354,7 +421,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                     return AnimatedPositioned(
                       duration: const Duration(milliseconds: 250),
                       curve: Curves.easeInOut,
-                      top: 178.0,
+                      top: 112.0,
                       left: leftVisible
                           ? 76.0
                           : -300.0, // Clean off-screen translation
@@ -371,7 +438,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                                 minWidth: 280.0,
                                 maxWidth: 280.0,
                                 minHeight: 180,
-                                maxHeight: (constraints.maxHeight - 178 - 86)
+                                maxHeight: (constraints.maxHeight - 112 - 86)
                                     .clamp(180, 10000)
                                     .toDouble(),
                               ),
@@ -386,7 +453,7 @@ class _GraphCanvasState extends State<GraphCanvas>
 
                 // Right property inspector panel
                 Positioned(
-                  top: 120,
+                  top: 112.0,
                   right: 12,
                   child: ValueListenableBuilder<bool>(
                     valueListenable: session.showRightPanel,
@@ -395,7 +462,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                       return ConstrainedBox(
                         constraints: BoxConstraints(
                           minHeight: 180,
-                          maxHeight: (constraints.maxHeight - 120 - 224)
+                          maxHeight: (constraints.maxHeight - 112 - 224)
                               .clamp(180, 10000)
                               .toDouble(),
                         ),
@@ -441,8 +508,158 @@ class _GraphCanvasState extends State<GraphCanvas>
         return const GlobalTagsManagerPanel();
       case LeftPanelType.templates:
         return const GlobalTemplatesManagerPanel();
+      case LeftPanelType.draw:
+        return const GlobalDrawingPanel();
       case LeftPanelType.none:
         return const SizedBox.shrink();
     }
   }
+
+  List<Offset> _activeStroke = [];
+
+  Offset _getLocalCanvasCoords(Offset localPosition, ViewportController viewportController) {
+    final transform = viewportController.transformController.value;
+    if (transform.determinant() == 0.0) return localPosition;
+    final inverse = Matrix4.inverted(transform);
+    return MatrixUtils.transformPoint(inverse, localPosition);
+  }
+
+  void _startDrawing(PointerDownEvent event, ViewportController viewportController) {
+    setState(() {
+      _activeStroke = [_getLocalCanvasCoords(event.localPosition, viewportController)];
+    });
+  }
+
+  void _updateDrawing(PointerMoveEvent event, ViewportController viewportController) {
+    final currentPoint = _getLocalCanvasCoords(event.localPosition, viewportController);
+    final type = _boundSession?.brushTypeNotifier.value ?? 'pen';
+    setState(() {
+      if (type == 'line') {
+        if (_activeStroke.isNotEmpty) {
+          _activeStroke = [_activeStroke.first, currentPoint];
+        } else {
+          _activeStroke = [currentPoint];
+        }
+      } else {
+        _activeStroke.add(currentPoint);
+      }
+    });
+  }
+
+  void _endDrawing(GraphDataController dataController, TabSession session) {
+    if (_activeStroke.length < 2) {
+      _cancelDrawing();
+      return;
+    }
+
+    double minX = _activeStroke.first.dx;
+    double maxX = _activeStroke.first.dx;
+    double minY = _activeStroke.first.dy;
+    double maxY = _activeStroke.first.dy;
+
+    for (final p in _activeStroke) {
+      if (p.dx < minX) minX = p.dx;
+      if (p.dx > maxX) maxX = p.dx;
+      if (p.dy < minY) minY = p.dy;
+      if (p.dy > maxY) maxY = p.dy;
+    }
+
+    final width = maxX - minX;
+    final height = maxY - minY;
+
+    if (width < 2 && height < 2) {
+      _cancelDrawing();
+      return;
+    }
+
+    const padding = 12.0;
+    final normalizedPoints = _activeStroke.map((p) {
+      final rx = p.dx - minX + padding;
+      final ry = p.dy - minY + padding;
+      return '${rx.toStringAsFixed(1)},${ry.toStringAsFixed(1)}';
+    }).join(';');
+
+    final nodePosition = Offset(minX - padding, minY - padding);
+    final nodeSize = Size(width + padding * 2, height + padding * 2);
+
+    final brushColor = session.brushColorNotifier.value;
+    final brushThickness = session.brushThicknessNotifier.value;
+    final brushType = session.brushTypeNotifier.value;
+
+    dataController.createNode(
+      UiNodes.drawing,
+      nodePosition,
+      paths: [normalizedPoints],
+      brushType: brushType,
+      brushThickness: brushThickness,
+      brushColor: brushColor,
+      size: nodeSize,
+    );
+
+    _cancelDrawing();
+  }
+
+  void _cancelDrawing() {
+    setState(() {
+      _activeStroke = [];
+    });
+  }
 }
+
+class ActiveDrawingPainter extends CustomPainter {
+  final List<Offset> points;
+  final String brushColor;
+  final double brushThickness;
+  final String brushType;
+
+  ActiveDrawingPainter({
+    required this.points,
+    required this.brushColor,
+    required this.brushThickness,
+    required this.brushType,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (points.length < 2) return;
+
+    Color color;
+    try {
+      final hex = brushColor.replaceFirst('#', '').replaceFirst('0x', '');
+      if (hex.length == 6) {
+        color = Color(int.parse('FF$hex', radix: 16));
+      } else {
+        color = Color(int.parse(hex, radix: 16));
+      }
+    } catch (_) {
+      color = const Color(0xFF00E5FF);
+    }
+
+    if (brushType == 'highlighter') {
+      color = color.withValues(alpha: 0.4);
+    }
+
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = brushThickness
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path();
+    path.moveTo(points[0].dx, points[0].dy);
+    for (int i = 1; i < points.length; i++) {
+      path.lineTo(points[i].dx, points[i].dy);
+    }
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant ActiveDrawingPainter oldDelegate) {
+    return oldDelegate.points != points ||
+        oldDelegate.brushColor != brushColor ||
+        oldDelegate.brushThickness != brushThickness ||
+        oldDelegate.brushType != brushType;
+  }
+}
+

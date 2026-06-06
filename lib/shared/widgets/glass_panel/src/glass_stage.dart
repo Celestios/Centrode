@@ -31,6 +31,8 @@ class _GlassStageState extends State<GlassStage> {
   DateTime? _lastCaptureTime;
   Timer? _throttleTimer;
 
+  final List<Timer> _warmupTimers = [];
+
   /// Atomic lock: prevents concurrent captures from flooding the memory bus.
   bool _isCapturing = false;
   bool _hasPendingCaptureRequest = false;
@@ -39,9 +41,7 @@ class _GlassStageState extends State<GlassStage> {
   void initState() {
     super.initState();
     widget.backdropRepaint?.addListener(_onRepaint);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _requestCapture();
-    });
+    _scheduleWarmupCaptures();
   }
 
   @override
@@ -52,6 +52,36 @@ class _GlassStageState extends State<GlassStage> {
       widget.backdropRepaint?.addListener(_onRepaint);
       _requestCapture();
     }
+    if (oldWidget.background != widget.background) {
+      _scheduleWarmupCaptures();
+    }
+  }
+
+  void _scheduleWarmupCaptures() {
+    _cancelWarmupTimers();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _requestCapture();
+    });
+
+    // Schedule delayed captures to ensure the background is captured after
+    // asynchronous assets (like images) load.
+    final delays = [100, 400, 1000, 2500];
+    for (final delay in delays) {
+      _warmupTimers.add(
+        Timer(Duration(milliseconds: delay), () {
+          if (mounted) {
+            _requestCapture();
+          }
+        }),
+      );
+    }
+  }
+
+  void _cancelWarmupTimers() {
+    for (final timer in _warmupTimers) {
+      timer.cancel();
+    }
+    _warmupTimers.clear();
   }
 
   void _onRepaint() {
@@ -167,6 +197,7 @@ class _GlassStageState extends State<GlassStage> {
 
   @override
   void dispose() {
+    _cancelWarmupTimers();
     _throttleTimer?.cancel();
     widget.backdropRepaint?.removeListener(_onRepaint);
     _backdropImage?.dispose();

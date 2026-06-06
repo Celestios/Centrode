@@ -71,91 +71,87 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
       ),
     ];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: GlassPanel(
-        blur: 12,
-        borderRadius: 16,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        shadow: BoxShadow(
-          color: Colors.black.withValues(alpha: 0.15),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
-        ),
-        child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-            // Tool Mode selection
-            ValueListenableBuilder<String>(
-              valueListenable: session.toolModeNotifier,
-              builder: (context, currentMode, _) {
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (int i = 0; i < tools.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 6),
-                      _ToolButton(
-                        icon: tools[i].icon,
-                        label: tools[i].label,
-                        isActive: currentMode == tools[i].mode,
-                        isCompact: _isCompact,
-                        onPressed: () =>
-                            session.toolModeNotifier.value = tools[i].mode,
-                        primaryColor: primaryColor,
-                        textColor: textColor,
-                      ),
-                    ],
+    return GlassPanel(
+      blur: 12,
+      borderRadius: 16,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      shadow: BoxShadow(
+        color: Colors.black.withValues(alpha: 0.15),
+        blurRadius: 10,
+        offset: const Offset(0, 4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Compact Toggle button on the left
+          IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            icon: Icon(
+              _isCompact ? Icons.chevron_right_rounded : Icons.chevron_left_rounded,
+              color: textColor.withValues(alpha: 0.7),
+              size: 20,
+            ),
+            tooltip: _isCompact ? 'Expand ribbon' : 'Compact ribbon',
+            onPressed: () {
+              setState(() {
+                _isCompact = !_isCompact;
+              });
+            },
+          ),
+          const SizedBox(width: 8),
+          Container(
+            width: 1.5,
+            height: 24,
+            color: theme.dividerColor.withValues(alpha: 0.3),
+          ),
+          const SizedBox(width: 8),
+
+          // Tool Mode selection
+          ValueListenableBuilder<String>(
+            valueListenable: session.toolModeNotifier,
+            builder: (context, currentMode, _) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (int i = 0; i < tools.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 6),
+                    _ToolButton(
+                      icon: tools[i].icon,
+                      label: tools[i].label,
+                      isActive: currentMode == tools[i].mode,
+                      isCompact: _isCompact,
+                      onPressed: () =>
+                          session.toolModeNotifier.value = tools[i].mode,
+                      primaryColor: primaryColor,
+                      textColor: textColor,
+                    ),
                   ],
-                );
-              },
-            ),
+                ],
+              );
+            },
+          ),
 
-            const SizedBox(width: 8),
-            Container(
-              width: 1.5,
-              height: 24,
-              color: theme.dividerColor.withValues(alpha: 0.3),
-            ),
-            const SizedBox(width: 8),
+          const SizedBox(width: 8),
+          Container(
+            width: 1.5,
+            height: 24,
+            color: theme.dividerColor.withValues(alpha: 0.3),
+          ),
+          const SizedBox(width: 8),
 
-            // Action controls: Undo, Redo, Import, Export
-            for (final act in actions)
-              if (act.showAlways || !_isCompact)
-                _ActionButton(
-                  icon: act.icon,
-                  tooltip: act.tooltip,
-                  onPressed: act.action,
-                  textColor: textColor,
-                  isEnabled: act.isEnabled,
-                  count: act.count,
-                ),
-
-            const SizedBox(width: 8),
-            Container(
-              width: 1.5,
-              height: 24,
-              color: theme.dividerColor.withValues(alpha: 0.3),
-            ),
-            const SizedBox(width: 8),
-
-            // Compact Toggle button
-            IconButton(
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              icon: Icon(
-                _isCompact ? Icons.menu_open_rounded : Icons.menu_rounded,
-                color: textColor.withValues(alpha: 0.7),
-                size: 20,
+          // Action controls: Undo, Redo, Import, Export
+          for (final act in actions)
+            if (act.showAlways || !_isCompact)
+              _ActionButton(
+                icon: act.icon,
+                tooltip: act.tooltip,
+                onPressed: act.action,
+                textColor: textColor,
+                isEnabled: act.isEnabled,
+                count: act.count,
               ),
-              tooltip: _isCompact ? 'Expand ribbon' : 'Compact ribbon',
-              onPressed: () {
-                setState(() {
-                  _isCompact = !_isCompact;
-                });
-              },
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
