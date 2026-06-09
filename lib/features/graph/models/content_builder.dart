@@ -207,14 +207,267 @@ extension ContentExtensions on Content {
   }
 }
 
-/// Factory methods for creating common Content patterns.
+/// Factory methods for creating common Content patterns and serialization.
 class ContentFactory {
-  /// Create Content from plain text (single paragraph).
+  /// Parses inline elements from a line of text, identifying bold, italic,
+  /// underline, strikethrough, code, and hyperlinks.
+  static List<InlineElement> parseInline(String text, [List<TextMark>? activeMarks]) {
+    final marks = activeMarks ?? [];
+    
+    int firstIdx = -1;
+    String matchType = '';
+    Match? bestMatch;
+    
+    final linkReg = RegExp(r'\[([^\]]*)\]\(([^)]+)\)');
+    final boldReg = RegExp(r'\*\*([^*]+)\*\*');
+    final italicReg = RegExp(r'\*([^*]+)\*');
+    final underlineReg = RegExp(r'<u>([^<]+)</u>');
+    final strikeReg = RegExp(r'~~([^~]+)~~');
+    final codeReg = RegExp(r'`([^`]+)`');
+    
+    final regexes = {
+      'link': linkReg,
+      'bold': boldReg,
+      'italic': italicReg,
+      'underline': underlineReg,
+      'strike': strikeReg,
+      'code': codeReg,
+    };
+    
+    for (final entry in regexes.entries) {
+      final m = entry.value.firstMatch(text);
+      if (m != null) {
+        if (firstIdx == -1 || m.start < firstIdx) {
+          firstIdx = m.start;
+          matchType = entry.key;
+          bestMatch = m;
+        }
+      }
+    }
+    
+    if (bestMatch == null) {
+      return [
+        InlineElement(
+          inlineType: InlineType.text,
+          text: text,
+          marks: marks.isEmpty ? null : List.from(marks),
+        )
+      ];
+    }
+    
+    final list = <InlineElement>[];
+    // 1. Text before match
+    if (bestMatch.start > 0) {
+      list.addAll(parseInline(text.substring(0, bestMatch.start), marks));
+    }
+    
+    // 2. The match itself
+    final matchText = bestMatch.group(1) ?? '';
+    final nextMarks = List<TextMark>.from(marks);
+    
+    if (matchType == 'bold') {
+      nextMarks.add(const TextMark(markType: MarkType.bold));
+      list.addAll(parseInline(matchText, nextMarks));
+    } else if (matchType == 'italic') {
+      nextMarks.add(const TextMark(markType: MarkType.italic));
+      list.addAll(parseInline(matchText, nextMarks));
+    } else if (matchType == 'underline') {
+      nextMarks.add(const TextMark(markType: MarkType.underline));
+      list.addAll(parseInline(matchText, nextMarks));
+    } else if (matchType == 'strike') {
+      nextMarks.add(const TextMark(markType: MarkType.strikethrough));
+      list.addAll(parseInline(matchText, nextMarks));
+    } else if (matchType == 'code') {
+      nextMarks.add(const TextMark(markType: MarkType.code));
+      list.addAll(parseInline(matchText, nextMarks));
+    } else if (matchType == 'link') {
+      final url = bestMatch.group(2) ?? '';
+      nextMarks.add(TextMark(markType: MarkType.link, attrs: MarkAttrs(href: url)));
+      list.addAll(parseInline(matchText, nextMarks));
+    }
+    
+    // 3. Text after match
+    if (bestMatch.end < text.length) {
+      list.addAll(parseInline(text.substring(bestMatch.end), marks));
+    }
+    
+    return list;
+  }
+
+  /// Create Content from markdown-like text, parsing structure and formatting.
   static Content fromText(String text) {
     if (text.isEmpty) {
       return const Content(text: '', blocks: []);
     }
-    return ContentBuilder().paragraph(text).build();
+    
+    final lines = text.split('\n');
+    final blocks = <ContentBlock>[];
+    
+    bool inCodeBlock = false;
+    String? codeBlockLanguage;
+    final codeBlockBuffer = StringBuffer();
+    
+    for (final line in lines) {
+      if (inCodeBlock) {
+        if (line.trimRight() == '```') {
+          inCodeBlock = false;
+          blocks.add(
+            ContentBlock(
+              blockType: BlockType.codeBlock,
+              content: [InlineElement(inlineType: InlineType.text, text: codeBlockBuffer.toString().trimRight())],
+              attrs: BlockAttrs(language: codeBlockLanguage),
+            ),
+          );
+          codeBlockBuffer.clear();
+        } else {
+          codeBlockBuffer.writeln(line);
+        }
+        continue;
+      }
+      
+      // Check for code block start
+      if (line.startsWith('```')) {
+        inCodeBlock = true;
+        final lang = line.substring(3).trim();
+        codeBlockLanguage = lang.isEmpty ? null : lang;
+        continue;
+      }
+      
+      // Heading: starts with #
+      final headingMatch = RegExp(r'^(#{1,6})\s+(.*)$').firstMatch(line);
+      if (headingMatch != null) {
+        final level = headingMatch.group(1)!.length;
+        final contentText = headingMatch.group(2)!;
+        blocks.add(
+          ContentBlock(
+            blockType: BlockType.heading,
+            content: parseInline(contentText),
+            attrs: BlockAttrs(level: level),
+          ),
+        );
+        continue;
+      }
+      
+      // Blockquote: starts with >
+      if (line.startsWith('>') && (line.length == 1 || line[1] == ' ')) {
+        final contentText = line.length == 1 ? '' : line.substring(2);
+        blocks.add(
+          ContentBlock(
+            blockType: BlockType.blockquote,
+            content: parseInline(contentText),
+          ),
+        );
+        continue;
+      }
+      
+      // Bullet List: starts with - , * , or +
+      final bulletMatch = RegExp(r'^[-*+]\s+(.*)$').firstMatch(line);
+      if (bulletMatch != null) {
+        final contentText = bulletMatch.group(1)!;
+        blocks.add(
+          ContentBlock(
+            blockType: BlockType.bulletList,
+            content: parseInline(contentText),
+          ),
+        );
+        continue;
+      }
+      
+      // Ordered List: starts with 1. or 2. etc.
+      final orderedMatch = RegExp(r'^(\d+)\.\s+(.*)$').firstMatch(line);
+      if (orderedMatch != null) {
+        final contentText = orderedMatch.group(2)!;
+        blocks.add(
+          ContentBlock(
+            blockType: BlockType.orderedList,
+            content: parseInline(contentText),
+          ),
+        );
+        continue;
+      }
+      
+      // Otherwise, it's a paragraph
+      blocks.add(
+        ContentBlock(
+          blockType: BlockType.paragraph,
+          content: parseInline(line),
+        ),
+      );
+    }
+    
+    // Handle unclosed code block
+    if (inCodeBlock) {
+      blocks.add(
+        ContentBlock(
+          blockType: BlockType.codeBlock,
+          content: [InlineElement(inlineType: InlineType.text, text: codeBlockBuffer.toString().trimRight())],
+          attrs: BlockAttrs(language: codeBlockLanguage),
+        ),
+      );
+    }
+    
+    // Compute the plain text representation
+    final plainText = ContentBuilder._computePlainText(blocks);
+    return Content(text: plainText, blocks: blocks);
+  }
+
+  /// Converts a Content object back into its markdown-like representation.
+  static String toMarkdown(Content content) {
+    final buffer = StringBuffer();
+    for (final block in content.blocks) {
+      if (block.blockType == BlockType.heading) {
+        final level = block.attrs?.level ?? 1;
+        buffer.write('${"#" * level} ');
+      } else if (block.blockType == BlockType.blockquote) {
+        buffer.write('> ');
+      } else if (block.blockType == BlockType.bulletList) {
+        buffer.write('- ');
+      } else if (block.blockType == BlockType.orderedList) {
+        buffer.write('1. ');
+      } else if (block.blockType == BlockType.codeBlock) {
+        final lang = block.attrs?.language ?? '';
+        buffer.writeln('```$lang');
+      }
+      
+      for (final inline in block.content) {
+        if (inline.inlineType == InlineType.hardBreak) {
+          buffer.write('\n');
+          continue;
+        }
+        
+        var text = inline.text;
+        if (inline.marks != null && block.blockType != BlockType.codeBlock) {
+          // Apply marks in order
+          for (final mark in inline.marks!) {
+            if (mark.markType == MarkType.bold) {
+              text = '**$text**';
+            } else if (mark.markType == MarkType.italic) {
+              text = '*$text*';
+            } else if (mark.markType == MarkType.underline) {
+              text = '<u>$text</u>';
+            } else if (mark.markType == MarkType.strikethrough) {
+              text = '~~$text~~';
+            } else if (mark.markType == MarkType.code) {
+              text = '`$text`';
+            } else if (mark.markType == MarkType.link) {
+              final href = mark.attrs?.href ?? '';
+              text = '[$text]($href)';
+            }
+          }
+        }
+        buffer.write(text);
+      }
+      
+      if (block.blockType == BlockType.codeBlock) {
+        buffer.write('\n```');
+      }
+      buffer.writeln();
+    }
+    
+    final result = buffer.toString();
+    return result.endsWith('\n')
+        ? result.substring(0, result.length - 1)
+        : result;
   }
 
   /// Create Content with a single heading.

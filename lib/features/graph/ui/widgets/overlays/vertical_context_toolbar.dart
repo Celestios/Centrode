@@ -22,6 +22,14 @@ class VerticalContextToolbar extends StatelessWidget {
   final ValueChanged<String>? onRelationLayoutChanged;
   final ValueChanged<String>? onRelationStrokePatternChanged;
 
+  final VoidCallback? onToggleBold;
+  final VoidCallback? onToggleItalic;
+  final VoidCallback? onToggleUnderline;
+  final VoidCallback? onToggleHeader1;
+  final VoidCallback? onToggleHeader2;
+  final VoidCallback? onToggleHeader3;
+  final VoidCallback? onAddHyperlink;
+
   const VerticalContextToolbar({
     super.key,
     required this.onDelete,
@@ -39,6 +47,13 @@ class VerticalContextToolbar extends StatelessWidget {
     this.onDrawConnection,
     this.onRelationLayoutChanged,
     this.onRelationStrokePatternChanged,
+    this.onToggleBold,
+    this.onToggleItalic,
+    this.onToggleUnderline,
+    this.onToggleHeader1,
+    this.onToggleHeader2,
+    this.onToggleHeader3,
+    this.onAddHyperlink,
   });
 
   @override
@@ -267,17 +282,37 @@ class VerticalContextToolbar extends StatelessWidget {
                         SubmenuButtonData(
                           icon: Icons.format_bold_rounded,
                           tooltip: 'Bold',
-                          onPressed: () {},
+                          onPressed: onToggleBold ?? () {},
                         ),
                         SubmenuButtonData(
                           icon: Icons.format_italic_rounded,
                           tooltip: 'Italic',
-                          onPressed: () {},
+                          onPressed: onToggleItalic ?? () {},
                         ),
                         SubmenuButtonData(
                           icon: Icons.format_underlined_rounded,
                           tooltip: 'Underline',
-                          onPressed: () {},
+                          onPressed: onToggleUnderline ?? () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.looks_one_rounded,
+                          tooltip: 'Heading 1',
+                          onPressed: onToggleHeader1 ?? () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.looks_two_rounded,
+                          tooltip: 'Heading 2',
+                          onPressed: onToggleHeader2 ?? () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.looks_3_rounded,
+                          tooltip: 'Heading 3',
+                          onPressed: onToggleHeader3 ?? () {},
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.insert_link_rounded,
+                          tooltip: 'Insert Link',
+                          onPressed: onAddHyperlink ?? () {},
                         ),
                         SubmenuButtonData(
                           icon: Icons.format_align_left_rounded,

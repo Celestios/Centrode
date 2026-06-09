@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import '../../../src/rust/bridge/api.dart';
 import '../../../src/rust/domain/base_models.dart' show ViewportState;
 import '../store/graph_data_controller.dart';
@@ -86,14 +88,20 @@ class TabSession extends ChangeNotifier {
   }
 
   Future<void> _doInitialize(ThemeData globalTheme) async {
-    final file = File(storagePath);
+    String resolvedPath = storagePath;
+    if (!p.isAbsolute(storagePath)) {
+      final appSupportDir = await getApplicationSupportDirectory();
+      resolvedPath = p.join(appSupportDir.path, storagePath);
+    }
+
+    final file = File(resolvedPath);
     final directory = file.parent;
     if (!directory.existsSync()) {
       directory.createSync(recursive: true);
     }
 
     final activeHandle = await AppHandle.newInstance(
-      storagePath: storagePath,
+      storagePath: resolvedPath,
       name: name,
     );
     handle = activeHandle;

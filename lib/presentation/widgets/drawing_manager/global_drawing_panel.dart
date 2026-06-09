@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../features/graph/presentation/workspace_tabs_controller.dart';
 import '../left_repository_panel.dart';
+import 'package:mycelium/shared/widgets/color_palette/color_palette.dart';
 
 class GlobalDrawingPanel extends StatelessWidget {
   const GlobalDrawingPanel({super.key});
@@ -118,51 +119,41 @@ class GlobalDrawingPanel extends StatelessWidget {
             const SizedBox(height: 20),
 
             // ─── BRUSH COLOR ───
-            Text(
-              'COLOR',
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
-            ),
-            const SizedBox(height: 10),
             ValueListenableBuilder<String>(
               valueListenable: session.brushColorNotifier,
               builder: (context, activeColor, _) {
-                return Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: colors.map((c) {
-                    final isActive =
-                        activeColor.toUpperCase() == c.hex.toUpperCase();
-                    return GestureDetector(
-                      onTap: () => session.brushColorNotifier.value = c.hex,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: c.color,
-                          border: Border.all(
-                            color: isActive
-                                ? theme.colorScheme.primary
-                                : Colors.transparent,
-                            width: isActive ? 2.5 : 0,
-                          ),
-                          boxShadow: isActive
-                              ? [
-                                  BoxShadow(
-                                    color: c.color.withValues(alpha: 0.4),
-                                    blurRadius: 8,
-                                    spreadRadius: 2,
-                                  ),
-                                ]
-                              : [],
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                Color parsedColor;
+                try {
+                  final cleanHex = activeColor.replaceAll('#', '');
+                  if (cleanHex.length == 6) {
+                    parsedColor = Color(int.parse('FF$cleanHex', radix: 16));
+                  } else if (cleanHex.length == 8) {
+                    parsedColor = Color(int.parse(cleanHex, radix: 16));
+                  } else {
+                    parsedColor = const Color(0xFF00E5FF);
+                  }
+                } catch (_) {
+                  parsedColor = const Color(0xFF00E5FF);
+                }
+
+                return UniversalColorPalette(
+                  initialColor: parsedColor,
+                  mode: ColorPaletteMode.advanced,
+                  showAlpha: true,
+                  customPresets: const [
+                    Color(0xFF00E5FF),
+                    Color(0xFFD500F9),
+                    Color(0xFFFF6D00),
+                    Color(0xFFFFD600),
+                    Color(0xFFFFFFFF),
+                    Color(0xFF818CF8),
+                    Color(0xFF34D399),
+                    Color(0xFFFBBF24),
+                  ],
+                  onColorSelected: (color) {
+                    final hexStr = '#${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
+                    session.brushColorNotifier.value = hexStr;
+                  },
                 );
               },
             ),

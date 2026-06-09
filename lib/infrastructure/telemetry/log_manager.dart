@@ -7,6 +7,7 @@ import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 
 import 'log_models.dart';
@@ -83,8 +84,9 @@ class LogManager {
       return;
     }
 
-    // HACK: for quick developer access. STANDARD: set to appdata folder or somewhere similar
-    final logPath = '${Directory.current.path}/mycelium.log';
+    // Resolve log file path to the user's application support directory to avoid permission issues
+    final supportDir = await getApplicationSupportDirectory();
+    final logPath = '${supportDir.path}/mycelium.log';
     await _checkForPreviousPanics(logPath);
     final receivePort = ReceivePort();
     _isolateReceivePort = receivePort;

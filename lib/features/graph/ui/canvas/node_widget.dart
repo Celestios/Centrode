@@ -116,11 +116,11 @@ class NodeWidget extends StatelessWidget {
                 child: isEditing
                     ? CanvasTextEditor(
                         entityId: liveNode.id,
-                        initialText: liveNode.text,
+                        initialText: ContentFactory.toMarkdown(liveNode.content),
                         maxLines: null,
                         textStyle: TextStyle(
                           fontSize: resolvedStyle.fontSize,
-                          fontFamily: resolvedStyle.fontFamily,
+                          fontFamily: resolvedStyle.fontFamily.isEmpty || resolvedStyle.fontFamily == 'System' ? null : resolvedStyle.fontFamily,
                           color: Color(resolvedStyle.textColor),
                         ),
                       )
@@ -223,17 +223,15 @@ class NodeWidget extends StatelessWidget {
       children: [
         Expanded(
           child: Center(
-            child: Text(
-              liveNode.text.isEmpty ? "Empty Node" : liveNode.text,
-              style: TextStyle(
+            child: _buildRichText(
+              context,
+              liveNode.content,
+              TextStyle(
                 fontSize: style.fontSize,
-                fontFamily: style.fontFamily,
+                fontFamily: style.fontFamily.isEmpty || style.fontFamily == 'System' ? null : style.fontFamily,
                 color: Color(style.textColor),
               ),
-              overflow: TextOverflow.fade,
-              maxLines: viewState.isExpandedNotifier.value
-                  ? null
-                  : AppConfig.node.collapsedLineLimit,
+              viewState.isExpandedNotifier.value,
             ),
           ),
         ),
@@ -272,6 +270,103 @@ class NodeWidget extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildRichText(
+    BuildContext context,
+    Content content,
+    TextStyle baseStyle,
+    bool isExpanded,
+  ) {
+    if (content.blocks.isEmpty) {
+      return Text("Empty Node", style: baseStyle);
+    }
+    
+    final List<TextSpan> blockSpans = [];
+    
+    for (int i = 0; i < content.blocks.length; i++) {
+      final block = content.blocks[i];
+      final List<TextSpan> inlineSpans = [];
+      
+      // Determine block-level styling
+      TextStyle blockStyle = baseStyle;
+      if (block.blockType == BlockType.heading) {
+        final level = block.attrs?.level ?? 1;
+        final double sizeFactor = 1.4 - (level - 1) * 0.08; 
+        blockStyle = baseStyle.copyWith(
+          fontSize: (baseStyle.fontSize ?? 12.0) * sizeFactor,
+          fontWeight: FontWeight.bold,
+        );
+      } else if (block.blockType == BlockType.blockquote) {
+        blockStyle = baseStyle.copyWith(
+          fontStyle: FontStyle.italic,
+          color: baseStyle.color?.withValues(alpha: 0.85),
+        );
+      } else if (block.blockType == BlockType.codeBlock) {
+        blockStyle = baseStyle.copyWith(
+          fontFamily: 'Consolas',
+          fontSize: (baseStyle.fontSize ?? 12.0) * 0.9,
+          color: baseStyle.color?.withValues(alpha: 0.9),
+        );
+      }
+      
+      // Bullet / List prefix
+      if (block.blockType == BlockType.bulletList) {
+        inlineSpans.add(TextSpan(text: '• ', style: blockStyle));
+      } else if (block.blockType == BlockType.orderedList) {
+        inlineSpans.add(TextSpan(text: '${i + 1}. ', style: blockStyle));
+      }
+      
+      for (final inline in block.content) {
+        if (inline.inlineType == InlineType.hardBreak) {
+          inlineSpans.add(const TextSpan(text: '\n'));
+          continue;
+        }
+        
+        TextStyle inlineStyle = blockStyle;
+        if (inline.marks != null && block.blockType != BlockType.codeBlock) {
+          for (final mark in inline.marks!) {
+            if (mark.markType == MarkType.bold) {
+              inlineStyle = inlineStyle.copyWith(fontWeight: FontWeight.bold);
+            } else if (mark.markType == MarkType.italic) {
+              inlineStyle = inlineStyle.copyWith(fontStyle: FontStyle.italic);
+            } else if (mark.markType == MarkType.underline) {
+              inlineStyle = inlineStyle.copyWith(decoration: TextDecoration.underline);
+            } else if (mark.markType == MarkType.strikethrough) {
+              inlineStyle = inlineStyle.copyWith(decoration: TextDecoration.lineThrough);
+            } else if (mark.markType == MarkType.code) {
+              inlineStyle = inlineStyle.copyWith(
+                fontFamily: 'Consolas',
+                backgroundColor: baseStyle.color?.withValues(alpha: 0.1),
+              );
+            } else if (mark.markType == MarkType.link) {
+              inlineStyle = inlineStyle.copyWith(
+                color: Colors.blueAccent,
+                decoration: TextDecoration.underline,
+              );
+            }
+          }
+        }
+        
+        inlineSpans.add(TextSpan(
+          text: inline.text,
+          style: inlineStyle,
+        ));
+      }
+      
+      if (i < content.blocks.length - 1) {
+        inlineSpans.add(const TextSpan(text: '\n'));
+      }
+      
+      blockSpans.add(TextSpan(children: inlineSpans));
+    }
+    
+    return Text.rich(
+      TextSpan(children: blockSpans),
+      textAlign: TextAlign.center,
+      overflow: TextOverflow.fade,
+      maxLines: isExpanded ? null : AppConfig.node.collapsedLineLimit,
     );
   }
 }

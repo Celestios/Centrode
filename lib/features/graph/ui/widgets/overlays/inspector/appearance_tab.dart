@@ -3,6 +3,7 @@ import '../../../../store/graph_data_controller.dart';
 import '../../../../models/models.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/shared/utils/color_utils.dart';
+import 'package:mycelium/shared/widgets/color_palette/color_palette.dart';
 
 class AppearanceTab extends StatelessWidget {
   final Set<String> selectedEntities;
@@ -368,44 +369,19 @@ class AppearanceTab extends StatelessWidget {
         const SizedBox(height: 16),
         _buildSectionHeader(theme, 'BACKGROUND COLOR'),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: colors.map((col) {
-            final isSelected = currentStyle.bgColor == col;
-            return GestureDetector(
-              onTap: () => _updateSelectedNodesStyle(
-                nodeIds,
-                dataController,
-                (style) => style.copyWith(
-                  bgColor: col,
-                  textColor: ColorUtils.getContrastTextColorInt(col),
-                  strokeColor: ColorUtils.getContrastStrokeColorInt(col),
-                ),
-              ),
-              child: Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: Color(col),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isSelected
-                        ? theme.colorScheme.primary
-                        : Colors.white24,
-                    width: isSelected ? 2.5 : 1,
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 2,
-                      offset: Offset(0, 1),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
+        UniversalColorPalette(
+          initialColor: Color(currentStyle.bgColor),
+          mode: ColorPaletteMode.advanced,
+          showAlpha: true,
+          onColorSelected: (col) => _updateSelectedNodesStyle(
+            nodeIds,
+            dataController,
+            (style) => style.copyWith(
+              bgColor: col.value,
+              textColor: ColorUtils.getContrastTextColorInt(col.value),
+              strokeColor: ColorUtils.getContrastStrokeColorInt(col.value),
+            ),
+          ),
         ),
         const SizedBox(height: 16),
         _buildStyleSlider(
