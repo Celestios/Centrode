@@ -18,7 +18,7 @@ class TagColorPickerPanel extends StatelessWidget {
       mode: ColorPaletteMode.radial,
       showAlpha: false,
       onColorSelected: (color) {
-        onColorSelected(color.value);
+        onColorSelected(color.toARGB32());
       },
     );
   }

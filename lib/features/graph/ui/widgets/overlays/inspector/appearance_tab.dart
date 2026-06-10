@@ -303,17 +303,6 @@ class AppearanceTab extends StatelessWidget {
     final firstNode = dataController.nodeLookup[nodeIds.first]!;
     final currentStyle = _getEffectiveStyle(firstNode);
 
-    final colors = [
-      0xFF818CF8,
-      0xFF34D399,
-      0xFFFBBF24,
-      0xFFC084FC,
-      0xFFF472B6,
-      0xFFFB923C,
-      0xFF94A3B8,
-      0xFFE2E8F0,
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -377,9 +366,9 @@ class AppearanceTab extends StatelessWidget {
             nodeIds,
             dataController,
             (style) => style.copyWith(
-              bgColor: col.value,
-              textColor: ColorUtils.getContrastTextColorInt(col.value),
-              strokeColor: ColorUtils.getContrastStrokeColorInt(col.value),
+              bgColor: col.toARGB32(),
+              textColor: ColorUtils.getContrastTextColorInt(col.toARGB32()),
+              strokeColor: ColorUtils.getContrastStrokeColorInt(col.toARGB32()),
             ),
           ),
         ),

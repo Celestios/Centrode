@@ -8,7 +8,6 @@ import 'package:mycelium/src/rust/domain/relations.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/src/rust/domain/snapshot.dart';
-import 'package:mycelium/features/graph/models/content_builder.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 

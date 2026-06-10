@@ -3,9 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mycelium/features/graph/ui/canvas/node_widget.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
-
-import 'package:mycelium/features/graph/models/content_builder.dart';
-
 import 'package:provider/provider.dart';
 import 'package:mycelium/features/graph/store/graph_data_query.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';

@@ -12,6 +12,7 @@ part of 'graph_node.dart';
 enum UiNodes { comment, drawing, frame, info, inter, media, shape, task }
 
 class CommentUiNode extends UiNode {
+  @override
   String text;
 
   CommentUiNode({
@@ -721,36 +722,84 @@ class TaskUiNode extends UiNode {
 }
 
 UiNode _$uiNodeFromRust(Object rustNode) {
-  if (rustNode is CommentNode) return CommentUiNode.fromRust(rustNode);
-  if (rustNode is DrawingNode) return DrawingUiNode.fromRust(rustNode);
-  if (rustNode is FrameNode) return FrameUiNode.fromRust(rustNode);
-  if (rustNode is INode) return InfoUiNode.fromRust(rustNode);
-  if (rustNode is InterNode) return InterUiNode.fromRust(rustNode);
-  if (rustNode is MediaNode) return MediaUiNode.fromRust(rustNode);
-  if (rustNode is ShapeNode) return ShapeUiNode.fromRust(rustNode);
-  if (rustNode is TaskNode) return TaskUiNode.fromRust(rustNode);
-  if (rustNode is Nodes_CommentNode)
+  if (rustNode is CommentNode) {
+    return CommentUiNode.fromRust(rustNode);
+  }
+  if (rustNode is DrawingNode) {
+    return DrawingUiNode.fromRust(rustNode);
+  }
+  if (rustNode is FrameNode) {
+    return FrameUiNode.fromRust(rustNode);
+  }
+  if (rustNode is INode) {
+    return InfoUiNode.fromRust(rustNode);
+  }
+  if (rustNode is InterNode) {
+    return InterUiNode.fromRust(rustNode);
+  }
+  if (rustNode is MediaNode) {
+    return MediaUiNode.fromRust(rustNode);
+  }
+  if (rustNode is ShapeNode) {
+    return ShapeUiNode.fromRust(rustNode);
+  }
+  if (rustNode is TaskNode) {
+    return TaskUiNode.fromRust(rustNode);
+  }
+  if (rustNode is Nodes_CommentNode) {
     return CommentUiNode.fromRust(rustNode.field0);
-  if (rustNode is Nodes_DrawingNode)
+  }
+  if (rustNode is Nodes_DrawingNode) {
     return DrawingUiNode.fromRust(rustNode.field0);
-  if (rustNode is Nodes_FrameNode) return FrameUiNode.fromRust(rustNode.field0);
-  if (rustNode is Nodes_INode) return InfoUiNode.fromRust(rustNode.field0);
-  if (rustNode is Nodes_InterNode) return InterUiNode.fromRust(rustNode.field0);
-  if (rustNode is Nodes_MediaNode) return MediaUiNode.fromRust(rustNode.field0);
-  if (rustNode is Nodes_ShapeNode) return ShapeUiNode.fromRust(rustNode.field0);
-  if (rustNode is Nodes_TaskNode) return TaskUiNode.fromRust(rustNode.field0);
+  }
+  if (rustNode is Nodes_FrameNode) {
+    return FrameUiNode.fromRust(rustNode.field0);
+  }
+  if (rustNode is Nodes_INode) {
+    return InfoUiNode.fromRust(rustNode.field0);
+  }
+  if (rustNode is Nodes_InterNode) {
+    return InterUiNode.fromRust(rustNode.field0);
+  }
+  if (rustNode is Nodes_MediaNode) {
+    return MediaUiNode.fromRust(rustNode.field0);
+  }
+  if (rustNode is Nodes_ShapeNode) {
+    return ShapeUiNode.fromRust(rustNode.field0);
+  }
+  if (rustNode is Nodes_TaskNode) {
+    return TaskUiNode.fromRust(rustNode.field0);
+  }
   throw ArgumentError('Unsupported Rust node type: ${rustNode.runtimeType}');
 }
 
 UiNode? _$uiNodeCopy(UiNode? node) {
-  if (node == null) return null;
-  if (node is CommentUiNode) return node.copyWith();
-  if (node is DrawingUiNode) return node.copyWith();
-  if (node is FrameUiNode) return node.copyWith();
-  if (node is InfoUiNode) return node.copyWith();
-  if (node is InterUiNode) return node.copyWith();
-  if (node is MediaUiNode) return node.copyWith();
-  if (node is ShapeUiNode) return node.copyWith();
-  if (node is TaskUiNode) return node.copyWith();
+  if (node == null) {
+    return null;
+  }
+  if (node is CommentUiNode) {
+    return node.copyWith();
+  }
+  if (node is DrawingUiNode) {
+    return node.copyWith();
+  }
+  if (node is FrameUiNode) {
+    return node.copyWith();
+  }
+  if (node is InfoUiNode) {
+    return node.copyWith();
+  }
+  if (node is InterUiNode) {
+    return node.copyWith();
+  }
+  if (node is MediaUiNode) {
+    return node.copyWith();
+  }
+  if (node is ShapeUiNode) {
+    return node.copyWith();
+  }
+  if (node is TaskUiNode) {
+    return node.copyWith();
+  }
   throw ArgumentError('Unsupported node type: ${node.runtimeType}');
 }

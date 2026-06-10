@@ -117,7 +117,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
       spacing: 8,
       runSpacing: 8,
       children: _presets.map((c) {
-        final isActive = _selectedColor.value == c.value;
+        final isActive = _selectedColor.toARGB32() == c.toARGB32();
         return GestureDetector(
           onTap: () => _updateColor(c),
           child: MouseRegion(
@@ -221,7 +221,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
                   const radius = 48.0;
                   final x = 65.0 + radius * math.cos(angle) - 11.0;
                   final y = 65.0 + radius * math.sin(angle) - 11.0;
-                  final isSelected = _selectedColor.value == c.value;
+                  final isSelected = _selectedColor.toARGB32() == c.toARGB32();
 
                   return Positioned(
                     left: x,
@@ -290,7 +290,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: _shuffledColors.take(5).map((c) {
-              final isSelected = _selectedColor.value == c.value;
+              final isSelected = _selectedColor.toARGB32() == c.toARGB32();
               return GestureDetector(
                 onTap: () => _updateColor(c),
                 child: MouseRegion(
@@ -391,7 +391,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
           runSpacing: 8,
           children: harmonyColors.map((c) {
             final targetColor = c.withValues(alpha: _selectedColor.a);
-            final isActive = _selectedColor.value == targetColor.value;
+            final isActive = _selectedColor.toARGB32() == targetColor.toARGB32();
             return GestureDetector(
               onTap: () => _updateColor(targetColor),
               child: MouseRegion(
@@ -594,7 +594,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: _shuffledColors.map((c) {
             final targetColor = c.withValues(alpha: _selectedColor.a);
-            final isSelected = _selectedColor.value == targetColor.value;
+            final isSelected = _selectedColor.toARGB32() == targetColor.toARGB32();
             return GestureDetector(
               onTap: () => _updateColor(targetColor),
               child: MouseRegion(

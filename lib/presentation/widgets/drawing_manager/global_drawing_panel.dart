@@ -13,14 +13,6 @@ class GlobalDrawingPanel extends StatelessWidget {
     final session = tabsController.activeSession;
     final theme = Theme.of(context);
 
-    final colors = [
-      (color: const Color(0xFF00E5FF), hex: '#00E5FF', name: 'Cyan'),
-      (color: const Color(0xFFD500F9), hex: '#D500F9', name: 'Purple'),
-      (color: const Color(0xFFFF6D00), hex: '#FF6D00', name: 'Orange'),
-      (color: const Color(0xFFFFD600), hex: '#FFD600', name: 'Yellow'),
-      (color: const Color(0xFFFFFFFF), hex: '#FFFFFF', name: 'White'),
-    ];
-
     final thicknesses = [2.0, 4.0, 8.0, 12.0, 16.0];
 
     final types = [
@@ -151,7 +143,7 @@ class GlobalDrawingPanel extends StatelessWidget {
                     Color(0xFFFBBF24),
                   ],
                   onColorSelected: (color) {
-                    final hexStr = '#${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
+                    final hexStr = '#${color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
                     session.brushColorNotifier.value = hexStr;
                   },
                 );

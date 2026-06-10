@@ -111,6 +111,9 @@ class UiNodeGenerator extends Generator {
         if (fieldName.isEmpty) continue;
         final uiFieldName = _getUiFieldName(fieldName, field.type);
         final uiType = _mapFfiTypeToUi(field.type);
+        if (uiFieldName == 'text') {
+          buffer.writeln("  @override");
+        }
         buffer.writeln("  $uiType $uiFieldName;");
       }
       if (subclassFields.isNotEmpty) {
@@ -351,7 +354,7 @@ class UiNodeGenerator extends Generator {
       if (ffiClassName.isEmpty) continue;
       final uiClassName = _getUiClassName(ffiClassName);
       buffer.writeln(
-        "  if (rustNode is $ffiClassName) return $uiClassName.fromRust(rustNode);",
+        "  if (rustNode is $ffiClassName) { return $uiClassName.fromRust(rustNode); }",
       );
     }
     // Also handle when the object wrapped inside Nodes enum is passed directly
@@ -360,7 +363,7 @@ class UiNodeGenerator extends Generator {
       if (ffiClassName.isEmpty) continue;
       final uiClassName = _getUiClassName(ffiClassName);
       buffer.writeln(
-        "  if (rustNode is Nodes_$ffiClassName) return $uiClassName.fromRust(rustNode.field0);",
+        "  if (rustNode is Nodes_$ffiClassName) { return $uiClassName.fromRust(rustNode.field0); }",
       );
     }
     buffer.writeln(
@@ -370,12 +373,12 @@ class UiNodeGenerator extends Generator {
 
     // 2. _$uiNodeCopy(UiNode? node)
     buffer.writeln("UiNode? _\$uiNodeCopy(UiNode? node) {");
-    buffer.writeln("  if (node == null) return null;");
+    buffer.writeln("  if (node == null) { return null; }");
     for (final clazz in nodeClasses) {
       final ffiClassName = clazz.name ?? '';
       if (ffiClassName.isEmpty) continue;
       final uiClassName = _getUiClassName(ffiClassName);
-      buffer.writeln("  if (node is $uiClassName) return node.copyWith();");
+      buffer.writeln("  if (node is $uiClassName) { return node.copyWith(); }");
     }
     buffer.writeln("  throw ArgumentError('Unsupported node type: \${node.runtimeType}');");
     buffer.writeln("}\n");
@@ -391,18 +394,6 @@ class UiNodeGenerator extends Generator {
   String _getEnumName(String ffiName) {
     if (ffiName == 'INode') return 'info';
     return _decapitalize(ffiName.replaceAll('Node', ''));
-  }
-
-  String _getFallbackValueForType(String type, String fieldName) {
-    if (type == 'String') {
-      if (fieldName == 'shapeType') return "'rectangle'";
-      return "''";
-    }
-    if (type == 'double') return '0.0';
-    if (type == 'int') return '0';
-    if (type == 'bool') return 'false';
-    if (type.startsWith('List')) return 'const []';
-    return 'null';
   }
 
   String _getVariantName(String ffiName) {
