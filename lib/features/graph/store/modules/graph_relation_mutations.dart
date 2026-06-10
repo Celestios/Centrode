@@ -169,4 +169,72 @@ class GraphRelationMutations {
 
     controller.triggerUpdate();
   }
+
+  void updateRelationsLayout(
+    List<String> ids, {
+    String? strategyType,
+  }) {
+    if (ids.isEmpty) return;
+
+    final Map<String, RelationLayout?> oldLayouts = {};
+    final Map<String, RelationLayout?> newLayouts = {};
+    final Map<String, RelationStyle?> oldStyles = {};
+    final Map<String, RelationStyle?> newStyles = {};
+    final Map<String, UiRelation> oldRelations = {};
+
+    for (final id in ids) {
+      final relation = controller.store.relationLookup[id];
+      if (relation == null) continue;
+
+      final oldRelation = UiRelation.copy(relation);
+      if (oldRelation == null) continue;
+
+      final newLayout = RelationLayout(
+        fromSide: relation.layout?.fromSide ?? 'Auto',
+        toSide: relation.layout?.toSide ?? 'Auto',
+        strategyType: strategyType ?? relation.layout?.strategyType ?? 'default',
+      );
+
+      final updatedRelation = (relation as InfoUiRelation).copyWith(
+        layout: newLayout,
+      );
+
+      // OPTIMISTIC UPDATE
+      controller.store.relationLookup[id] = updatedRelation;
+
+      oldLayouts[id] = oldRelation.layout;
+      newLayouts[id] = updatedRelation.layout;
+      oldStyles[id] = oldRelation.style;
+      newStyles[id] = updatedRelation.style;
+      oldRelations[id] = oldRelation;
+    }
+
+    if (newLayouts.isEmpty) return;
+
+    final cmd = UpdateRelationsLayoutCommand(
+      targetId: newLayouts.keys.first,
+      api: controller.syncEngine.api,
+      oldLayouts: oldLayouts,
+      newLayouts: newLayouts,
+      oldStyles: oldStyles,
+      newStyles: newStyles,
+      oldRelations: oldRelations,
+      controller: controller,
+    );
+
+    controller.syncEngine.processor.queueCommand(cmd, immediate: true);
+
+    for (final id in newLayouts.keys) {
+      controller.publishUpdate(
+        GraphEntityUpdate(
+          id: id,
+          tableName: 'IRelation',
+          type: GraphUpdateType.relationLayout,
+          payload: newLayouts[id],
+        ),
+      );
+    }
+
+    controller.triggerUpdate();
+  }
 }

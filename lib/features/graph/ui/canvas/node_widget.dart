@@ -70,58 +70,79 @@ class NodeWidget extends StatelessWidget {
           rawSize.height,
         );
 
+        final bool isHighlighted = isSelected || isEditing;
+        final double strokeWidth = isHighlighted
+            ? 3.0
+            : resolvedStyle.strokeWidth.toDouble();
+        final double strokeDiff = isHighlighted
+            ? (3.0 - resolvedStyle.strokeWidth.toDouble())
+            : 0.0;
+
         return Transform.translate(
-          offset: pos,
+          offset: pos - Offset(strokeDiff, strokeDiff),
           child: Stack(
             clipBehavior: Clip.none,
             children: [
               // ── Main Visual Body ──────────────────────────
               Container(
-                width: size.width,
-                height: size.height,
+                width: size.width + strokeDiff * 2,
+                height: size.height + strokeDiff * 2,
                 decoration: BoxDecoration(
                   color: Color(resolvedStyle.bgColor),
                   borderRadius: resolvedStyle.shape == 'circle'
-                      ? BorderRadius.circular(size.width / 2)
+                      ? BorderRadius.circular((size.width + strokeDiff * 2) / 2)
                       : BorderRadius.circular(resolvedStyle.borderRadius),
-                  border: Border.all(
-                    color: isSelected
-                        ? AppConfig.visuals.selectionAccent
-                        : Color(resolvedStyle.strokeColor),
-                    width: isSelected
-                        ? 2.5
-                        : resolvedStyle.strokeWidth.toDouble(),
+                   border: Border.all(
+                    color: isEditing
+                        ? const Color(0xFF2196F3)
+                        : (isSelected
+                            ? AppConfig.visuals.selectionAccent
+                            : Color(resolvedStyle.strokeColor)),
+                    width: strokeWidth,
                   ),
-                  boxShadow: isSelected
-                      ? const [
-                          BoxShadow(
-                            color: Color(0x4442A5F5),
-                            blurRadius: 8,
-                            spreadRadius: 2,
+                  boxShadow: isEditing
+                      ? [
+                          const BoxShadow(
+                            color: Color(0x602196F3),
+                            blurRadius: 16,
+                            spreadRadius: 4,
                           ),
                         ]
-                      : [
-                          BoxShadow(
-                            color: Color(resolvedStyle.shadowColor),
-                            blurRadius: resolvedStyle.shadowBlur,
-                            spreadRadius: resolvedStyle.shadowSpread,
-                            offset: Offset(
-                              resolvedStyle.shadowOffsetX,
-                              resolvedStyle.shadowOffsetY,
-                            ),
-                          ),
-                        ],
+                      : (isSelected
+                          ? const [
+                              BoxShadow(
+                                color: Color(0x4442A5F5),
+                                blurRadius: 8,
+                                spreadRadius: 2,
+                              ),
+                            ]
+                          : [
+                              BoxShadow(
+                                color: Color(resolvedStyle.shadowColor),
+                                blurRadius: resolvedStyle.shadowBlur,
+                                spreadRadius: resolvedStyle.shadowSpread,
+                                offset: Offset(
+                                  resolvedStyle.shadowOffsetX,
+                                  resolvedStyle.shadowOffsetY,
+                                ),
+                              ),
+                            ]),
                 ),
-                padding: EdgeInsets.all(resolvedStyle.padding),
+                // TIGHTER BORDERS: Shrink padding during edit mode
+                padding: isEditing 
+                    ? const EdgeInsets.all(2.0) 
+                    : EdgeInsets.all(resolvedStyle.padding),
                 child: isEditing
-                    ? CanvasTextEditor(
-                        entityId: liveNode.id,
-                        content: liveNode.content,
-                        maxLines: null,
-                        textStyle: TextStyle(
-                          fontSize: resolvedStyle.fontSize,
-                          fontFamily: resolvedStyle.fontFamily.isEmpty || resolvedStyle.fontFamily == 'System' ? null : resolvedStyle.fontFamily,
-                          color: Color(resolvedStyle.textColor),
+                    ? Center(
+                        child: CanvasTextEditor(
+                          entityId: liveNode.id,
+                          content: liveNode.content,
+                          maxLines: null,
+                          textStyle: TextStyle(
+                            fontSize: resolvedStyle.fontSize,
+                            fontFamily: resolvedStyle.fontFamily.isEmpty || resolvedStyle.fontFamily == 'System' ? null : resolvedStyle.fontFamily,
+                            color: Color(resolvedStyle.textColor),
+                          ),
                         ),
                       )
                     : _buildNodeContent(context, liveNode, resolvedStyle),

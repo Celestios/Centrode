@@ -30,6 +30,8 @@ class VerticalContextToolbar extends StatelessWidget {
   final VoidCallback? onToggleHeader3;
   final VoidCallback? onAddHyperlink;
 
+  final bool positionOnRight;
+
   const VerticalContextToolbar({
     super.key,
     required this.onDelete,
@@ -54,6 +56,7 @@ class VerticalContextToolbar extends StatelessWidget {
     this.onToggleHeader2,
     this.onToggleHeader3,
     this.onAddHyperlink,
+    this.positionOnRight = false,
   });
 
   @override
@@ -64,16 +67,17 @@ class VerticalContextToolbar extends StatelessWidget {
     return GlassGroup(
       settings: AppConfig.liquidGlass.settings.copyWith(bridgeReachFactor: 2.5),
       child: SizedBox(
-        width: 380,
+        width: 520,
         child: Stack(
           clipBehavior: Clip.none,
-          alignment: Alignment.topRight,
+          alignment: positionOnRight ? Alignment.topLeft : Alignment.topRight,
           children: [
             // Background vertical glass bar (fixed width 40, matches column height)
             Positioned(
               top: 0,
               bottom: 0,
-              right: 0,
+              left: positionOnRight ? 0 : null,
+              right: positionOnRight ? null : 0,
               width: 40,
               child: GlassPanel(
                 borderRadius: 10,
@@ -87,12 +91,14 @@ class VerticalContextToolbar extends StatelessWidget {
                 child: const SizedBox.shrink(),
               ),
             ),
-            // Interactive Column (non-positioned, determines the height, aligned to topRight)
+            // Interactive Column (non-positioned, determines the height, aligned to side)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 4),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: positionOnRight
+                    ? CrossAxisAlignment.start
+                    : CrossAxisAlignment.end,
                 children: [
                   // 1. Quick Actions Section
                   if (dragHandle != null) dragHandle!,
@@ -130,6 +136,7 @@ class VerticalContextToolbar extends StatelessWidget {
                   if (isRelationOnly) ...[
                     // Relation-specific style groups
                     VerticalToolbarGroupButton(
+                      positionOnRight: positionOnRight,
                       triggerIcon: Icons.timeline_rounded,
                       triggerTooltip: 'Relation Style',
                       submenuButtons: [
@@ -189,6 +196,7 @@ class VerticalContextToolbar extends StatelessWidget {
                   ] else if (isMulti) ...[
                     // Multi-selection specific groups
                     VerticalToolbarGroupButton(
+                      positionOnRight: positionOnRight,
                       triggerIcon: Icons.align_horizontal_left_rounded,
                       triggerTooltip: 'Align & Distribute',
                       submenuButtons: [
@@ -235,6 +243,7 @@ class VerticalContextToolbar extends StatelessWidget {
                       ],
                     ),
                     VerticalToolbarGroupButton(
+                      positionOnRight: positionOnRight,
                       triggerIcon: Icons.text_format_rounded,
                       triggerTooltip: 'Batch Format Text',
                       iconSize: 26,
@@ -257,6 +266,7 @@ class VerticalContextToolbar extends StatelessWidget {
                       ],
                     ),
                     VerticalToolbarGroupButton(
+                      positionOnRight: positionOnRight,
                       triggerIcon: Icons.settings_outlined,
                       triggerTooltip: 'Group Actions',
                       submenuButtons: [
@@ -275,6 +285,7 @@ class VerticalContextToolbar extends StatelessWidget {
                   ] else ...[
                     // Single Node style & format groups
                     VerticalToolbarGroupButton(
+                      positionOnRight: positionOnRight,
                       triggerIcon: Icons.text_format_rounded,
                       triggerTooltip: 'Text Formatting',
                       iconSize: 26,
@@ -352,6 +363,7 @@ class VerticalContextToolbar extends StatelessWidget {
                       ],
                     ),
                     VerticalToolbarGroupButton(
+                      positionOnRight: positionOnRight,
                       triggerIcon: Icons.category_rounded,
                       triggerTooltip: 'Shape & Style',
                       submenuButtons: [
@@ -388,6 +400,7 @@ class VerticalContextToolbar extends StatelessWidget {
                       ],
                     ),
                     VerticalToolbarGroupButton(
+                      positionOnRight: positionOnRight,
                       triggerIcon: Icons.settings_outlined,
                       triggerTooltip: 'Node Settings',
                       submenuButtons: [
@@ -465,6 +478,7 @@ class VerticalToolbarGroupButton extends StatefulWidget {
   final String triggerTooltip;
   final List<SubmenuButtonData> submenuButtons;
   final double iconSize;
+  final bool positionOnRight;
 
   const VerticalToolbarGroupButton({
     super.key,
@@ -472,6 +486,7 @@ class VerticalToolbarGroupButton extends StatefulWidget {
     required this.triggerTooltip,
     required this.submenuButtons,
     this.iconSize = 20,
+    this.positionOnRight = false,
   });
 
   @override
@@ -497,65 +512,105 @@ class _VerticalToolbarGroupButtonState
         behavior: HitTestBehavior.opaque,
         child: Row(
           mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            // Submenu - Expanded to the left (by placing it to the left of the trigger in a Row)
-            if (_isHovered)
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: GlassPanel(
-                  borderRadius: 8,
-                  blur: 10,
-                  color: theme.cardColor.withValues(alpha: 0.92),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 2,
-                  ),
-                  shadow: BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.12),
-                    blurRadius: 8,
-                    offset: const Offset(-2, 2),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: widget.submenuButtons
-                        .map(
-                          (btn) =>
-                              _buildSubmenuButton(btn, textColor, primaryColor),
-                        )
-                        .toList(),
-                  ),
-                ),
-              ),
+          mainAxisAlignment: widget.positionOnRight
+              ? MainAxisAlignment.start
+              : MainAxisAlignment.end,
+          children: widget.positionOnRight
+              ? [
+                  // Trigger Button (First when on right)
+                  _buildTriggerButton(textColor, primaryColor),
 
-            // Trigger Button
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 0),
-              child: Tooltip(
-                message: widget.triggerTooltip,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: _isHovered
-                        ? primaryColor.withValues(alpha: 0.1)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      widget.triggerIcon,
-                      color: _isHovered
-                          ? primaryColor
-                          : textColor.withValues(alpha: 0.75),
-                      size: widget.iconSize,
+                  // Submenu - Expanded to the right
+                  if (_isHovered)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: GlassPanel(
+                        borderRadius: 8,
+                        blur: 10,
+                        color: theme.cardColor.withValues(alpha: 0.92),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 2,
+                        ),
+                        shadow: BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 8,
+                          offset: const Offset(2, 2),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: widget.submenuButtons
+                              .map(
+                                (btn) => _buildSubmenuButton(
+                                    btn, textColor, primaryColor),
+                              )
+                              .toList(),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
+                ]
+              : [
+                  // Submenu - Expanded to the left
+                  if (_isHovered)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: GlassPanel(
+                        borderRadius: 8,
+                        blur: 10,
+                        color: theme.cardColor.withValues(alpha: 0.92),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 2,
+                        ),
+                        shadow: BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 8,
+                          offset: const Offset(-2, 2),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: widget.submenuButtons
+                              .map(
+                                (btn) => _buildSubmenuButton(
+                                    btn, textColor, primaryColor),
+                              )
+                              .toList(),
+                        ),
+                      ),
+                    ),
+
+                  // Trigger Button (Last when on left)
+                  _buildTriggerButton(textColor, primaryColor),
+                ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTriggerButton(Color textColor, Color primaryColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 0),
+      child: Tooltip(
+        message: widget.triggerTooltip,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: _isHovered
+                ? primaryColor.withValues(alpha: 0.1)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Center(
+            child: Icon(
+              widget.triggerIcon,
+              color: _isHovered
+                  ? primaryColor
+                  : textColor.withValues(alpha: 0.75),
+              size: widget.iconSize,
             ),
-          ],
+          ),
         ),
       ),
     );

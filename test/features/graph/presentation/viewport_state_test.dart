@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:mycelium/features/graph/presentation/viewport_state.dart';
 import 'package:mycelium/features/graph/store/graph_data_query.dart';
 import 'package:mycelium/features/graph/models/models.dart';
+import 'package:mycelium/features/graph/store/spatial_index.dart';
 
 class MockGraphDataQuery extends Mock implements GraphDataQuery {}
 
@@ -31,7 +32,7 @@ void main() {
       mockEntityUpdates = const Stream.empty();
 
       when(() => mockQuery.spatialGrid).thenReturn(mockSpatial);
-      when(() => mockQuery.canvasBounds).thenReturn(mockBoundsNotifier);
+      when(() => mockQuery.canvasBounds).thenAnswer((_) => mockBoundsNotifier.value);
       when(() => mockQuery.onEntityUpdate).thenAnswer((_) => mockEntityUpdates);
       when(() => mockSpatial.queryRect(any())).thenReturn(<String>{'node-1'});
 

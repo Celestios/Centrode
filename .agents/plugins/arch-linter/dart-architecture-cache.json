@@ -1,6 +1,6 @@
 {
-  "last_audit_commit": "8976ad127db743aaa92a44d1b1d2138b30b3414d",
-  "last_audit_time": "2026-06-07T11:47:23.658098Z",
+  "last_audit_commit": "5fbd2cbaf3ce6e428c777c9656c27617e39d8b46",
+  "last_audit_time": "2026-06-10T13:07:35.460203Z",
   "layers": {
     "lib/features/graph/ui": {
       "tier": 1,
@@ -85,9 +85,12 @@
     },
     "lib/features/graph/store/graph_data_controller.dart": {
       "class": "GraphDataController",
-      "sha256": "c7fd1846d170379bec3e370f1f0394d679413e55",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "b02c3d6d0bf32ac560069f1d94071cc4b0bf250e",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Clean Arch: Couples Tier 3 to ChangeNotifier",
+        "SRP: mixed tag/comment helpers"
+      ],
       "tier": 3,
       "imports": [
         "dart:async",
@@ -137,8 +140,8 @@
         "Future<void> deleteRelation(String id) =>",
         "void updateRelationLayout(",
         "void updateRelationStyle(String id, RelationStyle newStyle) =>",
-        "void commitEntityText(String id, String newText,",
-        "void updateEntityTextLive(String id, String newText) =>",
+        "void commitEntityText(String id, dynamic newTextOrContent,",
+        "void updateEntityTextLive(String id, dynamic newTextOrContent) =>",
         "void updateNodeStyle(String id, NodeStyle newStyle) =>",
         "void updateNodeTags(String id, List<Tag> newTags) =>",
         "void updateNodeComments(String id, List<Comment> newComments) =>",
@@ -158,7 +161,7 @@
         "void removeCommentFromNode(String nodeId, Comment comment)",
         "void dispose()"
       ],
-      "architectural_role": "Acts as the primary facade orchestrating sync engines, spatial caches, in-memory lookups, and transaction commands."
+      "architectural_role": "Controller/Manager"
     },
     "lib/features/graph/store/modules/graph_node_mutations.dart": {
       "class": "GraphNodeMutations",
@@ -191,25 +194,27 @@
     },
     "lib/features/graph/store/modules/graph_property_mutations.dart": {
       "class": "GraphPropertyMutations",
-      "sha256": "e09d02cc86c7eea6d24e70136674d3c6f6481826",
-      "status": "PENDING_AUDIT",
-      "violations": [],
+      "sha256": "9d257060fd6d8503b834f3f3b09fdd546053fb5b",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "OCP: hardcoded switches for entity types",
+        "DIP: concrete command instantiations"
+      ],
       "tier": 3,
       "imports": [
         "dart:ui",
         "package:logging/logging.dart",
         "lib/features/graph/models/models.dart",
-        "lib/features/graph/models/content_builder.dart",
         "lib/features/graph/store/graph_data_controller.dart",
         "lib/features/graph/store/graph_data_query.dart"
       ],
       "test_file": "test/features/graph/store/modules/graph_property_mutations_test.dart",
       "has_tests": true,
       "is_ffi_bridge": true,
-      "pattern": "Mutation Helper",
+      "pattern": "Mutations",
       "public_apis": [
-        "void commitEntityText(String id, String newText,",
-        "void updateEntityTextLive(String id, String newText)",
+        "void commitEntityText(String id, dynamic newTextOrContent,",
+        "void updateEntityTextLive(String id, dynamic newTextOrContent)",
         "void updateNodeStyle(String id, NodeStyle newStyle)",
         "void updateNodeTags(String id, List<Tag> newTags)",
         "void updateNodeComments(String id, List<frb.Comment> newComments)",
@@ -219,7 +224,7 @@
         "Future<void> deleteTag(String tagKey) async",
         "void updateRelationStyle(String id, RelationStyle newStyle)"
       ],
-      "architectural_role": "Manages local property states (like text editing or comment list swaps) before persisting them to the database."
+      "architectural_role": "Mutations"
     },
     "lib/features/graph/store/modules/graph_relation_mutations.dart": {
       "class": "GraphRelationMutations",
@@ -249,8 +254,11 @@
     "lib/features/graph/store/modules/graph_template_mutations.dart": {
       "class": "GraphTemplateMutations",
       "sha256": "82b8b292e3ea971fc0fc47d507cb689fa7e27f0e",
-      "status": "PENDING_AUDIT",
-      "violations": [],
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Clean Arch: Material import leak",
+        "Symmetry: bypasses command pipeline"
+      ],
       "tier": 3,
       "imports": [
         "package:flutter/material.dart",
@@ -260,14 +268,14 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": true,
-      "pattern": "Mutation Helper",
+      "pattern": "Mutations",
       "public_apis": [
         "Future<List<Template>> getAllTemplates() async",
         "Future<void> saveTemplateFromSelection(",
         "Future<void> instantiateTemplate(String key, Offset canvasCoords) async",
         "Future<void> deleteTemplate(String key) async"
       ],
-      "architectural_role": "Handles template serialization and deserialization, matching coordinates to instantiate template components on the canvas."
+      "architectural_role": "Mutations"
     },
     "lib/features/graph/store/modules/graph_store.dart": {
       "class": "GraphStore",
@@ -313,8 +321,11 @@
     "lib/features/graph/store/modules/graph_sync_engine.dart": {
       "class": "GraphSyncEngine",
       "sha256": "3e77039d3a0fbe5746bc1d37acf5133c297a6a0e",
-      "status": "PENDING_AUDIT",
-      "violations": [],
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "OCP: subtype checks in event streams",
+        "Abstraction: ValueNotifier framework leak"
+      ],
       "tier": 3,
       "imports": [
         "dart:async",
@@ -329,7 +340,7 @@
       "test_file": "test/features/graph/store/modules/graph_sync_engine_test.dart",
       "has_tests": true,
       "is_ffi_bridge": true,
-      "pattern": "Component",
+      "pattern": "Engine",
       "public_apis": [
         "void updateSavedViewportState(ViewportState state)",
         "Future<void> loadGraph() async",
@@ -341,7 +352,7 @@
         "Future<void> redo() async",
         "void dispose()"
       ],
-      "architectural_role": "Component"
+      "architectural_role": "Engine"
     },
     "lib/features/graph/engine/interaction_facade.dart": {
       "class": "CanvasInteractionEnvironment",
@@ -423,9 +434,12 @@
     },
     "lib/features/graph/presentation/node_render_state.dart": {
       "class": "NodeRenderState",
-      "sha256": "9e9a6f6f7bc7cfb2dc1d68b5b0bbec3225aca574",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "18b636bf625424f4484820b2e35eb3fb9b031988",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Clean Arch: UI text closures stored in state",
+        "SRP: bounding box geometry in state"
+      ],
       "tier": 2,
       "imports": [
         "dart:async",
@@ -436,14 +450,16 @@
         "lib/features/graph/store/graph_data_query.dart",
         "lib/features/graph/presentation/view_state.dart",
         "lib/features/graph/presentation/strategies/relation_layout_strategy.dart",
-        "lib/features/graph/presentation/routing/relation_layout_context.dart"
+        "lib/features/graph/presentation/routing/relation_layout_context.dart",
+        "lib/features/graph/models/left_panel_type.dart"
       ],
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "FSM State",
+      "pattern": "Component",
       "public_apis": [
         "void pulse() => notifyListeners();",
+        "void updateActiveTextSelection(TextSelection? selection)",
         "void setNodeDragging(String id, bool dragging)",
         "void notifyNodeDragUpdate()",
         "Offset? calculateToolbarAnchor(Iterable<String> selectedIds)",
@@ -457,7 +473,7 @@
         "void hideFloatingToolbar()",
         "void dispose()"
       ],
-      "architectural_role": "Translates store models into visual nodes viewstates, maintaining selection sets, edit modes, and coordinates cache."
+      "architectural_role": "Component"
     },
     "lib/features/graph/presentation/viewport_state.dart": {
       "class": "ViewportController",
@@ -543,14 +559,18 @@
     },
     "lib/features/graph/presentation/workspace_tabs_controller.dart": {
       "class": "WorkspaceTabsController",
-      "sha256": "084c723ebe67927e036a86a3c633965591636730",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "009dd1a7f0894d7b735526afefc2d0b7764d7ebb",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Clean Arch: file system disk I/O in presentation",
+        "DIP: concrete instantiations"
+      ],
       "tier": 2,
       "imports": [
         "dart:async",
         "dart:io",
         "package:flutter/material.dart",
+        "package:path_provider/path_provider.dart",
         "lib/src/rust/bridge/api.dart",
         "lib/features/graph/store/graph_data_controller.dart",
         "lib/features/graph/presentation/theme_manager.dart",
@@ -563,7 +583,7 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": true,
-      "pattern": "Controller/Manager",
+      "pattern": "Component",
       "public_apis": [
         "set viewportController(ViewportController? vp)",
         "Future<void> saveViewportState() async",
@@ -573,7 +593,7 @@
         "void selectTab(int index)",
         "Future<void> closeTab(int index) async"
       ],
-      "architectural_role": "Coordinates multi-tab workspace sessions, saving/loading viewport positions and managing file load triggers."
+      "architectural_role": "Component"
     },
     "lib/features/graph/presentation/view_state.dart": {
       "class": "NodeViewState",
@@ -653,9 +673,13 @@
     },
     "lib/features/graph/ui/canvas/graph_canvas.dart": {
       "class": "GraphCanvas",
-      "sha256": "32ea338cfe98691db4d9c5e2c7859fc8b2290a22",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "e3d52a095bc36821bbe2c6851c092f8c73c37ce7",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Clean Arch: gesture drawing math in UI",
+        "SRP: massive coordinator",
+        "DIP: hardcoded controller instantiations"
+      ],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
@@ -685,7 +709,8 @@
         "lib/presentation/widgets/template_manager/global_templates_manager_panel.dart",
         "lib/presentation/widgets/drawing_manager/global_drawing_panel.dart",
         "lib/presentation/widgets/template_manager/save_template_dialog.dart",
-        "lib/features/graph/models/left_panel_type.dart"
+        "lib/features/graph/models/left_panel_type.dart",
+        "package:flutter/gestures.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -909,9 +934,12 @@
     },
     "lib/features/graph/models/content_builder.dart": {
       "class": "ContentBuilder",
-      "sha256": "8b30f6465c5d8effab051f374bfccd2351a698b7",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "14e492d0124f15c8503cc515df8acb16be03690a",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "DRY: plain text logic duplicated",
+        "OCP: hardcoded styles in parser"
+      ],
       "tier": 3,
       "imports": [
         "lib/src/rust/domain/contents.dart"
@@ -934,7 +962,7 @@
         "void clear()",
         "String toPlainText()"
       ],
-      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
+      "architectural_role": "Data Model"
     },
     "lib/features/graph/models/left_panel_type.dart": {
       "class": "LeftPanelType",
@@ -950,21 +978,26 @@
     },
     "lib/features/graph/models/models.dart": {
       "class": "",
-      "sha256": "1ecb828db4bbfe5bf2678b787618fc4f31d5d89e",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "c52cd96d45a5842bb03c1086896d60a77208b671",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Clean Arch: exports spatial_index.dart infrastructure"
+      ],
       "tier": 3,
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
       "pattern": "Data Model",
-      "architectural_role": "Aggregates presentational models wrapping Rust core types, exposing serializable entities across the FFI boundaries."
+      "architectural_role": "Data Model"
     },
     "lib/features/graph/presentation/graph_metrics.dart": {
       "class": "_Log",
       "sha256": "c989d1f5892bf1f9408d9170476cb1ece641acf9",
-      "status": "PENDING_AUDIT",
-      "violations": [],
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Clean Arch: GlassSettings framework import",
+        "OCP: hardcoded static settings"
+      ],
       "tier": 2,
       "imports": [
         "dart:math",
@@ -974,7 +1007,7 @@
       "has_tests": false,
       "is_ffi_bridge": false,
       "pattern": "Component",
-      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features.",
+      "architectural_role": "Component",
       "public_apis": [
         "double calculateEffectiveGridSize(double scale)"
       ],
@@ -1131,9 +1164,12 @@
     },
     "lib/features/graph/ui/canvas/canvas_text_editor.dart": {
       "class": "CanvasTextEditor",
-      "sha256": "65f7736cc3abd413e36963904a3eb9d02218527e",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "c7118c922110a4ed2aa91d54b5e590d7e96b5880",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "SRP: lifecycle closures leak on dispose",
+        "DIP: hardcoded controller instantiation"
+      ],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
@@ -1141,7 +1177,9 @@
         "package:provider/provider.dart",
         "package:logging/logging.dart",
         "lib/features/graph/store/graph_data_controller.dart",
-        "lib/features/graph/presentation/node_render_state.dart"
+        "lib/features/graph/presentation/node_render_state.dart",
+        "lib/features/graph/models/models.dart",
+        "lib/features/graph/ui/canvas/content_text_editing_controller.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -1153,7 +1191,7 @@
         "void dispose()",
         "Widget build(BuildContext context)"
       ],
-      "architectural_role": "Renders inline input text boxes, handling text commits and layout resizing.",
+      "architectural_role": "UI Component",
       "special_objects": [
         "instance"
       ]
@@ -1247,9 +1285,11 @@
     },
     "lib/features/graph/ui/canvas/layers/relation_layer.dart": {
       "class": "RelationLayer",
-      "sha256": "abd145541564a59644b4f98cb14cd058419411d0",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "d53ad035f13c75908e096663a1871bbcf8587afb",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "SRP: gesture math/drag states in build"
+      ],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
@@ -1272,7 +1312,7 @@
       "public_apis": [
         "Widget build(BuildContext context)"
       ],
-      "architectural_role": "Arranges custom painters to trace connection paths across active coordinate spaces."
+      "architectural_role": "UI Component"
     },
     "lib/features/graph/ui/canvas/metadata_preview_overlay.dart": {
       "class": "MetadataPreviewOverlay",
@@ -1298,10 +1338,11 @@
     },
     "lib/features/graph/ui/canvas/node_widget.dart": {
       "class": "NodeWidget",
-      "sha256": "521cbff11f329ff094253a6953d90e085d17a064",
-      "status": "COMPLIANT",
+      "sha256": "5e4e9b351181f18bcef1fe34299c20592d6e2bce",
+      "status": "VIOLATION_DETECTED",
       "violations": [
-        "NodeWidget and DrawNodeWidget widgets"
+        "DRY: custom painter duplicated",
+        "SRP: mixed AST rich text parsing"
       ],
       "tier": 1,
       "imports": [
@@ -1323,7 +1364,7 @@
         "void paint(Canvas canvas, Size size)",
         "bool shouldRepaint(covariant DrawingNodePainter oldDelegate)"
       ],
-      "architectural_role": "Widget/UI"
+      "architectural_role": "UI Component"
     },
     "lib/features/graph/ui/canvas/relation_painter.dart": {
       "class": "RelationPainter",
@@ -1671,9 +1712,12 @@
     },
     "lib/infrastructure/telemetry/log_manager.dart": {
       "class": "LogManager",
-      "sha256": "17de66744b5aefa524eb4f525942c59d3a1db52f",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "90463d0baf8b1ebb1a87aa3b75f6899301b65e5c",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "SRP: God class logging/isolates/disk I/O",
+        "DIP: concrete framework dependencies"
+      ],
       "tier": 3,
       "imports": [
         "dart:async",
@@ -1681,19 +1725,20 @@
         "dart:isolate",
         "package:flutter/foundation.dart",
         "package:logging/logging.dart",
+        "package:path_provider/path_provider.dart",
         "lib/src/rust/bridge/api.dart",
         "lib/infrastructure/telemetry/log_models.dart"
       ],
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": true,
-      "pattern": "Controller/Manager",
+      "pattern": "LogManager",
       "public_apis": [
         "Future<void> init() async",
         "await setupLogger();",
         "Future<void> dispose() async"
       ],
-      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features.",
+      "architectural_role": "LogManager",
       "special_objects": [
         "instance"
       ]
@@ -1716,9 +1761,11 @@
     },
     "lib/main.dart": {
       "class": "MyApp",
-      "sha256": "2f4d6cdb5ff4d89720afe7229340f048d7ec7d8f",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "f44df05ce7e8dd50b180aed394ea0269cba4fc8b",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "SRP: top-level global mutable variable themeNotifier"
+      ],
       "tier": 3,
       "imports": [
         "dart:async",
@@ -1743,7 +1790,7 @@
         "Widget build(BuildContext context)"
       ],
       "boundary_violations": [],
-      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features.",
+      "architectural_role": "Component",
       "stray_functions": [
         "main"
       ]
@@ -1942,9 +1989,11 @@
     },
     "lib/presentation/widgets/tag_manager/tags_list_view.dart": {
       "class": "TagsListView",
-      "sha256": "f325dfd3a6ad9448779245eeab2eca941a533ae6",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "d5cb24e15813661dba096ce3b90310bc368c9bcb",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "SRP: direct store loops and tag/timestamp validation in UI"
+      ],
       "tier": 2,
       "imports": [
         "package:flutter/material.dart",
@@ -1966,31 +2015,31 @@
         "void dispose()",
         "Widget build(BuildContext context)"
       ],
-      "architectural_role": "Exposes interactive panel components and dialogs for global tag registration and color customization.",
+      "architectural_role": "Component",
       "special_objects": [
         "instance"
       ]
     },
     "lib/presentation/widgets/tag_manager/tag_color_picker_panel.dart": {
       "class": "TagColorPickerPanel",
-      "sha256": "ea3feef9a7164a6f9409b78a9198fca72263918c",
+      "sha256": "56bdb8706d79c8f4b33f9a32a7e1e5cc7687a64b",
       "status": "COMPLIANT",
-      "violations": [],
+      "violations": [
+        "Component"
+      ],
       "tier": 2,
       "imports": [
         "package:flutter/material.dart",
-        "lib/shared/widgets/glass_panel/glass_panel.dart"
+        "lib/shared/widgets/color_palette/color_palette.dart"
       ],
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
       "pattern": "Component",
       "public_apis": [
-        "State<TagColorPickerPanel> createState() => _TagColorPickerPanelState();",
-        "void initState()",
         "Widget build(BuildContext context)"
       ],
-      "architectural_role": "Exposes interactive panel components and dialogs for global tag registration and color customization."
+      "architectural_role": "Component"
     },
     "lib/presentation/widgets/template_manager/delete_template_dialog.dart": {
       "class": "",
@@ -2164,9 +2213,12 @@
     },
     "lib/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart": {
       "class": "VerticalContextToolbar, SubmenuButtonData, VerticalToolbarGroupButton, _VerticalToolbarGroupButtonState, HoverIconButton, _HoverIconButtonState",
-      "sha256": "af3d0ebdcc5aa222e97a7340e1b8e6ef2b70c631",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "db9bfbc3ed454f8c9f175996330306821de5ffc3",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "ISP: 25+ fields constructor",
+        "OCP: conditional checks for layouts"
+      ],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
@@ -2182,7 +2234,7 @@
         "Widget build(BuildContext context)",
         "State<VerticalToolbarGroupButton> createState() =>"
       ],
-      "architectural_role": "Renders visual context-sensitive action menus (delete, copy, grouping) beside active canvas focus points."
+      "architectural_role": "UI Component"
     },
     "lib/features/workspace/ui/liquid_glass_test_screen.dart": {
       "class": "LiquidGlassDemo",
@@ -2712,15 +2764,19 @@
     },
     "lib/features/graph/ui/canvas/context_toolbar_overlay.dart": {
       "class": "ContextToolbarOverlay",
-      "sha256": "14fe35623540135a913156ab375943055ef00fd6",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "3d90b2ea2b476dcadb671bde6b3c98ca2b9a6211",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "SRP: hardcoded color palette / inline hyperlink dialog"
+      ],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
+        "package:provider/provider.dart",
         "lib/features/graph/presentation/node_render_state.dart",
         "lib/features/graph/store/graph_data_controller.dart",
         "lib/features/graph/presentation/viewport_state.dart",
+        "lib/features/graph/presentation/graph_metrics.dart",
         "lib/features/graph/engine/interaction_engine.dart",
         "lib/features/graph/engine/base_interaction_state.dart",
         "lib/features/graph/presentation/view_state.dart",
@@ -2728,7 +2784,10 @@
         "lib/features/graph/presentation/strategies/node_style_strategy.dart",
         "lib/features/graph/presentation/strategies/relation_style_strategy.dart",
         "lib/presentation/widgets/template_manager/save_template_dialog.dart",
-        "lib/features/graph/models/models.dart"
+        "lib/features/graph/models/models.dart",
+        "lib/features/graph/ui/widgets/overlays/horizontal_text_format_toolbar.dart",
+        "lib/features/graph/ui/canvas/content_text_editing_controller.dart",
+        "lib/features/graph/presentation/workspace_tabs_controller.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -2737,20 +2796,23 @@
       "public_apis": [
         "Widget build(BuildContext context)"
       ],
-      "architectural_role": "Tracks active viewport projections to render floating context menus immediately adjacent to selected canvas elements."
+      "architectural_role": "UI Component"
     },
     "lib/features/graph/ui/widgets/overlays/inspector/appearance_tab.dart": {
       "class": "AppearanceTab",
-      "sha256": "99823622542aef9c3b2826914bd46053fb999d4a",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "96a00dcdb52eb6f63b09336e4c3c3bcadf41bab6",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Zero Mutation: loops over multi-entities in UI"
+      ],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
         "lib/features/graph/store/graph_data_controller.dart",
         "lib/features/graph/models/models.dart",
         "lib/features/graph/presentation/strategies/node_style_strategy.dart",
-        "lib/shared/utils/color_utils.dart"
+        "lib/shared/utils/color_utils.dart",
+        "lib/shared/widgets/color_palette/color_palette.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -2759,7 +2821,7 @@
       "public_apis": [
         "Widget build(BuildContext context)"
       ],
-      "architectural_role": "Renders styling controls for colors, shapes, fonts, and borders to customize nodes and relation configurations."
+      "architectural_role": "UI Component"
     },
     "lib/features/graph/ui/widgets/overlays/inspector/data_tab.dart": {
       "class": "DataTab, _DataTabState",
@@ -2809,11 +2871,13 @@
     },
     "lib/features/graph/models/graph_node.ui.dart": {
       "class": "CommentUiNode, DrawingUiNode, FrameUiNode, InfoUiNode, InterUiNode, MediaUiNode, ShapeUiNode, TaskUiNode",
-      "architectural_role": "Factory/Generation",
-      "sha256": "72ea17912f58a031e89fa5f420ab82db518837e6",
-      "status": "COMPLIANT",
+      "architectural_role": "Data Model",
+      "sha256": "37d9e1cfc2e20d23e2d74a4c1878da442abe4697",
+      "status": "VIOLATION_DETECTED",
       "violations": [
-        "Generated UiNode subclasses"
+        "Symmetry: copyWith discards base state",
+        "LSP: CommentUiNode out of sync",
+        "ISP: fat UiNode interface"
       ],
       "tier": 3,
       "test_file": "",
@@ -2834,16 +2898,20 @@
     },
     "lib/presentation/widgets/drawing_manager/global_drawing_panel.dart": {
       "class": "GlobalDrawingPanel",
-      "architectural_role": "",
-      "sha256": "42485438c8ec7a98f868b89f88a97311a9138820",
-      "status": "COMPLIANT",
-      "violations": [],
+      "architectural_role": "Component",
+      "sha256": "2d377d34c7e8baf8ddb6b67a20e972f456dc4966",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "Zero Mutation: modifies notifier values directly",
+        "DRY: hex parser duplication"
+      ],
       "tier": 2,
       "imports": [
         "package:flutter/material.dart",
         "package:provider/provider.dart",
         "lib/features/graph/presentation/workspace_tabs_controller.dart",
-        "lib/presentation/widgets/left_repository_panel.dart"
+        "lib/presentation/widgets/left_repository_panel.dart",
+        "lib/shared/widgets/color_palette/color_palette.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -2954,6 +3022,108 @@
       "status": "COMPLIANT",
       "violations": [],
       "class": ""
+    },
+    "lib/features/graph/ui/canvas/content_text_editing_controller.dart": {
+      "class": "TextFormatType, FormattingSpan, ContentTextEditingController",
+      "architectural_role": "UI Component",
+      "sha256": "b451d662cd5c37385f9cb2dcab32c250c6119214",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "OCP: hardcoded switches for formatting",
+        "SRP: massive delta calculations in controller"
+      ],
+      "tier": 1,
+      "imports": [
+        "package:flutter/material.dart",
+        "lib/features/graph/models/models.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "UI Component",
+      "public_apis": [
+        "FormattingSpan copyWith(",
+        "String toString() => 'FormattingSpan($type, $start-$end)';",
+        "void loadFromContent(Content content)",
+        "Content buildContent()",
+        "void toggleFormat(TextFormatType type,",
+        "void toggleHeading(TextFormatType headingType)",
+        "set value(TextEditingValue newValue)",
+        "TextSpan buildTextSpan("
+      ]
+    },
+    "lib/features/graph/ui/widgets/overlays/horizontal_text_format_toolbar.dart": {
+      "class": "HorizontalTextFormatToolbar",
+      "architectural_role": "UI Component",
+      "sha256": "fa583503cdadedb58fa0ea1721927a1f530887e8",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "OCP: hardcoded buttons",
+        "DRY: repetitive buildFormatButton"
+      ],
+      "tier": 1,
+      "imports": [
+        "package:flutter/material.dart",
+        "lib/shared/widgets/glass_panel/glass_panel.dart",
+        "lib/presentation/widgets/hover_scale_button.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "UI Component",
+      "public_apis": [
+        "Widget build(BuildContext context)"
+      ]
+    },
+    "lib/shared/widgets/color_palette/color_harmony_generator.dart": {
+      "class": "ColorHarmonyType, ColorHarmonyGenerator",
+      "architectural_role": "Component",
+      "sha256": "0b6c57332b087af1a85e4ae3763fecc05f3fc66d",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "OCP: static generateHarmony switch statement"
+      ],
+      "tier": 3,
+      "imports": [
+        "package:flutter/material.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Component",
+      "public_apis": [
+        "return generateMonochromatic(baseColor);",
+        "return generateAnalogous(baseColor);",
+        "return generateComplementary(baseColor);",
+        "return generateTriadic(baseColor);"
+      ]
+    },
+    "lib/shared/widgets/color_palette/color_palette.dart": {
+      "class": "ColorPaletteMode, UniversalColorPalette, _UniversalColorPaletteState",
+      "architectural_role": "Singleton Pattern",
+      "sha256": "e419277c2f2df0ef72e54daf057f6abb6848ee81",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "DRY: circular swatch duplicated",
+        "SRP: three layout modes in one widget"
+      ],
+      "tier": 3,
+      "imports": [
+        "package:flutter/material.dart",
+        "lib/shared/widgets/color_palette/color_harmony_generator.dart",
+        "lib/shared/widgets/glass_panel/glass_panel.dart",
+        "lib/shared/utils/color_utils.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Singleton Pattern",
+      "public_apis": [
+        "State<UniversalColorPalette> createState() => _UniversalColorPaletteState();",
+        "void initState()",
+        "void didUpdateWidget(covariant UniversalColorPalette oldWidget)",
+        "Widget build(BuildContext context)"
+      ]
     }
   }
 }

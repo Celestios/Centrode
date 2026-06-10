@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 import '../../presentation/graph_metrics.dart';
 import '../../store/graph_data_controller.dart';
+import '../../presentation/graph_presentation_notifier.dart';
 import '../../presentation/node_render_state.dart';
 import '../../presentation/viewport_state.dart';
 import '../../engine/interaction_engine.dart';
@@ -25,7 +26,6 @@ import '../../../../presentation/widgets/tag_manager/global_tags_manager_panel.d
 import '../../../../presentation/widgets/template_manager/global_templates_manager_panel.dart';
 import '../../../../presentation/widgets/drawing_manager/global_drawing_panel.dart';
 import '../../../../presentation/widgets/template_manager/save_template_dialog.dart';
-import '../../models/left_panel_type.dart';
 import 'package:flutter/gestures.dart';
 
 class GraphCanvas extends StatefulWidget {
@@ -42,12 +42,11 @@ class _GraphCanvasState extends State<GraphCanvas>
   final Logger _log = Logger('GraphCanvas');
   TabSession? _boundSession;
 
-  GraphDataController? _dataController;
+  GraphPresentationNotifier? _presentationNotifier;
 
   bool _hasInitialFramed = false;
   bool _viewportRestoreAttempted = false;
   bool _viewportRestored = false;
-  LeftPanelType _activeLeftPanel = LeftPanelType.none;
   final ValueNotifier<Offset?> _mousePositionNotifier = ValueNotifier<Offset?>(
     null,
   );
@@ -60,7 +59,6 @@ class _GraphCanvasState extends State<GraphCanvas>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final dataController = context.read<GraphDataController>();
-      _dataController = dataController;
       final renderState = context.read<NodeRenderState>();
 
       // 1. Initialize your ViewportController bound directly to the data query layer
@@ -98,7 +96,9 @@ class _GraphCanvasState extends State<GraphCanvas>
         environment: environment,
       );
 
-      dataController.addListener(_onDataControllerChanged);
+      final presentationNotifier = context.read<GraphPresentationNotifier>();
+      _presentationNotifier = presentationNotifier;
+      _presentationNotifier?.addListener(_onDataControllerChanged);
       _onDataControllerChanged();
 
       setState(() {});
@@ -133,7 +133,7 @@ class _GraphCanvasState extends State<GraphCanvas>
 
   @override
   void dispose() {
-    _dataController?.removeListener(_onDataControllerChanged);
+    _presentationNotifier?.removeListener(_onDataControllerChanged);
     _boundSession?.toolModeNotifier.removeListener(_onToolModeChanged);
     if (_boundSession?.viewportController == _viewportController) {
       _boundSession?.viewportController = null;
@@ -146,10 +146,9 @@ class _GraphCanvasState extends State<GraphCanvas>
 
   void _onToolModeChanged() {
     final mode = _boundSession?.toolModeNotifier.value;
-    if (mode != 'draw' && _activeLeftPanel == LeftPanelType.draw) {
-      setState(() {
-        _activeLeftPanel = LeftPanelType.none;
-      });
+    final renderState = context.read<NodeRenderState>();
+    if (mode != 'draw' && renderState.activeLeftPanelNotifier.value == LeftPanelType.draw) {
+      renderState.activeLeftPanelNotifier.value = LeftPanelType.none;
     }
   }
 
@@ -169,9 +168,11 @@ class _GraphCanvasState extends State<GraphCanvas>
       return const Center(child: CircularProgressIndicator());
     }
 
+    final presentationNotifier = context.watch<GraphPresentationNotifier>();
+
     final backdropRepaintListenable = Listenable.merge([
       viewportController.transformController,
-      dataController,
+      presentationNotifier,
     ]);
 
     return MultiProvider(
@@ -272,7 +273,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                           if (!_viewportRestored) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               viewportController.focusOnBounds(
-                                dataController.canvasBounds.value,
+                                dataController.canvasBounds,
                               );
                             });
                           } else {
@@ -297,7 +298,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                                     // final viewerPanEnabled = isDrawMode
                                     //     ? false
                                     //     : panScaleEnabled;
-                                    final viewerPanEnabled = panScaleEnabled;
+                                    final viewerPanEnabled = panScaleEnabled && renderState.activeEditId == null;
                                     return CanvasInteractiveViewer(
                                       transformationController:
                                           viewportController
@@ -410,17 +411,20 @@ class _GraphCanvasState extends State<GraphCanvas>
                     valueListenable: session.showLeftPanel,
                     builder: (context, leftVisible, _) {
                       if (!leftVisible) return const SizedBox.shrink();
-                      return LeftRepositoryDrawer(
-                        activePanel: _activeLeftPanel,
-                        onPanelChanged: (panel) {
-                          setState(() {
-                            _activeLeftPanel = panel;
-                            if (panel == LeftPanelType.draw) {
-                              session.toolModeNotifier.value = 'draw';
-                            } else {
-                              session.toolModeNotifier.value = 'select';
-                            }
-                          });
+                      return ValueListenableBuilder<LeftPanelType>(
+                        valueListenable: renderState.activeLeftPanelNotifier,
+                        builder: (context, activeLeftPanel, _) {
+                          return LeftRepositoryDrawer(
+                            activePanel: activeLeftPanel,
+                            onPanelChanged: (panel) {
+                              renderState.activeLeftPanelNotifier.value = panel;
+                              if (panel == LeftPanelType.draw) {
+                                session.toolModeNotifier.value = 'draw';
+                              } else {
+                                session.toolModeNotifier.value = 'select';
+                              }
+                            },
+                          );
                         },
                       );
                     },
@@ -431,37 +435,42 @@ class _GraphCanvasState extends State<GraphCanvas>
                 ValueListenableBuilder<bool>(
                   valueListenable: session.showLeftPanel,
                   builder: (context, leftVisible, _) {
-                    final isOpen = _activeLeftPanel != LeftPanelType.none;
-                    // Keep Positioned/AnimatedPositioned clean by evaluating constraints here
-                    return AnimatedPositioned(
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeInOut,
-                      top: 112.0,
-                      left: leftVisible
-                          ? 76.0
-                          : -300.0, // Clean off-screen translation
-                      width: (leftVisible && isOpen) ? 280.0 : 0.0,
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 200),
-                        opacity: (leftVisible && isOpen) ? 1.0 : 0.0,
-                        child: ClipRect(
-                          child: UnconstrainedBox(
-                            alignment: Alignment.topLeft,
-                            clipBehavior: Clip.hardEdge,
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minWidth: 280.0,
-                                maxWidth: 280.0,
-                                minHeight: 180,
-                                maxHeight: (constraints.maxHeight - 112 - 86)
-                                    .clamp(180, 10000)
-                                    .toDouble(),
+                    return ValueListenableBuilder<LeftPanelType>(
+                      valueListenable: renderState.activeLeftPanelNotifier,
+                      builder: (context, activeLeftPanel, _) {
+                        final isOpen = activeLeftPanel != LeftPanelType.none;
+                        // Keep Positioned/AnimatedPositioned clean by evaluating constraints here
+                        return AnimatedPositioned(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeInOut,
+                          top: 112.0,
+                          left: leftVisible
+                              ? 76.0
+                              : -300.0, // Clean off-screen translation
+                          width: (leftVisible && isOpen) ? 280.0 : 0.0,
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 200),
+                            opacity: (leftVisible && isOpen) ? 1.0 : 0.0,
+                            child: ClipRect(
+                              child: UnconstrainedBox(
+                                alignment: Alignment.topLeft,
+                                clipBehavior: Clip.hardEdge,
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minWidth: 280.0,
+                                    maxWidth: 280.0,
+                                    minHeight: 180,
+                                    maxHeight: (constraints.maxHeight - 112 - 86)
+                                        .clamp(180, 10000)
+                                        .toDouble(),
+                                  ),
+                                  child: _buildLeftPanelContent(activeLeftPanel),
+                                ),
                               ),
-                              child: _buildLeftPanelContent(),
                             ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     );
                   },
                 ),
@@ -517,8 +526,8 @@ class _GraphCanvasState extends State<GraphCanvas>
     );
   }
 
-  Widget _buildLeftPanelContent() {
-    switch (_activeLeftPanel) {
+  Widget _buildLeftPanelContent(LeftPanelType activePanel) {
+    switch (activePanel) {
       case LeftPanelType.tags:
         return const GlobalTagsManagerPanel();
       case LeftPanelType.templates:

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../presentation/viewport_state.dart';
-import '../../../../store/graph_data_controller.dart';
+import '../../../../presentation/graph_presentation_notifier.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'mini_map_painter.dart';
 
@@ -13,7 +13,7 @@ class ViewportMiniMapWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dataController = context.watch<GraphDataController>();
+    final dataController = context.watch<GraphPresentationNotifier>().controller;
     final viewportController = context.watch<ViewportController>();
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;

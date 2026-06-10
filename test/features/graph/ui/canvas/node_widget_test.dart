@@ -61,7 +61,7 @@ void main() {
       MaterialApp(
         home: MultiProvider(
           providers: [
-            ListenableProvider<GraphDataQuery>.value(value: mockQuery),
+            InheritedProvider<GraphDataQuery>.value(value: mockQuery),
             ChangeNotifierProvider<ThemeController>.value(value: mockTheme),
           ],
           child: Scaffold(

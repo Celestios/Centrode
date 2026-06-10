@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 
 import '../../models/models.dart';
@@ -20,9 +19,7 @@ class GraphSyncEngine {
   MapData? _lastLoadedMetadata;
 
   // The reactive bounding box updated asynchronously by Rust
-  final ValueNotifier<BoundingBox> canvasBounds = ValueNotifier(
-    const BoundingBox(minX: -500, minY: -500, maxX: 500, maxY: 500),
-  );
+  BoundingBox canvasBounds = const BoundingBox(minX: -500, minY: -500, maxX: 500, maxY: 500);
 
   StreamSubscription? _graphStreamSub;
 
@@ -110,14 +107,19 @@ class GraphSyncEngine {
         _syncLog.fine(
           'Elastic Boundaries updated from Core: minX:${field0.minX}, maxX:${field0.maxX}, minY:${field0.minY}, maxY:${field0.maxY}',
         );
-        canvasBounds.value = BoundingBox(
+        canvasBounds = BoundingBox(
           minX: field0.minX,
           minY: field0.minY,
           maxX: field0.maxX,
           maxY: field0.maxY,
         );
         controller.publishUpdate(
-          GraphEntityUpdate(id: '', tableName: '', type: GraphUpdateType.reset),
+          GraphEntityUpdate(
+            id: '',
+            tableName: '',
+            type: GraphUpdateType.boundary,
+            payload: canvasBounds,
+          ),
         );
         break;
 
@@ -237,6 +239,5 @@ class GraphSyncEngine {
   void dispose() {
     processor.flushSync();
     _graphStreamSub?.cancel();
-    canvasBounds.dispose();
   }
 }

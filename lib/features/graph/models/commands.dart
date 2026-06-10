@@ -9,3 +9,6 @@ export 'commands/update_relation_layout.dart';
 export 'commands/update_tags.dart';
 export 'commands/update_comments.dart';
 export 'commands/update_node_style.dart';
+export 'commands/instantiate_template.dart';
+export 'commands/update_nodes_style.dart';
+export 'commands/update_relations_layout.dart';

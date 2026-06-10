@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:uuid/uuid.dart';
-import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'graph_data_query.dart';
+import 'spatial_index.dart';
 import '../models/models.dart';
 import 'command_processor.dart';
 import 'package:mycelium/src/rust/bridge/api.dart' as rust;
@@ -31,7 +31,7 @@ abstract class GraphStyleUpdater {
 /// - **GraphNodeMutations**: Handles node mutations (create, delete, move, resize).
 /// - **GraphRelationMutations**: Handles relation mutations (create).
 /// - **GraphPropertyMutations**: Handles property mutations (text, styling).
-class GraphDataController extends ChangeNotifier implements GraphDataQuery {
+class GraphDataController implements GraphDataQuery {
   final Logger _log = Logger('GraphDataController');
 
   // ===========================================================================
@@ -88,7 +88,7 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
     try {
       _undoCount = await syncEngine.api.undoCount();
       _redoCount = await syncEngine.api.redoCount();
-      notifyListeners();
+      triggerUpdate();
     } catch (e) {
       _log.warning('Failed to update history status: $e');
     }
@@ -116,7 +116,7 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   Iterable<UiNode> get nodesIterable => store.nodes;
 
   @override
-  ValueNotifier<BoundingBox> get canvasBounds => syncEngine.canvasBounds;
+  BoundingBox get canvasBounds => syncEngine.canvasBounds;
 
   ViewportState? getSavedViewportState() {
     return syncEngine.savedViewportState;
@@ -181,11 +181,13 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   void _handleError(String msg) {
     _log.severe('Sub-service error intercepted: $msg');
     errorMessage = msg;
-    notifyListeners();
+    triggerUpdate();
   }
 
   void triggerUpdate() {
-    notifyListeners();
+    publishUpdate(
+      GraphEntityUpdate(id: '', tableName: '', type: GraphUpdateType.reset),
+    );
   }
 
   // ===========================================================================
@@ -194,7 +196,7 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
 
   Future<void> loadGraph() async {
     isLoading = true;
-    notifyListeners();
+    triggerUpdate();
     final stopwatch = Stopwatch()..start();
     _log.info('loadGraph: Initiating FFI request to load graph state.');
 
@@ -213,7 +215,7 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
       rethrow;
     } finally {
       isLoading = false;
-      notifyListeners();
+      triggerUpdate();
     }
   }
 
@@ -294,6 +296,11 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   void updateRelationStyle(String id, RelationStyle newStyle) =>
       propertyMutations.updateRelationStyle(id, newStyle);
 
+  void updateRelationsLayout(
+    List<String> ids, {
+    String? strategyType,
+  }) => relationMutations.updateRelationsLayout(ids, strategyType: strategyType);
+
   // Property Mutations
   void commitEntityText(String id, dynamic newTextOrContent, {dynamic originalTextOrContent}) =>
       propertyMutations.commitEntityText(
@@ -307,6 +314,9 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
 
   void updateNodeStyle(String id, NodeStyle newStyle) =>
       propertyMutations.updateNodeStyle(id, newStyle);
+
+  void updateNodesStyle(List<String> ids, NodeStyle Function(NodeStyle style) updateFn) =>
+      propertyMutations.updateNodesStyle(ids, updateFn);
 
   void updateNodeTags(String id, List<Tag> newTags) =>
       propertyMutations.updateNodeTags(id, newTags);
@@ -429,12 +439,10 @@ class GraphDataController extends ChangeNotifier implements GraphDataQuery {
   // Lifecycle
   // ===========================================================================
 
-  @override
   void dispose() {
     _log.fine('Disposing GraphDataController and dismantling domain modules.');
     _entityUpdateController.close();
     syncEngine.dispose();
     spatial.dispose();
-    super.dispose();
   }
 }

@@ -66,7 +66,6 @@ class ViewportController {
       'Initializing ViewportController and tracking transform mutations.',
     );
     transformController.addListener(_handleTransform);
-    _dataController.canvasBounds.addListener(_onCanvasBoundsChanged);
     _updateSubscription = _dataController.onEntityUpdate.listen(
       _handleEntityUpdate,
     );
@@ -78,6 +77,9 @@ class ViewportController {
 
   void _handleEntityUpdate(GraphEntityUpdate update) {
     switch (update.type) {
+      case GraphUpdateType.boundary:
+        _onCanvasBoundsChanged();
+        break;
       case GraphUpdateType.position:
       case GraphUpdateType.size:
       case GraphUpdateType.nodeAdded:
@@ -167,7 +169,7 @@ class ViewportController {
     if (viewport == Rect.zero) return;
 
     // Scale-Aware Geometric Decoupling & Elastic Margin calculation.
-    final bounds = _dataController.canvasBounds.value;
+    final bounds = _dataController.canvasBounds;
     final padding = AppConfig.canvas.boundaryMargin;
     final minScale = AppConfig.canvas.minScale;
 
@@ -322,7 +324,6 @@ class ViewportController {
     _viewportAnimationController?.stop();
     _viewportAnimationController?.dispose();
     transformController.removeListener(_handleTransform);
-    _dataController.canvasBounds.removeListener(_onCanvasBoundsChanged);
     _updateSubscription?.cancel();
     transformController.dispose();
     viewportStateNotifier.dispose();

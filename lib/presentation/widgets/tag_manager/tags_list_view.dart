@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../features/graph/models/graph_node.dart';
 import '../../../../features/graph/store/graph_data_controller.dart';
+import '../../../../features/graph/presentation/graph_presentation_notifier.dart';
 import '../../../../src/rust/domain/tags.dart';
 import 'delete_tag_dialog.dart';
 import 'tag_color_picker_panel.dart';
@@ -272,7 +273,7 @@ class _TagsListViewState extends State<TagsListView> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<GraphDataController>();
+    final controller = context.watch<GraphPresentationNotifier>().controller;
     final theme = Theme.of(context);
 
     return FutureBuilder<List<Tag>>(

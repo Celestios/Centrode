@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
-import '../../../store/graph_data_controller.dart';
+import '../../../presentation/graph_presentation_notifier.dart';
 import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
 
 class CanvasToolRibbon extends StatefulWidget {
@@ -19,7 +19,7 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
   Widget build(BuildContext context) {
     final tabsController = context.watch<WorkspaceTabsController>();
     final session = tabsController.activeSession;
-    final dataController = context.watch<GraphDataController>();
+    final dataController = context.watch<GraphPresentationNotifier>().controller;
 
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;

@@ -13,6 +13,7 @@ import 'package:mycelium/features/graph/engine/base_interaction_state.dart';
 import 'package:mycelium/features/graph/engine/interaction_engine.dart';
 import 'package:mycelium/features/graph/engine/interaction_facade.dart';
 import 'package:mycelium/features/graph/presentation/viewport_state.dart';
+import 'package:mycelium/features/graph/store/spatial_index.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
 
@@ -74,10 +75,6 @@ void main() {
         () => mockController.onEntityUpdate,
       ).thenAnswer((_) => const Stream.empty());
 
-      // Stub ChangeNotifier methods since we implement GraphDataController
-      when(() => mockController.addListener(any())).thenAnswer((_) {});
-      when(() => mockController.removeListener(any())).thenAnswer((_) {});
-
       when(
         () => mockTheme.currentGraphTheme,
       ).thenReturn(const GraphTheme(id: 'test', name: 'test'));
@@ -112,7 +109,7 @@ void main() {
           theme: ThemeData.dark(),
           home: MultiProvider(
             providers: [
-              ListenableProvider<GraphDataQuery>.value(value: mockController),
+              InheritedProvider<GraphDataQuery>.value(value: mockController),
               ChangeNotifierProvider<NodeRenderState>.value(value: renderState),
               ChangeNotifierProvider<ThemeController>.value(value: mockTheme),
               Provider<InteractionController>.value(value: mockInteraction),
@@ -198,12 +195,9 @@ void main() {
       final mockSpatial = MockSpatialHashGrid();
       when(() => mockController.spatialGrid).thenReturn(mockSpatial);
       when(() => mockController.canvasBounds).thenReturn(
-        ValueNotifier(BoundingBox(minX: 0, minY: 0, maxX: 100, maxY: 100)),
+        BoundingBox(minX: 0, minY: 0, maxX: 100, maxY: 100),
       );
       when(() => mockSpatial.queryRect(any())).thenReturn(<String>{});
-
-      when(() => mockController.addListener(any())).thenAnswer((_) {});
-      when(() => mockController.removeListener(any())).thenAnswer((_) {});
 
       when(
         () => mockTheme.currentGraphTheme,
@@ -234,7 +228,7 @@ void main() {
           theme: ThemeData.dark(),
           home: MultiProvider(
             providers: [
-              ListenableProvider<GraphDataQuery>.value(value: mockController),
+              InheritedProvider<GraphDataQuery>.value(value: mockController),
               ChangeNotifierProvider<NodeRenderState>.value(value: renderState),
               ChangeNotifierProvider<ThemeController>.value(value: mockTheme),
               Provider<InteractionController>.value(

@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../../src/rust/bridge/api.dart';
 import '../../../src/rust/domain/base_models.dart' show ViewportState;
 import '../store/graph_data_controller.dart';
+import 'graph_presentation_notifier.dart';
 import 'theme_manager.dart';
 import 'node_render_state.dart';
 import 'viewport_state.dart';
@@ -20,6 +21,7 @@ class TabSession extends ChangeNotifier {
   AppHandle? handle;
   ThemeController? themeController;
   GraphDataController? dataController;
+  GraphPresentationNotifier? presentationNotifier;
   NodeRenderState? nodeRenderState;
 
   ViewportController? _viewportController;
@@ -109,6 +111,7 @@ class TabSession extends ChangeNotifier {
     themeController = tc;
     final dc = GraphDataController(activeHandle);
     dataController = dc;
+    presentationNotifier = GraphPresentationNotifier(dc);
     nodeRenderState = NodeRenderState(dc);
 
     final styleManager = StyleManager(dc.store);
@@ -139,6 +142,7 @@ class TabSession extends ChangeNotifier {
     _viewportController?.transformController.removeListener(_onViewportChanged);
     themeController?.dispose();
     dataController?.dispose();
+    presentationNotifier?.dispose();
     nodeRenderState?.dispose();
     toolModeNotifier.dispose();
     brushColorNotifier.dispose();

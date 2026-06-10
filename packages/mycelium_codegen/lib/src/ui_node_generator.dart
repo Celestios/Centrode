@@ -125,10 +125,9 @@ class UiNodeGenerator extends Generator {
       // Required common fields: position is required in UiNode
       buffer.writeln("    required super.position,");
 
-      // Other common fields that are present in this FFI class
-      for (final field in commonFields) {
-        final fieldName = field.name ?? '';
-        if (fieldName == 'position' || fieldName.isEmpty) continue;
+      // ALL common fields from UiNode
+      for (final fieldName in commonFieldNames) {
+        if (fieldName == 'position') continue;
 
         if (fieldName == 'expandable') {
           buffer.writeln("    super.initialExpandable,");
@@ -274,21 +273,24 @@ class UiNodeGenerator extends Generator {
       buffer.writeln("    Offset? position,");
 
       // Common fields in copyWith
-      for (final field in commonFields) {
-        final fieldName = field.name ?? '';
-        if (fieldName.isEmpty ||
-            [
-              'id',
-              'position',
-              'layer',
-              'createdAt',
-              'updatedAt',
-            ].contains(fieldName)) {
-          continue;
-        }
-        final uiType = _mapFfiTypeToUi(field.type);
-        final finalType = uiType.endsWith('?') ? uiType : '$uiType?';
-        buffer.writeln("    $finalType $fieldName,");
+      final commonFieldTypes = {
+        'size': 'Size',
+        'content': 'Content',
+        'style': 'NodeStyle',
+        'resolvedStyle': 'NodeStyle',
+        'layout': 'NodeLayout',
+        'resolvedLayout': 'NodeLayout',
+        'lineCount': 'int',
+        'expandable': 'bool',
+        'isExpanded': 'bool',
+        'locked': 'bool',
+        'significance': 'int',
+      };
+
+      for (final entry in commonFieldTypes.entries) {
+        final fieldName = entry.key;
+        final type = entry.value;
+        buffer.writeln("    $type? $fieldName,");
       }
 
       // Subclass fields in copyWith
@@ -309,18 +311,7 @@ class UiNodeGenerator extends Generator {
       buffer.writeln("      position: position ?? this.position,");
 
       // Common fields instantiation in copyWith
-      for (final field in commonFields) {
-        final fieldName = field.name ?? '';
-        if (fieldName.isEmpty ||
-            [
-              'id',
-              'position',
-              'layer',
-              'createdAt',
-              'updatedAt',
-            ].contains(fieldName)) {
-          continue;
-        }
+      for (final fieldName in commonFieldTypes.keys) {
         if (fieldName == 'expandable') {
           buffer.writeln(
             "      initialExpandable: expandable ?? this.expandable,",

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
-import '../../../presentation/graph_metrics.dart';
 
 class HorizontalTextFormatToolbar extends StatelessWidget {
   final VoidCallback onToggleBold;

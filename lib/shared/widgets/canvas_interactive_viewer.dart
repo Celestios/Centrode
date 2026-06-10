@@ -1256,9 +1256,9 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
       },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque, // Necessary when panning off screen.
-        onScaleEnd: _onScaleEnd,
-        onScaleStart: _onScaleStart,
-        onScaleUpdate: _onScaleUpdate,
+        onScaleStart: (widget.panEnabled || widget.scaleEnabled) ? _onScaleStart : null,
+        onScaleUpdate: (widget.panEnabled || widget.scaleEnabled) ? _onScaleUpdate : null,
+        onScaleEnd: (widget.panEnabled || widget.scaleEnabled) ? _onScaleEnd : null,
         trackpadScrollCausesScale: widget.trackpadScrollCausesScale,
         trackpadScrollToScaleFactor: Offset(0, -1 / widget.scaleFactor),
         child: child,

@@ -93,7 +93,7 @@ class PaletteActionRegistry {
         final dataController = session.dataController;
         final viewportController = session.viewportController;
         if (viewportController != null && dataController != null) {
-          viewportController.focusOnBounds(dataController.canvasBounds.value);
+          viewportController.focusOnBounds(dataController.canvasBounds);
         }
       },
       isEnabled: (context) {

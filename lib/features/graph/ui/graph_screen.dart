@@ -5,6 +5,7 @@ import '../../../../presentation/widgets/window_title_bar.dart';
 import '../../../main.dart';
 import '../presentation/theme_manager.dart';
 import '../store/graph_data_controller.dart';
+import '../presentation/graph_presentation_notifier.dart';
 import '../presentation/node_render_state.dart';
 import '../presentation/workspace_tabs_controller.dart';
 import '../store/graph_data_query.dart';
@@ -149,11 +150,14 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
         ChangeNotifierProvider<ThemeController>.value(
           value: widget.session.themeController!,
         ),
-        ChangeNotifierProvider<GraphDataController>.value(
+        Provider<GraphDataController>.value(
           value: widget.session.dataController!,
         ),
-        ListenableProvider<GraphDataQuery>.value(
-          value: widget.session.dataController!,
+        ChangeNotifierProvider<GraphPresentationNotifier>.value(
+          value: widget.session.presentationNotifier!,
+        ),
+        InheritedProvider<GraphDataQuery>.value(
+          value: widget.session.presentationNotifier!,
         ),
         ChangeNotifierProvider<NodeRenderState>.value(
           value: widget.session.nodeRenderState!,

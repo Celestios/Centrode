@@ -1,5 +1,6 @@
 import 'dart:ui';
 import '../../models/models.dart';
+import '../spatial_index.dart';
 
 /// Encapsulates viewport culling and reactive geometry.
 class GraphSpatial {

@@ -371,4 +371,67 @@ class GraphPropertyMutations {
 
     controller.triggerUpdate();
   }
+
+  void updateNodesStyle(List<String> ids, NodeStyle Function(NodeStyle style) updateFn) {
+    if (ids.isEmpty) return;
+
+    final Map<String, NodeStyle> oldStyles = {};
+    final Map<String, NodeStyle> newStyles = {};
+    final Map<String, Size> oldSizes = {};
+    final Map<String, Size> newSizes = {};
+
+    for (final id in ids) {
+      final node = controller.store.nodeLookup[id];
+      if (node == null) continue;
+
+      final oldStyle = node.style ?? controller.resolveNodeStyle(node);
+      final oldSize = node.size;
+      final newStyle = updateFn(oldStyle);
+
+      node.style = newStyle;
+      controller.styleUpdater?.updateStyleForNode(id);
+
+      final newSize = controller.calculateNodeSize(node);
+      node.size = newSize;
+
+      oldStyles[id] = oldStyle;
+      newStyles[id] = newStyle;
+      oldSizes[id] = oldSize;
+      newSizes[id] = newSize;
+    }
+
+    if (newStyles.isEmpty) return;
+
+    final cmd = UpdateNodesStyleCommand(
+      targetId: newStyles.keys.first,
+      api: controller.syncEngine.api,
+      oldStyles: oldStyles,
+      newStyles: newStyles,
+      oldSizes: oldSizes,
+      newSizes: newSizes,
+      controller: controller,
+    );
+    controller.syncEngine.processor.queueCommand(cmd);
+
+    for (final id in newStyles.keys) {
+      final node = controller.store.nodeLookup[id]!;
+      controller.publishUpdate(
+        GraphEntityUpdate(
+          id: id,
+          tableName: node.tableName,
+          type: GraphUpdateType.style,
+          payload: newStyles[id],
+        ),
+      );
+      controller.publishUpdate(
+        GraphEntityUpdate(
+          id: id,
+          tableName: node.tableName,
+          type: GraphUpdateType.size,
+          payload: newSizes[id],
+        ),
+      );
+    }
+    controller.triggerUpdate();
+  }
 }

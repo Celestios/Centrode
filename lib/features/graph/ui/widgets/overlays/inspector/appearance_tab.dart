@@ -24,13 +24,7 @@ class AppearanceTab extends StatelessWidget {
     GraphDataController dataController,
     NodeStyle Function(NodeStyle style) updateFn,
   ) {
-    for (final id in nodeIds) {
-      final node = dataController.nodeLookup[id];
-      if (node != null) {
-        final style = _getEffectiveStyle(node);
-        dataController.updateNodeStyle(id, updateFn(style));
-      }
-    }
+    dataController.updateNodesStyle(nodeIds, updateFn);
   }
 
   Widget _buildSectionHeader(ThemeData theme, String title, {IconData? icon}) {
@@ -154,12 +148,10 @@ class AppearanceTab extends StatelessWidget {
               Expanded(
                 child: TextButton.icon(
                   onPressed: () {
-                    for (final id in relationIds) {
-                      dataController.updateRelationLayout(
-                        id,
-                        strategyType: 'default',
-                      );
-                    }
+                    dataController.updateRelationsLayout(
+                      relationIds,
+                      strategyType: 'default',
+                    );
                   },
                   icon: Icon(
                     Icons.horizontal_rule_rounded,
@@ -210,12 +202,10 @@ class AppearanceTab extends StatelessWidget {
               Expanded(
                 child: TextButton.icon(
                   onPressed: () {
-                    for (final id in relationIds) {
-                      dataController.updateRelationLayout(
-                        id,
-                        strategyType: 'bezier',
-                      );
-                    }
+                    dataController.updateRelationsLayout(
+                      relationIds,
+                      strategyType: 'bezier',
+                    );
                   },
                   icon: Icon(
                     Icons.gesture_rounded,
@@ -254,12 +244,10 @@ class AppearanceTab extends StatelessWidget {
               Expanded(
                 child: TextButton.icon(
                   onPressed: () {
-                    for (final id in relationIds) {
-                      dataController.updateRelationLayout(
-                        id,
-                        strategyType: 'orthogonal',
-                      );
-                    }
+                    dataController.updateRelationsLayout(
+                      relationIds,
+                      strategyType: 'orthogonal',
+                    );
                   },
                   icon: Icon(
                     Icons.alt_route_rounded,

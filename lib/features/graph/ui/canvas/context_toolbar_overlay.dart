@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:mycelium/features/graph/presentation/node_render_state.dart';
 import 'package:mycelium/features/graph/store/graph_data_controller.dart';
 import 'package:mycelium/features/graph/presentation/viewport_state.dart';
+import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
 import 'package:mycelium/features/graph/engine/interaction_engine.dart';
 import 'package:mycelium/features/graph/engine/base_interaction_state.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
@@ -12,6 +14,7 @@ import 'package:mycelium/presentation/widgets/template_manager/save_template_dia
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/ui/widgets/overlays/horizontal_text_format_toolbar.dart';
 import 'content_text_editing_controller.dart';
+import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
 
 class ContextToolbarOverlay extends StatelessWidget {
   final NodeRenderState renderState;
@@ -50,6 +53,7 @@ class ContextToolbarOverlay extends StatelessWidget {
       offsetNotifier,
       viewportController.transformController,
       renderState.activeTextSelectionNotifier,
+      renderState.activeLeftPanelNotifier,
     ];
     final List<NodeViewState> selectedViewStates = [];
     final List<UiRelation> selectedRelations = [];
@@ -81,6 +85,20 @@ class ContextToolbarOverlay extends StatelessWidget {
         final isTextSelectionActive = selection != null && !selection.isCollapsed;
 
         final matrix = viewportController.transformController.value;
+        final scale = matrix.getMaxScaleOnAxis();
+
+        // Dynamically retrieve panel layout thresholds
+        final tabsController = context.watch<WorkspaceTabsController>();
+        final session = tabsController.activeSession;
+        final leftVisible = session.showLeftPanel.value;
+        final activeLeftPanel = renderState.activeLeftPanelNotifier.value;
+        
+        final double leftThreshold = activeLeftPanel != LeftPanelType.none
+            ? 356.0
+            : (leftVisible ? 76.0 : 12.0);
+        final double rightThreshold = MediaQuery.of(context).size.width - 12.0;
+        final double topThreshold = 112.0; // Clear the ribbon area
+        const double margin = 12.0; // Margin gap in canvas space
 
         if (isTextSelectionActive && selectedViewStates.isNotEmpty) {
           final vs = selectedViewStates.first;
@@ -96,13 +114,24 @@ class ContextToolbarOverlay extends StatelessWidget {
             topCenterCanvas,
           );
 
-          // We center the toolbar (width ~ 280, height ~ 44) relative to that top center point
           const double toolbarWidth = 280;
           const double toolbarHeight = 44;
 
+          // Scale the gap distance by zoom scale
+          double toolbarLeft = screenPosition.dx - (toolbarWidth / 2);
+          double toolbarTop = screenPosition.dy - toolbarHeight - (margin * scale);
+
+          // If horizontal formatting toolbar overflows topThreshold, position it below the node instead
+          if (toolbarTop < topThreshold) {
+            toolbarTop = screenPosition.dy + (size.height * scale) + (margin * scale);
+          }
+
+          // Clamp horizontally to keep it within leftPanel/right panel thresholds
+          toolbarLeft = toolbarLeft.clamp(leftThreshold, rightThreshold - toolbarWidth);
+
           return Positioned(
-            left: screenPosition.dx - (toolbarWidth / 2),
-            top: screenPosition.dy - toolbarHeight - 12,
+            left: toolbarLeft,
+            top: toolbarTop,
             child: HorizontalTextFormatToolbar(
               onToggleBold: () {
                 renderState.applyFormatCallback?.call(TextFormatType.bold);
@@ -167,12 +196,21 @@ class ContextToolbarOverlay extends StatelessWidget {
         }
 
         final offset = offsetNotifier.value;
-        final canvasPosition = anchor + offset;
-
-        final screenPosition = MatrixUtils.transformPoint(
+        
+        // Calculate the base node position in canvas space including user's drag delta
+        final defaultOffset = isMulti ? AppConfig.toolbar.multiOffset : AppConfig.toolbar.singleOffset;
+        final dragDelta = offset - defaultOffset;
+        final nodeLeftCanvas = anchor + dragDelta;
+        
+        final nodeLeftScreen = MatrixUtils.transformPoint(
           matrix,
-          canvasPosition,
-        );
+          nodeLeftCanvas,
+        ).dx;
+
+        final nodeTopScreen = MatrixUtils.transformPoint(
+          matrix,
+          nodeLeftCanvas,
+        ).dy;
 
         final nodeIds = renderState.selectedEntities
             .where((id) => dataController.nodeLookup.containsKey(id))
@@ -182,10 +220,56 @@ class ContextToolbarOverlay extends StatelessWidget {
             ? nodeIds.first
             : null;
 
+        const double toolbarWidth = 520;
+        const double toolbarHeight = 360;
+        
+        final double screenWidth = MediaQuery.of(context).size.width;
+        final double screenHeight = MediaQuery.of(context).size.height;
+
+        final double nodeWidth = selectedViewStates.isNotEmpty
+            ? (selectedViewStates.first.dragWidthNotifier.value ?? selectedViewStates.first.sizeNotifier.value.width)
+            : 150.0;
+
+        // Try left placement first
+        final double leftX = nodeLeftScreen - toolbarWidth - (margin * scale);
+        // Try right placement
+        final double rightX = nodeLeftScreen + (nodeWidth * scale) + (margin * scale);
+
+        bool useRight = false;
+        if (leftX < leftThreshold) {
+          useRight = true;
+        }
+
+        double toolbarLeft = useRight ? rightX : leftX;
+
+        // Clamp X and Y coordinates to keep the toolbar fully visible on screen
+        toolbarLeft = toolbarLeft.clamp(leftThreshold, rightThreshold - toolbarWidth);
+        double toolbarTop = nodeTopScreen.clamp(topThreshold, screenHeight - toolbarHeight - 12.0);
+
+        // If the selected node itself is completely off-screen, hide the toolbar
+        if (selectedViewStates.isNotEmpty) {
+          final vs = selectedViewStates.first;
+          final s = Size(
+            vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width,
+            vs.sizeNotifier.value.height,
+          );
+          final tl = MatrixUtils.transformPoint(matrix, vs.positionNotifier.value);
+          final br = MatrixUtils.transformPoint(
+            matrix,
+            vs.positionNotifier.value + Offset(s.width, s.height),
+          );
+          final nodeScreenRect = Rect.fromPoints(tl, br);
+          final screenRect = Rect.fromLTWH(0, 0, screenWidth, screenHeight);
+          if (!screenRect.overlaps(nodeScreenRect)) {
+            return const SizedBox.shrink();
+          }
+        }
+
         return Positioned(
-          left: screenPosition.dx - 340,
-          top: screenPosition.dy,
+          left: toolbarLeft,
+          top: toolbarTop,
           child: VerticalContextToolbar(
+            positionOnRight: useRight,
             onDelete: renderState.deleteSelectedEntities,
             isMulti: isMulti,
             isRelationOnly: isRelationOnly,

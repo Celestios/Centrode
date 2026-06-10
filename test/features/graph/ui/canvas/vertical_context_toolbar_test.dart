@@ -14,7 +14,7 @@ void main() {
             body: Align(
               alignment: Alignment.centerRight,
               child: SizedBox(
-                width: 400,
+                width: 600,
                 height: 600,
                 child: VerticalContextToolbar(
                   onDelete: () {},
@@ -172,7 +172,7 @@ void main() {
             body: Align(
               alignment: Alignment.centerRight,
               child: SizedBox(
-                width: 400,
+                width: 600,
                 height: 600,
                 child: VerticalContextToolbar(
                   onDelete: () {},

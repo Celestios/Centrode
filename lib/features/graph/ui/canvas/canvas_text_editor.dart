@@ -29,14 +29,24 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   late final ContentTextEditingController _controller;
   late final FocusNode _focusNode;
   final Logger _log = Logger('CanvasTextEditor');
+  bool _isCommitted = false;
+  bool _isAborted = false;
+
+  // Cache dependencies to survive unmount lookups
+  late GraphDataController _graphDataController;
+  late NodeRenderState _renderState;
+
+  // Track the last value to detect pure selection drags
+  TextEditingValue _lastValue = TextEditingValue.empty;
 
   @override
   void initState() {
     super.initState();
     _controller = ContentTextEditingController();
     _controller.loadFromContent(widget.content);
-    _controller.addListener(_onTextChanged);
-    _controller.addListener(_onSelectionChanged);
+    _lastValue = _controller.value;
+
+    _controller.addListener(_onControllerChanged);
     _focusNode = FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -47,40 +57,74 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
         extentOffset: _controller.text.length,
       );
 
-      final renderState = context.read<NodeRenderState>();
-      renderState.applyFormatCallback = (type, {url}) {
+      _renderState.applyFormatCallback = (type, {url}) {
         _controller.toggleFormat(type as TextFormatType, url: url);
       };
-      renderState.toggleHeadingCallback = (type) {
+      _renderState.toggleHeadingCallback = (type) {
         _controller.toggleHeading(type as TextFormatType);
       };
     });
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _graphDataController = context.read<GraphDataController>();
+    _renderState = context.watch<NodeRenderState>();
+  }
+
+  @override
   void dispose() {
-    _controller.removeListener(_onTextChanged);
-    _controller.removeListener(_onSelectionChanged);
+    _controller.removeListener(_onControllerChanged);
+
+    if (!_isCommitted && !_isAborted) {
+      _log.info('Committing final edit on dispose for: ${widget.entityId}');
+      try {
+        _graphDataController.commitEntityText(
+          widget.entityId,
+          _controller.buildContent(),
+          originalTextOrContent: widget.content,
+        );
+      } catch (e) {
+        _log.severe('Failed to commit text on dispose: $e');
+      }
+    }
+
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
-  void _onTextChanged() {
-    context.read<GraphDataController>().updateEntityTextLive(
-      widget.entityId,
-      _controller.buildContent(),
-    );
-  }
+  void _onControllerChanged() {
+    final currentValue = _controller.value;
+    final selectionChanged = currentValue.selection != _lastValue.selection;
 
-  void _onSelectionChanged() {
-    context.read<NodeRenderState>().updateActiveTextSelection(_controller.selection);
+    if (selectionChanged) {
+      _renderState.updateActiveTextSelection(currentValue.selection);
+    }
+
+    // Only update live if the text actually changed (skips mouse drags/highlighting)
+    final onlySelectionChanged =
+        (currentValue.text == _lastValue.text) &&
+        (currentValue.composing == _lastValue.composing) &&
+        selectionChanged;
+
+    if (!onlySelectionChanged) {
+      _graphDataController.updateEntityTextLive(
+        widget.entityId,
+        _controller.buildContent(),
+      );
+    }
+
+    _lastValue = currentValue;
   }
 
   void _submit() {
+    if (_isCommitted) return;
+    _isCommitted = true;
     _log.info('Committing internal edit for: ${widget.entityId}');
-    context.read<NodeRenderState>().cancelActiveEdit();
-    context.read<GraphDataController>().commitEntityText(
+    _renderState.cancelActiveEdit();
+    _graphDataController.commitEntityText(
       widget.entityId,
       _controller.buildContent(),
       originalTextOrContent: widget.content,
@@ -89,6 +133,8 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Focus(
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent) {
@@ -99,29 +145,51 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
           }
           if (event.logicalKey == LogicalKeyboardKey.escape) {
             _log.info('Aborted edit via Escape key.');
-            context.read<NodeRenderState>().cancelActiveEdit();
+            _isAborted = true;
+            _renderState.cancelActiveEdit();
             return KeyEventResult.handled;
           }
         }
         return KeyEventResult.ignored;
       },
-      child: Material(
-        type: MaterialType.transparency,
-        child: TextField(
-          controller: _controller,
-          focusNode: _focusNode,
-          maxLines: widget.maxLines,
-          textAlign: TextAlign.center,
-          autofocus: true,
-          cursorColor:
-              widget.textStyle.color?.withValues(alpha: 0.6) ?? Colors.black54,
-          style: widget.textStyle,
-          decoration: const InputDecoration(
-            border: InputBorder.none,
-            isDense: true,
-            contentPadding: EdgeInsets.zero,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark
+              ? Colors.black.withOpacity(0.3)
+              : Colors.white.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: const Color(0xFF2196F3).withOpacity(0.6),
+            width: 1.5,
           ),
-          onTapOutside: (_) => _submit(),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            textSelectionTheme: const TextSelectionThemeData(
+              selectionColor: Color(0x602196F3), // Highly visible selection highlight
+              selectionHandleColor: Color(0xFF2196F3),
+              cursorColor: Color(0xFF2196F3),
+            ),
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: TextField(
+              controller: _controller,
+              focusNode: _focusNode,
+              maxLines: widget.maxLines,
+              textAlign: TextAlign.center,
+              textAlignVertical: TextAlignVertical.center,
+              autofocus: true,
+              cursorColor: const Color(0xFF2196F3),
+              style: widget.textStyle,
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
         ),
       ),
     );

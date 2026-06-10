@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:mycelium/src/rust/domain/templates.dart';
+import 'dart:ui' show Offset;
 import 'package:mycelium/src/rust/domain/base_models.dart' show RecordStrings;
+import '../../models/models.dart';
 import '../graph_data_controller.dart';
 
 class GraphTemplateMutations {
@@ -42,13 +42,14 @@ class GraphTemplateMutations {
   }
 
   Future<void> instantiateTemplate(String key, Offset canvasCoords) async {
-    final dynamic api = controller.syncEngine.api;
-    await api.instantiateTemplate(
-      key: key,
+    final cmd = InstantiateTemplateCommand(
+      targetId: key,
+      api: controller.syncEngine.api,
       targetX: canvasCoords.dx,
       targetY: canvasCoords.dy,
+      controller: controller,
     );
-    await controller.loadGraph();
+    controller.syncEngine.processor.queueCommand(cmd, immediate: true);
   }
 
   Future<void> deleteTemplate(String key) async {

@@ -4,7 +4,9 @@ import 'package:mocktail/mocktail.dart';
 import 'package:mycelium/features/graph/ui/graph_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:mycelium/features/graph/store/graph_data_controller.dart';
+import 'package:mycelium/features/graph/presentation/graph_presentation_notifier.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
+import 'package:mycelium/features/graph/store/graph_data_query.dart';
 
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 
@@ -15,6 +17,13 @@ class MockGraphDataController extends Mock implements GraphDataController {
   String? get errorMessage => null;
   @override
   void Function(String) get onError => (String err) {};
+}
+
+class MockGraphPresentationNotifier extends Mock implements GraphPresentationNotifier {
+  @override
+  bool get isLoading => false;
+  @override
+  String? get errorMessage => null;
 }
 
 class MockThemeController extends Mock implements ThemeController {
@@ -28,6 +37,7 @@ void main() {
     WidgetTester tester,
   ) async {
     final mockController = MockGraphDataController();
+    final mockPresentation = MockGraphPresentationNotifier();
     final mockTheme = MockThemeController();
 
     // Since GraphScreen requires MultiProvider with these providers...
@@ -35,8 +45,14 @@ void main() {
       MaterialApp(
         home: MultiProvider(
           providers: [
-            ChangeNotifierProvider<GraphDataController>.value(
+            Provider<GraphDataController>.value(
               value: mockController,
+            ),
+            ChangeNotifierProvider<GraphPresentationNotifier>.value(
+              value: mockPresentation,
+            ),
+            InheritedProvider<GraphDataQuery>.value(
+              value: mockPresentation,
             ),
             ChangeNotifierProvider<ThemeController>.value(value: mockTheme),
           ],

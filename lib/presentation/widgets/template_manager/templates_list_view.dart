@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../features/graph/store/graph_data_controller.dart';
+import '../../../../features/graph/presentation/graph_presentation_notifier.dart';
 import '../../../../features/graph/presentation/viewport_state.dart';
 import '../../../../features/graph/models/models.dart';
 import '../../../../src/rust/domain/nodes.dart';
@@ -47,7 +47,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<GraphDataController>();
+    final controller = context.watch<GraphPresentationNotifier>().controller;
     final theme = Theme.of(context);
 
     return FutureBuilder<List<Template>>(

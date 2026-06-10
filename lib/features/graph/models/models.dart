@@ -1,7 +1,6 @@
 /// Central Export Hub for Graph Domain Models.
 library;
 
-export '../store/spatial_index.dart';
 export 'graph_node.dart';
 export 'graph_relation.dart';
 export 'commands.dart';
@@ -14,3 +13,4 @@ export 'package:mycelium/src/rust/domain/base_models.dart'
 export 'package:mycelium/src/rust/domain/templates.dart' show Template;
 export 'content_builder.dart';
 export 'package:mycelium/src/rust/domain/contents.dart';
+export 'left_panel_type.dart';

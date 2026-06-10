@@ -7,6 +7,7 @@ import '../store/graph_data_query.dart';
 import 'view_state.dart';
 import 'strategies/relation_layout_strategy.dart';
 import 'routing/relation_layout_context.dart';
+import '../models/left_panel_type.dart';
 
 /// Notifier pulsed to trigger relation painter repaints when node coordinates change.
 class MovementNotifier extends ChangeNotifier {
@@ -23,6 +24,11 @@ enum InspectorTab { appearance, data }
 class NodeRenderState extends ChangeNotifier {
   final Logger _log = Logger('NodeRenderState');
   final GraphDataController _dataController;
+
+  /// Tracks the currently active left panel type (e.g. tags, templates, drawing, none).
+  final ValueNotifier<LeftPanelType> activeLeftPanelNotifier = ValueNotifier(
+    LeftPanelType.none,
+  );
 
   /// Tracks the currently active inspector tab.
   final ValueNotifier<InspectorTab> activeInspectorTabNotifier = ValueNotifier(
@@ -88,15 +94,10 @@ class NodeRenderState extends ChangeNotifier {
   StreamSubscription<GraphEntityUpdate>? _updateSubscription;
 
   NodeRenderState(this._dataController) {
-    _dataController.addListener(_onDataChanged);
     _updateSubscription = _dataController.onEntityUpdate.listen(
       _handleEntityUpdate,
     );
     _syncAtomicUIState(); // Initial synchronization projection
-  }
-
-  void _onDataChanged() {
-    _syncAtomicUIState();
   }
 
   void _handleEntityUpdate(GraphEntityUpdate update) {
@@ -162,11 +163,14 @@ class NodeRenderState extends ChangeNotifier {
       case GraphUpdateType.comments:
       case GraphUpdateType.reset:
         relationPathCache.clear();
+        _syncAtomicUIState();
         if (update.type == GraphUpdateType.relationLayout ||
             update.type == GraphUpdateType.relationAdded ||
             update.type == GraphUpdateType.relationDeleted) {
           movementNotifier.pulse();
         }
+        break;
+      case GraphUpdateType.boundary:
         break;
     }
   }
@@ -448,7 +452,6 @@ class NodeRenderState extends ChangeNotifier {
   @override
   void dispose() {
     _log.fine('Disposing NodeRenderState and volatile notifiers.');
-    _dataController.removeListener(_onDataChanged);
     _updateSubscription?.cancel();
 
     for (final vs in viewStates.values) {
