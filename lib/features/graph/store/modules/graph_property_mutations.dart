@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'package:logging/logging.dart';
 import '../../models/models.dart';
-import 'package:mycelium/features/graph/models/content_builder.dart';
 import '../graph_data_controller.dart';
 import '../graph_data_query.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
@@ -13,38 +12,55 @@ class GraphPropertyMutations {
 
   GraphPropertyMutations(this.controller);
 
-  void commitEntityText(String id, String newText, {String? originalText}) {
-    _propLog.info(
-      'Committing text for $id: "$newText" (original: "$originalText")',
-    );
+  void commitEntityText(String id, dynamic newTextOrContent, {dynamic originalTextOrContent}) {
     final node = controller.store.nodeLookup[id];
     final rel = controller.store.relationLookup[id];
 
-    // Determine the pre-edited state to check for changes and configure rollbacks
-    final String effectiveOriginalText =
-        originalText ?? (node?.content.text ?? rel?.verb ?? '');
+    final Content newContent = newTextOrContent is Content
+        ? newTextOrContent
+        : ContentFactory.fromText(newTextOrContent as String);
 
-    // If the text didn't actually change from the original starting text, no-op
-    if (effectiveOriginalText == newText) return;
+    final Content oldContent = originalTextOrContent is Content
+        ? originalTextOrContent
+        : (originalTextOrContent is String
+            ? ContentFactory.fromText(originalTextOrContent)
+            : (node?.content ?? ContentFactory.empty()));
 
-    // Capture the pre-edit size of the node (before any live keystroke resizing occurred)
+    _propLog.info(
+      'Committing text for $id: "${newContent.text}"',
+    );
+
+    // If the text didn't actually change, no-op
+    if (oldContent.text == newContent.text &&
+        oldContent.blocks.length == newContent.blocks.length) {
+      // Basic check for structural equality
+      bool identical = true;
+      for (int i = 0; i < oldContent.blocks.length; i++) {
+        if (oldContent.blocks[i].blockType != newContent.blocks[i].blockType) {
+          identical = false;
+          break;
+        }
+      }
+      if (identical) return;
+    }
+
+    // Capture the pre-edit size of the node
     Size? preEditSize;
-    if (node != null && originalText != null) {
-      final oldContent = node.content;
-      node.content = ContentFactory.fromText(originalText);
-      preEditSize = controller.calculateNodeSize(node);
-      // Restore back to current text
+    if (node != null) {
+      final oldContentBackup = node.content;
       node.content = oldContent;
+      preEditSize = controller.calculateNodeSize(node);
+      node.content = oldContentBackup;
     } else {
       preEditSize = node?.size;
     }
 
     // 1. Ensure the optimistic memory state is completely up-to-date
     if (node != null) {
-      node.content = ContentFactory.fromText(newText);
+      node.content = newContent;
       node.size = controller.calculateNodeSize(node);
     } else if (rel != null) {
-      rel.verb = newText;
+      rel.verb = newContent.text;
     }
 
     // 3. Queue command with primitive rollback
@@ -53,14 +69,12 @@ class GraphPropertyMutations {
         targetId: id,
         tableName: node?.tableName ?? 'IRelation',
         api: controller.syncEngine.api,
-        oldContent: node == null
-            ? null
-            : ContentFactory.fromText(effectiveOriginalText),
-        newContent: node == null ? null : ContentFactory.fromText(newText),
+        oldContent: node == null ? null : oldContent,
+        newContent: node == null ? null : newContent,
         oldSize: node == null ? null : preEditSize,
         newSize: node?.size,
-        oldVerb: rel == null ? null : effectiveOriginalText,
-        newVerb: rel == null ? null : newText,
+        oldVerb: rel == null ? null : oldContent.text,
+        newVerb: rel == null ? null : newContent.text,
         controller: controller,
       ),
     );
@@ -71,7 +85,7 @@ class GraphPropertyMutations {
           id: id,
           tableName: node.tableName,
           type: GraphUpdateType.text,
-          payload: newText,
+          payload: newContent.text,
         ),
       );
       controller.publishUpdate(
@@ -88,7 +102,7 @@ class GraphPropertyMutations {
           id: id,
           tableName: 'IRelation',
           type: GraphUpdateType.text,
-          payload: newText,
+          payload: newContent.text,
         ),
       );
     }
@@ -96,20 +110,27 @@ class GraphPropertyMutations {
 
   /// Updates the entity text locally in memory without triggering FFI/database sync.
   /// This is used for buttery smooth, real-time visual canvas resizing as the user types.
-  void updateEntityTextLive(String id, String newText) {
+  void updateEntityTextLive(String id, dynamic newTextOrContent) {
     final node = controller.store.nodeLookup[id];
     final rel = controller.store.relationLookup[id];
 
+    final Content newContent = newTextOrContent is Content
+        ? newTextOrContent
+        : ContentFactory.fromText(newTextOrContent as String);
+
     if (node != null) {
-      if (node.content.text == newText) return;
-      node.content = ContentFactory.fromText(newText);
+      if (node.content.text == newContent.text &&
+          node.content.blocks.length == newContent.blocks.length) {
+        return;
+      }
+      node.content = newContent;
       node.size = controller.calculateNodeSize(node);
       controller.publishUpdate(
         GraphEntityUpdate(
           id: id,
           tableName: node.tableName,
           type: GraphUpdateType.text,
-          payload: newText,
+          payload: newContent.text,
         ),
       );
       controller.publishUpdate(
@@ -121,14 +142,14 @@ class GraphPropertyMutations {
         ),
       );
     } else if (rel != null) {
-      if (rel.verb == newText) return;
-      rel.verb = newText;
+      if (rel.verb == newContent.text) return;
+      rel.verb = newContent.text;
       controller.publishUpdate(
         GraphEntityUpdate(
           id: id,
           tableName: 'IRelation',
           type: GraphUpdateType.text,
-          payload: newText,
+          payload: newContent.text,
         ),
       );
     }

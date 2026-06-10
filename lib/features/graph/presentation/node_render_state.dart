@@ -72,6 +72,19 @@ class NodeRenderState extends ChangeNotifier {
   /// Set of selected entity IDs (nodes or relations).
   Set<String> selectedEntities = {};
 
+  /// Tracks active text selection during inline editing.
+  final ValueNotifier<TextSelection?> activeTextSelectionNotifier = ValueNotifier(null);
+
+  /// Decoupled callbacks for text formatting in the UI layer.
+  void Function(dynamic formatType, {String? url})? applyFormatCallback;
+  void Function(dynamic headingType)? toggleHeadingCallback;
+
+  void updateActiveTextSelection(TextSelection? selection) {
+    if (activeTextSelectionNotifier.value != selection) {
+      activeTextSelectionNotifier.value = selection;
+    }
+  }
+
   StreamSubscription<GraphEntityUpdate>? _updateSubscription;
 
   NodeRenderState(this._dataController) {
@@ -408,6 +421,9 @@ class NodeRenderState extends ChangeNotifier {
   /// Aborts and closes active inline editing mode.
   void cancelActiveEdit() {
     activeEditId = null;
+    activeTextSelectionNotifier.value = null;
+    applyFormatCallback = null;
+    toggleHeadingCallback = null;
     notifyListeners();
   }
 

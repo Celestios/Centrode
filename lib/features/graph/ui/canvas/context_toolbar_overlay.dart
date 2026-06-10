@@ -10,6 +10,8 @@ import 'package:mycelium/features/graph/presentation/strategies/node_style_strat
 import 'package:mycelium/features/graph/presentation/strategies/relation_style_strategy.dart';
 import 'package:mycelium/presentation/widgets/template_manager/save_template_dialog.dart';
 import 'package:mycelium/features/graph/models/models.dart';
+import 'package:mycelium/features/graph/ui/widgets/overlays/horizontal_text_format_toolbar.dart';
+import 'content_text_editing_controller.dart';
 
 class ContextToolbarOverlay extends StatelessWidget {
   final NodeRenderState renderState;
@@ -47,6 +49,7 @@ class ContextToolbarOverlay extends StatelessWidget {
     final List<Listenable> listenables = [
       offsetNotifier,
       viewportController.transformController,
+      renderState.activeTextSelectionNotifier,
     ];
     final List<NodeViewState> selectedViewStates = [];
     final List<UiRelation> selectedRelations = [];
@@ -74,6 +77,86 @@ class ContextToolbarOverlay extends StatelessWidget {
     return ListenableBuilder(
       listenable: Listenable.merge(listenables),
       builder: (context, _) {
+        final selection = renderState.activeTextSelectionNotifier.value;
+        final isTextSelectionActive = selection != null && !selection.isCollapsed;
+
+        final matrix = viewportController.transformController.value;
+
+        if (isTextSelectionActive && selectedViewStates.isNotEmpty) {
+          final vs = selectedViewStates.first;
+          final size = Size(
+            vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width,
+            vs.sizeNotifier.value.height,
+          );
+
+          // Center horizontally at the top edge of the node in canvas space
+          final topCenterCanvas = vs.positionNotifier.value + Offset(size.width / 2, 0);
+          final screenPosition = MatrixUtils.transformPoint(
+            matrix,
+            topCenterCanvas,
+          );
+
+          // We center the toolbar (width ~ 280, height ~ 44) relative to that top center point
+          const double toolbarWidth = 280;
+          const double toolbarHeight = 44;
+
+          return Positioned(
+            left: screenPosition.dx - (toolbarWidth / 2),
+            top: screenPosition.dy - toolbarHeight - 12,
+            child: HorizontalTextFormatToolbar(
+              onToggleBold: () {
+                renderState.applyFormatCallback?.call(TextFormatType.bold);
+              },
+              onToggleItalic: () {
+                renderState.applyFormatCallback?.call(TextFormatType.italic);
+              },
+              onToggleUnderline: () {
+                renderState.applyFormatCallback?.call(TextFormatType.underline);
+              },
+              onToggleHeader1: () {
+                renderState.toggleHeadingCallback?.call(TextFormatType.heading1);
+              },
+              onToggleHeader2: () {
+                renderState.toggleHeadingCallback?.call(TextFormatType.heading2);
+              },
+              onToggleHeader3: () {
+                renderState.toggleHeadingCallback?.call(TextFormatType.heading3);
+              },
+              onAddHyperlink: () async {
+                final url = await showDialog<String>(
+                  context: context,
+                  builder: (context) {
+                    final controller = TextEditingController(text: 'https://');
+                    return AlertDialog(
+                      title: const Text('Insert Hyperlink'),
+                      content: TextField(
+                        controller: controller,
+                        autofocus: true,
+                        decoration: const InputDecoration(
+                          hintText: 'Enter URL (e.g., https://example.com)',
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, controller.text),
+                          child: const Text('Insert'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+                if (url != null && url.isNotEmpty) {
+                  renderState.applyFormatCallback?.call(TextFormatType.link, url: url);
+                }
+              },
+            ),
+          );
+        }
+
         Offset anchor = Offset.zero;
         if (selectedViewStates.isNotEmpty || selectedRelations.isNotEmpty) {
           anchor =
@@ -86,7 +169,6 @@ class ContextToolbarOverlay extends StatelessWidget {
         final offset = offsetNotifier.value;
         final canvasPosition = anchor + offset;
 
-        final matrix = viewportController.transformController.value;
         final screenPosition = MatrixUtils.transformPoint(
           matrix,
           canvasPosition,

@@ -116,7 +116,7 @@ class NodeWidget extends StatelessWidget {
                 child: isEditing
                     ? CanvasTextEditor(
                         entityId: liveNode.id,
-                        initialText: ContentFactory.toMarkdown(liveNode.content),
+                        content: liveNode.content,
                         maxLines: null,
                         textStyle: TextStyle(
                           fontSize: resolvedStyle.fontSize,

@@ -143,7 +143,7 @@ class RelationLayer extends StatelessWidget {
                     ),
                     child: CanvasTextEditor(
                       entityId: editedRel.id,
-                      initialText: editedRel.verb,
+                      content: ContentFactory.fromText(editedRel.verb),
                       maxLines: 1,
                       textStyle: TextStyle(
                         fontSize: AppConfig.editor.fontSizeRelation,

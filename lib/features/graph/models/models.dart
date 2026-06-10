@@ -12,3 +12,5 @@ export 'package:mycelium/src/rust/domain/tags.dart' show Tag, TagFields;
 export 'package:mycelium/src/rust/domain/base_models.dart'
     show Comment, ViewportState, BoundingBox;
 export 'package:mycelium/src/rust/domain/templates.dart' show Template;
+export 'content_builder.dart';
+export 'package:mycelium/src/rust/domain/contents.dart';

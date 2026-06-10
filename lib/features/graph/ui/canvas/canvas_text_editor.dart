@@ -4,17 +4,19 @@ import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 import '../../store/graph_data_controller.dart';
 import '../../presentation/node_render_state.dart';
+import '../../models/models.dart';
+import 'content_text_editing_controller.dart';
 
 class CanvasTextEditor extends StatefulWidget {
   final String entityId;
-  final String initialText;
+  final Content content;
   final TextStyle textStyle;
   final int? maxLines;
 
   const CanvasTextEditor({
     super.key,
     required this.entityId,
-    required this.initialText,
+    required this.content,
     required this.textStyle,
     this.maxLines,
   });
@@ -24,29 +26,41 @@ class CanvasTextEditor extends StatefulWidget {
 }
 
 class _CanvasTextEditorState extends State<CanvasTextEditor> {
-  late final TextEditingController _controller;
+  late final ContentTextEditingController _controller;
   late final FocusNode _focusNode;
   final Logger _log = Logger('CanvasTextEditor');
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.initialText);
+    _controller = ContentTextEditingController();
+    _controller.loadFromContent(widget.content);
     _controller.addListener(_onTextChanged);
+    _controller.addListener(_onSelectionChanged);
     _focusNode = FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _focusNode.requestFocus();
       _controller.selection = TextSelection(
         baseOffset: 0,
         extentOffset: _controller.text.length,
       );
+
+      final renderState = context.read<NodeRenderState>();
+      renderState.applyFormatCallback = (type, {url}) {
+        _controller.toggleFormat(type as TextFormatType, url: url);
+      };
+      renderState.toggleHeadingCallback = (type) {
+        _controller.toggleHeading(type as TextFormatType);
+      };
     });
   }
 
   @override
   void dispose() {
     _controller.removeListener(_onTextChanged);
+    _controller.removeListener(_onSelectionChanged);
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -55,8 +69,12 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   void _onTextChanged() {
     context.read<GraphDataController>().updateEntityTextLive(
       widget.entityId,
-      _controller.text,
+      _controller.buildContent(),
     );
+  }
+
+  void _onSelectionChanged() {
+    context.read<NodeRenderState>().updateActiveTextSelection(_controller.selection);
   }
 
   void _submit() {
@@ -64,8 +82,8 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     context.read<NodeRenderState>().cancelActiveEdit();
     context.read<GraphDataController>().commitEntityText(
       widget.entityId,
-      _controller.text,
-      originalText: widget.initialText,
+      _controller.buildContent(),
+      originalTextOrContent: widget.content,
     );
   }
 
