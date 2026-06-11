@@ -153,21 +153,31 @@ class GraphDataController implements GraphDataQuery {
   // ===========================================================================
 
   /// Creates a new GraphDataController and initializes its domain modules.
-  GraphDataController(rust.AppHandle apiHandle) {
-    store = GraphStore();
-    spatial = GraphSpatial();
-    syncEngine = GraphSyncEngine(
-      controller: this,
-      api: apiHandle,
-      processor: CommandProcessor(
-        onError: _handleError,
-        onQueueDrained: updateHistoryStatus,
-      ),
-    );
-    nodeMutations = GraphNodeMutations(this);
-    relationMutations = GraphRelationMutations(this);
-    propertyMutations = GraphPropertyMutations(this);
-    templateMutations = GraphTemplateMutations(this);
+  GraphDataController(
+    rust.AppHandle apiHandle, {
+    GraphStore? store,
+    GraphSpatial? spatial,
+    GraphSyncEngine? syncEngine,
+    GraphNodeMutations? nodeMutations,
+    GraphRelationMutations? relationMutations,
+    GraphPropertyMutations? propertyMutations,
+    GraphTemplateMutations? templateMutations,
+  }) {
+    this.store = store ?? GraphStore();
+    this.spatial = spatial ?? GraphSpatial();
+    this.syncEngine = syncEngine ??
+        GraphSyncEngine(
+          controller: this,
+          api: apiHandle,
+          processor: CommandProcessor(
+            onError: _handleError,
+            onQueueDrained: updateHistoryStatus,
+          ),
+        );
+    this.nodeMutations = nodeMutations ?? GraphNodeMutations(this);
+    this.relationMutations = relationMutations ?? GraphRelationMutations(this);
+    this.propertyMutations = propertyMutations ?? GraphPropertyMutations(this);
+    this.templateMutations = templateMutations ?? GraphTemplateMutations(this);
 
     _log.info(
       'GraphDataController initialized: Domain modules successfully composed.',
@@ -391,49 +401,17 @@ class GraphDataController implements GraphDataQuery {
     return results;
   }
 
-  void addTagToNode(String nodeId, String name, int color) {
-    final node = nodeLookup[nodeId];
-    if (node is InfoUiNode) {
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final newTag = Tag(
-        key: const Uuid().v4(),
-        fields: TagFields(
-          name: name,
-          color: color,
-          createdAt: timestamp,
-          updatedAt: timestamp,
-        ),
-      );
-      updateNodeTags(nodeId, [...node.tags, newTag]);
-    }
-  }
+  void addTagToNode(String nodeId, String name, int color) =>
+      propertyMutations.addTagToNode(nodeId, name, color);
 
-  void removeTagFromNode(String nodeId, String tagKey) {
-    final node = nodeLookup[nodeId];
-    if (node is InfoUiNode) {
-      final updatedTags = node.tags.where((t) => t.key != tagKey).toList();
-      updateNodeTags(nodeId, updatedTags);
-    }
-  }
+  void removeTagFromNode(String nodeId, String tagKey) =>
+      propertyMutations.removeTagFromNode(nodeId, tagKey);
 
-  void addCommentToNode(String nodeId, String text) {
-    final node = nodeLookup[nodeId];
-    if (node is InfoUiNode) {
-      final newComment = Comment(
-        text: text,
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-      );
-      updateNodeComments(nodeId, [newComment, ...node.comments]);
-    }
-  }
+  void addCommentToNode(String nodeId, String text) =>
+      propertyMutations.addCommentToNode(nodeId, text);
 
-  void removeCommentFromNode(String nodeId, Comment comment) {
-    final node = nodeLookup[nodeId];
-    if (node is InfoUiNode) {
-      final updatedComments = node.comments.where((c) => c != comment).toList();
-      updateNodeComments(nodeId, updatedComments);
-    }
-  }
+  void removeCommentFromNode(String nodeId, Comment comment) =>
+      propertyMutations.removeCommentFromNode(nodeId, comment);
 
   // ===========================================================================
   // Lifecycle

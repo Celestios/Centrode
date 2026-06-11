@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:flutter/material.dart' hide Theme;
-import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 
 abstract final class AppConfig {
   AppConfig._();
@@ -113,12 +112,10 @@ class _Editor {
 class _LiquidGlass {
   const _LiquidGlass();
 
-  final GlassSettings settings = const GlassSettings(
-    refractStrength: 0.16,
-    bridgeReachFactor: 2.0,
-    bridgeThicknessFactor: 0.4,
-    useLocalCoordinates: true,
-  );
+  final double refractStrength = 0.16;
+  final double bridgeReachFactor = 2.0;
+  final double bridgeThicknessFactor = 0.4;
+  final bool useLocalCoordinates = true;
 }
 
 /// Calculates the dynamic grid size based on the current zoom level (Dynamic LOD).

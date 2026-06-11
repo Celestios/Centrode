@@ -129,17 +129,7 @@ class ContentBuilder {
   }
 
   static String _computePlainText(List<ContentBlock> blocks) {
-    final buffer = StringBuffer();
-    for (final block in blocks) {
-      for (final inline in block.content) {
-        buffer.write(inline.text);
-      }
-      buffer.writeln();
-    }
-    final result = buffer.toString();
-    return result.endsWith('\n')
-        ? result.substring(0, result.length - 1)
-        : result;
+    return ContentExtensions.computePlainText(blocks);
   }
 
   /// Clear all blocks and start fresh.
@@ -159,9 +149,8 @@ class ContentBuilder {
 
 /// Extension methods for Content to provide additional functionality.
 extension ContentExtensions on Content {
-  /// Convert Content to plain text string.
-  /// Derives text from all blocks and inline nodes.
-  String toPlainText() {
+  /// Helper to convert a list of blocks to plain text.
+  static String computePlainText(List<ContentBlock> blocks) {
     final buffer = StringBuffer();
     for (final block in blocks) {
       for (final inline in block.content) {
@@ -169,12 +158,16 @@ extension ContentExtensions on Content {
       }
       buffer.writeln();
     }
-    // Remove trailing newline
     final result = buffer.toString();
-    if (result.endsWith('\n')) {
-      return result.substring(0, result.length - 1);
-    }
-    return result;
+    return result.endsWith('\n')
+        ? result.substring(0, result.length - 1)
+        : result;
+  }
+
+  /// Convert Content to plain text string.
+  /// Derives text from all blocks and inline nodes.
+  String toPlainText() {
+    return computePlainText(blocks);
   }
 
   /// Check if content is empty (no blocks or all blocks are empty).

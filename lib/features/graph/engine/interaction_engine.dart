@@ -4,6 +4,7 @@ import 'package:logging/logging.dart';
 import '../presentation/graph_metrics.dart';
 import 'base_interaction_state.dart';
 import 'interaction_context.dart';
+import 'gesture_interceptor.dart';
 
 /// The Interaction Controller (FSM Engine)
 ///
@@ -44,6 +45,19 @@ class InteractionController {
   late final ValueNotifier<MouseCursor> cursor = ValueNotifier(
     state.value.cursor,
   );
+
+  /// The registered gesture interceptors.
+  final List<GestureInterceptor> _interceptors = [];
+
+  void registerInterceptor(GestureInterceptor interceptor) {
+    if (!_interceptors.contains(interceptor)) {
+      _interceptors.add(interceptor);
+    }
+  }
+
+  void unregisterInterceptor(GestureInterceptor interceptor) {
+    _interceptors.remove(interceptor);
+  }
 
   InteractionController({
     required this.transformController,
@@ -124,6 +138,14 @@ class InteractionController {
     final pCanvas = _screenToCanvas(e.localPosition);
     final isDoubleTap = _processDoubleTap(pCanvas);
 
+    // Run interceptors first
+    for (final interceptor in List<GestureInterceptor>.from(_interceptors)) {
+      final disposition = interceptor.onPointerDown(e, pCanvas, environment, isDoubleTap);
+      if (disposition == InterceptorDisposition.consumed) {
+        return;
+      }
+    }
+
     // Telemetry for input origin and double-tap detection
     _log.finer(
       'PointerDown: Screen(${e.localPosition.dx.toInt()}, ${e.localPosition.dy.toInt()}) -> Canvas(${pCanvas.dx.toInt()}, ${pCanvas.dy.toInt()})',
@@ -144,12 +166,29 @@ class InteractionController {
   /// Delegates to the current state's handlePointerMove method.
   void handlePointerMove(PointerMoveEvent e) {
     final pCanvas = _screenToCanvas(e.localPosition);
+
+    // Run interceptors first
+    for (final interceptor in List<GestureInterceptor>.from(_interceptors)) {
+      final disposition = interceptor.onPointerMove(e, pCanvas, environment);
+      if (disposition == InterceptorDisposition.consumed) {
+        return;
+      }
+    }
+
     _transitionTo(state.value.handlePointerMove(e, pCanvas, environment));
   }
 
   /// Handles pointer up events with polymorphic dispatch.
   /// Delegates to the current state's handlePointerUp method.
   void handlePointerUp(PointerUpEvent e) {
+    // Run interceptors first
+    for (final interceptor in List<GestureInterceptor>.from(_interceptors)) {
+      final disposition = interceptor.onPointerUp(e, environment);
+      if (disposition == InterceptorDisposition.consumed) {
+        return;
+      }
+    }
+
     _log.finer(
       'PointerUp: Gesture cycle complete at Canvas(${e.localPosition.dx}, ${e.localPosition.dy})',
     );
@@ -167,6 +206,15 @@ class InteractionController {
   /// Fast-fails (O(1)) for most states, consumes (O(N)) for specific tools.
   void handlePointerHover(PointerHoverEvent e) {
     final pCanvas = _screenToCanvas(e.localPosition);
+
+    // Run interceptors first
+    for (final interceptor in List<GestureInterceptor>.from(_interceptors)) {
+      final disposition = interceptor.onPointerHover(e, pCanvas, environment);
+      if (disposition == InterceptorDisposition.consumed) {
+        return;
+      }
+    }
+
     _transitionTo(state.value.handlePointerHover(e, pCanvas, environment));
   }
 

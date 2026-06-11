@@ -65,7 +65,12 @@ class VerticalContextToolbar extends StatelessWidget {
     final primaryColor = theme.colorScheme.primary;
 
     return GlassGroup(
-      settings: AppConfig.liquidGlass.settings.copyWith(bridgeReachFactor: 2.5),
+      settings: GlassSettings(
+        refractStrength: AppConfig.liquidGlass.refractStrength,
+        bridgeReachFactor: 2.5,
+        bridgeThicknessFactor: AppConfig.liquidGlass.bridgeThicknessFactor,
+        useLocalCoordinates: AppConfig.liquidGlass.useLocalCoordinates,
+      ),
       child: SizedBox(
         width: 520,
         child: Stack(

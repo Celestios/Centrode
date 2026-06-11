@@ -185,7 +185,12 @@ class _GraphCanvasState extends State<GraphCanvas>
         builder: (context, constraints) {
           return GlassStage(
             mode: GlassMode.performance,
-            settings: AppConfig.liquidGlass.settings,
+            settings: GlassSettings(
+              refractStrength: AppConfig.liquidGlass.refractStrength,
+              bridgeReachFactor: AppConfig.liquidGlass.bridgeReachFactor,
+              bridgeThicknessFactor: AppConfig.liquidGlass.bridgeThicknessFactor,
+              useLocalCoordinates: AppConfig.liquidGlass.useLocalCoordinates,
+            ),
             backdropRepaint: backdropRepaintListenable,
             background: DragTarget<Template>(
               onWillAcceptWithDetails: (details) => true,

@@ -11,10 +11,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 
 import 'log_models.dart';
-
-// TODO: If needed, Replace direct Logger usage with a wrapper that uses const kReleaseMode
-//       to eliminate debug/info/trace logs at compile time in release builds.
-//       See: conditional guards with `const bool _enableInfo = !kReleaseMode;`
+import 'disk_writer.dart';
+import 'error_handler.dart';
 
 class LogManager {
   static final LogManager _instance = LogManager._internal();
@@ -29,7 +27,6 @@ class LogManager {
   ReceivePort? _isolateReceivePort;
   bool _initialized = false;
   static const Duration _deltaT = Duration(milliseconds: 500);
-  static const int _rotationThreshold = 10 * 1024 * 1024; // 10MB
   static const int _handShakeTimeOut = 5;
 
   Future<void> _checkForPreviousPanics(String logPath) async {
@@ -84,13 +81,12 @@ class LogManager {
       return;
     }
 
-    // Resolve log file path to the user's application support directory to avoid permission issues
     final supportDir = await getApplicationSupportDirectory();
     final logPath = '${supportDir.path}/mycelium.log';
     await _checkForPreviousPanics(logPath);
     final receivePort = ReceivePort();
     _isolateReceivePort = receivePort;
-    final isolate = await Isolate.spawn(_diskWriterIsolate, [
+    final isolate = await Isolate.spawn(DiskWriter.diskWriterIsolate, [
       receivePort.sendPort,
       logPath,
     ]);
@@ -100,7 +96,7 @@ class LogManager {
     try {
       _isolateSendPort =
           await receivePort.first.timeout(
-                const Duration(seconds: LogManager._handShakeTimeOut),
+                const Duration(seconds: _handShakeTimeOut),
                 onTimeout: () => throw TimeoutException(
                   'DiskWriter isolate handshake timeout',
                 ),
@@ -150,24 +146,8 @@ class LogManager {
       if (levelInt >= 4) _flushBuffer();
     });
 
-    // Capture Flutter framework errors (e.g. layout, widget tree issues like missing Material)
-    final flutterErrorLog = Logger('FlutterError');
-    FlutterError.onError = (FlutterErrorDetails details) {
-      flutterErrorLog.severe(
-        details.exceptionAsString(),
-        details.exception,
-        details.stack,
-      );
-      // Present to console/screen as usual
-      FlutterError.presentError(details);
-    };
-
-    // Capture uncaught asynchronous errors
-    final asyncErrorLog = Logger('AsyncError');
-    PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-      asyncErrorLog.severe('Uncaught asynchronous error', error, stack);
-      return true;
-    };
+    // Delegate error boundaries Setup
+    ErrorHandler.setupErrorHooks();
 
     try {
       await setupLogger();
@@ -221,73 +201,16 @@ class LogManager {
     _isolate?.kill(priority: Isolate.immediate);
     _isolateReceivePort?.close();
   }
-}
 
-void _diskWriterIsolate(List<dynamic> args) {
-  final mainSendPort = args[0] as SendPort;
-  final logPath = args[1] as String;
-  final isolateReceivePort = ReceivePort();
-
-  mainSendPort.send(isolateReceivePort.sendPort);
-
-  isolateReceivePort.listen((message) {
-    if (message is List) {
-      _performBatchWrite(message, logPath);
-    }
-  });
-}
-
-void _performBatchWrite(List<dynamic> batch, String logPath) {
-  try {
-    _rotateFileIfNeeded(logPath);
-
-    final buffer = StringBuffer();
-    for (final item in batch) {
-      if (item is Map<String, dynamic>) {
-        final log = LogPayload.fromMap(item);
-        buffer.writeln(log.toString());
-      }
-    }
-
-    File(
-      logPath,
-    ).writeAsStringSync(buffer.toString(), mode: FileMode.append, flush: true);
-  } catch (e) {
-    developer.log(
-      'Fatal background I/O failure: $e',
-      name: 'DiskWriterIsolate',
-    );
+  int _mapDartLevel(Level level) {
+    if (level >= Level.SHOUT) return 5; // FATAL
+    if (level >= Level.SEVERE) return 4; // ERROR
+    if (level >= Level.WARNING) return 3; // WARN
+    if (level >= Level.INFO) return 2; // INFO
+    if (level >= Level.CONFIG) return 2; // INFO
+    if (level >= Level.FINE) return 1; // DEBUG
+    if (level >= Level.FINER) return 0; // TRACE
+    if (level >= Level.FINEST) return 0; // TRACE
+    return 1; // Default to DEBUG
   }
-}
-
-void _rotateFileIfNeeded(String logPath) {
-  final file = File(logPath);
-  if (!file.existsSync() ||
-      file.lengthSync() <= LogManager._rotationThreshold) {
-    return;
-  }
-
-  final oldFile = File('$logPath.old');
-  if (oldFile.existsSync()) {
-    oldFile.deleteSync();
-  }
-  file.renameSync('$logPath.old');
-  File(logPath).createSync(recursive: true);
-
-  developer.log(
-    'Rotated log file: $logPath -> $logPath.old',
-    name: 'DiskWriterIsolate',
-  );
-}
-
-int _mapDartLevel(Level level) {
-  if (level >= Level.SHOUT) return 5; // FATAL
-  if (level >= Level.SEVERE) return 4; // ERROR
-  if (level >= Level.WARNING) return 3; // WARN
-  if (level >= Level.INFO) return 2; // INFO
-  if (level >= Level.CONFIG) return 2; // INFO
-  if (level >= Level.FINE) return 1; // DEBUG
-  if (level >= Level.FINER) return 0; // TRACE
-  if (level >= Level.FINEST) return 0; // TRACE
-  return 1; // Default to DEBUG
 }

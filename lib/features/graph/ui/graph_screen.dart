@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 import '../../../../presentation/widgets/window_title_bar.dart';
-import '../../../main.dart';
+import '../../../../presentation/theme/app_theme_manager.dart';
 import '../presentation/theme_manager.dart';
 import '../store/graph_data_controller.dart';
 import '../presentation/graph_presentation_notifier.dart';
@@ -58,7 +58,7 @@ class _GraphScreenState extends State<GraphScreen> {
               final mapTheme = activeSession.themeController?.currentGraphTheme;
               ThemeData fallbackTheme() {
                 try {
-                  return themeNotifier.value.toThemeData();
+                  return AppThemeManager.instance.themeNotifier.value.toThemeData();
                 } catch (_) {
                   return Theme.of(context);
                 }
@@ -120,7 +120,7 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
     super.didChangeDependencies();
     ThemeData globalTheme;
     try {
-      globalTheme = themeNotifier.value.toThemeData();
+      globalTheme = AppThemeManager.instance.themeNotifier.value.toThemeData();
     } catch (_) {
       globalTheme = Theme.of(context);
     }
@@ -133,7 +133,7 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
     if (oldWidget.session.id != widget.session.id) {
       ThemeData globalTheme;
       try {
-        globalTheme = themeNotifier.value.toThemeData();
+        globalTheme = AppThemeManager.instance.themeNotifier.value.toThemeData();
       } catch (_) {
         globalTheme = Theme.of(context);
       }

@@ -9,9 +9,8 @@ import 'infrastructure/telemetry/log_manager.dart';
 import 'features/workspace/ui/project_selector_screen.dart'; // your existing screen
 import 'presentation/theme/app_theme.dart'; // from previous step
 import 'presentation/theme/theme_repository.dart'; // from previous step
+import 'presentation/theme/app_theme_manager.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
-
-late final ValueNotifier<AppTheme> themeNotifier;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,10 +42,10 @@ Future<void> main() async {
     log.severe(
       'No JSON themes found in assets. Falling back to bare defaults.',
     );
-    themeNotifier = ValueNotifier(AppTheme());
+    AppThemeManager.instance.themeNotifier = ValueNotifier(AppTheme());
   } else {
     final initialTheme = themes['dark'] ?? themes.values.first;
-    themeNotifier = ValueNotifier(initialTheme);
+    AppThemeManager.instance.themeNotifier = ValueNotifier(initialTheme);
     log.info('Loaded themes: ${themes.keys.join(', ')}');
   }
 
@@ -61,7 +60,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<AppTheme>(
-      valueListenable: themeNotifier,
+      valueListenable: AppThemeManager.instance.themeNotifier,
       builder: (context, currentTheme, _) {
         return MaterialApp(
           title: 'Mycelium',

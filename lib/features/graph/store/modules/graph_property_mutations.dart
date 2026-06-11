@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:logging/logging.dart';
+import 'package:uuid/uuid.dart';
 import '../../models/models.dart';
 import '../graph_data_controller.dart';
 import '../graph_data_query.dart';
@@ -433,5 +434,49 @@ class GraphPropertyMutations {
       );
     }
     controller.triggerUpdate();
+  }
+
+  void addTagToNode(String nodeId, String name, int color) {
+    final node = controller.store.nodeLookup[nodeId];
+    if (node is InfoUiNode) {
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final newTag = Tag(
+        key: const Uuid().v4(),
+        fields: TagFields(
+          name: name,
+          color: color,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        ),
+      );
+      updateNodeTags(nodeId, [...node.tags, newTag]);
+    }
+  }
+
+  void removeTagFromNode(String nodeId, String tagKey) {
+    final node = controller.store.nodeLookup[nodeId];
+    if (node is InfoUiNode) {
+      final updatedTags = node.tags.where((t) => t.key != tagKey).toList();
+      updateNodeTags(nodeId, updatedTags);
+    }
+  }
+
+  void addCommentToNode(String nodeId, String text) {
+    final node = controller.store.nodeLookup[nodeId];
+    if (node is InfoUiNode) {
+      final newComment = Comment(
+        text: text,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+      );
+      updateNodeComments(nodeId, [newComment, ...node.comments]);
+    }
+  }
+
+  void removeCommentFromNode(String nodeId, Comment comment) {
+    final node = controller.store.nodeLookup[nodeId];
+    if (node is InfoUiNode) {
+      final updatedComments = node.comments.where((c) => c != comment).toList();
+      updateNodeComments(nodeId, updatedComments);
+    }
   }
 }
