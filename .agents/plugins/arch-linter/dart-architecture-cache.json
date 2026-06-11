@@ -1,6 +1,6 @@
 {
-  "last_audit_commit": "5fbd2cbaf3ce6e428c777c9656c27617e39d8b46",
-  "last_audit_time": "2026-06-10T13:07:35.460203Z",
+  "last_audit_commit": "c7c448bd9642b783dee64a22faf34cdb49c68a61",
+  "last_audit_time": "2026-06-11T11:14:11.403375Z",
   "layers": {
     "lib/features/graph/ui": {
       "tier": 1,
@@ -85,20 +85,22 @@
     },
     "lib/features/graph/store/graph_data_controller.dart": {
       "class": "GraphDataController",
-      "sha256": "b02c3d6d0bf32ac560069f1d94071cc4b0bf250e",
+      "sha256": "57df90482214018ea66d86eedb17b8bbaeddebbf",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "Clean Arch: Couples Tier 3 to ChangeNotifier",
-        "SRP: mixed tag/comment helpers"
+        "SRP: mixed abstraction levels",
+        "OCP: hardcoded type checking",
+        "DIP: concrete constructor instantiation",
+        "ISP: massive API count"
       ],
       "tier": 3,
       "imports": [
         "dart:async",
         "dart:ui",
         "package:uuid/uuid.dart",
-        "package:flutter/foundation.dart",
         "package:logging/logging.dart",
         "lib/features/graph/store/graph_data_query.dart",
+        "lib/features/graph/store/spatial_index.dart",
         "lib/features/graph/models/models.dart",
         "lib/features/graph/store/command_processor.dart",
         "lib/src/rust/domain/nodes.dart",
@@ -140,9 +142,11 @@
         "Future<void> deleteRelation(String id) =>",
         "void updateRelationLayout(",
         "void updateRelationStyle(String id, RelationStyle newStyle) =>",
+        "void updateRelationsLayout(",
         "void commitEntityText(String id, dynamic newTextOrContent,",
         "void updateEntityTextLive(String id, dynamic newTextOrContent) =>",
         "void updateNodeStyle(String id, NodeStyle newStyle) =>",
+        "void updateNodesStyle(List<String> ids, NodeStyle Function(NodeStyle style) updateFn) =>",
         "void updateNodeTags(String id, List<Tag> newTags) =>",
         "void updateNodeComments(String id, List<Comment> newComments) =>",
         "Future<List<Tag>> getAllTags() => propertyMutations.getAllTags();",
@@ -161,7 +165,7 @@
         "void removeCommentFromNode(String nodeId, Comment comment)",
         "void dispose()"
       ],
-      "architectural_role": "Controller/Manager"
+      "architectural_role": "Controller"
     },
     "lib/features/graph/store/modules/graph_node_mutations.dart": {
       "class": "GraphNodeMutations",
@@ -194,12 +198,9 @@
     },
     "lib/features/graph/store/modules/graph_property_mutations.dart": {
       "class": "GraphPropertyMutations",
-      "sha256": "9d257060fd6d8503b834f3f3b09fdd546053fb5b",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "OCP: hardcoded switches for entity types",
-        "DIP: concrete command instantiations"
-      ],
+      "sha256": "6b3673121b776a9196214252cfcfe66c876f0896",
+      "status": "PENDING_AUDIT",
+      "violations": [],
       "tier": 3,
       "imports": [
         "dart:ui",
@@ -222,14 +223,15 @@
         "Future<void> createTag(Tag tag) async",
         "Future<void> updateTag(Tag tag) async",
         "Future<void> deleteTag(String tagKey) async",
-        "void updateRelationStyle(String id, RelationStyle newStyle)"
+        "void updateRelationStyle(String id, RelationStyle newStyle)",
+        "void updateNodesStyle(List<String> ids, NodeStyle Function(NodeStyle style) updateFn)"
       ],
       "architectural_role": "Mutations"
     },
     "lib/features/graph/store/modules/graph_relation_mutations.dart": {
       "class": "GraphRelationMutations",
-      "sha256": "2dc63fde8f3f34fb630e1fadedaf1a0ee8c0a12c",
-      "status": "COMPLIANT",
+      "sha256": "311c42998c33ed19cdf524a2ecfb3b0fc5535597",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
       "imports": [
@@ -247,22 +249,19 @@
       "public_apis": [
         "void createRelation(",
         "Future<void> deleteRelation(String id) async",
-        "void updateRelationLayout("
+        "void updateRelationLayout(",
+        "void updateRelationsLayout("
       ],
       "architectural_role": "Manages optimistic relation connections, computing routing path parameters before scheduling command executions."
     },
     "lib/features/graph/store/modules/graph_template_mutations.dart": {
       "class": "GraphTemplateMutations",
-      "sha256": "82b8b292e3ea971fc0fc47d507cb689fa7e27f0e",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "Clean Arch: Material import leak",
-        "Symmetry: bypasses command pipeline"
-      ],
+      "sha256": "986ef8ae598e18a7e38f3bbe233615dc10dc6d08",
+      "status": "PENDING_AUDIT",
+      "violations": [],
       "tier": 3,
       "imports": [
-        "package:flutter/material.dart",
-        "lib/src/rust/domain/templates.dart",
+        "lib/features/graph/models/models.dart",
         "lib/features/graph/store/graph_data_controller.dart"
       ],
       "test_file": "",
@@ -297,13 +296,14 @@
     },
     "lib/features/graph/store/modules/graph_spatial.dart": {
       "class": "GraphSpatial",
-      "sha256": "1d868ff5d0c46e469206d34d3a9dfc5413cbed50",
-      "status": "COMPLIANT",
+      "sha256": "2760e82afb8a0d16fa21db0606529264db5e4616",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
       "imports": [
         "dart:ui",
-        "lib/features/graph/models/models.dart"
+        "lib/features/graph/models/models.dart",
+        "lib/features/graph/store/spatial_index.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -320,16 +320,12 @@
     },
     "lib/features/graph/store/modules/graph_sync_engine.dart": {
       "class": "GraphSyncEngine",
-      "sha256": "3e77039d3a0fbe5746bc1d37acf5133c297a6a0e",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "OCP: subtype checks in event streams",
-        "Abstraction: ValueNotifier framework leak"
-      ],
+      "sha256": "9bbc988a9447823962b390a60ed1002bea17ac8f",
+      "status": "PENDING_AUDIT",
+      "violations": [],
       "tier": 3,
       "imports": [
         "dart:async",
-        "package:flutter/foundation.dart",
         "package:logging/logging.dart",
         "lib/features/graph/models/models.dart",
         "lib/src/rust/bridge/stream.dart",
@@ -434,12 +430,9 @@
     },
     "lib/features/graph/presentation/node_render_state.dart": {
       "class": "NodeRenderState",
-      "sha256": "18b636bf625424f4484820b2e35eb3fb9b031988",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "Clean Arch: UI text closures stored in state",
-        "SRP: bounding box geometry in state"
-      ],
+      "sha256": "6097953804404e41b044c7b0b356f6db29d47a8f",
+      "status": "PENDING_AUDIT",
+      "violations": [],
       "tier": 2,
       "imports": [
         "dart:async",
@@ -477,8 +470,8 @@
     },
     "lib/features/graph/presentation/viewport_state.dart": {
       "class": "ViewportController",
-      "sha256": "872c70a94d9d8077a79724432c039421d45d00b4",
-      "status": "COMPLIANT",
+      "sha256": "a5f8b9d2cf0da01c2abcb19e6e7df347beb20e7a",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -559,12 +552,9 @@
     },
     "lib/features/graph/presentation/workspace_tabs_controller.dart": {
       "class": "WorkspaceTabsController",
-      "sha256": "009dd1a7f0894d7b735526afefc2d0b7764d7ebb",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "Clean Arch: file system disk I/O in presentation",
-        "DIP: concrete instantiations"
-      ],
+      "sha256": "9cdb1f25a6d423093a8c1916bcc73393a5a34e0d",
+      "status": "PENDING_AUDIT",
+      "violations": [],
       "tier": 2,
       "imports": [
         "dart:async",
@@ -573,6 +563,7 @@
         "package:path_provider/path_provider.dart",
         "lib/src/rust/bridge/api.dart",
         "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/presentation/graph_presentation_notifier.dart",
         "lib/features/graph/presentation/theme_manager.dart",
         "lib/features/graph/presentation/node_render_state.dart",
         "lib/features/graph/presentation/viewport_state.dart",
@@ -673,12 +664,13 @@
     },
     "lib/features/graph/ui/canvas/graph_canvas.dart": {
       "class": "GraphCanvas",
-      "sha256": "e3d52a095bc36821bbe2c6851c092f8c73c37ce7",
+      "sha256": "b3d6cd53bedd411a91dc243f65ff9631b1a588ce",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "Clean Arch: gesture drawing math in UI",
-        "SRP: massive coordinator",
-        "DIP: hardcoded controller instantiations"
+        "SRP: mixed drawing stroke concerns",
+        "Zero Mutation: direct core state mutation",
+        "OCP: hardcoded mode switchers",
+        "Pattern Fitness: FSM engine bypassed"
       ],
       "tier": 1,
       "imports": [
@@ -687,6 +679,7 @@
         "package:logging/logging.dart",
         "lib/features/graph/presentation/graph_metrics.dart",
         "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/presentation/graph_presentation_notifier.dart",
         "lib/features/graph/presentation/node_render_state.dart",
         "lib/features/graph/presentation/viewport_state.dart",
         "lib/features/graph/engine/interaction_engine.dart",
@@ -709,20 +702,22 @@
         "lib/presentation/widgets/template_manager/global_templates_manager_panel.dart",
         "lib/presentation/widgets/drawing_manager/global_drawing_panel.dart",
         "lib/presentation/widgets/template_manager/save_template_dialog.dart",
-        "lib/features/graph/models/left_panel_type.dart",
-        "package:flutter/gestures.dart"
+        "package:flutter/gestures.dart",
+        "package:flutter/rendering.dart"
       ],
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "UI Component",
+      "pattern": "None",
       "public_apis": [
         "State<GraphCanvas> createState() => _GraphCanvasState();",
         "void initState()",
         "void dispose()",
         "Widget build(BuildContext context)",
         "void paint(Canvas canvas, Size size)",
-        "bool shouldRepaint(covariant ActiveDrawingPainter oldDelegate)"
+        "bool shouldRepaint(covariant ActiveDrawingPainter oldDelegate)",
+        "RenderAllowOutOfBoundsHitTest createRenderObject(BuildContext context)",
+        "bool hitTest(BoxHitTestResult result,"
       ],
       "architectural_role": "UI Component",
       "special_objects": [
@@ -920,8 +915,8 @@
     },
     "lib/features/graph/models/commands.dart": {
       "class": "MoveNodeCommand",
-      "sha256": "1b95252ce1ce121af1572e1b72c8ab29864ffffd",
-      "status": "COMPLIANT",
+      "sha256": "e91c9243ba29fafbec8ddd2deefb9a3f29618a4c",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
       "imports": [],
@@ -937,8 +932,9 @@
       "sha256": "14e492d0124f15c8503cc515df8acb16be03690a",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "DRY: plain text logic duplicated",
-        "OCP: hardcoded styles in parser"
+        "DRY: plain text calculation duplication",
+        "SRP: mixed serialization & parsing",
+        "OCP: hardcoded mode switchers"
       ],
       "tier": 3,
       "imports": [
@@ -947,7 +943,7 @@
       "test_file": "test/features/graph/models/content_builder_test.dart",
       "has_tests": true,
       "is_ffi_bridge": true,
-      "pattern": "Data Model",
+      "pattern": "Builder Pattern",
       "public_apis": [
         "ContentBuilder paragraph(String text,",
         "ContentBuilder paragraphSegments(List<InlineElement> segments)",
@@ -962,7 +958,7 @@
         "void clear()",
         "String toPlainText()"
       ],
-      "architectural_role": "Data Model"
+      "architectural_role": "Model Helper"
     },
     "lib/features/graph/models/left_panel_type.dart": {
       "class": "LeftPanelType",
@@ -978,11 +974,9 @@
     },
     "lib/features/graph/models/models.dart": {
       "class": "",
-      "sha256": "c52cd96d45a5842bb03c1086896d60a77208b671",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "Clean Arch: exports spatial_index.dart infrastructure"
-      ],
+      "sha256": "54d015b6f4b3273fa0f3631af50b4b0251ed6e43",
+      "status": "PENDING_AUDIT",
+      "violations": [],
       "tier": 3,
       "test_file": "",
       "has_tests": false,
@@ -995,8 +989,9 @@
       "sha256": "c989d1f5892bf1f9408d9170476cb1ece641acf9",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "Clean Arch: GlassSettings framework import",
-        "OCP: hardcoded static settings"
+        "Clean Arch: reverse dependency leak",
+        "OCP/DIP: closed compile-time global singletons",
+        "DRY: duplicate spatial constants"
       ],
       "tier": 2,
       "imports": [
@@ -1006,8 +1001,8 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Component",
-      "architectural_role": "Component",
+      "pattern": "None",
+      "architectural_role": "Presenter",
       "public_apis": [
         "double calculateEffectiveGridSize(double scale)"
       ],
@@ -1101,14 +1096,14 @@
     },
     "lib/features/graph/store/graph_data_query.dart": {
       "class": "GraphEntityUpdate",
-      "sha256": "eee0b526f6be73ecfa600ed31d30a0dfecfd0118",
-      "status": "COMPLIANT",
+      "sha256": "d57ba8d8a60b14782c2d956cca7b7318e7d9556b",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 3,
       "imports": [
         "dart:async",
-        "package:flutter/foundation.dart",
-        "lib/features/graph/models/models.dart"
+        "lib/features/graph/models/models.dart",
+        "lib/features/graph/store/spatial_index.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -1164,11 +1159,11 @@
     },
     "lib/features/graph/ui/canvas/canvas_text_editor.dart": {
       "class": "CanvasTextEditor",
-      "sha256": "c7118c922110a4ed2aa91d54b5e590d7e96b5880",
+      "sha256": "576a36d7b9fb3ba9d69e74415395f424fb0692d1",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "SRP: lifecycle closures leak on dispose",
-        "DIP: hardcoded controller instantiation"
+        "Zero Mutation: direct domain state mutation",
+        "Pattern Fitness: fragile presentational callback manipulation"
       ],
       "tier": 1,
       "imports": [
@@ -1184,14 +1179,15 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "UI Component",
+      "pattern": "None",
       "public_apis": [
         "State<CanvasTextEditor> createState() => _CanvasTextEditorState();",
         "void initState()",
+        "void didChangeDependencies()",
         "void dispose()",
         "Widget build(BuildContext context)"
       ],
-      "architectural_role": "UI Component",
+      "architectural_role": "Component",
       "special_objects": [
         "instance"
       ]
@@ -1228,11 +1224,9 @@
     },
     "lib/features/graph/ui/canvas/layers/node_layer.dart": {
       "class": "NodeLayer",
-      "sha256": "b4902f0582e527bf71af47540e71886243830487",
-      "status": "COMPLIANT",
-      "violations": [
-        "Canvas layer rendering nodes"
-      ],
+      "sha256": "fa7cb23c519e599a29ec0a463747227b700724a0",
+      "status": "PENDING_AUDIT",
+      "violations": [],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
@@ -1288,7 +1282,9 @@
       "sha256": "d53ad035f13c75908e096663a1871bbcf8587afb",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "SRP: gesture math/drag states in build"
+        "SRP: layout interpolation in build",
+        "Symmetry: structural asymmetry with node_layer",
+        "OCP: direct state check hardcoding"
       ],
       "tier": 1,
       "imports": [
@@ -1308,7 +1304,7 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "UI Component",
+      "pattern": "None",
       "public_apis": [
         "Widget build(BuildContext context)"
       ],
@@ -1338,12 +1334,9 @@
     },
     "lib/features/graph/ui/canvas/node_widget.dart": {
       "class": "NodeWidget",
-      "sha256": "5e4e9b351181f18bcef1fe34299c20592d6e2bce",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "DRY: custom painter duplicated",
-        "SRP: mixed AST rich text parsing"
-      ],
+      "sha256": "1bbe2f2d5dcef6356edd1d427db8c411e358e1dc",
+      "status": "PENDING_AUDIT",
+      "violations": [],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
@@ -1395,8 +1388,8 @@
     },
     "lib/features/graph/ui/graph_screen.dart": {
       "class": "GraphScreen",
-      "sha256": "cbc15e84af0cc649b84e685002bbda2b8d06f442",
-      "status": "COMPLIANT",
+      "sha256": "8c9dad69b19329f9c828adfaa1c977f513f3e83e",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1407,6 +1400,7 @@
         "lib/main.dart",
         "lib/features/graph/presentation/theme_manager.dart",
         "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/presentation/graph_presentation_notifier.dart",
         "lib/features/graph/presentation/node_render_state.dart",
         "lib/features/graph/presentation/workspace_tabs_controller.dart",
         "lib/features/graph/store/graph_data_query.dart",
@@ -1427,7 +1421,10 @@
         "void didChangeDependencies()",
         "void didUpdateWidget(ActiveSessionWidget oldWidget)"
       ],
-      "architectural_role": "Coordinates workspace canvas setup, loading spinners, file selectors, and window configurations."
+      "architectural_role": "Coordinates workspace canvas setup, loading spinners, file selectors, and window configurations.",
+      "special_objects": [
+        "Provider"
+      ]
     },
     "lib/features/graph/ui/widgets/init_error_widget.dart": {
       "class": "InitErrorWidget",
@@ -1514,15 +1511,15 @@
     },
     "lib/features/graph/ui/widgets/overlays/canvas_status_bar/status_metrics_widget.dart": {
       "class": "StatusMetricsWidget",
-      "sha256": "1139dd27b1703528331122df9d67fa5cbd26a8a6",
-      "status": "COMPLIANT",
+      "sha256": "01a2fd64284d9713318b35ca3f0c3110ecdfe024",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
         "package:provider/provider.dart",
         "lib/shared/widgets/glass_panel/glass_panel.dart",
-        "lib/features/graph/store/graph_data_controller.dart"
+        "lib/features/graph/presentation/graph_presentation_notifier.dart"
       ],
       "test_file": "",
       "has_tests": false,
@@ -1535,15 +1532,15 @@
     },
     "lib/features/graph/ui/widgets/overlays/canvas_status_bar/viewport_mini_map_widget.dart": {
       "class": "ViewportMiniMapWidget",
-      "sha256": "fc6cc63dd3041d90061b664ac1a88d89fdee2ba8",
-      "status": "COMPLIANT",
+      "sha256": "d620fe99e4b0224f8a70e7bf563447222ce0399a",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 1,
       "imports": [
         "package:flutter/material.dart",
         "package:provider/provider.dart",
         "lib/features/graph/presentation/viewport_state.dart",
-        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/presentation/graph_presentation_notifier.dart",
         "lib/shared/widgets/glass_panel/glass_panel.dart",
         "lib/features/graph/ui/widgets/overlays/canvas_status_bar/mini_map_painter.dart"
       ],
@@ -1601,8 +1598,8 @@
     },
     "lib/features/graph/ui/widgets/overlays/canvas_tool_ribbon.dart": {
       "class": "CanvasToolRibbon",
-      "sha256": "e27d7922c224b72b080adf220ecac883c1f8bc32",
-      "status": "COMPLIANT",
+      "sha256": "5e271cf055fecc8fc1ac1f4d35c093fea0cf6d7d",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1610,7 +1607,7 @@
         "package:provider/provider.dart",
         "lib/shared/widgets/glass_panel/glass_panel.dart",
         "lib/features/graph/presentation/workspace_tabs_controller.dart",
-        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/presentation/graph_presentation_notifier.dart",
         "lib/presentation/widgets/hover_scale_button.dart"
       ],
       "test_file": "",
@@ -1665,8 +1662,8 @@
     },
     "lib/features/graph/ui/widgets/overlays/right_property_panel.dart": {
       "class": "RightPropertyPanel",
-      "sha256": "47a0e9a0aa17b55fe675aa03b268d443898c708b",
-      "status": "COMPLIANT",
+      "sha256": "8bc61d9845785a85c023ada32e48aa829debb53b",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 1,
       "imports": [
@@ -1674,7 +1671,7 @@
         "package:provider/provider.dart",
         "lib/features/graph/presentation/node_render_state.dart",
         "lib/features/graph/ui/widgets/overlays/collapsible_sidebar.dart",
-        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/presentation/graph_presentation_notifier.dart",
         "lib/shared/utils/color_utils.dart",
         "lib/features/graph/ui/widgets/overlays/inspector/appearance_tab.dart",
         "lib/features/graph/ui/widgets/overlays/inspector/data_tab.dart"
@@ -1715,8 +1712,9 @@
       "sha256": "90463d0baf8b1ebb1a87aa3b75f6899301b65e5c",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "SRP: God class logging/isolates/disk I/O",
-        "DIP: concrete framework dependencies"
+        "SRP: multi-tier god class",
+        "OCP: hardcoded configurations",
+        "DIP: concrete global singleton coupling"
       ],
       "tier": 3,
       "imports": [
@@ -1732,13 +1730,13 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": true,
-      "pattern": "LogManager",
+      "pattern": "Singleton Pattern",
       "public_apis": [
         "Future<void> init() async",
         "await setupLogger();",
         "Future<void> dispose() async"
       ],
-      "architectural_role": "LogManager",
+      "architectural_role": "Logger",
       "special_objects": [
         "instance"
       ]
@@ -1764,7 +1762,8 @@
       "sha256": "f44df05ce7e8dd50b180aed394ea0269cba4fc8b",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "SRP: top-level global mutable variable themeNotifier"
+        "SRP: global mutable state themeNotifier",
+        "OCP: hardcoded bootstrapping details"
       ],
       "tier": 3,
       "imports": [
@@ -1784,13 +1783,13 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": true,
-      "pattern": "Component",
+      "pattern": "None",
       "public_apis": [
         "Future<void> main() async",
         "Widget build(BuildContext context)"
       ],
       "boundary_violations": [],
-      "architectural_role": "Component",
+      "architectural_role": "Entry",
       "stray_functions": [
         "main"
       ]
@@ -1989,11 +1988,9 @@
     },
     "lib/presentation/widgets/tag_manager/tags_list_view.dart": {
       "class": "TagsListView",
-      "sha256": "d5cb24e15813661dba096ce3b90310bc368c9bcb",
-      "status": "VIOLATION_DETECTED",
-      "violations": [
-        "SRP: direct store loops and tag/timestamp validation in UI"
-      ],
+      "sha256": "cab1e014c93e9e65666abddcda9b97d9b7da2af7",
+      "status": "PENDING_AUDIT",
+      "violations": [],
       "tier": 2,
       "imports": [
         "package:flutter/material.dart",
@@ -2001,6 +1998,7 @@
         "package:uuid/uuid.dart",
         "features/graph/models/graph_node.dart",
         "features/graph/store/graph_data_controller.dart",
+        "features/graph/presentation/graph_presentation_notifier.dart",
         "src/rust/domain/tags.dart",
         "lib/presentation/widgets/tag_manager/delete_tag_dialog.dart",
         "lib/presentation/widgets/tag_manager/tag_color_picker_panel.dart"
@@ -2107,14 +2105,14 @@
     },
     "lib/presentation/widgets/template_manager/templates_list_view.dart": {
       "class": "TemplatesListView",
-      "sha256": "9658ea037f666cb986d13def2258884a5ac403a0",
-      "status": "COMPLIANT",
+      "sha256": "a2f091a8282ff246c268e8fc44d4e011c46095ce",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
       "imports": [
         "package:flutter/material.dart",
         "package:provider/provider.dart",
-        "features/graph/store/graph_data_controller.dart",
+        "features/graph/presentation/graph_presentation_notifier.dart",
         "features/graph/presentation/viewport_state.dart",
         "features/graph/models/models.dart",
         "src/rust/domain/nodes.dart",
@@ -2172,9 +2170,13 @@
     },
     "lib/shared/widgets/canvas_interactive_viewer.dart": {
       "class": "CanvasInteractiveViewer",
-      "sha256": "4fe78184f64cda72e2f10de1c652613893d8acda",
-      "status": "COMPLIANT",
-      "violations": [],
+      "sha256": "8fc7c3eed3abd60cd6fb996d35f1dbc9aef13585",
+      "status": "VIOLATION_DETECTED",
+      "violations": [
+        "SRP: monolithic control of physics/matrix",
+        "Complexity: extremely high LOC",
+        "OCP: closed private enums & hardcoded simulation"
+      ],
       "tier": 3,
       "imports": [
         "package:flutter/gestures.dart",
@@ -2184,7 +2186,7 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Component",
+      "pattern": "None",
       "public_apis": [
         "State<CanvasInteractiveViewer> createState() =>",
         "void initState()",
@@ -2192,7 +2194,7 @@
         "void dispose()",
         "Widget build(BuildContext context)"
       ],
-      "architectural_role": "Provides clean interface abstractions and helper methods supporting graph editor features."
+      "architectural_role": "Component"
     },
     "lib/features/graph/engine/states/group_drag_state.dart": {
       "class": "GroupDragging",
@@ -2216,8 +2218,10 @@
       "sha256": "db9bfbc3ed454f8c9f175996330306821de5ffc3",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "ISP: 25+ fields constructor",
-        "OCP: conditional checks for layouts"
+        "SRP: monolithic coordinator",
+        "ISP: constructor bloating",
+        "OCP: hardcoded conditional layouts",
+        "DIP: concrete glass panel config"
       ],
       "tier": 1,
       "imports": [
@@ -2229,7 +2233,7 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "UI Component",
+      "pattern": "None",
       "public_apis": [
         "Widget build(BuildContext context)",
         "State<VerticalToolbarGroupButton> createState() =>"
@@ -2683,8 +2687,8 @@
     },
     "lib/presentation/widgets/palette_action_registry.dart": {
       "class": "PaletteAction, PaletteActionRegistry",
-      "sha256": "6463947c233c94a2bc2a65d273c469a79b25045e",
-      "status": "COMPLIANT",
+      "sha256": "45bdef88642446d32df142d099590bc2de2da78f",
+      "status": "PENDING_AUDIT",
       "violations": [],
       "tier": 2,
       "imports": [
@@ -2767,7 +2771,9 @@
       "sha256": "3d90b2ea2b476dcadb671bde6b3c98ca2b9a6211",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "SRP: hardcoded color palette / inline hyperlink dialog"
+        "SRP: positioning and layout math",
+        "Symmetry: structural asymmetry with metadata overlay",
+        "DIP: concrete state coupling"
       ],
       "tier": 1,
       "imports": [
@@ -2792,7 +2798,7 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "UI Component",
+      "pattern": "None",
       "public_apis": [
         "Widget build(BuildContext context)"
       ],
@@ -2800,10 +2806,12 @@
     },
     "lib/features/graph/ui/widgets/overlays/inspector/appearance_tab.dart": {
       "class": "AppearanceTab",
-      "sha256": "96a00dcdb52eb6f63b09336e4c3c3bcadf41bab6",
+      "sha256": "b2e2f89a23f751b9d2ae45ce5d42f385535b5a38",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "Zero Mutation: loops over multi-entities in UI"
+        "DIP: direct graph data controller coupling",
+        "SRP: nodes and relations styling mixed",
+        "DRY: duplicate structural layout helpers"
       ],
       "tier": 1,
       "imports": [
@@ -2817,7 +2825,7 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "UI Component",
+      "pattern": "None",
       "public_apis": [
         "Widget build(BuildContext context)"
       ],
@@ -2872,18 +2880,18 @@
     "lib/features/graph/models/graph_node.ui.dart": {
       "class": "CommentUiNode, DrawingUiNode, FrameUiNode, InfoUiNode, InterUiNode, MediaUiNode, ShapeUiNode, TaskUiNode",
       "architectural_role": "Data Model",
-      "sha256": "37d9e1cfc2e20d23e2d74a4c1878da442abe4697",
+      "sha256": "7af6a9ac31659536b22382b9ec0a2eb10b2994cd",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "Symmetry: copyWith discards base state",
-        "LSP: CommentUiNode out of sync",
-        "ISP: fat UiNode interface"
+        "Clean Arch: presentation framework import",
+        "OCP: polymorphic code smells in base class",
+        "LSP/ISP: fat interface pollution"
       ],
       "tier": 3,
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Data Model",
+      "pattern": "None",
       "public_apis": [
         "Nodes toRust()",
         "CommentUiNode copyWith(",
@@ -2902,8 +2910,8 @@
       "sha256": "2d377d34c7e8baf8ddb6b67a20e972f456dc4966",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "Zero Mutation: modifies notifier values directly",
-        "DRY: hex parser duplication"
+        "Zero Mutation: direct notifier mutation",
+        "SRP: hexadecimal color parsing inline"
       ],
       "tier": 2,
       "imports": [
@@ -2916,7 +2924,7 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Component",
+      "pattern": "None",
       "public_apis": [
         "Widget build(BuildContext context)"
       ]
@@ -3029,8 +3037,10 @@
       "sha256": "b451d662cd5c37385f9cb2dcab32c250c6119214",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "OCP: hardcoded switches for formatting",
-        "SRP: massive delta calculations in controller"
+        "SRP: mixed AST parsing and rendering",
+        "OCP: hardcoded formatting types",
+        "DRY: duplicated mapping logic",
+        "Complexity: high LOC"
       ],
       "tier": 1,
       "imports": [
@@ -3040,7 +3050,7 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "UI Component",
+      "pattern": "None",
       "public_apis": [
         "FormattingSpan copyWith(",
         "String toString() => 'FormattingSpan($type, $start-$end)';",
@@ -3058,8 +3068,8 @@
       "sha256": "fa583503cdadedb58fa0ea1721927a1f530887e8",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "OCP: hardcoded buttons",
-        "DRY: repetitive buildFormatButton"
+        "OCP: hardcoded formatting callbacks",
+        "DRY: duplicated formatting options"
       ],
       "tier": 1,
       "imports": [
@@ -3070,7 +3080,7 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "UI Component",
+      "pattern": "None",
       "public_apis": [
         "Widget build(BuildContext context)"
       ]
@@ -3081,7 +3091,8 @@
       "sha256": "0b6c57332b087af1a85e4ae3763fecc05f3fc66d",
       "status": "VIOLATION_DETECTED",
       "violations": [
-        "OCP: static generateHarmony switch statement"
+        "OCP: static generateHarmony switch statement",
+        "DIP: static utility coupling"
       ],
       "tier": 3,
       "imports": [
@@ -3090,7 +3101,7 @@
       "test_file": "",
       "has_tests": false,
       "is_ffi_bridge": false,
-      "pattern": "Component",
+      "pattern": "None",
       "public_apis": [
         "return generateMonochromatic(baseColor);",
         "return generateAnalogous(baseColor);",
@@ -3100,12 +3111,13 @@
     },
     "lib/shared/widgets/color_palette/color_palette.dart": {
       "class": "ColorPaletteMode, UniversalColorPalette, _UniversalColorPaletteState",
-      "architectural_role": "Singleton Pattern",
+      "architectural_role": "Component",
       "sha256": "e419277c2f2df0ef72e54daf057f6abb6848ee81",
       "status": "VIOLATION_DETECTED",
       "violations": [
+        "SRP: radial/compact/advanced modes in one",
         "DRY: circular swatch duplicated",
-        "SRP: three layout modes in one widget"
+        "Complexity: high LOC"
       ],
       "tier": 3,
       "imports": [
@@ -3123,6 +3135,124 @@
         "void initState()",
         "void didUpdateWidget(covariant UniversalColorPalette oldWidget)",
         "Widget build(BuildContext context)"
+      ]
+    },
+    "lib/features/graph/engine/gesture_interceptor.dart": {
+      "class": "InterceptorDisposition, GestureInterceptor",
+      "architectural_role": "",
+      "sha256": "6acf6a544ec0c2c5edb2291c4f4178454c4a477a",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 2,
+      "imports": [
+        "package:flutter/gestures.dart",
+        "package:flutter/material.dart",
+        "lib/features/graph/engine/interaction_context.dart"
+      ],
+      "test_file": "test/features/graph/engine/gesture_interceptor_test.dart",
+      "has_tests": true,
+      "is_ffi_bridge": false,
+      "pattern": "Adapter Pattern",
+      "public_apis": [
+        "InterceptorDisposition onPointerDown(",
+        "InterceptorDisposition onPointerMove(",
+        "InterceptorDisposition onPointerUp(",
+        "InterceptorDisposition onPointerHover("
+      ]
+    },
+    "lib/features/graph/models/commands/instantiate_template.dart": {
+      "class": "InstantiateTemplateCommand",
+      "architectural_role": "",
+      "sha256": "03d566c942474911ab222f72612999b21cca6006",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "lib/src/rust/bridge/api.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/models/commands/base.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": true,
+      "pattern": "Command Pattern",
+      "public_apis": [
+        "Future<void> execute() async",
+        "void undo()",
+        "void onSuccess()"
+      ]
+    },
+    "lib/features/graph/models/commands/update_nodes_style.dart": {
+      "class": "UpdateNodesStyleCommand",
+      "architectural_role": "",
+      "sha256": "bd2b3e68dba905d975d9c41a175a688fcdc6f646",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "dart:ui",
+        "lib/src/rust/bridge/api.dart",
+        "lib/src/rust/domain/styles.dart",
+        "lib/src/rust/domain/patches.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/store/graph_data_query.dart",
+        "lib/features/graph/models/commands/base.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": true,
+      "pattern": "Composite Pattern",
+      "public_apis": [
+        "Future<void> execute() async",
+        "void undo()"
+      ]
+    },
+    "lib/features/graph/models/commands/update_relations_layout.dart": {
+      "class": "UpdateRelationsLayoutCommand",
+      "architectural_role": "",
+      "sha256": "2cd53ae00df7314cbb3527d112d0870acad24d90",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 3,
+      "imports": [
+        "lib/src/rust/bridge/api.dart",
+        "lib/src/rust/domain/styles.dart",
+        "lib/src/rust/domain/patches.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/store/graph_data_query.dart",
+        "lib/features/graph/models/graph_relation.dart",
+        "lib/features/graph/models/commands/base.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": true,
+      "pattern": "Command Pattern",
+      "public_apis": [
+        "Future<void> execute() async",
+        "void undo()"
+      ]
+    },
+    "lib/features/graph/presentation/graph_presentation_notifier.dart": {
+      "class": "GraphPresentationNotifier",
+      "architectural_role": "",
+      "sha256": "285adf3b9500da1363a76718a223ce6ec235db66",
+      "status": "PENDING_AUDIT",
+      "violations": [],
+      "tier": 2,
+      "imports": [
+        "dart:async",
+        "package:flutter/foundation.dart",
+        "lib/features/graph/models/models.dart",
+        "lib/features/graph/store/graph_data_controller.dart",
+        "lib/features/graph/store/graph_data_query.dart",
+        "lib/features/graph/store/spatial_index.dart"
+      ],
+      "test_file": "",
+      "has_tests": false,
+      "is_ffi_bridge": false,
+      "pattern": "Component",
+      "public_apis": [
+        "void dispose()"
       ]
     }
   }

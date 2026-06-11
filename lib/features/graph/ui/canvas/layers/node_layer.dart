@@ -28,26 +28,32 @@ class NodeLayer extends StatelessWidget {
             final isSelected = uiState.selectedEntities.contains(id);
             final isEditing = uiState.activeEditId == id;
 
-            return Positioned(
-              key: ValueKey(id),
-              left: 0,
-              top: 0,
-              child: RepaintBoundary(
-                child: switch (node) {
-                  DrawingUiNode drawingNode => DrawNodeWidget(
-                    viewState: viewState,
-                    node: drawingNode,
-                    isSelected: isSelected,
-                    isEditing: isEditing,
+            return ListenableBuilder(
+              listenable: viewState.positionNotifier,
+              builder: (context, _) {
+                final pos = viewState.positionNotifier.value;
+                return Positioned(
+                  key: ValueKey(id),
+                  left: pos.dx,
+                  top: pos.dy,
+                  child: RepaintBoundary(
+                    child: switch (node) {
+                      DrawingUiNode drawingNode => DrawNodeWidget(
+                        viewState: viewState,
+                        node: drawingNode,
+                        isSelected: isSelected,
+                        isEditing: isEditing,
+                      ),
+                      _ => NodeWidget(
+                        viewState: viewState,
+                        node: node,
+                        isSelected: isSelected,
+                        isEditing: isEditing,
+                      ),
+                    },
                   ),
-                  _ => NodeWidget(
-                    viewState: viewState,
-                    node: node,
-                    isSelected: isSelected,
-                    isEditing: isEditing,
-                  ),
-                },
-              ),
+                );
+              },
             );
           }).toList(),
         );

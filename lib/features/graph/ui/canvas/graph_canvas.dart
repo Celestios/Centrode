@@ -27,6 +27,7 @@ import '../../../../presentation/widgets/template_manager/global_templates_manag
 import '../../../../presentation/widgets/drawing_manager/global_drawing_panel.dart';
 import '../../../../presentation/widgets/template_manager/save_template_dialog.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
@@ -319,14 +320,21 @@ class _GraphCanvasState extends State<GraphCanvas>
                                   },
                                 );
                               },
-                              child: GestureDetector(
-                                onTap: () {
-                                  renderState.hideFloatingToolbar();
-                                },
-                                onDoubleTap: () {},
-                                onLongPress: () {},
-                                child: Stack(
-                                  clipBehavior: Clip.none,
+                              child: AllowOutOfBoundsHitTest(
+                                child: GestureDetector(
+                                  onTap: renderState.activeEditId != null
+                                      ? null
+                                      : () {
+                                          renderState.hideFloatingToolbar();
+                                        },
+                                  onDoubleTap: renderState.activeEditId != null
+                                      ? null
+                                      : () {},
+                                  onLongPress: renderState.activeEditId != null
+                                      ? null
+                                      : () {},
+                                  child: Stack(
+                                    clipBehavior: Clip.none,
                                   children: [
                                     ValueListenableBuilder<ViewportStateGrid>(
                                       valueListenable: viewportController
@@ -361,6 +369,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                                   ],
                                 ),
                               ),
+                            ),
                             );
                           },
                         );
@@ -702,3 +711,24 @@ class ActiveDrawingPainter extends CustomPainter {
         oldDelegate.brushType != brushType;
   }
 }
+
+class AllowOutOfBoundsHitTest extends SingleChildRenderObjectWidget {
+  const AllowOutOfBoundsHitTest({super.key, required super.child});
+
+  @override
+  RenderAllowOutOfBoundsHitTest createRenderObject(BuildContext context) {
+    return RenderAllowOutOfBoundsHitTest();
+  }
+}
+
+class RenderAllowOutOfBoundsHitTest extends RenderProxyBox {
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) {
+    if (hitTestChildren(result, position: position) || hitTestSelf(position)) {
+      result.add(BoxHitTestEntry(this, position));
+      return true;
+    }
+    return false;
+  }
+}
+

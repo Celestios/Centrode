@@ -134,59 +134,70 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return Focus(
-      onKeyEvent: (node, event) {
-        if (event is KeyDownEvent) {
-          if (event.logicalKey == LogicalKeyboardKey.enter &&
-              !HardwareKeyboard.instance.isShiftPressed) {
-            _submit();
-            return KeyEventResult.handled;
+
+    return TextFieldTapRegion(
+      child: Focus(
+        canRequestFocus: false,
+        onKeyEvent: (node, event) {
+          if (event is KeyDownEvent) {
+            if (event.logicalKey == LogicalKeyboardKey.enter &&
+                !HardwareKeyboard.instance.isShiftPressed) {
+              _submit();
+              return KeyEventResult.handled;
+            }
+            if (event.logicalKey == LogicalKeyboardKey.escape) {
+              _isAborted = true;
+              _renderState.cancelActiveEdit();
+              return KeyEventResult.handled;
+            }
           }
-          if (event.logicalKey == LogicalKeyboardKey.escape) {
-            _log.info('Aborted edit via Escape key.');
-            _isAborted = true;
-            _renderState.cancelActiveEdit();
-            return KeyEventResult.handled;
-          }
-        }
-        return KeyEventResult.ignored;
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark
-              ? Colors.black.withOpacity(0.3)
-              : Colors.white.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(
-            color: const Color(0xFF2196F3).withOpacity(0.6),
-            width: 1.5,
-          ),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-        child: Theme(
-          data: Theme.of(context).copyWith(
-            textSelectionTheme: const TextSelectionThemeData(
-              selectionColor: Color(0x602196F3), // Highly visible selection highlight
-              selectionHandleColor: Color(0xFF2196F3),
-              cursorColor: Color(0xFF2196F3),
+          return KeyEventResult.ignored;
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.3)
+                : Colors.white.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: const Color(0xFF2196F3).withValues(alpha: 0.6),
+              width: 1.5,
             ),
           ),
-          child: Material(
-            type: MaterialType.transparency,
-            child: TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              maxLines: widget.maxLines,
-              textAlign: TextAlign.center,
-              textAlignVertical: TextAlignVertical.center,
-              autofocus: true,
-              cursorColor: const Color(0xFF2196F3),
-              style: widget.textStyle,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              textSelectionTheme: const TextSelectionThemeData(
+                selectionColor: Color(0x602196F3), // Highly visible selection highlight
+                selectionHandleColor: Color(0xFF2196F3),
+                cursorColor: Color(0xFF2196F3),
+              ),
+            ),
+            child: Material(
+              type: MaterialType.transparency,
+              child: TextField(
+                controller: _controller,
+                focusNode: _focusNode,
+                maxLines: widget.maxLines,
+                minLines: widget.maxLines == null ? 1 : null,
+                expands: false,
+                textAlign: TextAlign.center,
+                textAlignVertical: TextAlignVertical.center,
+                autofocus: true,
+                cursorColor: const Color(0xFF2196F3),
+                style: widget.textStyle,
+                strutStyle: StrutStyle.fromTextStyle(
+                  widget.textStyle,
+                  forceStrutHeight: true,
+                ),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                onTapOutside: (event) {
+                  // Intercepted to prevent automatic focus loss
+                },
               ),
             ),
           ),

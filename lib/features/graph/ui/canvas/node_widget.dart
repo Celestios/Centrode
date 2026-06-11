@@ -52,18 +52,14 @@ class NodeWidget extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    // We merge the notifiers so the widget repaints when position, size,
-    // or expanded state changes.
     return ListenableBuilder(
       listenable: Listenable.merge([
-        viewState.positionNotifier,
         viewState.sizeNotifier,
         viewState.isExpandedNotifier,
         viewState.dragWidthNotifier,
         viewState.lineCountNotifier,
       ]),
       builder: (context, _) {
-        final pos = viewState.positionNotifier.value;
         final rawSize = viewState.sizeNotifier.value;
         final size = Size(
           viewState.dragWidthNotifier.value ?? rawSize.width,
@@ -79,7 +75,7 @@ class NodeWidget extends StatelessWidget {
             : 0.0;
 
         return Transform.translate(
-          offset: pos - Offset(strokeDiff, strokeDiff),
+          offset: -Offset(strokeDiff, strokeDiff),
           child: Stack(
             clipBehavior: Clip.none,
             children: [
@@ -128,24 +124,13 @@ class NodeWidget extends StatelessWidget {
                               ),
                             ]),
                 ),
-                // TIGHTER BORDERS: Shrink padding during edit mode
-                padding: isEditing 
-                    ? const EdgeInsets.all(2.0) 
-                    : EdgeInsets.all(resolvedStyle.padding),
-                child: isEditing
-                    ? Center(
-                        child: CanvasTextEditor(
-                          entityId: liveNode.id,
-                          content: liveNode.content,
-                          maxLines: null,
-                          textStyle: TextStyle(
-                            fontSize: resolvedStyle.fontSize,
-                            fontFamily: resolvedStyle.fontFamily.isEmpty || resolvedStyle.fontFamily == 'System' ? null : resolvedStyle.fontFamily,
-                            color: Color(resolvedStyle.textColor),
-                          ),
-                        ),
-                      )
-                    : _buildNodeContent(context, liveNode, resolvedStyle),
+                padding: EdgeInsets.all(resolvedStyle.padding),
+                child: _buildNodeContent(
+                  context,
+                  liveNode,
+                  resolvedStyle,
+                  isEditing: isEditing,
+                ),
               ),
 
               // ── Resize Handle Visual (Right Edge) ─────────
@@ -226,8 +211,9 @@ class NodeWidget extends StatelessWidget {
   Widget _buildNodeContent(
     BuildContext context,
     UiNode liveNode,
-    NodeStyle style,
-  ) {
+    NodeStyle style, {
+    required bool isEditing,
+  }) {
     if (liveNode is DrawingUiNode) {
       return CustomPaint(
         painter: DrawingNodePainter(
@@ -243,18 +229,31 @@ class NodeWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
-          child: Center(
-            child: _buildRichText(
-              context,
-              liveNode.content,
-              TextStyle(
-                fontSize: style.fontSize,
-                fontFamily: style.fontFamily.isEmpty || style.fontFamily == 'System' ? null : style.fontFamily,
-                color: Color(style.textColor),
-              ),
-              viewState.isExpandedNotifier.value,
-            ),
-          ),
+          child: isEditing
+              ? Center(
+                  child: CanvasTextEditor(
+                    entityId: liveNode.id,
+                    content: liveNode.content,
+                    maxLines: null,
+                    textStyle: TextStyle(
+                      fontSize: style.fontSize,
+                      fontFamily: style.fontFamily.isEmpty || style.fontFamily == 'System' ? null : style.fontFamily,
+                      color: Color(style.textColor),
+                    ),
+                  ),
+                )
+              : Center(
+                  child: _buildRichText(
+                    context,
+                    liveNode.content,
+                    TextStyle(
+                      fontSize: style.fontSize,
+                      fontFamily: style.fontFamily.isEmpty || style.fontFamily == 'System' ? null : style.fontFamily,
+                      color: Color(style.textColor),
+                    ),
+                    viewState.isExpandedNotifier.value,
+                  ),
+                ),
         ),
         if (viewState.lineCount > 3)
           Container(
@@ -419,34 +418,29 @@ class DrawNodeWidget extends StatelessWidget {
     // or expanded state changes.
     return ListenableBuilder(
       listenable: Listenable.merge([
-        viewState.positionNotifier,
         viewState.sizeNotifier,
         viewState.dragWidthNotifier,
       ]),
       builder: (context, _) {
-        final pos = viewState.positionNotifier.value;
         final rawSize = viewState.sizeNotifier.value;
         final size = Size(
           viewState.dragWidthNotifier.value ?? rawSize.width,
           rawSize.height,
         );
 
-        return Transform.translate(
-          offset: pos,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              CustomPaint(
-                size: size,
-                painter: DrawingNodePainter(
-                  brushColor: liveNode.brushColor,
-                  brushThickness: liveNode.brushThickness,
-                  brushType: liveNode.brushType,
-                  paths: liveNode.paths,
-                ),
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            CustomPaint(
+              size: size,
+              painter: DrawingNodePainter(
+                brushColor: liveNode.brushColor,
+                brushThickness: liveNode.brushThickness,
+                brushType: liveNode.brushType,
+                paths: liveNode.paths,
               ),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );
