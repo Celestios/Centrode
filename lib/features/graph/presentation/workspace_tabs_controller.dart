@@ -73,6 +73,31 @@ class TabSession extends ChangeNotifier {
   final ValueNotifier<String> brushColorNotifier = ValueNotifier('#00E5FF');
   final ValueNotifier<double> brushThicknessNotifier = ValueNotifier(4.0);
   final ValueNotifier<String> brushTypeNotifier = ValueNotifier('pen');
+
+  void setToolMode(String mode) {
+    if (toolModeNotifier.value != mode) {
+      toolModeNotifier.value = mode;
+    }
+  }
+
+  void setBrushColor(String color) {
+    if (brushColorNotifier.value != color) {
+      brushColorNotifier.value = color;
+    }
+  }
+
+  void setBrushThickness(double thickness) {
+    if (brushThicknessNotifier.value != thickness) {
+      brushThicknessNotifier.value = thickness;
+    }
+  }
+
+  void setBrushType(String type) {
+    if (brushTypeNotifier.value != type) {
+      brushTypeNotifier.value = type;
+    }
+  }
+
   final ValueNotifier<bool> showLeftPanel = ValueNotifier(true);
   final ValueNotifier<bool> showRightPanel = ValueNotifier(true);
   final ValueNotifier<bool> showBottomPanel = ValueNotifier(true);

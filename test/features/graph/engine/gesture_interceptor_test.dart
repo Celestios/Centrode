@@ -8,7 +8,13 @@ import 'package:mycelium/features/graph/engine/interaction_engine.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
 
+import 'package:mycelium/features/graph/engine/drawing_interceptor.dart';
+import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
+import 'package:mycelium/features/graph/presentation/viewport_state.dart';
+
 class MockInteractionContext extends Mock implements InteractionContext {}
+class MockTabSession extends Mock implements TabSession {}
+class MockViewportController extends Mock implements ViewportController {}
 
 class TestInterceptor extends GestureInterceptor {
   final InterceptorDisposition returnDisposition;
@@ -72,6 +78,7 @@ void main() {
     registerFallbackValue(const PointerUpEvent());
     registerFallbackValue(const PointerHoverEvent());
     registerFallbackValue(Offset.zero);
+    registerFallbackValue(Size.zero);
   });
 
   group('GestureInterceptor Chain Tests', () {
@@ -143,6 +150,129 @@ void main() {
       controller.handlePointerDown(event);
 
       expect(interceptor.callCount, 0);
+    });
+  });
+
+  group('DrawingGestureInterceptor Tests', () {
+    late InteractionController controller;
+    late MockInteractionContext mockEnv;
+    late MockTabSession mockSession;
+    late MockViewportController mockViewport;
+    late TransformationController transformController;
+    late DrawingGestureInterceptor interceptor;
+
+    late ValueNotifier<String> toolModeNotifier;
+    late ValueNotifier<String> brushColorNotifier;
+    late ValueNotifier<double> brushThicknessNotifier;
+    late ValueNotifier<String> brushTypeNotifier;
+
+    setUp(() {
+      mockEnv = MockInteractionContext();
+      mockSession = MockTabSession();
+      mockViewport = MockViewportController();
+      transformController = TransformationController();
+      controller = InteractionController(
+        transformController: transformController,
+        environment: mockEnv,
+      );
+
+      toolModeNotifier = ValueNotifier<String>('select');
+      brushColorNotifier = ValueNotifier<String>('#00E5FF');
+      brushThicknessNotifier = ValueNotifier<double>(4.0);
+      brushTypeNotifier = ValueNotifier<String>('pen');
+
+      // Stub environment calls since FSM CanvasIdle handlePointerDown will run when bubbling
+      when(() => mockEnv.getActiveEditId()).thenReturn(null);
+      when(() => mockEnv.getSelectedEntities()).thenReturn(<String>{});
+      when(() => mockEnv.getRelations()).thenReturn(<UiRelation>[]);
+      when(() => mockEnv.zOrder).thenReturn(<String>[]);
+      when(() => mockEnv.nodeViewStates).thenReturn(<String, NodeViewState>{});
+      when(() => mockEnv.relationPathCache).thenReturn(<String, List<Offset>>{});
+      when(() => mockEnv.onSelectEntity(any())).thenAnswer((_) {});
+
+      when(() => mockSession.toolModeNotifier).thenReturn(toolModeNotifier);
+      when(() => mockSession.brushColorNotifier).thenReturn(brushColorNotifier);
+      when(() => mockSession.brushThicknessNotifier).thenReturn(brushThicknessNotifier);
+      when(() => mockSession.brushTypeNotifier).thenReturn(brushTypeNotifier);
+      when(() => mockViewport.transformController).thenReturn(transformController);
+
+      interceptor = DrawingGestureInterceptor(
+        session: mockSession,
+        viewportController: mockViewport,
+      );
+      controller.registerInterceptor(interceptor);
+    });
+
+    tearDown(() {
+      interceptor.dispose();
+      toolModeNotifier.dispose();
+      brushColorNotifier.dispose();
+      brushThicknessNotifier.dispose();
+      brushTypeNotifier.dispose();
+    });
+
+    test('ignores pointer events when tool mode is not draw', () {
+      toolModeNotifier.value = 'select';
+      const event = PointerDownEvent(position: Offset(10, 20), buttons: kPrimaryMouseButton);
+
+      controller.handlePointerDown(event);
+
+      expect(interceptor.activeStroke.value, isEmpty);
+    });
+
+    test('captures and consumes pointer events when tool mode is draw', () {
+      toolModeNotifier.value = 'draw';
+      
+      const downEvent = PointerDownEvent(position: Offset(10, 20), buttons: kPrimaryMouseButton);
+      controller.handlePointerDown(downEvent);
+      expect(interceptor.activeStroke.value, equals([const Offset(10, 20)]));
+
+      const moveEvent = PointerMoveEvent(position: Offset(15, 25));
+      controller.handlePointerMove(moveEvent);
+      expect(interceptor.activeStroke.value, equals([const Offset(10, 20), const Offset(15, 25)]));
+    });
+
+    test('creates drawing node on pointer up', () {
+      toolModeNotifier.value = 'draw';
+      
+      // Setup down and move first
+      controller.handlePointerDown(const PointerDownEvent(position: Offset(10, 20), buttons: kPrimaryMouseButton));
+      controller.handlePointerMove(const PointerMoveEvent(position: Offset(30, 40)));
+
+      // Stub onCreateDrawingNode
+      when(() => mockEnv.onCreateDrawingNode(
+        position: any(named: 'position'),
+        paths: any(named: 'paths'),
+        brushType: any(named: 'brushType'),
+        brushThickness: any(named: 'brushThickness'),
+        brushColor: any(named: 'brushColor'),
+        size: any(named: 'size'),
+      )).thenAnswer((_) {});
+
+      // Trigger pointer up
+      controller.handlePointerUp(const PointerUpEvent(position: Offset(30, 40)));
+
+      // Verify that onCreateDrawingNode was called on the environment
+      verify(() => mockEnv.onCreateDrawingNode(
+        position: const Offset(10 - 12.0, 20 - 12.0), // padding is 12.0
+        paths: ['12.0,12.0;32.0,32.0'],
+        brushType: 'pen',
+        brushThickness: 4.0,
+        brushColor: '#00E5FF',
+        size: const Size(20 + 24.0, 20 + 24.0), // 30-10=20 width + 24 padding
+      )).called(1);
+
+      // Verify activeStroke is cleared
+      expect(interceptor.activeStroke.value, isEmpty);
+    });
+
+    test('cancels active drawing stroke on pointer cancel', () {
+      toolModeNotifier.value = 'draw';
+      controller.handlePointerDown(const PointerDownEvent(position: Offset(10, 20), buttons: kPrimaryMouseButton));
+      expect(interceptor.activeStroke.value, isNotEmpty);
+
+      controller.handlePointerCancel(const PointerCancelEvent());
+      expect(interceptor.activeStroke.value, isEmpty);
     });
   });
 }

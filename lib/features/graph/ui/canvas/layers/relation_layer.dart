@@ -4,7 +4,6 @@ import '../../../presentation/graph_metrics.dart';
 import '../../../store/graph_data_query.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../presentation/strategies/relation_layout_strategy.dart';
-import '../../../engine/base_interaction_state.dart';
 import '../../../engine/interaction_engine.dart';
 import '../../../models/models.dart';
 import '../relation_painter.dart';
@@ -31,48 +30,7 @@ class RelationLayer extends StatelessWidget {
           ]),
           builder: (context, _) {
             final interactionState = interactionController.state.value;
-            // Compute dragging overrides if a tip is actively being dragged
-            final draggingOverrides = <String, (Offset, Offset)>{};
-            if (interactionState is RelationTipDragging) {
-              final drag = interactionState;
-              UiRelation? rel;
-              for (final r in dataController.relations) {
-                if (r.id == drag.relationId) {
-                  rel = r;
-                  break;
-                }
-              }
-              if (rel != null) {
-                final from = uiController.viewStates[rel.fromNodeId];
-                final to = uiController.viewStates[rel.toNodeId];
-                if (from != null && to != null) {
-                  final Offset dragPos;
-                  if (drag.snappedTargetNodeId != null &&
-                      drag.snappedTargetSide != null) {
-                    final targetVs =
-                        uiController.viewStates[drag.snappedTargetNodeId!];
-                    dragPos = targetVs != null
-                        ? targetVs.getPortPosition(drag.snappedTargetSide!)
-                        : drag.currentCursorPosition;
-                  } else {
-                    dragPos = drag.currentCursorPosition;
-                  }
 
-                  final layoutStrategy = RelationLayoutStrategy.fromType(
-                    rel.layout?.strategyType,
-                  );
-                  final (resolvedStart, resolvedEnd) = layoutStrategy
-                      .resolveEndpoints(
-                        rel,
-                        from,
-                        to,
-                        overrideStart: drag.isStartTip ? dragPos : null,
-                        overrideEnd: !drag.isStartTip ? dragPos : null,
-                      );
-                  draggingOverrides[rel.id] = (resolvedStart, resolvedEnd);
-                }
-              }
-            }
 
             // Find if a relation is currently being edited
             final activeEditId = uiController.activeEditId;
@@ -168,7 +126,7 @@ class RelationLayer extends StatelessWidget {
                       uiController.viewStates,
                       uiController.selectedEntities,
                       pathCache: uiController.relationPathCache,
-                      draggingOverrides: draggingOverrides,
+
                       interactionState: interactionState,
                       theme: theme,
                     ),

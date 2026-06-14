@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
-import '../../store/graph_data_controller.dart';
+
 import '../../presentation/node_render_state.dart';
 import '../../models/models.dart';
 import 'content_text_editing_controller.dart';
@@ -33,7 +33,6 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   bool _isAborted = false;
 
   // Cache dependencies to survive unmount lookups
-  late GraphDataController _graphDataController;
   late NodeRenderState _renderState;
 
   // Track the last value to detect pure selection drags
@@ -69,7 +68,6 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _graphDataController = context.read<GraphDataController>();
     _renderState = context.watch<NodeRenderState>();
   }
 
@@ -80,7 +78,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     if (!_isCommitted && !_isAborted) {
       _log.info('Committing final edit on dispose for: ${widget.entityId}');
       try {
-        _graphDataController.commitEntityText(
+        _renderState.commitEntityText(
           widget.entityId,
           _controller.buildContent(),
           originalTextOrContent: widget.content,
@@ -110,7 +108,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
         selectionChanged;
 
     if (!onlySelectionChanged) {
-      _graphDataController.updateEntityTextLive(
+      _renderState.updateEntityTextLive(
         widget.entityId,
         _controller.buildContent(),
       );
@@ -124,7 +122,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     _isCommitted = true;
     _log.info('Committing internal edit for: ${widget.entityId}');
     _renderState.cancelActiveEdit();
-    _graphDataController.commitEntityText(
+    _renderState.commitEntityText(
       widget.entityId,
       _controller.buildContent(),
       originalTextOrContent: widget.content,

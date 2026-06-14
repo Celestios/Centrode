@@ -208,4 +208,24 @@ class CanvasInteractionEnvironment implements InteractionContext {
       _renderState.hoveredNodeMetadataNotifier.value = nodeId;
     }
   }
+
+  @override
+  void onCreateDrawingNode({
+    required Offset position,
+    required List<String> paths,
+    required String brushType,
+    required double brushThickness,
+    required String brushColor,
+    required Size size,
+  }) {
+    _dataController.createNode(
+      UiNodes.drawing,
+      position,
+      paths: paths,
+      brushType: brushType,
+      brushThickness: brushThickness,
+      brushColor: brushColor,
+      size: size,
+    );
+  }
 }

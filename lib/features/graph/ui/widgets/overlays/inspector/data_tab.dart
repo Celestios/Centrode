@@ -1,17 +1,17 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../../../store/graph_data_controller.dart';
+import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
 import '../../../../presentation/graph_metrics.dart';
 
 class DataTab extends StatefulWidget {
   final String nodeId;
-  final GraphDataController dataController;
+  final NodeRenderState renderState;
 
   const DataTab({
     super.key,
     required this.nodeId,
-    required this.dataController,
+    required this.renderState,
   });
 
   @override
@@ -79,7 +79,7 @@ class _DataTabState extends State<DataTab> {
     }
 
     final color = _selectedTagColor ?? _currentPalette.first;
-    widget.dataController.addTagToNode(node.id, text, color);
+    widget.renderState.addTagToNode(node.id, text, color);
 
     _tagController.clear();
     setState(() {
@@ -91,7 +91,7 @@ class _DataTabState extends State<DataTab> {
     final text = _commentController.text.trim();
     if (text.isEmpty) return;
 
-    widget.dataController.addCommentToNode(node.id, text);
+    widget.renderState.addCommentToNode(node.id, text);
 
     _commentController.clear();
     _commentFocusNode.requestFocus();
@@ -320,7 +320,7 @@ class _DataTabState extends State<DataTab> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final node = widget.dataController.nodeLookup[widget.nodeId];
+    final node = widget.renderState.getNode(widget.nodeId);
 
     if (_lastNodeId != widget.nodeId) {
       _lastNodeId = widget.nodeId;
@@ -374,7 +374,7 @@ class _DataTabState extends State<DataTab> {
                       ),
                       const SizedBox(width: 4),
                       GestureDetector(
-                        onTap: () => widget.dataController.removeTagFromNode(
+                        onTap: () => widget.renderState.removeTagFromNode(
                           node.id,
                           tag.key,
                         ),
@@ -484,7 +484,7 @@ class _DataTabState extends State<DataTab> {
                               ),
                             ),
                             GestureDetector(
-                              onTap: () => widget.dataController
+                              onTap: () => widget.renderState
                                   .removeCommentFromNode(node.id, comment),
                               child: Icon(
                                 Icons.delete_outline_rounded,

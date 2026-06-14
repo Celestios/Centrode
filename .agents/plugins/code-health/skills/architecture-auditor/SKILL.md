@@ -8,18 +8,18 @@ description: Audits codebases for SOLID compliance, layer boundaries, and depend
 You are an expert in software architecture, structural isolation, and boundary enforcement.
 Use this skill when evaluating whether a specific component or file respects its architectural layer and SOLID principles.
 
-## Pre-Audit: Query the Linter Cache
+## Pre-Audit: Query the Graph
 
-Before performing any manual code inspection, **always** query the arch-linter cache first to gather the file's metadata:
+Before performing any manual code inspection, **always** query the graphify arch graph first to gather the file's metadata:
 ```powershell
-# Get the file's tier, pattern, FFI status, and test coverage
-dart scripts/arch_linter.dart query --lang=<lang> dir=<directory>
+# Get the file's layer, tier, purity, architectural role, and dependency info
+graphify arch query-file --path <file_path>
 
-# Check who depends on this file (blast radius)
-dart scripts/arch_linter.dart dependents --lang=<lang> <file_path>
+# Check who depends on this file (blast radius / upstream context)
+graphify arch compile-context --node <file_path> --direction upstream
 
-# Check the file's public API surface
-dart scripts/arch_linter.dart query_method --lang=<lang> name=<search>
+# Search for methods, classes, or patterns across the codebase
+graphify query "<method_or_class_name>"
 ```
 
 ## The Zero-Trust Checklist

@@ -7,7 +7,7 @@ import '../store/graph_data_query.dart';
 import 'view_state.dart';
 import 'strategies/relation_layout_strategy.dart';
 import 'routing/relation_layout_context.dart';
-import '../models/left_panel_type.dart';
+import '../models/models.dart';
 
 /// Notifier pulsed to trigger relation painter repaints when node coordinates change.
 class MovementNotifier extends ChangeNotifier {
@@ -447,6 +447,50 @@ class NodeRenderState extends ChangeNotifier {
       nodeShowingFloatingToolbar = null;
       notifyListeners();
     }
+  }
+
+  // ===========================================================================
+  // Proxy Query & Mutation Delegate Methods (Decoupling UI from Tier 3)
+  // ===========================================================================
+
+  UiNode? getNode(String id) => _dataController.nodeLookup[id];
+
+  UiRelation? getRelation(String id) => _dataController.relationLookup[id];
+
+  void updateRelationsLayout(List<String> ids, {String? strategyType}) {
+    _dataController.updateRelationsLayout(ids, strategyType: strategyType);
+  }
+
+  void updateNodesStyle(List<String> ids, NodeStyle Function(NodeStyle style) updateFn) {
+    _dataController.updateNodesStyle(ids, updateFn);
+  }
+
+  void addTagToNode(String nodeId, String name, int color) {
+    _dataController.addTagToNode(nodeId, name, color);
+  }
+
+  void removeTagFromNode(String nodeId, String tagKey) {
+    _dataController.removeTagFromNode(nodeId, tagKey);
+  }
+
+  void addCommentToNode(String nodeId, String text) {
+    _dataController.addCommentToNode(nodeId, text);
+  }
+
+  void removeCommentFromNode(String nodeId, Comment comment) {
+    _dataController.removeCommentFromNode(nodeId, comment);
+  }
+
+  void commitEntityText(String id, dynamic newTextOrContent, {dynamic originalTextOrContent}) {
+    _dataController.commitEntityText(
+      id,
+      newTextOrContent,
+      originalTextOrContent: originalTextOrContent,
+    );
+  }
+
+  void updateEntityTextLive(String id, dynamic newTextOrContent) {
+    _dataController.updateEntityTextLive(id, newTextOrContent);
   }
 
   @override

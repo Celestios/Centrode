@@ -7,6 +7,8 @@ import '../../presentation/graph_presentation_notifier.dart';
 import '../../presentation/node_render_state.dart';
 import '../../presentation/viewport_state.dart';
 import '../../engine/interaction_engine.dart';
+import '../../engine/drawing_interceptor.dart';
+import 'active_drawing_painter.dart';
 import 'package:mycelium/features/graph/engine/interaction_facade.dart';
 import '../../presentation/workspace_tabs_controller.dart';
 import 'layers/relation_layer.dart';
@@ -22,10 +24,10 @@ import '../widgets/overlays/right_property_panel.dart';
 import '../widgets/overlays/canvas_status_bar/canvas_status_bar.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'context_toolbar_overlay.dart';
-import '../../../../presentation/widgets/tag_manager/global_tags_manager_panel.dart';
-import '../../../../presentation/widgets/template_manager/global_templates_manager_panel.dart';
-import '../../../../presentation/widgets/drawing_manager/global_drawing_panel.dart';
-import '../../../../presentation/widgets/template_manager/save_template_dialog.dart';
+import 'package:mycelium/presentation/widgets/tag_manager/global_tags_manager_panel.dart';
+import 'package:mycelium/presentation/widgets/template_manager/global_templates_manager_panel.dart';
+import 'package:mycelium/presentation/widgets/template_manager/save_template_dialog.dart';
+import 'package:mycelium/presentation/widgets/drawing_manager/global_drawing_panel.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 
@@ -40,6 +42,7 @@ class _GraphCanvasState extends State<GraphCanvas>
     with TickerProviderStateMixin {
   ViewportController? _viewportController;
   InteractionController? _interactionController;
+  DrawingGestureInterceptor? _drawingInterceptor;
   final Logger _log = Logger('GraphCanvas');
   TabSession? _boundSession;
 
@@ -51,6 +54,15 @@ class _GraphCanvasState extends State<GraphCanvas>
   final ValueNotifier<Offset?> _mousePositionNotifier = ValueNotifier<Offset?>(
     null,
   );
+  int _lastMousePosMs = 0;
+
+  void _updateMousePosition(Offset localPosition) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (now - _lastMousePosMs >= 16) { // ~60fps
+      _lastMousePosMs = now;
+      _mousePositionNotifier.value = localPosition;
+    }
+  }
 
   @override
   void initState() {
@@ -97,6 +109,12 @@ class _GraphCanvasState extends State<GraphCanvas>
         environment: environment,
       );
 
+      _drawingInterceptor = DrawingGestureInterceptor(
+        session: _boundSession!,
+        viewportController: vpController,
+      );
+      _interactionController!.registerInterceptor(_drawingInterceptor!);
+
       final presentationNotifier = context.read<GraphPresentationNotifier>();
       _presentationNotifier = presentationNotifier;
       _presentationNotifier?.addListener(_onDataControllerChanged);
@@ -140,6 +158,10 @@ class _GraphCanvasState extends State<GraphCanvas>
       _boundSession?.viewportController = null;
     }
     _viewportController?.dispose();
+    if (_interactionController != null && _drawingInterceptor != null) {
+      _interactionController!.unregisterInterceptor(_drawingInterceptor!);
+    }
+    _drawingInterceptor?.dispose();
     _interactionController?.dispose();
     _mousePositionNotifier.dispose();
     super.dispose();
@@ -226,42 +248,22 @@ class _GraphCanvasState extends State<GraphCanvas>
                   },
                   child: Listener(
                     onPointerDown: (event) {
-                      if (session.toolModeNotifier.value == 'draw' &&
-                          event.buttons == kPrimaryMouseButton) {
-                        _startDrawing(event, viewportController);
-                      } else {
-                        interactionController.handlePointerDown(event);
-                      }
+                      interactionController.handlePointerDown(event);
                     },
                     onPointerMove: (event) {
-                      if (session.toolModeNotifier.value == 'draw' &&
-                          _activeStroke.isNotEmpty) {
-                        _updateDrawing(event, viewportController);
-                      } else {
-                        interactionController.handlePointerMove(event);
-                        _mousePositionNotifier.value = event.localPosition;
-                      }
+                      interactionController.handlePointerMove(event);
+                      _updateMousePosition(event.localPosition);
                     },
                     onPointerUp: (event) {
-                      if (session.toolModeNotifier.value == 'draw' &&
-                          _activeStroke.isNotEmpty) {
-                        _endDrawing(dataController, session);
-                      } else {
-                        interactionController.handlePointerUp(event);
-                      }
+                      interactionController.handlePointerUp(event);
                     },
                     onPointerCancel: (event) {
-                      if (session.toolModeNotifier.value == 'draw' &&
-                          event.buttons == kPrimaryMouseButton) {
-                        _cancelDrawing();
-                      } else {
-                        interactionController.handlePointerCancel(event);
-                        _mousePositionNotifier.value = null;
-                      }
+                      interactionController.handlePointerCancel(event);
+                      _mousePositionNotifier.value = null;
                     },
                     onPointerHover: (event) {
                       interactionController.handlePointerHover(event);
-                      _mousePositionNotifier.value = event.localPosition;
+                      _updateMousePosition(event.localPosition);
                     },
                     child: LayoutBuilder(
                       builder: (context, constraints) {
@@ -355,21 +357,22 @@ class _GraphCanvasState extends State<GraphCanvas>
                                     const RelationLayer(),
                                     const NodeLayer(),
                                     const OverlayLayer(),
-                                    if (_activeStroke.isNotEmpty)
-                                      IgnorePointer(
-                                        child: CustomPaint(
-                                          painter: ActiveDrawingPainter(
-                                            points: _activeStroke,
-                                            brushColor: session
-                                                .brushColorNotifier
-                                                .value,
-                                            brushThickness: session
-                                                .brushThicknessNotifier
-                                                .value,
-                                            brushType:
-                                                session.brushTypeNotifier.value,
-                                          ),
-                                        ),
+                                    if (_drawingInterceptor != null)
+                                      ValueListenableBuilder<List<Offset>>(
+                                        valueListenable: _drawingInterceptor!.activeStroke,
+                                        builder: (context, stroke, _) {
+                                          if (stroke.isEmpty) return const SizedBox.shrink();
+                                          return IgnorePointer(
+                                            child: CustomPaint(
+                                              painter: ActiveDrawingPainter(
+                                                points: stroke,
+                                                brushColor: session.brushColorNotifier.value,
+                                                brushThickness: session.brushThicknessNotifier.value,
+                                                brushType: session.brushTypeNotifier.value,
+                                              ),
+                                            ),
+                                          );
+                                        },
                                       ),
                                   ],
                                 ),
@@ -433,9 +436,9 @@ class _GraphCanvasState extends State<GraphCanvas>
                             onPanelChanged: (panel) {
                               renderState.activeLeftPanelNotifier.value = panel;
                               if (panel == LeftPanelType.draw) {
-                                session.toolModeNotifier.value = 'draw';
+                                session.setToolMode('draw');
                               } else {
-                                session.toolModeNotifier.value = 'select';
+                                session.setToolMode('select');
                               }
                             },
                           );
@@ -551,169 +554,6 @@ class _GraphCanvasState extends State<GraphCanvas>
       case LeftPanelType.none:
         return const SizedBox.shrink();
     }
-  }
-
-  List<Offset> _activeStroke = [];
-
-  Offset _getLocalCanvasCoords(
-    Offset localPosition,
-    ViewportController viewportController,
-  ) {
-    final transform = viewportController.transformController.value;
-    if (transform.determinant() == 0.0) return localPosition;
-    final inverse = Matrix4.inverted(transform);
-    return MatrixUtils.transformPoint(inverse, localPosition);
-  }
-
-  void _startDrawing(
-    PointerDownEvent event,
-    ViewportController viewportController,
-  ) {
-    setState(() {
-      _activeStroke = [
-        _getLocalCanvasCoords(event.localPosition, viewportController),
-      ];
-    });
-  }
-
-  void _updateDrawing(
-    PointerMoveEvent event,
-    ViewportController viewportController,
-  ) {
-    final currentPoint = _getLocalCanvasCoords(
-      event.localPosition,
-      viewportController,
-    );
-    final type = _boundSession?.brushTypeNotifier.value ?? 'pen';
-    setState(() {
-      if (type == 'line') {
-        if (_activeStroke.isNotEmpty) {
-          _activeStroke = [_activeStroke.first, currentPoint];
-        } else {
-          _activeStroke = [currentPoint];
-        }
-      } else {
-        _activeStroke.add(currentPoint);
-      }
-    });
-  }
-
-  void _endDrawing(GraphDataController dataController, TabSession session) {
-    if (_activeStroke.length < 2) {
-      _cancelDrawing();
-      return;
-    }
-
-    double minX = _activeStroke.first.dx;
-    double maxX = _activeStroke.first.dx;
-    double minY = _activeStroke.first.dy;
-    double maxY = _activeStroke.first.dy;
-
-    for (final p in _activeStroke) {
-      if (p.dx < minX) minX = p.dx;
-      if (p.dx > maxX) maxX = p.dx;
-      if (p.dy < minY) minY = p.dy;
-      if (p.dy > maxY) maxY = p.dy;
-    }
-
-    final width = maxX - minX;
-    final height = maxY - minY;
-
-    if (width < 2 && height < 2) {
-      _cancelDrawing();
-      return;
-    }
-
-    const padding = 12.0;
-    final normalizedPoints = _activeStroke
-        .map((p) {
-          final rx = p.dx - minX + padding;
-          final ry = p.dy - minY + padding;
-          return '${rx.toStringAsFixed(1)},${ry.toStringAsFixed(1)}';
-        })
-        .join(';');
-
-    final nodePosition = Offset(minX - padding, minY - padding);
-    final nodeSize = Size(width + padding * 2, height + padding * 2);
-
-    final brushColor = session.brushColorNotifier.value;
-    final brushThickness = session.brushThicknessNotifier.value;
-    final brushType = session.brushTypeNotifier.value;
-
-    dataController.createNode(
-      UiNodes.drawing,
-      nodePosition,
-      paths: [normalizedPoints],
-      brushType: brushType,
-      brushThickness: brushThickness,
-      brushColor: brushColor,
-      size: nodeSize,
-    );
-
-    _cancelDrawing();
-  }
-
-  void _cancelDrawing() {
-    setState(() {
-      _activeStroke = [];
-    });
-  }
-}
-
-class ActiveDrawingPainter extends CustomPainter {
-  final List<Offset> points;
-  final String brushColor;
-  final double brushThickness;
-  final String brushType;
-
-  ActiveDrawingPainter({
-    required this.points,
-    required this.brushColor,
-    required this.brushThickness,
-    required this.brushType,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (points.length < 2) return;
-
-    Color color;
-    try {
-      final hex = brushColor.replaceFirst('#', '').replaceFirst('0x', '');
-      if (hex.length == 6) {
-        color = Color(int.parse('FF$hex', radix: 16));
-      } else {
-        color = Color(int.parse(hex, radix: 16));
-      }
-    } catch (_) {
-      color = const Color(0xFF00E5FF);
-    }
-
-    if (brushType == 'highlighter') {
-      color = color.withValues(alpha: 0.4);
-    }
-
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = brushThickness
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final path = Path();
-    path.moveTo(points[0].dx, points[0].dy);
-    for (int i = 1; i < points.length; i++) {
-      path.lineTo(points[i].dx, points[i].dy);
-    }
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant ActiveDrawingPainter oldDelegate) {
-    return oldDelegate.points != points ||
-        oldDelegate.brushColor != brushColor ||
-        oldDelegate.brushThickness != brushThickness ||
-        oldDelegate.brushType != brushType;
   }
 }
 

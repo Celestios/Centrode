@@ -114,6 +114,16 @@ abstract interface class GeometryCapability {
 
   /// Sets the currently hovered metadata node ID to show/hide the preview card.
   void setHoveredNodeMetadata(String? nodeId);
+
+  /// Creates a drawing node with the specified brush and geometry options.
+  void onCreateDrawingNode({
+    required Offset position,
+    required List<String> paths,
+    required String brushType,
+    required double brushThickness,
+    required String brushColor,
+    required Size size,
+  });
 }
 
 /// Composite interface for capabilities that need both geometry and viewport access.

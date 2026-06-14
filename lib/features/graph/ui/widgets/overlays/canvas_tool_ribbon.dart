@@ -124,7 +124,7 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                       isActive: currentMode == tools[i].mode,
                       isCompact: _isCompact,
                       onPressed: () =>
-                          session.toolModeNotifier.value = tools[i].mode,
+                          session.setToolMode(tools[i].mode),
                       primaryColor: primaryColor,
                       textColor: textColor,
                     ),

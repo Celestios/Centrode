@@ -14,7 +14,7 @@ class RelationPainter extends CustomPainter {
   nodeViewStates; // Use ViewStates for real-time positions
   final Set<String> selectedEntities; // Selection state from NodeRenderState
   final Map<String, List<Offset>> pathCache;
-  final Map<String, (Offset start, Offset end)> draggingOverrides;
+  final Map<String, (Offset start, Offset end)> draggingOverrides = {};
   final CanvasInteractionState? interactionState;
   final ThemeData theme;
 
@@ -23,10 +23,53 @@ class RelationPainter extends CustomPainter {
     this.nodeViewStates,
     this.selectedEntities, {
     required this.pathCache,
-    this.draggingOverrides = const {},
     this.interactionState,
     required this.theme,
-  });
+  }) {
+    _computeDraggingOverrides();
+  }
+
+  void _computeDraggingOverrides() {
+    final state = interactionState;
+    if (state is RelationTipDragging) {
+      final drag = state;
+      UiRelation? rel;
+      for (final r in relations) {
+        if (r.id == drag.relationId) {
+          rel = r;
+          break;
+        }
+      }
+      if (rel != null) {
+        final from = nodeViewStates[rel.fromNodeId];
+        final to = nodeViewStates[rel.toNodeId];
+        if (from != null && to != null) {
+          final Offset dragPos;
+          if (drag.snappedTargetNodeId != null &&
+              drag.snappedTargetSide != null) {
+            final targetVs = nodeViewStates[drag.snappedTargetNodeId!];
+            dragPos = targetVs != null
+                ? targetVs.getPortPosition(drag.snappedTargetSide!)
+                : drag.currentCursorPosition;
+          } else {
+            dragPos = drag.currentCursorPosition;
+          }
+
+          final layoutStrategy = RelationLayoutStrategy.fromType(
+            rel.layout?.strategyType,
+          );
+          final (resolvedStart, resolvedEnd) = layoutStrategy.resolveEndpoints(
+            rel,
+            from,
+            to,
+            overrideStart: drag.isStartTip ? dragPos : null,
+            overrideEnd: !drag.isStartTip ? dragPos : null,
+          );
+          draggingOverrides[rel.id] = (resolvedStart, resolvedEnd);
+        }
+      }
+    }
+  }
 
   @override
   void paint(Canvas canvas, Size size) {

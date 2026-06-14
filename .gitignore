@@ -31,6 +31,8 @@
 # === Project Specific & Data ===
 /.Archive
 graphify-out/
+/.kilo
+/.mimocode
 maps/
 
 # === Symbols and Obfuscation ===
@@ -47,6 +49,9 @@ app.*.symbols
 *.log
 *.pyc
 migrate_working_dir/
+
+# === Generated Reports ===
+CODE_HEALTH_REPORT.md
 
 # === Other ===
 notes.txt

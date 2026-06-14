@@ -12,5 +12,5 @@ Rules:
 - If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context
 - After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)
-- **Boundary with arch-linter**: Use graphify for general system comprehension, pathfinding, concept explanation, and high-level relationships. Do NOT use it to check code health, layer boundary compliance, naming patterns, or test coverage; use the `arch-linter` tool and rules for those tasks.
+- **Architecture enforcement**: Use `graphify arch audit` to check layer/tier boundary violations, `graphify arch analyze` for naming and config validation, and `graphify arch query-file` for per-file metadata (layer, tier, purity, dependencies). graphify arch is the single source for code health and architectural compliance.
 

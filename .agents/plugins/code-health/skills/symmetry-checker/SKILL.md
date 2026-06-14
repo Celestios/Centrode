@@ -8,18 +8,18 @@ description: Enforces design symmetry, DRY compliance, and logical cohesion acro
 You are an expert in structural symmetry, DRY enforcement, and code alignment.
 Use this skill when moving code, adding helper functions, or refactoring logic to ensure it maintains physical and logical symmetry with its siblings and does not introduce duplication.
 
-## Pre-Check: Query the Linter Cache
+## Pre-Check: Query the Graph
 
-Before performing any manual symmetry analysis, use the arch-linter to find sibling classes and check for duplicated methods:
+Before performing any manual symmetry analysis, use graphify to find sibling classes and check for duplicated methods:
 ```powershell
-# Find all classes in the same directory
-dart scripts/arch_linter.dart query --lang=<lang> dir=<directory>
+# Get metadata for all files in a directory (layer, tier, pattern, etc.)
+graphify arch query-file --path <any_file_in_directory>
 
 # Search for a method name across the entire codebase to detect duplication
-dart scripts/arch_linter.dart query_method --lang=<lang> name=<method_name>
+graphify query "<method_name>"
 
-# Check if the same pattern is used consistently across siblings
-dart scripts/arch_linter.dart query --lang=<lang> pattern=<pattern_name>
+# Find all classes tagged with the same design pattern
+graphify query "<pattern_name>"
 ```
 
 ## The Symmetry Mandate
@@ -38,7 +38,7 @@ When examining or modifying a block of code (especially helper functions, state 
    - If a class contains UI-painting logic and database-access logic, the symmetry is broken. The class is doing too much.
 
 3. **The DRY Cross-Reference**
-   - Use `query_method` to search for methods with similar names across the codebase.
+   - Use `graphify query` to search for methods with similar names across the codebase.
    - If two classes in different directories implement the same helper logic, extract it into a shared utility or inherit from a common base.
 
 4. **Symmetric Refactoring**
@@ -46,7 +46,7 @@ When examining or modifying a block of code (especially helper functions, state 
    - Move it to the class that already handles the symmetric sibling to preserve organizational balance.
 
 5. **Pattern Consistency Check**
-   - Use `query pattern=<pattern>` to find all classes tagged with the same design pattern.
+   - Use `graphify query "<pattern_name>"` to find all classes tagged with the same design pattern.
    - Verify they all follow the same structural blueprint (same method signatures, same lifecycle hooks, same extension points).
 
 ## Chain of Verification

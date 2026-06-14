@@ -50,7 +50,7 @@ class GlobalDrawingPanel extends StatelessWidget {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 6.0),
                       child: InkWell(
-                        onTap: () => session.brushTypeNotifier.value = t.type,
+                        onTap: () => session.setBrushType(t.type),
                         borderRadius: BorderRadius.circular(8),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 150),
@@ -144,7 +144,7 @@ class GlobalDrawingPanel extends StatelessWidget {
                   ],
                   onColorSelected: (color) {
                     final hexStr = '#${color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
-                    session.brushColorNotifier.value = hexStr;
+                    session.setBrushColor(hexStr);
                   },
                 );
               },
@@ -169,7 +169,7 @@ class GlobalDrawingPanel extends StatelessWidget {
                   children: thicknesses.map((t) {
                     final isActive = activeThickness == t;
                     return GestureDetector(
-                      onTap: () => session.brushThicknessNotifier.value = t,
+                      onTap: () => session.setBrushThickness(t),
                       child: Column(
                         children: [
                           AnimatedContainer(

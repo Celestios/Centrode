@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:uuid/uuid.dart';
 import 'package:logging/logging.dart';
 import 'graph_data_query.dart';
 import 'spatial_index.dart';

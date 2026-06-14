@@ -1,18 +1,18 @@
 ---
-description: Multi-agent deep audit of the entire codebase for SOLID principles, design pattern fitness, DRY compliance, complexity hotspots, and architectural boundary enforcement using the arch-linter skill.
+description: Multi-agent deep audit of the entire codebase for SOLID principles, design pattern fitness, DRY compliance, complexity hotspots, and architectural boundary enforcement using graphify arch.
 ---
 
 # Workflow: /code-health
 
 This workflow transforms the agent into a **Principal Code Health Auditor**. It performs a comprehensive, multi-agent analysis of the entire codebase across multiple software engineering dimensions — not just SRP, but the full spectrum of SOLID principles, DRY compliance, design pattern fitness, complexity hotspots, and naming/test coverage assertions.
 
-It leverages the [arch-linter](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/arch-linter/SKILL.md) skill for fast cached metadata queries and the [architecture-auditor](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/skills/architecture-auditor/SKILL.md) / [symmetry-checker](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/skills/symmetry-checker/SKILL.md) skills for deep structural reasoning.
+It leverages [graphify arch](file:///d:/Projects/Open/flutter/code/mycelium/.agents/rules/graphify.md) for fast metadata queries, layer/tier enforcement, and dependency analysis, and the [architecture-auditor](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/skills/architecture-auditor/SKILL.md) / [symmetry-checker](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/skills/symmetry-checker/SKILL.md) skills for deep structural reasoning.
 
 ---
 
 ## Core Mandates
 
-1. **Cache-First Discovery**: Always start with `arch_linter.dart check` to refresh metadata. Use cached tiers, imports, public APIs, and patterns to identify files for the audit queue.
+1. **Graph-First Discovery**: Always start with `graphify arch audit` to scan for layer/tier violations and refresh metadata. Use the graph to identify files for the audit queue.
 2. **Deep Semantic AI Scanning**: The CLI cache tools are only for indexing and filtering. You and your subagents **MUST** use the `view_file` tool to read the complete source code of every file in the audit queue. The audit is a semantic, cognitive code review, not a metrics check.
 3. **Multi-Dimensional Analysis**: Each file must be evaluated across all applicable dimensions using the AI-Powered Code Scanning Guidelines defined in this workflow.
 4. **Multi-Agent Delegation**: Batch files into groups of 3–5 and spawn a subagent per group to audit them in parallel. Instruct them explicitly to use their file reading tools and perform cognitive analysis on the code.
@@ -21,6 +21,7 @@ It leverages the [arch-linter](file:///d:/Projects/Open/flutter/code/mycelium/.a
    - For `/rust` components, enforce [rust-style-guide.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/rust-core-plugin/rules/rust-style-guide.md).
    - For `/lib` (Flutter/Dart) components, enforce [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md), [no-cross-layer-mutation.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/symmetry-invariants.md).
 7. **Actionable Output**: Every finding must include a severity level, the principle violated, clickable file links with line ranges, and a concrete remediation suggestion.
+8. **Ontology-First Understanding**: Before any audit, read `graphify-out/arch/config.json` to understand the project's architectural ontology — its defined layers, tiers, assignment rules, dependency constraints, and propagation handlers. This config is the ground truth for what the project considers valid architecture. If a piece of code doesn't fit the current ontology (e.g., a legitimate pattern that has no layer assignment, or a dependency rule that blocks a valid use case), **do not force-fit or ignore it** — flag it as an ontology gap and propose updating `config.json` with the user's approval. The ontology evolves with the codebase.
 
 ---
 
@@ -38,7 +39,7 @@ Each component in the Audit Queue is evaluated against these principles:
 | **D – Dependency Inversion** | Does the class depend on abstractions or concrete implementations? Check constructor parameters and import blocks. |
 
 ### 🔹 DRY (Don't Repeat Yourself)
-- Search for duplicated logic across files in the same directory using `query_method` with regex patterns.
+- Search for duplicated logic across files in the same directory using `graphify query` with method or class names.
 - Flag files that re-implement helpers already available in sibling classes or utility modules.
 
 ### 🔹 Design Pattern Fitness
@@ -50,14 +51,13 @@ Each component in the Audit Queue is evaluated against these principles:
 - Flag mismatches where a class is labeled as one pattern but structurally behaves as another.
 
 ### 🔹 Complexity & Bloat
-- Use `query_metrics api_count_gte=15` to find classes with too many public methods.
-- Use `query_metrics size_gte=500` to find files that are too large.
+- Use `graphify arch query-file --path <file>` to check public API counts and file sizes.
 - Flag God Objects: classes with both high API count AND high line count.
 
 ### 🔹 Layer Boundary Enforcement
-- Run `check` to detect tier violations.
-- Run `assert_naming` to verify naming conventions.
-- Run `assert_tests` to verify test coverage for Tier 2/3 components.
+- Run `graphify arch audit` to detect tier/layer violations.
+- Run `graphify arch analyze` to verify naming conventions and config consistency.
+- Run `graphify arch query-file` to verify test coverage and metadata for Tier 2/3 components.
 
 ### 🔹 Symmetry & Cohesion
 - Verify that symmetric groups of classes (e.g., all mutation modules, all FSM states) follow identical structural blueprints.
@@ -67,31 +67,47 @@ Each component in the Audit Queue is evaluated against these principles:
 
 ## Execution Steps
 
-### Step 1: Refresh Cache & Automated Assertions
-Run the following commands to establish the baseline (always append the required mode flag: `--dart` or `--rust`):
+### Step 1: Refresh Graph & Automated Assertions
+Run the following commands to establish the baseline:
 ```powershell
-# Run automated compliance check (re-scans and updates cache automatically)
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart check --dart
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart assert_naming --dart
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart assert_tests --dart
+# Refresh the knowledge graph (re-extract changed files, rebuild communities)
+graphify update .
 
-# Identify complexity hotspots
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart query_metrics api_count_gte=15 --dart
-dart .agents/plugins/arch-linter/scripts/arch_linter.dart query_metrics size_gte=500 --dart
+# Understand the project ontology before auditing
+# Read graphify-out/arch/config.json to learn the defined layers, tiers, rules, and handlers
+
+# Run automated compliance scan (detects layer/tier/dependency violations)
+graphify arch audit
+
+# Validate naming conventions and config consistency
+graphify arch analyze
+
+# Identify files with violations or pending audits
+graphify arch set-status --query VIOLATION_DETECTED
+graphify arch set-status --query PENDING_AUDIT
 ```
 Collect the outputs and build the **Audit Queue** from:
-- Files in `PENDING AUDITS` and `VIOLATIONS DETECTED` from the compliance check.
-- Files flagged by `assert_naming` or `assert_tests`.
-- Complexity hotspots from `query_metrics`.
+- Files with `VIOLATION_DETECTED` or `PENDING_AUDIT` status from the audit.
+- Files flagged by `analyze` for naming or config issues.
+- Complexity hotspots identified via `graphify arch query-file` (check public API counts and file sizes).
 
-### Step 2: Contextual Enrichment
-For each file in the Audit Queue, gather its cached context:
-- Use `query` to retrieve its tier, pattern, FFI status, and test coverage.
-- Use `dependents` on high-risk files to assess blast radius.
-- Use `trace_path` if you suspect a transitive layer leak.
+### Step 2: Graphify Knowledge Graph Analysis
+After refreshing the graph, read `graphify-out/GRAPH_REPORT.md` to incorporate graphify's own analysis into the audit:
+- **God Nodes**: High-centrality files that many other files depend on — these are architectural linchpins. Flag any god node in the Audit Queue for deep review (high blast radius if changed).
+- **Surprising Connections**: Cross-community edges that indicate unexpected coupling between unrelated modules. These often reveal hidden dependencies or premature abstractions.
+- **Community Structure**: Review community labels for cohesion issues — if files from the same feature are scattered across different communities, the code may lack physical cohesion.
+- **Suggested Questions**: Use these as additional audit angles, especially questions that cross community boundaries.
+
+Merge graphify's findings into the Audit Queue alongside the arch audit results.
+
+### Step 3: Contextual Enrichment
+For each file in the Audit Queue, gather its context from the graph:
+- Use `graphify arch query-file --path <file>` to retrieve its layer, tier, purity, architectural role, and dependencies.
+- Use `graphify arch compile-context --node <file> --direction upstream` on high-risk files to assess blast radius.
+- Use `graphify query "<concept>"` if you suspect a transitive layer leak.
 - Read the [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md), [no-cross-layer-mutation.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/symmetry-invariants.md) rules files to load the enforcement criteria.
 
-### Step 3: Multi-Agent Deep Audit (Delegated Verification)
+### Step 4: Multi-Agent Deep Audit (Delegated Verification)
 Batch the Audit Queue into groups of 3–5 files (grouped by feature area or tier when possible). For each batch, spawn a subagent:
 
 - **Prompt to Subagent**:
@@ -112,7 +128,7 @@ Batch the Audit Queue into groups of 3–5 files (grouped by feature area or tie
   2. **Open/Closed**: Can behavior be extended without modification? Check for hardcoded mode switchers, conditional chains, and lack of injection.
   3. **LSP & ISP**: Do subclasses honor parent contracts without throwing UnimplementedError? Are they forced to implement fat interfaces?
   4. **Dependency Inversion**: Does it depend on abstractions or concretions? Check for hardcoded class instantiations inside the code.
-  5. **DRY**: Is there structural or algorithmic duplication across sibling files? Use `query_method` to cross-reference but read the code to verify.
+   5. **DRY**: Is there structural or algorithmic duplication across sibling files? Use `graphify query` to cross-reference but read the code to verify.
   6. **Pattern Fitness**: Does the actual class structure match its designated design pattern? Check if strategies/commands are clean.
   7. **Symmetry**: Do sibling classes in the same directory follow the same structural blueprint?
   8. **Complexity**: Check line counts (>500) and API counts (>15) as indicators of bloat.
@@ -132,7 +148,7 @@ Batch the Audit Queue into groups of 3–5 files (grouped by feature area or tie
   ```
 
 
-### Step 4: Synthesize & Report
+### Step 5: Synthesize & Report
 Compile all subagent results into a single **Code Health Report** artifact:
 
 ```markdown
@@ -146,9 +162,15 @@ Compile all subagent results into a single **Code Health Report** artifact:
 ## Automated Assertion Results
 | Assertion | Status | Details |
 |-----------|--------|---------|
-| Layer Boundaries (`check`) | ✅/❌ | ... |
-| Naming Conventions (`assert_naming`) | ✅/❌ | ... |
-| Test Coverage (`assert_tests`) | ✅/❌ | ... |
+| Layer Boundaries (`graphify arch audit`) | ✅/❌ | ... |
+| Naming Conventions (`graphify arch analyze`) | ✅/❌ | ... |
+| Config Consistency (`graphify arch analyze`) | ✅/❌ | ... |
+
+## Graphify Knowledge Graph Insights
+- **God Nodes**: [list files with highest centrality and their risk profile]
+- **Surprising Connections**: [cross-community couplings that indicate architectural drift]
+- **Community Cohesion Issues**: [features scattered across unrelated communities]
+- **Suggested Investigation**: [graphify's suggested questions applied as audit angles]
 
 ## Complexity Hotspots
 [Table of files with high API count or line count]
@@ -160,19 +182,19 @@ Compile all subagent results into a single **Code Health Report** artifact:
 [Prioritized list of refactoring tasks]
 ```
 
-### Step 5: Cache Update & Finalization
-For each audited file, update the cache to reflect the new status (appending `--dart` or `--rust` accordingly).
+### Step 6: Status Update & Finalization
+For each audited file, update its status in the graph to reflect the audit result.
 
 > [!IMPORTANT]
-> A file is compliant and can be marked as `COMPLIANT` in the cache ONLY if it has been thoroughly analyzed by a separate cognitive/auditor agent (such as the `architecture-auditor` or `symmetry-checker` subagent) for various architectural principles. Do NOT mark changed files as `COMPLIANT` without a proper multi-agent audit as described in Step 3.
+> A file is compliant and can be marked as `COMPLIANT` ONLY if it has been thoroughly analyzed by a separate cognitive/auditor agent (such as the `architecture-auditor` or `symmetry-checker` subagent) for various architectural principles. Do NOT mark changed files as `COMPLIANT` without a proper multi-agent audit as described in Step 3.
 
 - **If Compliant across all dimensions**:
   ```powershell
-  dart .agents/plugins/arch-linter/scripts/arch_linter.dart update <file_path> COMPLIANT "" "<responsibility>" "<pattern>" --dart
+  graphify arch set-status --path <file_path> --status COMPLIANT
   ```
-- **If Violations Detected** (separate multiple descriptions with `|`):
+- **If Violations Detected**:
   ```powershell
-  dart .agents/plugins/arch-linter/scripts/arch_linter.dart update <file_path> VIOLATION_DETECTED "SRP: too many responsibilities | DRY: duplicated logic in sibling" "<responsibility>" "<pattern>" --dart
+  graphify arch set-status --path <file_path> --status VIOLATION_DETECTED
   ```
 
 ---

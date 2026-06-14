@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../presentation/node_render_state.dart';
 import 'collapsible_sidebar.dart';
-import '../../../presentation/graph_presentation_notifier.dart';
 import 'package:mycelium/shared/utils/color_utils.dart';
 import 'inspector/appearance_tab.dart';
 import 'inspector/data_tab.dart';
@@ -18,7 +17,6 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
   @override
   Widget build(BuildContext context) {
     final renderState = context.watch<NodeRenderState>();
-    final dataController = context.watch<GraphPresentationNotifier>().controller;
     final selectedEntities = renderState.selectedEntities;
     final isSelected = selectedEntities.isNotEmpty;
 
@@ -42,11 +40,11 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                       child: activeTab == InspectorTab.appearance
                           ? AppearanceTab(
                               selectedEntities: selectedEntities,
-                              dataController: dataController,
+                              renderState: renderState,
                             )
                           : DataTab(
                               nodeId: selectedEntities.first,
-                              dataController: dataController,
+                              renderState: renderState,
                             ),
                     );
                   },

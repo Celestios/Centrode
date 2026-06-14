@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../store/graph_data_controller.dart';
+import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/shared/utils/color_utils.dart';
@@ -7,12 +7,12 @@ import 'package:mycelium/shared/widgets/color_palette/color_palette.dart';
 
 class AppearanceTab extends StatelessWidget {
   final Set<String> selectedEntities;
-  final GraphDataController dataController;
+  final NodeRenderState renderState;
 
   const AppearanceTab({
     super.key,
     required this.selectedEntities,
-    required this.dataController,
+    required this.renderState,
   });
 
   NodeStyle _getEffectiveStyle(UiNode node) {
@@ -21,10 +21,10 @@ class AppearanceTab extends StatelessWidget {
 
   void _updateSelectedNodesStyle(
     List<String> nodeIds,
-    GraphDataController dataController,
+    NodeRenderState renderState,
     NodeStyle Function(NodeStyle style) updateFn,
   ) {
-    dataController.updateNodesStyle(nodeIds, updateFn);
+    renderState.updateNodesStyle(nodeIds, updateFn);
   }
 
   Widget _buildSectionHeader(ThemeData theme, String title, {IconData? icon}) {
@@ -121,10 +121,10 @@ class AppearanceTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final nodeIds = selectedEntities
-        .where((id) => dataController.nodeLookup.containsKey(id))
+        .where((id) => renderState.getNode(id) != null)
         .toList();
     final relationIds = selectedEntities
-        .where((id) => dataController.relationLookup.containsKey(id))
+        .where((id) => renderState.getRelation(id) != null)
         .toList();
 
     if (nodeIds.isEmpty && relationIds.isEmpty) {
@@ -135,7 +135,7 @@ class AppearanceTab extends StatelessWidget {
     }
 
     if (relationIds.isNotEmpty && nodeIds.isEmpty) {
-      final firstRelation = dataController.relationLookup[relationIds.first]!;
+      final firstRelation = renderState.getRelation(relationIds.first)!;
       final currentStrategy = firstRelation.layout?.strategyType ?? 'default';
 
       return Column(
@@ -148,7 +148,7 @@ class AppearanceTab extends StatelessWidget {
               Expanded(
                 child: TextButton.icon(
                   onPressed: () {
-                    dataController.updateRelationsLayout(
+                    renderState.updateRelationsLayout(
                       relationIds,
                       strategyType: 'default',
                     );
@@ -202,7 +202,7 @@ class AppearanceTab extends StatelessWidget {
               Expanded(
                 child: TextButton.icon(
                   onPressed: () {
-                    dataController.updateRelationsLayout(
+                    renderState.updateRelationsLayout(
                       relationIds,
                       strategyType: 'bezier',
                     );
@@ -244,7 +244,7 @@ class AppearanceTab extends StatelessWidget {
               Expanded(
                 child: TextButton.icon(
                   onPressed: () {
-                    dataController.updateRelationsLayout(
+                    renderState.updateRelationsLayout(
                       relationIds,
                       strategyType: 'orthogonal',
                     );
@@ -288,7 +288,7 @@ class AppearanceTab extends StatelessWidget {
       );
     }
 
-    final firstNode = dataController.nodeLookup[nodeIds.first]!;
+    final firstNode = renderState.getNode(nodeIds.first)!;
     final currentStyle = _getEffectiveStyle(firstNode);
 
     return Column(
@@ -302,7 +302,7 @@ class AppearanceTab extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: () => _updateSelectedNodesStyle(
                   nodeIds,
-                  dataController,
+                  renderState,
                   (style) => style.copyWith(shape: 'rectangle'),
                 ),
                 icon: const Icon(Icons.crop_square, size: 16),
@@ -324,7 +324,7 @@ class AppearanceTab extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: () => _updateSelectedNodesStyle(
                   nodeIds,
-                  dataController,
+                  renderState,
                   (style) => style.copyWith(shape: 'circle'),
                 ),
                 icon: const Icon(Icons.circle_outlined, size: 16),
@@ -352,7 +352,7 @@ class AppearanceTab extends StatelessWidget {
           showAlpha: true,
           onColorSelected: (col) => _updateSelectedNodesStyle(
             nodeIds,
-            dataController,
+            renderState,
             (style) => style.copyWith(
               bgColor: col.toARGB32(),
               textColor: ColorUtils.getContrastTextColorInt(col.toARGB32()),
@@ -369,7 +369,7 @@ class AppearanceTab extends StatelessWidget {
           max: 24,
           onChanged: (val) => _updateSelectedNodesStyle(
             nodeIds,
-            dataController,
+            renderState,
             (style) => style.copyWith(fontSize: val),
           ),
         ),
@@ -382,7 +382,7 @@ class AppearanceTab extends StatelessWidget {
           max: 24,
           onChanged: (val) => _updateSelectedNodesStyle(
             nodeIds,
-            dataController,
+            renderState,
             (style) => style.copyWith(borderRadius: val),
           ),
         ),
@@ -395,7 +395,7 @@ class AppearanceTab extends StatelessWidget {
           max: 6,
           onChanged: (val) => _updateSelectedNodesStyle(
             nodeIds,
-            dataController,
+            renderState,
             (style) => style.copyWith(strokeWidth: val.round()),
           ),
         ),
