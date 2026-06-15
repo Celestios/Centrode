@@ -10,6 +10,8 @@ import 'package:mycelium/features/graph/presentation/view_state.dart';
 import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/relation_style_strategy.dart';
+import 'package:mycelium/features/graph/presentation/strategies/relation_layout_strategy.dart';
+import 'package:mycelium/features/graph/presentation/routing/relation_layout_context.dart';
 import 'package:mycelium/presentation/widgets/template_manager/save_template_dialog.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/ui/widgets/overlays/horizontal_text_format_toolbar.dart';
@@ -54,6 +56,7 @@ class ContextToolbarOverlay extends StatelessWidget {
       viewportController.transformController,
       renderState.activeTextSelectionNotifier,
       renderState.activeLeftPanelNotifier,
+      renderState,
     ];
     final List<NodeViewState> selectedViewStates = [];
     final List<UiRelation> selectedRelations = [];
@@ -81,8 +84,7 @@ class ContextToolbarOverlay extends StatelessWidget {
     return ListenableBuilder(
       listenable: Listenable.merge(listenables),
       builder: (context, _) {
-        final selection = renderState.activeTextSelectionNotifier.value;
-        final isTextSelectionActive = selection != null && !selection.isCollapsed;
+        final isEditing = renderState.activeEditId != null;
 
         final matrix = viewportController.transformController.value;
         final scale = matrix.getMaxScaleOnAxis();
@@ -100,33 +102,77 @@ class ContextToolbarOverlay extends StatelessWidget {
         final double topThreshold = 112.0; // Clear the ribbon area
         const double margin = 12.0; // Margin gap in canvas space
 
-        if (isTextSelectionActive && selectedViewStates.isNotEmpty) {
-          final vs = selectedViewStates.first;
-          final size = Size(
-            vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width,
-            vs.sizeNotifier.value.height,
-          );
+        if (isEditing) {
+          final String editedId = renderState.activeEditId!;
+          
+          final vs = renderState.viewStates[editedId];
+          final Offset anchorCanvas;
+          final double entityHeight;
+          
+          if (vs != null) {
+            final size = Size(
+              vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width,
+              vs.sizeNotifier.value.height,
+            );
+            anchorCanvas = vs.positionNotifier.value + Offset(size.width / 2, 0);
+            entityHeight = size.height;
+          } else {
+            UiRelation? rel;
+            try {
+              rel = dataController.relations.firstWhere((r) => r.id == editedId);
+            } catch (_) {}
+            
+            if (rel != null) {
+              final fromVs = renderState.viewStates[rel.fromNodeId];
+              final toVs = renderState.viewStates[rel.toNodeId];
+              if (fromVs != null && toVs != null) {
+                final layoutStrategy = RelationLayoutStrategy.fromType(
+                  rel.layout?.strategyType,
+                );
+                final (start, end) = layoutStrategy.resolveEndpoints(
+                  rel,
+                  fromVs,
+                  toVs,
+                );
+                final layoutContext = RelationLayoutContext(
+                  nodeViewStates: renderState.viewStates,
+                  relations: dataController.relations.toList(),
+                  pathCache: renderState.relationPathCache,
+                );
+                final labelPos = layoutStrategy.computeLabelPosition(
+                  start,
+                  end,
+                  fromVs,
+                  toVs,
+                  rel,
+                  layoutContext,
+                );
+                
+                anchorCanvas = labelPos;
+                entityHeight = 0;
+              } else {
+                return const SizedBox.shrink();
+              }
+            } else {
+              return const SizedBox.shrink();
+            }
+          }
 
-          // Center horizontally at the top edge of the node in canvas space
-          final topCenterCanvas = vs.positionNotifier.value + Offset(size.width / 2, 0);
           final screenPosition = MatrixUtils.transformPoint(
             matrix,
-            topCenterCanvas,
+            anchorCanvas,
           );
 
           const double toolbarWidth = 280;
           const double toolbarHeight = 44;
 
-          // Scale the gap distance by zoom scale
           double toolbarLeft = screenPosition.dx - (toolbarWidth / 2);
           double toolbarTop = screenPosition.dy - toolbarHeight - (margin * scale);
 
-          // If horizontal formatting toolbar overflows topThreshold, position it below the node instead
           if (toolbarTop < topThreshold) {
-            toolbarTop = screenPosition.dy + (size.height * scale) + (margin * scale);
+            toolbarTop = screenPosition.dy + (entityHeight * scale) + (margin * scale);
           }
 
-          // Clamp horizontally to keep it within leftPanel/right panel thresholds
           toolbarLeft = toolbarLeft.clamp(leftThreshold, rightThreshold - toolbarWidth);
 
           return Positioned(
