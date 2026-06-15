@@ -1,6 +1,6 @@
 import 'package:mycelium/src/rust/bridge/api.dart';
-import '../../store/graph_data_controller.dart';
 import 'base.dart';
+import 'graph_command_context.dart';
 
 class InstantiateTemplateCommand extends GraphCommand {
   @override
@@ -8,7 +8,7 @@ class InstantiateTemplateCommand extends GraphCommand {
   final AppHandle api;
   final double targetX;
   final double targetY;
-  final GraphDataController controller;
+  final GraphCommandContext controller;
 
   InstantiateTemplateCommand({
     required this.targetId,

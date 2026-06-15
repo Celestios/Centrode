@@ -2,10 +2,10 @@ import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
-import '../../store/graph_data_controller.dart';
 import '../../store/graph_data_query.dart';
 import '../graph_relation.dart';
 import 'base.dart';
+import 'graph_command_context.dart';
 
 class UpdateRelationsLayoutCommand extends GraphCommand {
   @override
@@ -16,7 +16,7 @@ class UpdateRelationsLayoutCommand extends GraphCommand {
   final Map<String, RelationStyle?> oldStyles;
   final Map<String, RelationStyle?> newStyles;
   final Map<String, UiRelation> oldRelations;
-  final GraphDataController controller;
+  final GraphCommandContext controller;
 
   UpdateRelationsLayoutCommand({
     required this.targetId,

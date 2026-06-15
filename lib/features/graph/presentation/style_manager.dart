@@ -6,7 +6,7 @@ import 'package:mycelium/features/graph/presentation/strategies/relation_style_s
 import 'package:mycelium/features/graph/presentation/strategies/significance_strategy.dart';
 import 'package:mycelium/features/graph/store/modules/graph_store.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' show DisplayMode;
-import 'package:mycelium/features/graph/store/graph_data_controller.dart'
+import 'package:mycelium/features/graph/models/commands/graph_command_context.dart'
     show GraphStyleUpdater;
 
 class StyleManager implements GraphStyleUpdater {

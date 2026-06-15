@@ -62,7 +62,19 @@ Version is shared between `pubspec.yaml` and `rust/Cargo.toml`. Use `dart script
 
 Knowledge graph at `graphify-out/`. When user types `/graphify`, invoke the `skill` tool with `skill: "graphify"`. After code changes, run `graphify update .` to keep graph current.
 
+## Tool Usage
+
+- **Actor tool requires `operation` object:** Always pass a single `operation` JSON object with `action` as discriminator. All params (`prompt`, `description`, `subagent_type`, `context`) go inside `operation`, NOT as top-level params.
+  - Wrong: `actor({prompt: "...", subagent_type: "explore"})`
+  - Correct: `actor({"operation": {"action": "run", "subagent_type": "explore", "description": "...", "prompt": "..."}})`
+
 ## Style Rules
 
 - No error handling, no fallbacks, use standard logging, no migrations
 - Don't add comments unless asked
+
+Rules:
+- Respect the architectural boundaries defined in `graphify-out/arch/config.json` when proposing or making code changes.
+- Before proposing changes, run `graphify arch audit` to check for existing violations.
+- After making code changes, run `graphify arch audit` to verify compliance.
+- Use `graphify arch compile-context --target <node_id>` to understand the impact of changes on dependent code.

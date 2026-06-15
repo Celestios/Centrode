@@ -28,8 +28,7 @@ import 'package:mycelium/presentation/widgets/tag_manager/global_tags_manager_pa
 import 'package:mycelium/presentation/widgets/template_manager/global_templates_manager_panel.dart';
 import 'package:mycelium/presentation/widgets/template_manager/save_template_dialog.dart';
 import 'package:mycelium/presentation/widgets/drawing_manager/global_drawing_panel.dart';
-import 'package:flutter/gestures.dart';
-import 'package:flutter/rendering.dart';
+import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
@@ -58,7 +57,8 @@ class _GraphCanvasState extends State<GraphCanvas>
 
   void _updateMousePosition(Offset localPosition) {
     final now = DateTime.now().millisecondsSinceEpoch;
-    if (now - _lastMousePosMs >= 16) { // ~60fps
+    if (now - _lastMousePosMs >= 16) {
+      // ~60fps
       _lastMousePosMs = now;
       _mousePositionNotifier.value = localPosition;
     }
@@ -170,7 +170,8 @@ class _GraphCanvasState extends State<GraphCanvas>
   void _onToolModeChanged() {
     final mode = _boundSession?.toolModeNotifier.value;
     final renderState = context.read<NodeRenderState>();
-    if (mode != 'draw' && renderState.activeLeftPanelNotifier.value == LeftPanelType.draw) {
+    if (mode != 'draw' &&
+        renderState.activeLeftPanelNotifier.value == LeftPanelType.draw) {
       renderState.activeLeftPanelNotifier.value = LeftPanelType.none;
     }
   }
@@ -210,7 +211,8 @@ class _GraphCanvasState extends State<GraphCanvas>
             settings: GlassSettings(
               refractStrength: AppConfig.liquidGlass.refractStrength,
               bridgeReachFactor: AppConfig.liquidGlass.bridgeReachFactor,
-              bridgeThicknessFactor: AppConfig.liquidGlass.bridgeThicknessFactor,
+              bridgeThicknessFactor:
+                  AppConfig.liquidGlass.bridgeThicknessFactor,
               useLocalCoordinates: AppConfig.liquidGlass.useLocalCoordinates,
             ),
             backdropRepaint: backdropRepaintListenable,
@@ -306,78 +308,92 @@ class _GraphCanvasState extends State<GraphCanvas>
                                     // final viewerPanEnabled = isDrawMode
                                     //     ? false
                                     //     : panScaleEnabled;
-                                    final viewerPanEnabled = panScaleEnabled && renderState.activeEditId == null;
-                                    return CanvasInteractiveViewer(
-                                      transformationController:
+                                    final viewerPanEnabled =
+                                        panScaleEnabled &&
+                                        renderState.activeEditId == null;
+                                    return GestureDetector(
+                                      behavior: HitTestBehavior.deferToChild,
+                                      onTap: renderState.activeEditId != null
+                                          ? null
+                                          : () {
+                                              renderState.hideFloatingToolbar();
+                                            },
+                                      onDoubleTap: renderState.activeEditId != null
+                                          ? null
+                                          : () {},
+                                      onLongPress: renderState.activeEditId != null
+                                          ? null
+                                          : () {},
+                                      child: CanvasInteractiveViewer(
+                                        transformationController:
+                                            viewportController
+                                                .transformController,
+                                        constrained: true,
+                                        clipBehavior: Clip.none,
+                                        boundaryMargin: elasticMargins,
+                                        minScale: AppConfig.canvas.minScale,
+                                        maxScale: AppConfig.canvas.maxScale,
+                                        scaleFactor: AppConfig.canvas.scaleFactor,
+                                        panEnabled: viewerPanEnabled,
+                                        scaleEnabled: viewerPanEnabled,
+                                        onInteractionEnd: (details) {
                                           viewportController
-                                              .transformController,
-                                      constrained: true,
-                                      boundaryMargin: elasticMargins,
-                                      minScale: AppConfig.canvas.minScale,
-                                      maxScale: AppConfig.canvas.maxScale,
-                                      scaleFactor: AppConfig.canvas.scaleFactor,
-                                      panEnabled: viewerPanEnabled,
-                                      scaleEnabled: viewerPanEnabled,
-                                      onInteractionEnd: (details) {
-                                        viewportController
-                                            .recalculateElasticMargins();
-                                      },
-                                      child: child!,
+                                              .recalculateElasticMargins();
+                                        },
+                                        child: child!,
+                                      ),
                                     );
                                   },
                                 );
                               },
-                              child: AllowOutOfBoundsHitTest(
-                                child: GestureDetector(
-                                  onTap: renderState.activeEditId != null
-                                      ? null
-                                      : () {
-                                          renderState.hideFloatingToolbar();
-                                        },
-                                  onDoubleTap: renderState.activeEditId != null
-                                      ? null
-                                      : () {},
-                                  onLongPress: renderState.activeEditId != null
-                                      ? null
-                                      : () {},
-                                  child: Stack(
-                                    clipBehavior: Clip.none,
-                                  children: [
-                                    ValueListenableBuilder<ViewportStateGrid>(
-                                      valueListenable: viewportController
-                                          .viewportStateNotifier,
-                                      builder: (context, state, _) {
-                                        return GridLayer(
-                                          viewportState: state,
-                                          mousePositionNotifier:
-                                              _mousePositionNotifier,
+                              child: UnboundedStack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  ValueListenableBuilder<
+                                    ViewportStateGrid
+                                  >(
+                                    valueListenable: viewportController
+                                        .viewportStateNotifier,
+                                    builder: (context, state, _) {
+                                      return GridLayer(
+                                        viewportState: state,
+                                        mousePositionNotifier:
+                                            _mousePositionNotifier,
+                                      );
+                                    },
+                                  ),
+                                  const RelationLayer(),
+                                  const NodeLayer(),
+                                  const OverlayLayer(),
+                                  if (_drawingInterceptor != null)
+                                    ValueListenableBuilder<List<Offset>>(
+                                      valueListenable:
+                                          _drawingInterceptor!
+                                              .activeStroke,
+                                      builder: (context, stroke, _) {
+                                        if (stroke.isEmpty) {
+                                          return const SizedBox.shrink();
+                                        }
+                                        return IgnorePointer(
+                                          child: CustomPaint(
+                                            painter: ActiveDrawingPainter(
+                                              points: stroke,
+                                              brushColor: session
+                                                  .brushColorNotifier
+                                                  .value,
+                                              brushThickness: session
+                                                  .brushThicknessNotifier
+                                                  .value,
+                                              brushType: session
+                                                  .brushTypeNotifier
+                                                  .value,
+                                            ),
+                                          ),
                                         );
                                       },
                                     ),
-                                    const RelationLayer(),
-                                    const NodeLayer(),
-                                    const OverlayLayer(),
-                                    if (_drawingInterceptor != null)
-                                      ValueListenableBuilder<List<Offset>>(
-                                        valueListenable: _drawingInterceptor!.activeStroke,
-                                        builder: (context, stroke, _) {
-                                          if (stroke.isEmpty) return const SizedBox.shrink();
-                                          return IgnorePointer(
-                                            child: CustomPaint(
-                                              painter: ActiveDrawingPainter(
-                                                points: stroke,
-                                                brushColor: session.brushColorNotifier.value,
-                                                brushThickness: session.brushThicknessNotifier.value,
-                                                brushType: session.brushTypeNotifier.value,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                  ],
-                                ),
+                                ],
                               ),
-                            ),
                             );
                           },
                         );
@@ -477,11 +493,14 @@ class _GraphCanvasState extends State<GraphCanvas>
                                     minWidth: 280.0,
                                     maxWidth: 280.0,
                                     minHeight: 180,
-                                    maxHeight: (constraints.maxHeight - 112 - 86)
-                                        .clamp(180, 10000)
-                                        .toDouble(),
+                                    maxHeight:
+                                        (constraints.maxHeight - 112 - 86)
+                                            .clamp(180, 10000)
+                                            .toDouble(),
                                   ),
-                                  child: _buildLeftPanelContent(activeLeftPanel),
+                                  child: _buildLeftPanelContent(
+                                    activeLeftPanel,
+                                  ),
                                 ),
                               ),
                             ),
@@ -554,26 +573,6 @@ class _GraphCanvasState extends State<GraphCanvas>
       case LeftPanelType.none:
         return const SizedBox.shrink();
     }
-  }
-}
-
-class AllowOutOfBoundsHitTest extends SingleChildRenderObjectWidget {
-  const AllowOutOfBoundsHitTest({super.key, required super.child});
-
-  @override
-  RenderAllowOutOfBoundsHitTest createRenderObject(BuildContext context) {
-    return RenderAllowOutOfBoundsHitTest();
-  }
-}
-
-class RenderAllowOutOfBoundsHitTest extends RenderProxyBox {
-  @override
-  bool hitTest(BoxHitTestResult result, {required Offset position}) {
-    if (hitTestChildren(result, position: position) || hitTestSelf(position)) {
-      result.add(BoxHitTestEntry(this, position));
-      return true;
-    }
-    return false;
   }
 }
 

@@ -9,6 +9,7 @@ import '../../../models/models.dart';
 import '../relation_painter.dart';
 import '../canvas_text_editor.dart';
 import '../../../presentation/routing/relation_layout_context.dart';
+import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 
 class RelationLayer extends StatelessWidget {
   const RelationLayer({super.key});
@@ -115,7 +116,7 @@ class RelationLayer extends StatelessWidget {
               }
             }
 
-            return Stack(
+            return UnboundedStack(
               clipBehavior: Clip.none,
               children: [
                 // Base Painter

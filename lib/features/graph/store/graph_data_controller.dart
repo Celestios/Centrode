@@ -15,11 +15,10 @@ import 'modules/graph_node_mutations.dart';
 import 'modules/graph_relation_mutations.dart';
 import 'modules/graph_property_mutations.dart';
 import 'modules/graph_template_mutations.dart';
+import '../models/commands/graph_command_context.dart';
 
-abstract class GraphStyleUpdater {
-  void updateStyleForNode(String id);
-  void updateStyleForRelation(String id);
-}
+export '../models/commands/graph_command_context.dart'
+    show GraphStyleUpdater;
 
 /// High-level orchestrator utilizing Clean Class Composition.
 ///
@@ -30,14 +29,16 @@ abstract class GraphStyleUpdater {
 /// - **GraphNodeMutations**: Handles node mutations (create, delete, move, resize).
 /// - **GraphRelationMutations**: Handles relation mutations (create).
 /// - **GraphPropertyMutations**: Handles property mutations (text, styling).
-class GraphDataController implements GraphDataQuery {
+class GraphDataController implements GraphDataQuery, GraphCommandContext {
   final Logger _log = Logger('GraphDataController');
 
   // ===========================================================================
   // Domain Modules (Composition)
   // ===========================================================================
 
+  @override
   late final GraphStore store;
+  @override
   late final GraphSpatial spatial;
   late final GraphSyncEngine syncEngine;
 
@@ -49,6 +50,7 @@ class GraphDataController implements GraphDataQuery {
   // Dependency Inversion Hooks
   Size Function(UiNode, {bool isEditing})? sizeCalculator;
   NodeStyle Function(UiNode)? styleResolver;
+  @override
   GraphStyleUpdater? styleUpdater;
 
   // ===========================================================================
@@ -62,6 +64,7 @@ class GraphDataController implements GraphDataQuery {
   Stream<GraphEntityUpdate> get onEntityUpdate =>
       _entityUpdateController.stream;
 
+  @override
   void publishUpdate(GraphEntityUpdate update) {
     _entityUpdateController.add(update);
   }
@@ -193,6 +196,7 @@ class GraphDataController implements GraphDataQuery {
     triggerUpdate();
   }
 
+  @override
   void triggerUpdate() {
     publishUpdate(
       GraphEntityUpdate(id: '', tableName: '', type: GraphUpdateType.reset),
@@ -203,6 +207,7 @@ class GraphDataController implements GraphDataQuery {
   // Delegator Methods (Public API Contract)
   // ===========================================================================
 
+  @override
   Future<void> loadGraph() async {
     isLoading = true;
     triggerUpdate();

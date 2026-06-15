@@ -1,9 +1,9 @@
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
-import '../../store/graph_data_controller.dart';
 import '../../store/graph_data_query.dart';
 import '../graph_node.dart';
 import 'base.dart';
+import 'graph_command_context.dart';
 
 class UpdateCommentsCommand extends GraphCommand {
   @override
@@ -11,7 +11,7 @@ class UpdateCommentsCommand extends GraphCommand {
   final AppHandle api;
   final UiNode node;
   final List<frb.Comment> oldComments;
-  final GraphDataController controller;
+  final GraphCommandContext controller;
 
   UpdateCommentsCommand({
     required this.targetId,

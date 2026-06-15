@@ -32,6 +32,9 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   bool _isCommitted = false;
   bool _isAborted = false;
 
+  final _gestureDelegate = _CanvasGestureDelegate();
+  late final TextSelectionGestureDetectorBuilder _gestureBuilder;
+
   // Cache dependencies to survive unmount lookups
   late NodeRenderState _renderState;
 
@@ -47,6 +50,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
 
     _controller.addListener(_onControllerChanged);
     _focusNode = FocusNode();
+    _gestureBuilder = TextSelectionGestureDetectorBuilder(delegate: _gestureDelegate);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -162,40 +166,40 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
               width: 1.5,
             ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
           child: Theme(
             data: Theme.of(context).copyWith(
               textSelectionTheme: const TextSelectionThemeData(
-                selectionColor: Color(0x602196F3), // Highly visible selection highlight
+                selectionColor: Color(0x602196F3),
                 selectionHandleColor: Color(0xFF2196F3),
                 cursorColor: Color(0xFF2196F3),
               ),
             ),
             child: Material(
               type: MaterialType.transparency,
-              child: TextField(
-                controller: _controller,
-                focusNode: _focusNode,
-                maxLines: widget.maxLines,
-                minLines: widget.maxLines == null ? 1 : null,
-                expands: false,
-                textAlign: TextAlign.center,
-                textAlignVertical: TextAlignVertical.center,
-                autofocus: true,
-                cursorColor: const Color(0xFF2196F3),
-                style: widget.textStyle,
-                strutStyle: StrutStyle.fromTextStyle(
-                  widget.textStyle,
-                  forceStrutHeight: true,
+              child: _gestureBuilder.buildGestureDetector(
+                behavior: HitTestBehavior.translucent,
+                child: EditableText(
+                  key: _gestureDelegate.editableTextKey,
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  maxLines: widget.maxLines,
+                  minLines: widget.maxLines == null ? 1 : null,
+                  expands: false,
+                  textAlign: TextAlign.center,
+                  autofocus: true,
+                  cursorColor: const Color(0xFF2196F3),
+                  backgroundCursorColor: Colors.grey,
+                  selectionColor: const Color(0x602196F3),
+                  style: widget.textStyle,
+                  strutStyle: StrutStyle.disabled,
+                  selectionControls: MaterialTextSelectionControls(),
+                  showSelectionHandles: false,
+                  magnifierConfiguration: TextMagnifierConfiguration.disabled,
+                  onTapOutside: (event) {
+                    // Intercepted to prevent automatic focus loss
+                  },
                 ),
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                onTapOutside: (event) {
-                  // Intercepted to prevent automatic focus loss
-                },
               ),
             ),
           ),
@@ -203,4 +207,15 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
       ),
     );
   }
+}
+
+class _CanvasGestureDelegate implements TextSelectionGestureDetectorBuilderDelegate {
+  @override
+  final GlobalKey<EditableTextState> editableTextKey = GlobalKey<EditableTextState>();
+
+  @override
+  bool get forcePressEnabled => false;
+
+  @override
+  bool get selectionEnabled => true;
 }

@@ -1,9 +1,9 @@
 import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
-import '../../store/graph_data_controller.dart';
 import '../../store/graph_data_query.dart';
 import '../graph_relation.dart';
 import 'base.dart';
+import 'graph_command_context.dart';
 
 final _log = Logger('CreateRelationCommand');
 
@@ -12,7 +12,7 @@ class CreateRelationCommand extends GraphCommand {
   String targetId;
   final AppHandle api;
   final UiRelation relation;
-  final GraphDataController controller;
+  final GraphCommandContext controller;
 
   CreateRelationCommand({
     required this.targetId,

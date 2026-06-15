@@ -1,7 +1,7 @@
 import 'package:mycelium/src/rust/bridge/api.dart';
-import '../../store/graph_data_controller.dart';
 import '../../store/graph_data_query.dart';
 import '../models.dart';
+import 'graph_command_context.dart';
 
 /// Command for deleting a node with rollback support.
 /// Captures the node data for restoration on FFI failure.
@@ -11,7 +11,7 @@ class DeleteNodeCommand extends GraphCommand {
   final AppHandle api;
   final String tableName;
   final UiNode node;
-  final GraphDataController controller;
+  final GraphCommandContext controller;
 
   DeleteNodeCommand({
     required this.targetId,

@@ -9,5 +9,5 @@
 *.freezed.dart
 *.g.dart
 *.mocks.dart
-lib/src/rust/
-
+lib/src/
+rust/src/frb_generated.rs

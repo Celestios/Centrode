@@ -3,9 +3,9 @@ import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
-import '../../store/graph_data_controller.dart';
 import '../../store/graph_data_query.dart';
 import 'base.dart';
+import 'graph_command_context.dart';
 
 class UpdateNodesStyleCommand extends GraphCommand {
   @override
@@ -15,7 +15,7 @@ class UpdateNodesStyleCommand extends GraphCommand {
   final Map<String, NodeStyle> newStyles;
   final Map<String, Size> oldSizes;
   final Map<String, Size> newSizes;
-  final GraphDataController controller;
+  final GraphCommandContext controller;
 
   UpdateNodesStyleCommand({
     required this.targetId,

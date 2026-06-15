@@ -5,6 +5,7 @@ import '../../../models/models.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../presentation/viewport_state.dart';
 import '../node_widget.dart';
+import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 
 class NodeLayer extends StatelessWidget {
   const NodeLayer({super.key});
@@ -20,44 +21,45 @@ class NodeLayer extends StatelessWidget {
       builder: (context, visibleIds, _) {
         final renderStack = uiState.zOrder.where(visibleIds.contains);
 
-        return Stack(
+        return UnboundedStack(
           clipBehavior: Clip.none,
-          children: renderStack.map((id) {
-            final node = query.nodeLookup[id]!;
-            final viewState = uiState.viewStates[id]!;
-            final isSelected = uiState.selectedEntities.contains(id);
-            final isEditing = uiState.activeEditId == id;
+            children: renderStack.map((id) {
+              final node = query.nodeLookup[id]!;
+              final viewState = uiState.viewStates[id]!;
+              final isSelected = uiState.selectedEntities.contains(id);
+              final isEditing = uiState.activeEditId == id;
 
-            return ListenableBuilder(
-              listenable: viewState.positionNotifier,
-              builder: (context, _) {
-                final pos = viewState.positionNotifier.value;
-                return Positioned(
-                  key: ValueKey(id),
-                  left: pos.dx,
-                  top: pos.dy,
-                  child: RepaintBoundary(
-                    child: switch (node) {
-                      DrawingUiNode drawingNode => DrawNodeWidget(
-                        viewState: viewState,
-                        node: drawingNode,
-                        isSelected: isSelected,
-                        isEditing: isEditing,
-                      ),
-                      _ => NodeWidget(
-                        viewState: viewState,
-                        node: node,
-                        isSelected: isSelected,
-                        isEditing: isEditing,
-                      ),
-                    },
-                  ),
-                );
-              },
-            );
-          }).toList(),
-        );
-      },
-    );
+              return ListenableBuilder(
+                listenable: viewState.positionNotifier,
+                builder: (context, _) {
+                  final pos = viewState.positionNotifier.value;
+                  return Positioned(
+                    key: ValueKey(id),
+                    left: pos.dx,
+                    top: pos.dy,
+                    child: RepaintBoundary(
+                      child: switch (node) {
+                        DrawingUiNode drawingNode => DrawNodeWidget(
+                          viewState: viewState,
+                          node: drawingNode,
+                          isSelected: isSelected,
+                          isEditing: isEditing,
+                        ),
+                        _ => NodeWidget(
+                          viewState: viewState,
+                          node: node,
+                          isSelected: isSelected,
+                          isEditing: isEditing,
+                        ),
+                      },
+                    ),
+                  );
+                },
+              );
+            }).toList(),
+          );
+        },
+      );
   }
 }
+

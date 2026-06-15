@@ -13,4 +13,8 @@ Rules:
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context
 - After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)
 - **Architecture enforcement**: Use `graphify arch audit` to check layer/tier boundary violations, `graphify arch analyze` for naming and config validation, and `graphify arch query-file` for per-file metadata (layer, tier, purity, dependencies). graphify arch is the single source for code health and architectural compliance.
+- Respect the architectural boundaries defined in `graphify-out/arch/config.json` when proposing or making code changes.
+- Before proposing changes, run `graphify arch audit` to check for existing violations.
+- After making code changes, run `graphify arch audit` to verify compliance.
+- Use `graphify arch compile-context --target <node_id>` to understand the impact of changes on dependent code.
 

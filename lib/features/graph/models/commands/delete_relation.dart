@@ -1,8 +1,8 @@
 import 'package:mycelium/src/rust/bridge/api.dart';
-import '../../store/graph_data_controller.dart';
 import '../../store/graph_data_query.dart';
 import '../graph_relation.dart';
 import 'base.dart';
+import 'graph_command_context.dart';
 
 class DeleteRelationCommand extends GraphCommand {
   @override
@@ -10,7 +10,7 @@ class DeleteRelationCommand extends GraphCommand {
   final AppHandle api;
   final String tableName;
   final UiRelation relation;
-  final GraphDataController controller;
+  final GraphCommandContext controller;
 
   DeleteRelationCommand({
     required this.targetId,

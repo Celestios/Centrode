@@ -1,15 +1,15 @@
 import 'package:mycelium/src/rust/bridge/api.dart';
-import '../../store/graph_data_controller.dart';
 import '../../store/graph_data_query.dart';
 import '../graph_node.dart';
 import 'base.dart';
+import 'graph_command_context.dart';
 
 class CreateNodeCommand extends GraphCommand {
   @override
   String targetId;
   final AppHandle api;
   final UiNode node;
-  final GraphDataController controller;
+  final GraphCommandContext controller;
 
   CreateNodeCommand({
     required this.targetId,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:logging/logging.dart';
-import '../presentation/graph_metrics.dart';
+import '../engine/config.dart';
 import 'base_interaction_state.dart';
 import 'interaction_context.dart';
 import 'gesture_interceptor.dart';
@@ -199,6 +199,13 @@ class InteractionController {
   /// Delegates to the current state's handlePointerCancel method.
   void handlePointerCancel(PointerCancelEvent e) {
     _log.warning('Pointer event cancelled by OS. Resetting FSM to Idle.');
+    // Run interceptors first
+    for (final interceptor in List<GestureInterceptor>.from(_interceptors)) {
+      final disposition = interceptor.onPointerCancel(e, environment);
+      if (disposition == InterceptorDisposition.consumed) {
+        return;
+      }
+    }
     _transitionTo(state.value.handlePointerCancel(e, environment));
   }
 

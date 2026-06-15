@@ -1,5 +1,4 @@
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
 import 'interaction_context.dart';
 
 /// The result of an interceptor's pointer event handling.
@@ -35,6 +34,12 @@ abstract class GestureInterceptor {
 
   InterceptorDisposition onPointerUp(
     PointerUpEvent e,
+    InteractionContext ctx,
+  ) =>
+      InterceptorDisposition.bubble;
+
+  InterceptorDisposition onPointerCancel(
+    PointerCancelEvent e,
     InteractionContext ctx,
   ) =>
       InterceptorDisposition.bubble;

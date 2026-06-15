@@ -3,9 +3,9 @@ import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/contents.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
-import '../../store/graph_data_controller.dart';
 import '../../store/graph_data_query.dart';
 import 'base.dart';
+import 'graph_command_context.dart';
 
 /// Command for updating text content with debounced write-behind sync.
 /// Handles both node text and relation labels with appropriate field mapping.
@@ -20,7 +20,7 @@ class UpdateTextCommand extends GraphCommand {
   final Size? newSize;
   final String? oldVerb;
   final String? newVerb;
-  final GraphDataController controller;
+  final GraphCommandContext controller;
 
   UpdateTextCommand({
     required this.targetId,
