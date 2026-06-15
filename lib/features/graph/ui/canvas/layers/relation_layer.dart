@@ -22,8 +22,7 @@ class RelationLayer extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Positioned.fill(
-      child: RepaintBoundary(
-        child: ListenableBuilder(
+      child: ListenableBuilder(
           listenable: Listenable.merge([
             uiController.movementNotifier,
             uiController,
@@ -121,15 +120,17 @@ class RelationLayer extends StatelessWidget {
               children: [
                 // Base Painter
                 Positioned.fill(
-                  child: CustomPaint(
-                    painter: RelationPainter(
-                      dataController.relations.toList(),
-                      uiController.viewStates,
-                      uiController.selectedEntities,
-                      pathCache: uiController.relationPathCache,
+                  child: RepaintBoundary(
+                    child: CustomPaint(
+                      painter: RelationPainter(
+                        dataController.relations.toList(),
+                        uiController.viewStates,
+                        uiController.selectedEntities,
+                        pathCache: uiController.relationPathCache,
 
-                      interactionState: interactionState,
-                      theme: theme,
+                        interactionState: interactionState,
+                        theme: theme,
+                      ),
                     ),
                   ),
                 ),
@@ -139,7 +140,6 @@ class RelationLayer extends StatelessWidget {
             );
           },
         ),
-      ),
-    );
+      );
   }
 }
