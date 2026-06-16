@@ -233,28 +233,36 @@ class NodeWidget extends StatelessWidget {
       children: [
         Expanded(
           child: isEditing
-              ? Center(
-                  child: CanvasTextEditor(
-                    entityId: liveNode.id,
-                    content: liveNode.content,
-                    maxLines: null,
-                    textStyle: TextStyle(
-                      fontSize: style.fontSize,
-                      fontFamily: style.fontFamily.isEmpty || style.fontFamily == 'System' ? null : style.fontFamily,
-                      color: Color(style.textColor),
+              ? Align(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: CanvasTextEditor(
+                      entityId: liveNode.id,
+                      content: liveNode.content,
+                      maxLines: null,
+                      textStyle: TextStyle(
+                        fontSize: style.fontSize,
+                        fontFamily: style.fontFamily.isEmpty || style.fontFamily == 'System' ? null : style.fontFamily,
+                        color: Color(style.textColor),
+                      ),
                     ),
                   ),
                 )
-              : Center(
-                  child: _buildRichText(
-                    context,
-                    liveNode.content,
-                    TextStyle(
-                      fontSize: style.fontSize,
-                      fontFamily: style.fontFamily.isEmpty || style.fontFamily == 'System' ? null : style.fontFamily,
-                      color: Color(style.textColor),
+              : Align(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: _buildRichText(
+                      context,
+                      liveNode.content,
+                      TextStyle(
+                        fontSize: style.fontSize,
+                        fontFamily: style.fontFamily.isEmpty || style.fontFamily == 'System' ? null : style.fontFamily,
+                        color: Color(style.textColor),
+                      ),
+                      viewState.isExpandedNotifier.value,
                     ),
-                    viewState.isExpandedNotifier.value,
                   ),
                 ),
         ),
@@ -330,6 +338,7 @@ class NodeRichText extends StatefulWidget {
 
 class _NodeRichTextState extends State<NodeRichText> {
   final List<TapGestureRecognizer> _recognizers = [];
+  TextSpan? _cachedTextSpan;
   List<(TextSpan, TextAlign)>? _cachedBlockSpans;
   Content? _cachedContent;
   TextStyle? _cachedBaseStyle;
@@ -347,40 +356,64 @@ class _NodeRichTextState extends State<NodeRichText> {
     _recognizers.clear();
   }
 
+  void _ensureBuilt() {
+    if (_cachedContent == widget.content && _cachedBaseStyle == widget.baseStyle) return;
+    _clearRecognizers();
+    _cachedContent = widget.content;
+    _cachedBaseStyle = widget.baseStyle;
+
+    _cachedTextSpan = NodeLayoutStrategy.buildRichTextSpan(
+      widget.content,
+      widget.baseStyle,
+      onLinkTap: (url) async {
+        final Uri uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        }
+      },
+      registerRecognizer: (recognizer) {
+        _recognizers.add(recognizer);
+      },
+    );
+
+    _cachedBlockSpans = NodeLayoutStrategy.buildPerBlockTextSpans(
+      widget.content,
+      widget.baseStyle,
+      onLinkTap: (url) async {
+        final Uri uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        }
+      },
+      registerRecognizer: (recognizer) {
+        _recognizers.add(recognizer);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_cachedBlockSpans == null ||
-        _cachedContent != widget.content ||
-        _cachedBaseStyle != widget.baseStyle) {
-      _clearRecognizers();
-      _cachedContent = widget.content;
-      _cachedBaseStyle = widget.baseStyle;
-      _cachedBlockSpans = NodeLayoutStrategy.buildPerBlockTextSpans(
-        widget.content,
-        widget.baseStyle,
-        onLinkTap: (url) async {
-          final Uri uri = Uri.parse(url);
-          if (await canLaunchUrl(uri)) {
-            await launchUrl(uri);
-          }
-        },
-        registerRecognizer: (recognizer) {
-          _recognizers.add(recognizer);
-        },
+    _ensureBuilt();
+
+    if (widget.isExpanded) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (int i = 0; i < _cachedBlockSpans!.length; i++)
+            Text.rich(
+              _cachedBlockSpans![i].$1,
+              textAlign: _cachedBlockSpans![i].$2,
+              overflow: TextOverflow.fade,
+            ),
+        ],
       );
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (int i = 0; i < _cachedBlockSpans!.length; i++)
-          Text.rich(
-            _cachedBlockSpans![i].$1,
-            textAlign: _cachedBlockSpans![i].$2,
-            overflow: TextOverflow.fade,
-            maxLines: widget.isExpanded ? null : AppConfig.node.collapsedLineLimit,
-          ),
-      ],
+    return Text.rich(
+      _cachedTextSpan!,
+      overflow: TextOverflow.fade,
+      maxLines: AppConfig.node.collapsedLineLimit,
     );
   }
 }
