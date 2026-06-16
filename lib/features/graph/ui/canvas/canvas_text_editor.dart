@@ -286,6 +286,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
                       minLines: widget.maxLines == null ? 1 : null,
                       expands: false,
                       textAlign: textAlign,
+                      textDirection: TextDirection.ltr,
                       autofocus: true,
                       cursorColor: const Color(0xFF2196F3),
                       backgroundCursorColor: Colors.grey,

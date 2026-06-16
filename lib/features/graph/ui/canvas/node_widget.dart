@@ -407,6 +407,7 @@ class _NodeRichTextState extends State<NodeRichText> {
 
     return Text.rich(
       _cachedTextSpan!,
+      textAlign: TextAlign.center,
       overflow: TextOverflow.fade,
       maxLines: AppConfig.node.collapsedLineLimit,
     );

@@ -93,18 +93,21 @@ class VerticalTextFormatToolbar extends StatelessWidget {
                 _buildButton(Icons.format_list_bulleted_rounded, 'Bullet List', onToggleBulletList, textColor, primaryColor),
                 _buildButton(Icons.format_list_numbered_rounded, 'Numbered List', onToggleOrderedList, textColor, primaryColor),
                 _buildButton(Icons.format_quote_rounded, 'Blockquote', onToggleBlockquote, textColor, primaryColor),
-                _buildButton(Icons.code_rounded, 'Code Block', onToggleCodeBlock, textColor, primaryColor),
-                _buildButton(Icons.text_fields_rounded, 'Normal Text', onClearBlockFormat, textColor, primaryColor),
-
-                _buildHorizontalDivider(theme),
-
-                _buildButton(Icons.insert_link_rounded, 'Insert Link', onAddHyperlink, textColor, primaryColor),
               ],
             ),
             _buildVerticalDivider(theme),
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                _buildButton(Icons.text_fields_rounded, 'Normal Text', onClearBlockFormat, textColor, primaryColor),
+                _buildButton(Icons.insert_link_rounded, 'Insert Link', onAddHyperlink, textColor, primaryColor),
+
+                _buildHorizontalDivider(theme),
+
+                _buildButton(Icons.code_rounded, 'Code Block', onToggleCodeBlock, textColor, primaryColor),
+
+                _buildHorizontalDivider(theme),
+
                 _buildButton(Icons.font_download_rounded, 'Font Family', () => _showFontPicker(context, textColor), textColor, primaryColor),
                 _buildButton(Icons.palette_outlined, 'Text Color', onCycleTextColor, textColor, primaryColor),
                 _buildButton(Icons.highlight_rounded, 'Highlight', onToggleHighlight, textColor, primaryColor),

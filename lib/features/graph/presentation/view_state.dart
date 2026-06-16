@@ -22,6 +22,8 @@ class NodeViewState {
       positionNotifier = ValueNotifier<Offset>(node.position),
       sizeNotifier = ValueNotifier<Size>(node.size),
       isExpandedNotifier = ValueNotifier<bool>(node.isExpanded) {
+    NodeLayoutStrategy.calculateSize(node);
+    sizeNotifier.value = node.size;
     lineCountNotifier.value = node.lineCount;
   }
 

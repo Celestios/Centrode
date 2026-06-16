@@ -323,7 +323,7 @@ Size _calculateDefaultLayout(
     extraHeight += node.isExpanded ? 30.0 : 24.0; // Space for the "Show More" / "Show Less" button
   }
 
-  final totalHeight = textHeight + 20.0 + extraHeight; // 10px padding top and bottom + extra spacing
+  final totalHeight = textHeight + 2 * resolvedStyle.padding + lineCount * 2.0 + content.blocks.length * 2.0 + extraHeight;
 
   // Quantization: Snap to grid
   final gridSize = AppConfig.grid.baseSize;

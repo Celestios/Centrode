@@ -183,9 +183,15 @@ class TextFormatStateMachine {
     for (final span in formattingSpans) {
       if (span.type == TextFormatType.textAlign &&
           span.start <= lineEnd && span.end >= lineStart) {
-        continue;
+        if (span.start < lineStart) {
+          updatedSpans.add(FormattingSpan(start: span.start, end: lineStart, type: span.type, url: span.url));
+        }
+        if (span.end > lineEnd) {
+          updatedSpans.add(FormattingSpan(start: lineEnd, end: span.end, type: span.type, url: span.url));
+        }
+      } else {
+        updatedSpans.add(span);
       }
-      updatedSpans.add(span);
     }
     _replaceSpans(updatedSpans);
 
