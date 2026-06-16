@@ -174,8 +174,8 @@ class ContextToolbarOverlay extends StatelessWidget {
             nodeLeftCanvas,
           );
 
-          const double toolbarWidth = 40;
-          const double toolbarHeight = 640; // 20 buttons + dividers
+          const double toolbarWidth = 70;
+          const double toolbarHeight = 400; // Two-column layout
 
           // Try left placement first
           final double leftX = screenPosition.dx - toolbarWidth - (margin * scale);
@@ -242,6 +242,24 @@ class ContextToolbarOverlay extends StatelessWidget {
               },
               onCycleTextAlign: () {
                 renderState.cycleTextAlignCallback?.call();
+              },
+              onIncreaseFontSize: () {
+                if (editedId.isNotEmpty) {
+                  _updateNodeStyle(editedId, dataController, (style) {
+                    return style.copyWith(
+                      fontSize: (style.fontSize + 2.0).clamp(8.0, 24.0),
+                    );
+                  });
+                }
+              },
+              onDecreaseFontSize: () {
+                if (editedId.isNotEmpty) {
+                  _updateNodeStyle(editedId, dataController, (style) {
+                    return style.copyWith(
+                      fontSize: (style.fontSize - 2.0).clamp(8.0, 24.0),
+                    );
+                  });
+                }
               },
               onAddHyperlink: () async {
                 final url = await showDialog<String>(

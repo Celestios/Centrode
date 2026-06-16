@@ -182,96 +182,81 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    TextAlign textAlign = TextAlign.center;
-    for (final block in widget.content.blocks) {
-      if (block.attrs?.textAlign != null) {
-        switch (block.attrs!.textAlign) {
-          case 'left':
-            textAlign = TextAlign.left;
-            break;
-          case 'center':
-            textAlign = TextAlign.center;
-            break;
-          case 'right':
-            textAlign = TextAlign.right;
-            break;
-        }
-        break;
-      }
-    }
-
-    return TextFieldTapRegion(
-      child: Focus(
-        canRequestFocus: false,
-        onKeyEvent: (node, event) {
-          if (event is KeyDownEvent) {
-            if (event.logicalKey == LogicalKeyboardKey.enter &&
-                !HardwareKeyboard.instance.isShiftPressed) {
-              _submit();
-              return KeyEventResult.handled;
-            }
-            if (event.logicalKey == LogicalKeyboardKey.escape) {
-              _isAborted = true;
-              _renderState.cancelActiveEdit();
-              return KeyEventResult.handled;
-            }
-            if (event.logicalKey == LogicalKeyboardKey.tab) {
-              _insertTab();
-              return KeyEventResult.handled;
-            }
-          }
-          return KeyEventResult.ignored;
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.3)
-                : Colors.white.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(
-              color: const Color(0xFF2196F3).withValues(alpha: 0.6),
-              width: 1.5,
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-          child: Theme(
-            data: Theme.of(context).copyWith(
-              textSelectionTheme: const TextSelectionThemeData(
-                selectionColor: Color(0x602196F3),
-                selectionHandleColor: Color(0xFF2196F3),
-                cursorColor: Color(0xFF2196F3),
+    return ValueListenableBuilder<TextAlign>(
+      valueListenable: _controller.textAlignNotifier,
+      builder: (context, textAlign, _) {
+        return TextFieldTapRegion(
+          child: Focus(
+            canRequestFocus: false,
+            onKeyEvent: (node, event) {
+              if (event is KeyDownEvent) {
+                if (event.logicalKey == LogicalKeyboardKey.enter &&
+                    !HardwareKeyboard.instance.isShiftPressed) {
+                  _submit();
+                  return KeyEventResult.handled;
+                }
+                if (event.logicalKey == LogicalKeyboardKey.escape) {
+                  _isAborted = true;
+                  _renderState.cancelActiveEdit();
+                  return KeyEventResult.handled;
+                }
+                if (event.logicalKey == LogicalKeyboardKey.tab) {
+                  _insertTab();
+                  return KeyEventResult.handled;
+                }
+              }
+              return KeyEventResult.ignored;
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.3)
+                    : Colors.white.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: const Color(0xFF2196F3).withValues(alpha: 0.6),
+                  width: 1.5,
+                ),
               ),
-            ),
-            child: Material(
-              type: MaterialType.transparency,
-              child: _gestureBuilder.buildGestureDetector(
-                behavior: HitTestBehavior.translucent,
-                child: EditableText(
-                  key: _gestureDelegate.editableTextKey,
-                  controller: _controller,
-                  focusNode: _focusNode,
-                  maxLines: widget.maxLines,
-                  minLines: widget.maxLines == null ? 1 : null,
-                  expands: false,
-                  textAlign: textAlign,
-                  autofocus: true,
-                  cursorColor: const Color(0xFF2196F3),
-                  backgroundCursorColor: Colors.grey,
-                  selectionColor: const Color(0x602196F3),
-                  style: widget.textStyle,
-                  strutStyle: StrutStyle.disabled,
-                  selectionControls: MaterialTextSelectionControls(),
-                  showSelectionHandles: false,
-                  magnifierConfiguration: TextMagnifierConfiguration.disabled,
-                  onTapOutside: (event) {
-                    // Intercepted to prevent automatic focus loss
-                  },
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  textSelectionTheme: const TextSelectionThemeData(
+                    selectionColor: Color(0x602196F3),
+                    selectionHandleColor: Color(0xFF2196F3),
+                    cursorColor: Color(0xFF2196F3),
+                  ),
+                ),
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: _gestureBuilder.buildGestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    child: EditableText(
+                      key: _gestureDelegate.editableTextKey,
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      maxLines: widget.maxLines,
+                      minLines: widget.maxLines == null ? 1 : null,
+                      expands: false,
+                      textAlign: textAlign,
+                      autofocus: true,
+                      cursorColor: const Color(0xFF2196F3),
+                      backgroundCursorColor: Colors.grey,
+                      selectionColor: const Color(0x602196F3),
+                      style: widget.textStyle,
+                      strutStyle: StrutStyle.disabled,
+                      selectionControls: MaterialTextSelectionControls(),
+                      showSelectionHandles: false,
+                      magnifierConfiguration: TextMagnifierConfiguration.disabled,
+                      onTapOutside: (event) {},
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

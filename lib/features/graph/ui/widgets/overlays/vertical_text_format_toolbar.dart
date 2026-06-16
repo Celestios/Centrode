@@ -20,6 +20,8 @@ class VerticalTextFormatToolbar extends StatelessWidget {
   final VoidCallback onToggleHighlight;
   final VoidCallback onCycleHighlightColor;
   final VoidCallback onCycleTextAlign;
+  final VoidCallback onIncreaseFontSize;
+  final VoidCallback onDecreaseFontSize;
   final Widget? dragHandle;
 
   const VerticalTextFormatToolbar({
@@ -41,6 +43,8 @@ class VerticalTextFormatToolbar extends StatelessWidget {
     required this.onToggleHighlight,
     required this.onCycleHighlightColor,
     required this.onCycleTextAlign,
+    required this.onIncreaseFontSize,
+    required this.onDecreaseFontSize,
     this.dragHandle,
   });
 
@@ -54,171 +58,68 @@ class VerticalTextFormatToolbar extends StatelessWidget {
     return GlassPanel(
       blur: 12,
       borderRadius: 10,
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
       color: theme.cardColor.withValues(alpha: 0.9),
       shadow: BoxShadow(
         color: Colors.black.withValues(alpha: 0.15),
         blurRadius: 10,
         offset: const Offset(0, 4),
       ),
-      child: SizedBox(
-        width: 32,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (dragHandle != null) dragHandle!,
-            if (dragHandle != null) _buildDivider(theme),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (dragHandle != null) dragHandle!,
+              if (dragHandle != null) _buildDivider(theme),
 
-            _buildFormatButton(
-              icon: Icons.format_bold_rounded,
-              tooltip: 'Bold',
-              onPressed: onToggleBold,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
-            _buildFormatButton(
-              icon: Icons.format_italic_rounded,
-              tooltip: 'Italic',
-              onPressed: onToggleItalic,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
-            _buildFormatButton(
-              icon: Icons.format_underlined_rounded,
-              tooltip: 'Underline',
-              onPressed: onToggleUnderline,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
+              _buildButton(Icons.format_bold_rounded, 'Bold', onToggleBold, textColor, primaryColor),
+              _buildButton(Icons.format_italic_rounded, 'Italic', onToggleItalic, textColor, primaryColor),
+              _buildButton(Icons.format_underlined_rounded, 'Underline', onToggleUnderline, textColor, primaryColor),
 
-            _buildDivider(theme),
+              _buildDivider(theme),
 
-            _buildFormatButton(
-              icon: Icons.looks_one_rounded,
-              tooltip: 'Heading 1',
-              onPressed: onToggleHeader1,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
-            _buildFormatButton(
-              icon: Icons.looks_two_rounded,
-              tooltip: 'Heading 2',
-              onPressed: onToggleHeader2,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
-            _buildFormatButton(
-              icon: Icons.looks_3_rounded,
-              tooltip: 'Heading 3',
-              onPressed: onToggleHeader3,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
+              _buildButton(Icons.looks_one_rounded, 'H1', onToggleHeader1, textColor, primaryColor),
+              _buildButton(Icons.looks_two_rounded, 'H2', onToggleHeader2, textColor, primaryColor),
+              _buildButton(Icons.looks_3_rounded, 'H3', onToggleHeader3, textColor, primaryColor),
 
-            _buildDivider(theme),
+              _buildDivider(theme),
 
-            _buildFormatButton(
-              icon: Icons.format_list_bulleted_rounded,
-              tooltip: 'Bullet List',
-              onPressed: onToggleBulletList,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
-            _buildFormatButton(
-              icon: Icons.format_list_numbered_rounded,
-              tooltip: 'Numbered List',
-              onPressed: onToggleOrderedList,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
-            _buildFormatButton(
-              icon: Icons.format_quote_rounded,
-              tooltip: 'Blockquote',
-              onPressed: onToggleBlockquote,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
-            _buildFormatButton(
-              icon: Icons.code_rounded,
-              tooltip: 'Code Block',
-              onPressed: onToggleCodeBlock,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
-            _buildFormatButton(
-              icon: Icons.text_fields_rounded,
-              tooltip: 'Normal Text',
-              onPressed: onClearBlockFormat,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
+              _buildButton(Icons.format_list_bulleted_rounded, 'Bullet List', onToggleBulletList, textColor, primaryColor),
+              _buildButton(Icons.format_list_numbered_rounded, 'Numbered List', onToggleOrderedList, textColor, primaryColor),
+              _buildButton(Icons.format_quote_rounded, 'Blockquote', onToggleBlockquote, textColor, primaryColor),
+              _buildButton(Icons.code_rounded, 'Code Block', onToggleCodeBlock, textColor, primaryColor),
+              _buildButton(Icons.text_fields_rounded, 'Normal Text', onClearBlockFormat, textColor, primaryColor),
 
-            _buildDivider(theme),
+              _buildDivider(theme),
 
-            _buildFormatButton(
-              icon: Icons.font_download_rounded,
-              tooltip: 'Font Family',
-              onPressed: () => _showFontPicker(context, textColor),
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
-            _buildFormatButton(
-              icon: Icons.palette_outlined,
-              tooltip: 'Text Color',
-              onPressed: onCycleTextColor,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
-            _buildFormatButton(
-              icon: Icons.highlight_rounded,
-              tooltip: 'Highlight',
-              onPressed: onToggleHighlight,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
-            _buildFormatButton(
-              icon: Icons.color_lens_outlined,
-              tooltip: 'Highlight Color',
-              onPressed: onCycleHighlightColor,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
+              _buildButton(Icons.insert_link_rounded, 'Insert Link', onAddHyperlink, textColor, primaryColor),
+            ],
+          ),
+          _buildDivider(theme),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildButton(Icons.font_download_rounded, 'Font Family', () => _showFontPicker(context, textColor), textColor, primaryColor),
+              _buildButton(Icons.palette_outlined, 'Text Color', onCycleTextColor, textColor, primaryColor),
+              _buildButton(Icons.highlight_rounded, 'Highlight', onToggleHighlight, textColor, primaryColor),
+              _buildButton(Icons.color_lens_outlined, 'Highlight Color', onCycleHighlightColor, textColor, primaryColor),
 
-            _buildDivider(theme),
+              _buildDivider(theme),
 
-            _buildFormatButton(
-              icon: Icons.format_align_left_rounded,
-              tooltip: 'Align Left',
-              onPressed: onCycleTextAlign,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
-            _buildFormatButton(
-              icon: Icons.format_align_center_rounded,
-              tooltip: 'Align Center',
-              onPressed: onCycleTextAlign,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
-            _buildFormatButton(
-              icon: Icons.format_align_right_rounded,
-              tooltip: 'Align Right',
-              onPressed: onCycleTextAlign,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
+              _buildButton(Icons.add_circle_outline_rounded, 'Font Size +', onIncreaseFontSize, textColor, primaryColor),
+              _buildButton(Icons.remove_circle_outline_rounded, 'Font Size -', onDecreaseFontSize, textColor, primaryColor),
 
-            _buildDivider(theme),
+              _buildDivider(theme),
 
-            _buildFormatButton(
-              icon: Icons.insert_link_rounded,
-              tooltip: 'Insert Link',
-              onPressed: onAddHyperlink,
-              textColor: textColor,
-              hoverColor: primaryColor,
-            ),
-          ],
-        ),
+              _buildButton(Icons.format_align_left_rounded, 'Align Left', onCycleTextAlign, textColor, primaryColor),
+              _buildButton(Icons.format_align_center_rounded, 'Align Center', onCycleTextAlign, textColor, primaryColor),
+              _buildButton(Icons.format_align_right_rounded, 'Align Right', onCycleTextAlign, textColor, primaryColor),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -285,20 +186,14 @@ class VerticalTextFormatToolbar extends StatelessWidget {
 
   Widget _buildDivider(ThemeData theme) {
     return Container(
-      width: 20,
-      height: 1,
-      margin: const EdgeInsets.symmetric(vertical: 2),
+      width: 1,
+      height: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 2),
       color: theme.dividerColor.withValues(alpha: 0.3),
     );
   }
 
-  Widget _buildFormatButton({
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback onPressed,
-    required Color textColor,
-    required Color hoverColor,
-  }) {
+  Widget _buildButton(IconData icon, String tooltip, VoidCallback onPressed, Color textColor, Color hoverColor) {
     return HoverScaleButton(
       onTap: onPressed,
       hoverScale: 1.08,

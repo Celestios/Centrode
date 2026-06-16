@@ -47,6 +47,7 @@ class FormattingSpan {
 
 class ContentTextEditingController extends TextEditingController {
   List<FormattingSpan> formattingSpans = [];
+  final ValueNotifier<TextAlign> textAlignNotifier = ValueNotifier(TextAlign.center);
 
   ContentTextEditingController();
 
@@ -161,6 +162,25 @@ class ContentTextEditingController extends TextEditingController {
     }
 
     formattingSpans = _mergeAdjacentSpans(newSpans);
+
+    textAlignNotifier.value = TextAlign.center;
+    for (final span in formattingSpans) {
+      if (span.type == TextFormatType.textAlign) {
+        switch (span.url) {
+          case 'left':
+            textAlignNotifier.value = TextAlign.left;
+            break;
+          case 'center':
+            textAlignNotifier.value = TextAlign.center;
+            break;
+          case 'right':
+            textAlignNotifier.value = TextAlign.right;
+            break;
+        }
+        break;
+      }
+    }
+
     super.value = TextEditingValue(
       text: buffer.toString(),
       selection: const TextSelection.collapsed(offset: -1),
@@ -533,6 +553,21 @@ class ContentTextEditingController extends TextEditingController {
 
     if (nextAlign != null) {
       formattingSpans.add(FormattingSpan(start: lineStart, end: lineEnd, type: TextFormatType.textAlign, url: nextAlign));
+    }
+
+    switch (nextAlign) {
+      case 'left':
+        textAlignNotifier.value = TextAlign.left;
+        break;
+      case 'center':
+        textAlignNotifier.value = TextAlign.center;
+        break;
+      case 'right':
+        textAlignNotifier.value = TextAlign.right;
+        break;
+      default:
+        textAlignNotifier.value = TextAlign.center;
+        break;
     }
 
     notifyListeners();

@@ -330,7 +330,7 @@ class NodeRichText extends StatefulWidget {
 
 class _NodeRichTextState extends State<NodeRichText> {
   final List<TapGestureRecognizer> _recognizers = [];
-  TextSpan? _cachedTextSpan;
+  List<(TextSpan, TextAlign)>? _cachedBlockSpans;
   Content? _cachedContent;
   TextStyle? _cachedBaseStyle;
 
@@ -349,13 +349,13 @@ class _NodeRichTextState extends State<NodeRichText> {
 
   @override
   Widget build(BuildContext context) {
-    if (_cachedTextSpan == null ||
+    if (_cachedBlockSpans == null ||
         _cachedContent != widget.content ||
         _cachedBaseStyle != widget.baseStyle) {
       _clearRecognizers();
       _cachedContent = widget.content;
       _cachedBaseStyle = widget.baseStyle;
-      _cachedTextSpan = NodeLayoutStrategy.buildRichTextSpan(
+      _cachedBlockSpans = NodeLayoutStrategy.buildPerBlockTextSpans(
         widget.content,
         widget.baseStyle,
         onLinkTap: (url) async {
@@ -370,29 +370,17 @@ class _NodeRichTextState extends State<NodeRichText> {
       );
     }
 
-    TextAlign textAlign = TextAlign.center;
-    for (final block in widget.content.blocks) {
-      if (block.attrs?.textAlign != null) {
-        switch (block.attrs!.textAlign) {
-          case 'left':
-            textAlign = TextAlign.left;
-            break;
-          case 'center':
-            textAlign = TextAlign.center;
-            break;
-          case 'right':
-            textAlign = TextAlign.right;
-            break;
-        }
-        break;
-      }
-    }
-
-    return Text.rich(
-      _cachedTextSpan!,
-      textAlign: textAlign,
-      overflow: TextOverflow.fade,
-      maxLines: widget.isExpanded ? null : AppConfig.node.collapsedLineLimit,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (int i = 0; i < _cachedBlockSpans!.length; i++)
+          Text.rich(
+            _cachedBlockSpans![i].$1,
+            textAlign: _cachedBlockSpans![i].$2,
+            overflow: TextOverflow.fade,
+            maxLines: widget.isExpanded ? null : AppConfig.node.collapsedLineLimit,
+          ),
+      ],
     );
   }
 }
