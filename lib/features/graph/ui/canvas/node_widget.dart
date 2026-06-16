@@ -4,19 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../presentation/graph_metrics.dart';
+import '../../engine/config.dart';
 import '../../models/models.dart';
 import '../../store/graph_data_query.dart';
 import '../../presentation/view_state.dart';
 import '../../presentation/strategies/node_layout_strategy.dart';
 import 'canvas_text_editor.dart';
-
-extension StringExtension on String {
-  String capitalize() {
-    if (isEmpty) return this;
-    return '${this[0].toUpperCase()}${substring(1).toLowerCase()}';
-  }
-}
 
 /// A passive node widget that renders exactly what the domain instructs.
 ///
@@ -396,17 +389,19 @@ class _NodeRichTextState extends State<NodeRichText> {
     _ensureBuilt();
 
     if (widget.isExpanded) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (int i = 0; i < _cachedBlockSpans!.length; i++)
-            Text.rich(
-              _cachedBlockSpans![i].$1,
-              textAlign: _cachedBlockSpans![i].$2,
-              overflow: TextOverflow.fade,
-            ),
-        ],
+      return ClipRect(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (int i = 0; i < _cachedBlockSpans!.length; i++)
+              Text.rich(
+                _cachedBlockSpans![i].$1,
+                textAlign: _cachedBlockSpans![i].$2,
+                overflow: TextOverflow.fade,
+              ),
+          ],
+        ),
       );
     }
 

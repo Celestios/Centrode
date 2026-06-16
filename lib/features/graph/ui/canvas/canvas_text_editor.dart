@@ -86,7 +86,10 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
       };
       _renderState.cycleTextAlignCallback = () {
         _controller.cycleTextAlign();
+        _syncCurrentTextAlign(_controller.value);
       };
+
+      _syncCurrentTextAlign(_controller.value);
     });
   }
 
@@ -129,6 +132,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
 
     if (selectionChanged) {
       _renderState.updateActiveTextSelection(currentValue.selection);
+      _syncCurrentTextAlign(currentValue);
     }
 
     // Only update live if the text actually changed (skips mouse drags/highlighting)
@@ -145,6 +149,49 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     }
 
     _lastValue = currentValue;
+  }
+
+  void _syncCurrentTextAlign(TextEditingValue value) {
+    final cursor = value.selection.baseOffset;
+    if (cursor < 0) return;
+
+    final plainText = value.text;
+    int lineStart = 0;
+    int lineEnd = plainText.length;
+
+    final lines = plainText.split('\n');
+    int currentOffset = 0;
+    for (final line in lines) {
+      final int start = currentOffset;
+      final int end = start + line.length;
+      if (cursor >= start && cursor <= end) {
+        lineStart = start;
+        lineEnd = end;
+        break;
+      }
+      currentOffset += line.length + 1;
+    }
+
+    TextAlign found = TextAlign.center;
+    for (final span in _controller.formattingSpans) {
+      if (span.type == TextFormatType.textAlign &&
+          span.start <= lineEnd && span.end >= lineStart) {
+        switch (span.url) {
+          case 'left':
+            found = TextAlign.left;
+            break;
+          case 'center':
+            found = TextAlign.center;
+            break;
+          case 'right':
+            found = TextAlign.right;
+            break;
+        }
+        break;
+      }
+    }
+
+    _renderState.currentTextAlignNotifier.value = found;
   }
 
   void _submit() {

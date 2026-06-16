@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../../presentation/graph_metrics.dart';
+import '../../engine/config.dart';
 import '../../models/models.dart';
 
 class MetadataPreviewOverlay extends StatelessWidget {

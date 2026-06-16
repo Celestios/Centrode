@@ -20,6 +20,7 @@ class VerticalTextFormatToolbar extends StatelessWidget {
   final VoidCallback onToggleHighlight;
   final VoidCallback onCycleHighlightColor;
   final VoidCallback onCycleTextAlign;
+  final TextAlign currentTextAlign;
   final VoidCallback onIncreaseFontSize;
   final VoidCallback onDecreaseFontSize;
   final Widget? dragHandle;
@@ -43,6 +44,7 @@ class VerticalTextFormatToolbar extends StatelessWidget {
     required this.onToggleHighlight,
     required this.onCycleHighlightColor,
     required this.onCycleTextAlign,
+    this.currentTextAlign = TextAlign.center,
     required this.onIncreaseFontSize,
     required this.onDecreaseFontSize,
     this.dragHandle,
@@ -65,63 +67,74 @@ class VerticalTextFormatToolbar extends StatelessWidget {
         blurRadius: 10,
         offset: const Offset(0, 4),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (dragHandle != null) dragHandle!,
-              if (dragHandle != null) _buildDivider(theme),
+      child: IntrinsicHeight(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (dragHandle != null) dragHandle!,
+                if (dragHandle != null) _buildHorizontalDivider(theme),
 
-              _buildButton(Icons.format_bold_rounded, 'Bold', onToggleBold, textColor, primaryColor),
-              _buildButton(Icons.format_italic_rounded, 'Italic', onToggleItalic, textColor, primaryColor),
-              _buildButton(Icons.format_underlined_rounded, 'Underline', onToggleUnderline, textColor, primaryColor),
+                _buildButton(Icons.format_bold_rounded, 'Bold', onToggleBold, textColor, primaryColor),
+                _buildButton(Icons.format_italic_rounded, 'Italic', onToggleItalic, textColor, primaryColor),
+                _buildButton(Icons.format_underlined_rounded, 'Underline', onToggleUnderline, textColor, primaryColor),
 
-              _buildDivider(theme),
+                _buildHorizontalDivider(theme),
 
-              _buildButton(Icons.looks_one_rounded, 'H1', onToggleHeader1, textColor, primaryColor),
-              _buildButton(Icons.looks_two_rounded, 'H2', onToggleHeader2, textColor, primaryColor),
-              _buildButton(Icons.looks_3_rounded, 'H3', onToggleHeader3, textColor, primaryColor),
+                _buildButton(Icons.looks_one_rounded, 'H1', onToggleHeader1, textColor, primaryColor),
+                _buildButton(Icons.looks_two_rounded, 'H2', onToggleHeader2, textColor, primaryColor),
+                _buildButton(Icons.looks_3_rounded, 'H3', onToggleHeader3, textColor, primaryColor),
 
-              _buildDivider(theme),
+                _buildHorizontalDivider(theme),
 
-              _buildButton(Icons.format_list_bulleted_rounded, 'Bullet List', onToggleBulletList, textColor, primaryColor),
-              _buildButton(Icons.format_list_numbered_rounded, 'Numbered List', onToggleOrderedList, textColor, primaryColor),
-              _buildButton(Icons.format_quote_rounded, 'Blockquote', onToggleBlockquote, textColor, primaryColor),
-              _buildButton(Icons.code_rounded, 'Code Block', onToggleCodeBlock, textColor, primaryColor),
-              _buildButton(Icons.text_fields_rounded, 'Normal Text', onClearBlockFormat, textColor, primaryColor),
+                _buildButton(Icons.format_list_bulleted_rounded, 'Bullet List', onToggleBulletList, textColor, primaryColor),
+                _buildButton(Icons.format_list_numbered_rounded, 'Numbered List', onToggleOrderedList, textColor, primaryColor),
+                _buildButton(Icons.format_quote_rounded, 'Blockquote', onToggleBlockquote, textColor, primaryColor),
+                _buildButton(Icons.code_rounded, 'Code Block', onToggleCodeBlock, textColor, primaryColor),
+                _buildButton(Icons.text_fields_rounded, 'Normal Text', onClearBlockFormat, textColor, primaryColor),
 
-              _buildDivider(theme),
+                _buildHorizontalDivider(theme),
 
-              _buildButton(Icons.insert_link_rounded, 'Insert Link', onAddHyperlink, textColor, primaryColor),
-            ],
-          ),
-          _buildDivider(theme),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildButton(Icons.font_download_rounded, 'Font Family', () => _showFontPicker(context, textColor), textColor, primaryColor),
-              _buildButton(Icons.palette_outlined, 'Text Color', onCycleTextColor, textColor, primaryColor),
-              _buildButton(Icons.highlight_rounded, 'Highlight', onToggleHighlight, textColor, primaryColor),
-              _buildButton(Icons.color_lens_outlined, 'Highlight Color', onCycleHighlightColor, textColor, primaryColor),
+                _buildButton(Icons.insert_link_rounded, 'Insert Link', onAddHyperlink, textColor, primaryColor),
+              ],
+            ),
+            _buildVerticalDivider(theme),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildButton(Icons.font_download_rounded, 'Font Family', () => _showFontPicker(context, textColor), textColor, primaryColor),
+                _buildButton(Icons.palette_outlined, 'Text Color', onCycleTextColor, textColor, primaryColor),
+                _buildButton(Icons.highlight_rounded, 'Highlight', onToggleHighlight, textColor, primaryColor),
+                _buildButton(Icons.color_lens_outlined, 'Highlight Color', onCycleHighlightColor, textColor, primaryColor),
 
-              _buildDivider(theme),
+                _buildHorizontalDivider(theme),
 
-              _buildButton(Icons.add_circle_outline_rounded, 'Font Size +', onIncreaseFontSize, textColor, primaryColor),
-              _buildButton(Icons.remove_circle_outline_rounded, 'Font Size -', onDecreaseFontSize, textColor, primaryColor),
+                _buildButton(Icons.add_circle_outline_rounded, 'Font Size +', onIncreaseFontSize, textColor, primaryColor),
+                _buildButton(Icons.remove_circle_outline_rounded, 'Font Size -', onDecreaseFontSize, textColor, primaryColor),
 
-              _buildDivider(theme),
+                _buildHorizontalDivider(theme),
 
-              _buildButton(Icons.format_align_left_rounded, 'Align Left', onCycleTextAlign, textColor, primaryColor),
-              _buildButton(Icons.format_align_center_rounded, 'Align Center', onCycleTextAlign, textColor, primaryColor),
-              _buildButton(Icons.format_align_right_rounded, 'Align Right', onCycleTextAlign, textColor, primaryColor),
-            ],
-          ),
-        ],
+                _buildButton(_getAlignIcon(currentTextAlign), 'Text Align', onCycleTextAlign, textColor, primaryColor),
+              ],
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  IconData _getAlignIcon(TextAlign align) {
+    switch (align) {
+      case TextAlign.left:
+        return Icons.format_align_left_rounded;
+      case TextAlign.right:
+        return Icons.format_align_right_rounded;
+      default:
+        return Icons.format_align_center_rounded;
+    }
   }
 
   void _showFontPicker(BuildContext context, Color textColor) {
@@ -184,7 +197,16 @@ class VerticalTextFormatToolbar extends StatelessWidget {
     overlay.insert(entry);
   }
 
-  Widget _buildDivider(ThemeData theme) {
+  Widget _buildHorizontalDivider(ThemeData theme) {
+    return Container(
+      width: 20,
+      height: 1,
+      margin: const EdgeInsets.symmetric(vertical: 2),
+      color: theme.dividerColor.withValues(alpha: 0.3),
+    );
+  }
+
+  Widget _buildVerticalDivider(ThemeData theme) {
     return Container(
       width: 1,
       height: double.infinity,

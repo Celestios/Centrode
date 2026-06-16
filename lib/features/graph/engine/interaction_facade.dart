@@ -80,6 +80,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
     String? toNodeId,
     String? fromSide,
     String? toSide,
+    String? strategyType,
   }) {
     _dataController.updateRelationLayout(
       id,
@@ -87,7 +88,13 @@ class CanvasInteractionEnvironment implements InteractionContext {
       toNodeId: toNodeId,
       fromSide: fromSide,
       toSide: toSide,
+      strategyType: strategyType,
     );
+  }
+
+  @override
+  void onRelationUpdateStyle(String id, RelationStyle newStyle) {
+    _dataController.updateRelationStyle(id, newStyle);
   }
 
   @override

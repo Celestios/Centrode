@@ -88,6 +88,16 @@ class _Visuals {
   final Color selectionAccent = const Color(0xFF42A5F5);
   final String defaultFont = 'Inter';
   final String defaultShape = 'rectangle';
+  final List<String> availableFonts = const ['System', 'Inter', 'Roboto', 'Consolas'];
+  final List<int> textColors = const [
+    0xFF000000,
+    0xFFFFFFFF,
+    0xFF0D47A1,
+    0xFF1B5E20,
+    0xFF880E4F,
+    0xFFE65100,
+    0xFF263238,
+  ];
 }
 
 class _Relation {

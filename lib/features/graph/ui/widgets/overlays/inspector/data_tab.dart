@@ -2,7 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
-import '../../../../presentation/graph_metrics.dart';
+import '../../../../engine/config.dart';
 
 class DataTab extends StatefulWidget {
   final String nodeId;

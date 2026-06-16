@@ -2,7 +2,7 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
-import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
+import 'package:mycelium/features/graph/engine/config.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 

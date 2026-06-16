@@ -6,6 +6,7 @@ import '../../store/graph_data_query.dart';
 import '../graph_relation.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+import 'patch_helpers.dart';
 
 class UpdateRelationsLayoutCommand extends GraphCommand {
   @override
@@ -35,27 +36,13 @@ class UpdateRelationsLayoutCommand extends GraphCommand {
   @override
   Future<void> execute() async {
     for (final id in newLayouts.keys) {
-      final newLayout = newLayouts[id];
-      final oldLayout = oldLayouts[id];
-      final newStyle = newStyles[id];
-      final oldStyle = oldStyles[id];
-      final tableName = 'IRelation';
-
-      final List<RelationPatch> forwardPatches = [];
-      final List<RelationPatch> reversePatches = [];
-
-      if (newLayout != null || oldLayout != null) {
-        forwardPatches.add(RelationPatch.layout(newLayout));
-        reversePatches.add(RelationPatch.layout(oldLayout));
-      }
-      if (newStyle != null || oldStyle != null) {
-        forwardPatches.add(RelationPatch.style(newStyle));
-        reversePatches.add(RelationPatch.style(oldStyle));
-      }
+      final (forwardPatches, reversePatches) = buildRelationLayoutPatches(
+        oldLayouts[id], newLayouts[id], oldStyles[id], newStyles[id],
+      );
 
       if (forwardPatches.isNotEmpty) {
         final patch = SymmetricEntityPatch(
-          id: frb.RecordStrings(table: tableName, key: id),
+          id: frb.RecordStrings(table: 'IRelation', key: id),
           forward: EntityPatch.relation(forwardPatches),
           reverse: EntityPatch.relation(reversePatches),
         );

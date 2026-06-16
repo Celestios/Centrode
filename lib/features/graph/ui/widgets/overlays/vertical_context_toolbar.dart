@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
-import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
+import 'package:mycelium/features/graph/engine/config.dart';
 import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
 
 class VerticalContextToolbar extends StatelessWidget {

@@ -3,12 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:mycelium/features/graph/presentation/node_render_state.dart';
 import 'package:mycelium/features/graph/store/graph_data_controller.dart';
 import 'package:mycelium/features/graph/presentation/viewport_state.dart';
-import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
+import 'package:mycelium/features/graph/engine/config.dart';
+import 'package:mycelium/features/graph/engine/interaction_context.dart';
 import 'package:mycelium/features/graph/engine/interaction_engine.dart';
 import 'package:mycelium/features/graph/engine/base_interaction_state.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
 import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart';
-import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/relation_style_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/relation_layout_strategy.dart';
 import 'package:mycelium/features/graph/presentation/routing/relation_layout_context.dart';
@@ -21,6 +21,7 @@ import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.d
 class ContextToolbarOverlay extends StatelessWidget {
   final NodeRenderState renderState;
   final GraphDataController dataController;
+  final InteractionContext interactionContext;
   final ViewportController viewportController;
   final InteractionController interactionController;
 
@@ -28,20 +29,37 @@ class ContextToolbarOverlay extends StatelessWidget {
     super.key,
     required this.renderState,
     required this.dataController,
+    required this.interactionContext,
     required this.viewportController,
     required this.interactionController,
   });
 
-  void _updateNodeStyle(
-    String nodeId,
-    GraphDataController dataController,
-    NodeStyle Function(NodeStyle style) updateFn,
-  ) {
-    final node = dataController.nodeLookup[nodeId];
-    if (node != null) {
-      final style = node.style ?? NodeStyleStrategy.resolveStyle(node);
-      dataController.updateNodeStyle(nodeId, updateFn(style));
-    }
+  Widget _buildDragHandle(Matrix4 matrix, ValueNotifier<Offset> offsetNotifier) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onPanUpdate: (details) {
+          final scale = matrix.getMaxScaleOnAxis();
+          if (scale > 0) {
+            offsetNotifier.value += details.delta / scale;
+          }
+        },
+        child: MouseRegion(
+          cursor: SystemMouseCursors.grab,
+          child: Container(
+            width: 32,
+            height: 32,
+            alignment: Alignment.center,
+            child: Icon(
+              Icons.drag_handle,
+              size: 20,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -56,6 +74,7 @@ class ContextToolbarOverlay extends StatelessWidget {
       viewportController.transformController,
       renderState.activeTextSelectionNotifier,
       renderState.activeLeftPanelNotifier,
+      renderState.currentTextAlignNotifier,
       renderState,
     ];
     final List<NodeViewState> selectedViewStates = [];
@@ -110,7 +129,6 @@ class ContextToolbarOverlay extends StatelessWidget {
           
           final vs = renderState.viewStates[editedId];
           final Offset anchorCanvas;
-          final double entityHeight;
           final double entityWidth;
           
           if (vs != null) {
@@ -119,7 +137,6 @@ class ContextToolbarOverlay extends StatelessWidget {
               vs.sizeNotifier.value.height,
             );
             anchorCanvas = vs.positionNotifier.value;
-            entityHeight = size.height;
             entityWidth = size.width;
           } else {
             UiRelation? rel;
@@ -154,7 +171,6 @@ class ContextToolbarOverlay extends StatelessWidget {
                 );
                 
                 anchorCanvas = labelPos;
-                entityHeight = 0;
                 entityWidth = 0;
               } else {
                 return const SizedBox.shrink();
@@ -174,8 +190,8 @@ class ContextToolbarOverlay extends StatelessWidget {
             nodeLeftCanvas,
           );
 
-          const double toolbarWidth = 70;
-          const double toolbarHeight = 400; // Two-column layout
+          const double toolbarWidth = 76;
+          const double toolbarHeight = 430; // Two-column layout
 
           // Try left placement first
           final double leftX = screenPosition.dx - toolbarWidth - (margin * scale);
@@ -243,9 +259,10 @@ class ContextToolbarOverlay extends StatelessWidget {
               onCycleTextAlign: () {
                 renderState.cycleTextAlignCallback?.call();
               },
+              currentTextAlign: renderState.currentTextAlignNotifier.value,
               onIncreaseFontSize: () {
                 if (editedId.isNotEmpty) {
-                  _updateNodeStyle(editedId, dataController, (style) {
+                  interactionContext.updateNodeStyle(editedId, (style) {
                     return style.copyWith(
                       fontSize: (style.fontSize + 2.0).clamp(8.0, 24.0),
                     );
@@ -254,7 +271,7 @@ class ContextToolbarOverlay extends StatelessWidget {
               },
               onDecreaseFontSize: () {
                 if (editedId.isNotEmpty) {
-                  _updateNodeStyle(editedId, dataController, (style) {
+                  interactionContext.updateNodeStyle(editedId, (style) {
                     return style.copyWith(
                       fontSize: (style.fontSize - 2.0).clamp(8.0, 24.0),
                     );
@@ -292,31 +309,7 @@ class ContextToolbarOverlay extends StatelessWidget {
                   renderState.applyFormatCallback?.call(TextFormatType.link, url: url);
                 }
               },
-              dragHandle: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onPanUpdate: (details) {
-                    final scale = matrix.getMaxScaleOnAxis();
-                    if (scale > 0) {
-                      offsetNotifier.value += details.delta / scale;
-                    }
-                  },
-                  child: MouseRegion(
-                    cursor: SystemMouseCursors.grab,
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.drag_handle,
-                        size: 20,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              dragHandle: _buildDragHandle(matrix, offsetNotifier),
             ),
           );
         }
@@ -409,7 +402,7 @@ class ContextToolbarOverlay extends StatelessWidget {
             singleNodeId: singleNodeId,
             onRelationLayoutChanged: (layoutType) {
               for (final rel in selectedRelations) {
-                dataController.updateRelationLayout(
+                interactionContext.onRelationUpdateLayout(
                   rel.id,
                   strategyType: layoutType,
                 );
@@ -419,7 +412,7 @@ class ContextToolbarOverlay extends StatelessWidget {
               for (final rel in selectedRelations) {
                 final currentStyle =
                     rel.style ?? RelationStyleStrategy.resolveStyle(rel);
-                dataController.updateRelationStyle(
+                interactionContext.onRelationUpdateStyle(
                   rel.id,
                   currentStyle.copyWith(strokePattern: pattern),
                 );
@@ -442,7 +435,7 @@ class ContextToolbarOverlay extends StatelessWidget {
             },
             onDecreaseFontSize: () {
               if (singleNodeId != null) {
-                _updateNodeStyle(singleNodeId, dataController, (style) {
+                interactionContext.updateNodeStyle(singleNodeId, (style) {
                   return style.copyWith(
                     fontSize: (style.fontSize - 2.0).clamp(8.0, 24.0),
                   );
@@ -451,7 +444,7 @@ class ContextToolbarOverlay extends StatelessWidget {
             },
             onIncreaseFontSize: () {
               if (singleNodeId != null) {
-                _updateNodeStyle(singleNodeId, dataController, (style) {
+                interactionContext.updateNodeStyle(singleNodeId, (style) {
                   return style.copyWith(
                     fontSize: (style.fontSize + 2.0).clamp(8.0, 24.0),
                   );
@@ -460,7 +453,7 @@ class ContextToolbarOverlay extends StatelessWidget {
             },
             onToggleFontFamily: () {
               if (singleNodeId != null) {
-                _updateNodeStyle(singleNodeId, dataController, (style) {
+                interactionContext.updateNodeStyle(singleNodeId, (style) {
                   final nextFont = style.fontFamily == 'Roboto'
                       ? 'Inter'
                       : 'Roboto';
@@ -470,16 +463,8 @@ class ContextToolbarOverlay extends StatelessWidget {
             },
             onCycleTextColor: () {
               if (singleNodeId != null) {
-                const textColors = [
-                  0xFF000000,
-                  0xFFFFFFFF,
-                  0xFF0D47A1,
-                  0xFF1B5E20,
-                  0xFF880E4F,
-                  0xFFE65100,
-                  0xFF263238,
-                ];
-                _updateNodeStyle(singleNodeId, dataController, (style) {
+                final textColors = AppConfig.visuals.textColors;
+                interactionContext.updateNodeStyle(singleNodeId, (style) {
                   final index = textColors.indexOf(style.textColor);
                   final nextColor = textColors[(index + 1) % textColors.length];
                   return style.copyWith(textColor: nextColor);
@@ -488,7 +473,7 @@ class ContextToolbarOverlay extends StatelessWidget {
             },
             onShapeChanged: (shape) {
               if (singleNodeId != null) {
-                _updateNodeStyle(singleNodeId, dataController, (style) {
+                interactionContext.updateNodeStyle(singleNodeId, (style) {
                   return style.copyWith(shape: shape);
                 });
               }
@@ -509,31 +494,7 @@ class ContextToolbarOverlay extends StatelessWidget {
                 );
               }
             },
-            dragHandle: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onPanUpdate: (details) {
-                  final scale = matrix.getMaxScaleOnAxis();
-                  if (scale > 0) {
-                    offsetNotifier.value += details.delta / scale;
-                  }
-                },
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.grab,
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.drag_handle,
-                      size: 20,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            dragHandle: _buildDragHandle(matrix, offsetNotifier),
           ),
         );
       },

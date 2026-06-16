@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'graph_metrics.dart';
+import '../engine/config.dart';
 import '../store/graph_data_controller.dart';
 import '../store/graph_data_query.dart';
 import 'view_state.dart';
@@ -91,6 +91,9 @@ class NodeRenderState extends ChangeNotifier {
   void Function({String? colorUrl})? toggleHighlightCallback;
   void Function()? cycleHighlightColorCallback;
   void Function()? cycleTextAlignCallback;
+
+  /// Tracks the current paragraph's alignment for the toolbar icon.
+  final ValueNotifier<TextAlign> currentTextAlignNotifier = ValueNotifier(TextAlign.center);
 
   void updateActiveTextSelection(TextSelection? selection) {
     if (activeTextSelectionNotifier.value != selection) {
@@ -442,6 +445,7 @@ class NodeRenderState extends ChangeNotifier {
     toggleHighlightCallback = null;
     cycleHighlightColorCallback = null;
     cycleTextAlignCallback = null;
+    currentTextAlignNotifier.value = TextAlign.center;
     notifyListeners();
   }
 

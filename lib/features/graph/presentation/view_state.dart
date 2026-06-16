@@ -3,7 +3,7 @@ import 'package:flutter/painting.dart';
 import 'package:logging/logging.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
-import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
+import 'package:mycelium/features/graph/engine/config.dart';
 
 class NodeViewState {
   final String nodeId;

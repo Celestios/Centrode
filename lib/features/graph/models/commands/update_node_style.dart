@@ -6,6 +6,7 @@ import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import '../../store/graph_data_query.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+import 'patch_helpers.dart';
 
 class UpdateNodeStyleCommand extends GraphCommand {
   @override
@@ -34,32 +35,7 @@ class UpdateNodeStyleCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
-    final List<NodePatch> forwardPatches = [];
-    final List<NodePatch> reversePatches = [];
-
-    if (newStyle != null || oldStyle != null) {
-      forwardPatches.add(NodePatch.style(newStyle));
-      reversePatches.add(NodePatch.style(oldStyle));
-    }
-
-    if (newSize != null && oldSize != null) {
-      forwardPatches.add(
-        NodePatch.size(
-          frb.Size(
-            width: newSize!.width.round(),
-            height: newSize!.height.round(),
-          ),
-        ),
-      );
-      reversePatches.add(
-        NodePatch.size(
-          frb.Size(
-            width: oldSize!.width.round(),
-            height: oldSize!.height.round(),
-          ),
-        ),
-      );
-    }
+    final (forwardPatches, reversePatches) = buildNodeStylePatches(oldStyle, newStyle, oldSize, newSize);
 
     if (forwardPatches.isNotEmpty) {
       final patch = SymmetricEntityPatch(

@@ -6,6 +6,7 @@ import '../../store/graph_data_query.dart';
 import '../graph_relation.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+import 'patch_helpers.dart';
 
 class UpdateRelationLayoutCommand extends GraphCommand {
   @override
@@ -36,17 +37,9 @@ class UpdateRelationLayoutCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
-    final List<RelationPatch> forwardPatches = [];
-    final List<RelationPatch> reversePatches = [];
-
-    if (newLayout != null || oldLayout != null) {
-      forwardPatches.add(RelationPatch.layout(newLayout));
-      reversePatches.add(RelationPatch.layout(oldLayout));
-    }
-    if (newStyle != null || oldStyle != null) {
-      forwardPatches.add(RelationPatch.style(newStyle));
-      reversePatches.add(RelationPatch.style(oldStyle));
-    }
+    final (forwardPatches, reversePatches) = buildRelationLayoutPatches(
+      oldLayout, newLayout, oldStyle, newStyle,
+    );
 
     if (forwardPatches.isNotEmpty) {
       final patch = SymmetricEntityPatch(

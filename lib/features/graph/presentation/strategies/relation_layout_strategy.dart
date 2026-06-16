@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
+import 'package:mycelium/features/graph/engine/config.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';

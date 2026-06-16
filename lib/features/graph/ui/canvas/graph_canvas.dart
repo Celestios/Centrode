@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
-import '../../presentation/graph_metrics.dart';
+import '../../engine/config.dart';
 import '../../store/graph_data_controller.dart';
 import '../../presentation/graph_presentation_notifier.dart';
 import '../../presentation/node_render_state.dart';
@@ -551,6 +551,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                   ContextToolbarOverlay(
                     renderState: renderState,
                     dataController: dataController,
+                    interactionContext: interactionController.environment,
                     viewportController: viewportController,
                     interactionController: interactionController,
                   ),

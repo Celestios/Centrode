@@ -83,7 +83,11 @@ abstract interface class GeometryCapability {
     String? toNodeId,
     String? fromSide,
     String? toSide,
+    String? strategyType,
   });
+
+  /// Updates the style of the specified relation.
+  void onRelationUpdateStyle(String id, RelationStyle newStyle);
 
   /// Callback to trigger relation layer repaint during node drag.
   void onNodeDragUpdate();

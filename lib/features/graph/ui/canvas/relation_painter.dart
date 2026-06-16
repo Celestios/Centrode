@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
-import '../../presentation/graph_metrics.dart';
+import '../../engine/config.dart';
 import '../../presentation/view_state.dart';
 import '../../presentation/strategies/relation_style_strategy.dart';
 import '../../presentation/strategies/relation_layout_strategy.dart';

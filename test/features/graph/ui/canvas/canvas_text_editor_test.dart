@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:mycelium/features/graph/ui/canvas/canvas_text_editor.dart';
-import 'package:mycelium/features/graph/ui/canvas/content_text_editing_controller.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/presentation/node_render_state.dart';
 
@@ -16,6 +15,9 @@ class MockNodeRenderState extends Mock
 
   @override
   final ValueNotifier<TextSelection?> activeTextSelectionNotifier = ValueNotifier(null);
+
+  @override
+  final ValueNotifier<TextAlign> currentTextAlignNotifier = ValueNotifier(TextAlign.center);
 }
 
 void main() {
