@@ -82,6 +82,7 @@ impl ContentBlock {
             attrs: Some(BlockAttrs {
                 level: Some(level),
                 language: None,
+                text_align: None,
             }),
         }
     }
@@ -93,6 +94,7 @@ impl ContentBlock {
             attrs: Some(BlockAttrs {
                 level: None,
                 language,
+                text_align: None,
             }),
         }
     }
@@ -385,7 +387,7 @@ mod tests {
             ContentBlock {
                 block_type: BlockType::Heading,
                 content: vec![InlineElement::text("My Document Heading")],
-                attrs: Some(BlockAttrs { level: Some(1), language: None }),
+                attrs: Some(BlockAttrs { level: Some(1), language: None, text_align: None }),
             },
             ContentBlock {
                 block_type: BlockType::Paragraph,
