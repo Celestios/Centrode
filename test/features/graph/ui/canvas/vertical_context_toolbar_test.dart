@@ -30,11 +30,11 @@ void main() {
       );
 
       // Verify trigger button is displayed
-      final triggerFinder = find.byIcon(Icons.text_format_rounded);
+      final triggerFinder = find.byIcon(Icons.category_rounded);
       expect(triggerFinder, findsOneWidget);
 
-      // Verify submenu button (e.g. Bold) is NOT displayed initially
-      expect(find.byIcon(Icons.format_bold_rounded), findsNothing);
+      // Verify submenu button (e.g. Rectangle Shape) is NOT displayed initially
+      expect(find.byIcon(Icons.crop_square_rounded), findsNothing);
 
       // Create mouse pointer and move to the trigger button
       final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
@@ -44,16 +44,16 @@ void main() {
       await gesture.moveTo(triggerCenter);
       await tester.pumpAndSettle();
 
-      // Verify submenu button (e.g. Bold) IS displayed now
-      expect(find.byIcon(Icons.format_bold_rounded), findsOneWidget);
+      // Verify submenu button (e.g. Rectangle Shape) IS displayed now
+      expect(find.byIcon(Icons.crop_square_rounded), findsOneWidget);
 
-      // Move pointer slightly left onto the Bold button and verify it's still open
-      final boldFinder = find.byIcon(Icons.format_bold_rounded);
-      final boldCenter = tester.getCenter(boldFinder);
-      await gesture.moveTo(boldCenter);
+      // Move pointer slightly left onto the Rectangle Shape button and verify it's still open
+      final rectFinder = find.byIcon(Icons.crop_square_rounded);
+      final rectCenter = tester.getCenter(rectFinder);
+      await gesture.moveTo(rectCenter);
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.format_bold_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.crop_square_rounded), findsOneWidget);
 
       // Move pointer away
       await gesture.moveTo(const Offset(0, 0));
@@ -90,7 +90,7 @@ void main() {
         ),
       );
 
-      final triggerFinder = find.byIcon(Icons.text_format_rounded);
+      final triggerFinder = find.byIcon(Icons.category_rounded);
       final initialCenter = tester.getCenter(triggerFinder);
 
       // Create mouse pointer and move to the trigger button
@@ -142,13 +142,13 @@ void main() {
         ),
       );
 
-      final triggerFinder = find.byIcon(Icons.text_format_rounded);
+      final triggerFinder = find.byIcon(Icons.category_rounded);
       expect(triggerFinder, findsOneWidget);
 
       final triggerCenter = tester.getCenter(triggerFinder);
 
       // Verify submenu button is NOT displayed initially
-      expect(find.byIcon(Icons.format_bold_rounded), findsNothing);
+      expect(find.byIcon(Icons.crop_square_rounded), findsNothing);
 
       // Hover mouse over the trigger button
       final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
@@ -157,7 +157,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify submenu button IS displayed now
-      expect(find.byIcon(Icons.format_bold_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.crop_square_rounded), findsOneWidget);
     },
   );
 

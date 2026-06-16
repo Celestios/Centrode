@@ -66,6 +66,21 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
       _renderState.toggleHeadingCallback = (type) {
         _controller.toggleHeading(type as TextFormatType);
       };
+      _renderState.clearBlockFormatCallback = () {
+        _controller.clearBlockFormat();
+      };
+      _renderState.cycleFontFamilyCallback = () {
+        _controller.cycleFontFamily();
+      };
+      _renderState.cycleTextColorCallback = () {
+        _controller.cycleTextColor();
+      };
+      _renderState.toggleHighlightCallback = ({colorUrl}) {
+        _controller.toggleHighlight(colorUrl: colorUrl);
+      };
+      _renderState.cycleHighlightColorCallback = () {
+        _controller.cycleHighlightColor();
+      };
     });
   }
 
@@ -78,6 +93,11 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   @override
   void dispose() {
     _controller.removeListener(_onControllerChanged);
+    _renderState.clearBlockFormatCallback = null;
+    _renderState.cycleFontFamilyCallback = null;
+    _renderState.cycleTextColorCallback = null;
+    _renderState.toggleHighlightCallback = null;
+    _renderState.cycleHighlightColorCallback = null;
 
     if (!_isCommitted && !_isAborted) {
       _log.info('Committing final edit on dispose for: ${widget.entityId}');
@@ -133,6 +153,25 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     );
   }
 
+  void _insertTab() {
+    final textVal = _controller.value;
+    final text = textVal.text;
+    final selection = textVal.selection;
+
+    final int start = selection.start;
+    final int end = selection.end;
+
+    if (start < 0) return;
+
+    final newText = text.replaceRange(start, end, '    ');
+    final newSelection = TextSelection.collapsed(offset: start + 4);
+
+    _controller.value = TextEditingValue(
+      text: newText,
+      selection: newSelection,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -152,6 +191,10 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
               _renderState.cancelActiveEdit();
               return KeyEventResult.handled;
             }
+            if (event.logicalKey == LogicalKeyboardKey.tab) {
+              _insertTab();
+              return KeyEventResult.handled;
+            }
           }
           return KeyEventResult.ignored;
         },
@@ -166,7 +209,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
               width: 1.5,
             ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
           child: Theme(
             data: Theme.of(context).copyWith(
               textSelectionTheme: const TextSelectionThemeData(

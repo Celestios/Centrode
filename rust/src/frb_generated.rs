@@ -3214,7 +3214,13 @@ impl SseDecode for crate::domain::contents::MarkAttrs {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_href = <Option<String>>::sse_decode(deserializer);
-        return crate::domain::contents::MarkAttrs { href: var_href };
+        let mut var_color = <Option<u32>>::sse_decode(deserializer);
+        let mut var_fontFamily = <Option<String>>::sse_decode(deserializer);
+        return crate::domain::contents::MarkAttrs {
+            href: var_href,
+            color: var_color,
+            font_family: var_fontFamily,
+        };
     }
 }
 
@@ -3229,6 +3235,9 @@ impl SseDecode for crate::domain::contents::MarkType {
             3 => crate::domain::contents::MarkType::Strikethrough,
             4 => crate::domain::contents::MarkType::Code,
             5 => crate::domain::contents::MarkType::Link,
+            6 => crate::domain::contents::MarkType::Highlight,
+            7 => crate::domain::contents::MarkType::TextColor,
+            8 => crate::domain::contents::MarkType::FontFamily,
             _ => unreachable!("Invalid variant for MarkType: {}", inner),
         };
     }
@@ -3533,6 +3542,17 @@ impl SseDecode for Option<crate::domain::theme::Theme> {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<crate::domain::theme::Theme>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<u32>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -4787,7 +4807,12 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::base_models::MapData>
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::domain::contents::MarkAttrs {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [self.href.into_into_dart().into_dart()].into_dart()
+        [
+            self.href.into_into_dart().into_dart(),
+            self.color.into_into_dart().into_dart(),
+            self.font_family.into_into_dart().into_dart(),
+        ]
+        .into_dart()
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
@@ -4811,6 +4836,9 @@ impl flutter_rust_bridge::IntoDart for crate::domain::contents::MarkType {
             Self::Strikethrough => 3.into_dart(),
             Self::Code => 4.into_dart(),
             Self::Link => 5.into_dart(),
+            Self::Highlight => 6.into_dart(),
+            Self::TextColor => 7.into_dart(),
+            Self::FontFamily => 8.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -6039,6 +6067,8 @@ impl SseEncode for crate::domain::contents::MarkAttrs {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Option<String>>::sse_encode(self.href, serializer);
+        <Option<u32>>::sse_encode(self.color, serializer);
+        <Option<String>>::sse_encode(self.font_family, serializer);
     }
 }
 
@@ -6053,6 +6083,9 @@ impl SseEncode for crate::domain::contents::MarkType {
                 crate::domain::contents::MarkType::Strikethrough => 3,
                 crate::domain::contents::MarkType::Code => 4,
                 crate::domain::contents::MarkType::Link => 5,
+                crate::domain::contents::MarkType::Highlight => 6,
+                crate::domain::contents::MarkType::TextColor => 7,
+                crate::domain::contents::MarkType::FontFamily => 8,
                 _ => {
                     unimplemented!("");
                 }
@@ -6304,6 +6337,16 @@ impl SseEncode for Option<crate::domain::theme::Theme> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::domain::theme::Theme>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <u32>::sse_encode(value, serializer);
         }
     }
 }

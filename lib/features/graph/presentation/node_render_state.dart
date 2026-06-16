@@ -84,6 +84,11 @@ class NodeRenderState extends ChangeNotifier {
   /// Decoupled callbacks for text formatting in the UI layer.
   void Function(dynamic formatType, {String? url})? applyFormatCallback;
   void Function(dynamic headingType)? toggleHeadingCallback;
+  void Function()? clearBlockFormatCallback;
+  void Function()? cycleFontFamilyCallback;
+  void Function()? cycleTextColorCallback;
+  void Function({String? colorUrl})? toggleHighlightCallback;
+  void Function()? cycleHighlightColorCallback;
 
   void updateActiveTextSelection(TextSelection? selection) {
     if (activeTextSelectionNotifier.value != selection) {
@@ -428,6 +433,11 @@ class NodeRenderState extends ChangeNotifier {
     activeTextSelectionNotifier.value = null;
     applyFormatCallback = null;
     toggleHeadingCallback = null;
+    clearBlockFormatCallback = null;
+    cycleFontFamilyCallback = null;
+    cycleTextColorCallback = null;
+    toggleHighlightCallback = null;
+    cycleHighlightColorCallback = null;
     notifyListeners();
   }
 

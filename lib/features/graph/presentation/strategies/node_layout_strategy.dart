@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:mycelium/features/graph/presentation/graph_metrics.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/src/rust/domain/contents.dart';
 import 'node_style_strategy.dart';
 
 /// Responsible for computing the physical size of a node based on its content,
@@ -36,6 +38,127 @@ abstract class NodeLayoutStrategy {
     final strategy = fromType(strategyType, fallbackNode: node);
     return strategy.calculate(node, node.resolvedStyle, isEditing: isEditing);
   }
+
+  /// Helper to build a styled TextSpan hierarchy representing the rich content.
+  static TextSpan buildRichTextSpan(
+    Content content,
+    TextStyle baseStyle, {
+    void Function(String url)? onLinkTap,
+    void Function(TapGestureRecognizer recognizer)? registerRecognizer,
+  }) {
+    if (content.blocks.isEmpty) {
+      return TextSpan(text: '', style: baseStyle);
+    }
+
+    final List<TextSpan> blockSpans = [];
+
+    for (int i = 0; i < content.blocks.length; i++) {
+      final block = content.blocks[i];
+      final List<TextSpan> inlineSpans = [];
+
+      // Determine block-level styling
+      TextStyle blockStyle = baseStyle;
+      if (block.blockType == BlockType.heading) {
+        final level = block.attrs?.level ?? 1;
+        final double sizeFactor = level == 1
+            ? 1.4
+            : (level == 2 ? 1.25 : 1.15);
+        blockStyle = baseStyle.copyWith(
+          fontSize: (baseStyle.fontSize ?? 12.0) * sizeFactor,
+          fontWeight: FontWeight.bold,
+        );
+      } else if (block.blockType == BlockType.blockquote) {
+        blockStyle = baseStyle.copyWith(
+          fontStyle: FontStyle.italic,
+          color: baseStyle.color?.withValues(alpha: 0.85),
+        );
+      } else if (block.blockType == BlockType.codeBlock) {
+        blockStyle = baseStyle.copyWith(
+          fontFamily: 'Consolas',
+          fontSize: (baseStyle.fontSize ?? 12.0) * 0.9,
+          color: baseStyle.color?.withValues(alpha: 0.9),
+        );
+      }
+
+      // Bullet / List prefix
+      if (block.blockType == BlockType.bulletList) {
+        inlineSpans.add(TextSpan(text: '• ', style: blockStyle));
+      } else if (block.blockType == BlockType.orderedList) {
+        inlineSpans.add(TextSpan(text: '${i + 1}. ', style: blockStyle));
+      }
+
+      for (final inline in block.content) {
+        if (inline.inlineType == InlineType.hardBreak) {
+          inlineSpans.add(const TextSpan(text: '\n'));
+          continue;
+        }
+
+        TextStyle inlineStyle = blockStyle;
+        TapGestureRecognizer? linkRecognizer;
+
+        if (inline.marks != null && block.blockType != BlockType.codeBlock) {
+          for (final mark in inline.marks!) {
+            if (mark.markType == MarkType.bold) {
+              inlineStyle = inlineStyle.copyWith(fontWeight: FontWeight.bold);
+            } else if (mark.markType == MarkType.italic) {
+              inlineStyle = inlineStyle.copyWith(fontStyle: FontStyle.italic);
+            } else if (mark.markType == MarkType.underline) {
+              inlineStyle = inlineStyle.copyWith(decoration: TextDecoration.underline);
+            } else if (mark.markType == MarkType.strikethrough) {
+              inlineStyle = inlineStyle.copyWith(decoration: TextDecoration.lineThrough);
+            } else if (mark.markType == MarkType.code) {
+              inlineStyle = inlineStyle.copyWith(
+                fontFamily: 'Consolas',
+                backgroundColor: baseStyle.color?.withValues(alpha: 0.1),
+              );
+            } else if (mark.markType == MarkType.link) {
+              final String? url = mark.attrs?.href;
+              inlineStyle = inlineStyle.copyWith(
+                color: Colors.blueAccent,
+                decoration: TextDecoration.underline,
+              );
+              if (url != null && onLinkTap != null) {
+                final rec = TapGestureRecognizer()..onTap = () => onLinkTap(url);
+                registerRecognizer?.call(rec);
+                linkRecognizer = rec;
+              }
+            } else if (mark.markType == MarkType.highlight) {
+              final colorVal = mark.attrs?.color ?? 0xFFFFF200;
+              inlineStyle = inlineStyle.copyWith(
+                backgroundColor: Color(colorVal),
+              );
+            } else if (mark.markType == MarkType.textColor) {
+              final colorVal = mark.attrs?.color ?? 0xFF000000;
+              inlineStyle = inlineStyle.copyWith(
+                color: Color(colorVal),
+              );
+            } else if (mark.markType == MarkType.fontFamily) {
+              final fontFam = mark.attrs?.fontFamily;
+              if (fontFam != null && fontFam.isNotEmpty) {
+                inlineStyle = inlineStyle.copyWith(
+                  fontFamily: fontFam == 'System' ? null : fontFam,
+                );
+              }
+            }
+          }
+        }
+
+        inlineSpans.add(TextSpan(
+          text: inline.text,
+          style: inlineStyle,
+          recognizer: linkRecognizer,
+        ));
+      }
+
+      if (i < content.blocks.length - 1) {
+        inlineSpans.add(const TextSpan(text: '\n'));
+      }
+
+      blockSpans.add(TextSpan(children: inlineSpans));
+    }
+
+    return TextSpan(children: blockSpans);
+  }
 }
 
 class InfoNodeLayoutStrategy extends NodeLayoutStrategy {
@@ -69,10 +192,16 @@ Size _calculateDefaultLayout(
 
   final resolvedStyle = style ?? NodeStyleStrategy.fallbackStyle();
 
+  final fontFamily = resolvedStyle.fontFamily.isEmpty || resolvedStyle.fontFamily == 'System'
+      ? null
+      : resolvedStyle.fontFamily;
+
   final textStyle = TextStyle(
-    fontFamily: resolvedStyle.fontFamily,
+    fontFamily: fontFamily,
     fontSize: resolvedStyle.fontSize,
   );
+
+  final richSpan = NodeLayoutStrategy.buildRichTextSpan(content, textStyle);
 
   // 1. Determine dynamic or manual width target
   // If the node has custom style set, it has been manually resized
@@ -84,7 +213,7 @@ Size _calculateDefaultLayout(
   } else {
     // Dynamic Sizing Mode: Measure the text on a single line to see how wide it naturally wants to be
     final tempPainter = TextPainter(
-      text: TextSpan(text: content.text, style: textStyle),
+      text: richSpan,
       textDirection: TextDirection.ltr,
     )..layout(); // infinite maxWidth default
 
@@ -113,7 +242,7 @@ Size _calculateDefaultLayout(
   ); // Assuming 8px padding on each side
 
   final tp = TextPainter(
-    text: TextSpan(text: content.text, style: textStyle),
+    text: richSpan,
     textDirection: TextDirection.ltr,
   )..layout(maxWidth: contentWidth);
 
@@ -131,12 +260,17 @@ Size _calculateDefaultLayout(
     textHeight += 2.0; // Buffer
   } else {
     textHeight = tp.height;
-    if (lineCount > AppConfig.node.collapsedLineLimit) {
-      textHeight += 5.0; // Space for "Show Less" button if needed
-    }
   }
 
-  final totalHeight = textHeight + 20; // 10px padding top and bottom
+  double extraHeight = 0.0;
+  if (node is TaskUiNode) {
+    extraHeight += 22.0; // Space for the task status badge
+  }
+  if (lineCount > AppConfig.node.collapsedLineLimit) {
+    extraHeight += node.isExpanded ? 30.0 : 24.0; // Space for the "Show More" / "Show Less" button
+  }
+
+  final totalHeight = textHeight + 20.0 + extraHeight; // 10px padding top and bottom + extra spacing
 
   // Quantization: Snap to grid
   final gridSize = AppConfig.grid.baseSize;

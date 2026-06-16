@@ -14,7 +14,7 @@ import 'package:mycelium/features/graph/presentation/strategies/relation_layout_
 import 'package:mycelium/features/graph/presentation/routing/relation_layout_context.dart';
 import 'package:mycelium/presentation/widgets/template_manager/save_template_dialog.dart';
 import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/ui/widgets/overlays/horizontal_text_format_toolbar.dart';
+import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_text_format_toolbar.dart';
 import 'content_text_editing_controller.dart';
 import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
 
@@ -86,6 +86,9 @@ class ContextToolbarOverlay extends StatelessWidget {
       builder: (context, _) {
         final isEditing = renderState.activeEditId != null;
 
+        final double screenWidth = MediaQuery.of(context).size.width;
+        final double screenHeight = MediaQuery.of(context).size.height;
+
         final matrix = viewportController.transformController.value;
         final scale = matrix.getMaxScaleOnAxis();
 
@@ -108,14 +111,16 @@ class ContextToolbarOverlay extends StatelessWidget {
           final vs = renderState.viewStates[editedId];
           final Offset anchorCanvas;
           final double entityHeight;
+          final double entityWidth;
           
           if (vs != null) {
             final size = Size(
               vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width,
               vs.sizeNotifier.value.height,
             );
-            anchorCanvas = vs.positionNotifier.value + Offset(size.width / 2, 0);
+            anchorCanvas = vs.positionNotifier.value;
             entityHeight = size.height;
+            entityWidth = size.width;
           } else {
             UiRelation? rel;
             try {
@@ -150,6 +155,7 @@ class ContextToolbarOverlay extends StatelessWidget {
                 
                 anchorCanvas = labelPos;
                 entityHeight = 0;
+                entityWidth = 0;
               } else {
                 return const SizedBox.shrink();
               }
@@ -158,27 +164,37 @@ class ContextToolbarOverlay extends StatelessWidget {
             }
           }
 
+          final offset = offsetNotifier.value;
+          final defaultOffset = isMulti ? AppConfig.toolbar.multiOffset : AppConfig.toolbar.singleOffset;
+          final dragDelta = offset - defaultOffset;
+          final nodeLeftCanvas = anchorCanvas + dragDelta;
+
           final screenPosition = MatrixUtils.transformPoint(
             matrix,
-            anchorCanvas,
+            nodeLeftCanvas,
           );
 
-          const double toolbarWidth = 280;
-          const double toolbarHeight = 44;
+          const double toolbarWidth = 40;
+          const double toolbarHeight = 448; // Estimate height for 16 buttons and dividers
 
-          double toolbarLeft = screenPosition.dx - (toolbarWidth / 2);
-          double toolbarTop = screenPosition.dy - toolbarHeight - (margin * scale);
+          // Try left placement first
+          final double leftX = screenPosition.dx - toolbarWidth - (margin * scale);
+          // Try right placement
+          final double rightX = screenPosition.dx + (entityWidth * scale) + (margin * scale);
 
-          if (toolbarTop < topThreshold) {
-            toolbarTop = screenPosition.dy + (entityHeight * scale) + (margin * scale);
+          bool useRight = false;
+          if (leftX < leftThreshold) {
+            useRight = true;
           }
 
-          toolbarLeft = toolbarLeft.clamp(leftThreshold, rightThreshold - toolbarWidth);
+          double toolbarLeft = useRight ? rightX : leftX;
+          toolbarLeft = toolbarLeft.clamp(leftThreshold, rightThreshold - toolbarWidth).toDouble();
+          double toolbarTop = screenPosition.dy.clamp(topThreshold, screenHeight - toolbarHeight - 12.0).toDouble();
 
           return Positioned(
             left: toolbarLeft,
             top: toolbarTop,
-            child: HorizontalTextFormatToolbar(
+            child: VerticalTextFormatToolbar(
               onToggleBold: () {
                 renderState.applyFormatCallback?.call(TextFormatType.bold);
               },
@@ -196,6 +212,33 @@ class ContextToolbarOverlay extends StatelessWidget {
               },
               onToggleHeader3: () {
                 renderState.toggleHeadingCallback?.call(TextFormatType.heading3);
+              },
+              onToggleBlockquote: () {
+                renderState.toggleHeadingCallback?.call(TextFormatType.blockquote);
+              },
+              onToggleCodeBlock: () {
+                renderState.toggleHeadingCallback?.call(TextFormatType.codeBlock);
+              },
+              onToggleBulletList: () {
+                renderState.toggleHeadingCallback?.call(TextFormatType.bulletList);
+              },
+              onToggleOrderedList: () {
+                renderState.toggleHeadingCallback?.call(TextFormatType.orderedList);
+              },
+              onClearBlockFormat: () {
+                renderState.clearBlockFormatCallback?.call();
+              },
+              onToggleFontFamily: () {
+                renderState.cycleFontFamilyCallback?.call();
+              },
+              onCycleTextColor: () {
+                renderState.cycleTextColorCallback?.call();
+              },
+              onToggleHighlight: () {
+                renderState.toggleHighlightCallback?.call();
+              },
+              onCycleHighlightColor: () {
+                renderState.cycleHighlightColorCallback?.call();
               },
               onAddHyperlink: () async {
                 final url = await showDialog<String>(
@@ -228,6 +271,31 @@ class ContextToolbarOverlay extends StatelessWidget {
                   renderState.applyFormatCallback?.call(TextFormatType.link, url: url);
                 }
               },
+              dragHandle: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onPanUpdate: (details) {
+                    final scale = matrix.getMaxScaleOnAxis();
+                    if (scale > 0) {
+                      offsetNotifier.value += details.delta / scale;
+                    }
+                  },
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.grab,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.drag_handle,
+                        size: 20,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
           );
         }
@@ -269,9 +337,6 @@ class ContextToolbarOverlay extends StatelessWidget {
         const double toolbarWidth = 520;
         const double toolbarHeight = 360;
         
-        final double screenWidth = MediaQuery.of(context).size.width;
-        final double screenHeight = MediaQuery.of(context).size.height;
-
         final double nodeWidth = selectedViewStates.isNotEmpty
             ? (selectedViewStates.first.dragWidthNotifier.value ?? selectedViewStates.first.sizeNotifier.value.width)
             : 150.0;
@@ -289,8 +354,8 @@ class ContextToolbarOverlay extends StatelessWidget {
         double toolbarLeft = useRight ? rightX : leftX;
 
         // Clamp X and Y coordinates to keep the toolbar fully visible on screen
-        toolbarLeft = toolbarLeft.clamp(leftThreshold, rightThreshold - toolbarWidth);
-        double toolbarTop = nodeTopScreen.clamp(topThreshold, screenHeight - toolbarHeight - 12.0);
+        toolbarLeft = toolbarLeft.clamp(leftThreshold, rightThreshold - toolbarWidth).toDouble();
+        double toolbarTop = nodeTopScreen.clamp(topThreshold, screenHeight - toolbarHeight - 12.0).toDouble();
 
         // If the selected node itself is completely off-screen, hide the toolbar
         if (selectedViewStates.isNotEmpty) {

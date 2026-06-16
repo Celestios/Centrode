@@ -46,6 +46,7 @@ dependencies:
   window_manager: ^0.4.3
   rust_lib_mycelium:
     path: rust_builder
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

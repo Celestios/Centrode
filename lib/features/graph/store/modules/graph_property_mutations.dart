@@ -32,17 +32,11 @@ class GraphPropertyMutations {
     );
 
     // If the text didn't actually change, no-op
-    if (oldContent.text == newContent.text &&
-        oldContent.blocks.length == newContent.blocks.length) {
-      // Basic check for structural equality
-      bool identical = true;
-      for (int i = 0; i < oldContent.blocks.length; i++) {
-        if (oldContent.blocks[i].blockType != newContent.blocks[i].blockType) {
-          identical = false;
-          break;
-        }
-      }
-      if (identical) return;
+    if (node != null && _contentEquals(oldContent, newContent)) {
+      return;
+    }
+    if (rel != null && oldContent.text == newContent.text) {
+      return;
     }
 
     // Capture the pre-edit size of the node
@@ -120,12 +114,11 @@ class GraphPropertyMutations {
         : ContentFactory.fromText(newTextOrContent as String);
 
     if (node != null) {
-      if (node.content.text == newContent.text &&
-          node.content.blocks.length == newContent.blocks.length) {
+      if (_contentEquals(node.content, newContent)) {
         return;
       }
       node.content = newContent;
-      node.size = controller.calculateNodeSize(node);
+      node.size = controller.calculateNodeSize(node, isEditing: true);
       controller.publishUpdate(
         GraphEntityUpdate(
           id: id,
@@ -478,5 +471,36 @@ class GraphPropertyMutations {
       final updatedComments = node.comments.where((c) => c != comment).toList();
       updateNodeComments(nodeId, updatedComments);
     }
+  }
+
+  bool _contentEquals(Content a, Content b) {
+    if (a.text != b.text) return false;
+    if (a.blocks.length != b.blocks.length) return false;
+    for (int i = 0; i < a.blocks.length; i++) {
+      final ba = a.blocks[i];
+      final bb = b.blocks[i];
+      if (ba.blockType != bb.blockType) return false;
+      if (ba.attrs != bb.attrs) return false;
+      if (ba.content.length != bb.content.length) return false;
+      for (int j = 0; j < ba.content.length; j++) {
+        final ia = ba.content[j];
+        final ib = bb.content[j];
+        if (ia.inlineType != ib.inlineType) return false;
+        if (ia.text != ib.text) return false;
+        
+        final marksA = ia.marks;
+        final marksB = ib.marks;
+        if (marksA == null && marksB == null) continue;
+        if (marksA == null || marksB == null) return false;
+        if (marksA.length != marksB.length) return false;
+        for (int k = 0; k < marksA.length; k++) {
+          final ma = marksA[k];
+          final mb = marksB[k];
+          if (ma.markType != mb.markType) return false;
+          if (ma.attrs != mb.attrs) return false;
+        }
+      }
+    }
+    return true;
   }
 }

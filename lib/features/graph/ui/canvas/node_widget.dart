@@ -1,11 +1,14 @@
 // lib/features/graph/ui/canvas/node_widget.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../presentation/graph_metrics.dart';
 import '../../models/models.dart';
 import '../../store/graph_data_query.dart';
 import '../../presentation/view_state.dart';
+import '../../presentation/strategies/node_layout_strategy.dart';
 import 'canvas_text_editor.dart';
 
 extension StringExtension on String {
@@ -124,7 +127,7 @@ class NodeWidget extends StatelessWidget {
                               ),
                             ]),
                 ),
-                padding: EdgeInsets.all(resolvedStyle.padding),
+                padding: EdgeInsets.all(isEditing ? 2.0 : resolvedStyle.padding),
                 child: _buildNodeContent(
                   context,
                   liveNode,
@@ -257,8 +260,10 @@ class NodeWidget extends StatelessWidget {
         ),
         if (viewState.lineCount > 3)
           Container(
-            margin: const EdgeInsets.only(top: 0.0),
-            padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 1.0),
+            margin: EdgeInsets.only(
+              top: viewState.isExpandedNotifier.value ? 8.0 : 2.0,
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 1.0),
             child: Text(
               viewState.isExpandedNotifier.value ? "Show Less" : "Show More",
               style: const TextStyle(
@@ -299,94 +304,77 @@ class NodeWidget extends StatelessWidget {
     TextStyle baseStyle,
     bool isExpanded,
   ) {
-    if (content.blocks.isEmpty) {
-      return Text("Empty Node", style: baseStyle);
+    return NodeRichText(
+      content: content,
+      baseStyle: baseStyle,
+      isExpanded: isExpanded,
+    );
+  }
+}
+
+class NodeRichText extends StatefulWidget {
+  final Content content;
+  final TextStyle baseStyle;
+  final bool isExpanded;
+
+  const NodeRichText({
+    super.key,
+    required this.content,
+    required this.baseStyle,
+    required this.isExpanded,
+  });
+
+  @override
+  State<NodeRichText> createState() => _NodeRichTextState();
+}
+
+class _NodeRichTextState extends State<NodeRichText> {
+  final List<TapGestureRecognizer> _recognizers = [];
+  TextSpan? _cachedTextSpan;
+  Content? _cachedContent;
+  TextStyle? _cachedBaseStyle;
+
+  @override
+  void dispose() {
+    _clearRecognizers();
+    super.dispose();
+  }
+
+  void _clearRecognizers() {
+    for (final recognizer in _recognizers) {
+      recognizer.dispose();
     }
-    
-    final List<TextSpan> blockSpans = [];
-    
-    for (int i = 0; i < content.blocks.length; i++) {
-      final block = content.blocks[i];
-      final List<TextSpan> inlineSpans = [];
-      
-      // Determine block-level styling
-      TextStyle blockStyle = baseStyle;
-      if (block.blockType == BlockType.heading) {
-        final level = block.attrs?.level ?? 1;
-        final double sizeFactor = 1.4 - (level - 1) * 0.08; 
-        blockStyle = baseStyle.copyWith(
-          fontSize: (baseStyle.fontSize ?? 12.0) * sizeFactor,
-          fontWeight: FontWeight.bold,
-        );
-      } else if (block.blockType == BlockType.blockquote) {
-        blockStyle = baseStyle.copyWith(
-          fontStyle: FontStyle.italic,
-          color: baseStyle.color?.withValues(alpha: 0.85),
-        );
-      } else if (block.blockType == BlockType.codeBlock) {
-        blockStyle = baseStyle.copyWith(
-          fontFamily: 'Consolas',
-          fontSize: (baseStyle.fontSize ?? 12.0) * 0.9,
-          color: baseStyle.color?.withValues(alpha: 0.9),
-        );
-      }
-      
-      // Bullet / List prefix
-      if (block.blockType == BlockType.bulletList) {
-        inlineSpans.add(TextSpan(text: '• ', style: blockStyle));
-      } else if (block.blockType == BlockType.orderedList) {
-        inlineSpans.add(TextSpan(text: '${i + 1}. ', style: blockStyle));
-      }
-      
-      for (final inline in block.content) {
-        if (inline.inlineType == InlineType.hardBreak) {
-          inlineSpans.add(const TextSpan(text: '\n'));
-          continue;
-        }
-        
-        TextStyle inlineStyle = blockStyle;
-        if (inline.marks != null && block.blockType != BlockType.codeBlock) {
-          for (final mark in inline.marks!) {
-            if (mark.markType == MarkType.bold) {
-              inlineStyle = inlineStyle.copyWith(fontWeight: FontWeight.bold);
-            } else if (mark.markType == MarkType.italic) {
-              inlineStyle = inlineStyle.copyWith(fontStyle: FontStyle.italic);
-            } else if (mark.markType == MarkType.underline) {
-              inlineStyle = inlineStyle.copyWith(decoration: TextDecoration.underline);
-            } else if (mark.markType == MarkType.strikethrough) {
-              inlineStyle = inlineStyle.copyWith(decoration: TextDecoration.lineThrough);
-            } else if (mark.markType == MarkType.code) {
-              inlineStyle = inlineStyle.copyWith(
-                fontFamily: 'Consolas',
-                backgroundColor: baseStyle.color?.withValues(alpha: 0.1),
-              );
-            } else if (mark.markType == MarkType.link) {
-              inlineStyle = inlineStyle.copyWith(
-                color: Colors.blueAccent,
-                decoration: TextDecoration.underline,
-              );
-            }
+    _recognizers.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_cachedTextSpan == null ||
+        _cachedContent != widget.content ||
+        _cachedBaseStyle != widget.baseStyle) {
+      _clearRecognizers();
+      _cachedContent = widget.content;
+      _cachedBaseStyle = widget.baseStyle;
+      _cachedTextSpan = NodeLayoutStrategy.buildRichTextSpan(
+        widget.content,
+        widget.baseStyle,
+        onLinkTap: (url) async {
+          final Uri uri = Uri.parse(url);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri);
           }
-        }
-        
-        inlineSpans.add(TextSpan(
-          text: inline.text,
-          style: inlineStyle,
-        ));
-      }
-      
-      if (i < content.blocks.length - 1) {
-        inlineSpans.add(const TextSpan(text: '\n'));
-      }
-      
-      blockSpans.add(TextSpan(children: inlineSpans));
+        },
+        registerRecognizer: (recognizer) {
+          _recognizers.add(recognizer);
+        },
+      );
     }
-    
+
     return Text.rich(
-      TextSpan(children: blockSpans),
+      _cachedTextSpan!,
       textAlign: TextAlign.center,
       overflow: TextOverflow.fade,
-      maxLines: isExpanded ? null : AppConfig.node.collapsedLineLimit,
+      maxLines: widget.isExpanded ? null : AppConfig.node.collapsedLineLimit,
     );
   }
 }

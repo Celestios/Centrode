@@ -105,21 +105,35 @@ enum InlineType { text, hardBreak }
 
 class MarkAttrs {
   final String? href;
+  final int? color;
+  final String? fontFamily;
 
-  const MarkAttrs({this.href});
+  const MarkAttrs({this.href, this.color, this.fontFamily});
 
   @override
-  int get hashCode => href.hashCode;
+  int get hashCode => href.hashCode ^ color.hashCode ^ fontFamily.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is MarkAttrs &&
           runtimeType == other.runtimeType &&
-          href == other.href;
+          href == other.href &&
+          color == other.color &&
+          fontFamily == other.fontFamily;
 }
 
-enum MarkType { bold, italic, underline, strikethrough, code, link }
+enum MarkType {
+  bold,
+  italic,
+  underline,
+  strikethrough,
+  code,
+  link,
+  highlight,
+  textColor,
+  fontFamily,
+}
 
 class TextMark {
   final MarkType markType;

@@ -252,6 +252,7 @@ impl TextMark {
             mark_type: MarkType::Link,
             attrs: Some(MarkAttrs {
                 href: Some(href.into()),
+                ..Default::default()
             }),
         }
     }
@@ -265,11 +266,16 @@ pub enum MarkType {
     Strikethrough,
     Code,
     Link,
+    Highlight,
+    TextColor,
+    FontFamily,
 }
 
 #[derive(Debug, Clone, SurrealValue, Default, PartialEq, Eq)]
 pub struct MarkAttrs {
     pub href: Option<String>,
+    pub color: Option<u32>,
+    pub font_family: Option<String>,
 }
 
 impl SurqlSchemaField for Content {
