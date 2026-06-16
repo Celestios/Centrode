@@ -175,7 +175,7 @@ class ContextToolbarOverlay extends StatelessWidget {
           );
 
           const double toolbarWidth = 40;
-          const double toolbarHeight = 320; // Compact toolbar estimate
+          const double toolbarHeight = 640; // 20 buttons + dividers
 
           // Try left placement first
           final double leftX = screenPosition.dx - toolbarWidth - (margin * scale);

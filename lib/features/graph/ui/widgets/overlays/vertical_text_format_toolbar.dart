@@ -53,8 +53,8 @@ class VerticalTextFormatToolbar extends StatelessWidget {
 
     return GlassPanel(
       blur: 12,
-      borderRadius: 8,
-      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+      borderRadius: 10,
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       color: theme.cardColor.withValues(alpha: 0.9),
       shadow: BoxShadow(
         color: Colors.black.withValues(alpha: 0.15),
@@ -62,7 +62,7 @@ class VerticalTextFormatToolbar extends StatelessWidget {
         offset: const Offset(0, 4),
       ),
       child: SizedBox(
-        width: 28,
+        width: 32,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -93,12 +93,26 @@ class VerticalTextFormatToolbar extends StatelessWidget {
 
             _buildDivider(theme),
 
-            _buildButtonRow(
-              buttons: [
-                _miniButton(Icons.looks_one_rounded, 'H1', onToggleHeader1, textColor, primaryColor),
-                _miniButton(Icons.looks_two_rounded, 'H2', onToggleHeader2, textColor, primaryColor),
-                _miniButton(Icons.looks_3_rounded, 'H3', onToggleHeader3, textColor, primaryColor),
-              ],
+            _buildFormatButton(
+              icon: Icons.looks_one_rounded,
+              tooltip: 'Heading 1',
+              onPressed: onToggleHeader1,
+              textColor: textColor,
+              hoverColor: primaryColor,
+            ),
+            _buildFormatButton(
+              icon: Icons.looks_two_rounded,
+              tooltip: 'Heading 2',
+              onPressed: onToggleHeader2,
+              textColor: textColor,
+              hoverColor: primaryColor,
+            ),
+            _buildFormatButton(
+              icon: Icons.looks_3_rounded,
+              tooltip: 'Heading 3',
+              onPressed: onToggleHeader3,
+              textColor: textColor,
+              hoverColor: primaryColor,
             ),
 
             _buildDivider(theme),
@@ -141,27 +155,57 @@ class VerticalTextFormatToolbar extends StatelessWidget {
 
             _buildDivider(theme),
 
-            _buildButtonRow(
-              buttons: [
-                _buildFontPickerButton(context, textColor, primaryColor),
-                _miniButton(Icons.palette_outlined, 'Color', onCycleTextColor, textColor, primaryColor),
-              ],
+            _buildFormatButton(
+              icon: Icons.font_download_rounded,
+              tooltip: 'Font Family',
+              onPressed: () => _showFontPicker(context, textColor),
+              textColor: textColor,
+              hoverColor: primaryColor,
             ),
-            _buildButtonRow(
-              buttons: [
-                _miniButton(Icons.highlight_rounded, 'Highlight', onToggleHighlight, textColor, primaryColor),
-                _miniButton(Icons.color_lens_outlined, 'Hi-Color', onCycleHighlightColor, textColor, primaryColor),
-              ],
+            _buildFormatButton(
+              icon: Icons.palette_outlined,
+              tooltip: 'Text Color',
+              onPressed: onCycleTextColor,
+              textColor: textColor,
+              hoverColor: primaryColor,
+            ),
+            _buildFormatButton(
+              icon: Icons.highlight_rounded,
+              tooltip: 'Highlight',
+              onPressed: onToggleHighlight,
+              textColor: textColor,
+              hoverColor: primaryColor,
+            ),
+            _buildFormatButton(
+              icon: Icons.color_lens_outlined,
+              tooltip: 'Highlight Color',
+              onPressed: onCycleHighlightColor,
+              textColor: textColor,
+              hoverColor: primaryColor,
             ),
 
             _buildDivider(theme),
 
-            _buildButtonRow(
-              buttons: [
-                _miniButton(Icons.format_align_left_rounded, 'Align Left', onCycleTextAlign, textColor, primaryColor),
-                _miniButton(Icons.format_align_center_rounded, 'Align Center', onCycleTextAlign, textColor, primaryColor),
-                _miniButton(Icons.format_align_right_rounded, 'Align Right', onCycleTextAlign, textColor, primaryColor),
-              ],
+            _buildFormatButton(
+              icon: Icons.format_align_left_rounded,
+              tooltip: 'Align Left',
+              onPressed: onCycleTextAlign,
+              textColor: textColor,
+              hoverColor: primaryColor,
+            ),
+            _buildFormatButton(
+              icon: Icons.format_align_center_rounded,
+              tooltip: 'Align Center',
+              onPressed: onCycleTextAlign,
+              textColor: textColor,
+              hoverColor: primaryColor,
+            ),
+            _buildFormatButton(
+              icon: Icons.format_align_right_rounded,
+              tooltip: 'Align Right',
+              onPressed: onCycleTextAlign,
+              textColor: textColor,
+              hoverColor: primaryColor,
             ),
 
             _buildDivider(theme),
@@ -179,174 +223,72 @@ class VerticalTextFormatToolbar extends StatelessWidget {
     );
   }
 
+  void _showFontPicker(BuildContext context, Color textColor) {
+    final fonts = ['System', 'Inter', 'Roboto', 'Consolas'];
+    final overlay = Overlay.of(context);
+    final renderBox = context.findRenderObject() as RenderBox;
+    final position = renderBox.localToGlobal(Offset.zero);
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () => entry.remove(),
+              child: Container(color: Colors.transparent),
+            ),
+          ),
+          Positioned(
+            left: position.dx + renderBox.size.width + 4,
+            top: position.dy,
+            child: Material(
+              elevation: 8,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                width: 120,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: fonts.map((font) {
+                    final displayName = font == 'System' ? 'Default' : font;
+                    return InkWell(
+                      onTap: () {
+                        onSelectFontFamily?.call(font);
+                        entry.remove();
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        child: Text(
+                          displayName,
+                          style: TextStyle(
+                            fontFamily: font == 'System' ? null : font,
+                            fontSize: 13,
+                            color: textColor,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    overlay.insert(entry);
+  }
+
   Widget _buildDivider(ThemeData theme) {
     return Container(
-      width: 18,
+      width: 20,
       height: 1,
       margin: const EdgeInsets.symmetric(vertical: 2),
       color: theme.dividerColor.withValues(alpha: 0.3),
-    );
-  }
-
-  Widget _buildButtonRow({required List<Widget> buttons}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 1),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: buttons,
-      ),
-    );
-  }
-
-  Widget _miniButton(
-    IconData icon,
-    String tooltip,
-    VoidCallback onPressed,
-    Color textColor,
-    Color hoverColor,
-  ) {
-    return HoverScaleButton(
-      onTap: onPressed,
-      hoverScale: 1.08,
-      pressScale: 0.94,
-      tooltip: tooltip,
-      borderRadius: BorderRadius.circular(4),
-      builder: (context, isHovered, isPressed) {
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
-          width: 18,
-          height: 18,
-          margin: const EdgeInsets.symmetric(horizontal: 1),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-            gradient: isHovered
-                ? LinearGradient(
-                    colors: [
-                      hoverColor.withValues(alpha: 0.18),
-                      hoverColor.withValues(alpha: 0.05),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : null,
-            border: isHovered
-                ? Border.all(
-                    color: hoverColor.withValues(alpha: 0.3),
-                    width: 1.0,
-                  )
-                : Border.all(color: Colors.transparent),
-          ),
-          child: Center(
-            child: Icon(
-              icon,
-              color: isHovered ? hoverColor : textColor.withValues(alpha: 0.75),
-              size: 12,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFontPickerButton(BuildContext context, Color textColor, Color hoverColor) {
-    final fonts = ['System', 'Inter', 'Roboto', 'Consolas'];
-    return HoverScaleButton(
-      onTap: () {
-        final overlay = Overlay.of(context);
-        final renderBox = context.findRenderObject() as RenderBox;
-        final position = renderBox.localToGlobal(Offset.zero);
-        late OverlayEntry entry;
-        entry = OverlayEntry(
-          builder: (context) => Stack(
-            children: [
-              Positioned.fill(
-                child: GestureDetector(
-                  onTap: () => entry.remove(),
-                  child: Container(color: Colors.transparent),
-                ),
-              ),
-              Positioned(
-                left: position.dx + renderBox.size.width + 4,
-                top: position.dy,
-                child: Material(
-                  elevation: 8,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    width: 120,
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: fonts.map((font) {
-                        final displayName = font == 'System' ? 'Default' : font;
-                        return InkWell(
-                          onTap: () {
-                            onSelectFontFamily?.call(font);
-                            entry.remove();
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            child: Text(
-                              displayName,
-                              style: TextStyle(
-                                fontFamily: font == 'System' ? null : font,
-                                fontSize: 13,
-                                color: textColor,
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-        overlay.insert(entry);
-      },
-      hoverScale: 1.08,
-      pressScale: 0.94,
-      tooltip: 'Font Family',
-      borderRadius: BorderRadius.circular(4),
-      builder: (context, isHovered, isPressed) {
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
-          width: 18,
-          height: 18,
-          margin: const EdgeInsets.symmetric(horizontal: 1),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-            gradient: isHovered
-                ? LinearGradient(
-                    colors: [
-                      hoverColor.withValues(alpha: 0.18),
-                      hoverColor.withValues(alpha: 0.05),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : null,
-            border: isHovered
-                ? Border.all(
-                    color: hoverColor.withValues(alpha: 0.3),
-                    width: 1.0,
-                  )
-                : Border.all(color: Colors.transparent),
-          ),
-          child: Center(
-            child: Icon(
-              Icons.font_download_rounded,
-              color: isHovered ? hoverColor : textColor.withValues(alpha: 0.75),
-              size: 12,
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -362,16 +304,16 @@ class VerticalTextFormatToolbar extends StatelessWidget {
       hoverScale: 1.08,
       pressScale: 0.94,
       tooltip: tooltip,
-      borderRadius: BorderRadius.circular(5),
+      borderRadius: BorderRadius.circular(6),
       builder: (context, isHovered, isPressed) {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 1),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 100),
-            width: 24,
-            height: 24,
+            width: 28,
+            height: 28,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(6),
               gradient: isHovered
                   ? LinearGradient(
                       colors: [
@@ -402,7 +344,7 @@ class VerticalTextFormatToolbar extends StatelessWidget {
               child: Icon(
                 icon,
                 color: isHovered ? hoverColor : textColor.withValues(alpha: 0.75),
-                size: 15,
+                size: 16,
               ),
             ),
           ),
