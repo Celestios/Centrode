@@ -175,7 +175,7 @@ class ContextToolbarOverlay extends StatelessWidget {
           );
 
           const double toolbarWidth = 40;
-          const double toolbarHeight = 448; // Estimate height for 16 buttons and dividers
+          const double toolbarHeight = 320; // Compact toolbar estimate
 
           // Try left placement first
           final double leftX = screenPosition.dx - toolbarWidth - (margin * scale);
@@ -228,8 +228,8 @@ class ContextToolbarOverlay extends StatelessWidget {
               onClearBlockFormat: () {
                 renderState.clearBlockFormatCallback?.call();
               },
-              onToggleFontFamily: () {
-                renderState.cycleFontFamilyCallback?.call();
+              onSelectFontFamily: (fontFamily) {
+                renderState.setFontFamilyCallback?.call(fontFamily);
               },
               onCycleTextColor: () {
                 renderState.cycleTextColorCallback?.call();
@@ -239,6 +239,9 @@ class ContextToolbarOverlay extends StatelessWidget {
               },
               onCycleHighlightColor: () {
                 renderState.cycleHighlightColorCallback?.call();
+              },
+              onCycleTextAlign: () {
+                renderState.cycleTextAlignCallback?.call();
               },
               onAddHyperlink: () async {
                 final url = await showDialog<String>(

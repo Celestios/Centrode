@@ -10,11 +10,12 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 class BlockAttrs {
   final int? level;
   final String? language;
+  final String? textAlign;
 
-  const BlockAttrs({this.level, this.language});
+  const BlockAttrs({this.level, this.language, this.textAlign});
 
   @override
-  int get hashCode => level.hashCode ^ language.hashCode;
+  int get hashCode => level.hashCode ^ language.hashCode ^ textAlign.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -22,7 +23,8 @@ class BlockAttrs {
       other is BlockAttrs &&
           runtimeType == other.runtimeType &&
           level == other.level &&
-          language == other.language;
+          language == other.language &&
+          textAlign == other.textAlign;
 }
 
 enum BlockType {

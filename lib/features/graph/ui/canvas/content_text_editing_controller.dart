@@ -15,7 +15,8 @@ enum TextFormatType {
   orderedList,
   highlight,
   textColor,
-  fontFamily
+  fontFamily,
+  textAlign,
 }
 
 class FormattingSpan {
@@ -150,6 +151,10 @@ class ContentTextEditingController extends TextEditingController {
         newSpans.add(FormattingSpan(start: blockStart, end: blockEnd, type: TextFormatType.orderedList));
       }
 
+      if (block.attrs?.textAlign != null) {
+        newSpans.add(FormattingSpan(start: blockStart, end: blockEnd, type: TextFormatType.textAlign, url: block.attrs!.textAlign));
+      }
+
       if (i < content.blocks.length - 1) {
         buffer.write('\n');
       }
@@ -201,6 +206,7 @@ class ContentTextEditingController extends TextEditingController {
       // Determine block type
       BlockType blockType = BlockType.paragraph;
       BlockAttrs? blockAttrs;
+      String? textAlign;
       String contentLine = line;
       int prefixLength = 0;
 
@@ -243,13 +249,16 @@ class ContentTextEditingController extends TextEditingController {
               prefixLength = match.end;
             }
             break;
+          } else if (span.type == TextFormatType.textAlign) {
+            textAlign = span.url;
           }
         }
       }
 
       // If line is empty (or prefix only), add an empty block
       if (contentLine.isEmpty) {
-        blocks.add(ContentBlock(blockType: blockType, content: [], attrs: blockAttrs));
+        final attrs = blockAttrs ?? (textAlign != null ? BlockAttrs(textAlign: textAlign) : null);
+        blocks.add(ContentBlock(blockType: blockType, content: [], attrs: attrs));
         currentOffset += line.length + 1; // accounting for \n
         continue;
       }
@@ -272,7 +281,8 @@ class ContentTextEditingController extends TextEditingController {
               span.type == TextFormatType.blockquote ||
               span.type == TextFormatType.codeBlock ||
               span.type == TextFormatType.bulletList ||
-              span.type == TextFormatType.orderedList) {
+              span.type == TextFormatType.orderedList ||
+              span.type == TextFormatType.textAlign) {
             continue; // Block-level, not inline marks
           }
 
@@ -344,7 +354,7 @@ class ContentTextEditingController extends TextEditingController {
         ContentBlock(
           blockType: blockType,
           content: inlineElements,
-          attrs: blockAttrs,
+          attrs: blockAttrs ?? (textAlign != null ? BlockAttrs(textAlign: textAlign) : null),
         ),
       );
 
@@ -465,6 +475,67 @@ class ContentTextEditingController extends TextEditingController {
     } else {
       toggleFormat(TextFormatType.fontFamily, url: nextFont);
     }
+  }
+
+  void setFontFamily(String fontFamily) {
+    if (selection.isCollapsed) return;
+    if (fontFamily == 'System') {
+      toggleFormat(TextFormatType.fontFamily, url: null);
+    } else {
+      toggleFormat(TextFormatType.fontFamily, url: fontFamily);
+    }
+  }
+
+  void cycleTextAlign() {
+    final int cursor = selection.baseOffset;
+    if (cursor < 0) return;
+
+    final plainText = text;
+    int lineStart = 0;
+    int lineEnd = plainText.length;
+
+    final lines = plainText.split('\n');
+    int currentOffset = 0;
+    for (final line in lines) {
+      final int start = currentOffset;
+      final int end = start + line.length;
+      if (cursor >= start && cursor <= end) {
+        lineStart = start;
+        lineEnd = end;
+        break;
+      }
+      currentOffset += line.length + 1;
+    }
+
+    String? currentAlign;
+    for (final span in formattingSpans) {
+      if (span.type == TextFormatType.textAlign &&
+          span.start <= lineEnd && span.end >= lineStart) {
+        currentAlign = span.url;
+        break;
+      }
+    }
+
+    final alignments = [null, 'left', 'center', 'right'];
+    final currentIndex = currentAlign == null ? 0 : alignments.indexOf(currentAlign);
+    final nextIndex = (currentIndex + 1) % alignments.length;
+    final nextAlign = alignments[nextIndex];
+
+    final updatedSpans = <FormattingSpan>[];
+    for (final span in formattingSpans) {
+      if (span.type == TextFormatType.textAlign &&
+          span.start <= lineEnd && span.end >= lineStart) {
+        continue;
+      }
+      updatedSpans.add(span);
+    }
+    formattingSpans = updatedSpans;
+
+    if (nextAlign != null) {
+      formattingSpans.add(FormattingSpan(start: lineStart, end: lineEnd, type: TextFormatType.textAlign, url: nextAlign));
+    }
+
+    notifyListeners();
   }
 
   void cycleTextColor() {
@@ -766,7 +837,8 @@ class ContentTextEditingController extends TextEditingController {
           span.type == TextFormatType.blockquote ||
           span.type == TextFormatType.codeBlock ||
           span.type == TextFormatType.bulletList ||
-          span.type == TextFormatType.orderedList) {
+          span.type == TextFormatType.orderedList ||
+          span.type == TextFormatType.textAlign) {
 
         // Find which line contains the span's start
         int targetLineIdx = -1;
@@ -1008,6 +1080,7 @@ class ContentTextEditingController extends TextEditingController {
             break;
           case TextFormatType.bulletList:
           case TextFormatType.orderedList:
+          case TextFormatType.textAlign:
             break;
         }
       }

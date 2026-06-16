@@ -370,9 +370,27 @@ class _NodeRichTextState extends State<NodeRichText> {
       );
     }
 
+    TextAlign textAlign = TextAlign.center;
+    for (final block in widget.content.blocks) {
+      if (block.attrs?.textAlign != null) {
+        switch (block.attrs!.textAlign) {
+          case 'left':
+            textAlign = TextAlign.left;
+            break;
+          case 'center':
+            textAlign = TextAlign.center;
+            break;
+          case 'right':
+            textAlign = TextAlign.right;
+            break;
+        }
+        break;
+      }
+    }
+
     return Text.rich(
       _cachedTextSpan!,
-      textAlign: TextAlign.center,
+      textAlign: textAlign,
       overflow: TextOverflow.fade,
       maxLines: widget.isExpanded ? null : AppConfig.node.collapsedLineLimit,
     );

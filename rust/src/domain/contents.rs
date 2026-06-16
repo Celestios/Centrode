@@ -143,6 +143,7 @@ impl Default for BlockType {
 pub struct BlockAttrs {
     pub level: Option<u8>,
     pub language: Option<String>,
+    pub text_align: Option<String>,
 }
 
 // -----------------------------------------------------------------------------
@@ -298,6 +299,7 @@ impl SurqlSchemaField for Content {
             ("blocks.*.attrs".to_string(), "option<object>".to_string()),
             ("blocks.*.attrs.level".to_string(), "option<int>".to_string()),
             ("blocks.*.attrs.language".to_string(), "option<string>".to_string()),
+            ("blocks.*.attrs.text_align".to_string(), "option<string>".to_string()),
         ]
     }
 }

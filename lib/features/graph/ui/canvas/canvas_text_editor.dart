@@ -72,6 +72,9 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
       _renderState.cycleFontFamilyCallback = () {
         _controller.cycleFontFamily();
       };
+      _renderState.setFontFamilyCallback = (fontFamily) {
+        _controller.setFontFamily(fontFamily);
+      };
       _renderState.cycleTextColorCallback = () {
         _controller.cycleTextColor();
       };
@@ -80,6 +83,9 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
       };
       _renderState.cycleHighlightColorCallback = () {
         _controller.cycleHighlightColor();
+      };
+      _renderState.cycleTextAlignCallback = () {
+        _controller.cycleTextAlign();
       };
     });
   }
@@ -176,6 +182,24 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    TextAlign textAlign = TextAlign.center;
+    for (final block in widget.content.blocks) {
+      if (block.attrs?.textAlign != null) {
+        switch (block.attrs!.textAlign) {
+          case 'left':
+            textAlign = TextAlign.left;
+            break;
+          case 'center':
+            textAlign = TextAlign.center;
+            break;
+          case 'right':
+            textAlign = TextAlign.right;
+            break;
+        }
+        break;
+      }
+    }
+
     return TextFieldTapRegion(
       child: Focus(
         canRequestFocus: false,
@@ -229,7 +253,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
                   maxLines: widget.maxLines,
                   minLines: widget.maxLines == null ? 1 : null,
                   expands: false,
-                  textAlign: TextAlign.center,
+                  textAlign: textAlign,
                   autofocus: true,
                   cursorColor: const Color(0xFF2196F3),
                   backgroundCursorColor: Colors.grey,

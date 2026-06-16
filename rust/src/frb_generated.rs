@@ -2530,9 +2530,11 @@ impl SseDecode for crate::domain::contents::BlockAttrs {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_level = <Option<u8>>::sse_decode(deserializer);
         let mut var_language = <Option<String>>::sse_decode(deserializer);
+        let mut var_textAlign = <Option<String>>::sse_decode(deserializer);
         return crate::domain::contents::BlockAttrs {
             level: var_level,
             language: var_language,
+            text_align: var_textAlign,
         };
     }
 }
@@ -4238,6 +4240,7 @@ impl flutter_rust_bridge::IntoDart for crate::domain::contents::BlockAttrs {
         [
             self.level.into_into_dart().into_dart(),
             self.language.into_into_dart().into_dart(),
+            self.text_align.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -5564,6 +5567,7 @@ impl SseEncode for crate::domain::contents::BlockAttrs {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Option<u8>>::sse_encode(self.level, serializer);
         <Option<String>>::sse_encode(self.language, serializer);
+        <Option<String>>::sse_encode(self.text_align, serializer);
     }
 }
 

@@ -86,9 +86,11 @@ class NodeRenderState extends ChangeNotifier {
   void Function(dynamic headingType)? toggleHeadingCallback;
   void Function()? clearBlockFormatCallback;
   void Function()? cycleFontFamilyCallback;
+  void Function(String fontFamily)? setFontFamilyCallback;
   void Function()? cycleTextColorCallback;
   void Function({String? colorUrl})? toggleHighlightCallback;
   void Function()? cycleHighlightColorCallback;
+  void Function()? cycleTextAlignCallback;
 
   void updateActiveTextSelection(TextSelection? selection) {
     if (activeTextSelectionNotifier.value != selection) {
@@ -435,9 +437,11 @@ class NodeRenderState extends ChangeNotifier {
     toggleHeadingCallback = null;
     clearBlockFormatCallback = null;
     cycleFontFamilyCallback = null;
+    setFontFamilyCallback = null;
     cycleTextColorCallback = null;
     toggleHighlightCallback = null;
     cycleHighlightColorCallback = null;
+    cycleTextAlignCallback = null;
     notifyListeners();
   }
 

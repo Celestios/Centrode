@@ -2004,11 +2004,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   BlockAttrs dco_decode_block_attrs(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
     return BlockAttrs(
       level: dco_decode_opt_box_autoadd_u_8(arr[0]),
       language: dco_decode_opt_String(arr[1]),
+      textAlign: dco_decode_opt_String(arr[2]),
     );
   }
 
@@ -3306,7 +3307,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_level = sse_decode_opt_box_autoadd_u_8(deserializer);
     var var_language = sse_decode_opt_String(deserializer);
-    return BlockAttrs(level: var_level, language: var_language);
+    var var_textAlign = sse_decode_opt_String(deserializer);
+    return BlockAttrs(
+      level: var_level,
+      language: var_language,
+      textAlign: var_textAlign,
+    );
   }
 
   @protected
@@ -4965,6 +4971,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_opt_box_autoadd_u_8(self.level, serializer);
     sse_encode_opt_String(self.language, serializer);
+    sse_encode_opt_String(self.textAlign, serializer);
   }
 
   @protected
