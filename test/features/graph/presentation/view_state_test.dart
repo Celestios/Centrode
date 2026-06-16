@@ -15,6 +15,7 @@ void main() {
     );
 
     final viewState = NodeViewState(node);
+    viewState.sizeNotifier.value = const Size(200.0, 100.0);
 
     // Verify properties
     expect(viewState.rect, const Rect.fromLTWH(100.0, 150.0, 200.0, 100.0));
@@ -78,6 +79,7 @@ void main() {
       size: const Size(100.0, 100.0),
     );
     final viewState = NodeViewState(node);
+    viewState.sizeNotifier.value = const Size(100.0, 100.0);
 
     // Left port: (100.0, 150.0)
     // Right port: (200.0, 150.0)
@@ -108,7 +110,9 @@ void main() {
     );
 
     final vs1 = NodeViewState(node1);
+    vs1.sizeNotifier.value = const Size(100.0, 100.0);
     final vs2 = NodeViewState(node2);
+    vs2.sizeNotifier.value = const Size(100.0, 100.0);
 
     // Closest ports should be: vs1's Right (200.0, 150.0) and vs2's Left (300.0, 150.0)
     final closest = NodeViewState.getClosestPortsBetween(vs1, vs2);

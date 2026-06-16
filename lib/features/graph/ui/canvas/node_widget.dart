@@ -405,9 +405,13 @@ class _NodeRichTextState extends State<NodeRichText> {
       );
     }
 
+    final alignment = _cachedBlockSpans != null && _cachedBlockSpans!.isNotEmpty
+        ? _cachedBlockSpans!.first.$2
+        : TextAlign.center;
+
     return Text.rich(
       _cachedTextSpan!,
-      textAlign: TextAlign.center,
+      textAlign: alignment,
       overflow: TextOverflow.fade,
       maxLines: AppConfig.node.collapsedLineLimit,
     );

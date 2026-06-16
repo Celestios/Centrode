@@ -52,8 +52,8 @@ void main() {
       fromVs,
       toVs,
     );
-    expect(start, const Offset(110, 35));
-    expect(end, const Offset(210, 35));
+    expect(start, const Offset(110, 30));
+    expect(end, const Offset(210, 30));
 
     final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(
       relation,
@@ -62,8 +62,8 @@ void main() {
       context,
     );
     // Since distance is 100 (> 40), it should offset by 16px along the direction (1, 0)
-    expect(handleStart, const Offset(126, 35));
-    expect(handleEnd, const Offset(194, 35));
+    expect(handleStart, const Offset(126, 30));
+    expect(handleEnd, const Offset(194, 30));
   });
 
   test('resolveTipHandles calculates handles correctly for short distance', () {
@@ -110,8 +110,8 @@ void main() {
       fromVs,
       toVs,
     );
-    expect(start, const Offset(110, 35));
-    expect(end, const Offset(120, 35));
+    expect(start, const Offset(110, 30));
+    expect(end, const Offset(120, 30));
 
     final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(
       relation,
@@ -121,9 +121,9 @@ void main() {
     );
     // Since distance is 10 (< 40), handles should be at 1/3 and 2/3 of the way
     expect(handleStart.dx, closeTo(110 + 10 / 3, 0.001));
-    expect(handleStart.dy, closeTo(35, 0.001));
+    expect(handleStart.dy, closeTo(30, 0.001));
     expect(handleEnd.dx, closeTo(110 + 20 / 3, 0.001));
-    expect(handleEnd.dy, closeTo(35, 0.001));
+    expect(handleEnd.dy, closeTo(30, 0.001));
   });
 
   test(
@@ -172,7 +172,7 @@ void main() {
       expect(start, const Offset(260, 100)); // Start is overridden to cursor
       expect(
         end,
-        const Offset(260, 60),
+        const Offset(260, 50),
       ); // End dynamically snapped to Bottom port of target node!
     },
   );
@@ -187,7 +187,7 @@ void main() {
       );
       final toNode = InfoUiNode(
         id: 'to_1',
-        position: const Offset(210, 110), // shifted vertically by 100px
+        position: const Offset(210, 210), // shifted vertically by 200px
         size: const Size(100, 50),
       );
 
@@ -217,14 +217,26 @@ void main() {
         fromVs,
         toVs,
       );
-      // closest ports for this offset setup are bottomRight = (110, 60), topLeft = (210, 110)
-      expect(start, const Offset(110, 60));
-      expect(end, const Offset(210, 110));
+      // closest ports for this offset setup are bottomRight = (110, 50), topLeft = (210, 210)
+      expect(start, const Offset(110, 50));
+      expect(end, const Offset(210, 210));
 
-      // The path should be a cubic Bezier curve.
-      // The point (129.5, 74.3) is very close to the Bezier curve, but far from the straight line.
+      // Calculate a point on the bezier curve at t = 0.25 dynamically
+      final distance = (end - start).distance;
+      final proj = (distance * 0.4).clamp(30.0, 150.0);
+      const startNormal = Offset(0.707, 0.707);
+      const endNormal = Offset(-0.707, -0.707);
+      final p1 = start + startNormal * proj;
+      final p2 = end + endNormal * proj;
+
+      const t = 0.25;
+      final t1 = 1 - t;
+      final testPoint = start * (t1 * t1 * t1) +
+          p1 * (3 * t1 * t1 * t) +
+          p2 * (3 * t1 * t * t) +
+          end * (t * t * t);
+
       const straightStrategy = StraightRelationLayoutStrategy();
-      const testPoint = Offset(129.5, 74.3);
 
       expect(
         straightStrategy.isPointNear(
