@@ -106,3 +106,52 @@ Output a structured report:
 - **Evidence:** specific debug print output that shows the failure
 
 Do NOT proceed to Phase 2 until Checkpoint 1 is complete and printed to terminal.
+
+---
+
+## Phase 2: Hypothesis Formation & Subagent Analysis
+
+### Step 6: Form hypotheses
+
+Based on the evidence from Phase 1, form 2-3 root cause hypotheses. For each:
+- What code path would fail
+- What state or data would be wrong
+- What condition triggers the failure
+
+**Output:** Numbered list of hypotheses with the evidence supporting each.
+
+### Step 7: Spawn subagents (parallel)
+
+Dispatch subagents in a SINGLE message — all run in parallel:
+
+**Hypothesis tester subagents (one per hypothesis):**
+- Use `subagent_type: "explore"` for each
+- Each subagent receives ONE hypothesis and the relevant code files
+- Task: independently verify or eliminate the hypothesis by reading code, tracing paths, checking edge cases
+- Output per subagent: `CONFIRMED` / `ELIMINATED` / `INCONCLUSIVE` with evidence
+
+**Blameless reviewer subagent (one):**
+- Use `subagent_type: "general"` 
+- Task: critically examine the suspected code from a fresh perspective
+- Defend existing design assumptions — argue why the code might be correct
+- Question fragile dependencies, race conditions, null references, edge cases
+- Output: findings about code quality, assumptions that might be wrong, alternative explanations
+
+Example dispatch (3 hypotheses):
+```
+[Agent call 1: hypothesis 1 tester, subagent_type="explore"]
+[Agent call 2: hypothesis 2 tester, subagent_type="explore"]
+[Agent call 3: hypothesis 3 tester, subagent_type="explore"]
+[Agent call 4: blameless reviewer, subagent_type="general"]
+```
+
+All four in one message. Wait for all to complete.
+
+### Checkpoint 2
+
+Output a structured report:
+- **Hypothesis verdicts:** each hypothesis with CONFIRMED/ELIMINATED/INCONCLUSIVE and key evidence
+- **Reviewer findings:** what the blameless reviewer found — assumptions questioned, fragile points identified
+- **Confidence ranking:** ordered list of remaining hypotheses by confidence level
+
+Do NOT proceed to Phase 3 until Checkpoint 2 is complete and printed to terminal.
