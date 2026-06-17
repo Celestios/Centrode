@@ -1,66 +1,108 @@
 ---
-description: Structured workflow for diagnosing, explaining, and proposing fixes for bugs.
+description: Step-by-step bug investigation pipeline with subagent analysis, controlled test widgets, and automated execution. Always operates at maximum debugging intensity.
 ---
 
 # Workflow: /bug-fixer
 
-This workflow provides instructions for the agent to systematically diagnose bugs, explain their root causes, and propose solutions for user approval.
+Active execution pipeline for diagnosing and fixing bugs. Every step is mandatory and produces a checkpoint before advancing. There is no "normal" vs "panic" mode — this workflow IS the maximum intensity debugging mode.
 
-## Core Mandate
+## Core Principles
 
-When executing this workflow, adhere to the following principles:
-1. **Verify System Dynamics**: Do not guess. Make sure you understand the exact system dynamics and precisely how the problem occurs before attempting to fix it.
-2. **Handle Uncertainty & Difficult Bugs**: If you are not absolutely sure about the root cause, or if the problem does not get solved easily, implement extensive temporary debugging print statements to trace variable states, control flow, and runtime values. Using print statements is a robust way to isolate issues.
-3. **Instrumentation Cleanup**: You must *only* clean up temporary debugging prints, extra checks, logs, and any other debugging instrumentation when the user explicitly confirms to do so. Do not delete them automatically.
-4. **Clear Explanation**: Explain *why* the bug occurs, not just *that* it occurs.
-5. **Impact Assessment**: Briefly mention what else might be affected by the proposed fix.
-6. **Pause for Consent**: Never apply a fix without explicit confirmation of the plan.
+1. **Find the problem before fixing it.** Never implement a fix without confirmed root cause.
+2. **Maximum instrumentation always.** Extensive debug prints, runtime checks, and log statements across all suspected paths — every time, not just when escalated.
+3. **Subagent validation.** Hypotheses are tested by independent subagents before being accepted.
+4. **All errors to terminal.** No silent failures. Every investigation step prints progress and findings.
+5. **Preserve test artifacts.** Test widgets are never deleted — bugs can return.
+6. **Pause for consent.** Never modify project files until user approves the fix plan.
 
-## Panic Mode
+## Debug Print Rules
 
-If the user explicitly declares or requests **Panic Mode** (e.g., "activate panic mode", "enter panic mode"), or if they indicate that a problem is extremely difficult to solve and they want to escalate debugging efforts, you must immediately put all diagnostics to the absolute maximum:
-1. **Maximum Instrumentation**: Inject extensive debug prints, runtime checks, assertions, and log statements across all suspected, related, and upstream control paths.
-2. **Maximum Cynicism & Criticism**: Adopt an extremely critical, cynical mindset. Question all assumptions, doubt the validity of existing libraries/utilities/APIs, and investigate potential race conditions, null references, memory issues, or unexpected edge cases.
-3. **Maximum Analysis**: Perform an exhaustive step-by-step trace of execution states, and output a detailed breakdown of control flow and data flow.
-4. **Preserve Instrumentation**: Maintain all debug logs, checks, and prints in the code until you are absolutely certain the issue is resolved AND the user explicitly instructs you to clean them up.
+| Location | Created | Removed after fix? |
+|---|---|---|
+| Test widgets (`test/bug_fix/`) | Always | No — preserved for regression |
+| Main code (upstream investigation) | When bug is upstream | Yes — after user confirms fix |
 
-## Steps
+Test widget debug prints are ignored by the analyzer. Main code debug prints must be cleaned up after fix.
 
-### 1. Investigation & Reproduction
-- **Task**: Identify the scope of the bug, understand the system dynamics, and gather necessary context.
-- **Action**: 
-    - Search for relevant code, error messages, or logs.
-    - Analyze the execution flow and state transitions leading to the reported issue.
-    - **Observe Dynamics**: If you lack certainty about how the bug behaves or its exact path of execution, or if a fix does not work immediately, introduce temporary debugging print statements to trace execution paths and values. If **Panic Mode** is active, maximize these prints, checks, and logs.
-    - If possible, describe how to reproduce the issue.
-*Constraint: You MUST output a summary of your investigation, including the specific files/lines involved and how you verified the execution dynamics.*
+## Test Widget Types
 
-### 2. Root Cause Analysis (RCA)
-- **Task**: Explain the "How" and "Why".
-- **Action**:
-    - Outline the logical or state-related failure that causes the bug.
-    - Explain why the current implementation fails under the reported conditions.
-    - Identify if this is a regression or a missing edge case.
-    - If **Panic Mode** is active, output a cynical/critical breakdown of code design assumptions and potential fragile dependencies.
+- **Automatic** — agent runs `flutter run`, captures logs, kills process after timeout. No user interaction needed.
+- **User-intervention** — agent builds and launches, user interacts with the widget to reproduce the issue, then reports back.
 
-### 3. Proposed Solution
-- **Task**: Explain how to fix the problem.
-- **Action**:
-    - Describe the architectural or logic changes required.
-    - Provide a high-level plan of the code modifications.
-    - Mention any potential side effects or trade-offs.
+Choose the type based on whether the bug requires human interaction to trigger (e.g., gesture, specific UI state) or can be reproduced programmatically.
 
-### 4. User Confirmation
-- **Task**: Wait for user approval.
-- **Action**: 
-    - Present the findings from Steps 1, 2, and 3 in a single structured report.
-    - **PAUSE** and wait for the USER to provide confirmation ("Go ahead", "Fix it") or comments/suggestions on the approach.
-*Constraint: Do NOT modify any project files until the user gives the green light.*
+---
 
-### 5. Implementation & Verification
-- **Task**: Apply the fix.
-- **Action**:
-    - Implement the agreed-upon changes.
-    - Verify that the fix addresses the root cause without introducing new issues.
-    - **Debug Clean-Up Confirmation**: Do NOT automatically delete extra checks or debug prints. Specifically ask the user if they want to clean up the added instrumentation (debug prints, extra checks, logs) now, and only clean them up upon their explicit confirmation.
-    - Provide a summary of the changes made.
+## Phase 1: Understand & Reproduce
+
+### Step 1: Receive description
+
+The user provides an error message, crash log, or bug description. Read it carefully. Identify keywords, error codes, related file names, and stack traces.
+
+**Output:** Summarize what the user described — the symptom, any error messages, and initial guesses about where to look.
+
+### Step 2: Initial code trace
+
+Search the codebase for relevant code paths:
+- Use `grep` for error messages, exception types, function names from the description
+- Use `glob` to find related files
+- Read the relevant code and trace the execution flow leading to the reported issue
+- Identify the most likely affected components
+
+**Output:** List of files/lines involved, the execution flow, and initial hypothesis about widget-level vs upstream.
+
+### Step 3: Clarify (conditional)
+
+After the initial trace, assess whether the description is sufficient to proceed:
+- If the code path is clear and the description is specific → skip this step
+- If the description is ambiguous, the code has many branches, or you can't determine the trigger condition → ask the user ONE targeted question about the exact situation that causes the bug
+
+Use `compose:ask` with specific options derived from the code paths you found.
+
+### Step 4: Path A — Test Widget Investigation
+
+Create a test widget that isolates the suspected component:
+
+1. Create `test/bug_fix/` directory if it doesn't exist
+2. Create a test widget file that:
+   - Imports and renders the suspected component in isolation
+   - Injects extensive debug prints: widget lifecycle (initState, build, dispose), state changes, error callbacks, constraint values, animation values
+   - Uses `debugPrint` for all instrumentation (respects Flutter's logging)
+   - Wraps the component in error-catching widgets where appropriate
+3. Choose widget type:
+   - **Automatic** if the bug can be triggered without user interaction (e.g., on build, on timer, on data load)
+   - **User-intervention** if the bug requires specific user actions (e.g., tap sequence, scroll, gesture)
+4. Run the widget:
+   - Automatic: execute `flutter run -d <device>` via bash, capture terminal output, kill process after 30s or when sufficient logs are captured
+   - User-intervention: build and launch, instruct the user what to do, wait for their report
+5. Parse the output for errors, exceptions, unexpected state values
+
+**If errors found in the test widget:** The bug is at widget level. Proceed to Phase 2 with this evidence.
+
+**If the test widget runs clean:** The bug is in upstream logic. Proceed to Step 5.
+
+### Step 5: Path B — Upstream Logic Investigation
+
+The bug is not in the widget itself but in the data flow, state management, services, or Rust backend that feeds it.
+
+1. Add extensive debug prints to the upstream code:
+   - Function entry/exit with parameter values
+   - State variable values before and after mutations
+   - Error conditions and catch blocks
+   - Control flow branches (which path is taken)
+   - Data transformation steps
+2. Run the application (or the relevant test) and capture output
+3. Trace the upstream logic using the debug output to find where the data diverges from expected
+
+**Output:** The exact upstream location where the bug originates, with debug print evidence.
+
+### Checkpoint 1
+
+Output a structured report:
+- **Files/lines involved:** exact locations
+- **Reproduction steps:** how to trigger the bug
+- **Error output:** exact terminal output showing the problem
+- **Path taken:** widget-level (Path A) or upstream (Path B)
+- **Evidence:** specific debug print output that shows the failure
+
+Do NOT proceed to Phase 2 until Checkpoint 1 is complete and printed to terminal.
