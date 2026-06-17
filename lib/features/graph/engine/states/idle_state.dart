@@ -319,18 +319,29 @@ class CanvasIdle extends CanvasInteractionState {
     Offset pCanvas,
     InteractionContext ctx,
   ) {
-    final nodeIds = ctx.zOrder.reversed.toList();
-    if (nodeIds.isEmpty) {
-      nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
-    }
+    final nodeIds = ctx.zOrder;
+    final length = nodeIds.length;
 
-    String? hoveredMetadataNodeId;
-
-    for (final nodeId in nodeIds) {
+    for (int i = length - 1; i >= 0; i--) {
+      final nodeId = nodeIds[i];
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
 
-      // Metadata sphere hover hit test
+      if (vs.rightResizeHitbox.contains(pCanvas) ||
+          vs.leftResizeHitbox.contains(pCanvas)) {
+        ctx.setHoveredNodeMetadata(null);
+        return cursor == SystemMouseCursors.resizeLeftRight
+            ? this
+            : CanvasIdle(cursor: SystemMouseCursors.resizeLeftRight);
+      }
+
+      if (vs.lineCount > 3 && vs.expandToggleHitbox.contains(pCanvas)) {
+        ctx.setHoveredNodeMetadata(null);
+        return cursor == SystemMouseCursors.click
+            ? this
+            : CanvasIdle(cursor: SystemMouseCursors.click);
+      }
+
       final node = ctx.getNode(nodeId);
       if (node is InfoUiNode &&
           (node.tags.isNotEmpty || node.comments.isNotEmpty)) {
@@ -341,40 +352,17 @@ class CanvasIdle extends CanvasInteractionState {
         );
         if ((pCanvas - center).distance <
             AppConfig.node.metadataSphereHitboxRadius) {
-          hoveredMetadataNodeId = nodeId;
-          break;
+          ctx.setHoveredNodeMetadata(nodeId);
+          return cursor == SystemMouseCursors.click
+              ? this
+              : const CanvasIdle(cursor: SystemMouseCursors.click);
         }
       }
     }
 
-    ctx.setHoveredNodeMetadata(hoveredMetadataNodeId);
-
-    for (final nodeId in nodeIds) {
-      final vs = ctx.nodeViewStates[nodeId];
-      if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
-
-      if (nodeId == hoveredMetadataNodeId) {
-        return cursor == SystemMouseCursors.click
-            ? this
-            : const CanvasIdle(cursor: SystemMouseCursors.click);
-      }
-
-      if (vs.rightResizeHitbox.contains(pCanvas) ||
-          vs.leftResizeHitbox.contains(pCanvas)) {
-        return cursor == SystemMouseCursors.resizeLeftRight
-            ? this
-            : CanvasIdle(cursor: SystemMouseCursors.resizeLeftRight);
-      }
-
-      if (vs.lineCount > 3 && vs.expandToggleHitbox.contains(pCanvas)) {
-        return cursor == SystemMouseCursors.click
-            ? this
-            : CanvasIdle(cursor: SystemMouseCursors.click);
-      }
-    }
-
+    ctx.setHoveredNodeMetadata(null);
     return cursor == SystemMouseCursors.basic
         ? this
-        : CanvasIdle(cursor: SystemMouseCursors.basic);
+        : const CanvasIdle(cursor: SystemMouseCursors.basic);
   }
 }

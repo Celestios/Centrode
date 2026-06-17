@@ -5,10 +5,15 @@ import '../../../../models/graph_relation.dart';
 class MiniMapPainter extends CustomPainter {
   final List<UiNode> nodes;
   final List<UiRelation> relations;
-  final Size viewportSize; // widget pixel dimensions
-  final EdgeInsets margins; // elastic margins (L, T, R, B)
-  final Rect visibleRect; // current camera view in child coords
+  final Size viewportSize;
+  final EdgeInsets margins;
+  final Rect visibleRect;
   final Color primaryColor;
+
+  late final Map<String, UiNode> _nodeMap;
+  late final Paint _linePaint;
+  late final Paint _viewportFill;
+  late final Paint _viewportBorder;
 
   MiniMapPainter({
     required this.nodes,
@@ -17,7 +22,19 @@ class MiniMapPainter extends CustomPainter {
     required this.margins,
     required this.visibleRect,
     required this.primaryColor,
-  });
+  }) {
+    _nodeMap = {for (var n in nodes) n.id: n};
+    _linePaint = Paint()
+      ..color = primaryColor.withValues(alpha: 0.15)
+      ..strokeWidth = 0.5;
+    _viewportFill = Paint()
+      ..color = primaryColor.withValues(alpha: 0.08)
+      ..style = PaintingStyle.fill;
+    _viewportBorder = Paint()
+      ..color = primaryColor.withValues(alpha: 0.5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -42,16 +59,10 @@ class MiniMapPainter extends CustomPainter {
       );
     }
 
-    final Map<String, UiNode> nodeMap = {for (var n in nodes) n.id: n};
-
     // 1. Draw relations
-    final linePaint = Paint()
-      ..color = primaryColor.withValues(alpha: 0.15)
-      ..strokeWidth = 0.5;
-
     for (final rel in relations) {
-      final from = nodeMap[rel.fromNodeId];
-      final to = nodeMap[rel.toNodeId];
+      final from = _nodeMap[rel.fromNodeId];
+      final to = _nodeMap[rel.toNodeId];
       if (from == null || to == null) continue;
 
       final fromCenter =
@@ -70,7 +81,7 @@ class MiniMapPainter extends CustomPainter {
           end.dx <= size.width &&
           end.dy >= 0 &&
           end.dy <= size.height) {
-        canvas.drawLine(start, end, linePaint);
+        canvas.drawLine(start, end, _linePaint);
       }
     }
 
@@ -124,19 +135,17 @@ class MiniMapPainter extends CustomPainter {
       viewportSizeMini.height,
     ).intersect(Rect.fromLTWH(0, 0, size.width, size.height));
 
-    final viewportFill = Paint()
-      ..color = primaryColor.withValues(alpha: 0.08)
-      ..style = PaintingStyle.fill;
-
-    final viewportBorder = Paint()
-      ..color = primaryColor.withValues(alpha: 0.5)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-
-    canvas.drawRect(viewportRect, viewportFill);
-    canvas.drawRect(viewportRect, viewportBorder);
+    canvas.drawRect(viewportRect, _viewportFill);
+    canvas.drawRect(viewportRect, _viewportBorder);
   }
 
   @override
-  bool shouldRepaint(covariant MiniMapPainter oldDelegate) => true;
+  bool shouldRepaint(covariant MiniMapPainter oldDelegate) {
+    return oldDelegate.visibleRect != visibleRect ||
+        oldDelegate.margins != margins ||
+        oldDelegate.viewportSize != viewportSize ||
+        oldDelegate.nodes != nodes ||
+        oldDelegate.relations != relations ||
+        oldDelegate.primaryColor != primaryColor;
+  }
 }

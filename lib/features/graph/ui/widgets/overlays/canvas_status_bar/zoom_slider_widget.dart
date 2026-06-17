@@ -11,7 +11,7 @@ class ZoomSliderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewportController = context.watch<ViewportController>();
+    final viewportController = context.read<ViewportController>();
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
     final onSurface = theme.colorScheme.onSurface;
