@@ -155,3 +155,82 @@ Output a structured report:
 - **Confidence ranking:** ordered list of remaining hypotheses by confidence level
 
 Do NOT proceed to Phase 3 until Checkpoint 2 is complete and printed to terminal.
+
+---
+
+## Phase 3: Root Cause Confirmed
+
+### Step 8: Confirm root cause
+
+Select the highest-confidence hypothesis that survived both subagent scrutiny (hypothesis testers confirmed, reviewer found no fatal flaws).
+
+Explain:
+- The confirmed root cause with evidence
+- The "why" — not just what broke, but why the design allows this failure
+- Impact scope: what else could be affected by this bug or its fix
+
+### Checkpoint 3
+
+Output a structured report:
+- **Confirmed root cause:** exact location and mechanism
+- **Causal chain:** step-by-step from trigger to failure
+- **Impact assessment:** other components or features that might be affected
+
+Do NOT proceed to Phase 4 until Checkpoint 3 is complete and printed to terminal.
+
+---
+
+## Phase 4: Proposed Fix (Pause for Consent)
+
+### Step 9: Present fix plan
+
+Describe the architectural or logic changes required to fix the root cause:
+- What files need to change and how
+- Any side effects or trade-offs of the proposed fix
+- Whether the fix addresses the root cause or just the symptom
+
+Present the FULL investigation report combining all three phases:
+- Phase 1 evidence (trace, error output, path taken)
+- Phase 2 analysis (hypothesis verdicts, reviewer findings)
+- Phase 3 confirmation (root cause, causal chain, impact)
+
+**HARD GATE:** Do NOT modify any project files until the user explicitly gives approval ("Go ahead", "Fix it", etc.).
+
+---
+
+## Phase 5: Implement, Verify, Confirm
+
+### Step 10: Apply the fix
+
+Implement the agreed-upon changes to the project files.
+
+### Step 11: Verify the fix
+
+Re-run the original reproduction method:
+- If Path A was used: re-run the test widget and confirm the error no longer appears
+- If Path B was used: re-run the application with the same conditions and confirm the bug is gone
+- Check for any new errors or regressions in the output
+
+### Step 12: Confirm and clean up
+
+1. Confirm the fix addresses the root cause without introducing new issues
+2. **Debug print cleanup:**
+   - Test widget files: KEEP all debug prints (ignored by analyzer, preserved for regression)
+   - Main code debug prints (from Path B upstream investigation): REMOVE after user confirms fix works
+3. Ask the user explicitly: "Do you want to clean up the debug prints added to the main code?"
+4. Only remove main code debug prints upon user's explicit confirmation
+5. Provide a summary of all changes made
+
+---
+
+## Error Visibility
+
+ALL errors, exceptions, debug prints, and investigation progress go to terminal output. The agent prints findings at every checkpoint. No silent failures — if a step produces no evidence, say so explicitly and explain why.
+
+## Process Termination
+
+When running test widgets or the application automatically:
+- Set a 30-second timeout for automatic widgets
+- Kill the process after capturing sufficient log output
+- If the process hangs, kill it and report what was captured before the hang
+- For user-intervention widgets, wait for the user's signal that they've completed interaction
