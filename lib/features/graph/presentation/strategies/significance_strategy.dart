@@ -3,16 +3,14 @@ import 'package:mycelium/src/rust/domain/styles.dart' show NodeStyle;
 class SignificanceStrategy {
   const SignificanceStrategy();
 
-  /// Scales width and stroke proportionally to significance.
-  /// Only applied when DisplayMode.significance is active.
+  /// Scales fontSize proportionally to significance.
+  /// Node dimensions are recalculated by the layout engine from the scaled fontSize.
+  /// Only applied when DisplayMode.importance is active.
   NodeStyle apply(NodeStyle base, int significance) {
     if (significance <= 0) return base;
-    final scale = 1.0 + (significance * 0.05); // linear scaling example
+    final scaledFontSize = base.fontSize * (1.0 + significance * 0.20);
     return base.copyWith(
-      width: (base.width * scale).round(),
-      height: (base.height * scale).round(),
-      strokeWidth: (base.strokeWidth * scale).round(),
-      fontSize: base.fontSize * scale,
+      fontSize: scaledFontSize,
     );
   }
 }

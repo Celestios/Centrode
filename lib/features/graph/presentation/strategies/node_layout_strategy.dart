@@ -238,12 +238,13 @@ Size _calculateDefaultLayout(
   bool isEditing = false,
 }) {
   final content = node.content;
-  // Fallback if text is empty
+  // Fallback if text is empty — preserve the node's current size
   if (content.text.isEmpty) {
-    return AppConfig.node.defaultSize;
+    return node.size;
   }
 
   final resolvedStyle = style ?? NodeStyleStrategy.fallbackStyle();
+  final fontSize = resolvedStyle.fontSize;
 
   final fontFamily = resolvedStyle.fontFamily.isEmpty || resolvedStyle.fontFamily == 'System'
       ? null
@@ -275,18 +276,18 @@ Size _calculateDefaultLayout(
     final neededWidth =
         tempPainter.width +
         16.0 +
-        (isEditing ? AppConfig.node.editingBufferWidth : 0.0);
+        (isEditing ? AppConfig.node.scaledEditingBufferWidth(fontSize) : 0.0);
     // Auto-grow between defaultWidth and autoWrapThreshold
     targetWidth = neededWidth.clamp(
-      AppConfig.node.defaultWidth,
-      AppConfig.node.autoWrapThreshold,
+      AppConfig.node.scaledDefaultWidth(fontSize),
+      AppConfig.node.scaledAutoWrapThreshold(fontSize),
     );
   }
 
   // Double-safe clamp to absolute physical node limits
   targetWidth = targetWidth.clamp(
-    AppConfig.node.minWidth,
-    AppConfig.node.maxWidth,
+    AppConfig.node.scaledMinWidth(fontSize),
+    AppConfig.node.scaledMaxWidth(fontSize),
   );
 
   final double contentWidth = (targetWidth - 2 * resolvedStyle.padding).clamp(
@@ -311,19 +312,35 @@ Size _calculateDefaultLayout(
         .take(AppConfig.node.collapsedLineLimit)
         .fold(0.0, (sum, m) => sum + m.height);
     textHeight += 2.0; // Buffer
+  } else if (node.isExpanded) {
+    // Measure using per-block TextSpans (same method as rendering) to avoid
+    // measurement/rendering mismatch that causes overflow.
+    final blockSpans = NodeLayoutStrategy.buildPerBlockTextSpans(content, textStyle);
+    textHeight = 0.0;
+    for (final (span, _) in blockSpans) {
+      final blockPainter = TextPainter(
+        text: span,
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: contentWidth);
+      textHeight += blockPainter.height;
+      blockPainter.dispose();
+    }
+    textHeight += blockSpans.length * 2.0;
+    textHeight *= 1.08;
   } else {
     textHeight = tp.height;
   }
 
   double extraHeight = 0.0;
+  final fontScale = fontSize / 14.0;
   if (node is TaskUiNode) {
-    extraHeight += 22.0; // Space for the task status badge
+    extraHeight += 22.0 * fontScale;
   }
   if (lineCount > AppConfig.node.collapsedLineLimit) {
-    extraHeight += node.isExpanded ? 30.0 : 24.0; // Space for the "Show More" / "Show Less" button
+    extraHeight += node.isExpanded ? 30.0 * fontScale : 24.0 * fontScale;
   }
 
-  final totalHeight = textHeight + 2 * resolvedStyle.padding + lineCount * 2.0 + content.blocks.length * 2.0 + extraHeight;
+  final totalHeight = textHeight + 2 * resolvedStyle.padding + extraHeight;
 
   // Quantization: Snap to grid
   final gridSize = AppConfig.grid.baseSize;

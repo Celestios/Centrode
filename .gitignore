@@ -30,6 +30,7 @@
 
 # === Project Specific & Data ===
 /.Archive
+docs/compose/
 graphify-out/
 /.kilo
 /.mimocode

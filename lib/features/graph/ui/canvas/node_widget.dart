@@ -54,6 +54,7 @@ class NodeWidget extends StatelessWidget {
         viewState.isExpandedNotifier,
         viewState.dragWidthNotifier,
         viewState.lineCountNotifier,
+        viewState.styleNotifier,
       ]),
       builder: (context, _) {
         final rawSize = viewState.sizeNotifier.value;
@@ -69,6 +70,10 @@ class NodeWidget extends StatelessWidget {
         final double strokeDiff = isHighlighted
             ? (3.0 - resolvedStyle.strokeWidth.toDouble())
             : 0.0;
+
+        final fontScale = resolvedStyle.fontSize / 14.0;
+        final scaledBadgeFontSize = 10.0 * fontScale;
+        final scaledShowMoreFontSize = 10.0 * fontScale;
 
         return Transform.translate(
           offset: -Offset(strokeDiff, strokeDiff),
@@ -126,6 +131,8 @@ class NodeWidget extends StatelessWidget {
                   liveNode,
                   resolvedStyle,
                   isEditing: isEditing,
+                  scaledBadgeFontSize: scaledBadgeFontSize,
+                  scaledShowMoreFontSize: scaledShowMoreFontSize,
                 ),
               ),
 
@@ -209,6 +216,8 @@ class NodeWidget extends StatelessWidget {
     UiNode liveNode,
     NodeStyle style, {
     required bool isEditing,
+    double scaledBadgeFontSize = 10.0,
+    double scaledShowMoreFontSize = 10.0,
   }) {
     if (liveNode is DrawingUiNode) {
       return CustomPaint(
@@ -267,8 +276,8 @@ class NodeWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 1.0),
             child: Text(
               viewState.isExpandedNotifier.value ? "Show Less" : "Show More",
-              style: const TextStyle(
-                fontSize: 10,
+              style: TextStyle(
+                fontSize: scaledShowMoreFontSize,
                 color: Colors.blueAccent,
                 fontWeight: FontWeight.bold,
               ),
@@ -289,7 +298,7 @@ class NodeWidget extends StatelessWidget {
             child: Text(
               (liveNode).state,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: scaledBadgeFontSize,
                 fontWeight: FontWeight.bold,
                 color: Color(style.textColor),
               ),
@@ -398,7 +407,6 @@ class _NodeRichTextState extends State<NodeRichText> {
               Text.rich(
                 _cachedBlockSpans![i].$1,
                 textAlign: _cachedBlockSpans![i].$2,
-                overflow: TextOverflow.fade,
               ),
           ],
         ),

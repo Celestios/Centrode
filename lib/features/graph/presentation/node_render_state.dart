@@ -129,11 +129,11 @@ class NodeRenderState extends ChangeNotifier {
         if (vs != null) {
           final Size newSize = update.payload as Size;
           if (vs.sizeNotifier.value != newSize) {
-            vs.dragWidthNotifier.value = null; // Reset volatile drag width
+            vs.dragWidthNotifier.value = null;
             relationPathCache.clear();
             final node = _dataController.nodeLookup[id];
             if (node != null) {
-              vs.onContentOrStyleChanged(node, isEditing: id == activeEditId);
+            vs.onSizeChanged(node);
             }
           }
         }
@@ -160,7 +160,11 @@ class NodeRenderState extends ChangeNotifier {
         if (vs != null) {
           final node = _dataController.nodeLookup[id];
           if (node != null) {
-            vs.onContentOrStyleChanged(node, isEditing: id == activeEditId);
+            final oldSize = vs.sizeNotifier.value;
+            vs.onSizeChanged(node, isEditing: id == activeEditId);
+            if (vs.sizeNotifier.value == oldSize) {
+              vs.onStyleChanged();
+            }
           }
         }
         break;
@@ -257,12 +261,9 @@ class NodeRenderState extends ChangeNotifier {
           vs.lineCountNotifier.value = node.lineCount;
         }
         if (vs.sizeNotifier.value != node.size) {
-          vs.dragWidthNotifier.value = null; // Reset volatile drag width
+          vs.dragWidthNotifier.value = null;
           relationPathCache.clear();
-          vs.onContentOrStyleChanged(
-            node,
-            isEditing: node.id == activeEditId,
-          ); // Recomputes height strategy
+          vs.onSizeChanged(node);
         }
       }
     }

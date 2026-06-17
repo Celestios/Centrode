@@ -21,7 +21,6 @@ It leverages [graphify arch](file:///d:/Projects/Open/flutter/code/mycelium/.age
    - For `/rust` components, enforce [rust-style-guide.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/rust-core-plugin/rules/rust-style-guide.md).
    - For `/lib` (Flutter/Dart) components, enforce [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md), [no-cross-layer-mutation.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/symmetry-invariants.md).
 7. **Actionable Output**: Every finding must include a severity level, the principle violated, clickable file links with line ranges, and a concrete remediation suggestion.
-8. **Ontology-First Understanding**: Before any audit, read `graphify-out/arch/config.json` to understand the project's architectural ontology — its defined layers, tiers, assignment rules, dependency constraints, and propagation handlers. This config is the ground truth for what the project considers valid architecture. If a piece of code doesn't fit the current ontology (e.g., a legitimate pattern that has no layer assignment, or a dependency rule that blocks a valid use case), **do not force-fit or ignore it** — flag it as an ontology gap and propose updating `config.json` with the user's approval. The ontology evolves with the codebase.
 
 ---
 
@@ -63,18 +62,37 @@ Each component in the Audit Queue is evaluated against these principles:
 - Verify that symmetric groups of classes (e.g., all mutation modules, all FSM states) follow identical structural blueprints.
 - Flag orphaned helpers or asymmetric command definitions.
 
+### 🔹 Test Coverage Cross-Reference
+- For each Tier 2/3 source file in the Audit Queue, check if a corresponding test file exists.
+- Dart pattern: `lib/features/graph/store/foo.dart` → `test/features/graph/store/foo_test.dart`
+- Rust pattern: `rust/src/domain/foo.rs` → `rust/tests/core_tests/foo.rs` or `#[test]` in `rust/src/foo.rs`
+- Use `graphify query "<module name>"` with community filter "Repository Testing" to find associated test files.
+- Cross-reference with git churn data: files with high change frequency but no corresponding test are **untested hotspots** (highest remediation priority).
+
 ---
 
 ## Execution Steps
 
-### Step 1: Refresh Graph & Automated Assertions
-Run the following commands to establish the baseline:
+### Step 1: Calibration
+
+Before applying any rules, read the project's own configuration to understand what "correct" means **here** — not in generic best-practice land. This prevents false positives from auditing against standards the project explicitly opts out of.
+
+Read and note:
+1. **`analysis_options.yaml`**: Disabled lint rules, custom analyzer settings, excluded files. Any rule the project intentionally turns off is NOT a finding.
+2. **`AGENTS.md`**: Documented architectural patterns, coding conventions, and intentional deviations. These override generic SOLID/DDD advice.
+3. **`graphify-out/arch/config.json`**: The project's own ontology — defined layers, tiers, dependency constraints, and propagation handlers. This is the authoritative source for layer boundary rules. If a piece of code doesn't fit the current ontology, **do not force-fit or ignore it** — flag it as an **Ontology Gap** and propose updating `config.json` with the user's approval.
+4. **`pubspec.yaml`** / **`Cargo.toml`**: Language versions, framework constraints, and dependency choices that may affect what patterns are viable.
+
+**Output**: A Calibration Baseline (5–10 bullets) capturing the project's own standards. This baseline is what you audit *against*.
+
+> [!TIP]
+> Skip this step only if you are re-running an audit within the same session and the calibration baseline is already in your context.
+
+### Step 2: Refresh Graph & Automated Assertions
+
 ```powershell
 # Refresh the knowledge graph (re-extract changed files, rebuild communities)
 graphify update .
-
-# Understand the project ontology before auditing
-# Read graphify-out/arch/config.json to learn the defined layers, tiers, rules, and handlers
 
 # Run automated compliance scan (detects layer/tier/dependency violations)
 graphify arch audit
@@ -86,12 +104,32 @@ graphify arch analyze
 graphify arch set-status --query VIOLATION_DETECTED
 graphify arch set-status --query PENDING_AUDIT
 ```
+
 Collect the outputs and build the **Audit Queue** from:
 - Files with `VIOLATION_DETECTED` or `PENDING_AUDIT` status from the audit.
 - Files flagged by `analyze` for naming or config issues.
 - Complexity hotspots identified via `graphify arch query-file` (check public API counts and file sizes).
 
-### Step 2: Graphify Knowledge Graph Analysis
+### Step 3: Dead Code Discovery
+
+Use `graphify affected` to identify public symbols with zero callers:
+
+```powershell
+# For each public export in lib/, check callers
+graphify affected "<symbol_name>" --direction upstream
+
+# If upstream callers = 0, this is a dead code candidate
+```
+
+Evaluation criteria for dead code candidates:
+- **High confidence**: zero upstream callers AND not referenced in any test file AND not a `main()` entry point
+- **Medium confidence**: zero upstream callers but is a public API (may be consumed by external packages)
+- **Low confidence**: graph-based detection only (symbol exists but caller edges are incomplete)
+
+Tag dead code candidates with confidence tier and add to the Audit Queue for subagent verification. The subagent must read the code to confirm the symbol is truly unreachable (graph may miss dynamic invocations, reflection, or string-based lookups).
+
+### Step 4: Knowledge Graph Analysis
+
 After refreshing the graph, read `graphify-out/GRAPH_REPORT.md` to incorporate graphify's own analysis into the audit:
 - **God Nodes**: High-centrality files that many other files depend on — these are architectural linchpins. Flag any god node in the Audit Queue for deep review (high blast radius if changed).
 - **Surprising Connections**: Cross-community edges that indicate unexpected coupling between unrelated modules. These often reveal hidden dependencies or premature abstractions.
@@ -100,93 +138,47 @@ After refreshing the graph, read `graphify-out/GRAPH_REPORT.md` to incorporate g
 
 Merge graphify's findings into the Audit Queue alongside the arch audit results.
 
-### Step 3: Contextual Enrichment
+### Step 5: Test Coverage Cross-Reference
+
+For each Tier 2/3 file in the Audit Queue, run a heuristic test-coverage check:
+
+```powershell
+# Find test files associated with source modules via graphify communities
+graphify query "<module_or_feature_name>" --community "Repository Testing"
+
+# For Dart: check for corresponding test file
+# lib/features/graph/store/foo.dart → test/features/graph/store/foo_test.dart
+
+# For Rust: check for #[test] annotations or test crate references
+# rust/src/domain/foo.rs → rust/tests/core_tests/foo.rs
+```
+
+Tag each file in the Audit Queue with a `has_test` boolean. Files with `has_test: false` AND high git churn (or high centrality from Step 4) are flagged as **Untested Hotspots** — these get elevated priority in the final report.
+
+### Step 6: Contextual Enrichment
+
 For each file in the Audit Queue, gather its context from the graph:
 - Use `graphify arch query-file --path <file>` to retrieve its layer, tier, purity, architectural role, and dependencies.
 - Use `graphify arch compile-context --node <file> --direction upstream` on high-risk files to assess blast radius.
 - Use `graphify query "<concept>"` if you suspect a transitive layer leak.
-- Read the [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md), [no-cross-layer-mutation.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/symmetry-invariants.md) rules files to load the enforcement criteria.
+- Read the rule files to load enforcement criteria: [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md), [no-cross-layer-mutation.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/symmetry-invariants.md).
 
-### Step 4: Multi-Agent Deep Audit (Delegated Verification)
-Batch the Audit Queue into groups of 3–5 files (grouped by feature area or tier when possible). For each batch, spawn a subagent:
+### Step 7: Multi-Agent Deep Audit (Delegated Verification)
 
-- **Prompt to Subagent**:
-  ```text
-  You are a Code Health Auditor. Analyze the following files for compliance
-  across ALL of the dimensions below.
+Batch the Audit Queue into groups of 3–5 files (grouped by feature area or tier when possible). For each batch, spawn a subagent with the audit checklist from [code-audit-checklist.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/code-audit-checklist.md).
 
-  CRITICAL: You MUST use the `view_file` tool to read the full source code
-  of each target file. Do NOT rely solely on the CLI cache tools. Your primary
-  value is your cognitive AI scanning capability. Read the code line-by-line
-  and apply the "AI-Powered Code Scanning Guidelines (Semantic Auditing)"
-  defined in the /code-health workflow.
+The checklist defines the 8 evaluation dimensions, rules to enforce, dead code verification protocol, and the required finding format (including confidence ratings).
 
-  Files to audit: [list of 3-5 file paths]
+### Step 8: Synthesize & Report
 
-  For EACH file, evaluate and report:
-  1. **SRP**: Does the class have a single, clear responsibility? Check for mixed tiers, mixed levels of abstraction, or multiple roles.
-  2. **Open/Closed**: Can behavior be extended without modification? Check for hardcoded mode switchers, conditional chains, and lack of injection.
-  3. **LSP & ISP**: Do subclasses honor parent contracts without throwing UnimplementedError? Are they forced to implement fat interfaces?
-  4. **Dependency Inversion**: Does it depend on abstractions or concretions? Check for hardcoded class instantiations inside the code.
-   5. **DRY**: Is there structural or algorithmic duplication across sibling files? Use `graphify query` to cross-reference but read the code to verify.
-  6. **Pattern Fitness**: Does the actual class structure match its designated design pattern? Check if strategies/commands are clean.
-  7. **Symmetry**: Do sibling classes in the same directory follow the same structural blueprint?
-  8. **Complexity**: Check line counts (>500) and API counts (>15) as indicators of bloat.
+Compile all subagent results into a single **Code Health Report** using the template from [code-health-report-template.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/code-health-report-template.md).
 
-  Enforce:
-  - Zero-Trust Checklist from architecture-auditor skill.
-  - Symmetry rules from symmetry-checker skill.
-  - [rust-style-guide.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/rust-core-plugin/rules/rust-style-guide.md) for Rust core components.
-  - [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md), [no-cross-layer-mutation.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/symmetry-invariants.md) for Flutter/Dart components.
+### Step 9: Status Update & Finalization
 
-  For each finding, report:
-  - File path (clickable link)
-  - Principle violated (e.g., SRP, DRY, Open/Closed, Layer Leak, Cross-Layer Mutation)
-  - Severity: 🔴 Critical / 🟡 Warning / 🔵 Info
-  - Line range if applicable
-  - Concrete remediation suggestion
-  ```
-
-
-### Step 5: Synthesize & Report
-Compile all subagent results into a single **Code Health Report** artifact:
-
-```markdown
-# 🏥 Code Health Audit Report
-
-## Executive Summary
-- Files Scanned: X
-- Files Audited (Deep): Y
-- Findings: Z (🔴 Critical: N, 🟡 Warning: N, 🔵 Info: N)
-
-## Automated Assertion Results
-| Assertion | Status | Details |
-|-----------|--------|---------|
-| Layer Boundaries (`graphify arch audit`) | ✅/❌ | ... |
-| Naming Conventions (`graphify arch analyze`) | ✅/❌ | ... |
-| Config Consistency (`graphify arch analyze`) | ✅/❌ | ... |
-
-## Graphify Knowledge Graph Insights
-- **God Nodes**: [list files with highest centrality and their risk profile]
-- **Surprising Connections**: [cross-community couplings that indicate architectural drift]
-- **Community Cohesion Issues**: [features scattered across unrelated communities]
-- **Suggested Investigation**: [graphify's suggested questions applied as audit angles]
-
-## Complexity Hotspots
-[Table of files with high API count or line count]
-
-## Deep Audit Findings
-[Grouped by principle, with file links and remediation suggestions]
-
-## Recommended Actions
-[Prioritized list of refactoring tasks]
-```
-
-### Step 6: Status Update & Finalization
 For each audited file, update its status in the graph to reflect the audit result.
 
 > [!IMPORTANT]
-> A file is compliant and can be marked as `COMPLIANT` ONLY if it has been thoroughly analyzed by a separate cognitive/auditor agent (such as the `architecture-auditor` or `symmetry-checker` subagent) for various architectural principles. Do NOT mark changed files as `COMPLIANT` without a proper multi-agent audit as described in Step 3.
+> A file is compliant and can be marked as `COMPLIANT` ONLY if it has been thoroughly analyzed by a separate cognitive/auditor agent (such as the `architecture-auditor` or `symmetry-checker` subagent) for various architectural principles. Do NOT mark changed files as `COMPLIANT` without a proper multi-agent audit as described in Step 6.
 
 - **If Compliant across all dimensions**:
   ```powershell
@@ -239,7 +231,11 @@ While CLI tools and cache queries are excellent for metadata-level discovery, th
 
 ## Architectural Layer Boundaries
 
-The project enforces a strict **3-Tier Hierarchy**:
-*   **Tier 1: Canvas UI**: [lib/features/graph/ui](file:///d:/Projects/Open/flutter/code/mycelium/lib/features/graph/ui). Handles layout and widgets. Must NOT house domain state mutations, direct database/FFI calls, or low-level coordinate mathematics.
-*   **Tier 2: Presentational & FSM**: [lib/features/graph/presentation](file:///d:/Projects/Open/flutter/code/mycelium/lib/features/graph/presentation) and [lib/features/graph/engine](file:///d:/Projects/Open/flutter/code/mycelium/lib/features/graph/engine). Manages transient state, gesture tracking, and theme mapping. Must NOT paint directly or call raw FFI endpoints.
-*   **Tier 3: Domain / Store**: [lib/features/graph/store](file:///d:/Projects/Open/flutter/code/mycelium/lib/features/graph/store) and [lib/features/graph/models](file:///d:/Projects/Open/flutter/code/mycelium/lib/features/graph/models). Coordinates storage, SurrealDB syncing, and FFI bridges. **Must NEVER import or listen to Tier 1 or Tier 2 components.**
+The project enforces a strict **3-Tier Hierarchy**. Full tier definitions, responsibilities, and dependency rules are in [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md). The authoritative source for layer assignments is `graphify-out/arch/config.json`.
+
+Quick reference:
+- **Tier 1 (Canvas UI)**: `lib/features/graph/ui` — rendering and layout only
+- **Tier 2 (Presentation & FSM)**: `lib/features/graph/presentation`, `lib/features/graph/engine` — transient state and coordination
+- **Tier 3 (Domain / Store)**: `lib/features/graph/store`, `lib/features/graph/models` — business logic and persistence
+
+Tier 3 MUST NEVER import Tier 1 or Tier 2. Tier 2 MUST NOT import Tier 1. See [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md) for full enforcement rules.

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+// ignore_for_file: avoid_print
+
 void main() => runApp(const MaterialApp(home: AlignmentDebugScreen()));
 
 class AlignmentDebugScreen extends StatelessWidget {

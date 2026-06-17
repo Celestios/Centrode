@@ -224,12 +224,15 @@ class CanvasIdle extends CanvasInteractionState {
         }
 
         // Route to Resizing State
+        final node = ctx.getNode(hitNodeId);
+        final resizeFontSize = node?.resolvedStyle?.fontSize ?? 14.0;
         return NodeResizing(
           hitNodeId,
           draggedEdge,
           grabOffsetX,
           initialLeft,
           initialWidth,
+          resizeFontSize,
         );
       } else {
         final nodeIdsInSelection = selectedEntities

@@ -13,6 +13,7 @@ class NodeResizing extends CanvasInteractionState {
   final double grabOffsetX;
   final double initialLeft;
   final double initialWidth;
+  final double fontSize;
 
   @override
   MouseCursor get cursor => SystemMouseCursors.resizeLeftRight;
@@ -23,6 +24,7 @@ class NodeResizing extends CanvasInteractionState {
     this.grabOffsetX,
     this.initialLeft,
     this.initialWidth,
+    this.fontSize,
   );
 
   @override
@@ -49,9 +51,9 @@ class NodeResizing extends CanvasInteractionState {
         ).dx;
         // New width = snapped right edge minus initial left
         double newWidth = snappedRight - initialLeft;
-        if (newWidth < AppConfig.node.minWidth) {
-          newWidth = AppConfig.node.minWidth;
-        } else if (newWidth > AppConfig.node.maxWidth) {
+        if (newWidth < AppConfig.node.scaledMinWidth(fontSize)) {
+          newWidth = AppConfig.node.scaledMinWidth(fontSize);
+        } else if (newWidth > AppConfig.node.scaledMaxWidth(fontSize)) {
           newWidth = AppConfig.node.maxWidth;
         }
         vs.dragWidthNotifier.value = newWidth;
@@ -67,16 +69,16 @@ class NodeResizing extends CanvasInteractionState {
         // Right edge stays fixed: initialLeft + initialWidth
         final fixedRight = initialLeft + initialWidth;
         double newWidth = fixedRight - snappedLeft;
-        if (newWidth < AppConfig.node.minWidth) {
-          newWidth = AppConfig.node.minWidth;
-          // Adjust left edge so the right edge doesn’t move
+        if (newWidth < AppConfig.node.scaledMinWidth(fontSize)) {
+          newWidth = AppConfig.node.scaledMinWidth(fontSize);
+          // Adjust left edge so the right edge doesn't move
           vs.positionNotifier.value = Offset(
             fixedRight - newWidth,
             vs.positionNotifier.value.dy,
           );
         } else {
-          if (newWidth > AppConfig.node.maxWidth) {
-            newWidth = AppConfig.node.maxWidth;
+          if (newWidth > AppConfig.node.scaledMaxWidth(fontSize)) {
+            newWidth = AppConfig.node.scaledMaxWidth(fontSize);
             vs.positionNotifier.value = Offset(
               fixedRight - newWidth,
               vs.positionNotifier.value.dy,

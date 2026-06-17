@@ -264,7 +264,7 @@ class ContextToolbarOverlay extends StatelessWidget {
                 if (editedId.isNotEmpty) {
                   interactionContext.updateNodeStyle(editedId, (style) {
                     return style.copyWith(
-                      fontSize: (style.fontSize + 2.0).clamp(8.0, 24.0),
+                      fontSize: (style.fontSize + 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
                     );
                   });
                 }
@@ -273,7 +273,7 @@ class ContextToolbarOverlay extends StatelessWidget {
                 if (editedId.isNotEmpty) {
                   interactionContext.updateNodeStyle(editedId, (style) {
                     return style.copyWith(
-                      fontSize: (style.fontSize - 2.0).clamp(8.0, 24.0),
+                      fontSize: (style.fontSize - 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
                     );
                   });
                 }
@@ -437,7 +437,7 @@ class ContextToolbarOverlay extends StatelessWidget {
               if (singleNodeId != null) {
                 interactionContext.updateNodeStyle(singleNodeId, (style) {
                   return style.copyWith(
-                    fontSize: (style.fontSize - 2.0).clamp(8.0, 24.0),
+                    fontSize: (style.fontSize - 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
                   );
                 });
               }
@@ -446,7 +446,7 @@ class ContextToolbarOverlay extends StatelessWidget {
               if (singleNodeId != null) {
                 interactionContext.updateNodeStyle(singleNodeId, (style) {
                   return style.copyWith(
-                    fontSize: (style.fontSize + 2.0).clamp(8.0, 24.0),
+                    fontSize: (style.fontSize + 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
                   );
                 });
               }

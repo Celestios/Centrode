@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
+import 'package:mycelium/features/graph/engine/config.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/shared/utils/color_utils.dart';
 import 'package:mycelium/shared/widgets/color_palette/color_palette.dart';
@@ -365,8 +366,8 @@ class AppearanceTab extends StatelessWidget {
           context,
           title: 'FONT SIZE',
           value: currentStyle.fontSize,
-          min: 8,
-          max: 24,
+          min: AppConfig.node.minFontSize,
+          max: AppConfig.node.maxFontSize,
           onChanged: (val) => _updateSelectedNodesStyle(
             nodeIds,
             renderState,

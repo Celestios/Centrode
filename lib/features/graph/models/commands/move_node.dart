@@ -82,7 +82,8 @@ class MoveNodeCommand extends GraphCommand {
       );
     }
     if (newStyle != null || oldStyle != null) {
-      forwardPatches.add(NodePatch.style(newStyle));
+      final currentStyle = controller.store.nodeLookup[targetId]?.style;
+      forwardPatches.add(NodePatch.style(currentStyle ?? newStyle));
       reversePatches.add(NodePatch.style(oldStyle));
     }
     if (newExpanded != null && oldExpanded != null) {

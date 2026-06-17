@@ -15,7 +15,7 @@ part 'graph_node.ui.dart';
 // -----------------------------------------------------------------------------
 
 sealed class UiNode {
-  static const Size defaultNodeSize = Size(100.0, 60.0);
+  static const Size defaultNodeSize = Size(100.0, 80.0);
 
   final String id;
   final int createdAt;

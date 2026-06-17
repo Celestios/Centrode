@@ -12,7 +12,7 @@ void main() {
     final fromNode = InfoUiNode(
       id: 'from_1',
       position: const Offset(10, 10),
-      size: const Size(100, 50),
+      size: const Size(100, 40),
     );
     final toNode = InfoUiNode(
       id: 'to_1',
@@ -20,7 +20,7 @@ void main() {
         210,
         10,
       ), // dx distance between node centers: 200px
-      size: const Size(100, 50),
+      size: const Size(100, 40),
     );
 
     final relation = InfoUiRelation(
@@ -70,7 +70,7 @@ void main() {
     final fromNode = InfoUiNode(
       id: 'from_1',
       position: const Offset(10, 10),
-      size: const Size(100, 50),
+      size: const Size(100, 40),
     );
     final toNode = InfoUiNode(
       id: 'to_1',
@@ -78,7 +78,7 @@ void main() {
         120,
         10,
       ), // dx distance between node centers: 110px
-      size: const Size(100, 50),
+      size: const Size(100, 40),
     );
 
     final relation = InfoUiRelation(
@@ -132,12 +132,12 @@ void main() {
       final fromNode = InfoUiNode(
         id: 'from_1',
         position: const Offset(10, 10),
-        size: const Size(100, 50),
+        size: const Size(100, 40),
       );
       final toNode = InfoUiNode(
         id: 'to_1',
         position: const Offset(210, 10),
-        size: const Size(100, 50),
+        size: const Size(100, 40),
       );
 
       final relation = InfoUiRelation(
@@ -160,7 +160,7 @@ void main() {
 
       // Now simulate dragging the start tip to the bottom of the target node (e.g. (260, 100))
       // Because the drag cursor is now very close to the bottom of the target node,
-      // the end tip on 'to_1' should dynamically update from Left (210, 35) to Bottom (260, 60) to face it.
+      // the end tip on 'to_1' should dynamically update from Left (210, 30) to Bottom (260, 50) to face it.
       const layoutStrategy = StraightRelationLayoutStrategy();
       final (start, end) = layoutStrategy.resolveEndpoints(
         relation,
@@ -183,12 +183,12 @@ void main() {
       final fromNode = InfoUiNode(
         id: 'from_1',
         position: const Offset(10, 10),
-        size: const Size(100, 50),
+        size: const Size(100, 40),
       );
       final toNode = InfoUiNode(
         id: 'to_1',
         position: const Offset(210, 210), // shifted vertically by 200px
-        size: const Size(100, 50),
+        size: const Size(100, 40),
       );
 
       final relation = InfoUiRelation(
@@ -273,12 +273,12 @@ void main() {
       final fromNode = InfoUiNode(
         id: 'from_1',
         position: const Offset(10, 10),
-        size: const Size(100, 50),
+        size: const Size(100, 40),
       );
       final toNode = InfoUiNode(
         id: 'to_1',
         position: const Offset(210, 110),
-        size: const Size(100, 50),
+        size: const Size(100, 40),
       );
 
       final relation = InfoUiRelation(
@@ -350,12 +350,12 @@ void main() {
       final fromNode = InfoUiNode(
         id: 'from_1',
         position: const Offset(10, 10),
-        size: const Size(100, 50),
+        size: const Size(100, 40),
       );
       final toNode = InfoUiNode(
         id: 'to_1',
         position: const Offset(210, 110),
-        size: const Size(100, 50),
+        size: const Size(100, 40),
       );
 
       final relation = InfoUiRelation(

@@ -87,8 +87,7 @@ class CommandProcessor {
   }
 
   Future<void> flush() async {
-    flushSync();
-    await _processQueue();
+    await forceFlush();
   }
 
   /// Forces execution of all pending debounced commands immediately.

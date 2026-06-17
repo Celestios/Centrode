@@ -45,14 +45,24 @@ class _Interaction {
 class _Node {
   const _Node();
 
-  final double defaultWidth = 100.0;
+  static const double _referenceFontSize = 14.0;
+
+  final double defaultWidth = 80.0;
   final double minWidth = 60.0;
-  final double maxWidth = 500.0;
-  final double autoWrapThreshold = 240.0;
+  final double maxWidth = 640.0;
+  final double autoWrapThreshold = 310.0;
   final double resizeHandleVisualWidth = 5.0;
-  final double editingBufferWidth = 35.0;
+  final double editingBufferWidth = 45.0;
   final int collapsedLineLimit = 3;
-  final Size defaultSize = const Size(100, 60);
+  final Size defaultSize = const Size(100, 80);
+  final double minFontSize = 10.0;
+  final double maxFontSize = 40.0;
+
+  double scaledDefaultWidth(double fontSize) => defaultWidth * fontSize / _referenceFontSize;
+  double scaledMinWidth(double fontSize) => minWidth * fontSize / _referenceFontSize;
+  double scaledMaxWidth(double fontSize) => maxWidth * fontSize / _referenceFontSize;
+  double scaledAutoWrapThreshold(double fontSize) => autoWrapThreshold * fontSize / _referenceFontSize;
+  double scaledEditingBufferWidth(double fontSize) => editingBufferWidth * fontSize / _referenceFontSize;
 
   final double metadataSphereOffsetFromRight = 10.0;
   final double metadataSphereOffsetFromTop = 10.0;

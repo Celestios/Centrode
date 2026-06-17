@@ -12,6 +12,7 @@ class NodeViewState {
   final ValueNotifier<bool> isExpandedNotifier;
   final ValueNotifier<double?> dragWidthNotifier = ValueNotifier(null);
   final ValueNotifier<int> lineCountNotifier = ValueNotifier(0);
+  final ValueNotifier<int> styleNotifier = ValueNotifier(0);
 
   int get lineCount => lineCountNotifier.value;
 
@@ -22,8 +23,6 @@ class NodeViewState {
       positionNotifier = ValueNotifier<Offset>(node.position),
       sizeNotifier = ValueNotifier<Size>(node.size),
       isExpandedNotifier = ValueNotifier<bool>(node.isExpanded) {
-    _recomputeSizeWithStrategy(node);
-    sizeNotifier.value = node.size;
     lineCountNotifier.value = node.lineCount;
   }
 
@@ -167,19 +166,26 @@ class NodeViewState {
     );
   }
 
-  Rect get rightResizeHitbox => Rect.fromLTRB(
-    rect.right - AppConfig.interaction.resizeEdgeWidth,
-    rect.top + 24.0,
-    rect.right,
-    rect.bottom,
-  );
+  Rect get rightResizeHitbox {
+    final w = dragWidthNotifier.value ?? sizeNotifier.value.width;
+    final r = positionNotifier.value.dx + w;
+    return Rect.fromLTRB(
+      r - AppConfig.interaction.resizeEdgeWidth,
+      rect.top + 24.0,
+      r,
+      rect.bottom,
+    );
+  }
 
-  Rect get leftResizeHitbox => Rect.fromLTRB(
-    rect.left,
-    rect.top,
-    rect.left + AppConfig.interaction.resizeEdgeWidth,
-    rect.bottom,
-  );
+  Rect get leftResizeHitbox {
+    final l = positionNotifier.value.dx;
+    return Rect.fromLTRB(
+      l,
+      rect.top,
+      l + AppConfig.interaction.resizeEdgeWidth,
+      rect.bottom,
+    );
+  }
 
   Rect get expandToggleHitbox =>
       Rect.fromLTRB(rect.left, rect.bottom - 24, rect.right, rect.bottom);
@@ -193,12 +199,17 @@ class NodeViewState {
     positionNotifier.value += screenDelta / currentScale;
   }
 
-  /// Called when content or aesthetics change.
-  void onContentOrStyleChanged(UiNode node, {bool isEditing = false}) {
+  /// Called when size-affecting properties change (content, size, expansion).
+  void onSizeChanged(UiNode node, {bool isEditing = false}) {
     isExpandedNotifier.value = node.isExpanded;
     _recomputeSizeWithStrategy(node, isEditing: isEditing);
     sizeNotifier.value = node.size;
     lineCountNotifier.value = node.lineCount;
+  }
+
+  /// Called when only visual properties change (no size impact).
+  void onStyleChanged() {
+    styleNotifier.value++;
   }
 
   /// Called during resize drag to set the temporary width.
@@ -212,5 +223,6 @@ class NodeViewState {
     isExpandedNotifier.dispose();
     dragWidthNotifier.dispose();
     lineCountNotifier.dispose();
+    styleNotifier.dispose();
   }
 }
