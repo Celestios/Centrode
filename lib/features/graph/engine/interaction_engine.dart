@@ -5,6 +5,7 @@ import '../engine/config.dart';
 import 'base_interaction_state.dart';
 import 'interaction_context.dart';
 import 'gesture_interceptor.dart';
+import '../models/models.dart';
 
 /// The Interaction Controller (FSM Engine)
 ///
@@ -241,5 +242,18 @@ class InteractionController {
     panScaleEnabled.dispose();
     cursor.dispose();
     state.dispose();
+  }
+
+  void startRelationDrawing(Set<String> nodeIds, Offset initialPos) {
+    _transitionTo(RelationDrawing(
+      nodeIds,
+      initialPos,
+      isSticky: true,
+      hasReleasedOnce: true,
+    ));
+  }
+
+  void updateNodeStyle(String nodeId, NodeStyle Function(NodeStyle style) updateFn) {
+    environment.updateNodeStyle(nodeId, updateFn);
   }
 }

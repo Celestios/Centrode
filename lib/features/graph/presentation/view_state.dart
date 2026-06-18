@@ -1,11 +1,13 @@
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:logging/logging.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
 import 'package:mycelium/features/graph/engine/config.dart';
+import 'package:mycelium/features/graph/engine/states/volatile_node_state.dart';
 
-class NodeViewState {
+class NodeViewState implements VolatileNodeState {
   final String nodeId;
   final ValueNotifier<Offset> positionNotifier;
   final ValueNotifier<Size> sizeNotifier;
@@ -241,6 +243,18 @@ class NodeViewState {
   void updateDragWidth(double width) {
     dragWidthNotifier.value = width;
   }
+
+  @override
+  void setDragWidth(double? width) => dragWidthNotifier.value = width;
+
+  @override
+  void setDragPosition(Offset position) => positionNotifier.value = position;
+
+  @override
+  double? get dragWidth => dragWidthNotifier.value;
+
+  @override
+  Offset get dragPosition => positionNotifier.value;
 
   void dispose() {
     positionNotifier.removeListener(_invalidateGeometry);

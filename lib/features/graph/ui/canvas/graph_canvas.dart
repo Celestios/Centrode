@@ -17,18 +17,10 @@ import 'layers/overlay_layer.dart';
 import '../../models/models.dart';
 import 'layers/grid_layer.dart';
 import '../../../../shared/widgets/canvas_interactive_viewer.dart';
-import '../widgets/overlays/canvas_tool_ribbon.dart';
-import '../widgets/overlays/canvas_tab_bar.dart';
-import '../widgets/overlays/left_repository_drawer.dart';
-import '../widgets/overlays/right_property_panel.dart';
-import '../widgets/overlays/canvas_status_bar/canvas_status_bar.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
-import 'context_toolbar_overlay.dart';
-import 'package:mycelium/presentation/widgets/tag_manager/global_tags_manager_panel.dart';
-import 'package:mycelium/presentation/widgets/template_manager/global_templates_manager_panel.dart';
 import 'package:mycelium/presentation/widgets/template_manager/save_template_dialog.dart';
-import 'package:mycelium/presentation/widgets/drawing_manager/global_drawing_panel.dart';
 import 'package:mycelium/shared/widgets/unbounded_stack.dart';
+import 'canvas_overlay_layout.dart';
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
@@ -68,60 +60,60 @@ class _GraphCanvasState extends State<GraphCanvas>
   void initState() {
     super.initState();
     _log.info('Initializing GraphCanvas.');
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final dataController = context.read<GraphDataController>();
-      final renderState = context.read<NodeRenderState>();
-
-      // 1. Initialize your ViewportController bound directly to the data query layer
-      final vpController = ViewportController(dataController);
-      _viewportController = vpController;
-
-      final tabsController = context.read<WorkspaceTabsController>();
-      _boundSession = tabsController.activeSession;
-      _boundSession?.viewportController = vpController;
-      _boundSession?.toolModeNotifier.addListener(_onToolModeChanged);
-
-      // 2. Build the Environment Facade with separate ViewportController access
-      final environment = CanvasInteractionEnvironment(
-        dataController: dataController,
-        renderState: renderState,
-        viewportController: vpController,
-        getScale: () =>
-            vpController.transformController.value.getMaxScaleOnAxis(),
-        boundSession: _boundSession,
-        onSaveTemplate: (nodeIds, relationIds) async {
-          final name = await showSaveTemplateDialog(context);
-          if (name != null) {
-            await dataController.saveTemplateFromSelection(
-              name,
-              nodeIds,
-              relationIds,
-            );
-          }
-        },
-      );
-
-      // 3. Initialize the pure FSM Engine
-      _interactionController = InteractionController(
-        transformController: vpController.transformController,
-        environment: environment,
-      );
-
-      _drawingInterceptor = DrawingGestureInterceptor(
-        session: _boundSession!,
-        viewportController: vpController,
-      );
-      _interactionController!.registerInterceptor(_drawingInterceptor!);
-
-      final presentationNotifier = context.read<GraphPresentationNotifier>();
-      _presentationNotifier = presentationNotifier;
-      _presentationNotifier?.addListener(_onDataControllerChanged);
-      _onDataControllerChanged();
-
-      setState(() {});
+      _initControllers();
     });
+  }
+
+  void _initControllers() {
+    final dataController = context.read<GraphDataController>();
+    final renderState = context.read<NodeRenderState>();
+
+    final vpController = ViewportController(dataController);
+    _viewportController = vpController;
+
+    final tabsController = context.read<WorkspaceTabsController>();
+    _boundSession = tabsController.activeSession;
+    _boundSession?.viewportController = vpController;
+    _boundSession?.toolModeNotifier.addListener(_onToolModeChanged);
+
+    final environment = CanvasInteractionEnvironment(
+      dataController: dataController,
+      renderState: renderState,
+      viewportController: vpController,
+      getScale: () =>
+          vpController.transformController.value.getMaxScaleOnAxis(),
+      boundSession: _boundSession,
+      onSaveTemplate: (nodeIds, relationIds) async {
+        final name = await showSaveTemplateDialog(context);
+        if (name != null) {
+          await dataController.saveTemplateFromSelection(
+            name,
+            nodeIds,
+            relationIds,
+          );
+        }
+      },
+    );
+
+    _interactionController = InteractionController(
+      transformController: vpController.transformController,
+      environment: environment,
+    );
+
+    _drawingInterceptor = DrawingGestureInterceptor(
+      session: _boundSession!,
+      viewportController: vpController,
+    );
+    _interactionController!.registerInterceptor(_drawingInterceptor!);
+
+    final presentationNotifier = context.read<GraphPresentationNotifier>();
+    _presentationNotifier = presentationNotifier;
+    _presentationNotifier?.addListener(_onDataControllerChanged);
+    _onDataControllerChanged();
+
+    setState(() {});
   }
 
   void _onDataControllerChanged() {
@@ -405,177 +397,19 @@ class _GraphCanvasState extends State<GraphCanvas>
                 );
               },
             ),
-            child: Stack(
-              children: [
-                // Persistent Floating Overlays
-                // Top Deck Area (Ribbon, slash separator, and tabs bar on one line)
-                Positioned(
-                  top: 52.0,
-                  left: 16.0,
-                  right: 16.0,
-                  child: RepaintBoundary(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        const CanvasToolRibbon(),
-                        const SizedBox(width: 8),
-                        Text(
-                          '\\',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w300,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Flexible(child: CanvasTabBar()),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Left repository drawer (floating compact card, width 52)
-                Positioned(
-                  top: 112.0,
-                  left: 12,
-                  width: 52,
-                  child: ValueListenableBuilder<bool>(
-                    valueListenable: session.showLeftPanel,
-                    builder: (context, leftVisible, _) {
-                      if (!leftVisible) return const SizedBox.shrink();
-                      return ValueListenableBuilder<LeftPanelType>(
-                        valueListenable: renderState.activeLeftPanelNotifier,
-                        builder: (context, activeLeftPanel, _) {
-                          return LeftRepositoryDrawer(
-                            activePanel: activeLeftPanel,
-                            onPanelChanged: (panel) {
-                              renderState.activeLeftPanelNotifier.value = panel;
-                              if (panel == LeftPanelType.draw) {
-                                session.setToolMode('draw');
-                              } else {
-                                session.setToolMode('select');
-                              }
-                            },
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-
-                // Left repository panel
-                ValueListenableBuilder<bool>(
-                  valueListenable: session.showLeftPanel,
-                  builder: (context, leftVisible, _) {
-                    return ValueListenableBuilder<LeftPanelType>(
-                      valueListenable: renderState.activeLeftPanelNotifier,
-                      builder: (context, activeLeftPanel, _) {
-                        final isOpen = activeLeftPanel != LeftPanelType.none;
-                        // Keep Positioned/AnimatedPositioned clean by evaluating constraints here
-                        return AnimatedPositioned(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeInOut,
-                          top: 112.0,
-                          left: leftVisible
-                              ? 76.0
-                              : -300.0, // Clean off-screen translation
-                          width: (leftVisible && isOpen) ? 280.0 : 0.0,
-                          child: AnimatedOpacity(
-                            duration: const Duration(milliseconds: 200),
-                            opacity: (leftVisible && isOpen) ? 1.0 : 0.0,
-                            child: ClipRect(
-                              child: UnconstrainedBox(
-                                alignment: Alignment.topLeft,
-                                clipBehavior: Clip.hardEdge,
-                                child: ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    minWidth: 280.0,
-                                    maxWidth: 280.0,
-                                    minHeight: 180,
-                                    maxHeight:
-                                        (constraints.maxHeight - 112 - 86)
-                                            .clamp(180, 10000)
-                                            .toDouble(),
-                                  ),
-                                  child: _buildLeftPanelContent(
-                                    activeLeftPanel,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-
-                // Right property inspector panel
-                Positioned(
-                  top: 112.0,
-                  right: 12,
-                  child: ValueListenableBuilder<bool>(
-                    valueListenable: session.showRightPanel,
-                    builder: (context, visible, _) {
-                      if (!visible) return const SizedBox.shrink();
-                      return ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: 180,
-                          maxHeight: (constraints.maxHeight - 112 - 224)
-                              .clamp(180, 10000)
-                              .toDouble(),
-                        ),
-                        child: const RightPropertyPanel(),
-                      );
-                    },
-                  ),
-                ),
-
-                // Bottom control status bar
-                Positioned(
-                  bottom: 12,
-                  left: 12,
-                  right: 12,
-                  child: ValueListenableBuilder<bool>(
-                    valueListenable: session.showBottomPanel,
-                    builder: (context, visible, _) {
-                      if (!visible) return const SizedBox.shrink();
-                      return const CanvasStatusBar();
-                    },
-                  ),
-                ),
-
-                // Floating Contextual Toolbar Overlay (in screen coordinates)
-                if (renderState.selectedEntities.isNotEmpty)
-                  ContextToolbarOverlay(
-                    renderState: renderState,
-                    dataController: dataController,
-                    interactionContext: interactionController.environment,
-                    viewportController: viewportController,
-                    interactionController: interactionController,
-                  ),
-              ],
+            child: CanvasOverlayLayout(
+              constraints: constraints,
+              renderState: renderState,
+              dataController: dataController,
+              interactionController: interactionController,
+              viewportController: viewportController,
+              session: session,
+              drawingInterceptor: _drawingInterceptor,
             ),
           );
         },
       ),
     );
-  }
-
-  Widget _buildLeftPanelContent(LeftPanelType activePanel) {
-    switch (activePanel) {
-      case LeftPanelType.tags:
-        return const GlobalTagsManagerPanel();
-      case LeftPanelType.templates:
-        return const GlobalTemplatesManagerPanel();
-      case LeftPanelType.draw:
-        return const GlobalDrawingPanel();
-      case LeftPanelType.none:
-        return const SizedBox.shrink();
-    }
   }
 }
 

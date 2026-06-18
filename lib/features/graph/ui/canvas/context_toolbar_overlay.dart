@@ -6,13 +6,11 @@ import 'package:mycelium/features/graph/presentation/viewport_state.dart';
 import 'package:mycelium/features/graph/engine/config.dart';
 import 'package:mycelium/features/graph/engine/interaction_context.dart';
 import 'package:mycelium/features/graph/engine/interaction_engine.dart';
-import 'package:mycelium/features/graph/engine/base_interaction_state.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
 import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart';
 import 'package:mycelium/features/graph/presentation/strategies/relation_style_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/relation_layout_strategy.dart';
 import 'package:mycelium/features/graph/presentation/routing/relation_layout_context.dart';
-import 'package:mycelium/presentation/widgets/template_manager/save_template_dialog.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_text_format_toolbar.dart';
 import 'content_text_editing_controller.dart';
@@ -262,7 +260,7 @@ class ContextToolbarOverlay extends StatelessWidget {
               currentTextAlign: renderState.currentTextAlignNotifier.value,
               onIncreaseFontSize: () {
                 if (editedId.isNotEmpty) {
-                  interactionContext.updateNodeStyle(editedId, (style) {
+                  interactionController.updateNodeStyle(editedId, (style) {
                     return style.copyWith(
                       fontSize: (style.fontSize + 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
                     );
@@ -271,7 +269,7 @@ class ContextToolbarOverlay extends StatelessWidget {
               },
               onDecreaseFontSize: () {
                 if (editedId.isNotEmpty) {
-                  interactionContext.updateNodeStyle(editedId, (style) {
+                  interactionController.updateNodeStyle(editedId, (style) {
                     return style.copyWith(
                       fontSize: (style.fontSize - 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
                     );
@@ -425,17 +423,12 @@ class ContextToolbarOverlay extends StatelessWidget {
               if (nodeIds.isNotEmpty) {
                 final vs = renderState.viewStates[nodeIds.first];
                 final initialPos = vs != null ? vs.rect.center : Offset.zero;
-                interactionController.state.value = RelationDrawing(
-                  nodeIds.toSet(),
-                  initialPos,
-                  isSticky: true,
-                  hasReleasedOnce: true,
-                );
+                interactionController.startRelationDrawing(nodeIds.toSet(), initialPos);
               }
             },
             onDecreaseFontSize: () {
               if (singleNodeId != null) {
-                interactionContext.updateNodeStyle(singleNodeId, (style) {
+                interactionController.updateNodeStyle(singleNodeId, (style) {
                   return style.copyWith(
                     fontSize: (style.fontSize - 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
                   );
@@ -444,7 +437,7 @@ class ContextToolbarOverlay extends StatelessWidget {
             },
             onIncreaseFontSize: () {
               if (singleNodeId != null) {
-                interactionContext.updateNodeStyle(singleNodeId, (style) {
+                interactionController.updateNodeStyle(singleNodeId, (style) {
                   return style.copyWith(
                     fontSize: (style.fontSize + 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
                   );
@@ -453,7 +446,7 @@ class ContextToolbarOverlay extends StatelessWidget {
             },
             onToggleFontFamily: () {
               if (singleNodeId != null) {
-                interactionContext.updateNodeStyle(singleNodeId, (style) {
+                interactionController.updateNodeStyle(singleNodeId, (style) {
                   final nextFont = style.fontFamily == 'Roboto'
                       ? 'Inter'
                       : 'Roboto';
@@ -464,7 +457,7 @@ class ContextToolbarOverlay extends StatelessWidget {
             onCycleTextColor: () {
               if (singleNodeId != null) {
                 final textColors = AppConfig.visuals.textColors;
-                interactionContext.updateNodeStyle(singleNodeId, (style) {
+                interactionController.updateNodeStyle(singleNodeId, (style) {
                   final index = textColors.indexOf(style.textColor);
                   final nextColor = textColors[(index + 1) % textColors.length];
                   return style.copyWith(textColor: nextColor);
@@ -473,26 +466,13 @@ class ContextToolbarOverlay extends StatelessWidget {
             },
             onShapeChanged: (shape) {
               if (singleNodeId != null) {
-                interactionContext.updateNodeStyle(singleNodeId, (style) {
+                interactionController.updateNodeStyle(singleNodeId, (style) {
                   return style.copyWith(shape: shape);
                 });
               }
             },
-            onSaveTemplate: () async {
-              final nodeIds = renderState.selectedEntities
-                  .where((id) => dataController.nodeLookup.containsKey(id))
-                  .toList();
-              final relationIds = renderState.selectedEntities
-                  .where((id) => dataController.relationLookup.containsKey(id))
-                  .toList();
-              final name = await showSaveTemplateDialog(context);
-              if (name != null) {
-                await dataController.saveTemplateFromSelection(
-                  name,
-                  nodeIds,
-                  relationIds,
-                );
-              }
+            onSaveTemplate: () {
+              interactionController.environment.onSaveTemplate();
             },
             dragHandle: _buildDragHandle(matrix, offsetNotifier),
           ),
