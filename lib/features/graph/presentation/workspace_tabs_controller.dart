@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -117,8 +118,12 @@ class TabSession extends ChangeNotifier {
   Future<void> _doInitialize(ThemeData globalTheme) async {
     String resolvedPath = storagePath;
     if (!p.isAbsolute(storagePath)) {
-      final appSupportDir = await getApplicationSupportDirectory();
-      resolvedPath = p.join(appSupportDir.path, storagePath);
+      if (!kReleaseMode) {
+        resolvedPath = p.join(Directory.current.path, storagePath);
+      } else {
+        final appDocsDir = await getApplicationDocumentsDirectory();
+        resolvedPath = p.join(appDocsDir.path, storagePath);
+      }
     }
 
     final file = File(resolvedPath);

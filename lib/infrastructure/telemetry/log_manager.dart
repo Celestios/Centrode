@@ -7,6 +7,7 @@ import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 
@@ -81,8 +82,29 @@ class LogManager {
       return;
     }
 
-    final supportDir = await getApplicationSupportDirectory();
-    final logPath = '${supportDir.path}/mycelium.log';
+    String logPath;
+    if (!kReleaseMode) {
+      logPath = p.join(Directory.current.path, 'mycelium.log');
+    } else {
+      if (Platform.isWindows) {
+        final appData = Platform.environment['APPDATA'];
+        if (appData != null) {
+          logPath = p.join(appData, 'mycelium', 'mycelium.log');
+        } else {
+          final supportDir = await getApplicationSupportDirectory();
+          logPath = p.join(supportDir.path, 'mycelium.log');
+        }
+      } else {
+        final supportDir = await getApplicationSupportDirectory();
+        logPath = p.join(supportDir.path, 'mycelium.log');
+      }
+    }
+
+    final logFile = File(logPath);
+    if (!logFile.parent.existsSync()) {
+      logFile.parent.createSync(recursive: true);
+    }
+
     await _checkForPreviousPanics(logPath);
     final receivePort = ReceivePort();
     _isolateReceivePort = receivePort;
