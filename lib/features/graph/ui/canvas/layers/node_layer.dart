@@ -4,8 +4,23 @@ import 'package:provider/provider.dart';
 import '../../../store/graph_data_query.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../presentation/viewport_state.dart';
-import '../render_canvas_nodes.dart';
+import '../../../presentation/view_state.dart';
 import '../../../models/models.dart';
+import '../node_visual_constants.dart';
+
+class NodeRenderEntry {
+  final UiNode node;
+  final NodeViewState viewState;
+  final bool isSelected;
+  final bool isEditing;
+
+  const NodeRenderEntry({
+    required this.node,
+    required this.viewState,
+    required this.isSelected,
+    required this.isEditing,
+  });
+}
 
 class NodeLayer extends StatelessWidget {
   const NodeLayer({super.key});
@@ -153,18 +168,18 @@ class _CanvasNodesPainter extends CustomPainter {
   final Paint _shadowPaint = Paint();
   final Paint _bgPaint = Paint();
   final Paint _borderPaint = Paint();
-  final Paint _handlePaint = Paint()..color = Colors.black.withValues(alpha: 0.01);
+  final Paint _handlePaint = Paint()..color = Color(NodeVisualConstants.handleColor);
   late final TextPainter _showMorePainter = TextPainter(
-    text: const TextSpan(
+    text: TextSpan(
       text: 'Show More',
-      style: TextStyle(fontSize: 10, color: Colors.blueAccent, fontWeight: FontWeight.bold),
+      style: TextStyle(fontSize: NodeVisualConstants.expandToggleFontSize, color: Colors.blueAccent, fontWeight: FontWeight.bold),
     ),
     textDirection: TextDirection.ltr,
   );
   late final TextPainter _showLessPainter = TextPainter(
-    text: const TextSpan(
+    text: TextSpan(
       text: 'Show Less',
-      style: TextStyle(fontSize: 10, color: Colors.blueAccent, fontWeight: FontWeight.bold),
+      style: TextStyle(fontSize: NodeVisualConstants.expandToggleFontSize, color: Colors.blueAccent, fontWeight: FontWeight.bold),
     ),
     textDirection: TextDirection.ltr,
   );
@@ -267,10 +282,10 @@ class _CanvasNodesPainter extends CustomPainter {
 
     // Shadow
     if (entry.isEditing) {
-      _shadowPaint.color = const Color(0x602196F3);
+      _shadowPaint.color = Color(NodeVisualConstants.editingShadowColor);
       _shadowPaint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
     } else if (entry.isSelected) {
-      _shadowPaint.color = const Color(0x4442A5F5);
+      _shadowPaint.color = Color(NodeVisualConstants.selectedShadowColor);
       _shadowPaint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     } else {
       _shadowPaint.color = Color(resolvedStyle.shadowColor);
@@ -288,9 +303,9 @@ class _CanvasNodesPainter extends CustomPainter {
     // Border
     _borderPaint
       ..color = entry.isEditing
-          ? const Color(0xFF2196F3)
+          ? Color(NodeVisualConstants.editingBorderColor)
           : (entry.isSelected
-              ? const Color(0xFF42A5F5)
+              ? Color(NodeVisualConstants.selectedBorderColor)
               : Color(resolvedStyle.strokeColor))
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
@@ -355,20 +370,20 @@ class _CanvasNodesPainter extends CustomPainter {
     final cached = _handleCache[nodeId];
     if (cached != null) {
       final (right, left) = cached;
-      if (right.outerRect == Rect.fromLTRB(rect.right - 5, rect.top + 24, rect.right, rect.bottom) &&
-          left.outerRect == Rect.fromLTRB(rect.left, rect.top, rect.left + 5, rect.bottom)) {
+      if (right.outerRect == Rect.fromLTRB(rect.right - NodeVisualConstants.handleWidth, rect.top + NodeVisualConstants.handleTopOffset, rect.right, rect.bottom) &&
+          left.outerRect == Rect.fromLTRB(rect.left, rect.top, rect.left + NodeVisualConstants.handleWidth, rect.bottom)) {
         return cached;
       }
     }
 
     final r = Radius.circular(borderRadius);
     final rightHandle = RRect.fromRectAndCorners(
-      Rect.fromLTRB(rect.right - 5, rect.top + 24, rect.right, rect.bottom),
+      Rect.fromLTRB(rect.right - NodeVisualConstants.handleWidth, rect.top + NodeVisualConstants.handleTopOffset, rect.right, rect.bottom),
       topRight: r,
       bottomRight: r,
     );
     final leftHandle = RRect.fromRectAndCorners(
-      Rect.fromLTRB(rect.left, rect.top, rect.left + 5, rect.bottom),
+      Rect.fromLTRB(rect.left, rect.top, rect.left + NodeVisualConstants.handleWidth, rect.bottom),
       topLeft: r,
       bottomLeft: r,
     );
@@ -426,7 +441,7 @@ class _CanvasNodesPainter extends CustomPainter {
     textPainter.layout();
     textPainter.paint(
       canvas,
-      Offset(rect.center.dx - textPainter.width / 2, rect.bottom - 20),
+      Offset(rect.center.dx - textPainter.width / 2, rect.bottom - NodeVisualConstants.expandToggleBottomOffset),
     );
   }
 

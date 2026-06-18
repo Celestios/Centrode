@@ -10,6 +10,7 @@ import '../../store/graph_data_query.dart';
 import '../../presentation/view_state.dart';
 import '../../presentation/strategies/node_layout_strategy.dart';
 import 'canvas_text_editor.dart';
+import 'node_visual_constants.dart';
 
 /// A passive node widget that renders exactly what the domain instructs.
 ///
@@ -71,9 +72,8 @@ class NodeWidget extends StatelessWidget {
             ? (3.0 - resolvedStyle.strokeWidth.toDouble())
             : 0.0;
 
-        final fontScale = resolvedStyle.fontSize / 14.0;
-        final scaledBadgeFontSize = 10.0 * fontScale;
-        final scaledShowMoreFontSize = 10.0 * fontScale;
+        final scaledBadgeFontSize = NodeVisualConstants.scaledBadgeFontSize(resolvedStyle.fontSize);
+        final scaledShowMoreFontSize = NodeVisualConstants.scaledShowMoreFontSize(resolvedStyle.fontSize);
 
         return Transform.translate(
           offset: -Offset(strokeDiff, strokeDiff),
@@ -91,7 +91,7 @@ class NodeWidget extends StatelessWidget {
                       : BorderRadius.circular(resolvedStyle.borderRadius),
                    border: Border.all(
                     color: isEditing
-                        ? const Color(0xFF2196F3)
+                        ? Color(NodeVisualConstants.editingBorderColor)
                         : (isSelected
                             ? AppConfig.visuals.selectionAccent
                             : Color(resolvedStyle.strokeColor)),
@@ -99,16 +99,16 @@ class NodeWidget extends StatelessWidget {
                   ),
                   boxShadow: isEditing
                       ? [
-                          const BoxShadow(
-                            color: Color(0x602196F3),
+                          BoxShadow(
+                            color: Color(NodeVisualConstants.editingShadowColor),
                             blurRadius: 16,
                             spreadRadius: 4,
                           ),
                         ]
                       : (isSelected
-                          ? const [
+                          ? [
                               BoxShadow(
-                                color: Color(0x4442A5F5),
+                                color: Color(NodeVisualConstants.selectedShadowColor),
                                 blurRadius: 8,
                                 spreadRadius: 2,
                               ),
@@ -139,13 +139,13 @@ class NodeWidget extends StatelessWidget {
               // ── Resize Handle Visual (Right Edge) ─────────
               Positioned(
                 right: 0,
-                top: 24.0, // Shifted down to clear the metadata sphere area
+                top: NodeVisualConstants.handleTopOffset, // Shifted down to clear the metadata sphere area
                 bottom: 0,
                 child: Container(
                   width: AppConfig.node.resizeHandleVisualWidth,
                   decoration: BoxDecoration(
                     // A nearly‑invisible colour that the hit‑tester sees.
-                    color: Colors.black.withValues(alpha: 0.01),
+                    color: Color(NodeVisualConstants.handleColor),
                     borderRadius: BorderRadius.horizontal(
                       right: Radius.circular(resolvedStyle.borderRadius),
                     ),
@@ -159,7 +159,7 @@ class NodeWidget extends StatelessWidget {
                 child: Container(
                   width: AppConfig.node.resizeHandleVisualWidth,
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.01),
+                    color: Color(NodeVisualConstants.handleColor),
                     borderRadius: BorderRadius.horizontal(
                       left: Radius.circular(resolvedStyle.borderRadius),
                     ),
