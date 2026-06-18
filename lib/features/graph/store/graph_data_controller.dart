@@ -49,7 +49,7 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
   late final GraphTemplateMutations templateMutations;
 
   // Dependency Inversion Hooks
-  Size Function(UiNode, {bool isEditing})? sizeCalculator;
+  ({Size size, int lineCount}) Function(UiNode, {bool isEditing})? sizeCalculator;
   NodeStyle Function(UiNode)? styleResolver;
   @override
   GraphStyleUpdater? styleUpdater;
@@ -133,8 +133,8 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
   // Sizing & Styling Wrapper Methods
   // ===========================================================================
 
-  Size calculateNodeSize(UiNode node, {bool isEditing = false}) {
-    return sizeCalculator?.call(node, isEditing: isEditing) ?? node.size;
+  ({Size size, int lineCount}) calculateNodeSize(UiNode node, {bool isEditing = false}) {
+    return sizeCalculator?.call(node, isEditing: isEditing) ?? (size: node.size, lineCount: node.lineCount);
   }
 
   NodeStyle resolveNodeStyle(UiNode node) {

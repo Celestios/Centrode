@@ -44,7 +44,7 @@ class GraphPropertyMutations {
     if (node != null) {
       final oldContentBackup = node.content;
       node.content = oldContent;
-      preEditSize = controller.calculateNodeSize(node);
+      preEditSize = controller.calculateNodeSize(node).size;
       node.content = oldContentBackup;
     } else {
       preEditSize = node?.size;
@@ -53,7 +53,9 @@ class GraphPropertyMutations {
     // 1. Ensure the optimistic memory state is completely up-to-date
     if (node != null) {
       node.content = newContent;
-      node.size = controller.calculateNodeSize(node);
+      final result = controller.calculateNodeSize(node);
+      node.size = result.size;
+      node.lineCount = result.lineCount;
     } else if (rel != null) {
       rel.verb = newContent.text;
     }
@@ -118,7 +120,9 @@ class GraphPropertyMutations {
         return;
       }
       node.content = newContent;
-      node.size = controller.calculateNodeSize(node, isEditing: true);
+      final result = controller.calculateNodeSize(node, isEditing: true);
+      node.size = result.size;
+      node.lineCount = result.lineCount;
       controller.publishUpdate(
         GraphEntityUpdate(
           id: id,
@@ -161,8 +165,10 @@ class GraphPropertyMutations {
     controller.styleUpdater?.updateStyleForNode(id);
 
     // Automatically recalculate node dimensions when styling changes
-    final newSize = controller.calculateNodeSize(node);
+    final newSizeResult = controller.calculateNodeSize(node);
+    final newSize = newSizeResult.size;
     node.size = newSize;
+    node.lineCount = newSizeResult.lineCount;
 
     controller.syncEngine.processor.queueCommand(
       UpdateNodeStyleCommand(
@@ -385,8 +391,10 @@ class GraphPropertyMutations {
       node.style = newStyle;
       controller.styleUpdater?.updateStyleForNode(id);
 
-      final newSize = controller.calculateNodeSize(node);
+      final newSizeResult = controller.calculateNodeSize(node);
+      final newSize = newSizeResult.size;
       node.size = newSize;
+      node.lineCount = newSizeResult.lineCount;
 
       oldStyles[id] = oldStyle;
       newStyles[id] = newStyle;

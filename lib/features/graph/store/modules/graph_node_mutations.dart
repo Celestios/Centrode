@@ -52,7 +52,13 @@ class GraphNodeMutations {
     controller.styleUpdater?.updateStyleForNode(id);
 
     // Compute the correct initial size using the centralized layout strategy helper
-    node.size = size ?? controller.calculateNodeSize(node);
+    if (size != null) {
+      node.size = size;
+    } else {
+      final result = controller.calculateNodeSize(node);
+      node.size = result.size;
+      node.lineCount = result.lineCount;
+    }
 
     final cmd = CreateNodeCommand(
       targetId: id,
@@ -172,7 +178,9 @@ class GraphNodeMutations {
 
     // Centralized layout recomputation snaps width, snaps height, and calculates
     // the dynamic line count, fully preventing stale DB states prior to command queuing!
-    node.size = controller.calculateNodeSize(node);
+    final result = controller.calculateNodeSize(node);
+    node.size = result.size;
+    node.lineCount = result.lineCount;
 
     controller.spatial.spatialGrid.update(id, oldPosition, newPosition);
 
@@ -220,7 +228,9 @@ class GraphNodeMutations {
     node.isExpanded = newExpanded;
 
     // Recalculate size with centralized strategy helper
-    node.size = controller.calculateNodeSize(node);
+    final result = controller.calculateNodeSize(node);
+    node.size = result.size;
+    node.lineCount = result.lineCount;
 
     _nodeLog.fine(
       'TOGGLING EXPANSION: $id oldExpanded=$oldExpanded -> newExpanded=$newExpanded, newSize=${node.size}',

@@ -20,10 +20,10 @@ class NodeViewState implements VolatileNodeState {
 
   final Logger _log = Logger('NodeViewState');
 
-  static Size Function(UiNode, {bool isEditing}) _sizeComputer =
+  static ({Size size, int lineCount}) Function(UiNode, {bool isEditing}) _sizeComputer =
       NodeLayoutStrategy.calculateSize;
 
-  static void setSizeComputer(Size Function(UiNode, {bool isEditing}) computer) {
+  static void setSizeComputer(({Size size, int lineCount}) Function(UiNode, {bool isEditing}) computer) {
     _sizeComputer = computer;
   }
 
@@ -64,7 +64,9 @@ class NodeViewState implements VolatileNodeState {
   }
 
   void _recomputeSizeWithStrategy(UiNode node, {bool isEditing = false}) {
-    node.size = _sizeComputer(node, isEditing: isEditing);
+    final result = _sizeComputer(node, isEditing: isEditing);
+    node.size = result.size;
+    node.lineCount = result.lineCount;
   }
 
   // --- DRY Geometry Getters ---

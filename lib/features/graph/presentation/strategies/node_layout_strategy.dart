@@ -28,12 +28,12 @@ abstract class NodeLayoutStrategy {
     return const InfoNodeLayoutStrategy();
   }
 
-  /// Calculates the size of the node.
+  /// Calculates the size and line count of the node.
   /// Snaps the result to the grid defined in [AppConfig].
-  Size calculate(UiNode node, NodeStyle? style, {bool isEditing = false});
+  ({Size size, int lineCount}) calculate(UiNode node, NodeStyle? style, {bool isEditing = false});
 
   /// Centralized helper to compute a node's physical size based on its runtime type.
-  static Size calculateSize(UiNode node, {bool isEditing = false}) {
+  static ({Size size, int lineCount}) calculateSize(UiNode node, {bool isEditing = false}) {
     final strategyType =
         node.resolvedLayout?.strategyType ?? node.layout?.strategyType;
     final strategy = fromType(strategyType, fallbackNode: node);
@@ -73,7 +73,7 @@ class InfoNodeLayoutStrategy extends NodeLayoutStrategy {
   const InfoNodeLayoutStrategy();
 
   @override
-  Size calculate(UiNode node, NodeStyle? style, {bool isEditing = false}) {
+  ({Size size, int lineCount}) calculate(UiNode node, NodeStyle? style, {bool isEditing = false}) {
     return _calculateDefaultLayout(node, style, isEditing: isEditing);
   }
 }
@@ -82,12 +82,12 @@ class TaskNodeLayoutStrategy extends NodeLayoutStrategy {
   const TaskNodeLayoutStrategy();
 
   @override
-  Size calculate(UiNode node, NodeStyle? style, {bool isEditing = false}) {
+  ({Size size, int lineCount}) calculate(UiNode node, NodeStyle? style, {bool isEditing = false}) {
     return _calculateDefaultLayout(node, style, isEditing: isEditing);
   }
 }
 
-Size _calculateDefaultLayout(
+({Size size, int lineCount}) _calculateDefaultLayout(
   UiNode node,
   NodeStyle? style, {
   bool isEditing = false,
@@ -95,7 +95,7 @@ Size _calculateDefaultLayout(
   final content = node.content;
   // Fallback if text is empty — preserve the node's current size
   if (content.text.isEmpty) {
-    return node.size;
+    return (size: node.size, lineCount: node.lineCount);
   }
 
   final resolvedStyle = style ?? NodeStyleStrategy.fallbackStyle();
@@ -157,8 +157,6 @@ Size _calculateDefaultLayout(
 
   final lineMetrics = tp.computeLineMetrics();
   final lineCount = lineMetrics.length;
-  node.lineCount =
-      lineCount; // Write the actual computed line count back to the node dynamically
   double textHeight;
 
   // Handle "Show More" logic based on line count
@@ -204,5 +202,5 @@ Size _calculateDefaultLayout(
   final snappedWidth = (targetWidth / gridSize).ceil() * gridSize;
   final snappedHeight = (totalHeight / gridSize).ceil() * gridSize;
 
-  return Size(snappedWidth, snappedHeight);
+  return (size: Size(snappedWidth, snappedHeight), lineCount: lineCount);
 }
