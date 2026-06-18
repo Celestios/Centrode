@@ -319,11 +319,21 @@ class CanvasIdle extends CanvasInteractionState {
     Offset pCanvas,
     InteractionContext ctx,
   ) {
-    final nodeIds = ctx.zOrder;
-    final length = nodeIds.length;
+    // Use spatial grid to find candidate nodes near the cursor (O(K) not O(N))
+    final candidateIds = ctx.spatialGrid.queryPoint(pCanvas);
+    if (candidateIds.isEmpty) {
+      ctx.setHoveredNodeMetadata(null);
+      return cursor == SystemMouseCursors.basic
+          ? this
+          : const CanvasIdle(cursor: SystemMouseCursors.basic);
+    }
 
-    for (int i = length - 1; i >= 0; i--) {
-      final nodeId = nodeIds[i];
+    // Check candidates in reverse z-order for proper hit priority
+    final zOrder = ctx.zOrder;
+    for (int i = zOrder.length - 1; i >= 0; i--) {
+      final nodeId = zOrder[i];
+      if (!candidateIds.contains(nodeId)) continue;
+
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
 

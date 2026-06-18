@@ -2,6 +2,7 @@
 import 'dart:ui';
 import '../models/models.dart';
 import '../presentation/view_state.dart';
+import '../store/spatial_index.dart';
 
 /// Scoped capability interface for active interaction states.
 ///
@@ -58,6 +59,9 @@ abstract interface class GeometryCapability {
 
   /// Z-order tracking for proper hit-testing (last item is topmost).
   List<String> get zOrder;
+
+  /// Spatial hash grid for O(1) node lookups by position.
+  SpatialHashGrid get spatialGrid;
 
   /// Returns all relations for hit-testing relation labels.
   Iterable<UiRelation> getRelations();

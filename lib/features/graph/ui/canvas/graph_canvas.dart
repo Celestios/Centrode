@@ -363,7 +363,9 @@ class _GraphCanvasState extends State<GraphCanvas>
                                     },
                                   ),
                                   const RelationLayer(),
-                                  const NodeLayer(),
+                                  RepaintBoundary(
+                                    child: const NodeLayer(),
+                                  ),
                                   const OverlayLayer(),
                                   if (_drawingInterceptor != null)
                                     ValueListenableBuilder<List<Offset>>(

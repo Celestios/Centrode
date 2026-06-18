@@ -4,6 +4,7 @@ import '../presentation/view_state.dart';
 import '../presentation/strategies/node_style_strategy.dart';
 import 'interaction_context.dart';
 import '../store/graph_data_controller.dart';
+import '../store/spatial_index.dart';
 import '../presentation/node_render_state.dart';
 import '../presentation/viewport_state.dart';
 import '../presentation/workspace_tabs_controller.dart';
@@ -42,6 +43,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
   @override
   List<String> get zOrder => _renderState.zOrder;
+
+  @override
+  SpatialHashGrid get spatialGrid => _dataController.spatialGrid;
 
   @override
   Iterable<UiRelation> getRelations() => _dataController.relations;

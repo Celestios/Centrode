@@ -60,6 +60,20 @@ class SpatialHashGrid {
     return visible;
   }
 
+  /// Returns node IDs in the chunk containing [point] plus all 8 neighbors.
+  /// Used for hover hit-testing where nodes may extend into adjacent chunks.
+  Set<String> queryPoint(Offset point) {
+    final center = getChunk(point);
+    final Set<String> result = {};
+    for (int dx = -1; dx <= 1; dx++) {
+      for (int dy = -1; dy <= 1; dy++) {
+        final chunk = _grid[Point(center.x + dx, center.y + dy)];
+        if (chunk != null) result.addAll(chunk);
+      }
+    }
+    return result;
+  }
+
   /// Clears all entries from the grid.
   void clear() {
     _grid.clear();

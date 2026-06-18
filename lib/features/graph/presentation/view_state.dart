@@ -18,12 +18,28 @@ class NodeViewState {
 
   final Logger _log = Logger('NodeViewState');
 
+  // Cached geometry — invalidated when position/size/dragWidth change
+  Rect? _cachedRect;
+  Rect? _cachedRightResizeHitbox;
+  Rect? _cachedLeftResizeHitbox;
+  Rect? _cachedExpandToggleHitbox;
+
   NodeViewState(UiNode node)
     : nodeId = node.id,
       positionNotifier = ValueNotifier<Offset>(node.position),
       sizeNotifier = ValueNotifier<Size>(node.size),
       isExpandedNotifier = ValueNotifier<bool>(node.isExpanded) {
     lineCountNotifier.value = node.lineCount;
+    positionNotifier.addListener(_invalidateGeometry);
+    sizeNotifier.addListener(_invalidateGeometry);
+    dragWidthNotifier.addListener(_invalidateGeometry);
+  }
+
+  void _invalidateGeometry() {
+    _cachedRect = null;
+    _cachedRightResizeHitbox = null;
+    _cachedLeftResizeHitbox = null;
+    _cachedExpandToggleHitbox = null;
   }
 
   /// Re‑hydrates the ViewState with the latest data from the domain node.
@@ -43,7 +59,7 @@ class NodeViewState {
   }
 
   // --- DRY Geometry Getters ---
-  Rect get rect => positionNotifier.value & sizeNotifier.value;
+  Rect get rect => _cachedRect ??= positionNotifier.value & sizeNotifier.value;
 
   Offset get rightPort =>
       positionNotifier.value +
@@ -167,28 +183,37 @@ class NodeViewState {
   }
 
   Rect get rightResizeHitbox {
+    if (_cachedRightResizeHitbox != null) return _cachedRightResizeHitbox!;
     final w = dragWidthNotifier.value ?? sizeNotifier.value.width;
     final r = positionNotifier.value.dx + w;
-    return Rect.fromLTRB(
+    _cachedRightResizeHitbox = Rect.fromLTRB(
       r - AppConfig.interaction.resizeEdgeWidth,
       rect.top + 24.0,
       r,
       rect.bottom,
     );
+    return _cachedRightResizeHitbox!;
   }
 
   Rect get leftResizeHitbox {
+    if (_cachedLeftResizeHitbox != null) return _cachedLeftResizeHitbox!;
     final l = positionNotifier.value.dx;
-    return Rect.fromLTRB(
+    _cachedLeftResizeHitbox = Rect.fromLTRB(
       l,
       rect.top,
       l + AppConfig.interaction.resizeEdgeWidth,
       rect.bottom,
     );
+    return _cachedLeftResizeHitbox!;
   }
 
-  Rect get expandToggleHitbox =>
-      Rect.fromLTRB(rect.left, rect.bottom - 24, rect.right, rect.bottom);
+  Rect get expandToggleHitbox {
+    if (_cachedExpandToggleHitbox != null) return _cachedExpandToggleHitbox!;
+    _cachedExpandToggleHitbox = Rect.fromLTRB(
+      rect.left, rect.bottom - 24, rect.right, rect.bottom,
+    );
+    return _cachedExpandToggleHitbox!;
+  }
 
   void updatePosition(Offset delta) {
     positionNotifier.value += delta;
@@ -218,6 +243,9 @@ class NodeViewState {
   }
 
   void dispose() {
+    positionNotifier.removeListener(_invalidateGeometry);
+    sizeNotifier.removeListener(_invalidateGeometry);
+    dragWidthNotifier.removeListener(_invalidateGeometry);
     positionNotifier.dispose();
     sizeNotifier.dispose();
     isExpandedNotifier.dispose();

@@ -36,6 +36,9 @@ class InteractionController {
   DateTime? _lastPointerDownTime;
   Offset? _lastPointerDownPos;
 
+  /// Last canvas-space position for hover deduplication.
+  Offset? _lastHoverCanvasPos;
+
   /// Whether pan and zoom are enabled on the canvas (only during CanvasIdle).
   late final ValueNotifier<bool> panScaleEnabled = ValueNotifier(
     state.value is CanvasIdle,
@@ -213,6 +216,13 @@ class InteractionController {
   /// Fast-fails (O(1)) for most states, consumes (O(N)) for specific tools.
   void handlePointerHover(PointerHoverEvent e) {
     final pCanvas = _screenToCanvas(e.localPosition);
+
+    // Skip if position is effectively unchanged (within 1px threshold)
+    if (_lastHoverCanvasPos != null &&
+        (_lastHoverCanvasPos! - pCanvas).distance < 1.0) {
+      return;
+    }
+    _lastHoverCanvasPos = pCanvas;
 
     // Run interceptors first
     for (final interceptor in List<GestureInterceptor>.from(_interceptors)) {
