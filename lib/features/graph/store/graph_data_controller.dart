@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:logging/logging.dart';
 import 'graph_data_query.dart';
+import 'graph_data_command.dart';
 import 'spatial_index.dart';
 import '../models/models.dart';
 import 'command_processor.dart';
@@ -29,7 +30,7 @@ export '../models/commands/graph_command_context.dart'
 /// - **GraphNodeMutations**: Handles node mutations (create, delete, move, resize).
 /// - **GraphRelationMutations**: Handles relation mutations (create).
 /// - **GraphPropertyMutations**: Handles property mutations (text, styling).
-class GraphDataController implements GraphDataQuery, GraphCommandContext {
+class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphCommandContext {
   final Logger _log = Logger('GraphDataController');
 
   // ===========================================================================
@@ -265,6 +266,7 @@ class GraphDataController implements GraphDataQuery, GraphCommandContext {
     size: size,
   );
 
+  @override
   Future<void> deleteNode(String id) => nodeMutations.deleteNode(id);
 
   void updateNodePosition(String id, Offset newPosition) =>
@@ -288,6 +290,7 @@ class GraphDataController implements GraphDataQuery, GraphCommandContext {
     toSide: toSide,
   );
 
+  @override
   Future<void> deleteRelation(String id) =>
       relationMutations.deleteRelation(id);
 
@@ -310,12 +313,14 @@ class GraphDataController implements GraphDataQuery, GraphCommandContext {
   void updateRelationStyle(String id, RelationStyle newStyle) =>
       propertyMutations.updateRelationStyle(id, newStyle);
 
+  @override
   void updateRelationsLayout(
     List<String> ids, {
     String? strategyType,
   }) => relationMutations.updateRelationsLayout(ids, strategyType: strategyType);
 
   // Property Mutations
+  @override
   void commitEntityText(String id, dynamic newTextOrContent, {dynamic originalTextOrContent}) =>
       propertyMutations.commitEntityText(
         id,
@@ -323,12 +328,14 @@ class GraphDataController implements GraphDataQuery, GraphCommandContext {
         originalTextOrContent: originalTextOrContent,
       );
 
+  @override
   void updateEntityTextLive(String id, dynamic newTextOrContent) =>
       propertyMutations.updateEntityTextLive(id, newTextOrContent);
 
   void updateNodeStyle(String id, NodeStyle newStyle) =>
       propertyMutations.updateNodeStyle(id, newStyle);
 
+  @override
   void updateNodesStyle(List<String> ids, NodeStyle Function(NodeStyle style) updateFn) =>
       propertyMutations.updateNodesStyle(ids, updateFn);
 
@@ -405,15 +412,19 @@ class GraphDataController implements GraphDataQuery, GraphCommandContext {
     return results;
   }
 
+  @override
   void addTagToNode(String nodeId, String name, int color) =>
       propertyMutations.addTagToNode(nodeId, name, color);
 
+  @override
   void removeTagFromNode(String nodeId, String tagKey) =>
       propertyMutations.removeTagFromNode(nodeId, tagKey);
 
+  @override
   void addCommentToNode(String nodeId, String text) =>
       propertyMutations.addCommentToNode(nodeId, text);
 
+  @override
   void removeCommentFromNode(String nodeId, Comment comment) =>
       propertyMutations.removeCommentFromNode(nodeId, comment);
 

@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import '../engine/config.dart';
-import '../store/graph_data_controller.dart';
 import '../store/graph_data_query.dart';
+import '../store/graph_data_command.dart';
 import 'view_state.dart';
 import 'strategies/relation_layout_strategy.dart';
 import 'routing/relation_layout_context.dart';
@@ -23,7 +23,8 @@ enum InspectorTab { appearance, data }
 /// of truth for all layout, selection, and transient UI rendering states.
 class NodeRenderState extends ChangeNotifier {
   final Logger _log = Logger('NodeRenderState');
-  final GraphDataController _dataController;
+  final GraphDataQuery _dataQuery;
+  final GraphDataCommand _dataCommand;
 
   /// Tracks the currently active left panel type (e.g. tags, templates, drawing, none).
   final ValueNotifier<LeftPanelType> activeLeftPanelNotifier = ValueNotifier(
@@ -103,68 +104,79 @@ class NodeRenderState extends ChangeNotifier {
 
   StreamSubscription<GraphEntityUpdate>? _updateSubscription;
 
-  NodeRenderState(this._dataController) {
-    _updateSubscription = _dataController.onEntityUpdate.listen(
+  NodeRenderState(this._dataQuery, this._dataCommand) {
+    _updateSubscription = _dataQuery.onEntityUpdate.listen(
       _handleEntityUpdate,
     );
     _syncAtomicUIState(); // Initial synchronization projection
   }
 
+  bool _syncNodeToViewState(String id, UiNode node) {
+    final vs = viewStates[id];
+    if (vs == null) return false;
+
+    bool changed = false;
+
+    if (!draggingNodes.contains(id) && vs.positionNotifier.value != node.position) {
+      vs.positionNotifier.value = node.position;
+      relationPathCache.clear();
+      movementNotifier.pulse();
+      changed = true;
+    }
+    if (vs.isExpandedNotifier.value != node.isExpanded) {
+      vs.isExpandedNotifier.value = node.isExpanded;
+      changed = true;
+    }
+    if (vs.lineCountNotifier.value != node.lineCount) {
+      vs.lineCountNotifier.value = node.lineCount;
+      changed = true;
+    }
+    if (vs.sizeNotifier.value != node.size) {
+      vs.dragWidthNotifier.value = null;
+      relationPathCache.clear();
+      vs.onSizeChanged(node);
+      changed = true;
+    }
+    return changed;
+  }
+
   void _handleEntityUpdate(GraphEntityUpdate update) {
     final id = update.id;
+    final node = _dataQuery.nodeLookup[id];
+
     switch (update.type) {
       case GraphUpdateType.position:
-        final vs = viewStates[id];
-        if (vs != null && !draggingNodes.contains(id)) {
-          final Offset newPos = update.payload as Offset;
-          if (vs.positionNotifier.value != newPos) {
-            vs.positionNotifier.value = newPos;
-            relationPathCache.clear();
-            movementNotifier.pulse();
-          }
-        }
+        if (node != null) _syncNodeToViewState(id, node);
         break;
       case GraphUpdateType.size:
-        final vs = viewStates[id];
-        if (vs != null) {
-          final Size newSize = update.payload as Size;
-          if (vs.sizeNotifier.value != newSize) {
-            vs.dragWidthNotifier.value = null;
-            relationPathCache.clear();
-            final node = _dataController.nodeLookup[id];
-            if (node != null) {
-            vs.onSizeChanged(node);
+        if (node != null) {
+          final vs = viewStates[id];
+          if (vs != null) {
+            final Size newSize = update.payload as Size;
+            if (vs.sizeNotifier.value != newSize) {
+              vs.dragWidthNotifier.value = null;
+              relationPathCache.clear();
+              vs.onSizeChanged(node);
             }
           }
         }
         break;
       case GraphUpdateType.expansion:
-        final vs = viewStates[id];
-        if (vs != null) {
-          final bool newExpanded = update.payload as bool;
-          vs.isExpandedNotifier.value = newExpanded;
-          relationPathCache.clear();
-        }
+        if (node != null) _syncNodeToViewState(id, node);
         break;
       case GraphUpdateType.text:
-        final vs = viewStates[id];
-        if (vs != null) {
-          final node = _dataController.nodeLookup[id];
-          if (node != null) {
-            vs.lineCountNotifier.value = node.lineCount;
-          }
+        if (node != null) {
+          final vs = viewStates[id];
+          if (vs != null) vs.lineCountNotifier.value = node.lineCount;
         }
         break;
       case GraphUpdateType.style:
-        final vs = viewStates[id];
-        if (vs != null) {
-          final node = _dataController.nodeLookup[id];
-          if (node != null) {
+        if (node != null) {
+          final vs = viewStates[id];
+          if (vs != null) {
             final oldSize = vs.sizeNotifier.value;
             vs.onSizeChanged(node, isEditing: id == activeEditId);
-            if (vs.sizeNotifier.value == oldSize) {
-              vs.onStyleChanged();
-            }
+            if (vs.sizeNotifier.value == oldSize) vs.onStyleChanged();
           }
         }
         break;
@@ -203,7 +215,7 @@ class NodeRenderState extends ChangeNotifier {
   void notifyNodeDragUpdate() {
     // Invalidate only the relation paths connected to dragging nodes
     relationPathCache.removeWhere((relId, _) {
-      final rel = _dataController.relationLookup[relId];
+      final rel = _dataQuery.relationLookup[relId];
       if (rel == null) return true;
       return draggingNodes.contains(rel.fromNodeId) ||
           draggingNodes.contains(rel.toNodeId);
@@ -213,7 +225,7 @@ class NodeRenderState extends ChangeNotifier {
 
   /// Projects canonical changes in the data store into active visual states.
   void _syncAtomicUIState() {
-    final keys = _dataController.nodeLookup.keys.toSet();
+    final keys = _dataQuery.nodeLookup.keys.toSet();
 
     // 1. Detect removed nodes (optimistic delete) and place in quarantine
     final removedIds = viewStates.keys.toSet().difference(keys);
@@ -228,7 +240,7 @@ class NodeRenderState extends ChangeNotifier {
     }
 
     // 2. Synchronize active node viewStates
-    for (final entry in _dataController.nodeLookup.entries) {
+    for (final entry in _dataQuery.nodeLookup.entries) {
       final id = entry.key;
       final node = entry.value;
 
@@ -245,26 +257,7 @@ class NodeRenderState extends ChangeNotifier {
           viewStates[id] = NodeViewState(node);
         }
       } else {
-        // Reactive projection: update value notifiers if canonical position/size was mutated
-        final vs = viewStates[id]!;
-        if (!draggingNodes.contains(id)) {
-          if (vs.positionNotifier.value != node.position) {
-            vs.positionNotifier.value = node.position;
-            relationPathCache.clear();
-            movementNotifier.pulse();
-          }
-        }
-        if (vs.isExpandedNotifier.value != node.isExpanded) {
-          vs.isExpandedNotifier.value = node.isExpanded;
-        }
-        if (vs.lineCountNotifier.value != node.lineCount) {
-          vs.lineCountNotifier.value = node.lineCount;
-        }
-        if (vs.sizeNotifier.value != node.size) {
-          vs.dragWidthNotifier.value = null;
-          relationPathCache.clear();
-          vs.onSizeChanged(node);
-        }
+        _syncNodeToViewState(id, node);
       }
     }
 
@@ -279,7 +272,7 @@ class NodeRenderState extends ChangeNotifier {
     }
 
     // 5. Clean up volatile selected entities, active edits, and menu flags
-    final validKeys = keys.union(_dataController.relationLookup.keys.toSet());
+    final validKeys = keys.union(_dataQuery.relationLookup.keys.toSet());
     selectedEntities.removeWhere((id) => !validKeys.contains(id));
 
     if (activeEditId != null && !keys.contains(activeEditId)) {
@@ -336,14 +329,14 @@ class NodeRenderState extends ChangeNotifier {
         return vs.positionNotifier.value;
       } else {
         // Relation midpoint anchor
-        final rel = _dataController.relationLookup[id];
+        final rel = _dataQuery.relationLookup[id];
         if (rel != null) {
           final sourceVs = viewStates[rel.fromNodeId];
           final targetVs = viewStates[rel.toNodeId];
           if (sourceVs != null && targetVs != null) {
             final layoutContext = RelationLayoutContext(
               nodeViewStates: viewStates,
-              relations: _dataController.relations.toList(),
+              relations: _dataQuery.relations.toList(),
               pathCache: relationPathCache,
             );
             final layoutStrategy = RelationLayoutStrategy.fromType(
@@ -385,8 +378,8 @@ class NodeRenderState extends ChangeNotifier {
       selectedEntities.clear();
     } else {
       // Confirm entity existence in data controller before selection
-      if (!_dataController.nodeLookup.containsKey(id) &&
-          !_dataController.relations.any((r) => r.id == id)) {
+      if (!_dataQuery.nodeLookup.containsKey(id) &&
+          !_dataQuery.relations.any((r) => r.id == id)) {
         _log.warning('Attempted to select non-existent entity: $id');
         return;
       }
@@ -416,10 +409,10 @@ class NodeRenderState extends ChangeNotifier {
     selectEntity(null); // Instantly clear selection visually
 
     for (final id in idsToDelete) {
-      if (_dataController.nodeLookup.containsKey(id)) {
-        _dataController.deleteNode(id);
-      } else if (_dataController.relationLookup.containsKey(id)) {
-        _dataController.deleteRelation(id);
+      if (_dataQuery.nodeLookup.containsKey(id)) {
+        _dataCommand.deleteNode(id);
+      } else if (_dataQuery.relationLookup.containsKey(id)) {
+        _dataCommand.deleteRelation(id);
       }
     }
   }
@@ -470,36 +463,36 @@ class NodeRenderState extends ChangeNotifier {
   // Proxy Query & Mutation Delegate Methods (Decoupling UI from Tier 3)
   // ===========================================================================
 
-  UiNode? getNode(String id) => _dataController.nodeLookup[id];
+  UiNode? getNode(String id) => _dataQuery.nodeLookup[id];
 
-  UiRelation? getRelation(String id) => _dataController.relationLookup[id];
+  UiRelation? getRelation(String id) => _dataQuery.relationLookup[id];
 
   void updateRelationsLayout(List<String> ids, {String? strategyType}) {
-    _dataController.updateRelationsLayout(ids, strategyType: strategyType);
+    _dataCommand.updateRelationsLayout(ids, strategyType: strategyType);
   }
 
   void updateNodesStyle(List<String> ids, NodeStyle Function(NodeStyle style) updateFn) {
-    _dataController.updateNodesStyle(ids, updateFn);
+    _dataCommand.updateNodesStyle(ids, updateFn);
   }
 
   void addTagToNode(String nodeId, String name, int color) {
-    _dataController.addTagToNode(nodeId, name, color);
+    _dataCommand.addTagToNode(nodeId, name, color);
   }
 
   void removeTagFromNode(String nodeId, String tagKey) {
-    _dataController.removeTagFromNode(nodeId, tagKey);
+    _dataCommand.removeTagFromNode(nodeId, tagKey);
   }
 
   void addCommentToNode(String nodeId, String text) {
-    _dataController.addCommentToNode(nodeId, text);
+    _dataCommand.addCommentToNode(nodeId, text);
   }
 
   void removeCommentFromNode(String nodeId, Comment comment) {
-    _dataController.removeCommentFromNode(nodeId, comment);
+    _dataCommand.removeCommentFromNode(nodeId, comment);
   }
 
   void commitEntityText(String id, dynamic newTextOrContent, {dynamic originalTextOrContent}) {
-    _dataController.commitEntityText(
+    _dataCommand.commitEntityText(
       id,
       newTextOrContent,
       originalTextOrContent: originalTextOrContent,
@@ -507,7 +500,7 @@ class NodeRenderState extends ChangeNotifier {
   }
 
   void updateEntityTextLive(String id, dynamic newTextOrContent) {
-    _dataController.updateEntityTextLive(id, newTextOrContent);
+    _dataCommand.updateEntityTextLive(id, newTextOrContent);
   }
 
   @override

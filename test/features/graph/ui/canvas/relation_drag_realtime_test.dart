@@ -81,7 +81,7 @@ void main() {
       when(() => mockTheme.addListener(any())).thenAnswer((_) {});
       when(() => mockTheme.removeListener(any())).thenAnswer((_) {});
 
-      final renderState = NodeRenderState(mockController);
+      final renderState = NodeRenderState(mockController, mockController);
       renderState.viewStates['node-from'] = fromVs;
       renderState.viewStates['node-to'] = toVs;
       renderState.selectedEntities.add('rel-1');
@@ -205,7 +205,7 @@ void main() {
       when(() => mockTheme.addListener(any())).thenAnswer((_) {});
       when(() => mockTheme.removeListener(any())).thenAnswer((_) {});
 
-      final renderState = NodeRenderState(mockController);
+      final renderState = NodeRenderState(mockController, mockController);
       renderState.viewStates['node-from'] = fromVs;
       renderState.viewStates['node-to'] = toVs;
       renderState.selectedEntities.add('rel-1');

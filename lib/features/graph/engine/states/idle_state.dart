@@ -16,7 +16,6 @@ class CanvasIdle extends CanvasInteractionState {
 
   const CanvasIdle({this.cursor = SystemMouseCursors.basic});
 
-  // TODO: this function seems like a mess
   @override
   CanvasInteractionState handlePointerDown(
     PointerDownEvent e,
@@ -24,183 +23,71 @@ class CanvasIdle extends CanvasInteractionState {
     InteractionContext ctx,
     bool isDoubleTap,
   ) {
-    // Conflict Resolution: Commit active edits if clicking elsewhere
-    final activeEditId = ctx.getActiveEditId();
-
-    final layoutContext = RelationLayoutContext(
-      nodeViewStates: ctx.nodeViewStates,
-      relations: ctx.getRelations().toList(),
-      pathCache: ctx.relationPathCache,
-    );
-
-    // Priority -1.5: Right-click immediately remains in Idle (for panning capability)
     if (e.buttons == kSecondaryMouseButton) {
       _canvasIdleLog.fine('Right-click detected: Preserving idle for panning');
       return this;
     }
 
-    // Priority -0.5: Selected Relation Tip Handles Hit-Testing
+    final result = HitTestResolver().resolve(pCanvas, ctx, isDoubleTap);
+    final activeEditId = ctx.getActiveEditId();
     final selectedEntities = ctx.getSelectedEntities();
-    for (final id in selectedEntities) {
-      UiRelation? rel;
-      for (final r in ctx.getRelations()) {
-        if (r.id == id) {
-          rel = r;
-          break;
-        }
-      }
-      if (rel == null) continue;
 
-      final from = ctx.nodeViewStates[rel.fromNodeId];
-      final to = ctx.nodeViewStates[rel.toNodeId];
-      if (from == null || to == null) continue;
-
-      final layoutStrategy = RelationLayoutStrategy.fromType(
-        rel.layout?.strategyType,
-      );
-      final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(
-        rel,
-        from,
-        to,
-        layoutContext,
-      );
-      if ((pCanvas - handleStart).distance < AppConfig.interaction.relationTipHitDistance) {
-        _canvasIdleLog.fine('Relation start tip handle hit: $id');
+    switch (result.type) {
+      case HitTestType.relationTipStart:
+      case HitTestType.relationTipEnd:
         return RelationTipDragging(
-          relationId: rel.id,
-          isStartTip: true,
-          originalPosition: handleStart,
+          relationId: result.relationId!,
+          isStartTip: result.type == HitTestType.relationTipStart,
+          originalPosition: result.originalPosition!,
           currentCursorPosition: pCanvas,
         );
-      } else if ((pCanvas - handleEnd).distance < AppConfig.interaction.relationTipHitDistance) {
-        _canvasIdleLog.fine('Relation end tip handle hit: $id');
-        return RelationTipDragging(
-          relationId: rel.id,
-          isStartTip: false,
-          originalPosition: handleEnd,
-          currentCursorPosition: pCanvas,
-        );
-      }
-    }
 
-    // Hit Testing Registry
-    final nodeIds = ctx.zOrder.reversed.toList();
-    if (nodeIds.isEmpty) {
-      nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
-    }
+      case HitTestType.metadataSphere:
+        ctx.openDataInspector(result.hitNodeId!);
+        return this;
 
-    // Priority -0.2: Metadata Sphere Hit-Testing
-    for (final nodeId in nodeIds) {
-      final vs = ctx.nodeViewStates[nodeId];
-      if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
-      final node = ctx.getNode(nodeId);
-      if (node is InfoUiNode &&
-          (node.tags.isNotEmpty || node.comments.isNotEmpty)) {
-        final nodeRect = vs.rect;
-        final center = Offset(
-          nodeRect.right - AppConfig.node.metadataSphereOffsetFromRight,
-          nodeRect.top + AppConfig.node.metadataSphereOffsetFromTop,
-        );
-        if ((pCanvas - center).distance <
-            AppConfig.node.metadataSphereHitboxRadius) {
-          _canvasIdleLog.fine('Metadata sphere hit: $nodeId');
-          ctx.openDataInspector(nodeId);
-          return this;
-        }
-      }
-    }
+      case HitTestType.expandToggle:
+        ctx.toggleNodeExpansion(result.hitNodeId!);
+        return this;
 
-    String? hitNodeId;
-    bool hitResize = false;
-    ResizeEdge? draggedEdge;
+      case HitTestType.resizeRight:
+      case HitTestType.resizeLeft:
+        return _transitionToResizing(result, pCanvas, ctx);
 
-    int zeroSizeRejections = 0; // Track Size.zero bypasses
+      case HitTestType.body:
+        return _transitionToDragging(result, pCanvas, ctx, selectedEntities);
 
-    for (final nodeId in nodeIds) {
-      final vs = ctx.nodeViewStates[nodeId];
-      if (vs == null) continue;
-      if (vs.sizeNotifier.value == Size.zero) {
-        zeroSizeRejections++;
-        continue;
-      }
-
-      final nodeRect = vs.rect;
-
-      // Priority 0.5: Expand Toggle Hit-Test
-      if (vs.lineCount > AppConfig.node.collapsedLineLimit && vs.expandToggleHitbox.contains(pCanvas)) {
-        _canvasIdleLog.fine('Expand Toggle Hit: $nodeId'); // [NEW]
-        ctx.toggleNodeExpansion(nodeId);
-        return this; // Intercept and abort further drag/selection evaluation
-      }
-
-      // Priority 1: Resize Edge Hit-Test (Rightmost / Leftmost 15 logical pixels)
-      if (vs.rightResizeHitbox.contains(pCanvas)) {
-        hitNodeId = nodeId;
-        hitResize = true;
-        draggedEdge = ResizeEdge.right;
+      case HitTestType.rightClick:
+      case HitTestType.relationLabel:
+      case HitTestType.none:
         break;
-      } else if (vs.leftResizeHitbox.contains(pCanvas)) {
-        hitNodeId = nodeId;
-        hitResize = true;
-        draggedEdge = ResizeEdge.left;
-        break;
-      }
-      // Priority 2: Body Hit-Test (Standard Dragging)
-      else if (nodeRect.contains(pCanvas)) {
-        hitNodeId = nodeId;
-        break;
-      }
     }
 
-    if (zeroSizeRejections > 0) {
-      _canvasIdleLog.finer(
-        'Hit-Test bypass: Ignored $zeroSizeRejections nodes due to Size.zero bounding boxes.',
-      );
-    }
+    final hitEntityId = result.hitEntityId ?? result.hitNodeId;
+    final hitResize = result.type == HitTestType.resizeRight ||
+        result.type == HitTestType.resizeLeft;
 
-    // Relation label hit testing
-    final hitEntityId =
-        hitNodeId ?? _hitTestRelations(pCanvas, ctx, layoutContext);
-
-    // Commit active edit if clicking elsewhere or if clicking a resize handle of the edited node
     if (activeEditId != null && (hitEntityId != activeEditId || hitResize)) {
       ctx.onCommitActiveEdit();
     }
 
-    // Fire selection intent immediately on pointer down.
-    // If hitEntityId is null (clicked empty canvas), it clears the selection.
-    _canvasIdleLog.fine('Selection Intent: HitEntity=$hitEntityId'); // [NEW]
+    _canvasIdleLog.fine('Selection Intent: HitEntity=$hitEntityId');
     if (hitEntityId == null || !selectedEntities.contains(hitEntityId)) {
       ctx.onSelectEntity(hitEntityId);
     }
 
-    // THE FIX: Complete FSM Shielding for the active editor.
-    // If the user clicks inside the node currently being edited (and not on its resize handles),
-    // abort FSM processing to let native Flutter TextField own the gesture arena.
     if (hitEntityId != null && hitEntityId == activeEditId && !hitResize) {
-      _canvasIdleLog.finer(
-        'FSM Shielding Active: Event absorbed by Editor for $hitEntityId',
-      ); // [NEW]
       return this;
     }
 
-    // Priority -1.0: Left-click on empty space starts Marquee selection
     if (e.buttons == kPrimaryMouseButton &&
         hitEntityId == null &&
         !isDoubleTap) {
-      _canvasIdleLog.fine(
-        'Left-click on empty space: Transitioning to MarqueeSelecting',
-      );
       return MarqueeSelecting(pCanvas, pCanvas);
     }
 
-    // Double Tap Execution
     if (isDoubleTap) {
       if (hitEntityId == null) {
-        _canvasIdleLog.info(
-          'Double-tap Creation: Snapped position calculated.',
-        ); // [NEW]
-        // Quantize node creation coordinates using Dynamic LOD
         final effectiveGridSize = calculateEffectiveGridSize(ctx.currentScale);
         final snappedPos = _snapToGrid(pCanvas, effectiveGridSize);
         ctx.onCreateNode(snappedPos);
@@ -210,107 +97,68 @@ class CanvasIdle extends CanvasInteractionState {
       return this;
     }
 
-    // Standard Transitions
-    if (hitNodeId != null) {
-      if (hitResize && draggedEdge != null) {
-        final vs = ctx.nodeViewStates[hitNodeId]!;
-        final initialLeft = vs.positionNotifier.value.dx;
-        final initialWidth = vs.sizeNotifier.value.width;
-        final double grabOffsetX;
-        if (draggedEdge == ResizeEdge.right) {
-          grabOffsetX = pCanvas.dx - (initialLeft + initialWidth);
-        } else {
-          grabOffsetX = pCanvas.dx - initialLeft;
-        }
-
-        // Route to Resizing State
-        final node = ctx.getNode(hitNodeId);
-        final resizeFontSize = node?.resolvedStyle?.fontSize ?? AppConfig.node.defaultFontSize;
-        return NodeResizing(
-          hitNodeId,
-          draggedEdge,
-          grabOffsetX,
-          initialLeft,
-          initialWidth,
-          resizeFontSize,
-        );
-      } else {
-        final nodeIdsInSelection = selectedEntities
-            .where((id) => ctx.nodeViewStates.containsKey(id))
-            .toList();
-        if (nodeIdsInSelection.length > 1 &&
-            nodeIdsInSelection.contains(hitNodeId)) {
-          final originalPositions = {
-            for (final id in nodeIdsInSelection)
-              id: ctx.nodeViewStates[id]!.positionNotifier.value,
-          };
-          return GroupDragging(
-            nodeIds: nodeIdsInSelection,
-            anchorNodeId: hitNodeId,
-            grabOffset:
-                pCanvas - ctx.nodeViewStates[hitNodeId]!.positionNotifier.value,
-            originalPositions: originalPositions,
-          );
-        } else {
-          return NodeDragging(
-            hitNodeId,
-            pCanvas - ctx.nodeViewStates[hitNodeId]!.positionNotifier.value,
-          );
-        }
-      }
-    }
-
     return this;
   }
 
-  /// Hit-tests relation labels at the midpoint between connected nodes.
-  String? _hitTestRelations(
-    Offset p,
+  CanvasInteractionState _transitionToResizing(
+    PointerHitResult result,
+    Offset pCanvas,
     InteractionContext ctx,
-    RelationLayoutContext layoutContext,
   ) {
-    for (final rel in ctx.getRelations()) {
-      final fVs = ctx.nodeViewStates[rel.fromNodeId];
-      final tVs = ctx.nodeViewStates[rel.toNodeId];
-      if (fVs == null || tVs == null) continue;
-
-      final layoutStrategy = RelationLayoutStrategy.fromType(
-        rel.layout?.strategyType,
-      );
-      final (start, end) = layoutStrategy.resolveEndpoints(rel, fVs, tVs);
-      final mid = layoutStrategy.computeLabelPosition(
-        start,
-        end,
-        fVs,
-        tVs,
-        rel,
-        layoutContext,
-      );
-
-      // Hit-test the label bounding box
-      if (Rect.fromCenter(
-        center: mid,
-        width: AppConfig.interaction.relationLabelHitArea.width,
-        height: AppConfig.interaction.relationLabelHitArea.height,
-      ).contains(p)) {
-        return rel.id;
-      }
-
-      // Hit-test the line/curve path (8px threshold)
-      if (layoutStrategy.isPointNear(
-        p,
-        start,
-        end,
-        fVs,
-        tVs,
-        rel,
-        AppConfig.interaction.relationLineHitThreshold,
-        layoutContext,
-      )) {
-        return rel.id;
-      }
+    final hitNodeId = result.hitNodeId!;
+    final draggedEdge = result.draggedEdge!;
+    final vs = ctx.nodeViewStates[hitNodeId]!;
+    final initialLeft = vs.positionNotifier.value.dx;
+    final initialWidth = vs.sizeNotifier.value.width;
+    final double grabOffsetX;
+    if (draggedEdge == ResizeEdge.right) {
+      grabOffsetX = pCanvas.dx - (initialLeft + initialWidth);
+    } else {
+      grabOffsetX = pCanvas.dx - initialLeft;
     }
-    return null;
+
+    final node = ctx.getNode(hitNodeId);
+    final resizeFontSize =
+        node?.resolvedStyle?.fontSize ?? AppConfig.node.defaultFontSize;
+    return NodeResizing(
+      hitNodeId,
+      draggedEdge,
+      grabOffsetX,
+      initialLeft,
+      initialWidth,
+      resizeFontSize,
+    );
+  }
+
+  CanvasInteractionState _transitionToDragging(
+    PointerHitResult result,
+    Offset pCanvas,
+    InteractionContext ctx,
+    Set<String> selectedEntities,
+  ) {
+    final hitNodeId = result.hitNodeId!;
+    final nodeIdsInSelection = selectedEntities
+        .where((id) => ctx.nodeViewStates.containsKey(id))
+        .toList();
+    if (nodeIdsInSelection.length > 1 &&
+        nodeIdsInSelection.contains(hitNodeId)) {
+      final originalPositions = {
+        for (final id in nodeIdsInSelection)
+          id: ctx.nodeViewStates[id]!.positionNotifier.value,
+      };
+      return GroupDragging(
+        nodeIds: nodeIdsInSelection,
+        anchorNodeId: hitNodeId,
+        grabOffset:
+            pCanvas - ctx.nodeViewStates[hitNodeId]!.positionNotifier.value,
+        originalPositions: originalPositions,
+      );
+    } else {
+      return NodeDragging(
+        hitNodeId,
+        pCanvas - ctx.nodeViewStates[hitNodeId]!.positionNotifier.value,
+      );
+    }
   }
 
   @override
@@ -352,21 +200,11 @@ class CanvasIdle extends CanvasInteractionState {
             : CanvasIdle(cursor: SystemMouseCursors.click);
       }
 
-      final node = ctx.getNode(nodeId);
-      if (node is InfoUiNode &&
-          (node.tags.isNotEmpty || node.comments.isNotEmpty)) {
-        final nodeRect = vs.rect;
-        final center = Offset(
-          nodeRect.right - AppConfig.node.metadataSphereOffsetFromRight,
-          nodeRect.top + AppConfig.node.metadataSphereOffsetFromTop,
-        );
-        if ((pCanvas - center).distance <
-            AppConfig.node.metadataSphereHitboxRadius) {
-          ctx.setHoveredNodeMetadata(nodeId);
-          return cursor == SystemMouseCursors.click
-              ? this
-              : const CanvasIdle(cursor: SystemMouseCursors.click);
-        }
+      if (HitTestResolver.isMetadataSphereHit(pCanvas, ctx, nodeId)) {
+        ctx.setHoveredNodeMetadata(nodeId);
+        return cursor == SystemMouseCursors.click
+            ? this
+            : const CanvasIdle(cursor: SystemMouseCursors.click);
       }
     }
 

@@ -129,70 +129,86 @@ class AppearanceTab extends StatelessWidget {
         .toList();
 
     if (nodeIds.isEmpty && relationIds.isEmpty) {
-      return _buildCenteredPlaceholder(
-        theme,
-        'Select an item to customize appearance',
-      );
+      return _buildEmptyPlaceholder(theme);
     }
 
     if (relationIds.isNotEmpty && nodeIds.isEmpty) {
-      final firstRelation = renderState.getRelation(relationIds.first)!;
-      final currentStrategy = firstRelation.layout?.strategyType ?? 'default';
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(theme, 'LINE STYLE'),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _StrategyButton(
-                  icon: Icons.horizontal_rule_rounded,
-                  label: 'Straight',
-                  strategyType: 'default',
-                  currentStrategy: currentStrategy,
-                  theme: theme,
-                  onTap: () => renderState.updateRelationsLayout(
-                    relationIds,
-                    strategyType: 'default',
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: _StrategyButton(
-                  icon: Icons.gesture_rounded,
-                  label: 'Bezier',
-                  strategyType: 'bezier',
-                  currentStrategy: currentStrategy,
-                  theme: theme,
-                  onTap: () => renderState.updateRelationsLayout(
-                    relationIds,
-                    strategyType: 'bezier',
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: _StrategyButton(
-                  icon: Icons.alt_route_rounded,
-                  label: 'Orthogonal',
-                  strategyType: 'orthogonal',
-                  currentStrategy: currentStrategy,
-                  theme: theme,
-                  onTap: () => renderState.updateRelationsLayout(
-                    relationIds,
-                    strategyType: 'orthogonal',
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      );
+      return _buildRelationAppearance(theme, relationIds);
     }
 
+    return _buildNodeAppearance(context, nodeIds);
+  }
+
+  Widget _buildEmptyPlaceholder(ThemeData theme) {
+    return _buildCenteredPlaceholder(
+      theme,
+      'Select an item to customize appearance',
+    );
+  }
+
+  Widget _buildRelationAppearance(
+    ThemeData theme,
+    List<String> relationIds,
+  ) {
+    final firstRelation = renderState.getRelation(relationIds.first)!;
+    final currentStrategy = firstRelation.layout?.strategyType ?? 'default';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(theme, 'LINE STYLE'),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _StrategyButton(
+                icon: Icons.horizontal_rule_rounded,
+                label: 'Straight',
+                strategyType: 'default',
+                currentStrategy: currentStrategy,
+                theme: theme,
+                onTap: () => renderState.updateRelationsLayout(
+                  relationIds,
+                  strategyType: 'default',
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: _StrategyButton(
+                icon: Icons.gesture_rounded,
+                label: 'Bezier',
+                strategyType: 'bezier',
+                currentStrategy: currentStrategy,
+                theme: theme,
+                onTap: () => renderState.updateRelationsLayout(
+                  relationIds,
+                  strategyType: 'bezier',
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: _StrategyButton(
+                icon: Icons.alt_route_rounded,
+                label: 'Orthogonal',
+                strategyType: 'orthogonal',
+                currentStrategy: currentStrategy,
+                theme: theme,
+                onTap: () => renderState.updateRelationsLayout(
+                  relationIds,
+                  strategyType: 'orthogonal',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNodeAppearance(BuildContext context, List<String> nodeIds) {
+    final theme = Theme.of(context);
     final firstNode = renderState.getNode(nodeIds.first)!;
     final currentStyle = _getEffectiveStyle(firstNode);
 
@@ -261,7 +277,8 @@ class AppearanceTab extends StatelessWidget {
             (style) => style.copyWith(
               bgColor: col.toARGB32(),
               textColor: ColorUtils.getContrastTextColorInt(col.toARGB32()),
-              strokeColor: ColorUtils.getContrastStrokeColorInt(col.toARGB32()),
+              strokeColor:
+                  ColorUtils.getContrastStrokeColorInt(col.toARGB32()),
             ),
           ),
         ),

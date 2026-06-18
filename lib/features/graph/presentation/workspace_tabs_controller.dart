@@ -137,7 +137,7 @@ class TabSession extends ChangeNotifier {
     final dc = GraphDataController(activeHandle);
     dataController = dc;
     presentationNotifier = GraphPresentationNotifier(dc);
-    nodeRenderState = NodeRenderState(dc);
+    nodeRenderState = NodeRenderState(dc, dc);
 
     final styleManager = StyleManager(dc.store);
     dc.sizeCalculator = NodeLayoutStrategy.calculateSize;
