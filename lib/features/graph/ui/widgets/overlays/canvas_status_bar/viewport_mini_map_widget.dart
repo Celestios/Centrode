@@ -26,6 +26,7 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
   double _viewportWidth = 0;
   double _viewportHeight = 0;
   bool _capturing = false;
+  GraphPresentationNotifier? _notifier;
   late final Paint _viewportFill = Paint()
     ..style = PaintingStyle.fill;
   late final Paint _viewportBorder = Paint()
@@ -37,15 +38,15 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
     super.initState();
     _viewportTicker = createTicker(_onViewportTick);
     _viewportTicker!.start();
-    final notifier = context.read<GraphPresentationNotifier>();
-    notifier.addListener(_onDataChanged);
+    _notifier = context.read<GraphPresentationNotifier>();
+    _notifier!.addListener(_onDataChanged);
   }
 
   @override
   void dispose() {
     _viewportTicker?.dispose();
     _snapshot?.dispose();
-    context.read<GraphPresentationNotifier>().removeListener(_onDataChanged);
+    _notifier?.removeListener(_onDataChanged);
     super.dispose();
   }
 

@@ -55,6 +55,12 @@ class CanvasIdle extends CanvasInteractionState {
         return _transitionToResizing(result, pCanvas, ctx);
 
       case HitTestType.body:
+        if (activeEditId != null && result.hitNodeId != activeEditId) {
+          ctx.onCommitActiveEdit();
+        }
+        if (!selectedEntities.contains(result.hitNodeId)) {
+          ctx.onSelectEntity(result.hitNodeId);
+        }
         return _transitionToDragging(result, pCanvas, ctx, selectedEntities);
 
       case HitTestType.rightClick:

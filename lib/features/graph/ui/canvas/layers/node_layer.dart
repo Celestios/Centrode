@@ -76,6 +76,7 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
   final Map<String, VoidCallback> _listeners = {};
   _CanvasNodesPainter? _painter;
   final ValueNotifier<int> _repaintTrigger = ValueNotifier(0);
+  bool _disposed = false;
 
   @override
   void initState() {
@@ -96,8 +97,8 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
 
   @override
   void dispose() {
+    _disposed = true;
     _unsubscribeAll();
-    _repaintTrigger.dispose();
     _painter?._cachedPicture?.dispose();
     super.dispose();
   }
@@ -113,6 +114,7 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
     for (final entry in widget.entries) {
       final id = entry.node.id;
       void markDirty() {
+        if (_disposed) return;
         _dirtyNodeIds.add(id);
         _repaintTrigger.value++;
       }
