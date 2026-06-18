@@ -39,60 +39,17 @@ class NodeResizing extends CanvasInteractionState {
     // Snap to the same dynamic LOD grid used by NodeDragging
     final effectiveGridSize = calculateEffectiveGridSize(ctx.currentScale);
 
-    switch (edge) {
-      // TODO: the code below can be extracted to helper functions to follow DRY.
-      case ResizeEdge.right:
-        // Proposed right edge (raw, unsnapped)
-        final rawRight = pCanvas.dx - grabOffsetX;
-        // Snap the right‑edge position using an Offset wrapper
-        final snappedRight = _snapToGrid(
-          Offset(rawRight, 0),
-          effectiveGridSize,
-        ).dx;
-        // New width = snapped right edge minus initial left
-        double newWidth = snappedRight - initialLeft;
-        if (newWidth < AppConfig.node.scaledMinWidth(fontSize)) {
-          newWidth = AppConfig.node.scaledMinWidth(fontSize);
-        } else if (newWidth > AppConfig.node.scaledMaxWidth(fontSize)) {
-          newWidth = AppConfig.node.maxWidth;
-        }
-        vs.dragWidthNotifier.value = newWidth;
-        break;
-
-      case ResizeEdge.left:
-        // Proposed left edge (raw)
-        final rawLeft = pCanvas.dx - grabOffsetX;
-        final snappedLeft = _snapToGrid(
-          Offset(rawLeft, 0),
-          effectiveGridSize,
-        ).dx;
-        // Right edge stays fixed: initialLeft + initialWidth
-        final fixedRight = initialLeft + initialWidth;
-        double newWidth = fixedRight - snappedLeft;
-        if (newWidth < AppConfig.node.scaledMinWidth(fontSize)) {
-          newWidth = AppConfig.node.scaledMinWidth(fontSize);
-          // Adjust left edge so the right edge doesn't move
-          vs.positionNotifier.value = Offset(
-            fixedRight - newWidth,
-            vs.positionNotifier.value.dy,
-          );
-        } else {
-          if (newWidth > AppConfig.node.scaledMaxWidth(fontSize)) {
-            newWidth = AppConfig.node.scaledMaxWidth(fontSize);
-            vs.positionNotifier.value = Offset(
-              fixedRight - newWidth,
-              vs.positionNotifier.value.dy,
-            );
-          } else {
-            vs.positionNotifier.value = Offset(
-              snappedLeft,
-              vs.positionNotifier.value.dy,
-            );
-          }
-        }
-        vs.dragWidthNotifier.value = newWidth;
-        break;
-    }
+    final bool movesLeft = edge == ResizeEdge.left;
+    final rawMovePos = pCanvas.dx - grabOffsetX;
+    final snappedPos = _snapToGrid(Offset(rawMovePos, 0), effectiveGridSize).dx;
+    final fixedEdge = movesLeft ? initialLeft + initialWidth : initialLeft;
+    final rawWidth = movesLeft ? fixedEdge - snappedPos : snappedPos - initialLeft;
+    final minW = AppConfig.node.scaledMinWidth(fontSize);
+    final maxW = AppConfig.node.scaledMaxWidth(fontSize);
+    final clampedWidth = rawWidth.clamp(minW, maxW);
+    final newLeft = movesLeft ? fixedEdge - clampedWidth : initialLeft;
+    vs.positionNotifier.value = Offset(newLeft, vs.positionNotifier.value.dy);
+    vs.dragWidthNotifier.value = clampedWidth;
 
     ctx.onNodeDragUpdate();
     return this;

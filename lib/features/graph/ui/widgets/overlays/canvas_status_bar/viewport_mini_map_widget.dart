@@ -27,6 +27,11 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
   double _viewportWidth = 0;
   double _viewportHeight = 0;
   bool _capturing = false;
+  late final Paint _viewportFill = Paint()
+    ..style = PaintingStyle.fill;
+  late final Paint _viewportBorder = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.0;
 
   @override
   void initState() {
@@ -41,9 +46,7 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
   void dispose() {
     _viewportTicker?.dispose();
     _snapshot?.dispose();
-    try {
-      context.read<GraphPresentationNotifier>().removeListener(_onDataChanged);
-    } catch (_) {}
+    context.read<GraphPresentationNotifier>().removeListener(_onDataChanged);
     super.dispose();
   }
 
@@ -140,13 +143,8 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
       _scheduleCapture();
     }
 
-    final viewportFill = Paint()
-      ..color = primaryColor.withValues(alpha: 0.08)
-      ..style = PaintingStyle.fill;
-    final viewportBorder = Paint()
-      ..color = primaryColor.withValues(alpha: 0.5)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
+    _viewportFill.color = primaryColor.withValues(alpha: 0.08);
+    _viewportBorder.color = primaryColor.withValues(alpha: 0.5);
 
     return GlassPanel(
       borderRadius: 10,
@@ -161,8 +159,8 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
                 viewportTop: _viewportTop,
                 viewportWidth: _viewportWidth,
                 viewportHeight: _viewportHeight,
-                viewportFill: viewportFill,
-                viewportBorder: viewportBorder,
+                viewportFill: _viewportFill,
+                viewportBorder: _viewportBorder,
               ),
             )
           : RepaintBoundary(
@@ -355,7 +353,8 @@ class _SnapshotPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SnapshotPainter oldDelegate) {
-    return oldDelegate.viewportLeft != viewportLeft ||
+    return oldDelegate.snapshot != snapshot ||
+        oldDelegate.viewportLeft != viewportLeft ||
         oldDelegate.viewportTop != viewportTop ||
         oldDelegate.viewportWidth != viewportWidth ||
         oldDelegate.viewportHeight != viewportHeight;

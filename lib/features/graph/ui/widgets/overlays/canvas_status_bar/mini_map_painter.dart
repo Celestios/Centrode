@@ -14,6 +14,10 @@ class MiniMapPainter extends CustomPainter {
   late final Paint _linePaint;
   late final Paint _viewportFill;
   late final Paint _viewportBorder;
+  late final Paint _fillPaint = Paint()..style = PaintingStyle.fill;
+  late final Paint _borderPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 0.5;
 
   MiniMapPainter({
     required this.nodes,
@@ -105,21 +109,18 @@ class MiniMapPainter extends CustomPainter {
       );
       final double borderRadius = node.resolvedStyle?.borderRadius ?? 4.0;
 
-      final fillPaint = Paint()..color = bgColor;
-      final borderPaint = Paint()
-        ..color = (node.resolvedStyle?.strokeColor != null)
-            ? Color(node.resolvedStyle!.strokeColor)
-            : primaryColor.withValues(alpha: 0.3)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.5;
+      _fillPaint.color = bgColor;
+      _borderPaint.color = (node.resolvedStyle?.strokeColor != null)
+          ? Color(node.resolvedStyle!.strokeColor)
+          : primaryColor.withValues(alpha: 0.3);
 
       final rect = RRect.fromRectAndRadius(
         Rect.fromLTWH(miniPos.dx, miniPos.dy, miniWidth, miniHeight),
         Radius.circular(borderRadius * scaleX),
       );
 
-      canvas.drawRRect(rect, fillPaint);
-      canvas.drawRRect(rect, borderPaint);
+      canvas.drawRRect(rect, _fillPaint);
+      canvas.drawRRect(rect, _borderPaint);
     }
 
     // 3. Draw viewport rectangle (current camera) – FIXED SIZE
@@ -144,8 +145,9 @@ class MiniMapPainter extends CustomPainter {
     return oldDelegate.visibleRect != visibleRect ||
         oldDelegate.margins != margins ||
         oldDelegate.viewportSize != viewportSize ||
-        oldDelegate.nodes != nodes ||
-        oldDelegate.relations != relations ||
+        oldDelegate.nodes.length != nodes.length ||
+        (nodes.isNotEmpty && oldDelegate.nodes.first != nodes.first) ||
+        oldDelegate.relations.length != relations.length ||
         oldDelegate.primaryColor != primaryColor;
   }
 }

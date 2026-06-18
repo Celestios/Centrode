@@ -7,6 +7,7 @@ import '../models/models.dart';
 /// Manages the lifecycle of state mutations with FIFO ordering for FFI calls.
 /// Implements write-behind debouncing to batch high-frequency spatial updates.
 class CommandProcessor {
+  static const int _debounceMs = 300;
   final Logger _log = Logger('CommandProcessor');
   final Map<String, Timer> _debouncers = {};
   final Map<String, GraphCommand> _pendingCommands = {};
@@ -36,7 +37,7 @@ class CommandProcessor {
       _processQueue();
     } else {
       _pendingCommands[key] = cmd;
-      _debouncers[key] = Timer(const Duration(milliseconds: 300), () {
+      _debouncers[key] = Timer(Duration(milliseconds: _debounceMs), () {
         final pending = _pendingCommands.remove(key);
         if (pending != null) {
           _log.fine(

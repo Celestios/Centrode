@@ -488,6 +488,16 @@ class DrawingNodePainter extends CustomPainter {
   final double brushThickness;
   final String brushType;
 
+  late final Color _parsedColor = _parseColor(brushColor);
+
+  static Color _parseColor(String hex) {
+    final clean = hex.replaceFirst('#', '').replaceFirst('0x', '');
+    if (clean.length == 6) {
+      return Color(int.parse('FF$clean', radix: 16));
+    }
+    return Color(int.parse(clean, radix: 16));
+  }
+
   DrawingNodePainter({
     required this.paths,
     required this.brushColor,
@@ -497,17 +507,7 @@ class DrawingNodePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    Color color;
-    try {
-      final hex = brushColor.replaceFirst('#', '').replaceFirst('0x', '');
-      if (hex.length == 6) {
-        color = Color(int.parse('FF$hex', radix: 16));
-      } else {
-        color = Color(int.parse(hex, radix: 16));
-      }
-    } catch (_) {
-      color = const Color(0xFF00E5FF);
-    }
+    var color = _parsedColor;
 
     if (brushType == 'highlighter') {
       color = color.withValues(alpha: 0.4);

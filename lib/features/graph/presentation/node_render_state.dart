@@ -336,36 +336,34 @@ class NodeRenderState extends ChangeNotifier {
         return vs.positionNotifier.value;
       } else {
         // Relation midpoint anchor
-        try {
-          final rel = _dataController.relationLookup[id];
-          if (rel != null) {
-            final sourceVs = viewStates[rel.fromNodeId];
-            final targetVs = viewStates[rel.toNodeId];
-            if (sourceVs != null && targetVs != null) {
-              final layoutContext = RelationLayoutContext(
-                nodeViewStates: viewStates,
-                relations: _dataController.relations.toList(),
-                pathCache: relationPathCache,
-              );
-              final layoutStrategy = RelationLayoutStrategy.fromType(
-                rel.layout?.strategyType,
-              );
-              final (start, end) = layoutStrategy.resolveEndpoints(
-                rel,
-                sourceVs,
-                targetVs,
-              );
-              return layoutStrategy.computeLabelPosition(
-                start,
-                end,
-                sourceVs,
-                targetVs,
-                rel,
-                layoutContext,
-              );
-            }
+        final rel = _dataController.relationLookup[id];
+        if (rel != null) {
+          final sourceVs = viewStates[rel.fromNodeId];
+          final targetVs = viewStates[rel.toNodeId];
+          if (sourceVs != null && targetVs != null) {
+            final layoutContext = RelationLayoutContext(
+              nodeViewStates: viewStates,
+              relations: _dataController.relations.toList(),
+              pathCache: relationPathCache,
+            );
+            final layoutStrategy = RelationLayoutStrategy.fromType(
+              rel.layout?.strategyType,
+            );
+            final (start, end) = layoutStrategy.resolveEndpoints(
+              rel,
+              sourceVs,
+              targetVs,
+            );
+            return layoutStrategy.computeLabelPosition(
+              start,
+              end,
+              sourceVs,
+              targetVs,
+              rel,
+              layoutContext,
+            );
           }
-        } catch (_) {}
+        }
       }
     }
     return null;

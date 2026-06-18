@@ -40,6 +40,8 @@ class _Interaction {
   final double snapDistance = 40.0;
   final double resizeEdgeWidth = 15.0;
   final Size relationLabelHitArea = const Size(100, 40);
+  final double relationTipHitDistance = 24.0;
+  final double relationLineHitThreshold = 8.0;
 }
 
 class _Node {
@@ -55,6 +57,7 @@ class _Node {
   final double editingBufferWidth = 45.0;
   final int collapsedLineLimit = 3;
   final Size defaultSize = const Size(100, 80);
+  final double defaultFontSize = 14.0;
   final double minFontSize = 10.0;
   final double maxFontSize = 40.0;
 

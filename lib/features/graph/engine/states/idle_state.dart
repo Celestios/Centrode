@@ -64,7 +64,7 @@ class CanvasIdle extends CanvasInteractionState {
         to,
         layoutContext,
       );
-      if ((pCanvas - handleStart).distance < 24.0) {
+      if ((pCanvas - handleStart).distance < AppConfig.interaction.relationTipHitDistance) {
         _canvasIdleLog.fine('Relation start tip handle hit: $id');
         return RelationTipDragging(
           relationId: rel.id,
@@ -72,7 +72,7 @@ class CanvasIdle extends CanvasInteractionState {
           originalPosition: handleStart,
           currentCursorPosition: pCanvas,
         );
-      } else if ((pCanvas - handleEnd).distance < 24.0) {
+      } else if ((pCanvas - handleEnd).distance < AppConfig.interaction.relationTipHitDistance) {
         _canvasIdleLog.fine('Relation end tip handle hit: $id');
         return RelationTipDragging(
           relationId: rel.id,
@@ -127,7 +127,7 @@ class CanvasIdle extends CanvasInteractionState {
       final nodeRect = vs.rect;
 
       // Priority 0.5: Expand Toggle Hit-Test
-      if (vs.lineCount > 3 && vs.expandToggleHitbox.contains(pCanvas)) {
+      if (vs.lineCount > AppConfig.node.collapsedLineLimit && vs.expandToggleHitbox.contains(pCanvas)) {
         _canvasIdleLog.fine('Expand Toggle Hit: $nodeId'); // [NEW]
         ctx.toggleNodeExpansion(nodeId);
         return this; // Intercept and abort further drag/selection evaluation
@@ -225,7 +225,7 @@ class CanvasIdle extends CanvasInteractionState {
 
         // Route to Resizing State
         final node = ctx.getNode(hitNodeId);
-        final resizeFontSize = node?.resolvedStyle?.fontSize ?? 14.0;
+        final resizeFontSize = node?.resolvedStyle?.fontSize ?? AppConfig.node.defaultFontSize;
         return NodeResizing(
           hitNodeId,
           draggedEdge,
@@ -304,7 +304,7 @@ class CanvasIdle extends CanvasInteractionState {
         fVs,
         tVs,
         rel,
-        8.0,
+        AppConfig.interaction.relationLineHitThreshold,
         layoutContext,
       )) {
         return rel.id;
@@ -345,7 +345,7 @@ class CanvasIdle extends CanvasInteractionState {
             : CanvasIdle(cursor: SystemMouseCursors.resizeLeftRight);
       }
 
-      if (vs.lineCount > 3 && vs.expandToggleHitbox.contains(pCanvas)) {
+      if (vs.lineCount > AppConfig.node.collapsedLineLimit && vs.expandToggleHitbox.contains(pCanvas)) {
         ctx.setHoveredNodeMetadata(null);
         return cursor == SystemMouseCursors.click
             ? this

@@ -147,139 +147,43 @@ class AppearanceTab extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: TextButton.icon(
-                  onPressed: () {
-                    renderState.updateRelationsLayout(
-                      relationIds,
-                      strategyType: 'default',
-                    );
-                  },
-                  icon: Icon(
-                    Icons.horizontal_rule_rounded,
-                    size: 16,
-                    color:
-                        currentStrategy == 'default' ||
-                            (currentStrategy != 'bezier' &&
-                                currentStrategy != 'orthogonal')
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                  label: Text(
-                    'Straight',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight:
-                          currentStrategy == 'default' ||
-                              (currentStrategy != 'bezier' &&
-                                  currentStrategy != 'orthogonal')
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color:
-                          currentStrategy == 'default' ||
-                              (currentStrategy != 'bezier' &&
-                                  currentStrategy != 'orthogonal')
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    backgroundColor:
-                        currentStrategy == 'default' ||
-                            (currentStrategy != 'bezier' &&
-                                currentStrategy != 'orthogonal')
-                        ? theme.colorScheme.primary.withValues(alpha: 0.1)
-                        : Colors.transparent,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 4,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                child: _StrategyButton(
+                  icon: Icons.horizontal_rule_rounded,
+                  label: 'Straight',
+                  strategyType: 'default',
+                  currentStrategy: currentStrategy,
+                  theme: theme,
+                  onTap: () => renderState.updateRelationsLayout(
+                    relationIds,
+                    strategyType: 'default',
                   ),
                 ),
               ),
               const SizedBox(width: 4),
               Expanded(
-                child: TextButton.icon(
-                  onPressed: () {
-                    renderState.updateRelationsLayout(
-                      relationIds,
-                      strategyType: 'bezier',
-                    );
-                  },
-                  icon: Icon(
-                    Icons.gesture_rounded,
-                    size: 16,
-                    color: currentStrategy == 'bezier'
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                  label: Text(
-                    'Bezier',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: currentStrategy == 'bezier'
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: currentStrategy == 'bezier'
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    backgroundColor: currentStrategy == 'bezier'
-                        ? theme.colorScheme.primary.withValues(alpha: 0.1)
-                        : Colors.transparent,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 4,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                child: _StrategyButton(
+                  icon: Icons.gesture_rounded,
+                  label: 'Bezier',
+                  strategyType: 'bezier',
+                  currentStrategy: currentStrategy,
+                  theme: theme,
+                  onTap: () => renderState.updateRelationsLayout(
+                    relationIds,
+                    strategyType: 'bezier',
                   ),
                 ),
               ),
               const SizedBox(width: 4),
               Expanded(
-                child: TextButton.icon(
-                  onPressed: () {
-                    renderState.updateRelationsLayout(
-                      relationIds,
-                      strategyType: 'orthogonal',
-                    );
-                  },
-                  icon: Icon(
-                    Icons.alt_route_rounded,
-                    size: 16,
-                    color: currentStrategy == 'orthogonal'
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                  label: Text(
-                    'Orthogonal',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: currentStrategy == 'orthogonal'
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: currentStrategy == 'orthogonal'
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    backgroundColor: currentStrategy == 'orthogonal'
-                        ? theme.colorScheme.primary.withValues(alpha: 0.1)
-                        : Colors.transparent,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 4,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                child: _StrategyButton(
+                  icon: Icons.alt_route_rounded,
+                  label: 'Orthogonal',
+                  strategyType: 'orthogonal',
+                  currentStrategy: currentStrategy,
+                  theme: theme,
+                  onTap: () => renderState.updateRelationsLayout(
+                    relationIds,
+                    strategyType: 'orthogonal',
                   ),
                 ),
               ),
@@ -401,6 +305,63 @@ class AppearanceTab extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _StrategyButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String strategyType;
+  final String currentStrategy;
+  final ThemeData theme;
+  final VoidCallback onTap;
+
+  const _StrategyButton({
+    required this.icon,
+    required this.label,
+    required this.strategyType,
+    required this.currentStrategy,
+    required this.theme,
+    required this.onTap,
+  });
+
+  bool get _isSelected =>
+      currentStrategy == strategyType ||
+      (currentStrategy != 'bezier' &&
+          currentStrategy != 'orthogonal' &&
+          strategyType == 'default');
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: onTap,
+      icon: Icon(
+        icon,
+        size: 16,
+        color: _isSelected
+            ? theme.colorScheme.primary
+            : theme.colorScheme.onSurface.withValues(alpha: 0.6),
+      ),
+      label: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: _isSelected ? FontWeight.bold : FontWeight.normal,
+          color: _isSelected
+              ? theme.colorScheme.primary
+              : theme.colorScheme.onSurface,
+        ),
+      ),
+      style: TextButton.styleFrom(
+        backgroundColor: _isSelected
+            ? theme.colorScheme.primary.withValues(alpha: 0.1)
+            : Colors.transparent,
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
     );
   }
 }

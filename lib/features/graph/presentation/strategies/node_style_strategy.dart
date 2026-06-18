@@ -72,8 +72,7 @@ abstract class NodeStyleStrategy {
   /// Centralized static helper to resolve a node's populated style.
   static NodeStyle resolveStyle(UiNode node, {GraphTheme? theme}) {
     if (node.resolvedStyle != null) return node.resolvedStyle!;
-    final strategyType =
-        node.resolvedStyle?.strategyType ?? node.style?.strategyType;
+    final strategyType = node.style?.strategyType;
     final strategy = fromType(strategyType, fallbackNode: node);
     if (theme != null) {
       return strategy.resolve(node, theme);

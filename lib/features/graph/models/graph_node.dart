@@ -1,4 +1,4 @@
-import 'package:flutter/painting.dart';
+import 'dart:ui';
 import 'package:mycelium/features/graph/models/content_builder.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';

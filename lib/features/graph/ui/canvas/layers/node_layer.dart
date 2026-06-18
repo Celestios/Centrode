@@ -432,6 +432,6 @@ class _CanvasNodesPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CanvasNodesPainter oldDelegate) {
-    return true;
+    return dirtyNodeIds.isNotEmpty || _entriesGeneration != _cachedGeneration;
   }
 }
