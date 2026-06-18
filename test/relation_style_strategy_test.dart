@@ -420,4 +420,282 @@ void main() {
       );
     },
   );
+
+  test('resolveEndpoints respects custom fromSide and toSide', () {
+    final fromNode = InfoUiNode(
+      id: 'from_1',
+      position: const Offset(10, 10),
+      size: const Size(100, 40),
+    );
+    final toNode = InfoUiNode(
+      id: 'to_1',
+      position: const Offset(210, 10),
+      size: const Size(100, 40),
+    );
+
+    final relation = InfoUiRelation(
+      fromNodeId: 'from_1',
+      fromNodeTable: 'inode',
+      toNodeId: 'to_1',
+      toNodeTable: 'inode',
+      layout: RelationLayout(
+        fromSide: 'Top',
+        toSide: 'Bottom',
+        strategyType: 'default',
+      ),
+    );
+
+    final fromVs = NodeViewState(fromNode);
+    final toVs = NodeViewState(toNode);
+
+    const layoutStrategy = StraightRelationLayoutStrategy();
+    final (start, end) = layoutStrategy.resolveEndpoints(
+      relation, fromVs, toVs,
+    );
+
+    expect(start, const Offset(60, 10));
+    expect(end, const Offset(260, 50));
+  });
+
+  test('Bezier drag override switches opposite port', () {
+    final fromNode = InfoUiNode(
+      id: 'from_1',
+      position: const Offset(10, 10),
+      size: const Size(100, 40),
+    );
+    final toNode = InfoUiNode(
+      id: 'to_1',
+      position: const Offset(210, 10),
+      size: const Size(100, 40),
+    );
+
+    final relation = InfoUiRelation(
+      fromNodeId: 'from_1',
+      fromNodeTable: 'inode',
+      toNodeId: 'to_1',
+      toNodeTable: 'inode',
+      layout: RelationLayout(
+        fromSide: 'Auto',
+        toSide: 'Auto',
+        strategyType: 'bezier',
+      ),
+    );
+
+    final fromVs = NodeViewState(fromNode);
+    final toVs = NodeViewState(toNode);
+
+    const layoutStrategy = BezierRelationLayoutStrategy();
+
+    final (start1, end1) = layoutStrategy.resolveEndpoints(
+      relation, fromVs, toVs,
+      overrideStart: const Offset(260, 100),
+    );
+    expect(start1, const Offset(260, 100));
+    expect(end1, const Offset(260, 50));
+
+    final (start2, end2) = layoutStrategy.resolveEndpoints(
+      relation, fromVs, toVs,
+      overrideStart: const Offset(260, -10),
+    );
+    expect(start2, const Offset(260, -10));
+    expect(end2, const Offset(260, 10));
+  });
+
+  test('Orthogonal drag override switches opposite port', () {
+    final fromNode = InfoUiNode(
+      id: 'from_1',
+      position: const Offset(10, 10),
+      size: const Size(100, 40),
+    );
+    final toNode = InfoUiNode(
+      id: 'to_1',
+      position: const Offset(210, 10),
+      size: const Size(100, 40),
+    );
+
+    final relation = InfoUiRelation(
+      fromNodeId: 'from_1',
+      fromNodeTable: 'inode',
+      toNodeId: 'to_1',
+      toNodeTable: 'inode',
+      layout: RelationLayout(
+        fromSide: 'Auto',
+        toSide: 'Auto',
+        strategyType: 'orthogonal',
+      ),
+    );
+
+    final fromVs = NodeViewState(fromNode);
+    final toVs = NodeViewState(toNode);
+
+    const layoutStrategy = OrthogonalRelationLayoutStrategy();
+
+    final (start1, end1) = layoutStrategy.resolveEndpoints(
+      relation, fromVs, toVs,
+      overrideStart: const Offset(260, 100),
+    );
+    expect(start1, const Offset(260, 100));
+    expect(end1, const Offset(260, 50));
+
+    final (start2, end2) = layoutStrategy.resolveEndpoints(
+      relation, fromVs, toVs,
+      overrideStart: const Offset(200, 30),
+    );
+    expect(start2, const Offset(200, 30));
+    expect(end2, const Offset(210, 30));
+  });
+
+  test('identical positions edge case handled gracefully', () {
+    final fromNode = InfoUiNode(
+      id: 'from_1',
+      position: const Offset(100, 100),
+      size: const Size(100, 40),
+    );
+    final toNode = InfoUiNode(
+      id: 'to_1',
+      position: const Offset(100, 100),
+      size: const Size(100, 40),
+    );
+
+    final relation = InfoUiRelation(
+      fromNodeId: 'from_1',
+      fromNodeTable: 'inode',
+      toNodeId: 'to_1',
+      toNodeTable: 'inode',
+      layout: RelationLayout(
+        fromSide: 'Auto',
+        toSide: 'Auto',
+        strategyType: 'bezier',
+      ),
+    );
+
+    final fromVs = NodeViewState(fromNode);
+    final toVs = NodeViewState(toNode);
+
+    const layoutStrategy = BezierRelationLayoutStrategy();
+    final (start, end) = layoutStrategy.resolveEndpoints(
+      relation, fromVs, toVs,
+    );
+
+    expect(start, isNotNull);
+    expect(end, isNotNull);
+  });
+
+  test('isPointNear returns false for point far from curve', () {
+    final fromNode = InfoUiNode(
+      id: 'from_1',
+      position: const Offset(10, 10),
+      size: const Size(100, 40),
+    );
+    final toNode = InfoUiNode(
+      id: 'to_1',
+      position: const Offset(210, 10),
+      size: const Size(100, 40),
+    );
+
+    final relation = InfoUiRelation(
+      fromNodeId: 'from_1',
+      fromNodeTable: 'inode',
+      toNodeId: 'to_1',
+      toNodeTable: 'inode',
+      layout: RelationLayout(
+        fromSide: 'Auto',
+        toSide: 'Auto',
+        strategyType: 'bezier',
+      ),
+    );
+
+    final fromVs = NodeViewState(fromNode);
+    final toVs = NodeViewState(toNode);
+    final context = RelationLayoutContext(
+      nodeViewStates: {fromVs.nodeId: fromVs, toVs.nodeId: toVs},
+      relations: [relation],
+      pathCache: {},
+    );
+
+    const layoutStrategy = BezierRelationLayoutStrategy();
+    final (start, end) = layoutStrategy.resolveEndpoints(
+      relation, fromVs, toVs,
+    );
+
+    const farPoint = Offset(500, 500);
+    expect(
+      layoutStrategy.isPointNear(
+        farPoint, start, end, fromVs, toVs, relation, 8.0, context,
+      ),
+      isFalse,
+    );
+  });
+
+  test('zero-size node returns fallback', () {
+    final fromNode = InfoUiNode(
+      id: 'from_1',
+      position: const Offset(10, 10),
+      size: Size.zero,
+    );
+    final toNode = InfoUiNode(
+      id: 'to_1',
+      position: const Offset(210, 10),
+      size: const Size(100, 40),
+    );
+
+    final relation = InfoUiRelation(
+      fromNodeId: 'from_1',
+      fromNodeTable: 'inode',
+      toNodeId: 'to_1',
+      toNodeTable: 'inode',
+      layout: RelationLayout(
+        fromSide: 'Auto',
+        toSide: 'Auto',
+        strategyType: 'default',
+      ),
+    );
+
+    final fromVs = NodeViewState(fromNode);
+    final toVs = NodeViewState(toNode);
+
+    const layoutStrategy = StraightRelationLayoutStrategy();
+    final (start, end) = layoutStrategy.resolveEndpoints(
+      relation, fromVs, toVs,
+    );
+
+    expect(start, const Offset(110, 40));
+    expect(end, const Offset(210, 30));
+  });
+
+  test('overlapping nodes returns same-port endpoints', () {
+    final fromNode = InfoUiNode(
+      id: 'from_1',
+      position: const Offset(100, 100),
+      size: const Size(100, 40),
+    );
+    final toNode = InfoUiNode(
+      id: 'to_1',
+      position: const Offset(100, 100),
+      size: const Size(100, 40),
+    );
+
+    final relation = InfoUiRelation(
+      fromNodeId: 'from_1',
+      fromNodeTable: 'inode',
+      toNodeId: 'to_1',
+      toNodeTable: 'inode',
+      layout: RelationLayout(
+        fromSide: 'Auto',
+        toSide: 'Auto',
+        strategyType: 'default',
+      ),
+    );
+
+    final fromVs = NodeViewState(fromNode);
+    final toVs = NodeViewState(toNode);
+
+    const layoutStrategy = StraightRelationLayoutStrategy();
+    final (start, end) = layoutStrategy.resolveEndpoints(
+      relation, fromVs, toVs,
+    );
+
+    expect(start, isNotNull);
+    expect(end, isNotNull);
+  });
 }
