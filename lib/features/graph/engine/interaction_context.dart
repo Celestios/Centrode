@@ -49,30 +49,20 @@ abstract interface class SelectionCapability {
   Offset? calculateToolbarAnchor(Iterable<String> selectedIds);
 }
 
-/// Interface segregating structural layout, node/relation geometry, and edits.
-abstract interface class GeometryCapability {
-  /// Registry of all node view states for hit-testing and position updates.
+/// Read-only query interface for node/relation geometry data.
+abstract interface class QueryCapability {
   Map<String, NodeViewState> get nodeViewStates;
-
-  /// Cache of computed relation paths for obstacle avoidance.
   Map<String, List<Offset>> get relationPathCache;
-
-  /// Z-order tracking for proper hit-testing (last item is topmost).
   List<String> get zOrder;
-
-  /// Spatial hash grid for O(1) node lookups by position.
   SpatialHashGrid get spatialGrid;
-
-  /// Returns all relations for hit-testing relation labels.
   Iterable<UiRelation> getRelations();
-
-  /// Retrieves a node by its ID from the data store lookup.
   UiNode? getNode(String id);
+}
 
-  /// Callback when a node move operation completes.
+/// Write/mutation interface for structural layout, node/relation edits.
+abstract interface class MutationCapability {
   void onNodeMove(String id, Offset pos);
 
-  /// Callback when a relation is created between two nodes.
   void onRelationCreate(
     String from,
     String to, {
@@ -80,7 +70,6 @@ abstract interface class GeometryCapability {
     String? toSide,
   });
 
-  /// Callback when a relation layout/endpoints are updated.
   void onRelationUpdateLayout(
     String id, {
     String? fromNodeId,
@@ -90,40 +79,28 @@ abstract interface class GeometryCapability {
     String? strategyType,
   });
 
-  /// Updates the style of the specified relation.
   void onRelationUpdateStyle(String id, RelationStyle newStyle);
 
-  /// Callback to trigger relation layer repaint during node drag.
   void onNodeDragUpdate();
 
-  /// Registers a node dragging state to protect its volatile position from store overrides.
   void setNodeDragging(String id, bool dragging);
 
-  /// Callback to commit the active text edit.
   void onCommitActiveEdit();
 
-  /// Returns the ID of the entity currently being edited, or null.
   String? getActiveEditId();
 
-  /// Callback to enter edit mode for an entity (node or relation).
   void onEnterEditMode(String id);
 
-  /// Callback to create a new node at the specified position.
   void onCreateNode(Offset position);
 
-  /// Callback when a node resize operation completes.
   void updateNodeWidth(String id, double leftEdge, double rightEdge);
 
-  /// Callback when a node expansion state is toggled.
   void toggleNodeExpansion(String id);
 
-  /// Updates the style of the specified node.
   void updateNodeStyle(String id, NodeStyle Function(NodeStyle style) updateFn);
 
-  /// Sets the currently hovered metadata node ID to show/hide the preview card.
   void setHoveredNodeMetadata(String? nodeId);
 
-  /// Creates a drawing node with the specified brush and geometry options.
   void onCreateDrawingNode({
     required Offset position,
     required List<String> paths,
@@ -133,6 +110,9 @@ abstract interface class GeometryCapability {
     required Size size,
   });
 }
+
+abstract interface class GeometryCapability
+    implements MutationCapability, QueryCapability {}
 
 /// Composite interface for capabilities that need both geometry and viewport access.
 abstract interface class GeometryAndViewportCapability

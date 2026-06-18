@@ -20,6 +20,13 @@ class NodeViewState implements VolatileNodeState {
 
   final Logger _log = Logger('NodeViewState');
 
+  static Size Function(UiNode, {bool isEditing}) _sizeComputer =
+      NodeLayoutStrategy.calculateSize;
+
+  static void setSizeComputer(Size Function(UiNode, {bool isEditing}) computer) {
+    _sizeComputer = computer;
+  }
+
   // Cached geometry — invalidated when position/size/dragWidth change
   Rect? _cachedRect;
   Rect? _cachedRightResizeHitbox;
@@ -57,7 +64,7 @@ class NodeViewState implements VolatileNodeState {
   }
 
   void _recomputeSizeWithStrategy(UiNode node, {bool isEditing = false}) {
-    node.size = NodeLayoutStrategy.calculateSize(node, isEditing: isEditing);
+    node.size = _sizeComputer(node, isEditing: isEditing);
   }
 
   // --- DRY Geometry Getters ---

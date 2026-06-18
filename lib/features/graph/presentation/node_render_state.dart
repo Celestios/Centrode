@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import '../engine/config.dart';
 import '../store/graph_data_query.dart';
 import '../store/graph_data_command.dart';
 import 'view_state.dart';
-import 'strategies/relation_layout_strategy.dart';
-import 'routing/relation_layout_context.dart';
 import '../models/models.dart';
+import 'editor_state.dart';
+import 'selection_state.dart';
+import 'drag_state.dart';
 
 /// Notifier pulsed to trigger relation painter repaints when node coordinates change.
 class MovementNotifier extends ChangeNotifier {
@@ -16,11 +16,8 @@ class MovementNotifier extends ChangeNotifier {
 
 enum InspectorTab { appearance, data }
 
-/// Exclusively manages volatile visual state (selections, overlays, toolbars, and viewState lifecycles).
-///
-/// This controller projects the canonical data model changes from [GraphDataController]
-/// into visual-specific value notifiers ([NodeViewState]). It acts as the single source
-/// of truth for all layout, selection, and transient UI rendering states.
+/// Thin coordinator that owns the data subscription and wires three focused sub-controllers:
+/// [EditorState], [SelectionState], and [DragState].
 class NodeRenderState extends ChangeNotifier {
   final Logger _log = Logger('NodeRenderState');
   final GraphDataQuery _dataQuery;
@@ -47,68 +44,29 @@ class NodeRenderState extends ChangeNotifier {
   /// Cache of computed relation paths for obstacle avoidance.
   final Map<String, List<Offset>> relationPathCache = {};
 
-  /// Cache to prevent premature disposal of visual state during optimistic deletes,
-  /// enabling seamless rehydration during FFI command rollbacks.
-  final Map<String, NodeViewState> _quarantineCache = {};
-
-  /// Set of node IDs currently being actively dragged by the user.
-  final Set<String> draggingNodes = {};
-
   /// Notification trigger for canvas relation repaints.
   final MovementNotifier movementNotifier = MovementNotifier();
 
-  /// Value notifier tracking unified toolbar offset for single selections.
-  final ValueNotifier<Offset> toolbarOffsetNotifier = ValueNotifier(
-    AppConfig.toolbar.singleOffset,
-  );
-
-  /// Value notifier tracking unified toolbar offset for multi-selections.
-  final ValueNotifier<Offset> multiToolbarOffsetNotifier = ValueNotifier(
-    AppConfig.toolbar.multiOffset,
-  );
-
-  /// Visual Z-Order stack determining painting and hit-testing hierarchy.
-  final List<String> zOrder = [];
-
-  /// ID of the entity currently in text inline edit mode.
-  String? activeEditId;
-
-  /// ID of the node currently prompting a floating delete menu.
-  String? nodeShowingFloatingToolbar;
-
-  /// Set of selected entity IDs (nodes or relations).
-  Set<String> selectedEntities = {};
-
-  /// Tracks active text selection during inline editing.
-  final ValueNotifier<TextSelection?> activeTextSelectionNotifier = ValueNotifier(null);
-
-  /// Decoupled callbacks for text formatting in the UI layer.
-  void Function(dynamic formatType, {String? url})? applyFormatCallback;
-  void Function(dynamic headingType)? toggleHeadingCallback;
-  void Function()? clearBlockFormatCallback;
-  void Function()? cycleFontFamilyCallback;
-  void Function(String fontFamily)? setFontFamilyCallback;
-  void Function()? cycleTextColorCallback;
-  void Function({String? colorUrl})? toggleHighlightCallback;
-  void Function()? cycleHighlightColorCallback;
-  void Function()? cycleTextAlignCallback;
-
-  /// Tracks the current paragraph's alignment for the toolbar icon.
-  final ValueNotifier<TextAlign> currentTextAlignNotifier = ValueNotifier(TextAlign.center);
-
-  void updateActiveTextSelection(TextSelection? selection) {
-    if (activeTextSelectionNotifier.value != selection) {
-      activeTextSelectionNotifier.value = selection;
-    }
-  }
+  /// Focused sub-controllers.
+  late final EditorState editorState;
+  late final SelectionState selectionState;
+  late final DragState dragState;
 
   StreamSubscription<GraphEntityUpdate>? _updateSubscription;
 
   NodeRenderState(this._dataQuery, this._dataCommand) {
+    editorState = EditorState(_dataQuery, viewStates, relationPathCache);
+    selectionState = SelectionState(_dataQuery, _dataCommand);
+    dragState = DragState();
+
+    editorState.addListener(notifyListeners);
+    selectionState.addListener(notifyListeners);
+    dragState.addListener(notifyListeners);
+
     _updateSubscription = _dataQuery.onEntityUpdate.listen(
       _handleEntityUpdate,
     );
-    _syncAtomicUIState(); // Initial synchronization projection
+    _syncAtomicUIState();
   }
 
   bool _syncNodeToViewState(String id, UiNode node) {
@@ -117,7 +75,7 @@ class NodeRenderState extends ChangeNotifier {
 
     bool changed = false;
 
-    if (!draggingNodes.contains(id) && vs.positionNotifier.value != node.position) {
+    if (!dragState.isNodeDragging(id) && vs.positionNotifier.value != node.position) {
       vs.positionNotifier.value = node.position;
       relationPathCache.clear();
       movementNotifier.pulse();
@@ -175,7 +133,7 @@ class NodeRenderState extends ChangeNotifier {
           final vs = viewStates[id];
           if (vs != null) {
             final oldSize = vs.sizeNotifier.value;
-            vs.onSizeChanged(node, isEditing: id == activeEditId);
+            vs.onSizeChanged(node, isEditing: id == editorState.activeEditId);
             if (vs.sizeNotifier.value == oldSize) vs.onStyleChanged();
           }
         }
@@ -201,24 +159,13 @@ class NodeRenderState extends ChangeNotifier {
     }
   }
 
-  /// Registers a node dragging state to protect its volatile position from store overrides.
-  void setNodeDragging(String id, bool dragging) {
-    if (dragging) {
-      draggingNodes.add(id);
-    } else {
-      draggingNodes.remove(id);
-    }
-    _log.finest('Dragging state updated: $id -> dragging=$dragging');
-  }
-
   /// Pulsates the movement notifier to redraw connected relations in real-time.
   void notifyNodeDragUpdate() {
-    // Invalidate only the relation paths connected to dragging nodes
     relationPathCache.removeWhere((relId, _) {
       final rel = _dataQuery.relationLookup[relId];
       if (rel == null) return true;
-      return draggingNodes.contains(rel.fromNodeId) ||
-          draggingNodes.contains(rel.toNodeId);
+      return dragState.draggingNodes.contains(rel.fromNodeId) ||
+          dragState.draggingNodes.contains(rel.toNodeId);
     });
     movementNotifier.pulse();
   }
@@ -227,30 +174,21 @@ class NodeRenderState extends ChangeNotifier {
   void _syncAtomicUIState() {
     final keys = _dataQuery.nodeLookup.keys.toSet();
 
-    // 1. Detect removed nodes (optimistic delete) and place in quarantine
     final removedIds = viewStates.keys.toSet().difference(keys);
     for (final id in removedIds) {
       final vs = viewStates.remove(id);
       if (vs != null) {
-        _quarantineCache[id] = vs;
-        _log.finest(
-          'QUARANTINE: Node $id ViewState quarantined in NodeRenderState.',
-        );
+        dragState.quarantine(id, vs);
       }
     }
 
-    // 2. Synchronize active node viewStates
     for (final entry in _dataQuery.nodeLookup.entries) {
       final id = entry.key;
       final node = entry.value;
 
       if (!viewStates.containsKey(id)) {
-        // Attempt to restore pointer from quarantine cache
-        final quarantinedVs = _quarantineCache.remove(id);
+        final quarantinedVs = dragState.tryRehydrate(id);
         if (quarantinedVs != null) {
-          _log.finest(
-            'QUARANTINE: Node $id ViewState rehydrated from NodeRenderState quarantine.',
-          );
           quarantinedVs.rehydrate(node);
           viewStates[id] = quarantinedVs;
         } else {
@@ -261,188 +199,77 @@ class NodeRenderState extends ChangeNotifier {
       }
     }
 
-    // 3. Purge zOrder of deleted nodes
-    zOrder.removeWhere((id) => !keys.contains(id));
-
-    // 4. Add newly created nodes to zOrder
-    for (final id in keys) {
-      if (!zOrder.contains(id)) {
-        zOrder.add(id);
-      }
-    }
-
-    // 5. Clean up volatile selected entities, active edits, and menu flags
-    final validKeys = keys.union(_dataQuery.relationLookup.keys.toSet());
-    selectedEntities.removeWhere((id) => !validKeys.contains(id));
-
-    if (activeEditId != null && !keys.contains(activeEditId)) {
-      activeEditId = null;
-    }
-
-    if (nodeShowingFloatingToolbar != null &&
-        !keys.contains(nodeShowingFloatingToolbar)) {
-      nodeShowingFloatingToolbar = null;
-    }
+    final allValidKeys = keys.union(_dataQuery.relationLookup.keys.toSet());
+    selectionState.syncFromDataStore(keys, allValidKeys);
+    editorState.cleanupStaleState(keys);
 
     _log.finest(
-      'NodeRenderState synchronized: ${zOrder.length} nodes in render stack.',
+      'NodeRenderState synchronized: ${selectionState.zOrder.length} nodes in render stack.',
     );
     notifyListeners();
-  }
-
-  /// Calculates the visual anchor point for the floating toolbar based on selected entities.
-  Offset? calculateToolbarAnchor(Iterable<String> selectedIds) {
-    if (selectedIds.isEmpty) return null;
-    if (selectedIds.length > 1) {
-      return _calculateMultiSelectAnchor(selectedIds);
-    }
-    return _calculateSingleSelectAnchor(selectedIds.first);
-  }
-
-  Offset? _calculateMultiSelectAnchor(Iterable<String> selectedIds) {
-    double minX = double.infinity, minY = double.infinity,
-        maxX = double.negativeInfinity, maxY = double.negativeInfinity;
-    for (final id in selectedIds) {
-      final vs = viewStates[id];
-      if (vs == null) continue;
-      final rect = vs.rect;
-      if (rect.left < minX) minX = rect.left;
-      if (rect.top < minY) minY = rect.top;
-      if (rect.right > maxX) maxX = rect.right;
-      if (rect.bottom > maxY) maxY = rect.bottom;
-    }
-    if (minX == double.infinity) return null;
-    final centerX = minX + (maxX - minX) / 2;
-    return Offset(
-      centerX - (AppConfig.toolbar.multiWidth / 2),
-      minY - AppConfig.toolbar.height - 10,
-    );
-  }
-
-  Offset? _calculateSingleSelectAnchor(String id) {
-    final vs = viewStates[id];
-    if (vs != null) return vs.positionNotifier.value;
-
-    final rel = _dataQuery.relationLookup[id];
-    if (rel == null) return null;
-
-    final sourceVs = viewStates[rel.fromNodeId];
-    final targetVs = viewStates[rel.toNodeId];
-    if (sourceVs == null || targetVs == null) return null;
-
-    final layoutContext = RelationLayoutContext(
-      nodeViewStates: viewStates,
-      relations: _dataQuery.relations.toList(),
-      pathCache: relationPathCache,
-    );
-    final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
-    final (start, end) = layoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
-    return layoutStrategy.computeLabelPosition(start, end, sourceVs, targetVs, rel, layoutContext);
-  }
-
-  /// Brings the selected entity to the front of the Z-stack.
-  void moveToFront(String id) {
-    if (zOrder.remove(id)) {
-      zOrder.add(id);
-      _log.finer('Moved entity to front of Z-order: $id');
-      notifyListeners();
-    }
-  }
-
-  /// Selects a single entity on the canvas.
-  void selectEntity(String? id) {
-    if (id == null) {
-      if (selectedEntities.isEmpty) return;
-      selectedEntities.clear();
-    } else {
-      // Confirm entity existence in data controller before selection
-      if (!_dataQuery.nodeLookup.containsKey(id) &&
-          !_dataQuery.relations.any((r) => r.id == id)) {
-        _log.warning('Attempted to select non-existent entity: $id');
-        return;
-      }
-      if (selectedEntities.length == 1 && selectedEntities.first == id) return;
-      selectedEntities = {id};
-    }
-    _log.finer('Selection updated: $selectedEntities');
-    notifyListeners();
-  }
-
-  /// Selects multiple entities simultaneously (e.g., marquee selection).
-  void selectEntities(Iterable<String> ids) {
-    selectedEntities = ids.toSet();
-    _log.finer(
-      'Marquee selection updated: ${selectedEntities.length} entities',
-    );
-    notifyListeners();
-  }
-
-  /// Triggers deletion for all currently selected entities.
-  void deleteSelectedEntities() {
-    if (selectedEntities.isEmpty) return;
-    _log.info(
-      'Executing batch deletion for ${selectedEntities.length} entities.',
-    );
-    final idsToDelete = selectedEntities.toList();
-    selectEntity(null); // Instantly clear selection visually
-
-    for (final id in idsToDelete) {
-      if (_dataQuery.nodeLookup.containsKey(id)) {
-        _dataCommand.deleteNode(id);
-      } else if (_dataQuery.relationLookup.containsKey(id)) {
-        _dataCommand.deleteRelation(id);
-      }
-    }
-  }
-
-  /// Focuses and opens inline text editor mode for an entity.
-  void enterEditMode(String id) {
-    activeEditId = id;
-    _log.finer('Entering edit mode for entity: $id');
-    notifyListeners();
-  }
-
-  /// Aborts and closes active inline editing mode.
-  void cancelActiveEdit() {
-    activeEditId = null;
-    activeTextSelectionNotifier.value = null;
-    applyFormatCallback = null;
-    toggleHeadingCallback = null;
-    clearBlockFormatCallback = null;
-    cycleFontFamilyCallback = null;
-    setFontFamilyCallback = null;
-    cycleTextColorCallback = null;
-    toggleHighlightCallback = null;
-    cycleHighlightColorCallback = null;
-    cycleTextAlignCallback = null;
-    currentTextAlignNotifier.value = TextAlign.center;
-    notifyListeners();
-  }
-
-  /// Triggers the delete menu to float near the specified node.
-  void showFloatingToolbar(String nodeId) {
-    if (nodeShowingFloatingToolbar != nodeId) {
-      _log.finer('Showing delete menu for node: $nodeId');
-      nodeShowingFloatingToolbar = nodeId;
-      notifyListeners();
-    }
-  }
-
-  /// Hides the floating delete menu.
-  void hideFloatingToolbar() {
-    if (nodeShowingFloatingToolbar != null) {
-      _log.finer('Hiding delete menu.');
-      nodeShowingFloatingToolbar = null;
-      notifyListeners();
-    }
   }
 
   // ===========================================================================
-  // Proxy Query & Mutation Delegate Methods (Decoupling UI from Tier 3)
+  // Backward-compatible delegates — callers can still access via NodeRenderState
+  // ===========================================================================
+
+  Set<String> get selectedEntities => selectionState.selectedEntities;
+  List<String> get zOrder => selectionState.zOrder;
+  String? get activeEditId => editorState.activeEditId;
+  String? get nodeShowingFloatingToolbar => editorState.nodeShowingFloatingToolbar;
+  Set<String> get draggingNodes => dragState.draggingNodes;
+
+  ValueNotifier<Offset> get toolbarOffsetNotifier => editorState.toolbarOffsetNotifier;
+  ValueNotifier<Offset> get multiToolbarOffsetNotifier => editorState.multiToolbarOffsetNotifier;
+  ValueNotifier<TextSelection?> get activeTextSelectionNotifier => editorState.activeTextSelectionNotifier;
+  ValueNotifier<TextAlign> get currentTextAlignNotifier => editorState.currentTextAlignNotifier;
+
+  void Function(dynamic formatType, {String? url})? get applyFormatCallback => editorState.applyFormatCallback;
+  set applyFormatCallback(void Function(dynamic formatType, {String? url})? value) => editorState.applyFormatCallback = value;
+
+  void Function(dynamic headingType)? get toggleHeadingCallback => editorState.toggleHeadingCallback;
+  set toggleHeadingCallback(void Function(dynamic headingType)? value) => editorState.toggleHeadingCallback = value;
+
+  void Function()? get clearBlockFormatCallback => editorState.clearBlockFormatCallback;
+  set clearBlockFormatCallback(void Function()? value) => editorState.clearBlockFormatCallback = value;
+
+  void Function()? get cycleFontFamilyCallback => editorState.cycleFontFamilyCallback;
+  set cycleFontFamilyCallback(void Function()? value) => editorState.cycleFontFamilyCallback = value;
+
+  void Function(String fontFamily)? get setFontFamilyCallback => editorState.setFontFamilyCallback;
+  set setFontFamilyCallback(void Function(String fontFamily)? value) => editorState.setFontFamilyCallback = value;
+
+  void Function()? get cycleTextColorCallback => editorState.cycleTextColorCallback;
+  set cycleTextColorCallback(void Function()? value) => editorState.cycleTextColorCallback = value;
+
+  void Function({String? colorUrl})? get toggleHighlightCallback => editorState.toggleHighlightCallback;
+  set toggleHighlightCallback(void Function({String? colorUrl})? value) => editorState.toggleHighlightCallback = value;
+
+  void Function()? get cycleHighlightColorCallback => editorState.cycleHighlightColorCallback;
+  set cycleHighlightColorCallback(void Function()? value) => editorState.cycleHighlightColorCallback = value;
+
+  void Function()? get cycleTextAlignCallback => editorState.cycleTextAlignCallback;
+  set cycleTextAlignCallback(void Function()? value) => editorState.cycleTextAlignCallback = value;
+
+  void updateActiveTextSelection(TextSelection? selection) => editorState.updateActiveTextSelection(selection);
+  void enterEditMode(String id) => editorState.enterEditMode(id);
+  void cancelActiveEdit() => editorState.cancelActiveEdit();
+  void showFloatingToolbar(String nodeId) => editorState.showFloatingToolbar(nodeId);
+  void hideFloatingToolbar() => editorState.hideFloatingToolbar();
+  Offset? calculateToolbarAnchor(Iterable<String> selectedIds) => editorState.calculateToolbarAnchor(selectedIds);
+
+  void selectEntity(String? id) => selectionState.selectEntity(id);
+  void selectEntities(Iterable<String> ids) => selectionState.selectEntities(ids);
+  void deleteSelectedEntities() => selectionState.deleteSelectedEntities();
+  void moveToFront(String id) => selectionState.moveToFront(id);
+
+  void setNodeDragging(String id, bool dragging) => dragState.setNodeDragging(id, dragging);
+
+  // ===========================================================================
+  // Proxy Query & Mutation Delegate Methods
   // ===========================================================================
 
   UiNode? getNode(String id) => _dataQuery.nodeLookup[id];
-
   UiRelation? getRelation(String id) => _dataQuery.relationLookup[id];
 
   void updateRelationsLayout(List<String> ids, {String? strategyType}) {
@@ -486,21 +313,23 @@ class NodeRenderState extends ChangeNotifier {
     _log.fine('Disposing NodeRenderState and volatile notifiers.');
     _updateSubscription?.cancel();
 
+    editorState.removeListener(notifyListeners);
+    selectionState.removeListener(notifyListeners);
+    dragState.removeListener(notifyListeners);
+
     for (final vs in viewStates.values) {
       vs.dispose();
     }
     viewStates.clear();
 
-    for (final vs in _quarantineCache.values) {
-      vs.dispose();
-    }
-    _quarantineCache.clear();
-
     movementNotifier.dispose();
-    toolbarOffsetNotifier.dispose();
-    multiToolbarOffsetNotifier.dispose();
     activeInspectorTabNotifier.dispose();
     hoveredNodeMetadataNotifier.dispose();
+
+    editorState.dispose();
+    selectionState.dispose();
+    dragState.dispose();
+
     super.dispose();
   }
 }
