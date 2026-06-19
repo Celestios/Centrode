@@ -70,14 +70,14 @@ class ContentTextEditingController extends TextEditingController {
     }
     updatedSpans.addAll(offsetSpans);
 
-    formattingSpans
-      ..clear()
-      ..addAll(serializer.mergeAdjacentSpans(updatedSpans));
-
     value = TextEditingValue(
       text: newText,
       selection: TextSelection.collapsed(offset: cursor + insertedText.length),
     );
+
+    formattingSpans
+      ..clear()
+      ..addAll(serializer.mergeAdjacentSpans(updatedSpans));
   }
 
   String selectedTextAsMarkdown() {
