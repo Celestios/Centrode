@@ -149,26 +149,29 @@ class TextFormatStateMachine {
     if (cursor < 0) return;
 
     final plainText = getText();
-    int lineStart = 0;
-    int lineEnd = plainText.length;
-
     final lines = plainText.split('\n');
+
+    final int selStart = selection.isCollapsed ? cursor : selection.start;
+    final int selEnd = selection.isCollapsed ? cursor : selection.end;
+
+    final selectedLineBounds = <(int, int)>[];
     int currentOffset = 0;
     for (final line in lines) {
       final int start = currentOffset;
       final int end = start + line.length;
-      if (cursor >= start && cursor <= end) {
-        lineStart = start;
-        lineEnd = end;
-        break;
+      if (end >= selStart && start <= selEnd) {
+        selectedLineBounds.add((start, end));
       }
       currentOffset += line.length + 1;
     }
 
+    if (selectedLineBounds.isEmpty) return;
+
+    final firstLine = selectedLineBounds.first;
     String? currentAlign;
     for (final span in formattingSpans) {
       if (span.type == TextFormatType.textAlign &&
-          span.start <= lineEnd && span.end >= lineStart) {
+          span.start <= firstLine.$2 && span.end >= firstLine.$1) {
         currentAlign = span.url;
         break;
       }
@@ -179,15 +182,18 @@ class TextFormatStateMachine {
     final nextIndex = (currentIndex + 1) % alignments.length;
     final nextAlign = alignments[nextIndex];
 
+    final selRangeStart = selectedLineBounds.first.$1;
+    final selRangeEnd = selectedLineBounds.last.$2;
+
     final updatedSpans = <FormattingSpan>[];
     for (final span in formattingSpans) {
       if (span.type == TextFormatType.textAlign &&
-          span.start <= lineEnd && span.end >= lineStart) {
-        if (span.start < lineStart) {
-          updatedSpans.add(FormattingSpan(start: span.start, end: lineStart, type: span.type, url: span.url));
+          span.start <= selRangeEnd && span.end >= selRangeStart) {
+        if (span.start < selRangeStart) {
+          updatedSpans.add(FormattingSpan(start: span.start, end: selRangeStart, type: span.type, url: span.url));
         }
-        if (span.end > lineEnd) {
-          updatedSpans.add(FormattingSpan(start: lineEnd, end: span.end, type: span.type, url: span.url));
+        if (span.end > selRangeEnd) {
+          updatedSpans.add(FormattingSpan(start: selRangeEnd, end: span.end, type: span.type, url: span.url));
         }
       } else {
         updatedSpans.add(span);
@@ -196,7 +202,9 @@ class TextFormatStateMachine {
     _replaceSpans(updatedSpans);
 
     if (nextAlign != null) {
-      formattingSpans.add(FormattingSpan(start: lineStart, end: lineEnd, type: TextFormatType.textAlign, url: nextAlign));
+      for (final (lStart, lEnd) in selectedLineBounds) {
+        formattingSpans.add(FormattingSpan(start: lStart, end: lEnd, type: TextFormatType.textAlign, url: nextAlign));
+      }
     }
 
     switch (nextAlign) {

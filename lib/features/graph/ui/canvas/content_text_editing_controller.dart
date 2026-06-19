@@ -63,6 +63,7 @@ class ContentTextEditingController extends TextEditingController {
     final newText = newValue.text;
 
     if (oldText != newText) {
+
       int firstDiff = 0;
       while (firstDiff < oldText.length &&
           firstDiff < newText.length &&

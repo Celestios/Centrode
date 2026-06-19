@@ -180,7 +180,13 @@ Content buildContent(String plainText, List<FormattingSpan> formattingSpans) {
       if (span.start <= lineStart && span.end >= lineEnd) {
         if (span.type == TextFormatType.textAlign) {
           textAlign = span.url;
-        } else if (span.type == TextFormatType.heading1) {
+        }
+      }
+    }
+
+    for (final span in formattingSpans) {
+      if (span.start <= lineStart && span.end >= lineEnd) {
+        if (span.type == TextFormatType.heading1) {
           blockType = BlockType.heading;
           blockAttrs = const BlockAttrs(level: 1);
           break;

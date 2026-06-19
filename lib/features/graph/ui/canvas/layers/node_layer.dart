@@ -385,14 +385,15 @@ class _CanvasNodesPainter extends CustomPainter {
     );
 
     final maxWidth = rect.width - style.padding * 2;
+    final isExpanded = entry.viewState.isExpandedNotifier.value;
+    final maxLines = isExpanded ? null : AppConfig.node.collapsedLineLimit;
+
     final blockSpans = NodeTextSpanBuilder.buildPerBlockTextSpans(
       content,
       baseStyle,
     );
 
-    final maxLines = entry.viewState.isExpandedNotifier.value ? null : 3;
     int totalLinesPainted = 0;
-
     final List<TextPainter> painters = [];
     double totalTextHeight = 0.0;
 
@@ -407,9 +408,14 @@ class _CanvasNodesPainter extends CustomPainter {
         ellipsis: maxLines != null ? '...' : null,
       )..layout(minWidth: maxWidth, maxWidth: maxWidth);
 
+      final lineCount = tp.computeLineMetrics().length;
+      final effectiveLines = lineCount > 0 ? lineCount : 1;
+
+      if (maxLines != null && totalLinesPainted + effectiveLines > maxLines) break;
+
       painters.add(tp);
       totalTextHeight += tp.height;
-      totalLinesPainted += tp.computeLineMetrics().length;
+      totalLinesPainted += effectiveLines;
     }
 
     final fontScale = style.fontSize / 14.0;
