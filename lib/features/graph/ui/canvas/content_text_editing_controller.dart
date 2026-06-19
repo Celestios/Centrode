@@ -36,6 +36,50 @@ class ContentTextEditingController extends TextEditingController {
 
   Content buildContent() => serializer.buildContent(text, formattingSpans);
 
+  void insertMarkdownSpans(String markdownText) {
+    final content = ContentFactory.fromText(markdownText);
+    final result = serializer.loadFromContent(content);
+    final insertedText = result.$1;
+    final insertedSpans = result.$2;
+
+    final cursor = selection.baseOffset;
+    if (cursor < 0) {
+      value = TextEditingValue(
+        text: insertedText,
+        selection: TextSelection.collapsed(offset: insertedText.length),
+      );
+      formattingSpans.addAll(insertedSpans);
+      return;
+    }
+
+    final newText = text.replaceRange(cursor, selection.extentOffset, insertedText);
+    final offsetSpans = insertedSpans.map((s) =>
+      s.copyWith(start: s.start + cursor, end: s.end + cursor)
+    ).toList();
+
+    final updatedSpans = <FormattingSpan>[];
+    for (final span in formattingSpans) {
+      if (span.end <= cursor) {
+        updatedSpans.add(span);
+      } else {
+        updatedSpans.add(span.copyWith(
+          start: span.start + insertedText.length,
+          end: span.end + insertedText.length,
+        ));
+      }
+    }
+    updatedSpans.addAll(offsetSpans);
+
+    formattingSpans
+      ..clear()
+      ..addAll(serializer.mergeAdjacentSpans(updatedSpans));
+
+    value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: cursor + insertedText.length),
+    );
+  }
+
   void toggleFormat(TextFormatType type, {String? url}) =>
       _stateMachine.toggleFormat(type, url: url);
 

@@ -189,4 +189,68 @@ void main() {
       expect(notifyCount, greaterThan(0));
     });
   });
+
+  group('ContentTextEditingController.insertMarkdownSpans', () {
+    test('inserts bold markdown at cursor position', () {
+      final controller = ContentTextEditingController();
+      controller.value = const TextEditingValue(
+        text: 'Hello world',
+        selection: TextSelection.collapsed(offset: 6),
+      );
+
+      controller.insertMarkdownSpans('**bold**');
+
+      expect(controller.text, contains('bold'));
+      expect(controller.formattingSpans, isNotEmpty);
+      final boldSpans = controller.formattingSpans
+          .where((s) => s.type == TextFormatType.bold)
+          .toList();
+      expect(boldSpans, isNotEmpty);
+    });
+
+    test('parses heading markdown', () {
+      final controller = ContentTextEditingController();
+      controller.value = const TextEditingValue(
+        text: '',
+        selection: TextSelection.collapsed(offset: 0),
+      );
+
+      controller.insertMarkdownSpans('# Heading');
+
+      expect(controller.text, contains('Heading'));
+      final headingSpans = controller.formattingSpans
+          .where((s) => s.type == TextFormatType.heading1)
+          .toList();
+      expect(headingSpans, isNotEmpty);
+    });
+
+    test('parses list markdown', () {
+      final controller = ContentTextEditingController();
+      controller.value = const TextEditingValue(
+        text: '',
+        selection: TextSelection.collapsed(offset: 0),
+      );
+
+      controller.insertMarkdownSpans('- Item 1\n- Item 2');
+
+      expect(controller.text, contains('Item 1'));
+      expect(controller.text, contains('Item 2'));
+      final listSpans = controller.formattingSpans
+          .where((s) => s.type == TextFormatType.bulletList)
+          .toList();
+      expect(listSpans.length, 2);
+    });
+
+    test('inserts plain text when no markdown detected', () {
+      final controller = ContentTextEditingController();
+      controller.value = const TextEditingValue(
+        text: 'Hello',
+        selection: TextSelection.collapsed(offset: 5),
+      );
+
+      controller.insertMarkdownSpans(' world');
+
+      expect(controller.text, 'Hello world');
+    });
+  });
 }
