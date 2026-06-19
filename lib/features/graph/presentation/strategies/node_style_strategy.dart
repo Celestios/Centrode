@@ -37,6 +37,10 @@ abstract class NodeStyleStrategy {
 
   static const double _referenceFontSize = 14.0;
 
+  static double expandToggleSpace(bool isExpanded, double fontScale) =>
+      (isExpanded ? 24.0 : 18.0) * fontScale;
+  static double taskBadgeHeight(double fontScale) => 22.0 * fontScale;
+
   /// Centralized aesthetic fallback config used across the store and layouts.
   /// All visual properties are pre-scaled by [fontSize] relative to the
   /// design baseline (14pt). Consumers should use values directly without
@@ -47,7 +51,6 @@ abstract class NodeStyleStrategy {
   /// resize operations should set positive width/height.
   static NodeStyle fallbackStyle([double? width, double? height, double? fontSize]) {
     final fs = fontSize ?? _referenceFontSize;
-    final s = fs / _referenceFontSize;
     return NodeStyle(
       bgColor: 0xFFFFFFFF,
       strokeColor: 0xFF000000,
@@ -58,14 +61,35 @@ abstract class NodeStyleStrategy {
       width: (width ?? 0).round(),
       height: (height ?? 0).round(),
       textColor: 0xFF000000,
-      borderRadius: 8.0 * s,
-      padding: 8.0 * s,
+      borderRadius: 8.0,
+      padding: 8.0,
       shadowColor: 0x33000000,
-      shadowBlur: 4.0 * s,
+      shadowBlur: 4.0,
       shadowSpread: 0.0,
-      shadowOffsetX: 2.0 * s,
-      shadowOffsetY: 2.0 * s,
+      shadowOffsetX: 2.0,
+      shadowOffsetY: 2.0,
       strategyType: 'default',
+    );
+  }
+
+  /// Centralizes style properties scaling by fontSize and applies protective padding.
+  static NodeStyle scaleStyle(NodeStyle base) {
+    final double fs = base.fontSize;
+    final double scale = fs / _referenceFontSize;
+
+    // Corner curve protection padding
+    final double basePadding = base.padding;
+    final double extraCornerPadding = base.borderRadius * 0.15;
+    final double scaledPadding = (basePadding + extraCornerPadding) * scale;
+
+    return base.copyWith(
+      strokeWidth: (base.strokeWidth * scale).round().clamp(1, 999),
+      borderRadius: base.borderRadius * scale,
+      padding: scaledPadding,
+      shadowBlur: base.shadowBlur * scale,
+      shadowSpread: base.shadowSpread * scale,
+      shadowOffsetX: base.shadowOffsetX * scale,
+      shadowOffsetY: base.shadowOffsetY * scale,
     );
   }
 
@@ -74,17 +98,19 @@ abstract class NodeStyleStrategy {
     if (node.resolvedStyle != null) return node.resolvedStyle!;
     final strategyType = node.style?.strategyType;
     final strategy = fromType(strategyType, fallbackNode: node);
+    final NodeStyle base;
     if (theme != null) {
-      return strategy.resolve(node, theme);
-    }
-    if (node is DrawingUiNode) {
-      return fallbackStyle().copyWith(
+      base = strategy.resolve(node, theme);
+    } else if (node is DrawingUiNode) {
+      base = fallbackStyle().copyWith(
         bgColor: 0x00000000,
         strokeColor: 0x00000000,
         strategyType: 'drawing',
       );
+    } else {
+      base = fallbackStyle();
     }
-    return fallbackStyle();
+    return scaleStyle(base);
   }
 }
 

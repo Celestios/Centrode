@@ -118,7 +118,7 @@ class ViewportController {
     final double dy = (_currentViewportSize.height / 2) - centerY;
 
     _log.info('Translating Camera Matrix to center: ($centerX, $centerY)');
-    transformController.value = Matrix4.identity()..translate(dx, dy);
+    transformController.value = Matrix4.identity()..translateByDouble(dx, dy, 0, 1);
     recalculateElasticMargins();
   }
 
@@ -127,8 +127,8 @@ class ViewportController {
     final currentMatrix = transformController.value;
     final translation = currentMatrix.getTranslation();
     transformController.value = Matrix4.identity()
-      ..translate(translation.x, translation.y)
-      ..scale(newScale);
+      ..translateByDouble(translation.x, translation.y, 0, 1)
+      ..scaleByDouble(newScale, newScale, newScale, 1);
     recalculateElasticMargins();
   }
 
@@ -287,8 +287,8 @@ class ViewportController {
       final interpScale = startScale + (targetScale - startScale) * t;
 
       transformController.value = Matrix4.identity()
-        ..translate(interpTranslation.dx, interpTranslation.dy)
-        ..scale(interpScale);
+        ..translateByDouble(interpTranslation.dx, interpTranslation.dy, 0, 1)
+        ..scaleByDouble(interpScale, interpScale, interpScale, 1);
 
       if (t == 1.0) {
         recalculateElasticMargins();

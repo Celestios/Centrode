@@ -95,8 +95,8 @@ void main() {
     test('animateViewportTo initiates animation successfully', () {
       controller.updateViewportSize(const Size(100, 100));
       final target = Matrix4.identity()
-        ..translate(100.0, 200.0)
-        ..scale(2.0);
+        ..translateByDouble(100.0, 200.0, 0, 1)
+        ..scaleByDouble(2.0, 2.0, 2.0, 1);
 
       // Uses a fake ticker provider
       final vsync = const TestVSync();

@@ -170,8 +170,10 @@ class HitTestResolver {
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
 
+      final node = ctx.getNode(nodeId);
+      if (node == null) continue;
       if (vs.lineCount > AppConfig.node.collapsedLineLimit &&
-          vs.expandToggleHitbox.contains(pCanvas)) {
+          vs.getExpandToggleHitbox(node).contains(pCanvas)) {
         return PointerHitResult(type: HitTestType.expandToggle, hitNodeId: nodeId);
       }
 

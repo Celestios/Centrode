@@ -130,8 +130,8 @@ class _GraphCanvasState extends State<GraphCanvas>
     final saved = dataController.getSavedViewportState();
     if (saved != null && saved.zoomLevel > 0) {
       final targetMatrix = Matrix4.identity()
-        ..translate(saved.xOffset, saved.yOffset)
-        ..scale(saved.zoomLevel);
+        ..translateByDouble(saved.xOffset, saved.yOffset, 0, 1)
+        ..scaleByDouble(saved.zoomLevel, saved.zoomLevel, saved.zoomLevel, 1);
 
       _viewportController?.animateViewportTo(targetMatrix, this);
       _log.info(
@@ -355,9 +355,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                                     },
                                   ),
                                   const RelationLayer(),
-                                  RepaintBoundary(
-                                    child: const NodeLayer(),
-                                  ),
+                                  const NodeLayer(),
                                   const OverlayLayer(),
                                   if (_drawingInterceptor != null)
                                     ValueListenableBuilder<List<Offset>>(

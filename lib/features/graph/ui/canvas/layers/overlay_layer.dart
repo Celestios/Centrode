@@ -9,6 +9,7 @@ import '../../../engine/interaction_engine.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
 import '../metadata_preview_overlay.dart';
+import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 
 class OverlayLayer extends StatelessWidget {
   const OverlayLayer({super.key});
@@ -22,7 +23,7 @@ class OverlayLayer extends StatelessWidget {
     return ValueListenableBuilder<CanvasInteractionState>(
       valueListenable: interactionController.state,
       builder: (context, interactionState, _) {
-        return Stack(
+        return UnboundedStack(
           clipBehavior: Clip.none,
           children: [
             // 3. Temporary Relation Drag Line (when drawing relation)

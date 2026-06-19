@@ -2,8 +2,9 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:logging/logging.dart';
-import 'package:mycelium/features/graph/models/graph_node.dart';
+import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
+import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/features/graph/engine/config.dart';
 import 'package:mycelium/features/graph/engine/states/volatile_node_state.dart';
 
@@ -218,10 +219,19 @@ class NodeViewState implements VolatileNodeState {
     return _cachedLeftResizeHitbox!;
   }
 
-  Rect get expandToggleHitbox {
+  Rect getExpandToggleHitbox(UiNode node) {
     if (_cachedExpandToggleHitbox != null) return _cachedExpandToggleHitbox!;
+    final style = node.resolvedStyle ?? node.style ?? NodeStyleStrategy.fallbackStyle();
+    final fontScale = style.fontSize / 14.0;
+    final toggleSpace = NodeStyleStrategy.expandToggleSpace(isExpandedNotifier.value, fontScale);
+    final taskBadgeHeight = node is TaskUiNode ? NodeStyleStrategy.taskBadgeHeight(fontScale) : 0.0;
+
+    final bottomOffset = style.padding + taskBadgeHeight;
     _cachedExpandToggleHitbox = Rect.fromLTRB(
-      rect.left, rect.bottom - 24, rect.right, rect.bottom,
+      rect.left,
+      rect.bottom - bottomOffset - toggleSpace,
+      rect.right,
+      rect.bottom - bottomOffset,
     );
     return _cachedExpandToggleHitbox!;
   }

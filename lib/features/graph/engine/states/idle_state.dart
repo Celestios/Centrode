@@ -61,6 +61,13 @@ class CanvasIdle extends CanvasInteractionState {
         if (!selectedEntities.contains(result.hitNodeId)) {
           ctx.onSelectEntity(result.hitNodeId);
         }
+        if (isDoubleTap) {
+          ctx.onEnterEditMode(result.hitNodeId!);
+          return this;
+        }
+        if (activeEditId == result.hitNodeId) {
+          return this;
+        }
         return _transitionToDragging(result, pCanvas, ctx, selectedEntities);
 
       case HitTestType.rightClick:
@@ -199,7 +206,9 @@ class CanvasIdle extends CanvasInteractionState {
             : CanvasIdle(cursor: SystemMouseCursors.resizeLeftRight);
       }
 
-      if (vs.lineCount > AppConfig.node.collapsedLineLimit && vs.expandToggleHitbox.contains(pCanvas)) {
+      final node = ctx.getNode(nodeId);
+      if (node == null) continue;
+      if (vs.lineCount > AppConfig.node.collapsedLineLimit && vs.getExpandToggleHitbox(node).contains(pCanvas)) {
         ctx.setHoveredNodeMetadata(null);
         return cursor == SystemMouseCursors.click
             ? this

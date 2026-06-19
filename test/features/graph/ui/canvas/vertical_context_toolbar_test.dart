@@ -111,8 +111,8 @@ void main() {
     (WidgetTester tester) async {
       // Use a matrix with scale = 0.8 and translation (400, 200)
       final matrix = Matrix4.identity()
-        ..translate(400.0, 200.0)
-        ..scale(0.8);
+        ..translateByDouble(400.0, 200.0, 0, 1)
+        ..scaleByDouble(0.8, 0.8, 0.8, 1);
 
       await tester.pumpWidget(
         MaterialApp(

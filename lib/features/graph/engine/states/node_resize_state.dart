@@ -51,6 +51,13 @@ class NodeResizing extends CanvasInteractionState {
     vs.positionNotifier.value = Offset(newLeft, vs.positionNotifier.value.dy);
     vs.dragWidthNotifier.value = clampedWidth;
 
+    final node = ctx.getNode(nodeId);
+    if (node != null) {
+      final result = NodeLayoutStrategy.calculateSize(node, overrideWidth: clampedWidth);
+      vs.sizeNotifier.value = result.size;
+      vs.lineCountNotifier.value = result.lineCount;
+    }
+
     ctx.onNodeDragUpdate();
     return this;
   }
@@ -67,6 +74,22 @@ class NodeResizing extends CanvasInteractionState {
       final rightEdge = leftEdge + newWidth;
       ctx.updateNodeWidth(nodeId, leftEdge, rightEdge);
       // Do NOT clear dragWidthNotifier – let rehydrate() handle it
+    }
+    return const CanvasIdle();
+  }
+
+  @override
+  CanvasInteractionState handlePointerCancel(
+    PointerCancelEvent e,
+    GeometryAndViewportCapability ctx,
+  ) {
+    final vs = ctx.nodeViewStates[nodeId];
+    if (vs != null) {
+      final node = ctx.getNode(nodeId);
+      if (node != null) {
+        vs.rehydrate(node);
+        ctx.onNodeDragUpdate();
+      }
     }
     return const CanvasIdle();
   }

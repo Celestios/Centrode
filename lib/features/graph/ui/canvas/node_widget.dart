@@ -64,148 +64,134 @@ class NodeWidget extends StatelessWidget {
           rawSize.height,
         );
 
-        final bool isHighlighted = isSelected || isEditing;
-        final double strokeWidth = isHighlighted
-            ? 3.0
-            : resolvedStyle.strokeWidth.toDouble();
-        final double strokeDiff = isHighlighted
-            ? (3.0 - resolvedStyle.strokeWidth.toDouble())
-            : 0.0;
+        final double scale = NodeVisualConstants.fontScale(resolvedStyle.fontSize);
+        final double padding = isEditing ? (2.0 * scale) : resolvedStyle.padding;
 
         final scaledBadgeFontSize = NodeVisualConstants.scaledBadgeFontSize(resolvedStyle.fontSize);
         final scaledShowMoreFontSize = NodeVisualConstants.scaledShowMoreFontSize(resolvedStyle.fontSize);
 
-        return Transform.translate(
-          offset: -Offset(strokeDiff, strokeDiff),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // ── Main Visual Body ──────────────────────────
-              Container(
-                width: size.width + strokeDiff * 2,
-                height: size.height + strokeDiff * 2,
-                decoration: BoxDecoration(
-                  color: Color(resolvedStyle.bgColor),
-                  borderRadius: resolvedStyle.shape == 'circle'
-                      ? BorderRadius.circular((size.width + strokeDiff * 2) / 2)
-                      : BorderRadius.circular(resolvedStyle.borderRadius),
-                   border: Border.all(
-                    color: isEditing
-                        ? Color(NodeVisualConstants.editingBorderColor)
-                        : (isSelected
-                            ? AppConfig.visuals.selectionAccent
-                            : Color(resolvedStyle.strokeColor)),
-                    width: strokeWidth,
-                  ),
-                  boxShadow: isEditing
-                      ? [
-                          BoxShadow(
-                            color: Color(NodeVisualConstants.editingShadowColor),
-                            blurRadius: 16,
-                            spreadRadius: 4,
-                          ),
-                        ]
-                      : (isSelected
-                          ? [
-                              BoxShadow(
-                                color: Color(NodeVisualConstants.selectedShadowColor),
-                                blurRadius: 8,
-                                spreadRadius: 2,
-                              ),
-                            ]
-                          : [
-                              BoxShadow(
-                                color: Color(resolvedStyle.shadowColor),
-                                blurRadius: resolvedStyle.shadowBlur,
-                                spreadRadius: resolvedStyle.shadowSpread,
-                                offset: Offset(
-                                  resolvedStyle.shadowOffsetX,
-                                  resolvedStyle.shadowOffsetY,
-                                ),
-                              ),
-                            ]),
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // ── Main Visual Body ──────────────────────────
+            Container(
+              width: size.width,
+              height: size.height,
+              decoration: BoxDecoration(
+                color: Color(resolvedStyle.bgColor),
+                borderRadius: resolvedStyle.shape == 'circle'
+                    ? BorderRadius.circular(size.width / 2)
+                    : BorderRadius.circular(resolvedStyle.borderRadius),
+                 border: Border.all(
+                  color: Color(resolvedStyle.strokeColor),
+                  width: resolvedStyle.strokeWidth.toDouble(),
                 ),
-                padding: EdgeInsets.all(isEditing ? 2.0 : resolvedStyle.padding),
-                child: _buildNodeContent(
-                  context,
-                  liveNode,
-                  resolvedStyle,
-                  isEditing: isEditing,
-                  scaledBadgeFontSize: scaledBadgeFontSize,
-                  scaledShowMoreFontSize: scaledShowMoreFontSize,
-                ),
-              ),
-
-              // ── Resize Handle Visual (Right Edge) ─────────
-              Positioned(
-                right: 0,
-                top: NodeVisualConstants.handleTopOffset, // Shifted down to clear the metadata sphere area
-                bottom: 0,
-                child: Container(
-                  width: AppConfig.node.resizeHandleVisualWidth,
-                  decoration: BoxDecoration(
-                    // A nearly‑invisible colour that the hit‑tester sees.
-                    color: Color(NodeVisualConstants.handleColor),
-                    borderRadius: BorderRadius.horizontal(
-                      right: Radius.circular(resolvedStyle.borderRadius),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                child: Container(
-                  width: AppConfig.node.resizeHandleVisualWidth,
-                  decoration: BoxDecoration(
-                    color: Color(NodeVisualConstants.handleColor),
-                    borderRadius: BorderRadius.horizontal(
-                      left: Radius.circular(resolvedStyle.borderRadius),
-                    ),
-                  ),
-                ),
-              ),
-
-              // ── Metadata Sphere Widget ────────────────────
-              if (liveNode is InfoUiNode &&
-                  (liveNode.tags.isNotEmpty || liveNode.comments.isNotEmpty))
-                Positioned(
-                  right:
-                      AppConfig.node.metadataSphereOffsetFromRight -
-                      AppConfig.node.metadataSphereRadius,
-                  top:
-                      AppConfig.node.metadataSphereOffsetFromTop -
-                      AppConfig.node.metadataSphereRadius,
-                  child: Container(
-                    width: AppConfig.node.metadataSphereRadius * 2,
-                    height: AppConfig.node.metadataSphereRadius * 2,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(
-                        (liveNode.tags.isNotEmpty &&
-                                liveNode.comments.isNotEmpty)
-                            ? 0xFFEC407A
-                            : liveNode.tags.isNotEmpty
-                            ? 0xFF5C6BC0
-                            : 0xFF26A69A,
-                      ),
-                      border: Border.all(
-                        color: Colors.white,
-                        width: AppConfig.node.metadataSphereStrokeWidth,
-                      ),
-                      boxShadow: const [
+                boxShadow: isEditing
+                    ? [
                         BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 2,
-                          offset: Offset(0, 1),
+                          color: Color(NodeVisualConstants.editingShadowColor),
+                          blurRadius: 16 * scale,
+                          spreadRadius: 4 * scale,
                         ),
-                      ],
-                    ),
+                      ]
+                    : (isSelected
+                        ? [
+                            BoxShadow(
+                              color: Color(NodeVisualConstants.selectedShadowColor),
+                              blurRadius: 8 * scale,
+                              spreadRadius: 2 * scale,
+                            ),
+                          ]
+                        : [
+                            BoxShadow(
+                              color: Color(resolvedStyle.shadowColor),
+                              blurRadius: resolvedStyle.shadowBlur,
+                              spreadRadius: resolvedStyle.shadowSpread,
+                              offset: Offset(
+                                resolvedStyle.shadowOffsetX,
+                                resolvedStyle.shadowOffsetY,
+                              ),
+                            ),
+                          ]),
+              ),
+              padding: EdgeInsets.all(padding),
+              child: _buildNodeContent(
+                context,
+                liveNode,
+                resolvedStyle,
+                isEditing: isEditing,
+                scaledBadgeFontSize: scaledBadgeFontSize,
+                scaledShowMoreFontSize: scaledShowMoreFontSize,
+              ),
+            ),
+
+            // ── Resize Handle Visual (Right Edge) ─────────
+            Positioned(
+              right: 0,
+              top: NodeVisualConstants.handleTopOffset * scale, // Shifted down to clear the metadata sphere area
+              bottom: 0,
+              child: Container(
+                width: AppConfig.node.resizeHandleVisualWidth * scale,
+                decoration: BoxDecoration(
+                  // A nearly‑invisible colour that the hit‑tester sees.
+                  color: Color(NodeVisualConstants.handleColor),
+                  borderRadius: BorderRadius.horizontal(
+                    right: Radius.circular(resolvedStyle.borderRadius),
                   ),
                 ),
-            ],
-          ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: AppConfig.node.resizeHandleVisualWidth * scale,
+                decoration: BoxDecoration(
+                  color: Color(NodeVisualConstants.handleColor),
+                  borderRadius: BorderRadius.horizontal(
+                    left: Radius.circular(resolvedStyle.borderRadius),
+                  ),
+                ),
+              ),
+            ),
+
+            // ── Metadata Sphere Widget ────────────────────
+            if (liveNode is InfoUiNode &&
+                (liveNode.tags.isNotEmpty || liveNode.comments.isNotEmpty))
+              Positioned(
+                right:
+                    (AppConfig.node.metadataSphereOffsetFromRight -
+                    AppConfig.node.metadataSphereRadius) * scale,
+                top:
+                    (AppConfig.node.metadataSphereOffsetFromTop -
+                    AppConfig.node.metadataSphereRadius) * scale,
+                child: Container(
+                  width: AppConfig.node.metadataSphereRadius * 2 * scale,
+                  height: AppConfig.node.metadataSphereRadius * 2 * scale,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(
+                      NodeVisualConstants.metadataSphereColor(
+                        hasTags: liveNode.tags.isNotEmpty,
+                        hasComments: liveNode.comments.isNotEmpty,
+                      ),
+                    ),
+                    border: Border.all(
+                      color: Colors.white,
+                      width: AppConfig.node.metadataSphereStrokeWidth * scale,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 2 * scale,
+                        offset: Offset(0, 1 * scale),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         );
       },
     );
@@ -219,6 +205,8 @@ class NodeWidget extends StatelessWidget {
     double scaledBadgeFontSize = 10.0,
     double scaledShowMoreFontSize = 10.0,
   }) {
+    final double scale = NodeVisualConstants.fontScale(style.fontSize);
+
     if (liveNode is DrawingUiNode) {
       return CustomPaint(
         painter: DrawingNodePainter(
@@ -271,15 +259,21 @@ class NodeWidget extends StatelessWidget {
         if (viewState.lineCount > 3)
           Container(
             margin: EdgeInsets.only(
-              top: viewState.isExpandedNotifier.value ? 8.0 : 2.0,
+              top: (viewState.isExpandedNotifier.value ? 6.0 : 2.0) * scale,
             ),
-            padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 1.0),
-            child: Text(
-              viewState.isExpandedNotifier.value ? "Show Less" : "Show More",
-              style: TextStyle(
-                fontSize: scaledShowMoreFontSize,
-                color: Colors.blueAccent,
-                fontWeight: FontWeight.bold,
+            width: double.infinity,
+            height: 16.0 * scale,
+            decoration: BoxDecoration(
+              color: Color(style.textColor).withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(4.0 * scale),
+            ),
+            child: Center(
+              child: Icon(
+                viewState.isExpandedNotifier.value
+                    ? Icons.keyboard_double_arrow_up
+                    : Icons.keyboard_double_arrow_down,
+                size: 12.0 * scale,
+                color: Color(style.textColor).withValues(alpha: 0.7),
               ),
             ),
           ),
@@ -552,3 +546,63 @@ class DrawingNodePainter extends CustomPainter {
         oldDelegate.brushType != brushType;
   }
 }
+
+class HighlightFrame extends StatelessWidget {
+  final Widget child;
+  final bool isEditing;
+  final bool isSelected;
+  final double borderRadius;
+  final String shape;
+  final Size size;
+  final double scale;
+
+  const HighlightFrame({
+    super.key,
+    required this.child,
+    required this.isEditing,
+    required this.isSelected,
+    required this.borderRadius,
+    required this.shape,
+    required this.size,
+    required this.scale,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isHighlighted = isSelected || isEditing;
+    if (!isHighlighted) return child;
+
+    final double stroke = (isEditing ? 1.0 : 0.6) * scale;
+    final double gap = 1.5 * scale;
+    final double totalOffset = gap + stroke;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        child,
+        Positioned(
+          left: -totalOffset,
+          top: -totalOffset,
+          right: -totalOffset,
+          bottom: -totalOffset,
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: shape == 'circle'
+                    ? BorderRadius.circular((size.width + totalOffset * 2) / 2)
+                    : BorderRadius.circular(borderRadius + totalOffset),
+                border: Border.all(
+                  color: isEditing
+                      ? Color(NodeVisualConstants.editingBorderColor)
+                      : AppConfig.visuals.selectionAccent,
+                  width: stroke,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+

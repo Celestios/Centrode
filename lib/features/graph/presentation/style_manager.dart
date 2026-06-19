@@ -75,7 +75,8 @@ class StyleManager implements GraphStyleUpdater {
       _log.warning('Unknown node type: ${node.runtimeType}');
       return;
     }
-    node.resolvedStyle = _applyModifier(base, node.significance);
+    final resolvedBase = _applyModifier(base, node.significance);
+    node.resolvedStyle = NodeStyleStrategy.scaleStyle(resolvedBase);
   }
 
   void _resolveAndCacheRelation(UiRelation relation) {

@@ -189,10 +189,10 @@ packages:
     dependency: transitive
     description:
       name: json_annotation
-      sha256: "1ce844379ca14835a50d2f019a3099f419082cfdd231cd86a142af94dd5c6bb1"
+      sha256: "2a743920d81b7910627f68ee2c9ac1fc0bfee32b9fc3403587d7c6791ca12f80"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "4.9.0"
+    version: "4.12.0"
   lints:
     dependency: "direct dev"
     description:
@@ -474,4 +474,4 @@ packages:
     source: hosted
     version: "3.1.2"
 sdks:
-  dart: ">=3.7.0-0 <4.0.0"
+  dart: ">=3.9.0 <4.0.0"

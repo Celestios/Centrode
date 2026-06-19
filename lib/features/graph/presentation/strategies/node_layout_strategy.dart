@@ -30,14 +30,14 @@ abstract class NodeLayoutStrategy {
 
   /// Calculates the size and line count of the node.
   /// Snaps the result to the grid defined in [AppConfig].
-  ({Size size, int lineCount}) calculate(UiNode node, NodeStyle? style, {bool isEditing = false});
+  ({Size size, int lineCount}) calculate(UiNode node, NodeStyle? style, {bool isEditing = false, double? overrideWidth});
 
   /// Centralized helper to compute a node's physical size based on its runtime type.
-  static ({Size size, int lineCount}) calculateSize(UiNode node, {bool isEditing = false}) {
+  static ({Size size, int lineCount}) calculateSize(UiNode node, {bool isEditing = false, double? overrideWidth}) {
     final strategyType =
         node.resolvedLayout?.strategyType ?? node.layout?.strategyType;
     final strategy = fromType(strategyType, fallbackNode: node);
-    return strategy.calculate(node, node.resolvedStyle, isEditing: isEditing);
+    return strategy.calculate(node, node.resolvedStyle, isEditing: isEditing, overrideWidth: overrideWidth);
   }
 
   static TextSpan buildRichTextSpan(
@@ -73,8 +73,8 @@ class InfoNodeLayoutStrategy extends NodeLayoutStrategy {
   const InfoNodeLayoutStrategy();
 
   @override
-  ({Size size, int lineCount}) calculate(UiNode node, NodeStyle? style, {bool isEditing = false}) {
-    return _calculateDefaultLayout(node, style, isEditing: isEditing);
+  ({Size size, int lineCount}) calculate(UiNode node, NodeStyle? style, {bool isEditing = false, double? overrideWidth}) {
+    return _calculateDefaultLayout(node, style, isEditing: isEditing, overrideWidth: overrideWidth);
   }
 }
 
@@ -82,8 +82,8 @@ class TaskNodeLayoutStrategy extends NodeLayoutStrategy {
   const TaskNodeLayoutStrategy();
 
   @override
-  ({Size size, int lineCount}) calculate(UiNode node, NodeStyle? style, {bool isEditing = false}) {
-    return _calculateDefaultLayout(node, style, isEditing: isEditing);
+  ({Size size, int lineCount}) calculate(UiNode node, NodeStyle? style, {bool isEditing = false, double? overrideWidth}) {
+    return _calculateDefaultLayout(node, style, isEditing: isEditing, overrideWidth: overrideWidth);
   }
 }
 
@@ -91,6 +91,7 @@ class TaskNodeLayoutStrategy extends NodeLayoutStrategy {
   UiNode node,
   NodeStyle? style, {
   bool isEditing = false,
+  double? overrideWidth,
 }) {
   final content = node.content;
   // Fallback if text is empty — preserve the node's current size
@@ -117,7 +118,9 @@ class TaskNodeLayoutStrategy extends NodeLayoutStrategy {
   final bool isManual = node.style != null && node.style!.width > 0;
   double targetWidth;
 
-  if (isManual) {
+  if (overrideWidth != null) {
+    targetWidth = overrideWidth;
+  } else if (isManual) {
     targetWidth = node.style!.width.toDouble();
   } else {
     // Dynamic Sizing Mode: Measure the text on a single line to see how wide it naturally wants to be
@@ -187,10 +190,10 @@ class TaskNodeLayoutStrategy extends NodeLayoutStrategy {
   double extraHeight = 0.0;
   final fontScale = fontSize / 14.0;
   if (node is TaskUiNode) {
-    extraHeight += 22.0 * fontScale;
+    extraHeight += NodeStyleStrategy.taskBadgeHeight(fontScale);
   }
   if (lineCount > AppConfig.node.collapsedLineLimit) {
-    extraHeight += node.isExpanded ? 30.0 * fontScale : 24.0 * fontScale;
+    extraHeight += NodeStyleStrategy.expandToggleSpace(node.isExpanded, fontScale);
   }
 
   final totalHeight = textHeight + 2 * resolvedStyle.padding + extraHeight;

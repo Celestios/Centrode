@@ -76,6 +76,7 @@ class GraphSyncEngine {
       for (final ffiNode in snapshot.nodes) {
         final uiNode = UiNode.fromRust(ffiNode);
         controller.store.nodeLookup[uiNode.id] = uiNode;
+        _hydrateNode(uiNode);
       }
 
       for (final ffiRel in snapshot.relations) {
@@ -148,6 +149,9 @@ class GraphSyncEngine {
             existing.state = uiNode.state;
             existing.dueDate = uiNode.dueDate;
           }
+
+          _hydrateNode(existing);
+
           controller.spatial.spatialGrid.update(
             existing.id,
             oldPos,
@@ -159,6 +163,9 @@ class GraphSyncEngine {
           );
         } else {
           controller.store.nodeLookup[uiNode.id] = uiNode;
+
+          _hydrateNode(uiNode);
+
           controller.spatial.spatialGrid.insert(uiNode.id, uiNode.position);
           controller.spatial.saveConfirmedPosition(uiNode.id, uiNode.position);
         }
@@ -239,5 +246,24 @@ class GraphSyncEngine {
   void dispose() {
     processor.flushSync();
     _graphStreamSub?.cancel();
+  }
+
+  void _hydrateNode(UiNode node) {
+    // 1. Hydrate content blocks if they represent unparsed plain text (length <= 1 with no marks)
+    if (node.content.blocks.isEmpty ||
+        (node.content.blocks.length == 1 &&
+            node.content.blocks[0].content.length == 1 &&
+            (node.content.blocks[0].content[0].marks == null ||
+                node.content.blocks[0].content[0].marks!.isEmpty))) {
+      node.content = ContentFactory.fromText(node.text);
+    }
+
+    // 2. Resolve style strategies (this sets node.resolvedStyle)
+    controller.styleUpdater?.updateStyleForNode(node.id);
+
+    // 3. Recalculate size and line count using TextPainter (layout strategy)
+    final result = controller.calculateNodeSize(node);
+    node.size = result.size;
+    node.lineCount = result.lineCount;
   }
 }
