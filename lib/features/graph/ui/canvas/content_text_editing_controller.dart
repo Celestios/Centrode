@@ -80,6 +80,31 @@ class ContentTextEditingController extends TextEditingController {
     );
   }
 
+  String selectedTextAsMarkdown() {
+    final sel = selection;
+    if (!sel.isCollapsed && sel.start >= 0 && sel.end >= 0) {
+      final selectedSpans = formattingSpans.where((s) =>
+        s.start < sel.end && s.end > sel.start
+      ).toList();
+
+      final adjustedSpans = selectedSpans.map((s) =>
+        FormattingSpan(
+          start: (s.start - sel.start).clamp(0, sel.end - sel.start),
+          end: (s.end - sel.start).clamp(0, sel.end - sel.start),
+          type: s.type,
+          url: s.url,
+        )
+      ).toList();
+
+      final selectedText = text.substring(sel.start, sel.end);
+      final content = serializer.buildContent(selectedText, adjustedSpans);
+      return ContentFactory.toMarkdown(content);
+    }
+
+    final content = buildContent();
+    return ContentFactory.toMarkdown(content);
+  }
+
   void toggleFormat(TextFormatType type, {String? url}) =>
       _stateMachine.toggleFormat(type, url: url);
 

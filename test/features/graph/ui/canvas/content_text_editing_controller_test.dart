@@ -253,4 +253,76 @@ void main() {
       expect(controller.text, 'Hello world');
     });
   });
+
+  group('ContentTextEditingController.selectedTextAsMarkdown', () {
+    test('converts selected bold text to markdown', () {
+      final controller = ContentTextEditingController();
+      controller.loadFromContent(
+        const Content(
+          text: 'Hello bold world',
+          blocks: [
+            ContentBlock(
+              blockType: BlockType.paragraph,
+              content: [
+                InlineElement(inlineType: InlineType.text, text: 'Hello '),
+                InlineElement(
+                  inlineType: InlineType.text,
+                  text: 'bold',
+                  marks: [TextMark(markType: MarkType.bold)],
+                ),
+                InlineElement(inlineType: InlineType.text, text: ' world'),
+              ],
+            ),
+          ],
+        ),
+      );
+
+      controller.selection = const TextSelection(baseOffset: 6, extentOffset: 10);
+      final md = controller.selectedTextAsMarkdown();
+      expect(md, '**bold**');
+    });
+
+    test('returns plain text for unformatted selection', () {
+      final controller = ContentTextEditingController();
+      controller.loadFromContent(
+        const Content(
+          text: 'Hello world',
+          blocks: [
+            ContentBlock(
+              blockType: BlockType.paragraph,
+              content: [
+                InlineElement(inlineType: InlineType.text, text: 'Hello world'),
+              ],
+            ),
+          ],
+        ),
+      );
+
+      controller.selection = const TextSelection(baseOffset: 0, extentOffset: 5);
+      final md = controller.selectedTextAsMarkdown();
+      expect(md, 'Hello');
+    });
+
+    test('converts heading to markdown', () {
+      final controller = ContentTextEditingController();
+      controller.loadFromContent(
+        const Content(
+          text: 'Title',
+          blocks: [
+            ContentBlock(
+              blockType: BlockType.heading,
+              content: [
+                InlineElement(inlineType: InlineType.text, text: 'Title'),
+              ],
+              attrs: BlockAttrs(level: 1),
+            ),
+          ],
+        ),
+      );
+
+      controller.selection = const TextSelection(baseOffset: 0, extentOffset: 5);
+      final md = controller.selectedTextAsMarkdown();
+      expect(md, '# Title');
+    });
+  });
 }
