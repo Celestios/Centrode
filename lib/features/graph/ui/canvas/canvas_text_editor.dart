@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
@@ -42,6 +43,12 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
 
   // Track the last value to detect pure selection drags
   TextEditingValue _lastValue = TextEditingValue.empty;
+
+  // Capture right-click position for context menu positioning.
+  // CanvasInteractiveViewer intercepts secondary button for panning,
+  // so RenderEditable.lastSecondaryTapDownPosition is never set.
+  Offset? _lastSecondaryTapDownPosition;
+  OverlayEntry? _contextMenuEntry;
 
   @override
   void initState() {
@@ -106,6 +113,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   @override
   void dispose() {
     _controller.removeListener(_onControllerChanged);
+    _contextMenuEntry?.remove();
     _renderState.clearBlockFormatCallback = null;
     _renderState.cycleFontFamilyCallback = null;
     _renderState.cycleTextColorCallback = null;
@@ -236,27 +244,81 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     }
   }
 
-  Widget _buildContextMenu(BuildContext context, EditableTextState editableTextState) {
-    final selection = editableTextState.textEditingValue.selection;
+  void _showCustomContextMenu() {
+    _contextMenuEntry?.remove();
+    _contextMenuEntry = null;
+
+    final tapPosition = _lastSecondaryTapDownPosition;
+    _lastSecondaryTapDownPosition = null;
+    if (tapPosition == null) return;
+
+    final selection = _controller.selection;
     final hasSelection = !selection.isCollapsed && selection.start >= 0 && selection.end >= 0;
 
-    final items = <ContextMenuButtonItem>[];
-
-    if (hasSelection) {
-      items.add(ContextMenuButtonItem(
-        onPressed: () {
-          final text = editableTextState.textEditingValue.text;
-          final selectedText = text.substring(selection.start, selection.end);
-          Clipboard.setData(ClipboardData(text: selectedText));
-          editableTextState.hideToolbar();
+    final overlay = Overlay.of(context);
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (context) => GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          entry.remove();
+          _contextMenuEntry = null;
         },
-        label: 'Copy as Plain Text',
-      ));
-    }
+        child: Stack(
+          children: [
+            const SizedBox.expand(),
+            Positioned(
+              left: tapPosition.dx,
+              top: tapPosition.dy,
+              child: Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(4),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (hasSelection)
+                      _contextMenuItem('Copy', () {
+                        final markdown = _controller.selectedTextAsMarkdown();
+                        Clipboard.setData(ClipboardData(text: markdown));
+                        entry.remove();
+                        _contextMenuEntry = null;
+                      }),
+                    if (hasSelection)
+                      _contextMenuItem('Copy as Plain Text', () {
+                        final text = _controller.text;
+                        final selectedText = text.substring(selection.start, selection.end);
+                        Clipboard.setData(ClipboardData(text: selectedText));
+                        entry.remove();
+                        _contextMenuEntry = null;
+                      }),
+                    _contextMenuItem('Paste', () async {
+                      final data = await Clipboard.getData('text/plain');
+                      if (data?.text != null && data!.text!.isNotEmpty) {
+                        _controller.insertMarkdownSpans(data.text!);
+                      }
+                      entry.remove();
+                      _contextMenuEntry = null;
+                    }),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    _contextMenuEntry = entry;
+    overlay.insert(entry);
+  }
 
-    return AdaptiveTextSelectionToolbar.buttonItems(
-      anchors: editableTextState.contextMenuAnchors,
-      buttonItems: items,
+  Widget _contextMenuItem(String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Text(label),
+      ),
     );
   }
 
@@ -322,9 +384,17 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
                 ),
                 child: Material(
                   type: MaterialType.transparency,
-                  child: _gestureBuilder.buildGestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    child: EditableText(
+                  child: Listener(
+                    onPointerDown: (event) {
+                      if (event.kind == PointerDeviceKind.mouse &&
+                          event.buttons == kSecondaryMouseButton) {
+                        _lastSecondaryTapDownPosition = event.position;
+                        _showCustomContextMenu();
+                      }
+                    },
+                    child: _gestureBuilder.buildGestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      child: EditableText(
                       key: _gestureDelegate.editableTextKey,
                       controller: _controller,
                       focusNode: _focusNode,
@@ -343,13 +413,13 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
                       showSelectionHandles: false,
                       magnifierConfiguration: TextMagnifierConfiguration.disabled,
                       onTapOutside: (event) {},
-                      contextMenuBuilder: _buildContextMenu,
                     ),
                   ),
                 ),
               ),
             ),
           ),
+        ),
         );
       },
     );

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
@@ -52,6 +53,21 @@ class MarkdownTextSelectionControls extends MaterialTextSelectionControls {
     }
     delegate.hideToolbar();
     _log.fine('Pasted markdown: ${clipboardText.length} chars');
+  }
+
+  @override
+  // ignore: deprecated_member_use
+  Widget buildToolbar(
+    BuildContext context,
+    Rect globalEditableRegion,
+    double textLineHeight,
+    Offset selectionMidpoint,
+    List<TextSelectionPoint> endpoints,
+    TextSelectionDelegate delegate,
+    ValueListenable<ClipboardStatus>? clipboardStatus,
+    Offset? lastSecondaryTapDownPosition,
+  ) {
+    return const SizedBox.shrink();
   }
 
   @override
