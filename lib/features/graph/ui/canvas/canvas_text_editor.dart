@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import '../../presentation/node_render_state.dart';
 import '../../models/models.dart';
 import 'content_text_editing_controller.dart';
+import 'markdown_text_selection_controls.dart';
 
 class CanvasTextEditor extends StatefulWidget {
   final String entityId;
@@ -293,7 +294,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
                       selectionColor: const Color(0x602196F3),
                       style: widget.textStyle,
                       strutStyle: StrutStyle.disabled,
-                      selectionControls: MaterialTextSelectionControls(),
+                      selectionControls: MarkdownTextSelectionControls(),
                       showSelectionHandles: false,
                       magnifierConfiguration: TextMagnifierConfiguration.disabled,
                       onTapOutside: (event) {},
