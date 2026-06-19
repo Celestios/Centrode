@@ -226,6 +226,13 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     );
   }
 
+  void _pasteFromClipboard() async {
+    final data = await Clipboard.getData('text/plain');
+    if (data?.text != null && data!.text!.isNotEmpty) {
+      _controller.insertMarkdownSpans(data.text!);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -250,6 +257,17 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
                 }
                 if (event.logicalKey == LogicalKeyboardKey.tab) {
                   _insertTab();
+                  return KeyEventResult.handled;
+                }
+                if (event.logicalKey == LogicalKeyboardKey.keyC &&
+                    HardwareKeyboard.instance.isControlPressed) {
+                  final markdown = _controller.selectedTextAsMarkdown();
+                  Clipboard.setData(ClipboardData(text: markdown));
+                  return KeyEventResult.handled;
+                }
+                if (event.logicalKey == LogicalKeyboardKey.keyV &&
+                    HardwareKeyboard.instance.isControlPressed) {
+                  _pasteFromClipboard();
                   return KeyEventResult.handled;
                 }
               }
