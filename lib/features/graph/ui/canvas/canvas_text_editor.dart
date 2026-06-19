@@ -29,6 +29,7 @@ class CanvasTextEditor extends StatefulWidget {
 class _CanvasTextEditorState extends State<CanvasTextEditor> {
   late final ContentTextEditingController _controller;
   late final FocusNode _focusNode;
+  late final MarkdownTextSelectionControls _selectionControls;
   final Logger _log = Logger('CanvasTextEditor');
   bool _isCommitted = false;
   bool _isAborted = false;
@@ -48,6 +49,8 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     _controller = ContentTextEditingController();
     _controller.loadFromContent(widget.content);
     _lastValue = _controller.value;
+
+    _selectionControls = MarkdownTextSelectionControls(controller: _controller);
 
     _controller.addListener(_onControllerChanged);
     _focusNode = FocusNode();
@@ -233,6 +236,30 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     }
   }
 
+  Widget _buildContextMenu(BuildContext context, EditableTextState editableTextState) {
+    final selection = editableTextState.textEditingValue.selection;
+    final hasSelection = !selection.isCollapsed && selection.start >= 0 && selection.end >= 0;
+
+    final items = <ContextMenuButtonItem>[];
+
+    if (hasSelection) {
+      items.add(ContextMenuButtonItem(
+        onPressed: () {
+          final text = editableTextState.textEditingValue.text;
+          final selectedText = text.substring(selection.start, selection.end);
+          Clipboard.setData(ClipboardData(text: selectedText));
+          editableTextState.hideToolbar();
+        },
+        label: 'Copy as Plain Text',
+      ));
+    }
+
+    return AdaptiveTextSelectionToolbar.buttonItems(
+      anchors: editableTextState.contextMenuAnchors,
+      buttonItems: items,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -312,10 +339,11 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
                       selectionColor: const Color(0x602196F3),
                       style: widget.textStyle,
                       strutStyle: StrutStyle.disabled,
-                      selectionControls: MarkdownTextSelectionControls(),
+                      selectionControls: _selectionControls,
                       showSelectionHandles: false,
                       magnifierConfiguration: TextMagnifierConfiguration.disabled,
                       onTapOutside: (event) {},
+                      contextMenuBuilder: _buildContextMenu,
                     ),
                   ),
                 ),

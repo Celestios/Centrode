@@ -20,20 +20,40 @@ void main() {
       expect(size.height, greaterThan(0));
     });
 
-    test('canCopy returns true', () {
-      expect(controls.canCopy(_FakeDelegate()), isTrue);
+    test('canCopy with selection returns true', () {
+      final delegate = _FakeDelegate(
+        text: 'hello',
+        selection: const TextSelection(baseOffset: 0, extentOffset: 5),
+      );
+      expect(controls.canCopy(delegate), isTrue);
     });
 
-    test('canCut returns true', () {
-      expect(controls.canCut(_FakeDelegate()), isTrue);
+    test('canCut with selection returns true', () {
+      final delegate = _FakeDelegate(
+        text: 'hello',
+        selection: const TextSelection(baseOffset: 0, extentOffset: 5),
+      );
+      expect(controls.canCut(delegate), isTrue);
     });
 
     test('canPaste returns true', () {
       expect(controls.canPaste(_FakeDelegate()), isTrue);
     });
 
-    test('canSelectAll returns true', () {
-      expect(controls.canSelectAll(_FakeDelegate()), isTrue);
+    test('canSelectAll returns true with partial selection', () {
+      final delegate = _FakeDelegate(
+        text: 'hello',
+        selection: const TextSelection(baseOffset: 0, extentOffset: 3),
+      );
+      expect(controls.canSelectAll(delegate), isTrue);
+    });
+
+    test('canSelectAll returns false when all text selected', () {
+      final delegate = _FakeDelegate(
+        text: 'hello',
+        selection: const TextSelection(baseOffset: 0, extentOffset: 5),
+      );
+      expect(controls.canSelectAll(delegate), isFalse);
     });
 
     test('controller defaults to null', () {
@@ -43,8 +63,18 @@ void main() {
 }
 
 class _FakeDelegate with TextSelectionDelegate {
+  final String _text;
+  final TextSelection _selection;
+
+  _FakeDelegate({String text = '', TextSelection? selection})
+      : _text = text,
+        _selection = selection ?? const TextSelection.collapsed(offset: 0);
+
   @override
-  TextEditingValue get textEditingValue => const TextEditingValue();
+  TextEditingValue get textEditingValue => TextEditingValue(
+        text: _text,
+        selection: _selection,
+      );
 
   @override
   void userUpdateTextEditingValue(TextEditingValue value, SelectionChangedCause cause) {}
