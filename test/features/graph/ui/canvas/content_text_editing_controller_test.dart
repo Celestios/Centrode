@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:mycelium/features/graph/ui/canvas/content_text_editing_controller.dart';
+import 'package:mycelium/features/graph/ui/canvas/text_ast_serializer.dart' as serializer;
 import 'package:mycelium/features/graph/models/models.dart';
 
 void main() {
@@ -323,6 +324,238 @@ void main() {
       controller.selection = const TextSelection(baseOffset: 0, extentOffset: 5);
       final md = controller.selectedTextAsMarkdown();
       expect(md, '# Title');
+    });
+
+    test('preserves code block in toMarkdown', () {
+      final controller = ContentTextEditingController();
+      controller.loadFromContent(
+        const Content(
+          text: 'Some text\nCode here\nMore text',
+          blocks: [
+            ContentBlock(
+              blockType: BlockType.paragraph,
+              content: [InlineElement(inlineType: InlineType.text, text: 'Some text')],
+            ),
+            ContentBlock(
+              blockType: BlockType.codeBlock,
+              content: [InlineElement(inlineType: InlineType.text, text: 'Code here')],
+            ),
+            ContentBlock(
+              blockType: BlockType.paragraph,
+              content: [InlineElement(inlineType: InlineType.text, text: 'More text')],
+            ),
+          ],
+        ),
+      );
+
+      controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
+      final md = controller.selectedTextAsMarkdown();
+      expect(md, contains('```'));
+      expect(md, contains('Code here'));
+    });
+
+    test('preserves link in toMarkdown', () {
+      final controller = ContentTextEditingController();
+      controller.loadFromContent(
+        const Content(
+          text: 'Click here',
+          blocks: [
+            ContentBlock(
+              blockType: BlockType.paragraph,
+              content: [
+                InlineElement(
+                  inlineType: InlineType.text,
+                  text: 'Click here',
+                  marks: [TextMark(markType: MarkType.link, attrs: MarkAttrs(href: 'https://example.com'))],
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+
+      controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
+      final md = controller.selectedTextAsMarkdown();
+      expect(md, contains('[Click here](https://example.com)'));
+    });
+
+    test('preserves nested bold+italic+underline in toMarkdown', () {
+      final controller = ContentTextEditingController();
+      controller.loadFromContent(
+        const Content(
+          text: 'because',
+          blocks: [
+            ContentBlock(
+              blockType: BlockType.paragraph,
+              content: [
+                InlineElement(
+                  inlineType: InlineType.text,
+                  text: 'because',
+                  marks: [
+                    TextMark(markType: MarkType.bold),
+                    TextMark(markType: MarkType.italic),
+                    TextMark(markType: MarkType.underline),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+
+      controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
+      final md = controller.selectedTextAsMarkdown();
+      expect(md, contains('**'));
+      expect(md, contains('*'));
+      expect(md, contains('<u>'));
+    });
+
+    test('preserves partial bold in toMarkdown', () {
+      final controller = ContentTextEditingController();
+      controller.loadFromContent(
+        const Content(
+          text: 'undertakes',
+          blocks: [
+            ContentBlock(
+              blockType: BlockType.paragraph,
+              content: [
+                InlineElement(
+                  inlineType: InlineType.text,
+                  text: 'undertak',
+                  marks: [TextMark(markType: MarkType.bold)],
+                ),
+                InlineElement(inlineType: InlineType.text, text: 'es'),
+              ],
+            ),
+          ],
+        ),
+      );
+
+      controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
+      final md = controller.selectedTextAsMarkdown();
+      expect(md, contains('**undertak**'));
+      expect(md, contains('es'));
+    });
+
+    test('full round-trip: markdown -> fromText -> loadFromContent -> selectedTextAsMarkdown', () {
+      final originalMarkdown = '```\nCode here\n```\n\n**bold** and *italic*\n\n[text](https://example.com)';
+      final content = ContentFactory.fromText(originalMarkdown);
+      final controller = ContentTextEditingController();
+      controller.loadFromContent(content);
+
+      controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
+      final result = controller.selectedTextAsMarkdown();
+
+      expect(result, contains('```'));
+      expect(result, contains('**bold**'));
+      expect(result, contains('*italic*'));
+      expect(result, contains('[text](https://example.com)'));
+    });
+
+    test('full round-trip with nested marks', () {
+      final originalMarkdown = '***<u>because</u>*** is important';
+      final content = ContentFactory.fromText(originalMarkdown);
+      final controller = ContentTextEditingController();
+      controller.loadFromContent(content);
+
+      controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
+      final result = controller.selectedTextAsMarkdown();
+
+      expect(result, contains('**'));
+      expect(result, contains('<u>'));
+    });
+
+    test('loadFromContent preserves code block spans for buildContent round-trip', () {
+      final content = ContentFactory.fromText('Text\n```\nCode\n```\nMore');
+      final (text, spans, _) = serializer.loadFromContent(content);
+
+      expect(text, contains('Code'));
+
+      final codeSpans = spans.where((s) => s.type == TextFormatType.codeBlock).toList();
+      expect(codeSpans, isNotEmpty, reason: 'loadFromContent should produce codeBlock spans');
+
+      final rebuilt = serializer.buildContent(text, spans);
+      final codeBlocks = rebuilt.blocks.where((b) => b.blockType == BlockType.codeBlock).toList();
+      expect(codeBlocks, isNotEmpty, reason: 'buildContent should recreate codeBlock blocks from spans');
+    });
+
+    test('buildContent preserves link marks from loadFromContent spans', () {
+      final content = ContentFactory.fromText('[click](https://example.com)');
+      final (text, spans, _) = serializer.loadFromContent(content);
+
+      final linkSpans = spans.where((s) => s.type == TextFormatType.link).toList();
+      expect(linkSpans, isNotEmpty, reason: 'loadFromContent should produce link spans');
+
+      final rebuilt = serializer.buildContent(text, spans);
+      final linkMarks = rebuilt.blocks.expand((b) => b.content).expand((i) => i.marks ?? []).where((m) => m.markType == MarkType.link).toList();
+      expect(linkMarks, isNotEmpty, reason: 'buildContent should recreate link marks');
+    });
+
+    test('user workflow: paste markdown then copy as markdown preserves all formatting', () {
+      final controller = ContentTextEditingController();
+      controller.value = const TextEditingValue(
+        text: '',
+        selection: TextSelection.collapsed(offset: 0),
+      );
+
+      final markdown = '# Heading\n\n```\nCode block\n```\n\n**bold** and *italic* and <u>underline</u>\n\n***<u>nested</u>***\n\n**partial**bold\n\n[text](https://example.com)\n\n- list item';
+      controller.insertMarkdownSpans(markdown);
+
+      controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
+      final result = controller.selectedTextAsMarkdown();
+
+      expect(result, contains('# Heading'));
+      expect(result, contains('```'));
+      expect(result, contains('**bold**'));
+      expect(result, contains('*italic*'));
+      expect(result, contains('<u>underline</u>'));
+      expect(result, contains('**partial**'));
+      expect(result, contains('[text](https://example.com)'));
+      expect(result, contains('- list item'));
+    });
+
+    test('selection starting mid-text preserves block formatting', () {
+      final controller = ContentTextEditingController();
+      controller.value = const TextEditingValue(
+        text: '',
+        selection: TextSelection.collapsed(offset: 0),
+      );
+
+      final markdown = 'Before\n\n# Heading\n\n```\nCode\n```\n\n**bold** text';
+      controller.insertMarkdownSpans(markdown);
+
+      final codeStart = controller.text.indexOf('Code');
+      final codeEnd = codeStart + 4;
+      controller.selection = TextSelection(baseOffset: codeStart, extentOffset: codeEnd);
+      final result = controller.selectedTextAsMarkdown();
+      expect(result, contains('Code'));
+
+      final boldStart = controller.text.indexOf('bold');
+      final boldEnd = boldStart + 4;
+      controller.selection = TextSelection(baseOffset: boldStart, extentOffset: boldEnd);
+      final resultBold = controller.selectedTextAsMarkdown();
+      expect(resultBold, '**bold**');
+    });
+
+    test('full node copy captures all blocks', () {
+      final controller = ContentTextEditingController();
+      controller.value = const TextEditingValue(
+        text: '',
+        selection: TextSelection.collapsed(offset: 0),
+      );
+
+      final markdown = 'Intro text\n\n```\nCode block here\n```\n\nParagraph with **bold** and [link](https://x.com)\n\n### Sub heading';
+      controller.insertMarkdownSpans(markdown);
+
+      controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
+      final result = controller.selectedTextAsMarkdown();
+
+      print('FULL RESULT: $result');
+      expect(result, contains('```'));
+      expect(result, contains('Code block here'));
+      expect(result, contains('**bold**'));
+      expect(result, contains('[link](https://x.com)'));
+      expect(result, contains('### Sub heading'));
     });
   });
 }

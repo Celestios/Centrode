@@ -200,44 +200,75 @@ extension ContentExtensions on Content {
   }
 }
 
+class _DelimiterMatch {
+  final int start;
+  final int end;
+  final String type;
+  final Match match;
+  _DelimiterMatch(this.start, this.end, this.type, this.match);
+}
+
 /// Factory methods for creating common Content patterns and serialization.
 class ContentFactory {
   /// Parses inline elements from a line of text, identifying bold, italic,
   /// underline, strikethrough, code, and hyperlinks.
+  /// Uses a delimiter-stack approach to handle arbitrary nesting.
   static List<InlineElement> parseInline(String text, [List<TextMark>? activeMarks]) {
     final marks = activeMarks ?? [];
-    
-    int firstIdx = -1;
-    String matchType = '';
-    Match? bestMatch;
-    
+    if (text.isEmpty) return [];
+
+    // Find all delimiter candidates: earliest match wins, longest at same position wins
+    _DelimiterMatch? bestMatch;
+
+    // Link: [text](url)
     final linkReg = RegExp(r'\[([^\]]*)\]\(([^)]+)\)');
-    final boldReg = RegExp(r'\*\*([^*]+)\*\*');
-    final italicReg = RegExp(r'\*([^*]+)\*');
-    final underlineReg = RegExp(r'<u>([^<]+)</u>');
-    final strikeReg = RegExp(r'~~([^~]+)~~');
-    final codeReg = RegExp(r'`([^`]+)`');
-    
-    final regexes = {
-      'link': linkReg,
-      'bold': boldReg,
-      'italic': italicReg,
-      'underline': underlineReg,
-      'strike': strikeReg,
-      'code': codeReg,
-    };
-    
-    for (final entry in regexes.entries) {
-      final m = entry.value.firstMatch(text);
-      if (m != null) {
-        if (firstIdx == -1 || m.start < firstIdx) {
-          firstIdx = m.start;
-          matchType = entry.key;
-          bestMatch = m;
-        }
-      }
+    final linkM = linkReg.firstMatch(text);
+    if (linkM != null) {
+      bestMatch = _DelimiterMatch(linkM.start, linkM.end, 'link', linkM);
     }
-    
+
+    // Bold+italic: ***text***
+    final boldItalicReg = RegExp(r'\*\*\*([^*]+)\*\*\*');
+    final boldItalicM = boldItalicReg.firstMatch(text);
+    if (boldItalicM != null && _isBetterMatch(boldItalicM, bestMatch)) {
+      bestMatch = _DelimiterMatch(boldItalicM.start, boldItalicM.end, 'boldItalic', boldItalicM);
+    }
+
+    // Bold: **text**
+    final boldReg = RegExp(r'\*\*([^*]+)\*\*');
+    final boldM = boldReg.firstMatch(text);
+    if (boldM != null && _isBetterMatch(boldM, bestMatch)) {
+      bestMatch = _DelimiterMatch(boldM.start, boldM.end, 'bold', boldM);
+    }
+
+    // Italic: *text*
+    final italicReg = RegExp(r'\*([^*]+)\*');
+    final italicM = italicReg.firstMatch(text);
+    if (italicM != null && _isBetterMatch(italicM, bestMatch)) {
+      bestMatch = _DelimiterMatch(italicM.start, italicM.end, 'italic', italicM);
+    }
+
+    // Underline: <u>text</u>
+    final underlineReg = RegExp(r'<u>([^<]+)</u>');
+    final underlineM = underlineReg.firstMatch(text);
+    if (underlineM != null && _isBetterMatch(underlineM, bestMatch)) {
+      bestMatch = _DelimiterMatch(underlineM.start, underlineM.end, 'underline', underlineM);
+    }
+
+    // Strikethrough: ~~text~~
+    final strikeReg = RegExp(r'~~([^~]+)~~');
+    final strikeM = strikeReg.firstMatch(text);
+    if (strikeM != null && _isBetterMatch(strikeM, bestMatch)) {
+      bestMatch = _DelimiterMatch(strikeM.start, strikeM.end, 'strike', strikeM);
+    }
+
+    // Inline code: `text`
+    final codeReg = RegExp(r'`([^`]+)`');
+    final codeM = codeReg.firstMatch(text);
+    if (codeM != null && _isBetterMatch(codeM, bestMatch)) {
+      bestMatch = _DelimiterMatch(codeM.start, codeM.end, 'code', codeM);
+    }
+
     if (bestMatch == null) {
       return [
         InlineElement(
@@ -247,44 +278,64 @@ class ContentFactory {
         )
       ];
     }
-    
+
     final list = <InlineElement>[];
+
     // 1. Text before match
     if (bestMatch.start > 0) {
       list.addAll(parseInline(text.substring(0, bestMatch.start), marks));
     }
-    
+
     // 2. The match itself
-    final matchText = bestMatch.group(1) ?? '';
+    final matchText = bestMatch.match.group(1) ?? '';
     final nextMarks = List<TextMark>.from(marks);
-    
-    if (matchType == 'bold') {
-      nextMarks.add(const TextMark(markType: MarkType.bold));
-      list.addAll(parseInline(matchText, nextMarks));
-    } else if (matchType == 'italic') {
-      nextMarks.add(const TextMark(markType: MarkType.italic));
-      list.addAll(parseInline(matchText, nextMarks));
-    } else if (matchType == 'underline') {
-      nextMarks.add(const TextMark(markType: MarkType.underline));
-      list.addAll(parseInline(matchText, nextMarks));
-    } else if (matchType == 'strike') {
-      nextMarks.add(const TextMark(markType: MarkType.strikethrough));
-      list.addAll(parseInline(matchText, nextMarks));
-    } else if (matchType == 'code') {
-      nextMarks.add(const TextMark(markType: MarkType.code));
-      list.addAll(parseInline(matchText, nextMarks));
-    } else if (matchType == 'link') {
-      final url = bestMatch.group(2) ?? '';
-      nextMarks.add(TextMark(markType: MarkType.link, attrs: MarkAttrs(href: url)));
-      list.addAll(parseInline(matchText, nextMarks));
+
+    switch (bestMatch.type) {
+      case 'boldItalic':
+        nextMarks.add(const TextMark(markType: MarkType.bold));
+        nextMarks.add(const TextMark(markType: MarkType.italic));
+        list.addAll(parseInline(matchText, nextMarks));
+        break;
+      case 'bold':
+        nextMarks.add(const TextMark(markType: MarkType.bold));
+        list.addAll(parseInline(matchText, nextMarks));
+        break;
+      case 'italic':
+        nextMarks.add(const TextMark(markType: MarkType.italic));
+        list.addAll(parseInline(matchText, nextMarks));
+        break;
+      case 'underline':
+        nextMarks.add(const TextMark(markType: MarkType.underline));
+        list.addAll(parseInline(matchText, nextMarks));
+        break;
+      case 'strike':
+        nextMarks.add(const TextMark(markType: MarkType.strikethrough));
+        list.addAll(parseInline(matchText, nextMarks));
+        break;
+      case 'code':
+        nextMarks.add(const TextMark(markType: MarkType.code));
+        list.addAll(parseInline(matchText, nextMarks));
+        break;
+      case 'link':
+        final url = bestMatch.match.group(2) ?? '';
+        nextMarks.add(TextMark(markType: MarkType.link, attrs: MarkAttrs(href: url)));
+        list.addAll(parseInline(matchText, nextMarks));
+        break;
     }
-    
+
     // 3. Text after match
     if (bestMatch.end < text.length) {
       list.addAll(parseInline(text.substring(bestMatch.end), marks));
     }
-    
+
     return list;
+  }
+
+  static bool _isBetterMatch(Match m, _DelimiterMatch? current) {
+    if (current == null) return true;
+    if (m.start < current.start) return true;
+    if (m.start == current.start && m.end > current.end) return true;
+    return false;
   }
 
   /// Create Content from markdown-like text, parsing structure and formatting.
@@ -300,7 +351,8 @@ class ContentFactory {
     String? codeBlockLanguage;
     final codeBlockBuffer = StringBuffer();
     
-    for (final line in lines) {
+    for (var line in lines) {
+      line = line.replaceAll('\r', '');
       if (inCodeBlock) {
         if (line.trimRight() == '```') {
           inCodeBlock = false;
