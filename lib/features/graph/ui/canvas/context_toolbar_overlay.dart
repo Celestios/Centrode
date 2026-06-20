@@ -15,6 +15,7 @@ import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_text_format_toolbar.dart';
 import 'content_text_editing_controller.dart';
 import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
+import 'package:mycelium/features/workspace/copy_buffer.dart';
 
 class ContextToolbarOverlay extends StatelessWidget {
   final NodeRenderState renderState;
@@ -394,6 +395,15 @@ class ContextToolbarOverlay extends StatelessWidget {
           child: VerticalContextToolbar(
             positionOnRight: useRight,
             onDelete: renderState.deleteSelectedEntities,
+            onCopy: () {
+              final copyBuffer = context.read<CopyBuffer>();
+              final nodeIds = renderState.selectedEntities
+                  .where((id) => dataController.nodeLookup.containsKey(id))
+                  .toList();
+              if (nodeIds.isNotEmpty) {
+                copyBuffer.copy(nodeIds, dataController);
+              }
+            },
             isMulti: isMulti,
             isRelationOnly: isRelationOnly,
             canSaveTemplate: canSaveTemplate,

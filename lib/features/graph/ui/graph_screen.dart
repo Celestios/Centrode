@@ -11,6 +11,7 @@ import '../presentation/workspace_tabs_controller.dart';
 import '../store/graph_data_query.dart';
 import 'canvas/graph_canvas.dart';
 import 'widgets/init_error_widget.dart';
+import 'package:mycelium/features/workspace/copy_buffer.dart';
 
 class GraphScreen extends StatefulWidget {
   final String storagePath;
@@ -22,6 +23,7 @@ class GraphScreen extends StatefulWidget {
 
 class _GraphScreenState extends State<GraphScreen> {
   late final WorkspaceTabsController _tabsController;
+  final CopyBuffer _copyBuffer = CopyBuffer();
   ThemeData? _lastThemeData;
 
   @override
@@ -35,69 +37,73 @@ class _GraphScreenState extends State<GraphScreen> {
 
   @override
   void dispose() {
+    _copyBuffer.dispose();
     _tabsController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<WorkspaceTabsController>.value(
-      value: _tabsController,
-      child: Consumer<WorkspaceTabsController>(
-        builder: (context, tabsController, _) {
-          final activeSession = tabsController.activeSession;
+    return ChangeNotifierProvider<CopyBuffer>.value(
+      value: _copyBuffer,
+      child: ChangeNotifierProvider<WorkspaceTabsController>.value(
+        value: _tabsController,
+        child: Consumer<WorkspaceTabsController>(
+          builder: (context, tabsController, _) {
+            final activeSession = tabsController.activeSession;
 
-          return ListenableBuilder(
-            listenable: Listenable.merge(
-              [
-                activeSession,
-                activeSession.themeController,
-              ].whereType<Listenable>(),
-            ),
-            builder: (context, _) {
-              final mapTheme = activeSession.themeController?.currentGraphTheme;
-              ThemeData fallbackTheme() {
-                try {
-                  return AppThemeManager.instance.themeNotifier.value.toThemeData();
-                } catch (_) {
-                  return Theme.of(context);
+            return ListenableBuilder(
+              listenable: Listenable.merge(
+                [
+                  activeSession,
+                  activeSession.themeController,
+                ].whereType<Listenable>(),
+              ),
+              builder: (context, _) {
+                final mapTheme = activeSession.themeController?.currentGraphTheme;
+                ThemeData fallbackTheme() {
+                  try {
+                    return AppThemeManager.instance.themeNotifier.value.toThemeData();
+                  } catch (_) {
+                    return Theme.of(context);
+                  }
                 }
-              }
 
-              final ThemeData themeData;
-              if (mapTheme != null) {
-                themeData = mapTheme.toThemeData();
-                _lastThemeData = themeData;
-              } else {
-                themeData = _lastThemeData ?? fallbackTheme();
-              }
+                final ThemeData themeData;
+                if (mapTheme != null) {
+                  themeData = mapTheme.toThemeData();
+                  _lastThemeData = themeData;
+                } else {
+                  themeData = _lastThemeData ?? fallbackTheme();
+                }
 
-              return AnimatedTheme(
-                data: themeData,
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeInOut,
-                child: Scaffold(
-                  body: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: ActiveSessionWidget(
-                          key: ValueKey(activeSession.id),
-                          session: activeSession,
+                return AnimatedTheme(
+                  data: themeData,
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeInOut,
+                  child: Scaffold(
+                    body: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: ActiveSessionWidget(
+                            key: ValueKey(activeSession.id),
+                            session: activeSession,
+                          ),
                         ),
-                      ),
-                      const Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: WorkspaceWindowTitleBar(),
-                      ),
-                    ],
+                        const Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: WorkspaceWindowTitleBar(),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          );
-        },
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

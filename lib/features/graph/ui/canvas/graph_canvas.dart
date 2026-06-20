@@ -24,6 +24,7 @@ import 'package:mycelium/presentation/widgets/template_manager/save_template_dia
 import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 import 'canvas_overlay_layout.dart';
 import 'paste_handler.dart';
+import 'package:mycelium/features/workspace/copy_buffer.dart';
 import '../../../../shared/widgets/context_menu_overlay.dart';
 
 class GraphCanvas extends StatefulWidget {
@@ -161,6 +162,8 @@ class _GraphCanvasState extends State<GraphCanvas>
     _dismissCanvasContextMenu();
 
     final dataController = context.read<GraphDataController>();
+    final renderState = context.read<NodeRenderState>();
+    final copyBuffer = context.read<CopyBuffer>();
     final viewportController = _viewportController;
     if (viewportController == null) return;
 
@@ -169,10 +172,18 @@ class _GraphCanvasState extends State<GraphCanvas>
       position: screenPosition,
       items: [
         ContextMenuItem(
+          label: 'Copy',
+          onTap: () {
+            final selectedIds = renderState.selectedEntities.toList();
+            if (selectedIds.isNotEmpty) {
+              copyBuffer.copy(selectedIds, dataController);
+            }
+          },
+        ),
+        ContextMenuItem(
           label: 'Paste',
           onTap: () async {
-            final data = await Clipboard.getData('text/plain');
-            if (data?.text != null && data!.text!.isNotEmpty) {
+            if (copyBuffer.hasData) {
               final transform =
                   viewportController.transformController.value;
               final canvasPos = transform.determinant() == 0.0
@@ -181,10 +192,27 @@ class _GraphCanvasState extends State<GraphCanvas>
                       Matrix4.inverted(transform),
                       screenPosition,
                     );
-              await pasteTextToCanvas(                dataController: dataController,
-                text: data.text!,
-                canvasPosition: canvasPos,
-              );
+              final newIds = await copyBuffer.paste(canvasPos, dataController);
+              if (newIds.isNotEmpty) {
+                renderState.selectEntities(newIds);
+              }
+            } else {
+              final data = await Clipboard.getData('text/plain');
+              if (data?.text != null && data!.text!.isNotEmpty) {
+                final transform =
+                    viewportController.transformController.value;
+                final canvasPos = transform.determinant() == 0.0
+                    ? Offset.zero
+                    : MatrixUtils.transformPoint(
+                        Matrix4.inverted(transform),
+                        screenPosition,
+                      );
+                await pasteTextToCanvas(
+                  dataController: dataController,
+                  text: data.text!,
+                  canvasPosition: canvasPos,
+                );
+              }
             }
           },
         ),
@@ -219,6 +247,17 @@ class _GraphCanvasState extends State<GraphCanvas>
     }
   }
 
+  void _handleCanvasCopy(
+    GraphDataController dataController,
+    NodeRenderState renderState,
+  ) {
+    final selectedIds = renderState.selectedEntities.toList();
+    if (selectedIds.isEmpty) return;
+
+    final copyBuffer = context.read<CopyBuffer>();
+    copyBuffer.copy(selectedIds, dataController);
+  }
+
   Future<void> _handleCanvasPaste(
     GraphDataController dataController,
     NodeRenderState renderState,
@@ -238,6 +277,15 @@ class _GraphCanvasState extends State<GraphCanvas>
       Matrix4.inverted(transform),
       mousePos,
     );
+
+    final copyBuffer = context.read<CopyBuffer>();
+    if (copyBuffer.hasData) {
+      final newIds = await copyBuffer.paste(canvasPos, dataController);
+      if (newIds.isNotEmpty) {
+        renderState.selectEntities(newIds);
+      }
+      return;
+    }
 
     final data = await Clipboard.getData('text/plain');
     if (data?.text != null && data!.text!.isNotEmpty) {
@@ -280,11 +328,17 @@ class _GraphCanvasState extends State<GraphCanvas>
       child: Focus(
         autofocus: true,
         onKeyEvent: (node, event) {
-          if (event is KeyDownEvent &&
-              event.logicalKey == LogicalKeyboardKey.keyV &&
-              HardwareKeyboard.instance.isControlPressed) {
-            _handleCanvasPaste(dataController, renderState);
-            return KeyEventResult.handled;
+          if (event is KeyDownEvent) {
+            if (event.logicalKey == LogicalKeyboardKey.keyC &&
+                HardwareKeyboard.instance.isControlPressed) {
+              _handleCanvasCopy(dataController, renderState);
+              return KeyEventResult.handled;
+            }
+            if (event.logicalKey == LogicalKeyboardKey.keyV &&
+                HardwareKeyboard.instance.isControlPressed) {
+              _handleCanvasPaste(dataController, renderState);
+              return KeyEventResult.handled;
+            }
           }
           return KeyEventResult.ignored;
         },

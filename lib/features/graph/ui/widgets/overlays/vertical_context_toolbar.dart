@@ -5,6 +5,7 @@ import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
 
 class VerticalContextToolbar extends StatelessWidget {
   final VoidCallback onDelete;
+  final VoidCallback? onCopy;
   final bool isMulti;
   final bool isRelationOnly;
   final bool canSaveTemplate;
@@ -35,6 +36,7 @@ class VerticalContextToolbar extends StatelessWidget {
   const VerticalContextToolbar({
     super.key,
     required this.onDelete,
+    this.onCopy,
     required this.isMulti,
     this.isRelationOnly = false,
     this.canSaveTemplate = false,
@@ -116,6 +118,14 @@ class VerticalContextToolbar extends StatelessWidget {
                       color: primaryColor,
                     ),
                   ],
+
+                  if (onCopy != null)
+                    _buildQuickButton(
+                      icon: Icons.copy_rounded,
+                      tooltip: 'Copy',
+                      onPressed: onCopy!,
+                      color: primaryColor,
+                    ),
 
                   _buildQuickButton(
                     icon: Icons.delete_outline_rounded,

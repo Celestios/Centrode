@@ -249,9 +249,13 @@ class GraphSyncEngine {
   }
 
   void _hydrateNode(UiNode node) {
-    // 1. Hydrate content blocks if they represent unparsed plain text (length <= 1 with no marks)
+    // 1. Hydrate content blocks only when they represent truly unparsed plain text:
+    //    - Empty blocks, OR
+    //    - Single paragraph block with one unmarked inline element (no block-level formatting)
     if (node.content.blocks.isEmpty ||
         (node.content.blocks.length == 1 &&
+            node.content.blocks[0].blockType == BlockType.paragraph &&
+            node.content.blocks[0].attrs == null &&
             node.content.blocks[0].content.length == 1 &&
             (node.content.blocks[0].content[0].marks == null ||
                 node.content.blocks[0].content[0].marks!.isEmpty))) {
