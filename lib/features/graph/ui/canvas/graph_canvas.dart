@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 import '../../engine/config.dart';
@@ -21,6 +23,7 @@ import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:mycelium/presentation/widgets/template_manager/save_template_dialog.dart';
 import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 import 'canvas_overlay_layout.dart';
+import 'paste_handler.dart';
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
@@ -46,6 +49,9 @@ class _GraphCanvasState extends State<GraphCanvas>
     null,
   );
   int _lastMousePosMs = 0;
+  Offset? _rightClickDownScreenPos;
+  bool _isRightClickDrag = false;
+  OverlayEntry? _canvasContextMenuEntry;
 
   void _updateMousePosition(Offset localPosition) {
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -142,8 +148,85 @@ class _GraphCanvasState extends State<GraphCanvas>
     return false;
   }
 
+  void _dismissCanvasContextMenu() {
+    _canvasContextMenuEntry?.remove();
+    _canvasContextMenuEntry = null;
+  }
+
+  void _showCanvasContextMenu(Offset screenPosition) {
+    _dismissCanvasContextMenu();
+
+    final dataController = context.read<GraphDataController>();
+    final viewportController = _viewportController;
+    if (viewportController == null) return;
+
+    final overlay = Overlay.of(context);
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (context) => GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          entry.remove();
+          _canvasContextMenuEntry = null;
+        },
+        child: Stack(
+          children: [
+            const SizedBox.expand(),
+            Positioned(
+              left: screenPosition.dx,
+              top: screenPosition.dy,
+              child: Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(4),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _canvasContextMenuItem('Paste', () async {
+                      final data = await Clipboard.getData('text/plain');
+                      if (data?.text != null && data!.text!.isNotEmpty) {
+                        final transform =
+                            viewportController.transformController.value;
+                        final canvasPos = transform.determinant() == 0.0
+                            ? Offset.zero
+                            : MatrixUtils.transformPoint(
+                                Matrix4.inverted(transform),
+                                screenPosition,
+                              );
+                        pasteTextToCanvas(
+                          dataController: dataController,
+                          text: data.text!,
+                          canvasPosition: canvasPos,
+                        );
+                      }
+                      entry.remove();
+                      _canvasContextMenuEntry = null;
+                    }),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    _canvasContextMenuEntry = entry;
+    overlay.insert(entry);
+  }
+
+  Widget _canvasContextMenuItem(String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Text(label),
+      ),
+    );
+  }
+
   @override
   void dispose() {
+    _dismissCanvasContextMenu();
     _presentationNotifier?.removeListener(_onDataControllerChanged);
     _boundSession?.toolModeNotifier.removeListener(_onToolModeChanged);
     if (_boundSession?.viewportController == _viewportController) {
@@ -166,6 +249,37 @@ class _GraphCanvasState extends State<GraphCanvas>
         renderState.activeLeftPanelNotifier.value == LeftPanelType.draw) {
       renderState.activeLeftPanelNotifier.value = LeftPanelType.none;
     }
+  }
+
+  void _handleCanvasPaste(
+    GraphDataController dataController,
+    NodeRenderState renderState,
+  ) {
+    if (renderState.activeEditId != null) return;
+
+    final mousePos = _mousePositionNotifier.value;
+    if (mousePos == null) return;
+
+    final viewportController = _viewportController;
+    if (viewportController == null) return;
+
+    final transform = viewportController.transformController.value;
+    if (transform.determinant() == 0.0) return;
+
+    final canvasPos = MatrixUtils.transformPoint(
+      Matrix4.inverted(transform),
+      mousePos,
+    );
+
+    Clipboard.getData('text/plain').then((data) {
+      if (data?.text != null && data!.text!.isNotEmpty) {
+        pasteTextToCanvas(
+          dataController: dataController,
+          text: data.text!,
+          canvasPosition: canvasPos,
+        );
+      }
+    });
   }
 
   @override
@@ -196,9 +310,20 @@ class _GraphCanvasState extends State<GraphCanvas>
         Provider<ViewportController>.value(value: viewportController),
         Provider<InteractionController>.value(value: interactionController),
       ],
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return GlassStage(
+      child: Focus(
+        autofocus: true,
+        onKeyEvent: (node, event) {
+          if (event is KeyDownEvent &&
+              event.logicalKey == LogicalKeyboardKey.keyV &&
+              HardwareKeyboard.instance.isControlPressed) {
+            _handleCanvasPaste(dataController, renderState);
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return GlassStage(
             mode: GlassMode.performance,
             settings: GlassSettings(
               refractStrength: AppConfig.liquidGlass.refractStrength,
@@ -242,13 +367,30 @@ class _GraphCanvasState extends State<GraphCanvas>
                   },
                   child: Listener(
                     onPointerDown: (event) {
+                      if (event.kind == PointerDeviceKind.mouse &&
+                          event.buttons == kSecondaryMouseButton) {
+                        _rightClickDownScreenPos = event.position;
+                        _isRightClickDrag = false;
+                      }
                       interactionController.handlePointerDown(event);
                     },
                     onPointerMove: (event) {
+                      if (_rightClickDownScreenPos != null && !_isRightClickDrag) {
+                        final dragDistance =
+                            (event.position - _rightClickDownScreenPos!).distance;
+                        if (dragDistance > 5.0) {
+                          _isRightClickDrag = true;
+                        }
+                      }
                       interactionController.handlePointerMove(event);
                       _updateMousePosition(event.localPosition);
                     },
                     onPointerUp: (event) {
+                      if (_rightClickDownScreenPos != null && !_isRightClickDrag && renderState.activeEditId == null) {
+                        _showCanvasContextMenu(_rightClickDownScreenPos!);
+                      }
+                      _rightClickDownScreenPos = null;
+                      _isRightClickDrag = false;
                       interactionController.handlePointerUp(event);
                     },
                     onPointerCancel: (event) {
@@ -406,6 +548,7 @@ class _GraphCanvasState extends State<GraphCanvas>
             ),
           );
         },
+      ),
       ),
     );
   }
