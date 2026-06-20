@@ -283,11 +283,13 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
     String toId, {
     String? fromSide,
     String? toSide,
+    String? verb,
   }) => relationMutations.createRelation(
     fromId,
     toId,
     fromSide: fromSide,
     toSide: toSide,
+    verb: verb,
   );
 
   @override

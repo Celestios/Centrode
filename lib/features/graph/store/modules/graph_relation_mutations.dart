@@ -20,6 +20,7 @@ class GraphRelationMutations {
     String toId, {
     String? fromSide,
     String? toSide,
+    String? verb,
   }) {
     final bool relationExists = controller.store.relationLookup.values.any(
       (r) => r.fromNodeId == fromId && r.toNodeId == toId,
@@ -46,6 +47,7 @@ class GraphRelationMutations {
       fromNodeTable: fromNode.tableName,
       toNodeId: toId,
       toNodeTable: toNode.tableName,
+      verb: verb ?? 'default',
       layout: RelationLayout(
         fromSide: fromSide ?? 'Auto',
         toSide: toSide ?? 'Auto',

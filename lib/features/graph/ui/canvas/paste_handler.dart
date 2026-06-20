@@ -195,7 +195,7 @@ void _createTreeNodes(
 
   final createdIds = <String>{};
 
-  String createNode(_TreeNode tree, Offset pos, String? parentId) {
+  String createNode(_TreeNode tree, Offset pos, String? parentId, {String? parentVerb}) {
     final content = _nodeContent(tree);
     final id = dataController.createNode(UiNodes.info, pos);
     if (content.isNotEmpty) {
@@ -204,7 +204,10 @@ void _createTreeNodes(
     createdIds.add(id);
 
     if (parentId != null) {
-      dataController.createRelation(parentId, id);
+      final isParentHeading = parentVerb != null;
+      final isChildBody = tree.title == null;
+      final verb = isParentHeading && isChildBody ? 'description' : 'contains';
+      dataController.createRelation(parentId, id, verb: verb);
     }
 
     final childCount = tree.children.length;
@@ -212,7 +215,7 @@ void _createTreeNodes(
       final startX = pos.dx - ((childCount - 1) * hGap) / 2;
       for (int i = 0; i < childCount; i++) {
         final childPos = Offset(startX + i * hGap, pos.dy + vGap);
-        createNode(tree.children[i], childPos, id);
+        createNode(tree.children[i], childPos, id, parentVerb: tree.title ?? parentVerb);
       }
     }
 

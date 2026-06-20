@@ -70,11 +70,13 @@ class CanvasInteractionEnvironment implements InteractionContext {
     String to, {
     String? fromSide,
     String? toSide,
+    String? verb,
   }) => _dataController.createRelation(
     from,
     to,
     fromSide: fromSide,
     toSide: toSide,
+    verb: verb,
   );
 
   @override

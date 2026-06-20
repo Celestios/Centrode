@@ -68,6 +68,7 @@ abstract interface class MutationCapability {
     String to, {
     String? fromSide,
     String? toSide,
+    String? verb,
   });
 
   void onRelationUpdateLayout(
