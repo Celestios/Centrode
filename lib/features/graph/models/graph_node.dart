@@ -78,6 +78,18 @@ sealed class UiNode {
 
   static UiNode? copy(UiNode? node) => _$uiNodeCopy(node);
 
+  UiNode? cloneWithId(String newId) {
+    if (this is InfoUiNode) return (this as InfoUiNode).copyWith(id: newId);
+    if (this is TaskUiNode) return (this as TaskUiNode).copyWith(id: newId);
+    if (this is CommentUiNode) return (this as CommentUiNode).copyWith(id: newId);
+    if (this is DrawingUiNode) return (this as DrawingUiNode).copyWith(id: newId);
+    if (this is FrameUiNode) return (this as FrameUiNode).copyWith(id: newId);
+    if (this is InterUiNode) return (this as InterUiNode).copyWith(id: newId);
+    if (this is MediaUiNode) return (this as MediaUiNode).copyWith(id: newId);
+    if (this is ShapeUiNode) return (this as ShapeUiNode).copyWith(id: newId);
+    return null;
+  }
+
   // ──────────────────── layout engine ─────────────────────────────────────
   Color get defaultPreviewColor {
     final self = this;

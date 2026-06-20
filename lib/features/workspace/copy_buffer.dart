@@ -5,6 +5,8 @@ import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
 import 'package:mycelium/features/graph/store/graph_data_query.dart';
 import 'package:mycelium/features/graph/store/graph_data_controller.dart';
+import 'package:mycelium/features/graph/models/commands/create_node.dart';
+import 'package:mycelium/features/graph/models/commands/graph_command_context.dart';
 import 'package:mycelium/src/rust/domain/styles.dart' show RelationLayout;
 
 class CopyBuffer extends ChangeNotifier {
@@ -43,7 +45,7 @@ class CopyBuffer extends ChangeNotifier {
     for (final node in selectedNodes) {
       final newId = const Uuid().v4();
       oldToNewId[node.id] = newId;
-      final copy = _copyNodeWithId(node, newId);
+      final copy = node.cloneWithId(newId);
       if (copy == null) continue;
       newNodes.add(copy);
     }
@@ -84,15 +86,43 @@ class CopyBuffer extends ChangeNotifier {
     final copyToPasteId = <String, String>{};
 
     for (final node in _nodes!) {
-      final newId = controller.createNode(
-        UiNodes.info,
-        cursorPosition + (node.position - _copyOrigin!),
-        content: node.content,
-        size: node.size,
+      final newPos = cursorPosition + (node.position - _copyOrigin!);
+      final newNode = _createNodeByType(node, newPos);
+      if (newNode == null) continue;
+
+      final id = newNode.id;
+      controller.store.nodeLookup[id] = newNode;
+      controller.spatial.spatialGrid.insert(id, newPos);
+      controller.spatial.saveConfirmedPosition(id, newPos);
+      controller.styleUpdater?.updateStyleForNode(id);
+
+      final result = controller.calculateNodeSize(newNode);
+      newNode.size = result.size;
+      newNode.lineCount = result.lineCount;
+
+      copyToPasteId[node.id] = id;
+      createdIds.add(id);
+
+      controller.syncEngine.processor.queueCommand(
+        CreateNodeCommand(
+          targetId: id,
+          api: controller.syncEngine.api,
+          node: newNode,
+          controller: controller,
+        ),
+        immediate: true,
       );
-      copyToPasteId[node.id] = newId;
-      createdIds.add(newId);
+
+      controller.publishUpdate(
+        GraphEntityUpdate(
+          id: id,
+          tableName: newNode.tableName,
+          type: GraphUpdateType.nodeAdded,
+        ),
+      );
     }
+
+    controller.triggerUpdate();
 
     await controller.flush();
 
@@ -137,15 +167,10 @@ class CopyBuffer extends ChangeNotifier {
     notifyListeners();
   }
 
-  UiNode? _copyNodeWithId(UiNode node, String newId) {
-    if (node is InfoUiNode) return node.copyWith(id: newId);
-    if (node is TaskUiNode) return node.copyWith(id: newId);
-    if (node is CommentUiNode) return node.copyWith(id: newId);
-    if (node is DrawingUiNode) return node.copyWith(id: newId);
-    if (node is FrameUiNode) return node.copyWith(id: newId);
-    if (node is InterUiNode) return node.copyWith(id: newId);
-    if (node is MediaUiNode) return node.copyWith(id: newId);
-    if (node is ShapeUiNode) return node.copyWith(id: newId);
-    return null;
+  UiNode? _createNodeByType(UiNode source, Offset position) {
+    final clone = source.cloneWithId(const Uuid().v4());
+    if (clone == null) return null;
+    clone.position = position;
+    return clone;
   }
 }
