@@ -181,6 +181,16 @@ class _GraphCanvasState extends State<GraphCanvas>
           },
         ),
         ContextMenuItem(
+          label: 'Cut',
+          onTap: () {
+            final selectedIds = renderState.selectedEntities.toList();
+            if (selectedIds.isNotEmpty) {
+              copyBuffer.copy(selectedIds, dataController);
+              renderState.deleteSelectedEntities();
+            }
+          },
+        ),
+        ContextMenuItem(
           label: 'Paste',
           onTap: () async {
             if (copyBuffer.hasData) {
@@ -258,6 +268,18 @@ class _GraphCanvasState extends State<GraphCanvas>
     copyBuffer.copy(selectedIds, dataController);
   }
 
+  void _handleCanvasCut(
+    GraphDataController dataController,
+    NodeRenderState renderState,
+  ) {
+    final selectedIds = renderState.selectedEntities.toList();
+    if (selectedIds.isEmpty) return;
+
+    final copyBuffer = context.read<CopyBuffer>();
+    copyBuffer.copy(selectedIds, dataController);
+    renderState.deleteSelectedEntities();
+  }
+
   Future<void> _handleCanvasPaste(
     GraphDataController dataController,
     NodeRenderState renderState,
@@ -332,6 +354,11 @@ class _GraphCanvasState extends State<GraphCanvas>
             if (event.logicalKey == LogicalKeyboardKey.keyC &&
                 HardwareKeyboard.instance.isControlPressed) {
               _handleCanvasCopy(dataController, renderState);
+              return KeyEventResult.handled;
+            }
+            if (event.logicalKey == LogicalKeyboardKey.keyX &&
+                HardwareKeyboard.instance.isControlPressed) {
+              _handleCanvasCut(dataController, renderState);
               return KeyEventResult.handled;
             }
             if (event.logicalKey == LogicalKeyboardKey.keyV &&
