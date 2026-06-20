@@ -6,7 +6,6 @@ import 'package:mycelium/features/graph/models/graph_relation.dart';
 import 'package:mycelium/features/graph/store/graph_data_query.dart';
 import 'package:mycelium/features/graph/store/graph_data_controller.dart';
 import 'package:mycelium/features/graph/models/commands/create_node.dart';
-import 'package:mycelium/features/graph/models/commands/graph_command_context.dart';
 import 'package:mycelium/src/rust/domain/styles.dart' show RelationLayout;
 
 class CopyBuffer extends ChangeNotifier {

@@ -52,14 +52,10 @@ class GraphNodeMutations {
     // Resolve the node style immediately so it doesn't render with a transparent/stale fallback style
     controller.styleUpdater?.updateStyleForNode(id);
 
-    // Compute the correct initial size using the centralized layout strategy helper
-    if (size != null) {
-      node.size = size;
-    } else {
-      final result = controller.calculateNodeSize(node);
-      node.size = result.size;
-      node.lineCount = result.lineCount;
-    }
+    // Compute the correct initial size and lineCount using the centralized layout strategy helper
+    final result = controller.calculateNodeSize(node);
+    node.size = result.size;
+    node.lineCount = result.lineCount;
 
     final cmd = CreateNodeCommand(
       targetId: id,
