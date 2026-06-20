@@ -1,14 +1,17 @@
 import 'dart:ui' show Offset;
+import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' show RecordStrings;
 import '../../models/models.dart';
 import '../graph_data_controller.dart';
 
 class GraphTemplateMutations {
+  final Logger _log = Logger('GraphTemplateMutations');
   final GraphDataController controller;
 
   GraphTemplateMutations(this.controller);
 
   Future<List<Template>> getAllTemplates() async {
+    _log.info('getAllTemplates called');
     final dynamic api = controller.syncEngine.api;
     final List<dynamic> raw = await api.getAllTemplates();
     return raw.cast<Template>();
@@ -19,6 +22,7 @@ class GraphTemplateMutations {
     List<String> nodeIds,
     List<String> relationIds,
   ) async {
+    _log.info('saveTemplateFromSelection name=$name nodes=${nodeIds.length} relations=${relationIds.length}');
     final dynamic api = controller.syncEngine.api;
     final nodeRecords = nodeIds.map((id) {
       final node = controller.store.nodeLookup[id];
@@ -42,6 +46,7 @@ class GraphTemplateMutations {
   }
 
   Future<void> instantiateTemplate(String key, Offset canvasCoords) async {
+    _log.info('instantiateTemplate key=$key pos=(${canvasCoords.dx}, ${canvasCoords.dy})');
     final cmd = InstantiateTemplateCommand(
       targetId: key,
       api: controller.syncEngine.api,
@@ -53,6 +58,7 @@ class GraphTemplateMutations {
   }
 
   Future<void> deleteTemplate(String key) async {
+    _log.info('deleteTemplate key=$key');
     final dynamic api = controller.syncEngine.api;
     await api.deleteTemplate(key: key);
     controller.triggerUpdate();

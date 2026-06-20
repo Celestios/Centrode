@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
 import '../models/models.dart';
 import '../store/graph_data_controller.dart';
 import '../store/graph_data_query.dart';
 import '../store/spatial_index.dart';
 
 class GraphPresentationNotifier extends ChangeNotifier implements GraphDataQuery {
+  final Logger _log = Logger('GraphPresentationNotifier');
   final GraphDataController controller;
   StreamSubscription<GraphEntityUpdate>? _subscription;
 
   GraphPresentationNotifier(this.controller) {
+    _log.info('GraphPresentationNotifier created, subscribing to entity updates');
     _subscription = controller.onEntityUpdate.listen((_) {
       notifyListeners();
     });
@@ -41,6 +44,7 @@ class GraphPresentationNotifier extends ChangeNotifier implements GraphDataQuery
 
   @override
   void dispose() {
+    _log.info('GraphPresentationNotifier disposed');
     _subscription?.cancel();
     super.dispose();
   }

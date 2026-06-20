@@ -1,6 +1,8 @@
 // lib/features/graph/state/states/toolbar_dragging.dart
 part of '../base_interaction_state.dart';
 
+final Logger _toolbarDragLog = Logger('ToolbarDragging');
+
 /// [NEW] State when dragging the floating toolbar to adjust its relative offset.
 /// Supports both node entities and relation entities.
 class ToolbarDragging extends CanvasInteractionState {
@@ -15,6 +17,7 @@ class ToolbarDragging extends CanvasInteractionState {
     Offset pCanvas,
     SelectionCapability ctx,
   ) {
+    _toolbarDragLog.fine('handlePointerMove entityId=$entityId');
     final selected = ctx.getSelectedEntities();
     if (selected.isEmpty) return const CanvasIdle();
     final anchor = ctx.calculateToolbarAnchor(selected);

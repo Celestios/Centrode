@@ -1,3 +1,4 @@
+import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
@@ -7,6 +8,8 @@ import '../graph_relation.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
 import 'patch_helpers.dart';
+
+final Logger _log = Logger('UpdateRelationsLayoutCommand');
 
 class UpdateRelationsLayoutCommand extends GraphCommand {
   @override
@@ -35,6 +38,7 @@ class UpdateRelationsLayoutCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
+    _log.info('execute UpdateRelationsLayout count=${newLayouts.length}');
     for (final id in newLayouts.keys) {
       final (forwardPatches, reversePatches) = buildRelationLayoutPatches(
         oldLayouts[id], newLayouts[id], oldStyles[id], newStyles[id],
@@ -53,6 +57,7 @@ class UpdateRelationsLayoutCommand extends GraphCommand {
 
   @override
   void undo() {
+    _log.info('undo UpdateRelationsLayout count=${oldRelations.length}');
     for (final id in oldRelations.keys) {
       final oldRelation = oldRelations[id]!;
       controller.store.relationLookup[id] = oldRelation;

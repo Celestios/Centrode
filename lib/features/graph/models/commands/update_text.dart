@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/contents.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
@@ -6,6 +7,8 @@ import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import '../../store/graph_data_query.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+
+final Logger _log = Logger('UpdateTextCommand');
 
 /// Command for updating text content with debounced write-behind sync.
 /// Handles both node text and relation labels with appropriate field mapping.
@@ -40,6 +43,7 @@ class UpdateTextCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
+    _log.info('execute UpdateText key=$targetId table=$tableName');
     if (tableName == 'IRelation') {
       final List<RelationPatch> forwardPatches = [];
       final List<RelationPatch> reversePatches = [];
@@ -93,6 +97,7 @@ class UpdateTextCommand extends GraphCommand {
 
   @override
   void undo() {
+    _log.info('undo UpdateText key=$targetId');
     final node = controller.store.nodeLookup[targetId];
     final rel = controller.store.relationLookup[targetId];
 

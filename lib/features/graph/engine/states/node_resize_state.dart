@@ -1,6 +1,8 @@
 // lib/features/graph/state/states/node_resizing.dart
 part of '../base_interaction_state.dart';
 
+final Logger _nodeResizeLog = Logger('NodeResizing');
+
 /// Which edge of the node is being dragged for resizing.
 enum ResizeEdge { left, right }
 
@@ -51,6 +53,8 @@ class NodeResizing extends CanvasInteractionState {
     vs.positionNotifier.value = Offset(newLeft, vs.positionNotifier.value.dy);
     vs.dragWidthNotifier.value = clampedWidth;
 
+    _nodeResizeLog.fine('handlePointerMove nodeId=$nodeId edge=$edge width=$clampedWidth');
+
     final node = ctx.getNode(nodeId);
     if (node != null) {
       final result = NodeLayoutStrategy.calculateSize(node, overrideWidth: clampedWidth);
@@ -69,6 +73,7 @@ class NodeResizing extends CanvasInteractionState {
   ) {
     final vs = ctx.nodeViewStates[nodeId];
     if (vs != null && vs.dragWidthNotifier.value != null) {
+      _nodeResizeLog.info('handlePointerUp nodeId=$nodeId committed width=${vs.dragWidthNotifier.value}');
       final newWidth = vs.dragWidthNotifier.value!;
       final leftEdge = vs.positionNotifier.value.dx;
       final rightEdge = leftEdge + newWidth;

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import '../../../src/rust/bridge/api.dart';
@@ -16,6 +17,7 @@ import 'strategies/node_style_strategy.dart';
 import 'style_manager.dart';
 
 class TabSession extends ChangeNotifier {
+  final Logger _log = Logger('TabSession');
   final String id;
   final String storagePath;
   final String name;
@@ -45,6 +47,7 @@ class TabSession extends ChangeNotifier {
   }
 
   Future<void> saveViewportState() async {
+    _log.fine('saveViewportState for session $name');
     _debounceTimer?.cancel();
     final vp = _viewportController;
     final dc = dataController;
@@ -116,6 +119,7 @@ class TabSession extends ChangeNotifier {
   }
 
   Future<void> _doInitialize(ThemeData globalTheme) async {
+    _log.info('Initializing TabSession name=$name path=$storagePath');
     String resolvedPath = storagePath;
     if (!p.isAbsolute(storagePath)) {
       if (!kReleaseMode) {
@@ -163,11 +167,13 @@ class TabSession extends ChangeNotifier {
 
     await dc.loadGraph();
     isInitialized = true;
+    _log.info('TabSession initialized successfully');
     notifyListeners();
   }
 
   @override
   void dispose() {
+    _log.info('Disposing TabSession name=$name');
     _debounceTimer?.cancel();
     _viewportController?.transformController.removeListener(_onViewportChanged);
     themeController?.dispose();
@@ -188,6 +194,7 @@ class TabSession extends ChangeNotifier {
 }
 
 class WorkspaceTabsController extends ChangeNotifier {
+  final Logger _log = Logger('WorkspaceTabsController');
   final List<TabSession> _tabs = [];
   int _activeIndex = 0;
 
@@ -204,6 +211,7 @@ class WorkspaceTabsController extends ChangeNotifier {
   TabSession get activeSession => _tabs[_activeIndex];
 
   void addTab(String storagePath, String name) {
+    _log.info('addTab name=$name');
     final id =
         '${DateTime.now().millisecondsSinceEpoch}_${storagePath.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}';
     final newSession = TabSession(id: id, storagePath: storagePath, name: name);
@@ -213,6 +221,7 @@ class WorkspaceTabsController extends ChangeNotifier {
   }
 
   void selectTab(int index) {
+    _log.info('selectTab index=$index');
     if (index >= 0 && index < _tabs.length && index != _activeIndex) {
       final prevSession = _tabs[_activeIndex];
       prevSession.saveViewportState(); // Fire-and-forget
@@ -223,6 +232,7 @@ class WorkspaceTabsController extends ChangeNotifier {
   }
 
   Future<void> closeTab(int index) async {
+    _log.info('closeTab index=$index');
     if (_tabs.length <= 1) return; // Keep at least one tab open
     final closedSession = _tabs[index];
     await closedSession.saveViewportState();

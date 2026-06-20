@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:logging/logging.dart';
 import '../config.dart';
 import '../../presentation/strategies/relation_layout_strategy.dart';
 import '../../presentation/routing/relation_layout_context.dart';
@@ -44,6 +45,8 @@ class PointerHitResult {
 }
 
 class HitTestResolver {
+  final Logger _hitTestLog = Logger('HitTestResolver');
+
   PointerHitResult resolve(Offset pCanvas, InteractionContext ctx, bool isDoubleTap) {
     final layoutContext = RelationLayoutContext(
       nodeViewStates: ctx.nodeViewStates,
@@ -57,12 +60,19 @@ class HitTestResolver {
     }
 
     final selectedEntities = ctx.getSelectedEntities();
+    _hitTestLog.fine('resolve pCanvas=(${pCanvas.dx}, ${pCanvas.dy}) selected=${selectedEntities.length}');
 
-    return _resolveRelationTips(pCanvas, ctx, layoutContext, selectedEntities) ??
+    final result = _resolveRelationTips(pCanvas, ctx, layoutContext, selectedEntities) ??
         _resolveMetadataSphere(pCanvas, ctx, nodeIds) ??
         _resolveNodeHits(pCanvas, ctx, nodeIds) ??
         _resolveRelationLabel(pCanvas, ctx, nodeIds, layoutContext) ??
         const PointerHitResult(type: HitTestType.none);
+
+    if (result.type != HitTestType.none) {
+      _hitTestLog.fine('resolve hit: ${result.type} entity=${result.hitNodeId ?? result.hitEntityId ?? result.relationId}');
+    }
+
+    return result;
   }
 
   PointerHitResult? _resolveRelationTips(

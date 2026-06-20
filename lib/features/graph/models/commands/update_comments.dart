@@ -1,9 +1,12 @@
+import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import '../../store/graph_data_query.dart';
 import '../graph_node.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+
+final Logger _log = Logger('UpdateCommentsCommand');
 
 class UpdateCommentsCommand extends GraphCommand {
   @override
@@ -26,11 +29,13 @@ class UpdateCommentsCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
+    _log.info('execute UpdateComments key=$targetId comments=${node is InfoUiNode ? (node as InfoUiNode).comments.length : "?"}');
     await api.updateNode(input: node.toRust());
   }
 
   @override
   void undo() {
+    _log.info('undo UpdateComments key=$targetId restoring ${oldComments.length} comments');
     final node = controller.store.nodeLookup[targetId];
     if (node is InfoUiNode) {
       node.comments = oldComments;

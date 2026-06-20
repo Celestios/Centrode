@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:logging/logging.dart';
 import '../models/models.dart';
 import '../presentation/view_state.dart';
 import '../presentation/strategies/node_style_strategy.dart';
@@ -11,6 +12,7 @@ import '../presentation/workspace_tabs_controller.dart';
 
 /// The Facade bridging the active FSM to the Data/UI Controllers.
 class CanvasInteractionEnvironment implements InteractionContext {
+  final Logger _log = Logger('CanvasInteractionEnvironment');
   final GraphDataController _dataController;
   final NodeRenderState _renderState;
   final ViewportController _viewportController;
@@ -55,14 +57,17 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
   @override
   void openDataInspector(String nodeId) {
+    _log.info('openDataInspector nodeId=$nodeId');
     onSelectEntity(nodeId);
     _boundSession?.showRightPanel.value = true;
     _renderState.activeInspectorTabNotifier.value = InspectorTab.data;
   }
 
   @override
-  void onNodeMove(String id, Offset pos) =>
-      _dataController.updateNodePosition(id, pos);
+  void onNodeMove(String id, Offset pos) {
+    _log.fine('onNodeMove id=$id');
+    _dataController.updateNodePosition(id, pos);
+  }
 
   @override
   void onRelationCreate(
@@ -71,13 +76,16 @@ class CanvasInteractionEnvironment implements InteractionContext {
     String? fromSide,
     String? toSide,
     String? verb,
-  }) => _dataController.createRelation(
-    from,
-    to,
-    fromSide: fromSide,
-    toSide: toSide,
-    verb: verb,
-  );
+  }) {
+    _log.info('onRelationCreate from=$from to=$to');
+    _dataController.createRelation(
+      from,
+      to,
+      fromSide: fromSide,
+      toSide: toSide,
+      verb: verb,
+    );
+  }
 
   @override
   void onRelationUpdateLayout(
@@ -88,6 +96,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
     String? toSide,
     String? strategyType,
   }) {
+    _log.info('onRelationUpdateLayout id=$id');
     _dataController.updateRelationLayout(
       id,
       fromNodeId: fromNodeId,
@@ -115,6 +124,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
   @override
   void onEnterEditMode(String id) {
+    _log.info('onEnterEditMode id=$id');
     _renderState.enterEditMode(id);
     openDataInspector(id);
   }
@@ -124,6 +134,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
   @override
   void onCreateNode(Offset position) {
+    _log.info('onCreateNode pos=(${position.dx}, ${position.dy})');
     // 1. Create the node via data layer
     final id = _dataController.createNode(UiNodes.info, position);
 
@@ -138,6 +149,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
   @override
   void toggleNodeExpansion(String id) {
+    _log.fine('toggleNodeExpansion id=$id');
     _dataController.toggleNodeExpansion(id);
   }
 
@@ -170,13 +182,17 @@ class CanvasInteractionEnvironment implements InteractionContext {
   }
 
   @override
-  void onDeleteSelectedEntities() => _renderState.deleteSelectedEntities();
+  void onDeleteSelectedEntities() {
+    _log.info('onDeleteSelectedEntities');
+    _renderState.deleteSelectedEntities();
+  }
 
   @override
   void onSaveTemplate() {
     final nodeIds = _renderState.selectedEntities
         .where((id) => _dataController.nodeLookup.containsKey(id))
         .toList();
+    _log.info('onSaveTemplate nodes=${nodeIds.length}');
     if (nodeIds.isEmpty) return;
 
     final nodeIdsSet = nodeIds.toSet();
@@ -231,6 +247,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
     required String brushColor,
     required Size size,
   }) {
+    _log.info('onCreateDrawingNode pos=(${position.dx}, ${position.dy}) type=$brushType');
     _dataController.createNode(
       UiNodes.drawing,
       position,

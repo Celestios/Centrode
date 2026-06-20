@@ -1,6 +1,9 @@
+import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+
+final Logger _log = Logger('InstantiateTemplateCommand');
 
 class InstantiateTemplateCommand extends GraphCommand {
   @override
@@ -23,6 +26,7 @@ class InstantiateTemplateCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
+    _log.info('execute InstantiateTemplate key=$targetId pos=($targetX, $targetY)');
     await api.instantiateTemplate(
       key: targetId,
       targetX: targetX,
@@ -37,6 +41,7 @@ class InstantiateTemplateCommand extends GraphCommand {
 
   @override
   void onSuccess() {
+    _log.info('onSuccess InstantiateTemplate key=$targetId, reloading graph');
     controller.loadGraph();
   }
 }

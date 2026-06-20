@@ -1,3 +1,4 @@
+import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/tags.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
@@ -6,6 +7,8 @@ import '../../store/graph_data_query.dart';
 import '../graph_node.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+
+final Logger _log = Logger('UpdateTagsCommand');
 
 class UpdateTagsCommand extends GraphCommand {
   @override
@@ -31,6 +34,7 @@ class UpdateTagsCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
+    _log.info('execute UpdateTags key=$targetId old=${oldTags.length} new=${newTags.length}');
     final allTags = await api.getAllTags();
     final Map<String, Tag> nameToTag = {
       for (final t in allTags) t.fields.name.toLowerCase(): t,
@@ -108,6 +112,7 @@ class UpdateTagsCommand extends GraphCommand {
 
   @override
   void undo() {
+    _log.info('undo UpdateTags key=$targetId restoring ${oldTags.length} tags');
     final node = controller.store.nodeLookup[targetId];
     if (node is InfoUiNode) {
       node.tags = oldTags;

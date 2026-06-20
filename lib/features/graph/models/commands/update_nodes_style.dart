@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
@@ -7,6 +8,8 @@ import '../../store/graph_data_query.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
 import 'patch_helpers.dart';
+
+final Logger _log = Logger('UpdateNodesStyleCommand');
 
 class UpdateNodesStyleCommand extends GraphCommand {
   @override
@@ -33,6 +36,7 @@ class UpdateNodesStyleCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
+    _log.info('execute UpdateNodesStyle count=${newStyles.length}');
     for (final id in newStyles.keys) {
       final (forwardPatches, reversePatches) = buildNodeStylePatches(
         oldStyles[id], newStyles[id], oldSizes[id], newSizes[id],
@@ -53,6 +57,7 @@ class UpdateNodesStyleCommand extends GraphCommand {
 
   @override
   void undo() {
+    _log.info('undo UpdateNodesStyle count=${oldStyles.length}');
     for (final id in oldStyles.keys) {
       final node = controller.store.nodeLookup[id];
       if (node != null) {

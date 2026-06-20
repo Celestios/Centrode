@@ -1,8 +1,10 @@
 import 'dart:math';
 import 'package:flutter/painting.dart';
+import 'package:logging/logging.dart';
 
 /// Geometric router that calculates detours around node obstacles.
 class RelationRouter {
+  static final Logger _log = Logger('RelationRouter');
   /// Computes a list of waypoints from [start] to [end] avoiding [obstacles].
   static List<Offset> computeWaypoints({
     required Offset start,
@@ -52,6 +54,7 @@ class RelationRouter {
       simplified.add(path[furthest]);
       current = furthest;
     }
+    _log.fine('RelationRouter simplified path: original=${path.length} simplified=${simplified.length}');
     return simplified;
   }
 
@@ -64,6 +67,7 @@ class RelationRouter {
     int maxDepth,
   ) {
     if (depth >= maxDepth) {
+      _log.warning('RelationRouter hit max depth limit ($maxDepth) routing from $a to $b. Falling back to direct path.');
       return [a, b];
     }
 

@@ -18,12 +18,15 @@ part 'states/toolbar_drag_state.dart';
 part 'states/marquee_state.dart';
 part 'states/relation_tip_drag_state.dart';
 
+final Logger _snapLog = Logger('GridSnapping');
+
 /// O(1) Mathematical quantization for continuous grid snapping.
 Offset _snapToGrid(Offset p, double gridSize) {
   final snapped = Offset(
     (p.dx / gridSize).round() * gridSize,
     (p.dy / gridSize).round() * gridSize,
   );
+  _snapLog.finest('Grid snap: $p -> $snapped (grid: $gridSize)');
   return snapped;
 }
 

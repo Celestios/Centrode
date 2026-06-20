@@ -1,8 +1,11 @@
+import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import '../../store/graph_data_query.dart';
 import '../graph_node.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+
+final Logger _log = Logger('CreateNodeCommand');
 
 class CreateNodeCommand extends GraphCommand {
   @override
@@ -23,11 +26,13 @@ class CreateNodeCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
+    _log.info('execute CreateNode key=$targetId table=${node.tableName}');
     await api.createNode(input: node.toRust());
   }
 
   @override
   void undo() {
+    _log.info('undo CreateNode key=$targetId');
     controller.store.nodeLookup.remove(targetId);
     controller.spatial.spatialGrid.remove(targetId, node.position);
     controller.spatial.clearConfirmedPosition(targetId);

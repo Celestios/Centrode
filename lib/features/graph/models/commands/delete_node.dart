@@ -1,7 +1,10 @@
+import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import '../../store/graph_data_query.dart';
 import '../models.dart';
 import 'graph_command_context.dart';
+
+final Logger _log = Logger('DeleteNodeCommand');
 
 /// Command for deleting a node with rollback support.
 /// Captures the node data for restoration on FFI failure.
@@ -26,11 +29,13 @@ class DeleteNodeCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
+    _log.info('execute DeleteNode key=$targetId table=$tableName');
     await api.deleteNodeEntry(table: tableName, key: targetId);
   }
 
   @override
   void undo() {
+    _log.info('undo DeleteNode key=$targetId restoring node');
     controller.store.nodeLookup[targetId] = node;
     controller.spatial.spatialGrid.insert(targetId, node.position);
     controller.publishUpdate(

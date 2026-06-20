@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
@@ -6,6 +7,8 @@ import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import '../../store/graph_data_query.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+
+final Logger _log = Logger('MoveNodeCommand');
 
 class MoveNodeCommand extends GraphCommand {
   @override
@@ -42,6 +45,7 @@ class MoveNodeCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
+    _log.info('execute MoveNode key=$targetId table=$tableName');
     final List<NodePatch> forwardPatches = [];
     final List<NodePatch> reversePatches = [];
 
@@ -91,6 +95,8 @@ class MoveNodeCommand extends GraphCommand {
       reversePatches.add(NodePatch.isExpanded(oldExpanded!));
     }
 
+    _log.fine('execute patches=${forwardPatches.length} position=$newPosition size=$newSize');
+
     if (forwardPatches.isNotEmpty) {
       final patch = SymmetricEntityPatch(
         id: frb.RecordStrings(table: tableName, key: targetId),
@@ -106,6 +112,7 @@ class MoveNodeCommand extends GraphCommand {
 
   @override
   void undo() {
+    _log.info('undo MoveNode key=$targetId');
     final node = controller.store.nodeLookup[targetId];
     if (node != null) {
       if (oldPosition != null && newPosition != null) {

@@ -1,6 +1,8 @@
 // lib/features/graph/state/states/relation_tip_drag_state.dart
 part of '../base_interaction_state.dart';
 
+final Logger _relationTipLog = Logger('RelationTipDragging');
+
 class RelationTipDragging extends CanvasInteractionState {
   final String relationId;
   final bool
@@ -77,6 +79,7 @@ class RelationTipDragging extends CanvasInteractionState {
 
     ctx.relationPathCache.remove(relationId);
     ctx.onNodeDragUpdate(); // Pulse MovementNotifier to redraw the drag line
+    _relationTipLog.fine('handlePointerMove relation=$relationId snap=${snappedId ?? "none"}');
     return RelationTipDragging(
       relationId: relationId,
       isStartTip: isStartTip,
@@ -93,6 +96,7 @@ class RelationTipDragging extends CanvasInteractionState {
     PointerUpEvent e,
     GeometryCapability ctx,
   ) {
+    _relationTipLog.info('handlePointerUp relation=$relationId snapped=${snappedTargetNodeId ?? "none"} side=${snappedTargetSide ?? "none"}');
     ctx.relationPathCache.remove(relationId);
     if (snappedTargetNodeId != null) {
       if (isStartTip) {

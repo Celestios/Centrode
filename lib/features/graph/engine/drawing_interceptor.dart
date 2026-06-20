@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'gesture_interceptor.dart';
 import 'interaction_context.dart';
 import '../presentation/workspace_tabs_controller.dart';
@@ -11,6 +12,7 @@ import '../presentation/viewport_state.dart';
 /// maintaining an in-memory stroke list and converting coordinates into canvas space.
 /// Triggers drawing node creation upon gesture cycle completion.
 class DrawingGestureInterceptor extends GestureInterceptor {
+  final Logger _log = Logger('DrawingGestureInterceptor');
   final TabSession session;
   final ViewportController viewportController;
   
@@ -38,6 +40,7 @@ class DrawingGestureInterceptor extends GestureInterceptor {
   ) {
     if (session.toolModeNotifier.value == 'draw' &&
         e.buttons == kPrimaryMouseButton) {
+      _log.fine('onPointerDown: drawing started');
       activeStroke.value = [_getLocalCanvasCoords(e.localPosition)];
       return InterceptorDisposition.consumed;
     }
@@ -97,6 +100,7 @@ class DrawingGestureInterceptor extends GestureInterceptor {
 
   void _endDrawing(InteractionContext ctx) {
     final stroke = activeStroke.value;
+    _log.info('_endDrawing: stroke points=${stroke.length}');
     if (stroke.length < 2) {
       _cancelDrawing();
       return;
@@ -114,6 +118,7 @@ class DrawingGestureInterceptor extends GestureInterceptor {
       if (p.dy > maxY) maxY = p.dy;
     }
 
+    _log.fine('_endDrawing: bounds=($minX,$minY)-($maxX,$maxY)');
     final width = maxX - minX;
     final height = maxY - minY;
 
@@ -151,6 +156,7 @@ class DrawingGestureInterceptor extends GestureInterceptor {
   }
 
   void _cancelDrawing() {
+    _log.fine('_cancelDrawing');
     activeStroke.value = [];
   }
 

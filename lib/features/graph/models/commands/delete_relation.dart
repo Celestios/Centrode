@@ -1,8 +1,11 @@
+import 'package:logging/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import '../../store/graph_data_query.dart';
 import '../graph_relation.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+
+final Logger _log = Logger('DeleteRelationCommand');
 
 class DeleteRelationCommand extends GraphCommand {
   @override
@@ -25,11 +28,13 @@ class DeleteRelationCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
+    _log.info('execute DeleteRelation key=$targetId table=$tableName');
     await api.deleteRelation(table: tableName, key: targetId);
   }
 
   @override
   void undo() {
+    _log.info('undo DeleteRelation key=$targetId');
     controller.store.relationLookup[targetId] = relation;
     controller.publishUpdate(
       GraphEntityUpdate(
