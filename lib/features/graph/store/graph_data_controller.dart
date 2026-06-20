@@ -256,6 +256,7 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
     double? brushThickness,
     String? brushColor,
     Size? size,
+    Content? content,
   }) => nodeMutations.createNode(
     type,
     position,
@@ -264,6 +265,7 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
     brushThickness: brushThickness,
     brushColor: brushColor,
     size: size,
+    content: content,
   );
 
   @override

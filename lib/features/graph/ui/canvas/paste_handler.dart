@@ -1,213 +1,159 @@
 import 'dart:ui';
 import 'package:logging/logging.dart';
+import 'package:mycelium/src/rust/domain/styles.dart';
 import '../../models/content_builder.dart';
 import '../../models/graph_node.dart';
+import '../../models/graph_relation.dart';
 import '../../store/graph_data_controller.dart';
+import 'package:mycelium/src/rust/domain/contents.dart';
 
 final Logger _log = Logger('PasteHandler');
 
-enum _BlockType { heading, paragraph, bulletItem, orderedItem, checkItem, codeBlock }
-
-class _Block {
-  final _BlockType type;
-  final String text;
-  final int level;
-  final bool checked;
-
-  const _Block(this.type, this.text, {this.level = 0, this.checked = false});
-}
-
 class _TreeNode {
-  final String? title;
-  final String body;
-  final int level;
+  final Content content;
   final List<_TreeNode> children = [];
 
-  _TreeNode({this.title, this.body = '', required this.level});
+  _TreeNode({required this.content});
 }
 
-List<_Block> _parseBlocks(String text) {
-  final lines = text.split('\n');
-  final blocks = <_Block>[];
-  bool inCodeBlock = false;
-  final codeBuffer = StringBuffer();
-
-  for (final rawLine in lines) {
-    final line = rawLine.replaceAll('\r', '');
-    final trimmed = line.trimRight();
-
-    if (inCodeBlock) {
-      if (trimmed == '```') {
-        inCodeBlock = false;
-        blocks.add(_Block(_BlockType.codeBlock, codeBuffer.toString().trimRight()));
-        codeBuffer.clear();
-      } else {
-        codeBuffer.writeln(trimmed);
-      }
-      continue;
-    }
-
-    if (trimmed.startsWith('```')) {
-      inCodeBlock = true;
-      continue;
-    }
-
-    final headingMatch = RegExp(r'^(#{1,6})\s+(.*)$').firstMatch(trimmed);
-    if (headingMatch != null) {
-      blocks.add(_Block(_BlockType.heading, headingMatch.group(2)!, level: headingMatch.group(1)!.length));
-      continue;
-    }
-
-    final checkMatch = RegExp(r'^[-*+]\s+\[([ xX])\]\s+(.*)$').firstMatch(trimmed);
-    if (checkMatch != null) {
-      blocks.add(_Block(_BlockType.checkItem, checkMatch.group(2)!, checked: checkMatch.group(1) != ' '));
-      continue;
-    }
-
-    final bulletMatch = RegExp(r'^[-*+]\s+(.*)$').firstMatch(trimmed);
-    if (bulletMatch != null) {
-      blocks.add(_Block(_BlockType.bulletItem, bulletMatch.group(1)!));
-      continue;
-    }
-
-    final orderedMatch = RegExp(r'^\d+\.\s+(.*)$').firstMatch(trimmed);
-    if (orderedMatch != null) {
-      blocks.add(_Block(_BlockType.orderedItem, orderedMatch.group(1)!));
-      continue;
-    }
-
-    if (trimmed.isEmpty) {
-      if (blocks.isNotEmpty && blocks.last.type == _BlockType.paragraph) {
-        continue;
-      }
-      continue;
-    }
-
-    if (blocks.isNotEmpty && blocks.last.type == _BlockType.paragraph) {
-      blocks[blocks.length - 1] = _Block(_BlockType.paragraph, '${blocks.last.text}\n$trimmed');
-    } else {
-      blocks.add(_Block(_BlockType.paragraph, trimmed));
-    }
-  }
-
-  if (inCodeBlock && codeBuffer.isNotEmpty) {
-    blocks.add(_Block(_BlockType.codeBlock, codeBuffer.toString().trimRight()));
-  }
-
-  return blocks;
-}
-
-List<_TreeNode> _buildTree(String text) {
-  final blocks = _parseBlocks(text);
-  final root = _TreeNode(body: '', level: 0);
-  final stack = <_TreeNode>[root];
-
-  _TreeNode currentSection = root;
+List<_TreeNode> _buildTree(Content content) {
+  final blocks = _mergeBlocks(content.blocks);
+  final roots = <_TreeNode>[];
+  final headingStack = <_TreeNode>[];
 
   for (final block in blocks) {
-    if (block.type == _BlockType.heading) {
-      final node = _TreeNode(title: block.text, level: block.level);
-      while (stack.length > 1 && stack.last.level >= node.level) {
-        stack.removeLast();
+    if (block.blockType == BlockType.heading) {
+      final level = block.attrs?.level ?? 1;
+      final node = _TreeNode(
+        content: Content(text: _blockText(block), blocks: [block]),
+      );
+      while (headingStack.isNotEmpty &&
+          _headingLevel(headingStack.last) >= level) {
+        headingStack.removeLast();
       }
-      stack.last.children.add(node);
-      stack.add(node);
-      currentSection = node;
+      if (headingStack.isEmpty) {
+        roots.add(node);
+      } else {
+        headingStack.last.children.add(node);
+      }
+      headingStack.add(node);
     } else {
-      String content;
-      switch (block.type) {
-        case _BlockType.bulletItem:
-          content = '- ${block.text}';
-          break;
-        case _BlockType.orderedItem:
-          content = '1. ${block.text}';
-          break;
-        case _BlockType.checkItem:
-          content = block.checked ? '- [x] ${block.text}' : '- [ ] ${block.text}';
-          break;
-        case _BlockType.codeBlock:
-          content = '```\n${block.text}\n```';
-          break;
-        case _BlockType.paragraph:
-        case _BlockType.heading:
-          content = block.text;
-          break;
+      final node = _TreeNode(
+        content: Content(text: _blockText(block), blocks: [block]),
+      );
+      if (headingStack.isNotEmpty) {
+        headingStack.last.children.add(node);
+      } else {
+        roots.add(node);
       }
-      final child = _TreeNode(body: content, level: 0);
-      currentSection.children.add(child);
     }
   }
 
-  return root.children;
+  return roots;
 }
 
-String _nodeContent(_TreeNode node) {
-  if (node.title != null) {
-    final prefix = '#' * node.level;
-    if (node.body.isNotEmpty) {
-      return '$prefix ${node.title}\n${node.body}';
+List<ContentBlock> _mergeBlocks(List<ContentBlock> blocks) {
+  final result = <ContentBlock>[];
+  for (final block in blocks) {
+    final text = _blockText(block);
+    if (text.trim().isEmpty && block.blockType == BlockType.paragraph) continue;
+    if (block.blockType == BlockType.paragraph &&
+        result.isNotEmpty &&
+        result.last.blockType == BlockType.paragraph) {
+      final merged = ContentBlock(
+        blockType: BlockType.paragraph,
+        content: [
+          ...result.last.content,
+          const InlineElement(inlineType: InlineType.hardBreak, text: ''),
+          ...block.content,
+        ],
+      );
+      result[result.length - 1] = merged;
+    } else {
+      result.add(block);
     }
-    return '$prefix ${node.title}';
   }
-  return node.body;
+  return result;
 }
 
-void pasteTextToCanvas({
+int _headingLevel(_TreeNode node) {
+  if (node.content.blocks.isEmpty) return 0;
+  return node.content.blocks.first.attrs?.level ?? 1;
+}
+
+String _blockText(ContentBlock block) {
+  final buffer = StringBuffer();
+  for (final inline in block.content) {
+    buffer.write(inline.text);
+  }
+  return buffer.toString();
+}
+
+Future<void> pasteTextToCanvas({
   required GraphDataController dataController,
   required String text,
   required Offset canvasPosition,
-}) {
+}) async {
   if (text.trim().isEmpty) return;
 
-  final trees = _buildTree(text);
+  final content = ContentFactory.fromText(text);
+  final trees = _buildTree(content);
 
   if (trees.isEmpty) {
-    _createSingleNode(dataController, text, canvasPosition);
+    _createSingleNode(dataController, content, canvasPosition);
+    await dataController.flush();
     return;
   }
 
-  if (trees.length == 1 && trees.first.title == null && trees.first.children.isEmpty) {
-    _createSingleNode(dataController, text, canvasPosition);
+  if (trees.length == 1 &&
+      trees.first.children.isEmpty &&
+      trees.first.content.blocks.length == 1) {
+    _createSingleNode(dataController, trees.first.content, canvasPosition);
+    await dataController.flush();
     return;
   }
 
-  _createTreeNodes(dataController, trees, canvasPosition);
+  await _createTreeNodes(dataController, trees, canvasPosition);
 }
 
 void _createSingleNode(
   GraphDataController dataController,
-  String text,
+  Content content,
   Offset position,
 ) {
-  final id = dataController.createNode(UiNodes.info, position);
-  dataController.commitEntityText(id, ContentFactory.fromText(text));
-  dataController.flushSync();
+  final id = dataController.createNode(UiNodes.info, position, content: content);
   _log.info('Pasted plain text as single node: $id');
 }
 
-void _createTreeNodes(
+Future<void> _createTreeNodes(
   GraphDataController dataController,
   List<_TreeNode> roots,
   Offset position,
-) {
+) async {
   const double hGap = 280.0;
   const double vGap = 140.0;
 
   final createdIds = <String>{};
+  final relations = <(String parentId, String childId, String verb)>[];
 
-  String createNode(_TreeNode tree, Offset pos, String? parentId, {String? parentVerb}) {
-    final content = _nodeContent(tree);
-    final id = dataController.createNode(UiNodes.info, pos);
-    if (content.isNotEmpty) {
-      dataController.commitEntityText(id, ContentFactory.fromText(content));
-    }
+  String addNode(
+    _TreeNode tree,
+    Offset pos,
+    String? parentId, {
+    String? parentVerb,
+  }) {
+    final id = dataController.createNode(
+      UiNodes.info,
+      pos,
+      content: tree.content,
+    );
     createdIds.add(id);
 
     if (parentId != null) {
       final isParentHeading = parentVerb != null;
-      final isChildBody = tree.title == null;
+      final isChildBody = tree.content.blocks.first.blockType != BlockType.heading;
       final verb = isParentHeading && isChildBody ? 'description' : 'contains';
-      dataController.createRelation(parentId, id, verb: verb);
+      relations.add((parentId, id, verb));
     }
 
     final childCount = tree.children.length;
@@ -215,7 +161,13 @@ void _createTreeNodes(
       final startX = pos.dx - ((childCount - 1) * hGap) / 2;
       for (int i = 0; i < childCount; i++) {
         final childPos = Offset(startX + i * hGap, pos.dy + vGap);
-        createNode(tree.children[i], childPos, id, parentVerb: tree.title ?? parentVerb);
+        final isHeading = tree.content.blocks.first.blockType == BlockType.heading;
+        addNode(
+          tree.children[i],
+          childPos,
+          id,
+          parentVerb: isHeading ? _blockText(tree.content.blocks.first) : parentVerb,
+        );
       }
     }
 
@@ -226,9 +178,39 @@ void _createTreeNodes(
   final startX = position.dx - ((rootCount - 1) * hGap) / 2;
 
   for (int i = 0; i < rootCount; i++) {
-    createNode(roots[i], Offset(startX + i * hGap, position.dy), null);
+    addNode(roots[i], Offset(startX + i * hGap, position.dy), null);
   }
 
-  dataController.flushSync();
+  await dataController.flush();
+
+  for (final (parentId, childId, verb) in relations) {
+    final fromNode = dataController.store.nodeLookup[parentId];
+    final toNode = dataController.store.nodeLookup[childId];
+    if (fromNode == null || toNode == null) continue;
+
+    final relation = InfoUiRelation(
+      fromNodeId: parentId,
+      fromNodeTable: fromNode.tableName,
+      toNodeId: childId,
+      toNodeTable: toNode.tableName,
+      verb: verb,
+      layout: const RelationLayout(
+        fromSide: 'Auto',
+        toSide: 'Auto',
+        strategyType: 'default',
+      ),
+    );
+
+    dataController.store.relationLookup[relation.id] = relation;
+    dataController.styleUpdater?.updateStyleForRelation(relation.id);
+
+    try {
+      await dataController.syncEngine.api.createRelation(input: relation.toRust());
+    } catch (e) {
+      _log.warning('Failed to persist relation to Rust: $e');
+    }
+  }
+
+  dataController.triggerUpdate();
   _log.info('Pasted markdown as ${createdIds.length} connected nodes');
 }

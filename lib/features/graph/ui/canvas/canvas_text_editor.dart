@@ -8,6 +8,7 @@ import '../../presentation/node_render_state.dart';
 import '../../models/models.dart';
 import 'content_text_editing_controller.dart';
 import 'markdown_text_selection_controls.dart';
+import '../../../../shared/widgets/context_menu_overlay.dart';
 
 class CanvasTextEditor extends StatefulWidget {
   final String entityId;
@@ -113,7 +114,9 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   @override
   void dispose() {
     _controller.removeListener(_onControllerChanged);
-    _contextMenuEntry?.remove();
+    try {
+      _contextMenuEntry?.remove();
+    } catch (_) {}
     _renderState.clearBlockFormatCallback = null;
     _renderState.cycleFontFamilyCallback = null;
     _renderState.cycleTextColorCallback = null;
@@ -245,7 +248,9 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   }
 
   void _showCustomContextMenu() {
-    _contextMenuEntry?.remove();
+    try {
+      _contextMenuEntry?.remove();
+    } catch (_) {}
     _contextMenuEntry = null;
 
     final tapPosition = _lastSecondaryTapDownPosition;
@@ -255,70 +260,37 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     final selection = _controller.selection;
     final hasSelection = !selection.isCollapsed && selection.start >= 0 && selection.end >= 0;
 
-    final overlay = Overlay.of(context);
-    late OverlayEntry entry;
-    entry = OverlayEntry(
-      builder: (context) => GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () {
-          entry.remove();
-          _contextMenuEntry = null;
-        },
-        child: Stack(
-          children: [
-            const SizedBox.expand(),
-            Positioned(
-              left: tapPosition.dx,
-              top: tapPosition.dy,
-              child: Material(
-                elevation: 4,
-                borderRadius: BorderRadius.circular(4),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (hasSelection)
-                      _contextMenuItem('Copy', () {
-                        final markdown = _controller.selectedTextAsMarkdown();
-                        Clipboard.setData(ClipboardData(text: markdown));
-                        entry.remove();
-                        _contextMenuEntry = null;
-                      }),
-                    if (hasSelection)
-                      _contextMenuItem('Copy as Plain Text', () {
-                        final text = _controller.text;
-                        final selectedText = text.substring(selection.start, selection.end);
-                        Clipboard.setData(ClipboardData(text: selectedText));
-                        entry.remove();
-                        _contextMenuEntry = null;
-                      }),
-                    _contextMenuItem('Paste', () async {
-                      final data = await Clipboard.getData('text/plain');
-                      if (data?.text != null && data!.text!.isNotEmpty) {
-                        _controller.insertMarkdownSpans(data.text!);
-                      }
-                      entry.remove();
-                      _contextMenuEntry = null;
-                    }),
-                  ],
-                ),
-              ),
-            ),
-          ],
+    _contextMenuEntry = ContextMenuOverlay.show(
+      context: context,
+      position: tapPosition,
+      items: [
+        ContextMenuItem(
+          label: 'Copy',
+          visible: hasSelection,
+          onTap: () {
+            final markdown = _controller.selectedTextAsMarkdown();
+            Clipboard.setData(ClipboardData(text: markdown));
+          },
         ),
-      ),
-    );
-    _contextMenuEntry = entry;
-    overlay.insert(entry);
-  }
-
-  Widget _contextMenuItem(String label, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(4),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Text(label),
-      ),
+        ContextMenuItem(
+          label: 'Copy as Plain Text',
+          visible: hasSelection,
+          onTap: () {
+            final text = _controller.text;
+            final selectedText = text.substring(selection.start, selection.end);
+            Clipboard.setData(ClipboardData(text: selectedText));
+          },
+        ),
+        ContextMenuItem(
+          label: 'Paste',
+          onTap: () async {
+            final data = await Clipboard.getData('text/plain');
+            if (data?.text != null && data!.text!.isNotEmpty) {
+              _controller.insertMarkdownSpans(data.text!);
+            }
+          },
+        ),
+      ],
     );
   }
 

@@ -24,6 +24,7 @@ import 'package:mycelium/presentation/widgets/template_manager/save_template_dia
 import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 import 'canvas_overlay_layout.dart';
 import 'paste_handler.dart';
+import '../../../../shared/widgets/context_menu_overlay.dart';
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
@@ -123,6 +124,7 @@ class _GraphCanvasState extends State<GraphCanvas>
   }
 
   void _onDataControllerChanged() {
+    if (!mounted) return;
     final dataController = context.read<GraphDataController>();
     if (!dataController.isLoading &&
         !_viewportRestoreAttempted &&
@@ -149,7 +151,9 @@ class _GraphCanvasState extends State<GraphCanvas>
   }
 
   void _dismissCanvasContextMenu() {
-    _canvasContextMenuEntry?.remove();
+    try {
+      _canvasContextMenuEntry?.remove();
+    } catch (_) {}
     _canvasContextMenuEntry = null;
   }
 
@@ -160,67 +164,31 @@ class _GraphCanvasState extends State<GraphCanvas>
     final viewportController = _viewportController;
     if (viewportController == null) return;
 
-    final overlay = Overlay.of(context);
-    late OverlayEntry entry;
-    entry = OverlayEntry(
-      builder: (context) => GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () {
-          entry.remove();
-          _canvasContextMenuEntry = null;
-        },
-        child: Stack(
-          children: [
-            const SizedBox.expand(),
-            Positioned(
-              left: screenPosition.dx,
-              top: screenPosition.dy,
-              child: Material(
-                elevation: 4,
-                borderRadius: BorderRadius.circular(4),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _canvasContextMenuItem('Paste', () async {
-                      final data = await Clipboard.getData('text/plain');
-                      if (data?.text != null && data!.text!.isNotEmpty) {
-                        final transform =
-                            viewportController.transformController.value;
-                        final canvasPos = transform.determinant() == 0.0
-                            ? Offset.zero
-                            : MatrixUtils.transformPoint(
-                                Matrix4.inverted(transform),
-                                screenPosition,
-                              );
-                        pasteTextToCanvas(
-                          dataController: dataController,
-                          text: data.text!,
-                          canvasPosition: canvasPos,
-                        );
-                      }
-                      entry.remove();
-                      _canvasContextMenuEntry = null;
-                    }),
-                  ],
-                ),
-              ),
-            ),
-          ],
+    _canvasContextMenuEntry = ContextMenuOverlay.show(
+      context: context,
+      position: screenPosition,
+      items: [
+        ContextMenuItem(
+          label: 'Paste',
+          onTap: () async {
+            final data = await Clipboard.getData('text/plain');
+            if (data?.text != null && data!.text!.isNotEmpty) {
+              final transform =
+                  viewportController.transformController.value;
+              final canvasPos = transform.determinant() == 0.0
+                  ? Offset.zero
+                  : MatrixUtils.transformPoint(
+                      Matrix4.inverted(transform),
+                      screenPosition,
+                    );
+              await pasteTextToCanvas(                dataController: dataController,
+                text: data.text!,
+                canvasPosition: canvasPos,
+              );
+            }
+          },
         ),
-      ),
-    );
-    _canvasContextMenuEntry = entry;
-    overlay.insert(entry);
-  }
-
-  Widget _canvasContextMenuItem(String label, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(4),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Text(label),
-      ),
+      ],
     );
   }
 
@@ -251,10 +219,10 @@ class _GraphCanvasState extends State<GraphCanvas>
     }
   }
 
-  void _handleCanvasPaste(
+  Future<void> _handleCanvasPaste(
     GraphDataController dataController,
     NodeRenderState renderState,
-  ) {
+  ) async {
     if (renderState.activeEditId != null) return;
 
     final mousePos = _mousePositionNotifier.value;
@@ -271,15 +239,14 @@ class _GraphCanvasState extends State<GraphCanvas>
       mousePos,
     );
 
-    Clipboard.getData('text/plain').then((data) {
-      if (data?.text != null && data!.text!.isNotEmpty) {
-        pasteTextToCanvas(
-          dataController: dataController,
-          text: data.text!,
-          canvasPosition: canvasPos,
-        );
-      }
-    });
+    final data = await Clipboard.getData('text/plain');
+    if (data?.text != null && data!.text!.isNotEmpty) {
+      await pasteTextToCanvas(
+        dataController: dataController,
+        text: data.text!,
+        canvasPosition: canvasPos,
+      );
+    }
   }
 
   @override
@@ -438,10 +405,6 @@ class _GraphCanvasState extends State<GraphCanvas>
                                 return ValueListenableBuilder<String>(
                                   valueListenable: session.toolModeNotifier,
                                   builder: (context, currentMode, _) {
-                                    // final isDrawMode = currentMode == 'draw';
-                                    // final viewerPanEnabled = isDrawMode
-                                    //     ? false
-                                    //     : panScaleEnabled;
                                     final viewerPanEnabled =
                                         panScaleEnabled &&
                                         renderState.activeEditId == null;

@@ -1,13 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:mycelium/features/graph/ui/canvas/markdown_text_selection_controls.dart';
+import 'package:mycelium/features/graph/ui/canvas/content_text_editing_controller.dart';
 
 void main() {
   group('MarkdownTextSelectionControls', () {
     late MarkdownTextSelectionControls controls;
+    late ContentTextEditingController controller;
 
     setUp(() {
-      controls = MarkdownTextSelectionControls();
+      controller = ContentTextEditingController();
+      controls = MarkdownTextSelectionControls(controller: controller);
     });
 
     test('can be instantiated', () {
@@ -56,8 +59,8 @@ void main() {
       expect(controls.canSelectAll(delegate), isFalse);
     });
 
-    test('controller defaults to null', () {
-      expect(controls.controller, isNull);
+    test('controller is final and non-null', () {
+      expect(controls.controller, same(controller));
     });
   });
 }

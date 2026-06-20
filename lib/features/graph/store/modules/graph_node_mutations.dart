@@ -21,12 +21,13 @@ class GraphNodeMutations {
     double? brushThickness,
     String? brushColor,
     Size? size,
+    Content? content,
   }) {
     _nodeLog.fine("Creating node...");
     UiNode node;
     switch (type) {
       case UiNodes.info:
-        node = InfoUiNode(position: position);
+        node = InfoUiNode(position: position, content: content);
         break;
       case UiNodes.task:
         node = TaskUiNode(position: position);
