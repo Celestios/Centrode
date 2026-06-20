@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:logging/logging.dart';
+import 'package:mycelium/infrastructure/telemetry/logging.dart';
 import 'view_state.dart';
 
 /// Manages drag protection and quarantine cache for optimistic deletes.

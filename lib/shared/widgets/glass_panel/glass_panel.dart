@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:logging/logging.dart';
+import 'package:mycelium/infrastructure/telemetry/logging.dart';
 
 part 'src/glass_mode.dart';
 part 'src/glass_settings.dart';

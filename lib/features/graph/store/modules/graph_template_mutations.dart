@@ -1,5 +1,5 @@
 import 'dart:ui' show Offset;
-import 'package:logging/logging.dart';
+import 'package:mycelium/infrastructure/telemetry/logging.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' show RecordStrings;
 import '../../models/models.dart';
 import '../graph_data_controller.dart';

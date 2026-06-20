@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:ui';
-import 'package:logging/logging.dart';
+import 'package:mycelium/infrastructure/telemetry/logging.dart';
 import '../models/models.dart';
 
 /// Manages the lifecycle of state mutations with FIFO ordering for FFI calls.

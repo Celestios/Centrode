@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:logging/logging.dart';
+import 'package:mycelium/infrastructure/telemetry/logging.dart';
 import '../store/graph_data_query.dart';
 import '../store/graph_data_command.dart';
 import 'view_state.dart';

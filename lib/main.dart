@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:logging/logging.dart';
+import 'package:mycelium/infrastructure/telemetry/logging.dart';
 import 'package:mycelium/src/rust/frb_generated.dart';
 import 'package:window_manager/window_manager.dart';
 import 'infrastructure/telemetry/log_manager.dart';

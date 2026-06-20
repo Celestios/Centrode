@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:logging/logging.dart';
+import 'package:mycelium/infrastructure/telemetry/logging.dart';
 import 'graph_data_query.dart';
 import 'graph_data_command.dart';
 import 'spatial_index.dart';

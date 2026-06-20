@@ -1,4 +1,4 @@
-import 'package:logging/logging.dart';
+import 'package:mycelium/infrastructure/telemetry/logging.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import '../../models/commands.dart';
 import '../../models/graph_relation.dart';

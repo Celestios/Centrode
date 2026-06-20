@@ -1,6 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:logging/logging.dart';
+import 'package:mycelium/infrastructure/telemetry/logging.dart';
 import 'gesture_interceptor.dart';
 import 'interaction_context.dart';
 import '../presentation/workspace_tabs_controller.dart';

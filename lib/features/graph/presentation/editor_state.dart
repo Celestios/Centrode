@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:logging/logging.dart';
+import 'package:mycelium/infrastructure/telemetry/logging.dart';
 import '../engine/config.dart';
 import '../store/graph_data_query.dart';
 import 'view_state.dart';

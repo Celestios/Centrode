@@ -1,4 +1,4 @@
-import 'package:logging/logging.dart';
+import 'package:mycelium/infrastructure/telemetry/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import '../../store/graph_data_query.dart';

@@ -69,7 +69,7 @@ zip = "0.6"
 walkdir = "2.4"
 
 # --- Logging ---
-tracing = "0.1"
+tracing = { version = "0.1", features = ["release_max_level_info"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tokio-stream = { version = "0.1", features = ["sync"] }
 futures = "0.3"

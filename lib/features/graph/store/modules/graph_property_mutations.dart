@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:logging/logging.dart';
+import 'package:mycelium/infrastructure/telemetry/logging.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/models.dart';
 import '../graph_data_controller.dart';
