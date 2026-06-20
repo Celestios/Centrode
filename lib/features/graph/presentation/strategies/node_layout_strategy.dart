@@ -20,7 +20,13 @@ abstract class NodeLayoutStrategy {
     if (type == 'info') {
       return const InfoNodeLayoutStrategy();
     }
+    if (type == 'drawing') {
+      return const DrawingNodeLayoutStrategy();
+    }
     if (fallbackNode != null) {
+      if (fallbackNode is DrawingUiNode) {
+        return const DrawingNodeLayoutStrategy();
+      }
       return fallbackNode is TaskUiNode
           ? const TaskNodeLayoutStrategy()
           : const InfoNodeLayoutStrategy();
@@ -206,4 +212,18 @@ class TaskNodeLayoutStrategy extends NodeLayoutStrategy {
   final snappedHeight = (totalHeight / gridSize).ceil() * gridSize;
 
   return (size: Size(snappedWidth, snappedHeight), lineCount: lineCount);
+}
+
+class DrawingNodeLayoutStrategy extends NodeLayoutStrategy {
+  const DrawingNodeLayoutStrategy();
+
+  @override
+  ({Size size, int lineCount}) calculate(
+    UiNode node,
+    NodeStyle? style, {
+    bool isEditing = false,
+    double? overrideWidth,
+  }) {
+    return (size: node.size, lineCount: 0);
+  }
 }

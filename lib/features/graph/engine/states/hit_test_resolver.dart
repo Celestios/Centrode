@@ -187,18 +187,27 @@ class HitTestResolver {
         return PointerHitResult(type: HitTestType.expandToggle, hitNodeId: nodeId);
       }
 
-      if (vs.rightResizeHitbox.contains(pCanvas)) {
-        return PointerHitResult(
-          type: HitTestType.resizeRight,
-          hitNodeId: nodeId,
-          draggedEdge: ResizeEdge.right,
-        );
-      } else if (vs.leftResizeHitbox.contains(pCanvas)) {
-        return PointerHitResult(
-          type: HitTestType.resizeLeft,
-          hitNodeId: nodeId,
-          draggedEdge: ResizeEdge.left,
-        );
+      if (node is! DrawingUiNode) {
+        if (vs.rightResizeHitbox.contains(pCanvas)) {
+          return PointerHitResult(
+            type: HitTestType.resizeRight,
+            hitNodeId: nodeId,
+            draggedEdge: ResizeEdge.right,
+          );
+        } else if (vs.leftResizeHitbox.contains(pCanvas)) {
+          return PointerHitResult(
+            type: HitTestType.resizeLeft,
+            hitNodeId: nodeId,
+            draggedEdge: ResizeEdge.left,
+          );
+        }
+      }
+
+      if (node is DrawingUiNode) {
+        final nodePos = vs.positionNotifier.value;
+        if (_isPointNearDrawing(pCanvas, node, nodePos)) {
+          return PointerHitResult(type: HitTestType.body, hitNodeId: nodeId);
+        }
       } else if (vs.rect.contains(pCanvas)) {
         return PointerHitResult(type: HitTestType.body, hitNodeId: nodeId);
       }
@@ -252,5 +261,40 @@ class HitTestResolver {
       }
     }
     return null;
+  }
+
+  static bool _isPointNearDrawing(Offset pCanvas, DrawingUiNode node, Offset nodePos) {
+    final double threshold = node.brushThickness * 0.5 + 24.0;
+
+    for (final rawPoints in node.parsedPaths) {
+      final points = rawPoints.map((pt) => Offset(pt.dx + nodePos.dx, pt.dy + nodePos.dy)).toList();
+      if (points.isEmpty) continue;
+
+      if (points.length == 1) {
+        if ((pCanvas - points[0]).distance < threshold) {
+          return true;
+        }
+        continue;
+      }
+
+      for (int i = 0; i < points.length - 1; i++) {
+        if (_isPointNearSegment(pCanvas, points[i], points[i + 1], threshold)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  static bool _isPointNearSegment(Offset p, Offset s1, Offset s2, double threshold) {
+    final double l2 = (s1 - s2).distanceSquared;
+    if (l2 == 0.0) return (p - s1).distance < threshold;
+
+    final double t = (((p.dx - s1.dx) * (s2.dx - s1.dx) + (p.dy - s1.dy) * (s2.dy - s1.dy)) / l2).clamp(0.0, 1.0);
+    final Offset projection = Offset(
+      s1.dx + t * (s2.dx - s1.dx),
+      s1.dy + t * (s2.dy - s1.dy),
+    );
+    return (p - projection).distance < threshold;
   }
 }

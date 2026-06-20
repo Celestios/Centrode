@@ -15,6 +15,7 @@ class StyleManager implements GraphStyleUpdater {
   final GraphStore _store;
   final NodeStyleStrategy _infoStrategy = const InfoNodeStyleStrategy();
   final NodeStyleStrategy _taskStrategy = const TaskNodeStyleStrategy();
+  final NodeStyleStrategy _drawingStrategy = const DrawingNodeStyleStrategy();
   final RelationStyleStrategy _relationStrategy =
       const DefaultRelationStyleStrategy();
   final SignificanceStrategy _modifier = const SignificanceStrategy();
@@ -71,8 +72,10 @@ class StyleManager implements GraphStyleUpdater {
       base = _infoStrategy.resolve(node, _theme!);
     } else if (node is TaskUiNode) {
       base = _taskStrategy.resolve(node, _theme!);
+    } else if (node is DrawingUiNode) {
+      base = _drawingStrategy.resolve(node, _theme!);
     } else {
-      _log.warning('Unknown node type: ${node.runtimeType}');
+      _log.warning('StyleManager: Unknown node type encountered: ${node.runtimeType} (ID: ${node.id}, Table: ${node.tableName})');
       return;
     }
     final resolvedBase = _applyModifier(base, node.significance);

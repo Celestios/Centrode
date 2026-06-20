@@ -112,3 +112,22 @@ sealed class UiNode {
     return size;
   }
 }
+
+extension DrawingUiNodeExtension on DrawingUiNode {
+  List<List<Offset>> get parsedPaths {
+    return paths.map((pathStr) {
+      return pathStr
+          .split(';')
+          .map((p) {
+            final coords = p.split(',');
+            if (coords.length < 2) return null;
+            final x = double.tryParse(coords[0]);
+            final y = double.tryParse(coords[1]);
+            if (x == null || y == null) return null;
+            return Offset(x, y);
+          })
+          .whereType<Offset>()
+          .toList();
+    }).toList();
+  }
+}

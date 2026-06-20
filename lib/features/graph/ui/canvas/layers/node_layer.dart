@@ -94,11 +94,16 @@ class NodeLayer extends StatelessWidget {
                       final double fontSize = resolvedStyle?.fontSize ?? 14.0;
                       final double scale = NodeVisualConstants.fontScale(fontSize);
 
-                      return Positioned(
-                        key: ValueKey('edit_${entry.node.id}'),
-                        left: pos.dx,
-                        top: pos.dy,
-                        child: HighlightFrame(
+                      final Widget editWidget;
+                      if (entry.node is DrawingUiNode) {
+                        editWidget = DrawNodeWidget(
+                          node: entry.node as DrawingUiNode,
+                          viewState: entry.viewState,
+                          isSelected: entry.isSelected,
+                          isEditing: true,
+                        );
+                      } else {
+                        editWidget = HighlightFrame(
                           isEditing: true,
                           isSelected: entry.isSelected,
                           borderRadius: borderRadius,
@@ -111,7 +116,14 @@ class NodeLayer extends StatelessWidget {
                             isSelected: entry.isSelected,
                             isEditing: true,
                           ),
-                        ),
+                        );
+                      }
+
+                      return Positioned(
+                        key: ValueKey('edit_${entry.node.id}'),
+                        left: pos.dx,
+                        top: pos.dy,
+                        child: editWidget,
                       );
                     },
                   );
@@ -296,44 +308,49 @@ class _CanvasNodesPainter extends CustomPainter {
     final double stroke = (entry.isEditing ? 1.0 : 0.6) * scale;
     final double gap = 1.5 * scale;
 
-    // Shadow
-    if (entry.isEditing) {
-      _shadowPaint.color = Color(NodeVisualConstants.editingShadowColor);
-      _shadowPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 16 * scale);
-    } else if (entry.isSelected) {
-      _shadowPaint.color = Color(NodeVisualConstants.selectedShadowColor);
-      _shadowPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 8 * scale);
-    } else {
-      _shadowPaint.color = Color(resolvedStyle.shadowColor);
-      _shadowPaint.maskFilter =
-          MaskFilter.blur(BlurStyle.normal, resolvedStyle.shadowBlur);
-    }
-
-    final double shadowOffsetX = resolvedStyle.shadowOffsetX;
-    final double shadowOffsetY = resolvedStyle.shadowOffsetY;
-    final shadowOffset = Offset(shadowOffsetX, shadowOffsetY);
-
     final rrect = _buildRRect(rect, resolvedStyle, 0.0, scale);
-    if (shadowOffset != Offset.zero) {
-      final shadowRRect = _buildRRect(rect.shift(shadowOffset), resolvedStyle, 0.0, scale);
-      canvas.drawRRect(shadowRRect, _shadowPaint);
-    } else {
-      canvas.drawRRect(rrect, _shadowPaint);
+
+    // Shadow — skip for drawing nodes (transparent bg, no rect needed)
+    if (node is! DrawingUiNode) {
+      if (entry.isEditing) {
+        _shadowPaint.color = Color(NodeVisualConstants.editingShadowColor);
+        _shadowPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 16 * scale);
+      } else if (entry.isSelected) {
+        _shadowPaint.color = Color(NodeVisualConstants.selectedShadowColor);
+        _shadowPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 8 * scale);
+      } else {
+        _shadowPaint.color = Color(resolvedStyle.shadowColor);
+        _shadowPaint.maskFilter =
+            MaskFilter.blur(BlurStyle.normal, resolvedStyle.shadowBlur);
+      }
+
+      final double shadowOffsetX = resolvedStyle.shadowOffsetX;
+      final double shadowOffsetY = resolvedStyle.shadowOffsetY;
+      final shadowOffset = Offset(shadowOffsetX, shadowOffsetY);
+
+      if (shadowOffset != Offset.zero) {
+        final shadowRRect = _buildRRect(rect.shift(shadowOffset), resolvedStyle, 0.0, scale);
+        canvas.drawRRect(shadowRRect, _shadowPaint);
+      } else {
+        canvas.drawRRect(rrect, _shadowPaint);
+      }
+
+      // Background
+      _bgPaint.color = Color(resolvedStyle.bgColor);
+      canvas.drawRRect(rrect, _bgPaint);
     }
 
-    // Background
-    _bgPaint.color = Color(resolvedStyle.bgColor);
-    canvas.drawRRect(rrect, _bgPaint);
+    // Base Border — skip for drawing nodes (transparent stroke)
+    if (node is! DrawingUiNode) {
+      _borderPaint
+        ..color = Color(resolvedStyle.strokeColor)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = resolvedStyle.strokeWidth.toDouble();
+      canvas.drawRRect(rrect, _borderPaint);
+    }
 
-    // Base Border
-    _borderPaint
-      ..color = Color(resolvedStyle.strokeColor)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = resolvedStyle.strokeWidth.toDouble();
-    canvas.drawRRect(rrect, _borderPaint);
-
-    // Highlight/Editing Border
-    if (isHighlighted) {
+    // Highlight/Editing Border — skip for drawing nodes (handled in _paintDrawingPaths)
+    if (isHighlighted && node is! DrawingUiNode) {
       final double inflateAmount = gap + stroke / 2;
       final highlightRect = rect.inflate(inflateAmount);
       final highlightRRect = _buildRRect(highlightRect, resolvedStyle, inflateAmount, scale);
@@ -346,17 +363,105 @@ class _CanvasNodesPainter extends CustomPainter {
       canvas.drawRRect(highlightRRect, _borderPaint);
     }
 
-    // Text
-    _paintText(canvas, entry, rect, resolvedStyle);
+    if (node is DrawingUiNode) {
+      _paintDrawingPaths(
+        canvas,
+        node,
+        pos,
+        resolvedStyle,
+        Size(w, h),
+        isHighlighted: isHighlighted,
+        isEditing: entry.isEditing,
+      );
+    } else {
+      // Text
+      _paintText(canvas, entry, rect, resolvedStyle);
+
+      // Metadata sphere
+      _paintMetadataSphere(canvas, node, rect, scale);
+
+      // Expand toggle
+      _paintExpandToggle(canvas, entry, rect, resolvedStyle, scale);
+    }
 
     // Resize handles
-    _paintResizeHandles(canvas, node.id, rect, resolvedStyle, scale);
+    if (node is! DrawingUiNode) {
+      _paintResizeHandles(canvas, node.id, rect, resolvedStyle, scale);
+    }
+  }
 
-    // Metadata sphere
-    _paintMetadataSphere(canvas, node, rect, scale);
+  void _paintDrawingPaths(
+    Canvas canvas,
+    DrawingUiNode node,
+    Offset pos,
+    NodeStyle style,
+    Size size, {
+    required bool isHighlighted,
+    required bool isEditing,
+  }) {
+    canvas.save();
+    canvas.translate(pos.dx + style.padding, pos.dy + style.padding);
 
-    // Expand toggle
-    _paintExpandToggle(canvas, entry, rect, resolvedStyle, scale);
+    if (isHighlighted) {
+      final highlightColor = isEditing
+          ? Color(NodeVisualConstants.editingBorderColor)
+          : Color(NodeVisualConstants.selectedBorderColor);
+      _paintDrawingOutline(
+        canvas,
+        node.parsedPaths,
+        highlightColor,
+        node.brushThickness,
+      );
+    }
+
+    final drawingPainter = DrawingNodePainter(
+      paths: node.paths,
+      parsedPaths: node.parsedPaths,
+      brushColor: node.brushColor,
+      brushThickness: node.brushThickness,
+      brushType: node.brushType,
+    );
+    drawingPainter.paint(canvas, size);
+
+    canvas.restore();
+  }
+
+  void _paintDrawingOutline(
+    Canvas canvas,
+    List<List<Offset>> parsedPaths,
+    Color color,
+    double brushThickness,
+  ) {
+    final double offset = brushThickness * 0.5 + 3.0;
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    for (final points in parsedPaths) {
+      if (points.length < 2) continue;
+
+      for (int i = 0; i < points.length - 1; i++) {
+        final s1 = points[i];
+        final s2 = points[i + 1];
+        final dir = s2 - s1;
+        final len = dir.distance;
+        if (len == 0) continue;
+        final normal = Offset(-dir.dy / len, dir.dx / len) * offset;
+
+        final outerPath = Path()
+          ..moveTo(s1.dx + normal.dx, s1.dy + normal.dy)
+          ..lineTo(s2.dx + normal.dx, s2.dy + normal.dy);
+        final innerPath = Path()
+          ..moveTo(s1.dx - normal.dx, s1.dy - normal.dy)
+          ..lineTo(s2.dx - normal.dx, s2.dy - normal.dy);
+
+        canvas.drawPath(outerPath, paint);
+        canvas.drawPath(innerPath, paint);
+      }
+    }
   }
 
   RRect _buildRRect(Rect rect, NodeStyle style, [double extraRadius = 0.0, double scale = 1.0]) {

@@ -105,6 +105,9 @@ abstract class NodeStyleStrategy {
       base = fallbackStyle().copyWith(
         bgColor: 0x00000000,
         strokeColor: 0x00000000,
+        shadowColor: 0x00000000,
+        padding: 0.0,
+        borderRadius: 0.0,
         strategyType: 'drawing',
       );
     } else {
@@ -124,6 +127,9 @@ class DrawingNodeStyleStrategy extends NodeStyleStrategy {
       bgColor: 0x00000000,
       strokeColor: 0x00000000,
       textColor: 0x00000000,
+      shadowColor: 0x00000000,
+      padding: 0.0,
+      borderRadius: 0.0,
       strategyType: 'drawing',
     );
   }

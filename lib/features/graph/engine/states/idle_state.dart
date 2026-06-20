@@ -198,16 +198,17 @@ class CanvasIdle extends CanvasInteractionState {
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
 
-      if (vs.rightResizeHitbox.contains(pCanvas) ||
-          vs.leftResizeHitbox.contains(pCanvas)) {
+      final node = ctx.getNode(nodeId);
+      if (node == null) continue;
+
+      if (node is! DrawingUiNode &&
+          (vs.rightResizeHitbox.contains(pCanvas) ||
+           vs.leftResizeHitbox.contains(pCanvas))) {
         ctx.setHoveredNodeMetadata(null);
         return cursor == SystemMouseCursors.resizeLeftRight
             ? this
             : CanvasIdle(cursor: SystemMouseCursors.resizeLeftRight);
       }
-
-      final node = ctx.getNode(nodeId);
-      if (node == null) continue;
       if (vs.lineCount > AppConfig.node.collapsedLineLimit && vs.getExpandToggleHitbox(node).contains(pCanvas)) {
         ctx.setHoveredNodeMetadata(null);
         return cursor == SystemMouseCursors.click

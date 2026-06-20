@@ -207,17 +207,6 @@ class NodeWidget extends StatelessWidget {
   }) {
     final double scale = NodeVisualConstants.fontScale(style.fontSize);
 
-    if (liveNode is DrawingUiNode) {
-      return CustomPaint(
-        painter: DrawingNodePainter(
-          paths: liveNode.paths,
-          brushColor: liveNode.brushColor,
-          brushThickness: liveNode.brushThickness,
-          brushType: liveNode.brushType,
-        ),
-      );
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -467,6 +456,7 @@ class DrawNodeWidget extends StatelessWidget {
                 brushThickness: liveNode.brushThickness,
                 brushType: liveNode.brushType,
                 paths: liveNode.paths,
+                parsedPaths: liveNode.parsedPaths,
               ),
             ),
           ],
@@ -478,6 +468,7 @@ class DrawNodeWidget extends StatelessWidget {
 
 class DrawingNodePainter extends CustomPainter {
   final List<String> paths;
+  final List<List<Offset>>? parsedPaths;
   final String brushColor;
   final double brushThickness;
   final String brushType;
@@ -494,6 +485,7 @@ class DrawingNodePainter extends CustomPainter {
 
   DrawingNodePainter({
     required this.paths,
+    this.parsedPaths,
     required this.brushColor,
     required this.brushThickness,
     required this.brushType,
@@ -514,8 +506,8 @@ class DrawingNodePainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    for (final pathStr in paths) {
-      final points = pathStr
+    final resolvedPaths = parsedPaths ?? paths.map((pathStr) {
+      return pathStr
           .split(';')
           .map((p) {
             final coords = p.split(',');
@@ -527,7 +519,9 @@ class DrawingNodePainter extends CustomPainter {
           })
           .whereType<Offset>()
           .toList();
+    }).toList();
 
+    for (final points in resolvedPaths) {
       if (points.isEmpty) continue;
       final path = Path();
       path.moveTo(points[0].dx, points[0].dy);
@@ -541,6 +535,7 @@ class DrawingNodePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant DrawingNodePainter oldDelegate) {
     return oldDelegate.paths != paths ||
+        oldDelegate.parsedPaths != parsedPaths ||
         oldDelegate.brushColor != brushColor ||
         oldDelegate.brushThickness != brushThickness ||
         oldDelegate.brushType != brushType;
