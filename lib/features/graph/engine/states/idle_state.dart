@@ -42,6 +42,15 @@ class CanvasIdle extends CanvasInteractionState {
           currentCursorPosition: pCanvas,
         );
 
+      case HitTestType.port:
+        return RelationDrawing(
+          {result.hitNodeId!},
+          pCanvas,
+          isSticky: true,
+          hasReleasedOnce: true,
+          sourcePort: result.hitPort,
+        );
+
       case HitTestType.metadataSphere:
         ctx.openDataInspector(result.hitNodeId!);
         return this;
@@ -184,6 +193,7 @@ class CanvasIdle extends CanvasInteractionState {
     final candidateIds = ctx.spatialGrid.queryPoint(pCanvas);
     if (candidateIds.isEmpty) {
       ctx.setHoveredNode(null);
+      ctx.setHoveredNodeMetadata(null);
       return cursor == SystemMouseCursors.basic
           ? this
           : const CanvasIdle(cursor: SystemMouseCursors.basic);
@@ -205,20 +215,32 @@ class CanvasIdle extends CanvasInteractionState {
           (vs.rightResizeHitbox.contains(pCanvas) ||
            vs.leftResizeHitbox.contains(pCanvas))) {
         ctx.setHoveredNode(null);
+        ctx.setHoveredNodeMetadata(null);
         return cursor == SystemMouseCursors.resizeLeftRight
             ? this
             : CanvasIdle(cursor: SystemMouseCursors.resizeLeftRight);
       }
       if (vs.lineCount > AppConfig.node.collapsedLineLimit && vs.getExpandToggleHitbox(node).contains(pCanvas)) {
         ctx.setHoveredNode(null);
+        ctx.setHoveredNodeMetadata(null);
         return cursor == SystemMouseCursors.click
             ? this
             : CanvasIdle(cursor: SystemMouseCursors.click);
       }
 
-      // Show ports when hovering anywhere on the node
-      if (vs.rect.contains(pCanvas)) {
+      // Show metadata preview when hovering over metadata sphere
+      if (HitTestResolver.isMetadataSphereHit(pCanvas, ctx, nodeId)) {
         ctx.setHoveredNode(nodeId);
+        ctx.setHoveredNodeMetadata(nodeId);
+        return cursor == SystemMouseCursors.click
+            ? this
+            : const CanvasIdle(cursor: SystemMouseCursors.click);
+      }
+
+      // Show ports when hovering anywhere on the node (including port offset zone)
+      if (vs.rect.inflate(12.0 * vs.currentScale).contains(pCanvas)) {
+        ctx.setHoveredNode(nodeId);
+        ctx.setHoveredNodeMetadata(null);
         return cursor == SystemMouseCursors.click
             ? this
             : const CanvasIdle(cursor: SystemMouseCursors.click);
@@ -226,6 +248,7 @@ class CanvasIdle extends CanvasInteractionState {
     }
 
     ctx.setHoveredNode(null);
+    ctx.setHoveredNodeMetadata(null);
     return cursor == SystemMouseCursors.basic
         ? this
         : const CanvasIdle(cursor: SystemMouseCursors.basic);

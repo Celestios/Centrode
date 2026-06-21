@@ -11,6 +11,7 @@ class NodePorts {
   factory NodePorts.compute(Size nodeSize, double scale, {Offset nodePosition = Offset.zero}) {
     const baseDistance = 40.0;
     final k = baseDistance * scale;
+    final offset = 8.0 * scale;
     final ports = <Port>[];
     final bySide = <PortSide, List<Port>>{};
     final seenPositions = <Offset>{};
@@ -23,20 +24,22 @@ class NodePorts {
       for (int i = 0; i < count; i++) {
         final t = count == 1 ? 0.5 : i / (count - 1);
         final localPosition = _positionOnSide(side, nodeSize, t);
-        final position = nodePosition + localPosition;
+        final edgePos = nodePosition + localPosition;
 
-        // Skip duplicate corner positions
-        if (seenPositions.contains(position)) continue;
-        seenPositions.add(position);
+        if (seenPositions.contains(edgePos)) continue;
+        seenPositions.add(edgePos);
 
         final type = _portType(i, count);
         final adjacentSide = _adjacentSide(side, i, count);
+
+        final visualPos = _visualOffset(side, type, edgePos, offset, nodePosition);
 
         final port = Port(
           side: side,
           type: type,
           index: i,
-          position: position,
+          position: visualPos,
+          edgePosition: edgePos,
           adjacentSide: adjacentSide,
         );
         sidePorts.add(port);
@@ -73,6 +76,24 @@ class NodePorts {
       (p) => p.isMiddle,
       orElse: () => sidePorts[sidePorts.length ~/ 2],
     );
+  }
+
+  static Offset _visualOffset(PortSide side, PortType type, Offset edgePos, double d, Offset nodePosition) {
+    if (type == PortType.corner) {
+      final isLeft = edgePos.dx <= nodePosition.dx;
+      final isTop = edgePos.dy <= nodePosition.dy;
+      return edgePos + Offset(isLeft ? -d : d, isTop ? -d : d);
+    }
+    switch (side) {
+      case PortSide.top:
+        return edgePos + Offset(0, -d);
+      case PortSide.bottom:
+        return edgePos + Offset(0, d);
+      case PortSide.left:
+        return edgePos + Offset(-d, 0);
+      case PortSide.right:
+        return edgePos + Offset(d, 0);
+    }
   }
 
   static double _sideLength(PortSide side, Size size) {

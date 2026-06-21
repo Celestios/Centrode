@@ -115,7 +115,7 @@ abstract class RelationLayoutStrategy {
 
     for (final fromPort in fromVs.getMiddlePorts()) {
       for (final toPort in toVs.getMiddlePorts()) {
-        final dist = (fromPort.position - toPort.position).distance;
+        final dist = (fromPort.edgePosition - toPort.edgePosition).distance;
         if (dist < bestDist) {
           bestDist = dist;
           bestStart = fromPort;

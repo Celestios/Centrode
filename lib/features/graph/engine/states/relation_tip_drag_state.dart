@@ -74,7 +74,7 @@ class RelationTipDragging extends CanvasInteractionState {
       final port = vs.getClosestPortNew(pCanvas);
       if (port == null) continue;
 
-      final dist = (pCanvas - port.position).distance;
+      final dist = (pCanvas - port.edgePosition).distance;
       if (dist < AppConfig.interaction.snapDistance && dist < bestTargetDist) {
         bestTargetDist = dist;
         snappedId = nodeId;

@@ -118,7 +118,7 @@ class RelationDrawing extends CanvasInteractionState {
       final port = vs.getClosestPortNew(pCanvas);
       if (port == null) continue;
 
-      final dist = (pCanvas - port.position).distance;
+      final dist = (pCanvas - port.edgePosition).distance;
       if (dist < AppConfig.interaction.snapDistance) {
         snappedId = nodeId;
         snappedPort = port;
@@ -200,7 +200,7 @@ class RelationDrawing extends CanvasInteractionState {
       final port = vs.getClosestPortNew(pCanvas);
       if (port == null) continue;
 
-      if ((pCanvas - port.position).distance < AppConfig.interaction.snapDistance) {
+      if ((pCanvas - port.edgePosition).distance < AppConfig.interaction.snapDistance) {
         snappedId = nodeId;
         snappedPort = port;
         break;

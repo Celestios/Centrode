@@ -4,6 +4,7 @@ import '../config.dart';
 import '../../presentation/strategies/relation_layout_strategy.dart';
 import '../../presentation/routing/relation_layout_context.dart';
 import '../../models/models.dart';
+import '../../models/port.dart';
 import '../interaction_context.dart';
 import '../base_interaction_state.dart';
 
@@ -18,6 +19,7 @@ enum HitTestType {
   resizeLeft,
   body,
   relationLabel,
+  port,
 }
 
 class PointerHitResult {
@@ -26,6 +28,7 @@ class PointerHitResult {
   final String? hitEntityId;
   final ResizeEdge? draggedEdge;
   final String? relationId;
+  final Port? hitPort;
   final Offset? originalPosition;
   final double? grabOffsetX;
   final double? initialLeft;
@@ -37,6 +40,7 @@ class PointerHitResult {
     this.hitEntityId,
     this.draggedEdge,
     this.relationId,
+    this.hitPort,
     this.originalPosition,
     this.grabOffsetX,
     this.initialLeft,
@@ -64,6 +68,7 @@ class HitTestResolver {
 
     final result = _resolveRelationTips(pCanvas, ctx, layoutContext, selectedEntities) ??
         _resolveMetadataSphere(pCanvas, ctx, nodeIds) ??
+        _resolvePorts(pCanvas, ctx, nodeIds) ??
         _resolveNodeHits(pCanvas, ctx, nodeIds) ??
         _resolveRelationLabel(pCanvas, ctx, nodeIds, layoutContext) ??
         const PointerHitResult(type: HitTestType.none);
@@ -169,6 +174,28 @@ class HitTestResolver {
     );
     return (pCanvas - center).distance <
         AppConfig.node.metadataSphereHitboxRadius;
+  }
+
+  PointerHitResult? _resolvePorts(
+    Offset pCanvas,
+    InteractionContext ctx,
+    List<String> nodeIds,
+  ) {
+    for (final nodeId in nodeIds) {
+      final vs = ctx.nodeViewStates[nodeId];
+      if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
+
+      for (final port in vs.ports.allPorts) {
+        if ((pCanvas - port.position).distance < 16.0) {
+          return PointerHitResult(
+            type: HitTestType.port,
+            hitNodeId: nodeId,
+            hitPort: port,
+          );
+        }
+      }
+    }
+    return null;
   }
 
   PointerHitResult? _resolveNodeHits(

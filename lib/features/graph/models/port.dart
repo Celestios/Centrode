@@ -9,6 +9,7 @@ class Port {
   final PortType type;
   final int index;
   final Offset position;
+  final Offset edgePosition;
   final PortSide? adjacentSide;
 
   const Port({
@@ -16,6 +17,7 @@ class Port {
     required this.type,
     required this.index,
     required this.position,
+    required this.edgePosition,
     this.adjacentSide,
   });
 
