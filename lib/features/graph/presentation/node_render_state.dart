@@ -38,6 +38,9 @@ class NodeRenderState extends ChangeNotifier {
     null,
   );
 
+  /// ID of the node currently hovered on canvas (for port display).
+  final ValueNotifier<String?> hoveredNodeNotifier = ValueNotifier(null);
+
   /// Map of currently active visual view states.
   final Map<String, NodeViewState> viewStates = {};
 
@@ -325,6 +328,7 @@ class NodeRenderState extends ChangeNotifier {
     movementNotifier.dispose();
     activeInspectorTabNotifier.dispose();
     hoveredNodeMetadataNotifier.dispose();
+    hoveredNodeNotifier.dispose();
 
     editorState.dispose();
     selectionState.dispose();

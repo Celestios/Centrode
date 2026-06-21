@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mycelium/features/graph/engine/config.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
+import 'package:mycelium/features/graph/models/port.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
 import '../routing/relation_layout_context.dart';
@@ -102,6 +103,28 @@ abstract class RelationLayoutStrategy {
     }
 
     return (start, end);
+  }
+
+  static ({Port startPort, Port endPort}) getClosestMiddlePorts(
+    NodeViewState fromVs,
+    NodeViewState toVs,
+  ) {
+    double bestDist = double.infinity;
+    Port bestStart = fromVs.ports.getMiddlePortForSide(PortSide.right)!;
+    Port bestEnd = toVs.ports.getMiddlePortForSide(PortSide.left)!;
+
+    for (final fromPort in fromVs.getMiddlePorts()) {
+      for (final toPort in toVs.getMiddlePorts()) {
+        final dist = (fromPort.position - toPort.position).distance;
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestStart = fromPort;
+          bestEnd = toPort;
+        }
+      }
+    }
+
+    return (startPort: bestStart, endPort: bestEnd);
   }
 
   /// Computes the Path for drawing this relation.
@@ -312,43 +335,56 @@ class BezierRelationLayoutStrategy extends RelationLayoutStrategy {
     return AppConfig.interaction.relationLabelHitArea;
   }
 
-  Offset _getPortNormal(String? side, Offset start, Offset end) {
-    if (side == null || side == 'Auto') {
+  Offset _getPortNormal(Port? port, Offset start, Offset end) {
+    if (port == null) {
       final dir = end - start;
       if (dir.distance < 1.0) return const Offset(1, 0);
       return dir / dir.distance;
     }
-    switch (side) {
-      case 'Left':
+
+    switch (port.side) {
+      case PortSide.left:
         return const Offset(-1, 0);
-      case 'Right':
+      case PortSide.right:
         return const Offset(1, 0);
-      case 'Top':
+      case PortSide.top:
         return const Offset(0, -1);
-      case 'Bottom':
+      case PortSide.bottom:
         return const Offset(0, 1);
-      case 'TopLeft':
-        return const Offset(-0.707, -0.707);
-      case 'TopRight':
-        return const Offset(0.707, -0.707);
-      case 'BottomLeft':
-        return const Offset(-0.707, 0.707);
-      case 'BottomRight':
-        return const Offset(0.707, 0.707);
-      default:
-        return const Offset(1, 0);
     }
   }
 
-  String _resolveSideFromOffset(NodeViewState vs, Offset offset, String? side) {
+  Port? _resolveSideFromOffset(NodeViewState vs, Offset offset, String? side) {
     if (side != null && side != 'Auto') {
-      return side;
+      final portSide = _stringToPortSide(side);
+      if (portSide != null) {
+        return vs.ports.getMiddlePortForSide(portSide);
+      }
     }
-    final closest = vs.getClosestPort(offset);
-    if ((closest.position - offset).distance < 2.0) {
-      return closest.name;
+    return vs.ports.getClosestPort(offset);
+  }
+
+  static PortSide? _stringToPortSide(String side) {
+    switch (side) {
+      case 'Left':
+        return PortSide.left;
+      case 'Right':
+        return PortSide.right;
+      case 'Top':
+        return PortSide.top;
+      case 'Bottom':
+        return PortSide.bottom;
+      case 'TopLeft':
+        return PortSide.top;
+      case 'TopRight':
+        return PortSide.top;
+      case 'BottomLeft':
+        return PortSide.bottom;
+      case 'BottomRight':
+        return PortSide.bottom;
+      default:
+        return null;
     }
-    return 'Auto';
   }
 
   Path _getBezierPath(

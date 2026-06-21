@@ -183,7 +183,7 @@ class CanvasIdle extends CanvasInteractionState {
     // Use spatial grid to find candidate nodes near the cursor (O(K) not O(N))
     final candidateIds = ctx.spatialGrid.queryPoint(pCanvas);
     if (candidateIds.isEmpty) {
-      ctx.setHoveredNodeMetadata(null);
+      ctx.setHoveredNode(null);
       return cursor == SystemMouseCursors.basic
           ? this
           : const CanvasIdle(cursor: SystemMouseCursors.basic);
@@ -204,27 +204,28 @@ class CanvasIdle extends CanvasInteractionState {
       if (node is! DrawingUiNode &&
           (vs.rightResizeHitbox.contains(pCanvas) ||
            vs.leftResizeHitbox.contains(pCanvas))) {
-        ctx.setHoveredNodeMetadata(null);
+        ctx.setHoveredNode(null);
         return cursor == SystemMouseCursors.resizeLeftRight
             ? this
             : CanvasIdle(cursor: SystemMouseCursors.resizeLeftRight);
       }
       if (vs.lineCount > AppConfig.node.collapsedLineLimit && vs.getExpandToggleHitbox(node).contains(pCanvas)) {
-        ctx.setHoveredNodeMetadata(null);
+        ctx.setHoveredNode(null);
         return cursor == SystemMouseCursors.click
             ? this
             : CanvasIdle(cursor: SystemMouseCursors.click);
       }
 
-      if (HitTestResolver.isMetadataSphereHit(pCanvas, ctx, nodeId)) {
-        ctx.setHoveredNodeMetadata(nodeId);
+      // Show ports when hovering anywhere on the node
+      if (vs.rect.contains(pCanvas)) {
+        ctx.setHoveredNode(nodeId);
         return cursor == SystemMouseCursors.click
             ? this
             : const CanvasIdle(cursor: SystemMouseCursors.click);
       }
     }
 
-    ctx.setHoveredNodeMetadata(null);
+    ctx.setHoveredNode(null);
     return cursor == SystemMouseCursors.basic
         ? this
         : const CanvasIdle(cursor: SystemMouseCursors.basic);

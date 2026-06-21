@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:mycelium/infrastructure/telemetry/logging.dart';
 import '../engine/config.dart';
 import '../models/models.dart';
+import '../models/port.dart';
 import '../presentation/strategies/node_layout_strategy.dart';
 import 'interaction_context.dart';
 import 'states/hit_test_resolver.dart';

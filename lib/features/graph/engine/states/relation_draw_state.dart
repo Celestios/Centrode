@@ -36,12 +36,20 @@ class RelationDrawing extends CanvasInteractionState {
   /// terminating the relation drawing state prematurely.
   final bool hasReleasedOnce;
 
+  /// The port on the source node from which the relation originates.
+  final Port? sourcePort;
+
+  /// The port on the target node to which the relation snaps.
+  final Port? snappedTargetPort;
+
   const RelationDrawing(
     this.sourceNodeIds,
     this.currentCursorPosition, {
     this.snappedTargetNodeId,
     this.isSticky = false,
     this.hasReleasedOnce = false,
+    this.sourcePort,
+    this.snappedTargetPort,
   });
 
   /// Convenience constructor for single source node (non-sticky by default).
@@ -49,11 +57,13 @@ class RelationDrawing extends CanvasInteractionState {
     String sourceNodeId,
     Offset currentCursorPosition, {
     bool isSticky = false,
+    Port? sourcePort,
   }) {
     return RelationDrawing(
       {sourceNodeId},
       currentCursorPosition,
       isSticky: isSticky,
+      sourcePort: sourcePort,
     );
   }
 
@@ -72,7 +82,12 @@ class RelationDrawing extends CanvasInteractionState {
     // If we are already in the "following" phase and have a snap target, commit on click
     if (isSticky && hasReleasedOnce && snappedTargetNodeId != null) {
       for (final sourceId in sourceNodeIds) {
-        ctx.onRelationCreate(sourceId, snappedTargetNodeId!);
+        ctx.onRelationCreate(
+          sourceId,
+          snappedTargetNodeId!,
+          fromSide: sourcePort?.side.name,
+          toSide: snappedTargetPort?.side.name,
+        );
       }
       return const CanvasIdle();
     }
@@ -86,38 +101,40 @@ class RelationDrawing extends CanvasInteractionState {
     Offset pCanvas,
     GeometryCapability ctx,
   ) {
-    // L2 Snapping Logic - find nearby target node
     String? snappedId;
+    Port? snappedPort;
     final nodeIds = ctx.zOrder.reversed.toList();
     if (nodeIds.isEmpty) {
       nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
     }
 
     for (final nodeId in nodeIds) {
-      // Skip all source nodes
       if (sourceNodeIds.contains(nodeId)) continue;
 
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null) continue;
       if (vs.sizeNotifier.value == Size.zero) continue;
 
-      // Check distance to target's closest port
-      final position = vs.getClosestPort(pCanvas).position;
-      final dist = (pCanvas - position).distance;
+      final port = vs.getClosestPortNew(pCanvas);
+      if (port == null) continue;
+
+      final dist = (pCanvas - port.position).distance;
       if (dist < AppConfig.interaction.snapDistance) {
         snappedId = nodeId;
+        snappedPort = port;
         break;
       }
     }
 
-    ctx.onNodeDragUpdate(); // Pulse MovementNotifier for relation layer repaints
-    // Return new instance to trigger ValueNotifier notification
+    ctx.onNodeDragUpdate();
     return RelationDrawing(
       sourceNodeIds,
       pCanvas,
       snappedTargetNodeId: snappedId,
       isSticky: isSticky,
       hasReleasedOnce: hasReleasedOnce,
+      sourcePort: sourcePort,
+      snappedTargetPort: snappedPort,
     );
   }
 
@@ -138,6 +155,8 @@ class RelationDrawing extends CanvasInteractionState {
           snappedTargetNodeId: snappedTargetNodeId,
           isSticky: true,
           hasReleasedOnce: true,
+          sourcePort: sourcePort,
+          snappedTargetPort: snappedTargetPort,
         );
       }
       // Subsequent releases in sticky mode are ignored; we wait for a PointerDown confirmation
@@ -147,7 +166,12 @@ class RelationDrawing extends CanvasInteractionState {
     // Legacy drag-and-drop behavior (non-sticky) remains for other triggers
     if (snappedTargetNodeId != null) {
       for (final sourceId in sourceNodeIds) {
-        ctx.onRelationCreate(sourceId, snappedTargetNodeId!);
+        ctx.onRelationCreate(
+          sourceId,
+          snappedTargetNodeId!,
+          fromSide: sourcePort?.side.name,
+          toSide: snappedTargetPort?.side.name,
+        );
       }
     }
     return const CanvasIdle();
@@ -159,10 +183,10 @@ class RelationDrawing extends CanvasInteractionState {
     Offset pCanvas,
     GeometryCapability ctx,
   ) {
-    if (!isSticky) return this; // Opt-out if not in sticky mode
+    if (!isSticky) return this;
 
-    // Duplicate L2 snapping logic to process free mouse movement
     String? snappedId;
+    Port? snappedPort;
     final nodeIds = ctx.zOrder.reversed.toList();
     if (nodeIds.isEmpty) {
       nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
@@ -173,20 +197,25 @@ class RelationDrawing extends CanvasInteractionState {
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
 
-      final position = vs.getClosestPort(pCanvas).position;
-      if ((pCanvas - position).distance < AppConfig.interaction.snapDistance) {
+      final port = vs.getClosestPortNew(pCanvas);
+      if (port == null) continue;
+
+      if ((pCanvas - port.position).distance < AppConfig.interaction.snapDistance) {
         snappedId = nodeId;
+        snappedPort = port;
         break;
       }
     }
 
-    ctx.onNodeDragUpdate(); // Pulse MovementNotifier for layer repaints
+    ctx.onNodeDragUpdate();
     return RelationDrawing(
       sourceNodeIds,
       pCanvas,
       snappedTargetNodeId: snappedId,
       isSticky: isSticky,
       hasReleasedOnce: hasReleasedOnce,
+      sourcePort: sourcePort,
+      snappedTargetPort: snappedPort,
     );
   }
 }

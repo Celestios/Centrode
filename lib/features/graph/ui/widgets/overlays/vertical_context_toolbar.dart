@@ -110,7 +110,7 @@ class VerticalContextToolbar extends StatelessWidget {
                   // 1. Quick Actions Section
                   if (dragHandle != null) dragHandle!,
 
-                  if (!isRelationOnly) ...[
+                  if (!isRelationOnly && isMulti) ...[
                     _buildQuickButton(
                       icon: Icons.link_rounded,
                       tooltip: 'Draw Connection',

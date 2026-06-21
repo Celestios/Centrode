@@ -239,6 +239,13 @@ class CanvasInteractionEnvironment implements InteractionContext {
   }
 
   @override
+  void setHoveredNode(String? nodeId) {
+    if (_renderState.hoveredNodeNotifier.value != nodeId) {
+      _renderState.hoveredNodeNotifier.value = nodeId;
+    }
+  }
+
+  @override
   void onCreateDrawingNode({
     required Offset position,
     required List<String> paths,

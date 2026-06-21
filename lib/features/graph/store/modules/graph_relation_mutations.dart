@@ -51,7 +51,7 @@ class GraphRelationMutations {
       layout: RelationLayout(
         fromSide: fromSide ?? 'Auto',
         toSide: toSide ?? 'Auto',
-        strategyType: 'default',
+        strategyType: 'bezier',
       ),
     );
 

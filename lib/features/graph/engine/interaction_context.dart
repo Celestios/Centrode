@@ -102,6 +102,8 @@ abstract interface class MutationCapability {
 
   void setHoveredNodeMetadata(String? nodeId);
 
+  void setHoveredNode(String? nodeId);
+
   void onCreateDrawingNode({
     required Offset position,
     required List<String> paths,

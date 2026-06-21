@@ -19,6 +19,9 @@ class RelationTipDragging extends CanvasInteractionState {
   /// Whether the snap to the port is explicit (within 16px proximity).
   final bool isExplicit;
 
+  /// The snapped port, if any.
+  final Port? snappedPort;
+
   @override
   MouseCursor get cursor => SystemMouseCursors.grab;
 
@@ -30,6 +33,7 @@ class RelationTipDragging extends CanvasInteractionState {
     this.snappedTargetNodeId,
     this.snappedTargetSide,
     this.isExplicit = false,
+    this.snappedPort,
   });
 
   @override
@@ -40,7 +44,8 @@ class RelationTipDragging extends CanvasInteractionState {
   ) {
     // 1. Snapping logic to find nearby target node & its closest port (same as RelationDrawing)
     String? snappedId;
-    String? snappedPort;
+    String? snappedPortSide;
+    Port? snappedPort;
     bool isExplicit = false;
 
     final nodeIds = ctx.zOrder.reversed.toList();
@@ -66,13 +71,15 @@ class RelationTipDragging extends CanvasInteractionState {
       if (vs == null) continue;
       if (vs.sizeNotifier.value == Size.zero) continue;
 
-      // Check distance to target's closest port
-      final closest = vs.getClosestPort(pCanvas);
-      final dist = (pCanvas - closest.position).distance;
+      final port = vs.getClosestPortNew(pCanvas);
+      if (port == null) continue;
+
+      final dist = (pCanvas - port.position).distance;
       if (dist < AppConfig.interaction.snapDistance && dist < bestTargetDist) {
         bestTargetDist = dist;
         snappedId = nodeId;
-        snappedPort = closest.name;
+        snappedPortSide = port.side.name;
+        snappedPort = port;
         isExplicit = true;
       }
     }
@@ -86,8 +93,9 @@ class RelationTipDragging extends CanvasInteractionState {
       originalPosition: originalPosition,
       currentCursorPosition: pCanvas,
       snappedTargetNodeId: snappedId,
-      snappedTargetSide: snappedPort,
+      snappedTargetSide: snappedPortSide,
       isExplicit: isExplicit,
+      snappedPort: snappedPort,
     );
   }
 
@@ -103,13 +111,13 @@ class RelationTipDragging extends CanvasInteractionState {
         ctx.onRelationUpdateLayout(
           relationId,
           fromNodeId: snappedTargetNodeId,
-          fromSide: isExplicit ? snappedTargetSide : 'Auto',
+          fromSide: isExplicit && snappedPort != null ? snappedPort!.side.name : 'Auto',
         );
       } else {
         ctx.onRelationUpdateLayout(
           relationId,
           toNodeId: snappedTargetNodeId,
-          toSide: isExplicit ? snappedTargetSide : 'Auto',
+          toSide: isExplicit && snappedPort != null ? snappedPort!.side.name : 'Auto',
         );
       }
     }

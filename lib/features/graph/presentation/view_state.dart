@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:mycelium/infrastructure/telemetry/logging.dart';
 import 'package:mycelium/features/graph/models/models.dart';
+import 'package:mycelium/features/graph/models/port.dart';
+import 'package:mycelium/features/graph/presentation/node_ports.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/features/graph/engine/config.dart';
@@ -16,6 +18,7 @@ class NodeViewState implements VolatileNodeState {
   final ValueNotifier<double?> dragWidthNotifier = ValueNotifier(null);
   final ValueNotifier<int> lineCountNotifier = ValueNotifier(0);
   final ValueNotifier<int> styleNotifier = ValueNotifier(0);
+  NodePorts? _cachedPorts;
 
   int get lineCount => lineCountNotifier.value;
 
@@ -50,6 +53,7 @@ class NodeViewState implements VolatileNodeState {
     _cachedRightResizeHitbox = null;
     _cachedLeftResizeHitbox = null;
     _cachedExpandToggleHitbox = null;
+    _cachedPorts = null;
   }
 
   /// Re‑hydrates the ViewState with the latest data from the domain node.
@@ -72,6 +76,33 @@ class NodeViewState implements VolatileNodeState {
 
   // --- DRY Geometry Getters ---
   Rect get rect => _cachedRect ??= positionNotifier.value & sizeNotifier.value;
+
+  NodePorts get ports {
+    if (_cachedPorts == null) {
+      final scale = _currentScale;
+      _cachedPorts = NodePorts.compute(
+        sizeNotifier.value,
+        scale,
+        nodePosition: positionNotifier.value,
+      );
+    }
+    return _cachedPorts!;
+  }
+
+  double get _currentScale {
+    final node = _currentNode;
+    if (node == null) return 1.0;
+    final style = node.resolvedStyle ?? node.style;
+    if (style == null) return 1.0;
+    return style.fontSize / 14.0;
+  }
+
+  UiNode? _currentNode;
+
+  set currentNode(UiNode? node) {
+    _currentNode = node;
+    _cachedPorts = null;
+  }
 
   Offset get rightPort =>
       positionNotifier.value +
@@ -143,6 +174,17 @@ class NodeViewState implements VolatileNodeState {
     'BottomLeft': bottomLeftPort,
     'BottomRight': bottomRightPort,
   };
+
+  Port? getClosestPortNew(Offset point) => ports.getClosestPort(point);
+
+  Port? getMiddlePort(PortSide side) => ports.getMiddlePortForSide(side);
+
+  List<Port> getMiddlePorts() {
+    return PortSide.values
+        .map((side) => ports.getMiddlePortForSide(side))
+        .whereType<Port>()
+        .toList();
+  }
 
   /// Finds the name and position of the port on this node closest to a given point.
   ({String name, Offset position}) getClosestPort(Offset point) {

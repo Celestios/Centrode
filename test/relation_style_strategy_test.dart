@@ -2,10 +2,24 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
+import 'package:mycelium/features/graph/models/port.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
 import 'package:mycelium/features/graph/presentation/strategies/relation_layout_strategy.dart';
 import 'package:mycelium/features/graph/presentation/routing/relation_layout_context.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
+
+Offset _getPortNormal(PortSide side) {
+  switch (side) {
+    case PortSide.left:
+      return const Offset(-1, 0);
+    case PortSide.right:
+      return const Offset(1, 0);
+    case PortSide.top:
+      return const Offset(0, -1);
+    case PortSide.bottom:
+      return const Offset(0, 1);
+  }
+}
 
 void main() {
   test('resolveTipHandles calculates handles correctly for long distance', () {
@@ -224,8 +238,11 @@ void main() {
       // Calculate a point on the bezier curve at t = 0.25 dynamically
       final distance = (end - start).distance;
       final proj = (distance * 0.4).clamp(30.0, 150.0);
-      const startNormal = Offset(0.707, 0.707);
-      const endNormal = Offset(-0.707, -0.707);
+      // Get actual normals from resolved ports
+      final fromPort = fromVs.ports.getClosestPort(start);
+      final toPort = toVs.ports.getClosestPort(end);
+      final startNormal = fromPort != null ? _getPortNormal(fromPort.side) : const Offset(0.707, 0.707);
+      final endNormal = toPort != null ? _getPortNormal(toPort.side) : const Offset(-0.707, -0.707);
       final p1 = start + startNormal * proj;
       final p2 = end + endNormal * proj;
 

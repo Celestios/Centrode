@@ -16,6 +16,7 @@ import '../../presentation/workspace_tabs_controller.dart';
 import 'layers/relation_layer.dart';
 import 'layers/node_layer.dart';
 import 'layers/overlay_layer.dart';
+import 'layers/port_layer.dart';
 import '../../models/models.dart';
 import 'layers/grid_layer.dart';
 import '../../../../shared/widgets/canvas_interactive_viewer.dart';
@@ -542,6 +543,12 @@ class _GraphCanvasState extends State<GraphCanvas>
                                   ),
                                   const RelationLayer(),
                                   const NodeLayer(),
+                                  Positioned.fill(
+                                    child: PortLayer(
+                                      nodeViewStates: renderState.viewStates,
+                                      hoveredNodeNotifier: renderState.hoveredNodeNotifier,
+                                    ),
+                                  ),
                                   const OverlayLayer(),
                                   if (_drawingInterceptor != null)
                                     ValueListenableBuilder<List<Offset>>(

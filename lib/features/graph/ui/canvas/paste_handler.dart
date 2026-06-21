@@ -6,6 +6,8 @@ import '../../models/graph_node.dart';
 import '../../models/graph_relation.dart';
 import '../../store/graph_data_controller.dart';
 import 'package:mycelium/src/rust/domain/contents.dart';
+import 'package:mycelium/features/graph/presentation/strategies/relation_layout_strategy.dart';
+import 'package:mycelium/features/graph/presentation/view_state.dart';
 
 final Logger _log = Logger('PasteHandler');
 
@@ -188,16 +190,23 @@ Future<void> _createTreeNodes(
     final toNode = dataController.store.nodeLookup[childId];
     if (fromNode == null || toNode == null) continue;
 
+    final fromVs = NodeViewState(fromNode);
+    final toVs = NodeViewState(toNode);
+
+    final closest = RelationLayoutStrategy.getClosestMiddlePorts(fromVs, toVs);
+    final fromSide = closest.startPort.side.name;
+    final toSide = closest.endPort.side.name;
+
     final relation = InfoUiRelation(
       fromNodeId: parentId,
       fromNodeTable: fromNode.tableName,
       toNodeId: childId,
       toNodeTable: toNode.tableName,
       verb: verb,
-      layout: const RelationLayout(
-        fromSide: 'Auto',
-        toSide: 'Auto',
-        strategyType: 'default',
+      layout: RelationLayout(
+        fromSide: fromSide,
+        toSide: toSide,
+        strategyType: 'bezier',
       ),
     );
 
