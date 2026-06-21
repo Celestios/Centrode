@@ -6,6 +6,7 @@ import 'base_interaction_state.dart';
 import 'interaction_context.dart';
 import 'gesture_interceptor.dart';
 import '../models/models.dart';
+import '../models/port.dart';
 
 /// The Interaction Controller (FSM Engine)
 ///
@@ -250,6 +251,16 @@ class InteractionController {
       initialPos,
       isSticky: true,
       hasReleasedOnce: true,
+    ));
+  }
+
+  void startRelationDrawingFromPort(Set<String> nodeIds, Offset initialPos, {Port? sourcePort}) {
+    _transitionTo(RelationDrawing(
+      nodeIds,
+      initialPos,
+      isSticky: true,
+      hasReleasedOnce: true,
+      sourcePort: sourcePort,
     ));
   }
 

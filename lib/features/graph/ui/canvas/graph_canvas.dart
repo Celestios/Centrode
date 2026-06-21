@@ -548,6 +548,16 @@ class _GraphCanvasState extends State<GraphCanvas>
                                       nodeViewStates: renderState.viewStates,
                                       hoveredNodeNotifier: renderState.hoveredNodeNotifier,
                                       dragState: renderState.dragState,
+                                      onPortTapped: (nodeId, port) {
+                                        final vs = renderState.viewStates[nodeId];
+                                        if (vs != null) {
+                                          interactionController.startRelationDrawingFromPort(
+                                            {nodeId},
+                                            vs.rect.center,
+                                            sourcePort: port,
+                                          );
+                                        }
+                                      },
                                     ),
                                   ),
                                   const OverlayLayer(),

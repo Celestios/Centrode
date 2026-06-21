@@ -3,96 +3,177 @@ import 'package:mycelium/features/graph/models/port.dart';
 import 'package:mycelium/features/graph/presentation/drag_state.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
 
-class PortLayer extends StatelessWidget {
+class PortLayer extends StatefulWidget {
   final Map<String, NodeViewState> nodeViewStates;
   final ValueNotifier<String?> hoveredNodeNotifier;
   final DragState dragState;
+  final void Function(String nodeId, Port port)? onPortTapped;
 
   const PortLayer({
     super.key,
     required this.nodeViewStates,
     required this.hoveredNodeNotifier,
     required this.dragState,
+    this.onPortTapped,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: Listenable.merge([dragState, hoveredNodeNotifier, _PortHighlight.instance]),
-      builder: (context, _) {
-        // Hide ports while any node is being dragged
-        if (dragState.draggingNodes.isNotEmpty) {
-          _PortHighlight.instance.reset();
-          return const SizedBox.shrink();
-        }
-
-        final highlight = _PortHighlight.instance;
-        final hoveredNodeId = hoveredNodeNotifier.value;
-
-        // Show ports if: hovering over node OR keeping ports visible after hover
-        final nodeId = hoveredNodeId ?? highlight.currentNodeId;
-        if (nodeId == null) {
-          _PortHighlight.instance.reset();
-          return const SizedBox.shrink();
-        }
-
-        final vs = nodeViewStates[nodeId];
-        if (vs == null) return const SizedBox.shrink();
-
-        final scale = vs.currentScale;
-
-        return MouseRegion(
-          opaque: false,
-          onHover: (event) {
-            _PortHighlight.instance.update(nodeId, event.localPosition);
-          },
-          onExit: (_) {
-            // Only reset if not hovering over a port
-            if (!_PortHighlight.instance.isPortHovered) {
-              _PortHighlight.instance.reset();
-            }
-          },
-          child: CustomPaint(
-            painter: PortPainter(
-              ports: vs.ports.allPorts,
-              mousePosition: highlight.position,
-              scale: scale,
-              nodeSize: vs.sizeNotifier.value,
-              nodePosition: vs.positionNotifier.value,
-            ),
-            size: Size.infinite,
-          ),
-        );
-      },
-    );
-  }
+  State<PortLayer> createState() => _PortLayerState();
 }
 
-class _PortHighlight extends ChangeNotifier {
-  static final instance = _PortHighlight._();
-  _PortHighlight._();
+class _PortLayerState extends State<PortLayer> {
+  String? _activeNodeId;
+  Offset? _mousePosition;
 
-  String? currentNodeId;
-  Offset? position;
-  bool isPortHovered = false;
-
-  void update(String? newNodeId, Offset? newPosition) {
-    currentNodeId = newNodeId;
-    position = newPosition;
-    isPortHovered = false;
-    notifyListeners();
+  @override
+  void initState() {
+    super.initState();
+    widget.hoveredNodeNotifier.addListener(_onHoverChanged);
+    widget.dragState.addListener(_onDragChanged);
   }
 
-  void setPortHovered() {
-    isPortHovered = true;
-    notifyListeners();
+  @override
+  void didUpdateWidget(covariant PortLayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.hoveredNodeNotifier != widget.hoveredNodeNotifier) {
+      oldWidget.hoveredNodeNotifier.removeListener(_onHoverChanged);
+      widget.hoveredNodeNotifier.addListener(_onHoverChanged);
+    }
+    if (oldWidget.dragState != widget.dragState) {
+      oldWidget.dragState.removeListener(_onDragChanged);
+      widget.dragState.addListener(_onDragChanged);
+    }
   }
 
-  void reset() {
-    currentNodeId = null;
-    position = null;
-    isPortHovered = false;
-    notifyListeners();
+  @override
+  void dispose() {
+    widget.hoveredNodeNotifier.removeListener(_onHoverChanged);
+    widget.dragState.removeListener(_onDragChanged);
+    super.dispose();
+  }
+
+  void _onDragChanged() {
+    if (widget.dragState.draggingNodes.isNotEmpty) {
+      setState(() {
+        _activeNodeId = null;
+        _mousePosition = null;
+      });
+    }
+  }
+
+  void _onHoverChanged() {
+    final hoveredId = widget.hoveredNodeNotifier.value;
+    if (hoveredId != null) {
+      setState(() => _activeNodeId = hoveredId);
+    } else if (_activeNodeId != null) {
+      _checkShouldHide();
+    }
+  }
+
+  void _checkShouldHide() {
+    if (_activeNodeId == null || _mousePosition == null) {
+      setState(() => _activeNodeId = null);
+      return;
+    }
+
+    final vs = widget.nodeViewStates[_activeNodeId];
+    if (vs == null) {
+      setState(() => _activeNodeId = null);
+      return;
+    }
+
+    final nodePos = vs.positionNotifier.value;
+    final scale = vs.currentScale;
+    final portOffset = 8.0 * scale;
+
+    for (final port in vs.ports.allPorts) {
+      final offsetPos = _getOffsetPortPosition(port, nodePos, portOffset);
+      if ((_mousePosition! - offsetPos).distance < 16.0) {
+        return;
+      }
+    }
+
+    setState(() => _activeNodeId = null);
+  }
+
+  Offset _getOffsetPortPosition(Port port, Offset nodePos, double d) {
+    if (port.isCorner) {
+      final isLeft = port.position.dx <= nodePos.dx;
+      final isTop = port.position.dy <= nodePos.dy;
+      return port.position + Offset(isLeft ? -d : d, isTop ? -d : d);
+    }
+    switch (port.side) {
+      case PortSide.top:
+        return port.position + Offset(0, -d);
+      case PortSide.bottom:
+        return port.position + Offset(0, d);
+      case PortSide.left:
+        return port.position + Offset(-d, 0);
+      case PortSide.right:
+        return port.position + Offset(d, 0);
+    }
+  }
+
+  Port? _findPortAtPosition(Offset position) {
+    if (_activeNodeId == null) return null;
+    final vs = widget.nodeViewStates[_activeNodeId];
+    if (vs == null) return null;
+
+    final nodePos = vs.positionNotifier.value;
+    final scale = vs.currentScale;
+    final portOffset = 8.0 * scale;
+
+    for (final port in vs.ports.allPorts) {
+      final offsetPos = _getOffsetPortPosition(port, nodePos, portOffset);
+      if ((position - offsetPos).distance < 12.0) {
+        return port;
+      }
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final nodeId = _activeNodeId;
+    if (nodeId == null) return const SizedBox.shrink();
+
+    final vs = widget.nodeViewStates[nodeId];
+    if (vs == null) return const SizedBox.shrink();
+
+    final scale = vs.currentScale;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.basic,
+      opaque: false,
+      onHover: (event) {
+        setState(() => _mousePosition = event.localPosition);
+      },
+      onExit: (_) {
+        setState(() {
+          _mousePosition = null;
+          _activeNodeId = null;
+        });
+      },
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTapDown: (details) {
+          final port = _findPortAtPosition(details.localPosition);
+          if (port != null && widget.onPortTapped != null) {
+            widget.onPortTapped!(nodeId, port);
+          }
+        },
+        child: CustomPaint(
+          painter: PortPainter(
+            ports: vs.ports.allPorts,
+            mousePosition: _mousePosition,
+            scale: scale,
+            nodeSize: vs.sizeNotifier.value,
+            nodePosition: vs.positionNotifier.value,
+          ),
+          size: Size.infinite,
+        ),
+      ),
+    );
   }
 }
 
@@ -121,7 +202,6 @@ class PortPainter extends CustomPainter {
     for (final port in ports) {
       final offsetPos = _offsetPosition(port);
 
-      // Check if mouse is near this port
       final isHovered = mousePosition != null &&
           (mousePosition! - offsetPos).distance < _portHitRadius;
 
