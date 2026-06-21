@@ -4,7 +4,7 @@ use rust_lib_mycelium::domain::contents::Content;
 use rust_lib_mycelium::domain::nodes::{INode, Nodes};
 use rust_lib_mycelium::domain::patches::{EntityPatch, NodePatch, RelationPatch};
 use rust_lib_mycelium::domain::relations::{IRelation, IRelationFields};
-use rust_lib_mycelium::domain::styles::{NodeStyle, RelationLayout, RelationStyle};
+use rust_lib_mycelium::domain::styles::{NodeStyle, PortSide, RelationLayout, RelationStyle};
 use rust_lib_mycelium::persistence::history::HistoryManager;
 use surrealdb::types::{RecordId, SurrealValue};
 
@@ -302,8 +302,8 @@ async fn test_remaining_patches() {
         stroke_pattern: "solid".to_string(),
     };
     let rel_layout = RelationLayout {
-        from_side: "right".to_string(),
-        to_side: "left".to_string(),
+        from_side: Some(PortSide::Right),
+        to_side: Some(PortSide::Left),
         strategy_type: "custom".to_string(),
     };
 
@@ -327,7 +327,7 @@ async fn test_remaining_patches() {
     );
     assert_eq!(
         fetched_rel.fields.layout.as_ref().unwrap().from_side,
-        "right"
+        Some(PortSide::Right)
     );
     assert_eq!(fetched_rel.fields.directionless, true);
 }

@@ -3502,6 +3502,17 @@ impl SseDecode for Option<crate::domain::nodes::Nodes> {
     }
 }
 
+impl SseDecode for Option<crate::domain::styles::PortSide> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::domain::styles::PortSide>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<crate::domain::styles::RelationLayout> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3585,6 +3596,25 @@ impl SseDecode for Option<Vec<crate::domain::contents::TextMark>> {
     }
 }
 
+impl SseDecode for crate::domain::styles::PortSide {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::domain::styles::PortSide::Auto,
+            1 => crate::domain::styles::PortSide::Top,
+            2 => crate::domain::styles::PortSide::Right,
+            3 => crate::domain::styles::PortSide::Bottom,
+            4 => crate::domain::styles::PortSide::Left,
+            5 => crate::domain::styles::PortSide::TopLeft,
+            6 => crate::domain::styles::PortSide::TopRight,
+            7 => crate::domain::styles::PortSide::BottomLeft,
+            8 => crate::domain::styles::PortSide::BottomRight,
+            _ => unreachable!("Invalid variant for PortSide: {}", inner),
+        };
+    }
+}
+
 impl SseDecode for crate::domain::base_models::RecordStrings {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3600,8 +3630,8 @@ impl SseDecode for crate::domain::base_models::RecordStrings {
 impl SseDecode for crate::domain::styles::RelationLayout {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_fromSide = <String>::sse_decode(deserializer);
-        let mut var_toSide = <String>::sse_decode(deserializer);
+        let mut var_fromSide = <Option<crate::domain::styles::PortSide>>::sse_decode(deserializer);
+        let mut var_toSide = <Option<crate::domain::styles::PortSide>>::sse_decode(deserializer);
         let mut var_strategyType = <String>::sse_decode(deserializer);
         return crate::domain::styles::RelationLayout {
             from_side: var_fromSide,
@@ -5022,6 +5052,34 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::nodes::Nodes>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::styles::PortSide {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Auto => 0.into_dart(),
+            Self::Top => 1.into_dart(),
+            Self::Right => 2.into_dart(),
+            Self::Bottom => 3.into_dart(),
+            Self::Left => 4.into_dart(),
+            Self::TopLeft => 5.into_dart(),
+            Self::TopRight => 6.into_dart(),
+            Self::BottomLeft => 7.into_dart(),
+            Self::BottomRight => 8.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::styles::PortSide
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::styles::PortSide>
+    for crate::domain::styles::PortSide
+{
+    fn into_into_dart(self) -> crate::domain::styles::PortSide {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::domain::base_models::RecordStrings {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -6305,6 +6363,16 @@ impl SseEncode for Option<crate::domain::nodes::Nodes> {
     }
 }
 
+impl SseEncode for Option<crate::domain::styles::PortSide> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::domain::styles::PortSide>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<crate::domain::styles::RelationLayout> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -6375,6 +6443,29 @@ impl SseEncode for Option<Vec<crate::domain::contents::TextMark>> {
     }
 }
 
+impl SseEncode for crate::domain::styles::PortSide {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::domain::styles::PortSide::Auto => 0,
+                crate::domain::styles::PortSide::Top => 1,
+                crate::domain::styles::PortSide::Right => 2,
+                crate::domain::styles::PortSide::Bottom => 3,
+                crate::domain::styles::PortSide::Left => 4,
+                crate::domain::styles::PortSide::TopLeft => 5,
+                crate::domain::styles::PortSide::TopRight => 6,
+                crate::domain::styles::PortSide::BottomLeft => 7,
+                crate::domain::styles::PortSide::BottomRight => 8,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for crate::domain::base_models::RecordStrings {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -6386,8 +6477,8 @@ impl SseEncode for crate::domain::base_models::RecordStrings {
 impl SseEncode for crate::domain::styles::RelationLayout {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <String>::sse_encode(self.from_side, serializer);
-        <String>::sse_encode(self.to_side, serializer);
+        <Option<crate::domain::styles::PortSide>>::sse_encode(self.from_side, serializer);
+        <Option<crate::domain::styles::PortSide>>::sse_encode(self.to_side, serializer);
         <String>::sse_encode(self.strategy_type, serializer);
     }
 }

@@ -564,7 +564,7 @@ as String,
 /// @nodoc
 mixin _$RelationLayout {
 
- String get fromSide; String get toSide; String get strategyType;
+ PortSide? get fromSide; PortSide? get toSide; String get strategyType;
 /// Create a copy of RelationLayout
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -595,7 +595,7 @@ abstract mixin class $RelationLayoutCopyWith<$Res>  {
   factory $RelationLayoutCopyWith(RelationLayout value, $Res Function(RelationLayout) _then) = _$RelationLayoutCopyWithImpl;
 @useResult
 $Res call({
- String fromSide, String toSide, String strategyType
+ PortSide? fromSide, PortSide? toSide, String strategyType
 });
 
 
@@ -612,11 +612,11 @@ class _$RelationLayoutCopyWithImpl<$Res>
 
 /// Create a copy of RelationLayout
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? fromSide = null,Object? toSide = null,Object? strategyType = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? fromSide = freezed,Object? toSide = freezed,Object? strategyType = null,}) {
   return _then(_self.copyWith(
-fromSide: null == fromSide ? _self.fromSide : fromSide // ignore: cast_nullable_to_non_nullable
-as String,toSide: null == toSide ? _self.toSide : toSide // ignore: cast_nullable_to_non_nullable
-as String,strategyType: null == strategyType ? _self.strategyType : strategyType // ignore: cast_nullable_to_non_nullable
+fromSide: freezed == fromSide ? _self.fromSide : fromSide // ignore: cast_nullable_to_non_nullable
+as PortSide?,toSide: freezed == toSide ? _self.toSide : toSide // ignore: cast_nullable_to_non_nullable
+as PortSide?,strategyType: null == strategyType ? _self.strategyType : strategyType // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -699,7 +699,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String fromSide,  String toSide,  String strategyType)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PortSide? fromSide,  PortSide? toSide,  String strategyType)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RelationLayout() when $default != null:
 return $default(_that.fromSide,_that.toSide,_that.strategyType);case _:
@@ -720,7 +720,7 @@ return $default(_that.fromSide,_that.toSide,_that.strategyType);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String fromSide,  String toSide,  String strategyType)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PortSide? fromSide,  PortSide? toSide,  String strategyType)  $default,) {final _that = this;
 switch (_that) {
 case _RelationLayout():
 return $default(_that.fromSide,_that.toSide,_that.strategyType);}
@@ -737,7 +737,7 @@ return $default(_that.fromSide,_that.toSide,_that.strategyType);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String fromSide,  String toSide,  String strategyType)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PortSide? fromSide,  PortSide? toSide,  String strategyType)?  $default,) {final _that = this;
 switch (_that) {
 case _RelationLayout() when $default != null:
 return $default(_that.fromSide,_that.toSide,_that.strategyType);case _:
@@ -752,11 +752,11 @@ return $default(_that.fromSide,_that.toSide,_that.strategyType);case _:
 
 
 class _RelationLayout implements RelationLayout {
-  const _RelationLayout({required this.fromSide, required this.toSide, required this.strategyType});
+  const _RelationLayout({this.fromSide, this.toSide, required this.strategyType});
   
 
-@override final  String fromSide;
-@override final  String toSide;
+@override final  PortSide? fromSide;
+@override final  PortSide? toSide;
 @override final  String strategyType;
 
 /// Create a copy of RelationLayout
@@ -789,7 +789,7 @@ abstract mixin class _$RelationLayoutCopyWith<$Res> implements $RelationLayoutCo
   factory _$RelationLayoutCopyWith(_RelationLayout value, $Res Function(_RelationLayout) _then) = __$RelationLayoutCopyWithImpl;
 @override @useResult
 $Res call({
- String fromSide, String toSide, String strategyType
+ PortSide? fromSide, PortSide? toSide, String strategyType
 });
 
 
@@ -806,11 +806,11 @@ class __$RelationLayoutCopyWithImpl<$Res>
 
 /// Create a copy of RelationLayout
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? fromSide = null,Object? toSide = null,Object? strategyType = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? fromSide = freezed,Object? toSide = freezed,Object? strategyType = null,}) {
   return _then(_RelationLayout(
-fromSide: null == fromSide ? _self.fromSide : fromSide // ignore: cast_nullable_to_non_nullable
-as String,toSide: null == toSide ? _self.toSide : toSide // ignore: cast_nullable_to_non_nullable
-as String,strategyType: null == strategyType ? _self.strategyType : strategyType // ignore: cast_nullable_to_non_nullable
+fromSide: freezed == fromSide ? _self.fromSide : fromSide // ignore: cast_nullable_to_non_nullable
+as PortSide?,toSide: freezed == toSide ? _self.toSide : toSide // ignore: cast_nullable_to_non_nullable
+as PortSide?,strategyType: null == strategyType ? _self.strategyType : strategyType // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

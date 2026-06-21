@@ -36,11 +36,23 @@ sealed class NodeStyle with _$NodeStyle {
   }) = _NodeStyle;
 }
 
+enum PortSide {
+  auto,
+  top,
+  right,
+  bottom,
+  left,
+  topLeft,
+  topRight,
+  bottomLeft,
+  bottomRight,
+}
+
 @freezed
 sealed class RelationLayout with _$RelationLayout {
   const factory RelationLayout({
-    required String fromSide,
-    required String toSide,
+    PortSide? fromSide,
+    PortSide? toSide,
     required String strategyType,
   }) = _RelationLayout;
 }

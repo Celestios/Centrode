@@ -1,6 +1,7 @@
 // lib/features/graph/state/interaction_context.dart
 import 'dart:ui';
 import '../models/models.dart';
+import '../models/port.dart';
 import '../presentation/view_state.dart';
 import '../store/spatial_index.dart';
 
@@ -66,8 +67,8 @@ abstract interface class MutationCapability {
   void onRelationCreate(
     String from,
     String to, {
-    String? fromSide,
-    String? toSide,
+    PortSide? fromSide,
+    PortSide? toSide,
     String? verb,
   });
 
@@ -75,8 +76,8 @@ abstract interface class MutationCapability {
     String id, {
     String? fromNodeId,
     String? toNodeId,
-    String? fromSide,
-    String? toSide,
+    PortSide? fromSide,
+    PortSide? toSide,
     String? strategyType,
   });
 

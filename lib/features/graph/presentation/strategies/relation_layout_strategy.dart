@@ -50,7 +50,7 @@ abstract class RelationLayoutStrategy {
       start = overrideStart;
     } else if (startSize == Size.zero) {
       start = fromVs.positionNotifier.value + AppConfig.relation.startFallback;
-    } else if (fromSide != null && fromSide != 'Auto') {
+    } else if (fromSide != null) {
       start = fromVs.getPortPosition(fromSide);
     } else {
       start = fromVs.rightPort;
@@ -60,7 +60,7 @@ abstract class RelationLayoutStrategy {
       end = overrideEnd;
     } else if (endSize == Size.zero) {
       end = toVs.positionNotifier.value + AppConfig.relation.endFallback;
-    } else if (toSide != null && toSide != 'Auto') {
+    } else if (toSide != null) {
       end = toVs.getPortPosition(toSide);
     } else {
       end = toVs.leftPort;
@@ -70,14 +70,14 @@ abstract class RelationLayoutStrategy {
     if (overrideStart != null &&
         overrideEnd == null &&
         endSize != Size.zero &&
-        (toSide == null || toSide == 'Auto')) {
+        toSide == null) {
       end = toVs.getClosestPort(overrideStart).position;
     }
     // 2. Dragging end tip: resolve start port dynamically relative to active end if start side is Auto
     else if (overrideEnd != null &&
         overrideStart == null &&
         startSize != Size.zero &&
-        (fromSide == null || fromSide == 'Auto')) {
+        fromSide == null) {
       start = fromVs.getClosestPort(overrideEnd).position;
     }
     // 3. Normal routing (neither side is overridden)
@@ -85,13 +85,12 @@ abstract class RelationLayoutStrategy {
         overrideEnd == null &&
         startSize != Size.zero &&
         endSize != Size.zero &&
-        ((fromSide == null || fromSide == 'Auto') ||
-            (toSide == null || toSide == 'Auto'))) {
-      if (fromSide != null && fromSide != 'Auto') {
+        (fromSide == null || toSide == null)) {
+      if (fromSide != null) {
         final explicitStart = fromVs.getPortPosition(fromSide);
         start = explicitStart;
         end = toVs.getClosestPort(explicitStart).position;
-      } else if (toSide != null && toSide != 'Auto') {
+      } else if (toSide != null) {
         final explicitEnd = toVs.getPortPosition(toSide);
         start = fromVs.getClosestPort(explicitEnd).position;
         end = explicitEnd;
@@ -351,40 +350,16 @@ class BezierRelationLayoutStrategy extends RelationLayoutStrategy {
         return const Offset(0, -1);
       case PortSide.bottom:
         return const Offset(0, 1);
+      default:
+        return const Offset(1, 0);
     }
   }
 
-  Port? _resolveSideFromOffset(NodeViewState vs, Offset offset, String? side) {
-    if (side != null && side != 'Auto') {
-      final portSide = _stringToPortSide(side);
-      if (portSide != null) {
-        return vs.ports.getMiddlePortForSide(portSide);
-      }
+  Port? _resolveSideFromOffset(NodeViewState vs, Offset offset, PortSide? side) {
+    if (side != null) {
+      return vs.ports.getMiddlePortForSide(side);
     }
     return vs.ports.getClosestPort(offset);
-  }
-
-  static PortSide? _stringToPortSide(String side) {
-    switch (side) {
-      case 'Left':
-        return PortSide.left;
-      case 'Right':
-        return PortSide.right;
-      case 'Top':
-        return PortSide.top;
-      case 'Bottom':
-        return PortSide.bottom;
-      case 'TopLeft':
-        return PortSide.top;
-      case 'TopRight':
-        return PortSide.top;
-      case 'BottomLeft':
-        return PortSide.bottom;
-      case 'BottomRight':
-        return PortSide.bottom;
-      default:
-        return null;
-    }
   }
 
   Path _getBezierPath(

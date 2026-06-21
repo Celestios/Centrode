@@ -14,7 +14,7 @@ class RelationTipDragging extends CanvasInteractionState {
   final String? snappedTargetNodeId;
 
   /// The side of the target node to connect to, if any.
-  final String? snappedTargetSide;
+  final PortSide? snappedTargetSide;
 
   /// Whether the snap to the port is explicit (within 16px proximity).
   final bool isExplicit;
@@ -44,7 +44,7 @@ class RelationTipDragging extends CanvasInteractionState {
   ) {
     // 1. Snapping logic to find nearby target node & its closest port (same as RelationDrawing)
     String? snappedId;
-    String? snappedPortSide;
+    PortSide? snappedPortSide;
     Port? snappedPort;
     bool isExplicit = false;
 
@@ -78,7 +78,7 @@ class RelationTipDragging extends CanvasInteractionState {
       if (dist < AppConfig.interaction.snapDistance && dist < bestTargetDist) {
         bestTargetDist = dist;
         snappedId = nodeId;
-        snappedPortSide = port.side.name;
+        snappedPortSide = port.side;
         snappedPort = port;
         isExplicit = true;
       }
@@ -111,13 +111,13 @@ class RelationTipDragging extends CanvasInteractionState {
         ctx.onRelationUpdateLayout(
           relationId,
           fromNodeId: snappedTargetNodeId,
-          fromSide: isExplicit && snappedPort != null ? snappedPort!.side.name : 'Auto',
+          fromSide: isExplicit && snappedPort != null ? snappedPort!.side : null,
         );
       } else {
         ctx.onRelationUpdateLayout(
           relationId,
           toNodeId: snappedTargetNodeId,
-          toSide: isExplicit && snappedPort != null ? snappedPort!.side.name : 'Auto',
+          toSide: isExplicit && snappedPort != null ? snappedPort!.side : null,
         );
       }
     }

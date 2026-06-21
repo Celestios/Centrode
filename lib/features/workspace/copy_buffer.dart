@@ -141,8 +141,8 @@ class CopyBuffer extends ChangeNotifier {
         toNodeTable: toNode.tableName,
         verb: rel.verb,
         layout: const RelationLayout(
-          fromSide: 'Auto',
-          toSide: 'Auto',
+          fromSide: null,
+          toSide: null,
           strategyType: 'default',
         ),
       );

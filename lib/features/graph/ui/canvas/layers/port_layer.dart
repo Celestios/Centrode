@@ -4,6 +4,7 @@ import 'package:mycelium/features/graph/models/port.dart';
 import 'package:mycelium/features/graph/presentation/drag_state.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
 import '../../../engine/base_interaction_state.dart';
+import '../../../engine/config.dart';
 
 class PortLayer extends StatefulWidget {
   final Map<String, NodeViewState> nodeViewStates;
@@ -55,32 +56,23 @@ class _PortLayerState extends State<PortLayer> {
     super.dispose();
   }
 
-  String? _computeActiveNodeId() {
-    final interaction = widget.interactionState.value;
-    if (interaction is RelationDrawing || interaction is RelationTipDragging) {
-      return null;
-    }
-
-    final hoveredId = widget.hoveredNodeNotifier.value;
-    return hoveredId;
-  }
-
   void _onInteractionChanged() {
-    final target = _computeActiveNodeId();
-    if (target != null) {
+    final interaction = widget.interactionState.value;
+    final isDrawing = interaction is RelationDrawing;
+    if (isDrawing || interaction is RelationTipDragging) {
       _hideTimer?.cancel();
       _hideTimer = null;
-      if (target != _activeNodeId) {
-        setState(() => _activeNodeId = target);
+      final hoveredId = widget.hoveredNodeNotifier.value;
+      if (hoveredId != _activeNodeId) {
+        setState(() => _activeNodeId = hoveredId);
+      } else if (isDrawing) {
+        setState(() {});
       }
-    } else if (_activeNodeId != null && _hideTimer == null) {
-      _hideTimer = Timer(const Duration(milliseconds: 100), () {
-        _hideTimer = null;
-        if (mounted) {
-          final recheck = _computeActiveNodeId();
-          setState(() => _activeNodeId = recheck);
-        }
-      });
+    } else {
+      final hoveredId = widget.hoveredNodeNotifier.value;
+      if (hoveredId != _activeNodeId) {
+        setState(() => _activeNodeId = hoveredId);
+      }
     }
   }
 
@@ -94,8 +86,7 @@ class _PortLayerState extends State<PortLayer> {
       _hideTimer = Timer(const Duration(milliseconds: 100), () {
         _hideTimer = null;
         if (mounted) {
-          final recheck = _computeActiveNodeId();
-          setState(() => _activeNodeId = recheck);
+          setState(() => _activeNodeId = widget.hoveredNodeNotifier.value);
         }
       });
     }
@@ -109,13 +100,25 @@ class _PortLayerState extends State<PortLayer> {
     final vs = widget.nodeViewStates[nodeId];
     if (vs == null) return const SizedBox.shrink();
 
-    final scale = vs.currentScale;
+    final interaction = widget.interactionState.value;
+    final drawing = interaction is RelationDrawing ? interaction : null;
+
+    // Skip source nodes during relation drawing
+    if (drawing != null && drawing.sourceNodeIds.contains(nodeId)) {
+      return const SizedBox.shrink();
+    }
+
+    final ports = vs.ports.allPorts;
+    if (ports.isEmpty) return const SizedBox.shrink();
+
+    final highlighted = drawing?.snappedTargetPort;
 
     return IgnorePointer(
       child: CustomPaint(
         painter: PortPainter(
-          ports: vs.ports.allPorts,
-          scale: scale,
+          ports: ports,
+          scale: vs.currentScale,
+          highlightedPort: highlighted,
         ),
         size: Size.infinite,
       ),
@@ -126,27 +129,34 @@ class _PortLayerState extends State<PortLayer> {
 class PortPainter extends CustomPainter {
   final List<Port> ports;
   final double scale;
+  final Port? highlightedPort;
 
   PortPainter({
     required this.ports,
     this.scale = 1.0,
+    this.highlightedPort,
   });
 
-  double get _portRadius => 3.0 * scale;
+  double get _portRadius => AppConfig.port.drawRadius * scale;
 
   @override
   void paint(Canvas canvas, Size size) {
     for (final port in ports) {
+      final isHighlighted = highlightedPort != null && port == highlightedPort;
       final paint = Paint()
-        ..color = Colors.grey.withValues(alpha: 0.6)
+        ..color = isHighlighted
+            ? Colors.green.withValues(alpha: 0.9)
+            : Colors.grey.withValues(alpha: 0.6)
         ..style = PaintingStyle.fill;
 
-      canvas.drawCircle(port.position, _portRadius, paint);
+      canvas.drawCircle(port.position, isHighlighted ? _portRadius * 1.5 : _portRadius, paint);
     }
   }
 
   @override
   bool shouldRepaint(covariant PortPainter oldDelegate) {
-    return ports != oldDelegate.ports || scale != oldDelegate.scale;
+    return ports != oldDelegate.ports ||
+        scale != oldDelegate.scale ||
+        highlightedPort != oldDelegate.highlightedPort;
   }
 }

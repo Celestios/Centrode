@@ -8,6 +8,8 @@ import '../../../engine/base_interaction_state.dart';
 import '../../../engine/interaction_engine.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
+import '../../../presentation/strategies/relation_layout_strategy.dart';
+import '../../../presentation/routing/relation_layout_context.dart';
 import '../metadata_preview_overlay.dart';
 import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 
@@ -107,31 +109,56 @@ class _TempRelationPainter extends CustomPainter {
         ? nodeViewStates[state.snappedTargetNodeId]
         : null;
 
-    if (targetVs != null) {
-      // Snapped to a target node: Draw optimal path from each source to target
-      for (final sourceId in state.sourceNodeIds) {
-        final sourceVs = nodeViewStates[sourceId];
-        if (sourceVs == null) continue;
+    for (final sourceId in state.sourceNodeIds) {
+      final sourceVs = nodeViewStates[sourceId];
+      if (sourceVs == null) continue;
 
-        final closest = NodeViewState.getClosestPortsBetween(
+      final sourcePort = state.sourcePort;
+      final targetPort = state.snappedTargetPort;
+
+      if (targetVs != null) {
+        final fromSide = sourcePort?.side;
+        final toSide = targetPort?.side;
+
+        final tempRelation = InfoUiRelation(
+          fromNodeId: sourceId,
+          fromNodeTable: 'INode',
+          toNodeId: state.snappedTargetNodeId!,
+          toNodeTable: 'INode',
+          layout: RelationLayout(
+            fromSide: fromSide,
+            toSide: toSide,
+            strategyType: 'bezier',
+          ),
+        );
+
+        final layoutContext = RelationLayoutContext(
+          nodeViewStates: nodeViewStates,
+          relations: [],
+          pathCache: {},
+        );
+
+        final layoutStrategy = RelationLayoutStrategy.fromType('bezier');
+        final (start, end) = layoutStrategy.resolveEndpoints(
+          tempRelation,
           sourceVs,
           targetVs,
         );
-        canvas.drawLine(closest.startPos, closest.endPos, paint);
-      }
-    } else {
-      // Not snapped: Draw from closest source port to cursor position
-      final endPos = state.currentCursorPosition;
-      for (final sourceId in state.sourceNodeIds) {
-        final sourceVs = nodeViewStates[sourceId];
-        if (sourceVs == null) continue;
 
-        final startPos = sourceVs.getClosestPort(endPos).position;
-        canvas.drawLine(startPos, endPos, paint);
+        final path = layoutStrategy.computePath(
+          start,
+          end,
+          sourceVs,
+          targetVs,
+          tempRelation,
+          layoutContext,
+        );
+        canvas.drawPath(path, paint);
+      } else {
+        final startPos = sourcePort?.position ?? sourceVs.getClosestPort(state.currentCursorPosition).position;
+        canvas.drawLine(startPos, state.currentCursorPosition, paint);
+        canvas.drawCircle(state.currentCursorPosition, 6, paint..style = PaintingStyle.fill);
       }
-
-      // Draw a small circle at the end if not snapped
-      canvas.drawCircle(endPos, 6, paint..style = PaintingStyle.fill);
     }
   }
 

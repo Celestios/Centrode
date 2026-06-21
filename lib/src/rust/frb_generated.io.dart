@@ -171,6 +171,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Nodes dco_decode_box_autoadd_nodes(dynamic raw);
 
   @protected
+  PortSide dco_decode_box_autoadd_port_side(dynamic raw);
+
+  @protected
   RecordStrings dco_decode_box_autoadd_record_strings(dynamic raw);
 
   @protected
@@ -377,6 +380,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Nodes? dco_decode_opt_box_autoadd_nodes(dynamic raw);
 
   @protected
+  PortSide? dco_decode_opt_box_autoadd_port_side(dynamic raw);
+
+  @protected
   RelationLayout? dco_decode_opt_box_autoadd_relation_layout(dynamic raw);
 
   @protected
@@ -396,6 +402,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<TextMark>? dco_decode_opt_list_text_mark(dynamic raw);
+
+  @protected
+  PortSide dco_decode_port_side(dynamic raw);
 
   @protected
   RecordStrings dco_decode_record_strings(dynamic raw);
@@ -592,6 +601,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Nodes sse_decode_box_autoadd_nodes(SseDeserializer deserializer);
+
+  @protected
+  PortSide sse_decode_box_autoadd_port_side(SseDeserializer deserializer);
 
   @protected
   RecordStrings sse_decode_box_autoadd_record_strings(
@@ -826,6 +838,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Nodes? sse_decode_opt_box_autoadd_nodes(SseDeserializer deserializer);
 
   @protected
+  PortSide? sse_decode_opt_box_autoadd_port_side(SseDeserializer deserializer);
+
+  @protected
   RelationLayout? sse_decode_opt_box_autoadd_relation_layout(
     SseDeserializer deserializer,
   );
@@ -849,6 +864,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<TextMark>? sse_decode_opt_list_text_mark(SseDeserializer deserializer);
+
+  @protected
+  PortSide sse_decode_port_side(SseDeserializer deserializer);
 
   @protected
   RecordStrings sse_decode_record_strings(SseDeserializer deserializer);
@@ -1100,6 +1118,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_nodes(Nodes self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_port_side(
+    PortSide self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_record_strings(
@@ -1373,6 +1397,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_nodes(Nodes? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_box_autoadd_port_side(
+    PortSide? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_relation_layout(
     RelationLayout? self,
     SseSerializer serializer,
@@ -1401,6 +1431,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     List<TextMark>? self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_port_side(PortSide self, SseSerializer serializer);
 
   @protected
   void sse_encode_record_strings(RecordStrings self, SseSerializer serializer);

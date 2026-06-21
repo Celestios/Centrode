@@ -1,24 +1,23 @@
-import 'dart:math';
 import 'dart:ui';
 import 'package:mycelium/features/graph/models/port.dart';
+import '../engine/config.dart';
 
 class NodePorts {
+  static const _cardinalSides = [PortSide.top, PortSide.right, PortSide.bottom, PortSide.left];
+
   final List<Port> ports;
   final Map<PortSide, List<Port>> _bySide;
 
   NodePorts._(this.ports, this._bySide);
 
   factory NodePorts.compute(Size nodeSize, double scale, {Offset nodePosition = Offset.zero}) {
-    const baseDistance = 40.0;
-    final k = baseDistance * scale;
-    final offset = 8.0 * scale;
+    final offset = AppConfig.port.edgeOffset * scale;
     final ports = <Port>[];
     final bySide = <PortSide, List<Port>>{};
     final seenPositions = <Offset>{};
 
-    for (final side in PortSide.values) {
-      final sideLength = _sideLength(side, nodeSize);
-      final count = max(3, (sideLength / k).floor());
+    for (final side in _cardinalSides) {
+      final count = 3;
       final sidePorts = <Port>[];
 
       for (int i = 0; i < count; i++) {
@@ -31,11 +30,12 @@ class NodePorts {
 
         final type = _portType(i, count);
         final adjacentSide = _adjacentSide(side, i, count);
+        final portSide = type == PortType.corner ? _cornerSide(side, i, count) : side;
 
-        final visualPos = _visualOffset(side, type, edgePos, offset, nodePosition);
+        final visualPos = _visualOffset(portSide, type, edgePos, offset, nodePosition);
 
         final port = Port(
-          side: side,
+          side: portSide,
           type: type,
           index: i,
           position: visualPos,
@@ -53,6 +53,22 @@ class NodePorts {
   }
 
   List<Port> get allPorts => ports;
+
+  List<Port> portsByType(PortType type) => ports.where((p) => p.type == type).toList();
+
+  Port? getClosestPortByType(Offset point, PortType type) {
+    double bestDist = double.infinity;
+    Port? bestPort;
+    for (final port in ports) {
+      if (port.type != type) continue;
+      final dist = (point - port.position).distance;
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestPort = port;
+      }
+    }
+    return bestPort;
+  }
 
   Port? getClosestPort(Offset point) {
     double bestDist = double.infinity;
@@ -93,17 +109,8 @@ class NodePorts {
         return edgePos + Offset(-d, 0);
       case PortSide.right:
         return edgePos + Offset(d, 0);
-    }
-  }
-
-  static double _sideLength(PortSide side, Size size) {
-    switch (side) {
-      case PortSide.top:
-      case PortSide.bottom:
-        return size.width;
-      case PortSide.left:
-      case PortSide.right:
-        return size.height;
+      default:
+        return edgePos;
     }
   }
 
@@ -117,6 +124,8 @@ class NodePorts {
         return Offset(size.width * t, size.height);
       case PortSide.left:
         return Offset(0, size.height * t);
+      default:
+        return Offset(size.width * t, 0);
     }
   }
 
@@ -129,29 +138,43 @@ class NodePorts {
     return PortType.edge;
   }
 
+  static PortSide _cornerSide(PortSide side, int index, int count) {
+    if (index == 0) {
+      switch (side) {
+        case PortSide.top:     return PortSide.topLeft;
+        case PortSide.right:   return PortSide.topRight;
+        case PortSide.bottom:  return PortSide.bottomLeft;
+        case PortSide.left:    return PortSide.topLeft;
+        default:               return side;
+      }
+    } else {
+      switch (side) {
+        case PortSide.top:     return PortSide.topRight;
+        case PortSide.right:   return PortSide.bottomRight;
+        case PortSide.bottom:  return PortSide.bottomRight;
+        case PortSide.left:    return PortSide.bottomLeft;
+        default:               return side;
+      }
+    }
+  }
+
   static PortSide? _adjacentSide(PortSide side, int index, int count) {
     if (index == 0) {
       switch (side) {
-        case PortSide.top:
-          return PortSide.left;
-        case PortSide.right:
-          return PortSide.top;
-        case PortSide.bottom:
-          return PortSide.right;
-        case PortSide.left:
-          return PortSide.bottom;
+        case PortSide.top:     return PortSide.left;
+        case PortSide.right:   return PortSide.top;
+        case PortSide.bottom:  return PortSide.right;
+        case PortSide.left:    return PortSide.bottom;
+        default:               return null;
       }
     }
     if (index == count - 1) {
       switch (side) {
-        case PortSide.top:
-          return PortSide.right;
-        case PortSide.right:
-          return PortSide.bottom;
-        case PortSide.bottom:
-          return PortSide.left;
-        case PortSide.left:
-          return PortSide.top;
+        case PortSide.top:     return PortSide.right;
+        case PortSide.right:   return PortSide.bottom;
+        case PortSide.bottom:  return PortSide.left;
+        case PortSide.left:    return PortSide.top;
+        default:               return null;
       }
     }
     return null;

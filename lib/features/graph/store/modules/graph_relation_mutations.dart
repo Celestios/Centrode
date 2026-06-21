@@ -18,8 +18,8 @@ class GraphRelationMutations {
   void createRelation(
     String fromId,
     String toId, {
-    String? fromSide,
-    String? toSide,
+    PortSide? fromSide,
+    PortSide? toSide,
     String? verb,
   }) {
     final bool relationExists = controller.store.relationLookup.values.any(
@@ -49,8 +49,8 @@ class GraphRelationMutations {
       toNodeTable: toNode.tableName,
       verb: verb ?? 'default',
       layout: RelationLayout(
-        fromSide: fromSide ?? 'Auto',
-        toSide: toSide ?? 'Auto',
+        fromSide: fromSide,
+        toSide: toSide,
         strategyType: 'bezier',
       ),
     );
@@ -113,8 +113,8 @@ class GraphRelationMutations {
     String id, {
     String? fromNodeId,
     String? toNodeId,
-    String? fromSide,
-    String? toSide,
+    PortSide? fromSide,
+    PortSide? toSide,
     String? strategyType,
   }) {
     final relation = controller.store.relationLookup[id];
@@ -131,8 +131,8 @@ class GraphRelationMutations {
         : null;
 
     final newLayout = RelationLayout(
-      fromSide: fromSide ?? relation.layout?.fromSide ?? 'Auto',
-      toSide: toSide ?? relation.layout?.toSide ?? 'Auto',
+      fromSide: fromSide ?? relation.layout?.fromSide,
+      toSide: toSide ?? relation.layout?.toSide,
       strategyType: strategyType ?? relation.layout?.strategyType ?? 'default',
     );
 
@@ -192,8 +192,8 @@ class GraphRelationMutations {
       if (oldRelation == null) continue;
 
       final newLayout = RelationLayout(
-        fromSide: relation.layout?.fromSide ?? 'Auto',
-        toSide: relation.layout?.toSide ?? 'Auto',
+        fromSide: relation.layout?.fromSide,
+        toSide: relation.layout?.toSide,
         strategyType: strategyType ?? relation.layout?.strategyType ?? 'default',
       );
 

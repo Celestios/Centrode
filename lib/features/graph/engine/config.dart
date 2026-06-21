@@ -8,6 +8,7 @@ abstract final class AppConfig {
   static const canvas = _Canvas();
   static const interaction = _Interaction();
   static const node = _Node();
+  static const port = _Port();
   static const relation = _Relation();
   static const toolbar = _Toolbar();
   static const visuals = _Visuals();
@@ -61,11 +62,16 @@ class _Node {
   final double minFontSize = 10.0;
   final double maxFontSize = 40.0;
 
-  double scaledDefaultWidth(double fontSize) => defaultWidth * fontSize / _referenceFontSize;
-  double scaledMinWidth(double fontSize) => minWidth * fontSize / _referenceFontSize;
-  double scaledMaxWidth(double fontSize) => maxWidth * fontSize / _referenceFontSize;
-  double scaledAutoWrapThreshold(double fontSize) => autoWrapThreshold * fontSize / _referenceFontSize;
-  double scaledEditingBufferWidth(double fontSize) => editingBufferWidth * fontSize / _referenceFontSize;
+  double scaledDefaultWidth(double fontSize) =>
+      defaultWidth * fontSize / _referenceFontSize;
+  double scaledMinWidth(double fontSize) =>
+      minWidth * fontSize / _referenceFontSize;
+  double scaledMaxWidth(double fontSize) =>
+      maxWidth * fontSize / _referenceFontSize;
+  double scaledAutoWrapThreshold(double fontSize) =>
+      autoWrapThreshold * fontSize / _referenceFontSize;
+  double scaledEditingBufferWidth(double fontSize) =>
+      editingBufferWidth * fontSize / _referenceFontSize;
 
   final double metadataSphereOffsetFromRight = 10.0;
   final double metadataSphereOffsetFromTop = 10.0;
@@ -101,7 +107,12 @@ class _Visuals {
   final Color selectionAccent = const Color(0xFF42A5F5);
   final String defaultFont = 'Inter';
   final String defaultShape = 'rectangle';
-  final List<String> availableFonts = const ['System', 'Inter', 'Roboto', 'Consolas'];
+  final List<String> availableFonts = const [
+    'System',
+    'Inter',
+    'Roboto',
+    'Consolas',
+  ];
   final List<int> textColors = const [
     0xFF000000,
     0xFFFFFFFF,
@@ -111,6 +122,14 @@ class _Visuals {
     0xFFE65100,
     0xFF263238,
   ];
+}
+
+class _Port {
+  const _Port();
+
+  final double edgeOffset = 8.0;
+  final double hitRadius = 4.0;
+  final double drawRadius = 3.0;
 }
 
 class _Relation {

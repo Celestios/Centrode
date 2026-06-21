@@ -46,8 +46,6 @@ class CanvasIdle extends CanvasInteractionState {
         return RelationDrawing(
           {result.hitNodeId!},
           pCanvas,
-          isSticky: true,
-          hasReleasedOnce: true,
           sourcePort: result.hitPort,
         );
 

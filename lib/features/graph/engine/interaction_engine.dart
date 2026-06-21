@@ -249,8 +249,6 @@ class InteractionController {
     _transitionTo(RelationDrawing(
       nodeIds,
       initialPos,
-      isSticky: true,
-      hasReleasedOnce: true,
     ));
   }
 
@@ -258,8 +256,6 @@ class InteractionController {
     _transitionTo(RelationDrawing(
       nodeIds,
       initialPos,
-      isSticky: true,
-      hasReleasedOnce: true,
       sourcePort: sourcePort,
     ));
   }

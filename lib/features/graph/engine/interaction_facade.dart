@@ -1,6 +1,8 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:mycelium/infrastructure/telemetry/logging.dart';
 import '../models/models.dart';
+import '../models/port.dart';
 import '../presentation/view_state.dart';
 import '../presentation/strategies/node_style_strategy.dart';
 import 'interaction_context.dart';
@@ -73,11 +75,11 @@ class CanvasInteractionEnvironment implements InteractionContext {
   void onRelationCreate(
     String from,
     String to, {
-    String? fromSide,
-    String? toSide,
+    PortSide? fromSide,
+    PortSide? toSide,
     String? verb,
   }) {
-    _log.info('onRelationCreate from=$from to=$to');
+    debugPrint('[InteractionFacade] onRelationCreate from=$from to=$to fromSide=$fromSide toSide=$toSide');
     _dataController.createRelation(
       from,
       to,
@@ -92,11 +94,10 @@ class CanvasInteractionEnvironment implements InteractionContext {
     String id, {
     String? fromNodeId,
     String? toNodeId,
-    String? fromSide,
-    String? toSide,
+    PortSide? fromSide,
+    PortSide? toSide,
     String? strategyType,
   }) {
-    _log.info('onRelationUpdateLayout id=$id');
     _dataController.updateRelationLayout(
       id,
       fromNodeId: fromNodeId,

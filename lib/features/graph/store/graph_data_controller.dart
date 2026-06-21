@@ -8,6 +8,7 @@ import '../models/models.dart';
 import 'command_processor.dart';
 import 'package:mycelium/src/rust/bridge/api.dart' as rust;
 import 'package:mycelium/src/rust/domain/nodes.dart';
+import 'package:mycelium/src/rust/domain/styles.dart';
 
 import 'modules/graph_store.dart';
 import 'modules/graph_spatial.dart';
@@ -283,8 +284,8 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
   void createRelation(
     String fromId,
     String toId, {
-    String? fromSide,
-    String? toSide,
+    PortSide? fromSide,
+    PortSide? toSide,
     String? verb,
   }) => relationMutations.createRelation(
     fromId,
@@ -302,8 +303,8 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
     String id, {
     String? fromNodeId,
     String? toNodeId,
-    String? fromSide,
-    String? toSide,
+    PortSide? fromSide,
+    PortSide? toSide,
     String? strategyType,
   }) => relationMutations.updateRelationLayout(
     id,

@@ -194,8 +194,8 @@ Future<void> _createTreeNodes(
     final toVs = NodeViewState(toNode);
 
     final closest = RelationLayoutStrategy.getClosestMiddlePorts(fromVs, toVs);
-    final fromSide = closest.startPort.side.name;
-    final toSide = closest.endPort.side.name;
+    final fromSide = closest.startPort.side;
+    final toSide = closest.endPort.side;
 
     final relation = InfoUiRelation(
       fromNodeId: parentId,

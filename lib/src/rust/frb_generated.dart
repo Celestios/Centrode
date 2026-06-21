@@ -2147,6 +2147,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PortSide dco_decode_box_autoadd_port_side(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_port_side(raw);
+  }
+
+  @protected
   RecordStrings dco_decode_box_autoadd_record_strings(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_record_strings(raw);
@@ -2827,6 +2833,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PortSide? dco_decode_opt_box_autoadd_port_side(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_port_side(raw);
+  }
+
+  @protected
   RelationLayout? dco_decode_opt_box_autoadd_relation_layout(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_relation_layout(raw);
@@ -2869,6 +2881,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PortSide dco_decode_port_side(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return PortSide.values[raw as int];
+  }
+
+  @protected
   RecordStrings dco_decode_record_strings(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -2887,8 +2905,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     if (arr.length != 3)
       throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
     return RelationLayout(
-      fromSide: dco_decode_String(arr[0]),
-      toSide: dco_decode_String(arr[1]),
+      fromSide: dco_decode_opt_box_autoadd_port_side(arr[0]),
+      toSide: dco_decode_opt_box_autoadd_port_side(arr[1]),
       strategyType: dco_decode_String(arr[2]),
     );
   }
@@ -3454,6 +3472,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Nodes sse_decode_box_autoadd_nodes(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_nodes(deserializer));
+  }
+
+  @protected
+  PortSide sse_decode_box_autoadd_port_side(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_port_side(deserializer));
   }
 
   @protected
@@ -4373,6 +4397,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PortSide? sse_decode_opt_box_autoadd_port_side(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_port_side(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   RelationLayout? sse_decode_opt_box_autoadd_relation_layout(
     SseDeserializer deserializer,
   ) {
@@ -4454,6 +4489,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PortSide sse_decode_port_side(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return PortSide.values[inner];
+  }
+
+  @protected
   RecordStrings sse_decode_record_strings(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_table = sse_decode_String(deserializer);
@@ -4464,8 +4506,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   RelationLayout sse_decode_relation_layout(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_fromSide = sse_decode_String(deserializer);
-    var var_toSide = sse_decode_String(deserializer);
+    var var_fromSide = sse_decode_opt_box_autoadd_port_side(deserializer);
+    var var_toSide = sse_decode_opt_box_autoadd_port_side(deserializer);
     var var_strategyType = sse_decode_String(deserializer);
     return RelationLayout(
       fromSide: var_fromSide,
@@ -5141,6 +5183,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_box_autoadd_nodes(Nodes self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_nodes(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_port_side(
+    PortSide self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_port_side(self, serializer);
   }
 
   @protected
@@ -5879,6 +5930,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_port_side(
+    PortSide? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_port_side(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_relation_layout(
     RelationLayout? self,
     SseSerializer serializer,
@@ -5958,6 +6022,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_port_side(PortSide self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
   void sse_encode_record_strings(RecordStrings self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.table, serializer);
@@ -5970,8 +6040,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.fromSide, serializer);
-    sse_encode_String(self.toSide, serializer);
+    sse_encode_opt_box_autoadd_port_side(self.fromSide, serializer);
+    sse_encode_opt_box_autoadd_port_side(self.toSide, serializer);
     sse_encode_String(self.strategyType, serializer);
   }
 

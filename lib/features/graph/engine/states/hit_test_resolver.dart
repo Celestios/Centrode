@@ -186,7 +186,7 @@ class HitTestResolver {
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
 
       for (final port in vs.ports.allPorts) {
-        if ((pCanvas - port.position).distance < 16.0) {
+        if ((pCanvas - port.position).distance < AppConfig.port.hitRadius) {
           return PointerHitResult(
             type: HitTestType.port,
             hitNodeId: nodeId,

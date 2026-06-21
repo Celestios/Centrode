@@ -130,37 +130,28 @@ class NodeViewState implements VolatileNodeState {
       positionNotifier.value +
       Offset(sizeNotifier.value.width, sizeNotifier.value.height);
 
-  static const List<String> portNames = [
-    'Left',
-    'Right',
-    'Top',
-    'Bottom',
-    'TopLeft',
-    'TopRight',
-    'BottomLeft',
-    'BottomRight',
+  static const List<PortSide> portSides = [
+    PortSide.left,
+    PortSide.right,
+    PortSide.top,
+    PortSide.bottom,
+    PortSide.topLeft,
+    PortSide.topRight,
+    PortSide.bottomLeft,
+    PortSide.bottomRight,
   ];
 
-  Offset getPortPosition(String side) {
+  Offset getPortPosition(PortSide side) {
     switch (side) {
-      case 'Top':
-        return topPort;
-      case 'Bottom':
-        return bottomPort;
-      case 'Left':
-        return leftPort;
-      case 'Right':
-        return rightPort;
-      case 'TopLeft':
-        return topLeftPort;
-      case 'TopRight':
-        return topRightPort;
-      case 'BottomLeft':
-        return bottomLeftPort;
-      case 'BottomRight':
-        return bottomRightPort;
-      default:
-        return rightPort; // Fallback
+      case PortSide.top:     return topPort;
+      case PortSide.bottom:  return bottomPort;
+      case PortSide.left:    return leftPort;
+      case PortSide.right:   return rightPort;
+      case PortSide.topLeft:     return topLeftPort;
+      case PortSide.topRight:    return topRightPort;
+      case PortSide.bottomLeft:  return bottomLeftPort;
+      case PortSide.bottomRight: return bottomRightPort;
+      case PortSide.auto:    return rightPort;
     }
   }
 
@@ -180,58 +171,58 @@ class NodeViewState implements VolatileNodeState {
   Port? getMiddlePort(PortSide side) => ports.getMiddlePortForSide(side);
 
   List<Port> getMiddlePorts() {
-    return PortSide.values
+    return [PortSide.top, PortSide.right, PortSide.bottom, PortSide.left]
         .map((side) => ports.getMiddlePortForSide(side))
         .whereType<Port>()
         .toList();
   }
 
-  /// Finds the name and position of the port on this node closest to a given point.
-  ({String name, Offset position}) getClosestPort(Offset point) {
+  /// Finds the position of the port on this node closest to a given point.
+  ({PortSide side, Offset position}) getClosestPort(Offset point) {
     double bestDist = double.infinity;
-    String bestName = 'Right';
+    PortSide bestSide = PortSide.right;
     Offset bestPos = rightPort;
-    for (final name in portNames) {
-      final portPos = getPortPosition(name);
+    for (final side in portSides) {
+      final portPos = getPortPosition(side);
       final dist = (point - portPos).distance;
       if (dist < bestDist) {
         bestDist = dist;
-        bestName = name;
+        bestSide = side;
         bestPos = portPos;
       }
     }
-    return (name: bestName, position: bestPos);
+    return (side: bestSide, position: bestPos);
   }
 
   /// Finds the closest pair of ports between two nodes (from and to).
-  /// Returns a record containing the start port name/position and the end port name/position.
-  static ({String startName, Offset startPos, String endName, Offset endPos})
+  /// Returns a record containing the start port side/position and the end port side/position.
+  static ({PortSide startSide, Offset startPos, PortSide endSide, Offset endPos})
   getClosestPortsBetween(NodeViewState fromVs, NodeViewState toVs) {
     double bestDist = double.infinity;
-    String bestStartName = 'Right';
+    PortSide bestStartSide = PortSide.right;
     Offset bestStartPos = fromVs.rightPort;
-    String bestEndName = 'Left';
+    PortSide bestEndSide = PortSide.left;
     Offset bestEndPos = toVs.leftPort;
 
-    for (final fromName in portNames) {
-      final fromPortPos = fromVs.getPortPosition(fromName);
-      for (final toName in portNames) {
-        final toPortPos = toVs.getPortPosition(toName);
+    for (final fromSide in portSides) {
+      final fromPortPos = fromVs.getPortPosition(fromSide);
+      for (final toSide in portSides) {
+        final toPortPos = toVs.getPortPosition(toSide);
         final dist = (fromPortPos - toPortPos).distance;
         if (dist < bestDist) {
           bestDist = dist;
-          bestStartName = fromName;
+          bestStartSide = fromSide;
           bestStartPos = fromPortPos;
-          bestEndName = toName;
+          bestEndSide = toSide;
           bestEndPos = toPortPos;
         }
       }
     }
 
     return (
-      startName: bestStartName,
+      startSide: bestStartSide,
       startPos: bestStartPos,
-      endName: bestEndName,
+      endSide: bestEndSide,
       endPos: bestEndPos,
     );
   }
