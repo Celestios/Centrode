@@ -25,6 +25,7 @@ class _GraphScreenState extends State<GraphScreen> {
   late final WorkspaceTabsController _tabsController;
   final CopyBuffer _copyBuffer = CopyBuffer();
   ThemeData? _lastThemeData;
+  bool _isThemeAnimating = false;
 
   @override
   void initState() {
@@ -71,39 +72,58 @@ class _GraphScreenState extends State<GraphScreen> {
 
                 final ThemeData themeData;
                 if (mapTheme != null) {
-                  themeData = mapTheme.toThemeData();
-                  _lastThemeData = themeData;
+                  final newThemeData = mapTheme.toThemeData();
+                  final themeChanged = _lastThemeData != null && _lastThemeData != newThemeData;
+                  _lastThemeData = newThemeData;
+                  themeData = newThemeData;
+                  if (themeChanged) {
+                    _isThemeAnimating = true;
+                    Future.delayed(const Duration(milliseconds: 500), () {
+                      if (mounted) setState(() => _isThemeAnimating = false);
+                    });
+                  }
                 } else {
                   themeData = _lastThemeData ?? fallbackTheme();
                 }
 
-                return AnimatedTheme(
-                  data: themeData,
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeInOut,
-                  child: Scaffold(
-                    body: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: ActiveSessionWidget(
-                            key: ValueKey(activeSession.id),
-                            session: activeSession,
-                          ),
-                        ),
-                        const Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          child: WorkspaceWindowTitleBar(),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+                final themeWidget = _isThemeAnimating
+                    ? AnimatedTheme(
+                        data: themeData,
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.easeInOut,
+                        child: _buildScaffold(activeSession),
+                      )
+                    : Theme(
+                        data: themeData,
+                        child: _buildScaffold(activeSession),
+                      );
+
+                return themeWidget;
               },
             );
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildScaffold(TabSession activeSession) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: ActiveSessionWidget(
+              key: ValueKey(activeSession.id),
+              session: activeSession,
+            ),
+          ),
+          const Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: WorkspaceWindowTitleBar(),
+          ),
+        ],
       ),
     );
   }
