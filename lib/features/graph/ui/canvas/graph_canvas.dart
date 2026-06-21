@@ -547,6 +547,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                                     child: PortLayer(
                                       nodeViewStates: renderState.viewStates,
                                       hoveredNodeNotifier: renderState.hoveredNodeNotifier,
+                                      dragState: renderState.dragState,
                                     ),
                                   ),
                                   const OverlayLayer(),
