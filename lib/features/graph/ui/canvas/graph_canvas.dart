@@ -24,6 +24,7 @@ import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:mycelium/presentation/widgets/template_manager/save_template_dialog.dart';
 import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 import 'canvas_overlay_layout.dart';
+import 'canvas_keyboard_handler.dart';
 import 'paste_handler.dart';
 import 'package:mycelium/features/workspace/copy_buffer.dart';
 import '../../../../shared/widgets/context_menu_overlay.dart';
@@ -258,68 +259,6 @@ class _GraphCanvasState extends State<GraphCanvas>
     }
   }
 
-  void _handleCanvasCopy(
-    GraphDataController dataController,
-    NodeRenderState renderState,
-  ) {
-    final selectedIds = renderState.selectedEntities.toList();
-    if (selectedIds.isEmpty) return;
-
-    final copyBuffer = context.read<CopyBuffer>();
-    copyBuffer.copy(selectedIds, dataController);
-  }
-
-  void _handleCanvasCut(
-    GraphDataController dataController,
-    NodeRenderState renderState,
-  ) {
-    final selectedIds = renderState.selectedEntities.toList();
-    if (selectedIds.isEmpty) return;
-
-    final copyBuffer = context.read<CopyBuffer>();
-    copyBuffer.copy(selectedIds, dataController);
-    renderState.deleteSelectedEntities();
-  }
-
-  Future<void> _handleCanvasPaste(
-    GraphDataController dataController,
-    NodeRenderState renderState,
-  ) async {
-    if (renderState.activeEditId != null) return;
-
-    final mousePos = _mousePositionNotifier.value;
-    if (mousePos == null) return;
-
-    final viewportController = _viewportController;
-    if (viewportController == null) return;
-
-    final transform = viewportController.transformController.value;
-    if (transform.determinant() == 0.0) return;
-
-    final canvasPos = MatrixUtils.transformPoint(
-      Matrix4.inverted(transform),
-      mousePos,
-    );
-
-    final copyBuffer = context.read<CopyBuffer>();
-    if (copyBuffer.hasData) {
-      final newIds = await copyBuffer.paste(canvasPos, dataController);
-      if (newIds.isNotEmpty) {
-        renderState.selectEntities(newIds);
-      }
-      return;
-    }
-
-    final data = await Clipboard.getData('text/plain');
-    if (data?.text != null && data!.text!.isNotEmpty) {
-      await pasteTextToCanvas(
-        dataController: dataController,
-        text: data.text!,
-        canvasPosition: canvasPos,
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final renderState = context.watch<NodeRenderState>();
@@ -336,11 +275,9 @@ class _GraphCanvasState extends State<GraphCanvas>
       return const Center(child: CircularProgressIndicator());
     }
 
-    final presentationNotifier = context.watch<GraphPresentationNotifier>();
-
     final backdropRepaintListenable = Listenable.merge([
       viewportController.transformController,
-      presentationNotifier,
+      renderState,
     ]);
 
     return MultiProvider(
@@ -348,28 +285,9 @@ class _GraphCanvasState extends State<GraphCanvas>
         Provider<ViewportController>.value(value: viewportController),
         Provider<InteractionController>.value(value: interactionController),
       ],
-      child: Focus(
-        autofocus: true,
-        onKeyEvent: (node, event) {
-          if (event is KeyDownEvent) {
-            if (event.logicalKey == LogicalKeyboardKey.keyC &&
-                HardwareKeyboard.instance.isControlPressed) {
-              _handleCanvasCopy(dataController, renderState);
-              return KeyEventResult.handled;
-            }
-            if (event.logicalKey == LogicalKeyboardKey.keyX &&
-                HardwareKeyboard.instance.isControlPressed) {
-              _handleCanvasCut(dataController, renderState);
-              return KeyEventResult.handled;
-            }
-            if (event.logicalKey == LogicalKeyboardKey.keyV &&
-                HardwareKeyboard.instance.isControlPressed) {
-              _handleCanvasPaste(dataController, renderState);
-              return KeyEventResult.handled;
-            }
-          }
-          return KeyEventResult.ignored;
-        },
+      child: CanvasKeyboardHandler(
+        viewportController: viewportController,
+        mousePositionNotifier: _mousePositionNotifier,
         child: LayoutBuilder(
           builder: (context, constraints) {
             return GlassStage(

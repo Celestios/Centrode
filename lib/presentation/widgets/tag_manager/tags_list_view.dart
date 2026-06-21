@@ -273,7 +273,7 @@ class _TagsListViewState extends State<TagsListView> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<GraphPresentationNotifier>().controller;
+    final controller = context.read<GraphPresentationNotifier>().controller;
     final theme = Theme.of(context);
 
     return FutureBuilder<List<Tag>>(

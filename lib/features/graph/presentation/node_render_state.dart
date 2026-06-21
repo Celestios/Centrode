@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mycelium/infrastructure/telemetry/logging.dart';
 import '../store/graph_data_query.dart';
 import '../store/graph_data_command.dart';
+import '../store/spatial_index.dart';
 import 'view_state.dart';
 import '../models/models.dart';
 import 'editor_state.dart';
@@ -18,7 +19,7 @@ enum InspectorTab { appearance, data }
 
 /// Thin coordinator that owns the data subscription and wires three focused sub-controllers:
 /// [EditorState], [SelectionState], and [DragState].
-class NodeRenderState extends ChangeNotifier {
+class NodeRenderState extends ChangeNotifier implements GraphDataQuery {
   final Logger _log = Logger('NodeRenderState');
   final GraphDataQuery _dataQuery;
   final GraphDataCommand _dataCommand;
@@ -274,6 +275,34 @@ class NodeRenderState extends ChangeNotifier {
 
   UiNode? getNode(String id) => _dataQuery.nodeLookup[id];
   UiRelation? getRelation(String id) => _dataQuery.relationLookup[id];
+
+  // ===========================================================================
+  // GraphDataQuery Implementation (delegates to _dataQuery)
+  // ===========================================================================
+
+  @override
+  bool get isLoading => _dataQuery.isLoading;
+
+  @override
+  String? get errorMessage => _dataQuery.errorMessage;
+
+  @override
+  SpatialHashGrid get spatialGrid => _dataQuery.spatialGrid;
+
+  @override
+  Map<String, UiNode> get nodeLookup => _dataQuery.nodeLookup;
+
+  @override
+  Map<String, UiRelation> get relationLookup => _dataQuery.relationLookup;
+
+  @override
+  Iterable<UiRelation> get relations => _dataQuery.relations;
+
+  @override
+  BoundingBox get canvasBounds => _dataQuery.canvasBounds;
+
+  @override
+  Stream<GraphEntityUpdate> get onEntityUpdate => _dataQuery.onEntityUpdate;
 
   void updateRelationsLayout(List<String> ids, {String? strategyType}) {
     _dataCommand.updateRelationsLayout(ids, strategyType: strategyType);

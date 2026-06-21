@@ -6,16 +6,14 @@ import '../store/graph_data_controller.dart';
 import '../store/graph_data_query.dart';
 import '../store/spatial_index.dart';
 
+/// Read-only facade over GraphDataController.
+/// Does NOT subscribe to entity updates - use NodeRenderState for reactive UI.
 class GraphPresentationNotifier extends ChangeNotifier implements GraphDataQuery {
   final Logger _log = Logger('GraphPresentationNotifier');
   final GraphDataController controller;
-  StreamSubscription<GraphEntityUpdate>? _subscription;
 
   GraphPresentationNotifier(this.controller) {
-    _log.info('GraphPresentationNotifier created, subscribing to entity updates');
-    _subscription = controller.onEntityUpdate.listen((_) {
-      notifyListeners();
-    });
+    _log.info('GraphPresentationNotifier created (static facade)');
   }
 
   @override
@@ -45,7 +43,6 @@ class GraphPresentationNotifier extends ChangeNotifier implements GraphDataQuery
   @override
   void dispose() {
     _log.info('GraphPresentationNotifier disposed');
-    _subscription?.cancel();
     super.dispose();
   }
 }

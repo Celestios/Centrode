@@ -17,7 +17,7 @@ class ViewportMiniMapWidget extends StatefulWidget {
 }
 
 class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final GlobalKey _captureKey = GlobalKey();
   ui.Image? _snapshot;
   Ticker? _viewportTicker;
@@ -36,22 +36,46 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _viewportTicker = createTicker(_onViewportTick);
-    _viewportTicker!.start();
+    _startTickerIfNeeded();
     _notifier = context.read<GraphPresentationNotifier>();
     _notifier!.addListener(_onDataChanged);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _viewportTicker?.dispose();
     _snapshot?.dispose();
     _notifier?.removeListener(_onDataChanged);
     super.dispose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive || state == AppLifecycleState.hidden) {
+      _pauseTicker();
+    } else if (state == AppLifecycleState.resumed) {
+      _startTickerIfNeeded();
+    }
+  }
+
+  void _startTickerIfNeeded() {
+    if (_viewportTicker != null && !_viewportTicker!.isActive) {
+      _viewportTicker!.start();
+    }
+  }
+
+  void _pauseTicker() {
+    if (_viewportTicker != null && _viewportTicker!.isActive) {
+      _viewportTicker!.stop();
+    }
+  }
+
   void _onDataChanged() {
     _snapshot = null;
+    _startTickerIfNeeded();
     _scheduleCapture();
   }
 
@@ -128,7 +152,7 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
 
   @override
   Widget build(BuildContext context) {
-    final dataController = context.watch<GraphPresentationNotifier>().controller;
+    final dataController = context.read<GraphPresentationNotifier>().controller;
     final viewportController = context.watch<ViewportController>();
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;

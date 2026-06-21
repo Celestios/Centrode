@@ -19,7 +19,7 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
   Widget build(BuildContext context) {
     final tabsController = context.watch<WorkspaceTabsController>();
     final session = tabsController.activeSession;
-    final dataController = context.watch<GraphPresentationNotifier>().controller;
+    final dataController = context.read<GraphPresentationNotifier>().controller;
 
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;

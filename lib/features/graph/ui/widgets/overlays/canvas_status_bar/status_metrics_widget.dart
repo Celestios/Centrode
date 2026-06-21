@@ -11,7 +11,7 @@ class StatusMetricsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dataController = context.watch<GraphPresentationNotifier>().controller;
+    final dataController = context.read<GraphPresentationNotifier>().controller;
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
     final onSurface = theme.colorScheme.onSurface;

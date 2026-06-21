@@ -148,28 +148,30 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
   }
 
   Widget _buildSessionContent(BuildContext context) {
-    return MultiProvider(
-      key: ValueKey(
-        widget.session.id,
-      ), // Reconstruct providers and context hierarchy
-      providers: [
-        ChangeNotifierProvider<ThemeController>.value(
-          value: widget.session.themeController!,
-        ),
-        Provider<GraphDataController>.value(
-          value: widget.session.dataController!,
-        ),
+    return Material(
+      child: MultiProvider(
+        key: ValueKey(
+          widget.session.id,
+        ), // Reconstruct providers and context hierarchy
+        providers: [
+          ChangeNotifierProvider<ThemeController>.value(
+            value: widget.session.themeController!,
+          ),
+          Provider<GraphDataController>.value(
+            value: widget.session.dataController!,
+          ),
         ChangeNotifierProvider<GraphPresentationNotifier>.value(
           value: widget.session.presentationNotifier!,
         ),
         InheritedProvider<GraphDataQuery>.value(
-          value: widget.session.presentationNotifier!,
-        ),
-        ChangeNotifierProvider<NodeRenderState>.value(
           value: widget.session.nodeRenderState!,
         ),
-      ],
-      child: const Material(child: GraphCanvas()),
+          ChangeNotifierProvider<NodeRenderState>.value(
+            value: widget.session.nodeRenderState!,
+          ),
+        ],
+        child: const GraphCanvas(),
+      ),
     );
   }
 

@@ -47,7 +47,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<GraphPresentationNotifier>().controller;
+    final controller = context.read<GraphPresentationNotifier>().controller;
     final theme = Theme.of(context);
 
     return FutureBuilder<List<Template>>(
