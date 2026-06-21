@@ -13,6 +13,7 @@ class NodePorts {
     final k = baseDistance * scale;
     final ports = <Port>[];
     final bySide = <PortSide, List<Port>>{};
+    final seenPositions = <Offset>{};
 
     for (final side in PortSide.values) {
       final sideLength = _sideLength(side, nodeSize);
@@ -23,6 +24,11 @@ class NodePorts {
         final t = count == 1 ? 0.5 : i / (count - 1);
         final localPosition = _positionOnSide(side, nodeSize, t);
         final position = nodePosition + localPosition;
+
+        // Skip duplicate corner positions
+        if (seenPositions.contains(position)) continue;
+        seenPositions.add(position);
+
         final type = _portType(i, count);
         final adjacentSide = _adjacentSide(side, i, count);
 
@@ -44,8 +50,6 @@ class NodePorts {
   }
 
   List<Port> get allPorts => ports;
-
-  List<Port> bySide_(PortSide side) => _bySide[side] ?? [];
 
   Port? getClosestPort(Offset point) {
     double bestDist = double.infinity;

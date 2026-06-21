@@ -17,51 +17,106 @@ class PortLayer extends StatelessWidget {
     return ValueListenableBuilder<String?>(
       valueListenable: hoveredNodeNotifier,
       builder: (context, hoveredNodeId, _) {
-        if (hoveredNodeId == null) return const SizedBox.shrink();
+        if (hoveredNodeId == null) {
+          _PortHighlight.instance.reset();
+          return const SizedBox.shrink();
+        }
 
         final vs = nodeViewStates[hoveredNodeId];
         if (vs == null) return const SizedBox.shrink();
 
-        return MouseRegion(
-          onHover: (event) {
-            // Store cursor position for port highlighting
-            _PortHighlight.instance.position.value = event.localPosition;
-          },
-          onExit: (_) {
-            _PortHighlight.instance.position.value = null;
-          },
-          child: ValueListenableBuilder<Offset?>(
-            valueListenable: _PortHighlight.instance.position,
-            builder: (context, mousePos, _) {
+        final scale = vs.currentScale;
+        final portOffset = 8.0 * scale;
+
+        return ListenableBuilder(
+          listenable: _PortHighlight.instance,
+          builder: (context, _) {
+            final highlight = _PortHighlight.instance;
+
+            // Keep ports visible if hovering over this node's ports
+            if (highlight.isPortHovered && highlight.currentNodeId == hoveredNodeId) {
               return CustomPaint(
                 painter: PortPainter(
                   ports: vs.ports.allPorts,
-                  mousePosition: mousePos,
+                  mousePosition: highlight.position,
+                  scale: scale,
                 ),
                 size: Size.infinite,
               );
-            },
-          ),
+            }
+
+            // Expanded hit area to include port offset region
+            return MouseRegion(
+              opaque: false,
+              hitTestBehavior: HitTestBehavior.translucent,
+              onHover: (event) {
+                _PortHighlight.instance.update(hoveredNodeId, event.localPosition);
+              },
+              onExit: (_) {
+                _PortHighlight.instance.reset();
+              },
+              child: Padding(
+                padding: EdgeInsets.all(portOffset + 4),
+                child: MouseRegion(
+                  onHover: (event) {
+                    _PortHighlight.instance.update(hoveredNodeId, event.localPosition);
+                  },
+                  child: CustomPaint(
+                    painter: PortPainter(
+                      ports: vs.ports.allPorts,
+                      mousePosition: null,
+                      scale: scale,
+                    ),
+                    size: Size.infinite,
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );
   }
 }
 
-class _PortHighlight {
+class _PortHighlight extends ChangeNotifier {
   static final instance = _PortHighlight._();
   _PortHighlight._();
-  final ValueNotifier<Offset?> position = ValueNotifier(null);
+
+  String? currentNodeId;
+  Offset? position;
+  bool isPortHovered = false;
+
+  void update(String? newNodeId, Offset? newPosition) {
+    currentNodeId = newNodeId;
+    position = newPosition;
+    isPortHovered = false;
+    notifyListeners();
+  }
+
+  void setPortHovered() {
+    isPortHovered = true;
+    notifyListeners();
+  }
+
+  void reset() {
+    currentNodeId = null;
+    position = null;
+    isPortHovered = false;
+    notifyListeners();
+  }
 }
 
 class PortPainter extends CustomPainter {
   final List<Port> ports;
   final Offset? mousePosition;
+  final double scale;
 
-  PortPainter({required this.ports, this.mousePosition});
+  PortPainter({required this.ports, this.mousePosition, this.scale = 1.0});
 
   static const double _portOffset = 8.0;
-  static const double _portRadius = 4.0;
+
+  double get _portRadius => 3.0 * scale;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -85,18 +140,20 @@ class PortPainter extends CustomPainter {
   Offset _offsetPosition(Port port) {
     switch (port.side) {
       case PortSide.top:
-        return port.position + const Offset(0, -_portOffset);
+        return port.position + Offset(0, -_portOffset * scale);
       case PortSide.bottom:
-        return port.position + const Offset(0, _portOffset);
+        return port.position + Offset(0, _portOffset * scale);
       case PortSide.left:
-        return port.position + const Offset(-_portOffset, 0);
+        return port.position + Offset(-_portOffset * scale, 0);
       case PortSide.right:
-        return port.position + const Offset(_portOffset, 0);
+        return port.position + Offset(_portOffset * scale, 0);
     }
   }
 
   @override
   bool shouldRepaint(covariant PortPainter oldDelegate) {
-    return ports != oldDelegate.ports || mousePosition != oldDelegate.mousePosition;
+    return ports != oldDelegate.ports ||
+        mousePosition != oldDelegate.mousePosition ||
+        scale != oldDelegate.scale;
   }
 }

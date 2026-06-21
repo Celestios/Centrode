@@ -79,7 +79,7 @@ class NodeViewState implements VolatileNodeState {
 
   NodePorts get ports {
     if (_cachedPorts == null) {
-      final scale = _currentScale;
+      final scale = currentScale;
       _cachedPorts = NodePorts.compute(
         sizeNotifier.value,
         scale,
@@ -89,7 +89,7 @@ class NodeViewState implements VolatileNodeState {
     return _cachedPorts!;
   }
 
-  double get _currentScale {
+  double get currentScale {
     final node = _currentNode;
     if (node == null) return 1.0;
     final style = node.resolvedStyle ?? node.style;
