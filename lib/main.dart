@@ -15,6 +15,11 @@ import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  if (kDebugMode) {
+    debugPrintRebuildDirtyWidgets = true;
+    debugProfileBuildsEnabled = true;
+  }
+
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
     await windowManager.ensureInitialized();
     const windowOptions = WindowOptions(

@@ -24,7 +24,7 @@ class GlassStage extends StatefulWidget {
   State<GlassStage> createState() => _GlassStageState();
 }
 
-class _GlassStageState extends State<GlassStage> {
+class _GlassStageState extends State<GlassStage> with WidgetsBindingObserver {
   final GlobalKey _bgKey = GlobalKey();
   ui.Image? _backdropImage;
   Size? _backdropLogicalSize;
@@ -36,10 +36,12 @@ class _GlassStageState extends State<GlassStage> {
   /// Atomic lock: prevents concurrent captures from flooding the memory bus.
   bool _isCapturing = false;
   bool _hasPendingCaptureRequest = false;
+  bool _isAppVisible = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     widget.backdropRepaint?.addListener(_onRepaint);
     _scheduleWarmupCaptures();
   }
@@ -90,6 +92,10 @@ class _GlassStageState extends State<GlassStage> {
 
   void _requestCapture() {
     if (widget.mode != GlassMode.quality) return;
+    if (!_isAppVisible) {
+      _hasPendingCaptureRequest = true;
+      return;
+    }
     if (_isCapturing) {
       _hasPendingCaptureRequest = true;
       return;
@@ -205,11 +211,24 @@ class _GlassStageState extends State<GlassStage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _cancelWarmupTimers();
     _throttleTimer?.cancel();
     widget.backdropRepaint?.removeListener(_onRepaint);
     _backdropImage?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final visible = state == AppLifecycleState.resumed;
+    if (_isAppVisible != visible) {
+      _isAppVisible = visible;
+      if (visible && _hasPendingCaptureRequest) {
+        _hasPendingCaptureRequest = false;
+        _requestCapture();
+      }
+    }
   }
 
   @override

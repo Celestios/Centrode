@@ -271,8 +271,13 @@ class RelationPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant RelationPainter oldDelegate) {
-    // Always repaint when movementNotifier pulses
-    // Could optimize by comparing positions if needed
-    return true;
+    if (identical(oldDelegate.relations, relations) == false) return true;
+    if (oldDelegate.selectedEntities != selectedEntities) return true;
+    if (identical(oldDelegate.nodeViewStates, nodeViewStates) == false) return true;
+    if (oldDelegate.interactionState != interactionState) return true;
+    if (oldDelegate.theme != theme) return true;
+    if (oldDelegate.pathCache != pathCache) return true;
+    if (oldDelegate.draggingOverrides != draggingOverrides) return true;
+    return false;
   }
 }
