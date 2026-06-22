@@ -128,7 +128,10 @@ class NodeWidget extends StatelessWidget {
             // ── Resize Handle Visual (Right Edge) ─────────
             Positioned(
               right: 0,
-              top: NodeVisualConstants.handleTopOffset * scale, // Shifted down to clear the metadata sphere area
+              top: (liveNode is InfoUiNode &&
+                  (liveNode.tags.isNotEmpty || liveNode.comments.isNotEmpty))
+                  ? NodeVisualConstants.handleTopOffset * scale
+                  : 0,
               bottom: 0,
               child: Container(
                 width: AppConfig.node.resizeHandleVisualWidth * scale,

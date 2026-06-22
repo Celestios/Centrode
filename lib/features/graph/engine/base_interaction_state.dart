@@ -3,7 +3,7 @@ library;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
 import '../engine/config.dart';
 import '../models/models.dart';
 import '../models/port.dart';

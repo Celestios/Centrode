@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/painting.dart';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
 
 /// Geometric router that calculates detours around node obstacles.
 class RelationRouter {

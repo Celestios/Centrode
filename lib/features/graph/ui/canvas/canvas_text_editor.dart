@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
 
 import '../../presentation/node_render_state.dart';
 import '../../models/models.dart';

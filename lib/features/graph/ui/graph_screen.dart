@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
 import '../../../../presentation/widgets/window_title_bar.dart';
 import '../../../../presentation/theme/app_theme_manager.dart';
 import '../presentation/theme_manager.dart';
@@ -179,7 +179,7 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
         Provider<GraphDataController>.value(
           value: widget.session.dataController!,
         ),
-        ChangeNotifierProvider<GraphPresentationNotifier>.value(
+        Provider<GraphPresentationNotifier>.value(
           value: widget.session.presentationNotifier!,
         ),
         InheritedProvider<GraphDataQuery>.value(

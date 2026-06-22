@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/traceable_notifier.dart';
 import '../engine/config.dart';
 import '../store/graph_data_query.dart';
 import 'view_state.dart';
@@ -7,9 +8,12 @@ import 'strategies/relation_layout_strategy.dart';
 import 'routing/relation_layout_context.dart';
 
 /// Manages edit lifecycle, formatting callbacks, toolbar positioning, and floating menus.
-class EditorState extends ChangeNotifier {
+class EditorState extends ChangeNotifier with TraceableNotifier {
+  @override
+  String get notifierName => 'EditorState';
   final Logger _log = Logger('EditorState');
   final GraphDataQuery _dataQuery;
+  bool _disposed = false;
 
   /// Reference to the shared viewStates map owned by NodeRenderState.
   final Map<String, NodeViewState> viewStates;
@@ -163,6 +167,8 @@ class EditorState extends ChangeNotifier {
 
   @override
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     activeTextSelectionNotifier.dispose();
     toolbarOffsetNotifier.dispose();
     multiToolbarOffsetNotifier.dispose();

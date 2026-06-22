@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Analyze Flutter widget rebuild counts from debugPrintRebuildDirtyWidgets output.
+"""Analyze Flutter widget rebuild counts and notification chains.
 
 Usage:
     # Pipe flutter run output directly
@@ -22,6 +22,12 @@ Usage:
 
     # Show rebuild timeline
     python scripts/analyze_builds.py --file run_output.log --timeline
+
+    # Show notification chains (ChangeNotifier → listener patterns)
+    python scripts/analyze_builds.py --file run_output.log --notify-chains
+
+    # Show only cascade events (notifications triggering notifications)
+    python scripts/analyze_builds.py --file run_output.log --cascades
 """
 import argparse
 import json
@@ -39,6 +45,11 @@ BUILD_LINE = re.compile(
 # Matches timestamp from debug output if present
 TIMESTAMP_LINE = re.compile(
     r"^(\d{2}:\d{2}:\d{2}\.\d{3})\s+"
+)
+
+# Matches: "[Notify] ParentNotifier -> ChildNotifier (depth=N)"
+NOTIFY_LINE = re.compile(
+    r"^\[Notify\]\s+(\S+)\s*->\s*(\S+)\s+\(depth=(\d+)\)"
 )
 
 
@@ -109,8 +120,65 @@ class RebuildAnalyzer:
         return buckets
 
 
-def parse_stream(stream: TextIO) -> RebuildAnalyzer:
-    analyzer = RebuildAnalyzer()
+class NotifyEvent:
+    def __init__(self, parent: str, child: str, depth: int, timestamp: float, line_num: int):
+        self.parent = parent
+        self.child = child
+        self.depth = depth
+        self.timestamp = timestamp
+        self.line_num = line_num
+
+    def to_dict(self):
+        return {
+            "parent": self.parent,
+            "child": self.child,
+            "depth": self.depth,
+            "timestamp": self.timestamp,
+            "line": self.line_num,
+        }
+
+
+class NotifyAnalyzer:
+    def __init__(self):
+        self.events: list[NotifyEvent] = []
+        self.edge_counts: Counter = Counter()
+        self.source_counts: Counter = Counter()
+        self.target_counts: Counter = Counter()
+        self.depth_counts: Counter = Counter()
+        self._start_time: Optional[float] = None
+
+    def add_event(self, event: NotifyEvent):
+        self.events.append(event)
+        self.edge_counts[(event.parent, event.child)] += 1
+        self.source_counts[event.parent] += 1
+        self.target_counts[event.child] += 1
+        self.depth_counts[event.depth] += 1
+
+    def get_cascades(self) -> list[tuple[str, str, int]]:
+        """Find edges where depth > 1 (notification triggering notification)."""
+        cascades = [(p, c, n) for (p, c), n in self.edge_counts.items() if self.depth_counts.get(1, 0) > 0]
+        return sorted(cascades, key=lambda x: -x[2])
+
+    def get_top_sources(self, n: int = 10) -> list[tuple[str, int]]:
+        return self.source_counts.most_common(n)
+
+    def get_top_targets(self, n: int = 10) -> list[tuple[str, int]]:
+        return self.target_counts.most_common(n)
+
+    def get_max_depth(self) -> int:
+        return max(self.depth_counts.keys()) if self.depth_counts else 0
+
+    def filter_by_time(self, start: float, end: float) -> 'NotifyAnalyzer':
+        filtered = NotifyAnalyzer()
+        for event in self.events:
+            if start <= event.timestamp <= end:
+                filtered.add_event(event)
+        return filtered
+
+
+def parse_stream(stream: TextIO) -> tuple[RebuildAnalyzer, NotifyAnalyzer]:
+    rebuild_analyzer = RebuildAnalyzer()
+    notify_analyzer = NotifyAnalyzer()
     start_time = time.time()
 
     for i, line in enumerate(stream, 1):
@@ -123,9 +191,17 @@ def parse_stream(stream: TextIO) -> RebuildAnalyzer:
             widget_name = m.group(1)
             timestamp = time.time() - start_time
             event = RebuildEvent(widget_name, timestamp, i)
-            analyzer.add_event(event)
+            rebuild_analyzer.add_event(event)
+            continue
 
-    return analyzer
+        nm = NOTIFY_LINE.match(line)
+        if nm:
+            parent, child, depth = nm.group(1), nm.group(2), int(nm.group(3))
+            timestamp = time.time() - start_time
+            event = NotifyEvent(parent, child, depth, timestamp, i)
+            notify_analyzer.add_event(event)
+
+    return rebuild_analyzer, notify_analyzer
 
 
 def print_report(analyzer: RebuildAnalyzer, threshold: int = 0, top_n: int = 50) -> None:
@@ -199,6 +275,79 @@ def print_chains(analyzer: RebuildAnalyzer, top_n: int = 10) -> None:
     print()
 
 
+def print_notify_chains(analyzer: NotifyAnalyzer, top_n: int = 20) -> None:
+    if not analyzer.events:
+        print("No notification chain data found.")
+        print(
+            "\nTo enable, add TraceableNotifier mixin to your ChangeNotifiers:\n"
+            "  import 'package:mycelium/shared/traceable_notifier.dart';\n"
+            "  class MyNotifier extends ChangeNotifier with TraceableNotifier {\n"
+            "    MyNotifier() : super('MyNotifier');\n"
+            "  }\n"
+            "Then set DebugNotifierTracer.enabled = true in main.dart.",
+            file=sys.stderr,
+        )
+        return
+
+    edges = analyzer.edge_counts.most_common(top_n)
+
+    print(f"\n{'='*60}")
+    print(f"  Notification Chains")
+    print(f"{'='*60}")
+    print(f"  Total notifications: {sum(analyzer.source_counts.values())}")
+    print(f"  Unique sources: {len(analyzer.source_counts)}")
+    print(f"  Unique targets: {len(analyzer.target_counts)}")
+    print(f"  Max cascade depth: {analyzer.get_max_depth()}")
+    print(f"{'='*60}\n")
+
+    print(f"  {'Parent':<25} {'Child':<25} {'Count':>6}")
+    print(f"  {'-'*25} {'-'*25} {'-'*6}")
+
+    for (parent, child), count in edges:
+        depth_indicator = " ↳" if count > 5 else ""
+        print(f"  {parent:<25} {child:<25} {count:>6}{depth_indicator}")
+
+    print()
+
+
+def print_cascades(analyzer: NotifyAnalyzer) -> None:
+    if not analyzer.events:
+        print("No notification data found.")
+        return
+
+    # Find chains where notifications trigger more notifications
+    top_sources = analyzer.get_top_sources(10)
+    top_targets = analyzer.get_top_targets(10)
+
+    # Find notifiers that appear as both source and target (cascade nodes)
+    source_set = set(s for s, _ in top_sources)
+    target_set = set(t for t, _ in top_targets)
+    cascade_nodes = source_set & target_set
+
+    print(f"\n{'='*60}")
+    print(f"  Notification Cascade Analysis")
+    print(f"{'='*60}\n")
+
+    if cascade_nodes:
+        print(f"  Cascade notifiers (trigger AND are triggered):")
+        for node in sorted(cascade_nodes):
+            src = analyzer.source_counts[node]
+            tgt = analyzer.target_counts[node]
+            print(f"    {node}: triggers {src} times, triggered {tgt} times")
+    else:
+        print(f"  No cascade notifiers found (clean pattern).")
+
+    # Show notification depth distribution
+    if analyzer.depth_counts:
+        print(f"\n  Depth distribution:")
+        for depth in sorted(analyzer.depth_counts.keys()):
+            count = analyzer.depth_counts[depth]
+            bar = "#" * min(count, 40)
+            print(f"    depth {depth}: {count:>5}  {bar}")
+
+    print()
+
+
 def print_timeline(analyzer: RebuildAnalyzer, bucket_size: float = 0.5) -> None:
     timeline = analyzer.get_timeline(bucket_size)
     if not timeline:
@@ -229,7 +378,7 @@ def print_timeline(analyzer: RebuildAnalyzer, bucket_size: float = 0.5) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Analyze Flutter widget rebuild counts")
+    parser = argparse.ArgumentParser(description="Analyze Flutter widget rebuild counts and notification chains")
     parser.add_argument("--file", "-f", help="Log file to analyze (default: stdin)")
     parser.add_argument("--threshold", "-t", type=int, default=0, help="Minimum rebuilds to show (default: 0)")
     parser.add_argument("--json", "-j", action="store_true", help="Output as JSON")
@@ -240,30 +389,45 @@ def main() -> None:
     parser.add_argument("--chains", "-c", action="store_true", help="Show rebuild chains")
     parser.add_argument("--timeline", "-l", action="store_true", help="Show rebuild timeline")
     parser.add_argument("--bucket", "-b", type=float, default=0.5, help="Timeline bucket size in seconds (default: 0.5)")
+    parser.add_argument("--notify-chains", "-N", action="store_true", help="Show notification chains")
+    parser.add_argument("--cascades", "-C", action="store_true", help="Show notification cascade analysis")
     args = parser.parse_args()
 
     if args.file:
         with open(args.file, "r", encoding="utf-8", errors="replace") as f:
-            analyzer = parse_stream(f)
+            rebuild_analyzer, notify_analyzer = parse_stream(f)
     else:
         if sys.stdin.isatty():
             print("Reading from stdin... (press Ctrl+D when done, or pipe flutter run output)", file=sys.stderr)
-        analyzer = parse_stream(sys.stdin)
+        rebuild_analyzer, notify_analyzer = parse_stream(sys.stdin)
 
     # Apply time filter if specified
     if args.start > 0 or args.end < float('inf'):
-        analyzer = analyzer.filter_by_time(args.start, args.end)
+        rebuild_analyzer = rebuild_analyzer.filter_by_time(args.start, args.end)
+        notify_analyzer = notify_analyzer.filter_by_time(args.start, args.end)
         print(f"\n  Filtered to time window: {args.start:.1f}s - {args.end:.1f}s")
 
     if args.json:
-        top = sorted(analyzer.counts.items(), key=lambda x: -x[1])[:args.top]
+        top = sorted(rebuild_analyzer.counts.items(), key=lambda x: -x[1])[:args.top]
         output = json.dumps({
-            "total": sum(analyzer.counts.values()),
-            "widgets": dict(top),
-            "chains": [
-                {"parent": p, "child": c, "count": n}
-                for p, c, n in analyzer.get_top_chains(20)
-            ],
+            "rebuilds": {
+                "total": sum(rebuild_analyzer.counts.values()),
+                "widgets": dict(top),
+                "chains": [
+                    {"parent": p, "child": c, "count": n}
+                    for p, c, n in rebuild_analyzer.get_top_chains(20)
+                ],
+            },
+            "notifications": {
+                "total": sum(notify_analyzer.source_counts.values()),
+                "sources": dict(notify_analyzer.get_top_sources(20)),
+                "targets": dict(notify_analyzer.get_top_targets(20)),
+                "edges": [
+                    {"parent": p, "child": c, "count": n}
+                    for (p, c), n in notify_analyzer.edge_counts.most_common(20)
+                ],
+                "max_depth": notify_analyzer.get_max_depth(),
+            },
         }, indent=2)
         print(output)
     else:
@@ -272,13 +436,19 @@ def main() -> None:
         old_stdout = sys.stdout
         sys.stdout = buf
 
-        print_report(analyzer, args.threshold, args.top)
+        print_report(rebuild_analyzer, args.threshold, args.top)
 
         if args.chains:
-            print_chains(analyzer)
+            print_chains(rebuild_analyzer)
+
+        if args.notify_chains or args.cascades:
+            if args.notify_chains:
+                print_notify_chains(notify_analyzer)
+            if args.cascades:
+                print_cascades(notify_analyzer)
 
         if args.timeline:
-            print_timeline(analyzer, args.bucket)
+            print_timeline(rebuild_analyzer, args.bucket)
 
         sys.stdout = old_stdout
         output = buf.getvalue()

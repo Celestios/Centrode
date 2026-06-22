@@ -1,6 +1,5 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
 import '../models/models.dart';
 import '../store/graph_data_controller.dart';
 import '../store/graph_data_query.dart';
@@ -8,7 +7,7 @@ import '../store/spatial_index.dart';
 
 /// Read-only facade over GraphDataController.
 /// Does NOT subscribe to entity updates - use NodeRenderState for reactive UI.
-class GraphPresentationNotifier extends ChangeNotifier implements GraphDataQuery {
+class GraphPresentationNotifier implements GraphDataQuery {
   final Logger _log = Logger('GraphPresentationNotifier');
   final GraphDataController controller;
 
@@ -40,9 +39,7 @@ class GraphPresentationNotifier extends ChangeNotifier implements GraphDataQuery
   @override
   Stream<GraphEntityUpdate> get onEntityUpdate => controller.onEntityUpdate;
 
-  @override
   void dispose() {
     _log.info('GraphPresentationNotifier disposed');
-    super.dispose();
   }
 }

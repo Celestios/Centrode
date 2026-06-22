@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
 
 // -----------------------------------------------------------------------------
 // Spatial Hash Grid for O(1) Lookups

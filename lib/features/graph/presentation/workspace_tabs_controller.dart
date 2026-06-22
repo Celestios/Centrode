@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/traceable_notifier.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import '../../../src/rust/bridge/api.dart';
@@ -16,7 +17,9 @@ import 'strategies/node_layout_strategy.dart';
 import 'strategies/node_style_strategy.dart';
 import 'style_manager.dart';
 
-class TabSession extends ChangeNotifier {
+class TabSession extends ChangeNotifier with TraceableNotifier {
+  @override
+  String get notifierName => 'TabSession';
   final Logger _log = Logger('TabSession');
   final String id;
   final String storagePath;
@@ -106,6 +109,7 @@ class TabSession extends ChangeNotifier {
   final ValueNotifier<bool> showRightPanel = ValueNotifier(true);
   final ValueNotifier<bool> showBottomPanel = ValueNotifier(true);
   bool isInitialized = false;
+  VoidCallback? _themeListener;
 
   Future<void>? _initFuture;
 
@@ -153,12 +157,13 @@ class TabSession extends ChangeNotifier {
     dc.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
     dc.styleUpdater = styleManager;
 
-    tc.addListener(() {
+    _themeListener = () {
       final newTheme = tc.currentGraphTheme;
       styleManager.setTheme(newTheme);
       styleManager.updateAllStyles(dc.store.nodes, dc.store.relations);
       dc.triggerUpdate();
-    });
+    };
+    tc.addListener(_themeListener!);
 
     await tc.initialize(globalTheme);
     // Seeding initial theme style
@@ -176,6 +181,10 @@ class TabSession extends ChangeNotifier {
     _log.info('Disposing TabSession name=$name');
     _debounceTimer?.cancel();
     _viewportController?.transformController.removeListener(_onViewportChanged);
+    if (_themeListener != null) {
+      themeController?.removeListener(_themeListener!);
+      _themeListener = null;
+    }
     themeController?.dispose();
     dataController?.dispose();
     presentationNotifier?.dispose();
@@ -193,10 +202,13 @@ class TabSession extends ChangeNotifier {
   }
 }
 
-class WorkspaceTabsController extends ChangeNotifier {
+class WorkspaceTabsController extends ChangeNotifier with TraceableNotifier {
+  @override
+  String get notifierName => 'WorkspaceTabsController';
   final Logger _log = Logger('WorkspaceTabsController');
   final List<TabSession> _tabs = [];
   int _activeIndex = 0;
+  bool _disposed = false;
 
   WorkspaceTabsController({
     required String initialPath,
@@ -250,6 +262,8 @@ class WorkspaceTabsController extends ChangeNotifier {
 
   @override
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     for (final tab in _tabs) {
       tab.dispose();
     }

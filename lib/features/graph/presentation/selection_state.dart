@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/traceable_notifier.dart';
 import '../store/graph_data_query.dart';
 import '../store/graph_data_command.dart';
 
 /// Manages selection set, multi-select, z-order tracking, and entity deletion.
-class SelectionState extends ChangeNotifier {
+class SelectionState extends ChangeNotifier with TraceableNotifier {
+  @override
+  String get notifierName => 'SelectionState';
   final Logger _log = Logger('SelectionState');
   final GraphDataQuery _dataQuery;
   final GraphDataCommand _dataCommand;

@@ -1,4 +1,4 @@
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';

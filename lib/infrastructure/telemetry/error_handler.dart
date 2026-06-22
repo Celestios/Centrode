@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
 
 class ErrorHandler {
   static void setupErrorHooks() {

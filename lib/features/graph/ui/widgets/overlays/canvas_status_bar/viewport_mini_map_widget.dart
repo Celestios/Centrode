@@ -4,7 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import '../../../../presentation/viewport_state.dart';
-import '../../../../presentation/graph_presentation_notifier.dart';
+import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'mini_map_painter.dart';
@@ -26,7 +26,8 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
   double _viewportWidth = 0;
   double _viewportHeight = 0;
   bool _capturing = false;
-  GraphPresentationNotifier? _notifier;
+  bool _listenerRegistered = false;
+
   late final Paint _viewportFill = Paint()
     ..style = PaintingStyle.fill;
   late final Paint _viewportBorder = Paint()
@@ -39,8 +40,11 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
     WidgetsBinding.instance.addObserver(this);
     _viewportTicker = createTicker(_onViewportTick);
     _startTickerIfNeeded();
-    _notifier = context.read<GraphPresentationNotifier>();
-    _notifier!.addListener(_onDataChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<NodeRenderState>().addListener(_onGraphChanged);
+      _listenerRegistered = true;
+    });
   }
 
   @override
@@ -48,7 +52,9 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
     WidgetsBinding.instance.removeObserver(this);
     _viewportTicker?.dispose();
     _snapshot?.dispose();
-    _notifier?.removeListener(_onDataChanged);
+    if (_listenerRegistered) {
+      context.read<NodeRenderState>().removeListener(_onGraphChanged);
+    }
     super.dispose();
   }
 
@@ -73,9 +79,10 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
     }
   }
 
-  void _onDataChanged() {
-    _snapshot = null;
-    _startTickerIfNeeded();
+  void _onGraphChanged() {
+    setState(() {
+      _snapshot = null;
+    });
     _scheduleCapture();
   }
 
@@ -94,9 +101,8 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
 
     // Trigger re-capture when viewport transitions from zero to non-zero
     if (_snapshot == null && !_capturing && gridState.viewportSize != Size.zero) {
-      final dataController = context.read<GraphPresentationNotifier>().controller;
-      final nodes = dataController.nodeLookup.values.toList();
-      if (nodes.isNotEmpty) {
+      final renderState = context.read<NodeRenderState>();
+      if (renderState.nodeLookup.isNotEmpty) {
         _scheduleCapture();
       }
     }
@@ -127,7 +133,9 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
     final boundary = _captureKey.currentContext?.findRenderObject()
         as RenderRepaintBoundary?;
     if (boundary == null) {
-      _capturing = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _captureSnapshot();
+      });
       return;
     }
 
@@ -152,13 +160,13 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
 
   @override
   Widget build(BuildContext context) {
-    final dataController = context.read<GraphPresentationNotifier>().controller;
+    final renderState = context.read<NodeRenderState>();
     final viewportController = context.watch<ViewportController>();
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
 
-    final nodes = dataController.nodeLookup.values.toList();
-    final relations = dataController.relations.toList();
+    final nodes = renderState.nodeLookup.values.toList();
+    final relations = renderState.relations.toList();
     final gridState = viewportController.viewportStateNotifier.value;
     final margins = viewportController.elasticMargins.value;
 

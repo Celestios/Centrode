@@ -133,7 +133,7 @@ class LogManager {
       return;
     }
 
-    Logger.root.level = Level.ALL;
+    Logger.root.level = Level.FINE;
     Logger.root.onRecord.listen((record) {
       final levelInt = _mapDartLevel(record.level);
 

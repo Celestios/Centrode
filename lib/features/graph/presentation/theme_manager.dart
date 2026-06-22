@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/traceable_notifier.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/theme.dart' as frb;
 
-class ThemeController extends ChangeNotifier {
+class ThemeController extends ChangeNotifier with TraceableNotifier {
+  @override
+  String get notifierName => 'ThemeController';
   final AppHandle _appHandle;
   final Logger _log = Logger('ThemeController');
 

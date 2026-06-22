@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/traceable_notifier.dart';
 import 'view_state.dart';
 
 /// Manages drag protection and quarantine cache for optimistic deletes.
-class DragState extends ChangeNotifier {
+class DragState extends ChangeNotifier with TraceableNotifier {
+  @override
+  String get notifierName => 'DragState';
   final Logger _log = Logger('DragState');
 
   /// Set of node IDs currently being actively dragged by the user.

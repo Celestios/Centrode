@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/traceable_notifier.dart';
 import '../store/graph_data_query.dart';
 import '../store/graph_data_command.dart';
 import '../store/spatial_index.dart';
@@ -11,7 +12,10 @@ import 'selection_state.dart';
 import 'drag_state.dart';
 
 /// Notifier pulsed to trigger relation painter repaints when node coordinates change.
-class MovementNotifier extends ChangeNotifier {
+class MovementNotifier extends ChangeNotifier with TraceableNotifier {
+  @override
+  String get notifierName => 'MovementNotifier';
+
   void pulse() => notifyListeners();
 }
 
@@ -19,7 +23,9 @@ enum InspectorTab { appearance, data }
 
 /// Thin coordinator that owns the data subscription and wires three focused sub-controllers:
 /// [EditorState], [SelectionState], and [DragState].
-class NodeRenderState extends ChangeNotifier implements GraphDataQuery {
+class NodeRenderState extends ChangeNotifier with TraceableNotifier implements GraphDataQuery {
+  @override
+  String get notifierName => 'NodeRenderState';
   final Logger _log = Logger('NodeRenderState');
   final GraphDataQuery _dataQuery;
   final GraphDataCommand _dataCommand;
@@ -51,6 +57,9 @@ class NodeRenderState extends ChangeNotifier implements GraphDataQuery {
   /// Notification trigger for canvas relation repaints.
   final MovementNotifier movementNotifier = MovementNotifier();
 
+  /// Notification trigger for relation data changes (add/delete/reorder).
+  final ChangeNotifier relationDataNotifier = ChangeNotifier();
+
   /// Focused sub-controllers.
   late final EditorState editorState;
   late final SelectionState selectionState;
@@ -65,7 +74,6 @@ class NodeRenderState extends ChangeNotifier implements GraphDataQuery {
 
     editorState.addListener(notifyListeners);
     selectionState.addListener(notifyListeners);
-    dragState.addListener(notifyListeners);
 
     _updateSubscription = _dataQuery.onEntityUpdate.listen(
       _handleEntityUpdate,
@@ -211,6 +219,7 @@ class NodeRenderState extends ChangeNotifier implements GraphDataQuery {
       'NodeRenderState synchronized: ${selectionState.zOrder.length} nodes in render stack.',
     );
     notifyListeners();
+    relationDataNotifier.notifyListeners();
   }
 
   // ===========================================================================
@@ -340,14 +349,17 @@ class NodeRenderState extends ChangeNotifier implements GraphDataQuery {
     _dataCommand.updateEntityTextLive(id, newTextOrContent);
   }
 
+  bool _disposed = false;
+
   @override
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     _log.fine('Disposing NodeRenderState and volatile notifiers.');
     _updateSubscription?.cancel();
 
     editorState.removeListener(notifyListeners);
     selectionState.removeListener(notifyListeners);
-    dragState.removeListener(notifyListeners);
 
     for (final vs in viewStates.values) {
       vs.dispose();
@@ -355,6 +367,8 @@ class NodeRenderState extends ChangeNotifier implements GraphDataQuery {
     viewStates.clear();
 
     movementNotifier.dispose();
+    relationDataNotifier.dispose();
+    activeLeftPanelNotifier.dispose();
     activeInspectorTabNotifier.dispose();
     hoveredNodeMetadataNotifier.dispose();
     hoveredNodeNotifier.dispose();

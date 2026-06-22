@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
 import '../../engine/config.dart';
 import '../../store/graph_data_controller.dart';
-import '../../presentation/graph_presentation_notifier.dart';
 import '../../presentation/node_render_state.dart';
 import '../../presentation/viewport_state.dart';
 import '../../engine/interaction_engine.dart';
@@ -44,7 +43,7 @@ class _GraphCanvasState extends State<GraphCanvas>
   final Logger _log = Logger('GraphCanvas');
   TabSession? _boundSession;
 
-  GraphPresentationNotifier? _presentationNotifier;
+
 
   bool _hasInitialFramed = false;
   bool _viewportRestoreAttempted = false;
@@ -118,9 +117,6 @@ class _GraphCanvasState extends State<GraphCanvas>
     );
     _interactionController!.registerInterceptor(_drawingInterceptor!);
 
-    final presentationNotifier = context.read<GraphPresentationNotifier>();
-    _presentationNotifier = presentationNotifier;
-    _presentationNotifier?.addListener(_onDataControllerChanged);
     _onDataControllerChanged();
 
     setState(() {});
@@ -235,7 +231,6 @@ class _GraphCanvasState extends State<GraphCanvas>
   @override
   void dispose() {
     _dismissCanvasContextMenu();
-    _presentationNotifier?.removeListener(_onDataControllerChanged);
     _boundSession?.toolModeNotifier.removeListener(_onToolModeChanged);
     if (_boundSession?.viewportController == _viewportController) {
       _boundSession?.viewportController = null;

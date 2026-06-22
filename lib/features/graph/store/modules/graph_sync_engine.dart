@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
 
 import '../../models/models.dart';
 import '../../../../src/rust/bridge/stream.dart';

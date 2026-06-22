@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
 import '../config.dart';
 import '../../presentation/strategies/relation_layout_strategy.dart';
 import '../../presentation/routing/relation_layout_context.dart';

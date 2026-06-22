@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mycelium/infrastructure/telemetry/logging.dart';
+import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/traceable_notifier.dart';
 import 'package:mycelium/src/rust/frb_generated.dart';
 import 'package:window_manager/window_manager.dart';
 import 'infrastructure/telemetry/log_manager.dart';
@@ -16,8 +17,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (kDebugMode) {
-    debugPrintRebuildDirtyWidgets = true;
-    debugProfileBuildsEnabled = true;
+    DebugNotifierTracer.enabled = true;
+    debugPrintRebuildDirtyWidgets = false;
+    debugProfileBuildsEnabled = false;
   }
 
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {

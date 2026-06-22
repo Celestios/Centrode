@@ -386,7 +386,8 @@ class _CanvasNodesPainter extends CustomPainter {
 
     // Resize handles
     if (node is! DrawingUiNode) {
-      _paintResizeHandles(canvas, node.id, rect, resolvedStyle, scale);
+      final hasMetadataSphere = node is InfoUiNode && (node.tags.isNotEmpty || node.comments.isNotEmpty);
+      _paintResizeHandles(canvas, node.id, rect, resolvedStyle, scale, hasMetadataSphere);
     }
   }
 
@@ -542,10 +543,10 @@ class _CanvasNodesPainter extends CustomPainter {
     }
   }
 
-  (RRect, RRect) _getHandleRRects(String nodeId, Rect rect, double borderRadius, double scale) {
+  (RRect, RRect) _getHandleRRects(String nodeId, Rect rect, double borderRadius, double scale, bool hasMetadataSphere) {
     final cached = _handleCache[nodeId];
     final double handleWidth = NodeVisualConstants.handleWidth * scale;
-    final double handleTopOffset = NodeVisualConstants.handleTopOffset * scale;
+    final double handleTopOffset = hasMetadataSphere ? NodeVisualConstants.handleTopOffset * scale : 0.0;
     if (cached != null) {
       final (right, left) = cached;
       if (right.outerRect == Rect.fromLTRB(rect.right - handleWidth, rect.top + handleTopOffset, rect.right, rect.bottom) &&
@@ -571,8 +572,8 @@ class _CanvasNodesPainter extends CustomPainter {
     return result;
   }
 
-  void _paintResizeHandles(Canvas canvas, String nodeId, Rect rect, NodeStyle style, double scale) {
-    final (rightHandle, leftHandle) = _getHandleRRects(nodeId, rect, style.borderRadius, scale);
+  void _paintResizeHandles(Canvas canvas, String nodeId, Rect rect, NodeStyle style, double scale, bool hasMetadataSphere) {
+    final (rightHandle, leftHandle) = _getHandleRRects(nodeId, rect, style.borderRadius, scale, hasMetadataSphere);
     canvas.drawRRect(rightHandle, _handlePaint);
     canvas.drawRRect(leftHandle, _handlePaint);
   }
