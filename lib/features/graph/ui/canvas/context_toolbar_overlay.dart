@@ -74,7 +74,6 @@ class ContextToolbarOverlay extends StatelessWidget {
       renderState.activeTextSelectionNotifier,
       renderState.activeLeftPanelNotifier,
       renderState.currentTextAlignNotifier,
-      renderState,
     ];
     final List<NodeViewState> selectedViewStates = [];
     final List<UiRelation> selectedRelations = [];
