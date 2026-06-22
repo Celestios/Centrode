@@ -143,6 +143,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DrawingNode dco_decode_box_autoadd_drawing_node(dynamic raw);
 
   @protected
+  EndpointShape dco_decode_box_autoadd_endpoint_shape(dynamic raw);
+
+  @protected
   FrameNode dco_decode_box_autoadd_frame_node(dynamic raw);
 
   @protected
@@ -239,6 +242,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   DrawingNode dco_decode_drawing_node(dynamic raw);
+
+  @protected
+  EndpointShape dco_decode_endpoint_shape(dynamic raw);
 
   @protected
   EntityPatch dco_decode_entity_patch(dynamic raw);
@@ -365,6 +371,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   BlockAttrs? dco_decode_opt_box_autoadd_block_attrs(dynamic raw);
+
+  @protected
+  EndpointShape? dco_decode_opt_box_autoadd_endpoint_shape(dynamic raw);
 
   @protected
   PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
@@ -575,6 +584,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DrawingNode sse_decode_box_autoadd_drawing_node(SseDeserializer deserializer);
 
   @protected
+  EndpointShape sse_decode_box_autoadd_endpoint_shape(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   FrameNode sse_decode_box_autoadd_frame_node(SseDeserializer deserializer);
 
   @protected
@@ -681,6 +695,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   DrawingNode sse_decode_drawing_node(SseDeserializer deserializer);
+
+  @protected
+  EndpointShape sse_decode_endpoint_shape(SseDeserializer deserializer);
 
   @protected
   EntityPatch sse_decode_entity_patch(SseDeserializer deserializer);
@@ -815,6 +832,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   BlockAttrs? sse_decode_opt_box_autoadd_block_attrs(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  EndpointShape? sse_decode_opt_box_autoadd_endpoint_shape(
     SseDeserializer deserializer,
   );
 
@@ -1068,6 +1090,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_endpoint_shape(
+    EndpointShape self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_frame_node(
     FrameNode self,
     SseSerializer serializer,
@@ -1216,6 +1244,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_drawing_node(DrawingNode self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_endpoint_shape(EndpointShape self, SseSerializer serializer);
 
   @protected
   void sse_encode_entity_patch(EntityPatch self, SseSerializer serializer);
@@ -1368,6 +1399,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_block_attrs(
     BlockAttrs? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_endpoint_shape(
+    EndpointShape? self,
     SseSerializer serializer,
   );
 

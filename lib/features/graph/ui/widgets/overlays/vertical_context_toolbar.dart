@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:mycelium/features/graph/engine/config.dart';
 import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
+import 'package:mycelium/src/rust/domain/styles.dart';
 
 class VerticalContextToolbar extends StatelessWidget {
   final VoidCallback onDelete;
@@ -22,6 +23,8 @@ class VerticalContextToolbar extends StatelessWidget {
   final ValueChanged<String>? onShapeChanged;
   final ValueChanged<String>? onRelationLayoutChanged;
   final ValueChanged<String>? onRelationStrokePatternChanged;
+  final ValueChanged<EndpointShape>? onStartShapeChanged;
+  final ValueChanged<EndpointShape>? onEndShapeChanged;
 
   final VoidCallback? onToggleBold;
   final VoidCallback? onToggleItalic;
@@ -51,6 +54,8 @@ class VerticalContextToolbar extends StatelessWidget {
     this.onDrawConnection,
     this.onRelationLayoutChanged,
     this.onRelationStrokePatternChanged,
+    this.onStartShapeChanged,
+    this.onEndShapeChanged,
     this.onToggleBold,
     this.onToggleItalic,
     this.onToggleUnderline,
@@ -205,6 +210,92 @@ class VerticalContextToolbar extends StatelessWidget {
                           icon: Icons.colorize_rounded,
                           tooltip: 'Relation Color',
                           onPressed: () {},
+                        ),
+                      ],
+                    ),
+                    VerticalToolbarGroupButton(
+                      positionOnRight: positionOnRight,
+                      triggerIcon: Icons.play_arrow_rounded,
+                      triggerTooltip: 'Start Shape',
+                      submenuButtons: [
+                        SubmenuButtonData(
+                          icon: Icons.block_rounded,
+                          tooltip: 'No Start Shape',
+                          onPressed: () =>
+                              onStartShapeChanged?.call(EndpointShape.none),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.arrow_right_rounded,
+                          tooltip: 'Arrow',
+                          onPressed: () =>
+                              onStartShapeChanged?.call(EndpointShape.arrow),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.arrow_right_alt_rounded,
+                          tooltip: 'Open Arrow',
+                          onPressed: () =>
+                              onStartShapeChanged?.call(EndpointShape.openArrow),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.circle,
+                          tooltip: 'Circle',
+                          onPressed: () =>
+                              onStartShapeChanged?.call(EndpointShape.circle),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.diamond_rounded,
+                          tooltip: 'Diamond',
+                          onPressed: () =>
+                              onStartShapeChanged?.call(EndpointShape.diamond),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.square_rounded,
+                          tooltip: 'Square',
+                          onPressed: () =>
+                              onStartShapeChanged?.call(EndpointShape.square),
+                        ),
+                      ],
+                    ),
+                    VerticalToolbarGroupButton(
+                      positionOnRight: positionOnRight,
+                      triggerIcon: Icons.stop_rounded,
+                      triggerTooltip: 'End Shape',
+                      submenuButtons: [
+                        SubmenuButtonData(
+                          icon: Icons.block_rounded,
+                          tooltip: 'No End Shape',
+                          onPressed: () =>
+                              onEndShapeChanged?.call(EndpointShape.none),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.arrow_right_rounded,
+                          tooltip: 'Arrow',
+                          onPressed: () =>
+                              onEndShapeChanged?.call(EndpointShape.arrow),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.arrow_right_alt_rounded,
+                          tooltip: 'Open Arrow',
+                          onPressed: () =>
+                              onEndShapeChanged?.call(EndpointShape.openArrow),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.circle,
+                          tooltip: 'Circle',
+                          onPressed: () =>
+                              onEndShapeChanged?.call(EndpointShape.circle),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.diamond_rounded,
+                          tooltip: 'Diamond',
+                          onPressed: () =>
+                              onEndShapeChanged?.call(EndpointShape.diamond),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.square_rounded,
+                          tooltip: 'Square',
+                          onPressed: () =>
+                              onEndShapeChanged?.call(EndpointShape.square),
                         ),
                       ],
                     ),

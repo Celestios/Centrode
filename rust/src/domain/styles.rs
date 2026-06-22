@@ -72,6 +72,66 @@ impl SurqlSchemaField for PortSide {
     fn sub_field_paths() -> Vec<(String, String)> { vec![] }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+#[frb]
+pub enum EndpointShape {
+    #[default]
+    None,
+    Arrow,
+    OpenArrow,
+    Circle,
+    Diamond,
+    Square,
+}
+
+impl EndpointShape {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            EndpointShape::None => "None",
+            EndpointShape::Arrow => "Arrow",
+            EndpointShape::OpenArrow => "OpenArrow",
+            EndpointShape::Circle => "Circle",
+            EndpointShape::Diamond => "Diamond",
+            EndpointShape::Square => "Square",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Self {
+        match s {
+            "Arrow" => EndpointShape::Arrow,
+            "OpenArrow" => EndpointShape::OpenArrow,
+            "Circle" => EndpointShape::Circle,
+            "Diamond" => EndpointShape::Diamond,
+            "Square" => EndpointShape::Square,
+            _ => EndpointShape::None,
+        }
+    }
+}
+
+impl SurrealValue for EndpointShape {
+    fn kind_of() -> surrealdb::types::Kind {
+        surrealdb::types::Kind::String
+    }
+
+    fn from_value(value: Value) -> Result<Self, surrealdb::types::Error> {
+        match value {
+            Value::String(s) => Ok(EndpointShape::from_str(&s)),
+            _ => Err(surrealdb::types::Error::thrown(format!(
+                "Expected string for EndpointShape, found: {:?}", value
+            ))),
+        }
+    }
+
+    fn into_value(self) -> Value {
+        Value::String(self.as_str().to_string())
+    }
+}
+
+impl SurqlSchemaField for EndpointShape {
+    fn field_type() -> String { "string".to_string() }
+    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
+}
+
 define_surql_schema_struct! {
     #[frb(dart_metadata=("freezed"))]
     #[derive(Debug, Clone, PartialEq, SurrealValue)]
@@ -109,6 +169,8 @@ define_surql_schema_struct! {
         pub shape: String,
         pub arrow_type: String,
         pub arrow_size: f64,
+        pub start_shape: Option<EndpointShape>,
+        pub end_shape: Option<EndpointShape>,
         pub width: i32,
         pub height: i32,
         // --- Advanced Visual Properties ---

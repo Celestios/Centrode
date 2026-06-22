@@ -17,7 +17,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (kDebugMode) {
-    DebugNotifierTracer.enabled = true;
+    DebugNotifierTracer.enabled = false;
     debugPrintRebuildDirtyWidgets = false;
     debugProfileBuildsEnabled = false;
   }

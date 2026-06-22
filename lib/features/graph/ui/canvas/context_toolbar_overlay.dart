@@ -425,6 +425,26 @@ class ContextToolbarOverlay extends StatelessWidget {
                 );
               }
             },
+            onStartShapeChanged: (shape) {
+              for (final rel in selectedRelations) {
+                final currentStyle =
+                    rel.style ?? RelationStyleStrategy.resolveStyle(rel);
+                interactionContext.onRelationUpdateStyle(
+                  rel.id,
+                  currentStyle.copyWith(startShape: shape),
+                );
+              }
+            },
+            onEndShapeChanged: (shape) {
+              for (final rel in selectedRelations) {
+                final currentStyle =
+                    rel.style ?? RelationStyleStrategy.resolveStyle(rel);
+                interactionContext.onRelationUpdateStyle(
+                  rel.id,
+                  currentStyle.copyWith(endShape: shape),
+                );
+              }
+            },
             onDrawConnection: () {
               final nodeIds = renderState.selectedEntities
                   .where((id) => dataController.nodeLookup.containsKey(id))

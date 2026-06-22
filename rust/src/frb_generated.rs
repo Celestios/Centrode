@@ -2690,6 +2690,22 @@ impl SseDecode for crate::domain::nodes::DrawingNode {
     }
 }
 
+impl SseDecode for crate::domain::styles::EndpointShape {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::domain::styles::EndpointShape::None,
+            1 => crate::domain::styles::EndpointShape::Arrow,
+            2 => crate::domain::styles::EndpointShape::OpenArrow,
+            3 => crate::domain::styles::EndpointShape::Circle,
+            4 => crate::domain::styles::EndpointShape::Diamond,
+            5 => crate::domain::styles::EndpointShape::Square,
+            _ => unreachable!("Invalid variant for EndpointShape: {}", inner),
+        };
+    }
+}
+
 impl SseDecode for crate::domain::patches::EntityPatch {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3443,6 +3459,19 @@ impl SseDecode for Option<crate::domain::contents::BlockAttrs> {
     }
 }
 
+impl SseDecode for Option<crate::domain::styles::EndpointShape> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::domain::styles::EndpointShape>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<i64> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3682,6 +3711,10 @@ impl SseDecode for crate::domain::styles::RelationStyle {
         let mut var_shape = <String>::sse_decode(deserializer);
         let mut var_arrowType = <String>::sse_decode(deserializer);
         let mut var_arrowSize = <f64>::sse_decode(deserializer);
+        let mut var_startShape =
+            <Option<crate::domain::styles::EndpointShape>>::sse_decode(deserializer);
+        let mut var_endShape =
+            <Option<crate::domain::styles::EndpointShape>>::sse_decode(deserializer);
         let mut var_width = <i32>::sse_decode(deserializer);
         let mut var_height = <i32>::sse_decode(deserializer);
         let mut var_textColor = <u32>::sse_decode(deserializer);
@@ -3700,6 +3733,8 @@ impl SseDecode for crate::domain::styles::RelationStyle {
             shape: var_shape,
             arrow_type: var_arrowType,
             arrow_size: var_arrowSize,
+            start_shape: var_startShape,
+            end_shape: var_endShape,
             width: var_width,
             height: var_height,
             text_color: var_textColor,
@@ -4497,6 +4532,31 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::nodes::DrawingNode>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::styles::EndpointShape {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::None => 0.into_dart(),
+            Self::Arrow => 1.into_dart(),
+            Self::OpenArrow => 2.into_dart(),
+            Self::Circle => 3.into_dart(),
+            Self::Diamond => 4.into_dart(),
+            Self::Square => 5.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::styles::EndpointShape
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::styles::EndpointShape>
+    for crate::domain::styles::EndpointShape
+{
+    fn into_into_dart(self) -> crate::domain::styles::EndpointShape {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::domain::patches::EntityPatch {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
@@ -5167,6 +5227,8 @@ impl flutter_rust_bridge::IntoDart for crate::domain::styles::RelationStyle {
             self.shape.into_into_dart().into_dart(),
             self.arrow_type.into_into_dart().into_dart(),
             self.arrow_size.into_into_dart().into_dart(),
+            self.start_shape.into_into_dart().into_dart(),
+            self.end_shape.into_into_dart().into_dart(),
             self.width.into_into_dart().into_dart(),
             self.height.into_into_dart().into_dart(),
             self.text_color.into_into_dart().into_dart(),
@@ -5745,6 +5807,26 @@ impl SseEncode for crate::domain::nodes::DrawingNode {
     }
 }
 
+impl SseEncode for crate::domain::styles::EndpointShape {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::domain::styles::EndpointShape::None => 0,
+                crate::domain::styles::EndpointShape::Arrow => 1,
+                crate::domain::styles::EndpointShape::OpenArrow => 2,
+                crate::domain::styles::EndpointShape::Circle => 3,
+                crate::domain::styles::EndpointShape::Diamond => 4,
+                crate::domain::styles::EndpointShape::Square => 5,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for crate::domain::patches::EntityPatch {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -6313,6 +6395,16 @@ impl SseEncode for Option<crate::domain::contents::BlockAttrs> {
     }
 }
 
+impl SseEncode for Option<crate::domain::styles::EndpointShape> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::domain::styles::EndpointShape>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<i64> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -6521,6 +6613,8 @@ impl SseEncode for crate::domain::styles::RelationStyle {
         <String>::sse_encode(self.shape, serializer);
         <String>::sse_encode(self.arrow_type, serializer);
         <f64>::sse_encode(self.arrow_size, serializer);
+        <Option<crate::domain::styles::EndpointShape>>::sse_encode(self.start_shape, serializer);
+        <Option<crate::domain::styles::EndpointShape>>::sse_encode(self.end_shape, serializer);
         <i32>::sse_encode(self.width, serializer);
         <i32>::sse_encode(self.height, serializer);
         <u32>::sse_encode(self.text_color, serializer);

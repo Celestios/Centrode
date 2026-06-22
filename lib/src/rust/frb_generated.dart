@@ -2087,6 +2087,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  EndpointShape dco_decode_box_autoadd_endpoint_shape(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_endpoint_shape(raw);
+  }
+
+  @protected
   FrameNode dco_decode_box_autoadd_frame_node(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_frame_node(raw);
@@ -2326,6 +2332,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       size: dco_decode_size(arr[9]),
       locked: dco_decode_bool(arr[10]),
     );
+  }
+
+  @protected
+  EndpointShape dco_decode_endpoint_shape(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return EndpointShape.values[raw as int];
   }
 
   @protected
@@ -2803,6 +2815,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  EndpointShape? dco_decode_opt_box_autoadd_endpoint_shape(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_endpoint_shape(raw);
+  }
+
+  @protected
   PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_i_64(raw);
@@ -2936,8 +2954,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RelationStyle dco_decode_relation_style(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 17)
-      throw Exception('unexpected arr length: expect 17 but see ${arr.length}');
+    if (arr.length != 19)
+      throw Exception('unexpected arr length: expect 19 but see ${arr.length}');
     return RelationStyle(
       bgColor: dco_decode_u_32(arr[0]),
       strokeColor: dco_decode_u_32(arr[1]),
@@ -2947,15 +2965,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       shape: dco_decode_String(arr[5]),
       arrowType: dco_decode_String(arr[6]),
       arrowSize: dco_decode_f_64(arr[7]),
-      width: dco_decode_i_32(arr[8]),
-      height: dco_decode_i_32(arr[9]),
-      textColor: dco_decode_u_32(arr[10]),
-      shadowColor: dco_decode_u_32(arr[11]),
-      shadowBlur: dco_decode_f_64(arr[12]),
-      shadowOffsetX: dco_decode_f_64(arr[13]),
-      shadowOffsetY: dco_decode_f_64(arr[14]),
-      strategyType: dco_decode_String(arr[15]),
-      strokePattern: dco_decode_String(arr[16]),
+      startShape: dco_decode_opt_box_autoadd_endpoint_shape(arr[8]),
+      endShape: dco_decode_opt_box_autoadd_endpoint_shape(arr[9]),
+      width: dco_decode_i_32(arr[10]),
+      height: dco_decode_i_32(arr[11]),
+      textColor: dco_decode_u_32(arr[12]),
+      shadowColor: dco_decode_u_32(arr[13]),
+      shadowBlur: dco_decode_f_64(arr[14]),
+      shadowOffsetX: dco_decode_f_64(arr[15]),
+      shadowOffsetY: dco_decode_f_64(arr[16]),
+      strategyType: dco_decode_String(arr[17]),
+      strokePattern: dco_decode_String(arr[18]),
     );
   }
 
@@ -3415,6 +3435,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  EndpointShape sse_decode_box_autoadd_endpoint_shape(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_endpoint_shape(deserializer));
+  }
+
+  @protected
   FrameNode sse_decode_box_autoadd_frame_node(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_frame_node(deserializer));
@@ -3670,6 +3698,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       size: var_size,
       locked: var_locked,
     );
+  }
+
+  @protected
+  EndpointShape sse_decode_endpoint_shape(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return EndpointShape.values[inner];
   }
 
   @protected
@@ -4336,6 +4371,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  EndpointShape? sse_decode_opt_box_autoadd_endpoint_shape(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_endpoint_shape(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -4554,6 +4602,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_shape = sse_decode_String(deserializer);
     var var_arrowType = sse_decode_String(deserializer);
     var var_arrowSize = sse_decode_f_64(deserializer);
+    var var_startShape = sse_decode_opt_box_autoadd_endpoint_shape(
+      deserializer,
+    );
+    var var_endShape = sse_decode_opt_box_autoadd_endpoint_shape(deserializer);
     var var_width = sse_decode_i_32(deserializer);
     var var_height = sse_decode_i_32(deserializer);
     var var_textColor = sse_decode_u_32(deserializer);
@@ -4572,6 +4624,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       shape: var_shape,
       arrowType: var_arrowType,
       arrowSize: var_arrowSize,
+      startShape: var_startShape,
+      endShape: var_endShape,
       width: var_width,
       height: var_height,
       textColor: var_textColor,
@@ -5102,6 +5156,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_endpoint_shape(
+    EndpointShape self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_endpoint_shape(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_frame_node(
     FrameNode self,
     SseSerializer serializer,
@@ -5366,6 +5429,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.brushColor, serializer);
     sse_encode_size(self.size, serializer);
     sse_encode_bool(self.locked, serializer);
+  }
+
+  @protected
+  void sse_encode_endpoint_shape(EndpointShape self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
   }
 
   @protected
@@ -5868,6 +5937,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_endpoint_shape(
+    EndpointShape? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_endpoint_shape(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_i_64(
     PlatformInt64? self,
     SseSerializer serializer,
@@ -6075,6 +6157,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.shape, serializer);
     sse_encode_String(self.arrowType, serializer);
     sse_encode_f_64(self.arrowSize, serializer);
+    sse_encode_opt_box_autoadd_endpoint_shape(self.startShape, serializer);
+    sse_encode_opt_box_autoadd_endpoint_shape(self.endShape, serializer);
     sse_encode_i_32(self.width, serializer);
     sse_encode_i_32(self.height, serializer);
     sse_encode_u_32(self.textColor, serializer);

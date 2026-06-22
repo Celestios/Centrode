@@ -143,11 +143,7 @@ class CopyBuffer extends ChangeNotifier with TraceableNotifier {
         toNodeId: newToId,
         toNodeTable: toNode.tableName,
         verb: rel.verb,
-        layout: const RelationLayout(
-          fromSide: null,
-          toSide: null,
-          strategyType: 'default',
-        ),
+        layout: rel.layout,
       );
 
       controller.store.relationLookup[newRel.id] = newRel;

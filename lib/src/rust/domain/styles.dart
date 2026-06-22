@@ -8,6 +8,8 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'styles.freezed.dart';
 
+enum EndpointShape { none, arrow, openArrow, circle, diamond, square }
+
 @freezed
 sealed class NodeLayout with _$NodeLayout {
   const factory NodeLayout({required String strategyType}) = _NodeLayout;
@@ -68,6 +70,8 @@ sealed class RelationStyle with _$RelationStyle {
     required String shape,
     required String arrowType,
     required double arrowSize,
+    EndpointShape? startShape,
+    EndpointShape? endShape,
     required int width,
     required int height,
     required int textColor,

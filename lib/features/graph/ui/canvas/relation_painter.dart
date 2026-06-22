@@ -1,5 +1,7 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:mycelium/src/rust/domain/styles.dart';
 import '../../models/models.dart';
 import '../../engine/config.dart';
 import '../../presentation/view_state.dart';
@@ -69,6 +71,76 @@ class RelationPainter extends CustomPainter {
         }
       }
     }
+  }
+
+  void _drawText(
+    Canvas canvas,
+    String text,
+    Offset pos,
+    Color strokeColor,
+    double strokeWidth,
+  ) {
+    final textStyle = TextStyle(
+      color: theme.colorScheme.onSurface,
+      fontSize: 10,
+      fontWeight: FontWeight.w500,
+    );
+    final textSpan = TextSpan(text: text, style: textStyle);
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+
+    const double paddingX = 8.0;
+    const double paddingY = 4.0;
+    final double w = textPainter.width + paddingX * 2;
+    final double h = textPainter.height + paddingY * 2;
+
+    final rect = Rect.fromCenter(center: pos, width: w, height: h);
+    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(8.0));
+
+    final fillPaint = Paint()
+      ..color = theme.scaffoldBackgroundColor
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(rrect, fillPaint);
+
+    final strokePaint = Paint()
+      ..color = strokeColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+    canvas.drawRRect(rrect, strokePaint);
+
+    textPainter.paint(
+      canvas,
+      pos - Offset(textPainter.width / 2, textPainter.height / 2),
+    );
+  }
+
+  Path _createPatternedPath(Path source, String pattern) {
+    final Path dest = Path();
+    final double dashLen = pattern == 'dashed' ? 8.0 : 2.0;
+    final double gapLen = pattern == 'dashed' ? 6.0 : 4.0;
+
+    for (final PathMetric metric in source.computeMetrics()) {
+      double distance = 0.0;
+      bool draw = true;
+      while (distance < metric.length) {
+        final double len = draw ? dashLen : gapLen;
+        if (draw) {
+          dest.addPath(
+            metric.extractPath(
+              distance,
+              (distance + len).clamp(0.0, metric.length),
+            ),
+            Offset.zero,
+          );
+        }
+        distance += len;
+        draw = !draw;
+      }
+    }
+    return dest;
   }
 
   @override
@@ -153,6 +225,23 @@ class RelationPainter extends CustomPainter {
         canvas.drawPath(path, paint);
       }
 
+      final endpointColor = isSelected
+          ? AppConfig.visuals.selectionAccent
+          : Color(resolved.strokeColor);
+
+      if (resolved.startShape != null && resolved.startShape != EndpointShape.none) {
+        final fromCenter = from.rect.center;
+        final outwardDir = (start - fromCenter).direction;
+        final offset = Offset(cos(outwardDir), sin(outwardDir)) * resolved.arrowSize * 0.5;
+        _drawEndpointShape(canvas, start + offset, outwardDir + pi, resolved.startShape!, endpointColor.withAlpha(255), resolved.arrowSize);
+      }
+      if (resolved.endShape != null && resolved.endShape != EndpointShape.none) {
+        final toCenter = to.rect.center;
+        final outwardDir = (end - toCenter).direction;
+        final offset = Offset(cos(outwardDir), sin(outwardDir)) * resolved.arrowSize * 0.5;
+        _drawEndpointShape(canvas, end + offset, outwardDir + pi, resolved.endShape!, endpointColor.withAlpha(255), resolved.arrowSize);
+      }
+
       // If selected, draw the two tip handles
       if (isSelected) {
         final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(
@@ -194,79 +283,48 @@ class RelationPainter extends CustomPainter {
     }
   }
 
-  void _drawText(
-    Canvas canvas,
-    String text,
-    Offset pos,
-    Color strokeColor,
-    double strokeWidth,
-  ) {
-    final textStyle = TextStyle(
-      color: theme.colorScheme.onSurface,
-      fontSize: 10,
-      fontWeight: FontWeight.w500,
-    );
-    final textSpan = TextSpan(text: text, style: textStyle);
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.ltr,
-    );
-    textPainter.layout();
-
-    // Compute dimensions with padding for the wrap-around container
-    const double paddingX = 8.0;
-    const double paddingY = 4.0;
-    final double w = textPainter.width + paddingX * 2;
-    final double h = textPainter.height + paddingY * 2;
-
-    // Define the pill-shaped container aligned at center pos
-    final rect = Rect.fromCenter(center: pos, width: w, height: h);
-    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(8.0));
-
-    // Fill with canvas background to mask relation line and grid dots underneath
+  void _drawEndpointShape(Canvas canvas, Offset position, double direction, EndpointShape shape, Color color, double size) {
+    final half = size / 2;
+    final opaqueColor = color.withAlpha(255);
     final fillPaint = Paint()
-      ..color = theme.scaffoldBackgroundColor
+      ..color = opaqueColor
       ..style = PaintingStyle.fill;
-    canvas.drawRRect(rrect, fillPaint);
-
-    // Stroke with relation line color/thickness to simulate wrapping around it
     final strokePaint = Paint()
-      ..color = strokeColor
+      ..color = opaqueColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
-    canvas.drawRRect(rrect, strokePaint);
+      ..strokeWidth = 2.0;
 
-    // Draw the text
-    textPainter.paint(
-      canvas,
-      pos - Offset(textPainter.width / 2, textPainter.height / 2),
-    );
-  }
-
-  Path _createPatternedPath(Path source, String pattern) {
-    final Path dest = Path();
-    final double dashLen = pattern == 'dashed' ? 8.0 : 2.0;
-    final double gapLen = pattern == 'dashed' ? 6.0 : 4.0;
-
-    for (final PathMetric metric in source.computeMetrics()) {
-      double distance = 0.0;
-      bool draw = true;
-      while (distance < metric.length) {
-        final double len = draw ? dashLen : gapLen;
-        if (draw) {
-          dest.addPath(
-            metric.extractPath(
-              distance,
-              (distance + len).clamp(0.0, metric.length),
-            ),
-            Offset.zero,
-          );
-        }
-        distance += len;
-        draw = !draw;
-      }
+    switch (shape) {
+      case EndpointShape.none:
+        break;
+      case EndpointShape.arrow:
+        final path = Path();
+        path.moveTo(position.dx + cos(direction) * size, position.dy + sin(direction) * size);
+        path.lineTo(position.dx + cos(direction + 2.5) * half, position.dy + sin(direction + 2.5) * half);
+        path.lineTo(position.dx + cos(direction - 2.5) * half, position.dy + sin(direction - 2.5) * half);
+        path.close();
+        canvas.drawPath(path, fillPaint);
+      case EndpointShape.openArrow:
+        final path = Path();
+        path.moveTo(position.dx + cos(direction) * size, position.dy + sin(direction) * size);
+        path.lineTo(position.dx + cos(direction + 2.5) * half, position.dy + sin(direction + 2.5) * half);
+        path.moveTo(position.dx + cos(direction) * size, position.dy + sin(direction) * size);
+        path.lineTo(position.dx + cos(direction - 2.5) * half, position.dy + sin(direction - 2.5) * half);
+        canvas.drawPath(path, strokePaint);
+      case EndpointShape.circle:
+        canvas.drawCircle(position, half, fillPaint);
+      case EndpointShape.diamond:
+        final path = Path();
+        path.moveTo(position.dx, position.dy - half);
+        path.lineTo(position.dx + half, position.dy);
+        path.lineTo(position.dx, position.dy + half);
+        path.lineTo(position.dx - half, position.dy);
+        path.close();
+        canvas.drawPath(path, fillPaint);
+      case EndpointShape.square:
+        final rect = Rect.fromCenter(center: position, width: size, height: size);
+        canvas.drawRect(rect, fillPaint);
     }
-    return dest;
   }
 
   @override
