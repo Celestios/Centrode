@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
@@ -9,6 +10,7 @@ import 'package:mycelium/features/graph/presentation/routing/relation_layout_con
 import 'package:mycelium/src/rust/domain/styles.dart';
 
 Offset _getPortNormal(PortSide side) {
+  const s = 1 / sqrt2;
   switch (side) {
     case PortSide.left:
       return const Offset(-1, 0);
@@ -18,6 +20,16 @@ Offset _getPortNormal(PortSide side) {
       return const Offset(0, -1);
     case PortSide.bottom:
       return const Offset(0, 1);
+    case PortSide.topLeft:
+      return Offset(-s, -s);
+    case PortSide.topRight:
+      return Offset(s, -s);
+    case PortSide.bottomLeft:
+      return Offset(-s, s);
+    case PortSide.bottomRight:
+      return Offset(s, s);
+    case PortSide.auto:
+      return const Offset(1, 0);
   }
 }
 
@@ -43,8 +55,8 @@ void main() {
       toNodeId: 'to_1',
       toNodeTable: 'inode',
       layout: RelationLayout(
-        fromSide: 'Auto',
-        toSide: 'Auto',
+        fromSide: null,
+        toSide: null,
         strategyType: 'default',
       ),
     );
@@ -101,8 +113,8 @@ void main() {
       toNodeId: 'to_1',
       toNodeTable: 'inode',
       layout: RelationLayout(
-        fromSide: 'Auto',
-        toSide: 'Auto',
+        fromSide: null,
+        toSide: null,
         strategyType: 'default',
       ),
     );
@@ -160,8 +172,8 @@ void main() {
         toNodeId: 'to_1',
         toNodeTable: 'inode',
         layout: RelationLayout(
-          fromSide: 'Auto',
-          toSide: 'Auto',
+          fromSide: null,
+          toSide: null,
           strategyType: 'default',
         ),
       );
@@ -211,8 +223,8 @@ void main() {
         toNodeId: 'to_1',
         toNodeTable: 'inode',
         layout: RelationLayout(
-          fromSide: 'Auto',
-          toSide: 'Auto',
+          fromSide: null,
+          toSide: null,
           strategyType: 'bezier',
         ),
       );
@@ -304,8 +316,8 @@ void main() {
         toNodeId: 'to_1',
         toNodeTable: 'inode',
         layout: RelationLayout(
-          fromSide: 'Auto',
-          toSide: 'Auto',
+          fromSide: null,
+          toSide: null,
           strategyType: 'bezier',
         ),
       );
@@ -381,8 +393,8 @@ void main() {
         toNodeId: 'to_1',
         toNodeTable: 'inode',
         layout: RelationLayout(
-          fromSide: 'Auto',
-          toSide: 'Auto',
+          fromSide: null,
+          toSide: null,
           strategyType: 'orthogonal',
         ),
       );
@@ -456,8 +468,8 @@ void main() {
       toNodeId: 'to_1',
       toNodeTable: 'inode',
       layout: RelationLayout(
-        fromSide: 'Top',
-        toSide: 'Bottom',
+        fromSide: PortSide.top,
+        toSide: PortSide.bottom,
         strategyType: 'default',
       ),
     );
@@ -492,8 +504,8 @@ void main() {
       toNodeId: 'to_1',
       toNodeTable: 'inode',
       layout: RelationLayout(
-        fromSide: 'Auto',
-        toSide: 'Auto',
+        fromSide: null,
+        toSide: null,
         strategyType: 'bezier',
       ),
     );
@@ -536,8 +548,8 @@ void main() {
       toNodeId: 'to_1',
       toNodeTable: 'inode',
       layout: RelationLayout(
-        fromSide: 'Auto',
-        toSide: 'Auto',
+        fromSide: null,
+        toSide: null,
         strategyType: 'orthogonal',
       ),
     );
@@ -580,8 +592,8 @@ void main() {
       toNodeId: 'to_1',
       toNodeTable: 'inode',
       layout: RelationLayout(
-        fromSide: 'Auto',
-        toSide: 'Auto',
+        fromSide: null,
+        toSide: null,
         strategyType: 'bezier',
       ),
     );
@@ -616,8 +628,8 @@ void main() {
       toNodeId: 'to_1',
       toNodeTable: 'inode',
       layout: RelationLayout(
-        fromSide: 'Auto',
-        toSide: 'Auto',
+        fromSide: null,
+        toSide: null,
         strategyType: 'bezier',
       ),
     );
@@ -662,8 +674,8 @@ void main() {
       toNodeId: 'to_1',
       toNodeTable: 'inode',
       layout: RelationLayout(
-        fromSide: 'Auto',
-        toSide: 'Auto',
+        fromSide: null,
+        toSide: null,
         strategyType: 'default',
       ),
     );
@@ -698,8 +710,8 @@ void main() {
       toNodeId: 'to_1',
       toNodeTable: 'inode',
       layout: RelationLayout(
-        fromSide: 'Auto',
-        toSide: 'Auto',
+        fromSide: null,
+        toSide: null,
         strategyType: 'default',
       ),
     );

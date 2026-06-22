@@ -88,12 +88,12 @@ void main() {
 
     // Point near top port: (150.0, 90.0)
     final topClosest = viewState.getClosestPort(const Offset(150.0, 90.0));
-    expect(topClosest.name, 'Top');
+    expect(topClosest.side.name, 'top');
     expect(topClosest.position, const Offset(150.0, 100.0));
 
     // Point near left port: (95.0, 155.0)
     final leftClosest = viewState.getClosestPort(const Offset(95.0, 155.0));
-    expect(leftClosest.name, 'Left');
+    expect(leftClosest.side.name, 'left');
     expect(leftClosest.position, const Offset(100.0, 150.0));
   });
 
@@ -116,9 +116,9 @@ void main() {
 
     // Closest ports should be: vs1's Right (200.0, 150.0) and vs2's Left (300.0, 150.0)
     final closest = NodeViewState.getClosestPortsBetween(vs1, vs2);
-    expect(closest.startName, 'Right');
+    expect(closest.startSide.name, 'right');
     expect(closest.startPos, const Offset(200.0, 150.0));
-    expect(closest.endName, 'Left');
+    expect(closest.endSide.name, 'left');
     expect(closest.endPos, const Offset(300.0, 150.0));
   });
 }

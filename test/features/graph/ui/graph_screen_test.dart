@@ -48,7 +48,7 @@ void main() {
             Provider<GraphDataController>.value(
               value: mockController,
             ),
-            ChangeNotifierProvider<GraphPresentationNotifier>.value(
+            Provider<GraphPresentationNotifier>.value(
               value: mockPresentation,
             ),
             InheritedProvider<GraphDataQuery>.value(

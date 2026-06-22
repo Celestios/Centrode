@@ -6,6 +6,7 @@ import 'package:mycelium/features/graph/engine/interaction_context.dart';
 import 'package:mycelium/features/graph/engine/base_interaction_state.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
+import 'package:mycelium/src/rust/domain/styles.dart';
 
 class MockInteractionContext extends Mock implements InteractionContext {}
 
@@ -98,8 +99,8 @@ void main() {
           toNodeId: 'node-to',
           toNodeTable: 'inode',
           layout: RelationLayout(
-            fromSide: 'Right',
-            toSide: 'Left',
+            fromSide: PortSide.right,
+            toSide: PortSide.left,
             strategyType: 'default',
           ),
         );
@@ -150,8 +151,8 @@ void main() {
           toNodeId: 'node-to',
           toNodeTable: 'inode',
           layout: RelationLayout(
-            fromSide: 'Right',
-            toSide: 'Left',
+            fromSide: PortSide.right,
+            toSide: PortSide.left,
             strategyType: 'default',
           ),
         );

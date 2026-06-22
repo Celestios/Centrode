@@ -33,6 +33,7 @@ class _PortLayerState extends State<PortLayer> {
     super.initState();
     widget.hoveredNodeNotifier.addListener(_onHoverChanged);
     widget.interactionState.addListener(_onInteractionChanged);
+    widget.dragState.addListener(_onDragStateChanged);
   }
 
   @override
@@ -46,6 +47,10 @@ class _PortLayerState extends State<PortLayer> {
       oldWidget.interactionState.removeListener(_onInteractionChanged);
       widget.interactionState.addListener(_onInteractionChanged);
     }
+    if (oldWidget.dragState != widget.dragState) {
+      oldWidget.dragState.removeListener(_onDragStateChanged);
+      widget.dragState.addListener(_onDragStateChanged);
+    }
   }
 
   @override
@@ -53,6 +58,7 @@ class _PortLayerState extends State<PortLayer> {
     _hideTimer?.cancel();
     widget.hoveredNodeNotifier.removeListener(_onHoverChanged);
     widget.interactionState.removeListener(_onInteractionChanged);
+    widget.dragState.removeListener(_onDragStateChanged);
     super.dispose();
   }
 
@@ -92,6 +98,11 @@ class _PortLayerState extends State<PortLayer> {
     }
   }
 
+  void _onDragStateChanged() {
+    if (_activeNodeId == null) return;
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final nodeId = _activeNodeId;
@@ -100,10 +111,13 @@ class _PortLayerState extends State<PortLayer> {
     final vs = widget.nodeViewStates[nodeId];
     if (vs == null) return const SizedBox.shrink();
 
+    if (widget.dragState.isNodeDragging(nodeId)) {
+      return const SizedBox.shrink();
+    }
+
     final interaction = widget.interactionState.value;
     final drawing = interaction is RelationDrawing ? interaction : null;
 
-    // Skip source nodes during relation drawing
     if (drawing != null && drawing.sourceNodeIds.contains(nodeId)) {
       return const SizedBox.shrink();
     }

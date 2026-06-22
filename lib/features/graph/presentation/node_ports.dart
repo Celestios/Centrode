@@ -70,6 +70,13 @@ class NodePorts {
     return bestPort;
   }
 
+  Port? getPortBySide(PortSide side) {
+    for (final port in ports) {
+      if (port.side == side) return port;
+    }
+    return null;
+  }
+
   Port? getClosestPort(Offset point) {
     double bestDist = double.infinity;
     Port? bestPort;

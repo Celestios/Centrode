@@ -9,6 +9,7 @@ import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/src/rust/domain/snapshot.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
+import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 
 class MockAppHandle extends Mock implements AppHandle {}
@@ -133,16 +134,16 @@ void main() {
       controller.createRelation(
         node1,
         node2,
-        fromSide: 'right',
-        toSide: 'left',
+        fromSide: PortSide.right,
+        toSide: PortSide.left,
       );
 
       expect(controller.relations.length, 1);
       final rel = controller.relations.first;
       expect(rel.fromNodeId, node1);
       expect(rel.toNodeId, node2);
-      expect(rel.layout?.fromSide, 'right');
-      expect(rel.layout?.toSide, 'left');
+      expect(rel.layout?.fromSide, PortSide.right);
+      expect(rel.layout?.toSide, PortSide.left);
 
       await controller.syncEngine.processor.forceFlush();
       verify(
@@ -193,16 +194,16 @@ void main() {
           relId,
           fromNodeId: node1,
           toNodeId: node3,
-          fromSide: 'Top',
-          toSide: 'Bottom',
+          fromSide: PortSide.top,
+          toSide: PortSide.bottom,
           strategyType: 'bezier',
         );
 
         final updated = controller.store.relationLookup[relId]!;
         expect(updated.fromNodeId, node1);
         expect(updated.toNodeId, node3);
-        expect(updated.layout?.fromSide, 'Top');
-        expect(updated.layout?.toSide, 'Bottom');
+        expect(updated.layout?.fromSide, PortSide.top);
+        expect(updated.layout?.toSide, PortSide.bottom);
         expect(updated.layout?.strategyType, 'bezier');
 
         await controller.syncEngine.processor.forceFlush();

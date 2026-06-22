@@ -341,6 +341,7 @@ class BezierRelationLayoutStrategy extends RelationLayoutStrategy {
       return dir / dir.distance;
     }
 
+    const s = 1 / sqrt2;
     switch (port.side) {
       case PortSide.left:
         return const Offset(-1, 0);
@@ -350,6 +351,14 @@ class BezierRelationLayoutStrategy extends RelationLayoutStrategy {
         return const Offset(0, -1);
       case PortSide.bottom:
         return const Offset(0, 1);
+      case PortSide.topLeft:
+        return Offset(-s, -s);
+      case PortSide.topRight:
+        return Offset(s, -s);
+      case PortSide.bottomLeft:
+        return Offset(-s, s);
+      case PortSide.bottomRight:
+        return Offset(s, s);
       default:
         return const Offset(1, 0);
     }
@@ -357,7 +366,7 @@ class BezierRelationLayoutStrategy extends RelationLayoutStrategy {
 
   Port? _resolveSideFromOffset(NodeViewState vs, Offset offset, PortSide? side) {
     if (side != null) {
-      return vs.ports.getMiddlePortForSide(side);
+      return vs.ports.getPortBySide(side) ?? vs.ports.getClosestPort(offset);
     }
     return vs.ports.getClosestPort(offset);
   }

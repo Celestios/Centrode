@@ -25,6 +25,8 @@ class RelationLayer extends StatelessWidget {
       child: ListenableBuilder(
           listenable: Listenable.merge([
             uiController.movementNotifier,
+            uiController.selectionState,
+            uiController.relationDataNotifier,
             uiController.editorState,
             interactionController.state,
           ]),

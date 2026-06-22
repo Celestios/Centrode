@@ -20,12 +20,15 @@ class DragState extends ChangeNotifier with TraceableNotifier {
 
   /// Registers a node dragging state to protect its volatile position from store overrides.
   void setNodeDragging(String id, bool dragging) {
+    final wasDragging = draggingNodes.contains(id);
+    if (wasDragging == dragging) return;
     if (dragging) {
       draggingNodes.add(id);
     } else {
       draggingNodes.remove(id);
     }
     _log.finest('Dragging state updated: $id -> dragging=$dragging');
+    notifyListeners();
   }
 
   /// Returns true if the given node is currently being dragged.
