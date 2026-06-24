@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../features/graph/presentation/workspace_tabs_controller.dart';
+import 'workspace_tabs_controller.dart';
 
 class PaletteAction {
   final String id;

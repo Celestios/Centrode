@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'color_harmony_generator.dart';
+import 'package:mycelium/shared/utils/color_harmony_generator.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:mycelium/shared/utils/color_utils.dart';
 

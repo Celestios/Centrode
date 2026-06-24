@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
-import '../../../../features/graph/models/graph_node.dart';
-import '../../../../features/graph/store/graph_data_controller.dart';
-import '../../../../features/graph/presentation/graph_presentation_notifier.dart';
-import '../../../../src/rust/domain/tags.dart';
-import '../shared/searchable_sort_list_header.dart';
+import '../../../models/graph_node.dart';
+import '../../../store/graph_data_controller.dart';
+import '../../../presentation/graph_presentation_notifier.dart';
+import '../../../../../src/rust/domain/tags.dart';
+import 'package:mycelium/presentation/widgets/search/searchable_sort_list_header.dart';
 import 'delete_tag_dialog.dart';
 import 'tag_color_picker_panel.dart';
 

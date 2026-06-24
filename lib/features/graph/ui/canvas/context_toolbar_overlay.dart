@@ -13,7 +13,7 @@ import 'package:mycelium/features/graph/presentation/strategies/relation_layout_
 import 'package:mycelium/features/graph/presentation/routing/relation_layout_context.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_text_format_toolbar.dart';
-import 'content_text_editing_controller.dart';
+import 'text/content_text_editing_controller.dart';
 import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
 import 'package:mycelium/shared/copy_buffer.dart';
 

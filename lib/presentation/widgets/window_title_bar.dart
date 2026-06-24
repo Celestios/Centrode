@@ -6,7 +6,7 @@ import 'package:window_manager/window_manager.dart';
 import '../../features/graph/presentation/workspace_tabs_controller.dart';
 import '../../features/graph/store/graph_data_controller.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
-import 'search_command_palette.dart';
+import 'search/search_command_palette.dart';
 
 class SimpleWindowTitleBar extends StatelessWidget {
   final String title;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../left_repository_panel.dart';
+import 'package:mycelium/presentation/widgets/left_repository_panel.dart';
 import 'templates_list_view.dart';
 
 class GlobalTemplatesManagerPanel extends StatelessWidget {

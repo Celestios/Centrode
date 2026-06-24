@@ -1,12 +1,12 @@
 import 'dart:ui';
 import 'package:mycelium/shared/logging.dart';
-import '../config.dart';
-import '../../presentation/strategies/relation_layout_strategy.dart';
-import '../../presentation/routing/relation_layout_context.dart';
-import '../../models/models.dart';
-import '../../models/port.dart';
-import '../interaction_context.dart';
-import '../base_interaction_state.dart';
+import 'config.dart';
+import '../presentation/strategies/relation_layout_strategy.dart';
+import '../presentation/routing/relation_layout_context.dart';
+import '../models/models.dart';
+import '../models/port.dart';
+import 'interaction_context.dart';
+import 'base_interaction_state.dart';
 
 enum HitTestType {
   none,

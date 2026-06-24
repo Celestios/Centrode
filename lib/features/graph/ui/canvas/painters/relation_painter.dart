@@ -2,13 +2,13 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
-import '../../models/models.dart';
-import '../../engine/config.dart';
-import '../../presentation/view_state.dart';
-import '../../presentation/strategies/relation_style_strategy.dart';
-import '../../presentation/strategies/relation_layout_strategy.dart';
-import '../../presentation/routing/relation_layout_context.dart';
-import '../../engine/base_interaction_state.dart';
+import '../../../models/models.dart';
+import '../../../engine/config.dart';
+import '../../../presentation/view_state.dart';
+import '../../../presentation/strategies/relation_style_strategy.dart';
+import '../../../presentation/strategies/relation_layout_strategy.dart';
+import '../../../presentation/routing/relation_layout_context.dart';
+import '../../../engine/base_interaction_state.dart';
 
 class RelationPainter extends CustomPainter {
   final List<UiRelation> relations;

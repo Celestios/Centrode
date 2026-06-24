@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../src/rust/domain/contents.dart';
-import '../../presentation/view_state.dart';
-import 'canvas_text_editor.dart';
+import '../../../../../src/rust/domain/contents.dart';
+import '../../../presentation/view_state.dart';
+import '../text/canvas_text_editor.dart';
 
 class NodeOverlayManager {
   final OverlayState? _overlay;

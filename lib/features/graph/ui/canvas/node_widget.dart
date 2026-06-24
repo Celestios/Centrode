@@ -1,16 +1,12 @@
-// lib/features/graph/ui/canvas/node_widget.dart
-
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../engine/config.dart';
 import '../../models/models.dart';
 import '../../store/graph_data_query.dart';
 import '../../presentation/view_state.dart';
-import '../../presentation/strategies/node_layout_strategy.dart';
-import 'canvas_text_editor.dart';
-import 'node_visual_constants.dart';
+import 'text/canvas_text_editor.dart';
+import 'widgets/node_visual_constants.dart';
+import 'widgets/node_rich_text.dart';
 
 /// A passive node widget that renders exactly what the domain instructs.
 ///
@@ -37,9 +33,6 @@ class NodeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Reactively select the canonical node from the central store.
-    // This prevents the widget from rendering stale aesthetics (like old width)
-    // when the FSM drops the volatile drag state before the parent layer rebuilds.
     final liveNode = context.select<GraphDataQuery, UiNode>(
       (c) => c.nodeLookup[node.id] ?? node,
     );
@@ -73,7 +66,6 @@ class NodeWidget extends StatelessWidget {
         return Stack(
           clipBehavior: Clip.none,
           children: [
-            // ── Main Visual Body ──────────────────────────
             Container(
               width: size.width,
               height: size.height,
@@ -125,7 +117,6 @@ class NodeWidget extends StatelessWidget {
               ),
             ),
 
-            // ── Resize Handle Visual (Right Edge) ─────────
             Positioned(
               right: 0,
               top: (liveNode is InfoUiNode &&
@@ -136,7 +127,6 @@ class NodeWidget extends StatelessWidget {
               child: Container(
                 width: AppConfig.node.resizeHandleVisualWidth * scale,
                 decoration: BoxDecoration(
-                  // A nearly‑invisible colour that the hit‑tester sees.
                   color: Color(NodeVisualConstants.handleColor),
                   borderRadius: BorderRadius.horizontal(
                     right: Radius.circular(resolvedStyle.borderRadius),
@@ -159,7 +149,6 @@ class NodeWidget extends StatelessWidget {
               ),
             ),
 
-            // ── Metadata Sphere Widget ────────────────────
             if (liveNode is InfoUiNode &&
                 (liveNode.tags.isNotEmpty || liveNode.comments.isNotEmpty))
               Positioned(
@@ -235,15 +224,14 @@ class NodeWidget extends StatelessWidget {
                   alignment: Alignment.center,
                   child: SizedBox(
                     width: double.infinity,
-                    child: _buildRichText(
-                      context,
-                      liveNode.content,
-                      TextStyle(
+                    child: NodeRichText(
+                      content: liveNode.content,
+                      baseStyle: TextStyle(
                         fontSize: style.fontSize,
                         fontFamily: style.fontFamily.isEmpty || style.fontFamily == 'System' ? null : style.fontFamily,
                         color: Color(style.textColor),
                       ),
-                      viewState.isExpandedNotifier.value,
+                      isExpanded: viewState.isExpandedNotifier.value,
                     ),
                   ),
                 ),
@@ -293,314 +281,4 @@ class NodeWidget extends StatelessWidget {
       ],
     );
   }
-
-  Widget _buildRichText(
-    BuildContext context,
-    Content content,
-    TextStyle baseStyle,
-    bool isExpanded,
-  ) {
-    return NodeRichText(
-      content: content,
-      baseStyle: baseStyle,
-      isExpanded: isExpanded,
-    );
-  }
 }
-
-class NodeRichText extends StatefulWidget {
-  final Content content;
-  final TextStyle baseStyle;
-  final bool isExpanded;
-
-  const NodeRichText({
-    super.key,
-    required this.content,
-    required this.baseStyle,
-    required this.isExpanded,
-  });
-
-  @override
-  State<NodeRichText> createState() => _NodeRichTextState();
-}
-
-class _NodeRichTextState extends State<NodeRichText> {
-  final List<TapGestureRecognizer> _recognizers = [];
-  TextSpan? _cachedTextSpan;
-  List<(TextSpan, TextAlign)>? _cachedBlockSpans;
-  Content? _cachedContent;
-  TextStyle? _cachedBaseStyle;
-
-  @override
-  void dispose() {
-    _clearRecognizers();
-    super.dispose();
-  }
-
-  void _clearRecognizers() {
-    for (final recognizer in _recognizers) {
-      recognizer.dispose();
-    }
-    _recognizers.clear();
-  }
-
-  void _ensureBuilt() {
-    if (_cachedContent == widget.content && _cachedBaseStyle == widget.baseStyle) return;
-    _clearRecognizers();
-    _cachedContent = widget.content;
-    _cachedBaseStyle = widget.baseStyle;
-
-    _cachedTextSpan = NodeLayoutStrategy.buildRichTextSpan(
-      widget.content,
-      widget.baseStyle,
-      onLinkTap: (url) async {
-        final Uri uri = Uri.parse(url);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri);
-        }
-      },
-      registerRecognizer: (recognizer) {
-        _recognizers.add(recognizer);
-      },
-    );
-
-    _cachedBlockSpans = NodeLayoutStrategy.buildPerBlockTextSpans(
-      widget.content,
-      widget.baseStyle,
-      onLinkTap: (url) async {
-        final Uri uri = Uri.parse(url);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri);
-        }
-      },
-      registerRecognizer: (recognizer) {
-        _recognizers.add(recognizer);
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    _ensureBuilt();
-
-    if (widget.isExpanded) {
-      return ClipRect(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (int i = 0; i < _cachedBlockSpans!.length; i++)
-              Text.rich(
-                _cachedBlockSpans![i].$1,
-                textAlign: _cachedBlockSpans![i].$2,
-              ),
-          ],
-        ),
-      );
-    }
-
-    final alignment = _cachedBlockSpans != null && _cachedBlockSpans!.isNotEmpty
-        ? _cachedBlockSpans!.first.$2
-        : TextAlign.center;
-
-    return Text.rich(
-      _cachedTextSpan!,
-      textAlign: alignment,
-      overflow: TextOverflow.fade,
-      maxLines: AppConfig.node.collapsedLineLimit,
-    );
-  }
-}
-
-class DrawNodeWidget extends StatelessWidget {
-  final DrawingUiNode node;
-  final NodeViewState viewState;
-  final bool isSelected;
-  final bool isEditing;
-
-  const DrawNodeWidget({
-    super.key,
-    required this.node,
-    required this.viewState,
-    required this.isSelected,
-    required this.isEditing,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Reactively select the canonical node from the central store.
-    // This prevents the widget from rendering stale aesthetics (like old width)
-    // when the FSM drops the volatile drag state before the parent layer rebuilds.
-    final liveNode = context.select<GraphDataQuery, DrawingUiNode>(
-      (c) => (c.nodeLookup[node.id] ?? node) as DrawingUiNode,
-    );
-
-    // We merge the notifiers so the widget repaints when position, size,
-    // or expanded state changes.
-    return ListenableBuilder(
-      listenable: Listenable.merge([
-        viewState.sizeNotifier,
-        viewState.dragWidthNotifier,
-      ]),
-      builder: (context, _) {
-        final rawSize = viewState.sizeNotifier.value;
-        final size = Size(
-          viewState.dragWidthNotifier.value ?? rawSize.width,
-          rawSize.height,
-        );
-
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            CustomPaint(
-              size: size,
-              painter: DrawingNodePainter(
-                brushColor: liveNode.brushColor,
-                brushThickness: liveNode.brushThickness,
-                brushType: liveNode.brushType,
-                paths: liveNode.paths,
-                parsedPaths: liveNode.parsedPaths,
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class DrawingNodePainter extends CustomPainter {
-  final List<String> paths;
-  final List<List<Offset>>? parsedPaths;
-  final String brushColor;
-  final double brushThickness;
-  final String brushType;
-
-  late final Color _parsedColor = _parseColor(brushColor);
-
-  static Color _parseColor(String hex) {
-    final clean = hex.replaceFirst('#', '').replaceFirst('0x', '');
-    if (clean.length == 6) {
-      return Color(int.parse('FF$clean', radix: 16));
-    }
-    return Color(int.parse(clean, radix: 16));
-  }
-
-  DrawingNodePainter({
-    required this.paths,
-    this.parsedPaths,
-    required this.brushColor,
-    required this.brushThickness,
-    required this.brushType,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    var color = _parsedColor;
-
-    if (brushType == 'highlighter') {
-      color = color.withValues(alpha: 0.4);
-    }
-
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = brushThickness
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final resolvedPaths = parsedPaths ?? paths.map((pathStr) {
-      return pathStr
-          .split(';')
-          .map((p) {
-            final coords = p.split(',');
-            if (coords.length < 2) return null;
-            final x = double.tryParse(coords[0]);
-            final y = double.tryParse(coords[1]);
-            if (x == null || y == null) return null;
-            return Offset(x, y);
-          })
-          .whereType<Offset>()
-          .toList();
-    }).toList();
-
-    for (final points in resolvedPaths) {
-      if (points.isEmpty) continue;
-      final path = Path();
-      path.moveTo(points[0].dx, points[0].dy);
-      for (int i = 1; i < points.length; i++) {
-        path.lineTo(points[i].dx, points[i].dy);
-      }
-      canvas.drawPath(path, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant DrawingNodePainter oldDelegate) {
-    return oldDelegate.paths != paths ||
-        oldDelegate.parsedPaths != parsedPaths ||
-        oldDelegate.brushColor != brushColor ||
-        oldDelegate.brushThickness != brushThickness ||
-        oldDelegate.brushType != brushType;
-  }
-}
-
-class HighlightFrame extends StatelessWidget {
-  final Widget child;
-  final bool isEditing;
-  final bool isSelected;
-  final double borderRadius;
-  final String shape;
-  final Size size;
-  final double scale;
-
-  const HighlightFrame({
-    super.key,
-    required this.child,
-    required this.isEditing,
-    required this.isSelected,
-    required this.borderRadius,
-    required this.shape,
-    required this.size,
-    required this.scale,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isHighlighted = isSelected || isEditing;
-    if (!isHighlighted) return child;
-
-    final double stroke = (isEditing ? 1.0 : 0.6) * scale;
-    final double gap = 1.5 * scale;
-    final double totalOffset = gap + stroke;
-
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        child,
-        Positioned(
-          left: -totalOffset,
-          top: -totalOffset,
-          right: -totalOffset,
-          bottom: -totalOffset,
-          child: IgnorePointer(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: shape == 'circle'
-                    ? BorderRadius.circular((size.width + totalOffset * 2) / 2)
-                    : BorderRadius.circular(borderRadius + totalOffset),
-                border: Border.all(
-                  color: isEditing
-                      ? Color(NodeVisualConstants.editingBorderColor)
-                      : AppConfig.visuals.selectionAccent,
-                  width: stroke,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-

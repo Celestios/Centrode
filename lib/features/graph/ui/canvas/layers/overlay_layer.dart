@@ -10,7 +10,7 @@ import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
 import '../../../presentation/strategies/relation_layout_strategy.dart';
 import '../../../presentation/routing/relation_layout_context.dart';
-import '../metadata_preview_overlay.dart';
+import '../widgets/metadata_preview_overlay.dart';
 import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 
 class OverlayLayer extends StatelessWidget {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../features/graph/presentation/workspace_tabs_controller.dart';
-import '../../features/graph/models/models.dart';
-import 'palette_action_registry.dart';
+import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
+import 'package:mycelium/features/graph/models/models.dart';
+import 'package:mycelium/features/graph/presentation/palette_action_registry.dart';
 
 enum SearchResultType { command, node, tag, relation, relationHeader }
 

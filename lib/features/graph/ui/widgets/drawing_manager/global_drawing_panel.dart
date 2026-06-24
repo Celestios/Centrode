@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../features/graph/presentation/workspace_tabs_controller.dart';
-import '../left_repository_panel.dart';
+import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
+import 'package:mycelium/presentation/widgets/left_repository_panel.dart';
 import 'package:mycelium/shared/widgets/color_palette/color_palette.dart';
 
 class GlobalDrawingPanel extends StatelessWidget {

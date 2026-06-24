@@ -4,11 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:mycelium/shared/logging.dart';
 
-import '../../presentation/node_render_state.dart';
-import '../../models/models.dart';
+import '../../../presentation/node_render_state.dart';
+import '../../../models/models.dart';
 import 'content_text_editing_controller.dart';
 import 'markdown_text_selection_controls.dart';
-import '../../../../shared/widgets/context_menu_overlay.dart';
+import '../../../../../shared/widgets/context_menu_overlay.dart';
 
 class CanvasTextEditor extends StatefulWidget {
   final String entityId;

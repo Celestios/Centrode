@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:mycelium/shared/color_utils.dart';
-import '../../features/graph/presentation/workspace_tabs_controller.dart';
-import '../../features/graph/models/graph_node.dart';
+import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
+import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'search_registry.dart';
 
 class SearchOverlayWidget extends StatelessWidget {

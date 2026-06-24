@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/models.dart';
+import '../../../models/models.dart';
 import 'text_format_models.dart';
 
 /// Merges adjacent spans of the same style type to clean up the span list.

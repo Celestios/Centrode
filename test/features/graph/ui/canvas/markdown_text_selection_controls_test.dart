@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
-import 'package:mycelium/features/graph/ui/canvas/markdown_text_selection_controls.dart';
-import 'package:mycelium/features/graph/ui/canvas/content_text_editing_controller.dart';
+import 'package:mycelium/features/graph/ui/canvas/text/markdown_text_selection_controls.dart';
+import 'package:mycelium/features/graph/ui/canvas/text/content_text_editing_controller.dart';
 
 void main() {
   group('MarkdownTextSelectionControls', () {

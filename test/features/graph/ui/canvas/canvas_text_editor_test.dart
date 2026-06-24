@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:mycelium/features/graph/ui/canvas/canvas_text_editor.dart';
+import 'package:mycelium/features/graph/ui/canvas/text/canvas_text_editor.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/presentation/node_render_state.dart';
 

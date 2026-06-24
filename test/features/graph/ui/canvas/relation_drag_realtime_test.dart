@@ -8,7 +8,7 @@ import 'package:mycelium/features/graph/presentation/node_render_state.dart';
 import 'package:mycelium/features/graph/store/graph_data_controller.dart';
 import 'package:mycelium/features/graph/store/graph_data_query.dart';
 import 'package:mycelium/features/graph/ui/canvas/layers/relation_layer.dart';
-import 'package:mycelium/features/graph/ui/canvas/relation_painter.dart';
+import 'package:mycelium/features/graph/ui/canvas/painters/relation_painter.dart';
 import 'package:mycelium/features/graph/engine/base_interaction_state.dart';
 import 'package:mycelium/features/graph/engine/interaction_engine.dart';
 import 'package:mycelium/features/graph/engine/interaction_facade.dart';

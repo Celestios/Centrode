@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../features/graph/presentation/graph_presentation_notifier.dart';
-import '../../../../features/graph/presentation/viewport_state.dart';
-import '../../../../features/graph/models/models.dart';
-import '../../../../src/rust/domain/nodes.dart';
-import '../../../../src/rust/domain/relations.dart';
-import '../shared/searchable_sort_list_header.dart';
+import '../../../presentation/graph_presentation_notifier.dart';
+import '../../../presentation/viewport_state.dart';
+import '../../../models/models.dart';
+import '../../../../../src/rust/domain/nodes.dart';
+import '../../../../../src/rust/domain/relations.dart';
+import 'package:mycelium/presentation/widgets/search/searchable_sort_list_header.dart';
 import 'template_preview_painter.dart';
 import 'delete_template_dialog.dart';
 

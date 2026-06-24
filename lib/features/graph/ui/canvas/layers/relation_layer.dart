@@ -6,8 +6,8 @@ import '../../../presentation/node_render_state.dart';
 import '../../../presentation/strategies/relation_layout_strategy.dart';
 import '../../../engine/interaction_engine.dart';
 import '../../../models/models.dart';
-import '../relation_painter.dart';
-import '../canvas_text_editor.dart';
+import '../painters/relation_painter.dart';
+import '../text/canvas_text_editor.dart';
 import '../../../presentation/routing/relation_layout_context.dart';
 import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 

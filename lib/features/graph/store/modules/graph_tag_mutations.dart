@@ -1,0 +1,185 @@
+import 'package:mycelium/shared/logging.dart';
+import 'package:uuid/uuid.dart';
+import '../../models/models.dart';
+import '../graph_data_controller.dart';
+import '../graph_data_query.dart';
+import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
+
+/// Tag and comment mutation operations for the graph.
+class GraphTagMutations {
+  final Logger _log = Logger('GraphTagMutations');
+  final GraphDataController controller;
+
+  GraphTagMutations(this.controller);
+
+  void updateNodeTags(String id, List<Tag> newTags) {
+    _log.info('Updating tags for $id: $newTags');
+    final node = controller.store.nodeLookup[id];
+    if (node is! InfoUiNode) return;
+
+    final oldTags = List<Tag>.from(node.tags);
+
+    node.tags = newTags;
+
+    controller.syncEngine.processor.queueCommand(
+      UpdateTagsCommand(
+        targetId: id,
+        tableName: node.tableName,
+        api: controller.syncEngine.api,
+        oldTags: oldTags,
+        newTags: newTags,
+        controller: controller,
+      ),
+    );
+
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.tags,
+        payload: newTags,
+      ),
+    );
+    controller.triggerUpdate();
+  }
+
+  void updateNodeComments(String id, List<frb.Comment> newComments) {
+    _log.info('Updating comments for $id: $newComments');
+    final node = controller.store.nodeLookup[id];
+    if (node is! InfoUiNode) return;
+
+    final oldComments = List<frb.Comment>.from(node.comments);
+
+    node.comments = newComments;
+
+    controller.syncEngine.processor.queueCommand(
+      UpdateCommentsCommand(
+        targetId: id,
+        api: controller.syncEngine.api,
+        node: node,
+        oldComments: oldComments,
+        controller: controller,
+      ),
+    );
+
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.comments,
+        payload: newComments,
+      ),
+    );
+    controller.triggerUpdate();
+  }
+
+  Future<List<Tag>> getAllTags() async {
+    final dynamic api = controller.syncEngine.api;
+    final List<dynamic> rawTags = await api.getAllTags();
+    return rawTags.cast<Tag>();
+  }
+
+  Future<void> createTag(Tag tag) async {
+    final dynamic api = controller.syncEngine.api;
+    await api.createTag(tag: tag);
+    controller.triggerUpdate();
+  }
+
+  Future<void> updateTag(Tag tag) async {
+    final dynamic api = controller.syncEngine.api;
+    await api.updateTag(tag: tag);
+
+    for (final node in controller.store.nodeLookup.values) {
+      if (node is InfoUiNode) {
+        bool changed = false;
+        final updatedTags = node.tags.map((t) {
+          if (t.key == tag.key) {
+            changed = true;
+            return tag;
+          }
+          return t;
+        }).toList();
+        if (changed) {
+          node.tags = updatedTags;
+          controller.publishUpdate(
+            GraphEntityUpdate(
+              id: node.id,
+              tableName: node.tableName,
+              type: GraphUpdateType.tags,
+              payload: updatedTags,
+            ),
+          );
+        }
+      }
+    }
+    controller.triggerUpdate();
+  }
+
+  Future<void> deleteTag(String tagKey) async {
+    final dynamic api = controller.syncEngine.api;
+    await api.deleteTag(key: tagKey);
+
+    for (final node in controller.store.nodeLookup.values) {
+      if (node is InfoUiNode) {
+        final originalCount = node.tags.length;
+        final updatedTags = node.tags.where((t) => t.key != tagKey).toList();
+        if (updatedTags.length != originalCount) {
+          node.tags = updatedTags;
+          controller.publishUpdate(
+            GraphEntityUpdate(
+              id: node.id,
+              tableName: node.tableName,
+              type: GraphUpdateType.tags,
+              payload: updatedTags,
+            ),
+          );
+        }
+      }
+    }
+    controller.triggerUpdate();
+  }
+
+  void addTagToNode(String nodeId, String name, int color) {
+    final node = controller.store.nodeLookup[nodeId];
+    if (node is InfoUiNode) {
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final newTag = Tag(
+        key: const Uuid().v4(),
+        fields: TagFields(
+          name: name,
+          color: color,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        ),
+      );
+      updateNodeTags(nodeId, [...node.tags, newTag]);
+    }
+  }
+
+  void removeTagFromNode(String nodeId, String tagKey) {
+    final node = controller.store.nodeLookup[nodeId];
+    if (node is InfoUiNode) {
+      final updatedTags = node.tags.where((t) => t.key != tagKey).toList();
+      updateNodeTags(nodeId, updatedTags);
+    }
+  }
+
+  void addCommentToNode(String nodeId, String text) {
+    final node = controller.store.nodeLookup[nodeId];
+    if (node is InfoUiNode) {
+      final newComment = frb.Comment(
+        text: text,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+      );
+      updateNodeComments(nodeId, [newComment, ...node.comments]);
+    }
+  }
+
+  void removeCommentFromNode(String nodeId, frb.Comment comment) {
+    final node = controller.store.nodeLookup[nodeId];
+    if (node is InfoUiNode) {
+      final updatedComments = node.comments.where((c) => c != comment).toList();
+      updateNodeComments(nodeId, updatedComments);
+    }
+  }
+}

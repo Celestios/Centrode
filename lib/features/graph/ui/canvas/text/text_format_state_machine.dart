@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../engine/config.dart';
+import '../../../engine/config.dart';
 import 'text_format_models.dart';
 import 'text_ast_serializer.dart';
 

@@ -8,7 +8,7 @@ import 'package:mycelium/features/graph/presentation/node_ports.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/features/graph/engine/config.dart';
-import 'package:mycelium/features/graph/engine/states/volatile_node_state.dart';
+import 'package:mycelium/features/graph/engine/volatile_node_state.dart';
 
 class NodeViewState implements VolatileNodeState {
   final String nodeId;
