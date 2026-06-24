@@ -550,6 +550,7 @@ void main() {
       controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
       final result = controller.selectedTextAsMarkdown();
 
+      // ignore: avoid_print
       print('FULL RESULT: $result');
       expect(result, contains('```'));
       expect(result, contains('Code block here'));

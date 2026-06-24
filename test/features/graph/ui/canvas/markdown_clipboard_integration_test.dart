@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mycelium/features/graph/ui/canvas/content_text_editing_controller.dart';
-import 'package:mycelium/features/graph/models/content_builder.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 
 void main() {

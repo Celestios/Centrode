@@ -17,6 +17,7 @@ class DebugNotifierTracer {
     final parent = _stack.isNotEmpty ? _stack.last : '(root)';
     _stack.add(name);
     _depth++;
+    // ignore: avoid_print
     print('[Notify] $parent -> $name (depth=$_depth)');
   }
 

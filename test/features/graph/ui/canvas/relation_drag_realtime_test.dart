@@ -14,7 +14,6 @@ import 'package:mycelium/features/graph/engine/interaction_engine.dart';
 import 'package:mycelium/features/graph/engine/interaction_facade.dart';
 import 'package:mycelium/features/graph/presentation/viewport_state.dart';
 import 'package:mycelium/features/graph/store/spatial_index.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
 

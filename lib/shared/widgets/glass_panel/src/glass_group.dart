@@ -347,9 +347,6 @@ class _RenderGlassGroup extends RenderProxyBox {
       return;
     }
 
-    final bool nativeShaderSupported =
-        ui.ImageFilter.isShaderFilterSupported && !_settings.forceCpuFallback;
-
     final inflatedBounds = _inflatedBoundsForPaint();
     final localShapes = activeShapes.map((shape) {
       final localRect = _localRectForShape(shape);
@@ -368,7 +365,7 @@ class _RenderGlassGroup extends RenderProxyBox {
         ? Offset.zero
         : (globalTopLeft * _devicePixelRatio);
 
-    if (nativeShaderSupported) {
+    if (ui.ImageFilter.isShaderFilterSupported && !_settings.forceCpuFallback) {
       _configureShader(
         _shader,
         pathMode: 0.0,

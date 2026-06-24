@@ -3,7 +3,6 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
-import 'package:mycelium/features/graph/models/port.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
 import 'package:mycelium/features/graph/presentation/strategies/relation_layout_strategy.dart';
 import 'package:mycelium/features/graph/presentation/routing/relation_layout_context.dart';

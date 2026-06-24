@@ -28,6 +28,7 @@ void main() {
         text: 'hello',
         selection: const TextSelection(baseOffset: 0, extentOffset: 5),
       );
+      // ignore: deprecated_member_use
       expect(controls.canCopy(delegate), isTrue);
     });
 
@@ -36,10 +37,12 @@ void main() {
         text: 'hello',
         selection: const TextSelection(baseOffset: 0, extentOffset: 5),
       );
+      // ignore: deprecated_member_use
       expect(controls.canCut(delegate), isTrue);
     });
 
     test('canPaste returns true', () {
+      // ignore: deprecated_member_use
       expect(controls.canPaste(_FakeDelegate()), isTrue);
     });
 
@@ -48,6 +51,7 @@ void main() {
         text: 'hello',
         selection: const TextSelection(baseOffset: 0, extentOffset: 3),
       );
+      // ignore: deprecated_member_use
       expect(controls.canSelectAll(delegate), isTrue);
     });
 
@@ -56,6 +60,7 @@ void main() {
         text: 'hello',
         selection: const TextSelection(baseOffset: 0, extentOffset: 5),
       );
+      // ignore: deprecated_member_use
       expect(controls.canSelectAll(delegate), isFalse);
     });
 
