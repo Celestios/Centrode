@@ -6,6 +6,7 @@ import '../../../models/models.dart';
 import '../../../engine/config.dart';
 import '../../../presentation/view_state.dart';
 import '../../../presentation/strategies/relation_style_strategy.dart';
+import '../../../presentation/strategies/relation_body_strategy.dart';
 import '../../../presentation/strategies/relation_layout_strategy.dart';
 import '../../../presentation/routing/relation_layout_context.dart';
 import '../../../engine/base_interaction_state.dart';
@@ -143,6 +144,31 @@ class RelationPainter extends CustomPainter {
     return dest;
   }
 
+  void _drawVariableWidthPath(Canvas canvas, Path path, Paint basePaint, RelationBodyStrategy bodyStrategy) {
+    for (final metric in path.computeMetrics()) {
+      final length = metric.length;
+      const segmentCount = 50;
+      final segmentLength = length / segmentCount;
+
+      for (int i = 0; i < segmentCount; i++) {
+        final t = i / segmentCount;
+        final startDist = i * segmentLength;
+        final endDist = (i + 1) * segmentLength;
+
+        final width = bodyStrategy.widthAt(t, basePaint.strokeWidth);
+
+        final segment = metric.extractPath(startDist, endDist);
+        final segmentPaint = Paint()
+          ..color = basePaint.color
+          ..strokeWidth = width
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round;
+
+        canvas.drawPath(segment, segmentPaint);
+      }
+    }
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -217,12 +243,18 @@ class RelationPainter extends CustomPainter {
         layoutContext,
       );
 
-      final strokePattern = resolved.strokePattern;
-      if (strokePattern == 'dashed' || strokePattern == 'dotted') {
-        final decoratedPath = _createPatternedPath(path, strokePattern);
-        canvas.drawPath(decoratedPath, paint);
+      final bodyStrategy = RelationStyleStrategy.resolveBodyStrategy(rel, from, to);
+
+      if (bodyStrategy is! NoneRelationBodyStrategy) {
+        _drawVariableWidthPath(canvas, path, paint, bodyStrategy);
       } else {
-        canvas.drawPath(path, paint);
+        final strokePattern = resolved.strokePattern;
+        if (strokePattern == 'dashed' || strokePattern == 'dotted') {
+          final decoratedPath = _createPatternedPath(path, strokePattern);
+          canvas.drawPath(decoratedPath, paint);
+        } else {
+          canvas.drawPath(path, paint);
+        }
       }
 
       final endpointColor = isSelected
