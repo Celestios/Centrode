@@ -81,5 +81,6 @@ sealed class RelationStyle with _$RelationStyle {
     required double shadowOffsetY,
     required String strategyType,
     required String strokePattern,
+    required String bodyStrategy,
   }) = _RelationStyle;
 }

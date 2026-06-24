@@ -181,6 +181,7 @@ define_surql_schema_struct! {
         pub shadow_offset_y: f64,
         pub strategy_type: String,
         pub stroke_pattern: String,
+        pub body_strategy: String,
     }
 }
 

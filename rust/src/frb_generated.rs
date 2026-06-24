@@ -3724,6 +3724,7 @@ impl SseDecode for crate::domain::styles::RelationStyle {
         let mut var_shadowOffsetY = <f64>::sse_decode(deserializer);
         let mut var_strategyType = <String>::sse_decode(deserializer);
         let mut var_strokePattern = <String>::sse_decode(deserializer);
+        let mut var_bodyStrategy = <String>::sse_decode(deserializer);
         return crate::domain::styles::RelationStyle {
             bg_color: var_bgColor,
             stroke_color: var_strokeColor,
@@ -3744,6 +3745,7 @@ impl SseDecode for crate::domain::styles::RelationStyle {
             shadow_offset_y: var_shadowOffsetY,
             strategy_type: var_strategyType,
             stroke_pattern: var_strokePattern,
+            body_strategy: var_bodyStrategy,
         };
     }
 }
@@ -5238,6 +5240,7 @@ impl flutter_rust_bridge::IntoDart for crate::domain::styles::RelationStyle {
             self.shadow_offset_y.into_into_dart().into_dart(),
             self.strategy_type.into_into_dart().into_dart(),
             self.stroke_pattern.into_into_dart().into_dart(),
+            self.body_strategy.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -6624,6 +6627,7 @@ impl SseEncode for crate::domain::styles::RelationStyle {
         <f64>::sse_encode(self.shadow_offset_y, serializer);
         <String>::sse_encode(self.strategy_type, serializer);
         <String>::sse_encode(self.stroke_pattern, serializer);
+        <String>::sse_encode(self.body_strategy, serializer);
     }
 }
 
