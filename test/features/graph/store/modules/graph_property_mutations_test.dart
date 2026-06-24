@@ -157,6 +157,7 @@ void main() {
           shadowOffsetY: 0,
           strategyType: 'default',
           strokePattern: 'solid',
+          bodyStrategy: 'none',
         );
 
         final mockStyleUpdater = MockStyleUpdater();
@@ -187,6 +188,7 @@ void main() {
           shadowOffsetY: 0,
           strategyType: 'default',
           strokePattern: 'dashed',
+          bodyStrategy: 'none',
         );
 
         controller.updateRelationStyle(relId, newStyle);
@@ -234,6 +236,7 @@ void main() {
           shadowOffsetY: 0,
           strategyType: 'default',
           strokePattern: 'solid',
+          bodyStrategy: 'none',
         );
 
         final initialRel =
@@ -268,6 +271,7 @@ void main() {
           shadowOffsetY: 0,
           strategyType: 'default',
           strokePattern: 'dashed',
+          bodyStrategy: 'none',
         );
 
         // Perform styling update
