@@ -374,42 +374,36 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
     await syncEngine.api.updateViewportState(state: state);
   }
 
-  Future<List<UiSearchResult>> searchDatabase(String term) async {
+  Future<List<DatabaseSearchResult>> searchDatabase(String term) async {
     final rustNodes = await syncEngine.api.querySearch(query: term);
-    final results = <UiSearchResult>[];
+    final results = <DatabaseSearchResult>[];
     for (final rustNode in rustNodes) {
       if (rustNode is Nodes_INode) {
         final node = rustNode.field0;
         results.add(
-          UiSearchResult(
+          DatabaseSearchResult(
             key: node.id.key,
-            title: node.content.text.isEmpty
-                ? 'Untitled Node'
-                : node.content.text,
-            subtitle: 'Database • Info',
-            type: UiSearchResultType.infoNode,
+            type: DatabaseSearchResultType.infoNode,
+            text: node.content.text,
           ),
         );
       } else if (rustNode is Nodes_TaskNode) {
         final node = rustNode.field0;
         results.add(
-          UiSearchResult(
+          DatabaseSearchResult(
             key: node.id.key,
-            title: node.content.text.isEmpty
-                ? 'Untitled Node'
-                : node.content.text,
-            subtitle: 'Database • Task • State: ${node.state}',
-            type: UiSearchResultType.taskNode,
+            type: DatabaseSearchResultType.taskNode,
+            text: node.content.text,
+            state: node.state,
           ),
         );
       } else if (rustNode is Nodes_InterNode) {
         final node = rustNode.field0;
         results.add(
-          UiSearchResult(
+          DatabaseSearchResult(
             key: node.id.key,
-            title: node.verb.isEmpty ? 'Untitled Relation' : node.verb,
-            subtitle: 'Database • Inter',
-            type: UiSearchResultType.relation,
+            type: DatabaseSearchResultType.relation,
+            text: node.verb,
           ),
         );
       }

@@ -15,7 +15,7 @@ import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_text_format_toolbar.dart';
 import 'content_text_editing_controller.dart';
 import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
-import 'package:mycelium/features/workspace/copy_buffer.dart';
+import 'package:mycelium/shared/copy_buffer.dart';
 
 class ContextToolbarOverlay extends StatelessWidget {
   final NodeRenderState renderState;

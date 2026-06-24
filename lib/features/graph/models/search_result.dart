@@ -13,3 +13,19 @@ class UiSearchResult {
     required this.type,
   });
 }
+
+enum DatabaseSearchResultType { infoNode, taskNode, relation }
+
+class DatabaseSearchResult {
+  final String key;
+  final DatabaseSearchResultType type;
+  final String text;
+  final String? state;
+
+  const DatabaseSearchResult({
+    required this.key,
+    required this.type,
+    required this.text,
+    this.state,
+  });
+}

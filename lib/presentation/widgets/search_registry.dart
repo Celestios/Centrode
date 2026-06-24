@@ -118,22 +118,32 @@ class SearchRegistry {
 
         for (final res in dbResults) {
           IconData icon;
+          String subtitle;
           switch (res.type) {
-            case UiSearchResultType.infoNode:
+            case DatabaseSearchResultType.infoNode:
               icon = Icons.description_outlined;
+              subtitle = 'Database • Info';
               break;
-            case UiSearchResultType.taskNode:
+            case DatabaseSearchResultType.taskNode:
               icon = Icons.task_alt_outlined;
+              subtitle = 'Database • Task${res.state != null ? ' • State: ${res.state}' : ''}';
               break;
-            case UiSearchResultType.relation:
+            case DatabaseSearchResultType.relation:
               icon = Icons.alt_route_rounded;
+              subtitle = 'Database • Inter';
               break;
           }
 
+          final title = res.text.isEmpty
+              ? (res.type == DatabaseSearchResultType.relation
+                  ? 'Untitled Relation'
+                  : 'Untitled Node')
+              : res.text;
+
           results.add(
             SearchResult(
-              title: res.title,
-              subtitle: res.subtitle,
+              title: title,
+              subtitle: subtitle,
               icon: icon,
               type: SearchResultType.node,
               onSelected: (ctx) => _focusOnUiNode(ctx, res.key),

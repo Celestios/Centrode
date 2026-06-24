@@ -5,6 +5,7 @@ import '../../../../features/graph/models/graph_node.dart';
 import '../../../../features/graph/store/graph_data_controller.dart';
 import '../../../../features/graph/presentation/graph_presentation_notifier.dart';
 import '../../../../src/rust/domain/tags.dart';
+import '../shared/searchable_sort_list_header.dart';
 import 'delete_tag_dialog.dart';
 import 'tag_color_picker_panel.dart';
 
@@ -334,47 +335,39 @@ class _TagsListViewState extends State<TagsListView> {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Search Input
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12.0,
-                vertical: 6.0,
-              ),
-              child: SizedBox(
-                height: 32,
-                child: TextField(
-                  controller: _searchController,
-                  style: const TextStyle(fontSize: 12),
-                  decoration: InputDecoration(
-                    hintText: 'Search tags...',
-                    hintStyle: TextStyle(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                      fontSize: 12,
-                    ),
-                    prefixIcon: Icon(
-                      Icons.search_rounded,
-                      size: 14,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                    filled: true,
-                    fillColor: Colors.black.withValues(alpha: 0.15),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
+            SearchableSortedListHeader<TagSortOption>(
+              searchController: _searchController,
+              hintText: 'Search tags...',
+              currentSort: _sortOption,
+              sortOptions: const [
+                SortOption(
+                  value: TagSortOption.usageDesc,
+                  label: 'Most Used',
+                  icon: Icons.trending_down_rounded,
                 ),
-              ),
-            ),
-
-            // Create tag & Sort controls row
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12.0,
-                vertical: 4.0,
-              ),
-              child: Row(
+                SortOption(
+                  value: TagSortOption.usageAsc,
+                  label: 'Least Used',
+                  icon: Icons.trending_up_rounded,
+                ),
+                SortOption(
+                  value: TagSortOption.alphabeticalAsc,
+                  label: 'Name A-Z',
+                  icon: Icons.sort_by_alpha_rounded,
+                ),
+                SortOption(
+                  value: TagSortOption.alphabeticalDesc,
+                  label: 'Name Z-A',
+                  icon: Icons.sort_by_alpha_rounded,
+                ),
+              ],
+              onSortChanged: (option) {
+                setState(() {
+                  _sortOption = option;
+                });
+              },
+              tooltip: 'Sort tags',
+              leading: Row(
                 children: [
                   Expanded(
                     child: SizedBox(
@@ -408,8 +401,6 @@ class _TagsListViewState extends State<TagsListView> {
                     ),
                   ),
                   const SizedBox(width: 6),
-
-                  // Color Indicator click to choose custom color
                   GestureDetector(
                     onTapDown: (details) {
                       _showNewColorPicker(context, details.globalPosition);
@@ -428,122 +419,9 @@ class _TagsListViewState extends State<TagsListView> {
                     ),
                   ),
                   const SizedBox(width: 4),
-
-                  // Sort Menu trigger
-                  PopupMenuButton<TagSortOption>(
-                    icon: Icon(
-                      Icons.sort_rounded,
-                      size: 16,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 112),
-                    tooltip: 'Sort tags',
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(
-                        color: theme.dividerColor.withValues(alpha: 0.15),
-                        width: 1,
-                      ),
-                    ),
-                    color: theme.cardColor.withValues(alpha: 0.95),
-                    elevation: 6,
-                    onSelected: (option) {
-                      setState(() {
-                        _sortOption = option;
-                      });
-                    },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: TagSortOption.usageDesc,
-                        height: 30,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.trending_down_rounded,
-                              size: 13,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Most Used',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: TagSortOption.usageAsc,
-                        height: 30,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.trending_up_rounded,
-                              size: 13,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Least Used',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: TagSortOption.alphabeticalAsc,
-                        height: 30,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.sort_by_alpha_rounded,
-                              size: 13,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Name A-Z',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: TagSortOption.alphabeticalDesc,
-                        height: 30,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.sort_by_alpha_rounded,
-                              size: 13,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Name Z-A',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 6),
 
             // Scrollable List Body
             if (filteredTags.isEmpty)

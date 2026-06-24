@@ -5,6 +5,7 @@ import '../../../../features/graph/presentation/viewport_state.dart';
 import '../../../../features/graph/models/models.dart';
 import '../../../../src/rust/domain/nodes.dart';
 import '../../../../src/rust/domain/relations.dart';
+import '../shared/searchable_sort_list_header.dart';
 import 'delete_template_dialog.dart';
 
 enum TemplateSortOption { alphabeticalAsc, alphabeticalDesc, newest, oldest }
@@ -101,169 +102,40 @@ class _TemplatesListViewState extends State<TemplatesListView> {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Search Input
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12.0,
-                vertical: 6.0,
-              ),
-              child: SizedBox(
-                height: 32,
-                child: TextField(
-                  controller: _searchController,
-                  style: const TextStyle(fontSize: 12),
-                  decoration: InputDecoration(
-                    hintText: 'Search templates...',
-                    hintStyle: TextStyle(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                      fontSize: 12,
-                    ),
-                    prefixIcon: Icon(
-                      Icons.search_rounded,
-                      size: 14,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                    filled: true,
-                    fillColor: Colors.black.withValues(alpha: 0.15),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
+            SearchableSortedListHeader<TemplateSortOption>(
+              searchController: _searchController,
+              hintText: 'Search templates...',
+              currentSort: _sortOption,
+              sortOptions: const [
+                SortOption(
+                  value: TemplateSortOption.newest,
+                  label: 'Newest First',
+                  icon: Icons.calendar_today_rounded,
                 ),
-              ),
-            ),
-
-            // Sorting bar
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12.0,
-                vertical: 4.0,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${filteredTemplates.length} TEMPLATES',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  PopupMenuButton<TemplateSortOption>(
-                    icon: Icon(
-                      Icons.sort_rounded,
-                      size: 16,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 112),
-                    tooltip: 'Sort templates',
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(
-                        color: theme.dividerColor.withValues(alpha: 0.15),
-                        width: 1,
-                      ),
-                    ),
-                    color: theme.cardColor.withValues(alpha: 0.95),
-                    elevation: 6,
-                    onSelected: (option) {
-                      setState(() {
-                        _sortOption = option;
-                      });
-                    },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: TemplateSortOption.newest,
-                        height: 30,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.calendar_today_rounded,
-                              size: 13,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Newest First',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: TemplateSortOption.oldest,
-                        height: 30,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.calendar_today_outlined,
-                              size: 13,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Oldest First',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: TemplateSortOption.alphabeticalAsc,
-                        height: 30,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.sort_by_alpha_rounded,
-                              size: 13,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Name A-Z',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: TemplateSortOption.alphabeticalDesc,
-                        height: 30,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.sort_by_alpha_rounded,
-                              size: 13,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Name Z-A',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                SortOption(
+                  value: TemplateSortOption.oldest,
+                  label: 'Oldest First',
+                  icon: Icons.calendar_today_outlined,
+                ),
+                SortOption(
+                  value: TemplateSortOption.alphabeticalAsc,
+                  label: 'Name A-Z',
+                  icon: Icons.sort_by_alpha_rounded,
+                ),
+                SortOption(
+                  value: TemplateSortOption.alphabeticalDesc,
+                  label: 'Name Z-A',
+                  icon: Icons.sort_by_alpha_rounded,
+                ),
+              ],
+              onSortChanged: (option) {
+                setState(() {
+                  _sortOption = option;
+                });
+              },
+              tooltip: 'Sort templates',
+              itemCount: filteredTemplates.length,
+              itemLabel: 'TEMPLATES',
             ),
             const SizedBox(height: 6),
 

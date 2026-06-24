@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../store/graph_data_controller.dart';
 import '../../presentation/node_render_state.dart';
-import 'package:mycelium/features/workspace/copy_buffer.dart';
+import 'package:mycelium/shared/copy_buffer.dart';
 import 'paste_handler.dart';
 import 'package:mycelium/features/graph/presentation/viewport_state.dart';
 

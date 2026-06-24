@@ -11,7 +11,7 @@ import '../presentation/workspace_tabs_controller.dart';
 import '../store/graph_data_query.dart';
 import 'canvas/graph_canvas.dart';
 import 'widgets/init_error_widget.dart';
-import 'package:mycelium/features/workspace/copy_buffer.dart';
+import 'package:mycelium/shared/copy_buffer.dart';
 
 class GraphScreen extends StatefulWidget {
   final String storagePath;

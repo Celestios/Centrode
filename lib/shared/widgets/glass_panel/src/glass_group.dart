@@ -665,6 +665,30 @@ class _RenderGlassGroup extends RenderProxyBox {
     }
   }
 
+  Paint _sweepStrokePaint({
+    required Rect rect,
+    required double strokeWidth,
+    required List<Color> colors,
+    required List<double> stops,
+    double startAngle = 0.0,
+    double endAngle = math.pi * 2,
+    GradientTransform? sweepTransform,
+  }) {
+    return Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeJoin = StrokeJoin.round
+      ..strokeCap = StrokeCap.round
+      ..shader = SweepGradient(
+        center: Alignment.center,
+        startAngle: startAngle,
+        endAngle: endAngle,
+        colors: colors,
+        stops: stops,
+        transform: sweepTransform,
+      ).createShader(rect);
+  }
+
   void _drawDirectionalSpecular(
     Canvas canvas,
     Offset offset,
@@ -689,22 +713,18 @@ class _RenderGlassGroup extends RenderProxyBox {
           (_settings.lightbandWidthPx * _settings.specularStrokeWidthScale)
               .clamp(1.0, 4.0);
 
-      final paint = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeJoin = StrokeJoin.round
-        ..strokeCap = StrokeCap.round
-        ..shader = SweepGradient(
-          center: Alignment.center,
-          startAngle: _settings.specAngle - angularWidth,
-          endAngle: _settings.specAngle + angularWidth,
-          colors: [
-            Colors.transparent,
-            Colors.white.withValues(alpha: specAlpha),
-            Colors.transparent,
-          ],
-          stops: const [0.0, 0.5, 1.0],
-        ).createShader(rect);
+      final paint = _sweepStrokePaint(
+        rect: rect,
+        strokeWidth: strokeWidth,
+        colors: [
+          Colors.transparent,
+          Colors.white.withValues(alpha: specAlpha),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.5, 1.0],
+        startAngle: _settings.specAngle - angularWidth,
+        endAngle: _settings.specAngle + angularWidth,
+      );
 
       canvas.save();
       canvas.clipRect(rect.inflate(_settings.blendPx + strokeWidth * 2.0));
@@ -728,35 +748,24 @@ class _RenderGlassGroup extends RenderProxyBox {
             .clamp(1.0, 3.0);
 
     canvas.save();
-    // Clip to the unified path so only the inner half of each doubled stroke
-    // is visible — equivalent to an inner stroke without a dedicated path op.
     canvas.clipPath(globalUnifiedPath);
 
     for (var i = 0; i < localRects.length; i++) {
       final rect = localRects[i].shift(offset);
       final shapeData = localShapes[i];
 
-      // Anchor the SweepGradient to each individual shape rect so the
-      // gradient centre and radius are local — the correct fix for the
-      // macro-gradient corner clipping that affected the unified-bounds approach.
-      final paint = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth =
-            strokeWidth *
-            2.0 // doubled; outer half clipped above
-        ..strokeJoin = StrokeJoin.round
-        ..strokeCap = StrokeCap.round
-        ..shader = SweepGradient(
-          center: Alignment.center,
-          colors: [
-            _settings.lightbandColor.withValues(alpha: alpha * 0.7),
-            _settings.lightbandColor.withValues(alpha: 0.0),
-            _settings.lightbandColor.withValues(alpha: 0.0),
-            _settings.lightbandColor.withValues(alpha: alpha * 0.7),
-          ],
-          stops: const [0.0, 0.3, 0.7, 1.0],
-          transform: GradientRotation(_settings.specAngle),
-        ).createShader(rect);
+      final paint = _sweepStrokePaint(
+        rect: rect,
+        strokeWidth: strokeWidth * 2.0,
+        colors: [
+          _settings.lightbandColor.withValues(alpha: alpha * 0.7),
+          _settings.lightbandColor.withValues(alpha: 0.0),
+          _settings.lightbandColor.withValues(alpha: 0.0),
+          _settings.lightbandColor.withValues(alpha: alpha * 0.7),
+        ],
+        stops: const [0.0, 0.3, 0.7, 1.0],
+        sweepTransform: GradientRotation(_settings.specAngle),
+      );
 
       final rrect = RRect.fromRectAndRadius(
         rect,

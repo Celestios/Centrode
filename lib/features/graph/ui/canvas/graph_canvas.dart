@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:mycelium/shared/logging.dart';
 import '../../engine/config.dart';
@@ -24,9 +23,8 @@ import 'package:mycelium/presentation/widgets/template_manager/save_template_dia
 import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 import 'canvas_overlay_layout.dart';
 import 'canvas_keyboard_handler.dart';
-import 'paste_handler.dart';
-import 'package:mycelium/features/workspace/copy_buffer.dart';
-import '../../../../shared/widgets/context_menu_overlay.dart';
+import 'canvas_context_menu.dart';
+import 'package:mycelium/shared/copy_buffer.dart';
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
@@ -54,7 +52,6 @@ class _GraphCanvasState extends State<GraphCanvas>
   int _lastMousePosMs = 0;
   Offset? _rightClickDownScreenPos;
   bool _isRightClickDrag = false;
-  OverlayEntry? _canvasContextMenuEntry;
 
   void _updateMousePosition(Offset localPosition) {
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -149,88 +146,9 @@ class _GraphCanvasState extends State<GraphCanvas>
     return false;
   }
 
-  void _dismissCanvasContextMenu() {
-    try {
-      _canvasContextMenuEntry?.remove();
-    } catch (_) {}
-    _canvasContextMenuEntry = null;
-  }
-
-  void _showCanvasContextMenu(Offset screenPosition) {
-    _dismissCanvasContextMenu();
-
-    final dataController = context.read<GraphDataController>();
-    final renderState = context.read<NodeRenderState>();
-    final copyBuffer = context.read<CopyBuffer>();
-    final viewportController = _viewportController;
-    if (viewportController == null) return;
-
-    _canvasContextMenuEntry = ContextMenuOverlay.show(
-      context: context,
-      position: screenPosition,
-      items: [
-        ContextMenuItem(
-          label: 'Copy',
-          onTap: () {
-            final selectedIds = renderState.selectedEntities.toList();
-            if (selectedIds.isNotEmpty) {
-              copyBuffer.copy(selectedIds, dataController);
-            }
-          },
-        ),
-        ContextMenuItem(
-          label: 'Cut',
-          onTap: () {
-            final selectedIds = renderState.selectedEntities.toList();
-            if (selectedIds.isNotEmpty) {
-              copyBuffer.copy(selectedIds, dataController);
-              renderState.deleteSelectedEntities();
-            }
-          },
-        ),
-        ContextMenuItem(
-          label: 'Paste',
-          onTap: () async {
-            if (copyBuffer.hasData) {
-              final transform =
-                  viewportController.transformController.value;
-              final canvasPos = transform.determinant() == 0.0
-                  ? Offset.zero
-                  : MatrixUtils.transformPoint(
-                      Matrix4.inverted(transform),
-                      screenPosition,
-                    );
-              final newIds = await copyBuffer.paste(canvasPos, dataController);
-              if (newIds.isNotEmpty) {
-                renderState.selectEntities(newIds);
-              }
-            } else {
-              final data = await Clipboard.getData('text/plain');
-              if (data?.text != null && data!.text!.isNotEmpty) {
-                final transform =
-                    viewportController.transformController.value;
-                final canvasPos = transform.determinant() == 0.0
-                    ? Offset.zero
-                    : MatrixUtils.transformPoint(
-                        Matrix4.inverted(transform),
-                        screenPosition,
-                      );
-                await pasteTextToCanvas(
-                  dataController: dataController,
-                  text: data.text!,
-                  canvasPosition: canvasPos,
-                );
-              }
-            }
-          },
-        ),
-      ],
-    );
-  }
-
   @override
   void dispose() {
-    _dismissCanvasContextMenu();
+    CanvasContextMenu.dismiss();
     _boundSession?.toolModeNotifier.removeListener(_onToolModeChanged);
     if (_boundSession?.viewportController == _viewportController) {
       _boundSession?.viewportController = null;
@@ -349,7 +267,14 @@ class _GraphCanvasState extends State<GraphCanvas>
                     },
                     onPointerUp: (event) {
                       if (_rightClickDownScreenPos != null && !_isRightClickDrag && renderState.activeEditId == null) {
-                        _showCanvasContextMenu(_rightClickDownScreenPos!);
+                        CanvasContextMenu.show(
+                          context: context,
+                          position: _rightClickDownScreenPos!,
+                          dataController: dataController,
+                          renderState: renderState,
+                          copyBuffer: context.read<CopyBuffer>(),
+                          viewportController: viewportController,
+                        );
                       }
                       _rightClickDownScreenPos = null;
                       _isRightClickDrag = false;
