@@ -147,7 +147,7 @@ class RelationPainter extends CustomPainter {
   void _drawVariableWidthPath(Canvas canvas, Path path, Paint basePaint, RelationBodyStrategy bodyStrategy) {
     for (final metric in path.computeMetrics()) {
       final length = metric.length;
-      const segmentCount = 50;
+      const segmentCount = 100;
       final segmentLength = length / segmentCount;
 
       for (int i = 0; i < segmentCount; i++) {

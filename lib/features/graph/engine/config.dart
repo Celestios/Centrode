@@ -135,8 +135,8 @@ class _Port {
 class _Relation {
   const _Relation();
 
-  final double strokeWidth = 1.5;
-  final double selectedStrokeWidth = 3.0;
+  final double strokeWidth = 3.0;
+  final double selectedStrokeWidth = 4.0;
   final double labelFontSize = 10.0;
   final Offset startFallback = const Offset(100, 30);
   final Offset endFallback = const Offset(0, 30);

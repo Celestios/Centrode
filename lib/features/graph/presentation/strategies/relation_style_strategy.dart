@@ -69,7 +69,7 @@ abstract class RelationStyleStrategy {
       final distance = (from.positionNotifier.value - to.positionNotifier.value).distance;
       final frequency = (distance / 40.0).clamp(2.0, 20.0);
       return WidthModulateRelationBodyStrategy(
-        amplitude: baseWidth * 0.5,
+        amplitude: baseWidth * 0.75,
         frequency: frequency,
       );
     }

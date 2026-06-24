@@ -43,7 +43,7 @@ class SnakeRelationLayoutStrategy extends RelationLayoutStrategy {
     final normal = Offset(-direction.dy, direction.dx);
     final scaledFrequency = (length / 40.0).clamp(2.0, 20.0);
 
-    const segments = 64;
+    const segments = 128;
     path.moveTo(start.dx, start.dy);
 
     for (int i = 1; i <= segments; i++) {
@@ -70,7 +70,7 @@ class SnakeRelationLayoutStrategy extends RelationLayoutStrategy {
     final normal = Offset(-direction.dy, direction.dx);
     final scaledFrequency = (length / 40.0).clamp(2.0, 20.0);
 
-    const segments = 32;
+    const segments = 64;
     final samples = <Offset>[];
 
     for (int i = 0; i <= segments; i++) {
