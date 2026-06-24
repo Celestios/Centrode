@@ -1,6 +1,7 @@
 export 'straight_layout_strategy.dart';
 export 'bezier_layout_strategy.dart';
 export 'orthogonal_layout_strategy.dart';
+export 'snake_layout_strategy.dart';
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import '../routing/relation_router.dart';
 import 'straight_layout_strategy.dart';
 import 'bezier_layout_strategy.dart';
 import 'orthogonal_layout_strategy.dart';
+import 'snake_layout_strategy.dart';
 
 abstract class RelationLayoutStrategy {
   const RelationLayoutStrategy();
@@ -24,6 +26,9 @@ abstract class RelationLayoutStrategy {
     }
     if (type == 'orthogonal') {
       return const OrthogonalRelationLayoutStrategy();
+    }
+    if (type == 'snake') {
+      return const SnakeRelationLayoutStrategy();
     }
     return const StraightRelationLayoutStrategy();
   }

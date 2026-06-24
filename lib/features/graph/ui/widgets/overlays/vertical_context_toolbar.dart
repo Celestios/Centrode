@@ -181,6 +181,12 @@ class VerticalContextToolbar extends StatelessWidget {
                               onRelationLayoutChanged?.call('orthogonal'),
                         ),
                         SubmenuButtonData(
+                          icon: Icons.waves_rounded,
+                          tooltip: 'Snake Route',
+                          onPressed: () =>
+                              onRelationLayoutChanged?.call('snake'),
+                        ),
+                        SubmenuButtonData(
                           icon: Icons.border_style_rounded,
                           tooltip: 'Solid Line',
                           onPressed: () =>
