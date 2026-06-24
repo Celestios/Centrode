@@ -66,9 +66,11 @@ abstract class RelationStyleStrategy {
       );
     } else if (bodyType == 'widthModulate') {
       final baseWidth = resolved.strokeWidth.toDouble();
+      final distance = (from.positionNotifier.value - to.positionNotifier.value).distance;
+      final frequency = (distance / 40.0).clamp(2.0, 20.0);
       return WidthModulateRelationBodyStrategy(
         amplitude: baseWidth * 0.5,
-        frequency: 3.0,
+        frequency: frequency,
       );
     }
 

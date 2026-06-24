@@ -41,6 +41,7 @@ class SnakeRelationLayoutStrategy extends RelationLayoutStrategy {
 
     final direction = delta / length;
     final normal = Offset(-direction.dy, direction.dx);
+    final scaledFrequency = (length / 40.0).clamp(2.0, 20.0);
 
     const segments = 64;
     path.moveTo(start.dx, start.dy);
@@ -48,7 +49,7 @@ class SnakeRelationLayoutStrategy extends RelationLayoutStrategy {
     for (int i = 1; i <= segments; i++) {
       final t = i / segments;
       final pos = start + delta * t;
-      final wave = sin(t * frequency * 2 * pi) * amplitude;
+      final wave = sin(t * scaledFrequency * 2 * pi) * amplitude;
       final offset = normal * wave;
       path.lineTo(pos.dx + offset.dx, pos.dy + offset.dy);
     }
@@ -67,6 +68,7 @@ class SnakeRelationLayoutStrategy extends RelationLayoutStrategy {
 
     final direction = delta / length;
     final normal = Offset(-direction.dy, direction.dx);
+    final scaledFrequency = (length / 40.0).clamp(2.0, 20.0);
 
     const segments = 32;
     final samples = <Offset>[];
@@ -74,7 +76,7 @@ class SnakeRelationLayoutStrategy extends RelationLayoutStrategy {
     for (int i = 0; i <= segments; i++) {
       final t = i / segments;
       final pos = start + delta * t;
-      final wave = sin(t * frequency * 2 * pi) * amplitude;
+      final wave = sin(t * scaledFrequency * 2 * pi) * amplitude;
       final offset = normal * wave;
       samples.add(pos + offset);
     }

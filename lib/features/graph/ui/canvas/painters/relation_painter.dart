@@ -244,6 +244,12 @@ class RelationPainter extends CustomPainter {
       );
 
       final bodyStrategy = RelationStyleStrategy.resolveBodyStrategy(rel, from, to);
+      if (bodyStrategy is! NoneRelationBodyStrategy) {
+        print('[RelationPainter] bodyStrategy for ${rel.id}: ${bodyStrategy.runtimeType}');
+        if (bodyStrategy is TaperRelationBodyStrategy) {
+          print('[RelationPainter] taper start=${bodyStrategy.startWidth} end=${bodyStrategy.endWidth}');
+        }
+      }
 
       if (bodyStrategy is! NoneRelationBodyStrategy) {
         _drawVariableWidthPath(canvas, path, paint, bodyStrategy);
