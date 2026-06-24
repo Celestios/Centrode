@@ -23,6 +23,7 @@ class VerticalContextToolbar extends StatelessWidget {
   final ValueChanged<String>? onShapeChanged;
   final ValueChanged<String>? onRelationLayoutChanged;
   final ValueChanged<String>? onRelationStrokePatternChanged;
+  final ValueChanged<String>? onRelationBodyStrategyChanged;
   final ValueChanged<EndpointShape>? onStartShapeChanged;
   final ValueChanged<EndpointShape>? onEndShapeChanged;
 
@@ -54,6 +55,7 @@ class VerticalContextToolbar extends StatelessWidget {
     this.onDrawConnection,
     this.onRelationLayoutChanged,
     this.onRelationStrokePatternChanged,
+    this.onRelationBodyStrategyChanged,
     this.onStartShapeChanged,
     this.onEndShapeChanged,
     this.onToggleBold,
@@ -195,6 +197,24 @@ class VerticalContextToolbar extends StatelessWidget {
                           tooltip: 'Dotted Line',
                           onPressed: () =>
                               onRelationStrokePatternChanged?.call('dotted'),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.line_style_rounded,
+                          tooltip: 'No Body Style',
+                          onPressed: () =>
+                              onRelationBodyStrategyChanged?.call('none'),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.trending_down_rounded,
+                          tooltip: 'Taper',
+                          onPressed: () =>
+                              onRelationBodyStrategyChanged?.call('taper'),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.waves_rounded,
+                          tooltip: 'Wave',
+                          onPressed: () =>
+                              onRelationBodyStrategyChanged?.call('widthModulate'),
                         ),
                         SubmenuButtonData(
                           icon: Icons.arrow_forward_rounded,
