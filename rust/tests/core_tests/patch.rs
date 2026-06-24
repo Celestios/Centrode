@@ -291,6 +291,8 @@ async fn test_remaining_patches() {
         shape: "line".to_string(),
         arrow_type: "arrow".to_string(),
         arrow_size: 5.0,
+        start_shape: None,
+        end_shape: None,
         width: 0,
         height: 0,
         text_color: 0x333333,
@@ -300,6 +302,7 @@ async fn test_remaining_patches() {
         shadow_offset_y: 0.0,
         strategy_type: "default".to_string(),
         stroke_pattern: "solid".to_string(),
+        body_strategy: "none".to_string(),
     };
     let rel_layout = RelationLayout {
         from_side: Some(PortSide::Right),

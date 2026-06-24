@@ -333,6 +333,7 @@ DEFINE FIELD OVERWRITE style.shadow_offset_x ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE style.shadow_offset_y ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE style.strategy_type ON TABLE IRelation TYPE string;
 DEFINE FIELD OVERWRITE style.stroke_pattern ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE style.body_strategy ON TABLE IRelation TYPE string;
 
 DEFINE FIELD OVERWRITE resolved_style ON TABLE IRelation TYPE option<object>;
 DEFINE FIELD OVERWRITE resolved_style.bg_color ON TABLE IRelation TYPE int;
@@ -354,6 +355,7 @@ DEFINE FIELD OVERWRITE resolved_style.shadow_offset_x ON TABLE IRelation TYPE fl
 DEFINE FIELD OVERWRITE resolved_style.shadow_offset_y ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE resolved_style.strategy_type ON TABLE IRelation TYPE string;
 DEFINE FIELD OVERWRITE resolved_style.stroke_pattern ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE resolved_style.body_strategy ON TABLE IRelation TYPE string;
 
 DEFINE FIELD OVERWRITE layout ON TABLE IRelation TYPE option<object>;
 DEFINE FIELD OVERWRITE layout.from_side ON TABLE IRelation TYPE string;
