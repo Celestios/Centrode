@@ -379,7 +379,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                                       );
                                     },
                                   ),
-                                  const RelationLayer(),
+                                   RelationLayer(),
                                   const NodeLayer(),
                                   const OverlayLayer(),
                                   Positioned.fill(

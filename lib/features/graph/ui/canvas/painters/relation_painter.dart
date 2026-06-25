@@ -2,6 +2,8 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/src/rust/domain/relation_engine/computed.dart' as rust;
+import 'package:mycelium/src/rust/domain/relation_engine/geometry.dart' as rust_geom;
 import '../../../models/models.dart';
 import '../../../engine/config.dart';
 import '../../../presentation/view_state.dart';
@@ -9,16 +11,17 @@ import '../../../presentation/strategies/relation_style_strategy.dart';
 import '../../../presentation/strategies/relation_body_strategy.dart';
 import '../../../presentation/strategies/relation_layout_strategy.dart';
 import '../../../presentation/routing/relation_layout_context.dart';
+import '../../../presentation/relation_engine_state.dart';
 import '../../../engine/base_interaction_state.dart';
 
 class RelationPainter extends CustomPainter {
   final List<UiRelation> relations;
-  final Map<String, NodeViewState>
-  nodeViewStates; // Use ViewStates for real-time positions
-  final Set<String> selectedEntities; // Selection state from NodeRenderState
+  final Map<String, NodeViewState> nodeViewStates;
+  final Set<String> selectedEntities;
   final Map<String, List<Offset>> pathCache;
   final Map<String, (Offset start, Offset end)> draggingOverrides = {};
   final CanvasInteractionState? interactionState;
+  final RelationEngineState? relationEngine;
   final ThemeData theme;
 
   RelationPainter(
@@ -26,6 +29,7 @@ class RelationPainter extends CustomPainter {
     this.nodeViewStates,
     this.selectedEntities, {
     required this.pathCache,
+    this.relationEngine,
     this.interactionState,
     required this.theme,
   }) {
@@ -169,6 +173,16 @@ class RelationPainter extends CustomPainter {
     }
   }
 
+  Path _buildPathFromComputed(List<rust_geom.Point> points) {
+    if (points.isEmpty) return Path();
+    final path = Path();
+    path.moveTo(points.first.x, points.first.y);
+    for (int i = 1; i < points.length; i++) {
+      path.lineTo(points[i].x, points[i].y);
+    }
+    return path;
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -191,27 +205,58 @@ class RelationPainter extends CustomPainter {
         rel.layout?.strategyType,
       );
 
-      Offset start;
-      Offset end;
-
       final override = draggingOverrides[rel.id];
-      if (override != null) {
-        start = override.$1;
-        end = override.$2;
-      } else {
-        final (resolvedStart, resolvedEnd) = layoutStrategy.resolveEndpoints(
-          rel,
-          from,
-          to,
-        );
-        start = resolvedStart;
-        end = resolvedEnd;
+      final isDragging = override != null;
+
+      rust.ComputedRelation? cached;
+      if (!isDragging && relationEngine != null) {
+        cached = relationEngine!.cache[rel.id];
       }
 
-      // Centralized Style Resolution
+      Offset start;
+      Offset end;
+      Path path;
+      Offset labelPos;
+
+      if (cached != null) {
+        start = Offset(cached.pathPoints.first.x, cached.pathPoints.first.y);
+        end = Offset(cached.pathPoints.last.x, cached.pathPoints.last.y);
+        path = _buildPathFromComputed(cached.pathPoints);
+        labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
+      } else {
+        if (isDragging) {
+          start = override.$1;
+          end = override.$2;
+        } else {
+          final (resolvedStart, resolvedEnd) = layoutStrategy.resolveEndpoints(
+            rel,
+            from,
+            to,
+          );
+          start = resolvedStart;
+          end = resolvedEnd;
+        }
+
+        path = layoutStrategy.computePath(
+          start,
+          end,
+          from,
+          to,
+          rel,
+          layoutContext,
+        );
+        labelPos = layoutStrategy.computeLabelPosition(
+          start,
+          end,
+          from,
+          to,
+          rel,
+          layoutContext,
+        );
+      }
+
       final resolved = RelationStyleStrategy.resolveStyle(rel);
 
-      // Apply selection styling or dragging styling
       final isSelected = selectedEntities.contains(rel.id);
       final drag =
           (interactionState is RelationTipDragging &&
@@ -233,23 +278,7 @@ class RelationPainter extends CustomPainter {
             : resolved.strokeWidth.toDouble();
       }
 
-      // Draw relation path (straight line or Bezier curve)
-      final path = layoutStrategy.computePath(
-        start,
-        end,
-        from,
-        to,
-        rel,
-        layoutContext,
-      );
-
       final bodyStrategy = RelationStyleStrategy.resolveBodyStrategy(rel, from, to);
-      if (bodyStrategy is! NoneRelationBodyStrategy) {
-        print('[RelationPainter] bodyStrategy for ${rel.id}: ${bodyStrategy.runtimeType}');
-        if (bodyStrategy is TaperRelationBodyStrategy) {
-          print('[RelationPainter] taper start=${bodyStrategy.startWidth} end=${bodyStrategy.endWidth}');
-        }
-      }
 
       if (bodyStrategy is! NoneRelationBodyStrategy) {
         _drawVariableWidthPath(canvas, path, paint, bodyStrategy);
@@ -280,7 +309,6 @@ class RelationPainter extends CustomPainter {
         _drawEndpointShape(canvas, end + offset, outwardDir + pi, resolved.endShape!, endpointColor.withAlpha(255), resolved.arrowSize);
       }
 
-      // If selected, draw the two tip handles
       if (isSelected) {
         final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(
           rel,
@@ -306,17 +334,8 @@ class RelationPainter extends CustomPainter {
         canvas.drawCircle(handleEnd, 5.0, handlePaint);
       }
 
-      // Draw Label (Centered on the layout path)
       if (rel.verb.isNotEmpty) {
-        final mid = layoutStrategy.computeLabelPosition(
-          start,
-          end,
-          from,
-          to,
-          rel,
-          layoutContext,
-        );
-        _drawText(canvas, rel.verb, mid, paint.color, paint.strokeWidth);
+        _drawText(canvas, rel.verb, labelPos, paint.color, paint.strokeWidth);
       }
     }
   }
@@ -374,6 +393,7 @@ class RelationPainter extends CustomPainter {
     if (oldDelegate.theme != theme) return true;
     if (oldDelegate.pathCache != pathCache) return true;
     if (oldDelegate.draggingOverrides != draggingOverrides) return true;
+    if (oldDelegate.relationEngine != relationEngine) return true;
     return false;
   }
 }

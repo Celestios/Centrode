@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:mycelium/shared/logging.dart';
 import 'package:mycelium/src/rust/bridge/api.dart' as rust;
 import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
@@ -39,6 +40,7 @@ class RelationEngineState {
     snakeObstacleAvoidance: false,
   );
   Timer? _debounceTimer;
+  final ValueNotifier<int> cacheNotifier = ValueNotifier<int>(0);
 
   Map<String, ComputedRelation> get cache => _tracker.cache;
   InvalidationTracker get tracker => _tracker;
@@ -87,6 +89,7 @@ class RelationEngineState {
     try {
       final computed = await recompute(dirtyIds: dirtyIds);
       _tracker.updateCache(computed);
+      cacheNotifier.value++;
     } catch (e) {
       _log.warning('Failed to recompute relations: $e');
     }
@@ -119,5 +122,6 @@ class RelationEngineState {
   void dispose() {
     _debounceTimer?.cancel();
     _tracker.clear();
+    cacheNotifier.dispose();
   }
 }

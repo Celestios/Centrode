@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../engine/config.dart';
-import '../../../store/graph_data_query.dart';
+import '../../../store/graph_data_controller.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../presentation/strategies/relation_layout_strategy.dart';
 import '../../../engine/interaction_engine.dart';
@@ -12,11 +12,11 @@ import '../../../presentation/routing/relation_layout_context.dart';
 import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 
 class RelationLayer extends StatelessWidget {
-  const RelationLayer({super.key});
+  RelationLayer({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final dataController = context.read<GraphDataQuery>();
+    final dataController = context.read<GraphDataController>();
     final uiController = context.read<NodeRenderState>();
     final interactionController = context.read<InteractionController>();
     final theme = Theme.of(context);
@@ -29,12 +29,11 @@ class RelationLayer extends StatelessWidget {
             uiController.relationDataNotifier,
             uiController.editorState,
             interactionController.state,
+            dataController.relationEngine.cacheNotifier,
           ]),
           builder: (context, _) {
             final interactionState = interactionController.state.value;
 
-
-            // Find if a relation is currently being edited
             final activeEditId = uiController.activeEditId;
             final editedRel = activeEditId != null
                 ? dataController.relations
@@ -120,7 +119,6 @@ class RelationLayer extends StatelessWidget {
             return UnboundedStack(
               clipBehavior: Clip.none,
               children: [
-                // Base Painter
                 Positioned.fill(
                   child: RepaintBoundary(
                     child: CustomPaint(
@@ -129,14 +127,13 @@ class RelationLayer extends StatelessWidget {
                         uiController.viewStates,
                         uiController.selectedEntities,
                         pathCache: uiController.relationPathCache,
-
+                        relationEngine: dataController.relationEngine,
                         interactionState: interactionState,
                         theme: theme,
                       ),
                     ),
                   ),
                 ),
-                // Transient Inline Editor
                 if (editorWidget != null) editorWidget,
               ],
             );

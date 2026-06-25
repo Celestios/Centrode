@@ -6,7 +6,6 @@ import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
 import 'package:mycelium/features/graph/presentation/node_render_state.dart';
 import 'package:mycelium/features/graph/store/graph_data_controller.dart';
-import 'package:mycelium/features/graph/store/graph_data_query.dart';
 import 'package:mycelium/features/graph/ui/canvas/layers/relation_layer.dart';
 import 'package:mycelium/features/graph/ui/canvas/painters/relation_painter.dart';
 import 'package:mycelium/features/graph/engine/base_interaction_state.dart';
@@ -14,10 +13,13 @@ import 'package:mycelium/features/graph/engine/interaction_engine.dart';
 import 'package:mycelium/features/graph/engine/interaction_facade.dart';
 import 'package:mycelium/features/graph/presentation/viewport_state.dart';
 import 'package:mycelium/features/graph/store/spatial_index.dart';
+import 'package:mycelium/features/graph/presentation/relation_engine_state.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
 
 class MockGraphDataController extends Mock implements GraphDataController {}
+
+class MockRelationEngineState extends Mock implements RelationEngineState {}
 
 class MockThemeController extends Mock implements ThemeController {}
 
@@ -75,6 +77,13 @@ void main() {
         () => mockController.onEntityUpdate,
       ).thenAnswer((_) => const Stream.empty());
 
+      final mockRelationEngine = MockRelationEngineState();
+      when(() => mockRelationEngine.cache).thenReturn({});
+      when(() => mockRelationEngine.cacheNotifier)
+          .thenReturn(ValueNotifier<int>(0));
+      when(() => mockController.relationEngine)
+          .thenReturn(mockRelationEngine);
+
       when(
         () => mockTheme.currentGraphTheme,
       ).thenReturn(const GraphTheme(id: 'test', name: 'test'));
@@ -109,7 +118,7 @@ void main() {
           theme: ThemeData.dark(),
           home: MultiProvider(
             providers: [
-              InheritedProvider<GraphDataQuery>.value(value: mockController),
+              InheritedProvider<GraphDataController>.value(value: mockController),
               ChangeNotifierProvider<NodeRenderState>.value(value: renderState),
               ChangeNotifierProvider<ThemeController>.value(value: mockTheme),
               Provider<InteractionController>.value(value: mockInteraction),
@@ -118,7 +127,7 @@ void main() {
               body: SizedBox(
                 width: 500,
                 height: 500,
-                child: Stack(children: const [RelationLayer()]),
+                child: Stack(children: [RelationLayer()]),
               ),
             ),
           ),
@@ -192,6 +201,13 @@ void main() {
         () => mockController.onEntityUpdate,
       ).thenAnswer((_) => const Stream.empty());
 
+      final mockRelationEngine = MockRelationEngineState();
+      when(() => mockRelationEngine.cache).thenReturn({});
+      when(() => mockRelationEngine.cacheNotifier)
+          .thenReturn(ValueNotifier<int>(0));
+      when(() => mockController.relationEngine)
+          .thenReturn(mockRelationEngine);
+
       final mockSpatial = MockSpatialHashGrid();
       when(() => mockController.spatialGrid).thenReturn(mockSpatial);
       when(() => mockController.canvasBounds).thenReturn(
@@ -228,7 +244,7 @@ void main() {
           theme: ThemeData.dark(),
           home: MultiProvider(
             providers: [
-              InheritedProvider<GraphDataQuery>.value(value: mockController),
+              InheritedProvider<GraphDataController>.value(value: mockController),
               ChangeNotifierProvider<NodeRenderState>.value(value: renderState),
               ChangeNotifierProvider<ThemeController>.value(value: mockTheme),
               Provider<InteractionController>.value(
@@ -246,7 +262,7 @@ void main() {
                       onPointerDown: interactionController.handlePointerDown,
                       onPointerMove: interactionController.handlePointerMove,
                       onPointerUp: interactionController.handlePointerUp,
-                      child: Stack(children: const [RelationLayer()]),
+                      child: Stack(children: [RelationLayer()]),
                     );
                   },
                 ),
