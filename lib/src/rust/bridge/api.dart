@@ -7,6 +7,9 @@ import '../domain/base_models.dart';
 import '../domain/contents.dart';
 import '../domain/nodes.dart';
 import '../domain/patches.dart';
+import '../domain/relation_engine/computed.dart';
+import '../domain/relation_engine/config.dart';
+import '../domain/relation_engine/geometry.dart';
 import '../domain/relations.dart';
 import '../domain/snapshot.dart';
 import '../domain/styles.dart';
@@ -37,6 +40,11 @@ abstract class AppHandle implements RustOpaqueInterface {
   set repo(Repository repo);
 
   Future<void> close();
+
+  Future<List<ComputedRelation>> computeRelations({
+    required RelationEngineConfig config,
+    List<String>? relationIds,
+  });
 
   Stream<GraphEvent> createGraphStream();
 

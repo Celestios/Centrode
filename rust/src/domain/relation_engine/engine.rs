@@ -1,0 +1,407 @@
+use std::collections::HashMap;
+
+use super::body::compute_body_widths;
+use super::computed::{ComputedRelation, LabelAnchor, PathType};
+use super::config::{BodyType, EndpointShapeType, RelationEngineConfig, RoutingMode};
+use super::endpoint::{compute_endpoints, compute_tangents};
+use super::geometry::{Point, Rect};
+use super::label::compute_label_position;
+use super::visibility_graph::{a_star, VisibilityGraph};
+use crate::domain::base_models::Coordinates;
+use crate::domain::nodes::Nodes;
+use crate::domain::relations::IRelation;
+use crate::domain::styles::PortSide;
+
+#[derive(Debug, Clone)]
+pub struct InputNode {
+    pub id: String,
+    pub x: f64,
+    pub y: f64,
+    pub width: f64,
+    pub height: f64,
+}
+
+impl InputNode {
+    pub fn rect(&self) -> Rect {
+        Rect::new(self.x, self.y, self.width, self.height)
+    }
+
+    pub fn center(&self) -> Point {
+        Point::new(self.x + self.width / 2.0, self.y + self.height / 2.0)
+    }
+
+    pub fn resolve_port(&self, side: &PortSide, other: Point) -> Point {
+        let rect = self.rect();
+        match side {
+            PortSide::Top => {
+                let t = ((other.x - rect.left()) / rect.width).clamp(0.1, 0.9);
+                Point::new(rect.left() + rect.width * t, rect.top())
+            }
+            PortSide::Right => {
+                let t = ((other.y - rect.top()) / rect.height).clamp(0.1, 0.9);
+                Point::new(rect.right(), rect.top() + rect.height * t)
+            }
+            PortSide::Bottom => {
+                let t = ((other.x - rect.left()) / rect.width).clamp(0.1, 0.9);
+                Point::new(rect.left() + rect.width * t, rect.bottom())
+            }
+            PortSide::Left => {
+                let t = ((other.y - rect.top()) / rect.height).clamp(0.1, 0.9);
+                Point::new(rect.left(), rect.top() + rect.height * t)
+            }
+            PortSide::TopLeft => Point::new(rect.left(), rect.top()),
+            PortSide::TopRight => Point::new(rect.right(), rect.top()),
+            PortSide::BottomLeft => Point::new(rect.left(), rect.bottom()),
+            PortSide::BottomRight => Point::new(rect.right(), rect.bottom()),
+            PortSide::Auto => self.closest_port_to(other),
+        }
+    }
+
+    pub fn closest_port_to(&self, point: Point) -> Point {
+        let rect = self.rect();
+        let center = self.center();
+
+        let candidates = [
+            (Point::new(center.x, rect.top()), (point.y - rect.top()).abs()),
+            (Point::new(rect.right(), center.y), (point.x - rect.right()).abs()),
+            (Point::new(center.x, rect.bottom()), (point.y - rect.bottom()).abs()),
+            (Point::new(rect.left(), center.y), (point.x - rect.left()).abs()),
+        ];
+
+        candidates
+            .iter()
+            .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
+            .map(|(p, _)| *p)
+            .unwrap_or(center)
+    }
+
+    pub fn port_normal(&self, port_pos: Point) -> Point {
+        let center = self.center();
+
+        if (port_pos - center).length() < 1e-6 {
+            return Point::new(1.0, 0.0);
+        }
+
+        let dx = (port_pos.x - center.x).abs();
+        let dy = (port_pos.y - center.y).abs();
+
+        if dx > dy {
+            if port_pos.x > center.x {
+                Point::new(1.0, 0.0)
+            } else {
+                Point::new(-1.0, 0.0)
+            }
+        } else {
+            if port_pos.y > center.y {
+                Point::new(0.0, 1.0)
+            } else {
+                Point::new(0.0, -1.0)
+            }
+        }
+    }
+
+    pub fn from_domain(node: &Nodes) -> Option<Self> {
+        match node {
+            Nodes::INode(n) => {
+                let id = n.id.key.clone();
+                let pos = n.position.clone();
+                let size = n.size.clone();
+                Some(InputNode {
+                    id,
+                    x: pos.x as f64,
+                    y: pos.y as f64,
+                    width: size.width as f64,
+                    height: size.height as f64,
+                })
+            }
+            Nodes::TaskNode(n) => {
+                let id = n.id.key.clone();
+                let pos = Coordinates { x: 0, y: 0 };
+                let size = n.size.clone();
+                Some(InputNode {
+                    id,
+                    x: pos.x as f64,
+                    y: pos.y as f64,
+                    width: size.width as f64,
+                    height: size.height as f64,
+                })
+            }
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct InputEdge {
+    pub id: String,
+    pub from_node_id: String,
+    pub to_node_id: String,
+    pub from_side: Option<PortSide>,
+    pub to_side: Option<PortSide>,
+    pub strategy_type: Option<String>,
+}
+
+impl InputEdge {
+    pub fn from_domain(rel: &IRelation) -> Self {
+        let layout = rel.fields.resolved_layout.as_ref().or(rel.fields.layout.as_ref());
+        InputEdge {
+            id: rel.key.clone(),
+            from_node_id: rel.in_.key.clone(),
+            to_node_id: rel.out.key.clone(),
+            from_side: layout.and_then(|l| l.from_side.clone()),
+            to_side: layout.and_then(|l| l.to_side.clone()),
+            strategy_type: layout.map(|l| l.strategy_type.clone()),
+        }
+    }
+}
+
+pub struct RelationEngine;
+
+impl RelationEngine {
+    pub fn compute_relations(
+        nodes: &[InputNode],
+        edges: &[InputEdge],
+        config: &RelationEngineConfig,
+        relation_ids: Option<&[String]>,
+    ) -> Vec<ComputedRelation> {
+        let node_map: HashMap<&str, &InputNode> =
+            nodes.iter().map(|n| (n.id.as_str(), n)).collect();
+
+        let obstacles: Vec<Rect> = nodes.iter().map(|n| n.rect()).collect();
+
+        let edges_to_compute: Vec<&InputEdge> = if let Some(ids) = relation_ids {
+            edges.iter().filter(|e| ids.contains(&e.id)).collect()
+        } else {
+            edges.iter().collect()
+        };
+
+        edges_to_compute
+            .iter()
+            .map(|edge| compute_single_relation(edge, &node_map, &obstacles, config))
+            .collect()
+    }
+}
+
+fn compute_single_relation(
+    edge: &InputEdge,
+    node_map: &HashMap<&str, &InputNode>,
+    obstacles: &[Rect],
+    config: &RelationEngineConfig,
+) -> ComputedRelation {
+    let from_node = match node_map.get(edge.from_node_id.as_str()) {
+        Some(n) => *n,
+        None => return empty_computed_relation(&edge.id, &edge.from_node_id, &edge.to_node_id),
+    };
+    let to_node = match node_map.get(edge.to_node_id.as_str()) {
+        Some(n) => *n,
+        None => return empty_computed_relation(&edge.id, &edge.from_node_id, &edge.to_node_id),
+    };
+
+    let to_center = to_node.center();
+    let from_center = from_node.center();
+
+    let start = match &edge.from_side {
+        Some(side) => from_node.resolve_port(side, to_center),
+        None => from_node.closest_port_to(to_center),
+    };
+
+    let end = match &edge.to_side {
+        Some(side) => to_node.resolve_port(side, from_center),
+        None => to_node.closest_port_to(from_center),
+    };
+
+    let exclude_ids: std::collections::HashSet<&str> =
+        [edge.from_node_id.as_str(), edge.to_node_id.as_str()]
+            .into_iter()
+            .collect();
+
+    let filtered_obstacles: Vec<Rect> = obstacles
+        .iter()
+        .enumerate()
+        .filter(|(i, _)| {
+            !exclude_ids.contains(node_map.keys().nth(*i).unwrap_or(&""))
+        })
+        .map(|(_, r)| *r)
+        .collect();
+
+    let routing_mode = edge
+        .strategy_type
+        .as_deref()
+        .map(RoutingMode::from_str)
+        .unwrap_or(config.routing_mode);
+
+    let from_normal = from_node.port_normal(start);
+    let to_normal = to_node.port_normal(end);
+
+    let (path_points, path_type) = match routing_mode {
+        RoutingMode::Polyline => {
+            let points = route_polyline(start, end, &filtered_obstacles, config);
+            (points, PathType::Straight)
+        }
+        RoutingMode::Bezier => {
+            let points = route_bezier(start, end, from_normal, to_normal, config);
+            (points, PathType::CubicBezier)
+        }
+        RoutingMode::Orthogonal => {
+            let points = route_orthogonal(start, end, &filtered_obstacles, config);
+            (points, PathType::Orthogonal)
+        }
+    };
+
+    let (start_tangent, end_tangent) = compute_tangents(&path_points);
+    let (start_shape, start_dir, end_shape, end_dir) =
+        compute_endpoints(start_tangent, end_tangent, config);
+
+    let body_type = config.default_body_type;
+    let base_width = 2.0;
+    let body_widths = compute_body_widths(&path_points, &body_type, base_width, config);
+
+    let (label_pos, _) = compute_label_position(&path_points, &path_type, config);
+
+    let depends_on_nodes = vec![
+        edge.from_node_id.clone(),
+        edge.to_node_id.clone(),
+    ];
+
+    let bbox = compute_bbox(&path_points);
+
+    ComputedRelation {
+        id: edge.id.clone(),
+        path_points,
+        path_type,
+        start_tangent,
+        end_tangent,
+        body_widths,
+        body_type,
+        start_endpoint: start_shape,
+        end_endpoint: end_shape,
+        start_direction: start_dir,
+        end_direction: end_dir,
+        label_position: label_pos,
+        label_anchor: LabelAnchor::Center,
+        bundle_id: None,
+        bundle_offset: None,
+        hit_test_points: Vec::new(),
+        depends_on_nodes,
+        bbox,
+    }
+}
+
+fn route_polyline(
+    start: Point,
+    end: Point,
+    obstacles: &[Rect],
+    config: &RelationEngineConfig,
+) -> Vec<Point> {
+    if obstacles.is_empty() {
+        return vec![start, end];
+    }
+
+    let graph = VisibilityGraph::build(obstacles, start, end, config.obstacle_margin);
+    a_star(&graph).unwrap_or_else(|| vec![start, end])
+}
+
+fn route_bezier(
+    start: Point,
+    end: Point,
+    from_normal: Point,
+    to_normal: Point,
+    config: &RelationEngineConfig,
+) -> Vec<Point> {
+    let distance = start.distance_to(end);
+    let proj = (distance * config.bezier_projection_factor).clamp(
+        config.bezier_clamp_min,
+        config.bezier_clamp_max,
+    );
+
+    let cp1 = start + from_normal * proj;
+    let cp2 = end + to_normal * proj;
+
+    super::geometry::sample_cubic_bezier(start, cp1, cp2, end, 32)
+}
+
+fn route_orthogonal(
+    start: Point,
+    end: Point,
+    obstacles: &[Rect],
+    config: &RelationEngineConfig,
+) -> Vec<Point> {
+    let waypoints = if obstacles.is_empty() {
+        vec![start, end]
+    } else {
+        let graph = VisibilityGraph::build(obstacles, start, end, config.obstacle_margin);
+        a_star(&graph).unwrap_or_else(|| vec![start, end])
+    };
+
+    let ortho_points = snap_to_orthogonal(&waypoints);
+
+    if config.corner_radius > 1e-6 {
+        super::geometry::round_corners(&ortho_points, config.corner_radius)
+    } else {
+        ortho_points
+    }
+}
+
+fn snap_to_orthogonal(waypoints: &[Point]) -> Vec<Point> {
+    if waypoints.len() < 2 {
+        return waypoints.to_vec();
+    }
+
+    let mut result = vec![waypoints[0]];
+
+    for i in 0..waypoints.len() - 1 {
+        let p1 = result.last().copied().unwrap();
+        let p2 = waypoints[i + 1];
+
+        if (p1.x - p2.x).abs() < 0.1 || (p1.y - p2.y).abs() < 0.1 {
+            result.push(p2);
+        } else {
+            let corner = Point::new(p2.x, p1.y);
+            result.push(corner);
+            result.push(p2);
+        }
+    }
+
+    result.dedup_by(|a, b| a.distance_to(*b) < 0.1);
+    result
+}
+
+fn empty_computed_relation(id: &str, from: &str, to: &str) -> ComputedRelation {
+    ComputedRelation {
+        id: id.to_string(),
+        path_points: vec![Point::zero(), Point::zero()],
+        path_type: PathType::Straight,
+        start_tangent: Point::new(1.0, 0.0),
+        end_tangent: Point::new(1.0, 0.0),
+        body_widths: vec![2.0, 2.0],
+        body_type: BodyType::Uniform,
+        start_endpoint: EndpointShapeType::None,
+        end_endpoint: EndpointShapeType::None,
+        start_direction: 0.0,
+        end_direction: 0.0,
+        label_position: Point::zero(),
+        label_anchor: LabelAnchor::Center,
+        bundle_id: None,
+        bundle_offset: None,
+        hit_test_points: Vec::new(),
+        depends_on_nodes: vec![from.to_string(), to.to_string()],
+        bbox: Rect::new(0.0, 0.0, 0.0, 0.0),
+    }
+}
+
+fn compute_bbox(points: &[Point]) -> Rect {
+    if points.is_empty() {
+        return Rect::new(0.0, 0.0, 0.0, 0.0);
+    }
+    let mut min_x = f64::MAX;
+    let mut min_y = f64::MAX;
+    let mut max_x = f64::MIN;
+    let mut max_y = f64::MIN;
+    for p in points {
+        if p.x < min_x { min_x = p.x; }
+        if p.y < min_y { min_y = p.y; }
+        if p.x > max_x { max_x = p.x; }
+        if p.y > max_y { max_y = p.y; }
+    }
+    Rect::new(min_x, min_y, max_x - min_x, max_y - min_y)
+}

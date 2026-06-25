@@ -552,6 +552,34 @@ impl AppHandle {
     pub async fn query_search(&self, query: String) -> anyhow::Result<Vec<Nodes>> {
         self.repo.query_search(query).await
     }
+
+    pub async fn compute_relations(
+        &self,
+        config: crate::domain::relation_engine::config::RelationEngineConfig,
+        relation_ids: Option<Vec<String>>,
+    ) -> anyhow::Result<Vec<crate::domain::relation_engine::computed::ComputedRelation>> {
+        let snapshot = self.repo.get_graph_snapshot().await?;
+
+        let nodes: Vec<crate::domain::relation_engine::engine::InputNode> = snapshot
+            .nodes
+            .iter()
+            .filter_map(crate::domain::relation_engine::engine::InputNode::from_domain)
+            .collect();
+
+        let edges: Vec<crate::domain::relation_engine::engine::InputEdge> = snapshot
+            .relations
+            .iter()
+            .map(crate::domain::relation_engine::engine::InputEdge::from_domain)
+            .collect();
+
+        let result = crate::domain::relation_engine::engine::RelationEngine::compute_relations(
+            &nodes,
+            &edges,
+            &config,
+            relation_ids.as_deref(),
+        );
+        Ok(result)
+    }
 }
 
 impl Drop for AppHandle {

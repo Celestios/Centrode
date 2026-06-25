@@ -9,6 +9,7 @@ import 'command_processor.dart';
 import 'package:mycelium/src/rust/bridge/api.dart' as rust;
 import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
+import '../presentation/relation_engine_state.dart';
 
 import 'modules/graph_store.dart';
 import 'modules/graph_spatial.dart';
@@ -48,6 +49,7 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
   late final GraphRelationMutations relationMutations;
   late final GraphPropertyMutations propertyMutations;
   late final GraphTemplateMutations templateMutations;
+  late final RelationEngineState relationEngine;
 
   // Dependency Inversion Hooks
   ({Size size, int lineCount}) Function(UiNode, {bool isEditing})? sizeCalculator;
@@ -182,6 +184,7 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
     this.relationMutations = relationMutations ?? GraphRelationMutations(this);
     this.propertyMutations = propertyMutations ?? GraphPropertyMutations(this);
     this.templateMutations = templateMutations ?? GraphTemplateMutations(this);
+    this.relationEngine = RelationEngineState(api: apiHandle);
 
     _log.info(
       'GraphDataController initialized: Domain modules successfully composed.',
@@ -219,6 +222,12 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
     try {
       await syncEngine.loadGraph();
       await updateHistoryStatus();
+
+      relationEngine.onInitialLoad(
+        relations: store.relations,
+        nodeViewStates: {}, // Will be populated by RelationLayer
+      );
+
       stopwatch.stop();
       _log.info(
         'loadGraph: Completed successfully in ${stopwatch.elapsedMilliseconds}ms.',
@@ -272,8 +281,10 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
   @override
   Future<void> deleteNode(String id) => nodeMutations.deleteNode(id);
 
-  void updateNodePosition(String id, Offset newPosition) =>
-      nodeMutations.updateNodePosition(id, newPosition);
+  void updateNodePosition(String id, Offset newPosition) {
+    nodeMutations.updateNodePosition(id, newPosition);
+    relationEngine.onNodeMoved(id);
+  }
 
   void updateNodeWidth(String id, double leftEdge, double rightEdge) =>
       nodeMutations.updateNodeWidth(id, leftEdge, rightEdge);
@@ -296,8 +307,10 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
   );
 
   @override
-  Future<void> deleteRelation(String id) =>
-      relationMutations.deleteRelation(id);
+  Future<void> deleteRelation(String id) async {
+    await relationMutations.deleteRelation(id);
+    relationEngine.onRelationDeleted(id);
+  }
 
   void updateRelationLayout(
     String id, {
@@ -306,14 +319,17 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
     PortSide? fromSide,
     PortSide? toSide,
     String? strategyType,
-  }) => relationMutations.updateRelationLayout(
-    id,
-    fromNodeId: fromNodeId,
-    toNodeId: toNodeId,
-    fromSide: fromSide,
-    toSide: toSide,
-    strategyType: strategyType,
-  );
+  }) {
+    relationMutations.updateRelationLayout(
+      id,
+      fromNodeId: fromNodeId,
+      toNodeId: toNodeId,
+      fromSide: fromSide,
+      toSide: toSide,
+      strategyType: strategyType,
+    );
+    relationEngine.onRelationLayoutUpdated(id);
+  }
 
   void updateRelationStyle(String id, RelationStyle newStyle) =>
       propertyMutations.updateRelationStyle(id, newStyle);
@@ -436,5 +452,6 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
     _entityUpdateController.close();
     syncEngine.dispose();
     spatial.dispose();
+    relationEngine.dispose();
   }
 }
