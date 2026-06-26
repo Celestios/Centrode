@@ -7,6 +7,7 @@ pub mod endpoint;
 pub mod engine;
 pub mod geometry;
 pub mod incremental;
+pub mod input;
 pub mod label;
 pub mod nudging;
 pub mod sweep_visibility;

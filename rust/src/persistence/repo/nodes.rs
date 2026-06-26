@@ -1,7 +1,7 @@
 use crate::domain::base_models::{IsTable, MapData, Record};
 use crate::domain::nodes::{IsNode, Nodes};
 use crate::domain::relations::IRelation;
-use crate::domain::relation_engine::engine::InputNode;
+use crate::domain::relation_engine::input::InputNode;
 use crate::domain::snapshot::GraphSnapshot;
 use crate::persistence::repo::Repository;
 

@@ -1,4 +1,5 @@
-use rust_lib_mycelium::domain::relation_engine::engine::{InputEdge, InputNode, RelationEngine};
+use rust_lib_mycelium::domain::relation_engine::input::{InputEdge, InputNode};
+use rust_lib_mycelium::domain::relation_engine::engine::RelationEngine;
 use rust_lib_mycelium::domain::relation_engine::config::{
     BundlingMode, RelationEngineConfig, RoutingMode,
 };

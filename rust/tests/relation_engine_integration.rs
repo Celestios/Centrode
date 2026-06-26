@@ -1,4 +1,5 @@
-use rust_lib_mycelium::domain::relation_engine::engine::{InputEdge, InputNode, RelationEngine};
+use rust_lib_mycelium::domain::relation_engine::input::{InputEdge, InputNode};
+use rust_lib_mycelium::domain::relation_engine::engine::RelationEngine;
 use rust_lib_mycelium::domain::relation_engine::config::{RelationEngineConfig, RoutingMode, BundlingMode};
 use rust_lib_mycelium::domain::relation_engine::geometry::{Point, Rect};
 use rust_lib_mycelium::domain::relation_engine::visibility_graph::{RouteCostParams, a_star_with_params, VisibilityGraph};

@@ -3,7 +3,7 @@ use crate::domain::nodes::IsNode;
 use crate::domain::patches::{
     EntityPatch, NodePatch, RelationPatch, TagOperation, SymmetricEntityPatch,
 };
-use crate::domain::relation_engine::engine::InputNode;
+use crate::domain::relation_engine::input::InputNode;
 use crate::domain::relations::IRelation;
 use crate::domain::tags::Tag;
 use crate::persistence::history::{HistoryManager, HistoryRecord};

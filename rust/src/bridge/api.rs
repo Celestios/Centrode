@@ -568,10 +568,10 @@ impl AppHandle {
     ) -> anyhow::Result<Vec<crate::domain::relation_engine::computed::ComputedRelation>> {
         let nodes = self.repo.get_cached_nodes();
         let snapshot = self.repo.get_graph_snapshot().await?;
-        let edges: Vec<crate::domain::relation_engine::engine::InputEdge> = snapshot
+        let edges: Vec<crate::domain::relation_engine::input::InputEdge> = snapshot
             .relations
             .iter()
-            .map(crate::domain::relation_engine::engine::InputEdge::from_domain)
+            .map(crate::domain::relation_engine::input::InputEdge::from_domain)
             .collect();
 
         let result = crate::domain::relation_engine::engine::RelationEngine::compute_relations(
@@ -589,7 +589,7 @@ impl AppHandle {
     ) {
         for (id, x, y, w, h) in positions {
             self.repo.update_node_cache(
-                crate::domain::relation_engine::engine::InputNode {
+                crate::domain::relation_engine::input::InputNode {
                     id,
                     x,
                     y,

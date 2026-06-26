@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use surrealdb::engine::local::Db;
 use surrealdb::Surreal;
 
-use crate::domain::relation_engine::engine::InputNode;
+use crate::domain::relation_engine::input::InputNode;
 
 pub mod nodes;
 pub mod relations;
