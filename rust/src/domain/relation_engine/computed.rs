@@ -45,32 +45,4 @@ pub enum LabelAnchor {
     Right,
 }
 
-impl ComputedRelation {
-    pub fn compute_bbox(&self) -> Rect {
-        if self.path_points.is_empty() {
-            return Rect::new(0.0, 0.0, 0.0, 0.0);
-        }
 
-        let mut min_x = f64::MAX;
-        let mut min_y = f64::MAX;
-        let mut max_x = f64::MIN;
-        let mut max_y = f64::MIN;
-
-        for p in &self.path_points {
-            if p.x < min_x {
-                min_x = p.x;
-            }
-            if p.y < min_y {
-                min_y = p.y;
-            }
-            if p.x > max_x {
-                max_x = p.x;
-            }
-            if p.y > max_y {
-                max_y = p.y;
-            }
-        }
-
-        Rect::new(min_x, min_y, max_x - min_x, max_y - min_y)
-    }
-}
