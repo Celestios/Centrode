@@ -283,6 +283,12 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
 
   void updateNodePosition(String id, Offset newPosition) {
     nodeMutations.updateNodePosition(id, newPosition);
+    final node = store.nodeLookup[id];
+    if (node != null) {
+      syncEngine.api.updateNodeCachePositions(
+        positions: [(id, newPosition.dx, newPosition.dy, node.size.width, node.size.height)],
+      );
+    }
     relationEngine.onNodeMoved(id);
   }
 

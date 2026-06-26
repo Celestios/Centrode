@@ -135,8 +135,8 @@ class GraphNodeMutations {
       newPosition: newPosition,
     );
 
-    // Queue command with debouncing (300ms delay)
-    controller.syncEngine.processor.queueCommand(cmd);
+    // Write immediately — no debounce
+    controller.syncEngine.processor.queueCommand(cmd, immediate: true);
     controller.publishUpdate(
       GraphEntityUpdate(
         id: id,

@@ -9,4 +9,6 @@ pub mod geometry;
 pub mod incremental;
 pub mod label;
 pub mod nudging;
+pub mod sweep_visibility;
 pub mod visibility_graph;
+pub mod vpsc;

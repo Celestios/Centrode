@@ -1,7 +1,9 @@
 use crate::domain::base_models::{IsTable, RecordStrings};
+use crate::domain::nodes::IsNode;
 use crate::domain::patches::{
     EntityPatch, NodePatch, RelationPatch, TagOperation, SymmetricEntityPatch,
 };
+use crate::domain::relation_engine::engine::InputNode;
 use crate::domain::relations::IRelation;
 use crate::domain::tags::Tag;
 use crate::persistence::history::{HistoryManager, HistoryRecord};
@@ -195,5 +197,43 @@ impl Repository {
     pub async fn redo_event(&self) -> Result<Option<HistoryRecord>> {
         let history_manager = HistoryManager::new(&self.db, 100);
         history_manager.redo().await
+    }
+
+    pub fn apply_cache_patch(&self, id: &RecordStrings, patch: &EntityPatch) {
+        match patch {
+            EntityPatch::Node(patches) => {
+                let mut cache = match self.node_cache.lock() {
+                    Ok(c) => c,
+                    Err(_) => return,
+                };
+                let node = match cache.get_mut(&id.key) {
+                    Some(n) => n,
+                    None => return,
+                };
+                for node_patch in patches {
+                    match node_patch {
+                        NodePatch::Position(coords) => {
+                            node.x = coords.x as f64;
+                            node.y = coords.y as f64;
+                        }
+                        NodePatch::Size(size) => {
+                            node.width = size.width as f64;
+                            node.height = size.height as f64;
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            EntityPatch::CreateNode(node, _) => {
+                if let Some(input_node) = InputNode::from_domain(node) {
+                    self.update_node_cache(input_node);
+                }
+            }
+            EntityPatch::DeleteNode(node, _) => {
+                let key = node.key();
+                self.remove_from_node_cache(key);
+            }
+            _ => {}
+        }
     }
 }

@@ -40,7 +40,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -561901012;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1839358927;
 
 // Section: executor
 
@@ -2131,6 +2131,61 @@ fn wire__crate__bridge__api__AppHandle_update_node_impl(
         },
     )
 }
+fn wire__crate__bridge__api__AppHandle_update_node_cache_positions_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "AppHandle_update_node_cache_positions",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
+            >>::sse_decode(&mut deserializer);
+            let api_positions = <Vec<(String, f64, f64, f64, f64)>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let mut api_that_guard = None;
+                    let decode_indices_ =
+                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_that, 0, false,
+                            ),
+                        ]);
+                    for i in decode_indices_ {
+                        match i {
+                            0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                            _ => unreachable!(),
+                        }
+                    }
+                    let api_that_guard = api_that_guard.unwrap();
+                    let output_ok = Result::<_, ()>::Ok({
+                        crate::bridge::api::AppHandle::update_node_cache_positions(
+                            &*api_that_guard,
+                            api_positions,
+                        );
+                    })?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__bridge__api__AppHandle_update_relation_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -3318,6 +3373,18 @@ impl SseDecode for Vec<u8> {
     }
 }
 
+impl SseDecode for Vec<(String, f64, f64, f64, f64)> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<(String, f64, f64, f64, f64)>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::domain::base_models::RecordStrings> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3907,6 +3974,18 @@ impl SseDecode for crate::domain::styles::PortSide {
     }
 }
 
+impl SseDecode for (String, f64, f64, f64, f64) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_field0 = <String>::sse_decode(deserializer);
+        let mut var_field1 = <f64>::sse_decode(deserializer);
+        let mut var_field2 = <f64>::sse_decode(deserializer);
+        let mut var_field3 = <f64>::sse_decode(deserializer);
+        let mut var_field4 = <f64>::sse_decode(deserializer);
+        return (var_field0, var_field1, var_field2, var_field3, var_field4);
+    }
+}
+
 impl SseDecode for crate::domain::base_models::RecordStrings {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4098,6 +4177,8 @@ impl SseDecode for crate::domain::relation_engine::config::RoutingMode {
             0 => crate::domain::relation_engine::config::RoutingMode::Polyline,
             1 => crate::domain::relation_engine::config::RoutingMode::Bezier,
             2 => crate::domain::relation_engine::config::RoutingMode::Orthogonal,
+            3 => crate::domain::relation_engine::config::RoutingMode::CircularArc,
+            4 => crate::domain::relation_engine::config::RoutingMode::SineWave,
             _ => unreachable!("Invalid variant for RoutingMode: {}", inner),
         };
     }
@@ -4561,32 +4642,38 @@ fn pde_ffi_dispatcher_primary_impl(
         36 => {
             wire__crate__bridge__api__AppHandle_update_node_impl(port, ptr, rust_vec_len, data_len)
         }
-        37 => wire__crate__bridge__api__AppHandle_update_relation_impl(
+        37 => wire__crate__bridge__api__AppHandle_update_node_cache_positions_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        38 => {
+        38 => wire__crate__bridge__api__AppHandle_update_relation_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        39 => {
             wire__crate__bridge__api__AppHandle_update_tag_impl(port, ptr, rust_vec_len, data_len)
         }
-        39 => {
+        40 => {
             wire__crate__bridge__api__AppHandle_update_theme_impl(port, ptr, rust_vec_len, data_len)
         }
-        40 => wire__crate__bridge__api__AppHandle_update_viewport_state_impl(
+        41 => wire__crate__bridge__api__AppHandle_update_viewport_state_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        41 => wire__crate__bridge__api__AppHandle_with_repository_impl(
+        42 => wire__crate__bridge__api__AppHandle_with_repository_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        42 => wire__crate__bridge__api__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
-        43 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
+        43 => wire__crate__bridge__api__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
+        44 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -5865,6 +5952,8 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::R
             Self::Polyline => 0.into_dart(),
             Self::Bezier => 1.into_dart(),
             Self::Orthogonal => 2.into_dart(),
+            Self::CircularArc => 3.into_dart(),
+            Self::SineWave => 4.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -6896,6 +6985,16 @@ impl SseEncode for Vec<u8> {
     }
 }
 
+impl SseEncode for Vec<(String, f64, f64, f64, f64)> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <(String, f64, f64, f64, f64)>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::domain::base_models::RecordStrings> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7385,6 +7484,17 @@ impl SseEncode for crate::domain::styles::PortSide {
     }
 }
 
+impl SseEncode for (String, f64, f64, f64, f64) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.0, serializer);
+        <f64>::sse_encode(self.1, serializer);
+        <f64>::sse_encode(self.2, serializer);
+        <f64>::sse_encode(self.3, serializer);
+        <f64>::sse_encode(self.4, serializer);
+    }
+}
+
 impl SseEncode for crate::domain::base_models::RecordStrings {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7518,6 +7628,8 @@ impl SseEncode for crate::domain::relation_engine::config::RoutingMode {
                 crate::domain::relation_engine::config::RoutingMode::Polyline => 0,
                 crate::domain::relation_engine::config::RoutingMode::Bezier => 1,
                 crate::domain::relation_engine::config::RoutingMode::Orthogonal => 2,
+                crate::domain::relation_engine::config::RoutingMode::CircularArc => 3,
+                crate::domain::relation_engine::config::RoutingMode::SineWave => 4,
                 _ => {
                     unimplemented!("");
                 }

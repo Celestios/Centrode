@@ -1,6 +1,7 @@
 use std::collections::BinaryHeap;
 
 use super::geometry::{Point, Rect};
+use super::sweep_visibility;
 
 #[derive(Debug, Clone)]
 pub struct VisNode {
@@ -55,25 +56,19 @@ impl VisibilityGraph {
             }
         }
 
+        let vertices: Vec<Point> = graph.nodes.iter().map(|n| n.point).collect();
+        let vis_edges = sweep_visibility::naive_visibility_with_exemptions(
+            &vertices, obstacles, margin, &[0, 1],
+        );
+
         let n = graph.nodes.len();
         graph.adj.resize(n, Vec::new());
 
-        for i in 0..n {
-            for j in (i + 1)..n {
-                let pi = graph.nodes[i].point;
-                let pj = graph.nodes[j].point;
-
-                if is_tangent_visible(pi, pj, i, j, obstacles, margin) {
-                    let cost = pi.distance_to(pj);
-                    graph.adj[i].push(j);
-                    graph.adj[j].push(i);
-                    graph.edges.push(VisEdge {
-                        from: i,
-                        to: j,
-                        cost,
-                    });
-                }
-            }
+        for (i, j) in vis_edges {
+            let cost = vertices[i].distance_to(vertices[j]);
+            graph.adj[i].push(j);
+            graph.adj[j].push(i);
+            graph.edges.push(VisEdge { from: i, to: j, cost });
         }
 
         graph
@@ -81,11 +76,7 @@ impl VisibilityGraph {
 
     fn add_node(&mut self, point: Point, obstacle_idx: Option<usize>, corner_idx: usize) -> usize {
         let idx = self.nodes.len();
-        self.nodes.push(VisNode {
-            point,
-            obstacle_idx,
-            corner_idx,
-        });
+        self.nodes.push(VisNode { point, obstacle_idx, corner_idx });
         self.adj.push(Vec::new());
         idx
     }
@@ -99,52 +90,53 @@ impl VisibilityGraph {
     }
 }
 
-/// Tangent-based visibility check following libavoid's approach.
-/// Two points are visible if:
-/// 1. Neither point is inside any expanded obstacle (unless the point IS a corner of that obstacle)
-/// 2. The segment between them doesn't cross any obstacle interior
-/// 3. Start/end points (idx 0, 1) are always considered outside for visibility purposes
-fn is_tangent_visible(
-    p1: Point,
-    p2: Point,
-    idx1: usize,
-    idx2: usize,
-    obstacles: &[Rect],
-    margin: f64,
-) -> bool {
-    for obs in obstacles {
-        let expanded = obs.expand(margin);
-
-        let p1_in = idx1 > 1 && expanded.contains(p1);
-        let p2_in = idx2 > 1 && expanded.contains(p2);
-
-        if p1_in && p2_in {
-            return false;
-        }
-
-        if p1_in || p2_in {
-            let corners = expanded.corners();
-            let p1_is_corner = corners.iter().any(|c| c.distance_to(p1) < 0.1);
-            let p2_is_corner = corners.iter().any(|c| c.distance_to(p2) < 0.1);
-
-            if (p1_in && !p1_is_corner) || (p2_in && !p2_is_corner) {
-                return false;
-            }
-
-            if p1_is_corner || p2_is_corner {
-                continue;
-            }
-        }
-
-        if expanded.intersects_segment(p1, p2) {
-            return false;
-        }
-    }
-    true
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct RouteCostParams {
+    pub angle_penalty: f64,
+    pub segment_penalty: f64,
+    pub crossing_penalty: f64,
+    pub reverse_direction_penalty: f64,
 }
 
-/// A* with BinaryHeap priority queue — proper O((V+E) log V) implementation.
+impl Default for RouteCostParams {
+    fn default() -> Self {
+        Self {
+            angle_penalty: 0.5,
+            segment_penalty: 2.0,
+            crossing_penalty: 10.0,
+            reverse_direction_penalty: 5.0,
+        }
+    }
+}
+
+fn angle_between(p1: Point, p2: Point, p3: Point) -> f64 {
+    let v1 = Point::new(p1.x - p2.x, p1.y - p2.y);
+    let v2 = Point::new(p3.x - p2.x, p3.y - p2.y);
+    let dot = v1.x * v2.x + v1.y * v2.y;
+    let cross = v1.x * v2.y - v1.y * v2.x;
+    cross.abs().atan2(dot.abs())
+}
+
+fn dim_direction(diff: f64) -> i32 {
+    if diff > 1e-6 {
+        1
+    } else if diff < -1e-6 {
+        -1
+    } else {
+        0
+    }
+}
+
 pub fn a_star(graph: &VisibilityGraph) -> Option<Vec<Point>> {
+    a_star_with_params(graph, &RouteCostParams::default(), None, None)
+}
+
+pub fn a_star_with_params(
+    graph: &VisibilityGraph,
+    cost_params: &RouteCostParams,
+    _src_point: Option<&Point>,
+    dst_point: Option<&Point>,
+) -> Option<Vec<Point>> {
     let start = graph.start_idx();
     let end = graph.end_idx();
     let n = graph.node_count();
@@ -152,6 +144,8 @@ pub fn a_star(graph: &VisibilityGraph) -> Option<Vec<Point>> {
     if start >= n || end >= n {
         return None;
     }
+
+    let actual_dst = dst_point.cloned().unwrap_or(graph.nodes[end].point);
 
     #[derive(Clone)]
     struct State {
@@ -162,7 +156,7 @@ pub fn a_star(graph: &VisibilityGraph) -> Option<Vec<Point>> {
     impl Eq for State {}
     impl PartialEq for State {
         fn eq(&self, other: &Self) -> bool {
-            self.cost == other.cost
+            (self.cost - other.cost).abs() < 1e-10
         }
     }
     impl PartialOrd for State {
@@ -181,8 +175,7 @@ pub fn a_star(graph: &VisibilityGraph) -> Option<Vec<Point>> {
     let mut g_score: Vec<f64> = vec![f64::INFINITY; n];
 
     g_score[start] = 0.0;
-    let h = graph.nodes[start].point.distance_to(graph.nodes[end].point);
-
+    let h = cost_heuristic(graph.nodes[start].point, actual_dst, None, cost_params);
     heap.push(State { cost: h, position: start });
 
     while let Some(State { cost: _, position: current }) = heap.pop() {
@@ -194,16 +187,29 @@ pub fn a_star(graph: &VisibilityGraph) -> Option<Vec<Point>> {
             continue;
         }
 
+        let current_point = graph.nodes[current].point;
+
         for &neighbor in &graph.adj[current] {
-            let edge_cost = graph.nodes[current]
-                .point
-                .distance_to(graph.nodes[neighbor].point);
+            let neighbor_point = graph.nodes[neighbor].point;
+            let edge_dist = current_point.distance_to(neighbor_point);
+
+            let prev_point = came_from[current].map(|p| graph.nodes[p].point);
+
+            let edge_cost = compute_edge_cost(
+                cost_params,
+                edge_dist,
+                prev_point,
+                current_point,
+                neighbor_point,
+                actual_dst,
+            );
+
             let tentative_g = g_score[current] + edge_cost;
 
             if tentative_g < g_score[neighbor] {
                 came_from[neighbor] = Some(current);
                 g_score[neighbor] = tentative_g;
-                let f = tentative_g + cost_heuristic(graph, neighbor, end);
+                let f = tentative_g + cost_heuristic(neighbor_point, actual_dst, Some(current_point), cost_params);
                 heap.push(State { cost: f, position: neighbor });
             }
         }
@@ -212,8 +218,88 @@ pub fn a_star(graph: &VisibilityGraph) -> Option<Vec<Point>> {
     None
 }
 
-fn cost_heuristic(graph: &VisibilityGraph, from: usize, to: usize) -> f64 {
-    graph.nodes[from].point.distance_to(graph.nodes[to].point)
+fn compute_edge_cost(
+    params: &RouteCostParams,
+    edge_dist: f64,
+    prev_point: Option<Point>,
+    curr_point: Point,
+    next_point: Point,
+    dst_point: Point,
+) -> f64 {
+    let mut cost = edge_dist;
+
+    if let Some(prev) = prev_point {
+        let rad = std::f64::consts::PI - angle_between(prev, curr_point, next_point);
+
+        if rad > 1e-6 && params.angle_penalty > 0.0 {
+            let xval = rad * 10.0 / std::f64::consts::PI;
+            let yval = xval * (xval + 1.0).log10() / 10.5;
+            cost += params.angle_penalty * yval;
+        }
+
+        if rad > std::f64::consts::PI - 1e-6 {
+            cost += 2.0 * params.segment_penalty;
+        } else if rad > 1e-6 {
+            cost += params.segment_penalty;
+        }
+    } else {
+        cost += params.segment_penalty * 0.5;
+    }
+
+    if params.reverse_direction_penalty > 0.0 {
+        let src_to_dst = dst_point - Point::new(0.0, 0.0);
+        let x_dir = dim_direction(src_to_dst.x);
+        let y_dir = dim_direction(src_to_dst.y);
+
+        let seg_dir = next_point - curr_point;
+        let seg_x_dir = dim_direction(seg_dir.x);
+        let seg_y_dir = dim_direction(seg_dir.y);
+
+        let mut does_reverse = false;
+        if x_dir != 0 && seg_x_dir == -x_dir {
+            does_reverse = true;
+        }
+        if y_dir != 0 && seg_y_dir == -y_dir {
+            does_reverse = true;
+        }
+
+        if does_reverse {
+            cost += params.reverse_direction_penalty;
+        }
+    }
+
+    cost
+}
+
+fn cost_heuristic(from: Point, to: Point, prev: Option<Point>, params: &RouteCostParams) -> f64 {
+    let dist = from.distance_to(to);
+
+    if params.segment_penalty > 0.0 || params.angle_penalty > 0.0 {
+        let dx = to.x - from.x;
+        let dy = to.y - from.y;
+        let mut bend_estimate = 0;
+
+        if let Some(prev_pt) = prev {
+            let curr_dir = from - prev_pt;
+            let curr_len = curr_dir.length();
+            if curr_len > 1e-6 {
+                let curr_dir_norm = Point::new(curr_dir.x / curr_len, curr_dir.y / curr_len);
+                if curr_dir_norm.x.abs() > 0.5 && dy.abs() > 1e-6 {
+                    bend_estimate += 1;
+                } else if curr_dir_norm.y.abs() > 0.5 && dx.abs() > 1e-6 {
+                    bend_estimate += 1;
+                }
+            }
+        } else {
+            if dx.abs() > 1e-6 && dy.abs() > 1e-6 {
+                bend_estimate += 1;
+            }
+        }
+
+        dist + bend_estimate as f64 * params.segment_penalty
+    } else {
+        dist
+    }
 }
 
 fn reconstruct_path(
@@ -250,22 +336,51 @@ mod tests {
     #[test]
     fn test_visibility_around_obstacle() {
         let start = Point::new(0.0, 50.0);
-        let end = Point::new(100.0, 50.0);
-        let obstacle = Rect::new(40.0, 40.0, 20.0, 20.0);
-        let graph = VisibilityGraph::build(&[obstacle], start, end, 45.0);
+        let end = Point::new(200.0, 50.0);
+        let obstacle = Rect::new(60.0, 30.0, 40.0, 40.0);
+        let graph = VisibilityGraph::build(&[obstacle], start, end, 10.0);
 
-        assert!(graph.node_count() > 2);
+        assert!(graph.node_count() > 2, "Should have start + end + obstacle corners");
         let path = a_star(&graph);
-        assert!(path.is_some());
+        assert!(path.is_some(), "Should find a path around the obstacle");
         let path = path.unwrap();
-        assert!(path.len() > 2);
+        assert!(path.len() > 2, "Path should go through intermediate points");
     }
 
     #[test]
-    fn test_tangent_visibility() {
+    fn test_angle_between_straight() {
         let p1 = Point::new(0.0, 0.0);
-        let p2 = Point::new(100.0, 100.0);
-        let obstacle = Rect::new(40.0, 40.0, 20.0, 20.0);
-        assert!(!is_tangent_visible(p1, p2, 2, 3, &[obstacle], 45.0));
+        let p2 = Point::new(10.0, 0.0);
+        let p3 = Point::new(20.0, 0.0);
+        let angle = angle_between(p1, p2, p3);
+        assert!(angle < 1e-6);
+    }
+
+    #[test]
+    fn test_angle_between_right_angle() {
+        let p1 = Point::new(0.0, 0.0);
+        let p2 = Point::new(10.0, 0.0);
+        let p3 = Point::new(10.0, 10.0);
+        let angle = angle_between(p1, p2, p3);
+        assert!((angle - std::f64::consts::FRAC_PI_2).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_a_star_params_no_obstacles() {
+        let start = Point::new(0.0, 0.0);
+        let end = Point::new(100.0, 0.0);
+        let graph = VisibilityGraph::build(&[], start, end, 45.0);
+
+        let params = RouteCostParams {
+            angle_penalty: 1.0,
+            segment_penalty: 2.0,
+            crossing_penalty: 10.0,
+            reverse_direction_penalty: 5.0,
+        };
+
+        let path = a_star_with_params(&graph, &params, None, None);
+        assert!(path.is_some());
+        let path = path.unwrap();
+        assert_eq!(path.len(), 2);
     }
 }

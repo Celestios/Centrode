@@ -348,6 +348,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<(String, double, double, double, double)>
+  dco_decode_list_record_string_f_64_f_64_f_64_f_64(dynamic raw);
+
+  @protected
   List<RecordStrings> dco_decode_list_record_strings(dynamic raw);
 
   @protected
@@ -463,6 +467,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PortSide dco_decode_port_side(dynamic raw);
+
+  @protected
+  (String, double, double, double, double)
+  dco_decode_record_string_f_64_f_64_f_64_f_64(dynamic raw);
 
   @protected
   RecordStrings dco_decode_record_strings(dynamic raw);
@@ -862,6 +870,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
+  List<(String, double, double, double, double)>
+  sse_decode_list_record_string_f_64_f_64_f_64_f_64(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<RecordStrings> sse_decode_list_record_strings(
     SseDeserializer deserializer,
   );
@@ -995,6 +1009,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PortSide sse_decode_port_side(SseDeserializer deserializer);
+
+  @protected
+  (String, double, double, double, double)
+  sse_decode_record_string_f_64_f_64_f_64_f_64(SseDeserializer deserializer);
 
   @protected
   RecordStrings sse_decode_record_strings(SseDeserializer deserializer);
@@ -1493,6 +1511,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_record_string_f_64_f_64_f_64_f_64(
+    List<(String, double, double, double, double)> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_record_strings(
     List<RecordStrings> self,
     SseSerializer serializer,
@@ -1645,6 +1669,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_port_side(PortSide self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_record_string_f_64_f_64_f_64_f_64(
+    (String, double, double, double, double) self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_record_strings(RecordStrings self, SseSerializer serializer);

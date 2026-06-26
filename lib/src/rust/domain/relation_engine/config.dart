@@ -123,4 +123,4 @@ class RelationEngineConfig {
           snakeObstacleAvoidance == other.snakeObstacleAvoidance;
 }
 
-enum RoutingMode { polyline, bezier, orthogonal }
+enum RoutingMode { polyline, bezier, orthogonal, circularArc, sineWave }

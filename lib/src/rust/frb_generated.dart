@@ -81,7 +81,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -561901012;
+  int get rustContentHash => -1839358927;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -261,6 +261,11 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateBridgeApiAppHandleUpdateNode({
     required AppHandle that,
     required Nodes input,
+  });
+
+  Future<void> crateBridgeApiAppHandleUpdateNodeCachePositions({
+    required AppHandle that,
+    required List<(String, double, double, double, double)> positions,
   });
 
   Future<void> crateBridgeApiAppHandleUpdateRelation({
@@ -1680,6 +1685,47 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<void> crateBridgeApiAppHandleUpdateNodeCachePositions({
+    required AppHandle that,
+    required List<(String, double, double, double, double)> positions,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+            that,
+            serializer,
+          );
+          sse_encode_list_record_string_f_64_f_64_f_64_f_64(
+            positions,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 37,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateBridgeApiAppHandleUpdateNodeCachePositionsConstMeta,
+        argValues: [that, positions],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiAppHandleUpdateNodeCachePositionsConstMeta =>
+      const TaskConstMeta(
+        debugName: "AppHandle_update_node_cache_positions",
+        argNames: ["that", "positions"],
+      );
+
+  @override
   Future<void> crateBridgeApiAppHandleUpdateRelation({
     required AppHandle that,
     required IRelation input,
@@ -1696,7 +1742,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 37,
+            funcId: 38,
             port: port_,
           );
         },
@@ -1734,7 +1780,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 38,
+            funcId: 39,
             port: port_,
           );
         },
@@ -1772,7 +1818,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 39,
+            funcId: 40,
             port: port_,
           );
         },
@@ -1810,7 +1856,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 40,
+            funcId: 41,
             port: port_,
           );
         },
@@ -1846,7 +1892,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 41,
+            funcId: 42,
             port: port_,
           );
         },
@@ -1880,7 +1926,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 42,
+              funcId: 43,
               port: port_,
             );
           },
@@ -1909,7 +1955,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 43,
+            funcId: 44,
             port: port_,
           );
         },
@@ -2732,6 +2778,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<(String, double, double, double, double)>
+  dco_decode_list_record_string_f_64_f_64_f_64_f_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_record_string_f_64_f_64_f_64_f_64)
+        .toList();
+  }
+
+  @protected
   List<RecordStrings> dco_decode_list_record_strings(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_record_strings).toList();
@@ -3062,6 +3117,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   PortSide dco_decode_port_side(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return PortSide.values[raw as int];
+  }
+
+  @protected
+  (String, double, double, double, double)
+  dco_decode_record_string_f_64_f_64_f_64_f_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5) {
+      throw Exception('Expected 5 elements, got ${arr.length}');
+    }
+    return (
+      dco_decode_String(arr[0]),
+      dco_decode_f_64(arr[1]),
+      dco_decode_f_64(arr[2]),
+      dco_decode_f_64(arr[3]),
+      dco_decode_f_64(arr[4]),
+    );
   }
 
   @protected
@@ -4390,6 +4462,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<(String, double, double, double, double)>
+  sse_decode_list_record_string_f_64_f_64_f_64_f_64(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <(String, double, double, double, double)>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_record_string_f_64_f_64_f_64_f_64(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<RecordStrings> sse_decode_list_record_strings(
     SseDeserializer deserializer,
   ) {
@@ -4913,6 +5000,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
     return PortSide.values[inner];
+  }
+
+  @protected
+  (String, double, double, double, double)
+  sse_decode_record_string_f_64_f_64_f_64_f_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_field0 = sse_decode_String(deserializer);
+    var var_field1 = sse_decode_f_64(deserializer);
+    var var_field2 = sse_decode_f_64(deserializer);
+    var var_field3 = sse_decode_f_64(deserializer);
+    var var_field4 = sse_decode_f_64(deserializer);
+    return (var_field0, var_field1, var_field2, var_field3, var_field4);
   }
 
   @protected
@@ -6240,6 +6339,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_record_string_f_64_f_64_f_64_f_64(
+    List<(String, double, double, double, double)> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_record_string_f_64_f_64_f_64_f_64(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_record_strings(
     List<RecordStrings> self,
     SseSerializer serializer,
@@ -6690,6 +6801,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_port_side(PortSide self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_record_string_f_64_f_64_f_64_f_64(
+    (String, double, double, double, double) self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.$1, serializer);
+    sse_encode_f_64(self.$2, serializer);
+    sse_encode_f_64(self.$3, serializer);
+    sse_encode_f_64(self.$4, serializer);
+    sse_encode_f_64(self.$5, serializer);
   }
 
   @protected
@@ -7181,6 +7305,13 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
 
   Future<void> updateNode({required Nodes input}) => RustLib.instance.api
       .crateBridgeApiAppHandleUpdateNode(that: this, input: input);
+
+  Future<void> updateNodeCachePositions({
+    required List<(String, double, double, double, double)> positions,
+  }) => RustLib.instance.api.crateBridgeApiAppHandleUpdateNodeCachePositions(
+    that: this,
+    positions: positions,
+  );
 
   Future<void> updateRelation({required IRelation input}) => RustLib
       .instance

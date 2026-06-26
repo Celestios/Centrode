@@ -102,6 +102,11 @@ impl AppHandle {
         }
     }
 
+    async fn rebuild_node_cache(&self) {
+        self.repo.clear_node_cache();
+        let _ = self.repo.get_graph_snapshot().await;
+    }
+
     pub async fn create_node(&self, input: Nodes) -> anyhow::Result<()> {
         debug!("FFI: create_node called with input: {:?}", input);
         self.repo.create_node(input.clone()).await?;
@@ -169,6 +174,7 @@ impl AppHandle {
         {
             self.broadcast_boundaries().await;
         }
+        self.repo.apply_cache_patch(&mutation.id, &mutation.forward);
         self.repo
             .record_patch_history(mutation.id, mutation.forward, mutation.reverse)
             .await?;
@@ -475,6 +481,7 @@ impl AppHandle {
         if let Some(ref rec) = record {
             self.apply_history_record_patch(rec, false).await?;
         }
+        self.rebuild_node_cache().await;
         Ok(record)
     }
 
@@ -484,6 +491,7 @@ impl AppHandle {
         if let Some(ref rec) = record {
             self.apply_history_record_patch(rec, true).await?;
         }
+        self.rebuild_node_cache().await;
         Ok(record)
     }
 
@@ -558,14 +566,8 @@ impl AppHandle {
         config: crate::domain::relation_engine::config::RelationEngineConfig,
         relation_ids: Option<Vec<String>>,
     ) -> anyhow::Result<Vec<crate::domain::relation_engine::computed::ComputedRelation>> {
+        let nodes = self.repo.get_cached_nodes();
         let snapshot = self.repo.get_graph_snapshot().await?;
-
-        let nodes: Vec<crate::domain::relation_engine::engine::InputNode> = snapshot
-            .nodes
-            .iter()
-            .filter_map(crate::domain::relation_engine::engine::InputNode::from_domain)
-            .collect();
-
         let edges: Vec<crate::domain::relation_engine::engine::InputEdge> = snapshot
             .relations
             .iter()
@@ -579,6 +581,23 @@ impl AppHandle {
             relation_ids.as_deref(),
         );
         Ok(result)
+    }
+
+    pub fn update_node_cache_positions(
+        &self,
+        positions: Vec<(String, f64, f64, f64, f64)>,
+    ) {
+        for (id, x, y, w, h) in positions {
+            self.repo.update_node_cache(
+                crate::domain::relation_engine::engine::InputNode {
+                    id,
+                    x,
+                    y,
+                    width: w,
+                    height: h,
+                },
+            );
+        }
     }
 }
 

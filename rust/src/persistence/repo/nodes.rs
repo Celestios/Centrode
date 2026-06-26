@@ -1,6 +1,7 @@
 use crate::domain::base_models::{IsTable, MapData, Record};
 use crate::domain::nodes::{IsNode, Nodes};
 use crate::domain::relations::IRelation;
+use crate::domain::relation_engine::engine::InputNode;
 use crate::domain::snapshot::GraphSnapshot;
 use crate::persistence::repo::Repository;
 
@@ -129,7 +130,12 @@ impl Repository {
 
             for val in raw {
                 match Nodes::from_struct_value(table, val) {
-                    Ok(node) => nodes.push(node),
+                    Ok(node) => {
+                        if let Some(input_node) = InputNode::from_domain(&node) {
+                            self.update_node_cache(input_node);
+                        }
+                        nodes.push(node);
+                    }
                     Err(e) => tracing::error!(
                         "Failed to parse node from table {}: {:?}",
                         table,

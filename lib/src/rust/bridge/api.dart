@@ -23,7 +23,7 @@ import '../telemetry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'stream.dart';
 
-// These functions are ignored because they are not marked as `pub`: `apply_history_record_patch`, `broadcast_boundaries`
+// These functions are ignored because they are not marked as `pub`: `apply_history_record_patch`, `broadcast_boundaries`, `rebuild_node_cache`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `drop`
 
 Future<void> setupLogger() => RustLib.instance.api.crateBridgeApiSetupLogger();
@@ -132,6 +132,10 @@ abstract class AppHandle implements RustOpaqueInterface {
   Future<int> undoCount();
 
   Future<void> updateNode({required Nodes input});
+
+  Future<void> updateNodeCachePositions({
+    required List<(String, double, double, double, double)> positions,
+  });
 
   Future<void> updateRelation({required IRelation input});
 

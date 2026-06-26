@@ -207,9 +207,12 @@ class RelationPainter extends CustomPainter {
 
       final override = draggingOverrides[rel.id];
       final isDragging = override != null;
+      final nodeDragged = interactionState is NodeDragging &&
+          (rel.fromNodeId == (interactionState as NodeDragging).nodeId ||
+           rel.toNodeId == (interactionState as NodeDragging).nodeId);
 
       rust.ComputedRelation? cached;
-      if (!isDragging && relationEngine != null) {
+      if (!isDragging && !nodeDragged && relationEngine != null) {
         cached = relationEngine!.cache[rel.id];
       }
 

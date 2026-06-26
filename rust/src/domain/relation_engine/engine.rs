@@ -10,7 +10,7 @@ use super::geometry::{Point, Rect};
 use super::incremental::IncrementalState;
 use super::label::compute_label_position;
 use super::nudging::{nudge_edges, NudgeConfig};
-use super::visibility_graph::{a_star, VisibilityGraph};
+use super::visibility_graph::{a_star_with_params, RouteCostParams, VisibilityGraph};
 use crate::domain::base_models::Coordinates;
 use crate::domain::nodes::Nodes;
 use crate::domain::relations::IRelation;
@@ -223,6 +223,7 @@ impl RelationEngine {
             let nudge_config = NudgeConfig {
                 enabled: true,
                 min_separation: config.nudging_distance,
+                nudge_final_segments: true,
             };
 
             let mut paths: Vec<Vec<Point>> = results.iter().map(|r| r.path_points.clone()).collect();
@@ -239,7 +240,7 @@ impl RelationEngine {
             }
         }
 
-        // Phase 3: Minimize crossings
+        // Phase 4: Minimize crossings
         if config.crossing_minimization && results.len() >= 2 {
             let mut paths: Vec<Vec<Point>> = results.iter().map(|r| r.path_points.clone()).collect();
             let edge_ids: Vec<String> = results.iter().map(|r| r.id.clone()).collect();
@@ -455,7 +456,9 @@ fn route_polyline(
     }
 
     let graph = VisibilityGraph::build(obstacles, start, end, config.obstacle_margin);
-    a_star(&graph).unwrap_or_else(|| vec![start, end])
+    let cost_params = RouteCostParams::default();
+    a_star_with_params(&graph, &cost_params, Some(&start), Some(&end))
+        .unwrap_or_else(|| vec![start, end])
 }
 
 fn route_bezier(
@@ -487,7 +490,9 @@ fn route_orthogonal(
         vec![start, end]
     } else {
         let graph = VisibilityGraph::build(obstacles, start, end, config.obstacle_margin);
-        a_star(&graph).unwrap_or_else(|| vec![start, end])
+        let cost_params = RouteCostParams::default();
+        a_star_with_params(&graph, &cost_params, Some(&start), Some(&end))
+            .unwrap_or_else(|| vec![start, end])
     };
 
     let ortho_points = snap_to_orthogonal(&waypoints);
