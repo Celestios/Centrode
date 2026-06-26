@@ -6,6 +6,8 @@ pub enum RoutingMode {
     Polyline,
     Bezier,
     Orthogonal,
+    CircularArc,
+    SineWave,
 }
 
 impl Default for RoutingMode {
@@ -20,6 +22,8 @@ impl RoutingMode {
             "bezier" => RoutingMode::Bezier,
             "orthogonal" => RoutingMode::Orthogonal,
             "straight" => RoutingMode::Polyline,
+            "circular_arc" | "circulararc" | "arc" => RoutingMode::CircularArc,
+            "sinewave" | "sine_wave" | "sine" => RoutingMode::SineWave,
             _ => RoutingMode::Polyline,
         }
     }

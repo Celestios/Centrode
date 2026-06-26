@@ -395,6 +395,14 @@ fn compute_single_relation(
             let points = route_orthogonal(start, end, &filtered_obstacles, config);
             (points, PathType::Orthogonal)
         }
+        RoutingMode::CircularArc => {
+            let points = route_circular_arc(start, end, from_normal, to_normal, config);
+            (points, PathType::CircularArc)
+        }
+        RoutingMode::SineWave => {
+            let points = route_sine_wave(start, end, config);
+            (points, PathType::SineWave)
+        }
     };
 
     let (start_tangent, end_tangent) = compute_tangents(&path_points);
@@ -489,6 +497,137 @@ fn route_orthogonal(
     } else {
         ortho_points
     }
+}
+
+/// Route via a circular arc through three points: start, a control point, and end.
+/// The control point is derived from port normals to create a smooth arc.
+fn route_circular_arc(
+    start: Point,
+    end: Point,
+    from_normal: Point,
+    to_normal: Point,
+    config: &RelationEngineConfig,
+) -> Vec<Point> {
+    let distance = start.distance_to(end);
+    let radius_factor = config.bezier_projection_factor;
+    let radius = (distance * radius_factor).clamp(
+        config.bezier_clamp_min,
+        config.bezier_clamp_max,
+    );
+
+    // Control point is the intersection of normals from start and end
+    let cp1 = start + from_normal * radius;
+    let _cp2 = end + to_normal * radius;
+
+    // Approximate the circle center from three points
+    let center = three_point_circle_center(start, cp1, end);
+
+    if let Some(c) = center {
+        let r = c.distance_to(start);
+        if r < 1e-6 {
+            return vec![start, end];
+        }
+
+        // Sample the arc from start to end going through the control region
+        let start_angle = (start - c).direction();
+        let end_angle = (end - c).direction();
+
+        let n = 32;
+        let mut points = Vec::with_capacity(n + 1);
+
+        // Determine sweep direction based on which side the control points are
+        let mid = start.lerp(end, 0.5);
+        let to_mid = mid - c;
+        let cross = (start - c).x * to_mid.y - (start - c).y * to_mid.x;
+
+        for i in 0..=n {
+            let t = i as f64 / n as f64;
+            let mut angle = start_angle + (end_angle - start_angle) * t;
+
+            // If the control points are on one side, ensure we sweep the right way
+            if cross > 0.0 {
+                // Ensure counter-clockwise sweep
+                if end_angle < start_angle {
+                    angle = start_angle + (end_angle + std::f64::consts::TAU - start_angle) * t;
+                }
+            } else {
+                // Ensure clockwise sweep
+                if end_angle > start_angle {
+                    angle = start_angle + (end_angle - std::f64::consts::TAU - start_angle) * t;
+                }
+            }
+
+            points.push(Point::new(
+                c.x + r * angle.cos(),
+                c.y + r * angle.sin(),
+            ));
+        }
+
+        points
+    } else {
+        // Points are collinear, fall back to bezier-like curve
+        route_bezier(start, end, from_normal, to_normal, config)
+    }
+}
+
+/// Find the center of a circle passing through three points.
+/// Returns None if points are collinear.
+fn three_point_circle_center(p1: Point, p2: Point, p3: Point) -> Option<Point> {
+    let ax = p1.x;
+    let ay = p1.y;
+    let bx = p2.x;
+    let by = p2.y;
+    let cx = p3.x;
+    let cy = p3.y;
+
+    let d = 2.0 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by));
+
+    if d.abs() < 1e-10 {
+        return None; // Collinear
+    }
+
+    let ux = ((ax * ax + ay * ay) * (by - cy)
+        + (bx * bx + by * by) * (cy - ay)
+        + (cx * cx + cy * cy) * (ay - by))
+        / d;
+    let uy = ((ax * ax + ay * ay) * (cx - bx)
+        + (bx * bx + by * by) * (ax - cx)
+        + (cx * cx + cy * cy) * (bx - ax))
+        / d;
+
+    Some(Point::new(ux, uy))
+}
+
+/// Route via a sine wave from start to end.
+/// No obstacle interaction — free-form path.
+fn route_sine_wave(
+    start: Point,
+    end: Point,
+    config: &RelationEngineConfig,
+) -> Vec<Point> {
+    let amplitude = config.snake_amplitude;
+    let frequency = config.snake_frequency;
+
+    let n = 64;
+    let mut points = Vec::with_capacity(n + 1);
+
+    for i in 0..=n {
+        let t = i as f64 / n as f64;
+
+        // Linear interpolation from start to end
+        let base = start.lerp(end, t);
+
+        // Perpendicular direction
+        let dir = end - start;
+        let perp = Point::new(-dir.y, dir.x).normalized();
+
+        // Sine displacement
+        let wave = (t * frequency * std::f64::consts::TAU).sin() * amplitude;
+
+        points.push(base + perp * wave);
+    }
+
+    points
 }
 
 fn snap_to_orthogonal(waypoints: &[Point]) -> Vec<Point> {
