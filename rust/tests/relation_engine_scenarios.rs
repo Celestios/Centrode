@@ -97,8 +97,8 @@ fn scenario_02_single_obstacle_avoidance() {
     ];
     let edges = vec![edge("e1", "a", "b")];
     let mut config = RelationEngineConfig::default();
-    config.obstacle_margin = 10.0;
-    config.nudging_enabled = false;
+    config.routing.obstacle_margin = 10.0;
+    config.nudging.enabled = false;
 
     log_step("1.route", "Visibility graph around expanded obstacle");
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
@@ -125,8 +125,8 @@ fn scenario_03_shared_endpoint_bundling() {
     ];
     let edges = vec![edge("e1", "src", "t1"), edge("e2", "src", "t2"), edge("e3", "src", "t3")];
     let mut config = RelationEngineConfig::default();
-    config.bundling_mode = BundlingMode::SharedEndpoint;
-    config.nudging_enabled = false;
+    config.bundling.mode = BundlingMode::SharedEndpoint;
+    config.nudging.enabled = false;
 
     log_step("1.route", "Route 3 edges from same source");
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
@@ -153,7 +153,7 @@ fn scenario_04_crossing_minimization() {
     let edges = vec![edge("e1", "tl", "br"), edge("e2", "bl", "tr")];
     let mut config = RelationEngineConfig::default();
     config.crossing_minimization = true;
-    config.nudging_enabled = false;
+    config.nudging.enabled = false;
 
     log_step("1.route", "Two diagonal edges that cross");
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
@@ -179,8 +179,8 @@ fn scenario_05_vpsc_nudging_two_edges() {
     ];
     let edges = vec![edge("e1", "src", "t1"), edge("e2", "src", "t2")];
     let mut config = RelationEngineConfig::default();
-    config.nudging_enabled = true;
-    config.nudging_distance = 10.0;
+    config.nudging.enabled = true;
+    config.nudging.distance = 10.0;
     config.crossing_minimization = false;
 
     log_step("1.route", "Two edges nearly overlapping from same source");
@@ -205,8 +205,8 @@ fn scenario_06_orthogonal_route_no_obstacles() {
     let nodes = vec![node("a", 50.0, 50.0, 40.0, 40.0), node("b", 400.0, 300.0, 40.0, 40.0)];
     let edges = vec![ortho_edge("e1", "a", "b")];
     let mut config = RelationEngineConfig::default();
-    config.routing_mode = RoutingMode::Orthogonal;
-    config.corner_radius = 0.0;
+    config.routing.routing_mode = RoutingMode::Orthogonal;
+    config.routing.corner_radius = 0.0;
 
     log_step("1.route", "Visibility graph → A* → snap_to_orthogonal");
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
@@ -241,9 +241,9 @@ fn scenario_07_orthogonal_with_obstacle() {
     ];
     let edges = vec![ortho_edge("e1", "a", "b")];
     let mut config = RelationEngineConfig::default();
-    config.routing_mode = RoutingMode::Orthogonal;
-    config.corner_radius = 0.0;
-    config.obstacle_margin = 10.0;
+    config.routing.routing_mode = RoutingMode::Orthogonal;
+    config.routing.corner_radius = 0.0;
+    config.routing.obstacle_margin = 10.0;
 
     log_step("1.route", "Vis graph → A* → snap_to_orthogonal");
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
@@ -301,11 +301,11 @@ fn scenario_09_full_pipeline_all_phases() {
     ];
     let edges = vec![edge("e1", "a", "b"), edge("e2", "c", "d"), edge("e3", "a", "d")];
     let mut config = RelationEngineConfig::default();
-    config.bundling_mode = BundlingMode::SharedEndpoint;
-    config.nudging_enabled = true;
-    config.nudging_distance = 8.0;
+    config.bundling.mode = BundlingMode::SharedEndpoint;
+    config.nudging.enabled = true;
+    config.nudging.distance = 8.0;
     config.crossing_minimization = true;
-    config.obstacle_margin = 10.0;
+    config.routing.obstacle_margin = 10.0;
 
     log_step("1.route", "Route 3 edges through obstacle field");
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
@@ -499,7 +499,7 @@ fn scenario_15_four_crossing_edges() {
     ];
     let mut config = RelationEngineConfig::default();
     config.crossing_minimization = true;
-    config.nudging_enabled = false;
+    config.nudging.enabled = false;
 
     log_step("1.route", "2 diagonal edges that cross");
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
@@ -583,9 +583,9 @@ fn scenario_18_proximity_bundling() {
         edge("e3", "e", "f"),
     ];
     let mut config = RelationEngineConfig::default();
-    config.bundling_mode = BundlingMode::Proximity;
-    config.bundling_threshold = 80.0;
-    config.nudging_enabled = false;
+    config.bundling.mode = BundlingMode::Proximity;
+    config.bundling.threshold = 80.0;
+    config.nudging.enabled = false;
 
     log_step("1.route", "3 edges: e1 and e2 very close, e3 far away");
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
@@ -613,7 +613,7 @@ fn scenario_19_nudging_disabled() {
     ];
     let edges = vec![edge("e1", "src", "t1"), edge("e2", "src", "t2")];
     let mut config = RelationEngineConfig::default();
-    config.nudging_enabled = false;
+    config.nudging.enabled = false;
     config.crossing_minimization = false;
 
     log_step("1.route", "Two edges from same source, nudging OFF");
@@ -649,12 +649,12 @@ fn scenario_20_ortho_obstacle_bundle_nudge_cross() {
         edge("e3", "e", "f"),
     ];
     let mut config = RelationEngineConfig::default();
-    config.routing_mode = RoutingMode::Orthogonal;
-    config.corner_radius = 0.0;
-    config.obstacle_margin = 10.0;
-    config.bundling_mode = BundlingMode::SharedEndpoint;
-    config.nudging_enabled = true;
-    config.nudging_distance = 8.0;
+    config.routing.routing_mode = RoutingMode::Orthogonal;
+    config.routing.corner_radius = 0.0;
+    config.routing.obstacle_margin = 10.0;
+    config.bundling.mode = BundlingMode::SharedEndpoint;
+    config.nudging.enabled = true;
+    config.nudging.distance = 8.0;
     config.crossing_minimization = true;
 
     log_step("1.route", "3 orthogonal edges through obstacle field");

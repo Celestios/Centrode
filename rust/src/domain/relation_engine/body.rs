@@ -11,8 +11,8 @@ pub fn compute_body_widths(
     match body_type {
         BodyType::Uniform => vec![base_width; path.len()],
         BodyType::Taper => {
-            let start_w = config.taper_start_width.max(0.5);
-            let end_w = config.taper_end_width.max(0.5);
+            let start_w = config.body.taper_start_width.max(0.5);
+            let end_w = config.body.taper_end_width.max(0.5);
             let n = path.len();
             if n <= 1 {
                 return vec![base_width; n];
@@ -25,8 +25,8 @@ pub fn compute_body_widths(
                 .collect()
         }
         BodyType::WidthModulate => {
-            let amp = config.width_modulate_amplitude;
-            let freq = config.width_modulate_frequency;
+            let amp = config.body.width_modulate_amplitude;
+            let freq = config.body.width_modulate_frequency;
             let n = path.len();
             if n <= 1 {
                 return vec![base_width; n];

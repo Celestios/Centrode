@@ -10,9 +10,9 @@ pub fn compute_endpoints(
     let start_dir = start_tangent.direction();
     let end_dir = end_tangent.direction();
     (
-        config.default_start_shape,
+        config.endpoint.default_start_shape,
         start_dir,
-        config.default_end_shape,
+        config.endpoint.default_end_shape,
         end_dir,
     )
 }

@@ -52,7 +52,7 @@ pub fn route_relation(
         .strategy_type
         .as_deref()
         .map(RoutingMode::from_str)
-        .unwrap_or(config.routing_mode);
+        .unwrap_or(config.routing.routing_mode);
 
     let from_normal = from_node.port_normal(start);
     let to_normal = to_node.port_normal(end);
@@ -91,7 +91,7 @@ fn route_polyline(
         return vec![start, end];
     }
 
-    let graph = VisibilityGraph::build(obstacles, start, end, config.obstacle_margin);
+    let graph = VisibilityGraph::build(obstacles, start, end, config.routing.obstacle_margin);
     let cost_params = RouteCostParams::default();
     a_star_with_params(&graph, &cost_params, Some(&start), Some(&end))
         .unwrap_or_else(|| vec![start, end])
@@ -105,9 +105,9 @@ fn route_bezier(
     config: &RelationEngineConfig,
 ) -> Vec<Point> {
     let distance = start.distance_to(end);
-    let proj = (distance * config.bezier_projection_factor).clamp(
-        config.bezier_clamp_min,
-        config.bezier_clamp_max,
+    let proj = (distance * config.routing.bezier_projection_factor).clamp(
+        config.routing.bezier_clamp_min,
+        config.routing.bezier_clamp_max,
     );
 
     let cp1 = start + from_normal * proj;
@@ -125,7 +125,7 @@ fn route_orthogonal(
     let waypoints = if obstacles.is_empty() {
         vec![start, end]
     } else {
-        let graph = VisibilityGraph::build(obstacles, start, end, config.obstacle_margin);
+        let graph = VisibilityGraph::build(obstacles, start, end, config.routing.obstacle_margin);
         let cost_params = RouteCostParams::default();
         a_star_with_params(&graph, &cost_params, Some(&start), Some(&end))
             .unwrap_or_else(|| vec![start, end])
@@ -133,8 +133,8 @@ fn route_orthogonal(
 
     let ortho_points = snap_to_orthogonal(&waypoints);
 
-    if config.corner_radius > 1e-6 {
-        super::geometry::round_corners(&ortho_points, config.corner_radius)
+    if config.routing.corner_radius > 1e-6 {
+        super::geometry::round_corners(&ortho_points, config.routing.corner_radius)
     } else {
         ortho_points
     }
@@ -148,10 +148,10 @@ fn route_circular_arc(
     config: &RelationEngineConfig,
 ) -> Vec<Point> {
     let distance = start.distance_to(end);
-    let radius_factor = config.bezier_projection_factor;
+    let radius_factor = config.routing.bezier_projection_factor;
     let radius = (distance * radius_factor).clamp(
-        config.bezier_clamp_min,
-        config.bezier_clamp_max,
+        config.routing.bezier_clamp_min,
+        config.routing.bezier_clamp_max,
     );
 
     let cp1 = start + from_normal * radius;
@@ -232,8 +232,8 @@ fn route_sine_wave(
     end: Point,
     config: &RelationEngineConfig,
 ) -> Vec<Point> {
-    let amplitude = config.snake_amplitude;
-    let frequency = config.snake_frequency;
+    let amplitude = config.snake.amplitude;
+    let frequency = config.snake.frequency;
 
     let n = 64;
     let mut points = Vec::with_capacity(n + 1);

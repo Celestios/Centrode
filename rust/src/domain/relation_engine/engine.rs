@@ -40,10 +40,10 @@ impl RelationEngine {
             .collect();
 
         // Phase 2: Bundle edges sharing endpoints or proximity
-        let bundling_strategy = match config.bundling_mode {
+        let bundling_strategy = match config.bundling.mode {
             super::config::BundlingMode::SharedEndpoint => BundlingStrategy::SharedEndpoint,
             super::config::BundlingMode::Proximity => BundlingStrategy::Proximity {
-                threshold: config.bundling_threshold,
+                threshold: config.bundling.threshold,
             },
             super::config::BundlingMode::None => BundlingStrategy::None,
         };
@@ -73,10 +73,10 @@ impl RelationEngine {
         }
 
         // Phase 3: Nudge overlapping edges apart
-        if config.nudging_enabled && results.len() >= 2 {
+        if config.nudging.enabled && results.len() >= 2 {
             let nudge_config = NudgeConfig {
                 enabled: true,
-                min_separation: config.nudging_distance,
+                min_separation: config.nudging.distance,
                 nudge_final_segments: true,
             };
 
@@ -202,7 +202,7 @@ fn compute_single_relation(
     let (start_shape, start_dir, end_shape, end_dir) =
         compute_endpoints(start_tangent, end_tangent, config);
 
-    let body_type = config.default_body_type;
+    let body_type = config.body.default_type;
     let base_width = 2.0;
     let body_widths = compute_body_widths(&path_points, &body_type, base_width, config);
 

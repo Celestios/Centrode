@@ -72,7 +72,7 @@ fn pipeline_single_obstacle_routes_around() {
     ];
     let edges = vec![make_edge("e1", "n1", "n2")];
     let mut config = RelationEngineConfig::default();
-    config.obstacle_margin = 5.0;
+    config.routing.obstacle_margin = 5.0;
 
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
 
@@ -80,7 +80,7 @@ fn pipeline_single_obstacle_routes_around() {
     let r = &results[0];
     assert!(r.path_points.len() >= 2, "Path should have points, got {}", r.path_points.len());
 
-    let obs_rect = Rect::new(160.0, 0.0, 60.0, 200.0).expand(config.obstacle_margin);
+    let obs_rect = Rect::new(160.0, 0.0, 60.0, 200.0).expand(config.routing.obstacle_margin);
     let mut any_outside = false;
     for p in &r.path_points {
         if !obs_rect.contains(*p) {
@@ -102,8 +102,8 @@ fn pipeline_two_edges_share_endpoint_nudged() {
         make_edge("e2", "n1", "n3"),
     ];
     let mut config = RelationEngineConfig::default();
-    config.nudging_enabled = true;
-    config.nudging_distance = 8.0;
+    config.nudging.enabled = true;
+    config.nudging.distance = 8.0;
 
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
 
@@ -126,8 +126,8 @@ fn pipeline_orthogonal_routing() {
     ];
     let edges = vec![make_ortho_edge("e1", "n1", "n2")];
     let mut config = RelationEngineConfig::default();
-    config.routing_mode = RoutingMode::Orthogonal;
-    config.corner_radius = 0.0;
+    config.routing.routing_mode = RoutingMode::Orthogonal;
+    config.routing.corner_radius = 0.0;
 
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
 
@@ -182,8 +182,8 @@ fn pipeline_bundling_shared_endpoint() {
         make_edge("e3", "n1", "n4"),
     ];
     let mut config = RelationEngineConfig::default();
-    config.bundling_mode = BundlingMode::SharedEndpoint;
-    config.nudging_enabled = false;
+    config.bundling.mode = BundlingMode::SharedEndpoint;
+    config.nudging.enabled = false;
 
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
 
@@ -239,7 +239,7 @@ fn visibility_graph_angular_sweep_structure() {
         nodes.iter().map(|n| n.rect()).collect();
     let start = Point::new(40.0, 20.0);
     let end = Point::new(200.0, 20.0);
-    let graph = VisibilityGraph::build(&obstacles, start, end, config.obstacle_margin);
+    let graph = VisibilityGraph::build(&obstacles, start, end, config.routing.obstacle_margin);
 
     assert!(graph.node_count() > 2, "Graph should have start + end + corners");
     for node in &graph.nodes {
@@ -447,7 +447,7 @@ fn full_pipeline_e2e_with_obstacles_and_nudging() {
         make_edge("e2", "c", "d"),
     ];
     let mut config = RelationEngineConfig::default();
-    config.nudging_enabled = true;
+    config.nudging.enabled = true;
     config.crossing_minimization = true;
 
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
@@ -479,17 +479,17 @@ fn debug_full_pipeline_with_logging() {
         make_edge("e3", "n1", "n4"),
     ];
     let mut config = RelationEngineConfig::default();
-    config.nudging_enabled = true;
-    config.nudging_distance = 6.0;
+    config.nudging.enabled = true;
+    config.nudging.distance = 6.0;
     config.crossing_minimization = true;
-    config.bundling_mode = BundlingMode::SharedEndpoint;
-    config.obstacle_margin = 10.0;
+    config.bundling.mode = BundlingMode::SharedEndpoint;
+    config.routing.obstacle_margin = 10.0;
 
     eprintln!("=== PIPELINE DEBUG: Full E2E with obstacle, nudging, crossing, bundling ===");
     eprintln!("Nodes: 5 (3 connectors + 1 obstacle)");
     eprintln!("Edges: 3 (e1, e2, e3)");
     eprintln!("Config: margin={}, nudge_dist={}, nudging={}, crossings={}",
-        config.obstacle_margin, config.nudging_distance, config.nudging_enabled, config.crossing_minimization);
+        config.routing.obstacle_margin, config.nudging.distance, config.nudging.enabled, config.crossing_minimization);
 
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
 
