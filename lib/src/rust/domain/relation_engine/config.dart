@@ -6,63 +6,174 @@
 import '../../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-enum BodyType { uniform, taper, widthModulate, bundled }
-
-enum BundlingMode { proximity, sharedEndpoint, none }
-
-enum EndpointShapeType { none, arrow, openArrow, circle, diamond, square }
-
-class RelationEngineConfig {
-  final RoutingMode routingMode;
-  final double obstacleMargin;
-  final double cornerRadius;
-  final bool incrementalMode;
-  final bool nudgingEnabled;
-  final double nudgingDistance;
-  final BundlingMode bundlingMode;
-  final double bundlingThreshold;
-  final bool crossingMinimization;
-  final double bezierCurvature;
-  final double bezierProjectionFactor;
-  final double bezierClampMin;
-  final double bezierClampMax;
-  final BodyType defaultBodyType;
+class BodyConfig {
+  final BodyType defaultType;
   final double taperStartWidth;
   final double taperEndWidth;
   final double widthModulateAmplitude;
   final double widthModulateFrequency;
-  final EndpointShapeType defaultStartShape;
-  final EndpointShapeType defaultEndShape;
-  final double arrowSize;
-  final double snakeAmplitude;
-  final double snakeFrequency;
-  final bool snakeObstacleAvoidance;
 
-  const RelationEngineConfig({
-    required this.routingMode,
-    required this.obstacleMargin,
-    required this.cornerRadius,
-    required this.incrementalMode,
-    required this.nudgingEnabled,
-    required this.nudgingDistance,
-    required this.bundlingMode,
-    required this.bundlingThreshold,
-    required this.crossingMinimization,
-    required this.bezierCurvature,
-    required this.bezierProjectionFactor,
-    required this.bezierClampMin,
-    required this.bezierClampMax,
-    required this.defaultBodyType,
+  const BodyConfig({
+    required this.defaultType,
     required this.taperStartWidth,
     required this.taperEndWidth,
     required this.widthModulateAmplitude,
     required this.widthModulateFrequency,
+  });
+
+  @override
+  int get hashCode =>
+      defaultType.hashCode ^
+      taperStartWidth.hashCode ^
+      taperEndWidth.hashCode ^
+      widthModulateAmplitude.hashCode ^
+      widthModulateFrequency.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BodyConfig &&
+          runtimeType == other.runtimeType &&
+          defaultType == other.defaultType &&
+          taperStartWidth == other.taperStartWidth &&
+          taperEndWidth == other.taperEndWidth &&
+          widthModulateAmplitude == other.widthModulateAmplitude &&
+          widthModulateFrequency == other.widthModulateFrequency;
+}
+
+enum BodyType { uniform, taper, widthModulate, bundled }
+
+class BundlingConfig {
+  final BundlingMode mode;
+  final double threshold;
+
+  const BundlingConfig({required this.mode, required this.threshold});
+
+  @override
+  int get hashCode => mode.hashCode ^ threshold.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BundlingConfig &&
+          runtimeType == other.runtimeType &&
+          mode == other.mode &&
+          threshold == other.threshold;
+}
+
+enum BundlingMode { proximity, sharedEndpoint, none }
+
+class EndpointConfig {
+  final EndpointShapeType defaultStartShape;
+  final EndpointShapeType defaultEndShape;
+  final double arrowSize;
+
+  const EndpointConfig({
     required this.defaultStartShape,
     required this.defaultEndShape,
     required this.arrowSize,
-    required this.snakeAmplitude,
-    required this.snakeFrequency,
-    required this.snakeObstacleAvoidance,
+  });
+
+  @override
+  int get hashCode =>
+      defaultStartShape.hashCode ^
+      defaultEndShape.hashCode ^
+      arrowSize.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EndpointConfig &&
+          runtimeType == other.runtimeType &&
+          defaultStartShape == other.defaultStartShape &&
+          defaultEndShape == other.defaultEndShape &&
+          arrowSize == other.arrowSize;
+}
+
+enum EndpointShapeType { none, arrow, openArrow, circle, diamond, square }
+
+class NudgingConfig {
+  final bool enabled;
+  final double distance;
+
+  const NudgingConfig({required this.enabled, required this.distance});
+
+  @override
+  int get hashCode => enabled.hashCode ^ distance.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NudgingConfig &&
+          runtimeType == other.runtimeType &&
+          enabled == other.enabled &&
+          distance == other.distance;
+}
+
+class RelationEngineConfig {
+  final RoutingConfig routing;
+  final NudgingConfig nudging;
+  final BundlingConfig bundling;
+  final bool crossingMinimization;
+  final bool incrementalMode;
+  final BodyConfig body;
+  final EndpointConfig endpoint;
+  final SnakeConfig snake;
+
+  const RelationEngineConfig({
+    required this.routing,
+    required this.nudging,
+    required this.bundling,
+    required this.crossingMinimization,
+    required this.incrementalMode,
+    required this.body,
+    required this.endpoint,
+    required this.snake,
+  });
+
+  @override
+  int get hashCode =>
+      routing.hashCode ^
+      nudging.hashCode ^
+      bundling.hashCode ^
+      crossingMinimization.hashCode ^
+      incrementalMode.hashCode ^
+      body.hashCode ^
+      endpoint.hashCode ^
+      snake.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RelationEngineConfig &&
+          runtimeType == other.runtimeType &&
+          routing == other.routing &&
+          nudging == other.nudging &&
+          bundling == other.bundling &&
+          crossingMinimization == other.crossingMinimization &&
+          incrementalMode == other.incrementalMode &&
+          body == other.body &&
+          endpoint == other.endpoint &&
+          snake == other.snake;
+}
+
+class RoutingConfig {
+  final RoutingMode routingMode;
+  final double obstacleMargin;
+  final double cornerRadius;
+  final double bezierCurvature;
+  final double bezierProjectionFactor;
+  final double bezierClampMin;
+  final double bezierClampMax;
+
+  const RoutingConfig({
+    required this.routingMode,
+    required this.obstacleMargin,
+    required this.cornerRadius,
+    required this.bezierCurvature,
+    required this.bezierProjectionFactor,
+    required this.bezierClampMin,
+    required this.bezierClampMax,
   });
 
   @override
@@ -70,57 +181,48 @@ class RelationEngineConfig {
       routingMode.hashCode ^
       obstacleMargin.hashCode ^
       cornerRadius.hashCode ^
-      incrementalMode.hashCode ^
-      nudgingEnabled.hashCode ^
-      nudgingDistance.hashCode ^
-      bundlingMode.hashCode ^
-      bundlingThreshold.hashCode ^
-      crossingMinimization.hashCode ^
       bezierCurvature.hashCode ^
       bezierProjectionFactor.hashCode ^
       bezierClampMin.hashCode ^
-      bezierClampMax.hashCode ^
-      defaultBodyType.hashCode ^
-      taperStartWidth.hashCode ^
-      taperEndWidth.hashCode ^
-      widthModulateAmplitude.hashCode ^
-      widthModulateFrequency.hashCode ^
-      defaultStartShape.hashCode ^
-      defaultEndShape.hashCode ^
-      arrowSize.hashCode ^
-      snakeAmplitude.hashCode ^
-      snakeFrequency.hashCode ^
-      snakeObstacleAvoidance.hashCode;
+      bezierClampMax.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is RelationEngineConfig &&
+      other is RoutingConfig &&
           runtimeType == other.runtimeType &&
           routingMode == other.routingMode &&
           obstacleMargin == other.obstacleMargin &&
           cornerRadius == other.cornerRadius &&
-          incrementalMode == other.incrementalMode &&
-          nudgingEnabled == other.nudgingEnabled &&
-          nudgingDistance == other.nudgingDistance &&
-          bundlingMode == other.bundlingMode &&
-          bundlingThreshold == other.bundlingThreshold &&
-          crossingMinimization == other.crossingMinimization &&
           bezierCurvature == other.bezierCurvature &&
           bezierProjectionFactor == other.bezierProjectionFactor &&
           bezierClampMin == other.bezierClampMin &&
-          bezierClampMax == other.bezierClampMax &&
-          defaultBodyType == other.defaultBodyType &&
-          taperStartWidth == other.taperStartWidth &&
-          taperEndWidth == other.taperEndWidth &&
-          widthModulateAmplitude == other.widthModulateAmplitude &&
-          widthModulateFrequency == other.widthModulateFrequency &&
-          defaultStartShape == other.defaultStartShape &&
-          defaultEndShape == other.defaultEndShape &&
-          arrowSize == other.arrowSize &&
-          snakeAmplitude == other.snakeAmplitude &&
-          snakeFrequency == other.snakeFrequency &&
-          snakeObstacleAvoidance == other.snakeObstacleAvoidance;
+          bezierClampMax == other.bezierClampMax;
 }
 
 enum RoutingMode { polyline, bezier, orthogonal, circularArc, sineWave }
+
+class SnakeConfig {
+  final double amplitude;
+  final double frequency;
+  final bool obstacleAvoidance;
+
+  const SnakeConfig({
+    required this.amplitude,
+    required this.frequency,
+    required this.obstacleAvoidance,
+  });
+
+  @override
+  int get hashCode =>
+      amplitude.hashCode ^ frequency.hashCode ^ obstacleAvoidance.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SnakeConfig &&
+          runtimeType == other.runtimeType &&
+          amplitude == other.amplitude &&
+          frequency == other.frequency &&
+          obstacleAvoidance == other.obstacleAvoidance;
+}

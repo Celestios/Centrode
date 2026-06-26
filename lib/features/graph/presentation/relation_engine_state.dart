@@ -13,31 +13,43 @@ class RelationEngineState {
 
   final rust.AppHandle _api;
   final InvalidationTracker _tracker = InvalidationTracker();
-  RelationEngineConfig _config = RelationEngineConfig(
-    routingMode: RoutingMode.polyline,
-    obstacleMargin: 45.0,
-    cornerRadius: 8.0,
-    incrementalMode: true,
-    nudgingEnabled: true,
-    nudgingDistance: 4.0,
-    bundlingMode: BundlingMode.none,
-    bundlingThreshold: 50.0,
+  RelationEngineConfig _config = const RelationEngineConfig(
+    routing: RoutingConfig(
+      routingMode: RoutingMode.polyline,
+      obstacleMargin: 45.0,
+      cornerRadius: 8.0,
+      bezierCurvature: 0.25,
+      bezierProjectionFactor: 0.4,
+      bezierClampMin: 30.0,
+      bezierClampMax: 150.0,
+    ),
+    nudging: NudgingConfig(
+      enabled: true,
+      distance: 4.0,
+    ),
+    bundling: BundlingConfig(
+      mode: BundlingMode.none,
+      threshold: 50.0,
+    ),
     crossingMinimization: true,
-    bezierCurvature: 0.25,
-    bezierProjectionFactor: 0.4,
-    bezierClampMin: 30.0,
-    bezierClampMax: 150.0,
-    defaultBodyType: BodyType.uniform,
-    taperStartWidth: 2.0,
-    taperEndWidth: 2.0,
-    widthModulateAmplitude: 1.5,
-    widthModulateFrequency: 3.0,
-    defaultStartShape: EndpointShapeType.none,
-    defaultEndShape: EndpointShapeType.arrow,
-    arrowSize: 10.0,
-    snakeAmplitude: 20.0,
-    snakeFrequency: 3.0,
-    snakeObstacleAvoidance: false,
+    incrementalMode: true,
+    body: BodyConfig(
+      defaultType: BodyType.uniform,
+      taperStartWidth: 2.0,
+      taperEndWidth: 2.0,
+      widthModulateAmplitude: 1.5,
+      widthModulateFrequency: 3.0,
+    ),
+    endpoint: EndpointConfig(
+      defaultStartShape: EndpointShapeType.none,
+      defaultEndShape: EndpointShapeType.arrow,
+      arrowSize: 10.0,
+    ),
+    snake: SnakeConfig(
+      amplitude: 20.0,
+      frequency: 3.0,
+      obstacleAvoidance: false,
+    ),
   );
   Timer? _debounceTimer;
   final ValueNotifier<int> cacheNotifier = ValueNotifier<int>(0);

@@ -2675,6 +2675,25 @@ impl SseDecode for crate::domain::contents::BlockType {
     }
 }
 
+impl SseDecode for crate::domain::relation_engine::config::BodyConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_defaultType =
+            <crate::domain::relation_engine::config::BodyType>::sse_decode(deserializer);
+        let mut var_taperStartWidth = <f64>::sse_decode(deserializer);
+        let mut var_taperEndWidth = <f64>::sse_decode(deserializer);
+        let mut var_widthModulateAmplitude = <f64>::sse_decode(deserializer);
+        let mut var_widthModulateFrequency = <f64>::sse_decode(deserializer);
+        return crate::domain::relation_engine::config::BodyConfig {
+            default_type: var_defaultType,
+            taper_start_width: var_taperStartWidth,
+            taper_end_width: var_taperEndWidth,
+            width_modulate_amplitude: var_widthModulateAmplitude,
+            width_modulate_frequency: var_widthModulateFrequency,
+        };
+    }
+}
+
 impl SseDecode for crate::domain::relation_engine::config::BodyType {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2708,6 +2727,19 @@ impl SseDecode for crate::domain::base_models::BoundingBox {
             min_y: var_minY,
             max_x: var_maxX,
             max_y: var_maxY,
+        };
+    }
+}
+
+impl SseDecode for crate::domain::relation_engine::config::BundlingConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_mode =
+            <crate::domain::relation_engine::config::BundlingMode>::sse_decode(deserializer);
+        let mut var_threshold = <f64>::sse_decode(deserializer);
+        return crate::domain::relation_engine::config::BundlingConfig {
+            mode: var_mode,
+            threshold: var_threshold,
         };
     }
 }
@@ -2888,6 +2920,22 @@ impl SseDecode for crate::domain::nodes::DrawingNode {
             brush_color: var_brushColor,
             size: var_size,
             locked: var_locked,
+        };
+    }
+}
+
+impl SseDecode for crate::domain::relation_engine::config::EndpointConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_defaultStartShape =
+            <crate::domain::relation_engine::config::EndpointShapeType>::sse_decode(deserializer);
+        let mut var_defaultEndShape =
+            <crate::domain::relation_engine::config::EndpointShapeType>::sse_decode(deserializer);
+        let mut var_arrowSize = <f64>::sse_decode(deserializer);
+        return crate::domain::relation_engine::config::EndpointConfig {
+            default_start_shape: var_defaultStartShape,
+            default_end_shape: var_defaultEndShape,
+            arrow_size: var_arrowSize,
         };
     }
 }
@@ -3707,6 +3755,18 @@ impl SseDecode for crate::domain::nodes::Nodes {
     }
 }
 
+impl SseDecode for crate::domain::relation_engine::config::NudgingConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_enabled = <bool>::sse_decode(deserializer);
+        let mut var_distance = <f64>::sse_decode(deserializer);
+        return crate::domain::relation_engine::config::NudgingConfig {
+            enabled: var_enabled,
+            distance: var_distance,
+        };
+    }
+}
+
 impl SseDecode for Option<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4014,103 +4074,6 @@ impl SseDecode for crate::domain::relation_engine::geometry::Rect {
     }
 }
 
-impl SseDecode for crate::domain::relation_engine::config::RoutingConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_routingMode =
-            <crate::domain::relation_engine::config::RoutingMode>::sse_decode(deserializer);
-        let mut var_obstacleMargin = <f64>::sse_decode(deserializer);
-        let mut var_cornerRadius = <f64>::sse_decode(deserializer);
-        let mut var_bezierCurvature = <f64>::sse_decode(deserializer);
-        let mut var_bezierProjectionFactor = <f64>::sse_decode(deserializer);
-        let mut var_bezierClampMin = <f64>::sse_decode(deserializer);
-        let mut var_bezierClampMax = <f64>::sse_decode(deserializer);
-        return crate::domain::relation_engine::config::RoutingConfig {
-            routing_mode: var_routingMode,
-            obstacle_margin: var_obstacleMargin,
-            corner_radius: var_cornerRadius,
-            bezier_curvature: var_bezierCurvature,
-            bezier_projection_factor: var_bezierProjectionFactor,
-            bezier_clamp_min: var_bezierClampMin,
-            bezier_clamp_max: var_bezierClampMax,
-        };
-    }
-}
-
-impl SseDecode for crate::domain::relation_engine::config::NudgingConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_enabled = <bool>::sse_decode(deserializer);
-        let mut var_distance = <f64>::sse_decode(deserializer);
-        return crate::domain::relation_engine::config::NudgingConfig {
-            enabled: var_enabled,
-            distance: var_distance,
-        };
-    }
-}
-
-impl SseDecode for crate::domain::relation_engine::config::BundlingConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_mode =
-            <crate::domain::relation_engine::config::BundlingMode>::sse_decode(deserializer);
-        let mut var_threshold = <f64>::sse_decode(deserializer);
-        return crate::domain::relation_engine::config::BundlingConfig {
-            mode: var_mode,
-            threshold: var_threshold,
-        };
-    }
-}
-
-impl SseDecode for crate::domain::relation_engine::config::BodyConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_defaultType =
-            <crate::domain::relation_engine::config::BodyType>::sse_decode(deserializer);
-        let mut var_taperStartWidth = <f64>::sse_decode(deserializer);
-        let mut var_taperEndWidth = <f64>::sse_decode(deserializer);
-        let mut var_widthModulateAmplitude = <f64>::sse_decode(deserializer);
-        let mut var_widthModulateFrequency = <f64>::sse_decode(deserializer);
-        return crate::domain::relation_engine::config::BodyConfig {
-            default_type: var_defaultType,
-            taper_start_width: var_taperStartWidth,
-            taper_end_width: var_taperEndWidth,
-            width_modulate_amplitude: var_widthModulateAmplitude,
-            width_modulate_frequency: var_widthModulateFrequency,
-        };
-    }
-}
-
-impl SseDecode for crate::domain::relation_engine::config::EndpointConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_defaultStartShape =
-            <crate::domain::relation_engine::config::EndpointShapeType>::sse_decode(deserializer);
-        let mut var_defaultEndShape =
-            <crate::domain::relation_engine::config::EndpointShapeType>::sse_decode(deserializer);
-        let mut var_arrowSize = <f64>::sse_decode(deserializer);
-        return crate::domain::relation_engine::config::EndpointConfig {
-            default_start_shape: var_defaultStartShape,
-            default_end_shape: var_defaultEndShape,
-            arrow_size: var_arrowSize,
-        };
-    }
-}
-
-impl SseDecode for crate::domain::relation_engine::config::SnakeConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_amplitude = <f64>::sse_decode(deserializer);
-        let mut var_frequency = <f64>::sse_decode(deserializer);
-        let mut var_obstacleAvoidance = <bool>::sse_decode(deserializer);
-        return crate::domain::relation_engine::config::SnakeConfig {
-            amplitude: var_amplitude,
-            frequency: var_frequency,
-            obstacle_avoidance: var_obstacleAvoidance,
-        };
-    }
-}
-
 impl SseDecode for crate::domain::relation_engine::config::RelationEngineConfig {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4235,6 +4198,29 @@ impl SseDecode for crate::domain::styles::RelationStyle {
     }
 }
 
+impl SseDecode for crate::domain::relation_engine::config::RoutingConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_routingMode =
+            <crate::domain::relation_engine::config::RoutingMode>::sse_decode(deserializer);
+        let mut var_obstacleMargin = <f64>::sse_decode(deserializer);
+        let mut var_cornerRadius = <f64>::sse_decode(deserializer);
+        let mut var_bezierCurvature = <f64>::sse_decode(deserializer);
+        let mut var_bezierProjectionFactor = <f64>::sse_decode(deserializer);
+        let mut var_bezierClampMin = <f64>::sse_decode(deserializer);
+        let mut var_bezierClampMax = <f64>::sse_decode(deserializer);
+        return crate::domain::relation_engine::config::RoutingConfig {
+            routing_mode: var_routingMode,
+            obstacle_margin: var_obstacleMargin,
+            corner_radius: var_cornerRadius,
+            bezier_curvature: var_bezierCurvature,
+            bezier_projection_factor: var_bezierProjectionFactor,
+            bezier_clamp_min: var_bezierClampMin,
+            bezier_clamp_max: var_bezierClampMax,
+        };
+    }
+}
+
 impl SseDecode for crate::domain::relation_engine::config::RoutingMode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4282,6 +4268,20 @@ impl SseDecode for crate::domain::base_models::Size {
         return crate::domain::base_models::Size {
             width: var_width,
             height: var_height,
+        };
+    }
+}
+
+impl SseDecode for crate::domain::relation_engine::config::SnakeConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_amplitude = <f64>::sse_decode(deserializer);
+        let mut var_frequency = <f64>::sse_decode(deserializer);
+        let mut var_obstacleAvoidance = <bool>::sse_decode(deserializer);
+        return crate::domain::relation_engine::config::SnakeConfig {
+            amplitude: var_amplitude,
+            frequency: var_frequency,
+            obstacle_avoidance: var_obstacleAvoidance,
         };
     }
 }
@@ -4861,6 +4861,30 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::contents::BlockType>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::BodyConfig {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.default_type.into_into_dart().into_dart(),
+            self.taper_start_width.into_into_dart().into_dart(),
+            self.taper_end_width.into_into_dart().into_dart(),
+            self.width_modulate_amplitude.into_into_dart().into_dart(),
+            self.width_modulate_frequency.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::relation_engine::config::BodyConfig
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::BodyConfig>
+    for crate::domain::relation_engine::config::BodyConfig
+{
+    fn into_into_dart(self) -> crate::domain::relation_engine::config::BodyConfig {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::BodyType {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
@@ -4903,6 +4927,27 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::base_models::BoundingBox>
     for crate::domain::base_models::BoundingBox
 {
     fn into_into_dart(self) -> crate::domain::base_models::BoundingBox {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::BundlingConfig {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.mode.into_into_dart().into_dart(),
+            self.threshold.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::relation_engine::config::BundlingConfig
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::BundlingConfig>
+    for crate::domain::relation_engine::config::BundlingConfig
+{
+    fn into_into_dart(self) -> crate::domain::relation_engine::config::BundlingConfig {
         self
     }
 }
@@ -4972,169 +5017,6 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::nodes::CommentNode>
     for crate::domain::nodes::CommentNode
 {
     fn into_into_dart(self) -> crate::domain::nodes::CommentNode {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::RoutingConfig {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.routing_mode.into_into_dart().into_dart(),
-            self.obstacle_margin.into_into_dart().into_dart(),
-            self.corner_radius.into_into_dart().into_dart(),
-            self.bezier_curvature.into_into_dart().into_dart(),
-            self.bezier_projection_factor.into_into_dart().into_dart(),
-            self.bezier_clamp_min.into_into_dart().into_dart(),
-            self.bezier_clamp_max.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::domain::relation_engine::config::RoutingConfig
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::RoutingConfig>
-    for crate::domain::relation_engine::config::RoutingConfig
-{
-    fn into_into_dart(self) -> crate::domain::relation_engine::config::RoutingConfig {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::NudgingConfig {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.enabled.into_into_dart().into_dart(),
-            self.distance.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::domain::relation_engine::config::NudgingConfig
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::NudgingConfig>
-    for crate::domain::relation_engine::config::NudgingConfig
-{
-    fn into_into_dart(self) -> crate::domain::relation_engine::config::NudgingConfig {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::BundlingConfig {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.mode.into_into_dart().into_dart(),
-            self.threshold.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::domain::relation_engine::config::BundlingConfig
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::BundlingConfig>
-    for crate::domain::relation_engine::config::BundlingConfig
-{
-    fn into_into_dart(self) -> crate::domain::relation_engine::config::BundlingConfig {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::BodyConfig {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.default_type.into_into_dart().into_dart(),
-            self.taper_start_width.into_into_dart().into_dart(),
-            self.taper_end_width.into_into_dart().into_dart(),
-            self.width_modulate_amplitude.into_into_dart().into_dart(),
-            self.width_modulate_frequency.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::domain::relation_engine::config::BodyConfig
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::BodyConfig>
-    for crate::domain::relation_engine::config::BodyConfig
-{
-    fn into_into_dart(self) -> crate::domain::relation_engine::config::BodyConfig {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::EndpointConfig {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.default_start_shape.into_into_dart().into_dart(),
-            self.default_end_shape.into_into_dart().into_dart(),
-            self.arrow_size.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::domain::relation_engine::config::EndpointConfig
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::EndpointConfig>
-    for crate::domain::relation_engine::config::EndpointConfig
-{
-    fn into_into_dart(self) -> crate::domain::relation_engine::config::EndpointConfig {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::SnakeConfig {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.amplitude.into_into_dart().into_dart(),
-            self.frequency.into_into_dart().into_dart(),
-            self.obstacle_avoidance.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::domain::relation_engine::config::SnakeConfig
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::SnakeConfig>
-    for crate::domain::relation_engine::config::SnakeConfig
-{
-    fn into_into_dart(self) -> crate::domain::relation_engine::config::SnakeConfig {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::RelationEngineConfig {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.routing.into_into_dart().into_dart(),
-            self.nudging.into_into_dart().into_dart(),
-            self.bundling.into_into_dart().into_dart(),
-            self.crossing_minimization.into_into_dart().into_dart(),
-            self.incremental_mode.into_into_dart().into_dart(),
-            self.body.into_into_dart().into_dart(),
-            self.endpoint.into_into_dart().into_dart(),
-            self.snake.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::domain::relation_engine::config::RelationEngineConfig
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::RelationEngineConfig>
-    for crate::domain::relation_engine::config::RelationEngineConfig
-{
-    fn into_into_dart(self) -> crate::domain::relation_engine::config::RelationEngineConfig {
         self
     }
 }
@@ -5287,6 +5169,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::nodes::DrawingNode>
     for crate::domain::nodes::DrawingNode
 {
     fn into_into_dart(self) -> crate::domain::nodes::DrawingNode {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::EndpointConfig {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.default_start_shape.into_into_dart().into_dart(),
+            self.default_end_shape.into_into_dart().into_dart(),
+            self.arrow_size.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::relation_engine::config::EndpointConfig
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::EndpointConfig>
+    for crate::domain::relation_engine::config::EndpointConfig
+{
+    fn into_into_dart(self) -> crate::domain::relation_engine::config::EndpointConfig {
         self
     }
 }
@@ -5918,6 +5822,27 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::nodes::Nodes>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::NudgingConfig {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.enabled.into_into_dart().into_dart(),
+            self.distance.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::relation_engine::config::NudgingConfig
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::NudgingConfig>
+    for crate::domain::relation_engine::config::NudgingConfig
+{
+    fn into_into_dart(self) -> crate::domain::relation_engine::config::NudgingConfig {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::computed::PathType {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
@@ -6036,6 +5961,35 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::geometry:
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart
+    for crate::domain::relation_engine::config::RelationEngineConfig
+{
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.routing.into_into_dart().into_dart(),
+            self.nudging.into_into_dart().into_dart(),
+            self.bundling.into_into_dart().into_dart(),
+            self.crossing_minimization.into_into_dart().into_dart(),
+            self.incremental_mode.into_into_dart().into_dart(),
+            self.body.into_into_dart().into_dart(),
+            self.endpoint.into_into_dart().into_dart(),
+            self.snake.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::relation_engine::config::RelationEngineConfig
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::RelationEngineConfig>
+    for crate::domain::relation_engine::config::RelationEngineConfig
+{
+    fn into_into_dart(self) -> crate::domain::relation_engine::config::RelationEngineConfig {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::domain::styles::RelationLayout {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -6130,6 +6084,32 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::styles::RelationStyle>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::RoutingConfig {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.routing_mode.into_into_dart().into_dart(),
+            self.obstacle_margin.into_into_dart().into_dart(),
+            self.corner_radius.into_into_dart().into_dart(),
+            self.bezier_curvature.into_into_dart().into_dart(),
+            self.bezier_projection_factor.into_into_dart().into_dart(),
+            self.bezier_clamp_min.into_into_dart().into_dart(),
+            self.bezier_clamp_max.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::relation_engine::config::RoutingConfig
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::RoutingConfig>
+    for crate::domain::relation_engine::config::RoutingConfig
+{
+    fn into_into_dart(self) -> crate::domain::relation_engine::config::RoutingConfig {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::RoutingMode {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
@@ -6198,6 +6178,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::base_models::Size>
     for crate::domain::base_models::Size
 {
     fn into_into_dart(self) -> crate::domain::base_models::Size {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::SnakeConfig {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.amplitude.into_into_dart().into_dart(),
+            self.frequency.into_into_dart().into_dart(),
+            self.obstacle_avoidance.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::relation_engine::config::SnakeConfig
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::SnakeConfig>
+    for crate::domain::relation_engine::config::SnakeConfig
+{
+    fn into_into_dart(self) -> crate::domain::relation_engine::config::SnakeConfig {
         self
     }
 }
@@ -6611,6 +6613,20 @@ impl SseEncode for crate::domain::contents::BlockType {
     }
 }
 
+impl SseEncode for crate::domain::relation_engine::config::BodyConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::domain::relation_engine::config::BodyType>::sse_encode(
+            self.default_type,
+            serializer,
+        );
+        <f64>::sse_encode(self.taper_start_width, serializer);
+        <f64>::sse_encode(self.taper_end_width, serializer);
+        <f64>::sse_encode(self.width_modulate_amplitude, serializer);
+        <f64>::sse_encode(self.width_modulate_frequency, serializer);
+    }
+}
+
 impl SseEncode for crate::domain::relation_engine::config::BodyType {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -6643,6 +6659,14 @@ impl SseEncode for crate::domain::base_models::BoundingBox {
         <f64>::sse_encode(self.min_y, serializer);
         <f64>::sse_encode(self.max_x, serializer);
         <f64>::sse_encode(self.max_y, serializer);
+    }
+}
+
+impl SseEncode for crate::domain::relation_engine::config::BundlingConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::domain::relation_engine::config::BundlingMode>::sse_encode(self.mode, serializer);
+        <f64>::sse_encode(self.threshold, serializer);
     }
 }
 
@@ -6787,6 +6811,21 @@ impl SseEncode for crate::domain::nodes::DrawingNode {
         <String>::sse_encode(self.brush_color, serializer);
         <crate::domain::base_models::Size>::sse_encode(self.size, serializer);
         <bool>::sse_encode(self.locked, serializer);
+    }
+}
+
+impl SseEncode for crate::domain::relation_engine::config::EndpointConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::domain::relation_engine::config::EndpointShapeType>::sse_encode(
+            self.default_start_shape,
+            serializer,
+        );
+        <crate::domain::relation_engine::config::EndpointShapeType>::sse_encode(
+            self.default_end_shape,
+            serializer,
+        );
+        <f64>::sse_encode(self.arrow_size, serializer);
     }
 }
 
@@ -7427,6 +7466,14 @@ impl SseEncode for crate::domain::nodes::Nodes {
     }
 }
 
+impl SseEncode for crate::domain::relation_engine::config::NudgingConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.enabled, serializer);
+        <f64>::sse_encode(self.distance, serializer);
+    }
+}
+
 impl SseEncode for Option<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7697,79 +7744,6 @@ impl SseEncode for crate::domain::relation_engine::geometry::Rect {
     }
 }
 
-impl SseEncode for crate::domain::relation_engine::config::RoutingConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <crate::domain::relation_engine::config::RoutingMode>::sse_encode(
-            self.routing_mode,
-            serializer,
-        );
-        <f64>::sse_encode(self.obstacle_margin, serializer);
-        <f64>::sse_encode(self.corner_radius, serializer);
-        <f64>::sse_encode(self.bezier_curvature, serializer);
-        <f64>::sse_encode(self.bezier_projection_factor, serializer);
-        <f64>::sse_encode(self.bezier_clamp_min, serializer);
-        <f64>::sse_encode(self.bezier_clamp_max, serializer);
-    }
-}
-
-impl SseEncode for crate::domain::relation_engine::config::NudgingConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <bool>::sse_encode(self.enabled, serializer);
-        <f64>::sse_encode(self.distance, serializer);
-    }
-}
-
-impl SseEncode for crate::domain::relation_engine::config::BundlingConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <crate::domain::relation_engine::config::BundlingMode>::sse_encode(
-            self.mode,
-            serializer,
-        );
-        <f64>::sse_encode(self.threshold, serializer);
-    }
-}
-
-impl SseEncode for crate::domain::relation_engine::config::BodyConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <crate::domain::relation_engine::config::BodyType>::sse_encode(
-            self.default_type,
-            serializer,
-        );
-        <f64>::sse_encode(self.taper_start_width, serializer);
-        <f64>::sse_encode(self.taper_end_width, serializer);
-        <f64>::sse_encode(self.width_modulate_amplitude, serializer);
-        <f64>::sse_encode(self.width_modulate_frequency, serializer);
-    }
-}
-
-impl SseEncode for crate::domain::relation_engine::config::EndpointConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <crate::domain::relation_engine::config::EndpointShapeType>::sse_encode(
-            self.default_start_shape,
-            serializer,
-        );
-        <crate::domain::relation_engine::config::EndpointShapeType>::sse_encode(
-            self.default_end_shape,
-            serializer,
-        );
-        <f64>::sse_encode(self.arrow_size, serializer);
-    }
-}
-
-impl SseEncode for crate::domain::relation_engine::config::SnakeConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <f64>::sse_encode(self.amplitude, serializer);
-        <f64>::sse_encode(self.frequency, serializer);
-        <bool>::sse_encode(self.obstacle_avoidance, serializer);
-    }
-}
-
 impl SseEncode for crate::domain::relation_engine::config::RelationEngineConfig {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7787,18 +7761,12 @@ impl SseEncode for crate::domain::relation_engine::config::RelationEngineConfig 
         );
         <bool>::sse_encode(self.crossing_minimization, serializer);
         <bool>::sse_encode(self.incremental_mode, serializer);
-        <crate::domain::relation_engine::config::BodyConfig>::sse_encode(
-            self.body,
-            serializer,
-        );
+        <crate::domain::relation_engine::config::BodyConfig>::sse_encode(self.body, serializer);
         <crate::domain::relation_engine::config::EndpointConfig>::sse_encode(
             self.endpoint,
             serializer,
         );
-        <crate::domain::relation_engine::config::SnakeConfig>::sse_encode(
-            self.snake,
-            serializer,
-        );
+        <crate::domain::relation_engine::config::SnakeConfig>::sse_encode(self.snake, serializer);
     }
 }
 
@@ -7864,6 +7832,22 @@ impl SseEncode for crate::domain::styles::RelationStyle {
     }
 }
 
+impl SseEncode for crate::domain::relation_engine::config::RoutingConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::domain::relation_engine::config::RoutingMode>::sse_encode(
+            self.routing_mode,
+            serializer,
+        );
+        <f64>::sse_encode(self.obstacle_margin, serializer);
+        <f64>::sse_encode(self.corner_radius, serializer);
+        <f64>::sse_encode(self.bezier_curvature, serializer);
+        <f64>::sse_encode(self.bezier_projection_factor, serializer);
+        <f64>::sse_encode(self.bezier_clamp_min, serializer);
+        <f64>::sse_encode(self.bezier_clamp_max, serializer);
+    }
+}
+
 impl SseEncode for crate::domain::relation_engine::config::RoutingMode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7902,6 +7886,15 @@ impl SseEncode for crate::domain::base_models::Size {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.width, serializer);
         <i32>::sse_encode(self.height, serializer);
+    }
+}
+
+impl SseEncode for crate::domain::relation_engine::config::SnakeConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <f64>::sse_encode(self.amplitude, serializer);
+        <f64>::sse_encode(self.frequency, serializer);
+        <bool>::sse_encode(self.obstacle_avoidance, serializer);
     }
 }
 

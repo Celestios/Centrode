@@ -27,7 +27,9 @@ fn make_edge(id: &str, from: &str, to: &str) -> InputEdge {
         to_node_id: to.to_string(),
         from_side: None,
         to_side: None,
-        strategy_type: None,
+        routing_mode: None,
+        bundling_mode: None,
+        style: None,
     }
 }
 
@@ -38,7 +40,9 @@ fn make_ortho_edge(id: &str, from: &str, to: &str) -> InputEdge {
         to_node_id: to.to_string(),
         from_side: None,
         to_side: None,
-        strategy_type: Some("orthogonal".to_string()),
+        routing_mode: Some(RoutingMode::Orthogonal),
+        bundling_mode: None,
+        style: None,
     }
 }
 
@@ -255,7 +259,7 @@ fn a_star_cost_with_penalties() {
     let graph = VisibilityGraph::build(&[], start, end, 45.0);
 
     let params_default = RouteCostParams::default();
-    let path_default = a_star_with_params(&graph, &params_default, Some(&start), Some(&end));
+    let path_default = a_star_with_params(&graph, &params_default, Some(&start), Some(&end), &rust_lib_mycelium::domain::relation_engine::state::CanvasState::new());
     assert!(path_default.is_some(), "Should find path with default params");
 
     let params_high_penalty = RouteCostParams {
@@ -264,7 +268,8 @@ fn a_star_cost_with_penalties() {
         crossing_penalty: 100.0,
         reverse_direction_penalty: 50.0,
     };
-    let path_high = a_star_with_params(&graph, &params_high_penalty, Some(&start), Some(&end));
+    let path_high = a_star_with_params(&graph, &params_high_penalty, Some(&start), Some(&end), &rust_lib_mycelium::domain::relation_engine::state::CanvasState::new());
+
     assert!(path_high.is_some(), "Should find path with high penalties");
 
     let cost_default = compute_path_cost(&path_default.unwrap(), &params_default);

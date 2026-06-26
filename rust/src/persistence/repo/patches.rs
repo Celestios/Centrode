@@ -202,11 +202,11 @@ impl Repository {
     pub fn apply_cache_patch(&self, id: &RecordStrings, patch: &EntityPatch) {
         match patch {
             EntityPatch::Node(patches) => {
-                let mut cache = match self.node_cache.lock() {
-                    Ok(c) => c,
+                let mut engine = match self.relation_engine.lock() {
+                    Ok(e) => e,
                     Err(_) => return,
                 };
-                let node = match cache.get_mut(&id.key) {
+                let mut node = match engine.state.nodes.get(&id.key).cloned() {
                     Some(n) => n,
                     None => return,
                 };
@@ -223,6 +223,7 @@ impl Repository {
                         _ => {}
                     }
                 }
+                engine.state.update_node(node, 45.0);
             }
             EntityPatch::CreateNode(node, _) => {
                 if let Some(input_node) = InputNode::from_domain(node) {
@@ -236,4 +237,6 @@ impl Repository {
             _ => {}
         }
     }
+
+
 }

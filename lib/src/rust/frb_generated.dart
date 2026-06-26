@@ -2115,6 +2115,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BodyConfig dco_decode_body_config(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return BodyConfig(
+      defaultType: dco_decode_body_type(arr[0]),
+      taperStartWidth: dco_decode_f_64(arr[1]),
+      taperEndWidth: dco_decode_f_64(arr[2]),
+      widthModulateAmplitude: dco_decode_f_64(arr[3]),
+      widthModulateFrequency: dco_decode_f_64(arr[4]),
+    );
+  }
+
+  @protected
   BodyType dco_decode_body_type(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return BodyType.values[raw as int];
@@ -2360,6 +2375,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BundlingConfig dco_decode_bundling_config(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return BundlingConfig(
+      mode: dco_decode_bundling_mode(arr[0]),
+      threshold: dco_decode_f_64(arr[1]),
+    );
+  }
+
+  @protected
   BundlingMode dco_decode_bundling_mode(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return BundlingMode.values[raw as int];
@@ -2480,6 +2507,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       brushColor: dco_decode_String(arr[8]),
       size: dco_decode_size(arr[9]),
       locked: dco_decode_bool(arr[10]),
+    );
+  }
+
+  @protected
+  EndpointConfig dco_decode_endpoint_config(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return EndpointConfig(
+      defaultStartShape: dco_decode_endpoint_shape_type(arr[0]),
+      defaultEndShape: dco_decode_endpoint_shape_type(arr[1]),
+      arrowSize: dco_decode_f_64(arr[2]),
     );
   }
 
@@ -2978,6 +3018,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  NudgingConfig dco_decode_nudging_config(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return NudgingConfig(
+      enabled: dco_decode_bool(arr[0]),
+      distance: dco_decode_f_64(arr[1]),
+    );
+  }
+
+  @protected
   String? dco_decode_opt_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_String(raw);
@@ -3166,33 +3218,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RelationEngineConfig dco_decode_relation_engine_config(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 24)
-      throw Exception('unexpected arr length: expect 24 but see ${arr.length}');
+    if (arr.length != 8)
+      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
     return RelationEngineConfig(
-      routingMode: dco_decode_routing_mode(arr[0]),
-      obstacleMargin: dco_decode_f_64(arr[1]),
-      cornerRadius: dco_decode_f_64(arr[2]),
-      incrementalMode: dco_decode_bool(arr[3]),
-      nudgingEnabled: dco_decode_bool(arr[4]),
-      nudgingDistance: dco_decode_f_64(arr[5]),
-      bundlingMode: dco_decode_bundling_mode(arr[6]),
-      bundlingThreshold: dco_decode_f_64(arr[7]),
-      crossingMinimization: dco_decode_bool(arr[8]),
-      bezierCurvature: dco_decode_f_64(arr[9]),
-      bezierProjectionFactor: dco_decode_f_64(arr[10]),
-      bezierClampMin: dco_decode_f_64(arr[11]),
-      bezierClampMax: dco_decode_f_64(arr[12]),
-      defaultBodyType: dco_decode_body_type(arr[13]),
-      taperStartWidth: dco_decode_f_64(arr[14]),
-      taperEndWidth: dco_decode_f_64(arr[15]),
-      widthModulateAmplitude: dco_decode_f_64(arr[16]),
-      widthModulateFrequency: dco_decode_f_64(arr[17]),
-      defaultStartShape: dco_decode_endpoint_shape_type(arr[18]),
-      defaultEndShape: dco_decode_endpoint_shape_type(arr[19]),
-      arrowSize: dco_decode_f_64(arr[20]),
-      snakeAmplitude: dco_decode_f_64(arr[21]),
-      snakeFrequency: dco_decode_f_64(arr[22]),
-      snakeObstacleAvoidance: dco_decode_bool(arr[23]),
+      routing: dco_decode_routing_config(arr[0]),
+      nudging: dco_decode_nudging_config(arr[1]),
+      bundling: dco_decode_bundling_config(arr[2]),
+      crossingMinimization: dco_decode_bool(arr[3]),
+      incrementalMode: dco_decode_bool(arr[4]),
+      body: dco_decode_body_config(arr[5]),
+      endpoint: dco_decode_endpoint_config(arr[6]),
+      snake: dco_decode_snake_config(arr[7]),
     );
   }
 
@@ -3261,6 +3297,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  RoutingConfig dco_decode_routing_config(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    return RoutingConfig(
+      routingMode: dco_decode_routing_mode(arr[0]),
+      obstacleMargin: dco_decode_f_64(arr[1]),
+      cornerRadius: dco_decode_f_64(arr[2]),
+      bezierCurvature: dco_decode_f_64(arr[3]),
+      bezierProjectionFactor: dco_decode_f_64(arr[4]),
+      bezierClampMin: dco_decode_f_64(arr[5]),
+      bezierClampMax: dco_decode_f_64(arr[6]),
+    );
+  }
+
+  @protected
   RoutingMode dco_decode_routing_mode(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return RoutingMode.values[raw as int];
@@ -3293,6 +3346,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return Size(
       width: dco_decode_i_32(arr[0]),
       height: dco_decode_i_32(arr[1]),
+    );
+  }
+
+  @protected
+  SnakeConfig dco_decode_snake_config(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return SnakeConfig(
+      amplitude: dco_decode_f_64(arr[0]),
+      frequency: dco_decode_f_64(arr[1]),
+      obstacleAvoidance: dco_decode_bool(arr[2]),
     );
   }
 
@@ -3648,6 +3714,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BodyConfig sse_decode_body_config(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_defaultType = sse_decode_body_type(deserializer);
+    var var_taperStartWidth = sse_decode_f_64(deserializer);
+    var var_taperEndWidth = sse_decode_f_64(deserializer);
+    var var_widthModulateAmplitude = sse_decode_f_64(deserializer);
+    var var_widthModulateFrequency = sse_decode_f_64(deserializer);
+    return BodyConfig(
+      defaultType: var_defaultType,
+      taperStartWidth: var_taperStartWidth,
+      taperEndWidth: var_taperEndWidth,
+      widthModulateAmplitude: var_widthModulateAmplitude,
+      widthModulateFrequency: var_widthModulateFrequency,
+    );
+  }
+
+  @protected
   BodyType sse_decode_body_type(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
@@ -3915,6 +3998,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BundlingConfig sse_decode_bundling_config(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_mode = sse_decode_bundling_mode(deserializer);
+    var var_threshold = sse_decode_f_64(deserializer);
+    return BundlingConfig(mode: var_mode, threshold: var_threshold);
+  }
+
+  @protected
   BundlingMode sse_decode_bundling_mode(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
@@ -4055,6 +4146,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       brushColor: var_brushColor,
       size: var_size,
       locked: var_locked,
+    );
+  }
+
+  @protected
+  EndpointConfig sse_decode_endpoint_config(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_defaultStartShape = sse_decode_endpoint_shape_type(deserializer);
+    var var_defaultEndShape = sse_decode_endpoint_shape_type(deserializer);
+    var var_arrowSize = sse_decode_f_64(deserializer);
+    return EndpointConfig(
+      defaultStartShape: var_defaultStartShape,
+      defaultEndShape: var_defaultEndShape,
+      arrowSize: var_arrowSize,
     );
   }
 
@@ -4753,6 +4857,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  NudgingConfig sse_decode_nudging_config(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_enabled = sse_decode_bool(deserializer);
+    var var_distance = sse_decode_f_64(deserializer);
+    return NudgingConfig(enabled: var_enabled, distance: var_distance);
+  }
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -5037,55 +5149,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_routingMode = sse_decode_routing_mode(deserializer);
-    var var_obstacleMargin = sse_decode_f_64(deserializer);
-    var var_cornerRadius = sse_decode_f_64(deserializer);
-    var var_incrementalMode = sse_decode_bool(deserializer);
-    var var_nudgingEnabled = sse_decode_bool(deserializer);
-    var var_nudgingDistance = sse_decode_f_64(deserializer);
-    var var_bundlingMode = sse_decode_bundling_mode(deserializer);
-    var var_bundlingThreshold = sse_decode_f_64(deserializer);
+    var var_routing = sse_decode_routing_config(deserializer);
+    var var_nudging = sse_decode_nudging_config(deserializer);
+    var var_bundling = sse_decode_bundling_config(deserializer);
     var var_crossingMinimization = sse_decode_bool(deserializer);
-    var var_bezierCurvature = sse_decode_f_64(deserializer);
-    var var_bezierProjectionFactor = sse_decode_f_64(deserializer);
-    var var_bezierClampMin = sse_decode_f_64(deserializer);
-    var var_bezierClampMax = sse_decode_f_64(deserializer);
-    var var_defaultBodyType = sse_decode_body_type(deserializer);
-    var var_taperStartWidth = sse_decode_f_64(deserializer);
-    var var_taperEndWidth = sse_decode_f_64(deserializer);
-    var var_widthModulateAmplitude = sse_decode_f_64(deserializer);
-    var var_widthModulateFrequency = sse_decode_f_64(deserializer);
-    var var_defaultStartShape = sse_decode_endpoint_shape_type(deserializer);
-    var var_defaultEndShape = sse_decode_endpoint_shape_type(deserializer);
-    var var_arrowSize = sse_decode_f_64(deserializer);
-    var var_snakeAmplitude = sse_decode_f_64(deserializer);
-    var var_snakeFrequency = sse_decode_f_64(deserializer);
-    var var_snakeObstacleAvoidance = sse_decode_bool(deserializer);
+    var var_incrementalMode = sse_decode_bool(deserializer);
+    var var_body = sse_decode_body_config(deserializer);
+    var var_endpoint = sse_decode_endpoint_config(deserializer);
+    var var_snake = sse_decode_snake_config(deserializer);
     return RelationEngineConfig(
-      routingMode: var_routingMode,
-      obstacleMargin: var_obstacleMargin,
-      cornerRadius: var_cornerRadius,
-      incrementalMode: var_incrementalMode,
-      nudgingEnabled: var_nudgingEnabled,
-      nudgingDistance: var_nudgingDistance,
-      bundlingMode: var_bundlingMode,
-      bundlingThreshold: var_bundlingThreshold,
+      routing: var_routing,
+      nudging: var_nudging,
+      bundling: var_bundling,
       crossingMinimization: var_crossingMinimization,
-      bezierCurvature: var_bezierCurvature,
-      bezierProjectionFactor: var_bezierProjectionFactor,
-      bezierClampMin: var_bezierClampMin,
-      bezierClampMax: var_bezierClampMax,
-      defaultBodyType: var_defaultBodyType,
-      taperStartWidth: var_taperStartWidth,
-      taperEndWidth: var_taperEndWidth,
-      widthModulateAmplitude: var_widthModulateAmplitude,
-      widthModulateFrequency: var_widthModulateFrequency,
-      defaultStartShape: var_defaultStartShape,
-      defaultEndShape: var_defaultEndShape,
-      arrowSize: var_arrowSize,
-      snakeAmplitude: var_snakeAmplitude,
-      snakeFrequency: var_snakeFrequency,
-      snakeObstacleAvoidance: var_snakeObstacleAvoidance,
+      incrementalMode: var_incrementalMode,
+      body: var_body,
+      endpoint: var_endpoint,
+      snake: var_snake,
     );
   }
 
@@ -5179,6 +5259,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  RoutingConfig sse_decode_routing_config(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_routingMode = sse_decode_routing_mode(deserializer);
+    var var_obstacleMargin = sse_decode_f_64(deserializer);
+    var var_cornerRadius = sse_decode_f_64(deserializer);
+    var var_bezierCurvature = sse_decode_f_64(deserializer);
+    var var_bezierProjectionFactor = sse_decode_f_64(deserializer);
+    var var_bezierClampMin = sse_decode_f_64(deserializer);
+    var var_bezierClampMax = sse_decode_f_64(deserializer);
+    return RoutingConfig(
+      routingMode: var_routingMode,
+      obstacleMargin: var_obstacleMargin,
+      cornerRadius: var_cornerRadius,
+      bezierCurvature: var_bezierCurvature,
+      bezierProjectionFactor: var_bezierProjectionFactor,
+      bezierClampMin: var_bezierClampMin,
+      bezierClampMax: var_bezierClampMax,
+    );
+  }
+
+  @protected
   RoutingMode sse_decode_routing_mode(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
@@ -5214,6 +5315,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_width = sse_decode_i_32(deserializer);
     var var_height = sse_decode_i_32(deserializer);
     return Size(width: var_width, height: var_height);
+  }
+
+  @protected
+  SnakeConfig sse_decode_snake_config(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_amplitude = sse_decode_f_64(deserializer);
+    var var_frequency = sse_decode_f_64(deserializer);
+    var var_obstacleAvoidance = sse_decode_bool(deserializer);
+    return SnakeConfig(
+      amplitude: var_amplitude,
+      frequency: var_frequency,
+      obstacleAvoidance: var_obstacleAvoidance,
+    );
   }
 
   @protected
@@ -5624,6 +5738,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_body_config(BodyConfig self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_body_type(self.defaultType, serializer);
+    sse_encode_f_64(self.taperStartWidth, serializer);
+    sse_encode_f_64(self.taperEndWidth, serializer);
+    sse_encode_f_64(self.widthModulateAmplitude, serializer);
+    sse_encode_f_64(self.widthModulateFrequency, serializer);
+  }
+
+  @protected
   void sse_encode_body_type(BodyType self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
@@ -5937,6 +6061,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_bundling_config(
+    BundlingConfig self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bundling_mode(self.mode, serializer);
+    sse_encode_f_64(self.threshold, serializer);
+  }
+
+  @protected
   void sse_encode_bundling_mode(BundlingMode self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
@@ -6029,6 +6163,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.brushColor, serializer);
     sse_encode_size(self.size, serializer);
     sse_encode_bool(self.locked, serializer);
+  }
+
+  @protected
+  void sse_encode_endpoint_config(
+    EndpointConfig self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_endpoint_shape_type(self.defaultStartShape, serializer);
+    sse_encode_endpoint_shape_type(self.defaultEndShape, serializer);
+    sse_encode_f_64(self.arrowSize, serializer);
   }
 
   @protected
@@ -6555,6 +6700,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_nudging_config(NudgingConfig self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.enabled, serializer);
+    sse_encode_f_64(self.distance, serializer);
+  }
+
+  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -6838,30 +6990,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_routing_mode(self.routingMode, serializer);
-    sse_encode_f_64(self.obstacleMargin, serializer);
-    sse_encode_f_64(self.cornerRadius, serializer);
-    sse_encode_bool(self.incrementalMode, serializer);
-    sse_encode_bool(self.nudgingEnabled, serializer);
-    sse_encode_f_64(self.nudgingDistance, serializer);
-    sse_encode_bundling_mode(self.bundlingMode, serializer);
-    sse_encode_f_64(self.bundlingThreshold, serializer);
+    sse_encode_routing_config(self.routing, serializer);
+    sse_encode_nudging_config(self.nudging, serializer);
+    sse_encode_bundling_config(self.bundling, serializer);
     sse_encode_bool(self.crossingMinimization, serializer);
-    sse_encode_f_64(self.bezierCurvature, serializer);
-    sse_encode_f_64(self.bezierProjectionFactor, serializer);
-    sse_encode_f_64(self.bezierClampMin, serializer);
-    sse_encode_f_64(self.bezierClampMax, serializer);
-    sse_encode_body_type(self.defaultBodyType, serializer);
-    sse_encode_f_64(self.taperStartWidth, serializer);
-    sse_encode_f_64(self.taperEndWidth, serializer);
-    sse_encode_f_64(self.widthModulateAmplitude, serializer);
-    sse_encode_f_64(self.widthModulateFrequency, serializer);
-    sse_encode_endpoint_shape_type(self.defaultStartShape, serializer);
-    sse_encode_endpoint_shape_type(self.defaultEndShape, serializer);
-    sse_encode_f_64(self.arrowSize, serializer);
-    sse_encode_f_64(self.snakeAmplitude, serializer);
-    sse_encode_f_64(self.snakeFrequency, serializer);
-    sse_encode_bool(self.snakeObstacleAvoidance, serializer);
+    sse_encode_bool(self.incrementalMode, serializer);
+    sse_encode_body_config(self.body, serializer);
+    sse_encode_endpoint_config(self.endpoint, serializer);
+    sse_encode_snake_config(self.snake, serializer);
   }
 
   @protected
@@ -6920,6 +7056,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_routing_config(RoutingConfig self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_routing_mode(self.routingMode, serializer);
+    sse_encode_f_64(self.obstacleMargin, serializer);
+    sse_encode_f_64(self.cornerRadius, serializer);
+    sse_encode_f_64(self.bezierCurvature, serializer);
+    sse_encode_f_64(self.bezierProjectionFactor, serializer);
+    sse_encode_f_64(self.bezierClampMin, serializer);
+    sse_encode_f_64(self.bezierClampMax, serializer);
+  }
+
+  @protected
   void sse_encode_routing_mode(RoutingMode self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
@@ -6943,6 +7091,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.width, serializer);
     sse_encode_i_32(self.height, serializer);
+  }
+
+  @protected
+  void sse_encode_snake_config(SnakeConfig self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_f_64(self.amplitude, serializer);
+    sse_encode_f_64(self.frequency, serializer);
+    sse_encode_bool(self.obstacleAvoidance, serializer);
   }
 
   @protected

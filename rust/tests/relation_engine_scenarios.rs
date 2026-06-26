@@ -23,7 +23,9 @@ fn edge(id: &str, from: &str, to: &str) -> InputEdge {
         to_node_id: to.into(),
         from_side: None,
         to_side: None,
-        strategy_type: None,
+        routing_mode: None,
+        bundling_mode: None,
+        style: None,
     }
 }
 
@@ -34,7 +36,9 @@ fn ortho_edge(id: &str, from: &str, to: &str) -> InputEdge {
         to_node_id: to.into(),
         from_side: None,
         to_side: None,
-        strategy_type: Some("orthogonal".into()),
+        routing_mode: Some(RoutingMode::Orthogonal),
+        bundling_mode: None,
+        style: None,
     }
 }
 
@@ -271,7 +275,7 @@ fn scenario_08_bezier_route() {
     pipeline_label("08 Bezier route");
     let nodes = vec![node("a", 0.0, 100.0, 40.0, 40.0), node("b", 400.0, 100.0, 40.0, 40.0)];
     let mut e = edge("e1", "a", "b");
-    e.strategy_type = Some("bezier".into());
+    e.routing_mode = Some(RoutingMode::Bezier);
     let edges = vec![e];
     let config = RelationEngineConfig::default();
 
@@ -461,7 +465,7 @@ fn scenario_14_astar_cost_penalties() {
     let graph = VisibilityGraph::build(&[], start, end, 45.0);
 
     log_step("1.search_default", "A* with default penalties");
-    let path_d = a_star_with_params(&graph, &RouteCostParams::default(), Some(&start), Some(&end));
+    let path_d = a_star_with_params(&graph, &RouteCostParams::default(), Some(&start), Some(&end), &rust_lib_mycelium::domain::relation_engine::state::CanvasState::new());
     assert!(path_d.is_some());
 
     log_step("2.search_high", "A* with extreme penalties");
@@ -471,7 +475,8 @@ fn scenario_14_astar_cost_penalties() {
         crossing_penalty: 100.0,
         reverse_direction_penalty: 50.0,
     };
-    let path_h = a_star_with_params(&graph, &high, Some(&start), Some(&end));
+    let path_h = a_star_with_params(&graph, &high, Some(&start), Some(&end), &rust_lib_mycelium::domain::relation_engine::state::CanvasState::new());
+
     assert!(path_h.is_some());
 
     log_step("3.compare", "High penalty cost >= default cost");
@@ -521,7 +526,7 @@ fn scenario_16_circular_arc_route() {
     pipeline_label("16 Circular arc route");
     let nodes = vec![node("a", 0.0, 100.0, 40.0, 40.0), node("b", 400.0, 100.0, 40.0, 40.0)];
     let mut e = edge("e1", "a", "b");
-    e.strategy_type = Some("circular_arc".into());
+    e.routing_mode = Some(RoutingMode::CircularArc);
     let edges = vec![e];
     let config = RelationEngineConfig::default();
 
@@ -544,7 +549,7 @@ fn scenario_17_sine_wave_route() {
     pipeline_label("17 Sine wave route");
     let nodes = vec![node("a", 0.0, 100.0, 40.0, 40.0), node("b", 400.0, 100.0, 40.0, 40.0)];
     let mut e = edge("e1", "a", "b");
-    e.strategy_type = Some("sinewave".into());
+    e.routing_mode = Some(RoutingMode::SineWave);
     let edges = vec![e];
     let config = RelationEngineConfig::default();
 

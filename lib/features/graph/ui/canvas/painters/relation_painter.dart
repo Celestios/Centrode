@@ -3,12 +3,12 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/computed.dart' as rust;
+import 'package:mycelium/src/rust/domain/relation_engine/config.dart' as rust_config;
 import 'package:mycelium/src/rust/domain/relation_engine/geometry.dart' as rust_geom;
 import '../../../models/models.dart';
 import '../../../engine/config.dart';
 import '../../../presentation/view_state.dart';
 import '../../../presentation/strategies/relation_style_strategy.dart';
-import '../../../presentation/strategies/relation_body_strategy.dart';
 import '../../../presentation/strategies/relation_layout_strategy.dart';
 import '../../../presentation/routing/relation_layout_context.dart';
 import '../../../presentation/relation_engine_state.dart';
@@ -148,28 +148,23 @@ class RelationPainter extends CustomPainter {
     return dest;
   }
 
-  void _drawVariableWidthPath(Canvas canvas, Path path, Paint basePaint, RelationBodyStrategy bodyStrategy) {
-    for (final metric in path.computeMetrics()) {
-      final length = metric.length;
-      const segmentCount = 100;
-      final segmentLength = length / segmentCount;
-
-      for (int i = 0; i < segmentCount; i++) {
-        final t = i / segmentCount;
-        final startDist = i * segmentLength;
-        final endDist = (i + 1) * segmentLength;
-
-        final width = bodyStrategy.widthAt(t, basePaint.strokeWidth);
-
-        final segment = metric.extractPath(startDist, endDist);
-        final segmentPaint = Paint()
-          ..color = basePaint.color
-          ..strokeWidth = width
-          ..style = PaintingStyle.stroke
-          ..strokeCap = StrokeCap.round;
-
-        canvas.drawPath(segment, segmentPaint);
-      }
+  void _drawVariableWidthPoints(
+    Canvas canvas,
+    List<rust_geom.Point> points,
+    List<double> widths,
+    Color color,
+  ) {
+    if (points.length < 2) return;
+    for (int i = 0; i < points.length - 1; i++) {
+      final p1 = Offset(points[i].x, points[i].y);
+      final p2 = Offset(points[i + 1].x, points[i + 1].y);
+      final w = i < widths.length ? widths[i] : widths.last;
+      final segmentPaint = Paint()
+        ..color = color
+        ..strokeWidth = w
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(p1, p2, segmentPaint);
     }
   }
 
@@ -281,10 +276,10 @@ class RelationPainter extends CustomPainter {
             : resolved.strokeWidth.toDouble();
       }
 
-      final bodyStrategy = RelationStyleStrategy.resolveBodyStrategy(rel, from, to);
+      final isVariableWidth = cached != null && cached.bodyType != rust_config.BodyType.uniform;
 
-      if (bodyStrategy is! NoneRelationBodyStrategy) {
-        _drawVariableWidthPath(canvas, path, paint, bodyStrategy);
+      if (isVariableWidth) {
+        _drawVariableWidthPoints(canvas, cached.pathPoints, cached.bodyWidths, paint.color);
       } else {
         final strokePattern = resolved.strokePattern;
         if (strokePattern == 'dashed' || strokePattern == 'dotted') {

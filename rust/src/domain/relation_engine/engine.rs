@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use super::body::compute_body_widths;
 use super::bundling::{bundle_edges, BundlingStrategy};
 use super::computed::{ComputedRelation, LabelAnchor, PathType};
-use super::config::{BodyType, EndpointShapeType, RelationEngineConfig};
+use super::config::{BodyType, EndpointShapeType, RelationEngineConfig, BundlingMode};
 use super::crossing::minimize_crossings;
 use super::endpoint::{compute_endpoints, compute_tangents};
 use super::geometry::{Point, Rect};
@@ -12,16 +12,65 @@ use super::input::{InputEdge, InputNode};
 use super::label::compute_label_position;
 use super::nudging::{nudge_edges, NudgeConfig};
 use super::routing::{compute_bbox, route_relation};
+use super::state::CanvasState;
+use super::cache::RelationCache;
 
-pub struct RelationEngine;
+pub struct RelationEngine {
+    pub state: CanvasState,
+    pub cache: RelationCache,
+}
 
 impl RelationEngine {
+    pub fn new() -> Self {
+        Self {
+            state: CanvasState::new(),
+            cache: RelationCache::new(),
+        }
+    }
+
+    /// Stateless static entry point (for backward compatibility and tests)
     pub fn compute_relations(
         nodes: &[InputNode],
         edges: &[InputEdge],
         config: &RelationEngineConfig,
         relation_ids: Option<&[String]>,
     ) -> Vec<ComputedRelation> {
+        let mut engine = Self::new();
+        engine.compute_relations_stateful(nodes, edges, config, relation_ids)
+    }
+
+    /// Stateless static entry point (for backward compatibility and tests)
+    pub fn compute_incremental(
+        nodes: &[InputNode],
+        edges: &[InputEdge],
+        config: &RelationEngineConfig,
+        incremental: &mut IncrementalState,
+    ) -> Vec<ComputedRelation> {
+        let mut engine = Self::new();
+        engine.compute_incremental_stateful(nodes, edges, config, incremental)
+    }
+
+    /// Stateful instance method for computing relations (caching & invalidation)
+    pub fn compute_relations_stateful(
+        &mut self,
+        nodes: &[InputNode],
+        edges: &[InputEdge],
+        config: &RelationEngineConfig,
+        relation_ids: Option<&[String]>,
+    ) -> Vec<ComputedRelation> {
+        // Sync canvas state nodes with the incoming list
+        let current_node_ids: std::collections::HashSet<String> = nodes.iter().map(|n| n.id.clone()).collect();
+        let removed_node_ids: Vec<String> = self.state.nodes.keys()
+            .filter(|id| !current_node_ids.contains(*id))
+            .cloned()
+            .collect();
+        for id in removed_node_ids {
+            self.state.remove_node(&id);
+        }
+        for node in nodes {
+            self.state.update_node(node.clone(), config.routing.obstacle_margin);
+        }
+
         let node_map: HashMap<&str, &InputNode> =
             nodes.iter().map(|n| (n.id.as_str(), n)).collect();
 
@@ -33,19 +82,47 @@ impl RelationEngine {
             edges.iter().collect()
         };
 
-        // Phase 1: Route each edge individually
-        let mut results: Vec<ComputedRelation> = edges_to_compute
-            .iter()
-            .map(|edge| compute_single_relation(edge, &node_map, &obstacles, config))
-            .collect();
+        // Phase 1: Route each edge individually (with cache check)
+        let mut results: Vec<ComputedRelation> = Vec::with_capacity(edges_to_compute.len());
+        for edge in &edges_to_compute {
+            if let Some(cached) = self.cache.get(&edge.id) {
+                if !self.state.dirty_relations.contains(&edge.id) {
+                    results.push(cached.clone());
+                    continue;
+                }
+            }
+
+            let computed = compute_single_relation(edge, &node_map, &obstacles, config, &self.state);
+            self.cache.insert(edge.id.clone(), computed.clone());
+            self.state.relations.insert(edge.id.clone(), computed.clone());
+            self.state.dirty_relations.remove(&edge.id);
+            results.push(computed);
+        }
 
         // Phase 2: Bundle edges sharing endpoints or proximity
-        let bundling_strategy = match config.bundling.mode {
-            super::config::BundlingMode::SharedEndpoint => BundlingStrategy::SharedEndpoint,
-            super::config::BundlingMode::Proximity => BundlingStrategy::Proximity {
-                threshold: config.bundling.threshold,
-            },
-            super::config::BundlingMode::None => BundlingStrategy::None,
+        let has_bundled_edges = edges_to_compute.iter().any(|e| {
+            e.bundling_mode.as_ref().map_or(false, |m| *m != BundlingMode::None)
+        });
+
+        let bundling_strategy = if has_bundled_edges || config.bundling.mode != BundlingMode::None {
+            let mode = if has_bundled_edges {
+                edges_to_compute.iter()
+                    .filter_map(|e| e.bundling_mode)
+                    .find(|m| *m != BundlingMode::None)
+                    .unwrap_or(config.bundling.mode)
+            } else {
+                config.bundling.mode
+            };
+
+            match mode {
+                BundlingMode::SharedEndpoint => BundlingStrategy::SharedEndpoint,
+                BundlingMode::Proximity => BundlingStrategy::Proximity {
+                    threshold: config.bundling.threshold,
+                },
+                BundlingMode::None => BundlingStrategy::None,
+            }
+        } else {
+            BundlingStrategy::None
         };
 
         if !matches!(bundling_strategy, BundlingStrategy::None) && results.len() >= 2 {
@@ -142,14 +219,19 @@ impl RelationEngine {
             }
         }
 
+        // Update cache with final computed/processed routes
+        for result in &results {
+            self.cache.insert(result.id.clone(), result.clone());
+            self.state.relations.insert(result.id.clone(), result.clone());
+            self.state.dirty_relations.remove(&result.id);
+        }
+
         results
     }
 
-    /// Compute relations with incremental invalidation.
-    ///
-    /// Uses the incremental state to determine which relations need recomputation.
-    /// Returns only the changed relations.
-    pub fn compute_incremental(
+    /// Stateful instance method for incremental computation
+    pub fn compute_incremental_stateful(
+        &mut self,
         nodes: &[InputNode],
         edges: &[InputEdge],
         config: &RelationEngineConfig,
@@ -166,7 +248,7 @@ impl RelationEngine {
             return Vec::new();
         }
 
-        let results = Self::compute_relations(
+        let results = self.compute_relations_stateful(
             nodes,
             edges,
             config,
@@ -191,18 +273,26 @@ fn compute_single_relation(
     node_map: &HashMap<&str, &InputNode>,
     obstacles: &[Rect],
     config: &RelationEngineConfig,
+    state: &CanvasState,
 ) -> ComputedRelation {
     if !node_map.contains_key(edge.from_node_id.as_str()) || !node_map.contains_key(edge.to_node_id.as_str()) {
         return empty_computed_relation(&edge.id, &edge.from_node_id, &edge.to_node_id);
     }
 
-    let (path_points, path_type) = route_relation(edge, node_map, obstacles, config);
+    let (path_points, path_type) = route_relation(edge, node_map, obstacles, config, state);
 
     let (start_tangent, end_tangent) = compute_tangents(&path_points);
     let (start_shape, start_dir, end_shape, end_dir) =
         compute_endpoints(start_tangent, end_tangent, config);
 
-    let body_type = config.body.default_type;
+    let body_strategy_str = edge.style.as_ref().map(|s| s.body_strategy.as_str()).unwrap_or("");
+    let body_type = match body_strategy_str {
+        "uniform" => BodyType::Uniform,
+        "taper" => BodyType::Taper,
+        "widthModulate" => BodyType::WidthModulate,
+        "bundled" => BodyType::Bundled,
+        _ => config.body.default_type,
+    };
     let base_width = 2.0;
     let body_widths = compute_body_widths(&path_points, &body_type, base_width, config);
 

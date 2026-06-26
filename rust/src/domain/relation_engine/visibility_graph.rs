@@ -2,6 +2,7 @@ use std::collections::BinaryHeap;
 
 use super::geometry::{Point, Rect};
 use super::sweep_visibility;
+use super::state::CanvasState;
 
 #[derive(Debug, Clone)]
 pub struct VisNode {
@@ -128,7 +129,7 @@ fn dim_direction(diff: f64) -> i32 {
 }
 
 pub fn a_star(graph: &VisibilityGraph) -> Option<Vec<Point>> {
-    a_star_with_params(graph, &RouteCostParams::default(), None, None)
+    a_star_with_params(graph, &RouteCostParams::default(), None, None, &CanvasState::new())
 }
 
 pub fn a_star_with_params(
@@ -136,6 +137,7 @@ pub fn a_star_with_params(
     cost_params: &RouteCostParams,
     _src_point: Option<&Point>,
     dst_point: Option<&Point>,
+    state: &CanvasState,
 ) -> Option<Vec<Point>> {
     let start = graph.start_idx();
     let end = graph.end_idx();
@@ -202,6 +204,7 @@ pub fn a_star_with_params(
                 current_point,
                 neighbor_point,
                 actual_dst,
+                state,
             );
 
             let tentative_g = g_score[current] + edge_cost;
@@ -225,6 +228,7 @@ fn compute_edge_cost(
     curr_point: Point,
     next_point: Point,
     dst_point: Point,
+    state: &CanvasState,
 ) -> f64 {
     let mut cost = edge_dist;
 
@@ -268,7 +272,35 @@ fn compute_edge_cost(
         }
     }
 
+    // Crossing penalties against cached relations in CanvasState
+    if params.crossing_penalty > 0.0 {
+        for other_rel in state.relations.values() {
+            if path_intersects_segment(curr_point, next_point, &other_rel.path_points) {
+                cost += params.crossing_penalty;
+            }
+        }
+    }
+
     cost
+}
+
+fn path_intersects_segment(p1: Point, p2: Point, path: &[Point]) -> bool {
+    if path.len() < 2 {
+        return false;
+    }
+    for window in path.windows(2) {
+        if super::geometry::segments_intersect(p1, p2, window[0], window[1]) {
+            // Check if it's a shared endpoint/port vertex
+            let is_shared_endpoint = p1.distance_to(window[0]) < 0.1 
+                || p1.distance_to(window[1]) < 0.1
+                || p2.distance_to(window[0]) < 0.1
+                || p2.distance_to(window[1]) < 0.1;
+            if !is_shared_endpoint {
+                return true;
+            }
+        }
+    }
+    false
 }
 
 fn cost_heuristic(from: Point, to: Point, prev: Option<Point>, params: &RouteCostParams) -> f64 {
@@ -378,7 +410,7 @@ mod tests {
             reverse_direction_penalty: 5.0,
         };
 
-        let path = a_star_with_params(&graph, &params, None, None);
+        let path = a_star_with_params(&graph, &params, Some(&start), Some(&end), &CanvasState::new());
         assert!(path.is_some());
         let path = path.unwrap();
         assert_eq!(path.len(), 2);

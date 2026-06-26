@@ -1,8 +1,9 @@
 use super::geometry::{Point, Rect};
+use super::config::{RoutingMode, BundlingMode};
 use crate::domain::base_models::Coordinates;
 use crate::domain::nodes::Nodes;
 use crate::domain::relations::IRelation;
-use crate::domain::styles::PortSide;
+use crate::domain::styles::{PortSide, RelationStyle};
 
 #[derive(Debug, Clone)]
 pub struct InputNode {
@@ -130,19 +131,33 @@ pub struct InputEdge {
     pub to_node_id: String,
     pub from_side: Option<PortSide>,
     pub to_side: Option<PortSide>,
-    pub strategy_type: Option<String>,
+    pub routing_mode: Option<RoutingMode>,
+    pub bundling_mode: Option<BundlingMode>,
+    pub style: Option<RelationStyle>,
 }
 
 impl InputEdge {
     pub fn from_domain(rel: &IRelation) -> Self {
         let layout = rel.fields.resolved_layout.as_ref().or(rel.fields.layout.as_ref());
+        let style = rel.fields.resolved_style.as_ref().or(rel.fields.style.as_ref());
+        
+        let routing_mode = layout.map(|l| RoutingMode::from_str(&l.strategy_type));
+        let bundling_mode = style.as_ref().map(|s| {
+            match s.body_strategy.as_str() {
+                "bundled" => BundlingMode::SharedEndpoint,
+                _ => BundlingMode::None,
+            }
+        });
+
         InputEdge {
             id: rel.key.clone(),
             from_node_id: rel.in_.key.clone(),
             to_node_id: rel.out.key.clone(),
             from_side: layout.and_then(|l| l.from_side.clone()),
             to_side: layout.and_then(|l| l.to_side.clone()),
-            strategy_type: layout.map(|l| l.strategy_type.clone()),
+            routing_mode,
+            bundling_mode,
+            style: style.cloned(),
         }
     }
 }

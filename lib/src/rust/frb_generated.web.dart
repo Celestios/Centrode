@@ -116,6 +116,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BlockType dco_decode_block_type(dynamic raw);
 
   @protected
+  BodyConfig dco_decode_body_config(dynamic raw);
+
+  @protected
   BodyType dco_decode_body_type(dynamic raw);
 
   @protected
@@ -237,6 +240,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ViewportState dco_decode_box_autoadd_viewport_state(dynamic raw);
 
   @protected
+  BundlingConfig dco_decode_bundling_config(dynamic raw);
+
+  @protected
   BundlingMode dco_decode_bundling_mode(dynamic raw);
 
   @protected
@@ -262,6 +268,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   DrawingNode dco_decode_drawing_node(dynamic raw);
+
+  @protected
+  EndpointConfig dco_decode_endpoint_config(dynamic raw);
 
   @protected
   EndpointShape dco_decode_endpoint_shape(dynamic raw);
@@ -400,6 +409,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Nodes dco_decode_nodes(dynamic raw);
 
   @protected
+  NudgingConfig dco_decode_nudging_config(dynamic raw);
+
+  @protected
   String? dco_decode_opt_String(dynamic raw);
 
   @protected
@@ -491,6 +503,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RelationStyle dco_decode_relation_style(dynamic raw);
 
   @protected
+  RoutingConfig dco_decode_routing_config(dynamic raw);
+
+  @protected
   RoutingMode dco_decode_routing_mode(dynamic raw);
 
   @protected
@@ -498,6 +513,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Size dco_decode_size(dynamic raw);
+
+  @protected
+  SnakeConfig dco_decode_snake_config(dynamic raw);
 
   @protected
   SymmetricEntityPatch dco_decode_symmetric_entity_patch(dynamic raw);
@@ -616,6 +634,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   BlockType sse_decode_block_type(SseDeserializer deserializer);
+
+  @protected
+  BodyConfig sse_decode_body_config(SseDeserializer deserializer);
 
   @protected
   BodyType sse_decode_body_type(SseDeserializer deserializer);
@@ -751,6 +772,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  BundlingConfig sse_decode_bundling_config(SseDeserializer deserializer);
+
+  @protected
   BundlingMode sse_decode_bundling_mode(SseDeserializer deserializer);
 
   @protected
@@ -776,6 +800,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   DrawingNode sse_decode_drawing_node(SseDeserializer deserializer);
+
+  @protected
+  EndpointConfig sse_decode_endpoint_config(SseDeserializer deserializer);
 
   @protected
   EndpointShape sse_decode_endpoint_shape(SseDeserializer deserializer);
@@ -928,6 +955,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Nodes sse_decode_nodes(SseDeserializer deserializer);
 
   @protected
+  NudgingConfig sse_decode_nudging_config(SseDeserializer deserializer);
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
@@ -1035,6 +1065,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RelationStyle sse_decode_relation_style(SseDeserializer deserializer);
 
   @protected
+  RoutingConfig sse_decode_routing_config(SseDeserializer deserializer);
+
+  @protected
   RoutingMode sse_decode_routing_mode(SseDeserializer deserializer);
 
   @protected
@@ -1042,6 +1075,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Size sse_decode_size(SseDeserializer deserializer);
+
+  @protected
+  SnakeConfig sse_decode_snake_config(SseDeserializer deserializer);
 
   @protected
   SymmetricEntityPatch sse_decode_symmetric_entity_patch(
@@ -1175,6 +1211,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_block_type(BlockType self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_body_config(BodyConfig self, SseSerializer serializer);
 
   @protected
   void sse_encode_body_type(BodyType self, SseSerializer serializer);
@@ -1370,6 +1409,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_bundling_config(
+    BundlingConfig self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_bundling_mode(BundlingMode self, SseSerializer serializer);
 
   @protected
@@ -1398,6 +1443,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_drawing_node(DrawingNode self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_endpoint_config(
+    EndpointConfig self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_endpoint_shape(EndpointShape self, SseSerializer serializer);
@@ -1571,6 +1622,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_nodes(Nodes self, SseSerializer serializer);
 
   @protected
+  void sse_encode_nudging_config(NudgingConfig self, SseSerializer serializer);
+
+  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
 
   @protected
@@ -1701,6 +1755,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_relation_style(RelationStyle self, SseSerializer serializer);
 
   @protected
+  void sse_encode_routing_config(RoutingConfig self, SseSerializer serializer);
+
+  @protected
   void sse_encode_routing_mode(RoutingMode self, SseSerializer serializer);
 
   @protected
@@ -1708,6 +1765,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_size(Size self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_snake_config(SnakeConfig self, SseSerializer serializer);
 
   @protected
   void sse_encode_symmetric_entity_patch(

@@ -14,3 +14,7 @@ pub mod routing;
 pub mod sweep_visibility;
 pub mod visibility_graph;
 pub mod vpsc;
+pub mod state;
+pub mod cache;
+pub mod painting;
+pub mod resolvers;

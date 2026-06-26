@@ -3,8 +3,6 @@ import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
 import 'package:flutter/material.dart';
 import 'package:mycelium/features/graph/engine/config.dart';
-import 'package:mycelium/features/graph/presentation/view_state.dart';
-import 'package:mycelium/features/graph/presentation/strategies/relation_body_strategy.dart';
 
 abstract class RelationStyleStrategy {
   const RelationStyleStrategy();
@@ -52,30 +50,7 @@ abstract class RelationStyleStrategy {
     );
   }
 
-  static RelationBodyStrategy resolveBodyStrategy(UiRelation relation, NodeViewState from, NodeViewState to) {
-    final resolved = resolveStyle(relation);
-    final bodyType = resolved.bodyStrategy;
 
-    if (bodyType == 'taper') {
-      final fromScale = from.currentScale;
-      final toScale = to.currentScale;
-      final baseWidth = resolved.strokeWidth.toDouble();
-      return TaperRelationBodyStrategy(
-        startWidth: fromScale * baseWidth,
-        endWidth: toScale * baseWidth,
-      );
-    } else if (bodyType == 'widthModulate') {
-      final baseWidth = resolved.strokeWidth.toDouble();
-      final distance = (from.positionNotifier.value - to.positionNotifier.value).distance;
-      final frequency = (distance / 40.0).clamp(2.0, 20.0);
-      return WidthModulateRelationBodyStrategy(
-        amplitude: baseWidth * 0.75,
-        frequency: frequency,
-      );
-    }
-
-    return const NoneRelationBodyStrategy();
-  }
 }
 
 class DefaultRelationStyleStrategy extends RelationStyleStrategy {

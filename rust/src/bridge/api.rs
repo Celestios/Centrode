@@ -574,14 +574,22 @@ impl AppHandle {
             .map(crate::domain::relation_engine::input::InputEdge::from_domain)
             .collect();
 
-        let result = crate::domain::relation_engine::engine::RelationEngine::compute_relations(
+        let mut engine = match self.repo.relation_engine().lock() {
+            Ok(e) => e,
+            Err(_) => return Err(anyhow::anyhow!("Failed to lock relation engine")),
+        };
+
+        let rel_ids_ref = relation_ids.as_deref();
+
+        let result = engine.compute_relations_stateful(
             &nodes,
             &edges,
             &config,
-            relation_ids.as_deref(),
+            rel_ids_ref,
         );
         Ok(result)
     }
+
 
     pub fn update_node_cache_positions(
         &self,
