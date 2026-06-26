@@ -10,6 +10,7 @@ pub mod incremental;
 pub mod input;
 pub mod label;
 pub mod nudging;
+pub mod routing;
 pub mod sweep_visibility;
 pub mod visibility_graph;
 pub mod vpsc;
