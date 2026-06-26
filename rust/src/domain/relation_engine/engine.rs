@@ -3,9 +3,12 @@ use std::collections::HashMap;
 use super::body::compute_body_widths;
 use super::computed::{ComputedRelation, LabelAnchor, PathType};
 use super::config::{BodyType, EndpointShapeType, RelationEngineConfig, RoutingMode};
+use super::crossing::minimize_crossings;
 use super::endpoint::{compute_endpoints, compute_tangents};
 use super::geometry::{Point, Rect};
+use super::incremental::IncrementalState;
 use super::label::compute_label_position;
+use super::nudging::{nudge_edges, NudgeConfig};
 use super::visibility_graph::{a_star, VisibilityGraph};
 use crate::domain::base_models::Coordinates;
 use crate::domain::nodes::Nodes;
@@ -175,10 +178,122 @@ impl RelationEngine {
             edges.iter().collect()
         };
 
-        edges_to_compute
+        // Phase 1: Route each edge individually
+        let mut results: Vec<ComputedRelation> = edges_to_compute
             .iter()
             .map(|edge| compute_single_relation(edge, &node_map, &obstacles, config))
-            .collect()
+            .collect();
+
+        // Phase 2: Nudge overlapping edges apart
+        if config.nudging_enabled && results.len() >= 2 {
+            let nudge_config = NudgeConfig {
+                enabled: true,
+                min_separation: config.nudging_distance,
+            };
+
+            let mut paths: Vec<Vec<Point>> = results.iter().map(|r| r.path_points.clone()).collect();
+            let edge_ids: Vec<String> = results.iter().map(|r| r.id.clone()).collect();
+            let from_ids: Vec<String> = edges_to_compute.iter().map(|e| e.from_node_id.clone()).collect();
+            let to_ids: Vec<String> = edges_to_compute.iter().map(|e| e.to_node_id.clone()).collect();
+
+            nudge_edges(&mut paths, &edge_ids, &from_ids, &to_ids, &nudge_config);
+
+            // Update results with nudged paths
+            for (i, result) in results.iter_mut().enumerate() {
+                result.path_points = paths[i].clone();
+                result.bbox = compute_bbox(&result.path_points);
+            }
+        }
+
+        // Phase 3: Minimize crossings
+        if config.crossing_minimization && results.len() >= 2 {
+            let mut paths: Vec<Vec<Point>> = results.iter().map(|r| r.path_points.clone()).collect();
+            let edge_ids: Vec<String> = results.iter().map(|r| r.id.clone()).collect();
+
+            let reordered_ids = minimize_crossings(&mut paths, &edge_ids, 20);
+
+            // Rebuild results in the new order, recomputing tangents, endpoints, etc.
+            let id_to_result: HashMap<String, ComputedRelation> =
+                results.into_iter().map(|r| (r.id.clone(), r)).collect();
+
+            results = reordered_ids
+                .iter()
+                .filter_map(|id| id_to_result.get(id).cloned())
+                .collect();
+
+            for result in &mut results {
+                // Find the reordered path for this result
+                if let Some(idx) = reordered_ids.iter().position(|rid| rid == &result.id) {
+                    result.path_points = paths[idx].clone();
+                    let (start_tangent, end_tangent) = compute_tangents(&result.path_points);
+                    result.start_tangent = start_tangent;
+                    result.end_tangent = end_tangent;
+
+                    let (start_shape, start_dir, end_shape, end_dir) =
+                        compute_endpoints(start_tangent, end_tangent, config);
+                    result.start_endpoint = start_shape;
+                    result.start_direction = start_dir;
+                    result.end_endpoint = end_shape;
+                    result.end_direction = end_dir;
+
+                    result.body_widths = compute_body_widths(
+                        &result.path_points,
+                        &result.body_type,
+                        2.0,
+                        config,
+                    );
+                    let (label_pos, _) = compute_label_position(
+                        &result.path_points,
+                        &result.path_type,
+                        config,
+                    );
+                    result.label_position = label_pos;
+                    result.bbox = compute_bbox(&result.path_points);
+                }
+            }
+        }
+
+        results
+    }
+
+    /// Compute relations with incremental invalidation.
+    ///
+    /// Uses the incremental state to determine which relations need recomputation.
+    /// Returns only the changed relations.
+    pub fn compute_incremental(
+        nodes: &[InputNode],
+        edges: &[InputEdge],
+        config: &RelationEngineConfig,
+        incremental: &mut IncrementalState,
+    ) -> Vec<ComputedRelation> {
+        if !incremental.has_dirty() {
+            return Vec::new();
+        }
+
+        let dirty_ids = incremental.dirty_relation_ids(&HashMap::new());
+        incremental.clear_dirty();
+
+        if dirty_ids.is_empty() {
+            return Vec::new();
+        }
+
+        let results = Self::compute_relations(
+            nodes,
+            edges,
+            config,
+            Some(&dirty_ids),
+        );
+
+        // Update incremental state with new dependencies and bboxes
+        for result in &results {
+            incremental.register(
+                result.id.clone(),
+                result.depends_on_nodes.clone(),
+                result.bbox.clone(),
+            );
+        }
+
+        results
     }
 }
 

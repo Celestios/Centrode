@@ -1,8 +1,11 @@
 pub mod body;
 pub mod computed;
 pub mod config;
+pub mod crossing;
 pub mod endpoint;
 pub mod engine;
 pub mod geometry;
+pub mod incremental;
 pub mod label;
+pub mod nudging;
 pub mod visibility_graph;
