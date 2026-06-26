@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use super::body::compute_body_widths;
+use super::bundling::{bundle_edges, BundlingStrategy};
 use super::computed::{ComputedRelation, LabelAnchor, PathType};
 use super::config::{BodyType, EndpointShapeType, RelationEngineConfig, RoutingMode};
 use super::crossing::minimize_crossings;
@@ -184,7 +185,40 @@ impl RelationEngine {
             .map(|edge| compute_single_relation(edge, &node_map, &obstacles, config))
             .collect();
 
-        // Phase 2: Nudge overlapping edges apart
+        // Phase 2: Bundle edges sharing endpoints or proximity
+        let bundling_strategy = match config.bundling_mode {
+            super::config::BundlingMode::SharedEndpoint => BundlingStrategy::SharedEndpoint,
+            super::config::BundlingMode::Proximity => BundlingStrategy::Proximity {
+                threshold: config.bundling_threshold,
+            },
+            super::config::BundlingMode::None => BundlingStrategy::None,
+        };
+
+        if !matches!(bundling_strategy, BundlingStrategy::None) && results.len() >= 2 {
+            let paths: Vec<Vec<Point>> = results.iter().map(|r| r.path_points.clone()).collect();
+            let edge_ids: Vec<String> = results.iter().map(|r| r.id.clone()).collect();
+            let from_ids: Vec<String> = edges_to_compute.iter().map(|e| e.from_node_id.clone()).collect();
+            let to_ids: Vec<String> = edges_to_compute.iter().map(|e| e.to_node_id.clone()).collect();
+
+            let bundling_result = bundle_edges(
+                &edge_ids,
+                &paths,
+                &from_ids,
+                &to_ids,
+                &bundling_strategy,
+                2.0,
+            );
+
+            // Apply bundle assignments to results
+            for result in &mut results {
+                if let Some((bundle_id, offset)) = bundling_result.edge_assignments.get(&result.id) {
+                    result.bundle_id = Some(bundle_id.clone());
+                    result.bundle_offset = Some(*offset);
+                }
+            }
+        }
+
+        // Phase 3: Nudge overlapping edges apart
         if config.nudging_enabled && results.len() >= 2 {
             let nudge_config = NudgeConfig {
                 enabled: true,
