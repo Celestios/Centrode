@@ -216,7 +216,7 @@ fn pipeline_incremental_recomputation() {
     incremental.mark_node_dirty("n2");
     assert!(incremental.has_dirty());
 
-    let dirty = incremental.dirty_relation_ids(&std::collections::HashMap::new());
+    let dirty = incremental.dirty_relation_ids(&std::collections::HashMap::new(), 45.0);
     assert!(dirty.contains(&"e1".to_string()), "e1 depends on n2");
     assert!(dirty.contains(&"e2".to_string()), "e2 depends on n2");
 

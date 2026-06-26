@@ -159,7 +159,7 @@ impl RelationEngine {
             return Vec::new();
         }
 
-        let dirty_ids = incremental.dirty_relation_ids(&HashMap::new());
+        let dirty_ids = incremental.dirty_relation_ids(&HashMap::new(), config.routing.obstacle_margin);
         incremental.clear_dirty();
 
         if dirty_ids.is_empty() {

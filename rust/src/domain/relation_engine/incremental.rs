@@ -64,7 +64,7 @@ impl IncrementalState {
     /// Uses two filters:
     /// 1. Dependency filter: relation depends on a dirty node
     /// 2. Spatial filter: relation's bbox intersects the dirty region
-    pub fn dirty_relation_ids(&self, dirty_node_positions: &HashMap<String, Rect>) -> Vec<String> {
+    pub fn dirty_relation_ids(&self, dirty_node_positions: &HashMap<String, Rect>, margin: f64) -> Vec<String> {
         let mut affected: HashSet<String> = HashSet::new();
 
         // Direct dirty relations
@@ -86,7 +86,7 @@ impl IncrementalState {
             }
             for (_node_id, node_bbox) in dirty_node_positions {
                 // Expand node bbox by typical obstacle margin
-                let expanded = node_bbox.expand(45.0);
+                let expanded = node_bbox.expand(margin);
                 if rects_overlap(&expanded, rel_bbox) {
                     affected.insert(rel_id.clone());
                 }
@@ -144,7 +144,7 @@ mod tests {
         );
 
         state.mark_node_dirty("n1");
-        let dirty = state.dirty_relation_ids(&HashMap::new());
+        let dirty = state.dirty_relation_ids(&HashMap::new(), 45.0);
         assert!(dirty.contains(&"r1".to_string()));
         assert!(!dirty.contains(&"r2".to_string()));
     }
@@ -164,7 +164,7 @@ mod tests {
         positions.insert("n1".into(), Rect::new(520.0, 520.0, 80.0, 40.0));
 
         state.mark_node_dirty("n1");
-        let dirty = state.dirty_relation_ids(&positions);
+        let dirty = state.dirty_relation_ids(&positions, 45.0);
         assert!(dirty.contains(&"r1".to_string()));
     }
 

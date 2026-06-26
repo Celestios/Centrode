@@ -357,7 +357,7 @@ fn scenario_10_incremental_recomputation() {
     log_step("2.mark_dirty", "Move node 'b' → both e1 and e2 depend on it");
     inc.mark_node_dirty("b");
     assert!(inc.has_dirty());
-    let dirty = inc.dirty_relation_ids(&std::collections::HashMap::new());
+    let dirty = inc.dirty_relation_ids(&std::collections::HashMap::new(), 45.0);
     assert!(dirty.contains(&"e1".to_string()));
     assert!(dirty.contains(&"e2".to_string()));
     log_result(&format!("{} dirty edges detected", dirty.len()));
