@@ -2,12 +2,12 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:mycelium/shared/logging.dart';
 import '../models/models.dart';
-import '../models/port.dart';
 import '../presentation/view_state.dart';
 import '../presentation/strategies/node_style_strategy.dart';
 import 'interaction_context.dart';
 import '../store/graph_data_controller.dart';
 import '../store/spatial_index.dart';
+import '../store/relation_engine_state.dart';
 import '../presentation/node_render_state.dart';
 import '../presentation/viewport_state.dart';
 import '../presentation/workspace_tabs_controller.dart';
@@ -42,8 +42,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
   Map<String, NodeViewState> get nodeViewStates => _renderState.viewStates;
 
   @override
-  Map<String, List<Offset>> get relationPathCache =>
-      _renderState.relationPathCache;
+  RelationEngineState get relationEngine => _dataController.relationEngine;
 
   @override
   List<String> get zOrder => _renderState.zOrder;
@@ -115,6 +114,12 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
   @override
   void onNodeDragUpdate() => _renderState.notifyNodeDragUpdate();
+
+  @override
+  void onNodesDrag(List<(String, Offset)> updates) {
+    _dataController.updateNodePositionsVolatile(updates);
+    _renderState.notifyNodeDragUpdate();
+  }
 
   @override
   void setNodeDragging(String id, bool dragging) =>

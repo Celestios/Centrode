@@ -1,9 +1,9 @@
 // lib/features/graph/state/interaction_context.dart
 import 'dart:ui';
 import '../models/models.dart';
-import '../models/port.dart';
 import '../presentation/view_state.dart';
 import '../store/spatial_index.dart';
+import '../store/relation_engine_state.dart';
 
 /// Scoped capability interface for active interaction states.
 ///
@@ -53,7 +53,7 @@ abstract interface class SelectionCapability {
 /// Read-only query interface for node/relation geometry data.
 abstract interface class QueryCapability {
   Map<String, NodeViewState> get nodeViewStates;
-  Map<String, List<Offset>> get relationPathCache;
+  RelationEngineState get relationEngine;
   List<String> get zOrder;
   SpatialHashGrid get spatialGrid;
   Iterable<UiRelation> getRelations();
@@ -84,6 +84,8 @@ abstract interface class MutationCapability {
   void onRelationUpdateStyle(String id, RelationStyle newStyle);
 
   void onNodeDragUpdate();
+
+  void onNodesDrag(List<(String, Offset)> updates);
 
   void setNodeDragging(String id, bool dragging);
 

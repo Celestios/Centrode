@@ -31,13 +31,12 @@ class NodeDragging extends CanvasInteractionState {
     }
 
     ctx.setNodeDragging(nodeId, true);
-
-    // Apply continuous L1 snapping to the node's origin using Dynamic LOD
     final rawPos = pCanvas - grabOffset;
     final effectiveGridSize = calculateEffectiveGridSize(ctx.currentScale);
-    vs.positionNotifier.value = _snapToGrid(rawPos, effectiveGridSize);
+    final snappedPos = _snapToGrid(rawPos, effectiveGridSize);
+    vs.positionNotifier.value = snappedPos;
 
-    ctx.onNodeDragUpdate();
+    ctx.onNodesDrag([(nodeId, snappedPos)]);
     return this;
   }
 

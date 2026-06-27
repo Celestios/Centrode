@@ -84,7 +84,6 @@ class RelationTipDragging extends CanvasInteractionState {
       }
     }
 
-    ctx.relationPathCache.remove(relationId);
     ctx.onNodeDragUpdate(); // Pulse MovementNotifier to redraw the drag line
     _relationTipLog.fine('handlePointerMove relation=$relationId snap=${snappedId ?? "none"}');
     return RelationTipDragging(
@@ -105,7 +104,6 @@ class RelationTipDragging extends CanvasInteractionState {
     GeometryCapability ctx,
   ) {
     _relationTipLog.info('handlePointerUp relation=$relationId snapped=${snappedTargetNodeId ?? "none"} side=${snappedTargetSide ?? "none"}');
-    ctx.relationPathCache.remove(relationId);
     if (snappedTargetNodeId != null) {
       if (isStartTip) {
         ctx.onRelationUpdateLayout(
@@ -131,7 +129,6 @@ class RelationTipDragging extends CanvasInteractionState {
     PointerCancelEvent e,
     GeometryCapability ctx,
   ) {
-    ctx.relationPathCache.remove(relationId);
     ctx.onNodeDragUpdate(); // Repaint
     return const CanvasIdle();
   }

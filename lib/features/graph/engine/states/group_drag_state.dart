@@ -58,18 +58,21 @@ class GroupDragging extends CanvasInteractionState {
 
     final delta = snappedAnchorPos - originalAnchorPos;
 
+    final List<(String, Offset)> dragUpdates = [];
     for (final id in nodeIds) {
       final vs = ctx.nodeViewStates[id];
       final originalPos = originalPositions[id];
       if (vs != null && originalPos != null) {
-        vs.positionNotifier.value = _snapToGrid(
+        final snappedPos = _snapToGrid(
           originalPos + delta,
           effectiveGridSize,
         );
+        vs.positionNotifier.value = snappedPos;
+        dragUpdates.add((id, snappedPos));
       }
     }
 
-    ctx.onNodeDragUpdate();
+    ctx.onNodesDrag(dragUpdates);
     return this;
   }
 

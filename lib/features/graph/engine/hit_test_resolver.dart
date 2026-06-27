@@ -1,8 +1,7 @@
 import 'dart:ui';
 import 'package:mycelium/shared/logging.dart';
 import 'config.dart';
-import '../presentation/strategies/relation_layout_strategy.dart';
-import '../presentation/routing/relation_layout_context.dart';
+import '../presentation/relation_utils.dart';
 import '../models/models.dart';
 import '../models/port.dart';
 import 'interaction_context.dart';
@@ -52,12 +51,6 @@ class HitTestResolver {
   final Logger _hitTestLog = Logger('HitTestResolver');
 
   PointerHitResult resolve(Offset pCanvas, InteractionContext ctx, bool isDoubleTap) {
-    final layoutContext = RelationLayoutContext(
-      nodeViewStates: ctx.nodeViewStates,
-      relations: ctx.getRelations().toList(),
-      pathCache: ctx.relationPathCache,
-    );
-
     final nodeIds = ctx.zOrder.reversed.toList();
     if (nodeIds.isEmpty) {
       nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
@@ -66,11 +59,11 @@ class HitTestResolver {
     final selectedEntities = ctx.getSelectedEntities();
     _hitTestLog.fine('resolve pCanvas=(${pCanvas.dx}, ${pCanvas.dy}) selected=${selectedEntities.length}');
 
-    final result = _resolveRelationTips(pCanvas, ctx, layoutContext, selectedEntities) ??
+    final result = _resolveRelationTips(pCanvas, ctx, selectedEntities) ??
         _resolveMetadataSphere(pCanvas, ctx, nodeIds) ??
         _resolvePorts(pCanvas, ctx, nodeIds) ??
         _resolveNodeHits(pCanvas, ctx, nodeIds) ??
-        _resolveRelationLabel(pCanvas, ctx, nodeIds, layoutContext) ??
+        _resolveRelationLabel(pCanvas, ctx) ??
         const PointerHitResult(type: HitTestType.none);
 
     if (result.type != HitTestType.none) {
@@ -83,45 +76,29 @@ class HitTestResolver {
   PointerHitResult? _resolveRelationTips(
     Offset pCanvas,
     InteractionContext ctx,
-    RelationLayoutContext layoutContext,
     Set<String> selectedEntities,
   ) {
+    final cache = ctx.relationEngine.cache;
+
     for (final id in selectedEntities) {
-      UiRelation? rel;
-      for (final r in ctx.getRelations()) {
-        if (r.id == id) {
-          rel = r;
-          break;
-        }
-      }
-      if (rel == null) continue;
+      final cached = cache[id];
+      if (cached == null || cached.pathPoints.isEmpty) continue;
 
-      final from = ctx.nodeViewStates[rel.fromNodeId];
-      final to = ctx.nodeViewStates[rel.toNodeId];
-      if (from == null || to == null) continue;
-
-      final layoutStrategy = RelationLayoutStrategy.fromType(
-        rel.layout?.strategyType,
-      );
-      final (handleStart, handleEnd) = layoutStrategy.resolveTipHandles(
-        rel,
-        from,
-        to,
-        layoutContext,
-      );
+      final handleStart = Offset(cached.pathPoints.first.x, cached.pathPoints.first.y);
+      final handleEnd = Offset(cached.pathPoints.last.x, cached.pathPoints.last.y);
 
       if ((pCanvas - handleStart).distance <
           AppConfig.interaction.relationTipHitDistance) {
         return PointerHitResult(
           type: HitTestType.relationTipStart,
-          relationId: rel.id,
+          relationId: id,
           originalPosition: handleStart,
         );
       } else if ((pCanvas - handleEnd).distance <
           AppConfig.interaction.relationTipHitDistance) {
         return PointerHitResult(
           type: HitTestType.relationTipEnd,
-          relationId: rel.id,
+          relationId: id,
           originalPosition: handleEnd,
         );
       }
@@ -245,45 +222,28 @@ class HitTestResolver {
   PointerHitResult? _resolveRelationLabel(
     Offset pCanvas,
     InteractionContext ctx,
-    List<String> nodeIds,
-    RelationLayoutContext layoutContext,
   ) {
-    for (final rel in ctx.getRelations()) {
-      final fVs = ctx.nodeViewStates[rel.fromNodeId];
-      final tVs = ctx.nodeViewStates[rel.toNodeId];
-      if (fVs == null || tVs == null) continue;
+    final cache = ctx.relationEngine.cache;
 
-      final layoutStrategy = RelationLayoutStrategy.fromType(
-        rel.layout?.strategyType,
-      );
-      final (start, end) = layoutStrategy.resolveEndpoints(rel, fVs, tVs);
-      final mid = layoutStrategy.computeLabelPosition(
-        start,
-        end,
-        fVs,
-        tVs,
-        rel,
-        layoutContext,
-      );
+    for (final rel in ctx.getRelations()) {
+      final cached = cache[rel.id];
+      if (cached == null) continue;
+
+      final labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
 
       if (Rect.fromCenter(
-        center: mid,
+        center: labelPos,
         width: AppConfig.interaction.relationLabelHitArea.width,
         height: AppConfig.interaction.relationLabelHitArea.height,
       ).contains(pCanvas)) {
         return PointerHitResult(type: HitTestType.relationLabel, hitEntityId: rel.id);
       }
 
-      if (layoutStrategy.isPointNear(
-        pCanvas,
-        start,
-        end,
-        fVs,
-        tVs,
-        rel,
-        AppConfig.interaction.relationLineHitThreshold,
-        layoutContext,
-      )) {
+      final points = cached.pathPoints
+          .map((p) => Offset(p.x, p.y))
+          .toList();
+
+      if (isPointNearPolyline(pCanvas, points, AppConfig.interaction.relationLineHitThreshold)) {
         return PointerHitResult(type: HitTestType.relationLabel, hitEntityId: rel.id);
       }
     }
