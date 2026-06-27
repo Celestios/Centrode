@@ -2911,6 +2911,8 @@ impl SseDecode for crate::domain::relation_engine::computed::ComputedRelation {
         let mut var_dependsOnNodes = <Vec<String>>::sse_decode(deserializer);
         let mut var_bbox =
             <crate::domain::relation_engine::geometry::Rect>::sse_decode(deserializer);
+        let mut var_startMargin = <f64>::sse_decode(deserializer);
+        let mut var_endMargin = <f64>::sse_decode(deserializer);
         return crate::domain::relation_engine::computed::ComputedRelation {
             id: var_id,
             path_points: var_pathPoints,
@@ -2930,6 +2932,8 @@ impl SseDecode for crate::domain::relation_engine::computed::ComputedRelation {
             hit_test_points: var_hitTestPoints,
             depends_on_nodes: var_dependsOnNodes,
             bbox: var_bbox,
+            start_margin: var_startMargin,
+            end_margin: var_endMargin,
         };
     }
 }
@@ -5151,6 +5155,8 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::computed:
             self.hit_test_points.into_into_dart().into_dart(),
             self.depends_on_nodes.into_into_dart().into_dart(),
             self.bbox.into_into_dart().into_dart(),
+            self.start_margin.into_into_dart().into_dart(),
+            self.end_margin.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -6862,6 +6868,8 @@ impl SseEncode for crate::domain::relation_engine::computed::ComputedRelation {
         );
         <Vec<String>>::sse_encode(self.depends_on_nodes, serializer);
         <crate::domain::relation_engine::geometry::Rect>::sse_encode(self.bbox, serializer);
+        <f64>::sse_encode(self.start_margin, serializer);
+        <f64>::sse_encode(self.end_margin, serializer);
     }
 }
 

@@ -24,6 +24,8 @@ pub struct ComputedRelation {
     pub hit_test_points: Vec<Point>,
     pub depends_on_nodes: Vec<String>,
     pub bbox: Rect,
+    pub start_margin: f64,
+    pub end_margin: f64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

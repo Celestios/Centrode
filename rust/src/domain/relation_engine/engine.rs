@@ -422,6 +422,8 @@ fn compute_single_relation(
         hit_test_points: Vec::new(),
         depends_on_nodes,
         bbox,
+        start_margin,
+        end_margin,
     }
 }
 
@@ -445,5 +447,7 @@ fn empty_computed_relation(id: &str, from: &str, to: &str) -> ComputedRelation {
         hit_test_points: Vec::new(),
         depends_on_nodes: vec![from.to_string(), to.to_string()],
         bbox: Rect::new(0.0, 0.0, 0.0, 0.0),
+        start_margin: 0.0,
+        end_margin: 0.0,
     }
 }

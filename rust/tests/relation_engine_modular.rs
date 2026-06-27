@@ -178,6 +178,8 @@ fn test_relation_cache() {
         hit_test_points: Vec::new(),
         depends_on_nodes: vec!["n1".to_string(), "n2".to_string()],
         bbox: Rect::new(0.0, 0.0, 0.0, 0.0),
+        start_margin: 0.0,
+        end_margin: 0.0,
     };
 
     cache.insert("e1".to_string(), computed);
