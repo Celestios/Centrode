@@ -18,3 +18,4 @@ pub mod state;
 pub mod cache;
 pub mod painting;
 pub mod resolvers;
+pub mod sections;
