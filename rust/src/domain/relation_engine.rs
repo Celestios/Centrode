@@ -19,4 +19,5 @@ pub mod cache;
 pub mod painting;
 pub mod resolvers;
 pub mod section_endpoint;
+pub mod section_endpart;
 pub mod sections;

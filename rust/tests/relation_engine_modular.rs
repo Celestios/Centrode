@@ -14,6 +14,8 @@ use rust_lib_mycelium::domain::relation_engine::computed::{
     ComputedRelation, LabelAnchor, PathType,
 };
 use rust_lib_mycelium::domain::relation_engine::section_endpoint::EndpointResolver;
+use rust_lib_mycelium::domain::relation_engine::section_endpart::EndpartResolver;
+use rust_lib_mycelium::domain::relation_engine::sections::EndpointResult;
 use rust_lib_mycelium::domain::relation_engine::input::InputNode;
 
 #[test]
@@ -199,4 +201,24 @@ fn test_endpoint_resolver_standard() {
 
     assert_eq!(result.position, port);
     assert_eq!(result.shape, EndpointShapeType::None);
+}
+
+#[test]
+fn test_endpart_perpendicular_right_side() {
+    let node = InputNode {
+        id: "n1".to_string(),
+        x: 0.0, y: 0.0, width: 100.0, height: 100.0,
+    };
+    let endpoint = EndpointResult {
+        position: Point::new(100.0, 50.0),
+        direction: 0.0,
+        shape: EndpointShapeType::Arrow,
+    };
+    let mut path_buffer = Vec::new();
+
+    let resolver = EndpartResolver::Perpendicular;
+    let result = resolver.guide(&endpoint, &node, &mut path_buffer);
+
+    assert_eq!(result.exit_point, Point::new(108.0, 50.0));
+    assert!(result.point_count >= 2);
 }
