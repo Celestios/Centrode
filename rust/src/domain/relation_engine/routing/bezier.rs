@@ -1,14 +1,10 @@
-use crate::domain::relation_engine::geometry::{Point, Rect, sample_cubic_bezier};
+use crate::domain::relation_engine::geometry::{Point, Rect, sample_cubic_bezier, is_horiz};
 use crate::domain::relation_engine::config::RelationEngineConfig;
 use crate::domain::relation_engine::state::CanvasState;
 use crate::domain::relation_engine::computed::PathType;
 use super::{RoutingStrategy, node_clearance};
 
 pub struct BezierRouting;
-
-fn is_horiz(n: Point) -> bool {
-    n.x.abs() >= n.y.abs()
-}
 
 impl RoutingStrategy for BezierRouting {
     fn route(
@@ -56,6 +52,7 @@ fn routed_bezier(
         .max(node_clearance(end, to_normal, to_rect));
 
     let horizontal = is_horiz(from_normal);
+
     let detour = if horizontal {
         let mx = if from_normal.x > 0.0 {
             start.x.max(end.x) + ext
@@ -89,13 +86,6 @@ fn routed_bezier(
     let proj = (distance * config.routing.bezier_projection_factor)
         .min(config.routing.bezier_clamp_max)
         .max(config.routing.bezier_clamp_min.min(distance * 0.5));
-
-    let seg1_normal = if horizontal {
-        from_normal
-    } else {
-        from_normal
-    };
-    let seg2_normal = Point::new((p3.x - p2.x).signum(), (p3.y - p2.y).signum());
 
     let cp1a = start + from_normal * proj;
     let cp1b = p1 + (p2 - p1).normalized() * proj;

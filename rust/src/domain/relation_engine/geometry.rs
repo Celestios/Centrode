@@ -1,4 +1,11 @@
+pub mod bezier;
+
 use std::ops::{Add, Mul, Sub};
+
+pub use bezier::{
+    cubic_bezier_point, sample_cubic_bezier, quadratic_bezier_point,
+    sample_quadratic_bezier, round_corners,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Point {
@@ -106,12 +113,7 @@ pub struct Rect {
 
 impl Rect {
     pub fn new(x: f64, y: f64, width: f64, height: f64) -> Self {
-        Self {
-            x,
-            y,
-            width,
-            height,
-        }
+        Self { x, y, width, height }
     }
 
     pub fn left(&self) -> f64 {
@@ -162,6 +164,13 @@ impl Rect {
         ]
     }
 
+    pub fn overlaps(&self, other: &Rect) -> bool {
+        self.left() <= other.right()
+            && self.right() >= other.left()
+            && self.top() <= other.bottom()
+            && self.bottom() >= other.top()
+    }
+
     pub fn intersects_segment(&self, p1: Point, p2: Point) -> bool {
         if self.contains(p1) || self.contains(p2) {
             return true;
@@ -201,18 +210,10 @@ pub fn segments_intersect(a: Point, b: Point, c: Point, d: Point) -> bool {
             && q.y >= p.y.min(r.y)
     }
 
-    if val1 == 0.0 && on_segment(a, c, b) {
-        return true;
-    }
-    if val2 == 0.0 && on_segment(a, d, b) {
-        return true;
-    }
-    if val3 == 0.0 && on_segment(c, a, d) {
-        return true;
-    }
-    if val4 == 0.0 && on_segment(c, b, d) {
-        return true;
-    }
+    if val1 == 0.0 && on_segment(a, c, b) { return true; }
+    if val2 == 0.0 && on_segment(a, d, b) { return true; }
+    if val3 == 0.0 && on_segment(c, a, d) { return true; }
+    if val4 == 0.0 && on_segment(c, b, d) { return true; }
 
     false
 }
@@ -256,90 +257,27 @@ pub fn polyline_midpoint(points: &[Point]) -> Point {
     *points.last().unwrap()
 }
 
-pub fn cubic_bezier_point(
-    p0: Point,
-    p1: Point,
-    p2: Point,
-    p3: Point,
-    t: f64,
-) -> Point {
-    let mt = 1.0 - t;
-    let mt2 = mt * mt;
-    let mt3 = mt2 * mt;
-    let t2 = t * t;
-    let t3 = t2 * t;
-
-    Point {
-        x: mt3 * p0.x + 3.0 * mt2 * t * p1.x + 3.0 * mt * t2 * p2.x + t3 * p3.x,
-        y: mt3 * p0.y + 3.0 * mt2 * t * p1.y + 3.0 * mt * t2 * p2.y + t3 * p3.y,
-    }
+pub fn is_horiz(n: Point) -> bool {
+    n.x.abs() >= n.y.abs()
 }
 
-pub fn sample_cubic_bezier(
-    p0: Point,
-    p1: Point,
-    p2: Point,
-    p3: Point,
-    n: usize,
-) -> Vec<Point> {
-    (0..=n)
-        .map(|i| {
-            let t = i as f64 / n as f64;
-            cubic_bezier_point(p0, p1, p2, p3, t)
-        })
-        .collect()
+pub fn compute_cumulative_lengths(path: &[Point]) -> (Vec<f64>, f64) {
+    let n = path.len();
+    let mut lengths = vec![0.0; n];
+    let mut total_length = 0.0;
+    for i in 1..n {
+        total_length += path[i - 1].distance_to(path[i]);
+        lengths[i] = total_length;
+    }
+    (lengths, total_length)
 }
 
-pub fn quadratic_bezier_point(p0: Point, p1: Point, p2: Point, t: f64) -> Point {
-    let mt = 1.0 - t;
-    Point {
-        x: mt * mt * p0.x + 2.0 * mt * t * p1.x + t * t * p2.x,
-        y: mt * mt * p0.y + 2.0 * mt * t * p1.y + t * t * p2.y,
+pub fn compute_tangents(path: &[Point]) -> (Point, Point) {
+    if path.len() >= 2 {
+        let start = (path[1] - path[0]).normalized();
+        let end = (path[path.len() - 1] - path[path.len() - 2]).normalized();
+        (start, end)
+    } else {
+        (Point::new(1.0, 0.0), Point::new(1.0, 0.0))
     }
-}
-
-pub fn sample_quadratic_bezier(p0: Point, p1: Point, p2: Point, n: usize) -> Vec<Point> {
-    (0..=n)
-        .map(|i| {
-            let t = i as f64 / n as f64;
-            quadratic_bezier_point(p0, p1, p2, t)
-        })
-        .collect()
-}
-
-pub fn round_corners(points: &[Point], radius: f64) -> Vec<Point> {
-    if points.len() < 3 || radius < 1e-6 {
-        return points.to_vec();
-    }
-
-    let mut result = Vec::with_capacity(points.len() * 2);
-    result.push(points[0]);
-
-    for i in 1..points.len() - 1 {
-        let prev = points[i - 1];
-        let curr = points[i];
-        let next = points[i + 1];
-
-        let d1 = curr - prev;
-        let d2 = next - curr;
-        let len1 = d1.length();
-        let len2 = d2.length();
-
-        if len1 < 1e-6 || len2 < 1e-6 {
-            result.push(curr);
-            continue;
-        }
-
-        let r = radius.min(len1 / 2.0).min(len2 / 2.0);
-
-        let start_point = prev + d1.normalized() * (len1 - r);
-        let end_point = curr + d2.normalized() * r;
-
-        let corner_samples = sample_quadratic_bezier(start_point, curr, end_point, 8);
-        result.extend(corner_samples);
-    }
-
-    result.push(*points.last().unwrap());
-    result.dedup_by(|a, b| a.distance_to(*b) < 1e-6);
-    result
 }

@@ -7,15 +7,15 @@ use super::config::{BodyType, EndpointShapeType, RelationEngineConfig, BundlingM
 use super::crossing::minimize_crossings;
 
 use super::geometry::{Point, Rect};
-use super::incremental::IncrementalState;
+use super::state::incremental::IncrementalState;
 use super::input::{InputEdge, InputNode};
 use super::label::compute_label_position;
 use super::nudging::{nudge_edges, NudgeConfig};
 use super::routing::{compute_bbox, route_relation};
 use super::sections::compute_sections;
-use super::section_body;
+use super::sections::body as section_body;
 use super::state::CanvasState;
-use super::cache::RelationCache;
+use super::state::cache::RelationCache;
 
 pub struct RelationEngine {
     pub state: CanvasState,
@@ -200,16 +200,7 @@ impl RelationEngine {
                     let untrimmed_path = paths[idx].clone();
                     let start_port = untrimmed_path.first().copied().unwrap_or(Point::zero());
                     let end_port = untrimmed_path.last().copied().unwrap_or(Point::zero());
-                    let start_tangent = if untrimmed_path.len() >= 2 {
-                        (untrimmed_path[1] - untrimmed_path[0]).normalized()
-                    } else {
-                        Point::new(1.0, 0.0)
-                    };
-                    let end_tangent = if untrimmed_path.len() >= 2 {
-                        (untrimmed_path[untrimmed_path.len() - 1] - untrimmed_path[untrimmed_path.len() - 2]).normalized()
-                    } else {
-                        Point::new(1.0, 0.0)
-                    };
+                    let (start_tangent, end_tangent) = super::geometry::compute_tangents(&untrimmed_path);
                     result.start_tangent = start_tangent;
                     result.end_tangent = end_tangent;
 
@@ -219,7 +210,7 @@ impl RelationEngine {
                     let to_node = edge.and_then(|e| node_map.get(e.to_node_id.as_str()).copied());
 
                     if let Some(node) = from_node {
-                        let ep = super::section_endpoint::resolve_start(node, start_port, start_tangent, style, config);
+                        let ep = super::sections::endpoint::resolve_start(node, start_port, start_tangent, style, config);
                         result.start_endpoint = ep.shape;
                         result.start_direction = ep.direction;
                     } else {
@@ -238,7 +229,7 @@ impl RelationEngine {
                     }
 
                     if let Some(node) = to_node {
-                        let ep = super::section_endpoint::resolve_end(node, end_port, end_tangent, style, config);
+                        let ep = super::sections::endpoint::resolve_end(node, end_port, end_tangent, style, config);
                         result.end_endpoint = ep.shape;
                         result.end_direction = ep.direction;
                     } else {
@@ -295,7 +286,6 @@ impl RelationEngine {
                     result.body_widths = self.buffers.widths.clone();
                     let (label_pos, _) = compute_label_position(
                         &result.path_points,
-                        &result.path_type,
                         config,
                     );
                     result.label_position = label_pos;
@@ -377,16 +367,7 @@ impl RelationEngine {
             &mut self.buffers.tail_end,
         );
 
-        let start_tangent = if path_points.len() >= 2 {
-            (path_points[1] - path_points[0]).normalized()
-        } else {
-            Point::new(1.0, 0.0)
-        };
-        let end_tangent = if path_points.len() >= 2 {
-            (path_points[path_points.len() - 1] - path_points[path_points.len() - 2]).normalized()
-        } else {
-            Point::new(1.0, 0.0)
-        };
+        let (start_tangent, end_tangent) = super::geometry::compute_tangents(&path_points);
 
         let s = sectioned.as_ref().expect("compute_sections returns None only when nodes are missing, which is handled above");
         let start_shape = s.tail_start.endpoint.shape;
@@ -441,7 +422,7 @@ impl RelationEngine {
         );
         let body_widths = self.buffers.widths.clone();
 
-        let (label_pos, _) = compute_label_position(&trimmed_path, &path_type, config);
+        let (label_pos, _) = compute_label_position(&trimmed_path, config);
 
         let depends_on_nodes = vec![
             edge.from_node_id.clone(),

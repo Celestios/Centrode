@@ -1,3 +1,8 @@
+pub mod endpoint;
+pub mod endpart;
+pub mod adapter;
+pub mod body;
+
 use super::config::{EndpointShapeType, RelationEngineConfig};
 use super::geometry::Point;
 use super::input::{InputEdge, InputNode};
@@ -66,34 +71,25 @@ pub fn compute_sections(
         None => to_node.closest_port_to(from_center),
     };
 
-    let start_tangent = if path_buffer.len() >= 2 {
-        (path_buffer[1] - path_buffer[0]).normalized()
-    } else {
-        Point::new(1.0, 0.0)
-    };
-    let end_tangent = if path_buffer.len() >= 2 {
-        (path_buffer[path_buffer.len() - 1] - path_buffer[path_buffer.len() - 2]).normalized()
-    } else {
-        Point::new(1.0, 0.0)
-    };
+    let (start_tangent, end_tangent) = super::geometry::compute_tangents(path_buffer);
 
     let style = edge.style.as_ref();
 
-    let start_endpoint = super::section_endpoint::resolve_start(
+    let start_endpoint = super::sections::endpoint::resolve_start(
         from_node, start_port.position, start_tangent, style, config,
     );
-    let end_endpoint = super::section_endpoint::resolve_end(
+    let end_endpoint = super::sections::endpoint::resolve_end(
         to_node, end_port.position, end_tangent, style, config,
     );
 
-    let start_endpart = super::section_endpart::guide_endpart(&start_endpoint, from_node, tail_start_buffer);
-    let end_endpart = super::section_endpart::guide_endpart(&end_endpoint, to_node, tail_end_buffer);
+    let start_endpart = super::sections::endpart::guide_endpart(&start_endpoint, from_node, tail_start_buffer);
+    let end_endpart = super::sections::endpart::guide_endpart(&end_endpoint, to_node, tail_end_buffer);
 
     let body_start = path_buffer.first().copied().unwrap_or(Point::zero());
     let body_end = path_buffer.last().copied().unwrap_or(Point::zero());
 
-    let start_adapter = super::section_adapter::connect_adapter(&start_endpart, body_start, tail_start_buffer);
-    let end_adapter = super::section_adapter::connect_adapter(&end_endpart, body_end, tail_end_buffer);
+    let start_adapter = super::sections::adapter::connect_adapter(&start_endpart, body_start, tail_start_buffer);
+    let end_adapter = super::sections::adapter::connect_adapter(&end_endpart, body_end, tail_end_buffer);
 
     let body = BodyResult {
         point_count: path_buffer.len(),

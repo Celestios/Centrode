@@ -1,8 +1,8 @@
-use crate::domain::relation_engine::geometry::{Point, Rect};
+use crate::domain::relation_engine::geometry::{Point, Rect, is_horiz};
 use crate::domain::relation_engine::config::RelationEngineConfig;
 use crate::domain::relation_engine::state::CanvasState;
 use crate::domain::relation_engine::computed::PathType;
-use crate::domain::relation_engine::visibility_graph::{a_star_with_params, RouteCostParams, VisibilityGraph};
+use crate::domain::relation_engine::solver::visibility_graph::{a_star_with_params, RouteCostParams, VisibilityGraph};
 use super::{RoutingStrategy, node_clearance};
 
 pub struct OrthogonalRouting;
@@ -32,10 +32,6 @@ impl RoutingStrategy for OrthogonalRouting {
         };
         (points, PathType::Orthogonal)
     }
-}
-
-fn is_horiz(n: Point) -> bool {
-    n.x.abs() >= n.y.abs()
 }
 
 fn ortho_route(start: Point, end: Point, n: Point, m: Point, from_rect: Rect, to_rect: Rect) -> Vec<Point> {
@@ -162,7 +158,7 @@ fn obstacle_route(
 
     let filtered: Vec<Rect> = obstacles
         .iter()
-        .filter(|&obs| rects_overlap(obs, &route_bounds))
+        .filter(|obs| obs.overlaps(&route_bounds))
         .copied()
         .collect();
 
@@ -231,9 +227,6 @@ fn snap_to_orthogonal(waypoints: &[Point], from_normal: Point, to_normal: Point)
     result
 }
 
-fn rects_overlap(a: &Rect, b: &Rect) -> bool {
-    a.left() <= b.right() && a.right() >= b.left() && a.top() <= b.bottom() && a.bottom() >= b.top()
-}
 
 #[cfg(test)]
 mod tests {
