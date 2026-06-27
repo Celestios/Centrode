@@ -5,7 +5,7 @@ use super::buffers::RelationBuffers;
 use super::computed::{ComputedRelation, LabelAnchor, PathType};
 use super::config::{BodyType, EndpointShapeType, RelationEngineConfig, BundlingMode};
 use super::crossing::minimize_crossings;
-use super::endpoint::{compute_endpoints, compute_tangents};
+
 use super::geometry::{Point, Rect};
 use super::incremental::IncrementalState;
 use super::input::{InputEdge, InputNode};
@@ -200,7 +200,16 @@ impl RelationEngine {
                     let untrimmed_path = paths[idx].clone();
                     let start_port = untrimmed_path.first().copied().unwrap_or(Point::zero());
                     let end_port = untrimmed_path.last().copied().unwrap_or(Point::zero());
-                    let (start_tangent, end_tangent) = compute_tangents(&untrimmed_path);
+                    let start_tangent = if untrimmed_path.len() >= 2 {
+                        (untrimmed_path[1] - untrimmed_path[0]).normalized()
+                    } else {
+                        Point::new(1.0, 0.0)
+                    };
+                    let end_tangent = if untrimmed_path.len() >= 2 {
+                        (untrimmed_path[untrimmed_path.len() - 1] - untrimmed_path[untrimmed_path.len() - 2]).normalized()
+                    } else {
+                        Point::new(1.0, 0.0)
+                    };
                     result.start_tangent = start_tangent;
                     result.end_tangent = end_tangent;
 
@@ -209,21 +218,43 @@ impl RelationEngine {
                     let from_node = edge.and_then(|e| node_map.get(e.from_node_id.as_str()).copied());
                     let to_node = edge.and_then(|e| node_map.get(e.to_node_id.as_str()).copied());
 
-                    let (start_shape, start_dir, end_shape, end_dir) =
-                        compute_endpoints(
-                            start_tangent,
-                            end_tangent,
-                            config,
-                            style,
-                            from_node,
-                            to_node,
-                            start_port,
-                            end_port,
-                        );
-                    result.start_endpoint = start_shape;
-                    result.start_direction = start_dir;
-                    result.end_endpoint = end_shape;
-                    result.end_direction = end_dir;
+                    if let Some(node) = from_node {
+                        let ep = super::section_endpoint::resolve_start(node, start_port, start_tangent, style, config);
+                        result.start_endpoint = ep.shape;
+                        result.start_direction = ep.direction;
+                    } else {
+                        let shape = style.and_then(|s| s.start_shape.as_ref())
+                            .map(|s| match s {
+                                crate::domain::styles::EndpointShape::None => EndpointShapeType::None,
+                                crate::domain::styles::EndpointShape::Arrow => EndpointShapeType::Arrow,
+                                crate::domain::styles::EndpointShape::OpenArrow => EndpointShapeType::OpenArrow,
+                                crate::domain::styles::EndpointShape::Circle => EndpointShapeType::Circle,
+                                crate::domain::styles::EndpointShape::Diamond => EndpointShapeType::Diamond,
+                                crate::domain::styles::EndpointShape::Square => EndpointShapeType::Square,
+                            })
+                            .unwrap_or(config.endpoint.default_start_shape);
+                        result.start_endpoint = shape;
+                        result.start_direction = start_tangent.direction() + std::f64::consts::PI;
+                    }
+
+                    if let Some(node) = to_node {
+                        let ep = super::section_endpoint::resolve_end(node, end_port, end_tangent, style, config);
+                        result.end_endpoint = ep.shape;
+                        result.end_direction = ep.direction;
+                    } else {
+                        let shape = style.and_then(|s| s.end_shape.as_ref())
+                            .map(|s| match s {
+                                crate::domain::styles::EndpointShape::None => EndpointShapeType::None,
+                                crate::domain::styles::EndpointShape::Arrow => EndpointShapeType::Arrow,
+                                crate::domain::styles::EndpointShape::OpenArrow => EndpointShapeType::OpenArrow,
+                                crate::domain::styles::EndpointShape::Circle => EndpointShapeType::Circle,
+                                crate::domain::styles::EndpointShape::Diamond => EndpointShapeType::Diamond,
+                                crate::domain::styles::EndpointShape::Square => EndpointShapeType::Square,
+                            })
+                            .unwrap_or(config.endpoint.default_end_shape);
+                        result.end_endpoint = shape;
+                        result.end_direction = end_tangent.direction();
+                    }
 
                     let stroke_width = style.map(|s| s.stroke_width as f64).unwrap_or(2.0);
                     let arrow_size = style.map(|s| s.arrow_size).unwrap_or(config.endpoint.arrow_size);
@@ -240,12 +271,12 @@ impl RelationEngine {
                     let start_scale = if start_width > 0.0 { start_width / 2.0 } else { 1.0 };
                     let end_scale = if end_width > 0.0 { end_width / 2.0 } else { 1.0 };
 
-                    let start_margin = if start_shape != EndpointShapeType::None {
+                    let start_margin = if result.start_endpoint != EndpointShapeType::None {
                         arrow_size * start_scale
                     } else {
                         0.0
                     };
-                    let end_margin = if end_shape != EndpointShapeType::None {
+                    let end_margin = if result.end_endpoint != EndpointShapeType::None {
                         arrow_size * end_scale
                     } else {
                         0.0
@@ -346,7 +377,16 @@ impl RelationEngine {
             &mut self.buffers.tail_end,
         );
 
-        let (start_tangent, end_tangent) = compute_tangents(&path_points);
+        let start_tangent = if path_points.len() >= 2 {
+            (path_points[1] - path_points[0]).normalized()
+        } else {
+            Point::new(1.0, 0.0)
+        };
+        let end_tangent = if path_points.len() >= 2 {
+            (path_points[path_points.len() - 1] - path_points[path_points.len() - 2]).normalized()
+        } else {
+            Point::new(1.0, 0.0)
+        };
 
         let s = sectioned.as_ref().expect("compute_sections returns None only when nodes are missing, which is handled above");
         let start_shape = s.tail_start.endpoint.shape;

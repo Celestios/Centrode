@@ -3,7 +3,6 @@ pub mod bundling;
 pub mod computed;
 pub mod config;
 pub mod crossing;
-pub mod endpoint;
 pub mod engine;
 pub mod geometry;
 pub mod incremental;
