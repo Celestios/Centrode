@@ -16,6 +16,7 @@ use rust_lib_mycelium::domain::relation_engine::computed::{
 use rust_lib_mycelium::domain::relation_engine::section_endpoint::EndpointResolver;
 use rust_lib_mycelium::domain::relation_engine::section_endpart::EndpartResolver;
 use rust_lib_mycelium::domain::relation_engine::section_adapter::AdapterResolver;
+use rust_lib_mycelium::domain::relation_engine::section_body::BodyResolver;
 use rust_lib_mycelium::domain::relation_engine::sections::EndpointResult;
 use rust_lib_mycelium::domain::relation_engine::sections::EndpartResult;
 use rust_lib_mycelium::domain::relation_engine::input::InputNode;
@@ -240,4 +241,17 @@ fn test_adapter_bezier_connect() {
 
     assert!(result.point_count >= 1);
     assert_eq!(result.body_anchor, body_start);
+}
+
+#[test]
+fn test_body_uniform_widths() {
+    let path = vec![Point::new(0.0, 0.0), Point::new(10.0, 0.0), Point::new(20.0, 0.0)];
+    let config = RelationEngineConfig::default();
+    let mut widths_buffer = Vec::new();
+
+    let resolver = BodyResolver::Uniform;
+    let result = resolver.generate(&path, 3.0, &config, &mut widths_buffer);
+
+    assert_eq!(result.point_count, 3);
+    assert_eq!(widths_buffer, vec![3.0, 3.0, 3.0]);
 }

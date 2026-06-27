@@ -21,4 +21,5 @@ pub mod resolvers;
 pub mod section_endpoint;
 pub mod section_endpart;
 pub mod section_adapter;
+pub mod section_body;
 pub mod sections;
