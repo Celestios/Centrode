@@ -46,6 +46,20 @@ abstract class AppHandle implements RustOpaqueInterface {
     List<String>? relationIds,
   });
 
+  Future<ComputedRelation> computeSingleRelation({
+    required RelationEngineConfig config,
+    required String edgeId,
+    required String fromNodeId,
+    required String toNodeId,
+    PortSide? fromSide,
+    PortSide? toSide,
+    RoutingMode? routingMode,
+    double? overrideStartX,
+    double? overrideStartY,
+    double? overrideEndX,
+    double? overrideEndY,
+  });
+
   Stream<GraphEvent> createGraphStream();
 
   Future<void> createNode({required Nodes input});

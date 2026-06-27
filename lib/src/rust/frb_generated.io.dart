@@ -203,6 +203,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RelationStyle dco_decode_box_autoadd_relation_style(dynamic raw);
 
   @protected
+  RoutingMode dco_decode_box_autoadd_routing_mode(dynamic raw);
+
+  @protected
   ShapeNode dco_decode_box_autoadd_shape_node(dynamic raw);
 
   @protected
@@ -450,6 +453,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RelationStyle? dco_decode_opt_box_autoadd_relation_style(dynamic raw);
+
+  @protected
+  RoutingMode? dco_decode_opt_box_autoadd_routing_mode(dynamic raw);
 
   @protected
   Tag? dco_decode_opt_box_autoadd_tag(dynamic raw);
@@ -731,6 +737,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RoutingMode sse_decode_box_autoadd_routing_mode(SseDeserializer deserializer);
+
+  @protected
   ShapeNode sse_decode_box_autoadd_shape_node(SseDeserializer deserializer);
 
   @protected
@@ -1008,6 +1017,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RelationStyle? sse_decode_opt_box_autoadd_relation_style(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RoutingMode? sse_decode_opt_box_autoadd_routing_mode(
     SseDeserializer deserializer,
   );
 
@@ -1356,6 +1370,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_routing_mode(
+    RoutingMode self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_shape_node(
     ShapeNode self,
     SseSerializer serializer,
@@ -1689,6 +1709,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_relation_style(
     RelationStyle? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_routing_mode(
+    RoutingMode? self,
     SseSerializer serializer,
   );
 
