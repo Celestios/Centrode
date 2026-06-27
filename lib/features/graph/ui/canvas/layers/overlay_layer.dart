@@ -8,8 +8,7 @@ import '../../../engine/base_interaction_state.dart';
 import '../../../engine/interaction_engine.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
-import '../../../presentation/strategies/relation_layout_strategy.dart';
-import '../../../presentation/routing/relation_layout_context.dart';
+import '../../../presentation/relation_utils.dart';
 import '../widgets/metadata_preview_overlay.dart';
 import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 
@@ -114,50 +113,32 @@ class _TempRelationPainter extends CustomPainter {
       if (sourceVs == null) continue;
 
       final sourcePort = state.sourcePort;
-      final targetPort = state.snappedTargetPort;
 
       if (targetVs != null) {
-        final fromSide = sourcePort?.side;
-        final toSide = targetPort?.side;
-
+        final targetPort = state.snappedTargetPort;
         final tempRelation = InfoUiRelation(
           fromNodeId: sourceId,
           fromNodeTable: 'INode',
           toNodeId: state.snappedTargetNodeId!,
           toNodeTable: 'INode',
           layout: RelationLayout(
-            fromSide: fromSide,
-            toSide: toSide,
+            fromSide: sourcePort?.side,
+            toSide: targetPort?.side,
             strategyType: 'bezier',
           ),
         );
 
-        final layoutContext = RelationLayoutContext(
-          nodeViewStates: nodeViewStates,
-          relations: [],
-          pathCache: {},
+        final (start, end) = resolveRelationEndpoints(
+          tempRelation, sourceVs, targetVs,
         );
-
-        final layoutStrategy = RelationLayoutStrategy.fromType('bezier');
-        final (start, end) = layoutStrategy.resolveEndpoints(
-          tempRelation,
-          sourceVs,
-          targetVs,
-        );
-
-        final path = layoutStrategy.computePath(
-          start,
-          end,
-          sourceVs,
-          targetVs,
-          tempRelation,
-          layoutContext,
-        );
+        final path = buildSimpleBezierPath(start, end);
         canvas.drawPath(path, paint);
       } else {
         final startPos = sourcePort?.position ?? sourceVs.getClosestPort(state.currentCursorPosition).position;
-        canvas.drawLine(startPos, state.currentCursorPosition, paint);
+        final path = buildSimpleBezierPath(startPos, state.currentCursorPosition);
+        canvas.drawPath(path, paint);
         canvas.drawCircle(state.currentCursorPosition, 6, paint..style = PaintingStyle.fill);
+        paint.style = PaintingStyle.stroke;
       }
     }
   }

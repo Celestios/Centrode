@@ -3,12 +3,10 @@ import 'package:provider/provider.dart';
 import '../../../engine/config.dart';
 import '../../../store/graph_data_controller.dart';
 import '../../../presentation/node_render_state.dart';
-import '../../../presentation/strategies/relation_layout_strategy.dart';
 import '../../../engine/interaction_engine.dart';
 import '../../../models/models.dart';
 import '../painters/relation_painter.dart';
 import '../text/canvas_text_editor.dart';
-import '../../../presentation/routing/relation_layout_context.dart';
 import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 
 class RelationLayer extends StatelessWidget {
@@ -42,35 +40,11 @@ class RelationLayer extends StatelessWidget {
                 : null;
 
             Widget? editorWidget;
-            final layoutContext = RelationLayoutContext(
-              nodeViewStates: uiController.viewStates,
-              relations: dataController.relations.toList(),
-              pathCache: uiController.relationPathCache,
-            );
 
             if (editedRel != null) {
-              final fromVs = uiController.viewStates[editedRel.fromNodeId];
-              final toVs = uiController.viewStates[editedRel.toNodeId];
-
-              if (fromVs != null && toVs != null) {
-                final layoutStrategy = RelationLayoutStrategy.fromType(
-                  editedRel.layout?.strategyType,
-                );
-                final (start, end) = layoutStrategy.resolveEndpoints(
-                  editedRel,
-                  fromVs,
-                  toVs,
-                );
-
-                final labelPos = layoutStrategy.computeLabelPosition(
-                  start,
-                  end,
-                  fromVs,
-                  toVs,
-                  editedRel,
-                  layoutContext,
-                );
-
+              final cached = dataController.relationEngine.cache[editedRel.id];
+              if (cached != null) {
+                final labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
                 final width = AppConfig.relation.editorMinWidth;
                 final position =
                     labelPos -
@@ -126,7 +100,6 @@ class RelationLayer extends StatelessWidget {
                         dataController.relations.toList(),
                         uiController.viewStates,
                         uiController.selectedEntities,
-                        pathCache: uiController.relationPathCache,
                         relationEngine: dataController.relationEngine,
                         interactionState: interactionState,
                         theme: theme,

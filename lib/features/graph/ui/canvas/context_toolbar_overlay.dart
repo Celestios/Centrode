@@ -9,8 +9,6 @@ import 'package:mycelium/features/graph/engine/interaction_engine.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
 import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart';
 import 'package:mycelium/features/graph/presentation/strategies/relation_style_strategy.dart';
-import 'package:mycelium/features/graph/presentation/strategies/relation_layout_strategy.dart';
-import 'package:mycelium/features/graph/presentation/routing/relation_layout_context.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_text_format_toolbar.dart';
 import 'text/content_text_editing_controller.dart';
@@ -143,32 +141,9 @@ class ContextToolbarOverlay extends StatelessWidget {
             } catch (_) {}
             
             if (rel != null) {
-              final fromVs = renderState.viewStates[rel.fromNodeId];
-              final toVs = renderState.viewStates[rel.toNodeId];
-              if (fromVs != null && toVs != null) {
-                final layoutStrategy = RelationLayoutStrategy.fromType(
-                  rel.layout?.strategyType,
-                );
-                final (start, end) = layoutStrategy.resolveEndpoints(
-                  rel,
-                  fromVs,
-                  toVs,
-                );
-                final layoutContext = RelationLayoutContext(
-                  nodeViewStates: renderState.viewStates,
-                  relations: dataController.relations.toList(),
-                  pathCache: renderState.relationPathCache,
-                );
-                final labelPos = layoutStrategy.computeLabelPosition(
-                  start,
-                  end,
-                  fromVs,
-                  toVs,
-                  rel,
-                  layoutContext,
-                );
-                
-                anchorCanvas = labelPos;
+              final cached = dataController.relationEngine.cache[editedId];
+              if (cached != null) {
+                anchorCanvas = Offset(cached.labelPosition.x, cached.labelPosition.y);
                 entityWidth = 0;
               } else {
                 return const SizedBox.shrink();
