@@ -9,7 +9,6 @@ import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/src/rust/domain/snapshot.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 
 class MockAppHandle extends Mock implements AppHandle {}

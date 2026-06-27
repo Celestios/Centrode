@@ -92,10 +92,10 @@ void main() {
   });
 
   group('EditorState notification counts', () {
+    final viewStates = <String, NodeViewState>{};
+
     test('enterEditMode notifies exactly once', () {
-      final viewStates = <String, NodeViewState>{};
-      final relationPathCache = <String, List<Offset>>{};
-      final state = EditorState(mockQuery, viewStates, relationPathCache);
+      final state = EditorState(mockQuery, viewStates);
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
 
@@ -106,9 +106,7 @@ void main() {
     });
 
     test('cancelActiveEdit notifies exactly once', () {
-      final viewStates = <String, NodeViewState>{};
-      final relationPathCache = <String, List<Offset>>{};
-      final state = EditorState(mockQuery, viewStates, relationPathCache);
+      final state = EditorState(mockQuery, viewStates);
       state.enterEditMode('test-id');
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
@@ -120,9 +118,7 @@ void main() {
     });
 
     test('showFloatingToolbar notifies exactly once', () {
-      final viewStates = <String, NodeViewState>{};
-      final relationPathCache = <String, List<Offset>>{};
-      final state = EditorState(mockQuery, viewStates, relationPathCache);
+      final state = EditorState(mockQuery, viewStates);
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
 
@@ -133,9 +129,7 @@ void main() {
     });
 
     test('showFloatingToolbar same node does not re-notify', () {
-      final viewStates = <String, NodeViewState>{};
-      final relationPathCache = <String, List<Offset>>{};
-      final state = EditorState(mockQuery, viewStates, relationPathCache);
+      final state = EditorState(mockQuery, viewStates);
       state.showFloatingToolbar('node-1');
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
@@ -180,14 +174,14 @@ void main() {
   });
 
   group('DragState notification counts', () {
-    test('setNodeDragging does not notify (by design)', () {
+    test('setNodeDragging notifies exactly once', () {
       final state = DragState();
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
 
       state.setNodeDragging('test-id', true);
 
-      expect(notifyCount, 0);
+      expect(notifyCount, 1);
     });
   });
 }

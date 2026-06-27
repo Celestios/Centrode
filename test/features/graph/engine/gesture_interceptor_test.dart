@@ -12,9 +12,13 @@ import 'package:mycelium/features/graph/engine/drawing_interceptor.dart';
 import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
 import 'package:mycelium/features/graph/presentation/viewport_state.dart';
 
+import 'package:mycelium/features/graph/store/relation_engine_state.dart';
+import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
+
 class MockInteractionContext extends Mock implements InteractionContext {}
 class MockTabSession extends Mock implements TabSession {}
 class MockViewportController extends Mock implements ViewportController {}
+class MockRelationEngineState extends Mock implements RelationEngineState {}
 
 class TestInterceptor extends GestureInterceptor {
   final InterceptorDisposition returnDisposition;
@@ -100,7 +104,9 @@ void main() {
       when(() => mockEnv.getRelations()).thenReturn(<UiRelation>[]);
       when(() => mockEnv.zOrder).thenReturn(<String>[]);
       when(() => mockEnv.nodeViewStates).thenReturn(<String, NodeViewState>{});
-      when(() => mockEnv.relationPathCache).thenReturn(<String, List<Offset>>{});
+      final mockRelationEngine = MockRelationEngineState();
+      when(() => mockRelationEngine.cache).thenReturn(<String, ComputedRelation>{});
+      when(() => mockEnv.relationEngine).thenReturn(mockRelationEngine);
       when(() => mockEnv.onSelectEntity(any())).thenAnswer((_) {});
     });
 
@@ -187,7 +193,9 @@ void main() {
       when(() => mockEnv.getRelations()).thenReturn(<UiRelation>[]);
       when(() => mockEnv.zOrder).thenReturn(<String>[]);
       when(() => mockEnv.nodeViewStates).thenReturn(<String, NodeViewState>{});
-      when(() => mockEnv.relationPathCache).thenReturn(<String, List<Offset>>{});
+      final mockRelationEngine = MockRelationEngineState();
+      when(() => mockRelationEngine.cache).thenReturn(<String, ComputedRelation>{});
+      when(() => mockEnv.relationEngine).thenReturn(mockRelationEngine);
       when(() => mockEnv.onSelectEntity(any())).thenAnswer((_) {});
 
       when(() => mockSession.toolModeNotifier).thenReturn(toolModeNotifier);

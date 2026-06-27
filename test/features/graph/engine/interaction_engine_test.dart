@@ -6,12 +6,40 @@ import 'package:mycelium/features/graph/engine/interaction_context.dart';
 import 'package:mycelium/features/graph/engine/base_interaction_state.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
+
+import 'dart:typed_data';
+import 'package:mycelium/features/graph/store/relation_engine_state.dart';
+import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
+import 'package:mycelium/src/rust/domain/relation_engine/config.dart';
+import 'package:mycelium/src/rust/domain/relation_engine/geometry.dart' as rust_geom;
 
 class MockInteractionContext extends Mock implements InteractionContext {}
 
 class MockTransformationController extends Mock
     implements TransformationController {}
+
+class MockRelationEngineState extends Mock implements RelationEngineState {}
+
+ComputedRelation createTestComputedRelation(String id, List<rust_geom.Point> pathPoints) {
+  return ComputedRelation(
+    id: id,
+    pathPoints: pathPoints,
+    pathType: PathType.straight,
+    startTangent: const rust_geom.Point(x: 0, y: 0),
+    endTangent: const rust_geom.Point(x: 0, y: 0),
+    bodyWidths: Float64List(0),
+    bodyType: BodyType.uniform,
+    startEndpoint: EndpointShapeType.none,
+    endEndpoint: EndpointShapeType.none,
+    startDirection: 0.0,
+    endDirection: 0.0,
+    labelPosition: const rust_geom.Point(x: 0, y: 0),
+    labelAnchor: LabelAnchor.center,
+    hitTestPoints: pathPoints,
+    dependsOnNodes: const [],
+    bbox: const rust_geom.Rect(x: 0, y: 0, width: 0, height: 0),
+  );
+}
 
 void main() {
   group('InteractionController (FSM Engine)', () {
@@ -24,7 +52,9 @@ void main() {
       when(() => mockTransform.value).thenReturn(Matrix4.identity());
 
       mockContext = MockInteractionContext();
-      when(() => mockContext.relationPathCache).thenReturn({});
+      final mockRelationEngine = MockRelationEngineState();
+      when(() => mockRelationEngine.cache).thenReturn(<String, ComputedRelation>{});
+      when(() => mockContext.relationEngine).thenReturn(mockRelationEngine);
 
       controller = InteractionController(
         transformController: mockTransform,
@@ -115,6 +145,18 @@ void main() {
         when(() => mockContext.getSelectedEntities()).thenReturn({'rel-1'});
         when(() => mockContext.zOrder).thenReturn(['node-from', 'node-to']);
 
+        final mockRelationEngine = MockRelationEngineState();
+        when(() => mockRelationEngine.cache).thenReturn({
+          'rel-1': createTestComputedRelation(
+            'rel-1',
+            [
+              const rust_geom.Point(x: 100, y: 30),
+              const rust_geom.Point(x: 300, y: 30),
+            ],
+          ),
+        });
+        when(() => mockContext.relationEngine).thenReturn(mockRelationEngine);
+
         // 2. Compute handle position using the default strategy (which is straight line, so start port is Right, end port is Left)
         // fromVs.rightPort = (100, 30)
         // toVs.leftPort = (300, 30)
@@ -166,9 +208,17 @@ void main() {
         when(() => mockContext.getRelations()).thenReturn([rel]);
         when(() => mockContext.getSelectedEntities()).thenReturn({'rel-1'});
         when(() => mockContext.zOrder).thenReturn(['node-from', 'node-to']);
-        when(
-          () => mockContext.relationPathCache,
-        ).thenReturn(<String, List<Offset>>{});
+        final mockRelationEngine = MockRelationEngineState();
+        when(() => mockRelationEngine.cache).thenReturn({
+          'rel-1': createTestComputedRelation(
+            'rel-1',
+            [
+              const rust_geom.Point(x: 100, y: 30),
+              const rust_geom.Point(x: 300, y: 30),
+            ],
+          ),
+        });
+        when(() => mockContext.relationEngine).thenReturn(mockRelationEngine);
 
         // Start drag by pressing on handle
         final downEvent = PointerDownEvent(position: const Offset(116, 30));

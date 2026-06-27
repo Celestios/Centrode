@@ -13,9 +13,13 @@ import 'package:mycelium/features/graph/engine/interaction_engine.dart';
 import 'package:mycelium/features/graph/engine/interaction_facade.dart';
 import 'package:mycelium/features/graph/presentation/viewport_state.dart';
 import 'package:mycelium/features/graph/store/spatial_index.dart';
-import 'package:mycelium/features/graph/presentation/relation_engine_state.dart';
+import 'package:mycelium/features/graph/store/relation_engine_state.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
+import 'dart:typed_data';
+import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
+import 'package:mycelium/src/rust/domain/relation_engine/config.dart';
+import 'package:mycelium/src/rust/domain/relation_engine/geometry.dart' as rust_geom;
 
 class MockGraphDataController extends Mock implements GraphDataController {}
 
@@ -26,6 +30,27 @@ class MockThemeController extends Mock implements ThemeController {}
 class MockSpatialHashGrid extends Mock implements SpatialHashGrid {}
 
 class MockInteractionController extends Mock implements InteractionController {}
+
+ComputedRelation createTestComputedRelation(String id, List<rust_geom.Point> pathPoints) {
+  return ComputedRelation(
+    id: id,
+    pathPoints: pathPoints,
+    pathType: PathType.straight,
+    startTangent: const rust_geom.Point(x: 0, y: 0),
+    endTangent: const rust_geom.Point(x: 0, y: 0),
+    bodyWidths: Float64List(0),
+    bodyType: BodyType.uniform,
+    startEndpoint: EndpointShapeType.none,
+    endEndpoint: EndpointShapeType.none,
+    startDirection: 0.0,
+    endDirection: 0.0,
+    labelPosition: const rust_geom.Point(x: 0, y: 0),
+    labelAnchor: LabelAnchor.center,
+    hitTestPoints: pathPoints,
+    dependsOnNodes: const [],
+    bbox: const rust_geom.Rect(x: 0, y: 0, width: 0, height: 0),
+  );
+}
 
 void main() {
   setUpAll(() {
@@ -152,7 +177,9 @@ void main() {
           .widgetList<CustomPaint>(customPaintFinder)
           .firstWhere((w) => w.painter is RelationPainter);
       final painter = customPaint.painter as RelationPainter;
-      expect(painter.draggingOverrides['rel-1']?.$1, const Offset(150, 40));
+      final tipDrag = painter.interactionState as RelationTipDragging;
+      expect(tipDrag.relationId, 'rel-1');
+      expect(tipDrag.currentCursorPosition, const Offset(150, 40));
     },
   );
 
@@ -202,7 +229,15 @@ void main() {
       ).thenAnswer((_) => const Stream.empty());
 
       final mockRelationEngine = MockRelationEngineState();
-      when(() => mockRelationEngine.cache).thenReturn({});
+      when(() => mockRelationEngine.cache).thenReturn({
+        'rel-1': createTestComputedRelation(
+          'rel-1',
+          [
+            const rust_geom.Point(x: 110, y: 35),
+            const rust_geom.Point(x: 210, y: 35),
+          ],
+        ),
+      });
       when(() => mockRelationEngine.cacheNotifier)
           .thenReturn(ValueNotifier<int>(0));
       when(() => mockController.relationEngine)
@@ -291,8 +326,9 @@ void main() {
           .widgetList<CustomPaint>(customPaintFinder)
           .firstWhere((w) => w.painter is RelationPainter);
       final painter = customPaint.painter as RelationPainter;
-
-      expect(painter.draggingOverrides['rel-1']?.$1, const Offset(150, 40));
+      final tipDrag = painter.interactionState as RelationTipDragging;
+      expect(tipDrag.relationId, 'rel-1');
+      expect(tipDrag.currentCursorPosition, const Offset(150, 40));
 
       await gesture.up();
       await tester.pump();
