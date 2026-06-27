@@ -18,19 +18,13 @@ class RelationEngineState {
       routingMode: RoutingMode.polyline,
       obstacleMargin: 45.0,
       cornerRadius: 8.0,
-      bezierCurvature: 0.25,
-      bezierProjectionFactor: 0.4,
+      bezierCurvature: 20,
+      bezierProjectionFactor: 2,
       bezierClampMin: 30.0,
       bezierClampMax: 150.0,
     ),
-    nudging: NudgingConfig(
-      enabled: true,
-      distance: 4.0,
-    ),
-    bundling: BundlingConfig(
-      mode: BundlingMode.none,
-      threshold: 50.0,
-    ),
+    nudging: NudgingConfig(enabled: true, distance: 4.0),
+    bundling: BundlingConfig(mode: BundlingMode.none, threshold: 50.0),
     crossingMinimization: true,
     incrementalMode: true,
     body: BodyConfig(
@@ -51,7 +45,9 @@ class RelationEngineState {
       obstacleAvoidance: false,
     ),
   );
-  Timer? _debounceTimer;
+  Timer? _throttleTimer;
+  bool _recomputeInFlight = false;
+  bool _pendingRecompute = false;
   final ValueNotifier<int> cacheNotifier = ValueNotifier<int>(0);
 
   Map<String, ComputedRelation> get cache => _tracker.cache;
@@ -86,9 +82,20 @@ class RelationEngineState {
   }
 
   void _scheduleRecompute() {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 16), () {
-      recomputeDirty();
+    if (_recomputeInFlight) {
+      _pendingRecompute = true;
+      return;
+    }
+    _recomputeInFlight = true;
+    _throttleTimer?.cancel();
+    recomputeDirty().whenComplete(() {
+      _recomputeInFlight = false;
+      if (_pendingRecompute) {
+        _pendingRecompute = false;
+        _throttleTimer = Timer(const Duration(milliseconds: 8), () {
+          _scheduleRecompute();
+        });
+      }
     });
   }
 
@@ -107,9 +114,7 @@ class RelationEngineState {
     }
   }
 
-  Future<List<ComputedRelation>> recompute({
-    List<String>? dirtyIds,
-  }) async {
+  Future<List<ComputedRelation>> recompute({List<String>? dirtyIds}) async {
     try {
       final result = await _api.computeRelations(
         config: _config,
@@ -119,6 +124,36 @@ class RelationEngineState {
     } catch (e) {
       _log.warning('Failed to call compute_relations: $e');
       return [];
+    }
+  }
+
+  Future<ComputedRelation?> computeSingleRelation({
+    required String edgeId,
+    required String fromNodeId,
+    required String toNodeId,
+    PortSide? fromSide,
+    PortSide? toSide,
+    double? overrideStartX,
+    double? overrideStartY,
+    double? overrideEndX,
+    double? overrideEndY,
+  }) async {
+    try {
+      return await _api.computeSingleRelation(
+        config: _config,
+        edgeId: edgeId,
+        fromNodeId: fromNodeId,
+        toNodeId: toNodeId,
+        fromSide: fromSide,
+        toSide: toSide,
+        overrideStartX: overrideStartX,
+        overrideStartY: overrideStartY,
+        overrideEndX: overrideEndX,
+        overrideEndY: overrideEndY,
+      );
+    } catch (e) {
+      _log.warning('Failed to compute single relation: $e');
+      return null;
     }
   }
 
@@ -132,7 +167,7 @@ class RelationEngineState {
   }
 
   void dispose() {
-    _debounceTimer?.cancel();
+    _throttleTimer?.cancel();
     _tracker.clear();
     cacheNotifier.dispose();
   }

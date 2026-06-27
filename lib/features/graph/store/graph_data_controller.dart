@@ -8,8 +8,7 @@ import '../models/models.dart';
 import 'command_processor.dart';
 import 'package:mycelium/src/rust/bridge/api.dart' as rust;
 import 'package:mycelium/src/rust/domain/nodes.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
-import '../presentation/relation_engine_state.dart';
+import 'relation_engine_state.dart';
 
 import 'modules/graph_store.dart';
 import 'modules/graph_spatial.dart';
@@ -49,6 +48,7 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
   late final GraphRelationMutations relationMutations;
   late final GraphPropertyMutations propertyMutations;
   late final GraphTemplateMutations templateMutations;
+  @override
   late final RelationEngineState relationEngine;
 
   // Dependency Inversion Hooks
@@ -184,7 +184,7 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
     this.relationMutations = relationMutations ?? GraphRelationMutations(this);
     this.propertyMutations = propertyMutations ?? GraphPropertyMutations(this);
     this.templateMutations = templateMutations ?? GraphTemplateMutations(this);
-    this.relationEngine = RelationEngineState(api: apiHandle);
+    relationEngine = RelationEngineState(api: apiHandle);
 
     _log.info(
       'GraphDataController initialized: Domain modules successfully composed.',
@@ -290,6 +290,30 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
       );
     }
     relationEngine.onNodeMoved(id);
+  }
+
+  void updateNodePositionsVolatile(List<(String, Offset)> updates) {
+    final List<(String, double, double, double, double)> positions = [];
+    for (final update in updates) {
+      final id = update.$1;
+      final newPos = update.$2;
+      final node = store.nodeLookup[id];
+      if (node != null) {
+        positions.add((
+          id,
+          newPos.dx,
+          newPos.dy,
+          node.size.width,
+          node.size.height,
+        ));
+      }
+    }
+    if (positions.isNotEmpty) {
+      syncEngine.api.updateNodeCachePositions(positions: positions);
+      for (final update in updates) {
+        relationEngine.onNodeMoved(update.$1);
+      }
+    }
   }
 
   void updateNodeWidth(String id, double leftEdge, double rightEdge) =>

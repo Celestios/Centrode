@@ -1,6 +1,7 @@
 import 'dart:async';
 import '../models/models.dart';
 import 'spatial_index.dart';
+import 'relation_engine_state.dart';
 
 enum GraphUpdateType {
   position,
@@ -39,10 +40,11 @@ class GraphEntityUpdate {
 abstract interface class GraphDataQuery {
   bool get isLoading;
   String? get errorMessage;
-  SpatialHashGrid get spatialGrid; // or spatialHash based on your alias
+  SpatialHashGrid get spatialGrid;
   Map<String, UiNode> get nodeLookup;
   Map<String, UiRelation> get relationLookup;
   Iterable<UiRelation> get relations;
   BoundingBox get canvasBounds;
+  RelationEngineState get relationEngine;
   Stream<GraphEntityUpdate> get onEntityUpdate;
 }
