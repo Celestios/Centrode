@@ -1,3 +1,4 @@
+use rust_lib_mycelium::domain::relation_engine::buffers::RelationBuffers;
 use rust_lib_mycelium::domain::relation_engine::body::compute_body_widths;
 use rust_lib_mycelium::domain::relation_engine::config::{
     BodyType, EndpointShapeType, RelationEngineConfig,
@@ -254,4 +255,17 @@ fn test_body_uniform_widths() {
 
     assert_eq!(result.point_count, 3);
     assert_eq!(widths_buffer, vec![3.0, 3.0, 3.0]);
+}
+
+#[test]
+fn test_buffers_reuse() {
+    let mut buffers = RelationBuffers::with_capacity(100);
+
+    buffers.path.push(Point::new(0.0, 0.0));
+    buffers.path.push(Point::new(10.0, 0.0));
+    assert_eq!(buffers.path.len(), 2);
+
+    buffers.clear();
+    assert_eq!(buffers.path.len(), 0);
+    assert!(buffers.path.capacity() >= 100);
 }
