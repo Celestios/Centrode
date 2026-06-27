@@ -30,12 +30,7 @@ impl BodyStrategy for WidthModulateBody {
 
         let mut widths = Vec::with_capacity(n);
         for &len in &lengths {
-            let t = if total_length > 1e-6 {
-                len / total_length
-            } else {
-                0.0
-            };
-            let w = base_width + amplitude * (t * frequency * 2.0 * PI).sin();
+            let w = base_width + amplitude * (len * (frequency / 300.0) * 2.0 * PI).sin();
             widths.push(w.max(0.1)); // Keep width positive
         }
         widths

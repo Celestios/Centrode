@@ -335,10 +335,11 @@ pub fn round_corners(points: &[Point], radius: f64) -> Vec<Point> {
         let start_point = prev + d1.normalized() * (len1 - r);
         let end_point = curr + d2.normalized() * r;
 
-        result.push(start_point);
-        result.push(end_point);
+        let corner_samples = sample_quadratic_bezier(start_point, curr, end_point, 8);
+        result.extend(corner_samples);
     }
 
     result.push(*points.last().unwrap());
+    result.dedup_by(|a, b| a.distance_to(*b) < 1e-6);
     result
 }

@@ -72,6 +72,57 @@ impl SurqlSchemaField for PortSide {
     fn sub_field_paths() -> Vec<(String, String)> { vec![] }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[frb]
+pub enum PortType {
+    #[default]
+    Middle,
+    Corner,
+    Edge,
+}
+
+impl PortType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            PortType::Middle => "Middle",
+            PortType::Corner => "Corner",
+            PortType::Edge => "Edge",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "corner" => PortType::Corner,
+            "edge" => PortType::Edge,
+            _ => PortType::Middle,
+        }
+    }
+}
+
+impl SurrealValue for PortType {
+    fn kind_of() -> surrealdb::types::Kind {
+        surrealdb::types::Kind::String
+    }
+
+    fn from_value(value: Value) -> Result<Self, surrealdb::types::Error> {
+        match value {
+            Value::String(s) => Ok(PortType::from_str(&s)),
+            _ => Err(surrealdb::types::Error::thrown(format!(
+                "Expected string for PortType, found: {:?}", value
+            ))),
+        }
+    }
+
+    fn into_value(self) -> Value {
+        Value::String(self.as_str().to_string())
+    }
+}
+
+impl SurqlSchemaField for PortType {
+    fn field_type() -> String { "string".to_string() }
+    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 #[frb]
 pub enum EndpointShape {

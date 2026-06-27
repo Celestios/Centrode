@@ -187,26 +187,75 @@ impl RelationEngine {
                 .filter_map(|id| id_to_result.get(id).cloned())
                 .collect();
 
+            let edge_map: HashMap<&str, &InputEdge> =
+                edges_to_compute.iter().map(|e| (e.id.as_str(), *e)).collect();
+
             for result in &mut results {
                 // Find the reordered path for this result
                 if let Some(idx) = reordered_ids.iter().position(|rid| rid == &result.id) {
-                    result.path_points = paths[idx].clone();
-                    let (start_tangent, end_tangent) = compute_tangents(&result.path_points);
+                    let untrimmed_path = paths[idx].clone();
+                    let start_port = untrimmed_path.first().copied().unwrap_or(Point::zero());
+                    let end_port = untrimmed_path.last().copied().unwrap_or(Point::zero());
+                    let (start_tangent, end_tangent) = compute_tangents(&untrimmed_path);
                     result.start_tangent = start_tangent;
                     result.end_tangent = end_tangent;
 
+                    let edge = edge_map.get(result.id.as_str()).copied();
+                    let style = edge.and_then(|e| e.style.as_ref());
+                    let from_node = edge.and_then(|e| node_map.get(e.from_node_id.as_str()).copied());
+                    let to_node = edge.and_then(|e| node_map.get(e.to_node_id.as_str()).copied());
+
                     let (start_shape, start_dir, end_shape, end_dir) =
-                        compute_endpoints(start_tangent, end_tangent, config);
+                        compute_endpoints(
+                            start_tangent,
+                            end_tangent,
+                            config,
+                            style,
+                            from_node,
+                            to_node,
+                            start_port,
+                            end_port,
+                        );
                     result.start_endpoint = start_shape;
                     result.start_direction = start_dir;
                     result.end_endpoint = end_shape;
                     result.end_direction = end_dir;
 
+                    let stroke_width = style.map(|s| s.stroke_width as f64).unwrap_or(2.0);
+                    let arrow_size = style.map(|s| s.arrow_size).unwrap_or(config.endpoint.arrow_size);
+
+                    let start_width = match result.body_type {
+                        BodyType::Taper => config.body.taper_start_width,
+                        _ => stroke_width,
+                    };
+                    let end_width = match result.body_type {
+                        BodyType::Taper => config.body.taper_end_width,
+                        _ => stroke_width,
+                    };
+
+                    let start_scale = if start_width > 0.0 { start_width / 2.0 } else { 1.0 };
+                    let end_scale = if end_width > 0.0 { end_width / 2.0 } else { 1.0 };
+
+                    let start_margin = if start_shape != EndpointShapeType::None {
+                        arrow_size * start_scale
+                    } else {
+                        0.0
+                    };
+                    let end_margin = if end_shape != EndpointShapeType::None {
+                        arrow_size * end_scale
+                    } else {
+                        0.0
+                    };
+
+                    result.path_points = super::painting::relation::trim_path(&untrimmed_path, start_margin, end_margin);
+
                     result.body_widths = compute_body_widths(
                         &result.path_points,
                         &result.body_type,
-                        2.0,
+                        stroke_width,
                         config,
+                        start_shape != EndpointShapeType::None,
+                        end_shape != EndpointShapeType::None,
                     );
                     let (label_pos, _) = compute_label_position(
                         &result.path_points,
@@ -281,9 +330,26 @@ fn compute_single_relation(
 
     let (path_points, path_type) = route_relation(edge, node_map, obstacles, config, state);
 
+    let from_node = node_map.get(edge.from_node_id.as_str()).copied();
+    let to_node = node_map.get(edge.to_node_id.as_str()).copied();
+    let start_port = path_points.first().copied().unwrap_or(Point::zero());
+    let end_port = path_points.last().copied().unwrap_or(Point::zero());
+
     let (start_tangent, end_tangent) = compute_tangents(&path_points);
     let (start_shape, start_dir, end_shape, end_dir) =
-        compute_endpoints(start_tangent, end_tangent, config);
+        compute_endpoints(
+            start_tangent,
+            end_tangent,
+            config,
+            edge.style.as_ref(),
+            from_node,
+            to_node,
+            start_port,
+            end_port,
+        );
+
+    let stroke_width = edge.style.as_ref().map(|s| s.stroke_width as f64).unwrap_or(2.0);
+    let arrow_size = edge.style.as_ref().map(|s| s.arrow_size).unwrap_or(config.endpoint.arrow_size);
 
     let body_strategy_str = edge.style.as_ref().map(|s| s.body_strategy.as_str()).unwrap_or("");
     let body_type = match body_strategy_str {
@@ -293,8 +359,40 @@ fn compute_single_relation(
         "bundled" => BodyType::Bundled,
         _ => config.body.default_type,
     };
-    let base_width = 2.0;
-    let body_widths = compute_body_widths(&path_points, &body_type, base_width, config);
+
+    let start_width = match body_type {
+        BodyType::Taper => config.body.taper_start_width,
+        _ => stroke_width,
+    };
+    let end_width = match body_type {
+        BodyType::Taper => config.body.taper_end_width,
+        _ => stroke_width,
+    };
+
+    let start_scale = if start_width > 0.0 { start_width / 2.0 } else { 1.0 };
+    let end_scale = if end_width > 0.0 { end_width / 2.0 } else { 1.0 };
+
+    let start_margin = if start_shape != EndpointShapeType::None {
+        arrow_size * start_scale
+    } else {
+        0.0
+    };
+    let end_margin = if end_shape != EndpointShapeType::None {
+        arrow_size * end_scale
+    } else {
+        0.0
+    };
+
+    let path_points = super::painting::relation::trim_path(&path_points, start_margin, end_margin);
+
+    let body_widths = compute_body_widths(
+        &path_points,
+        &body_type,
+        stroke_width,
+        config,
+        start_shape != EndpointShapeType::None,
+        end_shape != EndpointShapeType::None,
+    );
 
     let (label_pos, _) = compute_label_position(&path_points, &path_type, config);
 

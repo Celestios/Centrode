@@ -18,6 +18,8 @@ pub trait RoutingStrategy: Send + Sync {
         end: Point,
         from_normal: Point,
         to_normal: Point,
+        from_rect: Rect,
+        to_rect: Rect,
         obstacles: &[Rect],
         config: &RelationEngineConfig,
         state: &CanvasState,
@@ -53,38 +55,55 @@ pub fn route_relation(
     let to_center = to_node.center();
     let from_center = from_node.center();
 
-    let start = match &edge.from_side {
+    let start_port = match &edge.from_side {
         Some(side) => from_node.resolve_port(side, to_center),
         None => from_node.closest_port_to(to_center),
     };
 
-    let end = match &edge.to_side {
+    let end_port = match &edge.to_side {
         Some(side) => to_node.resolve_port(side, from_center),
         None => to_node.closest_port_to(from_center),
     };
+
+    let start = start_port.position;
+    let end = end_port.position;
 
     let exclude_ids: std::collections::HashSet<&str> =
         [edge.from_node_id.as_str(), edge.to_node_id.as_str()]
             .into_iter()
             .collect();
 
-    // Map obstacles, keeping order alignment with node_map keys
-    let filtered_obstacles: Vec<Rect> = obstacles
-        .iter()
-        .enumerate()
-        .filter(|(i, _)| {
-            !exclude_ids.contains(node_map.keys().nth(*i).unwrap_or(&""))
-        })
-        .map(|(_, r)| *r)
+    // Map obstacles excluding from/to nodes
+    let filtered_obstacles: Vec<Rect> = node_map
+        .values()
+        .filter(|node| !exclude_ids.contains(node.id.as_str()))
+        .map(|node| node.rect())
         .collect();
 
     let routing_mode = edge.routing_mode.unwrap_or(config.routing.routing_mode);
 
-    let from_normal = from_node.port_normal(start);
-    let to_normal = to_node.port_normal(end);
+    let from_normal = super::input::normal_for_side(&start_port.side);
+    let to_normal = super::input::normal_for_side(&end_port.side);
 
     let strategy = resolve_strategy(routing_mode);
-    strategy.route(start, end, from_normal, to_normal, &filtered_obstacles, config, state)
+    strategy.route(start, end, from_normal, to_normal, from_node.rect(), to_node.rect(), &filtered_obstacles, config, state)
+}
+
+pub fn node_clearance(from: Point, from_normal: Point, node_rect: Rect) -> f64 {
+    let margin = 20.0;
+    if from_normal.x.abs() >= from_normal.y.abs() {
+        if from_normal.x > 0.0 {
+            (node_rect.right() - from.x).max(0.0) + margin
+        } else {
+            (from.x - node_rect.left()).max(0.0) + margin
+        }
+    } else {
+        if from_normal.y > 0.0 {
+            (node_rect.bottom() - from.y).max(0.0) + margin
+        } else {
+            (from.y - node_rect.top()).max(0.0) + margin
+        }
+    }
 }
 
 pub fn compute_bbox(points: &[Point]) -> Rect {

@@ -3,7 +3,7 @@ use super::config::{RoutingMode, BundlingMode};
 use crate::domain::base_models::Coordinates;
 use crate::domain::nodes::Nodes;
 use crate::domain::relations::IRelation;
-use crate::domain::styles::{PortSide, RelationStyle};
+use crate::domain::styles::{PortSide, PortType, RelationStyle};
 
 #[derive(Debug, Clone)]
 pub struct InputNode {
@@ -12,6 +12,13 @@ pub struct InputNode {
     pub y: f64,
     pub width: f64,
     pub height: f64,
+}
+
+#[derive(Debug, Clone)]
+pub struct InputPort {
+    pub position: Point,
+    pub side: PortSide,
+    pub port_type: PortType,
 }
 
 impl InputNode {
@@ -23,73 +30,81 @@ impl InputNode {
         Point::new(self.x + self.width / 2.0, self.y + self.height / 2.0)
     }
 
-    pub fn resolve_port(&self, side: &PortSide, other: Point) -> Point {
+    pub fn resolve_port(&self, side: &PortSide, other: Point) -> InputPort {
         let rect = self.rect();
         match side {
-            PortSide::Top => {
-                let t = ((other.x - rect.left()) / rect.width).clamp(0.1, 0.9);
-                Point::new(rect.left() + rect.width * t, rect.top())
-            }
-            PortSide::Right => {
-                let t = ((other.y - rect.top()) / rect.height).clamp(0.1, 0.9);
-                Point::new(rect.right(), rect.top() + rect.height * t)
-            }
-            PortSide::Bottom => {
-                let t = ((other.x - rect.left()) / rect.width).clamp(0.1, 0.9);
-                Point::new(rect.left() + rect.width * t, rect.bottom())
-            }
-            PortSide::Left => {
-                let t = ((other.y - rect.top()) / rect.height).clamp(0.1, 0.9);
-                Point::new(rect.left(), rect.top() + rect.height * t)
-            }
-            PortSide::TopLeft => Point::new(rect.left(), rect.top()),
-            PortSide::TopRight => Point::new(rect.right(), rect.top()),
-            PortSide::BottomLeft => Point::new(rect.left(), rect.bottom()),
-            PortSide::BottomRight => Point::new(rect.right(), rect.bottom()),
+            PortSide::Top => InputPort {
+                position: Point::new(rect.left() + rect.width * 0.5, rect.top()),
+                side: PortSide::Top,
+                port_type: PortType::Middle,
+            },
+            PortSide::Right => InputPort {
+                position: Point::new(rect.right(), rect.top() + rect.height * 0.5),
+                side: PortSide::Right,
+                port_type: PortType::Middle,
+            },
+            PortSide::Bottom => InputPort {
+                position: Point::new(rect.left() + rect.width * 0.5, rect.bottom()),
+                side: PortSide::Bottom,
+                port_type: PortType::Middle,
+            },
+            PortSide::Left => InputPort {
+                position: Point::new(rect.left(), rect.top() + rect.height * 0.5),
+                side: PortSide::Left,
+                port_type: PortType::Middle,
+            },
+            PortSide::TopLeft => InputPort {
+                position: Point::new(rect.left(), rect.top()),
+                side: PortSide::TopLeft,
+                port_type: PortType::Corner,
+            },
+            PortSide::TopRight => InputPort {
+                position: Point::new(rect.right(), rect.top()),
+                side: PortSide::TopRight,
+                port_type: PortType::Corner,
+            },
+            PortSide::BottomLeft => InputPort {
+                position: Point::new(rect.left(), rect.bottom()),
+                side: PortSide::BottomLeft,
+                port_type: PortType::Corner,
+            },
+            PortSide::BottomRight => InputPort {
+                position: Point::new(rect.right(), rect.bottom()),
+                side: PortSide::BottomRight,
+                port_type: PortType::Corner,
+            },
             PortSide::Auto => self.closest_port_to(other),
         }
     }
 
-    pub fn closest_port_to(&self, point: Point) -> Point {
+    pub fn closest_port_to(&self, point: Point) -> InputPort {
         let rect = self.rect();
         let center = self.center();
 
         let candidates = [
-            (Point::new(center.x, rect.top()), (point.y - rect.top()).abs()),
-            (Point::new(rect.right(), center.y), (point.x - rect.right()).abs()),
-            (Point::new(center.x, rect.bottom()), (point.y - rect.bottom()).abs()),
-            (Point::new(rect.left(), center.y), (point.x - rect.left()).abs()),
+            (Point::new(center.x, rect.top()), PortSide::Top, PortType::Middle),
+            (Point::new(rect.right(), center.y), PortSide::Right, PortType::Middle),
+            (Point::new(center.x, rect.bottom()), PortSide::Bottom, PortType::Middle),
+            (Point::new(rect.left(), center.y), PortSide::Left, PortType::Middle),
+            (Point::new(rect.left(), rect.top()), PortSide::TopLeft, PortType::Corner),
+            (Point::new(rect.right(), rect.top()), PortSide::TopRight, PortType::Corner),
+            (Point::new(rect.left(), rect.bottom()), PortSide::BottomLeft, PortType::Corner),
+            (Point::new(rect.right(), rect.bottom()), PortSide::BottomRight, PortType::Corner),
         ];
 
-        candidates
-            .iter()
-            .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
-            .map(|(p, _)| *p)
-            .unwrap_or(center)
-    }
+        let best = candidates
+            .into_iter()
+            .min_by(|a, b| {
+                a.0.distance_sq(point)
+                    .partial_cmp(&b.0.distance_sq(point))
+                    .unwrap()
+            })
+            .unwrap_or((center, PortSide::Auto, PortType::Middle));
 
-    pub fn port_normal(&self, port_pos: Point) -> Point {
-        let center = self.center();
-
-        if (port_pos - center).length() < 1e-6 {
-            return Point::new(1.0, 0.0);
-        }
-
-        let dx = (port_pos.x - center.x).abs();
-        let dy = (port_pos.y - center.y).abs();
-
-        if dx > dy {
-            if port_pos.x > center.x {
-                Point::new(1.0, 0.0)
-            } else {
-                Point::new(-1.0, 0.0)
-            }
-        } else {
-            if port_pos.y > center.y {
-                Point::new(0.0, 1.0)
-            } else {
-                Point::new(0.0, -1.0)
-            }
+        InputPort {
+            position: best.0,
+            side: best.1,
+            port_type: best.2,
         }
     }
 
@@ -121,6 +136,20 @@ impl InputNode {
             }
             _ => None,
         }
+    }
+}
+
+pub fn normal_for_side(side: &PortSide) -> Point {
+    match side {
+        PortSide::Top => Point::new(0.0, -1.0),
+        PortSide::Right => Point::new(1.0, 0.0),
+        PortSide::Bottom => Point::new(0.0, 1.0),
+        PortSide::Left => Point::new(-1.0, 0.0),
+        PortSide::TopLeft => Point::new(-1.0, -1.0).normalized(),
+        PortSide::TopRight => Point::new(1.0, -1.0).normalized(),
+        PortSide::BottomLeft => Point::new(-1.0, 1.0).normalized(),
+        PortSide::BottomRight => Point::new(1.0, 1.0).normalized(),
+        PortSide::Auto => Point::new(1.0, 0.0),
     }
 }
 

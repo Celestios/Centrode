@@ -23,7 +23,7 @@ impl RoutingMode {
             "orthogonal" => RoutingMode::Orthogonal,
             "straight" => RoutingMode::Polyline,
             "circular_arc" | "circulararc" | "arc" => RoutingMode::CircularArc,
-            "sinewave" | "sine_wave" | "sine" => RoutingMode::SineWave,
+            "sinewave" | "sine_wave" | "sine" | "snake" => RoutingMode::SineWave,
             _ => RoutingMode::Polyline,
         }
     }

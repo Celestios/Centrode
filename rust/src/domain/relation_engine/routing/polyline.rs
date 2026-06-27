@@ -14,6 +14,8 @@ impl RoutingStrategy for PolylineRouting {
         end: Point,
         _from_normal: Point,
         _to_normal: Point,
+        _from_rect: Rect,
+        _to_rect: Rect,
         obstacles: &[Rect],
         config: &RelationEngineConfig,
         state: &CanvasState,
@@ -34,6 +36,12 @@ impl RoutingStrategy for PolylineRouting {
             .filter(|&obs| rects_overlap(obs, &route_bounds))
             .copied()
             .collect();
+
+        // Check if there is a direct line of sight without any intersection
+        let has_blocking_obstacle = filtered.iter().any(|obs| obs.intersects_segment(start, end));
+        if !has_blocking_obstacle {
+            return (vec![start, end], PathType::Straight);
+        }
 
         let graph = VisibilityGraph::build(&filtered, start, end, margin);
         let cost_params = RouteCostParams::default();

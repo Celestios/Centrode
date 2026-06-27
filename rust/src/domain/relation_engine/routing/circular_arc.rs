@@ -13,6 +13,8 @@ impl RoutingStrategy for CircularArcRouting {
         end: Point,
         from_normal: Point,
         to_normal: Point,
+        from_rect: Rect,
+        to_rect: Rect,
         obstacles: &[Rect],
         config: &RelationEngineConfig,
         state: &CanvasState,
@@ -65,7 +67,7 @@ impl RoutingStrategy for CircularArcRouting {
 
             (points, PathType::CircularArc)
         } else {
-            super::bezier::BezierRouting.route(start, end, from_normal, to_normal, obstacles, config, state)
+            super::bezier::BezierRouting.route(start, end, from_normal, to_normal, from_rect, to_rect, obstacles, config, state)
         }
     }
 }
