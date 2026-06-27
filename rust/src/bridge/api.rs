@@ -607,6 +607,111 @@ impl AppHandle {
             );
         }
     }
+
+    pub async fn compute_single_relation(
+        &self,
+        config: crate::domain::relation_engine::config::RelationEngineConfig,
+        edge_id: String,
+        from_node_id: String,
+        to_node_id: String,
+        from_side: Option<crate::domain::styles::PortSide>,
+        to_side: Option<crate::domain::styles::PortSide>,
+        routing_mode: Option<crate::domain::relation_engine::config::RoutingMode>,
+        override_start_x: Option<f64>,
+        override_start_y: Option<f64>,
+        override_end_x: Option<f64>,
+        override_end_y: Option<f64>,
+    ) -> anyhow::Result<crate::domain::relation_engine::computed::ComputedRelation> {
+        use crate::domain::relation_engine::input::{InputEdge, InputNode};
+
+        let mut nodes = self.repo.get_cached_nodes();
+
+        if let (Some(sx), Some(sy)) = (override_start_x, override_start_y) {
+            if let Some(n) = nodes.iter_mut().find(|n| n.id == from_node_id) {
+                n.x = sx;
+                n.y = sy;
+                n.width = 0.0;
+                n.height = 0.0;
+            } else {
+                nodes.push(InputNode {
+                    id: from_node_id.clone(),
+                    x: sx,
+                    y: sy,
+                    width: 0.0,
+                    height: 0.0,
+                });
+            }
+        }
+
+        if let (Some(ex), Some(ey)) = (override_end_x, override_end_y) {
+            if let Some(n) = nodes.iter_mut().find(|n| n.id == to_node_id) {
+                n.x = ex;
+                n.y = ey;
+                n.width = 0.0;
+                n.height = 0.0;
+            } else {
+                nodes.push(InputNode {
+                    id: to_node_id.clone(),
+                    x: ex,
+                    y: ey,
+                    width: 0.0,
+                    height: 0.0,
+                });
+            }
+        }
+
+        let edge = InputEdge {
+            id: edge_id.clone(),
+            from_node_id,
+            to_node_id,
+            from_side: from_side.clone(),
+            to_side: to_side.clone(),
+            routing_mode: routing_mode.clone(),
+            bundling_mode: None,
+            style: None,
+        };
+
+        let snapshot = self.repo.get_graph_snapshot().await?;
+        let mut edges: Vec<InputEdge> = snapshot
+            .relations
+            .iter()
+            .map(InputEdge::from_domain)
+            .collect();
+
+        if !edges.iter().any(|e| e.id == edge_id) {
+            edges.push(edge);
+        } else {
+            if let Some(e) = edges.iter_mut().find(|e| e.id == edge_id) {
+                *e = InputEdge {
+                    id: edge_id.clone(),
+                    from_node_id: e.from_node_id.clone(),
+                    to_node_id: e.to_node_id.clone(),
+                    from_side: from_side.or(e.from_side.clone()),
+                    to_side: to_side.or(e.to_side.clone()),
+                    routing_mode: routing_mode.or(e.routing_mode.clone()),
+                    bundling_mode: e.bundling_mode.clone(),
+                    style: e.style.clone(),
+                };
+            }
+        }
+
+        let mut engine = match self.repo.relation_engine().lock() {
+            Ok(e) => e,
+            Err(_) => return Err(anyhow::anyhow!("Failed to lock relation engine")),
+        };
+
+        let results = engine.compute_relations_stateful(
+            &nodes,
+            &edges,
+            &config,
+            Some(&[edge_id.clone()]),
+        );
+
+        results
+            .into_iter()
+            .find(|r| r.id == edge_id)
+            .ok_or_else(|| anyhow::anyhow!("Relation {} not found in results", edge_id))
+    }
 }
 
 impl Drop for AppHandle {
