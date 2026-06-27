@@ -15,7 +15,9 @@ use rust_lib_mycelium::domain::relation_engine::computed::{
 };
 use rust_lib_mycelium::domain::relation_engine::section_endpoint::EndpointResolver;
 use rust_lib_mycelium::domain::relation_engine::section_endpart::EndpartResolver;
+use rust_lib_mycelium::domain::relation_engine::section_adapter::AdapterResolver;
 use rust_lib_mycelium::domain::relation_engine::sections::EndpointResult;
+use rust_lib_mycelium::domain::relation_engine::sections::EndpartResult;
 use rust_lib_mycelium::domain::relation_engine::input::InputNode;
 
 #[test]
@@ -221,4 +223,21 @@ fn test_endpart_perpendicular_right_side() {
 
     assert_eq!(result.exit_point, Point::new(108.0, 50.0));
     assert!(result.point_count >= 2);
+}
+
+#[test]
+fn test_adapter_bezier_connect() {
+    let endpart = EndpartResult {
+        exit_point: Point::new(108.0, 50.0),
+        exit_direction: 0.0,
+        point_count: 2,
+    };
+    let body_start = Point::new(150.0, 50.0);
+    let mut path_buffer = vec![Point::new(100.0, 50.0), Point::new(108.0, 50.0)];
+
+    let resolver = AdapterResolver::Bezier;
+    let result = resolver.connect(&endpart, body_start, &mut path_buffer);
+
+    assert!(result.point_count >= 1);
+    assert_eq!(result.body_anchor, body_start);
 }

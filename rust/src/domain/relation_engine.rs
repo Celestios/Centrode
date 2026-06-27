@@ -20,4 +20,5 @@ pub mod painting;
 pub mod resolvers;
 pub mod section_endpoint;
 pub mod section_endpart;
+pub mod section_adapter;
 pub mod sections;
