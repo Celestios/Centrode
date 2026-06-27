@@ -348,29 +348,11 @@ impl RelationEngine {
 
         let (start_tangent, end_tangent) = compute_tangents(&path_points);
 
-        let (start_shape, start_dir, end_shape, end_dir) = if let Some(ref s) = sectioned {
-            (
-                s.tail_start.endpoint.shape,
-                s.tail_start.endpoint.direction,
-                s.tail_end.endpoint.shape,
-                s.tail_end.endpoint.direction,
-            )
-        } else {
-            let from_node = node_map.get(edge.from_node_id.as_str()).copied();
-            let to_node = node_map.get(edge.to_node_id.as_str()).copied();
-            let start_port = path_points.first().copied().unwrap_or(Point::zero());
-            let end_port = path_points.last().copied().unwrap_or(Point::zero());
-            compute_endpoints(
-                start_tangent,
-                end_tangent,
-                config,
-                edge.style.as_ref(),
-                from_node,
-                to_node,
-                start_port,
-                end_port,
-            )
-        };
+        let s = sectioned.as_ref().expect("compute_sections returns None only when nodes are missing, which is handled above");
+        let start_shape = s.tail_start.endpoint.shape;
+        let start_dir = s.tail_start.endpoint.direction;
+        let end_shape = s.tail_end.endpoint.shape;
+        let end_dir = s.tail_end.endpoint.direction;
 
         let stroke_width = edge.style.as_ref().map(|s| s.stroke_width as f64).unwrap_or(2.0);
         let arrow_size = edge.style.as_ref().map(|s| s.arrow_size).unwrap_or(config.endpoint.arrow_size);
