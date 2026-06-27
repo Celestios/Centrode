@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use super::body::compute_body_widths;
 use super::bundling::{bundle_edges, BundlingStrategy};
+use super::buffers::RelationBuffers;
 use super::computed::{ComputedRelation, LabelAnchor, PathType};
 use super::config::{BodyType, EndpointShapeType, RelationEngineConfig, BundlingMode};
 use super::crossing::minimize_crossings;
@@ -12,12 +12,15 @@ use super::input::{InputEdge, InputNode};
 use super::label::compute_label_position;
 use super::nudging::{nudge_edges, NudgeConfig};
 use super::routing::{compute_bbox, route_relation};
+use super::sections::compute_sections;
+use super::section_body;
 use super::state::CanvasState;
 use super::cache::RelationCache;
 
 pub struct RelationEngine {
     pub state: CanvasState,
     pub cache: RelationCache,
+    pub buffers: RelationBuffers,
 }
 
 impl RelationEngine {
@@ -25,6 +28,7 @@ impl RelationEngine {
         Self {
             state: CanvasState::new(),
             cache: RelationCache::new(),
+            buffers: RelationBuffers::with_capacity(256),
         }
     }
 
@@ -92,7 +96,7 @@ impl RelationEngine {
                 }
             }
 
-            let computed = compute_single_relation(edge, &node_map, &obstacles, config, &self.state);
+            let computed = self.compute_single_relation(edge, &node_map, &obstacles, config);
             self.cache.insert(edge.id.clone(), computed.clone());
             self.state.relations.insert(edge.id.clone(), computed.clone());
             self.state.dirty_relations.remove(&edge.id);
@@ -249,14 +253,15 @@ impl RelationEngine {
 
                     result.path_points = super::painting::relation::trim_path(&untrimmed_path, start_margin, end_margin);
 
-                    result.body_widths = compute_body_widths(
+                    self.buffers.widths.clear();
+                    let _body_result = section_body::compute_widths(
                         &result.path_points,
-                        &result.body_type,
+                        result.body_type,
                         stroke_width,
                         config,
-                        start_shape != EndpointShapeType::None,
-                        end_shape != EndpointShapeType::None,
+                        &mut self.buffers.widths,
                     );
+                    result.body_widths = self.buffers.widths.clone();
                     let (label_pos, _) = compute_label_position(
                         &result.path_points,
                         &result.path_type,
@@ -315,115 +320,136 @@ impl RelationEngine {
 
         results
     }
-}
 
-fn compute_single_relation(
-    edge: &InputEdge,
-    node_map: &HashMap<&str, &InputNode>,
-    obstacles: &[Rect],
-    config: &RelationEngineConfig,
-    state: &CanvasState,
-) -> ComputedRelation {
-    if !node_map.contains_key(edge.from_node_id.as_str()) || !node_map.contains_key(edge.to_node_id.as_str()) {
-        return empty_computed_relation(&edge.id, &edge.from_node_id, &edge.to_node_id);
-    }
+    fn compute_single_relation(
+        &mut self,
+        edge: &InputEdge,
+        node_map: &HashMap<&str, &InputNode>,
+        obstacles: &[Rect],
+        config: &RelationEngineConfig,
+    ) -> ComputedRelation {
+        if !node_map.contains_key(edge.from_node_id.as_str()) || !node_map.contains_key(edge.to_node_id.as_str()) {
+            return empty_computed_relation(&edge.id, &edge.from_node_id, &edge.to_node_id);
+        }
 
-    let (path_points, path_type) = route_relation(edge, node_map, obstacles, config, state);
+        let (path_points, path_type) = route_relation(edge, node_map, obstacles, config, &self.state);
 
-    let from_node = node_map.get(edge.from_node_id.as_str()).copied();
-    let to_node = node_map.get(edge.to_node_id.as_str()).copied();
-    let start_port = path_points.first().copied().unwrap_or(Point::zero());
-    let end_port = path_points.last().copied().unwrap_or(Point::zero());
+        self.buffers.clear();
+        self.buffers.path.extend_from_slice(&path_points);
 
-    let (start_tangent, end_tangent) = compute_tangents(&path_points);
-    let (start_shape, start_dir, end_shape, end_dir) =
-        compute_endpoints(
-            start_tangent,
-            end_tangent,
+        let sectioned = compute_sections(
+            edge,
+            node_map,
             config,
-            edge.style.as_ref(),
-            from_node,
-            to_node,
-            start_port,
-            end_port,
+            &mut self.buffers.path,
+            &mut self.buffers.tail_start,
+            &mut self.buffers.tail_end,
         );
 
-    let stroke_width = edge.style.as_ref().map(|s| s.stroke_width as f64).unwrap_or(2.0);
-    let arrow_size = edge.style.as_ref().map(|s| s.arrow_size).unwrap_or(config.endpoint.arrow_size);
+        let (start_tangent, end_tangent) = compute_tangents(&path_points);
 
-    let body_strategy_str = edge.style.as_ref().map(|s| s.body_strategy.as_str()).unwrap_or("");
-    let body_type = match body_strategy_str {
-        "uniform" => BodyType::Uniform,
-        "taper" => BodyType::Taper,
-        "widthModulate" => BodyType::WidthModulate,
-        "bundled" => BodyType::Bundled,
-        _ => config.body.default_type,
-    };
+        let (start_shape, start_dir, end_shape, end_dir) = if let Some(ref s) = sectioned {
+            (
+                s.tail_start.endpoint.shape,
+                s.tail_start.endpoint.direction,
+                s.tail_end.endpoint.shape,
+                s.tail_end.endpoint.direction,
+            )
+        } else {
+            let from_node = node_map.get(edge.from_node_id.as_str()).copied();
+            let to_node = node_map.get(edge.to_node_id.as_str()).copied();
+            let start_port = path_points.first().copied().unwrap_or(Point::zero());
+            let end_port = path_points.last().copied().unwrap_or(Point::zero());
+            compute_endpoints(
+                start_tangent,
+                end_tangent,
+                config,
+                edge.style.as_ref(),
+                from_node,
+                to_node,
+                start_port,
+                end_port,
+            )
+        };
 
-    let start_width = match body_type {
-        BodyType::Taper => config.body.taper_start_width,
-        _ => stroke_width,
-    };
-    let end_width = match body_type {
-        BodyType::Taper => config.body.taper_end_width,
-        _ => stroke_width,
-    };
+        let stroke_width = edge.style.as_ref().map(|s| s.stroke_width as f64).unwrap_or(2.0);
+        let arrow_size = edge.style.as_ref().map(|s| s.arrow_size).unwrap_or(config.endpoint.arrow_size);
 
-    let start_scale = if start_width > 0.0 { start_width / 2.0 } else { 1.0 };
-    let end_scale = if end_width > 0.0 { end_width / 2.0 } else { 1.0 };
+        let body_strategy_str = edge.style.as_ref().map(|s| s.body_strategy.as_str()).unwrap_or("");
+        let body_type = match body_strategy_str {
+            "uniform" => BodyType::Uniform,
+            "taper" => BodyType::Taper,
+            "widthModulate" => BodyType::WidthModulate,
+            "bundled" => BodyType::Bundled,
+            _ => config.body.default_type,
+        };
 
-    let start_margin = if start_shape != EndpointShapeType::None {
-        arrow_size * start_scale
-    } else {
-        0.0
-    };
-    let end_margin = if end_shape != EndpointShapeType::None {
-        arrow_size * end_scale
-    } else {
-        0.0
-    };
+        let start_width = match body_type {
+            BodyType::Taper => config.body.taper_start_width,
+            _ => stroke_width,
+        };
+        let end_width = match body_type {
+            BodyType::Taper => config.body.taper_end_width,
+            _ => stroke_width,
+        };
 
-    let path_points = super::painting::relation::trim_path(&path_points, start_margin, end_margin);
+        let start_scale = if start_width > 0.0 { start_width / 2.0 } else { 1.0 };
+        let end_scale = if end_width > 0.0 { end_width / 2.0 } else { 1.0 };
 
-    let body_widths = compute_body_widths(
-        &path_points,
-        &body_type,
-        stroke_width,
-        config,
-        start_shape != EndpointShapeType::None,
-        end_shape != EndpointShapeType::None,
-    );
+        let start_margin = if start_shape != EndpointShapeType::None {
+            arrow_size * start_scale
+        } else {
+            0.0
+        };
+        let end_margin = if end_shape != EndpointShapeType::None {
+            arrow_size * end_scale
+        } else {
+            0.0
+        };
 
-    let (label_pos, _) = compute_label_position(&path_points, &path_type, config);
+        let trimmed_path = super::painting::relation::trim_path(&path_points, start_margin, end_margin);
 
-    let depends_on_nodes = vec![
-        edge.from_node_id.clone(),
-        edge.to_node_id.clone(),
-    ];
+        self.buffers.widths.clear();
+        let _body_result = section_body::compute_widths(
+            &trimmed_path,
+            body_type,
+            stroke_width,
+            config,
+            &mut self.buffers.widths,
+        );
+        let body_widths = self.buffers.widths.clone();
 
-    let bbox = compute_bbox(&path_points);
+        let (label_pos, _) = compute_label_position(&trimmed_path, &path_type, config);
 
-    ComputedRelation {
-        id: edge.id.clone(),
-        path_points,
-        path_type,
-        start_tangent,
-        end_tangent,
-        body_widths,
-        body_type,
-        start_endpoint: start_shape,
-        end_endpoint: end_shape,
-        start_direction: start_dir,
-        end_direction: end_dir,
-        label_position: label_pos,
-        label_anchor: LabelAnchor::Center,
-        bundle_id: None,
-        bundle_offset: None,
-        hit_test_points: Vec::new(),
-        depends_on_nodes,
-        bbox,
-        start_margin,
-        end_margin,
+        let depends_on_nodes = vec![
+            edge.from_node_id.clone(),
+            edge.to_node_id.clone(),
+        ];
+
+        let bbox = compute_bbox(&trimmed_path);
+
+        ComputedRelation {
+            id: edge.id.clone(),
+            path_points: trimmed_path,
+            path_type,
+            start_tangent,
+            end_tangent,
+            body_widths,
+            body_type,
+            start_endpoint: start_shape,
+            end_endpoint: end_shape,
+            start_direction: start_dir,
+            end_direction: end_dir,
+            label_position: label_pos,
+            label_anchor: LabelAnchor::Center,
+            bundle_id: None,
+            bundle_offset: None,
+            hit_test_points: Vec::new(),
+            depends_on_nodes,
+            bbox,
+            start_margin,
+            end_margin,
+        }
     }
 }
 
