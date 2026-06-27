@@ -1,5 +1,4 @@
 use rust_lib_mycelium::domain::relation_engine::buffers::RelationBuffers;
-use rust_lib_mycelium::domain::relation_engine::body::compute_body_widths;
 use rust_lib_mycelium::domain::relation_engine::config::{
     BodyType, EndpointShapeType, RelationEngineConfig,
 };
@@ -17,7 +16,7 @@ use rust_lib_mycelium::domain::relation_engine::computed::{
 use rust_lib_mycelium::domain::relation_engine::section_endpoint::EndpointResolver;
 use rust_lib_mycelium::domain::relation_engine::section_endpart::EndpartResolver;
 use rust_lib_mycelium::domain::relation_engine::section_adapter::AdapterResolver;
-use rust_lib_mycelium::domain::relation_engine::section_body::BodyResolver;
+use rust_lib_mycelium::domain::relation_engine::section_body::{BodyResolver, compute_widths};
 use rust_lib_mycelium::domain::relation_engine::sections::EndpointResult;
 use rust_lib_mycelium::domain::relation_engine::sections::EndpartResult;
 use rust_lib_mycelium::domain::relation_engine::input::InputNode;
@@ -30,8 +29,9 @@ fn test_uniform_body_strategy() {
         Point::new(20.0, 0.0),
     ];
     let config = RelationEngineConfig::default();
-    let widths = compute_body_widths(&path, &BodyType::Uniform, 3.0, &config, false, false);
-    assert_eq!(widths, vec![3.0, 3.0, 3.0]);
+    let mut widths_buffer = Vec::new();
+    compute_widths(&path, BodyType::Uniform, 3.0, &config, &mut widths_buffer);
+    assert_eq!(widths_buffer, vec![3.0, 3.0, 3.0]);
 }
 
 #[test]
@@ -45,11 +45,12 @@ fn test_taper_body_strategy() {
     config.body.taper_start_width = 1.0;
     config.body.taper_end_width = 5.0;
 
-    let widths = compute_body_widths(&path, &BodyType::Taper, 3.0, &config, false, false);
-    assert_eq!(widths.len(), 3);
-    assert_eq!(widths[0], 1.0);
-    assert_eq!(widths[1], 3.0);
-    assert_eq!(widths[2], 5.0);
+    let mut widths_buffer = Vec::new();
+    compute_widths(&path, BodyType::Taper, 3.0, &config, &mut widths_buffer);
+    assert_eq!(widths_buffer.len(), 3);
+    assert_eq!(widths_buffer[0], 1.0);
+    assert_eq!(widths_buffer[1], 3.0);
+    assert_eq!(widths_buffer[2], 5.0);
 }
 
 #[test]
@@ -62,25 +63,13 @@ fn test_width_modulate_body_strategy() {
     config.body.width_modulate_amplitude = 1.0;
     config.body.width_modulate_frequency = 1.0;
 
-    let widths = compute_body_widths(&path, &BodyType::WidthModulate, 4.0, &config, false, false);
-    assert_eq!(widths.len(), 2);
-    assert!((widths[0] - 4.0).abs() < 1e-5);
-    assert!((widths[1] - (4.0 + (std::f64::consts::TAU / 3.0).sin())).abs() < 1e-5);
-}
-
-#[test]
-fn test_body_tapering_near_endpoints() {
-    let path = vec![
-        Point::new(0.0, 0.0),
-        Point::new(10.0, 0.0),
-        Point::new(20.0, 0.0),
-    ];
-    let config = RelationEngineConfig::default();
-    let widths = compute_body_widths(&path, &BodyType::Uniform, 4.0, &config, true, true);
-    assert_eq!(widths.len(), 3);
-    assert!((widths[0] - 0.0).abs() < 1e-5);
-    assert!((widths[1] - 4.0 * (10.0 / 15.0)).abs() < 1e-5);
-    assert!((widths[2] - 0.0).abs() < 1e-5);
+    let mut widths_buffer = Vec::new();
+    compute_widths(&path, BodyType::WidthModulate, 4.0, &config, &mut widths_buffer);
+    assert_eq!(widths_buffer.len(), 2);
+    assert!((widths_buffer[0] - 4.0).abs() < 1e-5);
+    // New formula: base_width + amplitude * sin(len * (frequency / 300.0) * 2*PI)
+    let expected_1 = 4.0 + (100.0 * (1.0 / 300.0) * 2.0 * std::f64::consts::PI).sin();
+    assert!((widths_buffer[1] - expected_1).abs() < 1e-5);
 }
 
 #[test]
