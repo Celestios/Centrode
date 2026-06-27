@@ -22,7 +22,7 @@ fn test_uniform_body_strategy() {
         Point::new(20.0, 0.0),
     ];
     let config = RelationEngineConfig::default();
-    let widths = compute_body_widths(&path, &BodyType::Uniform, 3.0, &config);
+    let widths = compute_body_widths(&path, &BodyType::Uniform, 3.0, &config, false, false);
     assert_eq!(widths, vec![3.0, 3.0, 3.0]);
 }
 
@@ -37,10 +37,10 @@ fn test_taper_body_strategy() {
     config.body.taper_start_width = 1.0;
     config.body.taper_end_width = 5.0;
 
-    let widths = compute_body_widths(&path, &BodyType::Taper, 3.0, &config);
+    let widths = compute_body_widths(&path, &BodyType::Taper, 3.0, &config, false, false);
     assert_eq!(widths.len(), 3);
     assert_eq!(widths[0], 1.0);
-    assert_eq!(widths[1], 3.0); // exact midpoint
+    assert_eq!(widths[1], 3.0);
     assert_eq!(widths[2], 5.0);
 }
 
@@ -54,12 +54,25 @@ fn test_width_modulate_body_strategy() {
     config.body.width_modulate_amplitude = 1.0;
     config.body.width_modulate_frequency = 1.0;
 
-    let widths = compute_body_widths(&path, &BodyType::WidthModulate, 4.0, &config);
+    let widths = compute_body_widths(&path, &BodyType::WidthModulate, 4.0, &config, false, false);
     assert_eq!(widths.len(), 2);
-    // At start (t=0): 4.0 + 1.0 * sin(0) = 4.0
-    // At end (t=1): 4.0 + 1.0 * sin(2*pi) = 4.0
     assert!((widths[0] - 4.0).abs() < 1e-5);
-    assert!((widths[1] - 4.0).abs() < 1e-5);
+    assert!((widths[1] - (4.0 + (std::f64::consts::TAU / 3.0).sin())).abs() < 1e-5);
+}
+
+#[test]
+fn test_body_tapering_near_endpoints() {
+    let path = vec![
+        Point::new(0.0, 0.0),
+        Point::new(10.0, 0.0),
+        Point::new(20.0, 0.0),
+    ];
+    let config = RelationEngineConfig::default();
+    let widths = compute_body_widths(&path, &BodyType::Uniform, 4.0, &config, true, true);
+    assert_eq!(widths.len(), 3);
+    assert!((widths[0] - 0.0).abs() < 1e-5);
+    assert!((widths[1] - 4.0 * (10.0 / 15.0)).abs() < 1e-5);
+    assert!((widths[2] - 0.0).abs() < 1e-5);
 }
 
 #[test]

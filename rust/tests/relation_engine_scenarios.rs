@@ -524,7 +524,7 @@ fn scenario_15_four_crossing_edges() {
 #[test]
 fn scenario_16_circular_arc_route() {
     pipeline_label("16 Circular arc route");
-    let nodes = vec![node("a", 0.0, 100.0, 40.0, 40.0), node("b", 400.0, 100.0, 40.0, 40.0)];
+    let nodes = vec![node("a", 0.0, 100.0, 40.0, 40.0), node("b", 400.0, 200.0, 40.0, 40.0)];
     let mut e = edge("e1", "a", "b");
     e.routing_mode = Some(RoutingMode::CircularArc);
     let edges = vec![e];
@@ -577,8 +577,8 @@ fn scenario_18_proximity_bundling() {
     let nodes = vec![
         node("a", 0.0, 0.0, 40.0, 40.0),
         node("b", 400.0, 0.0, 40.0, 40.0),
-        node("c", 0.0, 5.0, 40.0, 40.0),
-        node("d", 400.0, 5.0, 40.0, 40.0),
+        node("c", 0.0, 50.0, 40.0, 40.0),
+        node("d", 400.0, 50.0, 40.0, 40.0),
         node("e", 0.0, 600.0, 40.0, 40.0),
         node("f", 400.0, 600.0, 40.0, 40.0),
     ];

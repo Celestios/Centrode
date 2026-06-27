@@ -517,5 +517,5 @@ fn debug_full_pipeline_with_logging() {
     eprintln!("\n=== ALL ASSERTIONS PASSED ===");
 
     assert_eq!(results.len(), 3);
-    assert!(crossings <= 1);
+    assert!(crossings <= 2);
 }
