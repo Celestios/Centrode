@@ -4,8 +4,6 @@ import 'package:mycelium/shared/traceable_notifier.dart';
 import '../engine/config.dart';
 import '../store/graph_data_query.dart';
 import 'view_state.dart';
-import 'strategies/relation_layout_strategy.dart';
-import 'routing/relation_layout_context.dart';
 
 /// Manages edit lifecycle, formatting callbacks, toolbar positioning, and floating menus.
 class EditorState extends ChangeNotifier with TraceableNotifier {
@@ -17,9 +15,6 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
 
   /// Reference to the shared viewStates map owned by NodeRenderState.
   final Map<String, NodeViewState> viewStates;
-
-  /// Cache of computed relation paths for obstacle avoidance.
-  final Map<String, List<Offset>> relationPathCache;
 
   /// ID of the entity currently in text inline edit mode.
   String? activeEditId;
@@ -54,7 +49,7 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
   void Function()? cycleHighlightColorCallback;
   void Function()? cycleTextAlignCallback;
 
-  EditorState(this._dataQuery, this.viewStates, this.relationPathCache);
+  EditorState(this._dataQuery, this.viewStates);
 
   void updateActiveTextSelection(TextSelection? selection) {
     if (activeTextSelectionNotifier.value != selection) {
@@ -140,18 +135,11 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
     final rel = _dataQuery.relationLookup[id];
     if (rel == null) return null;
 
-    final sourceVs = viewStates[rel.fromNodeId];
-    final targetVs = viewStates[rel.toNodeId];
-    if (sourceVs == null || targetVs == null) return null;
-
-    final layoutContext = RelationLayoutContext(
-      nodeViewStates: viewStates,
-      relations: _dataQuery.relations.toList(),
-      pathCache: relationPathCache,
-    );
-    final layoutStrategy = RelationLayoutStrategy.fromType(rel.layout?.strategyType);
-    final (start, end) = layoutStrategy.resolveEndpoints(rel, sourceVs, targetVs);
-    return layoutStrategy.computeLabelPosition(start, end, sourceVs, targetVs, rel, layoutContext);
+    final cached = _dataQuery.relationEngine.cache[id];
+    if (cached != null) {
+      return Offset(cached.labelPosition.x, cached.labelPosition.y);
+    }
+    return null;
   }
 
   /// Cleans up volatile editor state when entities are removed from the data store.

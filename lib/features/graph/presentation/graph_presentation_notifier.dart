@@ -4,6 +4,7 @@ import '../models/models.dart';
 import '../store/graph_data_controller.dart';
 import '../store/graph_data_query.dart';
 import '../store/spatial_index.dart';
+import '../store/relation_engine_state.dart';
 
 /// Read-only facade over GraphDataController.
 /// Does NOT subscribe to entity updates - use NodeRenderState for reactive UI.
@@ -14,6 +15,9 @@ class GraphPresentationNotifier implements GraphDataQuery {
   GraphPresentationNotifier(this.controller) {
     _log.info('GraphPresentationNotifier created (static facade)');
   }
+
+  @override
+  RelationEngineState get relationEngine => controller.relationEngine;
 
   @override
   bool get isLoading => controller.isLoading;

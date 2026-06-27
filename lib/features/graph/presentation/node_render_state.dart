@@ -5,6 +5,7 @@ import 'package:mycelium/shared/traceable_notifier.dart';
 import '../store/graph_data_query.dart';
 import '../store/graph_data_command.dart';
 import '../store/spatial_index.dart';
+import '../store/relation_engine_state.dart';
 import 'view_state.dart';
 import '../models/models.dart';
 import 'editor_state.dart';
@@ -51,9 +52,6 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
   /// Map of currently active visual view states.
   final Map<String, NodeViewState> viewStates = {};
 
-  /// Cache of computed relation paths for obstacle avoidance.
-  final Map<String, List<Offset>> relationPathCache = {};
-
   /// Notification trigger for canvas relation repaints.
   final MovementNotifier movementNotifier = MovementNotifier();
 
@@ -68,7 +66,7 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
   StreamSubscription<GraphEntityUpdate>? _updateSubscription;
 
   NodeRenderState(this._dataQuery, this._dataCommand) {
-    editorState = EditorState(_dataQuery, viewStates, relationPathCache);
+    editorState = EditorState(_dataQuery, viewStates);
     selectionState = SelectionState(_dataQuery, _dataCommand);
     dragState = DragState();
 
@@ -89,7 +87,6 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
 
     if (!dragState.isNodeDragging(id) && vs.positionNotifier.value != node.position) {
       vs.positionNotifier.value = node.position;
-      relationPathCache.clear();
       movementNotifier.pulse();
       changed = true;
     }
@@ -103,7 +100,6 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
     }
     if (vs.sizeNotifier.value != node.size) {
       vs.dragWidthNotifier.value = null;
-      relationPathCache.clear();
       vs.onSizeChanged(node);
       changed = true;
     }
@@ -125,7 +121,6 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
             final Size newSize = update.payload as Size;
             if (vs.sizeNotifier.value != newSize) {
               vs.dragWidthNotifier.value = null;
-              relationPathCache.clear();
               vs.onSizeChanged(node);
             }
           }
@@ -158,7 +153,6 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
       case GraphUpdateType.tags:
       case GraphUpdateType.comments:
       case GraphUpdateType.reset:
-        relationPathCache.clear();
         _syncAtomicUIState();
         if (update.type == GraphUpdateType.relationLayout ||
             update.type == GraphUpdateType.relationAdded ||
@@ -173,12 +167,6 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
 
   /// Pulsates the movement notifier to redraw connected relations in real-time.
   void notifyNodeDragUpdate() {
-    relationPathCache.removeWhere((relId, _) {
-      final rel = _dataQuery.relationLookup[relId];
-      if (rel == null) return true;
-      return dragState.draggingNodes.contains(rel.fromNodeId) ||
-          dragState.draggingNodes.contains(rel.toNodeId);
-    });
     movementNotifier.pulse();
   }
 
@@ -309,6 +297,9 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
 
   @override
   BoundingBox get canvasBounds => _dataQuery.canvasBounds;
+
+  @override
+  RelationEngineState get relationEngine => _dataQuery.relationEngine;
 
   @override
   Stream<GraphEntityUpdate> get onEntityUpdate => _dataQuery.onEntityUpdate;
