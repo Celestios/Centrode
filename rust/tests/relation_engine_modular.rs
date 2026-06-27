@@ -13,6 +13,8 @@ use rust_lib_mycelium::domain::relation_engine::cache::RelationCache;
 use rust_lib_mycelium::domain::relation_engine::computed::{
     ComputedRelation, LabelAnchor, PathType,
 };
+use rust_lib_mycelium::domain::relation_engine::section_endpoint::EndpointResolver;
+use rust_lib_mycelium::domain::relation_engine::input::InputNode;
 
 #[test]
 fn test_uniform_body_strategy() {
@@ -177,4 +179,24 @@ fn test_relation_cache() {
 
     cache.remove("e1");
     assert!(cache.get("e1").is_none());
+}
+
+#[test]
+fn test_endpoint_resolver_standard() {
+    let node = InputNode {
+        id: "n1".to_string(),
+        x: 0.0,
+        y: 0.0,
+        width: 100.0,
+        height: 100.0,
+    };
+    let port = Point::new(100.0, 50.0);
+    let tangent = Point::new(1.0, 0.0);
+    let config = RelationEngineConfig::default();
+
+    let resolver = EndpointResolver::Standard;
+    let result = resolver.resolve(&node, port, tangent, None, &config);
+
+    assert_eq!(result.position, port);
+    assert_eq!(result.shape, EndpointShapeType::None);
 }

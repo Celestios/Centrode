@@ -80,11 +80,11 @@ impl RoutingStrategy for SineWaveRouting {
 }
 
 
-all paths coming out of any kind of port should be perpendicular to node surface and since for orthogonal 
-that would be a 45 degree angle at corner ports we can allow both a horizontal or a vertical departure.
-so that's it, this is not dependent on the direction of relation path. 
-
-by all paths coming out of any port, 
-i meant the endpart. 
-, you should create a strategy 
-trait for relation style. then you should define other traits for each kind of relation section. for example there are different endpointshapes, 
+// all paths coming out of any kind of port should be perpendicular to node surface and since for orthogonal
+// that would be a 45 degree angle at corner ports we can allow both a horizontal or a vertical departure.
+// so that's it, this is not dependent on the direction of relation path.
+//
+// by all paths coming out of any port,
+// i meant the endpart.
+// , you should create a strategy
+// trait for relation style. then you should define other traits for each kind of relation section. for example there are different endpointshapes,
