@@ -1,8 +1,7 @@
 use crate::domain::relation_engine::geometry::{Point, Rect, cubic_bezier_point};
-use crate::domain::relation_engine::config::RelationEngineConfig;
 use crate::domain::relation_engine::state::CanvasState;
 use crate::domain::relation_engine::computed::PathType;
-use super::RoutingStrategy;
+use super::{RoutingStrategy, RouteContext};
 
 pub struct SineWaveRouting;
 
@@ -15,33 +14,22 @@ fn cubic_bezier_tangent(p0: Point, p1: Point, p2: Point, p3: Point, t: f64) -> P
 }
 
 impl RoutingStrategy for SineWaveRouting {
-    fn route(
-        &self,
-        start: Point,
-        end: Point,
-        from_normal: Point,
-        to_normal: Point,
-        _from_rect: Rect,
-        _to_rect: Rect,
-        _obstacles: &[Rect],
-        config: &RelationEngineConfig,
-        _state: &CanvasState,
-    ) -> (Vec<Point>, PathType) {
-        let amplitude = config.snake.amplitude;
-        let frequency = config.snake.frequency;
+    fn route(&self, ctx: &RouteContext, _state: &CanvasState) -> (Vec<Point>, PathType) {
+        let amplitude = ctx.config.snake.amplitude;
+        let frequency = ctx.config.snake.frequency;
 
-        let distance = start.distance_to(end);
+        let distance = ctx.start.distance_to(ctx.end);
         let cycles = distance * (frequency / 300.0);
 
-        let dist_from = (end - start).dot(from_normal);
-        let dist_to = (start - end).dot(to_normal);
+        let dist_from = (ctx.end - ctx.start).dot(ctx.from_normal);
+        let dist_to = (ctx.start - ctx.end).dot(ctx.to_normal);
         let use_bezier = dist_from < 0.0 || dist_to < 0.0;
 
         let (cp1, cp2) = if use_bezier {
-            let proj = (distance * config.routing.bezier_projection_factor)
-                .min(config.routing.bezier_clamp_max)
-                .max(config.routing.bezier_clamp_min.min(distance * 0.5));
-            (start + from_normal * proj, end + to_normal * proj)
+            let proj = (distance * ctx.config.routing.bezier_projection_factor)
+                .min(ctx.config.routing.bezier_clamp_max)
+                .max(ctx.config.routing.bezier_clamp_min.min(distance * 0.5));
+            (ctx.start + ctx.from_normal * proj, ctx.end + ctx.to_normal * proj)
         } else {
             (Point::zero(), Point::zero())
         };
@@ -53,17 +41,17 @@ impl RoutingStrategy for SineWaveRouting {
             let t = i as f64 / n as f64;
 
             let (base, tangent) = if use_bezier {
-                let base = cubic_bezier_point(start, cp1, cp2, end, t);
-                let tangent = cubic_bezier_tangent(start, cp1, cp2, end, t);
+                let base = cubic_bezier_point(ctx.start, cp1, cp2, ctx.end, t);
+                let tangent = cubic_bezier_tangent(ctx.start, cp1, cp2, ctx.end, t);
                 (base, tangent)
             } else {
-                let base = start.lerp(end, t);
-                let tangent = end - start;
+                let base = ctx.start.lerp(ctx.end, t);
+                let tangent = ctx.end - ctx.start;
                 (base, tangent)
             };
 
             let dir = if tangent.x.abs() < 1e-6 && tangent.y.abs() < 1e-6 {
-                end - start
+                ctx.end - ctx.start
             } else {
                 tangent
             };

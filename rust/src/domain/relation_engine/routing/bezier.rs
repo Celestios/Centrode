@@ -2,27 +2,16 @@ use crate::domain::relation_engine::geometry::{Point, Rect, sample_cubic_bezier,
 use crate::domain::relation_engine::config::RelationEngineConfig;
 use crate::domain::relation_engine::state::CanvasState;
 use crate::domain::relation_engine::computed::PathType;
-use super::{RoutingStrategy, node_clearance};
+use super::{RoutingStrategy, RouteContext, node_clearance};
 
 pub struct BezierRouting;
 
 impl RoutingStrategy for BezierRouting {
-    fn route(
-        &self,
-        start: Point,
-        end: Point,
-        from_normal: Point,
-        to_normal: Point,
-        from_rect: Rect,
-        to_rect: Rect,
-        _obstacles: &[Rect],
-        config: &RelationEngineConfig,
-        _state: &CanvasState,
-    ) -> (Vec<Point>, PathType) {
-        if from_normal.dot(to_normal) > 0.5 {
-            return routed_bezier(start, end, from_normal, to_normal, from_rect, to_rect, config);
+    fn route(&self, ctx: &RouteContext, _state: &CanvasState) -> (Vec<Point>, PathType) {
+        if ctx.from_normal.dot(ctx.to_normal) > 0.5 {
+            return routed_bezier(ctx.start, ctx.end, ctx.from_normal, ctx.to_normal, ctx.from_rect, ctx.to_rect, &ctx.config);
         }
-        standard_bezier(start, end, from_normal, to_normal, config)
+        standard_bezier(ctx.start, ctx.end, ctx.from_normal, ctx.to_normal, &ctx.config)
     }
 }
 

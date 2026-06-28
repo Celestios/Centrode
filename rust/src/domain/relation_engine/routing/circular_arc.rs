@@ -1,49 +1,37 @@
 use crate::domain::relation_engine::geometry::{Point, Rect};
-use crate::domain::relation_engine::config::RelationEngineConfig;
 use crate::domain::relation_engine::state::CanvasState;
 use crate::domain::relation_engine::computed::PathType;
-use super::RoutingStrategy;
+use super::{RoutingStrategy, RouteContext};
 
 pub struct CircularArcRouting;
 
 impl RoutingStrategy for CircularArcRouting {
-    fn route(
-        &self,
-        start: Point,
-        end: Point,
-        from_normal: Point,
-        to_normal: Point,
-        from_rect: Rect,
-        to_rect: Rect,
-        obstacles: &[Rect],
-        config: &RelationEngineConfig,
-        state: &CanvasState,
-    ) -> (Vec<Point>, PathType) {
-        let distance = start.distance_to(end);
-        let radius_factor = config.routing.bezier_projection_factor;
+    fn route(&self, ctx: &RouteContext, state: &CanvasState) -> (Vec<Point>, PathType) {
+        let distance = ctx.start.distance_to(ctx.end);
+        let radius_factor = ctx.config.routing.bezier_projection_factor;
         let radius = (distance * radius_factor).clamp(
-            config.routing.bezier_clamp_min,
-            config.routing.bezier_clamp_max,
+            ctx.config.routing.bezier_clamp_min,
+            ctx.config.routing.bezier_clamp_max,
         );
 
-        let cp1 = start + from_normal * radius;
-        let center = three_point_circle_center(start, cp1, end);
+        let cp1 = ctx.start + ctx.from_normal * radius;
+        let center = three_point_circle_center(ctx.start, cp1, ctx.end);
 
         if let Some(c) = center {
-            let r = c.distance_to(start);
+            let r = c.distance_to(ctx.start);
             if r < 1e-6 {
-                return (vec![start, end], PathType::Straight);
+                return (vec![ctx.start, ctx.end], PathType::Straight);
             }
 
-            let start_angle = (start - c).direction();
-            let end_angle = (end - c).direction();
+            let start_angle = (ctx.start - c).direction();
+            let end_angle = (ctx.end - c).direction();
 
             let n = 32;
             let mut points = Vec::with_capacity(n + 1);
 
-            let mid = start.lerp(end, 0.5);
+            let mid = ctx.start.lerp(ctx.end, 0.5);
             let to_mid = mid - c;
-            let cross = (start - c).x * to_mid.y - (start - c).y * to_mid.x;
+            let cross = (ctx.start - c).x * to_mid.y - (ctx.start - c).y * to_mid.x;
 
             for i in 0..=n {
                 let t = i as f64 / n as f64;
@@ -67,7 +55,7 @@ impl RoutingStrategy for CircularArcRouting {
 
             (points, PathType::CircularArc)
         } else {
-            super::bezier::BezierRouting.route(start, end, from_normal, to_normal, from_rect, to_rect, obstacles, config, state)
+            super::bezier::BezierRouting.route(ctx, state)
         }
     }
 }

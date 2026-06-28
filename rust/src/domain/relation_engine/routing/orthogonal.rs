@@ -3,30 +3,19 @@ use crate::domain::relation_engine::config::RelationEngineConfig;
 use crate::domain::relation_engine::state::CanvasState;
 use crate::domain::relation_engine::computed::PathType;
 use crate::domain::relation_engine::solver::visibility_graph::{a_star_with_params, RouteCostParams, VisibilityGraph};
-use super::{RoutingStrategy, node_clearance};
+use super::{RoutingStrategy, RouteContext, node_clearance, filter_obstacles_in_bounds};
 
 pub struct OrthogonalRouting;
 
 impl RoutingStrategy for OrthogonalRouting {
-    fn route(
-        &self,
-        start: Point,
-        end: Point,
-        from_normal: Point,
-        to_normal: Point,
-        from_rect: Rect,
-        to_rect: Rect,
-        obstacles: &[Rect],
-        config: &RelationEngineConfig,
-        state: &CanvasState,
-    ) -> (Vec<Point>, PathType) {
-        let points = if obstacles.is_empty() {
-            ortho_route(start, end, from_normal, to_normal, from_rect, to_rect)
+    fn route(&self, ctx: &RouteContext, state: &CanvasState) -> (Vec<Point>, PathType) {
+        let points = if ctx.obstacles.is_empty() {
+            ortho_route(ctx.start, ctx.end, ctx.from_normal, ctx.to_normal, ctx.from_rect, ctx.to_rect)
         } else {
-            obstacle_route(start, end, from_normal, to_normal, obstacles, config, state)
+            obstacle_route(ctx.start, ctx.end, ctx.from_normal, ctx.to_normal, &ctx.obstacles, &ctx.config, state)
         };
-        let points = if config.routing.corner_radius > 1e-6 {
-            crate::domain::relation_engine::geometry::round_corners(&points, config.routing.corner_radius)
+        let points = if ctx.config.routing.corner_radius > 1e-6 {
+            crate::domain::relation_engine::geometry::round_corners(&points, ctx.config.routing.corner_radius)
         } else {
             points
         };
@@ -150,17 +139,7 @@ fn obstacle_route(
     };
 
     let margin = config.routing.obstacle_margin;
-    let min_x = start_exit.x.min(end_entry.x) - margin * 2.0;
-    let max_x = start_exit.x.max(end_entry.x) + margin * 2.0;
-    let min_y = start_exit.y.min(end_entry.y) - margin * 2.0;
-    let max_y = start_exit.y.max(end_entry.y) + margin * 2.0;
-    let route_bounds = Rect::new(min_x, min_y, max_x - min_x, max_y - min_y);
-
-    let filtered: Vec<Rect> = obstacles
-        .iter()
-        .filter(|obs| obs.overlaps(&route_bounds))
-        .copied()
-        .collect();
+    let filtered = filter_obstacles_in_bounds(obstacles, start_exit, end_entry, margin);
 
     let graph = VisibilityGraph::build(&filtered, start_exit, end_entry, margin);
     let cost_params = RouteCostParams::default();

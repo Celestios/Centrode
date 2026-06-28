@@ -1,3 +1,9 @@
+pub mod polyline;
+pub mod orthogonal;
+pub mod bezier;
+pub mod circular_arc;
+pub mod sine_wave;
+
 use std::collections::HashMap;
 use super::geometry::{Point, Rect};
 use super::config::{RelationEngineConfig, RoutingMode};
@@ -5,25 +11,33 @@ use super::state::CanvasState;
 use super::computed::PathType;
 use super::input::{InputEdge, InputNode};
 
-pub mod polyline;
-pub mod orthogonal;
-pub mod bezier;
-pub mod circular_arc;
-pub mod sine_wave;
+pub struct RouteContext {
+    pub start: Point,
+    pub end: Point,
+    pub from_normal: Point,
+    pub to_normal: Point,
+    pub from_rect: Rect,
+    pub to_rect: Rect,
+    pub obstacles: Vec<Rect>,
+    pub config: RelationEngineConfig,
+}
+
+pub fn filter_obstacles_in_bounds(
+    obstacles: &[Rect],
+    start: Point,
+    end: Point,
+    margin: f64,
+) -> Vec<Rect> {
+    let min_x = start.x.min(end.x) - margin * 2.0;
+    let max_x = start.x.max(end.x) + margin * 2.0;
+    let min_y = start.y.min(end.y) - margin * 2.0;
+    let max_y = start.y.max(end.y) + margin * 2.0;
+    let route_bounds = Rect::new(min_x, min_y, max_x - min_x, max_y - min_y);
+    obstacles.iter().filter(|obs| obs.overlaps(&route_bounds)).copied().collect()
+}
 
 pub trait RoutingStrategy: Send + Sync {
-    fn route(
-        &self,
-        start: Point,
-        end: Point,
-        from_normal: Point,
-        to_normal: Point,
-        from_rect: Rect,
-        to_rect: Rect,
-        obstacles: &[Rect],
-        config: &RelationEngineConfig,
-        state: &CanvasState,
-    ) -> (Vec<Point>, PathType);
+    fn route(&self, ctx: &RouteContext, state: &CanvasState) -> (Vec<Point>, PathType);
 }
 
 pub fn resolve_strategy(mode: RoutingMode) -> Box<dyn RoutingStrategy> {
@@ -39,7 +53,7 @@ pub fn resolve_strategy(mode: RoutingMode) -> Box<dyn RoutingStrategy> {
 pub fn route_relation(
     edge: &InputEdge,
     node_map: &HashMap<&str, &InputNode>,
-    obstacles: &[Rect],
+    _obstacles: &[Rect],
     config: &RelationEngineConfig,
     state: &CanvasState,
 ) -> (Vec<Point>, PathType) {
@@ -73,7 +87,6 @@ pub fn route_relation(
             .into_iter()
             .collect();
 
-    // Map obstacles excluding from/to nodes
     let filtered_obstacles: Vec<Rect> = node_map
         .values()
         .filter(|node| !exclude_ids.contains(node.id.as_str()))
@@ -85,8 +98,18 @@ pub fn route_relation(
     let from_normal = super::input::normal_for_side(&start_port.side);
     let to_normal = super::input::normal_for_side(&end_port.side);
 
+    let ctx = RouteContext {
+        start,
+        end,
+        from_normal,
+        to_normal,
+        from_rect: from_node.rect(),
+        to_rect: to_node.rect(),
+        obstacles: filtered_obstacles,
+        config: config.clone(),
+    };
     let strategy = resolve_strategy(routing_mode);
-    strategy.route(start, end, from_normal, to_normal, from_node.rect(), to_node.rect(), &filtered_obstacles, config, state)
+    strategy.route(&ctx, state)
 }
 
 pub fn node_clearance(from: Point, from_normal: Point, node_rect: Rect) -> f64 {

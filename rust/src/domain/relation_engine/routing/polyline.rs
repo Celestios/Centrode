@@ -1,57 +1,30 @@
 use crate::domain::relation_engine::geometry::{Point, Rect};
-use crate::domain::relation_engine::config::RelationEngineConfig;
 use crate::domain::relation_engine::state::CanvasState;
 use crate::domain::relation_engine::computed::PathType;
-use crate::domain::relation_engine::visibility_graph::{a_star_with_params, RouteCostParams, VisibilityGraph};
-use super::RoutingStrategy;
+use crate::domain::relation_engine::solver::visibility_graph::{a_star_with_params, RouteCostParams, VisibilityGraph};
+use super::{RoutingStrategy, RouteContext, filter_obstacles_in_bounds};
 
 pub struct PolylineRouting;
 
 impl RoutingStrategy for PolylineRouting {
-    fn route(
-        &self,
-        start: Point,
-        end: Point,
-        _from_normal: Point,
-        _to_normal: Point,
-        _from_rect: Rect,
-        _to_rect: Rect,
-        obstacles: &[Rect],
-        config: &RelationEngineConfig,
-        state: &CanvasState,
-    ) -> (Vec<Point>, PathType) {
-        if obstacles.is_empty() {
-            return (vec![start, end], PathType::Straight);
+    fn route(&self, ctx: &RouteContext, state: &CanvasState) -> (Vec<Point>, PathType) {
+        if ctx.obstacles.is_empty() {
+            return (vec![ctx.start, ctx.end], PathType::Straight);
         }
 
-        let margin = config.routing.obstacle_margin;
-        let min_x = start.x.min(end.x) - margin * 2.0;
-        let max_x = start.x.max(end.x) + margin * 2.0;
-        let min_y = start.y.min(end.y) - margin * 2.0;
-        let max_y = start.y.max(end.y) + margin * 2.0;
-        let route_bounds = Rect::new(min_x, min_y, max_x - min_x, max_y - min_y);
+        let margin = ctx.config.routing.obstacle_margin;
+        let filtered = filter_obstacles_in_bounds(&ctx.obstacles, ctx.start, ctx.end, margin);
 
-        let filtered: Vec<Rect> = obstacles
-            .iter()
-            .filter(|&obs| rects_overlap(obs, &route_bounds))
-            .copied()
-            .collect();
-
-        // Check if there is a direct line of sight without any intersection
-        let has_blocking_obstacle = filtered.iter().any(|obs| obs.intersects_segment(start, end));
+        let has_blocking_obstacle = filtered.iter().any(|obs| obs.intersects_segment(ctx.start, ctx.end));
         if !has_blocking_obstacle {
-            return (vec![start, end], PathType::Straight);
+            return (vec![ctx.start, ctx.end], PathType::Straight);
         }
 
-        let graph = VisibilityGraph::build(&filtered, start, end, margin);
+        let graph = VisibilityGraph::build(&filtered, ctx.start, ctx.end, margin);
         let cost_params = RouteCostParams::default();
-        let points = a_star_with_params(&graph, &cost_params, Some(&start), Some(&end), state)
-            .unwrap_or_else(|| vec![start, end]);
+        let points = a_star_with_params(&graph, &cost_params, Some(&ctx.start), Some(&ctx.end), state)
+            .unwrap_or_else(|| vec![ctx.start, ctx.end]);
 
         (points, PathType::Straight)
     }
-}
-
-fn rects_overlap(a: &Rect, b: &Rect) -> bool {
-    a.left() <= b.right() && a.right() >= b.left() && a.top() <= b.bottom() && a.bottom() >= b.top()
 }
