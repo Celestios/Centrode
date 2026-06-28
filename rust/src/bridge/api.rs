@@ -7,6 +7,9 @@ use crate::domain::templates::Template;
 
 use crate::domain::patches::{EntityPatch, SymmetricEntityPatch};
 use crate::domain::relations::IRelation;
+use crate::domain::relation_engine::config::RelationEngineConfig;
+use crate::domain::relation_engine::engine::RelationEngine;
+use crate::domain::relation_engine::input::InputNode;
 use crate::domain::theme::{Theme, ThemeFields};
 use crate::format::packager;
 use crate::frb_generated::StreamSink;
@@ -65,6 +68,7 @@ pub async fn create_log_stream(sink: StreamSink<LogState>) -> anyhow::Result<()>
 
 pub struct AppHandle {
     pub repo: Repository,
+    pub relation_engine: std::sync::Arc<Mutex<RelationEngine>>,
     tasks: Mutex<Vec<JoinHandle<()>>>,
 }
 
@@ -86,6 +90,7 @@ impl AppHandle {
     pub fn with_repository(repo: Repository) -> Self {
         Self {
             repo,
+            relation_engine: std::sync::Arc::new(Mutex::new(RelationEngine::new())),
             tasks: Mutex::new(Vec::new()),
         }
     }
@@ -103,8 +108,20 @@ impl AppHandle {
     }
 
     async fn rebuild_node_cache(&self) {
-        self.repo.clear_node_cache();
-        let _ = self.repo.get_graph_snapshot().await;
+        let margin = RelationEngineConfig::default().routing.obstacle_margin;
+        if let Ok(mut engine) = self.relation_engine.lock() {
+            engine.state.clear();
+            engine.cache.clear();
+        }
+        if let Ok(snapshot) = self.repo.get_graph_snapshot().await {
+            if let Ok(mut engine) = self.relation_engine.lock() {
+                for node in &snapshot.nodes {
+                    if let Some(input_node) = InputNode::from_domain(node) {
+                        engine.state.update_node(input_node, margin);
+                    }
+                }
+            }
+        }
     }
 
     pub async fn create_node(&self, input: Nodes) -> anyhow::Result<()> {
@@ -174,7 +191,10 @@ impl AppHandle {
         {
             self.broadcast_boundaries().await;
         }
-        self.repo.apply_cache_patch(&mutation.id, &mutation.forward);
+        let margin = RelationEngineConfig::default().routing.obstacle_margin;
+        if let Ok(mut engine) = self.relation_engine.lock() {
+            engine.apply_cache_patch(&mutation.id.key, &mutation.forward, margin);
+        }
         self.repo
             .record_patch_history(mutation.id, mutation.forward, mutation.reverse)
             .await?;
@@ -566,7 +586,15 @@ impl AppHandle {
         config: crate::domain::relation_engine::config::RelationEngineConfig,
         relation_ids: Option<Vec<String>>,
     ) -> anyhow::Result<Vec<crate::domain::relation_engine::computed::ComputedRelation>> {
-        let nodes = self.repo.get_cached_nodes();
+        let nodes: Vec<InputNode> = self
+            .relation_engine
+            .lock()
+            .map_err(|_| anyhow::anyhow!("Failed to lock relation engine"))?
+            .state
+            .nodes
+            .values()
+            .cloned()
+            .collect();
         let snapshot = self.repo.get_graph_snapshot().await?;
         let edges: Vec<crate::domain::relation_engine::input::InputEdge> = snapshot
             .relations
@@ -574,7 +602,7 @@ impl AppHandle {
             .map(crate::domain::relation_engine::input::InputEdge::from_domain)
             .collect();
 
-        let mut engine = match self.repo.relation_engine().lock() {
+        let mut engine = match self.relation_engine.lock() {
             Ok(e) => e,
             Err(_) => return Err(anyhow::anyhow!("Failed to lock relation engine")),
         };
@@ -595,16 +623,20 @@ impl AppHandle {
         &self,
         positions: Vec<(String, f64, f64, f64, f64)>,
     ) {
-        for (id, x, y, w, h) in positions {
-            self.repo.update_node_cache(
-                crate::domain::relation_engine::input::InputNode {
-                    id,
-                    x,
-                    y,
-                    width: w,
-                    height: h,
-                },
-            );
+        let margin = RelationEngineConfig::default().routing.obstacle_margin;
+        if let Ok(mut engine) = self.relation_engine.lock() {
+            for (id, x, y, w, h) in positions {
+                engine.update_node_cache(
+                    crate::domain::relation_engine::input::InputNode {
+                        id,
+                        x,
+                        y,
+                        width: w,
+                        height: h,
+                    },
+                    margin,
+                );
+            }
         }
     }
 
@@ -622,9 +654,17 @@ impl AppHandle {
         override_end_x: Option<f64>,
         override_end_y: Option<f64>,
     ) -> anyhow::Result<crate::domain::relation_engine::computed::ComputedRelation> {
-        use crate::domain::relation_engine::input::{InputEdge, InputNode};
+        use crate::domain::relation_engine::input::InputEdge;
 
-        let mut nodes = self.repo.get_cached_nodes();
+        let mut nodes = self
+            .relation_engine
+            .lock()
+            .map_err(|_| anyhow::anyhow!("Failed to lock relation engine"))?
+            .state
+            .nodes
+            .values()
+            .cloned()
+            .collect::<Vec<InputNode>>();
 
         if let (Some(sx), Some(sy)) = (override_start_x, override_start_y) {
             if let Some(n) = nodes.iter_mut().find(|n| n.id == from_node_id) {
@@ -695,7 +735,7 @@ impl AppHandle {
             }
         }
 
-        let mut engine = match self.repo.relation_engine().lock() {
+        let mut engine = match self.relation_engine.lock() {
             Ok(e) => e,
             Err(_) => return Err(anyhow::anyhow!("Failed to lock relation engine")),
         };

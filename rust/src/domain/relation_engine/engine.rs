@@ -9,6 +9,7 @@ use super::crossing::minimize_crossings;
 use super::geometry::{Point, Rect};
 use super::state::incremental::IncrementalState;
 use super::input::{InputEdge, InputNode};
+use crate::domain::patches::{EntityPatch, NodePatch};
 use super::label::compute_label_position;
 use super::nudging::{nudge_edges, NudgeConfig};
 use super::routing::{compute_bbox, route_relation};
@@ -327,6 +328,55 @@ impl RelationEngine {
         result.bbox = compute_bbox(&result.path_points);
         result.start_margin = start_margin;
         result.end_margin = end_margin;
+    }
+
+    pub fn update_node_cache(&mut self, node: InputNode, margin: f64) {
+        self.state.update_node(node, margin);
+    }
+
+    pub fn remove_from_node_cache(&mut self, node_id: &str) {
+        self.state.remove_node(node_id);
+        let to_remove: Vec<String> = self.cache.routes.iter()
+            .filter(|(_, r)| r.depends_on_nodes.contains(&node_id.to_string()))
+            .map(|(id, _)| id.clone())
+            .collect();
+        for id in to_remove {
+            self.cache.remove(&id);
+        }
+    }
+
+    pub fn apply_cache_patch(&mut self, id: &str, patch: &EntityPatch, margin: f64) {
+        match patch {
+            EntityPatch::Node(patches) => {
+                let mut node = match self.state.nodes.get(id).cloned() {
+                    Some(n) => n,
+                    None => return,
+                };
+                for node_patch in patches {
+                    match node_patch {
+                        NodePatch::Position(coords) => {
+                            node.x = coords.x as f64;
+                            node.y = coords.y as f64;
+                        }
+                        NodePatch::Size(size) => {
+                            node.width = size.width as f64;
+                            node.height = size.height as f64;
+                        }
+                        _ => {}
+                    }
+                }
+                self.state.update_node(node, margin);
+            }
+            EntityPatch::CreateNode(node, _) => {
+                if let Some(input_node) = InputNode::from_domain(node) {
+                    self.state.update_node(input_node, margin);
+                }
+            }
+            EntityPatch::DeleteNode(_, _) => {
+                self.state.remove_node(id);
+            }
+            _ => {}
+        }
     }
 
     fn compute_single_relation(
