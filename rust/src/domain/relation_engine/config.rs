@@ -1,5 +1,14 @@
 use flutter_rust_bridge::frb;
 
+use crate::domain::styles::EndpointShape;
+
+pub fn resolve_endpoint_shape(
+    shape: Option<&EndpointShape>,
+    default: EndpointShapeType,
+) -> EndpointShapeType {
+    shape.map(|s| EndpointShapeType::from(*s)).unwrap_or(default)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[frb]
 pub enum RoutingMode {
@@ -84,6 +93,19 @@ impl EndpointShapeType {
             "Diamond" | "diamond" => EndpointShapeType::Diamond,
             "Square" | "square" => EndpointShapeType::Square,
             _ => EndpointShapeType::None,
+        }
+    }
+}
+
+impl From<crate::domain::styles::EndpointShape> for EndpointShapeType {
+    fn from(shape: crate::domain::styles::EndpointShape) -> Self {
+        match shape {
+            crate::domain::styles::EndpointShape::None => EndpointShapeType::None,
+            crate::domain::styles::EndpointShape::Arrow => EndpointShapeType::Arrow,
+            crate::domain::styles::EndpointShape::OpenArrow => EndpointShapeType::OpenArrow,
+            crate::domain::styles::EndpointShape::Circle => EndpointShapeType::Circle,
+            crate::domain::styles::EndpointShape::Diamond => EndpointShapeType::Diamond,
+            crate::domain::styles::EndpointShape::Square => EndpointShapeType::Square,
         }
     }
 }

@@ -123,7 +123,7 @@ impl SurqlSchemaField for PortType {
     fn sub_field_paths() -> Vec<(String, String)> { vec![] }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 #[frb]
 pub enum EndpointShape {
     #[default]

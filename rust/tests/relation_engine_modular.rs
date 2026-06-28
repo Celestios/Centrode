@@ -9,14 +9,14 @@ use rust_lib_mycelium::domain::relation_engine::painting::relation::{
 use rust_lib_mycelium::domain::relation_engine::resolvers::{
     color::resolve_relation_color, font::resolve_font_family, icon::resolve_icon_offset,
 };
-use rust_lib_mycelium::domain::relation_engine::cache::RelationCache;
+use rust_lib_mycelium::domain::relation_engine::state::cache::RelationCache;
 use rust_lib_mycelium::domain::relation_engine::computed::{
     ComputedRelation, LabelAnchor, PathType,
 };
-use rust_lib_mycelium::domain::relation_engine::section_endpoint::EndpointResolver;
-use rust_lib_mycelium::domain::relation_engine::section_endpart::EndpartResolver;
-use rust_lib_mycelium::domain::relation_engine::section_adapter::AdapterResolver;
-use rust_lib_mycelium::domain::relation_engine::section_body::{BodyResolver, compute_widths};
+use rust_lib_mycelium::domain::relation_engine::sections::endpoint::resolve_start;
+use rust_lib_mycelium::domain::relation_engine::sections::endpart::EndpartResolver;
+use rust_lib_mycelium::domain::relation_engine::sections::adapter::AdapterResolver;
+use rust_lib_mycelium::domain::relation_engine::sections::body::{BodyResolver, compute_widths};
 use rust_lib_mycelium::domain::relation_engine::sections::EndpointResult;
 use rust_lib_mycelium::domain::relation_engine::sections::EndpartResult;
 use rust_lib_mycelium::domain::relation_engine::input::InputNode;
@@ -191,8 +191,7 @@ fn test_endpoint_resolver_standard() {
     let tangent = Point::new(1.0, 0.0);
     let config = RelationEngineConfig::default();
 
-    let resolver = EndpointResolver::Standard;
-    let result = resolver.resolve(&node, port, tangent, None, &config);
+    let result = resolve_start(&node, port, tangent, None, &config);
 
     assert_eq!(result.position, port);
     assert_eq!(result.shape, EndpointShapeType::None);

@@ -214,17 +214,10 @@ impl RelationEngine {
                         result.start_endpoint = ep.shape;
                         result.start_direction = ep.direction;
                     } else {
-                        let shape = style.and_then(|s| s.start_shape.as_ref())
-                            .map(|s| match s {
-                                crate::domain::styles::EndpointShape::None => EndpointShapeType::None,
-                                crate::domain::styles::EndpointShape::Arrow => EndpointShapeType::Arrow,
-                                crate::domain::styles::EndpointShape::OpenArrow => EndpointShapeType::OpenArrow,
-                                crate::domain::styles::EndpointShape::Circle => EndpointShapeType::Circle,
-                                crate::domain::styles::EndpointShape::Diamond => EndpointShapeType::Diamond,
-                                crate::domain::styles::EndpointShape::Square => EndpointShapeType::Square,
-                            })
+                        result.start_endpoint = style
+                            .and_then(|s| s.start_shape.as_ref())
+                            .map(|s| EndpointShapeType::from(*s))
                             .unwrap_or(config.endpoint.default_start_shape);
-                        result.start_endpoint = shape;
                         result.start_direction = start_tangent.direction() + std::f64::consts::PI;
                     }
 
@@ -233,17 +226,10 @@ impl RelationEngine {
                         result.end_endpoint = ep.shape;
                         result.end_direction = ep.direction;
                     } else {
-                        let shape = style.and_then(|s| s.end_shape.as_ref())
-                            .map(|s| match s {
-                                crate::domain::styles::EndpointShape::None => EndpointShapeType::None,
-                                crate::domain::styles::EndpointShape::Arrow => EndpointShapeType::Arrow,
-                                crate::domain::styles::EndpointShape::OpenArrow => EndpointShapeType::OpenArrow,
-                                crate::domain::styles::EndpointShape::Circle => EndpointShapeType::Circle,
-                                crate::domain::styles::EndpointShape::Diamond => EndpointShapeType::Diamond,
-                                crate::domain::styles::EndpointShape::Square => EndpointShapeType::Square,
-                            })
+                        result.end_endpoint = style
+                            .and_then(|s| s.end_shape.as_ref())
+                            .map(|s| EndpointShapeType::from(*s))
                             .unwrap_or(config.endpoint.default_end_shape);
-                        result.end_endpoint = shape;
                         result.end_direction = end_tangent.direction();
                     }
 
