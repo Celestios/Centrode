@@ -1,23 +1,7 @@
 use std::collections::HashMap;
 
+use super::config::BundlingMode;
 use super::geometry::{polyline_midpoint, Point};
-
-/// Bundling strategy for grouping edges.
-#[derive(Debug, Clone)]
-pub enum BundlingStrategy {
-    /// Group edges whose midpoint proximity is within threshold.
-    Proximity { threshold: f64 },
-    /// Group edges sharing the same source or target node.
-    SharedEndpoint,
-    /// No bundling.
-    None,
-}
-
-impl Default for BundlingStrategy {
-    fn default() -> Self {
-        BundlingStrategy::None
-    }
-}
 
 /// A bundle of edges sharing a common path segment.
 #[derive(Debug, Clone)]
@@ -40,29 +24,30 @@ pub struct BundlingResult {
     pub edge_assignments: HashMap<String, (String, f64)>,
 }
 
-/// Bundle edges according to the given strategy.
+/// Bundle edges according to the given mode and threshold.
 pub fn bundle_edges(
     edge_ids: &[String],
     paths: &[Vec<Point>],
     from_node_ids: &[String],
     to_node_ids: &[String],
-    strategy: &BundlingStrategy,
+    mode: &BundlingMode,
+    threshold: f64,
     base_width: f64,
 ) -> BundlingResult {
-    match strategy {
-        BundlingStrategy::None => BundlingResult {
+    match mode {
+        BundlingMode::None => BundlingResult {
             bundles: Vec::new(),
             edge_assignments: HashMap::new(),
         },
-        BundlingStrategy::SharedEndpoint => bundle_shared_endpoint(
+        BundlingMode::SharedEndpoint => bundle_shared_endpoint(
             edge_ids,
             paths,
             from_node_ids,
             to_node_ids,
             base_width,
         ),
-        BundlingStrategy::Proximity { threshold } => {
-            bundle_proximity(edge_ids, paths, *threshold, base_width)
+        BundlingMode::Proximity => {
+            bundle_proximity(edge_ids, paths, threshold, base_width)
         }
     }
 }
@@ -370,7 +355,8 @@ mod tests {
             &paths,
             &from,
             &to,
-            &BundlingStrategy::None,
+            &BundlingMode::None,
+            0.0,
             2.0,
         );
         assert!(result.bundles.is_empty());
@@ -393,7 +379,8 @@ mod tests {
             &paths,
             &from,
             &to,
-            &BundlingStrategy::SharedEndpoint,
+            &BundlingMode::SharedEndpoint,
+            0.0,
             2.0,
         );
 
@@ -420,7 +407,8 @@ mod tests {
             &paths,
             &from,
             &to,
-            &BundlingStrategy::Proximity { threshold: 50.0 },
+            &BundlingMode::Proximity,
+            50.0,
             2.0,
         );
 

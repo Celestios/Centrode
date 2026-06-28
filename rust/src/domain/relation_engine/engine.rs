@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::bundling::{bundle_edges, BundlingStrategy};
+use super::bundling::bundle_edges;
 use super::buffers::RelationBuffers;
 use super::computed::{ComputedRelation, LabelAnchor, PathType};
 use super::config::{BodyType, EndpointShapeType, RelationEngineConfig, BundlingMode};
@@ -108,28 +108,16 @@ impl RelationEngine {
             e.bundling_mode.as_ref().map_or(false, |m| *m != BundlingMode::None)
         });
 
-        let bundling_strategy = if has_bundled_edges || config.bundling.mode != BundlingMode::None {
-            let mode = if has_bundled_edges {
-                edges_to_compute.iter()
-                    .filter_map(|e| e.bundling_mode)
-                    .find(|m| *m != BundlingMode::None)
-                    .unwrap_or(config.bundling.mode)
-            } else {
-                config.bundling.mode
-            };
-
-            match mode {
-                BundlingMode::SharedEndpoint => BundlingStrategy::SharedEndpoint,
-                BundlingMode::Proximity => BundlingStrategy::Proximity {
-                    threshold: config.bundling.threshold,
-                },
-                BundlingMode::None => BundlingStrategy::None,
-            }
+        let bundling_mode = if has_bundled_edges {
+            edges_to_compute.iter()
+                .filter_map(|e| e.bundling_mode)
+                .find(|m| *m != BundlingMode::None)
+                .unwrap_or(config.bundling.mode)
         } else {
-            BundlingStrategy::None
+            config.bundling.mode
         };
 
-        if !matches!(bundling_strategy, BundlingStrategy::None) && results.len() >= 2 {
+        if bundling_mode != BundlingMode::None && results.len() >= 2 {
             let paths: Vec<Vec<Point>> = results.iter().map(|r| r.path_points.clone()).collect();
             let edge_ids: Vec<String> = results.iter().map(|r| r.id.clone()).collect();
             let from_ids: Vec<String> = edges_to_compute.iter().map(|e| e.from_node_id.clone()).collect();
@@ -140,7 +128,8 @@ impl RelationEngine {
                 &paths,
                 &from_ids,
                 &to_ids,
-                &bundling_strategy,
+                &bundling_mode,
+                config.bundling.threshold,
                 2.0,
             );
 
@@ -159,6 +148,7 @@ impl RelationEngine {
                 enabled: true,
                 min_separation: config.nudging.distance,
                 nudge_final_segments: true,
+                decay_factor: config.nudging.decay_factor,
             };
 
             let mut paths: Vec<Vec<Point>> = results.iter().map(|r| r.path_points.clone()).collect();

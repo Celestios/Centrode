@@ -3852,9 +3852,11 @@ impl SseDecode for crate::domain::relation_engine::config::NudgingConfig {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_enabled = <bool>::sse_decode(deserializer);
         let mut var_distance = <f64>::sse_decode(deserializer);
+        let mut var_decayFactor = <f64>::sse_decode(deserializer);
         return crate::domain::relation_engine::config::NudgingConfig {
             enabled: var_enabled,
             distance: var_distance,
+            decay_factor: var_decayFactor,
         };
     }
 }
@@ -5942,6 +5944,7 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::N
         [
             self.enabled.into_into_dart().into_dart(),
             self.distance.into_into_dart().into_dart(),
+            self.decay_factor.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -7588,6 +7591,7 @@ impl SseEncode for crate::domain::relation_engine::config::NudgingConfig {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <bool>::sse_encode(self.enabled, serializer);
         <f64>::sse_encode(self.distance, serializer);
+        <f64>::sse_encode(self.decay_factor, serializer);
     }
 }
 

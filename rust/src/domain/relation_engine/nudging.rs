@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
 use super::geometry::Point;
-use super::vpsc::VpscSolver;
+use super::solver::vpsc::VpscSolver;
 
 pub struct NudgeConfig {
     pub enabled: bool,
     pub min_separation: f64,
     pub nudge_final_segments: bool,
+    pub decay_factor: f64,
 }
 
 impl Default for NudgeConfig {
@@ -15,6 +16,7 @@ impl Default for NudgeConfig {
             enabled: true,
             min_separation: 4.0,
             nudge_final_segments: true,
+            decay_factor: 0.5,
         }
     }
 }
@@ -128,7 +130,6 @@ fn nudge_dimension(
 struct NudgeSegment {
     edge_idx: usize,
     is_source: bool,
-    _angle: f64,
 }
 
 fn collect_segments(
@@ -145,19 +146,9 @@ fn collect_segments(
             continue;
         }
 
-        let angle = if is_source {
-            let dir = path[1] - path[0];
-            dir.y.atan2(dir.x)
-        } else {
-            let last = path.len() - 1;
-            let dir = path[last] - path[last - 1];
-            dir.y.atan2(dir.x)
-        };
-
         segments.push(NudgeSegment {
             edge_idx,
             is_source,
-            _angle: angle,
         });
     }
 }
@@ -188,7 +179,7 @@ fn apply_nudge_offset(
     is_source: bool,
     is_x_dim: bool,
     new_pos: f64,
-    _config: &NudgeConfig,
+    config: &NudgeConfig,
 ) {
     let path = &mut edge_paths[edge_idx];
     if path.len() < 2 {
@@ -204,7 +195,7 @@ fn apply_nudge_offset(
     }
 
     let total_len: f64 = path.windows(2).map(|w| w[0].distance_to(w[1])).sum();
-    let decay_dist = total_len * 0.5;
+    let decay_dist = total_len * config.decay_factor;
 
     if decay_dist < 1e-6 {
         return;

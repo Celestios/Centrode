@@ -141,6 +141,7 @@ impl Default for RoutingConfig {
 pub struct NudgingConfig {
     pub enabled: bool,
     pub distance: f64,
+    pub decay_factor: f64,
 }
 
 impl Default for NudgingConfig {
@@ -148,6 +149,7 @@ impl Default for NudgingConfig {
         Self {
             enabled: true,
             distance: 4.0,
+            decay_factor: 0.5,
         }
     }
 }
