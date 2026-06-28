@@ -15,8 +15,8 @@ fn cubic_bezier_tangent(p0: Point, p1: Point, p2: Point, p3: Point, t: f64) -> P
 
 impl RoutingStrategy for SineWaveRouting {
     fn route(&self, ctx: &RouteContext, _state: &CanvasState) -> (Vec<Point>, PathType) {
-        let amplitude = ctx.config.snake.amplitude;
-        let frequency = ctx.config.snake.frequency;
+        let amplitude = ctx.config.routing.sine_wave.amplitude;
+        let frequency = ctx.config.routing.sine_wave.frequency;
 
         let distance = ctx.start.distance_to(ctx.end);
         let cycles = distance * (frequency / 300.0);

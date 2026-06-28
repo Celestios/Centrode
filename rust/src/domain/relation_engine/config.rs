@@ -120,6 +120,7 @@ pub struct RoutingConfig {
     pub bezier_projection_factor: f64,
     pub bezier_clamp_min: f64,
     pub bezier_clamp_max: f64,
+    pub sine_wave: SnakeConfig,
 }
 
 impl Default for RoutingConfig {
@@ -132,6 +133,7 @@ impl Default for RoutingConfig {
             bezier_projection_factor: 0.4,
             bezier_clamp_min: 30.0,
             bezier_clamp_max: 150.0,
+            sine_wave: SnakeConfig::default(),
         }
     }
 }
@@ -238,7 +240,6 @@ pub struct RelationEngineConfig {
     pub incremental_mode: bool,
     pub body: BodyConfig,
     pub endpoint: EndpointConfig,
-    pub snake: SnakeConfig,
 }
 
 impl Default for RelationEngineConfig {
@@ -251,7 +252,6 @@ impl Default for RelationEngineConfig {
             incremental_mode: true,
             body: BodyConfig::default(),
             endpoint: EndpointConfig::default(),
-            snake: SnakeConfig::default(),
         }
     }
 }

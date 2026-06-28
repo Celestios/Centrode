@@ -4182,7 +4182,7 @@ impl SseDecode for crate::domain::relation_engine::geometry::Rect {
 }
 
 impl SseDecode for crate::domain::relation_engine::config::RelationEngineConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
+    // Codec=Sse (Serialization based), see doc to use it
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_routing =
             <crate::domain::relation_engine::config::RoutingConfig>::sse_decode(deserializer);
@@ -4196,8 +4196,6 @@ impl SseDecode for crate::domain::relation_engine::config::RelationEngineConfig 
             <crate::domain::relation_engine::config::BodyConfig>::sse_decode(deserializer);
         let mut var_endpoint =
             <crate::domain::relation_engine::config::EndpointConfig>::sse_decode(deserializer);
-        let mut var_snake =
-            <crate::domain::relation_engine::config::SnakeConfig>::sse_decode(deserializer);
         return crate::domain::relation_engine::config::RelationEngineConfig {
             routing: var_routing,
             nudging: var_nudging,
@@ -4206,7 +4204,6 @@ impl SseDecode for crate::domain::relation_engine::config::RelationEngineConfig 
             incremental_mode: var_incrementalMode,
             body: var_body,
             endpoint: var_endpoint,
-            snake: var_snake,
         };
     }
 }
@@ -4306,7 +4303,7 @@ impl SseDecode for crate::domain::styles::RelationStyle {
 }
 
 impl SseDecode for crate::domain::relation_engine::config::RoutingConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
+    // Codec=Sse (Serialization based), see doc to use it
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_routingMode =
             <crate::domain::relation_engine::config::RoutingMode>::sse_decode(deserializer);
@@ -4316,6 +4313,8 @@ impl SseDecode for crate::domain::relation_engine::config::RoutingConfig {
         let mut var_bezierProjectionFactor = <f64>::sse_decode(deserializer);
         let mut var_bezierClampMin = <f64>::sse_decode(deserializer);
         let mut var_bezierClampMax = <f64>::sse_decode(deserializer);
+        let mut var_sineWave =
+            <crate::domain::relation_engine::config::SnakeConfig>::sse_decode(deserializer);
         return crate::domain::relation_engine::config::RoutingConfig {
             routing_mode: var_routingMode,
             obstacle_margin: var_obstacleMargin,
@@ -4324,6 +4323,7 @@ impl SseDecode for crate::domain::relation_engine::config::RoutingConfig {
             bezier_projection_factor: var_bezierProjectionFactor,
             bezier_clamp_min: var_bezierClampMin,
             bezier_clamp_max: var_bezierClampMax,
+            sine_wave: var_sineWave,
         };
     }
 }
@@ -6091,7 +6091,6 @@ impl flutter_rust_bridge::IntoDart
             self.incremental_mode.into_into_dart().into_dart(),
             self.body.into_into_dart().into_dart(),
             self.endpoint.into_into_dart().into_dart(),
-            self.snake.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -6212,6 +6211,7 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::R
             self.bezier_projection_factor.into_into_dart().into_dart(),
             self.bezier_clamp_min.into_into_dart().into_dart(),
             self.bezier_clamp_max.into_into_dart().into_dart(),
+            self.sine_wave.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -7897,7 +7897,6 @@ impl SseEncode for crate::domain::relation_engine::config::RelationEngineConfig 
             self.endpoint,
             serializer,
         );
-        <crate::domain::relation_engine::config::SnakeConfig>::sse_encode(self.snake, serializer);
     }
 }
 
@@ -7964,7 +7963,7 @@ impl SseEncode for crate::domain::styles::RelationStyle {
 }
 
 impl SseEncode for crate::domain::relation_engine::config::RoutingConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
+    // Codec=Sse (Serialization based), see doc to use it
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <crate::domain::relation_engine::config::RoutingMode>::sse_encode(
             self.routing_mode,
@@ -7976,6 +7975,10 @@ impl SseEncode for crate::domain::relation_engine::config::RoutingConfig {
         <f64>::sse_encode(self.bezier_projection_factor, serializer);
         <f64>::sse_encode(self.bezier_clamp_min, serializer);
         <f64>::sse_encode(self.bezier_clamp_max, serializer);
+        <crate::domain::relation_engine::config::SnakeConfig>::sse_encode(
+            self.sine_wave,
+            serializer,
+        );
     }
 }
 

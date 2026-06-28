@@ -2530,8 +2530,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ComputedRelation dco_decode_computed_relation(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 18)
-      throw Exception('unexpected arr length: expect 18 but see ${arr.length}');
+    if (arr.length != 20)
+      throw Exception('unexpected arr length: expect 20 but see ${arr.length}');
     return ComputedRelation(
       id: dco_decode_String(arr[0]),
       pathPoints: dco_decode_list_point(arr[1]),
@@ -2551,6 +2551,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       hitTestPoints: dco_decode_list_point(arr[15]),
       dependsOnNodes: dco_decode_list_String(arr[16]),
       bbox: dco_decode_rect(arr[17]),
+      startMargin: dco_decode_f_64(arr[18]),
+      endMargin: dco_decode_f_64(arr[19]),
     );
   }
 
@@ -4181,6 +4183,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_hitTestPoints = sse_decode_list_point(deserializer);
     var var_dependsOnNodes = sse_decode_list_String(deserializer);
     var var_bbox = sse_decode_rect(deserializer);
+    var var_startMargin = sse_decode_f_64(deserializer);
+    var var_endMargin = sse_decode_f_64(deserializer);
     return ComputedRelation(
       id: var_id,
       pathPoints: var_pathPoints,
@@ -4200,6 +4204,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       hitTestPoints: var_hitTestPoints,
       dependsOnNodes: var_dependsOnNodes,
       bbox: var_bbox,
+      startMargin: var_startMargin,
+      endMargin: var_endMargin,
     );
   }
 
@@ -5288,7 +5294,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_incrementalMode = sse_decode_bool(deserializer);
     var var_body = sse_decode_body_config(deserializer);
     var var_endpoint = sse_decode_endpoint_config(deserializer);
-    var var_snake = sse_decode_snake_config(deserializer);
     return RelationEngineConfig(
       routing: var_routing,
       nudging: var_nudging,
@@ -5297,7 +5302,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       incrementalMode: var_incrementalMode,
       body: var_body,
       endpoint: var_endpoint,
-      snake: var_snake,
     );
   }
 
@@ -5400,6 +5404,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_bezierProjectionFactor = sse_decode_f_64(deserializer);
     var var_bezierClampMin = sse_decode_f_64(deserializer);
     var var_bezierClampMax = sse_decode_f_64(deserializer);
+    var var_sineWave = sse_decode_snake_config(deserializer);
     return RoutingConfig(
       routingMode: var_routingMode,
       obstacleMargin: var_obstacleMargin,
@@ -5408,6 +5413,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       bezierProjectionFactor: var_bezierProjectionFactor,
       bezierClampMin: var_bezierClampMin,
       bezierClampMax: var_bezierClampMax,
+      sineWave: var_sineWave,
     );
   }
 
@@ -6260,6 +6266,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_point(self.hitTestPoints, serializer);
     sse_encode_list_String(self.dependsOnNodes, serializer);
     sse_encode_rect(self.bbox, serializer);
+    sse_encode_f_64(self.startMargin, serializer);
+    sse_encode_f_64(self.endMargin, serializer);
   }
 
   @protected
@@ -7151,7 +7159,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self.incrementalMode, serializer);
     sse_encode_body_config(self.body, serializer);
     sse_encode_endpoint_config(self.endpoint, serializer);
-    sse_encode_snake_config(self.snake, serializer);
   }
 
   @protected
@@ -7219,6 +7226,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_f_64(self.bezierProjectionFactor, serializer);
     sse_encode_f_64(self.bezierClampMin, serializer);
     sse_encode_f_64(self.bezierClampMax, serializer);
+    sse_encode_snake_config(self.sineWave, serializer);
   }
 
   @protected

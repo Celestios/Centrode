@@ -118,7 +118,6 @@ class RelationEngineConfig {
   final bool incrementalMode;
   final BodyConfig body;
   final EndpointConfig endpoint;
-  final SnakeConfig snake;
 
   const RelationEngineConfig({
     required this.routing,
@@ -128,7 +127,6 @@ class RelationEngineConfig {
     required this.incrementalMode,
     required this.body,
     required this.endpoint,
-    required this.snake,
   });
 
   @override
@@ -139,8 +137,7 @@ class RelationEngineConfig {
       crossingMinimization.hashCode ^
       incrementalMode.hashCode ^
       body.hashCode ^
-      endpoint.hashCode ^
-      snake.hashCode;
+      endpoint.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -153,8 +150,7 @@ class RelationEngineConfig {
           crossingMinimization == other.crossingMinimization &&
           incrementalMode == other.incrementalMode &&
           body == other.body &&
-          endpoint == other.endpoint &&
-          snake == other.snake;
+          endpoint == other.endpoint;
 }
 
 class RoutingConfig {
@@ -165,6 +161,7 @@ class RoutingConfig {
   final double bezierProjectionFactor;
   final double bezierClampMin;
   final double bezierClampMax;
+  final SnakeConfig sineWave;
 
   const RoutingConfig({
     required this.routingMode,
@@ -174,6 +171,7 @@ class RoutingConfig {
     required this.bezierProjectionFactor,
     required this.bezierClampMin,
     required this.bezierClampMax,
+    required this.sineWave,
   });
 
   @override
@@ -184,7 +182,8 @@ class RoutingConfig {
       bezierCurvature.hashCode ^
       bezierProjectionFactor.hashCode ^
       bezierClampMin.hashCode ^
-      bezierClampMax.hashCode;
+      bezierClampMax.hashCode ^
+      sineWave.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -197,7 +196,8 @@ class RoutingConfig {
           bezierCurvature == other.bezierCurvature &&
           bezierProjectionFactor == other.bezierProjectionFactor &&
           bezierClampMin == other.bezierClampMin &&
-          bezierClampMax == other.bezierClampMax;
+          bezierClampMax == other.bezierClampMax &&
+          sineWave == other.sineWave;
 }
 
 enum RoutingMode { polyline, bezier, orthogonal, circularArc, sineWave }
