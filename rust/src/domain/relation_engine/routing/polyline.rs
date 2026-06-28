@@ -1,4 +1,4 @@
-use crate::domain::relation_engine::geometry::{Point, Rect};
+use crate::domain::relation_engine::geometry::Point;
 use crate::domain::relation_engine::state::CanvasState;
 use crate::domain::relation_engine::computed::PathType;
 use crate::domain::relation_engine::solver::visibility_graph::{a_star_with_params, RouteCostParams, VisibilityGraph};

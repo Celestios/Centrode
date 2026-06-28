@@ -1,4 +1,4 @@
-use crate::domain::relation_engine::geometry::{Point, Rect, cubic_bezier_point};
+use crate::domain::relation_engine::geometry::{Point, cubic_bezier_point};
 use crate::domain::relation_engine::state::CanvasState;
 use crate::domain::relation_engine::computed::PathType;
 use super::{RoutingStrategy, RouteContext};
