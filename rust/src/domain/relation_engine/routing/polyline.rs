@@ -25,6 +25,10 @@ impl RoutingStrategy for PolylineRouting {
         let points = a_star_with_params(&graph, &cost_params, Some(&ctx.start), Some(&ctx.end), state)
             .unwrap_or_else(|| vec![ctx.start, ctx.end]);
 
-        (points, PathType::Straight)
+        if points.len() == 2 {
+            (points, PathType::Straight)
+        } else {
+            (points, PathType::Orthogonal)
+        }
     }
 }
