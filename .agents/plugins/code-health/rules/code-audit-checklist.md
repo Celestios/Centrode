@@ -12,7 +12,7 @@ Each file in the audit batch must be evaluated against all 8 dimensions below. R
 2. **OCP (Open/Closed)**: Can behavior be extended without modification? Check for hardcoded mode switchers, conditional chains, and lack of injection.
 3. **LSP & ISP (Substitution & Segregation)**: Do subclasses honor parent contracts without throwing `UnimplementedError`? Are they forced to implement fat interfaces?
 4. **DIP (Dependency Inversion)**: Does it depend on abstractions or concretions? Check for hardcoded class instantiations inside the code.
-5. **DRY (Don't Repeat Yourself)**: Is there structural or algorithmic duplication across sibling files? Use `graphify query` to cross-reference but read the code to verify.
+5. **DRY (Don't Repeat Yourself)**: Is there structural or algorithmic duplication across sibling files? Use arch-mcp's `query` tool to cross-reference but read the code to verify.
 6. **Pattern Fitness**: Does the actual class structure match its designated design pattern? Check if strategies/commands are clean.
 7. **Symmetry**: Do sibling classes in the same directory follow the same structural blueprint?
 8. **Complexity**: Check line counts (>500) and API counts (>15) as indicators of bloat.
