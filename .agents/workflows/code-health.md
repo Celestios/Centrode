@@ -1,18 +1,18 @@
 ---
-description: Multi-agent deep audit of the entire codebase for SOLID principles, design pattern fitness, DRY compliance, complexity hotspots, and architectural boundary enforcement using graphify arch.
+description: Multi-agent deep audit of the entire codebase for SOLID principles, design pattern fitness, DRY compliance, complexity hotspots, and architectural boundary enforcement using arch-mcp.
 ---
 
 # Workflow: /code-health
 
 This workflow transforms the agent into a **Principal Code Health Auditor**. It performs a comprehensive, multi-agent analysis of the entire codebase across multiple software engineering dimensions — not just SRP, but the full spectrum of SOLID principles, DRY compliance, design pattern fitness, complexity hotspots, and naming/test coverage assertions.
 
-It leverages [graphify arch](file:///d:/Projects/Open/flutter/code/mycelium/.agents/rules/graphify.md) for fast metadata queries, layer/tier enforcement, and dependency analysis, and the [architecture-auditor](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/skills/architecture-auditor/SKILL.md) / [symmetry-checker](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/skills/symmetry-checker/SKILL.md) skills for deep structural reasoning.
+It leverages arch-mcp for fast metadata queries, layer/tier enforcement, and dependency analysis, and the [architecture-auditor](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/skills/architecture-auditor/SKILL.md) / [symmetry-checker](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/skills/symmetry-checker/SKILL.md) skills for deep structural reasoning.
 
 ---
 
 ## Core Mandates
 
-1. **Graph-First Discovery**: Always start with `graphify arch audit` to scan for layer/tier violations and refresh metadata. Use the graph to identify files for the audit queue.
+1. **Audit-First Discovery**: Always start with `audit()` to scan for layer/tier violations. Use `index` to query the arch-mcp database and identify files for the audit queue.
 2. **Deep Semantic AI Scanning**: The CLI cache tools are only for indexing and filtering. You and your subagents **MUST** use the `view_file` tool to read the complete source code of every file in the audit queue. The audit is a semantic, cognitive code review, not a metrics check.
 3. **Multi-Dimensional Analysis**: Each file must be evaluated across all applicable dimensions using the AI-Powered Code Scanning Guidelines defined in this workflow.
 4. **Multi-Agent Delegation**: Batch files into groups of 3–5 and spawn a subagent per group to audit them in parallel. Instruct them explicitly to use their file reading tools and perform cognitive analysis on the code.
@@ -38,7 +38,7 @@ Each component in the Audit Queue is evaluated against these principles:
 | **D – Dependency Inversion** | Does the class depend on abstractions or concrete implementations? Check constructor parameters and import blocks. |
 
 ### 🔹 DRY (Don't Repeat Yourself)
-- Search for duplicated logic across files in the same directory using `graphify query` with method or class names.
+- Search for duplicated logic across files in the same directory using arch-mcp's `query` tool with method or class names.
 - Flag files that re-implement helpers already available in sibling classes or utility modules.
 
 ### 🔹 Design Pattern Fitness
@@ -50,13 +50,13 @@ Each component in the Audit Queue is evaluated against these principles:
 - Flag mismatches where a class is labeled as one pattern but structurally behaves as another.
 
 ### 🔹 Complexity & Bloat
-- Use `graphify arch query-file --path <file>` to check public API counts and file sizes.
+- Use arch-mcp's `index` tool to check public API counts and file sizes.
 - Flag God Objects: classes with both high API count AND high line count.
 
 ### 🔹 Layer Boundary Enforcement
-- Run `graphify arch audit` to detect tier/layer violations.
-- Run `graphify arch analyze` to verify naming conventions and config consistency.
-- Run `graphify arch query-file` to verify test coverage and metadata for Tier 2/3 components.
+- Run `audit()` to detect tier/layer violations.
+- Run `analyze()` to verify naming conventions and config consistency.
+- Use arch-mcp's `index` tool to verify test coverage and metadata for Tier 2/3 components.
 
 ### 🔹 Symmetry & Cohesion
 - Verify that symmetric groups of classes (e.g., all mutation modules, all FSM states) follow identical structural blueprints.
@@ -66,7 +66,7 @@ Each component in the Audit Queue is evaluated against these principles:
 - For each Tier 2/3 source file in the Audit Queue, check if a corresponding test file exists.
 - Dart pattern: `lib/features/graph/store/foo.dart` → `test/features/graph/store/foo_test.dart`
 - Rust pattern: `rust/src/domain/foo.rs` → `rust/tests/core_tests/foo.rs` or `#[test]` in `rust/src/foo.rs`
-- Use `graphify query "<module name>"` with community filter "Repository Testing" to find associated test files.
+- Use arch-mcp's `query` tool to find associated test files for the module.
 - Cross-reference with git churn data: files with high change frequency but no corresponding test are **untested hotspots** (highest remediation priority).
 
 ---
@@ -80,7 +80,7 @@ Before applying any rules, read the project's own configuration to understand wh
 Read and note:
 1. **`analysis_options.yaml`**: Disabled lint rules, custom analyzer settings, excluded files. Any rule the project intentionally turns off is NOT a finding.
 2. **`AGENTS.md`**: Documented architectural patterns, coding conventions, and intentional deviations. These override generic SOLID/DDD advice.
-3. **`graphify-out/arch/config.json`**: The project's own ontology — defined layers, tiers, dependency constraints, and propagation handlers. This is the authoritative source for layer boundary rules. If a piece of code doesn't fit the current ontology, **do not force-fit or ignore it** — flag it as an **Ontology Gap** and propose updating `config.json` with the user's approval.
+3. **`.arch/config.json`**: The project's own ontology — defined layers, tiers, dependency constraints, and propagation handlers. This is the authoritative source for layer boundary rules. If a piece of code doesn't fit the current ontology, **do not force-fit or ignore it** — flag it as an **Ontology Gap** and propose updating `config.json` with the user's approval.
 4. **`pubspec.yaml`** / **`Cargo.toml`**: Language versions, framework constraints, and dependency choices that may affect what patterns are viable.
 
 **Output**: A Calibration Baseline (5–10 bullets) capturing the project's own standards. This baseline is what you audit *against*.
@@ -90,36 +90,18 @@ Read and note:
 
 ### Step 2: Refresh Graph & Automated Assertions
 
-```powershell
-# Refresh the knowledge graph (re-extract changed files, rebuild communities)
-graphify update .
-
-# Run automated compliance scan (detects layer/tier/dependency violations)
-graphify arch audit
-
-# Validate naming conventions and config consistency
-graphify arch analyze
-
-# Identify files with violations or pending audits
-graphify arch set-status --query VIOLATION_DETECTED
-graphify arch set-status --query PENDING_AUDIT
-```
+Use arch-mcp tools to:
+- Run automated compliance scan (detects layer/tier/dependency violations)
+- Validate naming conventions and config consistency
 
 Collect the outputs and build the **Audit Queue** from:
 - Files with `VIOLATION_DETECTED` or `PENDING_AUDIT` status from the audit.
 - Files flagged by `analyze` for naming or config issues.
-- Complexity hotspots identified via `graphify arch query-file` (check public API counts and file sizes).
+- Complexity hotspots identified via arch-mcp's `index` tool (check public API counts and file sizes).
 
 ### Step 3: Dead Code Discovery
 
-Use `graphify affected` to identify public symbols with zero callers:
-
-```powershell
-# For each public export in lib/, check callers
-graphify affected "<symbol_name>" --direction upstream
-
-# If upstream callers = 0, this is a dead code candidate
-```
+Use arch-mcp's `impact` tool to identify public symbols with zero callers. If upstream callers = 0, this is a dead code candidate.
 
 Evaluation criteria for dead code candidates:
 - **High confidence**: zero upstream callers AND not referenced in any test file AND not a `main()` entry point
@@ -130,21 +112,21 @@ Tag dead code candidates with confidence tier and add to the Audit Queue for sub
 
 ### Step 4: Knowledge Graph Analysis
 
-After refreshing the graph, read `graphify-out/GRAPH_REPORT.md` to incorporate graphify's own analysis into the audit:
+After running initial scans, use arch-mcp's `report` tool to incorporate its analysis into the audit:
 - **God Nodes**: High-centrality files that many other files depend on — these are architectural linchpins. Flag any god node in the Audit Queue for deep review (high blast radius if changed).
 - **Surprising Connections**: Cross-community edges that indicate unexpected coupling between unrelated modules. These often reveal hidden dependencies or premature abstractions.
 - **Community Structure**: Review community labels for cohesion issues — if files from the same feature are scattered across different communities, the code may lack physical cohesion.
 - **Suggested Questions**: Use these as additional audit angles, especially questions that cross community boundaries.
 
-Merge graphify's findings into the Audit Queue alongside the arch audit results.
+Merge arch-mcp's findings into the Audit Queue alongside the audit results.
 
 ### Step 5: Test Coverage Cross-Reference
 
 For each Tier 2/3 file in the Audit Queue, run a heuristic test-coverage check:
 
 ```powershell
-# Find test files associated with source modules via graphify communities
-graphify query "<module_or_feature_name>" --community "Repository Testing"
+# Find test files associated with source modules via arch-mcp
+query(text="<module_or_feature_name>")
 
 # For Dart: check for corresponding test file
 # lib/features/graph/store/foo.dart → test/features/graph/store/foo_test.dart
@@ -157,10 +139,10 @@ Tag each file in the Audit Queue with a `has_test` boolean. Files with `has_test
 
 ### Step 6: Contextual Enrichment
 
-For each file in the Audit Queue, gather its context from the graph:
-- Use `graphify arch query-file --path <file>` to retrieve its layer, tier, purity, architectural role, and dependencies.
-- Use `graphify arch compile-context --node <file> --direction upstream` on high-risk files to assess blast radius.
-- Use `graphify query "<concept>"` if you suspect a transitive layer leak.
+For each file in the Audit Queue, gather its context from the arch-mcp database:
+- Use arch-mcp's `index` tool to retrieve a file's layer, tier, purity, architectural role, and dependencies.
+- Use `compile_context` on high-risk files to assess blast radius.
+- Use `query` if you suspect a transitive layer leak.
 - Read the rule files to load enforcement criteria: [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md), [no-cross-layer-mutation.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/symmetry-invariants.md).
 
 ### Step 7: Multi-Agent Deep Audit (Delegated Verification)
@@ -182,11 +164,11 @@ For each audited file, update its status in the graph to reflect the audit resul
 
 - **If Compliant across all dimensions**:
   ```powershell
-  graphify arch set-status --path <file_path> --status COMPLIANT
+  set_fields(target="<file_path>", update="status:COMPLIANT")
   ```
 - **If Violations Detected**:
   ```powershell
-  graphify arch set-status --path <file_path> --status VIOLATION_DETECTED
+  set_fields(target="<file_path>", update="status:VIOLATION")
   ```
 
 ---
@@ -231,7 +213,7 @@ While CLI tools and cache queries are excellent for metadata-level discovery, th
 
 ## Architectural Layer Boundaries
 
-The project enforces a strict **3-Tier Hierarchy**. Full tier definitions, responsibilities, and dependency rules are in [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md). The authoritative source for layer assignments is `graphify-out/arch/config.json`.
+The project enforces a strict **3-Tier Hierarchy**. Full tier definitions, responsibilities, and dependency rules are in [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md). The authoritative source for layer assignments is `.arch/config.json`.
 
 Quick reference:
 - **Tier 1 (Canvas UI)**: `lib/features/graph/ui` — rendering and layout only
