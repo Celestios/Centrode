@@ -23,15 +23,15 @@ The output format for the /code-health workflow. All audit reports must follow t
 ## Automated Assertion Results
 | Assertion | Status | Details |
 |-----------|--------|---------|
-| Layer Boundaries (`graphify arch audit`) | ✅/❌ | ... |
-| Naming Conventions (`graphify arch analyze`) | ✅/❌ | ... |
-| Config Consistency (`graphify arch analyze`) | ✅/❌ | ... |
+| Layer Boundaries (`audit()`) | ✅/❌ | ... |
+| Naming Conventions (`analyze()`) | ✅/❌ | ... |
+| Config Consistency (`analyze()`) | ✅/❌ | ... |
 
-## Graphify Knowledge Graph Insights
+## Arch-MCP Knowledge Graph Insights
 - **God Nodes**: [list files with highest centrality and their risk profile]
 - **Surprising Connections**: [cross-community couplings that indicate architectural drift]
 - **Community Cohesion Issues**: [features scattered across unrelated communities]
-- **Suggested Investigation**: [graphify's suggested questions applied as audit angles]
+- **Suggested Investigation**: [arch-mcp's suggested questions applied as audit angles]
 
 ## Complexity Hotspots
 | File | Tier | Line Count | API Count | Pattern | Status |
@@ -56,7 +56,7 @@ The output format for the /code-health workflow. All audit reports must follow t
 |------|-----------|----------|------------|---------|-------------------|
 | [file link] | SRP | 🔴 Critical | High | ... | N/A |
 | [file link] | DRY | 🟡 Warning | Medium | ... | Read sibling files for duplication |
-| [file link] | OCP | 🔵 Info | Low | ... | Run `graphify query` on pattern |
+| [file link] | OCP | 🔵 Info | Low | ... | Run `query` on pattern |
 
 ## Recommended Actions
 [Prioritized list of refactoring tasks, grouped by phase: Immediate / This Sprint / This Quarter]
