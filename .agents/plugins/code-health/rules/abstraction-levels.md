@@ -4,7 +4,7 @@ activation: always_on
 
 # Rule: Abstraction Levels
 
-You MUST adhere to strict abstraction levels. Code must never leak between these layer tiers. The specific folders, extensions, and responsibilities for each tier are defined in `graphify-out/arch/config.json`.
+You MUST adhere to strict abstraction levels. Code must never leak between these layer tiers. The specific folders, extensions, and responsibilities for each tier are defined in `.arch/config.json`.
 
 ## General Architecture Tiers
 
@@ -22,7 +22,7 @@ You MUST adhere to strict abstraction levels. Code must never leak between these
 
 ## Boundary Enforcement
 
-The Architectural Linter automatically enforces these boundaries based on the tiers defined in `graphify-out/arch/config.json`. A higher tier (e.g., Tier 3) MUST NOT import or depend on a lower tier (e.g., Tier 1 or Tier 2).
+The Architectural Linter automatically enforces these boundaries based on the tiers defined in `.arch/config.json`. A higher tier (e.g., Tier 3) MUST NOT import or depend on a lower tier (e.g., Tier 1 or Tier 2).
 
 When modifying code:
 1. Identify the tier of the file you are editing.
