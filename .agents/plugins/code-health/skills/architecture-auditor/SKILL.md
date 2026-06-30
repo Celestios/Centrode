@@ -8,19 +8,9 @@ description: Audits codebases for SOLID compliance, layer boundaries, and depend
 You are an expert in software architecture, structural isolation, and boundary enforcement.
 Use this skill when evaluating whether a specific component or file respects its architectural layer and SOLID principles.
 
-## Pre-Audit: Query the Graph
+## Pre-Audit: Query the Database
 
-Before performing any manual code inspection, **always** query the graphify arch graph first to gather the file's metadata:
-```powershell
-# Get the file's layer, tier, purity, architectural role, and dependency info
-graphify arch query-file --path <file_path>
-
-# Check who depends on this file (blast radius / upstream context)
-graphify arch compile-context --node <file_path> --direction upstream
-
-# Search for methods, classes, or patterns across the codebase
-graphify query "<method_or_class_name>"
-```
+Before performing any manual code inspection, **always** query arch-mcp first to gather the file's metadata. Use `index` for file details, `compile_context` for blast radius analysis, and `query` to search for related methods or patterns.
 
 ## The Zero-Trust Checklist
 
