@@ -49,6 +49,8 @@ ComputedRelation createTestComputedRelation(String id, List<rust_geom.Point> pat
     hitTestPoints: pathPoints,
     dependsOnNodes: const [],
     bbox: const rust_geom.Rect(x: 0, y: 0, width: 0, height: 0),
+    startMargin: 0.0,
+    endMargin: 0.0,
   );
 }
 

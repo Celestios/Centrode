@@ -6,9 +6,9 @@ use rust_lib_mycelium::domain::relation_engine::config::{
 use rust_lib_mycelium::domain::relation_engine::computed::PathType;
 use rust_lib_mycelium::domain::relation_engine::crossing::count_crossings;
 use rust_lib_mycelium::domain::relation_engine::geometry::Point;
-use rust_lib_mycelium::domain::relation_engine::incremental::IncrementalState;
-use rust_lib_mycelium::domain::relation_engine::vpsc::VpscSolver;
-use rust_lib_mycelium::domain::relation_engine::visibility_graph::{
+use rust_lib_mycelium::domain::relation_engine::state::incremental::IncrementalState;
+use rust_lib_mycelium::domain::relation_engine::solver::vpsc::VpscSolver;
+use rust_lib_mycelium::domain::relation_engine::solver::visibility_graph::{
     a_star_with_params, RouteCostParams, VisibilityGraph,
 };
 

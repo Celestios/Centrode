@@ -2,11 +2,11 @@ use rust_lib_mycelium::domain::relation_engine::input::{InputEdge, InputNode};
 use rust_lib_mycelium::domain::relation_engine::engine::RelationEngine;
 use rust_lib_mycelium::domain::relation_engine::config::{RelationEngineConfig, RoutingMode, BundlingMode};
 use rust_lib_mycelium::domain::relation_engine::geometry::{Point, Rect};
-use rust_lib_mycelium::domain::relation_engine::visibility_graph::{RouteCostParams, a_star_with_params, VisibilityGraph};
+use rust_lib_mycelium::domain::relation_engine::solver::visibility_graph::{RouteCostParams, a_star_with_params, VisibilityGraph};
 use rust_lib_mycelium::domain::relation_engine::nudging::{nudge_edges, NudgeConfig};
 use rust_lib_mycelium::domain::relation_engine::crossing::{count_crossings, minimize_crossings};
-use rust_lib_mycelium::domain::relation_engine::vpsc::VpscSolver;
-use rust_lib_mycelium::domain::relation_engine::sweep_visibility::{naive_visibility, build_obstacle_edges};
+use rust_lib_mycelium::domain::relation_engine::solver::vpsc::VpscSolver;
+use rust_lib_mycelium::domain::relation_engine::solver::sweep_visibility::{naive_visibility, build_obstacle_edges};
 use rust_lib_mycelium::domain::relation_engine::computed::PathType;
 
 fn init_logging() {
@@ -198,7 +198,7 @@ fn pipeline_bundling_shared_endpoint() {
 
 #[test]
 fn pipeline_incremental_recomputation() {
-    use rust_lib_mycelium::domain::relation_engine::incremental::IncrementalState;
+    use rust_lib_mycelium::domain::relation_engine::state::incremental::IncrementalState;
 
     let nodes = vec![
         make_node("n1", 0.0, 0.0, 60.0, 40.0),
