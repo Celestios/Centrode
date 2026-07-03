@@ -391,7 +391,6 @@ class ContextToolbarOverlay extends StatelessWidget {
               }
             },
             onRelationStrokePatternChanged: (pattern) {
-              print('[ContextToolbar] onRelationStrokePatternChanged: $pattern');
               for (final rel in selectedRelations) {
                 final currentStyle =
                     rel.style ?? RelationStyleStrategy.resolveStyle(rel);
@@ -402,17 +401,13 @@ class ContextToolbarOverlay extends StatelessWidget {
               }
             },
             onRelationBodyStrategyChanged: (bodyStrategy) {
-              print('[ContextToolbar] onRelationBodyStrategyChanged: $bodyStrategy');
               for (final rel in selectedRelations) {
-                print('[ContextToolbar] updating rel ${rel.id}');
                 final currentStyle =
                     rel.style ?? RelationStyleStrategy.resolveStyle(rel);
-                print('[ContextToolbar] current bodyStrategy: ${currentStyle.bodyStrategy}');
                 interactionContext.onRelationUpdateStyle(
                   rel.id,
                   currentStyle.copyWith(bodyStrategy: bodyStrategy),
                 );
-                print('[ContextToolbar] updated rel ${rel.id} to bodyStrategy: $bodyStrategy');
               }
             },
             onStartShapeChanged: (shape) {

@@ -22,8 +22,13 @@ class RelationEngineState {
       bezierProjectionFactor: 2,
       bezierClampMin: 30.0,
       bezierClampMax: 150.0,
+      sineWave: SnakeConfig(
+        amplitude: 20.0,
+        frequency: 3.0,
+        obstacleAvoidance: false,
+      ),
     ),
-    nudging: NudgingConfig(enabled: true, distance: 4.0),
+    nudging: NudgingConfig(enabled: true, distance: 4.0, decayFactor: 0.9),
     bundling: BundlingConfig(mode: BundlingMode.none, threshold: 50.0),
     crossingMinimization: true,
     incrementalMode: true,
@@ -38,11 +43,6 @@ class RelationEngineState {
       defaultStartShape: EndpointShapeType.none,
       defaultEndShape: EndpointShapeType.arrow,
       arrowSize: 10.0,
-    ),
-    snake: SnakeConfig(
-      amplitude: 20.0,
-      frequency: 3.0,
-      obstacleAvoidance: false,
     ),
   );
   Timer? _throttleTimer;

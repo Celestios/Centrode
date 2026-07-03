@@ -10,7 +10,7 @@ import '../text/canvas_text_editor.dart';
 import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 
 class RelationLayer extends StatelessWidget {
-  RelationLayer({super.key});
+  const RelationLayer({super.key});
 
   @override
   Widget build(BuildContext context) {
