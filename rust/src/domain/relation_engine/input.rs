@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::geometry::{Point, Rect};
 use super::config::{RoutingMode, BundlingMode};
 use crate::domain::base_models::Coordinates;
@@ -163,6 +165,27 @@ pub struct InputEdge {
     pub routing_mode: Option<RoutingMode>,
     pub bundling_mode: Option<BundlingMode>,
     pub style: Option<RelationStyle>,
+}
+
+pub fn resolve_edge_ports<'a>(
+    edge: &InputEdge,
+    node_map: &'a HashMap<&str, &'a InputNode>,
+) -> Option<(InputPort, InputPort)> {
+    let from_node = node_map.get(edge.from_node_id.as_str())?;
+    let to_node = node_map.get(edge.to_node_id.as_str())?;
+    let to_center = to_node.center();
+    let from_center = from_node.center();
+
+    let start_port = match &edge.from_side {
+        Some(side) => from_node.resolve_port(side, to_center),
+        None => from_node.closest_port_to(to_center),
+    };
+    let end_port = match &edge.to_side {
+        Some(side) => to_node.resolve_port(side, from_center),
+        None => to_node.closest_port_to(from_center),
+    };
+
+    Some((start_port, end_port))
 }
 
 impl InputEdge {

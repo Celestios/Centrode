@@ -1,10 +1,8 @@
-use super::computed::PathType;
 use super::config::RelationEngineConfig;
-use super::geometry::{cubic_bezier_point, polyline_midpoint, Point};
+use super::geometry::{polyline_midpoint, Point};
 
 pub fn compute_label_position(
     path: &[Point],
-    path_type: &PathType,
     _config: &RelationEngineConfig,
 ) -> (Point, bool) {
     if path.is_empty() {
