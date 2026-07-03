@@ -27,6 +27,8 @@ class ComputedRelation {
   final List<Point> hitTestPoints;
   final List<String> dependsOnNodes;
   final Rect bbox;
+  final double startMargin;
+  final double endMargin;
 
   const ComputedRelation({
     required this.id,
@@ -47,6 +49,8 @@ class ComputedRelation {
     required this.hitTestPoints,
     required this.dependsOnNodes,
     required this.bbox,
+    required this.startMargin,
+    required this.endMargin,
   });
 
   @override
@@ -68,7 +72,9 @@ class ComputedRelation {
       bundleOffset.hashCode ^
       hitTestPoints.hashCode ^
       dependsOnNodes.hashCode ^
-      bbox.hashCode;
+      bbox.hashCode ^
+      startMargin.hashCode ^
+      endMargin.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -92,7 +98,9 @@ class ComputedRelation {
           bundleOffset == other.bundleOffset &&
           hitTestPoints == other.hitTestPoints &&
           dependsOnNodes == other.dependsOnNodes &&
-          bbox == other.bbox;
+          bbox == other.bbox &&
+          startMargin == other.startMargin &&
+          endMargin == other.endMargin;
 }
 
 enum LabelAnchor { center, left, right }

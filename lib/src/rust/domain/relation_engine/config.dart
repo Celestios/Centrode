@@ -95,11 +95,17 @@ enum EndpointShapeType { none, arrow, openArrow, circle, diamond, square }
 class NudgingConfig {
   final bool enabled;
   final double distance;
+  final double decayFactor;
 
-  const NudgingConfig({required this.enabled, required this.distance});
+  const NudgingConfig({
+    required this.enabled,
+    required this.distance,
+    required this.decayFactor,
+  });
 
   @override
-  int get hashCode => enabled.hashCode ^ distance.hashCode;
+  int get hashCode =>
+      enabled.hashCode ^ distance.hashCode ^ decayFactor.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -107,7 +113,8 @@ class NudgingConfig {
       other is NudgingConfig &&
           runtimeType == other.runtimeType &&
           enabled == other.enabled &&
-          distance == other.distance;
+          distance == other.distance &&
+          decayFactor == other.decayFactor;
 }
 
 class RelationEngineConfig {

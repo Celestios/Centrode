@@ -17,6 +17,7 @@ import '../domain/tags.dart';
 import '../domain/templates.dart';
 import '../domain/theme.dart';
 import '../frb_generated.dart';
+import '../lib.dart';
 import '../persistence/history.dart';
 import '../persistence/repo.dart';
 import '../telemetry.dart';
@@ -35,7 +36,11 @@ Stream<LogState> createLogStream() =>
 abstract class AppHandle implements RustOpaqueInterface {
   Future<void> applyEntityMutation({required SymmetricEntityPatch mutation});
 
+  ArcMutexRelationEngine get relationEngine;
+
   Repository get repo;
+
+  set relationEngine(ArcMutexRelationEngine relationEngine);
 
   set repo(Repository repo);
 
