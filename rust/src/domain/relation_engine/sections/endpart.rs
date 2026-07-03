@@ -1,6 +1,6 @@
-use super::geometry::Point;
-use super::input::InputNode;
-use super::sections::{EndpointResult, EndpartResult};
+use crate::domain::relation_engine::geometry::Point;
+use crate::domain::relation_engine::input::InputNode;
+use crate::domain::relation_engine::sections::{EndpointResult, EndpartResult};
 
 #[derive(Debug, Clone, Copy)]
 pub enum EndpartResolver {

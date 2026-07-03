@@ -1,5 +1,5 @@
-use super::geometry::Point;
-use super::sections::{EndpartResult, AdapterResult};
+use crate::domain::relation_engine::geometry::Point;
+use crate::domain::relation_engine::sections::{EndpartResult, AdapterResult};
 
 #[derive(Debug, Clone, Copy)]
 pub enum AdapterResolver {

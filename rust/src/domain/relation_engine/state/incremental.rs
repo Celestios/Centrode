@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use super::geometry::Rect;
+use crate::domain::relation_engine::geometry::Rect;
 
 /// Tracks which relations need recomputation after mutations.
 ///
@@ -81,7 +81,7 @@ impl IncrementalState {
 
         // Spatial filter: if a dirty node's bbox intersects a relation's bbox
         for (rel_id, rel_bbox) in &self.bboxes {
-            if affected.contains(rel_id) {
+            if affected.contains(rel_id.as_str()) {
                 continue;
             }
             for (_node_id, node_bbox) in dirty_node_positions {

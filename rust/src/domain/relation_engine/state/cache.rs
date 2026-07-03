@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use super::computed::ComputedRelation;
+use crate::domain::relation_engine::computed::ComputedRelation;
 
 #[derive(Debug, Clone)]
 pub struct RelationCache {

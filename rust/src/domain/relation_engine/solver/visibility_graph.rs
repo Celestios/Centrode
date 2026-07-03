@@ -1,8 +1,8 @@
 use std::collections::BinaryHeap;
 
-use super::geometry::{Point, Rect};
+use crate::domain::relation_engine::geometry::{Point, Rect};
 use super::sweep_visibility;
-use super::state::CanvasState;
+use crate::domain::relation_engine::state::CanvasState;
 
 #[derive(Debug, Clone)]
 pub struct VisNode {
@@ -289,7 +289,7 @@ fn path_intersects_segment(p1: Point, p2: Point, path: &[Point]) -> bool {
         return false;
     }
     for window in path.windows(2) {
-        if super::geometry::segments_intersect(p1, p2, window[0], window[1]) {
+        if crate::domain::relation_engine::geometry::segments_intersect(p1, p2, window[0], window[1]) {
             // Check if it's a shared endpoint/port vertex
             let is_shared_endpoint = p1.distance_to(window[0]) < 0.1 
                 || p1.distance_to(window[1]) < 0.1

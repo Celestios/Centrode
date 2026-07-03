@@ -1,4 +1,4 @@
-use super::geometry::{segments_intersect, Point, Rect};
+use crate::domain::relation_engine::geometry::{segments_intersect, Point, Rect};
 
 #[derive(Debug, Clone)]
 struct SweepVertex {
