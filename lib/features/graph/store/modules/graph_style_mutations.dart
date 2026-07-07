@@ -138,7 +138,7 @@ class GraphStyleMutations {
     final cmd = UpdateRelationLayoutCommand(
       targetId: id,
       tableName: 'IRelation',
-      api: controller.syncEngine.api,
+      gateway: controller.relationGateway,
       oldLayout: oldRelation.layout,
       newLayout: updatedRelation.layout,
       oldStyle: oldRelation.style,

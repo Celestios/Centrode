@@ -50,6 +50,7 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
   late final GraphTemplateMutations templateMutations;
   @override
   late final RelationEngineState relationEngine;
+  late final RelationGateway relationGateway;
 
   // Dependency Inversion Hooks
   ({Size size, int lineCount}) Function(UiNode, {bool isEditing})? sizeCalculator;
@@ -185,6 +186,7 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
     this.propertyMutations = propertyMutations ?? GraphPropertyMutations(this);
     this.templateMutations = templateMutations ?? GraphTemplateMutations(this);
     relationEngine = RelationEngineState(api: apiHandle);
+    relationGateway = AppRelationGateway(apiHandle);
 
     _log.info(
       'GraphDataController initialized: Domain modules successfully composed.',

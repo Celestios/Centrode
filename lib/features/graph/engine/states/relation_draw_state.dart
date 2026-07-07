@@ -31,36 +31,10 @@ class RelationDrawing extends CanvasInteractionState {
     Offset pCanvas,
     GeometryCapability ctx,
   ) {
-    String? snappedId;
-    Port? snappedPort;
-    String? hoveredNodeId;
-    final nodeIds = ctx.zOrder.reversed.toList();
-    if (nodeIds.isEmpty) {
-      nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
-    }
-
-    for (final nodeId in nodeIds) {
-      if (sourceNodeIds.contains(nodeId)) continue;
-
-      final vs = ctx.nodeViewStates[nodeId];
-      if (vs == null) continue;
-      if (vs.sizeNotifier.value == Size.zero) continue;
-
-      final port = vs.getClosestPortNew(pCanvas);
-      if (port == null) continue;
-
-      final dist = (pCanvas - port.edgePosition).distance;
-      if (dist < AppConfig.interaction.snapDistance) {
-        snappedId = nodeId;
-        snappedPort = port;
-        hoveredNodeId = nodeId;
-        break;
-      }
-
-      if (hoveredNodeId == null && vs.rect.inflate(20.0).contains(pCanvas)) {
-        hoveredNodeId = nodeId;
-      }
-    }
+    final snap = findNearestSnap(pCanvas, ctx, sourceNodeIds);
+    final snappedId = snap.snappedNodeId;
+    final snappedPort = snap.snappedPort;
+    final hoveredNodeId = snap.hoveredNodeId;
 
     ctx.setHoveredNode(hoveredNodeId);
     ctx.onNodeDragUpdate();
@@ -97,34 +71,10 @@ class RelationDrawing extends CanvasInteractionState {
     Offset pCanvas,
     GeometryCapability ctx,
   ) {
-    String? snappedId;
-    Port? snappedPort;
-    String? hoveredNodeId;
-    final nodeIds = ctx.zOrder.reversed.toList();
-    if (nodeIds.isEmpty) {
-      nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
-    }
-
-    for (final nodeId in nodeIds) {
-      if (sourceNodeIds.contains(nodeId)) continue;
-      final vs = ctx.nodeViewStates[nodeId];
-      if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
-
-      final port = vs.getClosestPortNew(pCanvas);
-      if (port == null) continue;
-
-      final dist = (pCanvas - port.edgePosition).distance;
-      if (dist < AppConfig.interaction.snapDistance) {
-        snappedId = nodeId;
-        snappedPort = port;
-        hoveredNodeId = nodeId;
-        break;
-      }
-
-      if (hoveredNodeId == null && vs.rect.inflate(20.0).contains(pCanvas)) {
-        hoveredNodeId = nodeId;
-      }
-    }
+    final snap = findNearestSnap(pCanvas, ctx, sourceNodeIds);
+    final snappedId = snap.snappedNodeId;
+    final snappedPort = snap.snappedPort;
+    final hoveredNodeId = snap.hoveredNodeId;
 
     ctx.setHoveredNode(hoveredNodeId);
 

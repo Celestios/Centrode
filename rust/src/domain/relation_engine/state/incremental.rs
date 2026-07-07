@@ -6,6 +6,7 @@ use crate::domain::relation_engine::geometry::Rect;
 ///
 /// Uses dependency tracking (which nodes each relation depends on)
 /// and spatial bbox filtering to minimize the set of affected relations.
+#[derive(Debug, Clone)]
 pub struct IncrementalState {
     /// relation_id -> set of node IDs it depends on
     dependencies: HashMap<String, Vec<String>>,
@@ -98,6 +99,25 @@ impl IncrementalState {
 
     /// Clear dirty state after recomputation.
     pub fn clear_dirty(&mut self) {
+        self.dirty_nodes.clear();
+        self.dirty_relations.clear();
+    }
+
+    pub fn mark_dirty(&mut self, relation_id: &str) {
+        self.dirty_relations.insert(relation_id.to_string());
+    }
+
+    pub fn is_dirty(&self, relation_id: &str) -> bool {
+        self.dirty_relations.contains(relation_id)
+    }
+
+    pub fn clear_dirty_id(&mut self, relation_id: &str) {
+        self.dirty_relations.remove(relation_id);
+    }
+
+    pub fn clear(&mut self) {
+        self.dependencies.clear();
+        self.bboxes.clear();
         self.dirty_nodes.clear();
         self.dirty_relations.clear();
     }

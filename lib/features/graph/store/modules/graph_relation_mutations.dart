@@ -61,7 +61,7 @@ class GraphRelationMutations {
 
     final cmd = CreateRelationCommand(
       targetId: relation.id,
-      api: controller.syncEngine.api,
+      gateway: controller.relationGateway,
       relation: relation,
       controller: controller,
     );
@@ -87,7 +87,7 @@ class GraphRelationMutations {
     // Prepare Command for FFI with rollback
     final cmd = DeleteRelationCommand(
       targetId: id,
-      api: controller.syncEngine.api,
+      gateway: controller.relationGateway,
       tableName: 'IRelation',
       relation: relation,
       controller: controller,
@@ -150,7 +150,7 @@ class GraphRelationMutations {
     final cmd = UpdateRelationLayoutCommand(
       targetId: id,
       tableName: 'IRelation',
-      api: controller.syncEngine.api,
+      gateway: controller.relationGateway,
       oldLayout: oldRelation.layout,
       newLayout: updatedRelation.layout,
       oldStyle: oldRelation.style,
@@ -215,7 +215,7 @@ class GraphRelationMutations {
 
     final cmd = UpdateRelationsLayoutCommand(
       targetId: newLayouts.keys.first,
-      api: controller.syncEngine.api,
+      gateway: controller.relationGateway,
       oldLayouts: oldLayouts,
       newLayouts: newLayouts,
       oldStyles: oldStyles,

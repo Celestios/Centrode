@@ -1,5 +1,5 @@
 import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/bridge/api.dart';
+import '../relation_gateway.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
@@ -15,7 +15,7 @@ class UpdateRelationLayoutCommand extends GraphCommand {
   @override
   String targetId;
   final String tableName;
-  final AppHandle api;
+  final RelationGateway gateway;
   final RelationLayout? oldLayout;
   final RelationLayout? newLayout;
   final RelationStyle? oldStyle;
@@ -26,7 +26,7 @@ class UpdateRelationLayoutCommand extends GraphCommand {
   UpdateRelationLayoutCommand({
     required this.targetId,
     required this.tableName,
-    required this.api,
+    required this.gateway,
     this.oldLayout,
     this.newLayout,
     this.oldStyle,
@@ -51,7 +51,7 @@ class UpdateRelationLayoutCommand extends GraphCommand {
         forward: EntityPatch.relation(forwardPatches),
         reverse: EntityPatch.relation(reversePatches),
       );
-      await api.applyEntityMutation(mutation: patch);
+      await gateway.applyEntityMutation(mutation: patch);
     }
   }
 

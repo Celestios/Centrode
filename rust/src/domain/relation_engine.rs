@@ -14,3 +14,4 @@ pub mod state;
 pub mod painting;
 pub mod resolvers;
 pub mod sections;
+pub mod pipeline;

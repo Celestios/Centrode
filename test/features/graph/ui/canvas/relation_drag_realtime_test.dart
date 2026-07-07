@@ -179,9 +179,10 @@ void main() {
           .widgetList<CustomPaint>(customPaintFinder)
           .firstWhere((w) => w.painter is RelationPainter);
       final painter = customPaint.painter as RelationPainter;
-      final tipDrag = painter.interactionState as RelationTipDragging;
-      expect(tipDrag.relationId, 'rel-1');
-      expect(tipDrag.currentCursorPosition, const Offset(150, 40));
+      expect(painter.paintDtos, hasLength(1));
+      final dto = painter.paintDtos.first;
+      expect(dto.id, 'rel-1');
+      expect(dto.startPoint, const Offset(150, 40));
     },
   );
 
@@ -328,9 +329,10 @@ void main() {
           .widgetList<CustomPaint>(customPaintFinder)
           .firstWhere((w) => w.painter is RelationPainter);
       final painter = customPaint.painter as RelationPainter;
-      final tipDrag = painter.interactionState as RelationTipDragging;
-      expect(tipDrag.relationId, 'rel-1');
-      expect(tipDrag.currentCursorPosition, const Offset(150, 40));
+      expect(painter.paintDtos, hasLength(1));
+      final dto = painter.paintDtos.first;
+      expect(dto.id, 'rel-1');
+      expect(dto.startPoint, const Offset(150, 40));
 
       await gesture.up();
       await tester.pump();

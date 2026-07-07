@@ -1,15 +1,16 @@
 pub mod incremental;
 pub mod cache;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use super::computed::ComputedRelation;
 use super::input::InputNode;
+use incremental::IncrementalState;
 
 #[derive(Debug, Clone)]
 pub struct CanvasState {
     pub nodes: HashMap<String, InputNode>,
     pub relations: HashMap<String, ComputedRelation>,
-    pub dirty_relations: HashSet<String>,
+    pub incremental: IncrementalState,
 }
 
 impl CanvasState {
@@ -17,7 +18,7 @@ impl CanvasState {
         Self {
             nodes: HashMap::new(),
             relations: HashMap::new(),
-            dirty_relations: HashSet::new(),
+            incremental: IncrementalState::new(),
         }
     }
 
@@ -40,7 +41,7 @@ impl CanvasState {
 
         for rel_id in to_invalidate {
             self.relations.remove(&rel_id);
-            self.dirty_relations.insert(rel_id);
+            self.incremental.mark_dirty(&rel_id);
         }
     }
 
@@ -56,13 +57,13 @@ impl CanvasState {
 
         for rel_id in to_invalidate {
             self.relations.remove(&rel_id);
-            self.dirty_relations.insert(rel_id);
+            self.incremental.mark_dirty(&rel_id);
         }
     }
 
     pub fn clear(&mut self) {
         self.nodes.clear();
         self.relations.clear();
-        self.dirty_relations.clear();
+        self.incremental.clear();
     }
 }

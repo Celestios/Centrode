@@ -42,17 +42,6 @@ class RelationTipDragging extends CanvasInteractionState {
     Offset pCanvas,
     GeometryCapability ctx,
   ) {
-    // 1. Snapping logic to find nearby target node & its closest port (same as RelationDrawing)
-    String? snappedId;
-    PortSide? snappedPortSide;
-    Port? snappedPort;
-    bool isExplicit = false;
-
-    final nodeIds = ctx.zOrder.reversed.toList();
-    if (nodeIds.isEmpty) {
-      nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
-    }
-
     // Find the relation to determine the opposite node ID (to prevent self-loops)
     String? oppositeNodeId;
     for (final r in ctx.getRelations()) {
@@ -62,27 +51,15 @@ class RelationTipDragging extends CanvasInteractionState {
       }
     }
 
-    double bestTargetDist = double.infinity;
-
-    for (final nodeId in nodeIds) {
-      if (nodeId == oppositeNodeId) continue; // Prevent self-loops
-
-      final vs = ctx.nodeViewStates[nodeId];
-      if (vs == null) continue;
-      if (vs.sizeNotifier.value == Size.zero) continue;
-
-      final port = vs.getClosestPortNew(pCanvas);
-      if (port == null) continue;
-
-      final dist = (pCanvas - port.edgePosition).distance;
-      if (dist < AppConfig.interaction.snapDistance && dist < bestTargetDist) {
-        bestTargetDist = dist;
-        snappedId = nodeId;
-        snappedPortSide = port.side;
-        snappedPort = port;
-        isExplicit = true;
-      }
-    }
+    final snap = findNearestSnap(
+      pCanvas,
+      ctx,
+      oppositeNodeId != null ? {oppositeNodeId} : const {},
+    );
+    final snappedId = snap.snappedNodeId;
+    final snappedPort = snap.snappedPort;
+    final snappedPortSide = snap.snappedPort?.side;
+    final isExplicit = snap.snappedNodeId != null;
 
     ctx.onNodeDragUpdate(); // Pulse MovementNotifier to redraw the drag line
     _relationTipLog.fine('handlePointerMove relation=$relationId snap=${snappedId ?? "none"}');

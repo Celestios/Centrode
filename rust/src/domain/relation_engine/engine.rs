@@ -1,22 +1,19 @@
 use std::collections::HashMap;
 
-use super::bundling::bundle_edges;
 use super::buffers::RelationBuffers;
 use super::computed::{ComputedRelation, LabelAnchor, PathType};
 use super::config::{BodyType, EndpointShapeType, RelationEngineConfig, BundlingMode};
-use super::crossing::minimize_crossings;
 
 use super::geometry::{Point, Rect};
-use super::state::incremental::IncrementalState;
 use super::input::{InputEdge, InputNode};
 use crate::domain::patches::{EntityPatch, NodePatch};
 use super::label::compute_label_position;
-use super::nudging::{nudge_edges, NudgeConfig};
-use super::routing::{compute_bbox, route_relation};
+use super::routing::route_relation;
 use super::sections::compute_sections;
 use super::sections::body as section_body;
 use super::state::CanvasState;
 use super::state::cache::RelationCache;
+use super::pipeline::{PipelinePass, RoutingPass, BundlingPass, NudgingPass, CrossingMinimizationPass};
 
 pub struct RelationEngine {
     pub state: CanvasState,
@@ -87,118 +84,31 @@ impl RelationEngine {
             edges.iter().collect()
         };
 
-        // Phase 1: Route each edge individually (with cache check)
-        let mut results: Vec<ComputedRelation> = Vec::with_capacity(edges_to_compute.len());
-        for edge in &edges_to_compute {
-            if let Some(cached) = self.cache.get(&edge.id) {
-                if !self.state.dirty_relations.contains(&edge.id) {
-                    results.push(cached.clone());
-                    continue;
-                }
-            }
+        let mut results = Vec::with_capacity(edges_to_compute.len());
 
-            let computed = self.compute_single_relation(edge, &node_map, &obstacles, config);
-            self.cache.insert(edge.id.clone(), computed.clone());
-            self.state.relations.insert(edge.id.clone(), computed.clone());
-            self.state.dirty_relations.remove(&edge.id);
-            results.push(computed);
-        }
+        let passes: Vec<Box<dyn PipelinePass>> = vec![
+            Box::new(RoutingPass),
+            Box::new(BundlingPass),
+            Box::new(NudgingPass),
+            Box::new(CrossingMinimizationPass),
+        ];
 
-        // Phase 2: Bundle edges sharing endpoints or proximity
-        let has_bundled_edges = edges_to_compute.iter().any(|e| {
-            e.bundling_mode.as_ref().map_or(false, |m| *m != BundlingMode::None)
-        });
-
-        let bundling_mode = if has_bundled_edges {
-            edges_to_compute.iter()
-                .filter_map(|e| e.bundling_mode)
-                .find(|m| *m != BundlingMode::None)
-                .unwrap_or(config.bundling.mode)
-        } else {
-            config.bundling.mode
-        };
-
-        if bundling_mode != BundlingMode::None && results.len() >= 2 {
-            let paths: Vec<Vec<Point>> = results.iter().map(|r| r.path_points.clone()).collect();
-            let edge_ids: Vec<String> = results.iter().map(|r| r.id.clone()).collect();
-            let from_ids: Vec<String> = edges_to_compute.iter().map(|e| e.from_node_id.clone()).collect();
-            let to_ids: Vec<String> = edges_to_compute.iter().map(|e| e.to_node_id.clone()).collect();
-
-            let bundling_result = bundle_edges(
-                &edge_ids,
-                &paths,
-                &from_ids,
-                &to_ids,
-                &bundling_mode,
-                config.bundling.threshold,
-                2.0,
+        for pass in passes {
+            pass.run(
+                self,
+                &mut results,
+                &edges_to_compute,
+                &node_map,
+                &obstacles,
+                config,
             );
-
-            // Apply bundle assignments to results
-            for result in &mut results {
-                if let Some((bundle_id, offset)) = bundling_result.edge_assignments.get(&result.id) {
-                    result.bundle_id = Some(bundle_id.clone());
-                    result.bundle_offset = Some(*offset);
-                }
-            }
-        }
-
-        // Phase 3: Nudge overlapping edges apart
-        if config.nudging.enabled && results.len() >= 2 {
-            let nudge_config = NudgeConfig {
-                enabled: true,
-                min_separation: config.nudging.distance,
-                nudge_final_segments: true,
-                decay_factor: config.nudging.decay_factor,
-            };
-
-            let mut paths: Vec<Vec<Point>> = results.iter().map(|r| r.path_points.clone()).collect();
-            let edge_ids: Vec<String> = results.iter().map(|r| r.id.clone()).collect();
-            let from_ids: Vec<String> = edges_to_compute.iter().map(|e| e.from_node_id.clone()).collect();
-            let to_ids: Vec<String> = edges_to_compute.iter().map(|e| e.to_node_id.clone()).collect();
-
-            nudge_edges(&mut paths, &edge_ids, &from_ids, &to_ids, &nudge_config);
-
-            // Update results with nudged paths
-            for (i, result) in results.iter_mut().enumerate() {
-                result.path_points = paths[i].clone();
-                result.bbox = compute_bbox(&result.path_points);
-            }
-        }
-
-        // Phase 4: Minimize crossings
-        if config.crossing_minimization && results.len() >= 2 {
-            let mut paths: Vec<Vec<Point>> = results.iter().map(|r| r.path_points.clone()).collect();
-            let edge_ids: Vec<String> = results.iter().map(|r| r.id.clone()).collect();
-
-            let reordered_ids = minimize_crossings(&mut paths, &edge_ids, 20);
-
-            // Rebuild results in the new order, recomputing tangents, endpoints, etc.
-            let id_to_result: HashMap<String, ComputedRelation> =
-                results.into_iter().map(|r| (r.id.clone(), r)).collect();
-
-            results = reordered_ids
-                .iter()
-                .filter_map(|id| id_to_result.get(id).cloned())
-                .collect();
-
-            let edge_map: HashMap<&str, &InputEdge> =
-                edges_to_compute.iter().map(|e| (e.id.as_str(), *e)).collect();
-
-            for result in &mut results {
-                if let Some(idx) = reordered_ids.iter().position(|rid| rid == &result.id) {
-                    let untrimmed_path = paths[idx].clone();
-                    let edge = edge_map.get(result.id.as_str()).copied();
-                    self.finalize_relation(result, &untrimmed_path, edge, &node_map, config);
-                }
-            }
         }
 
         // Update cache with final computed/processed routes
         for result in &results {
             self.cache.insert(result.id.clone(), result.clone());
             self.state.relations.insert(result.id.clone(), result.clone());
-            self.state.dirty_relations.remove(&result.id);
+            self.state.incremental.clear_dirty_id(&result.id);
         }
 
         results
@@ -242,7 +152,7 @@ impl RelationEngine {
         results
     }
 
-    fn finalize_relation(
+    pub(crate) fn finalize_relation(
         &mut self,
         result: &mut ComputedRelation,
         untrimmed_path: &[Point],
@@ -379,7 +289,7 @@ impl RelationEngine {
         }
     }
 
-    fn compute_single_relation(
+    pub(crate) fn compute_single_relation(
         &mut self,
         edge: &InputEdge,
         node_map: &HashMap<&str, &InputNode>,

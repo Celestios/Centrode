@@ -78,7 +78,14 @@ impl SurrealValue for IRelation {
                 obj.insert("out".to_string(), self.out.into_value());
                 Value::Object(obj)
             }
-            _ => panic!("Expected IRelationFields to serialize to Value::Object, found: {:?}", val),
+            other => {
+                debug_assert!(false, "IRelationFields serialized to non-Object: {:?}", other);
+                let mut obj = std::collections::BTreeMap::new();
+                obj.insert("id".to_string(), RecordId::new(Self::LABEL, self.key).into_value());
+                obj.insert("in".to_string(), self.in_.into_value());
+                obj.insert("out".to_string(), self.out.into_value());
+                Value::Object(obj.into())
+            }
         }
     }
 
