@@ -24,14 +24,9 @@ impl PartialOrd for SweepVertex {
 
 impl Ord for SweepVertex {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        match self.angle.partial_cmp(&other.angle) {
-            Some(std::cmp::Ordering::Equal) => match self.distance.partial_cmp(&other.distance) {
-                Some(ord) => ord,
-                None => std::cmp::Ordering::Equal,
-            },
-            Some(ord) => ord,
-            None => std::cmp::Ordering::Equal,
-        }
+        self.angle
+            .total_cmp(&other.angle)
+            .then_with(|| self.distance.total_cmp(&other.distance))
     }
 }
 
@@ -217,7 +212,7 @@ fn sweep_from_vertex(
         for se in &mut sweep_edges {
             se.update_distance(center, ray_angle);
         }
-        sweep_edges.sort_by(|a, b| a.distance_at_ray.partial_cmp(&b.distance_at_ray).unwrap());
+        sweep_edges.sort_by(|a, b| a.distance_at_ray.total_cmp(&b.distance_at_ray));
 
         let mut blocked = false;
         let mut blocker_idx = usize::MAX;

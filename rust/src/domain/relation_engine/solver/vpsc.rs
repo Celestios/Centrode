@@ -130,7 +130,7 @@ impl VpscSolver {
                 (i, dist)
             })
             .collect();
-        indexed.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+        indexed.sort_by(|a, b| a.1.total_cmp(&b.1));
         indexed.into_iter().map(|(i, _)| i).collect()
     }
 
