@@ -143,7 +143,11 @@ For each file in the Audit Queue, gather its context from the arch-mcp database:
 - Use arch-mcp's `index` tool to retrieve a file's layer, tier, purity, architectural role, and dependencies.
 - Use `compile_context` on high-risk files to assess blast radius.
 - Use `query` if you suspect a transitive layer leak.
-- Read the rule files to load enforcement criteria: [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md), [no-cross-layer-mutation.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/symmetry-invariants.md).
+- Load the language-specific coding standards to audit against:
+  - For Dart files, view and load [dart-coding](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/dart-coding/SKILL.md) skill rules.
+  - For Rust files, view and load [rust-coding](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/rust-coding/SKILL.md) skill rules.
+- Read rule files: [abstraction-levels.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/abstraction-levels.md), [no-cross-layer-mutation.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/rules/symmetry-invariants.md).
+
 
 ### Step 7: Multi-Agent Deep Audit (Delegated Verification)
 

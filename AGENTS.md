@@ -58,6 +58,25 @@ cd rust && cargo test            # Rust backend tests
 
 Version is shared between `pubspec.yaml` and `rust/Cargo.toml`. Use `dart scripts/sync_version.dart` to keep them aligned.
 
+## Request Routing & Workflows
+
+To ensure coding styles and architectural bounds are followed from line one of any task, you MUST always start by viewing the [request-navigator](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/general/request-navigator/SKILL.md) starting skill and loading all active rules files in [.agents/rules/](file:///d:/Projects/Open/flutter/code/mycelium/.agents/rules/). The navigator will analyze the request and route you to one of these workflows:
+
+
+1. **/brain-stormer** — Feature ideation, UI design concepts, and comparisons (delegates to [feature-ideator](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/feature-ideator/SKILL.md)).
+2. **/designer** — Visual design, motion engineering, state mappings, and database schema/architecture designs (delegates to [ui-designer](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/ui-designer/SKILL.md) and [architecture-designer](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/architecture-designer/SKILL.md)).
+3. **/implementer** — Writing clean code and modifying files (delegates to [dart-coding](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/coding/dart-coding/SKILL.md) and [rust-coding](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/coding/rust-coding/SKILL.md)).
+4. **/bug-fixer** — Diagnosis, tracing, parallel hypothesis verification, and fixing bugs.
+5. **/code-health** — Post-hoc architectural and design symmetry auditing.
+6. **/git-commit** — Commit drafting, version synchronization, and tags.
+
+7. **/tester** — Designing mocks, writing unit/widget/integration/Cargo tests, and increasing code coverage.
+8. **/perf-profiler** — Canvas rendering analysis, repaint boundaries, gesture latency, and query tuning.
+9. **/documenter** — Writing API specs, system markdown documents, and developer references.
+
+
+You MUST follow the specific execution steps outlined in the chosen workflow.
+
 ## Tool Usage
 
 - **Actor tool requires `operation` object:** Always pass a single `operation` JSON object with `action` as discriminator. All params (`prompt`, `description`, `subagent_type`, `context`) go inside `operation`, NOT as top-level params.
@@ -68,3 +87,4 @@ Version is shared between `pubspec.yaml` and `rust/Cargo.toml`. Use `dart script
 
 - No error handling, no fallbacks, use standard logging, no migrations
 - Don't add comments unless asked
+
