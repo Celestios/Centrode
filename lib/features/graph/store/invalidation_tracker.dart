@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
-import 'package:mycelium/features/graph/presentation/view_state.dart';
+import 'package:mycelium/features/graph/models/relation_view_state.dart';
 
 class InvalidationTracker {
   final Map<String, ComputedRelation> _cache = {};
@@ -18,7 +18,7 @@ class InvalidationTracker {
 
   void indexRelations(
     Iterable<dynamic> relations,
-    Map<String, NodeViewState> nodeViewStates,
+    Map<String, RelationViewStateRecord> nodeViewStates,
   ) {
     _nodeToRelations.clear();
     for (final rel in relations) {

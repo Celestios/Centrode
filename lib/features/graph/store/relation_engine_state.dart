@@ -5,7 +5,7 @@ import 'package:mycelium/src/rust/bridge/api.dart' as rust;
 import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/config.dart';
 import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/presentation/view_state.dart';
+import 'package:mycelium/features/graph/models/relation_view_state.dart';
 import 'invalidation_tracker.dart';
 
 class RelationEngineState {
@@ -159,7 +159,7 @@ class RelationEngineState {
 
   void onInitialLoad({
     required Iterable<UiRelation> relations,
-    required Map<String, NodeViewState> nodeViewStates,
+    required Map<String, RelationViewStateRecord> nodeViewStates,
   }) {
     _tracker.clear();
     _tracker.indexRelations(relations, nodeViewStates);
