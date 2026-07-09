@@ -29,6 +29,10 @@ class ComputedRelation {
   final Rect bbox;
   final double startMargin;
   final double endMargin;
+  final Point startArrowCenter;
+  final Point endArrowCenter;
+  final Point startPoint;
+  final Point endPoint;
 
   const ComputedRelation({
     required this.id,
@@ -51,6 +55,10 @@ class ComputedRelation {
     required this.bbox,
     required this.startMargin,
     required this.endMargin,
+    required this.startArrowCenter,
+    required this.endArrowCenter,
+    required this.startPoint,
+    required this.endPoint,
   });
 
   @override
@@ -74,7 +82,11 @@ class ComputedRelation {
       dependsOnNodes.hashCode ^
       bbox.hashCode ^
       startMargin.hashCode ^
-      endMargin.hashCode;
+      endMargin.hashCode ^
+      startArrowCenter.hashCode ^
+      endArrowCenter.hashCode ^
+      startPoint.hashCode ^
+      endPoint.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -100,7 +112,11 @@ class ComputedRelation {
           dependsOnNodes == other.dependsOnNodes &&
           bbox == other.bbox &&
           startMargin == other.startMargin &&
-          endMargin == other.endMargin;
+          endMargin == other.endMargin &&
+          startArrowCenter == other.startArrowCenter &&
+          endArrowCenter == other.endArrowCenter &&
+          startPoint == other.startPoint &&
+          endPoint == other.endPoint;
 }
 
 enum LabelAnchor { center, left, right }

@@ -242,6 +242,10 @@ impl RelationEngine {
         result.bbox = compute_bbox(&result.path_points);
         result.start_margin = start_margin;
         result.end_margin = end_margin;
+        result.start_arrow_center = result.path_points.first().copied().unwrap_or(Point::zero());
+        result.end_arrow_center = result.path_points.last().copied().unwrap_or(Point::zero());
+        result.start_point = untrimmed_path.first().copied().unwrap_or(Point::zero());
+        result.end_point = untrimmed_path.last().copied().unwrap_or(Point::zero());
     }
 
     pub fn update_node_cache(&mut self, node: InputNode, margin: f64) {
@@ -351,6 +355,10 @@ impl RelationEngine {
             bbox: Rect::new(0.0, 0.0, 0.0, 0.0),
             start_margin: 0.0,
             end_margin: 0.0,
+            start_arrow_center: Point::zero(),
+            end_arrow_center: Point::zero(),
+            start_point: Point::zero(),
+            end_point: Point::zero(),
         };
 
         self.finalize_relation(&mut result, &path_points, Some(edge), node_map, config);
@@ -380,5 +388,9 @@ fn empty_computed_relation(id: &str, from: &str, to: &str) -> ComputedRelation {
         bbox: Rect::new(0.0, 0.0, 0.0, 0.0),
         start_margin: 0.0,
         end_margin: 0.0,
+        start_arrow_center: Point::zero(),
+        end_arrow_center: Point::zero(),
+        start_point: Point::zero(),
+        end_point: Point::zero(),
     }
 }

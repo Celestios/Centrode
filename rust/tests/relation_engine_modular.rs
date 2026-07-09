@@ -165,6 +165,10 @@ fn test_relation_cache() {
         bbox: Rect::new(0.0, 0.0, 0.0, 0.0),
         start_margin: 0.0,
         end_margin: 0.0,
+        start_arrow_center: Point::zero(),
+        end_arrow_center: Point::zero(),
+        start_point: Point::zero(),
+        end_point: Point::zero(),
     };
 
     cache.insert("e1".to_string(), computed);

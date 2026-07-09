@@ -3036,6 +3036,14 @@ impl SseDecode for crate::domain::relation_engine::computed::ComputedRelation {
             <crate::domain::relation_engine::geometry::Rect>::sse_decode(deserializer);
         let mut var_startMargin = <f64>::sse_decode(deserializer);
         let mut var_endMargin = <f64>::sse_decode(deserializer);
+        let mut var_startArrowCenter =
+            <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
+        let mut var_endArrowCenter =
+            <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
+        let mut var_startPoint =
+            <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
+        let mut var_endPoint =
+            <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
         return crate::domain::relation_engine::computed::ComputedRelation {
             id: var_id,
             path_points: var_pathPoints,
@@ -3057,6 +3065,10 @@ impl SseDecode for crate::domain::relation_engine::computed::ComputedRelation {
             bbox: var_bbox,
             start_margin: var_startMargin,
             end_margin: var_endMargin,
+            start_arrow_center: var_startArrowCenter,
+            end_arrow_center: var_endArrowCenter,
+            start_point: var_startPoint,
+            end_point: var_endPoint,
         };
     }
 }
@@ -5318,6 +5330,10 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::computed:
             self.bbox.into_into_dart().into_dart(),
             self.start_margin.into_into_dart().into_dart(),
             self.end_margin.into_into_dart().into_dart(),
+            self.start_arrow_center.into_into_dart().into_dart(),
+            self.end_arrow_center.into_into_dart().into_dart(),
+            self.start_point.into_into_dart().into_dart(),
+            self.end_point.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -7060,6 +7076,16 @@ impl SseEncode for crate::domain::relation_engine::computed::ComputedRelation {
         <crate::domain::relation_engine::geometry::Rect>::sse_encode(self.bbox, serializer);
         <f64>::sse_encode(self.start_margin, serializer);
         <f64>::sse_encode(self.end_margin, serializer);
+        <crate::domain::relation_engine::geometry::Point>::sse_encode(
+            self.start_arrow_center,
+            serializer,
+        );
+        <crate::domain::relation_engine::geometry::Point>::sse_encode(
+            self.end_arrow_center,
+            serializer,
+        );
+        <crate::domain::relation_engine::geometry::Point>::sse_encode(self.start_point, serializer);
+        <crate::domain::relation_engine::geometry::Point>::sse_encode(self.end_point, serializer);
     }
 }
 

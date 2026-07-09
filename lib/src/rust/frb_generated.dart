@@ -2651,8 +2651,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ComputedRelation dco_decode_computed_relation(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 20)
-      throw Exception('unexpected arr length: expect 20 but see ${arr.length}');
+    if (arr.length != 24)
+      throw Exception('unexpected arr length: expect 24 but see ${arr.length}');
     return ComputedRelation(
       id: dco_decode_String(arr[0]),
       pathPoints: dco_decode_list_point(arr[1]),
@@ -2674,6 +2674,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       bbox: dco_decode_rect(arr[17]),
       startMargin: dco_decode_f_64(arr[18]),
       endMargin: dco_decode_f_64(arr[19]),
+      startArrowCenter: dco_decode_point(arr[20]),
+      endArrowCenter: dco_decode_point(arr[21]),
+      startPoint: dco_decode_point(arr[22]),
+      endPoint: dco_decode_point(arr[23]),
     );
   }
 
@@ -4334,6 +4338,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_bbox = sse_decode_rect(deserializer);
     var var_startMargin = sse_decode_f_64(deserializer);
     var var_endMargin = sse_decode_f_64(deserializer);
+    var var_startArrowCenter = sse_decode_point(deserializer);
+    var var_endArrowCenter = sse_decode_point(deserializer);
+    var var_startPoint = sse_decode_point(deserializer);
+    var var_endPoint = sse_decode_point(deserializer);
     return ComputedRelation(
       id: var_id,
       pathPoints: var_pathPoints,
@@ -4355,6 +4363,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       bbox: var_bbox,
       startMargin: var_startMargin,
       endMargin: var_endMargin,
+      startArrowCenter: var_startArrowCenter,
+      endArrowCenter: var_endArrowCenter,
+      startPoint: var_startPoint,
+      endPoint: var_endPoint,
     );
   }
 
@@ -6454,6 +6466,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_rect(self.bbox, serializer);
     sse_encode_f_64(self.startMargin, serializer);
     sse_encode_f_64(self.endMargin, serializer);
+    sse_encode_point(self.startArrowCenter, serializer);
+    sse_encode_point(self.endArrowCenter, serializer);
+    sse_encode_point(self.startPoint, serializer);
+    sse_encode_point(self.endPoint, serializer);
   }
 
   @protected
