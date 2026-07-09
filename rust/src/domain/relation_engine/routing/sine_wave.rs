@@ -1,7 +1,8 @@
-use crate::domain::relation_engine::geometry::{Point, cubic_bezier_point};
-use crate::domain::relation_engine::state::CanvasState;
+use crate::domain::relation_engine::geometry::{Point, cubic_bezier_point, sample_cubic_bezier};
+use crate::domain::relation_engine::config::RelationEngineConfig;
 use crate::domain::relation_engine::computed::PathType;
-use super::{RoutingStrategy, RouteContext};
+use crate::domain::relation_engine::input::{ResolvedPorts, Side};
+use super::{RoutingStrategy, TransitionInput};
 
 pub struct SineWaveRouting;
 
@@ -14,55 +15,90 @@ fn cubic_bezier_tangent(p0: Point, p1: Point, p2: Point, p3: Point, t: f64) -> P
 }
 
 impl RoutingStrategy for SineWaveRouting {
-    fn route(&self, ctx: &RouteContext, _state: &CanvasState) -> (Vec<Point>, PathType) {
-        let amplitude = ctx.config.routing.sine_wave.amplitude;
-        let frequency = ctx.config.routing.sine_wave.frequency;
+    fn compute_transition(
+        &self,
+        input: &TransitionInput,
+        config: &RelationEngineConfig,
+    ) -> Vec<Point> {
+        let factor = config.routing.bezier_projection_factor;
+        match input.side {
+            Side::Start => {
+                let stub_exit = input.stub_exit;
+                let stub_normal = input.start_normal;
+                let body_start = input.body_start;
+                let dist = stub_exit.distance_to(body_start);
+                if dist < 1.0 { return vec![]; }
+                let proj = (dist * factor).max(config.routing.bezier_clamp_min);
+                let cp1 = stub_exit + stub_normal * proj;
+                let dir_to_body = (body_start - stub_exit).normalized();
+                let cp2 = body_start - dir_to_body * proj;
+                sample_cubic_bezier(stub_exit, cp1, cp2, body_start, 8)
+            }
+            Side::End => {
+                let body_end = input.body_end;
+                let stub_entry = input.stub_entry;
+                let stub_normal = input.end_normal;
+                let dist = body_end.distance_to(stub_entry);
+                if dist < 1.0 { return vec![]; }
+                let proj = (dist * factor).max(config.routing.bezier_clamp_min);
+                let dir_from_body = (stub_entry - body_end).normalized();
+                let cp1 = body_end + dir_from_body * proj;
+                let cp2 = stub_entry + stub_normal * proj;
+                sample_cubic_bezier(body_end, cp1, cp2, stub_entry, 8)
+            }
+        }
+    }
 
-        let distance = ctx.start.distance_to(ctx.end);
+    fn compute_body(
+        &self, waypoints: &[Point], ports: &ResolvedPorts, config: &RelationEngineConfig,
+    ) -> Vec<Point> {
+        if waypoints.len() < 2 {
+            return waypoints.to_vec();
+        }
+        let start = waypoints[0];
+        let end = waypoints[waypoints.len() - 1];
+        let amplitude = config.routing.sine_wave.amplitude;
+        let frequency = config.routing.sine_wave.frequency;
+        let distance = start.distance_to(end);
         let cycles = distance * (frequency / 300.0);
-
-        let dist_from = (ctx.end - ctx.start).dot(ctx.from_normal);
-        let dist_to = (ctx.start - ctx.end).dot(ctx.to_normal);
-        let use_bezier = dist_from < 0.0 || dist_to < 0.0;
-
-        let (cp1, cp2) = if use_bezier {
-            let proj = (distance * ctx.config.routing.bezier_projection_factor)
-                .min(ctx.config.routing.bezier_clamp_max)
-                .max(ctx.config.routing.bezier_clamp_min.min(distance * 0.5));
-            (ctx.start + ctx.from_normal * proj, ctx.end + ctx.to_normal * proj)
+        let proj = (distance * config.routing.bezier_projection_factor)
+            .min(config.routing.bezier_clamp_max)
+            .max(config.routing.bezier_clamp_min.min(distance * 0.5));
+        let edge = end - start;
+        let normal = if edge.length() > 1e-6 {
+            let edge_perp = edge.perpendicular().normalized();
+            let dot_start = edge_perp.dot(ports.start_normal);
+            let dot_end = edge_perp.dot(ports.end_normal);
+            if dot_start.abs() > 1e-5 {
+                if dot_start < 0.0 { edge_perp * -1.0 } else { edge_perp }
+            } else if dot_end.abs() > 1e-5 {
+                if dot_end < 0.0 { edge_perp * -1.0 } else { edge_perp }
+            } else {
+                if edge_perp.y > 0.0 { edge_perp * -1.0 } else { edge_perp }
+            }
         } else {
-            (Point::zero(), Point::zero())
+            ports.start_normal
         };
-
+        let cp1 = start + normal * proj;
+        let cp2 = end + normal * proj;
         let n = ((distance * 0.2) as usize).max(64).min(1024);
         let mut points = Vec::with_capacity(n + 1);
-
         for i in 0..=n {
             let t = i as f64 / n as f64;
-
-            let (base, tangent) = if use_bezier {
-                let base = cubic_bezier_point(ctx.start, cp1, cp2, ctx.end, t);
-                let tangent = cubic_bezier_tangent(ctx.start, cp1, cp2, ctx.end, t);
-                (base, tangent)
-            } else {
-                let base = ctx.start.lerp(ctx.end, t);
-                let tangent = ctx.end - ctx.start;
-                (base, tangent)
-            };
-
+            let base = cubic_bezier_point(start, cp1, cp2, end, t);
+            let tangent = cubic_bezier_tangent(start, cp1, cp2, end, t);
             let dir = if tangent.x.abs() < 1e-6 && tangent.y.abs() < 1e-6 {
-                ctx.end - ctx.start
+                end - start
             } else {
                 tangent
             };
             let perp = Point::new(-dir.y, dir.x).normalized();
-
             let envelope = (t * std::f64::consts::PI).sin();
             let wave = (t * cycles * std::f64::consts::TAU).sin() * amplitude * envelope;
-
             points.push(base + perp * wave);
         }
-
-        (points, PathType::SineWave)
+        points
     }
+
+    fn path_type(&self) -> PathType { PathType::SineWave }
 }

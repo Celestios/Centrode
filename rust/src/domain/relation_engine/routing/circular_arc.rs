@@ -1,63 +1,100 @@
 use crate::domain::relation_engine::geometry::Point;
-use crate::domain::relation_engine::state::CanvasState;
+use crate::domain::relation_engine::config::RelationEngineConfig;
 use crate::domain::relation_engine::computed::PathType;
-use super::{RoutingStrategy, RouteContext};
+use crate::domain::relation_engine::input::{ResolvedPorts, Side};
+use super::{RoutingStrategy, TransitionInput};
 
 pub struct CircularArcRouting;
 
 impl RoutingStrategy for CircularArcRouting {
-    fn route(&self, ctx: &RouteContext, state: &CanvasState) -> (Vec<Point>, PathType) {
-        let distance = ctx.start.distance_to(ctx.end);
-        let radius_factor = ctx.config.routing.bezier_projection_factor;
-        let radius = (distance * radius_factor).clamp(
-            ctx.config.routing.bezier_clamp_min,
-            ctx.config.routing.bezier_clamp_max,
-        );
-
-        let cp1 = ctx.start + ctx.from_normal * radius;
-        let center = three_point_circle_center(ctx.start, cp1, ctx.end);
-
-        if let Some(c) = center {
-            let r = c.distance_to(ctx.start);
-            if r < 1e-6 {
-                return (vec![ctx.start, ctx.end], PathType::Straight);
-            }
-
-            let start_angle = (ctx.start - c).direction();
-            let end_angle = (ctx.end - c).direction();
-
-            let n = 32;
-            let mut points = Vec::with_capacity(n + 1);
-
-            let mid = ctx.start.lerp(ctx.end, 0.5);
-            let to_mid = mid - c;
-            let cross = (ctx.start - c).x * to_mid.y - (ctx.start - c).y * to_mid.x;
-
-            for i in 0..=n {
-                let t = i as f64 / n as f64;
-                let mut angle = start_angle + (end_angle - start_angle) * t;
-
-                if cross > 0.0 {
-                    if end_angle < start_angle {
-                        angle = start_angle + (end_angle + std::f64::consts::TAU - start_angle) * t;
-                    }
+    fn compute_transition(
+        &self,
+        input: &TransitionInput,
+        _config: &RelationEngineConfig,
+    ) -> Vec<Point> {
+        match input.side {
+            Side::Start => {
+                if input.stub_exit.distance_to(input.body_start) < 1.0 {
+                    vec![]
                 } else {
-                    if end_angle > start_angle {
-                        angle = start_angle + (end_angle - std::f64::consts::TAU - start_angle) * t;
-                    }
+                    vec![input.body_start]
                 }
-
-                points.push(Point::new(
-                    c.x + r * angle.cos(),
-                    c.y + r * angle.sin(),
-                ));
             }
-
-            (points, PathType::CircularArc)
-        } else {
-            super::bezier::BezierRouting.route(ctx, state)
+            Side::End => {
+                if input.body_end.distance_to(input.stub_entry) < 1.0 {
+                    vec![]
+                } else {
+                    vec![input.stub_entry]
+                }
+            }
         }
     }
+
+    fn compute_body(
+        &self, waypoints: &[Point], ports: &ResolvedPorts, config: &RelationEngineConfig,
+    ) -> Vec<Point> {
+        if waypoints.len() <= 2 {
+            let start = waypoints[0];
+            let end = waypoints[waypoints.len() - 1];
+            let distance = start.distance_to(end);
+            let radius_factor = config.routing.bezier_projection_factor;
+            let radius = (distance * radius_factor).clamp(
+                config.routing.bezier_clamp_min,
+                config.routing.bezier_clamp_max,
+            );
+            let edge = end - start;
+            let normal = if edge.length() > 1e-6 {
+                let edge_perp = edge.perpendicular().normalized();
+                let dot_start = edge_perp.dot(ports.start_normal);
+                let dot_end = edge_perp.dot(ports.end_normal);
+                if dot_start.abs() > 1e-5 {
+                    if dot_start < 0.0 { edge_perp * -1.0 } else { edge_perp }
+                } else if dot_end.abs() > 1e-5 {
+                    if dot_end < 0.0 { edge_perp * -1.0 } else { edge_perp }
+                } else {
+                    if edge_perp.y > 0.0 { edge_perp * -1.0 } else { edge_perp }
+                }
+            } else {
+                ports.start_normal
+            };
+            let cp1 = start + normal * radius;
+            let center = three_point_circle_center(start, cp1, end);
+            if let Some(c) = center {
+                let r = c.distance_to(start);
+                if r < 1e-6 {
+                    return waypoints.to_vec();
+                }
+                let start_angle = (start - c).direction();
+                let end_angle = (end - c).direction();
+                let n = 32;
+                let mid = start.lerp(end, 0.5);
+                let to_mid = mid - c;
+                let cross = (start - c).x * to_mid.y - (start - c).y * to_mid.x;
+                let mut points = Vec::with_capacity(n + 1);
+                for i in 0..=n {
+                    let t = i as f64 / n as f64;
+                    let mut angle = start_angle + (end_angle - start_angle) * t;
+                    if cross > 0.0 {
+                        if end_angle < start_angle {
+                            angle = start_angle + (end_angle + std::f64::consts::TAU - start_angle) * t;
+                        }
+                    } else {
+                        if end_angle > start_angle {
+                            angle = start_angle + (end_angle - std::f64::consts::TAU - start_angle) * t;
+                        }
+                    }
+                    points.push(Point::new(c.x + r * angle.cos(), c.y + r * angle.sin()));
+                }
+                points
+            } else {
+                waypoints.to_vec()
+            }
+        } else {
+            waypoints.to_vec()
+        }
+    }
+
+    fn path_type(&self) -> PathType { PathType::CircularArc }
 }
 
 fn three_point_circle_center(p1: Point, p2: Point, p3: Point) -> Option<Point> {

@@ -2,18 +2,18 @@ use std::collections::HashMap;
 
 use super::buffers::RelationBuffers;
 use super::computed::{ComputedRelation, LabelAnchor, PathType};
-use super::config::{BodyType, EndpointShapeType, RelationEngineConfig, BundlingMode};
+use super::config::{BodyType, EndpointShapeType, RelationEngineConfig};
 
 use super::geometry::{Point, Rect};
-use super::input::{InputEdge, InputNode};
+use super::input::{InputEdge, InputNode, resolve_edge_ports_full, compute_extension};
 use crate::domain::patches::{EntityPatch, NodePatch};
 use super::label::compute_label_position;
-use super::routing::route_relation;
-use super::sections::compute_sections;
+use super::routing::{resolve_strategy, compute_bbox};
+use super::state::incremental::IncrementalState;
 use super::sections::body as section_body;
 use super::state::CanvasState;
 use super::state::cache::RelationCache;
-use super::pipeline::{PipelinePass, RoutingPass, BundlingPass, NudgingPass, CrossingMinimizationPass};
+use super::pipeline::{PipelinePass, RoutingPass, FinalizePass};
 
 pub struct RelationEngine {
     pub state: CanvasState,
@@ -76,7 +76,10 @@ impl RelationEngine {
         let node_map: HashMap<&str, &InputNode> =
             nodes.iter().map(|n| (n.id.as_str(), n)).collect();
 
-        let obstacles: Vec<Rect> = nodes.iter().map(|n| n.rect()).collect();
+        let obstacles: Vec<Rect> = nodes.iter()
+            .filter(|n| n.is_obstacle)
+            .map(|n| n.rect())
+            .collect();
 
         let edges_to_compute: Vec<&InputEdge> = if let Some(ids) = relation_ids {
             edges.iter().filter(|e| ids.contains(&e.id)).collect()
@@ -87,11 +90,10 @@ impl RelationEngine {
         let mut results = Vec::with_capacity(edges_to_compute.len());
 
         let passes: Vec<Box<dyn PipelinePass>> = vec![
-            Box::new(RoutingPass),
-            Box::new(BundlingPass),
-            Box::new(NudgingPass),
-            Box::new(CrossingMinimizationPass),
-        ];
+                    Box::new(RoutingPass),
+                                        // Box::new(ResolutionPass), // INTENTIONALLY DISABLED — do not uncomment without Shahin's approval
+                                        Box::new(FinalizePass),
+                ];
 
         for pass in passes {
             pass.run(
@@ -171,8 +173,10 @@ impl RelationEngine {
         let from_node = edge.and_then(|e| node_map.get(e.from_node_id.as_str()).copied());
         let to_node = edge.and_then(|e| node_map.get(e.to_node_id.as_str()).copied());
 
+        let is_orthogonal = result.path_type == crate::domain::relation_engine::computed::PathType::Orthogonal;
+
         if let Some(node) = from_node {
-            let ep = super::sections::endpoint::resolve_start(node, start_port, start_tangent, style, config);
+            let ep = super::sections::endpoint::resolve_start(node, start_port, start_tangent, style, config, is_orthogonal);
             result.start_endpoint = ep.shape;
             result.start_direction = ep.direction;
         } else {
@@ -184,7 +188,7 @@ impl RelationEngine {
         }
 
         if let Some(node) = to_node {
-            let ep = super::sections::endpoint::resolve_end(node, end_port, end_tangent, style, config);
+            let ep = super::sections::endpoint::resolve_end(node, end_port, end_tangent, style, config, is_orthogonal);
             result.end_endpoint = ep.shape;
             result.end_direction = ep.direction;
         } else {
@@ -211,12 +215,12 @@ impl RelationEngine {
         let end_scale = if end_width > 0.0 { end_width / 2.0 } else { 1.0 };
 
         let start_margin = if result.start_endpoint != EndpointShapeType::None {
-            arrow_size * start_scale
+            arrow_size * start_scale * 0.5
         } else {
             0.0
         };
         let end_margin = if result.end_endpoint != EndpointShapeType::None {
-            arrow_size * end_scale
+            arrow_size * end_scale * 0.5
         } else {
             0.0
         };
@@ -300,19 +304,22 @@ impl RelationEngine {
             return empty_computed_relation(&edge.id, &edge.from_node_id, &edge.to_node_id);
         }
 
-        let (path_points, path_type) = route_relation(edge, node_map, obstacles, config, &self.state);
+        let from_node = node_map[edge.from_node_id.as_str()];
+        let to_node = node_map[edge.to_node_id.as_str()];
+        let routing_mode = edge.routing_mode.unwrap_or(config.routing.routing_mode);
+        let extension = compute_extension(from_node, to_node, config.routing.grid_size, config.routing.extension_min, config.routing.extension_scale);
 
-        self.buffers.clear();
-        self.buffers.path.extend_from_slice(&path_points);
+        let ports = match resolve_edge_ports_full(edge, node_map, routing_mode, extension) {
+            Some(p) => p,
+            None => return empty_computed_relation(&edge.id, &edge.from_node_id, &edge.to_node_id),
+        };
 
-        let sectioned = compute_sections(
-            edge,
-            node_map,
-            config,
-            &mut self.buffers.path,
-            &mut self.buffers.tail_start,
-            &mut self.buffers.tail_end,
-        );
+        let mut full_obstacles = obstacles.to_vec();
+        full_obstacles.push(from_node.rect());
+        full_obstacles.push(to_node.rect());
+
+        let strategy = resolve_strategy(routing_mode);
+        let (path_points, path_type) = strategy.route_full(&ports, &full_obstacles, config);
 
         let body_strategy_str = edge.style.as_ref().map(|s| s.body_strategy.as_str()).unwrap_or("");
         let body_type = match body_strategy_str {
@@ -323,8 +330,6 @@ impl RelationEngine {
             _ => config.body.default_type,
         };
 
-        let s = sectioned.as_ref().expect("compute_sections returns None only when nodes are missing, which is handled above");
-
         let mut result = ComputedRelation {
             id: edge.id.clone(),
             path_points: path_points.clone(),
@@ -333,10 +338,10 @@ impl RelationEngine {
             end_tangent: Point::new(1.0, 0.0),
             body_widths: Vec::new(),
             body_type,
-            start_endpoint: s.tail_start.endpoint.shape,
-            end_endpoint: s.tail_end.endpoint.shape,
-            start_direction: s.tail_start.endpoint.direction,
-            end_direction: s.tail_end.endpoint.direction,
+            start_endpoint: EndpointShapeType::None,
+            end_endpoint: EndpointShapeType::None,
+            start_direction: 0.0,
+            end_direction: 0.0,
             label_position: Point::zero(),
             label_anchor: LabelAnchor::Center,
             bundle_id: None,

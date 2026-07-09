@@ -94,7 +94,7 @@ class RelationPainter extends CustomPainter {
     for (int i = 0; i < points.length - 1; i++) {
       final p1 = points[i];
       final p2 = points[i + 1];
-      final w = i < widths.length ? widths[i] : widths.last;
+      final w = i < widths.length ? widths[i] : (widths.isNotEmpty ? widths.last : 2.0);
       final segmentPaint = Paint()
         ..color = color
         ..strokeWidth = w

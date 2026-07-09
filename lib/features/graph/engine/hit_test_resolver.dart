@@ -87,19 +87,25 @@ class HitTestResolver {
       final handleStart = Offset(cached.pathPoints.first.x, cached.pathPoints.first.y);
       final handleEnd = Offset(cached.pathPoints.last.x, cached.pathPoints.last.y);
 
-      if ((pCanvas - handleStart).distance <
+      final startTangent = Offset(cached.startTangent.x, cached.startTangent.y);
+      final endTangent = Offset(cached.endTangent.x, cached.endTangent.y);
+
+      final untrimmedStart = handleStart - startTangent * cached.startMargin;
+      final untrimmedEnd = handleEnd + endTangent * cached.endMargin;
+
+      if ((pCanvas - untrimmedStart).distance <
           AppConfig.interaction.relationTipHitDistance) {
         return PointerHitResult(
           type: HitTestType.relationTipStart,
           relationId: id,
-          originalPosition: handleStart,
+          originalPosition: untrimmedStart,
         );
-      } else if ((pCanvas - handleEnd).distance <
+      } else if ((pCanvas - untrimmedEnd).distance <
           AppConfig.interaction.relationTipHitDistance) {
         return PointerHitResult(
           type: HitTestType.relationTipEnd,
           relationId: id,
-          originalPosition: handleEnd,
+          originalPosition: untrimmedEnd,
         );
       }
     }

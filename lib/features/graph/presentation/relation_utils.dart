@@ -1,78 +1,7 @@
 import 'dart:ui';
 import 'package:mycelium/features/graph/engine/config.dart';
-import 'package:mycelium/features/graph/models/graph_relation.dart';
 import 'package:mycelium/features/graph/models/port.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
-
-(Offset start, Offset end) resolveRelationEndpoints(
-  UiRelation relation,
-  NodeViewState fromVs,
-  NodeViewState toVs, {
-  Offset? overrideStart,
-  Offset? overrideEnd,
-}) {
-  final layout = relation.resolvedLayout ?? relation.layout;
-  final fromSide = layout?.fromSide;
-  final toSide = layout?.toSide;
-
-  final startSize = fromVs.sizeNotifier.value;
-  final endSize = toVs.sizeNotifier.value;
-
-  Offset start;
-  Offset end;
-
-  if (overrideStart != null) {
-    start = overrideStart;
-  } else if (startSize == Size.zero) {
-    start = fromVs.positionNotifier.value + AppConfig.relation.startFallback;
-  } else if (fromSide != null) {
-    start = fromVs.getPortPosition(fromSide);
-  } else {
-    start = fromVs.rightPort;
-  }
-
-  if (overrideEnd != null) {
-    end = overrideEnd;
-  } else if (endSize == Size.zero) {
-    end = toVs.positionNotifier.value + AppConfig.relation.endFallback;
-  } else if (toSide != null) {
-    end = toVs.getPortPosition(toSide);
-  } else {
-    end = toVs.leftPort;
-  }
-
-  if (overrideStart != null &&
-      overrideEnd == null &&
-      endSize != Size.zero &&
-      toSide == null) {
-    end = toVs.getClosestPort(overrideStart).position;
-  } else if (overrideEnd != null &&
-      overrideStart == null &&
-      startSize != Size.zero &&
-      fromSide == null) {
-    start = fromVs.getClosestPort(overrideEnd).position;
-  } else if (overrideStart == null &&
-      overrideEnd == null &&
-      startSize != Size.zero &&
-      endSize != Size.zero &&
-      (fromSide == null || toSide == null)) {
-    if (fromSide != null) {
-      final explicitStart = fromVs.getPortPosition(fromSide);
-      start = explicitStart;
-      end = toVs.getClosestPort(explicitStart).position;
-    } else if (toSide != null) {
-      final explicitEnd = toVs.getPortPosition(toSide);
-      start = fromVs.getClosestPort(explicitEnd).position;
-      end = explicitEnd;
-    } else {
-      final closest = NodeViewState.getClosestPortsBetween(fromVs, toVs);
-      start = closest.startPos;
-      end = closest.endPos;
-    }
-  }
-
-  return (start, end);
-}
 
 ({Port startPort, Port endPort}) getClosestMiddlePorts(
   NodeViewState fromVs,
@@ -96,19 +25,32 @@ import 'package:mycelium/features/graph/presentation/view_state.dart';
   return (startPort: bestStart, endPort: bestEnd);
 }
 
-Path buildSimpleBezierPath(Offset start, Offset end) {
-  final dx = (end.dx - start.dx).abs() * 0.4;
-  final ctrl1 = Offset(
-    start.dx + (end.dx > start.dx ? dx : -dx),
-    start.dy,
-  );
-  final ctrl2 = Offset(
-    end.dx - (end.dx > start.dx ? dx : -dx),
-    end.dy,
-  );
-  return Path()
-    ..moveTo(start.dx, start.dy)
-    ..cubicTo(ctrl1.dx, ctrl1.dy, ctrl2.dx, ctrl2.dy, end.dx, end.dy);
+List<Offset> transformPathPoints({
+  required List<Offset> points,
+  required Offset sourceStart,
+  required Offset sourceEnd,
+  required Offset targetStart,
+  required Offset targetEnd,
+}) {
+  if (points.isEmpty) return [];
+  final u0 = sourceEnd - sourceStart;
+  final double l0 = u0.distance;
+  final Offset dir0 = l0 > 1e-6 ? u0 / l0 : const Offset(1, 0);
+  final Offset perp0 = Offset(-dir0.dy, dir0.dx);
+
+  final Offset u = targetEnd - targetStart;
+  final double l = u.distance;
+  final Offset dir = l > 1e-6 ? u / l : dir0;
+  final Offset perp = Offset(-dir.dy, dir.dx);
+
+  return points.map((p) {
+    final delta0 = p - sourceStart;
+    final double x = delta0.dx * dir0.dx + delta0.dy * dir0.dy;
+    final double y = delta0.dx * perp0.dx + delta0.dy * perp0.dy;
+    final double xPrime = x * (l0 > 1e-6 ? (l / l0) : 1.0);
+    final double yPrime = y;
+    return targetStart + dir * xPrime + perp * yPrime;
+  }).toList();
 }
 
 double distanceToSegment(Offset p, Offset a, Offset b) {

@@ -4,40 +4,110 @@ pub mod bezier;
 pub mod circular_arc;
 pub mod sine_wave;
 
-use std::collections::HashMap;
 use super::geometry::{Point, Rect};
 use super::config::{RelationEngineConfig, RoutingMode};
-use super::state::CanvasState;
 use super::computed::PathType;
-use super::input::{InputEdge, InputNode};
+use super::input::{ResolvedPorts, Side};
 
-pub struct RouteContext {
-    pub start: Point,
-    pub end: Point,
-    pub from_normal: Point,
-    pub to_normal: Point,
-    pub from_rect: Rect,
-    pub to_rect: Rect,
-    pub obstacles: Vec<Rect>,
-    pub config: RelationEngineConfig,
-}
-
-pub fn filter_obstacles_in_bounds(
-    obstacles: &[Rect],
-    start: Point,
-    end: Point,
-    margin: f64,
-) -> Vec<Rect> {
-    let min_x = start.x.min(end.x) - margin * 2.0;
-    let max_x = start.x.max(end.x) + margin * 2.0;
-    let min_y = start.y.min(end.y) - margin * 2.0;
-    let max_y = start.y.max(end.y) + margin * 2.0;
-    let route_bounds = Rect::new(min_x, min_y, max_x - min_x, max_y - min_y);
-    obstacles.iter().filter(|obs| obs.overlaps(&route_bounds)).copied().collect()
+#[derive(Debug, Clone, Copy)]
+pub struct TransitionInput {
+    pub side: Side,
+    pub stub_exit: Point,
+    pub stub_entry: Point,
+    pub start_normal: Point,
+    pub end_normal: Point,
+    pub body_start: Point,
+    pub body_end: Point,
 }
 
 pub trait RoutingStrategy: Send + Sync {
-    fn route(&self, ctx: &RouteContext, state: &CanvasState) -> (Vec<Point>, PathType);
+    /// Default stub: the straight line from port position to extension exit.
+    /// Panics if `ports.start` / `ports.end` are the same point (produces one-element vec).
+    fn compute_stub(
+        &self, side: Side, ports: &ResolvedPorts, _config: &RelationEngineConfig,
+    ) -> Vec<Point> {
+        match side {
+            Side::Start => vec![ports.start.position, ports.start_exit],
+            Side::End => vec![ports.end_exit, ports.end.position],
+        }
+    }
+
+    /// Compute the transition (curve) between a stub and the body.
+    fn compute_transition(
+        &self,
+        input: &TransitionInput,
+        config: &RelationEngineConfig,
+    ) -> Vec<Point>;
+
+    fn compute_obstacle_waypoints(
+        &self, from: Point, to: Point, obstacles: &[Rect], config: &RelationEngineConfig,
+    ) -> Vec<Point> {
+        super::obstacle_avoidance::compute_waypoints(from, to, obstacles, config.routing.obstacle_margin)
+    }
+
+    fn compute_body(
+        &self, waypoints: &[Point], ports: &ResolvedPorts, config: &RelationEngineConfig,
+    ) -> Vec<Point>;
+
+    fn post_process(&self, _path: &mut Vec<Point>, _config: &RelationEngineConfig) {}
+
+    fn path_type(&self) -> PathType;
+
+    fn route_full(
+        &self,
+        ports: &ResolvedPorts,
+        obstacles: &[Rect],
+        config: &RelationEngineConfig,
+    ) -> (Vec<Point>, PathType) {
+        let (start_stub, end_stub) = rayon::join(
+            || self.compute_stub(Side::Start, ports, config),
+            || self.compute_stub(Side::End, ports, config),
+        );
+        let stub_exit = *start_stub.last().unwrap();
+        let stub_entry = *end_stub.first().unwrap();
+
+        let waypoints = self.compute_obstacle_waypoints(stub_exit, stub_entry, obstacles, config);
+        let body = self.compute_body(&waypoints, ports, config);
+
+        let (start_trans, end_trans) = rayon::join(
+            || self.compute_transition(
+                &TransitionInput {
+                    side: Side::Start,
+                    stub_exit,
+                    stub_entry,
+                    start_normal: ports.start_normal,
+                    end_normal: ports.end_normal,
+                    body_start: body[0],
+                    body_end: *body.last().unwrap(),
+                },
+                config,
+            ),
+            || self.compute_transition(
+                &TransitionInput {
+                    side: Side::End,
+                    stub_exit,
+                    stub_entry,
+                    start_normal: ports.start_normal,
+                    end_normal: ports.end_normal,
+                    body_start: body[0],
+                    body_end: *body.last().unwrap(),
+                },
+                config,
+            ),
+        );
+
+        let mut path = start_stub;
+        path.extend(start_trans);
+        // body[1..] skips body[0] — already the endpoint of start_trans (no dedup needed)
+        path.extend(body[1..].iter().copied());
+        path.extend(end_trans);
+        path.extend(end_stub[1..].iter().copied());
+
+        self.post_process(&mut path, config);
+
+        let path_type = self.path_type();
+        (path, path_type)
+    }
 }
 
 pub fn resolve_strategy(mode: RoutingMode) -> Box<dyn RoutingStrategy> {
@@ -47,85 +117,6 @@ pub fn resolve_strategy(mode: RoutingMode) -> Box<dyn RoutingStrategy> {
         RoutingMode::Orthogonal => Box::new(orthogonal::OrthogonalRouting),
         RoutingMode::CircularArc => Box::new(circular_arc::CircularArcRouting),
         RoutingMode::SineWave => Box::new(sine_wave::SineWaveRouting),
-    }
-}
-
-pub fn route_relation(
-    edge: &InputEdge,
-    node_map: &HashMap<&str, &InputNode>,
-    _obstacles: &[Rect],
-    config: &RelationEngineConfig,
-    state: &CanvasState,
-) -> (Vec<Point>, PathType) {
-    let from_node = match node_map.get(edge.from_node_id.as_str()) {
-        Some(n) => *n,
-        None => return (vec![Point::zero(), Point::zero()], PathType::Straight),
-    };
-    let to_node = match node_map.get(edge.to_node_id.as_str()) {
-        Some(n) => *n,
-        None => return (vec![Point::zero(), Point::zero()], PathType::Straight),
-    };
-
-    let to_center = to_node.center();
-    let from_center = from_node.center();
-
-    let start_port = match &edge.from_side {
-        Some(side) => from_node.resolve_port(side, to_center),
-        None => from_node.closest_port_to(to_center),
-    };
-
-    let end_port = match &edge.to_side {
-        Some(side) => to_node.resolve_port(side, from_center),
-        None => to_node.closest_port_to(from_center),
-    };
-
-    let start = start_port.position;
-    let end = end_port.position;
-
-    let exclude_ids: std::collections::HashSet<&str> =
-        [edge.from_node_id.as_str(), edge.to_node_id.as_str()]
-            .into_iter()
-            .collect();
-
-    let filtered_obstacles: Vec<Rect> = node_map
-        .values()
-        .filter(|node| !exclude_ids.contains(node.id.as_str()))
-        .map(|node| node.rect())
-        .collect();
-
-    let routing_mode = edge.routing_mode.unwrap_or(config.routing.routing_mode);
-
-    let from_normal = super::input::normal_for_side(&start_port.side);
-    let to_normal = super::input::normal_for_side(&end_port.side);
-
-    let ctx = RouteContext {
-        start,
-        end,
-        from_normal,
-        to_normal,
-        from_rect: from_node.rect(),
-        to_rect: to_node.rect(),
-        obstacles: filtered_obstacles,
-        config: config.clone(),
-    };
-    let strategy = resolve_strategy(routing_mode);
-    strategy.route(&ctx, state)
-}
-
-pub fn node_clearance(from: Point, from_normal: Point, node_rect: Rect) -> f64 {
-    let margin = 20.0;
-    if from_normal.x.abs() >= from_normal.y.abs() {
-        if from_normal.x > 0.0 {
-            (node_rect.right() - from.x).max(0.0) + margin
-        } else {
-            (from.x - node_rect.left()).max(0.0) + margin
-        }
-    } else {
-        if from_normal.y > 0.0 {
-            (node_rect.bottom() - from.y).max(0.0) + margin
-        } else {
-            (from.y - node_rect.top()).max(0.0) + margin
-        }
     }
 }
 

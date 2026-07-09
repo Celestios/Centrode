@@ -58,24 +58,83 @@ cd rust && cargo test            # Rust backend tests
 
 Version is shared between `pubspec.yaml` and `rust/Cargo.toml`. Use `dart scripts/sync_version.dart` to keep them aligned.
 
-## Request Routing & Workflows
+## Request Classification & Routing (replaces request-navigator)
 
-To ensure coding styles and architectural bounds are followed from line one of any task, you MUST always start by viewing the [request-navigator](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/general/request-navigator/SKILL.md) starting skill and loading all active rules files in [.agents/rules/](file:///d:/Projects/Open/flutter/code/mycelium/.agents/rules/). The navigator will analyze the request and route you to one of these workflows:
+At the start of every task, classify the user's message into one of these interaction patterns:
 
+### Case A: Initial Task Request
+- **Criteria**: New task, feature request, bug fix, or workspace command at session start or after completing a previous task.
+- **Action**: Follow the **Dispatching Protocol** below to route to the appropriate workflow.
 
-1. **/brain-stormer** — Feature ideation, UI design concepts, and comparisons (delegates to [feature-ideator](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/feature-ideator/SKILL.md)).
-2. **/designer** — Visual design, motion engineering, state mappings, and database schema/architecture designs (delegates to [ui-designer](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/ui-designer/SKILL.md) and [architecture-designer](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/architecture-designer/SKILL.md)).
-3. **/implementer** — Writing clean code and modifying files (delegates to [dart-coding](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/coding/dart-coding/SKILL.md) and [rust-coding](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/coding/rust-coding/SKILL.md)).
-4. **/bug-fixer** — Diagnosis, tracing, parallel hypothesis verification, and fixing bugs.
-5. **/code-health** — Post-hoc architectural and design symmetry auditing.
-6. **/git-commit** — Commit drafting, version synchronization, and tags.
+### Case B: Iterative Update / Follow-up to Current Task
+- **Criteria**: Additional details, answers to a question, feedback on a plan, or approval of a draft.
+- **Action**: **Completely bypass the Dispatching Protocol.** Continue the currently active workflow (e.g., `/designer`, `/implementer`, `/bug-fixer`) directly.
 
-7. **/tester** — Designing mocks, writing unit/widget/integration/Cargo tests, and increasing code coverage.
-8. **/perf-profiler** — Canvas rendering analysis, repaint boundaries, gesture latency, and query tuning.
-9. **/documenter** — Writing API specs, system markdown documents, and developer references.
+### Case C: Complete Task Pivot / Context Switch
+- **Criteria**: User completely changes their request mid-stream to something unrelated before the current task is completed or committed.
+- **Action**:
+  1. Recognize the current task is being abandoned.
+  2. Determine clean-up: check `git status`, guess what files need reverting, or ask the user how to clean up (stash, discard branch modifications).
+  3. Execute clean-up.
+  4. Treat the new request as fresh **Case A** and route accordingly.
 
+### Case D: General One-off Inquiry
+- **Criteria**: Explanatory, informational, or investigatory question (e.g., "where is the FFI configuration?", "explain how node rendering works") — no code modifications requested.
+- **Action**: **Do NOT launch any workflow.** Research the codebase and answer concisely.
 
-You MUST follow the specific execution steps outlined in the chosen workflow.
+### Case E: Explicit Cancellation or Reversion
+- **Criteria**: User explicitly requests to cancel, abort, or revert all current changes, without starting a new task.
+- **Action**:
+  1. Confirm clean-up scope with the user or determine the appropriate reset command.
+  2. Revert workspace to clean baseline.
+  3. Confirm workspace is clean and await next request.
+
+---
+
+### Dispatching Protocol (Case A only)
+
+Route to exactly **ONE** of these workflows. Read the corresponding `.agents/workflows/<name>.md` and follow its steps.
+
+| # | Route | Scope | Target |
+|---|-------|-------|--------|
+| 1 | `/brain-stormer` | Feature & UX Ideation — concept design, comparing ideas, zero-input project analysis | `.agents/workflows/brain-stormer.md` |
+| 2 | `/designer` | Architecture & Visual Design — custom paints, spring motion, DB schema, FFI boundaries, blueprints | `.agents/workflows/designer.md` |
+| 3 | `/implementer` | Coding & Refactoring — new logic, approved plan blueprints, standard refactoring | `.agents/workflows/implementer.md` |
+| 4 | `/bug-fixer` | Diagnose & Debug — crashes, styling bugs, exceptions | `.agents/workflows/bug-fixer.md` |
+| 5 | `/code-health` | Quality Auditing — SOLID review, DRY analysis, design symmetry compliance | `.agents/workflows/code-health.md` |
+| 6 | `/git-commit` | Git Staging & Releases — commit drafting, version bumps, release tags | `.agents/workflows/git-commit.md` |
+| 7 | `/tester` | Testing & Coverage — mocks, unit/widget/integration/Cargo tests, coverage | `.agents/workflows/tester.md` |
+| 8 | `/perf-profiler` | Performance & Tuning — canvas rendering frames, repaint boundaries, gesture latency, DB query tuning | `.agents/workflows/perf-profiler.md` |
+| 9 | `/documenter` | Documentation — API specs, system docs, README, architecture logs | `.agents/workflows/documenter.md` |
+
+### Loading a workflow
+
+Read the workflow file:
+```
+read_file(path='D:/Projects/Open/flutter/code/mycelium/.agents/workflows/<name>.md')
+```
+
+If it references specialist skills (dart-coding, rust-coding, ui-designer, etc.), read those from `.agents/skills/<category>/<name>/SKILL.md` using the same absolute-rooted path.
+
+### Short / Raw Request Gate
+
+- **Simple** (few files, single subsystem, trivial logic): Implement directly. No designer step.
+- **Complex** (cross-tier, new feature, schema changes, multi-file): Route through `/designer` first.
+
+### Rules files to load at session start
+
+```
+read_file(D:/Projects/Open/flutter/code/mycelium/.agents/rules/global.md)
+read_file(D:/Projects/Open/flutter/code/mycelium/.agents/rules/solid-principles.md)
+read_file(D:/Projects/Open/flutter/code/mycelium/.agents/rules/architectural-bounds.md)
+read_file(D:/Projects/Open/flutter/code/mycelium/.agents/rules/autogenerated-files.md)
+read_file(D:/Projects/Open/flutter/code/mycelium/.agents/rules/git-file-operations.md)
+```
+
+### Action Items
+
+1. **State which Case** you identified (A, B, C, D, or E).
+2. If launching a workflow, **state which workflow** is selected and follow its steps.
 
 ## Tool Usage
 

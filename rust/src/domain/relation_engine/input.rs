@@ -14,6 +14,7 @@ pub struct InputNode {
     pub y: f64,
     pub width: f64,
     pub height: f64,
+    pub is_obstacle: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -21,6 +22,22 @@ pub struct InputPort {
     pub position: Point,
     pub side: PortSide,
     pub port_type: PortType,
+}
+
+#[derive(Debug, Clone)]
+pub struct ResolvedPorts {
+    pub start: InputPort,
+    pub end: InputPort,
+    pub start_normal: Point,
+    pub end_normal: Point,
+    pub start_exit: Point,
+    pub end_exit: Point,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Side {
+    Start,
+    End,
 }
 
 impl InputNode {
@@ -122,6 +139,7 @@ impl InputNode {
                     y: pos.y as f64,
                     width: size.width as f64,
                     height: size.height as f64,
+                    is_obstacle: true,
                 })
             }
             Nodes::TaskNode(n) => {
@@ -134,6 +152,31 @@ impl InputNode {
                     y: pos.y as f64,
                     width: size.width as f64,
                     height: size.height as f64,
+                    is_obstacle: true,
+                })
+            }
+            Nodes::DrawingNode(n) => {
+                let id = n.id.key.clone();
+                let size = n.size.clone();
+                Some(InputNode {
+                    id,
+                    x: 0.0,
+                    y: 0.0,
+                    width: size.width as f64,
+                    height: size.height as f64,
+                    is_obstacle: false,
+                })
+            }
+            Nodes::FrameNode(n) => {
+                let id = n.id.key.clone();
+                let size = n.size.clone();
+                Some(InputNode {
+                    id,
+                    x: 0.0,
+                    y: 0.0,
+                    width: size.width as f64,
+                    height: size.height as f64,
+                    is_obstacle: false,
                 })
             }
             _ => None,
@@ -152,6 +195,48 @@ pub fn normal_for_side(side: &PortSide) -> Point {
         PortSide::BottomLeft => Point::new(-1.0, 1.0).normalized(),
         PortSide::BottomRight => Point::new(1.0, 1.0).normalized(),
         PortSide::Auto => Point::new(1.0, 0.0),
+    }
+}
+
+pub fn resolve_orthogonal_normal(side: &PortSide, start: Point, end: Point) -> Point {
+    let dx = end.x - start.x;
+    let dy = end.y - start.y;
+    match side {
+        PortSide::Top => Point::new(0.0, -1.0),
+        PortSide::Right => Point::new(1.0, 0.0),
+        PortSide::Bottom => Point::new(0.0, 1.0),
+        PortSide::Left => Point::new(-1.0, 0.0),
+        PortSide::TopLeft => {
+            if dx.abs() > dy.abs() {
+                Point::new(-1.0, 0.0)
+            } else {
+                Point::new(0.0, -1.0)
+            }
+        }
+        PortSide::TopRight => {
+            if dx.abs() > dy.abs() {
+                Point::new(1.0, 0.0)
+            } else {
+                Point::new(0.0, -1.0)
+            }
+        }
+        PortSide::BottomLeft => {
+            if dx.abs() > dy.abs() {
+                Point::new(-1.0, 0.0)
+            } else {
+                Point::new(0.0, 1.0)
+            }
+        }
+        PortSide::BottomRight => {
+            if dx.abs() > dy.abs() {
+                Point::new(1.0, 0.0)
+            } else {
+                Point::new(0.0, 1.0)
+            }
+        }
+        PortSide::Auto => {
+            Point::new(1.0, 0.0)
+        }
     }
 }
 
@@ -186,6 +271,87 @@ pub fn resolve_edge_ports<'a>(
     };
 
     Some((start_port, end_port))
+}
+
+pub fn resolve_normal(side: &PortSide, port_pos: Point, other_center: Point, mode: RoutingMode) -> Point {
+    match mode {
+        RoutingMode::Orthogonal => resolve_orthogonal_normal_from_side(side, port_pos, other_center),
+        _ => normal_for_side(side),
+    }
+}
+
+fn resolve_orthogonal_normal_from_side(side: &PortSide, port: Point, other: Point) -> Point {
+    match side {
+        PortSide::Top => Point::new(0.0, -1.0),
+        PortSide::Right => Point::new(1.0, 0.0),
+        PortSide::Bottom => Point::new(0.0, 1.0),
+        PortSide::Left => Point::new(-1.0, 0.0),
+        PortSide::TopLeft => {
+            if (other.x - port.x).abs() <= (other.y - port.y).abs() {
+                Point::new(-1.0, 0.0)
+            } else {
+                Point::new(0.0, -1.0)
+            }
+        }
+        PortSide::TopRight => {
+            if (other.x - port.x).abs() <= (other.y - port.y).abs() {
+                Point::new(1.0, 0.0)
+            } else {
+                Point::new(0.0, -1.0)
+            }
+        }
+        PortSide::BottomLeft => {
+            if (other.x - port.x).abs() <= (other.y - port.y).abs() {
+                Point::new(-1.0, 0.0)
+            } else {
+                Point::new(0.0, 1.0)
+            }
+        }
+        PortSide::BottomRight => {
+            if (other.x - port.x).abs() <= (other.y - port.y).abs() {
+                Point::new(1.0, 0.0)
+            } else {
+                Point::new(0.0, 1.0)
+            }
+        }
+        PortSide::Auto => Point::new(1.0, 0.0),
+    }
+}
+
+pub fn compute_extension(from_node: &InputNode, to_node: &InputNode, grid_size: f64, extension_min: f64, extension_scale: f64) -> f64 {
+    let node_dim = from_node.width.min(from_node.height)
+        .min(to_node.width).min(to_node.height);
+    let raw = (node_dim * extension_scale).max(extension_min);
+    (raw / grid_size).ceil() * grid_size
+}
+
+pub fn resolve_edge_ports_full(
+    edge: &InputEdge,
+    node_map: &HashMap<&str, &InputNode>,
+    routing_mode: RoutingMode,
+    extension_length: f64,
+) -> Option<ResolvedPorts> {
+    let from_node = node_map.get(edge.from_node_id.as_str())?;
+    let to_node = node_map.get(edge.to_node_id.as_str())?;
+    let to_center = to_node.center();
+    let from_center = from_node.center();
+
+    let start = match &edge.from_side {
+        Some(side) => from_node.resolve_port(side, to_center),
+        None => from_node.closest_port_to(to_center),
+    };
+    let end = match &edge.to_side {
+        Some(side) => to_node.resolve_port(side, from_center),
+        None => to_node.closest_port_to(from_center),
+    };
+
+    let start_normal = resolve_normal(&start.side, start.position, to_center, routing_mode);
+    let end_normal = resolve_normal(&end.side, end.position, from_center, routing_mode);
+
+    let start_exit = start.position + start_normal * extension_length;
+    let end_exit = end.position + end_normal * extension_length;
+
+    Some(ResolvedPorts { start, end, start_normal, end_normal, start_exit, end_exit })
 }
 
 impl InputEdge {

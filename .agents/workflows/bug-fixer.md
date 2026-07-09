@@ -122,7 +122,9 @@ Based on the evidence from Phase 1, form 2-3 root cause hypotheses. For each:
 
 ### Step 7: Spawn subagents (parallel)
 
-Dispatch subagents in a SINGLE message — all run in parallel:
+Dispatch subagents in a SINGLE message — all run in parallel.
+
+**IMPORTANT:** Every subagent prompt MUST include the instruction that they are **read-only** — they must NOT modify, create, or delete any files. Their sole job is to analyze code and report findings.
 
 **Hypothesis tester subagents (one per hypothesis):**
 - Use `subagent_type: "explore"` for each
@@ -134,7 +136,7 @@ Dispatch subagents in a SINGLE message — all run in parallel:
 - Use `subagent_type: "general"` 
 - Task: critically examine the suspected code from a fresh perspective
 - Defend existing design assumptions — argue why the code might be correct
-- Question fragile dependencies, race conditions, null references, edge cases
+- Flag fragile dependencies, race conditions, null references, edge cases
 - Output: findings about code quality, assumptions that might be wrong, alternative explanations
 
 Example dispatch (3 hypotheses):

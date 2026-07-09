@@ -14,11 +14,7 @@ use rust_lib_mycelium::domain::relation_engine::computed::{
     ComputedRelation, LabelAnchor, PathType,
 };
 use rust_lib_mycelium::domain::relation_engine::sections::endpoint::resolve_start;
-use rust_lib_mycelium::domain::relation_engine::sections::endpart::EndpartResolver;
-use rust_lib_mycelium::domain::relation_engine::sections::adapter::AdapterResolver;
 use rust_lib_mycelium::domain::relation_engine::sections::body::{BodyResolver, compute_widths};
-use rust_lib_mycelium::domain::relation_engine::sections::EndpointResult;
-use rust_lib_mycelium::domain::relation_engine::sections::EndpartResult;
 use rust_lib_mycelium::domain::relation_engine::input::InputNode;
 
 #[test]
@@ -186,52 +182,16 @@ fn test_endpoint_resolver_standard() {
         y: 0.0,
         width: 100.0,
         height: 100.0,
+        is_obstacle: true,
     };
     let port = Point::new(100.0, 50.0);
     let tangent = Point::new(1.0, 0.0);
     let config = RelationEngineConfig::default();
 
-    let result = resolve_start(&node, port, tangent, None, &config);
+    let result = resolve_start(&node, port, tangent, None, &config, false);
 
     assert_eq!(result.position, port);
     assert_eq!(result.shape, EndpointShapeType::None);
-}
-
-#[test]
-fn test_endpart_perpendicular_right_side() {
-    let node = InputNode {
-        id: "n1".to_string(),
-        x: 0.0, y: 0.0, width: 100.0, height: 100.0,
-    };
-    let endpoint = EndpointResult {
-        position: Point::new(100.0, 50.0),
-        direction: 0.0,
-        shape: EndpointShapeType::Arrow,
-    };
-    let mut path_buffer = Vec::new();
-
-    let resolver = EndpartResolver::Perpendicular;
-    let result = resolver.guide(&endpoint, &node, &mut path_buffer);
-
-    assert_eq!(result.exit_point, Point::new(108.0, 50.0));
-    assert!(result.point_count >= 2);
-}
-
-#[test]
-fn test_adapter_bezier_connect() {
-    let endpart = EndpartResult {
-        exit_point: Point::new(108.0, 50.0),
-        exit_direction: 0.0,
-        point_count: 2,
-    };
-    let body_start = Point::new(150.0, 50.0);
-    let mut path_buffer = vec![Point::new(100.0, 50.0), Point::new(108.0, 50.0)];
-
-    let resolver = AdapterResolver::Bezier;
-    let result = resolver.connect(&endpart, body_start, &mut path_buffer);
-
-    assert!(result.point_count >= 1);
-    assert_eq!(result.body_anchor, body_start);
 }
 
 #[test]

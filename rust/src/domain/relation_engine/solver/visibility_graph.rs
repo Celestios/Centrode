@@ -55,6 +55,10 @@ impl VisibilityGraph {
             for (ci, &corner) in corners.iter().enumerate() {
                 graph.add_node(corner, Some(oi), ci);
             }
+            for ci in 0..4 {
+                let mid = (corners[ci] + corners[(ci + 1) % 4]) * 0.5;
+                graph.add_node(mid, Some(oi), 4 + ci);
+            }
         }
 
         let vertices: Vec<Point> = graph.nodes.iter().map(|n| n.point).collect();

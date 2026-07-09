@@ -4438,6 +4438,9 @@ impl SseDecode for crate::domain::relation_engine::config::RoutingConfig {
         let mut var_bezierClampMax = <f64>::sse_decode(deserializer);
         let mut var_sineWave =
             <crate::domain::relation_engine::config::SnakeConfig>::sse_decode(deserializer);
+        let mut var_gridSize = <f64>::sse_decode(deserializer);
+        let mut var_extensionMin = <f64>::sse_decode(deserializer);
+        let mut var_extensionScale = <f64>::sse_decode(deserializer);
         return crate::domain::relation_engine::config::RoutingConfig {
             routing_mode: var_routingMode,
             obstacle_margin: var_obstacleMargin,
@@ -4447,6 +4450,9 @@ impl SseDecode for crate::domain::relation_engine::config::RoutingConfig {
             bezier_clamp_min: var_bezierClampMin,
             bezier_clamp_max: var_bezierClampMax,
             sine_wave: var_sineWave,
+            grid_size: var_gridSize,
+            extension_min: var_extensionMin,
+            extension_scale: var_extensionScale,
         };
     }
 }
@@ -6365,6 +6371,9 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::R
             self.bezier_clamp_min.into_into_dart().into_dart(),
             self.bezier_clamp_max.into_into_dart().into_dart(),
             self.sine_wave.into_into_dart().into_dart(),
+            self.grid_size.into_into_dart().into_dart(),
+            self.extension_min.into_into_dart().into_dart(),
+            self.extension_scale.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -8157,6 +8166,9 @@ impl SseEncode for crate::domain::relation_engine::config::RoutingConfig {
             self.sine_wave,
             serializer,
         );
+        <f64>::sse_encode(self.grid_size, serializer);
+        <f64>::sse_encode(self.extension_min, serializer);
+        <f64>::sse_encode(self.extension_scale, serializer);
     }
 }
 

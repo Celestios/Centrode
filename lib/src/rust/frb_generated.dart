@@ -3534,8 +3534,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RoutingConfig dco_decode_routing_config(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 8)
-      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    if (arr.length != 11)
+      throw Exception('unexpected arr length: expect 11 but see ${arr.length}');
     return RoutingConfig(
       routingMode: dco_decode_routing_mode(arr[0]),
       obstacleMargin: dco_decode_f_64(arr[1]),
@@ -3545,6 +3545,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       bezierClampMin: dco_decode_f_64(arr[5]),
       bezierClampMax: dco_decode_f_64(arr[6]),
       sineWave: dco_decode_snake_config(arr[7]),
+      gridSize: dco_decode_f_64(arr[8]),
+      extensionMin: dco_decode_f_64(arr[9]),
+      extensionScale: dco_decode_f_64(arr[10]),
     );
   }
 
@@ -5556,6 +5559,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_bezierClampMin = sse_decode_f_64(deserializer);
     var var_bezierClampMax = sse_decode_f_64(deserializer);
     var var_sineWave = sse_decode_snake_config(deserializer);
+    var var_gridSize = sse_decode_f_64(deserializer);
+    var var_extensionMin = sse_decode_f_64(deserializer);
+    var var_extensionScale = sse_decode_f_64(deserializer);
     return RoutingConfig(
       routingMode: var_routingMode,
       obstacleMargin: var_obstacleMargin,
@@ -5565,6 +5571,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       bezierClampMin: var_bezierClampMin,
       bezierClampMax: var_bezierClampMax,
       sineWave: var_sineWave,
+      gridSize: var_gridSize,
+      extensionMin: var_extensionMin,
+      extensionScale: var_extensionScale,
     );
   }
 
@@ -7405,6 +7414,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_f_64(self.bezierClampMin, serializer);
     sse_encode_f_64(self.bezierClampMax, serializer);
     sse_encode_snake_config(self.sineWave, serializer);
+    sse_encode_f_64(self.gridSize, serializer);
+    sse_encode_f_64(self.extensionMin, serializer);
+    sse_encode_f_64(self.extensionScale, serializer);
   }
 
   @protected

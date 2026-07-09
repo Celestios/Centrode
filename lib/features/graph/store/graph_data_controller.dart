@@ -229,6 +229,7 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
         relations: store.relations,
         nodeViewStates: {}, // Will be populated by RelationLayer
       );
+      unawaited(relationEngine.recomputeDirty());
 
       stopwatch.stop();
       _log.info(
@@ -318,10 +319,27 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
     }
   }
 
-  void updateNodeWidth(String id, double leftEdge, double rightEdge) =>
-      nodeMutations.updateNodeWidth(id, leftEdge, rightEdge);
+  void updateNodeWidth(String id, double leftEdge, double rightEdge) {
+    nodeMutations.updateNodeWidth(id, leftEdge, rightEdge);
+    final node = store.nodeLookup[id];
+    if (node != null) {
+      syncEngine.api.updateNodeCachePositions(
+        positions: [(id, node.position.dx, node.position.dy, node.size.width, node.size.height)],
+      );
+    }
+    relationEngine.onNodeMoved(id);
+  }
 
-  void toggleNodeExpansion(String id) => nodeMutations.toggleNodeExpansion(id);
+  void toggleNodeExpansion(String id) {
+    nodeMutations.toggleNodeExpansion(id);
+    final node = store.nodeLookup[id];
+    if (node != null) {
+      syncEngine.api.updateNodeCachePositions(
+        positions: [(id, node.position.dx, node.position.dy, node.size.width, node.size.height)],
+      );
+    }
+    relationEngine.onNodeMoved(id);
+  }
 
   // Relation Mutations
   void createRelation(
@@ -363,14 +381,21 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
     relationEngine.onRelationLayoutUpdated(id);
   }
 
-  void updateRelationStyle(String id, RelationStyle newStyle) =>
-      propertyMutations.updateRelationStyle(id, newStyle);
+  void updateRelationStyle(String id, RelationStyle newStyle) {
+    propertyMutations.updateRelationStyle(id, newStyle);
+    relationEngine.onRelationLayoutUpdated(id);
+  }
 
   @override
   void updateRelationsLayout(
     List<String> ids, {
     String? strategyType,
-  }) => relationMutations.updateRelationsLayout(ids, strategyType: strategyType);
+  }) {
+    relationMutations.updateRelationsLayout(ids, strategyType: strategyType);
+    for (final id in ids) {
+      relationEngine.onRelationLayoutUpdated(id);
+    }
+  }
 
   // Property Mutations
   @override

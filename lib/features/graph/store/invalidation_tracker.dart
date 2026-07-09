@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
 import 'package:mycelium/features/graph/models/relation_view_state.dart';
+import '../models/models.dart';
 
 class InvalidationTracker {
   final Map<String, ComputedRelation> _cache = {};
@@ -36,8 +37,12 @@ class InvalidationTracker {
     }
   }
 
-  void onRelationAdded(String relationId) {
-    _dirtyRelationIds.add(relationId);
+  void onRelationAdded(UiRelation relation) {
+    final fromId = relation.fromNodeId;
+    final toId = relation.toNodeId;
+    _nodeToRelations.putIfAbsent(fromId, () => {}).add(relation.id);
+    _nodeToRelations.putIfAbsent(toId, () => {}).add(relation.id);
+    _dirtyRelationIds.add(relation.id);
   }
 
   void onRelationDeleted(String relationId) {
@@ -61,7 +66,9 @@ class InvalidationTracker {
   bool get hasDirtyRelations => _dirtyRelationIds.isNotEmpty;
 
   void markAllDirty() {
-    _dirtyRelationIds.addAll(_cache.keys);
+    for (final entry in _nodeToRelations.values) {
+      _dirtyRelationIds.addAll(entry);
+    }
   }
 
   void clearDirty() {

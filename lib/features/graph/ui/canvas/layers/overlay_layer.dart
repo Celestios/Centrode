@@ -8,7 +8,6 @@ import '../../../engine/base_interaction_state.dart';
 import '../../../engine/interaction_engine.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
-import '../../../presentation/relation_utils.dart';
 import '../widgets/metadata_preview_overlay.dart';
 import 'package:mycelium/shared/widgets/unbounded_stack.dart';
 
@@ -116,26 +115,17 @@ class _TempRelationPainter extends CustomPainter {
 
       if (targetVs != null) {
         final targetPort = state.snappedTargetPort;
-        final tempRelation = InfoUiRelation(
-          fromNodeId: sourceId,
-          fromNodeTable: 'INode',
-          toNodeId: state.snappedTargetNodeId!,
-          toNodeTable: 'INode',
-          layout: RelationLayout(
-            fromSide: sourcePort?.side,
-            toSide: targetPort?.side,
-            strategyType: 'bezier',
-          ),
-        );
-
-        final (start, end) = resolveRelationEndpoints(
-          tempRelation, sourceVs, targetVs,
-        );
-        final path = buildSimpleBezierPath(start, end);
+        final startPos = sourcePort?.position ?? sourceVs.getPortPosition(sourceVs.getClosestPort(targetVs.rect.center).side);
+        final endPos = targetPort?.position ?? targetVs.getPortPosition(targetVs.getClosestPort(startPos).side);
+        final path = Path()
+          ..moveTo(startPos.dx, startPos.dy)
+          ..lineTo(endPos.dx, endPos.dy);
         canvas.drawPath(path, paint);
       } else {
-        final startPos = sourcePort?.position ?? sourceVs.getClosestPort(state.currentCursorPosition).position;
-        final path = buildSimpleBezierPath(startPos, state.currentCursorPosition);
+        final startPos = sourcePort?.position ?? sourceVs.getPortPosition(sourceVs.getClosestPort(state.currentCursorPosition).side);
+        final path = Path()
+          ..moveTo(startPos.dx, startPos.dy)
+          ..lineTo(state.currentCursorPosition.dx, state.currentCursorPosition.dy);
         canvas.drawPath(path, paint);
         canvas.drawCircle(state.currentCursorPosition, 6, paint..style = PaintingStyle.fill);
         paint.style = PaintingStyle.stroke;

@@ -68,6 +68,9 @@ directories = "5.0"
 zip = "0.6"
 walkdir = "2.4"
 
+# --- Parallel ---
+rayon = "1.10"
+
 # --- Logging ---
 tracing = { version = "0.1", features = ["release_max_level_info"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

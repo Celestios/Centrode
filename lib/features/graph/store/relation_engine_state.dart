@@ -27,6 +27,9 @@ class RelationEngineState {
         frequency: 3.0,
         obstacleAvoidance: false,
       ),
+      gridSize: 8.0,
+      extensionMin: 8.0,
+      extensionScale: 0.1,
     ),
     nudging: NudgingConfig(enabled: true, distance: 4.0, decayFactor: 0.9),
     bundling: BundlingConfig(mode: BundlingMode.none, threshold: 50.0),
@@ -67,8 +70,8 @@ class RelationEngineState {
     _scheduleRecompute();
   }
 
-  void onRelationAdded(String relationId) {
-    _tracker.onRelationAdded(relationId);
+  void onRelationAdded(UiRelation relation) {
+    _tracker.onRelationAdded(relation);
     _scheduleRecompute();
   }
 

@@ -1,6 +1,7 @@
 import '../../store/graph_data_query.dart';
 import '../../store/modules/graph_store.dart';
 import '../../store/modules/graph_spatial.dart';
+import '../../store/relation_engine_state.dart';
 
 abstract class GraphStyleUpdater {
   void updateStyleForNode(String id);
@@ -14,6 +15,7 @@ abstract interface class GraphCommandContext {
   GraphStore get store;
   GraphSpatial get spatial;
   GraphStyleUpdater? get styleUpdater;
+  RelationEngineState get relationEngine;
 
   void publishUpdate(GraphEntityUpdate update);
   void triggerUpdate();

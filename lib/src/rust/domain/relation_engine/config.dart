@@ -169,6 +169,9 @@ class RoutingConfig {
   final double bezierClampMin;
   final double bezierClampMax;
   final SnakeConfig sineWave;
+  final double gridSize;
+  final double extensionMin;
+  final double extensionScale;
 
   const RoutingConfig({
     required this.routingMode,
@@ -179,6 +182,9 @@ class RoutingConfig {
     required this.bezierClampMin,
     required this.bezierClampMax,
     required this.sineWave,
+    required this.gridSize,
+    required this.extensionMin,
+    required this.extensionScale,
   });
 
   @override
@@ -190,7 +196,10 @@ class RoutingConfig {
       bezierProjectionFactor.hashCode ^
       bezierClampMin.hashCode ^
       bezierClampMax.hashCode ^
-      sineWave.hashCode;
+      sineWave.hashCode ^
+      gridSize.hashCode ^
+      extensionMin.hashCode ^
+      extensionScale.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -204,7 +213,10 @@ class RoutingConfig {
           bezierProjectionFactor == other.bezierProjectionFactor &&
           bezierClampMin == other.bezierClampMin &&
           bezierClampMax == other.bezierClampMax &&
-          sineWave == other.sineWave;
+          sineWave == other.sineWave &&
+          gridSize == other.gridSize &&
+          extensionMin == other.extensionMin &&
+          extensionScale == other.extensionScale;
 }
 
 enum RoutingMode { polyline, bezier, orthogonal, circularArc, sineWave }

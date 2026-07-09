@@ -8,6 +8,7 @@ pub mod geometry;
 pub mod input;
 pub mod label;
 pub mod nudging;
+pub mod obstacle_avoidance;
 pub mod routing;
 pub mod solver;
 pub mod state;

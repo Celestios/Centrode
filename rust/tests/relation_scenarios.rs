@@ -5,7 +5,7 @@ use rust_lib_mycelium::domain::relation_engine::geometry::Point;
 use rust_lib_mycelium::domain::styles::PortSide;
 
 fn node(id: &str, x: f64, y: f64, w: f64, h: f64) -> InputNode {
-    InputNode { id: id.into(), x, y, width: w, height: h }
+    InputNode { id: id.into(), x, y, width: w, height: h, is_obstacle: true }
 }
 
 fn edge(id: &str, from: &str, to: &str, from_side: Option<PortSide>, to_side: Option<PortSide>, strategy: &str) -> InputEdge {

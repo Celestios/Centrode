@@ -586,6 +586,14 @@ impl AppHandle {
         config: crate::domain::relation_engine::config::RelationEngineConfig,
         relation_ids: Option<Vec<String>>,
     ) -> anyhow::Result<Vec<crate::domain::relation_engine::computed::ComputedRelation>> {
+        let mut is_empty = false;
+        if let Ok(engine) = self.relation_engine.lock() {
+            is_empty = engine.state.nodes.is_empty();
+        }
+        if is_empty {
+            self.rebuild_node_cache().await;
+        }
+
         let nodes: Vec<InputNode> = self
             .relation_engine
             .lock()
@@ -607,13 +615,11 @@ impl AppHandle {
             Err(_) => return Err(anyhow::anyhow!("Failed to lock relation engine")),
         };
 
-        let rel_ids_ref = relation_ids.as_deref();
-
         let result = engine.compute_relations_stateful(
             &nodes,
             &edges,
             &config,
-            rel_ids_ref,
+            None, // Always pass None to compute all relations incrementally/statefully with global passes
         );
         Ok(result)
     }
@@ -633,6 +639,7 @@ impl AppHandle {
                         y,
                         width: w,
                         height: h,
+                        is_obstacle: true,
                     },
                     margin,
                 );
@@ -655,6 +662,14 @@ impl AppHandle {
         override_end_y: Option<f64>,
     ) -> anyhow::Result<crate::domain::relation_engine::computed::ComputedRelation> {
         use crate::domain::relation_engine::input::InputEdge;
+
+        let mut is_empty = false;
+        if let Ok(engine) = self.relation_engine.lock() {
+            is_empty = engine.state.nodes.is_empty();
+        }
+        if is_empty {
+            self.rebuild_node_cache().await;
+        }
 
         let mut nodes = self
             .relation_engine
@@ -679,6 +694,7 @@ impl AppHandle {
                     y: sy,
                     width: 0.0,
                     height: 0.0,
+                    is_obstacle: true,
                 });
             }
         }
@@ -696,6 +712,7 @@ impl AppHandle {
                     y: ey,
                     width: 0.0,
                     height: 0.0,
+                    is_obstacle: true,
                 });
             }
         }

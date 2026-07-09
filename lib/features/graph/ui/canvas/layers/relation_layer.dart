@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/config.dart' as rust_config;
 import 'package:mycelium/src/rust/domain/relation_engine/geometry.dart' as rust_geom;
+import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
 import '../../../engine/config.dart';
 import '../../../store/graph_data_controller.dart';
 import '../../../presentation/node_render_state.dart';
@@ -130,12 +131,12 @@ class RelationLayer extends StatelessWidget {
     );
   }
 
-  Path _buildPathFromComputed(List<rust_geom.Point> points) {
+  Path _buildPathFromOffsets(List<Offset> points) {
     if (points.isEmpty) return Path();
     final path = Path();
-    path.moveTo(points.first.x, points.first.y);
+    path.moveTo(points.first.dx, points.first.dy);
     for (int i = 1; i < points.length; i++) {
-      path.lineTo(points[i].x, points[i].y);
+      path.lineTo(points[i].dx, points[i].dy);
     }
     return path;
   }
@@ -161,31 +162,23 @@ class RelationLayer extends StatelessWidget {
           ? interactionState as RelationTipDragging
           : null;
 
-      Offset start;
-      Offset end;
-      Path path;
-      Offset labelPos;
-      List<Offset> points = [];
-      List<double> widths = [];
-      bool isVariableWidth = false;
-      Color color;
-      double strokeWidth;
-      String strokePattern;
-      EndpointShape? startShape;
-      EndpointShape? endShape;
-      double arrowSize;
-      Offset startArrowCenter;
-      Offset endArrowCenter;
-      double startArrowDirection;
-      double endArrowDirection;
-      double startArrowMargin;
-      double endArrowMargin;
-
       final resolved = RelationStyleStrategy.resolveStyle(rel);
       final isSelected = selectedEntities.contains(rel.id);
 
+      final color = _resolveColor(
+        tipDrag: tipDrag,
+        isSelected: isSelected,
+        resolved: resolved,
+        theme: theme,
+      );
+      final strokeWidth = _resolveStrokeWidth(
+        tipDrag: tipDrag,
+        isSelected: isSelected,
+        resolved: resolved,
+      );
+
+      final Offset? dragPos;
       if (tipDrag != null) {
-        final Offset dragPos;
         if (tipDrag.snappedTargetNodeId != null && tipDrag.snappedTargetSide != null) {
           final targetVs = nodeViewStates[tipDrag.snappedTargetNodeId!];
           dragPos = targetVs != null
@@ -194,210 +187,246 @@ class RelationLayer extends StatelessWidget {
         } else {
           dragPos = tipDrag.currentCursorPosition;
         }
-
-        final endpoints = resolveRelationEndpoints(
-          rel, from, to,
-          overrideStart: tipDrag.isStartTip ? dragPos : null,
-          overrideEnd: !tipDrag.isStartTip ? dragPos : null,
-        );
-        start = endpoints.$1;
-        end = endpoints.$2;
-        path = buildSimpleBezierPath(start, end);
-        labelPos = Offset.lerp(start, end, 0.5)!;
-
-        points = [start, end];
-        widths = [resolved.strokeWidth.toDouble(), resolved.strokeWidth.toDouble()];
-        isVariableWidth = false;
-
-        color = tipDrag.snappedTargetNodeId != null ? Colors.green : Colors.blueAccent;
-        strokeWidth = AppConfig.relation.selectedStrokeWidth;
-        strokePattern = resolved.strokePattern;
-
-        startShape = resolved.startShape;
-        endShape = resolved.endShape;
-        arrowSize = resolved.arrowSize;
-
-        final fromCenter = from.rect.center;
-        final outwardStartDir = (start - fromCenter).direction;
-        final startOffset = Offset(cos(outwardStartDir), sin(outwardStartDir)) * resolved.arrowSize * 0.5;
-        startArrowCenter = start + startOffset;
-        startArrowDirection = outwardStartDir + pi;
-        startArrowMargin = resolved.arrowSize;
-
-        final toCenter = to.rect.center;
-        final outwardEndDir = (end - toCenter).direction;
-        final endOffset = Offset(cos(outwardEndDir), sin(outwardEndDir)) * resolved.arrowSize * 0.5;
-        endArrowCenter = end + endOffset;
-        endArrowDirection = outwardEndDir + pi;
-        endArrowMargin = resolved.arrowSize;
       } else {
-        final cached = relationEngine?.cache[rel.id];
-        if (cached != null && cached.pathPoints.isNotEmpty) {
-          final Offset s0 = Offset(cached.pathPoints.first.x, cached.pathPoints.first.y);
-          final Offset e0 = Offset(cached.pathPoints.last.x, cached.pathPoints.last.y);
-
-          final String stateStr = interactionState?.runtimeType.toString() ?? '';
-          final bool isDragging = stateStr.contains('Drag') || stateStr.contains('Dragging');
-
-          final startWidth = cached.bodyWidths.isNotEmpty ? cached.bodyWidths.first : resolved.strokeWidth.toDouble();
-          final endWidth = cached.bodyWidths.isNotEmpty ? cached.bodyWidths.last : resolved.strokeWidth.toDouble();
-
-          final startScale = startWidth > 0.0 ? startWidth / 2.0 : 1.0;
-          final endScale = endWidth > 0.0 ? endWidth / 2.0 : 1.0;
-
-          final startMargin = (resolved.startShape != null && resolved.startShape != EndpointShape.none)
-              ? resolved.arrowSize * startScale
-              : 0.0;
-          final endMargin = (resolved.endShape != null && resolved.endShape != EndpointShape.none)
-              ? resolved.arrowSize * endScale
-              : 0.0;
-
-          final startTangent = Offset(cached.startTangent.x, cached.startTangent.y);
-          final endTangent = Offset(cached.endTangent.x, cached.endTangent.y);
-
-          List<rust_geom.Point> pathPoints;
-
-          if (isDragging) {
-            final currentEndpoints = resolveRelationEndpoints(rel, from, to);
-            final currentStart = currentEndpoints.$1;
-            final currentEnd = currentEndpoints.$2;
-
-            final adjustedStart = currentStart + startTangent * startMargin;
-            final adjustedEnd = currentEnd - endTangent * endMargin;
-
-            start = adjustedStart;
-            end = adjustedEnd;
-
-            final s = adjustedStart;
-            final e = adjustedEnd;
-
-            final u0 = e0 - s0;
-            final double l0 = u0.distance;
-            final Offset dir0 = l0 > 1e-6 ? u0 / l0 : const Offset(1, 0);
-            final Offset perp0 = Offset(-dir0.dy, dir0.dx);
-
-            final Offset u = e - s;
-            final double l = u.distance;
-            final Offset dir = l > 1e-6 ? u / l : dir0;
-            final Offset perp = Offset(-dir.dy, dir.dx);
-
-            pathPoints = cached.pathPoints.map((p) {
-              final p0 = Offset(p.x, p.y);
-              final delta0 = p0 - s0;
-              final double x = delta0.dx * dir0.dx + delta0.dy * dir0.dy;
-              final double y = delta0.dx * perp0.dx + delta0.dy * perp0.dy;
-              final double xPrime = x * (l0 > 1e-6 ? (l / l0) : 1.0);
-              final double yPrime = y;
-              final pPrime = s + dir * xPrime + perp * yPrime;
-              return rust_geom.Point(x: pPrime.dx, y: pPrime.dy);
-            }).toList();
-
-            final p0Label = Offset(cached.labelPosition.x, cached.labelPosition.y);
-            final delta0Label = p0Label - s0;
-            final double xLabel = delta0Label.dx * dir0.dx + delta0Label.dy * dir0.dy;
-            final double yLabel = delta0Label.dx * perp0.dx + delta0Label.dy * perp0.dy;
-            final double xPrimeLabel = xLabel * (l0 > 1e-6 ? (l / l0) : 1.0);
-            final double yPrimeLabel = yLabel;
-            labelPos = s + dir * xPrimeLabel + perp * yPrimeLabel;
-
-            startArrowCenter = currentStart + startTangent * (startMargin * 0.5);
-            endArrowCenter = currentEnd - endTangent * (endMargin * 0.5);
-          } else {
-            pathPoints = cached.pathPoints;
-            start = s0 - startTangent * startMargin;
-            end = e0 + endTangent * endMargin;
-            labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
-
-            startArrowCenter = s0 - startTangent * (startMargin * 0.5);
-            endArrowCenter = e0 + endTangent * (endMargin * 0.5);
-          }
-
-          path = _buildPathFromComputed(pathPoints);
-          points = pathPoints.map((p) => Offset(p.x, p.y)).toList();
-          widths = cached.bodyWidths;
-          isVariableWidth = cached.bodyType != rust_config.BodyType.uniform;
-
-          color = isSelected
-              ? AppConfig.visuals.selectionAccent
-              : Color(resolved.strokeColor);
-          strokeWidth = isSelected
-              ? AppConfig.relation.selectedStrokeWidth
-              : resolved.strokeWidth.toDouble();
-          strokePattern = resolved.strokePattern;
-
-          startShape = resolved.startShape;
-          endShape = resolved.endShape;
-          arrowSize = resolved.arrowSize;
-
-          startArrowDirection = startTangent.direction + pi;
-          endArrowDirection = endTangent.direction;
-          startArrowMargin = startMargin;
-          endArrowMargin = endMargin;
-        } else {
-          final endpoints = resolveRelationEndpoints(rel, from, to);
-          start = endpoints.$1;
-          end = endpoints.$2;
-          path = buildSimpleBezierPath(start, end);
-          labelPos = Offset.lerp(start, end, 0.5)!;
-
-          points = [start, end];
-          widths = [resolved.strokeWidth.toDouble(), resolved.strokeWidth.toDouble()];
-          isVariableWidth = false;
-
-          color = isSelected
-              ? AppConfig.visuals.selectionAccent
-              : Color(resolved.strokeColor);
-          strokeWidth = isSelected
-              ? AppConfig.relation.selectedStrokeWidth
-              : resolved.strokeWidth.toDouble();
-          strokePattern = resolved.strokePattern;
-
-          startShape = resolved.startShape;
-          endShape = resolved.endShape;
-          arrowSize = resolved.arrowSize;
-
-          final fromCenter = from.rect.center;
-          final outwardStartDir = (start - fromCenter).direction;
-          final startOffset = Offset(cos(outwardStartDir), sin(outwardStartDir)) * resolved.arrowSize * 0.5;
-          startArrowCenter = start + startOffset;
-          startArrowDirection = outwardStartDir + pi;
-          startArrowMargin = resolved.arrowSize;
-
-          final toCenter = to.rect.center;
-          final outwardEndDir = (end - toCenter).direction;
-          final endOffset = Offset(cos(outwardEndDir), sin(outwardEndDir)) * resolved.arrowSize * 0.5;
-          endArrowCenter = end + endOffset;
-          endArrowDirection = outwardEndDir + pi;
-          endArrowMargin = resolved.arrowSize;
-        }
+        dragPos = null;
       }
 
-      dtos.add(RelationPaintDto(
-        id: rel.id,
-        path: path,
-        points: points,
-        widths: widths,
-        isVariableWidth: isVariableWidth,
-        color: color,
-        strokeWidth: strokeWidth,
-        strokePattern: strokePattern,
-        startShape: startShape,
-        endShape: endShape,
-        arrowSize: arrowSize,
-        startArrowCenter: startArrowCenter,
-        endArrowCenter: endArrowCenter,
-        startArrowDirection: startArrowDirection,
-        endArrowDirection: endArrowDirection,
-        startArrowMargin: startArrowMargin,
-        endArrowMargin: endArrowMargin,
-        isSelected: isSelected,
-        startPoint: start,
-        endPoint: end,
-        verb: rel.verb,
-        labelPos: labelPos,
-      ));
+      final cached = relationEngine?.cache[rel.id];
+      if (cached != null && cached.pathPoints.isNotEmpty) {
+        dtos.add(_buildCachedPaintDto(
+          rel: rel,
+          cached: cached,
+          from: from,
+          to: to,
+          tipDrag: tipDrag,
+          dragPos: dragPos,
+          resolved: resolved,
+          isSelected: isSelected,
+          color: color,
+          strokeWidth: strokeWidth,
+        ));
+      } else {
+        dtos.add(_buildFallbackPaintDto(
+          rel: rel,
+          from: from,
+          to: to,
+          tipDrag: tipDrag,
+          dragPos: dragPos,
+          resolved: resolved,
+          isSelected: isSelected,
+          color: color,
+          strokeWidth: strokeWidth,
+        ));
+      }
     }
 
     return dtos;
   }
+
+  Color _resolveColor({
+    required RelationTipDragging? tipDrag,
+    required bool isSelected,
+    required RelationStyle resolved,
+    required ThemeData theme,
+  }) {
+    if (tipDrag != null) {
+      return tipDrag.snappedTargetNodeId != null ? Colors.green : Colors.blueAccent;
+    }
+    if (isSelected) {
+      return AppConfig.visuals.selectionAccent;
+    }
+    return Color(resolved.strokeColor);
+  }
+
+  double _resolveStrokeWidth({
+    required RelationTipDragging? tipDrag,
+    required bool isSelected,
+    required RelationStyle resolved,
+  }) {
+    if (tipDrag != null || isSelected) {
+      return AppConfig.relation.selectedStrokeWidth;
+    }
+    return resolved.strokeWidth.toDouble();
+  }
+
+  RelationPaintDto _buildCachedPaintDto({
+    required UiRelation rel,
+    required ComputedRelation cached,
+    required NodeViewState from,
+    required NodeViewState to,
+    required RelationTipDragging? tipDrag,
+    required Offset? dragPos,
+    required RelationStyle resolved,
+    required bool isSelected,
+    required Color color,
+    required double strokeWidth,
+  }) {
+    final s0 = Offset(cached.pathPoints.first.x, cached.pathPoints.first.y);
+    final e0 = Offset(cached.pathPoints.last.x, cached.pathPoints.last.y);
+
+    final startTangent = Offset(cached.startTangent.x, cached.startTangent.y);
+    final endTangent = Offset(cached.endTangent.x, cached.endTangent.y);
+
+    final untrimmedStart = s0 - startTangent * cached.startMargin;
+    final untrimmedEnd = e0 + endTangent * cached.endMargin;
+    print('RELATION ${rel.id}: s0=$s0, e0=$e0, startTangent=$startTangent, endTangent=$endTangent, startMargin=${cached.startMargin}, endMargin=${cached.endMargin}, untrimmedStart=$untrimmedStart, untrimmedEnd=$untrimmedEnd, fromRect=${from.rect}, toRect=${to.rect}');
+
+    final Offset targetStart;
+    final Offset targetEnd;
+
+    if (tipDrag != null && dragPos != null) {
+      targetStart = tipDrag.isStartTip ? dragPos : untrimmedStart;
+      targetEnd = !tipDrag.isStartTip ? dragPos : untrimmedEnd;
+    } else {
+      targetStart = untrimmedStart;
+      targetEnd = untrimmedEnd;
+    }
+
+    final startWidth = cached.bodyWidths.isNotEmpty ? cached.bodyWidths.first : resolved.strokeWidth.toDouble();
+    final endWidth = cached.bodyWidths.isNotEmpty ? cached.bodyWidths.last : resolved.strokeWidth.toDouble();
+    final startScale = startWidth > 0.0 ? startWidth / 2.0 : 1.0;
+    final endScale = endWidth > 0.0 ? endWidth / 2.0 : 1.0;
+
+    final startArrowMargin = (resolved.startShape != null && resolved.startShape != EndpointShape.none)
+        ? resolved.arrowSize * startScale
+        : 0.0;
+    final endArrowMargin = (resolved.endShape != null && resolved.endShape != EndpointShape.none)
+        ? resolved.arrowSize * endScale
+        : 0.0;
+
+    // Calculate trimmed target endpoints (trimming by 0.5 * margin to overlap arrowhead to its center)
+    final start = targetStart + startTangent * (startArrowMargin * 0.5);
+    final end = targetEnd - endTangent * (endArrowMargin * 0.5);
+
+    // Transform points using unified 2D stretching
+    final pointsOffset = cached.pathPoints.map((p) => Offset(p.x, p.y)).toList();
+    final transformedPoints = transformPathPoints(
+      points: pointsOffset,
+      sourceStart: s0,
+      sourceEnd: e0,
+      targetStart: start,
+      targetEnd: end,
+    );
+
+    final path = _buildPathFromOffsets(transformedPoints);
+
+    // Transform label position
+    final p0Label = Offset(cached.labelPosition.x, cached.labelPosition.y);
+    final labelTransformedList = transformPathPoints(
+      points: [p0Label],
+      sourceStart: s0,
+      sourceEnd: e0,
+      targetStart: start,
+      targetEnd: end,
+    );
+    final labelPos = labelTransformedList.isNotEmpty ? labelTransformedList.first : Offset.lerp(start, end, 0.5)!;
+
+    final startArrowCenter = targetStart + startTangent * (startArrowMargin * 0.5);
+    final endArrowCenter = targetEnd - endTangent * (endArrowMargin * 0.5);
+    final startArrowDirection = startTangent.direction + pi;
+    final endArrowDirection = endTangent.direction;
+
+    return RelationPaintDto(
+      id: rel.id,
+      path: path,
+      points: transformedPoints,
+      widths: cached.bodyWidths,
+      isVariableWidth: cached.bodyType != rust_config.BodyType.uniform,
+      color: color,
+      strokeWidth: strokeWidth,
+      strokePattern: resolved.strokePattern,
+      startShape: resolved.startShape,
+      endShape: resolved.endShape,
+      arrowSize: resolved.arrowSize,
+      startArrowCenter: startArrowCenter,
+      endArrowCenter: endArrowCenter,
+      startArrowDirection: startArrowDirection,
+      endArrowDirection: endArrowDirection,
+      startArrowMargin: startArrowMargin,
+      endArrowMargin: endArrowMargin,
+      isSelected: isSelected,
+      startPoint: targetStart,
+      endPoint: targetEnd,
+      verb: rel.verb,
+      labelPos: labelPos,
+    );
+  }
+
+  RelationPaintDto _buildFallbackPaintDto({
+    required UiRelation rel,
+    required NodeViewState from,
+    required NodeViewState to,
+    required RelationTipDragging? tipDrag,
+    required Offset? dragPos,
+    required RelationStyle resolved,
+    required bool isSelected,
+    required Color color,
+    required double strokeWidth,
+  }) {
+    final Offset targetStart;
+    final Offset targetEnd;
+
+    if (tipDrag != null && dragPos != null) {
+      targetStart = tipDrag.isStartTip ? dragPos : from.rect.center;
+      targetEnd = !tipDrag.isStartTip ? dragPos : to.rect.center;
+    } else {
+      targetStart = from.rect.center;
+      targetEnd = to.rect.center;
+    }
+
+    final dir = (targetEnd - targetStart).distance > 1e-6
+        ? (targetEnd - targetStart) / (targetEnd - targetStart).distance
+        : const Offset(1, 0);
+
+    final startArrowMargin = (resolved.startShape != null && resolved.startShape != EndpointShape.none)
+        ? resolved.arrowSize
+        : 0.0;
+    final endArrowMargin = (resolved.endShape != null && resolved.endShape != EndpointShape.none)
+        ? resolved.arrowSize
+        : 0.0;
+
+    final start = targetStart + dir * (startArrowMargin * 0.5);
+    final end = targetEnd - dir * (endArrowMargin * 0.5);
+
+    final path = Path()
+      ..moveTo(start.dx, start.dy)
+      ..lineTo(end.dx, end.dy);
+
+    final points = [start, end];
+    final widths = [resolved.strokeWidth.toDouble(), resolved.strokeWidth.toDouble()];
+    const isVariableWidth = false;
+
+    final labelPos = Offset.lerp(start, end, 0.5)!;
+
+    final startArrowCenter = targetStart + dir * (startArrowMargin * 0.5);
+    final endArrowCenter = targetEnd - dir * (endArrowMargin * 0.5);
+    final startArrowDirection = dir.direction + pi;
+    final endArrowDirection = dir.direction;
+
+    return RelationPaintDto(
+      id: rel.id,
+      path: path,
+      points: points,
+      widths: widths,
+      isVariableWidth: isVariableWidth,
+      color: color,
+      strokeWidth: strokeWidth,
+      strokePattern: resolved.strokePattern,
+      startShape: resolved.startShape,
+      endShape: resolved.endShape,
+      arrowSize: resolved.arrowSize,
+      startArrowCenter: startArrowCenter,
+      endArrowCenter: endArrowCenter,
+      startArrowDirection: startArrowDirection,
+      endArrowDirection: endArrowDirection,
+      startArrowMargin: startArrowMargin,
+      endArrowMargin: endArrowMargin,
+      isSelected: isSelected,
+      startPoint: targetStart,
+      endPoint: targetEnd,
+      verb: rel.verb,
+      labelPos: labelPos,
+    );
+  }
+
 }
