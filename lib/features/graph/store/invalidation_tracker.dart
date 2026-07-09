@@ -43,6 +43,10 @@ class InvalidationTracker {
     _dirtyRelationIds.addAll(_cache.keys);
   }
 
+  void markIdsDirty(Iterable<String> ids) {
+    _dirtyRelationIds.addAll(ids);
+  }
+
   void clearDirty() {
     _dirtyRelationIds.clear();
   }

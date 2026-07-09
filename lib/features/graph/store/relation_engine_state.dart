@@ -163,7 +163,7 @@ class RelationEngineState {
     required Iterable<UiRelation> relations,
   }) {
     _tracker.clear();
-    _tracker.markAllDirty();
+    _tracker.markIdsDirty(relations.map((r) => r.id));
   }
 
   void dispose() {
