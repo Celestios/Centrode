@@ -1,56 +1,30 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
-import 'package:mycelium/features/graph/models/relation_view_state.dart';
 import '../models/models.dart';
 
 class InvalidationTracker {
   final Map<String, ComputedRelation> _cache = {};
-  final Map<String, Set<String>> _nodeToRelations = {};
   final Set<String> _dirtyRelationIds = {};
 
   Map<String, ComputedRelation> get cache => _cache;
 
   void clear() {
     _cache.clear();
-    _nodeToRelations.clear();
     _dirtyRelationIds.clear();
   }
 
-  void indexRelations(
-    Iterable<dynamic> relations,
-    Map<String, RelationViewStateRecord> nodeViewStates,
-  ) {
-    _nodeToRelations.clear();
-    for (final rel in relations) {
-      final fromId = rel.fromNodeId;
-      final toId = rel.toNodeId;
-      _nodeToRelations.putIfAbsent(fromId, () => {}).add(rel.id);
-      _nodeToRelations.putIfAbsent(toId, () => {}).add(rel.id);
-    }
-  }
-
   void onNodeMoved(String nodeId) {
-    final related = _nodeToRelations[nodeId];
-    if (related != null) {
-      _dirtyRelationIds.addAll(related);
-    }
+    _dirtyRelationIds.addAll(_cache.keys);
   }
 
   void onRelationAdded(UiRelation relation) {
-    final fromId = relation.fromNodeId;
-    final toId = relation.toNodeId;
-    _nodeToRelations.putIfAbsent(fromId, () => {}).add(relation.id);
-    _nodeToRelations.putIfAbsent(toId, () => {}).add(relation.id);
     _dirtyRelationIds.add(relation.id);
   }
 
   void onRelationDeleted(String relationId) {
     _cache.remove(relationId);
     _dirtyRelationIds.remove(relationId);
-    for (final entry in _nodeToRelations.values) {
-      entry.remove(relationId);
-    }
   }
 
   void onRelationLayoutUpdated(String relationId) {
@@ -66,9 +40,7 @@ class InvalidationTracker {
   bool get hasDirtyRelations => _dirtyRelationIds.isNotEmpty;
 
   void markAllDirty() {
-    for (final entry in _nodeToRelations.values) {
-      _dirtyRelationIds.addAll(entry);
-    }
+    _dirtyRelationIds.addAll(_cache.keys);
   }
 
   void clearDirty() {
@@ -95,7 +67,10 @@ class InvalidationTracker {
   }
 
   List<String> getRelationIdsForNode(String nodeId) {
-    return _nodeToRelations[nodeId]?.toList() ?? [];
+    return _cache.keys.where((id) {
+      final rel = _cache[id];
+      return rel != null && rel.dependsOnNodes.contains(nodeId);
+    }).toList();
   }
 
   Rect computeBbox(List<ComputedRelation> relations) {

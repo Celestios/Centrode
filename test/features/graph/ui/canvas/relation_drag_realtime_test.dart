@@ -51,6 +51,10 @@ ComputedRelation createTestComputedRelation(String id, List<rust_geom.Point> pat
     bbox: const rust_geom.Rect(x: 0, y: 0, width: 0, height: 0),
     startMargin: 0.0,
     endMargin: 0.0,
+    startArrowCenter: const rust_geom.Point(x: 0, y: 0),
+    endArrowCenter: const rust_geom.Point(x: 0, y: 0),
+    startPoint: const rust_geom.Point(x: 0, y: 0),
+    endPoint: const rust_geom.Point(x: 0, y: 0),
   );
 }
 
@@ -105,7 +109,14 @@ void main() {
       ).thenAnswer((_) => const Stream.empty());
 
       final mockRelationEngine = MockRelationEngineState();
-      when(() => mockRelationEngine.cache).thenReturn({});
+      final testComputed = createTestComputedRelation(
+        'rel-1',
+        [
+          const rust_geom.Point(x: 110, y: 35),
+          const rust_geom.Point(x: 210, y: 35),
+        ],
+      );
+      when(() => mockRelationEngine.cache).thenReturn({'rel-1': testComputed});
       when(() => mockRelationEngine.cacheNotifier)
           .thenReturn(ValueNotifier<int>(0));
       when(() => mockController.relationEngine)

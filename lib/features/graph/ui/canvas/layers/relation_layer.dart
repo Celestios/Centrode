@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
@@ -157,8 +156,8 @@ class RelationLayer extends StatelessWidget {
       if (from == null || to == null) continue;
 
       final tipDrag = (interactionState is RelationTipDragging &&
-              (interactionState as RelationTipDragging).relationId == rel.id)
-          ? interactionState as RelationTipDragging
+              interactionState.relationId == rel.id)
+          ? interactionState
           : null;
 
       final resolved = RelationStyleStrategy.resolveStyle(rel);

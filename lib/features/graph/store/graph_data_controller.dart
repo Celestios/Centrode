@@ -227,7 +227,6 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
 
       relationEngine.onInitialLoad(
         relations: store.relations,
-        nodeViewStates: {}, // Will be populated by RelationLayer
       );
       unawaited(relationEngine.recomputeDirty());
 
