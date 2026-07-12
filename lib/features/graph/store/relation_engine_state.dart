@@ -26,7 +26,6 @@ class RelationEngineState {
         frequency: 3.0,
         obstacleAvoidance: false,
       ),
-      gridSize: 8.0,
       extensionMin: 8.0,
       extensionScale: 0.1,
     ),
@@ -109,6 +108,17 @@ class RelationEngineState {
 
     try {
       final computed = await recompute(dirtyIds: dirtyIds);
+      for (final rel in computed) {
+        print('=== [DART-FFI] ComputedRelation: ${rel.id} ===');
+        print('  pathPoints (${rel.pathPoints.length}):');
+        for (var i = 0; i < rel.pathPoints.length; i++) {
+          final p = rel.pathPoints[i];
+          print('    [$i] (${p.x.toStringAsFixed(1)}, ${p.y.toStringAsFixed(1)})');
+        }
+        print('  startPoint: (${rel.startPoint.x.toStringAsFixed(1)}, ${rel.startPoint.y.toStringAsFixed(1)})');
+        print('  endPoint: (${rel.endPoint.x.toStringAsFixed(1)}, ${rel.endPoint.y.toStringAsFixed(1)})');
+        print('');
+      }
       _tracker.updateCache(computed);
       cacheNotifier.value++;
     } catch (e) {
@@ -129,39 +139,7 @@ class RelationEngineState {
     }
   }
 
-  Future<ComputedRelation?> computeSingleRelation({
-    required String edgeId,
-    required String fromNodeId,
-    required String toNodeId,
-    PortSide? fromSide,
-    PortSide? toSide,
-    double? overrideStartX,
-    double? overrideStartY,
-    double? overrideEndX,
-    double? overrideEndY,
-  }) async {
-    try {
-      return await _api.computeSingleRelation(
-        config: _config,
-        edgeId: edgeId,
-        fromNodeId: fromNodeId,
-        toNodeId: toNodeId,
-        fromSide: fromSide,
-        toSide: toSide,
-        overrideStartX: overrideStartX,
-        overrideStartY: overrideStartY,
-        overrideEndX: overrideEndX,
-        overrideEndY: overrideEndY,
-      );
-    } catch (e) {
-      _log.warning('Failed to compute single relation: $e');
-      return null;
-    }
-  }
-
-  void onInitialLoad({
-    required Iterable<UiRelation> relations,
-  }) {
+  void onInitialLoad({required Iterable<UiRelation> relations}) {
     _tracker.clear();
     _tracker.markIdsDirty(relations.map((r) => r.id));
   }

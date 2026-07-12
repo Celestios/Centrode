@@ -90,9 +90,9 @@ impl RelationEngine {
         let mut results = Vec::with_capacity(edges_to_compute.len());
 
         let passes: Vec<Box<dyn PipelinePass>> = vec![
-                    Box::new(RoutingPass),
+                    Box::new(RoutingPass {}),
                                         // Box::new(ResolutionPass), // INTENTIONALLY DISABLED — do not uncomment without Shahin's approval
-                                        Box::new(FinalizePass),
+                                        Box::new(FinalizePass {}),
                 ];
 
         for pass in passes {
@@ -157,21 +157,37 @@ impl RelationEngine {
     pub(crate) fn finalize_relation(
         &mut self,
         result: &mut ComputedRelation,
-        untrimmed_path: &[Point],
+        path: &[Point],
         edge: Option<&InputEdge>,
         node_map: &HashMap<&str, &InputNode>,
         config: &RelationEngineConfig,
     ) {
-        let (start_tangent, end_tangent) = super::geometry::compute_tangents(untrimmed_path);
+        let (start_tangent, end_tangent) = super::geometry::compute_tangents(path);
         result.start_tangent = start_tangent;
         result.end_tangent = end_tangent;
-
-        let start_port = untrimmed_path.first().copied().unwrap_or(Point::zero());
-        let end_port = untrimmed_path.last().copied().unwrap_or(Point::zero());
 
         let style = edge.and_then(|e| e.style.as_ref());
         let from_node = edge.and_then(|e| node_map.get(e.from_node_id.as_str()).copied());
         let to_node = edge.and_then(|e| node_map.get(e.to_node_id.as_str()).copied());
+
+        let start_port = if let Some(node) = from_node {
+            let to_center = to_node.map(|n| n.center()).unwrap_or(Point::zero());
+            match edge.and_then(|e| e.from_side.as_ref()) {
+                Some(side) => node.resolve_port(side, to_center).position,
+                None => node.closest_port_to(to_center).position,
+            }
+        } else {
+            path.first().copied().unwrap_or(Point::zero())
+        };
+        let end_port = if let Some(node) = to_node {
+            let from_center = from_node.map(|n| n.center()).unwrap_or(Point::zero());
+            match edge.and_then(|e| e.to_side.as_ref()) {
+                Some(side) => node.resolve_port(side, from_center).position,
+                None => node.closest_port_to(from_center).position,
+            }
+        } else {
+            path.last().copied().unwrap_or(Point::zero())
+        };
 
         let is_orthogonal = result.path_type == crate::domain::relation_engine::computed::PathType::Orthogonal;
 
@@ -202,30 +218,7 @@ impl RelationEngine {
         let stroke_width = style.map(|s| s.stroke_width as f64).unwrap_or(2.0);
         let arrow_size = style.map(|s| s.arrow_size).unwrap_or(config.endpoint.arrow_size);
 
-        let start_width = match result.body_type {
-            BodyType::Taper => config.body.taper_start_width,
-            _ => stroke_width,
-        };
-        let end_width = match result.body_type {
-            BodyType::Taper => config.body.taper_end_width,
-            _ => stroke_width,
-        };
-
-        let start_scale = if start_width > 0.0 { start_width / 2.0 } else { 1.0 };
-        let end_scale = if end_width > 0.0 { end_width / 2.0 } else { 1.0 };
-
-        let start_margin = if result.start_endpoint != EndpointShapeType::None {
-            arrow_size * start_scale * 0.5
-        } else {
-            0.0
-        };
-        let end_margin = if result.end_endpoint != EndpointShapeType::None {
-            arrow_size * end_scale * 0.5
-        } else {
-            0.0
-        };
-
-        result.path_points = super::painting::relation::trim_path(untrimmed_path, start_margin, end_margin);
+        result.path_points = path.to_vec();
 
         self.buffers.widths.clear();
         let _body_result = section_body::compute_widths(
@@ -240,12 +233,12 @@ impl RelationEngine {
         let (label_pos, _) = compute_label_position(&result.path_points, config);
         result.label_position = label_pos;
         result.bbox = compute_bbox(&result.path_points);
-        result.start_margin = start_margin;
-        result.end_margin = end_margin;
-        result.start_arrow_center = result.path_points.first().copied().unwrap_or(Point::zero());
-        result.end_arrow_center = result.path_points.last().copied().unwrap_or(Point::zero());
-        result.start_point = untrimmed_path.first().copied().unwrap_or(Point::zero());
-        result.end_point = untrimmed_path.last().copied().unwrap_or(Point::zero());
+        result.start_margin = 0.0;
+        result.end_margin = 0.0;
+        result.start_arrow_center = start_port - start_tangent * (arrow_size * 0.5);
+        result.end_arrow_center = end_port - end_tangent * (arrow_size * 0.5);
+        result.start_point = path.first().copied().unwrap_or(Point::zero());
+        result.end_point = path.last().copied().unwrap_or(Point::zero());
     }
 
     pub fn update_node_cache(&mut self, node: InputNode, margin: f64) {
@@ -311,19 +304,32 @@ impl RelationEngine {
         let from_node = node_map[edge.from_node_id.as_str()];
         let to_node = node_map[edge.to_node_id.as_str()];
         let routing_mode = edge.routing_mode.unwrap_or(config.routing.routing_mode);
-        let extension = compute_extension(from_node, to_node, config.routing.grid_size, config.routing.extension_min, config.routing.extension_scale);
+        let start_extension = compute_extension(from_node, config.routing.extension_min, config.routing.extension_scale);
+        let end_extension = compute_extension(to_node, config.routing.extension_min, config.routing.extension_scale);
 
-        let ports = match resolve_edge_ports_full(edge, node_map, routing_mode, extension) {
+        let ports = match resolve_edge_ports_full(edge, node_map, routing_mode, start_extension, end_extension) {
             Some(p) => p,
             None => return empty_computed_relation(&edge.id, &edge.from_node_id, &edge.to_node_id),
         };
 
-        let mut full_obstacles = obstacles.to_vec();
-        full_obstacles.push(from_node.rect());
-        full_obstacles.push(to_node.rect());
+        let mut full_obstacles: Vec<Rect> = obstacles.iter()
+            .filter(|r| **r != from_node.rect() && **r != to_node.rect())
+            .copied()
+            .collect();
 
         let strategy = resolve_strategy(routing_mode);
         let (path_points, path_type) = strategy.route_full(&ports, &full_obstacles, config);
+
+        eprintln!("=== Relation: {} ===", edge.id);
+        eprintln!("  start_ext: {:.1}  end_ext: {:.1}", start_extension, end_extension);
+        eprintln!("  start: ({:.1}, {:.1})  end: ({:.1}, {:.1})", ports.start.position.x, ports.start.position.y, ports.end.position.x, ports.end.position.y);
+        eprintln!("  start_exit: ({:.1}, {:.1})  end_exit: ({:.1}, {:.1})", ports.start_exit.x, ports.start_exit.y, ports.end_exit.x, ports.end_exit.y);
+        eprintln!("  path_type: {:?}", path_type);
+        eprintln!("  points ({}):", path_points.len());
+        for (i, p) in path_points.iter().enumerate() {
+            eprintln!("    [{:3}] ({:.1}, {:.1})", i, p.x, p.y);
+        }
+        eprintln!("");
 
         let body_strategy_str = edge.style.as_ref().map(|s| s.body_strategy.as_str()).unwrap_or("");
         let body_type = match body_strategy_str {
@@ -361,7 +367,6 @@ impl RelationEngine {
             end_point: Point::zero(),
         };
 
-        self.finalize_relation(&mut result, &path_points, Some(edge), node_map, config);
         result
     }
 }

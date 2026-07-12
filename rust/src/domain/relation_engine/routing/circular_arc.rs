@@ -4,7 +4,7 @@ use crate::domain::relation_engine::computed::PathType;
 use crate::domain::relation_engine::input::{ResolvedPorts, Side};
 use super::{RoutingStrategy, TransitionInput};
 
-pub struct CircularArcRouting;
+pub struct CircularArcRouting {}
 
 impl RoutingStrategy for CircularArcRouting {
     fn compute_transition(

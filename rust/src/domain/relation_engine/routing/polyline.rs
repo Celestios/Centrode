@@ -4,7 +4,7 @@ use crate::domain::relation_engine::config::RelationEngineConfig;
 use crate::domain::relation_engine::input::{ResolvedPorts, Side};
 use super::{RoutingStrategy, TransitionInput};
 
-pub struct PolylineRouting;
+pub struct PolylineRouting {}
 
 impl RoutingStrategy for PolylineRouting {
     fn compute_transition(

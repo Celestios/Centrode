@@ -4,7 +4,7 @@ use crate::domain::relation_engine::computed::PathType;
 use crate::domain::relation_engine::input::{ResolvedPorts, Side};
 use super::{RoutingStrategy, TransitionInput};
 
-pub struct SineWaveRouting;
+pub struct SineWaveRouting {}
 
 fn cubic_bezier_tangent(p0: Point, p1: Point, p2: Point, p3: Point, t: f64) -> Point {
     let mt = 1.0 - t;

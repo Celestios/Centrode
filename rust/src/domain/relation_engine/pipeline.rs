@@ -22,7 +22,7 @@ pub trait PipelinePass {
     );
 }
 
-pub struct RoutingPass;
+pub struct RoutingPass {}
 
 impl PipelinePass for RoutingPass {
     fn run(
@@ -52,7 +52,7 @@ impl PipelinePass for RoutingPass {
     }
 }
 
-pub struct ResolutionPass;
+pub struct ResolutionPass {}
 
 impl PipelinePass for ResolutionPass {
     fn run(
@@ -139,7 +139,7 @@ impl PipelinePass for ResolutionPass {
     }
 }
 
-pub struct FinalizePass;
+pub struct FinalizePass {}
 
 impl PipelinePass for FinalizePass {
     fn run(

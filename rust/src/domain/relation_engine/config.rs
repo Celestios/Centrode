@@ -118,10 +118,10 @@ pub struct RoutingConfig {
     pub corner_radius: f64,
     pub bezier_curvature: f64,
     pub bezier_projection_factor: f64,
+    pub bezier_turn_wideness: f64,
     pub bezier_clamp_min: f64,
     pub bezier_clamp_max: f64,
     pub sine_wave: SnakeConfig,
-    pub grid_size: f64,
     pub extension_min: f64,
     pub extension_scale: f64,
 }
@@ -130,16 +130,16 @@ impl Default for RoutingConfig {
     fn default() -> Self {
         Self {
             routing_mode: RoutingMode::Polyline,
-            obstacle_margin: 45.0,
+            obstacle_margin: 80.0,
             corner_radius: 8.0,
-            bezier_curvature: 0.25,
-            bezier_projection_factor: 0.4,
+            bezier_curvature: 0.6,
+            bezier_projection_factor: 0.5,
+            bezier_turn_wideness: 1.5,
             bezier_clamp_min: 30.0,
-            bezier_clamp_max: 150.0,
+            bezier_clamp_max: 350.0,
             sine_wave: SnakeConfig::default(),
-            grid_size: 8.0,
-            extension_min: 8.0,
-            extension_scale: 0.1,
+            extension_min: 16.0,
+            extension_scale: 0.15,
         }
     }
 }

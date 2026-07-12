@@ -28,8 +28,8 @@ pub struct ComputedRelation {
     pub end_margin: f64,
     pub start_arrow_center: Point,
     pub end_arrow_center: Point,
-    pub start_point: Point,
     pub end_point: Point,
+    pub start_point: Point,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

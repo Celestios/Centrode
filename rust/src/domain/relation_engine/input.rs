@@ -318,18 +318,17 @@ fn resolve_orthogonal_normal_from_side(side: &PortSide, port: Point, other: Poin
     }
 }
 
-pub fn compute_extension(from_node: &InputNode, to_node: &InputNode, grid_size: f64, extension_min: f64, extension_scale: f64) -> f64 {
-    let node_dim = from_node.width.min(from_node.height)
-        .min(to_node.width).min(to_node.height);
-    let raw = (node_dim * extension_scale).max(extension_min);
-    (raw / grid_size).ceil() * grid_size
+pub fn compute_extension(node: &InputNode, extension_min: f64, extension_scale: f64) -> f64 {
+    let node_dim = node.width.min(node.height);
+    (node_dim * extension_scale).max(extension_min)
 }
 
 pub fn resolve_edge_ports_full(
     edge: &InputEdge,
     node_map: &HashMap<&str, &InputNode>,
     routing_mode: RoutingMode,
-    extension_length: f64,
+    start_extension: f64,
+    end_extension: f64,
 ) -> Option<ResolvedPorts> {
     let from_node = node_map.get(edge.from_node_id.as_str())?;
     let to_node = node_map.get(edge.to_node_id.as_str())?;
@@ -348,8 +347,8 @@ pub fn resolve_edge_ports_full(
     let start_normal = resolve_normal(&start.side, start.position, to_center, routing_mode);
     let end_normal = resolve_normal(&end.side, end.position, from_center, routing_mode);
 
-    let start_exit = start.position + start_normal * extension_length;
-    let end_exit = end.position + end_normal * extension_length;
+    let start_exit = start.position + start_normal * start_extension;
+    let end_exit = end.position + end_normal * end_extension;
 
     Some(ResolvedPorts { start, end, start_normal, end_normal, start_exit, end_exit })
 }

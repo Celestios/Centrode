@@ -4,7 +4,7 @@ use crate::domain::relation_engine::computed::PathType;
 use crate::domain::relation_engine::input::{ResolvedPorts, Side};
 use super::{RoutingStrategy, TransitionInput};
 
-pub struct OrthogonalRouting;
+pub struct OrthogonalRouting {}
 
 impl RoutingStrategy for OrthogonalRouting {
     fn compute_transition(

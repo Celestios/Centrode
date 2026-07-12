@@ -112,12 +112,33 @@ pub trait RoutingStrategy: Send + Sync {
 
 pub fn resolve_strategy(mode: RoutingMode) -> Box<dyn RoutingStrategy> {
     match mode {
-        RoutingMode::Polyline => Box::new(polyline::PolylineRouting),
-        RoutingMode::Bezier => Box::new(bezier::BezierRouting),
-        RoutingMode::Orthogonal => Box::new(orthogonal::OrthogonalRouting),
-        RoutingMode::CircularArc => Box::new(circular_arc::CircularArcRouting),
-        RoutingMode::SineWave => Box::new(sine_wave::SineWaveRouting),
+        RoutingMode::Polyline => Box::new(polyline::PolylineRouting {}),
+        RoutingMode::Bezier => Box::new(bezier::BezierRouting {}),
+        RoutingMode::Orthogonal => Box::new(orthogonal::OrthogonalRouting {}),
+        RoutingMode::CircularArc => Box::new(circular_arc::CircularArcRouting {}),
+        RoutingMode::SineWave => Box::new(sine_wave::SineWaveRouting {}),
     }
+}
+
+/// Remove collinear waypoints that don't contribute to the path shape.
+pub fn prune_collinear_waypoints(waypoints: &[Point]) -> Vec<Point> {
+    if waypoints.len() <= 2 {
+        return waypoints.to_vec();
+    }
+    let mut pruned = vec![waypoints[0]];
+    for i in 1..waypoints.len() - 1 {
+        let prev = *pruned.last().unwrap();
+        let curr = waypoints[i];
+        let next = waypoints[i + 1];
+        let v1 = (curr - prev).normalized();
+        let v2 = (next - curr).normalized();
+        let dot = v1.dot(v2);
+        if dot < 0.999 {
+            pruned.push(curr);
+        }
+    }
+    pruned.push(*waypoints.last().unwrap());
+    pruned
 }
 
 pub fn compute_bbox(points: &[Point]) -> Rect {
