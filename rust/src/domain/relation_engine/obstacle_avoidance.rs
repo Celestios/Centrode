@@ -22,6 +22,17 @@ pub fn compute_waypoints(
     obstacles: &[Rect],
     margin: f64,
 ) -> Vec<Point> {
+    use crate::domain::relation_engine::routing::polyline::PolylineRouting;
+    compute_waypoints_with_strategy(from, to, obstacles, margin, &PolylineRouting {})
+}
+
+pub fn compute_waypoints_with_strategy<S: crate::domain::relation_engine::routing::RoutingStrategy + ?Sized>(
+    from: Point,
+    to: Point,
+    obstacles: &[Rect],
+    margin: f64,
+    strategy: &S,
+) -> Vec<Point> {
     if obstacles.is_empty() {
         return vec![from, to];
     }
@@ -53,6 +64,6 @@ pub fn compute_waypoints(
 
     let graph = VisibilityGraph::build(&filtered, from, to, adaptive_margin);
     let cost_params = RouteCostParams::default();
-    a_star_with_params(&graph, &cost_params, Some(&from), Some(&to), &CanvasState::new())
+    super::solver::visibility_graph::a_star_with_strategy(&graph, strategy, &cost_params, Some(&to), &CanvasState::new())
         .unwrap_or_else(|| vec![from, to])
 }

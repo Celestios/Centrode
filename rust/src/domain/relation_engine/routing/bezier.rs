@@ -15,11 +15,12 @@ impl RoutingStrategy for BezierRouting {
         config: &RelationEngineConfig,
     ) -> Vec<Point> {
         let bezier_margin = (config.routing.obstacle_margin * 0.4).clamp(12.0, 20.0);
-        crate::domain::relation_engine::obstacle_avoidance::compute_waypoints(
+        crate::domain::relation_engine::obstacle_avoidance::compute_waypoints_with_strategy(
             from,
             to,
             obstacles,
             bezier_margin,
+            self,
         )
     }
 
@@ -125,4 +126,38 @@ impl RoutingStrategy for BezierRouting {
     }
 
     fn path_type(&self) -> PathType { PathType::CubicBezier }
+
+    fn a_star_is_better(
+        &self,
+        tentative_g: f64,
+        existing_g: f64,
+        current: usize,
+        neighbor: usize,
+        graph: &super::super::solver::visibility_graph::VisibilityGraph,
+        came_from: &[Option<usize>],
+    ) -> bool {
+        let mut is_better = tentative_g < existing_g - 1e-6;
+        if !is_better && (tentative_g - existing_g).abs() < 1e-6 {
+            let neighbor_point = graph.nodes[neighbor].point;
+            let current_point = graph.nodes[current].point;
+            if let Some(prev_current) = came_from[current] {
+                let dir_new = neighbor_point - current_point;
+                let dir_prev_new = current_point - graph.nodes[prev_current].point;
+                let dot_new = dir_new.normalized().dot(dir_prev_new.normalized());
+
+                if let Some(existing_parent) = came_from[neighbor] {
+                    if let Some(prev_existing) = came_from[existing_parent] {
+                        let dir_exist = neighbor_point - graph.nodes[existing_parent].point;
+                        let dir_prev_exist = graph.nodes[existing_parent].point - graph.nodes[prev_existing].point;
+                        let dot_exist = dir_exist.normalized().dot(dir_prev_exist.normalized());
+
+                        if dot_new > dot_exist + 1e-6 {
+                            is_better = true;
+                        }
+                    }
+                }
+            }
+        }
+        is_better
+    }
 }

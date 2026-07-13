@@ -52,7 +52,7 @@ pub trait RoutingStrategy: Send + Sync {
     fn compute_obstacle_waypoints(
         &self, from: Point, to: Point, obstacles: &[Rect], config: &RelationEngineConfig,
     ) -> Vec<Point> {
-        super::obstacle_avoidance::compute_waypoints(from, to, obstacles, config.routing.obstacle_margin)
+        super::obstacle_avoidance::compute_waypoints_with_strategy(from, to, obstacles, config.routing.obstacle_margin, self)
     }
 
     fn compute_body(
@@ -62,6 +62,116 @@ pub trait RoutingStrategy: Send + Sync {
     fn post_process(&self, _path: &mut Vec<Point>, _config: &RelationEngineConfig) {}
 
     fn path_type(&self) -> PathType;
+
+    fn a_star_edge_cost(
+        &self,
+        params: &super::solver::visibility_graph::RouteCostParams,
+        edge_dist: f64,
+        prev_point: Option<Point>,
+        curr_point: Point,
+        next_point: Point,
+        dst_point: Point,
+        grid: &super::solver::visibility_graph::SpatialGrid,
+    ) -> f64 {
+        let mut cost = edge_dist;
+
+        if let Some(prev) = prev_point {
+            let rad = std::f64::consts::PI - super::solver::visibility_graph::angle_between(prev, curr_point, next_point);
+
+            if rad > 1e-6 && params.angle_penalty > 0.0 {
+                let xval = rad * 10.0 / std::f64::consts::PI;
+                let yval = xval * (xval + 1.0).log10() / 10.5;
+                cost += params.angle_penalty * yval;
+            }
+
+            if rad > std::f64::consts::PI - 1e-6 {
+                cost += 2.0 * params.segment_penalty;
+            } else if rad > 1e-6 {
+                cost += params.segment_penalty;
+            }
+        } else {
+            cost += params.segment_penalty * 0.5;
+        }
+
+        if params.reverse_direction_penalty > 0.0 {
+            let src_to_dst = dst_point - Point::new(0.0, 0.0);
+            let x_dir = super::solver::visibility_graph::dim_direction(src_to_dst.x);
+            let y_dir = super::solver::visibility_graph::dim_direction(src_to_dst.y);
+
+            let seg_dir = next_point - curr_point;
+            let seg_x_dir = super::solver::visibility_graph::dim_direction(seg_dir.x);
+            let seg_y_dir = super::solver::visibility_graph::dim_direction(seg_dir.y);
+
+            let mut does_reverse = false;
+            if x_dir != 0 && seg_x_dir == -x_dir {
+                does_reverse = true;
+            }
+            if y_dir != 0 && seg_y_dir == -y_dir {
+                does_reverse = true;
+            }
+
+            if does_reverse {
+                cost += params.reverse_direction_penalty;
+            }
+        }
+
+        if params.crossing_penalty > 0.0 {
+            if grid.intersects_segment(curr_point, next_point) {
+                cost += params.crossing_penalty;
+            }
+        }
+
+        cost
+    }
+
+    fn a_star_heuristic(
+        &self,
+        from: Point,
+        to: Point,
+        prev: Option<Point>,
+        params: &super::solver::visibility_graph::RouteCostParams,
+    ) -> f64 {
+        let dist = from.distance_to(to);
+
+        if params.segment_penalty > 0.0 || params.angle_penalty > 0.0 {
+            let dx = to.x - from.x;
+            let dy = to.y - from.y;
+            let mut bend_estimate = 0;
+
+            if let Some(prev_pt) = prev {
+                let curr_dir = from - prev_pt;
+                let curr_len = curr_dir.length();
+                if curr_len > 1e-6 {
+                    let curr_dir_norm = Point::new(curr_dir.x / curr_len, curr_dir.y / curr_len);
+                    if curr_dir_norm.x.abs() > 0.5 && dy.abs() > 1e-6 {
+                        bend_estimate += 1;
+                    } else if curr_dir_norm.y.abs() > 0.5 && dx.abs() > 1e-6 {
+                        bend_estimate += 1;
+                    }
+                }
+            } else {
+                if dx.abs() > 1e-6 && dy.abs() > 1e-6 {
+                    bend_estimate += 1;
+                }
+            }
+
+            dist + bend_estimate as f64 * params.segment_penalty
+        } else {
+            dist
+        }
+    }
+
+    fn a_star_is_better(
+        &self,
+        tentative_g: f64,
+        existing_g: f64,
+        _current: usize,
+        _neighbor: usize,
+        _graph: &super::solver::visibility_graph::VisibilityGraph,
+        _came_from: &[Option<usize>],
+    ) -> bool {
+        tentative_g < existing_g - 1e-6
+    }
 
     fn route_full(
         &self,

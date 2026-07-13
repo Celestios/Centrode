@@ -114,7 +114,7 @@ impl Default for RouteCostParams {
     }
 }
 
-fn angle_between(p1: Point, p2: Point, p3: Point) -> f64 {
+pub(crate) fn angle_between(p1: Point, p2: Point, p3: Point) -> f64 {
     let v1 = Point::new(p1.x - p2.x, p1.y - p2.y);
     let v2 = Point::new(p3.x - p2.x, p3.y - p2.y);
     let dot = v1.x * v2.x + v1.y * v2.y;
@@ -122,7 +122,7 @@ fn angle_between(p1: Point, p2: Point, p3: Point) -> f64 {
     cross.abs().atan2(dot.abs())
 }
 
-fn dim_direction(diff: f64) -> i32 {
+pub(crate) fn dim_direction(diff: f64) -> i32 {
     if diff > 1e-6 {
         1
     } else if diff < -1e-6 {
@@ -140,6 +140,17 @@ pub fn a_star_with_params(
     graph: &VisibilityGraph,
     cost_params: &RouteCostParams,
     _src_point: Option<&Point>,
+    dst_point: Option<&Point>,
+    state: &CanvasState,
+) -> Option<Vec<Point>> {
+    use crate::domain::relation_engine::routing::polyline::PolylineRouting;
+    a_star_with_strategy(graph, &PolylineRouting {}, cost_params, dst_point, state)
+}
+
+pub fn a_star_with_strategy<S: crate::domain::relation_engine::routing::RoutingStrategy + ?Sized>(
+    graph: &VisibilityGraph,
+    strategy: &S,
+    cost_params: &RouteCostParams,
     dst_point: Option<&Point>,
     state: &CanvasState,
 ) -> Option<Vec<Point>> {
@@ -182,7 +193,7 @@ pub fn a_star_with_params(
     let mut g_score: Vec<f64> = vec![f64::INFINITY; n];
 
     g_score[start] = 0.0;
-    let h = cost_heuristic(graph.nodes[start].point, actual_dst, None, cost_params);
+    let h = strategy.a_star_heuristic(graph.nodes[start].point, actual_dst, None, cost_params);
     heap.push(State { cost: h, position: start });
 
     while let Some(State { cost: _, position: current }) = heap.pop() {
@@ -202,7 +213,7 @@ pub fn a_star_with_params(
 
             let prev_point = came_from[current].map(|p| graph.nodes[p].point);
 
-            let edge_cost = compute_edge_cost(
+            let edge_cost = strategy.a_star_edge_cost(
                 cost_params,
                 edge_dist,
                 prev_point,
@@ -214,31 +225,17 @@ pub fn a_star_with_params(
 
             let tentative_g = g_score[current] + edge_cost;
 
-            let mut is_better = tentative_g < g_score[neighbor] - 1e-6;
-            if !is_better && (tentative_g - g_score[neighbor]).abs() < 1e-6 {
-                if let Some(prev_current) = came_from[current] {
-                    let dir_new = neighbor_point - current_point;
-                    let dir_prev_new = current_point - graph.nodes[prev_current].point;
-                    let dot_new = dir_new.normalized().dot(dir_prev_new.normalized());
-
-                    if let Some(existing_parent) = came_from[neighbor] {
-                        if let Some(prev_existing) = came_from[existing_parent] {
-                            let dir_exist = neighbor_point - graph.nodes[existing_parent].point;
-                            let dir_prev_exist = graph.nodes[existing_parent].point - graph.nodes[prev_existing].point;
-                            let dot_exist = dir_exist.normalized().dot(dir_prev_exist.normalized());
-
-                            if dot_new > dot_exist + 1e-6 {
-                                is_better = true;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if is_better {
+            if strategy.a_star_is_better(
+                tentative_g,
+                g_score[neighbor],
+                current,
+                neighbor,
+                graph,
+                &came_from,
+            ) {
                 came_from[neighbor] = Some(current);
                 g_score[neighbor] = tentative_g;
-                let f = tentative_g + cost_heuristic(neighbor_point, actual_dst, Some(current_point), cost_params);
+                let f = tentative_g + strategy.a_star_heuristic(neighbor_point, actual_dst, Some(current_point), cost_params);
                 heap.push(State { cost: f, position: neighbor });
             }
         }
@@ -320,97 +317,7 @@ impl SpatialGrid {
     }
 }
 
-fn compute_edge_cost(
-    params: &RouteCostParams,
-    edge_dist: f64,
-    prev_point: Option<Point>,
-    curr_point: Point,
-    next_point: Point,
-    dst_point: Point,
-    grid: &SpatialGrid,
-) -> f64 {
-    let mut cost = edge_dist;
 
-    if let Some(prev) = prev_point {
-        let rad = std::f64::consts::PI - angle_between(prev, curr_point, next_point);
-
-        if rad > 1e-6 && params.angle_penalty > 0.0 {
-            let xval = rad * 10.0 / std::f64::consts::PI;
-            let yval = xval * (xval + 1.0).log10() / 10.5;
-            cost += params.angle_penalty * yval;
-        }
-
-        if rad > std::f64::consts::PI - 1e-6 {
-            cost += 2.0 * params.segment_penalty;
-        } else if rad > 1e-6 {
-            cost += params.segment_penalty;
-        }
-    } else {
-        cost += params.segment_penalty * 0.5;
-    }
-
-    if params.reverse_direction_penalty > 0.0 {
-        let src_to_dst = dst_point - Point::new(0.0, 0.0);
-        let x_dir = dim_direction(src_to_dst.x);
-        let y_dir = dim_direction(src_to_dst.y);
-
-        let seg_dir = next_point - curr_point;
-        let seg_x_dir = dim_direction(seg_dir.x);
-        let seg_y_dir = dim_direction(seg_dir.y);
-
-        let mut does_reverse = false;
-        if x_dir != 0 && seg_x_dir == -x_dir {
-            does_reverse = true;
-        }
-        if y_dir != 0 && seg_y_dir == -y_dir {
-            does_reverse = true;
-        }
-
-        if does_reverse {
-            cost += params.reverse_direction_penalty;
-        }
-    }
-
-    // Crossing penalties against cached relations in CanvasState
-    if params.crossing_penalty > 0.0 {
-        if grid.intersects_segment(curr_point, next_point) {
-            cost += params.crossing_penalty;
-        }
-    }
-
-    cost
-}
-
-fn cost_heuristic(from: Point, to: Point, prev: Option<Point>, params: &RouteCostParams) -> f64 {
-    let dist = from.distance_to(to);
-
-    if params.segment_penalty > 0.0 || params.angle_penalty > 0.0 {
-        let dx = to.x - from.x;
-        let dy = to.y - from.y;
-        let mut bend_estimate = 0;
-
-        if let Some(prev_pt) = prev {
-            let curr_dir = from - prev_pt;
-            let curr_len = curr_dir.length();
-            if curr_len > 1e-6 {
-                let curr_dir_norm = Point::new(curr_dir.x / curr_len, curr_dir.y / curr_len);
-                if curr_dir_norm.x.abs() > 0.5 && dy.abs() > 1e-6 {
-                    bend_estimate += 1;
-                } else if curr_dir_norm.y.abs() > 0.5 && dx.abs() > 1e-6 {
-                    bend_estimate += 1;
-                }
-            }
-        } else {
-            if dx.abs() > 1e-6 && dy.abs() > 1e-6 {
-                bend_estimate += 1;
-            }
-        }
-
-        dist + bend_estimate as f64 * params.segment_penalty
-    } else {
-        dist
-    }
-}
 
 fn reconstruct_path(
     came_from: &[Option<usize>],
