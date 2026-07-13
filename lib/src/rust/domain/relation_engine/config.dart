@@ -92,6 +92,57 @@ class EndpointConfig {
 
 enum EndpointShapeType { none, arrow, openArrow, circle, diamond, square }
 
+class KinodynamicConfig {
+  final double kappaMax;
+  final double latticeCellSize;
+  final double angularResolution;
+  final int curvatureBins;
+  final double narrowPhaseTolerance;
+  final double weightArcLength;
+  final double weightCurvature;
+  final double weightObstacle;
+  final double obstacleFalloff;
+
+  const KinodynamicConfig({
+    required this.kappaMax,
+    required this.latticeCellSize,
+    required this.angularResolution,
+    required this.curvatureBins,
+    required this.narrowPhaseTolerance,
+    required this.weightArcLength,
+    required this.weightCurvature,
+    required this.weightObstacle,
+    required this.obstacleFalloff,
+  });
+
+  @override
+  int get hashCode =>
+      kappaMax.hashCode ^
+      latticeCellSize.hashCode ^
+      angularResolution.hashCode ^
+      curvatureBins.hashCode ^
+      narrowPhaseTolerance.hashCode ^
+      weightArcLength.hashCode ^
+      weightCurvature.hashCode ^
+      weightObstacle.hashCode ^
+      obstacleFalloff.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is KinodynamicConfig &&
+          runtimeType == other.runtimeType &&
+          kappaMax == other.kappaMax &&
+          latticeCellSize == other.latticeCellSize &&
+          angularResolution == other.angularResolution &&
+          curvatureBins == other.curvatureBins &&
+          narrowPhaseTolerance == other.narrowPhaseTolerance &&
+          weightArcLength == other.weightArcLength &&
+          weightCurvature == other.weightCurvature &&
+          weightObstacle == other.weightObstacle &&
+          obstacleFalloff == other.obstacleFalloff;
+}
+
 class NudgingConfig {
   final bool enabled;
   final double distance;
@@ -170,6 +221,7 @@ class RoutingConfig {
   final SnakeConfig sineWave;
   final double extensionMin;
   final double extensionScale;
+  final KinodynamicConfig kinodynamic;
 
   const RoutingConfig({
     required this.routingMode,
@@ -181,6 +233,7 @@ class RoutingConfig {
     required this.sineWave,
     required this.extensionMin,
     required this.extensionScale,
+    required this.kinodynamic,
   });
 
   @override
@@ -193,7 +246,8 @@ class RoutingConfig {
       clampMax.hashCode ^
       sineWave.hashCode ^
       extensionMin.hashCode ^
-      extensionScale.hashCode;
+      extensionScale.hashCode ^
+      kinodynamic.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -208,10 +262,11 @@ class RoutingConfig {
           clampMax == other.clampMax &&
           sineWave == other.sineWave &&
           extensionMin == other.extensionMin &&
-          extensionScale == other.extensionScale;
+          extensionScale == other.extensionScale &&
+          kinodynamic == other.kinodynamic;
 }
 
-enum RoutingMode { polyline, bezier, orthogonal, circularArc, sineWave }
+enum RoutingMode { polyline, bSpline, orthogonal, circularArc, sineWave }
 
 class SnakeConfig {
   final double amplitude;

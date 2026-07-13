@@ -13,7 +13,7 @@ pub fn resolve_endpoint_shape(
 #[frb]
 pub enum RoutingMode {
     Polyline,
-    Bezier,
+    BSpline,
     Orthogonal,
     CircularArc,
     SineWave,
@@ -28,7 +28,7 @@ impl Default for RoutingMode {
 impl RoutingMode {
     pub fn from_str(s: &str) -> Self {
         match s.to_lowercase().as_str() {
-            "bezier" => RoutingMode::Bezier,
+            "bspline" | "bezier" => RoutingMode::BSpline,
             "orthogonal" => RoutingMode::Orthogonal,
             "straight" => RoutingMode::Polyline,
             "circular_arc" | "circulararc" | "arc" => RoutingMode::CircularArc,
@@ -112,6 +112,36 @@ impl From<crate::domain::styles::EndpointShape> for EndpointShapeType {
 
 #[derive(Debug, Clone)]
 #[frb]
+pub struct KinodynamicConfig {
+    pub kappa_max: f64,
+    pub lattice_cell_size: f64,
+    pub angular_resolution: f64,
+    pub curvature_bins: u32,
+    pub narrow_phase_tolerance: f64,
+    pub weight_arc_length: f64,
+    pub weight_curvature: f64,
+    pub weight_obstacle: f64,
+    pub obstacle_falloff: f64,
+}
+
+impl Default for KinodynamicConfig {
+    fn default() -> Self {
+        Self {
+            kappa_max: 0.1,
+            lattice_cell_size: 20.0,
+            angular_resolution: std::f64::consts::PI / 8.0,
+            curvature_bins: 16,
+            narrow_phase_tolerance: 5.0,
+            weight_arc_length: 1.0,
+            weight_curvature: 5.0,
+            weight_obstacle: 100.0,
+            obstacle_falloff: 30.0,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+#[frb]
 pub struct RoutingConfig {
     pub routing_mode: RoutingMode,
     pub obstacle_margin: f64,
@@ -122,6 +152,7 @@ pub struct RoutingConfig {
     pub sine_wave: SnakeConfig,
     pub extension_min: f64,
     pub extension_scale: f64,
+    pub kinodynamic: KinodynamicConfig,
 }
 
 impl Default for RoutingConfig {
@@ -136,6 +167,7 @@ impl Default for RoutingConfig {
             sine_wave: SnakeConfig::default(),
             extension_min: 16.0,
             extension_scale: 0.15,
+            kinodynamic: KinodynamicConfig::default(),
         }
     }
 }

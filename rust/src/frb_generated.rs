@@ -3489,6 +3489,32 @@ impl SseDecode for crate::domain::nodes::InterNode {
     }
 }
 
+impl SseDecode for crate::domain::relation_engine::config::KinodynamicConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_kappaMax = <f64>::sse_decode(deserializer);
+        let mut var_latticeCellSize = <f64>::sse_decode(deserializer);
+        let mut var_angularResolution = <f64>::sse_decode(deserializer);
+        let mut var_curvatureBins = <u32>::sse_decode(deserializer);
+        let mut var_narrowPhaseTolerance = <f64>::sse_decode(deserializer);
+        let mut var_weightArcLength = <f64>::sse_decode(deserializer);
+        let mut var_weightCurvature = <f64>::sse_decode(deserializer);
+        let mut var_weightObstacle = <f64>::sse_decode(deserializer);
+        let mut var_obstacleFalloff = <f64>::sse_decode(deserializer);
+        return crate::domain::relation_engine::config::KinodynamicConfig {
+            kappa_max: var_kappaMax,
+            lattice_cell_size: var_latticeCellSize,
+            angular_resolution: var_angularResolution,
+            curvature_bins: var_curvatureBins,
+            narrow_phase_tolerance: var_narrowPhaseTolerance,
+            weight_arc_length: var_weightArcLength,
+            weight_curvature: var_weightCurvature,
+            weight_obstacle: var_weightObstacle,
+            obstacle_falloff: var_obstacleFalloff,
+        };
+    }
+}
+
 impl SseDecode for crate::domain::relation_engine::computed::LabelAnchor {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4238,11 +4264,10 @@ impl SseDecode for crate::domain::relation_engine::computed::PathType {
         let mut inner = <i32>::sse_decode(deserializer);
         return match inner {
             0 => crate::domain::relation_engine::computed::PathType::Straight,
-            1 => crate::domain::relation_engine::computed::PathType::CubicBezier,
-            2 => crate::domain::relation_engine::computed::PathType::QuadraticBezier,
-            3 => crate::domain::relation_engine::computed::PathType::Orthogonal,
-            4 => crate::domain::relation_engine::computed::PathType::CircularArc,
-            5 => crate::domain::relation_engine::computed::PathType::SineWave,
+            1 => crate::domain::relation_engine::computed::PathType::BSpline,
+            2 => crate::domain::relation_engine::computed::PathType::Orthogonal,
+            3 => crate::domain::relation_engine::computed::PathType::CircularArc,
+            4 => crate::domain::relation_engine::computed::PathType::SineWave,
             _ => unreachable!("Invalid variant for PathType: {}", inner),
         };
     }
@@ -4451,6 +4476,8 @@ impl SseDecode for crate::domain::relation_engine::config::RoutingConfig {
             <crate::domain::relation_engine::config::SnakeConfig>::sse_decode(deserializer);
         let mut var_extensionMin = <f64>::sse_decode(deserializer);
         let mut var_extensionScale = <f64>::sse_decode(deserializer);
+        let mut var_kinodynamic =
+            <crate::domain::relation_engine::config::KinodynamicConfig>::sse_decode(deserializer);
         return crate::domain::relation_engine::config::RoutingConfig {
             routing_mode: var_routingMode,
             obstacle_margin: var_obstacleMargin,
@@ -4461,6 +4488,7 @@ impl SseDecode for crate::domain::relation_engine::config::RoutingConfig {
             sine_wave: var_sineWave,
             extension_min: var_extensionMin,
             extension_scale: var_extensionScale,
+            kinodynamic: var_kinodynamic,
         };
     }
 }
@@ -4471,7 +4499,7 @@ impl SseDecode for crate::domain::relation_engine::config::RoutingMode {
         let mut inner = <i32>::sse_decode(deserializer);
         return match inner {
             0 => crate::domain::relation_engine::config::RoutingMode::Polyline,
-            1 => crate::domain::relation_engine::config::RoutingMode::Bezier,
+            1 => crate::domain::relation_engine::config::RoutingMode::BSpline,
             2 => crate::domain::relation_engine::config::RoutingMode::Orthogonal,
             3 => crate::domain::relation_engine::config::RoutingMode::CircularArc,
             4 => crate::domain::relation_engine::config::RoutingMode::SineWave,
@@ -5833,6 +5861,34 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::nodes::InterNode>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::KinodynamicConfig {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.kappa_max.into_into_dart().into_dart(),
+            self.lattice_cell_size.into_into_dart().into_dart(),
+            self.angular_resolution.into_into_dart().into_dart(),
+            self.curvature_bins.into_into_dart().into_dart(),
+            self.narrow_phase_tolerance.into_into_dart().into_dart(),
+            self.weight_arc_length.into_into_dart().into_dart(),
+            self.weight_curvature.into_into_dart().into_dart(),
+            self.weight_obstacle.into_into_dart().into_dart(),
+            self.obstacle_falloff.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::relation_engine::config::KinodynamicConfig
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::KinodynamicConfig>
+    for crate::domain::relation_engine::config::KinodynamicConfig
+{
+    fn into_into_dart(self) -> crate::domain::relation_engine::config::KinodynamicConfig {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::computed::LabelAnchor {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
@@ -6136,11 +6192,10 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::computed:
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
             Self::Straight => 0.into_dart(),
-            Self::CubicBezier => 1.into_dart(),
-            Self::QuadraticBezier => 2.into_dart(),
-            Self::Orthogonal => 3.into_dart(),
-            Self::CircularArc => 4.into_dart(),
-            Self::SineWave => 5.into_dart(),
+            Self::BSpline => 1.into_dart(),
+            Self::Orthogonal => 2.into_dart(),
+            Self::CircularArc => 3.into_dart(),
+            Self::SineWave => 4.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -6384,6 +6439,7 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::R
             self.sine_wave.into_into_dart().into_dart(),
             self.extension_min.into_into_dart().into_dart(),
             self.extension_scale.into_into_dart().into_dart(),
+            self.kinodynamic.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -6404,7 +6460,7 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::R
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
             Self::Polyline => 0.into_dart(),
-            Self::Bezier => 1.into_dart(),
+            Self::BSpline => 1.into_dart(),
             Self::Orthogonal => 2.into_dart(),
             Self::CircularArc => 3.into_dart(),
             Self::SineWave => 4.into_dart(),
@@ -7406,6 +7462,21 @@ impl SseEncode for crate::domain::nodes::InterNode {
     }
 }
 
+impl SseEncode for crate::domain::relation_engine::config::KinodynamicConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <f64>::sse_encode(self.kappa_max, serializer);
+        <f64>::sse_encode(self.lattice_cell_size, serializer);
+        <f64>::sse_encode(self.angular_resolution, serializer);
+        <u32>::sse_encode(self.curvature_bins, serializer);
+        <f64>::sse_encode(self.narrow_phase_tolerance, serializer);
+        <f64>::sse_encode(self.weight_arc_length, serializer);
+        <f64>::sse_encode(self.weight_curvature, serializer);
+        <f64>::sse_encode(self.weight_obstacle, serializer);
+        <f64>::sse_encode(self.obstacle_falloff, serializer);
+    }
+}
+
 impl SseEncode for crate::domain::relation_engine::computed::LabelAnchor {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -8008,11 +8079,10 @@ impl SseEncode for crate::domain::relation_engine::computed::PathType {
         <i32>::sse_encode(
             match self {
                 crate::domain::relation_engine::computed::PathType::Straight => 0,
-                crate::domain::relation_engine::computed::PathType::CubicBezier => 1,
-                crate::domain::relation_engine::computed::PathType::QuadraticBezier => 2,
-                crate::domain::relation_engine::computed::PathType::Orthogonal => 3,
-                crate::domain::relation_engine::computed::PathType::CircularArc => 4,
-                crate::domain::relation_engine::computed::PathType::SineWave => 5,
+                crate::domain::relation_engine::computed::PathType::BSpline => 1,
+                crate::domain::relation_engine::computed::PathType::Orthogonal => 2,
+                crate::domain::relation_engine::computed::PathType::CircularArc => 3,
+                crate::domain::relation_engine::computed::PathType::SineWave => 4,
                 _ => {
                     unimplemented!("");
                 }
@@ -8187,6 +8257,10 @@ impl SseEncode for crate::domain::relation_engine::config::RoutingConfig {
         );
         <f64>::sse_encode(self.extension_min, serializer);
         <f64>::sse_encode(self.extension_scale, serializer);
+        <crate::domain::relation_engine::config::KinodynamicConfig>::sse_encode(
+            self.kinodynamic,
+            serializer,
+        );
     }
 }
 
@@ -8196,7 +8270,7 @@ impl SseEncode for crate::domain::relation_engine::config::RoutingMode {
         <i32>::sse_encode(
             match self {
                 crate::domain::relation_engine::config::RoutingMode::Polyline => 0,
-                crate::domain::relation_engine::config::RoutingMode::Bezier => 1,
+                crate::domain::relation_engine::config::RoutingMode::BSpline => 1,
                 crate::domain::relation_engine::config::RoutingMode::Orthogonal => 2,
                 crate::domain::relation_engine::config::RoutingMode::CircularArc => 3,
                 crate::domain::relation_engine::config::RoutingMode::SineWave => 4,

@@ -36,8 +36,7 @@ pub struct ComputedRelation {
 #[frb]
 pub enum PathType {
     Straight,
-    CubicBezier,
-    QuadraticBezier,
+    BSpline,
     Orthogonal,
     CircularArc,
     SineWave,

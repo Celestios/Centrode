@@ -2978,6 +2978,25 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  KinodynamicConfig dco_decode_kinodynamic_config(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
+    return KinodynamicConfig(
+      kappaMax: dco_decode_f_64(arr[0]),
+      latticeCellSize: dco_decode_f_64(arr[1]),
+      angularResolution: dco_decode_f_64(arr[2]),
+      curvatureBins: dco_decode_u_32(arr[3]),
+      narrowPhaseTolerance: dco_decode_f_64(arr[4]),
+      weightArcLength: dco_decode_f_64(arr[5]),
+      weightCurvature: dco_decode_f_64(arr[6]),
+      weightObstacle: dco_decode_f_64(arr[7]),
+      obstacleFalloff: dco_decode_f_64(arr[8]),
+    );
+  }
+
+  @protected
   LabelAnchor dco_decode_label_anchor(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return LabelAnchor.values[raw as int];
@@ -3538,8 +3557,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RoutingConfig dco_decode_routing_config(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 9)
-      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
+    if (arr.length != 10)
+      throw Exception('unexpected arr length: expect 10 but see ${arr.length}');
     return RoutingConfig(
       routingMode: dco_decode_routing_mode(arr[0]),
       obstacleMargin: dco_decode_f_64(arr[1]),
@@ -3550,6 +3569,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       sineWave: dco_decode_snake_config(arr[6]),
       extensionMin: dco_decode_f_64(arr[7]),
       extensionScale: dco_decode_f_64(arr[8]),
+      kinodynamic: dco_decode_kinodynamic_config(arr[9]),
     );
   }
 
@@ -4715,6 +4735,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  KinodynamicConfig sse_decode_kinodynamic_config(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_kappaMax = sse_decode_f_64(deserializer);
+    var var_latticeCellSize = sse_decode_f_64(deserializer);
+    var var_angularResolution = sse_decode_f_64(deserializer);
+    var var_curvatureBins = sse_decode_u_32(deserializer);
+    var var_narrowPhaseTolerance = sse_decode_f_64(deserializer);
+    var var_weightArcLength = sse_decode_f_64(deserializer);
+    var var_weightCurvature = sse_decode_f_64(deserializer);
+    var var_weightObstacle = sse_decode_f_64(deserializer);
+    var var_obstacleFalloff = sse_decode_f_64(deserializer);
+    return KinodynamicConfig(
+      kappaMax: var_kappaMax,
+      latticeCellSize: var_latticeCellSize,
+      angularResolution: var_angularResolution,
+      curvatureBins: var_curvatureBins,
+      narrowPhaseTolerance: var_narrowPhaseTolerance,
+      weightArcLength: var_weightArcLength,
+      weightCurvature: var_weightCurvature,
+      weightObstacle: var_weightObstacle,
+      obstacleFalloff: var_obstacleFalloff,
+    );
+  }
+
+  @protected
   LabelAnchor sse_decode_label_anchor(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
@@ -5570,6 +5617,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_sineWave = sse_decode_snake_config(deserializer);
     var var_extensionMin = sse_decode_f_64(deserializer);
     var var_extensionScale = sse_decode_f_64(deserializer);
+    var var_kinodynamic = sse_decode_kinodynamic_config(deserializer);
     return RoutingConfig(
       routingMode: var_routingMode,
       obstacleMargin: var_obstacleMargin,
@@ -5580,6 +5628,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       sineWave: var_sineWave,
       extensionMin: var_extensionMin,
       extensionScale: var_extensionScale,
+      kinodynamic: var_kinodynamic,
     );
   }
 
@@ -6707,6 +6756,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_kinodynamic_config(
+    KinodynamicConfig self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_f_64(self.kappaMax, serializer);
+    sse_encode_f_64(self.latticeCellSize, serializer);
+    sse_encode_f_64(self.angularResolution, serializer);
+    sse_encode_u_32(self.curvatureBins, serializer);
+    sse_encode_f_64(self.narrowPhaseTolerance, serializer);
+    sse_encode_f_64(self.weightArcLength, serializer);
+    sse_encode_f_64(self.weightCurvature, serializer);
+    sse_encode_f_64(self.weightObstacle, serializer);
+    sse_encode_f_64(self.obstacleFalloff, serializer);
+  }
+
+  @protected
   void sse_encode_label_anchor(LabelAnchor self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
@@ -7425,6 +7491,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_snake_config(self.sineWave, serializer);
     sse_encode_f_64(self.extensionMin, serializer);
     sse_encode_f_64(self.extensionScale, serializer);
+    sse_encode_kinodynamic_config(self.kinodynamic, serializer);
   }
 
   @protected
