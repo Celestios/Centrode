@@ -1,4 +1,5 @@
 pub mod bezier;
+pub mod bspline;
 
 use std::ops::{Add, Mul, Sub};
 
