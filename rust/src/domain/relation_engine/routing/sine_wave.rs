@@ -20,7 +20,7 @@ impl RoutingStrategy for SineWaveRouting {
         input: &TransitionInput,
         config: &RelationEngineConfig,
     ) -> Vec<Point> {
-        let factor = config.routing.bezier_projection_factor;
+        let factor = config.routing.projection_factor;
         match input.side {
             Side::Start => {
                 let stub_exit = input.stub_exit;
@@ -28,7 +28,7 @@ impl RoutingStrategy for SineWaveRouting {
                 let body_start = input.body_start;
                 let dist = stub_exit.distance_to(body_start);
                 if dist < 1.0 { return vec![]; }
-                let proj = (dist * factor).max(config.routing.bezier_clamp_min);
+                let proj = (dist * factor).max(config.routing.clamp_min);
                 let cp1 = stub_exit + stub_normal * proj;
                 let dir_to_body = (body_start - stub_exit).normalized();
                 let cp2 = body_start - dir_to_body * proj;
@@ -40,7 +40,7 @@ impl RoutingStrategy for SineWaveRouting {
                 let stub_normal = input.end_normal;
                 let dist = body_end.distance_to(stub_entry);
                 if dist < 1.0 { return vec![]; }
-                let proj = (dist * factor).max(config.routing.bezier_clamp_min);
+                let proj = (dist * factor).max(config.routing.clamp_min);
                 let dir_from_body = (stub_entry - body_end).normalized();
                 let cp1 = body_end + dir_from_body * proj;
                 let cp2 = stub_entry + stub_normal * proj;
@@ -61,9 +61,9 @@ impl RoutingStrategy for SineWaveRouting {
         let frequency = config.routing.sine_wave.frequency;
         let distance = start.distance_to(end);
         let cycles = distance * (frequency / 300.0);
-        let proj = (distance * config.routing.bezier_projection_factor)
-            .min(config.routing.bezier_clamp_max)
-            .max(config.routing.bezier_clamp_min.min(distance * 0.5));
+        let proj = (distance * config.routing.projection_factor)
+            .min(config.routing.clamp_max)
+            .max(config.routing.clamp_min.min(distance * 0.5));
         let edge = end - start;
         let normal = if edge.length() > 1e-6 {
             let edge_perp = edge.perpendicular().normalized();

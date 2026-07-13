@@ -1,4 +1,4 @@
-use std::collections::BinaryHeap;
+use std::collections::{BinaryHeap, HashMap};
 
 use crate::domain::relation_engine::geometry::{Point, Rect};
 use super::sweep_visibility;
@@ -176,6 +176,7 @@ pub fn a_star_with_params(
         }
     }
 
+    let grid = SpatialGrid::build(state, 100.0);
     let mut heap: BinaryHeap<State> = BinaryHeap::new();
     let mut came_from: Vec<Option<usize>> = vec![None; n];
     let mut g_score: Vec<f64> = vec![f64::INFINITY; n];
@@ -208,12 +209,33 @@ pub fn a_star_with_params(
                 current_point,
                 neighbor_point,
                 actual_dst,
-                state,
+                &grid,
             );
 
             let tentative_g = g_score[current] + edge_cost;
 
-            if tentative_g < g_score[neighbor] {
+            let mut is_better = tentative_g < g_score[neighbor] - 1e-6;
+            if !is_better && (tentative_g - g_score[neighbor]).abs() < 1e-6 {
+                if let Some(prev_current) = came_from[current] {
+                    let dir_new = neighbor_point - current_point;
+                    let dir_prev_new = current_point - graph.nodes[prev_current].point;
+                    let dot_new = dir_new.normalized().dot(dir_prev_new.normalized());
+
+                    if let Some(existing_parent) = came_from[neighbor] {
+                        if let Some(prev_existing) = came_from[existing_parent] {
+                            let dir_exist = neighbor_point - graph.nodes[existing_parent].point;
+                            let dir_prev_exist = graph.nodes[existing_parent].point - graph.nodes[prev_existing].point;
+                            let dot_exist = dir_exist.normalized().dot(dir_prev_exist.normalized());
+
+                            if dot_new > dot_exist + 1e-6 {
+                                is_better = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if is_better {
                 came_from[neighbor] = Some(current);
                 g_score[neighbor] = tentative_g;
                 let f = tentative_g + cost_heuristic(neighbor_point, actual_dst, Some(current_point), cost_params);
@@ -225,6 +247,79 @@ pub fn a_star_with_params(
     None
 }
 
+pub struct SpatialGrid {
+    cell_size: f64,
+    cells: HashMap<(i32, i32), Vec<(Point, Point)>>,
+}
+
+impl SpatialGrid {
+    pub fn build(state: &CanvasState, cell_size: f64) -> Self {
+        let mut grid = Self {
+            cell_size,
+            cells: HashMap::new(),
+        };
+
+        for other_rel in state.relations.values() {
+            let path = &other_rel.path_points;
+            if path.len() < 2 {
+                continue;
+            }
+            for window in path.windows(2) {
+                let p1 = window[0];
+                let p2 = window[1];
+
+                let min_x = p1.x.min(p2.x);
+                let max_x = p1.x.max(p2.x);
+                let min_y = p1.y.min(p2.y);
+                let max_y = p1.y.max(p2.y);
+
+                let cell_x1 = (min_x / cell_size).floor() as i32;
+                let cell_x2 = (max_x / cell_size).floor() as i32;
+                let cell_y1 = (min_y / cell_size).floor() as i32;
+                let cell_y2 = (max_y / cell_size).floor() as i32;
+
+                for cx in cell_x1..=cell_x2 {
+                    for cy in cell_y1..=cell_y2 {
+                        grid.cells.entry((cx, cy)).or_insert_with(Vec::new).push((p1, p2));
+                    }
+                }
+            }
+        }
+        grid
+    }
+
+    pub fn intersects_segment(&self, p1: Point, p2: Point) -> bool {
+        let min_x = p1.x.min(p2.x);
+        let max_x = p1.x.max(p2.x);
+        let min_y = p1.y.min(p2.y);
+        let max_y = p1.y.max(p2.y);
+
+        let cell_x1 = (min_x / self.cell_size).floor() as i32;
+        let cell_x2 = (max_x / self.cell_size).floor() as i32;
+        let cell_y1 = (min_y / self.cell_size).floor() as i32;
+        let cell_y2 = (max_y / self.cell_size).floor() as i32;
+
+        for cx in cell_x1..=cell_x2 {
+            for cy in cell_y1..=cell_y2 {
+                if let Some(segments) = self.cells.get(&(cx, cy)) {
+                    for &(wp1, wp2) in segments {
+                        if crate::domain::relation_engine::geometry::segments_intersect(p1, p2, wp1, wp2) {
+                            let is_shared_endpoint = p1.distance_to(wp1) < 0.1 
+                                || p1.distance_to(wp2) < 0.1
+                                || p2.distance_to(wp1) < 0.1
+                                || p2.distance_to(wp2) < 0.1;
+                            if !is_shared_endpoint {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        false
+    }
+}
+
 fn compute_edge_cost(
     params: &RouteCostParams,
     edge_dist: f64,
@@ -232,7 +327,7 @@ fn compute_edge_cost(
     curr_point: Point,
     next_point: Point,
     dst_point: Point,
-    state: &CanvasState,
+    grid: &SpatialGrid,
 ) -> f64 {
     let mut cost = edge_dist;
 
@@ -278,33 +373,12 @@ fn compute_edge_cost(
 
     // Crossing penalties against cached relations in CanvasState
     if params.crossing_penalty > 0.0 {
-        for other_rel in state.relations.values() {
-            if path_intersects_segment(curr_point, next_point, &other_rel.path_points) {
-                cost += params.crossing_penalty;
-            }
+        if grid.intersects_segment(curr_point, next_point) {
+            cost += params.crossing_penalty;
         }
     }
 
     cost
-}
-
-fn path_intersects_segment(p1: Point, p2: Point, path: &[Point]) -> bool {
-    if path.len() < 2 {
-        return false;
-    }
-    for window in path.windows(2) {
-        if crate::domain::relation_engine::geometry::segments_intersect(p1, p2, window[0], window[1]) {
-            // Check if it's a shared endpoint/port vertex
-            let is_shared_endpoint = p1.distance_to(window[0]) < 0.1 
-                || p1.distance_to(window[1]) < 0.1
-                || p2.distance_to(window[0]) < 0.1
-                || p2.distance_to(window[1]) < 0.1;
-            if !is_shared_endpoint {
-                return true;
-            }
-        }
-    }
-    false
 }
 
 fn cost_heuristic(from: Point, to: Point, prev: Option<Point>, params: &RouteCostParams) -> f64 {

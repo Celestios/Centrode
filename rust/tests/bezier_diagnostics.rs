@@ -719,6 +719,17 @@ fn write_enriched_json(
         json.push_str(&format!("        \"end\": {{\"x\":{:.2},\"y\":{:.2}}}\n", pts[n - 1].x, pts[n - 1].y));
         json.push_str("      },\n");
 
+        // Bezier formula parameters
+        {
+            let bc = RelationEngineConfig::default();
+            json.push_str("      \"bezier_params\": {\n");
+            json.push_str(&format!("        \"projection_factor\": {:.3},\n", bc.routing.projection_factor));
+            json.push_str(&format!("        \"clamp_min\": {:.3},\n", bc.routing.clamp_min));
+            json.push_str(&format!("        \"clamp_max\": {:.3},\n", bc.routing.clamp_max));
+            json.push_str("        \"nudge_angle_deg\": 15.0\n");
+            json.push_str("      },\n");
+        }
+
         // Points array (resampled uniform)
         json.push_str("      \"points\": [\n");
         for i in 0..rn {
@@ -945,6 +956,15 @@ fn print_log(
         for (oid, cnt) in &ob_pen { node_flags.push(format!("{} penetrations={}", oid, cnt)); }
         if node_flags.is_empty() { node_flags.push("none".to_string()); }
         println!("  [NODE]  {}", node_flags.join(", "));
+
+        // Waypoints
+        let obs_rects: Vec<Rect> = node_rects.iter().map(|(_, r)| *r).collect();
+        let wp_from = if n >= 4 { pts[1] } else { pts[0] };
+        let wp_to = if n >= 4 { pts[n - 2] } else { pts[n - 1] };
+        let wp_astar = compute_waypoints(wp_from, wp_to, &obs_rects, 20.0);
+        let wp_pruned = prune_collinear_waypoints(&wp_astar);
+        println!("  [WP]    astar={} pruned={}", wp_astar.len(), wp_pruned.len());
+
         println!();
     }
 }

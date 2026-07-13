@@ -37,10 +37,10 @@ impl RoutingStrategy for CircularArcRouting {
             let start = waypoints[0];
             let end = waypoints[waypoints.len() - 1];
             let distance = start.distance_to(end);
-            let radius_factor = config.routing.bezier_projection_factor;
+            let radius_factor = config.routing.projection_factor;
             let radius = (distance * radius_factor).clamp(
-                config.routing.bezier_clamp_min,
-                config.routing.bezier_clamp_max,
+                config.routing.clamp_min,
+                config.routing.clamp_max,
             );
             let edge = end - start;
             let normal = if edge.length() > 1e-6 {

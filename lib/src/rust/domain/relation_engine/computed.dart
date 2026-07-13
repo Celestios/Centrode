@@ -31,8 +31,8 @@ class ComputedRelation {
   final double endMargin;
   final Point startArrowCenter;
   final Point endArrowCenter;
-  final Point startPoint;
   final Point endPoint;
+  final Point startPoint;
 
   const ComputedRelation({
     required this.id,
@@ -57,8 +57,8 @@ class ComputedRelation {
     required this.endMargin,
     required this.startArrowCenter,
     required this.endArrowCenter,
-    required this.startPoint,
     required this.endPoint,
+    required this.startPoint,
   });
 
   @override
@@ -85,8 +85,8 @@ class ComputedRelation {
       endMargin.hashCode ^
       startArrowCenter.hashCode ^
       endArrowCenter.hashCode ^
-      startPoint.hashCode ^
-      endPoint.hashCode;
+      endPoint.hashCode ^
+      startPoint.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -115,8 +115,8 @@ class ComputedRelation {
           endMargin == other.endMargin &&
           startArrowCenter == other.startArrowCenter &&
           endArrowCenter == other.endArrowCenter &&
-          startPoint == other.startPoint &&
-          endPoint == other.endPoint;
+          endPoint == other.endPoint &&
+          startPoint == other.startPoint;
 }
 
 enum LabelAnchor { center, left, right }

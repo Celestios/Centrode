@@ -30,7 +30,28 @@ pub fn compute_waypoints(
     if !has_blocking {
         return vec![from, to];
     }
-    let graph = VisibilityGraph::build(&filtered, from, to, margin);
+
+    // Dynamic margin scaling based on closest gap between filtered obstacles
+    let mut min_gap = f64::INFINITY;
+    for i in 0..filtered.len() {
+        for j in (i + 1)..filtered.len() {
+            let r1 = &filtered[i];
+            let r2 = &filtered[j];
+            let dx = 0.0f64.max((r1.left() - r2.right()).max(r2.left() - r1.right()));
+            let dy = 0.0f64.max((r1.top() - r2.bottom()).max(r2.top() - r1.bottom()));
+            let gap = (dx * dx + dy * dy).sqrt();
+            if gap < min_gap {
+                min_gap = gap;
+            }
+        }
+    }
+
+    let mut adaptive_margin = margin;
+    if min_gap.is_finite() && min_gap > 0.0 {
+        adaptive_margin = (min_gap * 0.35).clamp(8.0, margin);
+    }
+
+    let graph = VisibilityGraph::build(&filtered, from, to, adaptive_margin);
     let cost_params = RouteCostParams::default();
     a_star_with_params(&graph, &cost_params, Some(&from), Some(&to), &CanvasState::new())
         .unwrap_or_else(|| vec![from, to])

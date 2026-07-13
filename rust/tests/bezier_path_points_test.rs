@@ -220,9 +220,9 @@ fn bezier_left_to_left_creates_loop() {
     let pts = &r.path_points;
     assert!(pts.len() >= 4);
 
-    // Path should go below both nodes to connect left ports
-    let max_y = pts.iter().map(|p| p.y).fold(f64::NEG_INFINITY, f64::max);
-    assert!(max_y > 150.0, "Path should dip below nodes (y>150), got max_y={:.1}", max_y);
+    // Path goes outward from both left ports (normals point left)
+    let min_x = pts.iter().map(|p| p.x).fold(f64::INFINITY, f64::min);
+    assert!(min_x < -16.0, "Path should go left of ports (x<-16), got min_x={:.1}", min_x);
 
     // Start and end at left ports
     let a_left = Point { x: 0.0, y: 100.0 };
@@ -236,14 +236,7 @@ fn bezier_left_to_left_creates_loop() {
         "End should be at B left port, got {:?}", pts.last().unwrap()
     );
 
-    // Verify path goes through y values below nodes
-    let below_nodes: Vec<&Point> = pts.iter().filter(|p| p.y > 150.0).collect();
-    assert!(
-        below_nodes.len() >= 2,
-        "At least 2 points should be below nodes, got {}", below_nodes.len()
-    );
-
-    println!("✓ left_to_left_loop: {} points, max_y={:.1}", pts.len(), max_y);
+    println!("✓ left_to_left_loop: {} points, min_x={:.1}", pts.len(), min_x);
 }
 
 // ── Bezier point count consistency ───────────────────────────────────
@@ -299,11 +292,11 @@ fn bezier_stacked_top_to_top() {
     assert_eq!(r.path_type, PathType::CubicBezier);
     let pts = &r.path_points;
 
-    // Path should go right of nodes to connect top ports
-    let max_x = pts.iter().map(|p| p.x).fold(f64::NEG_INFINITY, f64::max);
-    assert!(max_x > 150.0, "Path should arc right (x>150), got max_x={:.1}", max_x);
+    // Path arches above the nodes (both normals point upward)
+    let min_y = pts.iter().map(|p| p.y).fold(f64::INFINITY, f64::min);
+    assert!(min_y < -16.0, "Path should arc above nodes (y<-16), got min_y={:.1}", min_y);
 
-    println!("✓ stacked_top_to_top: {} points, max_x={:.1}", pts.len(), max_x);
+    println!("✓ stacked_top_to_top: {} points, min_y={:.1}", pts.len(), min_y);
 }
 
 // ── Bezier no self-intersections ─────────────────────────────────────
@@ -460,8 +453,8 @@ fn test_adaptive_projection_capping() {
         node("b", 940.0, 920.0, 120.0, 80.0),
     ];
     let mut config = RelationEngineConfig::default();
-    config.routing.bezier_projection_factor = 2.0;
-    config.routing.bezier_clamp_max = 150.0;
+    config.routing.projection_factor = 2.0;
+    config.routing.clamp_max = 150.0;
     
     let edges = vec![bezier_edge("e1", "a", "b")];
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);

@@ -164,10 +164,9 @@ class RoutingConfig {
   final RoutingMode routingMode;
   final double obstacleMargin;
   final double cornerRadius;
-  final double bezierCurvature;
-  final double bezierProjectionFactor;
-  final double bezierClampMin;
-  final double bezierClampMax;
+  final double projectionFactor;
+  final double clampMin;
+  final double clampMax;
   final SnakeConfig sineWave;
   final double extensionMin;
   final double extensionScale;
@@ -176,10 +175,9 @@ class RoutingConfig {
     required this.routingMode,
     required this.obstacleMargin,
     required this.cornerRadius,
-    required this.bezierCurvature,
-    required this.bezierProjectionFactor,
-    required this.bezierClampMin,
-    required this.bezierClampMax,
+    required this.projectionFactor,
+    required this.clampMin,
+    required this.clampMax,
     required this.sineWave,
     required this.extensionMin,
     required this.extensionScale,
@@ -190,10 +188,9 @@ class RoutingConfig {
       routingMode.hashCode ^
       obstacleMargin.hashCode ^
       cornerRadius.hashCode ^
-      bezierCurvature.hashCode ^
-      bezierProjectionFactor.hashCode ^
-      bezierClampMin.hashCode ^
-      bezierClampMax.hashCode ^
+      projectionFactor.hashCode ^
+      clampMin.hashCode ^
+      clampMax.hashCode ^
       sineWave.hashCode ^
       extensionMin.hashCode ^
       extensionScale.hashCode;
@@ -206,10 +203,9 @@ class RoutingConfig {
           routingMode == other.routingMode &&
           obstacleMargin == other.obstacleMargin &&
           cornerRadius == other.cornerRadius &&
-          bezierCurvature == other.bezierCurvature &&
-          bezierProjectionFactor == other.bezierProjectionFactor &&
-          bezierClampMin == other.bezierClampMin &&
-          bezierClampMax == other.bezierClampMax &&
+          projectionFactor == other.projectionFactor &&
+          clampMin == other.clampMin &&
+          clampMax == other.clampMax &&
           sineWave == other.sineWave &&
           extensionMin == other.extensionMin &&
           extensionScale == other.extensionScale;

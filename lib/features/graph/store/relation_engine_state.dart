@@ -17,10 +17,9 @@ class RelationEngineState {
       routingMode: RoutingMode.polyline,
       obstacleMargin: 45.0,
       cornerRadius: 8.0,
-      bezierCurvature: 20,
-      bezierProjectionFactor: 2,
-      bezierClampMin: 30.0,
-      bezierClampMax: 150.0,
+      projectionFactor: 2,
+      clampMin: 30.0,
+      clampMax: 150.0,
       sineWave: SnakeConfig(
         amplitude: 20.0,
         frequency: 3.0,

@@ -16,6 +16,10 @@ pub struct TransitionInput {
     pub stub_entry: Point,
     pub start_normal: Point,
     pub end_normal: Point,
+    /// Target endpoint — transitions that know where the body *should* go
+    /// (e.g. orthogonal corner) use this as the destination hint.  By
+    /// default (most strategies) equal to stub_exit / stub_entry, meaning
+    /// the body starts at the stub tip and no transition is needed.
     pub body_start: Point,
     pub body_end: Point,
 }
@@ -32,12 +36,18 @@ pub trait RoutingStrategy: Send + Sync {
         }
     }
 
-    /// Compute the transition (curve) between a stub and the body.
+    /// Compute a transition (curve) from the stub tip toward the body.
+    ///
+    /// Called **before** `compute_body` — the transition determines where the
+    /// body should start (its last point = `body_start`, or empty = body starts
+    /// at `stub_exit`).  Strategies that don't need a transition return `vec![]`.
     fn compute_transition(
         &self,
-        input: &TransitionInput,
-        config: &RelationEngineConfig,
-    ) -> Vec<Point>;
+        _input: &TransitionInput,
+        _config: &RelationEngineConfig,
+    ) -> Vec<Point> {
+        vec![]
+    }
 
     fn compute_obstacle_waypoints(
         &self, from: Point, to: Point, obstacles: &[Rect], config: &RelationEngineConfig,
@@ -59,16 +69,14 @@ pub trait RoutingStrategy: Send + Sync {
         obstacles: &[Rect],
         config: &RelationEngineConfig,
     ) -> (Vec<Point>, PathType) {
-        let (start_stub, end_stub) = rayon::join(
-            || self.compute_stub(Side::Start, ports, config),
-            || self.compute_stub(Side::End, ports, config),
-        );
+        // 1. stubs (sequential — cheap)
+        let start_stub = self.compute_stub(Side::Start, ports, config);
+        let end_stub = self.compute_stub(Side::End, ports, config);
         let stub_exit = *start_stub.last().unwrap();
         let stub_entry = *end_stub.first().unwrap();
 
-        let waypoints = self.compute_obstacle_waypoints(stub_exit, stub_entry, obstacles, config);
-        let body = self.compute_body(&waypoints, ports, config);
-
+        // 2. transitions (parallel) — determine where the body will start/end.
+        //    body_start/body_end default to stub_exit/stub_entry (no gap).
         let (start_trans, end_trans) = rayon::join(
             || self.compute_transition(
                 &TransitionInput {
@@ -77,8 +85,8 @@ pub trait RoutingStrategy: Send + Sync {
                     stub_entry,
                     start_normal: ports.start_normal,
                     end_normal: ports.end_normal,
-                    body_start: body[0],
-                    body_end: *body.last().unwrap(),
+                    body_start: stub_exit,
+                    body_end: stub_entry,
                 },
                 config,
             ),
@@ -89,18 +97,34 @@ pub trait RoutingStrategy: Send + Sync {
                     stub_entry,
                     start_normal: ports.start_normal,
                     end_normal: ports.end_normal,
-                    body_start: body[0],
-                    body_end: *body.last().unwrap(),
+                    body_start: stub_exit,
+                    body_end: stub_entry,
                 },
                 config,
             ),
         );
 
+        // 3. body — starts where the start-transition ends (or at stub_exit)
+        let body_start = start_trans.last().copied().unwrap_or(stub_exit);
+        let body_end = end_trans.first().copied().unwrap_or(stub_entry);
+        let waypoints = self.compute_obstacle_waypoints(body_start, body_end, obstacles, config);
+        let body = self.compute_body(&waypoints, ports, config);
+
+        // 4. assemble — each segment cascades into the next (no duplicates)
         let mut path = start_stub;
-        path.extend(start_trans);
-        // body[1..] skips body[0] — already the endpoint of start_trans (no dedup needed)
-        path.extend(body[1..].iter().copied());
-        path.extend(end_trans);
+        if !start_trans.is_empty() {
+            // start_trans[0] = stub_exit (already last in start_stub) — skip
+            path.extend(start_trans[1..].iter().copied());
+        }
+        // body[0] = body_start = start_trans.last() (or stub_exit) — skip
+        if body.len() > 1 {
+            path.extend(body[1..].iter().copied());
+        }
+        if !end_trans.is_empty() {
+            // end_trans[0] = body_end (= body.last()) — skip
+            path.extend(end_trans[1..].iter().copied());
+        }
+        // end_stub[0] = stub_entry (= end_trans.last() or body.last()) — skip
         path.extend(end_stub[1..].iter().copied());
 
         self.post_process(&mut path, config);

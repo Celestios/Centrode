@@ -2676,8 +2676,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       endMargin: dco_decode_f_64(arr[19]),
       startArrowCenter: dco_decode_point(arr[20]),
       endArrowCenter: dco_decode_point(arr[21]),
-      startPoint: dco_decode_point(arr[22]),
-      endPoint: dco_decode_point(arr[23]),
+      endPoint: dco_decode_point(arr[22]),
+      startPoint: dco_decode_point(arr[23]),
     );
   }
 
@@ -3538,19 +3538,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RoutingConfig dco_decode_routing_config(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 10)
-      throw Exception('unexpected arr length: expect 10 but see ${arr.length}');
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
     return RoutingConfig(
       routingMode: dco_decode_routing_mode(arr[0]),
       obstacleMargin: dco_decode_f_64(arr[1]),
       cornerRadius: dco_decode_f_64(arr[2]),
-      bezierCurvature: dco_decode_f_64(arr[3]),
-      bezierProjectionFactor: dco_decode_f_64(arr[4]),
-      bezierClampMin: dco_decode_f_64(arr[5]),
-      bezierClampMax: dco_decode_f_64(arr[6]),
-      sineWave: dco_decode_snake_config(arr[7]),
-      extensionMin: dco_decode_f_64(arr[8]),
-      extensionScale: dco_decode_f_64(arr[9]),
+      projectionFactor: dco_decode_f_64(arr[3]),
+      clampMin: dco_decode_f_64(arr[4]),
+      clampMax: dco_decode_f_64(arr[5]),
+      sineWave: dco_decode_snake_config(arr[6]),
+      extensionMin: dco_decode_f_64(arr[7]),
+      extensionScale: dco_decode_f_64(arr[8]),
     );
   }
 
@@ -4339,8 +4338,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_endMargin = sse_decode_f_64(deserializer);
     var var_startArrowCenter = sse_decode_point(deserializer);
     var var_endArrowCenter = sse_decode_point(deserializer);
-    var var_startPoint = sse_decode_point(deserializer);
     var var_endPoint = sse_decode_point(deserializer);
+    var var_startPoint = sse_decode_point(deserializer);
     return ComputedRelation(
       id: var_id,
       pathPoints: var_pathPoints,
@@ -4364,8 +4363,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       endMargin: var_endMargin,
       startArrowCenter: var_startArrowCenter,
       endArrowCenter: var_endArrowCenter,
-      startPoint: var_startPoint,
       endPoint: var_endPoint,
+      startPoint: var_startPoint,
     );
   }
 
@@ -5565,10 +5564,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_routingMode = sse_decode_routing_mode(deserializer);
     var var_obstacleMargin = sse_decode_f_64(deserializer);
     var var_cornerRadius = sse_decode_f_64(deserializer);
-    var var_bezierCurvature = sse_decode_f_64(deserializer);
-    var var_bezierProjectionFactor = sse_decode_f_64(deserializer);
-    var var_bezierClampMin = sse_decode_f_64(deserializer);
-    var var_bezierClampMax = sse_decode_f_64(deserializer);
+    var var_projectionFactor = sse_decode_f_64(deserializer);
+    var var_clampMin = sse_decode_f_64(deserializer);
+    var var_clampMax = sse_decode_f_64(deserializer);
     var var_sineWave = sse_decode_snake_config(deserializer);
     var var_extensionMin = sse_decode_f_64(deserializer);
     var var_extensionScale = sse_decode_f_64(deserializer);
@@ -5576,10 +5574,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       routingMode: var_routingMode,
       obstacleMargin: var_obstacleMargin,
       cornerRadius: var_cornerRadius,
-      bezierCurvature: var_bezierCurvature,
-      bezierProjectionFactor: var_bezierProjectionFactor,
-      bezierClampMin: var_bezierClampMin,
-      bezierClampMax: var_bezierClampMax,
+      projectionFactor: var_projectionFactor,
+      clampMin: var_clampMin,
+      clampMax: var_clampMax,
       sineWave: var_sineWave,
       extensionMin: var_extensionMin,
       extensionScale: var_extensionScale,
@@ -6465,8 +6462,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_f_64(self.endMargin, serializer);
     sse_encode_point(self.startArrowCenter, serializer);
     sse_encode_point(self.endArrowCenter, serializer);
-    sse_encode_point(self.startPoint, serializer);
     sse_encode_point(self.endPoint, serializer);
+    sse_encode_point(self.startPoint, serializer);
   }
 
   @protected
@@ -7422,10 +7419,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_routing_mode(self.routingMode, serializer);
     sse_encode_f_64(self.obstacleMargin, serializer);
     sse_encode_f_64(self.cornerRadius, serializer);
-    sse_encode_f_64(self.bezierCurvature, serializer);
-    sse_encode_f_64(self.bezierProjectionFactor, serializer);
-    sse_encode_f_64(self.bezierClampMin, serializer);
-    sse_encode_f_64(self.bezierClampMax, serializer);
+    sse_encode_f_64(self.projectionFactor, serializer);
+    sse_encode_f_64(self.clampMin, serializer);
+    sse_encode_f_64(self.clampMax, serializer);
     sse_encode_snake_config(self.sineWave, serializer);
     sse_encode_f_64(self.extensionMin, serializer);
     sse_encode_f_64(self.extensionScale, serializer);

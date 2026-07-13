@@ -328,16 +328,29 @@ fn is_segment_visible_exempt(
     obstacles: &[Rect], margin: f64,
     exempt: &std::collections::HashSet<usize>,
 ) -> bool {
+    fn is_interior(p: Point, rect: &Rect) -> bool {
+        p.x > rect.left() + 1e-3
+            && p.x < rect.right() - 1e-3
+            && p.y > rect.top() + 1e-3
+            && p.y < rect.bottom() - 1e-3
+    }
+
     for obs in obstacles {
-        let expanded = obs.expand(margin);
-
-        let p1_in = !exempt.contains(&idx1) && expanded.contains(p1);
-        let p2_in = !exempt.contains(&idx2) && expanded.contains(p2);
-
-        if p1_in && p2_in {
+        // 1. Block if it intersects the actual un-expanded obstacle body
+        if obs.intersects_segment(p1, p2) {
             return false;
         }
 
+        let expanded = obs.expand(margin);
+
+        // 2. Block if the segment midpoint is strictly inside the expanded obstacle interior
+        // (unless one of the endpoints is exempt, i.e. the start/end exit points)
+        let has_exempt = exempt.contains(&idx1) || exempt.contains(&idx2);
+        if !has_exempt && is_interior((p1 + p2) * 0.5, &expanded) {
+            return false;
+        }
+
+        // 3. Block if it crosses the expanded boundary without being a corner-to-corner link
         if expanded.intersects_segment(p1, p2) {
             let corners = expanded.corners();
             let p1_is_corner = corners.iter().any(|c| c.distance_to(p1) < 0.1);

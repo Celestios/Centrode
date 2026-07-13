@@ -3040,9 +3040,9 @@ impl SseDecode for crate::domain::relation_engine::computed::ComputedRelation {
             <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
         let mut var_endArrowCenter =
             <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
-        let mut var_startPoint =
-            <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
         let mut var_endPoint =
+            <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
+        let mut var_startPoint =
             <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
         return crate::domain::relation_engine::computed::ComputedRelation {
             id: var_id,
@@ -3067,8 +3067,8 @@ impl SseDecode for crate::domain::relation_engine::computed::ComputedRelation {
             end_margin: var_endMargin,
             start_arrow_center: var_startArrowCenter,
             end_arrow_center: var_endArrowCenter,
-            start_point: var_startPoint,
             end_point: var_endPoint,
+            start_point: var_startPoint,
         };
     }
 }
@@ -4444,10 +4444,9 @@ impl SseDecode for crate::domain::relation_engine::config::RoutingConfig {
             <crate::domain::relation_engine::config::RoutingMode>::sse_decode(deserializer);
         let mut var_obstacleMargin = <f64>::sse_decode(deserializer);
         let mut var_cornerRadius = <f64>::sse_decode(deserializer);
-        let mut var_bezierCurvature = <f64>::sse_decode(deserializer);
-        let mut var_bezierProjectionFactor = <f64>::sse_decode(deserializer);
-        let mut var_bezierClampMin = <f64>::sse_decode(deserializer);
-        let mut var_bezierClampMax = <f64>::sse_decode(deserializer);
+        let mut var_projectionFactor = <f64>::sse_decode(deserializer);
+        let mut var_clampMin = <f64>::sse_decode(deserializer);
+        let mut var_clampMax = <f64>::sse_decode(deserializer);
         let mut var_sineWave =
             <crate::domain::relation_engine::config::SnakeConfig>::sse_decode(deserializer);
         let mut var_extensionMin = <f64>::sse_decode(deserializer);
@@ -4456,11 +4455,9 @@ impl SseDecode for crate::domain::relation_engine::config::RoutingConfig {
             routing_mode: var_routingMode,
             obstacle_margin: var_obstacleMargin,
             corner_radius: var_cornerRadius,
-            bezier_curvature: var_bezierCurvature,
-            bezier_projection_factor: var_bezierProjectionFactor,
-            bezier_turn_wideness: 1.0,
-            bezier_clamp_min: var_bezierClampMin,
-            bezier_clamp_max: var_bezierClampMax,
+            projection_factor: var_projectionFactor,
+            clamp_min: var_clampMin,
+            clamp_max: var_clampMax,
             sine_wave: var_sineWave,
             extension_min: var_extensionMin,
             extension_scale: var_extensionScale,
@@ -5331,8 +5328,8 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::computed:
             self.end_margin.into_into_dart().into_dart(),
             self.start_arrow_center.into_into_dart().into_dart(),
             self.end_arrow_center.into_into_dart().into_dart(),
-            self.start_point.into_into_dart().into_dart(),
             self.end_point.into_into_dart().into_dart(),
+            self.start_point.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -6381,10 +6378,9 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::R
             self.routing_mode.into_into_dart().into_dart(),
             self.obstacle_margin.into_into_dart().into_dart(),
             self.corner_radius.into_into_dart().into_dart(),
-            self.bezier_curvature.into_into_dart().into_dart(),
-            self.bezier_projection_factor.into_into_dart().into_dart(),
-            self.bezier_clamp_min.into_into_dart().into_dart(),
-            self.bezier_clamp_max.into_into_dart().into_dart(),
+            self.projection_factor.into_into_dart().into_dart(),
+            self.clamp_min.into_into_dart().into_dart(),
+            self.clamp_max.into_into_dart().into_dart(),
             self.sine_wave.into_into_dart().into_dart(),
             self.extension_min.into_into_dart().into_dart(),
             self.extension_scale.into_into_dart().into_dart(),
@@ -7082,8 +7078,8 @@ impl SseEncode for crate::domain::relation_engine::computed::ComputedRelation {
             self.end_arrow_center,
             serializer,
         );
-        <crate::domain::relation_engine::geometry::Point>::sse_encode(self.start_point, serializer);
         <crate::domain::relation_engine::geometry::Point>::sse_encode(self.end_point, serializer);
+        <crate::domain::relation_engine::geometry::Point>::sse_encode(self.start_point, serializer);
     }
 }
 
@@ -8182,10 +8178,9 @@ impl SseEncode for crate::domain::relation_engine::config::RoutingConfig {
         );
         <f64>::sse_encode(self.obstacle_margin, serializer);
         <f64>::sse_encode(self.corner_radius, serializer);
-        <f64>::sse_encode(self.bezier_curvature, serializer);
-        <f64>::sse_encode(self.bezier_projection_factor, serializer);
-        <f64>::sse_encode(self.bezier_clamp_min, serializer);
-        <f64>::sse_encode(self.bezier_clamp_max, serializer);
+        <f64>::sse_encode(self.projection_factor, serializer);
+        <f64>::sse_encode(self.clamp_min, serializer);
+        <f64>::sse_encode(self.clamp_max, serializer);
         <crate::domain::relation_engine::config::SnakeConfig>::sse_encode(
             self.sine_wave,
             serializer,

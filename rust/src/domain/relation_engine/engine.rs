@@ -312,10 +312,7 @@ impl RelationEngine {
             None => return empty_computed_relation(&edge.id, &edge.from_node_id, &edge.to_node_id),
         };
 
-        let mut full_obstacles: Vec<Rect> = obstacles.iter()
-            .filter(|r| **r != from_node.rect() && **r != to_node.rect())
-            .copied()
-            .collect();
+        let mut full_obstacles: Vec<Rect> = obstacles.to_vec();
 
         let strategy = resolve_strategy(routing_mode);
         let (path_points, path_type) = strategy.route_full(&ports, &full_obstacles, config);

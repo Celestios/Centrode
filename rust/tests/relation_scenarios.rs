@@ -270,7 +270,7 @@ fn all_scenarios() {
     println!("=== CONFIG ===");
     println!("  routing: {:?}", config.routing.routing_mode);
     println!("  corner_radius: {}", config.routing.corner_radius);
-    println!("  bezier_proj: {} clamp:[{},{}]", config.routing.bezier_projection_factor, config.routing.bezier_clamp_min, config.routing.bezier_clamp_max);
+    println!("  bezier_proj: {} clamp:[{},{}]", config.routing.projection_factor, config.routing.clamp_min, config.routing.clamp_max);
     println!("  endpoint: start={:?} end={:?} arrow={}", config.endpoint.default_start_shape, config.endpoint.default_end_shape, config.endpoint.arrow_size);
 
     let scenarios: Vec<(&str, Vec<InputNode>, Vec<InputEdge>)> = vec![
