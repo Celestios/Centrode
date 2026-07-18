@@ -7,7 +7,7 @@ authors = ["Celestios <shahin.id5638@gmail.com>"]
 
 
 [lib]
-crate-type = ["cdylib", "staticlib", "rlib"] # 'cdylib' for Android/Desktop dynamic loading, 'staticlib' for iOS, 'rlib' for tests and dependencies
+crate-type = ["rlib", "cdylib", "staticlib"] # 'cdylib' for Android/Desktop dynamic loading, 'staticlib' for iOS, 'rlib' for tests and dependencies
 
 [[bin]]
 name = "generate-schema"

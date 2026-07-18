@@ -5,7 +5,6 @@ pub mod base_models;
 pub mod contents;
 pub mod nodes;
 pub mod patches;
-pub mod relation_engine;
 pub mod relations;
 pub mod styles;
 pub mod tags;
