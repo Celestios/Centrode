@@ -12,3 +12,5 @@ pub mod theme;
 pub mod templates;
 pub mod snapshot;
 pub mod schema;
+pub mod relation_engine;
+
