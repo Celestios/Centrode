@@ -1,4 +1,4 @@
-use crate::domain::relation_engine::types::{InputNode, InputEdge};
+pub use crate::domain::relation_engine::types::{InputNode, InputEdge};
 use crate::domain::relation_engine::config::{RoutingMode, BundlingMode};
 
 impl InputNode {
@@ -45,9 +45,6 @@ impl InputEdge {
             match l.strategy_type.to_lowercase().as_str() {
                 "bspline" | "bezier" => Some(RoutingMode::BSpline),
                 "orthogonal" => Some(RoutingMode::Orthogonal),
-                "straight" => Some(RoutingMode::Polyline),
-                "circular_arc" | "circulararc" | "arc" => Some(RoutingMode::CircularArc),
-                "sinewave" | "sine_wave" | "sine" | "snake" => Some(RoutingMode::SineWave),
                 _ => Some(RoutingMode::Polyline),
             }
         });

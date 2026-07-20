@@ -20,11 +20,6 @@ class RelationEngineState {
       projectionFactor: 2,
       clampMin: 30.0,
       clampMax: 150.0,
-      sineWave: SnakeConfig(
-        amplitude: 20.0,
-        frequency: 3.0,
-        obstacleAvoidance: false,
-      ),
       extensionMin: 8.0,
       extensionScale: 0.1,
     ),

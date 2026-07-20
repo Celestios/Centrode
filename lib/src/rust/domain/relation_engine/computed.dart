@@ -4,6 +4,7 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../../frb_generated.dart';
+import '../styles.dart';
 import 'config.dart';
 import 'geometry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
@@ -16,23 +17,26 @@ class ComputedRelation {
   final Point endTangent;
   final Float64List bodyWidths;
   final BodyType bodyType;
-  final EndpointShapeType startEndpoint;
-  final EndpointShapeType endEndpoint;
+  final EndpointShape startEndpoint;
+  final EndpointShape endEndpoint;
   final double startDirection;
   final double endDirection;
   final Point labelPosition;
   final LabelAnchor labelAnchor;
-  final String? bundleId;
-  final double? bundleOffset;
-  final List<Point> hitTestPoints;
-  final List<String> dependsOnNodes;
   final Rect bbox;
-  final double startMargin;
-  final double endMargin;
+  final Point startPoint;
+  final Point endPoint;
   final Point startArrowCenter;
   final Point endArrowCenter;
-  final Point endPoint;
-  final Point startPoint;
+  final double startMargin;
+  final double endMargin;
+  final List<String> dependsOnNodes;
+  final String? bundleId;
+  final double? bundleOffset;
+  final List<Point> controlPoints;
+  final Float64List knots;
+  final List<String> nudgeColors;
+  final List<Point> hitTestPoints;
 
   const ComputedRelation({
     required this.id,
@@ -48,17 +52,20 @@ class ComputedRelation {
     required this.endDirection,
     required this.labelPosition,
     required this.labelAnchor,
-    this.bundleId,
-    this.bundleOffset,
-    required this.hitTestPoints,
-    required this.dependsOnNodes,
     required this.bbox,
-    required this.startMargin,
-    required this.endMargin,
+    required this.startPoint,
+    required this.endPoint,
     required this.startArrowCenter,
     required this.endArrowCenter,
-    required this.endPoint,
-    required this.startPoint,
+    required this.startMargin,
+    required this.endMargin,
+    required this.dependsOnNodes,
+    this.bundleId,
+    this.bundleOffset,
+    required this.controlPoints,
+    required this.knots,
+    required this.nudgeColors,
+    required this.hitTestPoints,
   });
 
   @override
@@ -76,17 +83,20 @@ class ComputedRelation {
       endDirection.hashCode ^
       labelPosition.hashCode ^
       labelAnchor.hashCode ^
-      bundleId.hashCode ^
-      bundleOffset.hashCode ^
-      hitTestPoints.hashCode ^
-      dependsOnNodes.hashCode ^
       bbox.hashCode ^
-      startMargin.hashCode ^
-      endMargin.hashCode ^
+      startPoint.hashCode ^
+      endPoint.hashCode ^
       startArrowCenter.hashCode ^
       endArrowCenter.hashCode ^
-      endPoint.hashCode ^
-      startPoint.hashCode;
+      startMargin.hashCode ^
+      endMargin.hashCode ^
+      dependsOnNodes.hashCode ^
+      bundleId.hashCode ^
+      bundleOffset.hashCode ^
+      controlPoints.hashCode ^
+      knots.hashCode ^
+      nudgeColors.hashCode ^
+      hitTestPoints.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -106,19 +116,22 @@ class ComputedRelation {
           endDirection == other.endDirection &&
           labelPosition == other.labelPosition &&
           labelAnchor == other.labelAnchor &&
-          bundleId == other.bundleId &&
-          bundleOffset == other.bundleOffset &&
-          hitTestPoints == other.hitTestPoints &&
-          dependsOnNodes == other.dependsOnNodes &&
           bbox == other.bbox &&
-          startMargin == other.startMargin &&
-          endMargin == other.endMargin &&
+          startPoint == other.startPoint &&
+          endPoint == other.endPoint &&
           startArrowCenter == other.startArrowCenter &&
           endArrowCenter == other.endArrowCenter &&
-          endPoint == other.endPoint &&
-          startPoint == other.startPoint;
+          startMargin == other.startMargin &&
+          endMargin == other.endMargin &&
+          dependsOnNodes == other.dependsOnNodes &&
+          bundleId == other.bundleId &&
+          bundleOffset == other.bundleOffset &&
+          controlPoints == other.controlPoints &&
+          knots == other.knots &&
+          nudgeColors == other.nudgeColors &&
+          hitTestPoints == other.hitTestPoints;
 }
 
 enum LabelAnchor { center, left, right }
 
-enum PathType { straight, bSpline, orthogonal, circularArc, sineWave }
+enum PathType { straight, bSpline, orthogonal }

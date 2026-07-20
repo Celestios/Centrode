@@ -85,7 +85,8 @@ impl Shaper for BSplineShaper {
             path.push(context.end_pt);
         }
         let rdp_eps = self.config.rdp_epsilon();
-        let bspline_samples = 100;
+        let path_len = crate::domain::relation_engine::geometry::polyline_length(&path);
+        let bspline_samples = ((path_len / 5.0).clamp(10.0, 200.0)) as usize;
 
         let simplified = simplify_path(
             &path,
@@ -102,7 +103,8 @@ impl Shaper for BSplineShaper {
     }
 
     fn reshape(&self, prepped_path: &[Point], _context: &ShaperContext) -> ComputedRelation {
-        let bspline_samples = 100;
+        let path_len = crate::domain::relation_engine::geometry::polyline_length(prepped_path);
+        let bspline_samples = ((path_len / 5.0).clamp(10.0, 200.0)) as usize;
         let (bspline_pts, knots) = evaluate_bspline(prepped_path, bspline_samples);
         let mut computed = ComputedRelation::new_basic(String::new(), bspline_pts, PathType::BSpline);
         computed.control_points = prepped_path.to_vec();

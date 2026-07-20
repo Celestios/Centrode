@@ -1,9 +1,20 @@
+use std::collections::HashMap;
 use crate::domain::relation_engine::geometry::{Point, Rect};
 use crate::domain::relation_engine::types::InputNode;
 use crate::domain::styles::PortSide;
+use crate::domain::relation_engine::config::RoutingMode;
 
 const OBSTACLE_WALL_COST: f64 = 1e8;
 const COLLISION_BUFFER: f64 = 5.0;
+
+pub struct ResolvedPorts {
+    pub start: Point,
+    pub end: Point,
+    pub start_normal: Option<Point>,
+    pub end_normal: Option<Point>,
+    pub start_exit: Point,
+    pub end_exit: Point,
+}
 
 pub fn port_position(node: &InputNode, side: Option<&PortSide>) -> (Point, f64) {
     let (x, y, w, h) = (node.x, node.y, node.width, node.height);
@@ -33,6 +44,142 @@ pub fn get_port_dir(side: Option<&PortSide>) -> Option<(i32, i32)> {
         Some(PortSide::BottomLeft) => Some((-1, 1)),
         _ => None,
     }
+}
+
+pub fn normal_for_side(side: &PortSide) -> Point {
+    match side {
+        PortSide::Top => Point::new(0.0, -1.0),
+        PortSide::Right => Point::new(1.0, 0.0),
+        PortSide::Bottom => Point::new(0.0, 1.0),
+        PortSide::Left => Point::new(-1.0, 0.0),
+        PortSide::TopLeft => Point::new(-1.0, -1.0).normalize(),
+        PortSide::TopRight => Point::new(1.0, -1.0).normalize(),
+        PortSide::BottomRight => Point::new(1.0, 1.0).normalize(),
+        PortSide::BottomLeft => Point::new(-1.0, 1.0).normalize(),
+        PortSide::Auto => Point::new(1.0, 0.0),
+    }
+}
+
+pub fn resolve_orthogonal_normal_from_side(side: &PortSide, port: Point, other: Point) -> Point {
+    match side {
+        PortSide::TopLeft => {
+            let dx = other.x - port.x;
+            let dy = other.y - port.y;
+            if dx.abs() <= dy.abs() {
+                Point::new(-1.0, 0.0)
+            } else {
+                Point::new(0.0, -1.0)
+            }
+        }
+        PortSide::TopRight => {
+            let dx = other.x - port.x;
+            let dy = other.y - port.y;
+            if dx.abs() <= dy.abs() {
+                Point::new(1.0, 0.0)
+            } else {
+                Point::new(0.0, -1.0)
+            }
+        }
+        PortSide::BottomLeft => {
+            let dx = other.x - port.x;
+            let dy = other.y - port.y;
+            if dx.abs() <= dy.abs() {
+                Point::new(-1.0, 0.0)
+            } else {
+                Point::new(0.0, 1.0)
+            }
+        }
+        PortSide::BottomRight => {
+            let dx = other.x - port.x;
+            let dy = other.y - port.y;
+            if dx.abs() <= dy.abs() {
+                Point::new(1.0, 0.0)
+            } else {
+                Point::new(0.0, 1.0)
+            }
+        }
+        other_side => normal_for_side(other_side),
+    }
+}
+
+pub fn closest_port_to(node: &InputNode, target: Point) -> (PortSide, Point) {
+    let sides = [
+        PortSide::Top,
+        PortSide::Right,
+        PortSide::Bottom,
+        PortSide::Left,
+        PortSide::TopLeft,
+        PortSide::TopRight,
+        PortSide::BottomRight,
+        PortSide::BottomLeft,
+    ];
+    let mut best_side = PortSide::Top;
+    let mut best_pos = port_position(node, Some(&PortSide::Top)).0;
+    let mut min_dist_sq = best_pos.distance_to(target);
+
+    for side in &sides {
+        let pos = port_position(node, Some(side)).0;
+        let d = pos.distance_to(target);
+        if d < min_dist_sq {
+            min_dist_sq = d;
+            best_side = side.clone();
+            best_pos = pos;
+        }
+    }
+    (best_side, best_pos)
+}
+
+pub fn compute_extension(node: &InputNode, extension_min: f64, extension_scale: f64) -> f64 {
+    let node_dim = node.width.min(node.height);
+    (node_dim * extension_scale).max(extension_min)
+}
+
+pub fn resolve_ports_full(
+    edge: &crate::domain::relation_engine::types::InputEdge,
+    node_map: &HashMap<String, InputNode>,
+    routing_mode: &RoutingMode,
+    start_ext: f64,
+    end_ext: f64,
+) -> Option<ResolvedPorts> {
+    let from_node = node_map.get(&edge.from_node_id)?;
+    let to_node = node_map.get(&edge.to_node_id)?;
+
+    let from_center = Point::new(from_node.x + from_node.width / 2.0, from_node.y + from_node.height / 2.0);
+    let to_center = Point::new(to_node.x + to_node.width / 2.0, to_node.y + to_node.height / 2.0);
+
+    let (start_side, start_pos) = match &edge.from_side {
+        Some(PortSide::Auto) | None => closest_port_to(from_node, to_center),
+        Some(side) => (side.clone(), port_position(from_node, Some(side)).0),
+    };
+
+    let (end_side, end_pos) = match &edge.to_side {
+        Some(PortSide::Auto) | None => closest_port_to(to_node, from_center),
+        Some(side) => (side.clone(), port_position(to_node, Some(side)).0),
+    };
+
+    let start_normal = if *routing_mode == RoutingMode::Orthogonal {
+        resolve_orthogonal_normal_from_side(&start_side, start_pos, end_pos)
+    } else {
+        normal_for_side(&start_side)
+    };
+
+    let end_normal = if *routing_mode == RoutingMode::Orthogonal {
+        resolve_orthogonal_normal_from_side(&end_side, end_pos, start_pos)
+    } else {
+        normal_for_side(&end_side)
+    };
+
+    let start_exit = start_pos + start_normal * start_ext;
+    let end_exit = end_pos + end_normal * end_ext;
+
+    Some(ResolvedPorts {
+        start: start_pos,
+        end: end_pos,
+        start_normal: Some(start_normal),
+        end_normal: Some(end_normal),
+        start_exit,
+        end_exit,
+    })
 }
 
 pub fn get_clearance_point(

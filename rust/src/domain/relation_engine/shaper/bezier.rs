@@ -48,7 +48,7 @@ impl Shaper for BezierShaper {
         let path_points = evaluate_cubic_bezier(
             p0, p1, p2, p3, self.config.num_samples,
         );
-        let mut computed = ComputedRelation::new_basic(String::new(), path_points, PathType::CircularArc); // CircularArc maps to Bezier in old naming
+        let mut computed = ComputedRelation::new_basic(String::new(), path_points, PathType::BSpline);
         computed.control_points = vec![p0, p1, p2, p3];
         computed
     }

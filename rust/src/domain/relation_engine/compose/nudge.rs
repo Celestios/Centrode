@@ -384,7 +384,7 @@ pub fn nudge_group(
         run.start_v != 0 && run.end_v != last
     });
 
-    let mut groups: Vec<(usize, f64, Vec<usize>)> = group_runs(&all_runs, config.search_radius)
+    let mut groups: Vec<(usize, f64, Vec<usize>)> = group_runs(&all_runs, config.search_radius())
         .into_iter()
         .map(|g| {
             let (size, len) = group_priority(&g, &all_runs);
@@ -397,8 +397,9 @@ pub fn nudge_group(
     let mut path_data: Vec<Vec<Point>> = indices.iter().map(|&idx| paths[idx].clone()).collect();
 
     for (_, _, group) in &groups {
-        even_spacing(group, &all_runs, &mut path_data, config.min_spacing, nodes);
+        even_spacing(group, &all_runs, &mut path_data, config.min_spacing(), nodes);
     }
+
 
     for (gi, &idx) in indices.iter().enumerate() {
         paths[idx] = std::mem::take(&mut path_data[gi]);

@@ -233,4 +233,6 @@ pub fn finalize_relation(
 
     // 7. Dependencies
     result.depends_on_nodes = vec![edge.from_node_id.clone(), edge.to_node_id.clone()];
+    result.hit_test_points = result.path_points.clone();
 }
+

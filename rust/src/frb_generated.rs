@@ -3018,32 +3018,35 @@ impl SseDecode for crate::domain::relation_engine::computed::ComputedRelation {
         let mut var_bodyType =
             <crate::domain::relation_engine::config::BodyType>::sse_decode(deserializer);
         let mut var_startEndpoint =
-            <crate::domain::relation_engine::config::EndpointShapeType>::sse_decode(deserializer);
-        let mut var_endEndpoint =
-            <crate::domain::relation_engine::config::EndpointShapeType>::sse_decode(deserializer);
+            <crate::domain::styles::EndpointShape>::sse_decode(deserializer);
+        let mut var_endEndpoint = <crate::domain::styles::EndpointShape>::sse_decode(deserializer);
         let mut var_startDirection = <f64>::sse_decode(deserializer);
         let mut var_endDirection = <f64>::sse_decode(deserializer);
         let mut var_labelPosition =
             <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
         let mut var_labelAnchor =
             <crate::domain::relation_engine::computed::LabelAnchor>::sse_decode(deserializer);
-        let mut var_bundleId = <Option<String>>::sse_decode(deserializer);
-        let mut var_bundleOffset = <Option<f64>>::sse_decode(deserializer);
-        let mut var_hitTestPoints =
-            <Vec<crate::domain::relation_engine::geometry::Point>>::sse_decode(deserializer);
-        let mut var_dependsOnNodes = <Vec<String>>::sse_decode(deserializer);
         let mut var_bbox =
             <crate::domain::relation_engine::geometry::Rect>::sse_decode(deserializer);
-        let mut var_startMargin = <f64>::sse_decode(deserializer);
-        let mut var_endMargin = <f64>::sse_decode(deserializer);
+        let mut var_startPoint =
+            <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
+        let mut var_endPoint =
+            <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
         let mut var_startArrowCenter =
             <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
         let mut var_endArrowCenter =
             <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
-        let mut var_endPoint =
-            <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
-        let mut var_startPoint =
-            <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
+        let mut var_startMargin = <f64>::sse_decode(deserializer);
+        let mut var_endMargin = <f64>::sse_decode(deserializer);
+        let mut var_dependsOnNodes = <Vec<String>>::sse_decode(deserializer);
+        let mut var_bundleId = <Option<String>>::sse_decode(deserializer);
+        let mut var_bundleOffset = <Option<f64>>::sse_decode(deserializer);
+        let mut var_controlPoints =
+            <Vec<crate::domain::relation_engine::geometry::Point>>::sse_decode(deserializer);
+        let mut var_knots = <Vec<f64>>::sse_decode(deserializer);
+        let mut var_nudgeColors = <Vec<String>>::sse_decode(deserializer);
+        let mut var_hitTestPoints =
+            <Vec<crate::domain::relation_engine::geometry::Point>>::sse_decode(deserializer);
         return crate::domain::relation_engine::computed::ComputedRelation {
             id: var_id,
             path_points: var_pathPoints,
@@ -3058,17 +3061,20 @@ impl SseDecode for crate::domain::relation_engine::computed::ComputedRelation {
             end_direction: var_endDirection,
             label_position: var_labelPosition,
             label_anchor: var_labelAnchor,
-            bundle_id: var_bundleId,
-            bundle_offset: var_bundleOffset,
-            hit_test_points: var_hitTestPoints,
-            depends_on_nodes: var_dependsOnNodes,
             bbox: var_bbox,
-            start_margin: var_startMargin,
-            end_margin: var_endMargin,
+            start_point: var_startPoint,
+            end_point: var_endPoint,
             start_arrow_center: var_startArrowCenter,
             end_arrow_center: var_endArrowCenter,
-            end_point: var_endPoint,
-            start_point: var_startPoint,
+            start_margin: var_startMargin,
+            end_margin: var_endMargin,
+            depends_on_nodes: var_dependsOnNodes,
+            bundle_id: var_bundleId,
+            bundle_offset: var_bundleOffset,
+            control_points: var_controlPoints,
+            knots: var_knots,
+            nudge_colors: var_nudgeColors,
+            hit_test_points: var_hitTestPoints,
         };
     }
 }
@@ -3485,32 +3491,6 @@ impl SseDecode for crate::domain::nodes::InterNode {
             style: var_style,
             verb: var_verb,
             behavioral_features: var_behavioralFeatures,
-        };
-    }
-}
-
-impl SseDecode for crate::domain::relation_engine::config::KinodynamicConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_kappaMax = <f64>::sse_decode(deserializer);
-        let mut var_latticeCellSize = <f64>::sse_decode(deserializer);
-        let mut var_angularResolution = <f64>::sse_decode(deserializer);
-        let mut var_curvatureBins = <u32>::sse_decode(deserializer);
-        let mut var_narrowPhaseTolerance = <f64>::sse_decode(deserializer);
-        let mut var_weightArcLength = <f64>::sse_decode(deserializer);
-        let mut var_weightCurvature = <f64>::sse_decode(deserializer);
-        let mut var_weightObstacle = <f64>::sse_decode(deserializer);
-        let mut var_obstacleFalloff = <f64>::sse_decode(deserializer);
-        return crate::domain::relation_engine::config::KinodynamicConfig {
-            kappa_max: var_kappaMax,
-            lattice_cell_size: var_latticeCellSize,
-            angular_resolution: var_angularResolution,
-            curvature_bins: var_curvatureBins,
-            narrow_phase_tolerance: var_narrowPhaseTolerance,
-            weight_arc_length: var_weightArcLength,
-            weight_curvature: var_weightCurvature,
-            weight_obstacle: var_weightObstacle,
-            obstacle_falloff: var_obstacleFalloff,
         };
     }
 }
@@ -4266,8 +4246,6 @@ impl SseDecode for crate::domain::relation_engine::computed::PathType {
             0 => crate::domain::relation_engine::computed::PathType::Straight,
             1 => crate::domain::relation_engine::computed::PathType::BSpline,
             2 => crate::domain::relation_engine::computed::PathType::Orthogonal,
-            3 => crate::domain::relation_engine::computed::PathType::CircularArc,
-            4 => crate::domain::relation_engine::computed::PathType::SineWave,
             _ => unreachable!("Invalid variant for PathType: {}", inner),
         };
     }
@@ -4472,12 +4450,8 @@ impl SseDecode for crate::domain::relation_engine::config::RoutingConfig {
         let mut var_projectionFactor = <f64>::sse_decode(deserializer);
         let mut var_clampMin = <f64>::sse_decode(deserializer);
         let mut var_clampMax = <f64>::sse_decode(deserializer);
-        let mut var_sineWave =
-            <crate::domain::relation_engine::config::SnakeConfig>::sse_decode(deserializer);
         let mut var_extensionMin = <f64>::sse_decode(deserializer);
         let mut var_extensionScale = <f64>::sse_decode(deserializer);
-        let mut var_kinodynamic =
-            <crate::domain::relation_engine::config::KinodynamicConfig>::sse_decode(deserializer);
         return crate::domain::relation_engine::config::RoutingConfig {
             routing_mode: var_routingMode,
             obstacle_margin: var_obstacleMargin,
@@ -4485,10 +4459,8 @@ impl SseDecode for crate::domain::relation_engine::config::RoutingConfig {
             projection_factor: var_projectionFactor,
             clamp_min: var_clampMin,
             clamp_max: var_clampMax,
-            sine_wave: var_sineWave,
             extension_min: var_extensionMin,
             extension_scale: var_extensionScale,
-            kinodynamic: var_kinodynamic,
         };
     }
 }
@@ -4501,8 +4473,6 @@ impl SseDecode for crate::domain::relation_engine::config::RoutingMode {
             0 => crate::domain::relation_engine::config::RoutingMode::Polyline,
             1 => crate::domain::relation_engine::config::RoutingMode::BSpline,
             2 => crate::domain::relation_engine::config::RoutingMode::Orthogonal,
-            3 => crate::domain::relation_engine::config::RoutingMode::CircularArc,
-            4 => crate::domain::relation_engine::config::RoutingMode::SineWave,
             _ => unreachable!("Invalid variant for RoutingMode: {}", inner),
         };
     }
@@ -4540,20 +4510,6 @@ impl SseDecode for crate::domain::base_models::Size {
         return crate::domain::base_models::Size {
             width: var_width,
             height: var_height,
-        };
-    }
-}
-
-impl SseDecode for crate::domain::relation_engine::config::SnakeConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_amplitude = <f64>::sse_decode(deserializer);
-        let mut var_frequency = <f64>::sse_decode(deserializer);
-        let mut var_obstacleAvoidance = <bool>::sse_decode(deserializer);
-        return crate::domain::relation_engine::config::SnakeConfig {
-            amplitude: var_amplitude,
-            frequency: var_frequency,
-            obstacle_avoidance: var_obstacleAvoidance,
         };
     }
 }
@@ -5347,17 +5303,20 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::computed:
             self.end_direction.into_into_dart().into_dart(),
             self.label_position.into_into_dart().into_dart(),
             self.label_anchor.into_into_dart().into_dart(),
-            self.bundle_id.into_into_dart().into_dart(),
-            self.bundle_offset.into_into_dart().into_dart(),
-            self.hit_test_points.into_into_dart().into_dart(),
-            self.depends_on_nodes.into_into_dart().into_dart(),
             self.bbox.into_into_dart().into_dart(),
-            self.start_margin.into_into_dart().into_dart(),
-            self.end_margin.into_into_dart().into_dart(),
+            self.start_point.into_into_dart().into_dart(),
+            self.end_point.into_into_dart().into_dart(),
             self.start_arrow_center.into_into_dart().into_dart(),
             self.end_arrow_center.into_into_dart().into_dart(),
-            self.end_point.into_into_dart().into_dart(),
-            self.start_point.into_into_dart().into_dart(),
+            self.start_margin.into_into_dart().into_dart(),
+            self.end_margin.into_into_dart().into_dart(),
+            self.depends_on_nodes.into_into_dart().into_dart(),
+            self.bundle_id.into_into_dart().into_dart(),
+            self.bundle_offset.into_into_dart().into_dart(),
+            self.control_points.into_into_dart().into_dart(),
+            self.knots.into_into_dart().into_dart(),
+            self.nudge_colors.into_into_dart().into_dart(),
+            self.hit_test_points.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -5861,34 +5820,6 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::nodes::InterNode>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::KinodynamicConfig {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.kappa_max.into_into_dart().into_dart(),
-            self.lattice_cell_size.into_into_dart().into_dart(),
-            self.angular_resolution.into_into_dart().into_dart(),
-            self.curvature_bins.into_into_dart().into_dart(),
-            self.narrow_phase_tolerance.into_into_dart().into_dart(),
-            self.weight_arc_length.into_into_dart().into_dart(),
-            self.weight_curvature.into_into_dart().into_dart(),
-            self.weight_obstacle.into_into_dart().into_dart(),
-            self.obstacle_falloff.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::domain::relation_engine::config::KinodynamicConfig
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::KinodynamicConfig>
-    for crate::domain::relation_engine::config::KinodynamicConfig
-{
-    fn into_into_dart(self) -> crate::domain::relation_engine::config::KinodynamicConfig {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::computed::LabelAnchor {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
@@ -6194,8 +6125,6 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::computed:
             Self::Straight => 0.into_dart(),
             Self::BSpline => 1.into_dart(),
             Self::Orthogonal => 2.into_dart(),
-            Self::CircularArc => 3.into_dart(),
-            Self::SineWave => 4.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -6436,10 +6365,8 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::R
             self.projection_factor.into_into_dart().into_dart(),
             self.clamp_min.into_into_dart().into_dart(),
             self.clamp_max.into_into_dart().into_dart(),
-            self.sine_wave.into_into_dart().into_dart(),
             self.extension_min.into_into_dart().into_dart(),
             self.extension_scale.into_into_dart().into_dart(),
-            self.kinodynamic.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -6462,8 +6389,6 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::R
             Self::Polyline => 0.into_dart(),
             Self::BSpline => 1.into_dart(),
             Self::Orthogonal => 2.into_dart(),
-            Self::CircularArc => 3.into_dart(),
-            Self::SineWave => 4.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -6524,28 +6449,6 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::base_models::Size>
     for crate::domain::base_models::Size
 {
     fn into_into_dart(self) -> crate::domain::base_models::Size {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::config::SnakeConfig {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.amplitude.into_into_dart().into_dart(),
-            self.frequency.into_into_dart().into_dart(),
-            self.obstacle_avoidance.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::domain::relation_engine::config::SnakeConfig
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::domain::relation_engine::config::SnakeConfig>
-    for crate::domain::relation_engine::config::SnakeConfig
-{
-    fn into_into_dart(self) -> crate::domain::relation_engine::config::SnakeConfig {
         self
     }
 }
@@ -7098,14 +7001,8 @@ impl SseEncode for crate::domain::relation_engine::computed::ComputedRelation {
         <crate::domain::relation_engine::geometry::Point>::sse_encode(self.end_tangent, serializer);
         <Vec<f64>>::sse_encode(self.body_widths, serializer);
         <crate::domain::relation_engine::config::BodyType>::sse_encode(self.body_type, serializer);
-        <crate::domain::relation_engine::config::EndpointShapeType>::sse_encode(
-            self.start_endpoint,
-            serializer,
-        );
-        <crate::domain::relation_engine::config::EndpointShapeType>::sse_encode(
-            self.end_endpoint,
-            serializer,
-        );
+        <crate::domain::styles::EndpointShape>::sse_encode(self.start_endpoint, serializer);
+        <crate::domain::styles::EndpointShape>::sse_encode(self.end_endpoint, serializer);
         <f64>::sse_encode(self.start_direction, serializer);
         <f64>::sse_encode(self.end_direction, serializer);
         <crate::domain::relation_engine::geometry::Point>::sse_encode(
@@ -7116,16 +7013,9 @@ impl SseEncode for crate::domain::relation_engine::computed::ComputedRelation {
             self.label_anchor,
             serializer,
         );
-        <Option<String>>::sse_encode(self.bundle_id, serializer);
-        <Option<f64>>::sse_encode(self.bundle_offset, serializer);
-        <Vec<crate::domain::relation_engine::geometry::Point>>::sse_encode(
-            self.hit_test_points,
-            serializer,
-        );
-        <Vec<String>>::sse_encode(self.depends_on_nodes, serializer);
         <crate::domain::relation_engine::geometry::Rect>::sse_encode(self.bbox, serializer);
-        <f64>::sse_encode(self.start_margin, serializer);
-        <f64>::sse_encode(self.end_margin, serializer);
+        <crate::domain::relation_engine::geometry::Point>::sse_encode(self.start_point, serializer);
+        <crate::domain::relation_engine::geometry::Point>::sse_encode(self.end_point, serializer);
         <crate::domain::relation_engine::geometry::Point>::sse_encode(
             self.start_arrow_center,
             serializer,
@@ -7134,8 +7024,21 @@ impl SseEncode for crate::domain::relation_engine::computed::ComputedRelation {
             self.end_arrow_center,
             serializer,
         );
-        <crate::domain::relation_engine::geometry::Point>::sse_encode(self.end_point, serializer);
-        <crate::domain::relation_engine::geometry::Point>::sse_encode(self.start_point, serializer);
+        <f64>::sse_encode(self.start_margin, serializer);
+        <f64>::sse_encode(self.end_margin, serializer);
+        <Vec<String>>::sse_encode(self.depends_on_nodes, serializer);
+        <Option<String>>::sse_encode(self.bundle_id, serializer);
+        <Option<f64>>::sse_encode(self.bundle_offset, serializer);
+        <Vec<crate::domain::relation_engine::geometry::Point>>::sse_encode(
+            self.control_points,
+            serializer,
+        );
+        <Vec<f64>>::sse_encode(self.knots, serializer);
+        <Vec<String>>::sse_encode(self.nudge_colors, serializer);
+        <Vec<crate::domain::relation_engine::geometry::Point>>::sse_encode(
+            self.hit_test_points,
+            serializer,
+        );
     }
 }
 
@@ -7459,21 +7362,6 @@ impl SseEncode for crate::domain::nodes::InterNode {
         <Option<String>>::sse_encode(self.style, serializer);
         <String>::sse_encode(self.verb, serializer);
         <Option<String>>::sse_encode(self.behavioral_features, serializer);
-    }
-}
-
-impl SseEncode for crate::domain::relation_engine::config::KinodynamicConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <f64>::sse_encode(self.kappa_max, serializer);
-        <f64>::sse_encode(self.lattice_cell_size, serializer);
-        <f64>::sse_encode(self.angular_resolution, serializer);
-        <u32>::sse_encode(self.curvature_bins, serializer);
-        <f64>::sse_encode(self.narrow_phase_tolerance, serializer);
-        <f64>::sse_encode(self.weight_arc_length, serializer);
-        <f64>::sse_encode(self.weight_curvature, serializer);
-        <f64>::sse_encode(self.weight_obstacle, serializer);
-        <f64>::sse_encode(self.obstacle_falloff, serializer);
     }
 }
 
@@ -8081,8 +7969,6 @@ impl SseEncode for crate::domain::relation_engine::computed::PathType {
                 crate::domain::relation_engine::computed::PathType::Straight => 0,
                 crate::domain::relation_engine::computed::PathType::BSpline => 1,
                 crate::domain::relation_engine::computed::PathType::Orthogonal => 2,
-                crate::domain::relation_engine::computed::PathType::CircularArc => 3,
-                crate::domain::relation_engine::computed::PathType::SineWave => 4,
                 _ => {
                     unimplemented!("");
                 }
@@ -8251,16 +8137,8 @@ impl SseEncode for crate::domain::relation_engine::config::RoutingConfig {
         <f64>::sse_encode(self.projection_factor, serializer);
         <f64>::sse_encode(self.clamp_min, serializer);
         <f64>::sse_encode(self.clamp_max, serializer);
-        <crate::domain::relation_engine::config::SnakeConfig>::sse_encode(
-            self.sine_wave,
-            serializer,
-        );
         <f64>::sse_encode(self.extension_min, serializer);
         <f64>::sse_encode(self.extension_scale, serializer);
-        <crate::domain::relation_engine::config::KinodynamicConfig>::sse_encode(
-            self.kinodynamic,
-            serializer,
-        );
     }
 }
 
@@ -8272,8 +8150,6 @@ impl SseEncode for crate::domain::relation_engine::config::RoutingMode {
                 crate::domain::relation_engine::config::RoutingMode::Polyline => 0,
                 crate::domain::relation_engine::config::RoutingMode::BSpline => 1,
                 crate::domain::relation_engine::config::RoutingMode::Orthogonal => 2,
-                crate::domain::relation_engine::config::RoutingMode::CircularArc => 3,
-                crate::domain::relation_engine::config::RoutingMode::SineWave => 4,
                 _ => {
                     unimplemented!("");
                 }
@@ -8302,15 +8178,6 @@ impl SseEncode for crate::domain::base_models::Size {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.width, serializer);
         <i32>::sse_encode(self.height, serializer);
-    }
-}
-
-impl SseEncode for crate::domain::relation_engine::config::SnakeConfig {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <f64>::sse_encode(self.amplitude, serializer);
-        <f64>::sse_encode(self.frequency, serializer);
-        <bool>::sse_encode(self.obstacle_avoidance, serializer);
     }
 }
 

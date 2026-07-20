@@ -6,56 +6,6 @@ pub enum RoutingMode {
     Polyline,
     BSpline,
     Orthogonal,
-    CircularArc,
-    SineWave,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-#[frb]
-pub struct SnakeConfig {
-    pub amplitude: f64,
-    pub frequency: f64,
-    pub obstacle_avoidance: bool,
-}
-
-impl Default for SnakeConfig {
-    fn default() -> Self {
-        Self {
-            amplitude: 20.0,
-            frequency: 0.05,
-            obstacle_avoidance: true,
-        }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq)]
-#[frb]
-pub struct KinodynamicConfig {
-    pub kappa_max: f64,
-    pub lattice_cell_size: f64,
-    pub angular_resolution: f64,
-    pub curvature_bins: u32,
-    pub narrow_phase_tolerance: f64,
-    pub weight_arc_length: f64,
-    pub weight_curvature: f64,
-    pub weight_obstacle: f64,
-    pub obstacle_falloff: f64,
-}
-
-impl Default for KinodynamicConfig {
-    fn default() -> Self {
-        Self {
-            kappa_max: 0.05,
-            lattice_cell_size: 20.0,
-            angular_resolution: 0.2618,
-            curvature_bins: 5,
-            narrow_phase_tolerance: 5.0,
-            weight_arc_length: 1.0,
-            weight_curvature: 0.1,
-            weight_obstacle: 5.0,
-            obstacle_falloff: 50.0,
-        }
-    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -67,10 +17,8 @@ pub struct RoutingConfig {
     pub projection_factor: f64,
     pub clamp_min: f64,
     pub clamp_max: f64,
-    pub sine_wave: SnakeConfig,
     pub extension_min: f64,
     pub extension_scale: f64,
-    pub kinodynamic: KinodynamicConfig,
 }
 
 impl Default for RoutingConfig {
@@ -82,10 +30,8 @@ impl Default for RoutingConfig {
             projection_factor: 1.0,
             clamp_min: 10.0,
             clamp_max: 200.0,
-            sine_wave: SnakeConfig::default(),
             extension_min: 15.0,
             extension_scale: 0.15,
-            kinodynamic: KinodynamicConfig::default(),
         }
     }
 }
@@ -124,29 +70,74 @@ impl RoutingConfig {
     }
 
     pub fn nudge_amplitude(&self) -> f64 {
-        self.sine_wave.amplitude
+        20.0
     }
 
     pub fn nudge_count(&self) -> usize {
         5
     }
+
+    pub fn straight_config(&self) -> StraightConfig {
+        StraightConfig {
+            num_samples: 2,
+        }
+    }
+
+    pub fn bezier_config(&self) -> BezierConfig {
+        BezierConfig {
+            num_samples: 100,
+            start_offset_x: 50.0,
+            start_offset_y: 0.0,
+            end_offset_x: -50.0,
+            end_offset_y: 0.0,
+        }
+    }
+}
+
+
+#[derive(Clone, Debug, PartialEq)]
+#[frb]
+pub struct StraightConfig {
+    pub num_samples: usize,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+#[frb]
+pub struct BezierConfig {
+    pub num_samples: usize,
+    pub start_offset_x: f64,
+    pub start_offset_y: f64,
+    pub end_offset_x: f64,
+    pub end_offset_y: f64,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 #[frb]
 pub struct NudgingConfig {
-    pub min_spacing: f64,
-    pub search_radius: f64,
+    pub enabled: bool,
+    pub distance: f64,
+    pub decay_factor: f64,
 }
 
 impl Default for NudgingConfig {
     fn default() -> Self {
         Self {
-            min_spacing: 15.0,
-            search_radius: 60.0,
+            enabled: true,
+            distance: 4.0,
+            decay_factor: 0.5,
         }
     }
 }
+
+impl NudgingConfig {
+    pub fn min_spacing(&self) -> f64 {
+        self.distance * 3.75
+    }
+    pub fn search_radius(&self) -> f64 {
+        self.distance * 15.0
+    }
+}
+
 
 #[derive(Clone, Debug, PartialEq)]
 #[frb]

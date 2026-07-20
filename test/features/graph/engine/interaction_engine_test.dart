@@ -12,6 +12,7 @@ import 'package:mycelium/features/graph/store/relation_engine_state.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/config.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/geometry.dart' as rust_geom;
+import 'package:mycelium/src/rust/domain/styles.dart';
 
 class MockInteractionContext extends Mock implements InteractionContext {}
 
@@ -29,8 +30,8 @@ ComputedRelation createTestComputedRelation(String id, List<rust_geom.Point> pat
     endTangent: const rust_geom.Point(x: 0, y: 0),
     bodyWidths: Float64List(0),
     bodyType: BodyType.uniform,
-    startEndpoint: EndpointShapeType.none,
-    endEndpoint: EndpointShapeType.none,
+    startEndpoint: EndpointShape.none,
+    endEndpoint: EndpointShape.none,
     startDirection: 0.0,
     endDirection: 0.0,
     labelPosition: const rust_geom.Point(x: 0, y: 0),
@@ -44,6 +45,9 @@ ComputedRelation createTestComputedRelation(String id, List<rust_geom.Point> pat
     endArrowCenter: const rust_geom.Point(x: 0, y: 0),
     startPoint: const rust_geom.Point(x: 0, y: 0),
     endPoint: const rust_geom.Point(x: 0, y: 0),
+    controlPoints: const [],
+    knots: Float64List(0),
+    nudgeColors: const [],
   );
 }
 

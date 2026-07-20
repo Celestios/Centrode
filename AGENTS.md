@@ -141,6 +141,12 @@ read_file(D:/Projects/Open/flutter/code/mycelium/.agents/rules/git-file-operatio
 - **Actor tool requires `operation` object:** Always pass a single `operation` JSON object with `action` as discriminator. All params (`prompt`, `description`, `subagent_type`, `context`) go inside `operation`, NOT as top-level params.
   - Wrong: `actor({prompt: "...", subagent_type: "explore"})`
   - Correct: `actor({"operation": {"action": "run", "subagent_type": "explore", "description": "...", "prompt": "..."}})`
+- **Arch MCP (Architectural & Codebase Analysis):** You must proactively leverage the `arch` MCP tools for codebase research, dependency mapping, and compliance audits:
+  - *Code Discovery:* Prefer `query` (semantic/keyword search) and `lookup` (symbol/module lookup) to locate targets before reading or modifying code.
+  - *Context Gathering:* Run `context` to obtain a file's structural index (ToC) and line ranges before reading large files. Use `compile_context` (depth/radius <= 2) to build localized call graphs.
+  - *Impact/Refactor Analysis:* Run `impact` (blast radius analysis) before modifying signatures of shared interfaces or central types to understand downstream effects.
+  - *Data-Flow Tracing:* Run `trace` to trace pathways across languages (Dart <-> FFI <-> Rust) to pinpoint where to introduce debugging logs or checks.
+  - *Compliance:* Run `audit` to ensure layer/tier boundaries match the architectural rules database before finalizing changes.
 
 ## Style Rules
 

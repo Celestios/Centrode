@@ -1,6 +1,5 @@
 use crate::domain::relation_engine::geometry::Point;
 use crate::domain::relation_engine::path_finder::steer::{Steer, AStarContext};
-use crate::domain::relation_engine::path_finder::port::compute_obstacle_cost;
 use crate::domain::relation_engine::config::RoutingConfig;
 
 pub struct OrthogonalSteer {
@@ -36,21 +35,12 @@ impl Steer for OrthogonalSteer {
         step_cost: f64,
         context: &AStarContext,
     ) -> f64 {
-        let cp = context.grid.grid_to_world(to_key.0, to_key.1);
         let mut cost = step_cost * context.grid.cell_size;
 
         // Constants matching default OrthogonalConfig
-        let inner_bbox_scale = 1.0 / 3.0;
-        let obstacle_weight = 200.0;
         let turn_penalty = 50.0;
 
-        cost += compute_obstacle_cost(
-            cp,
-            context.nodes,
-            context.outer_bbox_distance,
-            inner_bbox_scale,
-            obstacle_weight,
-        );
+        cost += context.cost_grid.get(to_key.0, to_key.1);
 
         if let Some(prev) = prev_key {
             let prev_dir = (from_key.0 - prev.0, from_key.1 - prev.1);

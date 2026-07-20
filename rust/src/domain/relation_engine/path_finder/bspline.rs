@@ -1,6 +1,5 @@
 use crate::domain::relation_engine::geometry::Point;
 use crate::domain::relation_engine::path_finder::steer::{Steer, AStarContext, compute_direction_penalty};
-use crate::domain::relation_engine::path_finder::port::compute_obstacle_cost;
 use crate::domain::relation_engine::config::RoutingConfig;
 
 pub struct BSplineSteer {
@@ -48,20 +47,12 @@ impl Steer for BSplineSteer {
 
         // Constants matching default BSplineConfig
         let line_weight = 1.0;
-        let inner_bbox_scale = 1.0 / 3.0;
-        let obstacle_weight = 200.0;
 
         let penalty = (line_dx * (context.start_pt.y - cp.y) - line_dy * (context.start_pt.x - cp.x)).abs()
             / line_len
             * line_weight;
 
-        let obstacle_cost = compute_obstacle_cost(
-            cp,
-            context.nodes,
-            context.outer_bbox_distance,
-            inner_bbox_scale,
-            obstacle_weight,
-        );
+        let obstacle_cost = context.cost_grid.get(to_key.0, to_key.1);
 
         let dir_penalty = compute_direction_penalty(from_key, to_key, dir, context);
 

@@ -2651,8 +2651,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ComputedRelation dco_decode_computed_relation(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 24)
-      throw Exception('unexpected arr length: expect 24 but see ${arr.length}');
+    if (arr.length != 27)
+      throw Exception('unexpected arr length: expect 27 but see ${arr.length}');
     return ComputedRelation(
       id: dco_decode_String(arr[0]),
       pathPoints: dco_decode_list_point(arr[1]),
@@ -2661,23 +2661,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       endTangent: dco_decode_point(arr[4]),
       bodyWidths: dco_decode_list_prim_f_64_strict(arr[5]),
       bodyType: dco_decode_body_type(arr[6]),
-      startEndpoint: dco_decode_endpoint_shape_type(arr[7]),
-      endEndpoint: dco_decode_endpoint_shape_type(arr[8]),
+      startEndpoint: dco_decode_endpoint_shape(arr[7]),
+      endEndpoint: dco_decode_endpoint_shape(arr[8]),
       startDirection: dco_decode_f_64(arr[9]),
       endDirection: dco_decode_f_64(arr[10]),
       labelPosition: dco_decode_point(arr[11]),
       labelAnchor: dco_decode_label_anchor(arr[12]),
-      bundleId: dco_decode_opt_String(arr[13]),
-      bundleOffset: dco_decode_opt_box_autoadd_f_64(arr[14]),
-      hitTestPoints: dco_decode_list_point(arr[15]),
-      dependsOnNodes: dco_decode_list_String(arr[16]),
-      bbox: dco_decode_rect(arr[17]),
+      bbox: dco_decode_rect(arr[13]),
+      startPoint: dco_decode_point(arr[14]),
+      endPoint: dco_decode_point(arr[15]),
+      startArrowCenter: dco_decode_point(arr[16]),
+      endArrowCenter: dco_decode_point(arr[17]),
       startMargin: dco_decode_f_64(arr[18]),
       endMargin: dco_decode_f_64(arr[19]),
-      startArrowCenter: dco_decode_point(arr[20]),
-      endArrowCenter: dco_decode_point(arr[21]),
-      endPoint: dco_decode_point(arr[22]),
-      startPoint: dco_decode_point(arr[23]),
+      dependsOnNodes: dco_decode_list_String(arr[20]),
+      bundleId: dco_decode_opt_String(arr[21]),
+      bundleOffset: dco_decode_opt_box_autoadd_f_64(arr[22]),
+      controlPoints: dco_decode_list_point(arr[23]),
+      knots: dco_decode_list_prim_f_64_strict(arr[24]),
+      nudgeColors: dco_decode_list_String(arr[25]),
+      hitTestPoints: dco_decode_list_point(arr[26]),
     );
   }
 
@@ -2974,25 +2977,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       style: dco_decode_opt_String(arr[5]),
       verb: dco_decode_String(arr[6]),
       behavioralFeatures: dco_decode_opt_String(arr[7]),
-    );
-  }
-
-  @protected
-  KinodynamicConfig dco_decode_kinodynamic_config(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 9)
-      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
-    return KinodynamicConfig(
-      kappaMax: dco_decode_f_64(arr[0]),
-      latticeCellSize: dco_decode_f_64(arr[1]),
-      angularResolution: dco_decode_f_64(arr[2]),
-      curvatureBins: dco_decode_u_32(arr[3]),
-      narrowPhaseTolerance: dco_decode_f_64(arr[4]),
-      weightArcLength: dco_decode_f_64(arr[5]),
-      weightCurvature: dco_decode_f_64(arr[6]),
-      weightObstacle: dco_decode_f_64(arr[7]),
-      obstacleFalloff: dco_decode_f_64(arr[8]),
     );
   }
 
@@ -3557,8 +3541,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RoutingConfig dco_decode_routing_config(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 10)
-      throw Exception('unexpected arr length: expect 10 but see ${arr.length}');
+    if (arr.length != 8)
+      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
     return RoutingConfig(
       routingMode: dco_decode_routing_mode(arr[0]),
       obstacleMargin: dco_decode_f_64(arr[1]),
@@ -3566,10 +3550,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       projectionFactor: dco_decode_f_64(arr[3]),
       clampMin: dco_decode_f_64(arr[4]),
       clampMax: dco_decode_f_64(arr[5]),
-      sineWave: dco_decode_snake_config(arr[6]),
-      extensionMin: dco_decode_f_64(arr[7]),
-      extensionScale: dco_decode_f_64(arr[8]),
-      kinodynamic: dco_decode_kinodynamic_config(arr[9]),
+      extensionMin: dco_decode_f_64(arr[6]),
+      extensionScale: dco_decode_f_64(arr[7]),
     );
   }
 
@@ -3606,19 +3588,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return Size(
       width: dco_decode_i_32(arr[0]),
       height: dco_decode_i_32(arr[1]),
-    );
-  }
-
-  @protected
-  SnakeConfig dco_decode_snake_config(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-    return SnakeConfig(
-      amplitude: dco_decode_f_64(arr[0]),
-      frequency: dco_decode_f_64(arr[1]),
-      obstacleAvoidance: dco_decode_bool(arr[2]),
     );
   }
 
@@ -4343,23 +4312,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_endTangent = sse_decode_point(deserializer);
     var var_bodyWidths = sse_decode_list_prim_f_64_strict(deserializer);
     var var_bodyType = sse_decode_body_type(deserializer);
-    var var_startEndpoint = sse_decode_endpoint_shape_type(deserializer);
-    var var_endEndpoint = sse_decode_endpoint_shape_type(deserializer);
+    var var_startEndpoint = sse_decode_endpoint_shape(deserializer);
+    var var_endEndpoint = sse_decode_endpoint_shape(deserializer);
     var var_startDirection = sse_decode_f_64(deserializer);
     var var_endDirection = sse_decode_f_64(deserializer);
     var var_labelPosition = sse_decode_point(deserializer);
     var var_labelAnchor = sse_decode_label_anchor(deserializer);
-    var var_bundleId = sse_decode_opt_String(deserializer);
-    var var_bundleOffset = sse_decode_opt_box_autoadd_f_64(deserializer);
-    var var_hitTestPoints = sse_decode_list_point(deserializer);
-    var var_dependsOnNodes = sse_decode_list_String(deserializer);
     var var_bbox = sse_decode_rect(deserializer);
-    var var_startMargin = sse_decode_f_64(deserializer);
-    var var_endMargin = sse_decode_f_64(deserializer);
+    var var_startPoint = sse_decode_point(deserializer);
+    var var_endPoint = sse_decode_point(deserializer);
     var var_startArrowCenter = sse_decode_point(deserializer);
     var var_endArrowCenter = sse_decode_point(deserializer);
-    var var_endPoint = sse_decode_point(deserializer);
-    var var_startPoint = sse_decode_point(deserializer);
+    var var_startMargin = sse_decode_f_64(deserializer);
+    var var_endMargin = sse_decode_f_64(deserializer);
+    var var_dependsOnNodes = sse_decode_list_String(deserializer);
+    var var_bundleId = sse_decode_opt_String(deserializer);
+    var var_bundleOffset = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_controlPoints = sse_decode_list_point(deserializer);
+    var var_knots = sse_decode_list_prim_f_64_strict(deserializer);
+    var var_nudgeColors = sse_decode_list_String(deserializer);
+    var var_hitTestPoints = sse_decode_list_point(deserializer);
     return ComputedRelation(
       id: var_id,
       pathPoints: var_pathPoints,
@@ -4374,17 +4346,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       endDirection: var_endDirection,
       labelPosition: var_labelPosition,
       labelAnchor: var_labelAnchor,
-      bundleId: var_bundleId,
-      bundleOffset: var_bundleOffset,
-      hitTestPoints: var_hitTestPoints,
-      dependsOnNodes: var_dependsOnNodes,
       bbox: var_bbox,
-      startMargin: var_startMargin,
-      endMargin: var_endMargin,
+      startPoint: var_startPoint,
+      endPoint: var_endPoint,
       startArrowCenter: var_startArrowCenter,
       endArrowCenter: var_endArrowCenter,
-      endPoint: var_endPoint,
-      startPoint: var_startPoint,
+      startMargin: var_startMargin,
+      endMargin: var_endMargin,
+      dependsOnNodes: var_dependsOnNodes,
+      bundleId: var_bundleId,
+      bundleOffset: var_bundleOffset,
+      controlPoints: var_controlPoints,
+      knots: var_knots,
+      nudgeColors: var_nudgeColors,
+      hitTestPoints: var_hitTestPoints,
     );
   }
 
@@ -4731,33 +4706,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       style: var_style,
       verb: var_verb,
       behavioralFeatures: var_behavioralFeatures,
-    );
-  }
-
-  @protected
-  KinodynamicConfig sse_decode_kinodynamic_config(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_kappaMax = sse_decode_f_64(deserializer);
-    var var_latticeCellSize = sse_decode_f_64(deserializer);
-    var var_angularResolution = sse_decode_f_64(deserializer);
-    var var_curvatureBins = sse_decode_u_32(deserializer);
-    var var_narrowPhaseTolerance = sse_decode_f_64(deserializer);
-    var var_weightArcLength = sse_decode_f_64(deserializer);
-    var var_weightCurvature = sse_decode_f_64(deserializer);
-    var var_weightObstacle = sse_decode_f_64(deserializer);
-    var var_obstacleFalloff = sse_decode_f_64(deserializer);
-    return KinodynamicConfig(
-      kappaMax: var_kappaMax,
-      latticeCellSize: var_latticeCellSize,
-      angularResolution: var_angularResolution,
-      curvatureBins: var_curvatureBins,
-      narrowPhaseTolerance: var_narrowPhaseTolerance,
-      weightArcLength: var_weightArcLength,
-      weightCurvature: var_weightCurvature,
-      weightObstacle: var_weightObstacle,
-      obstacleFalloff: var_obstacleFalloff,
     );
   }
 
@@ -5614,10 +5562,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_projectionFactor = sse_decode_f_64(deserializer);
     var var_clampMin = sse_decode_f_64(deserializer);
     var var_clampMax = sse_decode_f_64(deserializer);
-    var var_sineWave = sse_decode_snake_config(deserializer);
     var var_extensionMin = sse_decode_f_64(deserializer);
     var var_extensionScale = sse_decode_f_64(deserializer);
-    var var_kinodynamic = sse_decode_kinodynamic_config(deserializer);
     return RoutingConfig(
       routingMode: var_routingMode,
       obstacleMargin: var_obstacleMargin,
@@ -5625,10 +5571,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       projectionFactor: var_projectionFactor,
       clampMin: var_clampMin,
       clampMax: var_clampMax,
-      sineWave: var_sineWave,
       extensionMin: var_extensionMin,
       extensionScale: var_extensionScale,
-      kinodynamic: var_kinodynamic,
     );
   }
 
@@ -5668,19 +5612,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_width = sse_decode_i_32(deserializer);
     var var_height = sse_decode_i_32(deserializer);
     return Size(width: var_width, height: var_height);
-  }
-
-  @protected
-  SnakeConfig sse_decode_snake_config(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_amplitude = sse_decode_f_64(deserializer);
-    var var_frequency = sse_decode_f_64(deserializer);
-    var var_obstacleAvoidance = sse_decode_bool(deserializer);
-    return SnakeConfig(
-      amplitude: var_amplitude,
-      frequency: var_frequency,
-      obstacleAvoidance: var_obstacleAvoidance,
-    );
   }
 
   @protected
@@ -6496,23 +6427,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_point(self.endTangent, serializer);
     sse_encode_list_prim_f_64_strict(self.bodyWidths, serializer);
     sse_encode_body_type(self.bodyType, serializer);
-    sse_encode_endpoint_shape_type(self.startEndpoint, serializer);
-    sse_encode_endpoint_shape_type(self.endEndpoint, serializer);
+    sse_encode_endpoint_shape(self.startEndpoint, serializer);
+    sse_encode_endpoint_shape(self.endEndpoint, serializer);
     sse_encode_f_64(self.startDirection, serializer);
     sse_encode_f_64(self.endDirection, serializer);
     sse_encode_point(self.labelPosition, serializer);
     sse_encode_label_anchor(self.labelAnchor, serializer);
-    sse_encode_opt_String(self.bundleId, serializer);
-    sse_encode_opt_box_autoadd_f_64(self.bundleOffset, serializer);
-    sse_encode_list_point(self.hitTestPoints, serializer);
-    sse_encode_list_String(self.dependsOnNodes, serializer);
     sse_encode_rect(self.bbox, serializer);
-    sse_encode_f_64(self.startMargin, serializer);
-    sse_encode_f_64(self.endMargin, serializer);
+    sse_encode_point(self.startPoint, serializer);
+    sse_encode_point(self.endPoint, serializer);
     sse_encode_point(self.startArrowCenter, serializer);
     sse_encode_point(self.endArrowCenter, serializer);
-    sse_encode_point(self.endPoint, serializer);
-    sse_encode_point(self.startPoint, serializer);
+    sse_encode_f_64(self.startMargin, serializer);
+    sse_encode_f_64(self.endMargin, serializer);
+    sse_encode_list_String(self.dependsOnNodes, serializer);
+    sse_encode_opt_String(self.bundleId, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.bundleOffset, serializer);
+    sse_encode_list_point(self.controlPoints, serializer);
+    sse_encode_list_prim_f_64_strict(self.knots, serializer);
+    sse_encode_list_String(self.nudgeColors, serializer);
+    sse_encode_list_point(self.hitTestPoints, serializer);
   }
 
   @protected
@@ -6753,23 +6687,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_String(self.style, serializer);
     sse_encode_String(self.verb, serializer);
     sse_encode_opt_String(self.behavioralFeatures, serializer);
-  }
-
-  @protected
-  void sse_encode_kinodynamic_config(
-    KinodynamicConfig self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_f_64(self.kappaMax, serializer);
-    sse_encode_f_64(self.latticeCellSize, serializer);
-    sse_encode_f_64(self.angularResolution, serializer);
-    sse_encode_u_32(self.curvatureBins, serializer);
-    sse_encode_f_64(self.narrowPhaseTolerance, serializer);
-    sse_encode_f_64(self.weightArcLength, serializer);
-    sse_encode_f_64(self.weightCurvature, serializer);
-    sse_encode_f_64(self.weightObstacle, serializer);
-    sse_encode_f_64(self.obstacleFalloff, serializer);
   }
 
   @protected
@@ -7488,10 +7405,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_f_64(self.projectionFactor, serializer);
     sse_encode_f_64(self.clampMin, serializer);
     sse_encode_f_64(self.clampMax, serializer);
-    sse_encode_snake_config(self.sineWave, serializer);
     sse_encode_f_64(self.extensionMin, serializer);
     sse_encode_f_64(self.extensionScale, serializer);
-    sse_encode_kinodynamic_config(self.kinodynamic, serializer);
   }
 
   @protected
@@ -7518,14 +7433,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.width, serializer);
     sse_encode_i_32(self.height, serializer);
-  }
-
-  @protected
-  void sse_encode_snake_config(SnakeConfig self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_f_64(self.amplitude, serializer);
-    sse_encode_f_64(self.frequency, serializer);
-    sse_encode_bool(self.obstacleAvoidance, serializer);
   }
 
   @protected

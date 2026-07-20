@@ -339,9 +339,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   InterNode dco_decode_inter_node(dynamic raw);
 
   @protected
-  KinodynamicConfig dco_decode_kinodynamic_config(dynamic raw);
-
-  @protected
   LabelAnchor dco_decode_label_anchor(dynamic raw);
 
   @protected
@@ -537,9 +534,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Size dco_decode_size(dynamic raw);
-
-  @protected
-  SnakeConfig dco_decode_snake_config(dynamic raw);
 
   @protected
   SymmetricEntityPatch dco_decode_symmetric_entity_patch(dynamic raw);
@@ -894,9 +888,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   InterNode sse_decode_inter_node(SseDeserializer deserializer);
 
   @protected
-  KinodynamicConfig sse_decode_kinodynamic_config(SseDeserializer deserializer);
-
-  @protected
   LabelAnchor sse_decode_label_anchor(SseDeserializer deserializer);
 
   @protected
@@ -1122,9 +1113,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Size sse_decode_size(SseDeserializer deserializer);
-
-  @protected
-  SnakeConfig sse_decode_snake_config(SseDeserializer deserializer);
 
   @protected
   SymmetricEntityPatch sse_decode_symmetric_entity_patch(
@@ -1572,12 +1560,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_inter_node(InterNode self, SseSerializer serializer);
 
   @protected
-  void sse_encode_kinodynamic_config(
-    KinodynamicConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_label_anchor(LabelAnchor self, SseSerializer serializer);
 
   @protected
@@ -1844,9 +1826,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_size(Size self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_snake_config(SnakeConfig self, SseSerializer serializer);
 
   @protected
   void sse_encode_symmetric_entity_patch(

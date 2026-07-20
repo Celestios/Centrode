@@ -72,6 +72,23 @@ impl Rect {
         pt.x >= self.x && pt.x <= self.x + self.width && pt.y >= self.y && pt.y <= self.y + self.height
     }
 
+    pub fn expand(self, margin: f64) -> Rect {
+        Rect::new(
+            self.x - margin,
+            self.y - margin,
+            self.width + 2.0 * margin,
+            self.height + 2.0 * margin,
+        )
+    }
+
+    pub fn overlaps(self, other: Rect) -> bool {
+        self.x < other.x + other.width
+            && self.x + self.width > other.x
+            && self.y < other.y + other.height
+            && self.y + self.height > other.y
+    }
+
+
     pub fn intersect_segment_t(self, p0: Point, p1: Point) -> Option<f64> {
         let dx = p1.x - p0.x;
         let dy = p1.y - p0.y;

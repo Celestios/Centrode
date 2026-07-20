@@ -8,8 +8,6 @@ pub enum PathType {
     Straight,
     BSpline,
     Orthogonal,
-    CircularArc,
-    SineWave,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -50,4 +48,40 @@ pub struct ComputedRelation {
     pub control_points: Vec<Point>,
     pub knots: Vec<f64>,
     pub nudge_colors: Vec<String>,
+    pub hit_test_points: Vec<Point>,
 }
+
+impl ComputedRelation {
+    pub fn new_basic(id: String, path_points: Vec<Point>, path_type: PathType) -> Self {
+        Self {
+            id,
+            path_points,
+            path_type,
+            start_tangent: Point::new(0.0, 0.0),
+            end_tangent: Point::new(0.0, 0.0),
+            body_widths: vec![],
+            body_type: crate::domain::relation_engine::config::BodyType::Uniform,
+            start_endpoint: EndpointShape::None,
+            end_endpoint: EndpointShape::None,
+            start_direction: 0.0,
+            end_direction: 0.0,
+            label_position: Point::new(0.0, 0.0),
+            label_anchor: LabelAnchor::Center,
+            bbox: Rect::new(0.0, 0.0, 0.0, 0.0),
+            start_point: Point::new(0.0, 0.0),
+            end_point: Point::new(0.0, 0.0),
+            start_arrow_center: Point::new(0.0, 0.0),
+            end_arrow_center: Point::new(0.0, 0.0),
+            start_margin: 0.0,
+            end_margin: 0.0,
+            depends_on_nodes: vec![],
+            bundle_id: None,
+            bundle_offset: None,
+            control_points: vec![],
+            knots: vec![],
+            nudge_colors: vec![],
+            hit_test_points: vec![],
+        }
+    }
+}
+

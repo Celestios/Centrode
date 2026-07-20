@@ -2,6 +2,45 @@ use crate::domain::relation_engine::geometry::Point;
 use crate::domain::relation_engine::path_finder::grid::Grid;
 use crate::domain::relation_engine::types::InputNode;
 
+#[derive(Clone, Debug)]
+pub struct CostGrid {
+    pub costs: Vec<f64>,
+    pub width: usize,
+    pub height: usize,
+}
+
+impl CostGrid {
+    pub fn new(grid: &Grid, nodes: &[InputNode], outer_bbox_distance: f64) -> Self {
+        let width = grid.width;
+        let height = grid.height;
+        let mut costs = vec![0.0; width * height];
+        let inner_bbox_scale = 1.0 / 3.0;
+        let obstacle_weight = 200.0;
+
+        for col in 0..width {
+            for row in 0..height {
+                let cp = grid.grid_to_world(col as i32, row as i32);
+                let cost = crate::domain::relation_engine::path_finder::port::compute_obstacle_cost(
+                    cp,
+                    nodes,
+                    outer_bbox_distance,
+                    inner_bbox_scale,
+                    obstacle_weight,
+                );
+                costs[col * height + row] = cost;
+            }
+        }
+        Self { costs, width, height }
+    }
+
+    pub fn get(&self, col: i32, row: i32) -> f64 {
+        if col < 0 || col >= self.width as i32 || row < 0 || row >= self.height as i32 {
+            return 0.0;
+        }
+        self.costs[(col as usize) * self.height + (row as usize)]
+    }
+}
+
 pub struct AStarContext<'a> {
     pub grid: &'a Grid,
     pub nodes: &'a [InputNode],
@@ -19,6 +58,7 @@ pub struct AStarContext<'a> {
     pub end_stub_len: f64,
     pub outer_bbox_distance: f64,
     pub port_penalty: f64,
+    pub cost_grid: &'a CostGrid,
 }
 
 pub trait Steer {
