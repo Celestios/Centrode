@@ -14,4 +14,3 @@ export 'package:mycelium/src/rust/domain/templates.dart' show Template;
 export 'content_builder.dart';
 export 'package:mycelium/src/rust/domain/contents.dart';
 export 'left_panel_type.dart';
-export 'relation_gateway.dart';

@@ -1,7 +1,7 @@
 import 'package:mycelium/shared/logging.dart';
 import '../../store/graph_data_query.dart';
 import '../graph_relation.dart';
-import '../relation_gateway.dart';
+import '../../store/graph_api.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
 
@@ -10,13 +10,13 @@ final _log = Logger('CreateRelationCommand');
 class CreateRelationCommand extends GraphCommand {
   @override
   String targetId;
-  final RelationGateway gateway;
+  final GraphApi api;
   final UiRelation relation;
   final GraphCommandContext controller;
 
   CreateRelationCommand({
     required this.targetId,
-    required this.gateway,
+    required this.api,
     required this.relation,
     required this.controller,
   });
@@ -28,7 +28,7 @@ class CreateRelationCommand extends GraphCommand {
   Future<void> execute() async {
     try {
       _log.info('Executing CreateRelationCommand for $targetId');
-      await gateway.createRelation(input: relation.toRust());
+      await api.createRelation(input: relation.toRust());
       _log.info('Calling reloadGraph...');
       await controller.loadGraph();
       _log.info('Executed CreateRelationCommand successfully.');
