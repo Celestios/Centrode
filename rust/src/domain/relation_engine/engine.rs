@@ -302,15 +302,15 @@ pub fn compute_single_relation(
 
             let path_opt = match mode {
                 RoutingMode::Orthogonal => {
-                    let steer = OrthogonalSteer::new(config.routing.clone());
+                    let steer = OrthogonalSteer::new();
                     a_star(&steer, &context)
                 }
                 RoutingMode::BSpline => {
-                    let steer = BSplineSteer::new(config.routing.clone());
+                    let steer = BSplineSteer::new();
                     a_star(&steer, &context)
                 }
                 RoutingMode::Octilinear => {
-                    let steer = OctilinearSteer::new(config.routing.clone());
+                    let steer = OctilinearSteer::new();
                     a_star(&steer, &context)
                 }
                 _ => unreachable!(),

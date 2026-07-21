@@ -48,6 +48,7 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
   void Function({String? colorUrl})? toggleHighlightCallback;
   void Function()? cycleHighlightColorCallback;
   void Function()? cycleTextAlignCallback;
+  void Function()? commitActiveEditCallback;
 
   EditorState(this._dataQuery, this.viewStates);
 
@@ -64,6 +65,15 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
     notifyListeners();
   }
 
+  /// Commits changes in the active inline editor if possible, otherwise cancels.
+  void commitActiveEdit() {
+    if (commitActiveEditCallback != null) {
+      commitActiveEditCallback!();
+    } else {
+      cancelActiveEdit();
+    }
+  }
+
   /// Aborts and closes active inline editing mode.
   void cancelActiveEdit() {
     activeEditId = null;
@@ -77,6 +87,7 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
     toggleHighlightCallback = null;
     cycleHighlightColorCallback = null;
     cycleTextAlignCallback = null;
+    commitActiveEditCallback = null;
     currentTextAlignNotifier.value = TextAlign.center;
     notifyListeners();
   }

@@ -4,7 +4,6 @@ use crate::define_surql_schema_struct;
 use crate::domain::schema::SurqlSchemaField;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
-#[frb]
 pub enum PortSide {
     #[default]
     Auto,
@@ -73,7 +72,6 @@ impl SurqlSchemaField for PortSide {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-#[frb]
 pub enum PortType {
     #[default]
     Middle,
@@ -124,7 +122,6 @@ impl SurqlSchemaField for PortType {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-#[frb]
 pub enum EndpointShape {
     #[default]
     None,

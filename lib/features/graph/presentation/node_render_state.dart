@@ -252,8 +252,12 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
   void Function()? get cycleTextAlignCallback => editorState.cycleTextAlignCallback;
   set cycleTextAlignCallback(void Function()? value) => editorState.cycleTextAlignCallback = value;
 
+  void Function()? get commitActiveEditCallback => editorState.commitActiveEditCallback;
+  set commitActiveEditCallback(void Function()? value) => editorState.commitActiveEditCallback = value;
+
   void updateActiveTextSelection(TextSelection? selection) => editorState.updateActiveTextSelection(selection);
   void enterEditMode(String id) => editorState.enterEditMode(id);
+  void commitActiveEdit() => editorState.commitActiveEdit();
   void cancelActiveEdit() => editorState.cancelActiveEdit();
   void showFloatingToolbar(String nodeId) => editorState.showFloatingToolbar(nodeId);
   void hideFloatingToolbar() => editorState.hideFloatingToolbar();

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
+import 'hover_scale_button.dart';
 import '../../features/graph/presentation/workspace_tabs_controller.dart';
 import '../../features/graph/store/graph_data_controller.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
@@ -481,63 +482,28 @@ class _WindowControlButtonsState extends State<WindowControlButtons>
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
-      child: ClipRRect(
+      child: HoverScaleButton(
+        onTap: onPressed,
         borderRadius: BorderRadius.circular(6),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onPressed,
-            child: HoverBuilder(
-              hoverColor: hoverColor,
-              builder: (context, isHovered) {
-                return Container(
-                  width: 42,
-                  height: 32,
-                  alignment: Alignment.center,
-                  child: Icon(
-                    icon,
-                    size: 16,
-                    color: isHovered ? (hoverIconColor ?? color) : color,
-                  ),
-                );
-              },
+        hoverScale: 1.0,
+        pressScale: 1.0,
+        builder: (context, isHovered, isPressed) {
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            width: 42,
+            height: 32,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: isHovered ? hoverColor : Colors.transparent,
+              borderRadius: BorderRadius.circular(6),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class HoverBuilder extends StatefulWidget {
-  final Color hoverColor;
-  final Widget Function(BuildContext context, bool isHovered) builder;
-
-  const HoverBuilder({
-    super.key,
-    required this.hoverColor,
-    required this.builder,
-  });
-
-  @override
-  State<HoverBuilder> createState() => _HoverBuilderState();
-}
-
-class _HoverBuilderState extends State<HoverBuilder> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        decoration: BoxDecoration(
-          color: _isHovered ? widget.hoverColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: widget.builder(context, _isHovered),
+            child: Icon(
+              icon,
+              size: 16,
+              color: isHovered ? (hoverIconColor ?? color) : color,
+            ),
+          );
+        },
       ),
     );
   }

@@ -233,15 +233,66 @@ impl Repository {
     pub async fn query_search(&self, query: String) -> Result<Vec<Nodes>> {
         tracing::debug!("REPO: query_search called with query: {}", query);
         let trimmed = query.trim();
-        let query_str = if trimmed.to_uppercase().starts_with("WHERE") {
-            format!("SELECT * FROM INode, TaskNode, InterNode {}", trimmed)
+        
+        let mut query_str = String::new();
+        let mut params = Vec::new();
+        
+        if trimmed.to_uppercase().starts_with("WHERE") {
+            query_str.push_str("SELECT * FROM INode, TaskNode, InterNode ");
+            let mut current_literal = String::new();
+            let mut in_single_quote = false;
+            let mut in_double_quote = false;
+            let mut result_clause = String::new();
+            let mut chars = trimmed.chars().peekable();
+            
+            while let Some(c) = chars.next() {
+                if in_single_quote {
+                    if c == '\'' {
+                        in_single_quote = false;
+                        let param_name = format!("p{}", params.len());
+                        result_clause.push_str(&format!("${}", param_name));
+                        params.push((param_name, current_literal.clone()));
+                        current_literal.clear();
+                    } else {
+                        current_literal.push(c);
+                    }
+                } else if in_double_quote {
+                    if c == '"' {
+                        in_double_quote = false;
+                        let param_name = format!("p{}", params.len());
+                        result_clause.push_str(&format!("${}", param_name));
+                        params.push((param_name, current_literal.clone()));
+                        current_literal.clear();
+                    } else {
+                        current_literal.push(c);
+                    }
+                } else {
+                    if c == '\'' {
+                        in_single_quote = true;
+                    } else if c == '"' {
+                        in_double_quote = true;
+                    } else if c == ';' {
+                        // Truncate query at semicolon to prevent query stacking/injection
+                        break;
+                    } else {
+                        result_clause.push(c);
+                    }
+                }
+            }
+            
+            if in_single_quote || in_double_quote {
+                return Err(anyhow::anyhow!("Malformed query: unclosed quotes"));
+            }
+            
+            query_str.push_str(&result_clause);
         } else {
-            "SELECT * FROM INode, TaskNode WHERE content.text ~ $query".to_string()
-        };
+            query_str.push_str("SELECT * FROM INode, TaskNode WHERE content.text ~ $query");
+            params.push(("query".to_string(), query));
+        }
 
         let mut req = self.db.query(&query_str);
-        if !trimmed.to_uppercase().starts_with("WHERE") {
-            req = req.bind(("query", query));
+        for (name, val) in params {
+            req = req.bind((name, val));
         }
 
         let mut res = req.await?;

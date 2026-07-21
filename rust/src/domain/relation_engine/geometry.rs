@@ -1,8 +1,6 @@
 use std::ops::{Add, Mul, Sub};
-use flutter_rust_bridge::frb;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-#[frb]
 pub struct Point {
     pub x: f64,
     pub y: f64,
@@ -55,7 +53,6 @@ impl Mul<f64> for Point {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-#[frb]
 pub struct Rect {
     pub x: f64,
     pub y: f64,

@@ -1,17 +1,16 @@
-use flutter_rust_bridge::frb;
 use crate::domain::relation_engine::geometry::{Point, Rect};
 use crate::domain::styles::{EndpointShape, PortSide};
 
 #[derive(Clone, Debug, PartialEq)]
-#[frb]
 pub enum PathType {
     Straight,
     BSpline,
     Orthogonal,
+    Bezier,
+    SineWave,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[frb]
 pub enum LabelAnchor {
     Center,
     Left,
@@ -19,7 +18,6 @@ pub enum LabelAnchor {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[frb]
 pub struct ComputedRelation {
     pub id: String,
     pub path_points: Vec<Point>,

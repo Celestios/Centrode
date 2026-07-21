@@ -10,6 +10,8 @@ use surrealdb::types::{Array, SurrealValue, Value};
 use walkdir::WalkDir;
 use zip::{write::FileOptions, ZipArchive, ZipWriter};
 
+pub const CELI_FORMAT_VERSION: &str = "0.3.0";
+
 // -----------------------------------------------------------------------------
 // Save – generic map of keys to Vec<Value>
 // -----------------------------------------------------------------------------
@@ -20,7 +22,7 @@ pub fn save_project_to_celi(
     metadata: MapData,
 ) -> Result<()> {
     let mut root: BTreeMap<String, Value> = BTreeMap::new();
-    root.insert("version".into(), Value::String("0.1.0".into()));
+    root.insert("version".into(), Value::String(CELI_FORMAT_VERSION.into()));
     root.insert("metadata".into(), metadata.into_value());
 
     for (key, values) in &content {

@@ -100,6 +100,9 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
         _controller.cycleTextAlign();
         _syncCurrentTextAlign(_controller.value);
       };
+      _renderState.commitActiveEditCallback = () {
+        _submit();
+      };
 
       _syncCurrentTextAlign(_controller.value);
     });
@@ -122,6 +125,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     _renderState.cycleTextColorCallback = null;
     _renderState.toggleHighlightCallback = null;
     _renderState.cycleHighlightColorCallback = null;
+    _renderState.commitActiveEditCallback = null;
 
     if (!_isCommitted && !_isAborted) {
       _log.info('Committing final edit on dispose for: ${widget.entityId}');

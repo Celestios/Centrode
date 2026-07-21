@@ -64,14 +64,17 @@ pub fn compose(
         }
     }
 
-    // Save line groups for debugging
-    if !nudge_groups_to_save.is_empty() {
-        let _ = std::fs::create_dir_all("target");
-        if let Ok(file) = std::fs::File::create("target/nudge_line_groups.json") {
-            let _ = serde_json::to_writer_pretty(file, &nudge_groups_to_save);
+    // Save line groups for debugging (only in debug/test builds)
+    #[cfg(any(debug_assertions, test))]
+    {
+        if !nudge_groups_to_save.is_empty() {
+            let _ = std::fs::create_dir_all("target");
+            if let Ok(file) = std::fs::File::create("target/nudge_line_groups.json") {
+                let _ = serde_json::to_writer_pretty(file, &nudge_groups_to_save);
+            }
+        } else {
+            let _ = std::fs::remove_file("target/nudge_line_groups.json");
         }
-    } else {
-        let _ = std::fs::remove_file("target/nudge_line_groups.json");
     }
 
     for (i, config) in configs.iter().enumerate() {

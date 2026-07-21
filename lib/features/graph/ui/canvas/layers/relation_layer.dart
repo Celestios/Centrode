@@ -283,13 +283,7 @@ class RelationLayer extends StatelessWidget {
       targetEnd: end,
     );
 
-    print('=== [DART-PAINT] Drawn: ${rel.id} ===');
-    print('  transformedPoints (${transformedPoints.length}):');
-    for (var i = 0; i < transformedPoints.length; i++) {
-      final p = transformedPoints[i];
-      print('    [$i] (${p.dx.toStringAsFixed(1)}, ${p.dy.toStringAsFixed(1)})');
-    }
-    print('');
+
 
     final path = _buildPathFromOffsets(transformedPoints);
 

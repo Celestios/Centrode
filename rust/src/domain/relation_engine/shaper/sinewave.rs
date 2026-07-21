@@ -55,7 +55,7 @@ impl Shaper for SineWaveShaper {
             path_points.push(p3);
         }
 
-        let mut computed = ComputedRelation::new_basic(String::new(), path_points, PathType::BSpline);
+        let mut computed = ComputedRelation::new_basic(String::new(), path_points, PathType::SineWave);
         computed.control_points = vec![p0, p1, p2, p3];
         computed
     }

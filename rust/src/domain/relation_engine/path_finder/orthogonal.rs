@@ -1,14 +1,11 @@
 use crate::domain::relation_engine::geometry::Point;
-use crate::domain::relation_engine::path_finder::steer::{Steer, AStarContext};
-use crate::domain::relation_engine::config::RoutingConfig;
+use crate::domain::relation_engine::path_finder::steer::{Steer, AStarContext, compute_direction_penalty};
 
-pub struct OrthogonalSteer {
-    _config: RoutingConfig,
-}
+pub struct OrthogonalSteer {}
 
 impl OrthogonalSteer {
-    pub fn new(config: RoutingConfig) -> Self {
-        Self { _config: config }
+    pub fn new() -> Self {
+        Self {}
     }
 }
 
@@ -49,6 +46,7 @@ impl Steer for OrthogonalSteer {
             }
         }
 
-        cost
+        let dir_penalty = compute_direction_penalty(from_key, to_key, dir, context);
+        cost + dir_penalty
     }
 }

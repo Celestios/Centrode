@@ -136,7 +136,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
   }
 
   @override
-  void onCommitActiveEdit() => _renderState.cancelActiveEdit();
+  void onCommitActiveEdit() => _renderState.commitActiveEdit();
 
   @override
   void onCreateNode(Offset position) {

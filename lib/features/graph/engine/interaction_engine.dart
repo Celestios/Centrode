@@ -252,14 +252,6 @@ class InteractionController {
     ));
   }
 
-  void startRelationDrawingFromPort(Set<String> nodeIds, Offset initialPos, {Port? sourcePort}) {
-    _transitionTo(RelationDrawing(
-      nodeIds,
-      initialPos,
-      sourcePort: sourcePort,
-    ));
-  }
-
   void updateNodeStyle(String nodeId, NodeStyle Function(NodeStyle style) updateFn) {
     environment.updateNodeStyle(nodeId, updateFn);
   }

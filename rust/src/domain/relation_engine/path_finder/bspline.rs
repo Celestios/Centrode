@@ -1,14 +1,11 @@
 use crate::domain::relation_engine::geometry::Point;
 use crate::domain::relation_engine::path_finder::steer::{Steer, AStarContext, compute_direction_penalty};
-use crate::domain::relation_engine::config::RoutingConfig;
 
-pub struct BSplineSteer {
-    _config: RoutingConfig,
-}
+pub struct BSplineSteer {}
 
 impl BSplineSteer {
-    pub fn new(config: RoutingConfig) -> Self {
-        Self { _config: config }
+    pub fn new() -> Self {
+        Self {}
     }
 }
 

@@ -1,7 +1,4 @@
-use flutter_rust_bridge::frb;
-
 #[derive(Clone, Debug, PartialEq)]
-#[frb]
 pub enum RoutingMode {
     Polyline,
     BSpline,
@@ -18,7 +15,6 @@ pub enum RoutingMode {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[frb]
 pub struct RoutingConfig {
     pub routing_mode: RoutingMode,
     pub obstacle_margin: f64,
@@ -111,13 +107,11 @@ impl RoutingConfig {
 
 
 #[derive(Clone, Debug, PartialEq)]
-#[frb]
 pub struct StraightConfig {
     pub num_samples: usize,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[frb]
 pub struct BezierConfig {
     pub num_samples: usize,
     pub start_offset_x: f64,
@@ -127,7 +121,6 @@ pub struct BezierConfig {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[frb]
 pub struct NudgingConfig {
     pub enabled: bool,
     pub distance: f64,
@@ -155,7 +148,6 @@ impl NudgingConfig {
 
 
 #[derive(Clone, Debug, PartialEq)]
-#[frb]
 pub enum BundlingMode {
     Proximity,
     SharedEndpoint,
@@ -163,7 +155,6 @@ pub enum BundlingMode {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[frb]
 pub struct BundlingConfig {
     pub mode: BundlingMode,
     pub threshold: f64,
@@ -179,7 +170,6 @@ impl Default for BundlingConfig {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[frb]
 pub enum BodyType {
     Uniform,
     Taper,
@@ -188,7 +178,6 @@ pub enum BodyType {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[frb]
 pub struct BodyConfig {
     pub default_type: BodyType,
     pub taper_start_width: f64,
@@ -210,7 +199,6 @@ impl Default for BodyConfig {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[frb]
 pub enum EndpointShapeType {
     None,
     Arrow,
@@ -221,7 +209,6 @@ pub enum EndpointShapeType {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[frb]
 pub struct EndpointConfig {
     pub default_start_shape: EndpointShapeType,
     pub default_end_shape: EndpointShapeType,
@@ -239,7 +226,6 @@ impl Default for EndpointConfig {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[frb]
 pub struct RelationEngineConfig {
     pub routing: RoutingConfig,
     pub nudging: NudgingConfig,
