@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::domain::relation_engine::geometry::{Point, Rect};
+use crate::domain::relation_engine::geometry::{Point, Rect, polyline_length};
 use crate::domain::relation_engine::types::{InputNode, InputEdge};
 use crate::domain::relation_engine::config::RelationEngineConfig;
 use crate::domain::relation_engine::computed::{ComputedRelation, LabelAnchor};
@@ -34,10 +34,7 @@ fn polyline_midpoint(path: &[Point]) -> Point {
     if path.len() == 1 {
         return path[0];
     }
-    let mut total_len = 0.0;
-    for w in path.windows(2) {
-        total_len += w[0].distance_to(w[1]);
-    }
+    let total_len = polyline_length(path);
     let target = total_len / 2.0;
     let mut current_len = 0.0;
     for w in path.windows(2) {

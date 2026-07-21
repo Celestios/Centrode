@@ -35,6 +35,7 @@ class GraphStyleMutations {
         newSize: newSize,
         controller: controller,
       ),
+      immediate: true,
     );
 
     controller.publishUpdate(
@@ -96,7 +97,7 @@ class GraphStyleMutations {
       newSizes: newSizes,
       controller: controller,
     );
-    controller.syncEngine.processor.queueCommand(cmd);
+    controller.syncEngine.processor.queueCommand(cmd, immediate: true);
 
     for (final id in newStyles.keys) {
       final node = controller.store.nodeLookup[id]!;

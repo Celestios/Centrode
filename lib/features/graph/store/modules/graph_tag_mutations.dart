@@ -1,6 +1,9 @@
 import 'package:mycelium/shared/logging.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/models.dart';
+import '../../models/commands/create_tag.dart';
+import '../../models/commands/update_tag.dart';
+import '../../models/commands/delete_tag.dart';
 import '../graph_data_controller.dart';
 import '../graph_data_query.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
@@ -74,20 +77,34 @@ class GraphTagMutations {
   }
 
   Future<List<Tag>> getAllTags() async {
-    final dynamic api = controller.syncEngine.api;
-    final List<dynamic> rawTags = await api.getAllTags();
-    return rawTags.cast<Tag>();
+    final api = controller.syncEngine.api;
+    final List<Tag> rawTags = await api.getAllTags();
+    return rawTags;
   }
 
   Future<void> createTag(Tag tag) async {
-    final dynamic api = controller.syncEngine.api;
-    await api.createTag(tag: tag);
-    controller.triggerUpdate();
+    final api = controller.syncEngine.api;
+    final cmd = CreateTagCommand(
+      targetId: tag.key,
+      api: api,
+      tag: tag,
+      controller: controller,
+    );
+    await controller.syncEngine.processor.queueCommand(cmd, immediate: true);
   }
 
   Future<void> updateTag(Tag tag) async {
-    final dynamic api = controller.syncEngine.api;
-    await api.updateTag(tag: tag);
+    final api = controller.syncEngine.api;
+    final tags = await getAllTags();
+    final oldTag = tags.firstWhere((t) => t.key == tag.key, orElse: () => tag);
+    final cmd = UpdateTagCommand(
+      targetId: tag.key,
+      api: api,
+      oldTag: oldTag,
+      newTag: tag,
+      controller: controller,
+    );
+    await controller.syncEngine.processor.queueCommand(cmd, immediate: true);
 
     for (final node in controller.store.nodeLookup.values) {
       if (node is InfoUiNode) {
@@ -116,8 +133,16 @@ class GraphTagMutations {
   }
 
   Future<void> deleteTag(String tagKey) async {
-    final dynamic api = controller.syncEngine.api;
-    await api.deleteTag(key: tagKey);
+    final api = controller.syncEngine.api;
+    final tags = await getAllTags();
+    final tag = tags.firstWhere((t) => t.key == tagKey);
+    final cmd = DeleteTagCommand(
+      targetId: tagKey,
+      api: api,
+      tag: tag,
+      controller: controller,
+    );
+    await controller.syncEngine.processor.queueCommand(cmd, immediate: true);
 
     for (final node in controller.store.nodeLookup.values) {
       if (node is InfoUiNode) {

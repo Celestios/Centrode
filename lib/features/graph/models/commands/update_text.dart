@@ -1,9 +1,9 @@
 import 'dart:ui';
 import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/contents.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
+import '../../store/graph_api.dart';
 import '../../store/graph_data_query.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
@@ -16,7 +16,7 @@ class UpdateTextCommand extends GraphCommand {
   @override
   String targetId;
   final String tableName;
-  final AppHandle api;
+  final GraphApi api;
   final Content? oldContent;
   final Content? newContent;
   final Size? oldSize;

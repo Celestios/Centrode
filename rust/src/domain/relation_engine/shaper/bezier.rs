@@ -2,26 +2,7 @@ use crate::domain::relation_engine::geometry::Point;
 use crate::domain::relation_engine::shaper::core::{Shaper, ShaperContext};
 use crate::domain::relation_engine::computed::{ComputedRelation, PathType};
 use crate::domain::relation_engine::config::BezierConfig;
-
-fn evaluate_cubic_bezier(
-    p0: Point,
-    p1: Point,
-    p2: Point,
-    p3: Point,
-    num_samples: usize,
-) -> Vec<Point> {
-    if num_samples < 2 {
-        return vec![p0, p3];
-    }
-    let mut points = Vec::with_capacity(num_samples);
-    for i in 0..num_samples {
-        let t = i as f64 / (num_samples - 1) as f64;
-        let u = 1.0 - t;
-        let point = p0 * (u * u * u) + p1 * (3.0 * u * u * t) + p2 * (3.0 * u * t * t) + p3 * (t * t * t);
-        points.push(point);
-    }
-    points
-}
+use crate::domain::relation_engine::geometry_utils::evaluate_cubic_bezier;
 
 pub struct BezierShaper {
     config: BezierConfig,

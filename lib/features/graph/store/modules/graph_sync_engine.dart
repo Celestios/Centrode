@@ -6,15 +6,15 @@ import '../../../../src/rust/bridge/stream.dart';
 import '../../../../src/rust/domain/base_models.dart'
     show BoundingBox, MapData, ViewportState;
 import '../command_processor.dart';
-import '../graph_data_controller.dart';
 import '../graph_data_query.dart';
+import '../graph_api.dart';
 
 /// Handles communication between the local store/spatial structures and the Rust backend.
 class GraphSyncEngine {
   final Logger _syncLog = Logger('GraphSyncEngine');
 
   final GraphDataController controller;
-  final dynamic api;
+  final GraphApi api;
   final CommandProcessor processor;
   MapData? _lastLoadedMetadata;
 

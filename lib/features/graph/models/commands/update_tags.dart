@@ -1,8 +1,8 @@
 import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/tags.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
+import '../../store/graph_api.dart';
 import '../../store/graph_data_query.dart';
 import '../graph_node.dart';
 import 'base.dart';
@@ -14,7 +14,7 @@ class UpdateTagsCommand extends GraphCommand {
   @override
   String targetId;
   final String tableName;
-  final AppHandle api;
+  final GraphApi api;
   final List<Tag> oldTags;
   final List<Tag> newTags;
   final GraphCommandContext controller;

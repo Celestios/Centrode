@@ -1,5 +1,5 @@
 import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/bridge/api.dart';
+import '../../store/graph_api.dart';
 import '../../store/graph_data_query.dart';
 import '../graph_node.dart';
 import 'base.dart';
@@ -10,7 +10,7 @@ final Logger _log = Logger('CreateNodeCommand');
 class CreateNodeCommand extends GraphCommand {
   @override
   String targetId;
-  final AppHandle api;
+  final GraphApi api;
   final UiNode node;
   final GraphCommandContext controller;
 

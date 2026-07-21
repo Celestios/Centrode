@@ -9,4 +9,5 @@ pub mod finalize;
 pub mod input;
 pub mod engine;
 pub mod state;
+pub mod geometry_utils;
 

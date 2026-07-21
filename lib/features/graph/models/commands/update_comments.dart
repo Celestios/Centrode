@@ -1,6 +1,6 @@
 import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
+import '../../store/graph_api.dart';
 import '../../store/graph_data_query.dart';
 import '../graph_node.dart';
 import 'base.dart';
@@ -11,7 +11,7 @@ final Logger _log = Logger('UpdateCommentsCommand');
 class UpdateCommentsCommand extends GraphCommand {
   @override
   String targetId;
-  final AppHandle api;
+  final GraphApi api;
   final UiNode node;
   final List<frb.Comment> oldComments;
   final GraphCommandContext controller;

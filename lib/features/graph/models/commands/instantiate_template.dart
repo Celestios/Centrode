@@ -1,5 +1,5 @@
 import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/bridge/api.dart';
+import '../../store/graph_api.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
 
@@ -8,7 +8,7 @@ final Logger _log = Logger('InstantiateTemplateCommand');
 class InstantiateTemplateCommand extends GraphCommand {
   @override
   String targetId;
-  final AppHandle api;
+  final GraphApi api;
   final double targetX;
   final double targetY;
   final GraphCommandContext controller;

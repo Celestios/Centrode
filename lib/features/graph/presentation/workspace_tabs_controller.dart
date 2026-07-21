@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../../src/rust/bridge/api.dart';
 import '../../../src/rust/domain/base_models.dart' show ViewportState;
 import '../store/graph_data_controller.dart';
+import '../store/graph_api.dart';
 import 'graph_presentation_notifier.dart';
 import 'theme_manager.dart';
 import 'node_render_state.dart';
@@ -24,7 +25,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
   final String id;
   final String storagePath;
   final String name;
-  AppHandle? handle;
+  GraphApi? handle;
   ThemeController? themeController;
   GraphDataController? dataController;
   GraphPresentationNotifier? presentationNotifier;
@@ -144,10 +145,11 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
       storagePath: resolvedPath,
       name: name,
     );
-    handle = activeHandle;
-    final tc = ThemeController(activeHandle);
+    final wrapper = RustAppHandleWrapper(activeHandle);
+    handle = wrapper;
+    final tc = ThemeController(wrapper);
     themeController = tc;
-    final dc = GraphDataController(activeHandle);
+    final dc = GraphDataController(wrapper);
     dataController = dc;
     presentationNotifier = GraphPresentationNotifier(dc);
     nodeRenderState = NodeRenderState(dc, dc);

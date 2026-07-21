@@ -1,5 +1,5 @@
 import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/bridge/api.dart';
+import '../../store/graph_api.dart';
 import '../../store/graph_data_query.dart';
 import '../models.dart';
 import 'graph_command_context.dart';
@@ -11,7 +11,7 @@ final Logger _log = Logger('DeleteNodeCommand');
 class DeleteNodeCommand extends GraphCommand {
   @override
   String targetId; // Mutable to allow ID swapping for optimistic commands
-  final AppHandle api;
+  final GraphApi api;
   final String tableName;
   final UiNode node;
   final GraphCommandContext controller;

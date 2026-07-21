@@ -9,6 +9,7 @@ import 'command_processor.dart';
 import 'package:mycelium/src/rust/bridge/api.dart' as rust;
 import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'relation_engine_state.dart';
+import 'graph_api.dart';
 
 import 'modules/graph_store.dart';
 import 'modules/graph_spatial.dart';
@@ -161,7 +162,7 @@ class GraphDataController implements GraphDataQuery, GraphDataCommand, GraphComm
 
   /// Creates a new GraphDataController and initializes its domain modules.
   GraphDataController(
-    rust.AppHandle apiHandle, {
+    GraphApi apiHandle, {
     GraphStore? store,
     GraphSpatial? spatial,
     GraphSyncEngine? syncEngine,

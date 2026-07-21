@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/bridge/api.dart' as rust;
+import 'graph_api.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/config.dart';
 import 'package:mycelium/features/graph/models/models.dart';
@@ -10,7 +10,7 @@ import 'invalidation_tracker.dart';
 class RelationEngineState {
   final Logger _log = Logger('RelationEngineState');
 
-  final rust.AppHandle _api;
+  final GraphApi _api;
   final InvalidationTracker _tracker = InvalidationTracker();
   RelationEngineConfig _config = const RelationEngineConfig(
     routing: RoutingConfig(
@@ -48,7 +48,7 @@ class RelationEngineState {
   Map<String, ComputedRelation> get cache => _tracker.cache;
   InvalidationTracker get tracker => _tracker;
 
-  RelationEngineState({required rust.AppHandle api}) : _api = api;
+  RelationEngineState({required GraphApi api}) : _api = api;
 
   void updateConfig(RelationEngineConfig config) {
     _config = config;

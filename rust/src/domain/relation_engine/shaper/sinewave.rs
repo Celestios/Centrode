@@ -1,6 +1,7 @@
 use crate::domain::relation_engine::geometry::Point;
 use crate::domain::relation_engine::shaper::core::{Shaper, ShaperContext};
 use crate::domain::relation_engine::computed::{ComputedRelation, PathType};
+use crate::domain::relation_engine::geometry_utils::{evaluate_cubic_bezier_point, evaluate_cubic_bezier_tangent};
 
 pub struct SineWaveShaper {
     amplitude: f64,
@@ -41,9 +42,8 @@ impl Shaper for SineWaveShaper {
             let cycles = dist * (self.frequency / 200.0);
             for i in 0..num_samples {
                 let t = i as f64 / (num_samples - 1) as f64;
-                let u = 1.0 - t;
-                let base = p0 * (u * u * u) + p1 * (3.0 * u * u * t) + p2 * (3.0 * u * t * t) + p3 * (t * t * t);
-                let tangent = (p1 - p0) * (3.0 * u * u) + (p2 - p1) * (6.0 * u * t) + (p3 - p2) * (3.0 * t * t);
+                let base = evaluate_cubic_bezier_point(p0, p1, p2, p3, t);
+                let tangent = evaluate_cubic_bezier_tangent(p0, p1, p2, p3, t);
                 let perp = Point::new(-tangent.y, tangent.x).normalize();
                 let offset = self.amplitude
                     * (t * cycles * 2.0 * std::f64::consts::PI).sin()

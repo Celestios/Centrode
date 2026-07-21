@@ -1,8 +1,8 @@
-import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/src/rust/domain/relations.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/config.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
+import '../../store/graph_api.dart';
 
 abstract class RelationGateway {
   Future<void> createRelation({required IRelation input});
@@ -15,7 +15,7 @@ abstract class RelationGateway {
 }
 
 class AppRelationGateway implements RelationGateway {
-  final AppHandle _api;
+  final GraphApi _api;
   AppRelationGateway(this._api);
 
   @override

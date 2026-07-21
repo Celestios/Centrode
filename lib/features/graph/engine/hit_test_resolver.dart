@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:mycelium/shared/logging.dart';
 import 'config.dart';
-import '../presentation/relation_utils.dart';
+import 'package:mycelium/shared/utils/geometry.dart';
 import '../models/models.dart';
 import '../models/port.dart';
 import 'interaction_context.dart';
@@ -271,23 +271,11 @@ class HitTestResolver {
       }
 
       for (int i = 0; i < points.length - 1; i++) {
-        if (_isPointNearSegment(pCanvas, points[i], points[i + 1], threshold)) {
+        if (distanceToSegment(pCanvas, points[i], points[i + 1]) <= threshold) {
           return true;
         }
       }
     }
     return false;
-  }
-
-  static bool _isPointNearSegment(Offset p, Offset s1, Offset s2, double threshold) {
-    final double l2 = (s1 - s2).distanceSquared;
-    if (l2 == 0.0) return (p - s1).distance < threshold;
-
-    final double t = (((p.dx - s1.dx) * (s2.dx - s1.dx) + (p.dy - s1.dy) * (s2.dy - s1.dy)) / l2).clamp(0.0, 1.0);
-    final Offset projection = Offset(
-      s1.dx + t * (s2.dx - s1.dx),
-      s1.dy + t * (s2.dy - s1.dy),
-    );
-    return (p - projection).distance < threshold;
   }
 }
