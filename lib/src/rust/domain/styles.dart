@@ -8,6 +8,12 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'styles.freezed.dart';
 
+@freezed
+sealed class ControlPoint with _$ControlPoint {
+  const factory ControlPoint({required double x, required double y}) =
+      _ControlPoint;
+}
+
 enum EndpointShape { none, arrow, openArrow, circle, diamond, square }
 
 @freezed
@@ -56,6 +62,8 @@ sealed class RelationLayout with _$RelationLayout {
     PortSide? fromSide,
     PortSide? toSide,
     required String strategyType,
+    ControlPoint? controlPoint1,
+    ControlPoint? controlPoint2,
   }) = _RelationLayout;
 }
 

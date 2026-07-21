@@ -15,6 +15,7 @@ pub fn compose(
     configs: &[RoutingConfig],
     nudge_cfg: &NudgingConfig,
     nodes: &[InputNode],
+    relation_ids: &[String],
 ) -> Vec<Vec<String>> {
     let mut groups: HashMap<u8, Vec<usize>> = HashMap::new();
     for (i, config) in configs.iter().enumerate() {
@@ -32,6 +33,8 @@ pub fn compose(
         "#20c997", "#ff922b", "#748ffc", "#f06595", "#38d9a9",
     ];
 
+    let mut nudge_groups_to_save: Vec<Vec<String>> = Vec::new();
+
     for indices in groups.values() {
         if indices.len() < 2 {
             continue;
@@ -39,8 +42,13 @@ pub fn compose(
         let group_debug = nudge_group(paths, indices, nudge_cfg, nodes);
         for (g, inner_groups) in group_debug.iter().enumerate() {
             let color = palette[g % palette.len()];
+            let mut group_ids = Vec::new();
             for &(gi, v_start, v_end) in inner_groups {
                 let path_idx = indices[gi];
+                let id = &relation_ids[path_idx];
+                if !group_ids.contains(id) {
+                    group_ids.push(id.clone());
+                }
                 let s = v_start.min(v_end);
                 let e = v_start.max(v_end);
                 while path_colors[path_idx].len() <= e {
@@ -50,7 +58,20 @@ pub fn compose(
                     path_colors[path_idx][si] = color.to_string();
                 }
             }
+            if !group_ids.is_empty() {
+                nudge_groups_to_save.push(group_ids);
+            }
         }
+    }
+
+    // Save line groups for debugging
+    if !nudge_groups_to_save.is_empty() {
+        let _ = std::fs::create_dir_all("target");
+        if let Ok(file) = std::fs::File::create("target/nudge_line_groups.json") {
+            let _ = serde_json::to_writer_pretty(file, &nudge_groups_to_save);
+        }
+    } else {
+        let _ = std::fs::remove_file("target/nudge_line_groups.json");
     }
 
     for (i, config) in configs.iter().enumerate() {

@@ -154,6 +154,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BlockAttrs dco_decode_box_autoadd_block_attrs(dynamic raw);
 
   @protected
+  bool dco_decode_box_autoadd_bool(dynamic raw);
+
+  @protected
   BoundingBox dco_decode_box_autoadd_bounding_box(dynamic raw);
 
   @protected
@@ -161,6 +164,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Content dco_decode_box_autoadd_content(dynamic raw);
+
+  @protected
+  ControlPoint dco_decode_box_autoadd_control_point(dynamic raw);
 
   @protected
   Coordinates dco_decode_box_autoadd_coordinates(dynamic raw);
@@ -203,6 +209,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Nodes dco_decode_box_autoadd_nodes(dynamic raw);
+
+  @protected
+  Point dco_decode_box_autoadd_point(dynamic raw);
 
   @protected
   PortSide dco_decode_box_autoadd_port_side(dynamic raw);
@@ -279,6 +288,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ContentBlock dco_decode_content_block(dynamic raw);
+
+  @protected
+  ControlPoint dco_decode_control_point(dynamic raw);
 
   @protected
   Coordinates dco_decode_coordinates(dynamic raw);
@@ -444,6 +456,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BlockAttrs? dco_decode_opt_box_autoadd_block_attrs(dynamic raw);
 
   @protected
+  bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
+
+  @protected
+  ControlPoint? dco_decode_opt_box_autoadd_control_point(dynamic raw);
+
+  @protected
   EndpointShape? dco_decode_opt_box_autoadd_endpoint_shape(dynamic raw);
 
   @protected
@@ -463,6 +481,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Nodes? dco_decode_opt_box_autoadd_nodes(dynamic raw);
+
+  @protected
+  Point? dco_decode_opt_box_autoadd_point(dynamic raw);
 
   @protected
   PortSide? dco_decode_opt_box_autoadd_port_side(dynamic raw);
@@ -689,6 +710,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BlockAttrs sse_decode_box_autoadd_block_attrs(SseDeserializer deserializer);
 
   @protected
+  bool sse_decode_box_autoadd_bool(SseDeserializer deserializer);
+
+  @protected
   BoundingBox sse_decode_box_autoadd_bounding_box(SseDeserializer deserializer);
 
   @protected
@@ -696,6 +720,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Content sse_decode_box_autoadd_content(SseDeserializer deserializer);
+
+  @protected
+  ControlPoint sse_decode_box_autoadd_control_point(
+    SseDeserializer deserializer,
+  );
 
   @protected
   Coordinates sse_decode_box_autoadd_coordinates(SseDeserializer deserializer);
@@ -740,6 +769,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Nodes sse_decode_box_autoadd_nodes(SseDeserializer deserializer);
+
+  @protected
+  Point sse_decode_box_autoadd_point(SseDeserializer deserializer);
 
   @protected
   PortSide sse_decode_box_autoadd_port_side(SseDeserializer deserializer);
@@ -826,6 +858,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ContentBlock sse_decode_content_block(SseDeserializer deserializer);
+
+  @protected
+  ControlPoint sse_decode_control_point(SseDeserializer deserializer);
 
   @protected
   Coordinates sse_decode_coordinates(SseDeserializer deserializer);
@@ -1007,6 +1042,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
+
+  @protected
+  ControlPoint? sse_decode_opt_box_autoadd_control_point(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   EndpointShape? sse_decode_opt_box_autoadd_endpoint_shape(
     SseDeserializer deserializer,
   );
@@ -1034,6 +1077,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Nodes? sse_decode_opt_box_autoadd_nodes(SseDeserializer deserializer);
+
+  @protected
+  Point? sse_decode_opt_box_autoadd_point(SseDeserializer deserializer);
 
   @protected
   PortSide? sse_decode_opt_box_autoadd_port_side(SseDeserializer deserializer);
@@ -1289,6 +1335,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_bounding_box(
     BoundingBox self,
     SseSerializer serializer,
@@ -1302,6 +1351,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_content(Content self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_control_point(
+    ControlPoint self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_coordinates(
@@ -1377,6 +1432,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_nodes(Nodes self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_point(Point self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_port_side(
@@ -1491,6 +1549,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_content_block(ContentBlock self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_control_point(ControlPoint self, SseSerializer serializer);
 
   @protected
   void sse_encode_coordinates(Coordinates self, SseSerializer serializer);
@@ -1698,6 +1759,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_control_point(
+    ControlPoint? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_endpoint_shape(
     EndpointShape? self,
     SseSerializer serializer,
@@ -1732,6 +1802,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_opt_box_autoadd_nodes(Nodes? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_point(Point? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_port_side(

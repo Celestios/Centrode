@@ -8,6 +8,7 @@ use crate::domain::relation_engine::path_finder::steer::{AStarContext, CostGrid}
 use crate::domain::relation_engine::path_finder::grid::Grid;
 use crate::domain::relation_engine::path_finder::orthogonal::OrthogonalSteer;
 use crate::domain::relation_engine::path_finder::bspline::BSplineSteer;
+use crate::domain::relation_engine::path_finder::octilinear::OctilinearSteer;
 use crate::domain::relation_engine::path_finder::core::a_star;
 use crate::domain::relation_engine::path_finder::port::{resolve_ports_full, compute_extension};
 use crate::domain::relation_engine::shaper::core::{Shaper, ShaperContext};
@@ -15,6 +16,8 @@ use crate::domain::relation_engine::shaper::straight::StraightShaper;
 use crate::domain::relation_engine::shaper::bezier::BezierShaper;
 use crate::domain::relation_engine::shaper::orthogonal::OrthogonalShaper;
 use crate::domain::relation_engine::shaper::bspline::BSplineShaper;
+use crate::domain::relation_engine::shaper::octilinear::OctilinearShaper;
+use crate::domain::relation_engine::shaper::sinewave::SineWaveShaper;
 
 pub struct RelationEngine {
     pub state: CanvasState,
@@ -51,7 +54,8 @@ impl RelationEngine {
         config: &RelationEngineConfig,
         relation_ids: Option<&[String]>,
     ) -> Vec<ComputedRelation> {
-        let margin = config.routing.obstacle_margin;
+        let apply_compose = config.apply_compose;
+        let margin = config.routing.margin();
 
         // 1. Sync removed nodes
         let incoming_node_ids: HashSet<String> = nodes.iter().map(|n| n.id.clone()).collect();
@@ -121,13 +125,22 @@ impl RelationEngine {
         }
 
         // 6. ResolutionPass (Nudging / Spacing)
-        if config.nudging.enabled && results.len() >= 2 {
+        let compose_run = apply_compose.unwrap_or(true) && config.nudging.enabled && results.len() >= 2;
+        if compose_run {
             let mut paths: Vec<Vec<Point>> = results.iter().map(|r| r.path_points.clone()).collect();
             let configs: Vec<RoutingConfig> = edges_to_compute.iter().map(|_| config.routing.clone()).collect();
-            let nudge_colors = crate::domain::relation_engine::compose::compose(&mut paths, &configs, &config.nudging, &obstacles);
+            let relation_ids_str: Vec<String> = edges_to_compute.iter().map(|e| e.id.clone()).collect();
+            let nudge_colors = crate::domain::relation_engine::compose::compose(
+                &mut paths,
+                &configs,
+                &config.nudging,
+                &obstacles,
+                &relation_ids_str,
+            );
             for i in 0..results.len() {
                 results[i].path_points = paths[i].clone();
                 results[i].nudge_colors = nudge_colors[i].clone();
+                results[i].compose_active = true;
             }
         }
 
@@ -154,7 +167,7 @@ impl RelationEngine {
             return Vec::new();
         }
 
-        let margin = config.routing.obstacle_margin;
+        let margin = config.routing.margin();
 
         let mut dirty_node_positions = HashMap::new();
         for node_id in &self.state.incremental.dirty_nodes {
@@ -248,6 +261,7 @@ pub fn compute_single_relation(
     };
 
     let mode = edge.routing_mode.clone().unwrap_or(config.routing.routing_mode.clone());
+    let mut is_fallback = false;
 
     let (start_ext, end_ext) = (
         compute_extension(from_node, config.routing.extension_min, config.routing.extension_scale),
@@ -260,10 +274,10 @@ pub fn compute_single_relation(
     };
 
     let raw_path = match mode {
-        RoutingMode::Polyline => {
+        RoutingMode::Polyline | RoutingMode::Bezier { .. } | RoutingMode::SineWave { .. } => {
             vec![resolved.start, resolved.end]
         }
-        RoutingMode::Orthogonal | RoutingMode::BSpline => {
+        RoutingMode::Orthogonal | RoutingMode::BSpline | RoutingMode::Octilinear => {
             let grid = build_grid(obstacles, &config.routing, resolved.start_exit, resolved.end_exit);
             let cost_grid = CostGrid::new(&grid, obstacles, config.routing.outer_bbox_distance());
             let context = AStarContext {
@@ -286,7 +300,7 @@ pub fn compute_single_relation(
                 cost_grid: &cost_grid,
             };
 
-            let path = match mode {
+            let path_opt = match mode {
                 RoutingMode::Orthogonal => {
                     let steer = OrthogonalSteer::new(config.routing.clone());
                     a_star(&steer, &context)
@@ -295,14 +309,30 @@ pub fn compute_single_relation(
                     let steer = BSplineSteer::new(config.routing.clone());
                     a_star(&steer, &context)
                 }
+                RoutingMode::Octilinear => {
+                    let steer = OctilinearSteer::new(config.routing.clone());
+                    a_star(&steer, &context)
+                }
                 _ => unreachable!(),
             };
 
-            match path {
+            is_fallback = path_opt.is_none();
+            match path_opt {
                 Some(p) => p,
                 None => vec![resolved.start_exit, resolved.end_exit],
             }
         }
+    };
+
+    let start_normal = resolved.start_normal.unwrap_or(Point::new(1.0, 0.0));
+    let end_normal = resolved.end_normal.unwrap_or(Point::new(-1.0, 0.0));
+
+    let (custom_control_point_1, custom_control_point_2) = match &mode {
+        RoutingMode::Bezier { control_point_1, control_point_2 }
+        | RoutingMode::SineWave { control_point_1, control_point_2 } => {
+            (*control_point_1, *control_point_2)
+        }
+        _ => (None, None),
     };
 
     let shaper_ctx = ShaperContext {
@@ -310,6 +340,12 @@ pub fn compute_single_relation(
         end_pt: resolved.end,
         start_dir: resolved.start_normal.map(|n| (n.x.round() as i32, n.y.round() as i32)),
         end_dir: resolved.end_normal.map(|n| (n.x.round() as i32, n.y.round() as i32)),
+        start_normal,
+        end_normal,
+        start_node_size: (from_node.width, from_node.height),
+        end_node_size: (to_node.width, to_node.height),
+        custom_control_point_1,
+        custom_control_point_2,
         start_stub_len: start_ext,
         end_stub_len: end_ext,
         cell_size: config.routing.cell_size(),
@@ -328,8 +364,23 @@ pub fn compute_single_relation(
             let shaper = BSplineShaper::new(config.routing.clone());
             shaper.shape(&raw_path, &shaper_ctx)
         }
+        RoutingMode::Octilinear => {
+            let shaper = OctilinearShaper::new(config.routing.clone());
+            shaper.shape(&raw_path, &shaper_ctx)
+        }
+        RoutingMode::Bezier { .. } => {
+            let shaper = BezierShaper::new(config.routing.bezier_config());
+            shaper.shape(&raw_path, &shaper_ctx)
+        }
+        RoutingMode::SineWave { .. } => {
+            let shaper = SineWaveShaper::new(20.0, 3.0, 100);
+            shaper.shape(&raw_path, &shaper_ctx)
+        }
     };
 
+    if is_fallback {
+        result.path_type = PathType::Straight;
+    }
     result.id = edge.id.clone();
     result
 }

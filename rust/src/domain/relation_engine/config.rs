@@ -6,6 +6,15 @@ pub enum RoutingMode {
     Polyline,
     BSpline,
     Orthogonal,
+    Octilinear,
+    Bezier {
+        control_point_1: Option<crate::domain::relation_engine::geometry::Point>,
+        control_point_2: Option<crate::domain::relation_engine::geometry::Point>,
+    },
+    SineWave {
+        control_point_1: Option<crate::domain::relation_engine::geometry::Point>,
+        control_point_2: Option<crate::domain::relation_engine::geometry::Point>,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -42,11 +51,14 @@ impl RoutingConfig {
     }
 
     pub fn margin(&self) -> f64 {
-        self.obstacle_margin
+        5.0
     }
 
     pub fn outer_bbox_distance(&self) -> f64 {
-        self.obstacle_margin + 20.0
+        match self.routing_mode {
+            RoutingMode::Orthogonal | RoutingMode::Octilinear => 22.5,
+            _ => 40.0,
+        }
     }
 
     pub fn port_penalty(&self) -> f64 {
@@ -54,7 +66,10 @@ impl RoutingConfig {
     }
 
     pub fn inner_bbox_scale(&self) -> f64 {
-        1.0 / 3.0
+        match self.routing_mode {
+            RoutingMode::Orthogonal | RoutingMode::Octilinear => 2.0 / 3.0,
+            _ => 1.0 / 3.0,
+        }
     }
 
     pub fn corner_radius(&self) -> f64 {
@@ -233,6 +248,7 @@ pub struct RelationEngineConfig {
     pub incremental_mode: bool,
     pub body: BodyConfig,
     pub endpoint: EndpointConfig,
+    pub apply_compose: Option<bool>,
 }
 
 impl Default for RelationEngineConfig {
@@ -245,6 +261,7 @@ impl Default for RelationEngineConfig {
             incremental_mode: true,
             body: BodyConfig::default(),
             endpoint: EndpointConfig::default(),
+            apply_compose: None,
         }
     }
 }

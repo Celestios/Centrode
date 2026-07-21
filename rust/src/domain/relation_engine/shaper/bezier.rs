@@ -34,16 +34,19 @@ impl BezierShaper {
 }
 
 impl Shaper for BezierShaper {
-    fn shape(&self, raw_path: &[Point], _context: &ShaperContext) -> ComputedRelation {
-        let p0 = raw_path[0];
-        let p3 = raw_path[raw_path.len() - 1];
-        let p1 = Point::new(
-            p0.x + self.config.start_offset_x,
-            p0.y + self.config.start_offset_y,
-        );
-        let p2 = Point::new(
-            p3.x + self.config.end_offset_x,
-            p3.y + self.config.end_offset_y,
+    fn shape(&self, _raw_path: &[Point], context: &ShaperContext) -> ComputedRelation {
+        let p0 = context.start_pt;
+        let p3 = context.end_pt;
+        let (p1, p2) = super::core::resolve_control_points(
+            p0,
+            p3,
+            context.start_normal,
+            context.end_normal,
+            context.start_node_size,
+            context.end_node_size,
+            context.custom_control_point_1,
+            context.custom_control_point_2,
+            true,
         );
         let path_points = evaluate_cubic_bezier(
             p0, p1, p2, p3, self.config.num_samples,

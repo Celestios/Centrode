@@ -5,3 +5,4 @@ pub mod orthogonal;
 pub mod octilinear;
 pub mod bspline;
 pub mod simplify;
+pub mod sinewave;

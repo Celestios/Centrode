@@ -50,9 +50,6 @@ app.*.symbols
 *.pyc
 migrate_working_dir/
 
-# === Generated Reports ===
-CODE_HEALTH_REPORT.md
-
 # === Worktrees ===
 .worktrees/
 

@@ -40,11 +40,17 @@ impl InputEdge {
         let from_side = layout.and_then(|l| l.from_side.clone());
         let to_side = layout.and_then(|l| l.to_side.clone());
 
+        let control_point_1 = layout.and_then(|l| l.control_point_1.as_ref().map(|cp| crate::domain::relation_engine::geometry::Point::new(cp.x, cp.y)));
+        let control_point_2 = layout.and_then(|l| l.control_point_2.as_ref().map(|cp| crate::domain::relation_engine::geometry::Point::new(cp.x, cp.y)));
+
         // Resolve routing mode
         let routing_mode = layout.and_then(|l| {
             match l.strategy_type.to_lowercase().as_str() {
-                "bspline" | "bezier" => Some(RoutingMode::BSpline),
+                "bspline" => Some(RoutingMode::BSpline),
+                "bezier" => Some(RoutingMode::Bezier { control_point_1, control_point_2 }),
+                "sinewave" | "sine_wave" => Some(RoutingMode::SineWave { control_point_1, control_point_2 }),
                 "orthogonal" => Some(RoutingMode::Orthogonal),
+                "octilinear" => Some(RoutingMode::Octilinear),
                 _ => Some(RoutingMode::Polyline),
             }
         });

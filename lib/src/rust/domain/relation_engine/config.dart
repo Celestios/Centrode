@@ -4,7 +4,10 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../../frb_generated.dart';
+import 'geometry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+part 'config.freezed.dart';
 
 class BodyConfig {
   final BodyType defaultType;
@@ -125,6 +128,7 @@ class RelationEngineConfig {
   final bool incrementalMode;
   final BodyConfig body;
   final EndpointConfig endpoint;
+  final bool? applyCompose;
 
   const RelationEngineConfig({
     required this.routing,
@@ -134,6 +138,7 @@ class RelationEngineConfig {
     required this.incrementalMode,
     required this.body,
     required this.endpoint,
+    this.applyCompose,
   });
 
   @override
@@ -144,7 +149,8 @@ class RelationEngineConfig {
       crossingMinimization.hashCode ^
       incrementalMode.hashCode ^
       body.hashCode ^
-      endpoint.hashCode;
+      endpoint.hashCode ^
+      applyCompose.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -157,7 +163,8 @@ class RelationEngineConfig {
           crossingMinimization == other.crossingMinimization &&
           incrementalMode == other.incrementalMode &&
           body == other.body &&
-          endpoint == other.endpoint;
+          endpoint == other.endpoint &&
+          applyCompose == other.applyCompose;
 }
 
 class RoutingConfig {
@@ -207,4 +214,20 @@ class RoutingConfig {
           extensionScale == other.extensionScale;
 }
 
-enum RoutingMode { polyline, bSpline, orthogonal }
+@freezed
+sealed class RoutingMode with _$RoutingMode {
+  const RoutingMode._();
+
+  const factory RoutingMode.polyline() = RoutingMode_Polyline;
+  const factory RoutingMode.bSpline() = RoutingMode_BSpline;
+  const factory RoutingMode.orthogonal() = RoutingMode_Orthogonal;
+  const factory RoutingMode.octilinear() = RoutingMode_Octilinear;
+  const factory RoutingMode.bezier({
+    Point? controlPoint1,
+    Point? controlPoint2,
+  }) = RoutingMode_Bezier;
+  const factory RoutingMode.sineWave({
+    Point? controlPoint1,
+    Point? controlPoint2,
+  }) = RoutingMode_SineWave;
+}

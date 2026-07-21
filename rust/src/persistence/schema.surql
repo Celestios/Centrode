@@ -361,11 +361,23 @@ DEFINE FIELD OVERWRITE layout ON TABLE IRelation TYPE option<object>;
 DEFINE FIELD OVERWRITE layout.from_side ON TABLE IRelation TYPE string;
 DEFINE FIELD OVERWRITE layout.to_side ON TABLE IRelation TYPE string;
 DEFINE FIELD OVERWRITE layout.strategy_type ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE layout.control_point_1 ON TABLE IRelation TYPE option<object>;
+DEFINE FIELD OVERWRITE layout.control_point_1.x ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE layout.control_point_1.y ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE layout.control_point_2 ON TABLE IRelation TYPE option<object>;
+DEFINE FIELD OVERWRITE layout.control_point_2.x ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE layout.control_point_2.y ON TABLE IRelation TYPE float;
 
 DEFINE FIELD OVERWRITE resolved_layout ON TABLE IRelation TYPE option<object>;
 DEFINE FIELD OVERWRITE resolved_layout.from_side ON TABLE IRelation TYPE string;
 DEFINE FIELD OVERWRITE resolved_layout.to_side ON TABLE IRelation TYPE string;
 DEFINE FIELD OVERWRITE resolved_layout.strategy_type ON TABLE IRelation TYPE string;
+DEFINE FIELD OVERWRITE resolved_layout.control_point_1 ON TABLE IRelation TYPE option<object>;
+DEFINE FIELD OVERWRITE resolved_layout.control_point_1.x ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE resolved_layout.control_point_1.y ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE resolved_layout.control_point_2 ON TABLE IRelation TYPE option<object>;
+DEFINE FIELD OVERWRITE resolved_layout.control_point_2.x ON TABLE IRelation TYPE float;
+DEFINE FIELD OVERWRITE resolved_layout.control_point_2.y ON TABLE IRelation TYPE float;
 
 DEFINE FIELD OVERWRITE in ON TABLE IRelation TYPE record< INode | TaskNode | InterNode | CommentNode | DrawingNode | ShapeNode | FrameNode | MediaNode>;
 DEFINE FIELD OVERWRITE out ON TABLE IRelation TYPE record< INode | TaskNode | InterNode | CommentNode | DrawingNode | ShapeNode | FrameNode | MediaNode>;

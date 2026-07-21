@@ -239,10 +239,21 @@ define_surql_schema_struct! {
 define_surql_schema_struct! {
     #[frb(dart_metadata=("freezed"))]
     #[derive(Debug, Clone, PartialEq, SurrealValue)]
+    pub struct ControlPoint {
+        pub x: f64,
+        pub y: f64,
+    }
+}
+
+define_surql_schema_struct! {
+    #[frb(dart_metadata=("freezed"))]
+    #[derive(Debug, Clone, PartialEq, SurrealValue)]
     pub struct RelationLayout {
         pub from_side: Option<PortSide>,
         pub to_side: Option<PortSide>,
         pub strategy_type: String,
+        pub control_point_1: Option<ControlPoint>,
+        pub control_point_2: Option<ControlPoint>,
     }
 }
 

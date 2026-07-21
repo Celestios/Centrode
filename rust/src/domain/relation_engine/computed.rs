@@ -49,6 +49,7 @@ pub struct ComputedRelation {
     pub knots: Vec<f64>,
     pub nudge_colors: Vec<String>,
     pub hit_test_points: Vec<Point>,
+    pub compose_active: bool,
 }
 
 impl ComputedRelation {
@@ -81,6 +82,7 @@ impl ComputedRelation {
             knots: vec![],
             nudge_colors: vec![],
             hit_test_points: vec![],
+            compose_active: false,
         }
     }
 }

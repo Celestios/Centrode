@@ -2393,6 +2393,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  bool dco_decode_box_autoadd_bool(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as bool;
+  }
+
+  @protected
   BoundingBox dco_decode_box_autoadd_bounding_box(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_bounding_box(raw);
@@ -2408,6 +2414,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Content dco_decode_box_autoadd_content(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_content(raw);
+  }
+
+  @protected
+  ControlPoint dco_decode_box_autoadd_control_point(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_control_point(raw);
   }
 
   @protected
@@ -2492,6 +2504,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Nodes dco_decode_box_autoadd_nodes(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_nodes(raw);
+  }
+
+  @protected
+  Point dco_decode_box_autoadd_point(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_point(raw);
   }
 
   @protected
@@ -2651,8 +2669,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ComputedRelation dco_decode_computed_relation(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 27)
-      throw Exception('unexpected arr length: expect 27 but see ${arr.length}');
+    if (arr.length != 28)
+      throw Exception('unexpected arr length: expect 28 but see ${arr.length}');
     return ComputedRelation(
       id: dco_decode_String(arr[0]),
       pathPoints: dco_decode_list_point(arr[1]),
@@ -2681,6 +2699,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       knots: dco_decode_list_prim_f_64_strict(arr[24]),
       nudgeColors: dco_decode_list_String(arr[25]),
       hitTestPoints: dco_decode_list_point(arr[26]),
+      composeActive: dco_decode_bool(arr[27]),
     );
   }
 
@@ -2707,6 +2726,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       content: dco_decode_list_inline_element(arr[1]),
       attrs: dco_decode_opt_box_autoadd_block_attrs(arr[2]),
     );
+  }
+
+  @protected
+  ControlPoint dco_decode_control_point(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return ControlPoint(x: dco_decode_f_64(arr[0]), y: dco_decode_f_64(arr[1]));
   }
 
   @protected
@@ -3291,6 +3319,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  bool? dco_decode_opt_box_autoadd_bool(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_bool(raw);
+  }
+
+  @protected
+  ControlPoint? dco_decode_opt_box_autoadd_control_point(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_control_point(raw);
+  }
+
+  @protected
   EndpointShape? dco_decode_opt_box_autoadd_endpoint_shape(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_endpoint_shape(raw);
@@ -3330,6 +3370,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Nodes? dco_decode_opt_box_autoadd_nodes(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_nodes(raw);
+  }
+
+  @protected
+  Point? dco_decode_opt_box_autoadd_point(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_point(raw);
   }
 
   @protected
@@ -3460,8 +3506,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RelationEngineConfig dco_decode_relation_engine_config(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 7)
-      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    if (arr.length != 8)
+      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
     return RelationEngineConfig(
       routing: dco_decode_routing_config(arr[0]),
       nudging: dco_decode_nudging_config(arr[1]),
@@ -3470,6 +3516,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       incrementalMode: dco_decode_bool(arr[4]),
       body: dco_decode_body_config(arr[5]),
       endpoint: dco_decode_endpoint_config(arr[6]),
+      applyCompose: dco_decode_opt_box_autoadd_bool(arr[7]),
     );
   }
 
@@ -3477,12 +3524,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RelationLayout dco_decode_relation_layout(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
     return RelationLayout(
       fromSide: dco_decode_opt_box_autoadd_port_side(arr[0]),
       toSide: dco_decode_opt_box_autoadd_port_side(arr[1]),
       strategyType: dco_decode_String(arr[2]),
+      controlPoint1: dco_decode_opt_box_autoadd_control_point(arr[3]),
+      controlPoint2: dco_decode_opt_box_autoadd_control_point(arr[4]),
     );
   }
 
@@ -3558,7 +3607,28 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   RoutingMode dco_decode_routing_mode(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return RoutingMode.values[raw as int];
+    switch (raw[0]) {
+      case 0:
+        return RoutingMode_Polyline();
+      case 1:
+        return RoutingMode_BSpline();
+      case 2:
+        return RoutingMode_Orthogonal();
+      case 3:
+        return RoutingMode_Octilinear();
+      case 4:
+        return RoutingMode_Bezier(
+          controlPoint1: dco_decode_opt_box_autoadd_point(raw[1]),
+          controlPoint2: dco_decode_opt_box_autoadd_point(raw[2]),
+        );
+      case 5:
+        return RoutingMode_SineWave(
+          controlPoint1: dco_decode_opt_box_autoadd_point(raw[1]),
+          controlPoint2: dco_decode_opt_box_autoadd_point(raw[2]),
+        );
+      default:
+        throw Exception("unreachable");
+    }
   }
 
   @protected
@@ -4029,6 +4099,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  bool sse_decode_box_autoadd_bool(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_bool(deserializer));
+  }
+
+  @protected
   BoundingBox sse_decode_box_autoadd_bounding_box(
     SseDeserializer deserializer,
   ) {
@@ -4048,6 +4124,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Content sse_decode_box_autoadd_content(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_content(deserializer));
+  }
+
+  @protected
+  ControlPoint sse_decode_box_autoadd_control_point(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_control_point(deserializer));
   }
 
   @protected
@@ -4136,6 +4220,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Nodes sse_decode_box_autoadd_nodes(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_nodes(deserializer));
+  }
+
+  @protected
+  Point sse_decode_box_autoadd_point(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_point(deserializer));
   }
 
   @protected
@@ -4332,6 +4422,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_knots = sse_decode_list_prim_f_64_strict(deserializer);
     var var_nudgeColors = sse_decode_list_String(deserializer);
     var var_hitTestPoints = sse_decode_list_point(deserializer);
+    var var_composeActive = sse_decode_bool(deserializer);
     return ComputedRelation(
       id: var_id,
       pathPoints: var_pathPoints,
@@ -4360,6 +4451,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       knots: var_knots,
       nudgeColors: var_nudgeColors,
       hitTestPoints: var_hitTestPoints,
+      composeActive: var_composeActive,
     );
   }
 
@@ -4382,6 +4474,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       content: var_content,
       attrs: var_attrs,
     );
+  }
+
+  @protected
+  ControlPoint sse_decode_control_point(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_x = sse_decode_f_64(deserializer);
+    var var_y = sse_decode_f_64(deserializer);
+    return ControlPoint(x: var_x, y: var_y);
   }
 
   @protected
@@ -5189,6 +5289,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_bool(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  ControlPoint? sse_decode_opt_box_autoadd_control_point(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_control_point(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   EndpointShape? sse_decode_opt_box_autoadd_endpoint_shape(
     SseDeserializer deserializer,
   ) {
@@ -5268,6 +5392,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_nodes(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  Point? sse_decode_opt_box_autoadd_point(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_point(deserializer));
     } else {
       return null;
     }
@@ -5453,6 +5588,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_incrementalMode = sse_decode_bool(deserializer);
     var var_body = sse_decode_body_config(deserializer);
     var var_endpoint = sse_decode_endpoint_config(deserializer);
+    var var_applyCompose = sse_decode_opt_box_autoadd_bool(deserializer);
     return RelationEngineConfig(
       routing: var_routing,
       nudging: var_nudging,
@@ -5461,6 +5597,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       incrementalMode: var_incrementalMode,
       body: var_body,
       endpoint: var_endpoint,
+      applyCompose: var_applyCompose,
     );
   }
 
@@ -5470,10 +5607,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_fromSide = sse_decode_opt_box_autoadd_port_side(deserializer);
     var var_toSide = sse_decode_opt_box_autoadd_port_side(deserializer);
     var var_strategyType = sse_decode_String(deserializer);
+    var var_controlPoint1 = sse_decode_opt_box_autoadd_control_point(
+      deserializer,
+    );
+    var var_controlPoint2 = sse_decode_opt_box_autoadd_control_point(
+      deserializer,
+    );
     return RelationLayout(
       fromSide: var_fromSide,
       toSide: var_toSide,
       strategyType: var_strategyType,
+      controlPoint1: var_controlPoint1,
+      controlPoint2: var_controlPoint2,
     );
   }
 
@@ -5579,8 +5724,34 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   RoutingMode sse_decode_routing_mode(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_i_32(deserializer);
-    return RoutingMode.values[inner];
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        return RoutingMode_Polyline();
+      case 1:
+        return RoutingMode_BSpline();
+      case 2:
+        return RoutingMode_Orthogonal();
+      case 3:
+        return RoutingMode_Octilinear();
+      case 4:
+        var var_controlPoint1 = sse_decode_opt_box_autoadd_point(deserializer);
+        var var_controlPoint2 = sse_decode_opt_box_autoadd_point(deserializer);
+        return RoutingMode_Bezier(
+          controlPoint1: var_controlPoint1,
+          controlPoint2: var_controlPoint2,
+        );
+      case 5:
+        var var_controlPoint1 = sse_decode_opt_box_autoadd_point(deserializer);
+        var var_controlPoint2 = sse_decode_opt_box_autoadd_point(deserializer);
+        return RoutingMode_SineWave(
+          controlPoint1: var_controlPoint1,
+          controlPoint2: var_controlPoint2,
+        );
+      default:
+        throw UnimplementedError('');
+    }
   }
 
   @protected
@@ -6101,6 +6272,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_bounding_box(
     BoundingBox self,
     SseSerializer serializer,
@@ -6122,6 +6299,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_box_autoadd_content(Content self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_content(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_control_point(
+    ControlPoint self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_control_point(self, serializer);
   }
 
   @protected
@@ -6239,6 +6425,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_box_autoadd_nodes(Nodes self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_nodes(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_point(Point self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_point(self, serializer);
   }
 
   @protected
@@ -6447,6 +6639,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_prim_f_64_strict(self.knots, serializer);
     sse_encode_list_String(self.nudgeColors, serializer);
     sse_encode_list_point(self.hitTestPoints, serializer);
+    sse_encode_bool(self.composeActive, serializer);
   }
 
   @protected
@@ -6462,6 +6655,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_block_type(self.blockType, serializer);
     sse_encode_list_inline_element(self.content, serializer);
     sse_encode_opt_box_autoadd_block_attrs(self.attrs, serializer);
+  }
+
+  @protected
+  void sse_encode_control_point(ControlPoint self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_f_64(self.x, serializer);
+    sse_encode_f_64(self.y, serializer);
   }
 
   @protected
@@ -7076,6 +7276,29 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_bool(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_control_point(
+    ControlPoint? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_control_point(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_endpoint_shape(
     EndpointShape? self,
     SseSerializer serializer,
@@ -7157,6 +7380,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_box_autoadd_nodes(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_point(Point? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_point(self, serializer);
     }
   }
 
@@ -7339,6 +7572,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self.incrementalMode, serializer);
     sse_encode_body_config(self.body, serializer);
     sse_encode_endpoint_config(self.endpoint, serializer);
+    sse_encode_opt_box_autoadd_bool(self.applyCompose, serializer);
   }
 
   @protected
@@ -7350,6 +7584,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_box_autoadd_port_side(self.fromSide, serializer);
     sse_encode_opt_box_autoadd_port_side(self.toSide, serializer);
     sse_encode_String(self.strategyType, serializer);
+    sse_encode_opt_box_autoadd_control_point(self.controlPoint1, serializer);
+    sse_encode_opt_box_autoadd_control_point(self.controlPoint2, serializer);
   }
 
   @protected
@@ -7412,7 +7648,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   void sse_encode_routing_mode(RoutingMode self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.index, serializer);
+    switch (self) {
+      case RoutingMode_Polyline():
+        sse_encode_i_32(0, serializer);
+      case RoutingMode_BSpline():
+        sse_encode_i_32(1, serializer);
+      case RoutingMode_Orthogonal():
+        sse_encode_i_32(2, serializer);
+      case RoutingMode_Octilinear():
+        sse_encode_i_32(3, serializer);
+      case RoutingMode_Bezier(
+        controlPoint1: final controlPoint1,
+        controlPoint2: final controlPoint2,
+      ):
+        sse_encode_i_32(4, serializer);
+        sse_encode_opt_box_autoadd_point(controlPoint1, serializer);
+        sse_encode_opt_box_autoadd_point(controlPoint2, serializer);
+      case RoutingMode_SineWave(
+        controlPoint1: final controlPoint1,
+        controlPoint2: final controlPoint2,
+      ):
+        sse_encode_i_32(5, serializer);
+        sse_encode_opt_box_autoadd_point(controlPoint1, serializer);
+        sse_encode_opt_box_autoadd_point(controlPoint2, serializer);
+    }
   }
 
   @protected

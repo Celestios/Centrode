@@ -12,6 +12,260 @@ part of 'styles.dart';
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
+mixin _$ControlPoint {
+
+ double get x; double get y;
+/// Create a copy of ControlPoint
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ControlPointCopyWith<ControlPoint> get copyWith => _$ControlPointCopyWithImpl<ControlPoint>(this as ControlPoint, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ControlPoint&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,x,y);
+
+@override
+String toString() {
+  return 'ControlPoint(x: $x, y: $y)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ControlPointCopyWith<$Res>  {
+  factory $ControlPointCopyWith(ControlPoint value, $Res Function(ControlPoint) _then) = _$ControlPointCopyWithImpl;
+@useResult
+$Res call({
+ double x, double y
+});
+
+
+
+
+}
+/// @nodoc
+class _$ControlPointCopyWithImpl<$Res>
+    implements $ControlPointCopyWith<$Res> {
+  _$ControlPointCopyWithImpl(this._self, this._then);
+
+  final ControlPoint _self;
+  final $Res Function(ControlPoint) _then;
+
+/// Create a copy of ControlPoint
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? x = null,Object? y = null,}) {
+  return _then(_self.copyWith(
+x: null == x ? _self.x : x // ignore: cast_nullable_to_non_nullable
+as double,y: null == y ? _self.y : y // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [ControlPoint].
+extension ControlPointPatterns on ControlPoint {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ControlPoint value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ControlPoint() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ControlPoint value)  $default,){
+final _that = this;
+switch (_that) {
+case _ControlPoint():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ControlPoint value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ControlPoint() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double x,  double y)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ControlPoint() when $default != null:
+return $default(_that.x,_that.y);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double x,  double y)  $default,) {final _that = this;
+switch (_that) {
+case _ControlPoint():
+return $default(_that.x,_that.y);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double x,  double y)?  $default,) {final _that = this;
+switch (_that) {
+case _ControlPoint() when $default != null:
+return $default(_that.x,_that.y);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _ControlPoint implements ControlPoint {
+  const _ControlPoint({required this.x, required this.y});
+  
+
+@override final  double x;
+@override final  double y;
+
+/// Create a copy of ControlPoint
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ControlPointCopyWith<_ControlPoint> get copyWith => __$ControlPointCopyWithImpl<_ControlPoint>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ControlPoint&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,x,y);
+
+@override
+String toString() {
+  return 'ControlPoint(x: $x, y: $y)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ControlPointCopyWith<$Res> implements $ControlPointCopyWith<$Res> {
+  factory _$ControlPointCopyWith(_ControlPoint value, $Res Function(_ControlPoint) _then) = __$ControlPointCopyWithImpl;
+@override @useResult
+$Res call({
+ double x, double y
+});
+
+
+
+
+}
+/// @nodoc
+class __$ControlPointCopyWithImpl<$Res>
+    implements _$ControlPointCopyWith<$Res> {
+  __$ControlPointCopyWithImpl(this._self, this._then);
+
+  final _ControlPoint _self;
+  final $Res Function(_ControlPoint) _then;
+
+/// Create a copy of ControlPoint
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? x = null,Object? y = null,}) {
+  return _then(_ControlPoint(
+x: null == x ? _self.x : x // ignore: cast_nullable_to_non_nullable
+as double,y: null == y ? _self.y : y // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$NodeLayout {
 
  String get strategyType;
@@ -564,7 +818,7 @@ as String,
 /// @nodoc
 mixin _$RelationLayout {
 
- PortSide? get fromSide; PortSide? get toSide; String get strategyType;
+ PortSide? get fromSide; PortSide? get toSide; String get strategyType; ControlPoint? get controlPoint1; ControlPoint? get controlPoint2;
 /// Create a copy of RelationLayout
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -575,16 +829,16 @@ $RelationLayoutCopyWith<RelationLayout> get copyWith => _$RelationLayoutCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RelationLayout&&(identical(other.fromSide, fromSide) || other.fromSide == fromSide)&&(identical(other.toSide, toSide) || other.toSide == toSide)&&(identical(other.strategyType, strategyType) || other.strategyType == strategyType));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RelationLayout&&(identical(other.fromSide, fromSide) || other.fromSide == fromSide)&&(identical(other.toSide, toSide) || other.toSide == toSide)&&(identical(other.strategyType, strategyType) || other.strategyType == strategyType)&&(identical(other.controlPoint1, controlPoint1) || other.controlPoint1 == controlPoint1)&&(identical(other.controlPoint2, controlPoint2) || other.controlPoint2 == controlPoint2));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,fromSide,toSide,strategyType);
+int get hashCode => Object.hash(runtimeType,fromSide,toSide,strategyType,controlPoint1,controlPoint2);
 
 @override
 String toString() {
-  return 'RelationLayout(fromSide: $fromSide, toSide: $toSide, strategyType: $strategyType)';
+  return 'RelationLayout(fromSide: $fromSide, toSide: $toSide, strategyType: $strategyType, controlPoint1: $controlPoint1, controlPoint2: $controlPoint2)';
 }
 
 
@@ -595,11 +849,11 @@ abstract mixin class $RelationLayoutCopyWith<$Res>  {
   factory $RelationLayoutCopyWith(RelationLayout value, $Res Function(RelationLayout) _then) = _$RelationLayoutCopyWithImpl;
 @useResult
 $Res call({
- PortSide? fromSide, PortSide? toSide, String strategyType
+ PortSide? fromSide, PortSide? toSide, String strategyType, ControlPoint? controlPoint1, ControlPoint? controlPoint2
 });
 
 
-
+$ControlPointCopyWith<$Res>? get controlPoint1;$ControlPointCopyWith<$Res>? get controlPoint2;
 
 }
 /// @nodoc
@@ -612,15 +866,41 @@ class _$RelationLayoutCopyWithImpl<$Res>
 
 /// Create a copy of RelationLayout
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? fromSide = freezed,Object? toSide = freezed,Object? strategyType = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? fromSide = freezed,Object? toSide = freezed,Object? strategyType = null,Object? controlPoint1 = freezed,Object? controlPoint2 = freezed,}) {
   return _then(_self.copyWith(
 fromSide: freezed == fromSide ? _self.fromSide : fromSide // ignore: cast_nullable_to_non_nullable
 as PortSide?,toSide: freezed == toSide ? _self.toSide : toSide // ignore: cast_nullable_to_non_nullable
 as PortSide?,strategyType: null == strategyType ? _self.strategyType : strategyType // ignore: cast_nullable_to_non_nullable
-as String,
+as String,controlPoint1: freezed == controlPoint1 ? _self.controlPoint1 : controlPoint1 // ignore: cast_nullable_to_non_nullable
+as ControlPoint?,controlPoint2: freezed == controlPoint2 ? _self.controlPoint2 : controlPoint2 // ignore: cast_nullable_to_non_nullable
+as ControlPoint?,
   ));
 }
+/// Create a copy of RelationLayout
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ControlPointCopyWith<$Res>? get controlPoint1 {
+    if (_self.controlPoint1 == null) {
+    return null;
+  }
 
+  return $ControlPointCopyWith<$Res>(_self.controlPoint1!, (value) {
+    return _then(_self.copyWith(controlPoint1: value));
+  });
+}/// Create a copy of RelationLayout
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ControlPointCopyWith<$Res>? get controlPoint2 {
+    if (_self.controlPoint2 == null) {
+    return null;
+  }
+
+  return $ControlPointCopyWith<$Res>(_self.controlPoint2!, (value) {
+    return _then(_self.copyWith(controlPoint2: value));
+  });
+}
 }
 
 
@@ -699,10 +979,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PortSide? fromSide,  PortSide? toSide,  String strategyType)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PortSide? fromSide,  PortSide? toSide,  String strategyType,  ControlPoint? controlPoint1,  ControlPoint? controlPoint2)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RelationLayout() when $default != null:
-return $default(_that.fromSide,_that.toSide,_that.strategyType);case _:
+return $default(_that.fromSide,_that.toSide,_that.strategyType,_that.controlPoint1,_that.controlPoint2);case _:
   return orElse();
 
 }
@@ -720,10 +1000,10 @@ return $default(_that.fromSide,_that.toSide,_that.strategyType);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PortSide? fromSide,  PortSide? toSide,  String strategyType)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PortSide? fromSide,  PortSide? toSide,  String strategyType,  ControlPoint? controlPoint1,  ControlPoint? controlPoint2)  $default,) {final _that = this;
 switch (_that) {
 case _RelationLayout():
-return $default(_that.fromSide,_that.toSide,_that.strategyType);}
+return $default(_that.fromSide,_that.toSide,_that.strategyType,_that.controlPoint1,_that.controlPoint2);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -737,10 +1017,10 @@ return $default(_that.fromSide,_that.toSide,_that.strategyType);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PortSide? fromSide,  PortSide? toSide,  String strategyType)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PortSide? fromSide,  PortSide? toSide,  String strategyType,  ControlPoint? controlPoint1,  ControlPoint? controlPoint2)?  $default,) {final _that = this;
 switch (_that) {
 case _RelationLayout() when $default != null:
-return $default(_that.fromSide,_that.toSide,_that.strategyType);case _:
+return $default(_that.fromSide,_that.toSide,_that.strategyType,_that.controlPoint1,_that.controlPoint2);case _:
   return null;
 
 }
@@ -752,12 +1032,14 @@ return $default(_that.fromSide,_that.toSide,_that.strategyType);case _:
 
 
 class _RelationLayout implements RelationLayout {
-  const _RelationLayout({this.fromSide, this.toSide, required this.strategyType});
+  const _RelationLayout({this.fromSide, this.toSide, required this.strategyType, this.controlPoint1, this.controlPoint2});
   
 
 @override final  PortSide? fromSide;
 @override final  PortSide? toSide;
 @override final  String strategyType;
+@override final  ControlPoint? controlPoint1;
+@override final  ControlPoint? controlPoint2;
 
 /// Create a copy of RelationLayout
 /// with the given fields replaced by the non-null parameter values.
@@ -769,16 +1051,16 @@ _$RelationLayoutCopyWith<_RelationLayout> get copyWith => __$RelationLayoutCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RelationLayout&&(identical(other.fromSide, fromSide) || other.fromSide == fromSide)&&(identical(other.toSide, toSide) || other.toSide == toSide)&&(identical(other.strategyType, strategyType) || other.strategyType == strategyType));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RelationLayout&&(identical(other.fromSide, fromSide) || other.fromSide == fromSide)&&(identical(other.toSide, toSide) || other.toSide == toSide)&&(identical(other.strategyType, strategyType) || other.strategyType == strategyType)&&(identical(other.controlPoint1, controlPoint1) || other.controlPoint1 == controlPoint1)&&(identical(other.controlPoint2, controlPoint2) || other.controlPoint2 == controlPoint2));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,fromSide,toSide,strategyType);
+int get hashCode => Object.hash(runtimeType,fromSide,toSide,strategyType,controlPoint1,controlPoint2);
 
 @override
 String toString() {
-  return 'RelationLayout(fromSide: $fromSide, toSide: $toSide, strategyType: $strategyType)';
+  return 'RelationLayout(fromSide: $fromSide, toSide: $toSide, strategyType: $strategyType, controlPoint1: $controlPoint1, controlPoint2: $controlPoint2)';
 }
 
 
@@ -789,11 +1071,11 @@ abstract mixin class _$RelationLayoutCopyWith<$Res> implements $RelationLayoutCo
   factory _$RelationLayoutCopyWith(_RelationLayout value, $Res Function(_RelationLayout) _then) = __$RelationLayoutCopyWithImpl;
 @override @useResult
 $Res call({
- PortSide? fromSide, PortSide? toSide, String strategyType
+ PortSide? fromSide, PortSide? toSide, String strategyType, ControlPoint? controlPoint1, ControlPoint? controlPoint2
 });
 
 
-
+@override $ControlPointCopyWith<$Res>? get controlPoint1;@override $ControlPointCopyWith<$Res>? get controlPoint2;
 
 }
 /// @nodoc
@@ -806,16 +1088,42 @@ class __$RelationLayoutCopyWithImpl<$Res>
 
 /// Create a copy of RelationLayout
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? fromSide = freezed,Object? toSide = freezed,Object? strategyType = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? fromSide = freezed,Object? toSide = freezed,Object? strategyType = null,Object? controlPoint1 = freezed,Object? controlPoint2 = freezed,}) {
   return _then(_RelationLayout(
 fromSide: freezed == fromSide ? _self.fromSide : fromSide // ignore: cast_nullable_to_non_nullable
 as PortSide?,toSide: freezed == toSide ? _self.toSide : toSide // ignore: cast_nullable_to_non_nullable
 as PortSide?,strategyType: null == strategyType ? _self.strategyType : strategyType // ignore: cast_nullable_to_non_nullable
-as String,
+as String,controlPoint1: freezed == controlPoint1 ? _self.controlPoint1 : controlPoint1 // ignore: cast_nullable_to_non_nullable
+as ControlPoint?,controlPoint2: freezed == controlPoint2 ? _self.controlPoint2 : controlPoint2 // ignore: cast_nullable_to_non_nullable
+as ControlPoint?,
   ));
 }
 
+/// Create a copy of RelationLayout
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ControlPointCopyWith<$Res>? get controlPoint1 {
+    if (_self.controlPoint1 == null) {
+    return null;
+  }
 
+  return $ControlPointCopyWith<$Res>(_self.controlPoint1!, (value) {
+    return _then(_self.copyWith(controlPoint1: value));
+  });
+}/// Create a copy of RelationLayout
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ControlPointCopyWith<$Res>? get controlPoint2 {
+    if (_self.controlPoint2 == null) {
+    return null;
+  }
+
+  return $ControlPointCopyWith<$Res>(_self.controlPoint2!, (value) {
+    return _then(_self.copyWith(controlPoint2: value));
+  });
+}
 }
 
 /// @nodoc

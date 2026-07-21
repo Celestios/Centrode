@@ -308,6 +308,8 @@ async fn test_remaining_patches() {
         from_side: Some(PortSide::Right),
         to_side: Some(PortSide::Left),
         strategy_type: "custom".to_string(),
+        control_point_1: None,
+        control_point_2: None,
     };
 
     let rel_patch = EntityPatch::Relation(vec![
