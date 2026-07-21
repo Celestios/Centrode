@@ -8,7 +8,7 @@ final Logger _log = Logger('UpdateTagCommand');
 
 class UpdateTagCommand extends GraphCommand {
   @override
-  final String targetId;
+  String targetId;
   final GraphApi api;
   final Tag oldTag;
   final Tag newTag;

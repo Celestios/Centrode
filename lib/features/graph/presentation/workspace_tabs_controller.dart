@@ -8,9 +8,9 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import '../../../src/rust/bridge/api.dart';
 import '../../../src/rust/domain/base_models.dart' show ViewportState;
-import '../store/graph_data_controller.dart';
+import '../store/graph_data_query_controller.dart';
+import '../store/command_queue_processor.dart';
 import '../store/graph_api.dart';
-import 'graph_presentation_notifier.dart';
 import 'theme_manager.dart';
 import 'node_render_state.dart';
 import 'viewport_state.dart';
@@ -27,8 +27,8 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
   final String name;
   GraphApi? handle;
   ThemeController? themeController;
-  GraphDataController? dataController;
-  GraphPresentationNotifier? presentationNotifier;
+  GraphDataQueryController? queryController;
+  CommandQueueProcessor? commandProcessor;
   NodeRenderState? nodeRenderState;
 
   ViewportController? _viewportController;
@@ -54,8 +54,8 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     _log.fine('saveViewportState for session $name');
     _debounceTimer?.cancel();
     final vp = _viewportController;
-    final dc = dataController;
-    if (vp != null && dc != null) {
+    final api = handle;
+    if (vp != null && api != null) {
       final matrix = vp.transformController.value;
       final xOffset = matrix.getTranslation().x;
       final yOffset = matrix.getTranslation().y;
@@ -70,7 +70,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
       );
 
       try {
-        await dc.saveViewportState(state);
+        await api.updateViewportState(state: state);
       } catch (e) {
         debugPrint('Failed to save viewport state for session $name: $e');
       }
@@ -149,30 +149,31 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     handle = wrapper;
     final tc = ThemeController(wrapper);
     themeController = tc;
-    final dc = GraphDataController(wrapper);
-    dataController = dc;
-    presentationNotifier = GraphPresentationNotifier(dc);
-    nodeRenderState = NodeRenderState(dc, dc);
+    final qc = GraphDataQueryController(wrapper);
+    queryController = qc;
+    final processor = CommandQueueProcessor(wrapper, qc);
+    commandProcessor = processor;
+    nodeRenderState = NodeRenderState(qc, processor);
 
-    final styleManager = StyleManager(dc.store);
-    dc.sizeCalculator = NodeLayoutStrategy.calculateSize;
-    dc.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
-    dc.styleUpdater = styleManager;
+    final styleManager = StyleManager(qc.store);
+    processor.sizeCalculator = NodeLayoutStrategy.calculateSize;
+    processor.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
+    processor.styleUpdater = styleManager;
 
     _themeListener = () {
       final newTheme = tc.currentGraphTheme;
       styleManager.setTheme(newTheme);
-      styleManager.updateAllStyles(dc.store.nodes, dc.store.relations);
-      dc.triggerUpdate();
+      styleManager.updateAllStyles(qc.store.nodes, qc.store.relations);
+      qc.triggerUpdate();
     };
     tc.addListener(_themeListener!);
 
     await tc.initialize(globalTheme);
     // Seeding initial theme style
     styleManager.setTheme(tc.currentGraphTheme);
-    styleManager.updateAllStyles(dc.store.nodes, dc.store.relations);
+    styleManager.updateAllStyles(qc.store.nodes, qc.store.relations);
 
-    await dc.loadGraph();
+    await processor.loadGraph();
     isInitialized = true;
     _log.info('TabSession initialized successfully');
     notifyListeners();
@@ -188,8 +189,8 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
       _themeListener = null;
     }
     themeController?.dispose();
-    dataController?.dispose();
-    presentationNotifier?.dispose();
+    queryController?.dispose();
+    commandProcessor?.dispose();
     nodeRenderState?.dispose();
     toolModeNotifier.dispose();
     brushColorNotifier.dispose();

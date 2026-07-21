@@ -1,15 +1,14 @@
 import 'dart:ui' show Offset;
 import 'package:mycelium/shared/logging.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' show RecordStrings;
-import 'package:mycelium/src/rust/domain/templates.dart';
 import '../../models/models.dart';
 import '../../models/commands/save_template.dart';
 import '../../models/commands/delete_template.dart';
-import '../graph_data_controller.dart';
+import '../command_queue_processor.dart';
 
 class GraphTemplateMutations {
   final Logger _log = Logger('GraphTemplateMutations');
-  final GraphDataController controller;
+  final CommandQueueProcessor controller;
 
   GraphTemplateMutations(this.controller);
 
@@ -48,7 +47,7 @@ class GraphTemplateMutations {
       relationKeys: relationRecords,
       controller: controller,
     );
-    await controller.syncEngine.processor.queueCommand(cmd, immediate: true);
+    controller.syncEngine.processor.queueCommand(cmd, immediate: true);
   }
 
   Future<void> instantiateTemplate(String key, Offset canvasCoords) async {
@@ -74,6 +73,6 @@ class GraphTemplateMutations {
       template: template,
       controller: controller,
     );
-    await controller.syncEngine.processor.queueCommand(cmd, immediate: true);
+    controller.syncEngine.processor.queueCommand(cmd, immediate: true);
   }
 }

@@ -1,11 +1,11 @@
 import 'dart:ui';
 import '../../models/models.dart';
-import '../graph_data_controller.dart';
+import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
 
 /// Style mutation operations for the graph.
 class GraphStyleMutations {
-  final GraphDataController controller;
+  final CommandQueueProcessor controller;
 
   GraphStyleMutations(this.controller);
 
@@ -139,7 +139,7 @@ class GraphStyleMutations {
     final cmd = UpdateRelationLayoutCommand(
       targetId: id,
       tableName: 'IRelation',
-      gateway: controller.relationGateway,
+      api: controller.syncEngine.api,
       oldLayout: oldRelation.layout,
       newLayout: updatedRelation.layout,
       oldStyle: oldRelation.style,

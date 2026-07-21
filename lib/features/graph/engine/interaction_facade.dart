@@ -5,7 +5,8 @@ import '../models/models.dart';
 import '../presentation/view_state.dart';
 import '../presentation/strategies/node_style_strategy.dart';
 import 'interaction_context.dart';
-import '../store/graph_data_controller.dart';
+import '../store/graph_data_query_controller.dart';
+import '../store/command_queue_processor.dart';
 import '../store/spatial_index.dart';
 import '../store/relation_engine_state.dart';
 import '../presentation/node_render_state.dart';
@@ -15,7 +16,8 @@ import '../presentation/workspace_tabs_controller.dart';
 /// The Facade bridging the active FSM to the Data/UI Controllers.
 class CanvasInteractionEnvironment implements InteractionContext {
   final Logger _log = Logger('CanvasInteractionEnvironment');
-  final GraphDataController _dataController;
+  final GraphDataQueryController _queryController;
+  final CommandQueueProcessor _commandProcessor;
   final NodeRenderState _renderState;
   final ViewportController _viewportController;
   final double Function() _getScale;
@@ -24,14 +26,16 @@ class CanvasInteractionEnvironment implements InteractionContext {
   _onSaveTemplate;
 
   CanvasInteractionEnvironment({
-    required GraphDataController dataController,
+    required GraphDataQueryController queryController,
+    required CommandQueueProcessor commandProcessor,
     required NodeRenderState renderState,
     required ViewportController viewportController,
     required double Function() getScale,
     TabSession? boundSession,
     void Function(List<String> nodeIds, List<String> relationIds)?
     onSaveTemplate,
-  }) : _dataController = dataController,
+  }) : _queryController = queryController,
+       _commandProcessor = commandProcessor,
        _renderState = renderState,
        _viewportController = viewportController,
        _getScale = getScale,
@@ -42,19 +46,19 @@ class CanvasInteractionEnvironment implements InteractionContext {
   Map<String, NodeViewState> get nodeViewStates => _renderState.viewStates;
 
   @override
-  RelationEngineState get relationEngine => _dataController.relationEngine;
+  RelationEngineState get relationEngine => _queryController.relationEngine;
 
   @override
   List<String> get zOrder => _renderState.zOrder;
 
   @override
-  SpatialHashGrid get spatialGrid => _dataController.spatialGrid;
+  SpatialHashGrid get spatialGrid => _queryController.spatialGrid;
 
   @override
-  Iterable<UiRelation> getRelations() => _dataController.relations;
+  Iterable<UiRelation> getRelations() => _queryController.relations;
 
   @override
-  UiNode? getNode(String id) => _dataController.nodeLookup[id];
+  UiNode? getNode(String id) => _queryController.nodeLookup[id];
 
   @override
   void openDataInspector(String nodeId) {
@@ -67,7 +71,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
   @override
   void onNodeMove(String id, Offset pos) {
     _log.fine('onNodeMove id=$id');
-    _dataController.updateNodePosition(id, pos);
+    _commandProcessor.updateNodePosition(id, pos);
   }
 
   @override
@@ -79,7 +83,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
     String? verb,
   }) {
     debugPrint('[InteractionFacade] onRelationCreate from=$from to=$to fromSide=$fromSide toSide=$toSide');
-    _dataController.createRelation(
+    _commandProcessor.createRelation(
       from,
       to,
       fromSide: fromSide,
@@ -97,7 +101,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
     PortSide? toSide,
     String? strategyType,
   }) {
-    _dataController.updateRelationLayout(
+    _commandProcessor.updateRelationLayout(
       id,
       fromNodeId: fromNodeId,
       toNodeId: toNodeId,
@@ -109,7 +113,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
   @override
   void onRelationUpdateStyle(String id, RelationStyle newStyle) {
-    _dataController.updateRelationStyle(id, newStyle);
+    _commandProcessor.updateRelationStyle(id, newStyle);
   }
 
   @override
@@ -117,7 +121,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
   @override
   void onNodesDrag(List<(String, Offset)> updates) {
-    _dataController.updateNodePositionsVolatile(updates);
+    _commandProcessor.updateNodePositionsVolatile(updates);
     _renderState.notifyNodeDragUpdate();
   }
 
@@ -142,7 +146,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
   void onCreateNode(Offset position) {
     _log.info('onCreateNode pos=(${position.dx}, ${position.dy})');
     // 1. Create the node via data layer
-    final id = _dataController.createNode(UiNodes.info, position);
+    final id = _commandProcessor.createNode(UiNodes.info, position);
 
     // 2. Open Data Inspector (which also selects and opens edit/inspector state)
     openDataInspector(id);
@@ -150,13 +154,13 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
   @override
   void updateNodeWidth(String id, double leftEdge, double rightEdge) {
-    _dataController.updateNodeWidth(id, leftEdge, rightEdge);
+    _commandProcessor.updateNodeWidth(id, leftEdge, rightEdge);
   }
 
   @override
   void toggleNodeExpansion(String id) {
     _log.fine('toggleNodeExpansion id=$id');
-    _dataController.toggleNodeExpansion(id);
+    _commandProcessor.toggleNodeExpansion(id);
   }
 
   @override
@@ -196,13 +200,13 @@ class CanvasInteractionEnvironment implements InteractionContext {
   @override
   void onSaveTemplate() {
     final nodeIds = _renderState.selectedEntities
-        .where((id) => _dataController.nodeLookup.containsKey(id))
+        .where((id) => _queryController.nodeLookup.containsKey(id))
         .toList();
     _log.info('onSaveTemplate nodes=${nodeIds.length}');
     if (nodeIds.isEmpty) return;
 
     final nodeIdsSet = nodeIds.toSet();
-    final relationIds = _dataController.relationLookup.values
+    final relationIds = _queryController.relationLookup.values
         .where(
           (r) =>
               (nodeIdsSet.contains(r.fromNodeId) &&
@@ -226,10 +230,10 @@ class CanvasInteractionEnvironment implements InteractionContext {
     String id,
     NodeStyle Function(NodeStyle style) updateFn,
   ) {
-    final node = _dataController.nodeLookup[id];
+    final node = _queryController.nodeLookup[id];
     if (node != null) {
       final style = node.style ?? NodeStyleStrategy.resolveStyle(node);
-      _dataController.updateNodeStyle(id, updateFn(style));
+      _commandProcessor.propertyMutations.updateNodeStyle(id, updateFn(style));
     }
   }
 
@@ -261,7 +265,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
     required Size size,
   }) {
     _log.info('onCreateDrawingNode pos=(${position.dx}, ${position.dy}) type=$brushType');
-    _dataController.createNode(
+    _commandProcessor.createNode(
       UiNodes.drawing,
       position,
       paths: paths,

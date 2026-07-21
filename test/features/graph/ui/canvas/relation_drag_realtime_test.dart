@@ -5,7 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
 import 'package:mycelium/features/graph/presentation/node_render_state.dart';
-import 'package:mycelium/features/graph/store/graph_data_controller.dart';
+import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
+import 'package:mycelium/features/graph/store/command_queue_processor.dart';
 import 'package:mycelium/features/graph/ui/canvas/layers/relation_layer.dart';
 import 'package:mycelium/features/graph/ui/canvas/painters/relation_painter.dart';
 import 'package:mycelium/features/graph/engine/base_interaction_state.dart';
@@ -22,7 +23,9 @@ import 'package:mycelium/src/rust/domain/relation_engine/config.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/geometry.dart' as rust_geom;
 import 'package:mycelium/src/rust/domain/styles.dart';
 
-class MockGraphDataController extends Mock implements GraphDataController {}
+class MockGraphDataQueryController extends Mock implements GraphDataQueryController {}
+
+class MockCommandQueueProcessor extends Mock implements CommandQueueProcessor {}
 
 class MockRelationEngineState extends Mock implements RelationEngineState {}
 
@@ -59,6 +62,7 @@ ComputedRelation createTestComputedRelation(String id, List<rust_geom.Point> pat
     controlPoints: const [],
     knots: Float64List(0),
     nudgeColors: const [],
+    composeActive: false,
   );
 }
 
@@ -70,7 +74,8 @@ void main() {
   testWidgets(
     'RelationLayer correctly rebuilds and propagates dragging overrides',
     (WidgetTester tester) async {
-      final mockController = MockGraphDataController();
+      final mockQueryController = MockGraphDataQueryController();
+      final mockCommandProcessor = MockCommandQueueProcessor();
       final mockTheme = MockThemeController();
 
       final fromNode = InfoUiNode(
@@ -103,13 +108,13 @@ void main() {
       fromVs.sizeNotifier.value = const Size(100, 50);
       toVs.sizeNotifier.value = const Size(100, 50);
 
-      when(() => mockController.relations).thenReturn([rel]);
+      when(() => mockQueryController.relations).thenReturn([rel]);
       when(
-        () => mockController.nodeLookup,
+        () => mockQueryController.nodeLookup,
       ).thenReturn({'node-from': fromNode, 'node-to': toNode});
-      when(() => mockController.relationLookup).thenReturn({'rel-1': rel});
+      when(() => mockQueryController.relationLookup).thenReturn({'rel-1': rel});
       when(
-        () => mockController.onEntityUpdate,
+        () => mockQueryController.onEntityUpdate,
       ).thenAnswer((_) => const Stream.empty());
 
       final mockRelationEngine = MockRelationEngineState();
@@ -123,7 +128,7 @@ void main() {
       when(() => mockRelationEngine.cache).thenReturn({'rel-1': testComputed});
       when(() => mockRelationEngine.cacheNotifier)
           .thenReturn(ValueNotifier<int>(0));
-      when(() => mockController.relationEngine)
+      when(() => mockQueryController.relationEngine)
           .thenReturn(mockRelationEngine);
 
       when(
@@ -132,7 +137,7 @@ void main() {
       when(() => mockTheme.addListener(any())).thenAnswer((_) {});
       when(() => mockTheme.removeListener(any())).thenAnswer((_) {});
 
-      final renderState = NodeRenderState(mockController, mockController);
+      final renderState = NodeRenderState(mockQueryController, mockCommandProcessor);
       renderState.viewStates['node-from'] = fromVs;
       renderState.viewStates['node-to'] = toVs;
       renderState.selectedEntities.add('rel-1');
@@ -160,7 +165,8 @@ void main() {
           theme: ThemeData.dark(),
           home: MultiProvider(
             providers: [
-              InheritedProvider<GraphDataController>.value(value: mockController),
+              InheritedProvider<GraphDataQueryController>.value(value: mockQueryController),
+              InheritedProvider<CommandQueueProcessor>.value(value: mockCommandProcessor),
               ChangeNotifierProvider<NodeRenderState>.value(value: renderState),
               ChangeNotifierProvider<ThemeController>.value(value: mockTheme),
               Provider<InteractionController>.value(value: mockInteraction),
@@ -204,7 +210,8 @@ void main() {
   testWidgets(
     'Gesture dragging relation handle propagates pointer move updates to RelationPainter in real time',
     (WidgetTester tester) async {
-      final mockController = MockGraphDataController();
+      final mockQueryController = MockGraphDataQueryController();
+      final mockCommandProcessor = MockCommandQueueProcessor();
       final mockTheme = MockThemeController();
 
       final fromNode = InfoUiNode(
@@ -237,13 +244,13 @@ void main() {
       fromVs.sizeNotifier.value = const Size(100, 50);
       toVs.sizeNotifier.value = const Size(100, 50);
 
-      when(() => mockController.relations).thenReturn([rel]);
+      when(() => mockQueryController.relations).thenReturn([rel]);
       when(
-        () => mockController.nodeLookup,
+        () => mockQueryController.nodeLookup,
       ).thenReturn({'node-from': fromNode, 'node-to': toNode});
-      when(() => mockController.relationLookup).thenReturn({'rel-1': rel});
+      when(() => mockQueryController.relationLookup).thenReturn({'rel-1': rel});
       when(
-        () => mockController.onEntityUpdate,
+        () => mockQueryController.onEntityUpdate,
       ).thenAnswer((_) => const Stream.empty());
 
       final mockRelationEngine = MockRelationEngineState();
@@ -258,12 +265,12 @@ void main() {
       });
       when(() => mockRelationEngine.cacheNotifier)
           .thenReturn(ValueNotifier<int>(0));
-      when(() => mockController.relationEngine)
+      when(() => mockQueryController.relationEngine)
           .thenReturn(mockRelationEngine);
 
       final mockSpatial = MockSpatialHashGrid();
-      when(() => mockController.spatialGrid).thenReturn(mockSpatial);
-      when(() => mockController.canvasBounds).thenReturn(
+      when(() => mockQueryController.spatialGrid).thenReturn(mockSpatial);
+      when(() => mockQueryController.canvasBounds).thenReturn(
         BoundingBox(minX: 0, minY: 0, maxX: 100, maxY: 100),
       );
       when(() => mockSpatial.queryRect(any())).thenReturn(<String>{});
@@ -274,15 +281,16 @@ void main() {
       when(() => mockTheme.addListener(any())).thenAnswer((_) {});
       when(() => mockTheme.removeListener(any())).thenAnswer((_) {});
 
-      final renderState = NodeRenderState(mockController, mockController);
+      final renderState = NodeRenderState(mockQueryController, mockCommandProcessor);
       renderState.viewStates['node-from'] = fromVs;
       renderState.viewStates['node-to'] = toVs;
       renderState.selectedEntities.add('rel-1');
 
       final transformController = TransformationController();
-      final viewportController = ViewportController(mockController);
+      final viewportController = ViewportController(mockQueryController);
       final environment = CanvasInteractionEnvironment(
-        dataController: mockController,
+        queryController: mockQueryController,
+        commandProcessor: mockCommandProcessor,
         renderState: renderState,
         viewportController: viewportController,
         getScale: () => 1.0,
@@ -297,7 +305,8 @@ void main() {
           theme: ThemeData.dark(),
           home: MultiProvider(
             providers: [
-              InheritedProvider<GraphDataController>.value(value: mockController),
+              InheritedProvider<GraphDataQueryController>.value(value: mockQueryController),
+              InheritedProvider<CommandQueueProcessor>.value(value: mockCommandProcessor),
               ChangeNotifierProvider<NodeRenderState>.value(value: renderState),
               ChangeNotifierProvider<ThemeController>.value(value: mockTheme),
               Provider<InteractionController>.value(

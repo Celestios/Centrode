@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:mycelium/shared/logging.dart';
 import '../../models/models.dart';
-import '../graph_data_controller.dart';
+import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
 
 /// Node mutation operations for the graph.
 class GraphNodeMutations {
   final Logger _nodeLog = Logger('GraphNodeMutations');
-  final GraphDataController controller;
+  final CommandQueueProcessor controller;
 
   GraphNodeMutations(this.controller);
 

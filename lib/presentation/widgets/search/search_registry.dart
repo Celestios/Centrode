@@ -58,7 +58,7 @@ class SearchRegistry {
 
     final tabsController = context.read<WorkspaceTabsController>();
     final session = tabsController.activeSession;
-    final dataController = session.dataController;
+    final queryController = session.queryController;
 
     // 1. Command Palette Prefix ('>')
     if (query.startsWith('>')) {
@@ -80,11 +80,11 @@ class SearchRegistry {
 
     // 2. Tag Filter Prefix ('#')
     if (query.startsWith('#')) {
-      if (dataController == null) return [];
+      if (queryController == null) return [];
       final term = query.substring(1).trim().toLowerCase();
       final results = <SearchResult>[];
 
-      for (final node in dataController.nodesIterable) {
+      for (final node in queryController.nodeLookup.values) {
         if (node is InfoUiNode) {
           final matchesTag = node.tags.any(
             (t) => t.fields.name.toLowerCase().contains(term),
@@ -109,7 +109,7 @@ class SearchRegistry {
     // 3. Database Query Prefix ('?')
     if (query.startsWith('?')) {
       final term = query.substring(1).trim();
-      final dc = dataController;
+      final dc = queryController;
       if (dc == null) return [];
 
       try {
@@ -117,8 +117,8 @@ class SearchRegistry {
         final results = <SearchResult>[];
 
         for (final res in dbResults) {
-          IconData icon;
-          String subtitle;
+          IconData icon = Icons.help_outline_rounded;
+          String subtitle = 'Database';
           switch (res.type) {
             case DatabaseSearchResultType.infoNode:
               icon = Icons.description_outlined;
@@ -166,12 +166,12 @@ class SearchRegistry {
     }
 
     // 4. Default Canvas Node/Relation Search (no prefix)
-    if (dataController == null) return [];
+    if (queryController == null) return [];
     final term = query.toLowerCase();
     final results = <SearchResult>[];
 
     // Search Nodes
-    for (final node in dataController.nodesIterable) {
+    for (final node in queryController.nodeLookup.values) {
       if (node.text.toLowerCase().contains(term)) {
         results.add(
           SearchResult(
@@ -189,9 +189,9 @@ class SearchRegistry {
 
     // Search Relations and Group by Verb
     final matchingRelations = <UiRelation>[];
-    for (final relation in dataController.relations) {
-      final fromNode = dataController.nodeLookup[relation.fromNodeId];
-      final toNode = dataController.nodeLookup[relation.toNodeId];
+    for (final relation in queryController.relations) {
+      final fromNode = queryController.nodeLookup[relation.fromNodeId];
+      final toNode = queryController.nodeLookup[relation.toNodeId];
 
       final matchesVerb = relation.verb.toLowerCase().contains(term);
       final matchesFrom =
@@ -231,8 +231,8 @@ class SearchRegistry {
 
         // Add matching relations
         for (final rel in entry.value) {
-          final fromNode = dataController.nodeLookup[rel.fromNodeId];
-          final toNode = dataController.nodeLookup[rel.toNodeId];
+          final fromNode = queryController.nodeLookup[rel.fromNodeId];
+          final toNode = queryController.nodeLookup[rel.toNodeId];
           final fromText = fromNode?.text ?? 'Untitled Node';
           final toText = toNode?.text ?? 'Untitled Node';
 
@@ -257,7 +257,7 @@ class SearchRegistry {
   void _focusOnUiNode(BuildContext context, String nodeId) {
     final tabsController = context.read<WorkspaceTabsController>();
     final session = tabsController.activeSession;
-    final uiNode = session.dataController?.nodeLookup[nodeId];
+    final uiNode = session.queryController?.nodeLookup[nodeId];
     final viewportController = session.viewportController;
 
     if (uiNode != null && viewportController != null) {
@@ -274,11 +274,11 @@ class SearchRegistry {
   void _focusOnUiRelation(BuildContext context, UiRelation relation) {
     final tabsController = context.read<WorkspaceTabsController>();
     final session = tabsController.activeSession;
-    final dataController = session.dataController;
-    if (dataController == null) return;
+    final queryController = session.queryController;
+    if (queryController == null) return;
 
-    final fromNode = dataController.nodeLookup[relation.fromNodeId];
-    final toNode = dataController.nodeLookup[relation.toNodeId];
+    final fromNode = queryController.nodeLookup[relation.fromNodeId];
+    final toNode = queryController.nodeLookup[relation.toNodeId];
     final viewportController = session.viewportController;
 
     if (viewportController != null) {

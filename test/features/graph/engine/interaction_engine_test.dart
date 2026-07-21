@@ -48,6 +48,7 @@ ComputedRelation createTestComputedRelation(String id, List<rust_geom.Point> pat
     controlPoints: const [],
     knots: Float64List(0),
     nudgeColors: const [],
+    composeActive: false,
   );
 }
 

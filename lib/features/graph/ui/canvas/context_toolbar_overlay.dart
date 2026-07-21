@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mycelium/features/graph/presentation/node_render_state.dart';
-import 'package:mycelium/features/graph/store/graph_data_controller.dart';
+import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
 import 'package:mycelium/features/graph/presentation/viewport_state.dart';
 import 'package:mycelium/features/graph/engine/config.dart';
 import 'package:mycelium/features/graph/engine/interaction_context.dart';
@@ -17,7 +17,7 @@ import 'package:mycelium/shared/copy_buffer.dart';
 
 class ContextToolbarOverlay extends StatelessWidget {
   final NodeRenderState renderState;
-  final GraphDataController dataController;
+  final GraphDataQueryController queryController;
   final InteractionContext interactionContext;
   final ViewportController viewportController;
   final InteractionController interactionController;
@@ -25,7 +25,7 @@ class ContextToolbarOverlay extends StatelessWidget {
   const ContextToolbarOverlay({
     super.key,
     required this.renderState,
-    required this.dataController,
+    required this.queryController,
     required this.interactionContext,
     required this.viewportController,
     required this.interactionController,
@@ -83,7 +83,7 @@ class ContextToolbarOverlay extends StatelessWidget {
         selectedViewStates.add(vs);
       } else {
         try {
-          final rel = dataController.relations.firstWhere((r) => r.id == id);
+          final rel = queryController.relations.firstWhere((r) => r.id == id);
           selectedRelations.add(rel);
           final sourceVs = renderState.viewStates[rel.fromNodeId];
           final targetVs = renderState.viewStates[rel.toNodeId];
@@ -137,11 +137,11 @@ class ContextToolbarOverlay extends StatelessWidget {
           } else {
             UiRelation? rel;
             try {
-              rel = dataController.relations.firstWhere((r) => r.id == editedId);
+              rel = queryController.relations.firstWhere((r) => r.id == editedId);
             } catch (_) {}
             
             if (rel != null) {
-              final cached = dataController.relationEngine.cache[editedId];
+              final cached = queryController.relationEngine.cache[editedId];
               if (cached != null) {
                 anchorCanvas = Offset(cached.labelPosition.x, cached.labelPosition.y);
                 entityWidth = 0;
@@ -314,7 +314,7 @@ class ContextToolbarOverlay extends StatelessWidget {
         ).dy;
 
         final nodeIds = renderState.selectedEntities
-            .where((id) => dataController.nodeLookup.containsKey(id))
+            .where((id) => queryController.nodeLookup.containsKey(id))
             .toList();
         final canSaveTemplate = nodeIds.isNotEmpty;
         final String? singleNodeId = (!isMulti && nodeIds.length == 1)
@@ -372,10 +372,10 @@ class ContextToolbarOverlay extends StatelessWidget {
             onCopy: () {
               final copyBuffer = context.read<CopyBuffer>();
               final nodeIds = renderState.selectedEntities
-                  .where((id) => dataController.nodeLookup.containsKey(id))
+                  .where((id) => queryController.nodeLookup.containsKey(id))
                   .toList();
               if (nodeIds.isNotEmpty) {
-                copyBuffer.copy(nodeIds, dataController);
+                copyBuffer.copy(nodeIds, queryController);
               }
             },
             isMulti: isMulti,
@@ -432,7 +432,7 @@ class ContextToolbarOverlay extends StatelessWidget {
             },
             onDrawConnection: () {
               final nodeIds = renderState.selectedEntities
-                  .where((id) => dataController.nodeLookup.containsKey(id))
+                  .where((id) => queryController.nodeLookup.containsKey(id))
                   .toList();
               if (nodeIds.isNotEmpty) {
                 final vs = renderState.viewStates[nodeIds.first];

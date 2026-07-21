@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../../models/graph_node.dart';
-import '../../../store/graph_data_controller.dart';
-import '../../../presentation/graph_presentation_notifier.dart';
+import '../../../store/graph_data_query_controller.dart';
+import '../../../store/command_queue_processor.dart';
 import '../../../../../src/rust/domain/tags.dart';
 import 'package:mycelium/presentation/widgets/search/searchable_sort_list_header.dart';
 import 'delete_tag_dialog.dart';
@@ -70,9 +70,9 @@ class _TagsListViewState extends State<TagsListView> {
     super.dispose();
   }
 
-  int _getTagUsageCount(String tagKey, GraphDataController controller) {
+  int _getTagUsageCount(String tagKey, GraphDataQueryController controller) {
     int count = 0;
-    for (final node in controller.store.nodeLookup.values) {
+    for (final node in controller.nodeLookup.values) {
       if (node is InfoUiNode) {
         if (node.tags.any((t) => t.key == tagKey)) {
           count++;
@@ -86,7 +86,7 @@ class _TagsListViewState extends State<TagsListView> {
     BuildContext context,
     Offset anchorPos,
     Tag tag,
-    GraphDataController controller,
+    CommandQueueProcessor controller,
   ) {
     showDialog(
       context: context,
@@ -121,7 +121,7 @@ class _TagsListViewState extends State<TagsListView> {
                         updatedAt: DateTime.now().millisecondsSinceEpoch,
                       ),
                     );
-                    await controller.updateTag(updatedTag);
+                    await controller.propertyMutations.updateTag(updatedTag);
                   },
                 ),
               ),
@@ -171,7 +171,7 @@ class _TagsListViewState extends State<TagsListView> {
   }
 
   void _submitCreateTag(
-    GraphDataController controller,
+    CommandQueueProcessor controller,
     List<Tag> allTags,
   ) async {
     final name = _createController.text.trim();
@@ -200,7 +200,7 @@ class _TagsListViewState extends State<TagsListView> {
     );
 
     try {
-      await controller.createTag(newTag);
+      await controller.propertyMutations.createTag(newTag);
       _createController.clear();
       // Generate a new random color for next tag
       setState(() {
@@ -216,7 +216,7 @@ class _TagsListViewState extends State<TagsListView> {
 
   void _submitRename(
     Tag tag,
-    GraphDataController controller,
+    CommandQueueProcessor controller,
     List<Tag> allTags,
   ) async {
     final newName = _renameController.text.trim();
@@ -251,7 +251,7 @@ class _TagsListViewState extends State<TagsListView> {
           updatedAt: DateTime.now().millisecondsSinceEpoch,
         ),
       );
-      await controller.updateTag(updatedTag);
+      await controller.propertyMutations.updateTag(updatedTag);
       setState(() {
         _editingTagKey = null;
         _validationError = null;
@@ -274,11 +274,12 @@ class _TagsListViewState extends State<TagsListView> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.read<GraphPresentationNotifier>().controller;
+    final controller = context.read<CommandQueueProcessor>();
+    final queryController = context.read<GraphDataQueryController>();
     final theme = Theme.of(context);
 
     return FutureBuilder<List<Tag>>(
-      future: controller.getAllTags(),
+      future: controller.propertyMutations.getAllTags(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting &&
             !snapshot.hasData) {
@@ -322,13 +323,13 @@ class _TagsListViewState extends State<TagsListView> {
             case TagSortOption.usageDesc:
               return _getTagUsageCount(
                 b.key,
-                controller,
-              ).compareTo(_getTagUsageCount(a.key, controller));
+                queryController,
+              ).compareTo(_getTagUsageCount(a.key, queryController));
             case TagSortOption.usageAsc:
               return _getTagUsageCount(
                 a.key,
-                controller,
-              ).compareTo(_getTagUsageCount(b.key, controller));
+                queryController,
+              ).compareTo(_getTagUsageCount(b.key, queryController));
           }
         });
 
@@ -445,7 +446,7 @@ class _TagsListViewState extends State<TagsListView> {
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   itemBuilder: (context, index) {
                     final tag = filteredTags[index];
-                    final usageCount = _getTagUsageCount(tag.key, controller);
+                    final usageCount = _getTagUsageCount(tag.key, queryController);
                     final isEditing = _editingTagKey == tag.key;
 
                     return MouseRegion(
@@ -626,7 +627,7 @@ class _TagsListViewState extends State<TagsListView> {
                                         tag.fields.name,
                                       );
                                       if (confirm == true) {
-                                        await controller.deleteTag(tag.key);
+                                        await controller.propertyMutations.deleteTag(tag.key);
                                       }
                                     },
                                     padding: EdgeInsets.zero,

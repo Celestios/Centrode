@@ -1,9 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/store/graph_data_controller.dart';
+import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
+import 'package:mycelium/features/graph/store/command_queue_processor.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
-import 'package:mycelium/src/rust/bridge/api.dart';
+import 'package:mycelium/features/graph/store/graph_api.dart';
+import 'package:mycelium/features/graph/models/commands/graph_command_context.dart';
 import 'package:mycelium/src/rust/domain/relations.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
@@ -11,7 +13,7 @@ import 'package:mycelium/src/rust/domain/snapshot.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 
-class MockAppHandle extends Mock implements AppHandle {}
+class MockGraphApi extends Mock implements GraphApi {}
 
 class MockThemeController extends Mock implements ThemeController {
   @override
@@ -64,8 +66,9 @@ void main() {
   });
 
   group('GraphPropertyMutations', () {
-    late GraphDataController controller;
-    late MockAppHandle mockApi;
+    late CommandQueueProcessor controller;
+    late GraphDataQueryController queryController;
+    late MockGraphApi mockApi;
 
     setUpAll(() {
       registerFallbackValue(
@@ -85,7 +88,7 @@ void main() {
     });
 
     setUp(() {
-      mockApi = MockAppHandle();
+      mockApi = MockGraphApi();
 
       when(
         () => mockApi.createRelation(input: any(named: 'input')),
@@ -119,7 +122,8 @@ void main() {
         ),
       );
 
-      controller = GraphDataController(mockApi);
+      queryController = GraphDataQueryController(mockApi);
+      controller = CommandQueueProcessor(mockApi, queryController);
     });
 
     tearDown(() {
@@ -136,9 +140,9 @@ void main() {
         );
 
         controller.createRelation(node1, node2);
-        final relId = controller.relations.first.id;
+        final relId = queryController.relations.first.id;
 
-        final initialRel = controller.store.relationLookup[relId]!;
+        final initialRel = queryController.relationLookup[relId]!;
         initialRel.resolvedStyle = const RelationStyle(
           bgColor: 0,
           strokeColor: 0,
@@ -193,7 +197,7 @@ void main() {
 
         controller.updateRelationStyle(relId, newStyle);
 
-        final updated = controller.store.relationLookup[relId]!;
+        final updated = queryController.relationLookup[relId]!;
         expect(updated.style, newStyle);
         expect(updated.resolvedStyle, isNull);
 
@@ -216,7 +220,7 @@ void main() {
         );
 
         controller.createRelation(node1, node2);
-        final relId = controller.relations.first.id;
+        final relId = queryController.relations.first.id;
 
         final initialStyle = const RelationStyle(
           bgColor: 0,
@@ -240,7 +244,7 @@ void main() {
         );
 
         final initialRel =
-            controller.store.relationLookup[relId]! as InfoUiRelation;
+            queryController.relationLookup[relId]! as InfoUiRelation;
         initialRel.style = initialStyle;
 
         final mockStyleUpdater = MockStyleUpdater();
@@ -278,7 +282,7 @@ void main() {
         controller.updateRelationStyle(relId, newStyle);
 
         // Verify immediate optimistic update
-        expect(controller.store.relationLookup[relId]!.style, newStyle);
+        expect(queryController.relationLookup[relId]!.style, newStyle);
 
         // Expect a failure stream publication or rollback on flush
         try {
@@ -286,7 +290,7 @@ void main() {
           fail('Should throw the FFI exception during flush');
         } catch (e) {
           // Assert rollback occurred
-          final rolledBack = controller.store.relationLookup[relId]!;
+          final rolledBack = queryController.relationLookup[relId]!;
           expect(rolledBack.style, initialStyle);
           // Verify style updater was notified twice (once for optimistic update, once for rollback)
           verify(

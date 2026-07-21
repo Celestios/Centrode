@@ -8,7 +8,7 @@ final Logger _log = Logger('DeleteTemplateCommand');
 
 class DeleteTemplateCommand extends GraphCommand {
   @override
-  final String targetId;
+  String targetId;
   final GraphApi api;
   final Template template;
   final GraphCommandContext controller;

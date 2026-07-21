@@ -14,7 +14,7 @@ class RelationEngineState {
   final InvalidationTracker _tracker = InvalidationTracker();
   RelationEngineConfig _config = const RelationEngineConfig(
     routing: RoutingConfig(
-      routingMode: RoutingMode.polyline,
+      routingMode: RoutingMode.polyline(),
       obstacleMargin: 45.0,
       cornerRadius: 8.0,
       projectionFactor: 2,

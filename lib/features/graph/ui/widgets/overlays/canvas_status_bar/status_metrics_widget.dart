@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
-import '../../../../presentation/graph_presentation_notifier.dart';
+import '../../../../store/graph_data_query_controller.dart';
 
 // -----------------------------------------------------------------------------
 // BOTTOM CENTER: Graph Metrics & Async Progress Loader
@@ -11,7 +11,7 @@ class StatusMetricsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dataController = context.read<GraphPresentationNotifier>().controller;
+    final queryController = context.watch<GraphDataQueryController>();
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
     final onSurface = theme.colorScheme.onSurface;
@@ -23,7 +23,7 @@ class StatusMetricsWidget extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (dataController.isLoading) ...[
+          if (queryController.isLoading) ...[
             SizedBox(
               width: 10,
               height: 10,
@@ -35,7 +35,7 @@ class StatusMetricsWidget extends StatelessWidget {
             const SizedBox(width: 8),
           ],
           Text(
-            'Nodes: ${dataController.nodeLookup.length}  |  Relations: ${dataController.relationLookup.length}',
+            'Nodes: ${queryController.nodeLookup.length}  |  Relations: ${queryController.relationLookup.length}',
             style: TextStyle(
               fontSize: 11,
               color: textColor.withValues(alpha: 0.7),

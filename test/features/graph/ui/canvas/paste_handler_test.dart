@@ -1,8 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:mycelium/features/graph/ui/canvas/paste_handler.dart';
-import 'package:mycelium/features/graph/store/graph_data_controller.dart';
-import 'package:mycelium/src/rust/bridge/api.dart';
+import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
+import 'package:mycelium/features/graph/store/command_queue_processor.dart';
+import 'package:mycelium/features/graph/store/graph_api.dart';
 import 'package:mycelium/src/rust/domain/snapshot.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/src/rust/domain/nodes.dart';
@@ -10,11 +11,12 @@ import 'package:mycelium/src/rust/domain/relations.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/features/graph/models/content_builder.dart';
 
-class MockAppHandle extends Mock implements AppHandle {}
+class MockGraphApi extends Mock implements GraphApi {}
 
 void main() {
-  late GraphDataController controller;
-  late MockAppHandle mockApi;
+  late CommandQueueProcessor controller;
+  late GraphDataQueryController queryController;
+  late MockGraphApi mockApi;
 
   setUpAll(() {
     registerFallbackValue(
@@ -60,7 +62,7 @@ void main() {
   });
 
   setUp(() {
-    mockApi = MockAppHandle();
+    mockApi = MockGraphApi();
     when(() => mockApi.createNode(input: any(named: 'input')))
         .thenAnswer((_) async {});
     when(() => mockApi.createRelation(input: any(named: 'input')))
@@ -72,12 +74,13 @@ void main() {
     when(() => mockApi.applyEntityMutation(mutation: any(named: 'mutation')))
         .thenAnswer((_) async {});
 
-    controller = GraphDataController(mockApi);
+    queryController = GraphDataQueryController(mockApi);
+    controller = CommandQueueProcessor(mockApi, queryController);
 
     when(() => mockApi.getGraphSnapshot()).thenAnswer(
       (_) async => GraphSnapshot(
-        nodes: controller.nodeLookup.values.map((n) => n.toRust()).toList(),
-        relations: controller.relationLookup.values.map((r) => r.toRust()).toList(),
+        nodes: queryController.nodeLookup.values.map((n) => n.toRust()).toList(),
+        relations: queryController.relationLookup.values.map((r) => r.toRust()).toList(),
         metadata: frb.MapData(
           mapName: '',
           viewportState: frb.ViewportState(
@@ -103,7 +106,7 @@ void main() {
         text: '',
         canvasPosition: const Offset(100, 100),
       );
-      expect(controller.nodeLookup.isEmpty, isTrue);
+      expect(queryController.nodeLookup.isEmpty, isTrue);
     });
 
     test('whitespace-only text creates no nodes', () async {
@@ -112,7 +115,7 @@ void main() {
         text: '   \n  \n  ',
         canvasPosition: const Offset(100, 100),
       );
-      expect(controller.nodeLookup.isEmpty, isTrue);
+      expect(queryController.nodeLookup.isEmpty, isTrue);
     });
 
     test('plain text creates a single node', () async {
@@ -121,8 +124,8 @@ void main() {
         text: 'Hello world',
         canvasPosition: const Offset(100, 100),
       );
-      expect(controller.nodeLookup.length, equals(1));
-      final node = controller.nodeLookup.values.first;
+      expect(queryController.nodeLookup.length, equals(1));
+      final node = queryController.nodeLookup.values.first;
       expect(node.content.text, contains('Hello world'));
     });
 
@@ -132,8 +135,8 @@ void main() {
         text: '# My Heading',
         canvasPosition: const Offset(100, 100),
       );
-      expect(controller.nodeLookup.length, equals(1));
-      final node = controller.nodeLookup.values.first;
+      expect(queryController.nodeLookup.length, equals(1));
+      final node = queryController.nodeLookup.values.first;
       expect(node.content.text, contains('My Heading'));
     });
 
@@ -143,7 +146,7 @@ void main() {
         text: 'Line 1\nLine 2\nLine 3',
         canvasPosition: const Offset(100, 100),
       );
-      expect(controller.nodeLookup.length, equals(1));
+      expect(queryController.nodeLookup.length, equals(1));
     });
 
     test('heading with children creates tree of nodes with relations', () async {
@@ -153,7 +156,7 @@ void main() {
         canvasPosition: const Offset(100, 100),
       );
       await controller.flush();
-      expect(controller.nodeLookup.length, equals(3));
+      expect(queryController.nodeLookup.length, equals(3));
     });
 
     test('nested headings create deep tree', () async {
@@ -163,7 +166,7 @@ void main() {
         canvasPosition: const Offset(100, 100),
       );
       await controller.flush();
-      expect(controller.nodeLookup.length, equals(3));
+      expect(queryController.nodeLookup.length, equals(3));
     });
 
     test('bullet items become children of preceding heading', () async {
@@ -173,7 +176,7 @@ void main() {
         canvasPosition: const Offset(100, 100),
       );
       await controller.flush();
-      expect(controller.nodeLookup.length, equals(3));
+      expect(queryController.nodeLookup.length, equals(3));
     });
 
     test('code blocks are preserved in node content', () async {
@@ -182,8 +185,8 @@ void main() {
         text: '```\nconst x = 1;\n```',
         canvasPosition: const Offset(100, 100),
       );
-      expect(controller.nodeLookup.length, equals(1));
-      final node = controller.nodeLookup.values.first;
+      expect(queryController.nodeLookup.length, equals(1));
+      final node = queryController.nodeLookup.values.first;
       expect(node.content.text, contains('const x = 1;'));
     });
 
@@ -194,7 +197,7 @@ void main() {
         canvasPosition: const Offset(100, 100),
       );
       await controller.flush();
-      expect(controller.nodeLookup.length, equals(2));
+      expect(queryController.nodeLookup.length, equals(2));
     });
 
     test('multiple root headings create sibling trees', () async {
@@ -204,7 +207,7 @@ void main() {
         canvasPosition: const Offset(100, 100),
       );
       await controller.flush();
-      expect(controller.nodeLookup.length, equals(4));
+      expect(queryController.nodeLookup.length, equals(4));
     });
   });
 }

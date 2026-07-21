@@ -9,6 +9,10 @@ import 'package:mycelium/src/rust/domain/templates.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/config.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/src/rust/domain/base_models.dart';
+import 'package:mycelium/src/rust/persistence/history.dart';
+import 'package:mycelium/src/rust/domain/snapshot.dart';
+import 'package:mycelium/src/rust/bridge/stream.dart';
 
 /// Decoupled interface for the Rust FFI surface.
 abstract class GraphApi {

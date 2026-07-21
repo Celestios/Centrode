@@ -4,7 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
 import 'package:mycelium/features/graph/store/graph_data_query.dart';
-import 'package:mycelium/features/graph/store/graph_data_controller.dart';
+import 'package:mycelium/features/graph/store/command_queue_processor.dart';
 import 'package:mycelium/features/graph/models/commands/create_node.dart';
 import 'package:mycelium/shared/traceable_notifier.dart';
 
@@ -80,7 +80,7 @@ class CopyBuffer extends ChangeNotifier with TraceableNotifier {
     notifyListeners();
   }
 
-  Future<List<String>> paste(Offset cursorPosition, GraphDataController controller) async {
+  Future<List<String>> paste(Offset cursorPosition, CommandQueueProcessor controller) async {
     if (!hasData) return [];
 
     final createdIds = <String>[];
@@ -132,8 +132,8 @@ class CopyBuffer extends ChangeNotifier with TraceableNotifier {
       final newToId = copyToPasteId[rel.toNodeId];
       if (newFromId == null || newToId == null) continue;
 
-      final fromNode = controller.nodeLookup[newFromId];
-      final toNode = controller.nodeLookup[newToId];
+      final fromNode = controller.queryController.nodeLookup[newFromId];
+      final toNode = controller.queryController.nodeLookup[newToId];
       if (fromNode == null || toNode == null) continue;
 
       final newRel = InfoUiRelation(

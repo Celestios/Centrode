@@ -4,7 +4,7 @@ import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/config.dart' as rust_config;
 import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
 import '../../../engine/config.dart';
-import '../../../store/graph_data_controller.dart';
+import '../../../store/graph_data_query_controller.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../engine/interaction_engine.dart';
 import '../../../models/models.dart';
@@ -23,7 +23,7 @@ class RelationLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dataController = context.read<GraphDataController>();
+    final queryController = context.read<GraphDataQueryController>();
     final uiController = context.read<NodeRenderState>();
     final interactionController = context.read<InteractionController>();
     final theme = Theme.of(context);
@@ -36,14 +36,14 @@ class RelationLayer extends StatelessWidget {
           uiController.relationDataNotifier,
           uiController.editorState,
           interactionController.state,
-          dataController.relationEngine.cacheNotifier,
+          queryController.relationEngine.cacheNotifier,
         ]),
         builder: (context, _) {
           final interactionState = interactionController.state.value;
 
           final activeEditId = uiController.activeEditId;
           final editedRel = activeEditId != null
-              ? dataController.relations
+              ? queryController.relations
                     .where((r) => r.id == activeEditId)
                     .firstOrNull
               : null;
@@ -51,7 +51,7 @@ class RelationLayer extends StatelessWidget {
           Widget? editorWidget;
 
           if (editedRel != null) {
-            final cached = dataController.relationEngine.cache[editedRel.id];
+            final cached = queryController.relationEngine.cache[editedRel.id];
             if (cached != null) {
               final labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
               final width = AppConfig.relation.editorMinWidth;
@@ -100,10 +100,10 @@ class RelationLayer extends StatelessWidget {
           }
 
           final paintDtos = _buildPaintDtos(
-            relations: dataController.relations.toList(),
+            relations: queryController.relations.toList(),
             nodeViewStates: uiController.viewStates,
             selectedEntities: uiController.selectedEntities,
-            relationEngine: dataController.relationEngine,
+            relationEngine: queryController.relationEngine,
             interactionState: interactionState,
             theme: theme,
           );

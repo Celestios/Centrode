@@ -6,7 +6,6 @@ import 'base_interaction_state.dart';
 import 'interaction_context.dart';
 import 'gesture_interceptor.dart';
 import '../models/models.dart';
-import '../models/port.dart';
 
 /// The Interaction Controller (FSM Engine)
 ///

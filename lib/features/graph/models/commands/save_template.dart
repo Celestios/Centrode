@@ -8,7 +8,7 @@ final Logger _log = Logger('SaveTemplateCommand');
 
 class SaveTemplateCommand extends GraphCommand {
   @override
-  final String targetId;
+  String targetId;
   final GraphApi api;
   final String name;
   final List<RecordStrings> nodeKeys;

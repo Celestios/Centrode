@@ -1,13 +1,13 @@
 import 'dart:ui';
 import 'package:mycelium/shared/logging.dart';
 import '../../models/models.dart';
-import '../graph_data_controller.dart';
+import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
 
 /// Text mutation operations for the graph.
 class GraphTextMutations {
   final Logger _log = Logger('GraphTextMutations');
-  final GraphDataController controller;
+  final CommandQueueProcessor controller;
 
   GraphTextMutations(this.controller);
 

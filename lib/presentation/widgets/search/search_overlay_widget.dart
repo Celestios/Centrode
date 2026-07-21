@@ -25,10 +25,10 @@ class SearchOverlayWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final dataController = context
+    final queryController = context
         .read<WorkspaceTabsController>()
         .activeSession
-        .dataController;
+        .queryController;
 
     return Positioned(
       width: 500,
@@ -152,11 +152,10 @@ class SearchOverlayWidget extends StatelessWidget {
                         if (item.type == SearchResultType.relation) {
                           final rel = item.relation;
                           final fromNode = rel != null
-                              ? dataController?.nodeLookup[rel
-                                    .fromNodeId]
+                              ? queryController?.nodeLookup[rel.fromNodeId]
                               : null;
                           final toNode = rel != null
-                              ? dataController?.nodeLookup[rel.toNodeId]
+                              ? queryController?.nodeLookup[rel.toNodeId]
                               : null;
                           final verbColor = getVerbColor(
                             item.relationVerb,

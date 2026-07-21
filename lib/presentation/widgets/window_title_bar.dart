@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'hover_scale_button.dart';
 import '../../features/graph/presentation/workspace_tabs_controller.dart';
-import '../../features/graph/store/graph_data_controller.dart';
+import '../../features/graph/store/command_queue_processor.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'search/search_command_palette.dart';
 
@@ -65,7 +65,7 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
     final theme = Theme.of(context);
     final tabsController = context.watch<WorkspaceTabsController>();
     final session = tabsController.activeSession;
-    final GraphDataController? dataController = session.dataController;
+    final CommandQueueProcessor? commandProcessor = session.commandProcessor;
 
     final menuButtonStyle = ButtonStyle(
       minimumSize: WidgetStateProperty.all(Size.zero),
@@ -150,8 +150,8 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
                                 ),
                                 MenuItemButton(
                                   onPressed: () {
-                                    if (dataController != null) {
-                                      dataController.flushSync();
+                                    if (commandProcessor != null) {
+                                      commandProcessor.flushSync();
                                     }
                                   },
                                   leadingIcon: const Icon(

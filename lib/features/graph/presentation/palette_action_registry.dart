@@ -62,11 +62,11 @@ class PaletteActionRegistry {
       icon: Icons.undo_rounded,
       onSelected: (context) {
         final session = context.read<WorkspaceTabsController>().activeSession;
-        session.dataController?.undo();
+        session.commandProcessor?.undo();
       },
       isEnabled: (context) {
         final session = context.read<WorkspaceTabsController>().activeSession;
-        return session.dataController?.canUndo == true;
+        return session.commandProcessor?.canUndo == true;
       },
     ),
     PaletteAction(
@@ -76,11 +76,11 @@ class PaletteActionRegistry {
       icon: Icons.redo_rounded,
       onSelected: (context) {
         final session = context.read<WorkspaceTabsController>().activeSession;
-        session.dataController?.redo();
+        session.commandProcessor?.redo();
       },
       isEnabled: (context) {
         final session = context.read<WorkspaceTabsController>().activeSession;
-        return session.dataController?.canRedo == true;
+        return session.commandProcessor?.canRedo == true;
       },
     ),
     PaletteAction(
@@ -90,16 +90,16 @@ class PaletteActionRegistry {
       icon: Icons.zoom_out_map_rounded,
       onSelected: (context) {
         final session = context.read<WorkspaceTabsController>().activeSession;
-        final dataController = session.dataController;
+        final queryController = session.queryController;
         final viewportController = session.viewportController;
-        if (viewportController != null && dataController != null) {
-          viewportController.focusOnBounds(dataController.canvasBounds);
+        if (viewportController != null && queryController != null) {
+          viewportController.focusOnBounds(queryController.canvasBounds);
         }
       },
       isEnabled: (context) {
         final session = context.read<WorkspaceTabsController>().activeSession;
         return session.viewportController != null &&
-            session.dataController != null;
+            session.queryController != null;
       },
     ),
   ];

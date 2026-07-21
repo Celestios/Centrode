@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../presentation/graph_presentation_notifier.dart';
+import '../../../store/command_queue_processor.dart';
 import '../../../presentation/viewport_state.dart';
 import '../../../models/models.dart';
 import '../../../../../src/rust/domain/nodes.dart';
@@ -49,11 +49,11 @@ class _TemplatesListViewState extends State<TemplatesListView> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.read<GraphPresentationNotifier>().controller;
+    final controller = context.read<CommandQueueProcessor>();
     final theme = Theme.of(context);
 
     return FutureBuilder<List<Template>>(
-      future: controller.getAllTemplates(),
+      future: controller.templateMutations.getAllTemplates(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           debugPrint('TEMPLATES ERROR: ${snapshot.error}');
@@ -247,7 +247,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                         .value
                                         .visibleRect
                                         .center;
-                                    await controller.instantiateTemplate(
+                                    await controller.templateMutations.instantiateTemplate(
                                       template.key,
                                       visibleCenter,
                                     );
@@ -276,7 +276,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                           template.name,
                                         );
                                     if (confirm == true) {
-                                      await controller.deleteTemplate(
+                                      await controller.templateMutations.deleteTemplate(
                                         template.key,
                                       );
                                     }

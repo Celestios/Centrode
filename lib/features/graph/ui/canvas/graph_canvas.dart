@@ -3,7 +3,8 @@ import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'package:mycelium/shared/logging.dart';
 import '../../engine/config.dart';
-import '../../store/graph_data_controller.dart';
+import '../../store/graph_data_query_controller.dart';
+import '../../store/command_queue_processor.dart';
 import '../../presentation/node_render_state.dart';
 import '../../presentation/viewport_state.dart';
 import '../../engine/interaction_engine.dart';
@@ -73,10 +74,11 @@ class _GraphCanvasState extends State<GraphCanvas>
   }
 
   void _initControllers() {
-    final dataController = context.read<GraphDataController>();
+    final queryController = context.read<GraphDataQueryController>();
+    final commandProcessor = context.read<CommandQueueProcessor>();
     final renderState = context.read<NodeRenderState>();
 
-    final vpController = ViewportController(dataController);
+    final vpController = ViewportController(queryController);
     _viewportController = vpController;
 
     final tabsController = context.read<WorkspaceTabsController>();
@@ -85,7 +87,8 @@ class _GraphCanvasState extends State<GraphCanvas>
     _boundSession?.toolModeNotifier.addListener(_onToolModeChanged);
 
     final environment = CanvasInteractionEnvironment(
-      dataController: dataController,
+      queryController: queryController,
+      commandProcessor: commandProcessor,
       renderState: renderState,
       viewportController: vpController,
       getScale: () =>
@@ -94,7 +97,7 @@ class _GraphCanvasState extends State<GraphCanvas>
       onSaveTemplate: (nodeIds, relationIds) async {
         final name = await showSaveTemplateDialog(context);
         if (name != null) {
-          await dataController.saveTemplateFromSelection(
+          await commandProcessor.templateMutations.saveTemplateFromSelection(
             name,
             nodeIds,
             relationIds,
@@ -121,17 +124,18 @@ class _GraphCanvasState extends State<GraphCanvas>
 
   void _onDataControllerChanged() {
     if (!mounted) return;
-    final dataController = context.read<GraphDataController>();
-    if (!dataController.isLoading &&
+    final queryController = context.read<GraphDataQueryController>();
+    if (!queryController.isLoading &&
         !_viewportRestoreAttempted &&
         _viewportController != null) {
       _viewportRestoreAttempted = true;
-      _viewportRestored = _restoreSavedViewport(dataController);
+      final commandProcessor = context.read<CommandQueueProcessor>();
+      _viewportRestored = _restoreSavedViewport(commandProcessor);
     }
   }
 
-  bool _restoreSavedViewport(GraphDataController dataController) {
-    final saved = dataController.getSavedViewportState();
+  bool _restoreSavedViewport(CommandQueueProcessor commandProcessor) {
+    final saved = commandProcessor.getSavedViewportState();
     if (saved != null && saved.zoomLevel > 0) {
       final targetMatrix = Matrix4.identity()
         ..translateByDouble(saved.xOffset, saved.yOffset, 0, 1)
@@ -175,7 +179,8 @@ class _GraphCanvasState extends State<GraphCanvas>
   @override
   Widget build(BuildContext context) {
     final renderState = context.watch<NodeRenderState>();
-    final dataController = context.read<GraphDataController>();
+    final commandProcessor = context.read<CommandQueueProcessor>();
+    final queryController = context.read<GraphDataQueryController>();
     final interactionController = _interactionController;
     final viewportController = _viewportController;
     final tabsController = context.watch<WorkspaceTabsController>();
@@ -226,7 +231,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                   inverse,
                   localOffset,
                 );
-                await dataController.instantiateTemplate(
+                await commandProcessor.templateMutations.instantiateTemplate(
                   details.data.key,
                   canvasOffset,
                 );
@@ -270,7 +275,8 @@ class _GraphCanvasState extends State<GraphCanvas>
                         CanvasContextMenu.show(
                           context: context,
                           position: _rightClickDownScreenPos!,
-                          dataController: dataController,
+                          queryController: queryController,
+                          commandProcessor: commandProcessor,
                           renderState: renderState,
                           copyBuffer: context.read<CopyBuffer>(),
                           viewportController: viewportController,
@@ -304,7 +310,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                           if (!_viewportRestored) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               viewportController.focusOnBounds(
-                                dataController.canvasBounds,
+                                queryController.canvasBounds,
                               );
                             });
                           } else {
@@ -431,7 +437,7 @@ class _GraphCanvasState extends State<GraphCanvas>
             child: CanvasOverlayLayout(
               constraints: constraints,
               renderState: renderState,
-              dataController: dataController,
+              queryController: queryController,
               interactionController: interactionController,
               viewportController: viewportController,
               session: session,

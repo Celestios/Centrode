@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/store/graph_data_controller.dart';
+import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
+import 'package:mycelium/features/graph/store/command_queue_processor.dart';
+import 'package:mycelium/features/graph/store/graph_api.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
-import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 
-class MockAppHandle extends Mock implements AppHandle {}
+class MockGraphApi extends Mock implements GraphApi {}
 
 class MockThemeController extends Mock implements ThemeController {
   @override
@@ -19,8 +20,9 @@ class MockThemeController extends Mock implements ThemeController {
 
 void main() {
   group('GraphNodeMutations', () {
-    late GraphDataController controller;
-    late MockAppHandle mockApi;
+    late CommandQueueProcessor controller;
+    late GraphDataQueryController queryController;
+    late MockGraphApi mockApi;
 
     setUpAll(() {
       registerFallbackValue(const Offset(0, 0));
@@ -48,7 +50,7 @@ void main() {
     });
 
     setUp(() {
-      mockApi = MockAppHandle();
+      mockApi = MockGraphApi();
 
       when(
         () => mockApi.createNode(input: any(named: 'input')),
@@ -60,7 +62,8 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      controller = GraphDataController(mockApi);
+      queryController = GraphDataQueryController(mockApi);
+      controller = CommandQueueProcessor(mockApi, queryController);
     });
 
     tearDown(() {
@@ -74,13 +77,13 @@ void main() {
       );
 
       // Verify node is in store
-      expect(controller.store.nodeLookup.containsKey(id), isTrue);
-      final node = controller.store.nodeLookup[id]!;
+      expect(queryController.nodeLookup.containsKey(id), isTrue);
+      final node = queryController.nodeLookup[id]!;
       expect(node.position, const Offset(100, 200));
       expect(node is InfoUiNode, isTrue);
 
       // Verify node is in spatial grid
-      final spatialNodes = controller.spatialGrid.queryRect(
+      final spatialNodes = queryController.spatialGrid.queryRect(
         const Rect.fromLTWH(50, 150, 100, 100),
       );
       expect(spatialNodes.contains(id), isTrue);
@@ -96,12 +99,12 @@ void main() {
         const Offset(50, 50),
       );
 
-      expect(controller.store.nodeLookup.containsKey(id), isTrue);
+      expect(queryController.nodeLookup.containsKey(id), isTrue);
 
       await controller.nodeMutations.deleteNode(id);
 
       // Should be removed optimistically
-      expect(controller.store.nodeLookup.containsKey(id), isFalse);
+      expect(queryController.nodeLookup.containsKey(id), isFalse);
 
       // Verify API was called
       await controller.syncEngine.processor.forceFlush();
@@ -118,7 +121,7 @@ void main() {
 
       controller.nodeMutations.updateNodePosition(id, const Offset(2000, 2000));
 
-      final node = controller.store.nodeLookup[id]!;
+      final node = queryController.nodeLookup[id]!;
       expect(node.position, const Offset(2000, 2000));
     });
   });

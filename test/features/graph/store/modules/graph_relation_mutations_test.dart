@@ -1,9 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/store/graph_data_controller.dart';
+import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
+import 'package:mycelium/features/graph/store/command_queue_processor.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
-import 'package:mycelium/src/rust/bridge/api.dart';
+import 'package:mycelium/features/graph/store/graph_api.dart';
+import 'package:mycelium/features/graph/models/commands/graph_command_context.dart';
 import 'package:mycelium/src/rust/domain/relations.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
@@ -11,7 +13,7 @@ import 'package:mycelium/src/rust/domain/snapshot.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 
-class MockAppHandle extends Mock implements AppHandle {}
+class MockGraphApi extends Mock implements GraphApi {}
 
 class MockThemeController extends Mock implements ThemeController {
   @override
@@ -64,8 +66,9 @@ void main() {
   });
 
   group('GraphRelationMutations', () {
-    late GraphDataController controller;
-    late MockAppHandle mockApi;
+    late CommandQueueProcessor controller;
+    late GraphDataQueryController queryController;
+    late MockGraphApi mockApi;
 
     setUpAll(() {
       registerFallbackValue(
@@ -85,7 +88,7 @@ void main() {
     });
 
     setUp(() {
-      mockApi = MockAppHandle();
+      mockApi = MockGraphApi();
 
       when(
         () => mockApi.createRelation(input: any(named: 'input')),
@@ -119,7 +122,8 @@ void main() {
         ),
       );
 
-      controller = GraphDataController(mockApi);
+      queryController = GraphDataQueryController(mockApi);
+      controller = CommandQueueProcessor(mockApi, queryController);
     });
 
     tearDown(() {
@@ -137,8 +141,8 @@ void main() {
         toSide: PortSide.left,
       );
 
-      expect(controller.relations.length, 1);
-      final rel = controller.relations.first;
+      expect(queryController.relations.length, 1);
+      final rel = queryController.relations.first;
       expect(rel.fromNodeId, node1);
       expect(rel.toNodeId, node2);
       expect(rel.layout?.fromSide, PortSide.right);
@@ -155,13 +159,13 @@ void main() {
       final node2 = controller.createNode(UiNodes.info, const Offset(100, 100));
 
       controller.createRelation(node1, node2);
-      expect(controller.relations.length, 1);
+      expect(queryController.relations.length, 1);
 
-      final relId = controller.relations.first.id;
+      final relId = queryController.relations.first.id;
 
       await controller.deleteRelation(relId);
 
-      expect(controller.relations.isEmpty, isTrue);
+      expect(queryController.relations.isEmpty, isTrue);
 
       await controller.syncEngine.processor.forceFlush();
       verify(
@@ -183,7 +187,7 @@ void main() {
         );
 
         controller.createRelation(node1, node2);
-        final relId = controller.relations.first.id;
+        final relId = queryController.relations.first.id;
 
         when(
           () => mockApi.applyEntityMutation(mutation: any(named: 'mutation')),
@@ -198,7 +202,7 @@ void main() {
           strategyType: 'bezier',
         );
 
-        final updated = controller.store.relationLookup[relId]!;
+        final updated = queryController.relationLookup[relId]!;
         expect(updated.fromNodeId, node1);
         expect(updated.toNodeId, node3);
         expect(updated.layout?.fromSide, PortSide.top);

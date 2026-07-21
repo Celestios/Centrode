@@ -2,13 +2,13 @@ import 'package:mycelium/shared/logging.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import '../../models/commands.dart';
 import '../../models/graph_relation.dart';
-import '../graph_data_controller.dart';
+import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
 
 /// Relation mutation operations for the graph.
 class GraphRelationMutations {
   final Logger _relLog = Logger('GraphRelationMutations');
-  final GraphDataController controller;
+  final CommandQueueProcessor controller;
 
   GraphRelationMutations(this.controller);
 
@@ -61,7 +61,7 @@ class GraphRelationMutations {
 
     final cmd = CreateRelationCommand(
       targetId: relation.id,
-      gateway: controller.relationGateway,
+      api: controller.syncEngine.api,
       relation: relation,
       controller: controller,
     );
@@ -87,7 +87,7 @@ class GraphRelationMutations {
     // Prepare Command for FFI with rollback
     final cmd = DeleteRelationCommand(
       targetId: id,
-      gateway: controller.relationGateway,
+      api: controller.syncEngine.api,
       tableName: 'IRelation',
       relation: relation,
       controller: controller,
@@ -150,7 +150,7 @@ class GraphRelationMutations {
     final cmd = UpdateRelationLayoutCommand(
       targetId: id,
       tableName: 'IRelation',
-      gateway: controller.relationGateway,
+      api: controller.syncEngine.api,
       oldLayout: oldRelation.layout,
       newLayout: updatedRelation.layout,
       oldStyle: oldRelation.style,
@@ -215,7 +215,7 @@ class GraphRelationMutations {
 
     final cmd = UpdateRelationsLayoutCommand(
       targetId: newLayouts.keys.first,
-      gateway: controller.relationGateway,
+      api: controller.syncEngine.api,
       oldLayouts: oldLayouts,
       newLayouts: newLayouts,
       oldStyles: oldStyles,

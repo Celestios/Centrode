@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../store/graph_data_controller.dart';
+import '../../store/graph_data_query_controller.dart';
 import '../../presentation/node_render_state.dart';
 import '../../presentation/viewport_state.dart';
 import '../../engine/interaction_engine.dart';
@@ -19,7 +19,7 @@ import 'package:mycelium/features/graph/ui/widgets/drawing_manager/global_drawin
 class CanvasOverlayLayout extends StatelessWidget {
   final BoxConstraints constraints;
   final NodeRenderState renderState;
-  final GraphDataController dataController;
+  final GraphDataQueryController queryController;
   final InteractionController interactionController;
   final ViewportController viewportController;
   final TabSession session;
@@ -29,7 +29,7 @@ class CanvasOverlayLayout extends StatelessWidget {
     super.key,
     required this.constraints,
     required this.renderState,
-    required this.dataController,
+    required this.queryController,
     required this.interactionController,
     required this.viewportController,
     required this.session,
@@ -175,7 +175,7 @@ class CanvasOverlayLayout extends StatelessWidget {
         if (renderState.selectedEntities.isNotEmpty)
           ContextToolbarOverlay(
             renderState: renderState,
-            dataController: dataController,
+            queryController: queryController,
             interactionContext: interactionController.environment,
             viewportController: viewportController,
             interactionController: interactionController,

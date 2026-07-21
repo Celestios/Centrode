@@ -4,14 +4,14 @@ import '../../models/models.dart';
 import '../../models/commands/create_tag.dart';
 import '../../models/commands/update_tag.dart';
 import '../../models/commands/delete_tag.dart';
-import '../graph_data_controller.dart';
+import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 
 /// Tag and comment mutation operations for the graph.
 class GraphTagMutations {
   final Logger _log = Logger('GraphTagMutations');
-  final GraphDataController controller;
+  final CommandQueueProcessor controller;
 
   GraphTagMutations(this.controller);
 
@@ -90,7 +90,7 @@ class GraphTagMutations {
       tag: tag,
       controller: controller,
     );
-    await controller.syncEngine.processor.queueCommand(cmd, immediate: true);
+    controller.syncEngine.processor.queueCommand(cmd, immediate: true);
   }
 
   Future<void> updateTag(Tag tag) async {
@@ -104,7 +104,7 @@ class GraphTagMutations {
       newTag: tag,
       controller: controller,
     );
-    await controller.syncEngine.processor.queueCommand(cmd, immediate: true);
+    controller.syncEngine.processor.queueCommand(cmd, immediate: true);
 
     for (final node in controller.store.nodeLookup.values) {
       if (node is InfoUiNode) {
@@ -142,7 +142,7 @@ class GraphTagMutations {
       tag: tag,
       controller: controller,
     );
-    await controller.syncEngine.processor.queueCommand(cmd, immediate: true);
+    controller.syncEngine.processor.queueCommand(cmd, immediate: true);
 
     for (final node in controller.store.nodeLookup.values) {
       if (node is InfoUiNode) {

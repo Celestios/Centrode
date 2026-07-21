@@ -2,19 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/store/graph_data_controller.dart';
+import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
+import 'package:mycelium/features/graph/store/command_queue_processor.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
 import 'package:mycelium/features/graph/presentation/style_manager.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
-import 'package:mycelium/src/rust/bridge/api.dart';
+import 'package:mycelium/features/graph/store/graph_api.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/src/rust/domain/snapshot.dart';
 
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 
-class MockAppHandle extends Mock implements AppHandle {}
+class MockGraphApi extends Mock implements GraphApi {}
 
 class MockThemeController extends Mock implements ThemeController {
   @override
@@ -24,11 +25,12 @@ class MockThemeController extends Mock implements ThemeController {
 
 void main() {
   group('GraphSyncEngine', () {
-    late GraphDataController controller;
-    late MockAppHandle mockApi;
+    late CommandQueueProcessor controller;
+    late GraphDataQueryController queryController;
+    late MockGraphApi mockApi;
 
     setUp(() {
-      mockApi = MockAppHandle();
+      mockApi = MockGraphApi();
 
       when(
         () => mockApi.createGraphStream(),
@@ -50,7 +52,8 @@ void main() {
         ),
       );
 
-      controller = GraphDataController(mockApi);
+      queryController = GraphDataQueryController(mockApi);
+      controller = CommandQueueProcessor(mockApi, queryController);
     });
 
     tearDown(() {
@@ -86,7 +89,7 @@ void main() {
 
     test('loadGraph hydrates node formatting and layout size', () async {
       // Configure style, resolver, and size calculator on controller
-      final styleManager = StyleManager(controller.store);
+      final styleManager = StyleManager(queryController.store);
       styleManager.setTheme(const GraphTheme(id: 'test', name: 'test'));
       controller.sizeCalculator = NodeLayoutStrategy.calculateSize;
       controller.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
@@ -147,7 +150,7 @@ void main() {
       await controller.loadGraph();
 
       // Verify node loaded
-      final loadedNode = controller.store.nodeLookup['node_1'];
+      final loadedNode = queryController.nodeLookup['node_1'];
       expect(loadedNode, isNotNull);
 
       // Verify content blocks are hydrated (markdown parsed)

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../store/graph_data_controller.dart';
+import '../../store/graph_data_query_controller.dart';
+import '../../store/command_queue_processor.dart';
 import '../../presentation/node_render_state.dart';
 import 'package:mycelium/shared/copy_buffer.dart';
 import 'paste_handler.dart';
@@ -29,52 +30,53 @@ class _CanvasKeyboardHandlerState extends State<CanvasKeyboardHandler> {
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
-    final dataController = context.read<GraphDataController>();
+    final queryController = context.read<GraphDataQueryController>();
+    final commandProcessor = context.read<CommandQueueProcessor>();
     final renderState = context.read<NodeRenderState>();
 
     if (event.logicalKey == LogicalKeyboardKey.keyC &&
         HardwareKeyboard.instance.isControlPressed) {
-      _handleCopy(dataController, renderState);
+      _handleCopy(queryController, renderState);
       return KeyEventResult.handled;
     }
     if (event.logicalKey == LogicalKeyboardKey.keyX &&
         HardwareKeyboard.instance.isControlPressed) {
-      _handleCut(dataController, renderState);
+      _handleCut(queryController, renderState);
       return KeyEventResult.handled;
     }
     if (event.logicalKey == LogicalKeyboardKey.keyV &&
         HardwareKeyboard.instance.isControlPressed) {
-      _handlePaste(dataController, renderState);
+      _handlePaste(commandProcessor, renderState);
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
   }
 
   void _handleCopy(
-    GraphDataController dataController,
+    GraphDataQueryController queryController,
     NodeRenderState renderState,
   ) {
     final selectedIds = renderState.selectedEntities.toList();
     if (selectedIds.isEmpty) return;
 
     final copyBuffer = context.read<CopyBuffer>();
-    copyBuffer.copy(selectedIds, dataController);
+    copyBuffer.copy(selectedIds, queryController);
   }
 
   void _handleCut(
-    GraphDataController dataController,
+    GraphDataQueryController queryController,
     NodeRenderState renderState,
   ) {
     final selectedIds = renderState.selectedEntities.toList();
     if (selectedIds.isEmpty) return;
 
     final copyBuffer = context.read<CopyBuffer>();
-    copyBuffer.copy(selectedIds, dataController);
+    copyBuffer.copy(selectedIds, queryController);
     renderState.deleteSelectedEntities();
   }
 
   Future<void> _handlePaste(
-    GraphDataController dataController,
+    CommandQueueProcessor commandProcessor,
     NodeRenderState renderState,
   ) async {
     if (renderState.activeEditId != null) return;
@@ -95,7 +97,7 @@ class _CanvasKeyboardHandlerState extends State<CanvasKeyboardHandler> {
 
     final copyBuffer = context.read<CopyBuffer>();
     if (copyBuffer.hasData) {
-      final newIds = await copyBuffer.paste(canvasPos, dataController);
+      final newIds = await copyBuffer.paste(canvasPos, commandProcessor);
       if (newIds.isNotEmpty) {
         renderState.selectEntities(newIds);
       }
@@ -105,7 +107,7 @@ class _CanvasKeyboardHandlerState extends State<CanvasKeyboardHandler> {
     final data = await Clipboard.getData('text/plain');
     if (data?.text != null && data!.text!.isNotEmpty) {
       await pasteTextToCanvas(
-        dataController: dataController,
+        dataController: commandProcessor,
         text: data.text!,
         canvasPosition: canvasPos,
       );

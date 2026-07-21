@@ -4,7 +4,7 @@ import 'package:mycelium/src/rust/domain/styles.dart';
 import '../../models/content_builder.dart';
 import '../../models/graph_node.dart';
 import '../../models/graph_relation.dart';
-import '../../store/graph_data_controller.dart';
+import '../../store/command_queue_processor.dart';
 import 'package:mycelium/src/rust/domain/contents.dart';
 import 'package:mycelium/features/graph/presentation/relation_utils.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
@@ -92,7 +92,7 @@ String _blockText(ContentBlock block) {
 }
 
 Future<void> pasteTextToCanvas({
-  required GraphDataController dataController,
+  required CommandQueueProcessor dataController,
   required String text,
   required Offset canvasPosition,
 }) async {
@@ -119,7 +119,7 @@ Future<void> pasteTextToCanvas({
 }
 
 void _createSingleNode(
-  GraphDataController dataController,
+  CommandQueueProcessor dataController,
   Content content,
   Offset position,
 ) {
@@ -128,7 +128,7 @@ void _createSingleNode(
 }
 
 Future<void> _createTreeNodes(
-  GraphDataController dataController,
+  CommandQueueProcessor dataController,
   List<_TreeNode> roots,
   Offset position,
 ) async {

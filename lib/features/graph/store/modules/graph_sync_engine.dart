@@ -5,6 +5,7 @@ import '../../models/models.dart';
 import '../../../../src/rust/bridge/stream.dart';
 import '../../../../src/rust/domain/base_models.dart'
     show BoundingBox, MapData, ViewportState;
+import '../command_queue_processor.dart';
 import '../command_processor.dart';
 import '../graph_data_query.dart';
 import '../graph_api.dart';
@@ -13,7 +14,7 @@ import '../graph_api.dart';
 class GraphSyncEngine {
   final Logger _syncLog = Logger('GraphSyncEngine');
 
-  final GraphDataController controller;
+  final CommandQueueProcessor controller;
   final GraphApi api;
   final CommandProcessor processor;
   MapData? _lastLoadedMetadata;
@@ -114,6 +115,7 @@ class GraphSyncEngine {
           maxX: field0.maxX,
           maxY: field0.maxY,
         );
+        controller.queryController.canvasBounds = canvasBounds;
         controller.publishUpdate(
           GraphEntityUpdate(
             id: '',

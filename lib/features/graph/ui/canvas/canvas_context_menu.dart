@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mycelium/features/graph/store/graph_data_controller.dart';
+import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
+import 'package:mycelium/features/graph/store/command_queue_processor.dart';
 import 'package:mycelium/features/graph/presentation/node_render_state.dart';
 import 'package:mycelium/features/graph/presentation/viewport_state.dart';
 import 'package:mycelium/shared/copy_buffer.dart';
@@ -20,7 +21,8 @@ class CanvasContextMenu {
   static void show({
     required BuildContext context,
     required Offset position,
-    required GraphDataController dataController,
+    required GraphDataQueryController queryController,
+    required CommandQueueProcessor commandProcessor,
     required NodeRenderState renderState,
     required CopyBuffer copyBuffer,
     required ViewportController viewportController,
@@ -36,7 +38,7 @@ class CanvasContextMenu {
           onTap: () {
             final selectedIds = renderState.selectedEntities.toList();
             if (selectedIds.isNotEmpty) {
-              copyBuffer.copy(selectedIds, dataController);
+              copyBuffer.copy(selectedIds, queryController);
             }
           },
         ),
@@ -45,7 +47,7 @@ class CanvasContextMenu {
           onTap: () {
             final selectedIds = renderState.selectedEntities.toList();
             if (selectedIds.isNotEmpty) {
-              copyBuffer.copy(selectedIds, dataController);
+              copyBuffer.copy(selectedIds, queryController);
               renderState.deleteSelectedEntities();
             }
           },
@@ -62,7 +64,7 @@ class CanvasContextMenu {
                       Matrix4.inverted(transform),
                       position,
                     );
-              final newIds = await copyBuffer.paste(canvasPos, dataController);
+              final newIds = await copyBuffer.paste(canvasPos, commandProcessor);
               if (newIds.isNotEmpty) {
                 renderState.selectEntities(newIds);
               }
@@ -78,7 +80,7 @@ class CanvasContextMenu {
                         position,
                       );
                 await pasteTextToCanvas(
-                  dataController: dataController,
+                  dataController: commandProcessor,
                   text: data.text!,
                   canvasPosition: canvasPos,
                 );

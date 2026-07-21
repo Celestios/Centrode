@@ -1,5 +1,5 @@
 import '../../models/models.dart';
-import '../graph_data_controller.dart';
+import '../command_queue_processor.dart';
 import 'graph_text_mutations.dart';
 import 'graph_style_mutations.dart';
 import 'graph_tag_mutations.dart';
@@ -8,7 +8,7 @@ import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 /// Property mutation operations for the graph.
 /// Facade that delegates to focused mutation modules.
 class GraphPropertyMutations {
-  final GraphDataController controller;
+  final CommandQueueProcessor controller;
   late final GraphTextMutations text;
   late final GraphStyleMutations style;
   late final GraphTagMutations tags;

@@ -8,7 +8,7 @@ final Logger _log = Logger('CreateTagCommand');
 
 class CreateTagCommand extends GraphCommand {
   @override
-  final String targetId;
+  String targetId;
   final GraphApi api;
   final Tag tag;
   final GraphCommandContext controller;

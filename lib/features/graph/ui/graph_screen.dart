@@ -2,20 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mycelium/shared/logging.dart';
 import '../../../../presentation/widgets/window_title_bar.dart';
-import '../../../../presentation/theme/app_theme_manager.dart';
-import '../presentation/theme_manager.dart';
-import '../store/graph_data_controller.dart';
-import '../presentation/graph_presentation_notifier.dart';
+import '../store/graph_data_query_controller.dart';
+import '../store/command_queue_processor.dart';
 import '../presentation/node_render_state.dart';
 import '../presentation/workspace_tabs_controller.dart';
+import '../presentation/theme_manager.dart';
 import '../store/graph_data_query.dart';
 import 'canvas/graph_canvas.dart';
 import 'widgets/init_error_widget.dart';
 import 'package:mycelium/shared/copy_buffer.dart';
+import 'package:mycelium/presentation/theme/app_theme_manager.dart';
 
 class GraphScreen extends StatefulWidget {
   final String storagePath;
-  const GraphScreen({super.key, required this.storagePath});
+  final WorkspaceTabsController? tabsController;
+  const GraphScreen({super.key, required this.storagePath, this.tabsController});
 
   @override
   State<GraphScreen> createState() => _GraphScreenState();
@@ -30,7 +31,7 @@ class _GraphScreenState extends State<GraphScreen> {
   @override
   void initState() {
     super.initState();
-    _tabsController = WorkspaceTabsController(
+    _tabsController = widget.tabsController ?? WorkspaceTabsController(
       initialPath: widget.storagePath,
       initialName: 'Default Map',
     );
@@ -176,11 +177,11 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
         ChangeNotifierProvider<ThemeController>.value(
           value: widget.session.themeController!,
         ),
-        Provider<GraphDataController>.value(
-          value: widget.session.dataController!,
+        Provider<GraphDataQueryController>.value(
+          value: widget.session.queryController!,
         ),
-        Provider<GraphPresentationNotifier>.value(
-          value: widget.session.presentationNotifier!,
+        Provider<CommandQueueProcessor>.value(
+          value: widget.session.commandProcessor!,
         ),
         InheritedProvider<GraphDataQuery>.value(
           value: widget.session.nodeRenderState!,
