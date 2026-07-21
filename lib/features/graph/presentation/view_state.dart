@@ -7,8 +7,8 @@ import 'package:mycelium/features/graph/models/port.dart';
 import 'package:mycelium/features/graph/presentation/node_ports.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
-import 'package:mycelium/features/graph/engine/config.dart';
 import 'package:mycelium/features/graph/engine/volatile_node_state.dart';
+import 'package:mycelium/features/graph/presentation/view_state_geometry.dart';
 
 class NodeViewState implements VolatileNodeState {
   final String nodeId;
@@ -228,46 +228,29 @@ class NodeViewState implements VolatileNodeState {
   }
 
   Rect get rightResizeHitbox {
-    if (_cachedRightResizeHitbox != null) return _cachedRightResizeHitbox!;
-    final w = dragWidthNotifier.value ?? sizeNotifier.value.width;
-    final r = positionNotifier.value.dx + w;
-    _cachedRightResizeHitbox = Rect.fromLTRB(
-      r - AppConfig.interaction.resizeEdgeWidth,
-      rect.top + 24.0,
-      r,
-      rect.bottom,
+    return _cachedRightResizeHitbox ??= NodeHitboxCalculator.rightResizeHitbox(
+      positionNotifier.value,
+      sizeNotifier.value,
+      dragWidthNotifier.value,
     );
-    return _cachedRightResizeHitbox!;
   }
 
   Rect get leftResizeHitbox {
-    if (_cachedLeftResizeHitbox != null) return _cachedLeftResizeHitbox!;
-    final l = positionNotifier.value.dx;
-    _cachedLeftResizeHitbox = Rect.fromLTRB(
-      l,
-      rect.top,
-      l + AppConfig.interaction.resizeEdgeWidth,
-      rect.bottom,
+    return _cachedLeftResizeHitbox ??= NodeHitboxCalculator.leftResizeHitbox(
+      positionNotifier.value,
+      sizeNotifier.value,
     );
-    return _cachedLeftResizeHitbox!;
   }
 
   Rect getExpandToggleHitbox(UiNode node) {
-    if (_cachedExpandToggleHitbox != null) return _cachedExpandToggleHitbox!;
-    final style = node.resolvedStyle ?? node.style ?? NodeStyleStrategy.fallbackStyle();
-    final fontScale = style.fontSize / 14.0;
-    final toggleSpace = NodeStyleStrategy.expandToggleSpace(isExpandedNotifier.value, fontScale);
-    final taskBadgeHeight = node is TaskUiNode ? NodeStyleStrategy.taskBadgeHeight(fontScale) : 0.0;
-
-    final bottomOffset = style.padding + taskBadgeHeight;
-    _cachedExpandToggleHitbox = Rect.fromLTRB(
-      rect.left,
-      rect.bottom - bottomOffset - toggleSpace,
-      rect.right,
-      rect.bottom - bottomOffset,
+    return _cachedExpandToggleHitbox ??= NodeHitboxCalculator.expandToggleHitbox(
+      positionNotifier.value,
+      sizeNotifier.value,
+      node,
+      isExpandedNotifier.value,
     );
-    return _cachedExpandToggleHitbox!;
   }
+
 
   void updatePosition(Offset delta) {
     positionNotifier.value += delta;

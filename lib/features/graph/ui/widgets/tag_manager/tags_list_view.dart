@@ -309,6 +309,16 @@ class _TagsListViewState extends State<TagsListView> {
               .toList();
         }
 
+        // Pre-compute tag usage counts in O(num_nodes) single pass
+        final Map<String, int> usageCounts = {};
+        for (final node in queryController.nodeLookup.values) {
+          if (node is InfoUiNode) {
+            for (final tag in node.tags) {
+              usageCounts[tag.key] = (usageCounts[tag.key] ?? 0) + 1;
+            }
+          }
+        }
+
         // Apply sorting option
         filteredTags.sort((a, b) {
           switch (_sortOption) {
@@ -321,15 +331,9 @@ class _TagsListViewState extends State<TagsListView> {
                 a.fields.name.toLowerCase(),
               );
             case TagSortOption.usageDesc:
-              return _getTagUsageCount(
-                b.key,
-                queryController,
-              ).compareTo(_getTagUsageCount(a.key, queryController));
+              return (usageCounts[b.key] ?? 0).compareTo(usageCounts[a.key] ?? 0);
             case TagSortOption.usageAsc:
-              return _getTagUsageCount(
-                a.key,
-                queryController,
-              ).compareTo(_getTagUsageCount(b.key, queryController));
+              return (usageCounts[a.key] ?? 0).compareTo(usageCounts[b.key] ?? 0);
           }
         });
 

@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
-use crate::domain::relation_engine::geometry::{Point, Rect};
+use crate::domain::relation_engine::geometry::Point;
 use crate::domain::relation_engine::types::{InputNode, InputEdge};
-use crate::domain::relation_engine::config::{RelationEngineConfig, RoutingConfig, RoutingMode, BundlingMode};
+use crate::domain::relation_engine::config::{RelationEngineConfig, RoutingConfig, RoutingMode};
 use crate::domain::relation_engine::computed::{ComputedRelation, PathType};
 use crate::domain::relation_engine::state::{CanvasState, RelationCache};
 use crate::domain::relation_engine::path_finder::steer::{AStarContext, CostGrid};
@@ -9,15 +9,17 @@ use crate::domain::relation_engine::path_finder::grid::Grid;
 use crate::domain::relation_engine::path_finder::orthogonal::OrthogonalSteer;
 use crate::domain::relation_engine::path_finder::bspline::BSplineSteer;
 use crate::domain::relation_engine::path_finder::octilinear::OctilinearSteer;
-use crate::domain::relation_engine::path_finder::core::a_star;
 use crate::domain::relation_engine::path_finder::port::{resolve_ports_full, compute_extension};
-use crate::domain::relation_engine::shaper::core::{Shaper, ShaperContext};
+use crate::domain::relation_engine::shaper::core::ShaperContext;
 use crate::domain::relation_engine::shaper::straight::StraightShaper;
 use crate::domain::relation_engine::shaper::bezier::BezierShaper;
 use crate::domain::relation_engine::shaper::orthogonal::OrthogonalShaper;
 use crate::domain::relation_engine::shaper::bspline::BSplineShaper;
 use crate::domain::relation_engine::shaper::octilinear::OctilinearShaper;
 use crate::domain::relation_engine::shaper::sinewave::SineWaveShaper;
+use crate::domain::relation_engine::strategy::RoutingStrategy;
+
+
 
 pub struct RelationEngine {
     pub state: CanvasState,
@@ -251,13 +253,11 @@ pub fn compute_single_relation(
     obstacles: &[InputNode],
     config: &RelationEngineConfig,
 ) -> ComputedRelation {
-    let from_node = match node_map.get(&edge.from_node_id) {
-        Some(n) => n,
-        None => return ComputedRelation::new_basic(edge.id.clone(), vec![Point::new(0.0, 0.0), Point::new(0.0, 0.0)], PathType::Straight),
+    let Some(from_node) = node_map.get(&edge.from_node_id) else {
+        return ComputedRelation::new_basic(edge.id.clone(), vec![Point::new(0.0, 0.0), Point::new(0.0, 0.0)], PathType::Straight);
     };
-    let to_node = match node_map.get(&edge.to_node_id) {
-        Some(n) => n,
-        None => return ComputedRelation::new_basic(edge.id.clone(), vec![Point::new(0.0, 0.0), Point::new(0.0, 0.0)], PathType::Straight),
+    let Some(to_node) = node_map.get(&edge.to_node_id) else {
+        return ComputedRelation::new_basic(edge.id.clone(), vec![Point::new(0.0, 0.0), Point::new(0.0, 0.0)], PathType::Straight);
     };
 
     let mode = edge.routing_mode.clone().unwrap_or(config.routing.routing_mode.clone());
@@ -268,60 +268,30 @@ pub fn compute_single_relation(
         compute_extension(to_node, config.routing.extension_min, config.routing.extension_scale),
     );
 
-    let resolved = match resolve_ports_full(edge, node_map, &mode, start_ext, end_ext) {
-        Some(r) => r,
-        None => return ComputedRelation::new_basic(edge.id.clone(), vec![Point::new(0.0, 0.0), Point::new(0.0, 0.0)], PathType::Straight),
+    let Some(resolved) = resolve_ports_full(edge, node_map, &mode, start_ext, end_ext) else {
+        return ComputedRelation::new_basic(edge.id.clone(), vec![Point::new(0.0, 0.0), Point::new(0.0, 0.0)], PathType::Straight);
     };
 
-    let raw_path = match mode {
-        RoutingMode::Polyline | RoutingMode::Bezier { .. } | RoutingMode::SineWave { .. } => {
-            vec![resolved.start, resolved.end]
-        }
-        RoutingMode::Orthogonal | RoutingMode::BSpline | RoutingMode::Octilinear => {
-            let grid = build_grid(obstacles, &config.routing, resolved.start_exit, resolved.end_exit);
-            let cost_grid = CostGrid::new(&grid, obstacles, config.routing.outer_bbox_distance());
-            let context = AStarContext {
-                grid: &grid,
-                nodes: obstacles,
-                start_node_id: &edge.from_node_id,
-                end_node_id: &edge.to_node_id,
-                start_pt: resolved.start,
-                start_terminus: resolved.start_exit,
-                start_dir: resolved.start_normal.map(|n| (n.x.round() as i32, n.y.round() as i32)),
-                use_start_penalty: true,
-                start_stub_len: start_ext,
-                end_pt: resolved.end,
-                end_terminus: resolved.end_exit,
-                end_dir: resolved.end_normal.map(|n| (n.x.round() as i32, n.y.round() as i32)),
-                use_end_penalty: true,
-                end_stub_len: end_ext,
-                outer_bbox_distance: config.routing.outer_bbox_distance(),
-                port_penalty: config.routing.port_penalty(),
-                cost_grid: &cost_grid,
-            };
-
-            let path_opt = match mode {
-                RoutingMode::Orthogonal => {
-                    let steer = OrthogonalSteer::new();
-                    a_star(&steer, &context)
-                }
-                RoutingMode::BSpline => {
-                    let steer = BSplineSteer::new();
-                    a_star(&steer, &context)
-                }
-                RoutingMode::Octilinear => {
-                    let steer = OctilinearSteer::new();
-                    a_star(&steer, &context)
-                }
-                _ => unreachable!(),
-            };
-
-            is_fallback = path_opt.is_none();
-            match path_opt {
-                Some(p) => p,
-                None => vec![resolved.start_exit, resolved.end_exit],
-            }
-        }
+    let grid = build_grid(obstacles, &config.routing, resolved.start_exit, resolved.end_exit);
+    let cost_grid = CostGrid::new(&grid, obstacles, config.routing.outer_bbox_distance());
+    let context = AStarContext {
+        grid: &grid,
+        nodes: obstacles,
+        start_node_id: &edge.from_node_id,
+        end_node_id: &edge.to_node_id,
+        start_pt: resolved.start,
+        start_terminus: resolved.start_exit,
+        start_dir: resolved.start_normal.map(|n| (n.x.round() as i32, n.y.round() as i32)),
+        use_start_penalty: true,
+        start_stub_len: start_ext,
+        end_pt: resolved.end,
+        end_terminus: resolved.end_exit,
+        end_dir: resolved.end_normal.map(|n| (n.x.round() as i32, n.y.round() as i32)),
+        use_end_penalty: true,
+        end_stub_len: end_ext,
+        outer_bbox_distance: config.routing.outer_bbox_distance(),
+        port_penalty: config.routing.port_penalty(),
+        cost_grid: &cost_grid,
     };
 
     let start_normal = resolved.start_normal.unwrap_or(Point::new(1.0, 0.0));
@@ -351,36 +321,34 @@ pub fn compute_single_relation(
         cell_size: config.routing.cell_size(),
     };
 
-    let mut result = match mode {
+    let (mut result, _is_fallback) = match mode {
         RoutingMode::Polyline => {
-            let shaper = StraightShaper::new(config.routing.straight_config());
-            shaper.shape(&raw_path, &shaper_ctx)
+            RoutingStrategy::direct(StraightShaper::new(config.routing.straight_config()))
+                .execute(&context, &shaper_ctx)
         }
         RoutingMode::Orthogonal => {
-            let shaper = OrthogonalShaper::new(config.routing.clone());
-            shaper.shape(&raw_path, &shaper_ctx)
+            RoutingStrategy::with_steer(OrthogonalSteer::new(), OrthogonalShaper::new(config.routing.clone()))
+                .execute(&context, &shaper_ctx)
         }
         RoutingMode::BSpline => {
-            let shaper = BSplineShaper::new(config.routing.clone());
-            shaper.shape(&raw_path, &shaper_ctx)
+            RoutingStrategy::with_steer(BSplineSteer::new(), BSplineShaper::new(config.routing.clone()))
+                .execute(&context, &shaper_ctx)
         }
         RoutingMode::Octilinear => {
-            let shaper = OctilinearShaper::new(config.routing.clone());
-            shaper.shape(&raw_path, &shaper_ctx)
+            RoutingStrategy::with_steer(OctilinearSteer::new(), OctilinearShaper::new(config.routing.clone()))
+                .execute(&context, &shaper_ctx)
         }
         RoutingMode::Bezier { .. } => {
-            let shaper = BezierShaper::new(config.routing.bezier_config());
-            shaper.shape(&raw_path, &shaper_ctx)
+            RoutingStrategy::direct(BezierShaper::new(config.routing.bezier_config()))
+                .execute(&context, &shaper_ctx)
         }
         RoutingMode::SineWave { .. } => {
-            let shaper = SineWaveShaper::new(20.0, 3.0, 100);
-            shaper.shape(&raw_path, &shaper_ctx)
+            RoutingStrategy::direct(SineWaveShaper::new(20.0, 3.0, 100))
+                .execute(&context, &shaper_ctx)
         }
     };
 
-    if is_fallback {
-        result.path_type = PathType::Straight;
-    }
     result.id = edge.id.clone();
     result
 }
+

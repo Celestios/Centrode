@@ -96,6 +96,7 @@ async fn test_tags_crud_and_patching() {
             TagEdge::Pointer(p) => {
                 panic!("Expected tag to be hydrated but got pointer: {:?}", p);
             }
+            _ => panic!("Unexpected non-exhaustive TagEdge variant"),
         }
     } else {
         panic!("Incorrect node type");

@@ -1,4 +1,5 @@
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub enum RoutingMode {
     Polyline,
     BSpline,
@@ -148,6 +149,7 @@ impl NudgingConfig {
 
 
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub enum BundlingMode {
     Proximity,
     SharedEndpoint,
@@ -170,6 +172,7 @@ impl Default for BundlingConfig {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub enum BodyType {
     Uniform,
     Taper,
@@ -199,6 +202,7 @@ impl Default for BodyConfig {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub enum EndpointShapeType {
     None,
     Arrow,

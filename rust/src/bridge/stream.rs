@@ -1,7 +1,7 @@
 use crate::domain::base_models::BoundingBox;
 use crate::domain::nodes::Nodes;
 use flutter_rust_bridge::frb;
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
 use tokio::sync::broadcast;
 use tracing::debug;
 
@@ -17,13 +17,11 @@ pub enum GraphEvent {
     BoundaryUpdated(BoundingBox),
 }
 
-lazy_static! {
-    // Global broadcast channel for graph events (capacity of 100 messages)
-    static ref GRAPH_STREAM: broadcast::Sender<GraphEvent> = {
-        let (tx, _rx) = broadcast::channel(100);
-        tx
-    };
-}
+// Global broadcast channel for graph events (capacity of 100 messages)
+static GRAPH_STREAM: LazyLock<broadcast::Sender<GraphEvent>> = LazyLock::new(|| {
+    let (tx, _rx) = broadcast::channel(100);
+    tx
+});
 
 /// Publishes an event to the Flutter UI asynchronously
 pub fn publish_event(event: GraphEvent) {

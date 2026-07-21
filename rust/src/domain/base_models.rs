@@ -129,6 +129,15 @@ pub trait IsTable {
     }
 }
 
+impl<T: IsTable> From<&T> for RecordStrings {
+    fn from(table: &T) -> Self {
+        RecordStrings {
+            table: T::LABEL.to_string(),
+            key: table.get_key().to_string(),
+        }
+    }
+}
+
 define_surql_schema_struct! {
     #[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
     pub struct Comment {
@@ -173,6 +182,7 @@ impl Default for ViewportState {
 }
 
 #[derive(Debug, Clone, SurrealValue, Default)]
+#[non_exhaustive]
 pub enum DisplayMode {
     #[default]
     Importance,

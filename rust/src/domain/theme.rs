@@ -16,6 +16,7 @@ impl IsTable for Theme {
 }
 
 #[derive(Debug, Clone, SurrealValue)]
+#[non_exhaustive]
 pub enum ThemeBrightness {
     Light,
     Dark,

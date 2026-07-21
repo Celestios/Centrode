@@ -102,27 +102,27 @@ impl NodeFfi {
         key: String,
     ) -> anyhow::Result<()> {
         debug!("Deleting node: {}/{}", table, key);
-        if let Some(node) = self.repo.get_node(table.clone(), key.clone()).await? {
-            let connected_relations = self.repo.get_connected_relations(&key).await?;
+        let Some(node) = self.repo.get_node(table.clone(), key.clone()).await? else {
+            return Err(anyhow::anyhow!("Node not found for deletion"));
+        };
 
-            self.repo.delete_node(table.clone(), key.clone()).await?;
+        let connected_relations = self.repo.get_connected_relations(&key).await?;
 
-            self.repo
-                .record_patch_history(
-                    RecordStrings {
-                        table: table.clone(),
-                        key: key.clone(),
-                    },
-                    EntityPatch::DeleteNode(node.clone(), connected_relations.clone()),
-                    EntityPatch::CreateNode(node, connected_relations),
-                )
-                .await?;
+        self.repo.delete_node(table.clone(), key.clone()).await?;
 
-            Self::broadcast_boundaries(&self.repo).await;
-            Ok(())
-        } else {
-            Err(anyhow::anyhow!("Node not found for deletion"))
-        }
+        self.repo
+            .record_patch_history(
+                RecordStrings {
+                    table: table.clone(),
+                    key: key.clone(),
+                },
+                EntityPatch::DeleteNode(node.clone(), connected_relations.clone()),
+                EntityPatch::CreateNode(node, connected_relations),
+            )
+            .await?;
+
+        Self::broadcast_boundaries(&self.repo).await;
+        Ok(())
     }
 
     pub fn update_node_cache_positions(

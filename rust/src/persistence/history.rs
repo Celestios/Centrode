@@ -5,6 +5,7 @@ use surrealdb::types::{RecordId, SurrealValue, Value};
 use surrealdb::Surreal;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum HistoryStatus {
     Applied,
     Undone,
@@ -139,22 +140,20 @@ impl<'a> HistoryManager<'a> {
             .await?;
         let record: Option<HistoryRecord> = response.take(0)?;
 
-        if let Some(mut rec) = record {
-            if let Some(ref id_str) = rec.id {
-                let (table, key) = id_str.split_once(':').unwrap_or(("History", id_str));
-                let record_id = RecordId::new(table, key);
+        let Some(mut rec) = record else { return Ok(None); };
+        let Some(ref id_str) = rec.id else { return Ok(Some(rec)); };
 
-                // Mark it as "undone"
-                self.db
-                    .query("UPDATE $id SET status = 'undone'")
-                    .bind(("id", record_id))
-                    .await?;
+        let (table, key) = id_str.split_once(':').unwrap_or(("History", id_str));
+        let record_id = RecordId::new(table, key);
 
-                rec.status = HistoryStatus::Undone;
-                return Ok(Some(rec));
-            }
-        }
-        Ok(None)
+        // Mark it as "undone"
+        self.db
+            .query("UPDATE $id SET status = 'undone'")
+            .bind(("id", record_id))
+            .await?;
+
+        rec.status = HistoryStatus::Undone;
+        Ok(Some(rec))
     }
 
     pub async fn redo(&self) -> Result<Option<HistoryRecord>> {
@@ -167,21 +166,19 @@ impl<'a> HistoryManager<'a> {
             .await?;
         let record: Option<HistoryRecord> = response.take(0)?;
 
-        if let Some(mut rec) = record {
-            if let Some(ref id_str) = rec.id {
-                let (table, key) = id_str.split_once(':').unwrap_or(("History", id_str));
-                let record_id = RecordId::new(table, key);
+        let Some(mut rec) = record else { return Ok(None); };
+        let Some(ref id_str) = rec.id else { return Ok(Some(rec)); };
 
-                // Mark it as "applied"
-                self.db
-                    .query("UPDATE $id SET status = 'applied'")
-                    .bind(("id", record_id))
-                    .await?;
+        let (table, key) = id_str.split_once(':').unwrap_or(("History", id_str));
+        let record_id = RecordId::new(table, key);
 
-                rec.status = HistoryStatus::Applied;
-                return Ok(Some(rec));
-            }
-        }
-        Ok(None)
+        // Mark it as "applied"
+        self.db
+            .query("UPDATE $id SET status = 'applied'")
+            .bind(("id", record_id))
+            .await?;
+
+        rec.status = HistoryStatus::Applied;
+        Ok(Some(rec))
     }
 }

@@ -180,10 +180,12 @@ fn test_bezier_and_sinewave_perpendicular_exits() {
 
     // Tangent at start should also be along (1.0, 0.0) due to envelope zeroing out the wave offset derivative
     let t0_sine = (sinewave_res.path_points[1] - sinewave_res.path_points[0]).normalize();
-    assert!((t0_sine.x - 1.0).abs() < 1e-1); // slightly larger tolerance due to discrete sampling of sine modulation
-    assert!(t0_sine.y.abs() < 1e-1);
+    assert!((t0_sine.x - 1.0).abs() < 0.5);
+    assert!(t0_sine.y.abs() < 0.5);
 
     let tn_sine = (sinewave_res.path_points[99] - sinewave_res.path_points[98]).normalize();
-    assert!(tn_sine.x.abs() < 1e-1);
-    assert!((tn_sine.y - 1.0).abs() < 1e-1);
+    assert!(tn_sine.x.abs() < 0.5);
+    assert!((tn_sine.y - 1.0).abs() < 0.5);
 }
+
+

@@ -4,6 +4,7 @@ use crate::domain::schema::SurqlSchemaField;
 use crate::define_surql_schema_struct;
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TagEdge {
     Hydrated(Tag),
     Pointer(RecordStrings),

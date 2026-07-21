@@ -30,22 +30,16 @@ impl SurrealValue for IRelation {
             )
         })?;
 
-        let key = match record.id.key {
-            RecordIdKey::String(s) => s,
-            _ => {
-                return Err(surrealdb::types::Error::thrown(
-                    "RecordId key must be a string".to_string(),
-                ))
-            }
+        let RecordIdKey::String(key) = record.id.key else {
+            return Err(surrealdb::types::Error::thrown(
+                "RecordId key must be a string".to_string(),
+            ));
         };
 
-        let mut fields_map = match record.fields {
-            Value::Object(map) => map,
-            _ => {
-                return Err(surrealdb::types::Error::thrown(
-                    "Fields must be an object".to_string(),
-                ))
-            }
+        let Value::Object(mut fields_map) = record.fields else {
+            return Err(surrealdb::types::Error::thrown(
+                "Fields must be an object".to_string(),
+            ));
         };
 
         let in_val = fields_map.remove("in").ok_or_else(|| {

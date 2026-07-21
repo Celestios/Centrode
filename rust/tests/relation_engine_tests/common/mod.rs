@@ -57,6 +57,7 @@ pub fn verify_path_properties(r: &ComputedRelation, mode: RoutingMode) {
                 verify_octilinear_path(&r.control_points);
             }
         }
+        _ => {}
     }
 }
 

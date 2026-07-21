@@ -2,6 +2,7 @@ use crate::domain::relation_engine::geometry::{Point, Rect};
 use crate::domain::styles::{EndpointShape, PortSide};
 
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub enum PathType {
     Straight,
     BSpline,
@@ -11,6 +12,7 @@ pub enum PathType {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub enum LabelAnchor {
     Center,
     Left,

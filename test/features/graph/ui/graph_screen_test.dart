@@ -40,6 +40,13 @@ void main() {
     when(() => mockSession.queryController).thenReturn(mockQuery);
     when(() => mockSession.commandProcessor).thenReturn(mockCommand);
     when(() => mockSession.nodeRenderState).thenReturn(mockRenderState);
+    when(() => mockSession.toolModeNotifier).thenReturn(ValueNotifier<String>('select'));
+    when(() => mockSession.brushColorNotifier).thenReturn(ValueNotifier<String>('#00E5FF'));
+    when(() => mockSession.brushThicknessNotifier).thenReturn(ValueNotifier<double>(4.0));
+    when(() => mockSession.brushTypeNotifier).thenReturn(ValueNotifier<String>('pen'));
+    when(() => mockSession.showLeftPanel).thenReturn(ValueNotifier<bool>(true));
+    when(() => mockSession.showRightPanel).thenReturn(ValueNotifier<bool>(true));
+    when(() => mockSession.showBottomPanel).thenReturn(ValueNotifier<bool>(false));
     when(() => mockSession.initialize(any())).thenAnswer((_) async {});
     when(() => mockSession.addListener(any())).thenAnswer((_) {});
     when(() => mockSession.removeListener(any())).thenAnswer((_) {});
