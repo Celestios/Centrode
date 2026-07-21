@@ -4294,6 +4294,8 @@ impl SseDecode for crate::domain::relation_engine::computed::PathType {
             0 => crate::domain::relation_engine::computed::PathType::Straight,
             1 => crate::domain::relation_engine::computed::PathType::BSpline,
             2 => crate::domain::relation_engine::computed::PathType::Orthogonal,
+            3 => crate::domain::relation_engine::computed::PathType::Bezier,
+            4 => crate::domain::relation_engine::computed::PathType::SineWave,
             _ => unreachable!("Invalid variant for PathType: {}", inner),
         };
     }
@@ -6242,6 +6244,8 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relation_engine::computed:
             Self::Straight => 0.into_dart(),
             Self::BSpline => 1.into_dart(),
             Self::Orthogonal => 2.into_dart(),
+            Self::Bezier => 3.into_dart(),
+            Self::SineWave => 4.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -8157,6 +8161,8 @@ impl SseEncode for crate::domain::relation_engine::computed::PathType {
                 crate::domain::relation_engine::computed::PathType::Straight => 0,
                 crate::domain::relation_engine::computed::PathType::BSpline => 1,
                 crate::domain::relation_engine::computed::PathType::Orthogonal => 2,
+                crate::domain::relation_engine::computed::PathType::Bezier => 3,
+                crate::domain::relation_engine::computed::PathType::SineWave => 4,
                 _ => {
                     unimplemented!("");
                 }

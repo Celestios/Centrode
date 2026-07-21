@@ -1,4 +1,8 @@
 use crate::bridge::stream::{self, GraphEvent};
+use crate::bridge::node_ffi::NodeFfi;
+use crate::bridge::relation_ffi::RelationFfi;
+use crate::bridge::history_ffi::HistoryFfi;
+use crate::bridge::metadata_ffi::MetadataFfi;
 use crate::domain::base_models::{IsTable, RecordStrings, ViewportState};
 use crate::domain::nodes::Nodes;
 use crate::domain::snapshot::GraphSnapshot;
@@ -70,6 +74,10 @@ pub struct AppHandle {
     pub repo: Repository,
     pub relation_engine: std::sync::Arc<Mutex<RelationEngine>>,
     tasks: Mutex<Vec<JoinHandle<()>>>,
+    node_ffi: NodeFfi,
+    relation_ffi: RelationFfi,
+    history_ffi: HistoryFfi,
+    metadata_ffi: MetadataFfi,
 }
 
 impl AppHandle {
@@ -88,202 +96,53 @@ impl AppHandle {
     }
 
     pub fn with_repository(repo: Repository) -> Self {
+        let relation_engine = std::sync::Arc::new(Mutex::new(RelationEngine::new()));
         Self {
-            repo,
-            relation_engine: std::sync::Arc::new(Mutex::new(RelationEngine::new())),
+            repo: repo.clone(),
+            relation_engine: relation_engine.clone(),
             tasks: Mutex::new(Vec::new()),
+            node_ffi: NodeFfi::new(repo.clone()),
+            relation_ffi: RelationFfi::new(repo.clone(), relation_engine),
+            history_ffi: HistoryFfi::new(repo.clone()),
+            metadata_ffi: MetadataFfi::new(repo),
         }
     }
 
-    async fn broadcast_boundaries(&self) {
-        match self.repo.calculate_global_bounds().await {
-            Ok(bounds) => {
-                info!("FFI: Broadcasting bounds: {:?}", bounds);
-                stream::publish_event(GraphEvent::BoundaryUpdated(bounds));
-            }
-            Err(e) => {
-                error!("FFI: Failed to calculate global bounds: {}", e);
-            }
-        }
-    }
 
-    async fn rebuild_node_cache(&self) {
-        let margin = RelationEngineConfig::default().routing.obstacle_margin;
-        if let Ok(mut engine) = self.relation_engine.lock() {
-            engine.state.clear();
-            engine.cache.clear();
-        }
-        if let Ok(snapshot) = self.repo.get_graph_snapshot().await {
-            if let Ok(mut engine) = self.relation_engine.lock() {
-                for node in &snapshot.nodes {
-                    if let Some(input_node) = InputNode::from_domain(node) {
-                        engine.state.update_node(input_node, margin);
-                    }
-                }
-            }
-        }
-    }
 
     pub async fn create_node(&self, input: Nodes) -> anyhow::Result<()> {
-        debug!("FFI: create_node called with input: {:?}", input);
-        self.repo.create_node(input.clone()).await?;
-
-        let (table, key) = input.table_and_key();
-        self.repo
-            .record_patch_history(
-                RecordStrings {
-                    table: table.to_string(),
-                    key: key.to_string(),
-                },
-                EntityPatch::CreateNode(input.clone(), vec![]),
-                EntityPatch::DeleteNode(input, vec![]),
-            )
-            .await?;
-
-        self.broadcast_boundaries().await;
-        Ok(())
+        self.node_ffi.create_node(input, &self.relation_engine).await
     }
 
     pub async fn get_node(&self, table: String, key: String) -> anyhow::Result<Option<Nodes>> {
-        debug!("Fetching node: {}/{}", &table, &key);
-        self.repo.get_node(table, key).await
+        self.node_ffi.get_node(table, key).await
     }
 
     pub async fn update_node(&self, input: Nodes) -> anyhow::Result<()> {
-        let (table, key) = input.table_and_key();
-        if let Some(old) = self
-            .repo
-            .get_node(table.to_string(), key.to_string())
-            .await?
-        {
-            self.repo.update_node(input.clone()).await.map_err(|e| {
-                error!("FFI: Repository failed to update node {}", e);
-                e
-            })?;
-
-            self.repo
-                .record_patch_history(
-                    RecordStrings {
-                        table: table.to_string(),
-                        key: key.to_string(),
-                    },
-                    EntityPatch::CreateNode(input.clone(), vec![]),
-                    EntityPatch::CreateNode(old, vec![]),
-                )
-                .await?;
-        } else {
-            self.repo.update_node(input).await.map_err(|e| {
-                error!("FFI: Repository failed to update node {}", e);
-                e
-            })?;
-        }
-        Ok(())
+        self.node_ffi.update_node(input).await
     }
 
     pub async fn apply_entity_mutation(
         &self,
         mutation: SymmetricEntityPatch,
     ) -> anyhow::Result<()> {
-        if self
-            .repo
-            .apply_patch_check_position(&mutation.id, &mutation.forward)
-            .await?
-        {
-            self.broadcast_boundaries().await;
-        }
-        let margin = RelationEngineConfig::default().routing.obstacle_margin;
-        if let Ok(mut engine) = self.relation_engine.lock() {
-            engine.apply_cache_patch(&mutation.id.key, &mutation.forward, margin);
-        }
-        self.repo
-            .record_patch_history(mutation.id, mutation.forward, mutation.reverse)
-            .await?;
-        Ok(())
+        self.node_ffi.apply_entity_mutation(mutation, &self.relation_engine).await
     }
 
     pub async fn delete_node_entry(&self, table: String, key: String) -> anyhow::Result<()> {
-        debug!("Deleting node: {}/{}", table, key);
-        if let Some(node) = self.repo.get_node(table.clone(), key.clone()).await? {
-            let connected_relations = self.repo.get_connected_relations(&key).await?;
-
-            self.repo.delete_node(table.clone(), key.clone()).await?;
-
-            self.repo
-                .record_patch_history(
-                    RecordStrings {
-                        table: table.clone(),
-                        key: key.clone(),
-                    },
-                    EntityPatch::DeleteNode(node.clone(), connected_relations.clone()),
-                    EntityPatch::CreateNode(node, connected_relations),
-                )
-                .await?;
-
-            self.broadcast_boundaries().await;
-            Ok(())
-        } else {
-            Err(anyhow::anyhow!("Node not found for deletion"))
-        }
+        self.node_ffi.delete_node_entry(table, key).await
     }
 
     pub async fn create_relation(&self, input: IRelation) -> anyhow::Result<()> {
-        debug!(
-            "FFI: create_relation called: {} -> {}",
-            input.in_, input.out
-        );
-        self.repo.create_relation(input.clone()).await?;
-
-        self.repo
-            .record_patch_history(
-                RecordStrings {
-                    table: IRelation::LABEL.to_string(),
-                    key: input.key.clone(),
-                },
-                EntityPatch::CreateRelation(input.clone()),
-                EntityPatch::DeleteRelation(input),
-            )
-            .await?;
-
-        Ok(())
+        self.relation_ffi.create_relation(input).await
     }
 
     pub async fn delete_relation(&self, table: String, key: String) -> anyhow::Result<()> {
-        debug!("Deleting relation: {}", key);
-        let rel = self.repo.get_relation(table.clone(), key.clone()).await?;
-
-        self.repo
-            .delete_relation(table.clone(), key.clone())
-            .await?;
-
-        self.repo
-            .record_patch_history(
-                RecordStrings {
-                    table: table.clone(),
-                    key: key.clone(),
-                },
-                EntityPatch::DeleteRelation(rel.clone()),
-                EntityPatch::CreateRelation(rel),
-            )
-            .await?;
-
-        Ok(())
+        self.relation_ffi.delete_relation(table, key).await
     }
 
     pub async fn update_relation(&self, input: IRelation) -> anyhow::Result<()> {
-        debug!("FFI: update_relation called for {} with patch", input.key);
-
-        self.repo
-            .update_relation("IRelation".to_string(), input.key.clone(), input.fields)
-            .await
-            .map_err(|e| {
-                error!(
-                    "FFI: Repository failed to patch relation {}: {}",
-                    input.key, e
-                );
-                e
-            })?;
-        info!("FFI: Relation {} patched successfully", input.key);
-        Ok(())
+        self.relation_ffi.update_relation(input).await
     }
 
     pub async fn reroute_relation(
@@ -292,28 +151,11 @@ impl AppHandle {
         from: RecordStrings,
         to: RecordStrings,
     ) -> anyhow::Result<()> {
-        debug!(
-            "Rerouting relation {} to: {} -> {}",
-            record.to_str(),
-            from.to_str(),
-            to.to_str()
-        );
-        let id = record.to_str();
-        match self.repo.reroute_relation(record, from, to).await {
-            Ok(rerouted_id) => {
-                info!("Relation {} rerouted successfully", id);
-                Ok(rerouted_id)
-            }
-            Err(e) => {
-                error!("Failed to reroute relation {}: {}", id, e);
-                Err(e)
-            }
-        }
+        self.relation_ffi.reroute_relation(record, from, to).await
     }
 
     pub async fn get_graph_snapshot(&self) -> anyhow::Result<GraphSnapshot> {
-        let res = self.repo.get_graph_snapshot().await?;
-        Ok(res)
+        self.metadata_ffi.get_graph_snapshot().await
     }
 
     pub async fn save_map_to_file(
@@ -321,30 +163,7 @@ impl AppHandle {
         file_path: String,
         attachment_dir: String,
     ) -> anyhow::Result<()> {
-        let snapshot = self.repo.get_graph_snapshot().await?;
-
-        let mut content: BTreeMap<String, Vec<Value>> = BTreeMap::new();
-
-        for node in snapshot.nodes {
-            let label = node.table_and_key().0.to_string();
-            content.entry(label).or_default().push(node.into_value());
-        }
-
-        content.insert(
-            IRelation::LABEL.into(),
-            snapshot
-                .relations
-                .into_iter()
-                .map(|r| r.into_value())
-                .collect(),
-        );
-
-        tokio::task::spawn_blocking(move || {
-            packager::save_project_to_celi(&file_path, &attachment_dir, content, snapshot.metadata)
-        })
-        .await??;
-
-        Ok(())
+        self.metadata_ffi.save_map_to_file(file_path, attachment_dir).await
     }
 
     pub async fn load_map_from_file(
@@ -352,75 +171,39 @@ impl AppHandle {
         file_path: String,
         attachment_dir: String,
     ) -> anyhow::Result<()> {
-        let (mut content, metadata) = tokio::task::spawn_blocking(move || {
-            packager::load_project_from_celi(&file_path, &attachment_dir)
-        })
-        .await??;
-
-        let mut nodes = Vec::new();
-        for &table in Nodes::TABLES {
-            if let Some(list) = content.remove(table) {
-                for val in list {
-                    match Nodes::from_struct_value(table, val) {
-                        Ok(node) => nodes.push(node),
-                        Err(e) => tracing::error!(
-                            "Failed to deserialize node from table {}: {:?}",
-                            table,
-                            e
-                        ),
-                    }
-                }
-            }
-        }
-
-        let irelations: Vec<IRelation> = content
-            .remove(IRelation::LABEL)
-            .unwrap_or_default()
-            .iter()
-            .map(|v| IRelation::from_value(v.clone()).unwrap())
-            .collect();
-
-        self.repo
-            .set_graph_snapshot(GraphSnapshot {
-                nodes,
-                relations: irelations,
-                metadata,
-            })
-            .await?;
-
-        Ok(())
+        self.metadata_ffi.load_map_from_file(file_path, attachment_dir).await
     }
 
     pub async fn get_all_themes(&self) -> anyhow::Result<Vec<Theme>> {
-        self.repo.get_all_themes().await
+        self.metadata_ffi.get_all_themes().await
     }
 
     pub async fn get_theme(&self, key: String) -> anyhow::Result<Option<Theme>> {
-        self.repo.get_theme(key).await
+        self.metadata_ffi.get_theme(key).await
     }
 
     pub async fn set_active_theme_id(&self, theme_id: String) -> anyhow::Result<()> {
-        self.repo.set_active_theme_id(theme_id).await
+        self.metadata_ffi.set_active_theme_id(theme_id).await
     }
 
     pub async fn update_viewport_state(&self, state: ViewportState) -> anyhow::Result<()> {
-        self.repo.update_viewport_state(state).await
+        self.metadata_ffi.update_viewport_state(state).await
     }
 
     pub async fn get_active_theme_id(&self) -> anyhow::Result<Option<String>> {
-        self.repo.get_active_theme_id().await
+        self.metadata_ffi.get_active_theme_id().await
     }
 
     pub async fn set_active_theme(&self, theme_key: String) -> anyhow::Result<()> {
-        self.repo.set_active_theme(theme_key).await
+        self.metadata_ffi.set_active_theme(theme_key).await
     }
 
     pub async fn create_theme(&self, key: String, fields: ThemeFields) -> anyhow::Result<()> {
-        self.repo.create_theme(key, fields).await
+        self.metadata_ffi.create_theme(key, fields).await
     }
 
     pub async fn update_theme(&self, theme: Theme) -> anyhow::Result<()> {
-        self.repo.update_theme(theme).await
+        self.metadata_ffi.update_theme(theme).await
     }
 
     pub async fn create_graph_stream(&self, sink: StreamSink<GraphEvent>) -> anyhow::Result<()> {
@@ -472,75 +255,41 @@ impl AppHandle {
         Ok(())
     }
 
-    async fn apply_history_record_patch(
-        &self,
-        record: &HistoryRecord,
-        is_forward: bool,
-    ) -> anyhow::Result<()> {
-        if record.action_type == "entity_patch" {
-            let payload = SymmetricEntityPatch::from_value(record.payload.clone())?;
-            let patch = if is_forward {
-                &payload.forward
-            } else {
-                &payload.reverse
-            };
-            if self
-                .repo
-                .apply_patch_check_position(&payload.id, patch)
-                .await?
-            {
-                self.broadcast_boundaries().await;
-            }
-        }
-        Ok(())
-    }
 
     pub async fn undo(&self) -> anyhow::Result<Option<HistoryRecord>> {
-        tracing::debug!("FFI: undo called");
-        let record = self.repo.undo_event().await?;
-        if let Some(ref rec) = record {
-            self.apply_history_record_patch(rec, false).await?;
-        }
-        self.rebuild_node_cache().await;
-        Ok(record)
+        self.history_ffi.undo(self.relation_engine.clone()).await
     }
 
     pub async fn redo(&self) -> anyhow::Result<Option<HistoryRecord>> {
-        tracing::debug!("FFI: redo called");
-        let record = self.repo.redo_event().await?;
-        if let Some(ref rec) = record {
-            self.apply_history_record_patch(rec, true).await?;
-        }
-        self.rebuild_node_cache().await;
-        Ok(record)
+        self.history_ffi.redo(self.relation_engine.clone()).await
     }
 
     pub async fn undo_count(&self) -> anyhow::Result<u32> {
-        self.repo.undo_count().await
+        self.history_ffi.undo_count().await
     }
 
     pub async fn redo_count(&self) -> anyhow::Result<u32> {
-        self.repo.redo_count().await
+        self.history_ffi.redo_count().await
     }
 
     pub async fn create_tag(&self, tag: Tag) -> anyhow::Result<()> {
-        self.repo.create_tag(tag).await
+        self.metadata_ffi.create_tag(tag).await
     }
 
     pub async fn update_tag(&self, tag: Tag) -> anyhow::Result<()> {
-        self.repo.update_tag(tag).await
+        self.metadata_ffi.update_tag(tag).await
     }
 
     pub async fn get_tag(&self, key: String) -> anyhow::Result<Option<Tag>> {
-        self.repo.get_tag(key).await
+        self.metadata_ffi.get_tag(key).await
     }
 
     pub async fn get_all_tags(&self) -> anyhow::Result<Vec<Tag>> {
-        self.repo.get_all_tags().await
+        self.metadata_ffi.get_all_tags().await
     }
 
     pub async fn delete_tag(&self, key: String) -> anyhow::Result<()> {
-        self.repo.delete_tag(key).await
+        self.metadata_ffi.delete_tag(key).await
     }
 
     // --- Template FFI Endpoints ---
@@ -551,7 +300,7 @@ impl AppHandle {
         node_keys: Vec<RecordStrings>,
         relation_keys: Vec<RecordStrings>,
     ) -> anyhow::Result<()> {
-        self.repo
+        self.metadata_ffi
             .save_template_from_selection(name, node_keys, relation_keys)
             .await
     }
@@ -562,23 +311,21 @@ impl AppHandle {
         target_x: f64,
         target_y: f64,
     ) -> anyhow::Result<()> {
-        self.repo
+        self.metadata_ffi
             .instantiate_template(key, target_x, target_y)
-            .await?;
-        stream::publish_event(GraphEvent::SnapshotLoaded);
-        Ok(())
+            .await
     }
 
     pub async fn get_all_templates(&self) -> anyhow::Result<Vec<Template>> {
-        self.repo.get_all_templates().await
+        self.metadata_ffi.get_all_templates().await
     }
 
     pub async fn delete_template(&self, key: String) -> anyhow::Result<()> {
-        self.repo.delete_template(key).await
+        self.metadata_ffi.delete_template(key).await
     }
 
     pub async fn query_search(&self, query: String) -> anyhow::Result<Vec<Nodes>> {
-        self.repo.query_search(query).await
+        self.metadata_ffi.query_search(query).await
     }
 
     pub async fn compute_relations(
@@ -586,65 +333,14 @@ impl AppHandle {
         config: crate::domain::relation_engine::config::RelationEngineConfig,
         relation_ids: Option<Vec<String>>,
     ) -> anyhow::Result<Vec<crate::domain::relation_engine::computed::ComputedRelation>> {
-        let mut is_empty = false;
-        if let Ok(engine) = self.relation_engine.lock() {
-            is_empty = engine.state.nodes.is_empty();
-        }
-        if is_empty {
-            self.rebuild_node_cache().await;
-        }
-
-        let nodes: Vec<InputNode> = self
-            .relation_engine
-            .lock()
-            .map_err(|_| anyhow::anyhow!("Failed to lock relation engine"))?
-            .state
-            .nodes
-            .values()
-            .cloned()
-            .collect();
-        let snapshot = self.repo.get_graph_snapshot().await?;
-        let edges: Vec<crate::domain::relation_engine::input::InputEdge> = snapshot
-            .relations
-            .iter()
-            .map(crate::domain::relation_engine::input::InputEdge::from_domain)
-            .collect();
-
-        let mut engine = match self.relation_engine.lock() {
-            Ok(e) => e,
-            Err(_) => return Err(anyhow::anyhow!("Failed to lock relation engine")),
-        };
-
-        let result = engine.compute_relations_stateful(
-            &nodes,
-            &edges,
-            &config,
-            None, // Always pass None to compute all relations incrementally/statefully with global passes
-        );
-        Ok(result)
+        self.relation_ffi.compute_relations(config, relation_ids).await
     }
-
 
     pub fn update_node_cache_positions(
         &self,
         positions: Vec<(String, f64, f64, f64, f64)>,
     ) {
-        let margin = RelationEngineConfig::default().routing.obstacle_margin;
-        if let Ok(mut engine) = self.relation_engine.lock() {
-            for (id, x, y, w, h) in positions {
-                engine.update_node_cache(
-                    crate::domain::relation_engine::input::InputNode {
-                        id,
-                        x,
-                        y,
-                        width: w,
-                        height: h,
-                        is_obstacle: true,
-                    },
-                    margin,
-                );
-            }
-        }
+        self.node_ffi.update_node_cache_positions(positions, &self.relation_engine)
     }
 
     pub async fn compute_single_relation(
@@ -661,113 +357,21 @@ impl AppHandle {
         override_end_x: Option<f64>,
         override_end_y: Option<f64>,
     ) -> anyhow::Result<crate::domain::relation_engine::computed::ComputedRelation> {
-        use crate::domain::relation_engine::input::InputEdge;
-
-        let mut is_empty = false;
-        if let Ok(engine) = self.relation_engine.lock() {
-            is_empty = engine.state.nodes.is_empty();
-        }
-        if is_empty {
-            self.rebuild_node_cache().await;
-        }
-
-        let mut nodes = self
-            .relation_engine
-            .lock()
-            .map_err(|_| anyhow::anyhow!("Failed to lock relation engine"))?
-            .state
-            .nodes
-            .values()
-            .cloned()
-            .collect::<Vec<InputNode>>();
-
-        if let (Some(sx), Some(sy)) = (override_start_x, override_start_y) {
-            if let Some(n) = nodes.iter_mut().find(|n| n.id == from_node_id) {
-                n.x = sx;
-                n.y = sy;
-                n.width = 0.0;
-                n.height = 0.0;
-            } else {
-                nodes.push(InputNode {
-                    id: from_node_id.clone(),
-                    x: sx,
-                    y: sy,
-                    width: 0.0,
-                    height: 0.0,
-                    is_obstacle: true,
-                });
-            }
-        }
-
-        if let (Some(ex), Some(ey)) = (override_end_x, override_end_y) {
-            if let Some(n) = nodes.iter_mut().find(|n| n.id == to_node_id) {
-                n.x = ex;
-                n.y = ey;
-                n.width = 0.0;
-                n.height = 0.0;
-            } else {
-                nodes.push(InputNode {
-                    id: to_node_id.clone(),
-                    x: ex,
-                    y: ey,
-                    width: 0.0,
-                    height: 0.0,
-                    is_obstacle: true,
-                });
-            }
-        }
-
-        let edge = InputEdge {
-            id: edge_id.clone(),
-            from_node_id,
-            to_node_id,
-            from_side: from_side.clone(),
-            to_side: to_side.clone(),
-            routing_mode: routing_mode.clone(),
-            bundling_mode: None,
-            style: None,
-        };
-
-        let snapshot = self.repo.get_graph_snapshot().await?;
-        let mut edges: Vec<InputEdge> = snapshot
-            .relations
-            .iter()
-            .map(InputEdge::from_domain)
-            .collect();
-
-        if !edges.iter().any(|e| e.id == edge_id) {
-            edges.push(edge);
-        } else {
-            if let Some(e) = edges.iter_mut().find(|e| e.id == edge_id) {
-                *e = InputEdge {
-                    id: edge_id.clone(),
-                    from_node_id: e.from_node_id.clone(),
-                    to_node_id: e.to_node_id.clone(),
-                    from_side: from_side.or(e.from_side.clone()),
-                    to_side: to_side.or(e.to_side.clone()),
-                    routing_mode: routing_mode.or(e.routing_mode.clone()),
-                    bundling_mode: e.bundling_mode.clone(),
-                    style: e.style.clone(),
-                };
-            }
-        }
-
-        let mut engine = match self.relation_engine.lock() {
-            Ok(e) => e,
-            Err(_) => return Err(anyhow::anyhow!("Failed to lock relation engine")),
-        };
-
-        let results = engine.compute_relations_stateful(
-            &nodes,
-            &edges,
-            &config,
-            Some(&[edge_id.clone()]),
-        );
-
-        results
-            .into_iter()
-            .find(|r| r.id == edge_id)
-            .ok_or_else(|| anyhow::anyhow!("Relation {} not found in results", edge_id))
+        self.relation_ffi
+            .compute_single_relation(
+                config,
+                edge_id,
+                from_node_id,
+                to_node_id,
+                from_side,
+                to_side,
+                routing_mode,
+                override_start_x,
+                override_start_y,
+                override_end_x,
+                override_end_y,
+            )
+            .await
     }
 }
 

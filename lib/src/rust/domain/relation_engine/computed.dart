@@ -138,4 +138,4 @@ class ComputedRelation {
 
 enum LabelAnchor { center, left, right }
 
-enum PathType { straight, bSpline, orthogonal }
+enum PathType { straight, bSpline, orthogonal, bezier, sineWave }

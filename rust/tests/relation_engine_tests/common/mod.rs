@@ -50,8 +50,8 @@ pub fn verify_path_properties(r: &ComputedRelation, mode: RoutingMode) {
         RoutingMode::Polyline => assert_eq!(r.path_type, PathType::Straight),
         RoutingMode::Orthogonal => assert_eq!(r.path_type, PathType::Orthogonal),
         RoutingMode::BSpline => assert_eq!(r.path_type, PathType::BSpline),
-        RoutingMode::Bezier { .. } => assert_eq!(r.path_type, PathType::BSpline),
-        RoutingMode::SineWave { .. } => assert_eq!(r.path_type, PathType::BSpline),
+        RoutingMode::Bezier { .. } => assert_eq!(r.path_type, PathType::Bezier),
+        RoutingMode::SineWave { .. } => assert_eq!(r.path_type, PathType::SineWave),
         RoutingMode::Octilinear => {
             if r.path_type == PathType::Orthogonal {
                 verify_octilinear_path(&r.control_points);

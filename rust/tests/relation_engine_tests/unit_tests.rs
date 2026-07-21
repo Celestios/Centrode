@@ -152,21 +152,21 @@ fn test_bezier_and_sinewave_perpendicular_exits() {
 
     // Test Bezier exits
     let bezier_shaper = BezierShaper::new(BezierConfig {
-        num_samples: 10,
+        num_samples: 10000,
         start_offset_x: 0.0,
         start_offset_y: 0.0,
         end_offset_x: 0.0,
         end_offset_y: 0.0,
     });
     let bezier_res = bezier_shaper.shape(&[], &context);
-    assert_eq!(bezier_res.path_points.len(), 10);
+    assert_eq!(bezier_res.path_points.len(), 10000);
     // At start, tangent should point along start_normal (1.0, 0.0)
     let t0 = (bezier_res.path_points[1] - bezier_res.path_points[0]).normalize();
     assert!((t0.x - 1.0).abs() < 1e-3);
     assert!(t0.y.abs() < 1e-3);
 
     // At end, tangent should point along -end_normal (0.0, 1.0) as it approaches p3
-    let tn = (bezier_res.path_points[9] - bezier_res.path_points[8]).normalize();
+    let tn = (bezier_res.path_points[9999] - bezier_res.path_points[9998]).normalize();
     assert!(tn.x.abs() < 1e-3);
     assert!((tn.y - 1.0).abs() < 1e-3);
 
