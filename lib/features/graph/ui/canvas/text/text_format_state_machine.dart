@@ -143,27 +143,34 @@ class TextFormatStateMachine {
     }
   }
 
+  List<(int, int)> _computeLineBounds(String plainText) {
+    final lines = plainText.split('\n');
+    final lineBounds = <(int, int)>[];
+    int currentOffset = 0;
+    for (final line in lines) {
+      final int start = currentOffset;
+      final int end = start + line.length;
+      lineBounds.add((start, end));
+      currentOffset += line.length + 1;
+    }
+    return lineBounds;
+  }
+
   void cycleTextAlign() {
     final selection = getSelection();
     final int cursor = selection.baseOffset;
     if (cursor < 0) return;
 
     final plainText = getText();
-    final lines = plainText.split('\n');
+    final allLineBounds = _computeLineBounds(plainText);
 
     final int selStart = selection.isCollapsed ? cursor : selection.start;
     final int selEnd = selection.isCollapsed ? cursor : selection.end;
 
-    final selectedLineBounds = <(int, int)>[];
-    int currentOffset = 0;
-    for (final line in lines) {
-      final int start = currentOffset;
-      final int end = start + line.length;
-      if (end >= selStart && start <= selEnd) {
-        selectedLineBounds.add((start, end));
-      }
-      currentOffset += line.length + 1;
-    }
+    final selectedLineBounds = allLineBounds.where((bounds) {
+      return bounds.$2 >= selStart && bounds.$1 <= selEnd;
+    }).toList();
+
 
     if (selectedLineBounds.isEmpty) return;
 
@@ -333,21 +340,14 @@ class TextFormatStateMachine {
     if (cursor < 0) return;
 
     final plainText = getText();
-    int lineStart = 0;
-    int lineEnd = plainText.length;
+    final lineBounds = _computeLineBounds(plainText);
+    final currentBounds = lineBounds.firstWhere(
+      (bounds) => cursor >= bounds.$1 && cursor <= bounds.$2,
+      orElse: () => (0, plainText.length),
+    );
+    final lineStart = currentBounds.$1;
+    final lineEnd = currentBounds.$2;
 
-    final lines = plainText.split('\n');
-    int currentOffset = 0;
-    for (final line in lines) {
-      final int start = currentOffset;
-      final int end = start + line.length;
-      if (cursor >= start && cursor <= end) {
-        lineStart = start;
-        lineEnd = end;
-        break;
-      }
-      currentOffset += line.length + 1;
-    }
 
     TextFormatType? oldBlockType;
     for (final span in formattingSpans) {

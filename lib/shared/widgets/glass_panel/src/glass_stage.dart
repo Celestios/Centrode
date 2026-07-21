@@ -25,7 +25,9 @@ class GlassStage extends StatefulWidget {
 }
 
 class _GlassStageState extends State<GlassStage> with WidgetsBindingObserver {
+  final Logger _log = Logger('GlassStage');
   final GlobalKey _bgKey = GlobalKey();
+
   ui.Image? _backdropImage;
   Size? _backdropLogicalSize;
   DateTime? _lastCaptureTime;
@@ -196,7 +198,8 @@ class _GlassStageState extends State<GlassStage> with WidgetsBindingObserver {
         _lastCaptureTime = DateTime.now();
       });
       oldImage?.dispose();
-    } catch (_) {
+    } catch (e, st) {
+      _log.warning('GlassStage snapshot capture failed, retrying', e, st);
       _retryCapture();
     } finally {
       if (mounted) {

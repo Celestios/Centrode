@@ -36,11 +36,10 @@ class ThemeController extends ChangeNotifier with TraceableNotifier {
     _log.info('Created default graph theme from global theme');
     notifyListeners();
 
-    // 3. Persist in background, keep in‑memory theme regardless of failure
-    _persistAndActivate(defaultTheme).catchError((e, st) {
-      _log.severe('Failed to persist default graph theme', e, st);
-    });
+    // 3. Persist and activate theme
+    await _persistAndActivate(defaultTheme);
   }
+
 
   Future<void> selectTheme(String themeId) async {
     final frb.Theme? rustTheme = await _appHandle.getTheme(key: themeId);

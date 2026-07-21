@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'drawing_color_utils.dart';
 
 /// Painter that renders the transient, active drawing stroke in canvas coordinates.
 class ActiveDrawingPainter extends CustomPainter {
@@ -18,21 +19,8 @@ class ActiveDrawingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (points.length < 2) return;
 
-    Color color;
-    try {
-      final hex = brushColor.replaceFirst('#', '').replaceFirst('0x', '');
-      if (hex.length == 6) {
-        color = Color(int.parse('FF$hex', radix: 16));
-      } else {
-        color = Color(int.parse(hex, radix: 16));
-      }
-    } catch (_) {
-      color = const Color(0xFF00E5FF);
-    }
+    final color = DrawingColorUtils.resolveBrushColor(brushColor, brushType);
 
-    if (brushType == 'highlighter') {
-      color = color.withValues(alpha: 0.4);
-    }
 
     final paint = Paint()
       ..color = color

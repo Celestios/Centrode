@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'drawing_color_utils.dart';
 
 class DrawingNodePainter extends CustomPainter {
   final List<String> paths;
@@ -7,15 +8,7 @@ class DrawingNodePainter extends CustomPainter {
   final double brushThickness;
   final String brushType;
 
-  late final Color _parsedColor = _parseColor(brushColor);
-
-  static Color _parseColor(String hex) {
-    final clean = hex.replaceFirst('#', '').replaceFirst('0x', '');
-    if (clean.length == 6) {
-      return Color(int.parse('FF$clean', radix: 16));
-    }
-    return Color(int.parse(clean, radix: 16));
-  }
+  late final Color _parsedColor = DrawingColorUtils.resolveBrushColor(brushColor, brushType);
 
   DrawingNodePainter({
     required this.paths,
@@ -27,11 +20,8 @@ class DrawingNodePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    var color = _parsedColor;
+    final color = _parsedColor;
 
-    if (brushType == 'highlighter') {
-      color = color.withValues(alpha: 0.4);
-    }
 
     final paint = Paint()
       ..color = color
