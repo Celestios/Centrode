@@ -1,21 +1,37 @@
+use rust_lib_mycelium::domain::id::TypedRecordId;
 use rust_lib_mycelium::domain::relation_engine::config::{RelationEngineConfig, RoutingMode};
 use rust_lib_mycelium::domain::relation_engine::engine::RelationEngine;
 use rust_lib_mycelium::domain::relation_engine::geometry::{Rect, polyline_length, segments_intersect};
 use rust_lib_mycelium::domain::relation_engine::input::{InputEdge, InputNode};
 use rust_lib_mycelium::domain::styles::PortSide;
+use rust_lib_mycelium::domain::traits::TableKind;
 use rand::RngExt;
 use rand::SeedableRng;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+use uuid::Uuid;
 use std::io::Write;
 
+fn str_to_uuid(s: &str) -> Uuid {
+    let mut hasher = DefaultHasher::new();
+    s.hash(&mut hasher);
+    let hash = hasher.finish();
+    Uuid::from_u128(hash as u128)
+}
+
+fn tid(table: TableKind, s: &str) -> TypedRecordId {
+    TypedRecordId::new(table, str_to_uuid(s))
+}
+
 fn node(id: &str, x: f64, y: f64, w: f64, h: f64) -> InputNode {
-    InputNode { id: id.into(), x, y, width: w, height: h, is_obstacle: true }
+    InputNode { id: tid(TableKind::INode, id), x, y, width: w, height: h, is_obstacle: true }
 }
 
 fn ortho_edge(id: &str, from: &str, to: &str) -> InputEdge {
     InputEdge {
-        id: id.into(),
-        from_node_id: from.into(),
-        to_node_id: to.into(),
+        id: tid(TableKind::IRelation, id),
+        from_node_id: tid(TableKind::INode, from),
+        to_node_id: tid(TableKind::INode, to),
         from_side: None,
         to_side: None,
         routing_mode: Some(RoutingMode::Orthogonal),
@@ -26,9 +42,9 @@ fn ortho_edge(id: &str, from: &str, to: &str) -> InputEdge {
 
 fn ortho_edge_ports(id: &str, from: &str, to: &str, fs: PortSide, ts: PortSide) -> InputEdge {
     InputEdge {
-        id: id.into(),
-        from_node_id: from.into(),
-        to_node_id: to.into(),
+        id: tid(TableKind::IRelation, id),
+        from_node_id: tid(TableKind::INode, from),
+        to_node_id: tid(TableKind::INode, to),
         from_side: Some(fs),
         to_side: Some(ts),
         routing_mode: Some(RoutingMode::Orthogonal),
@@ -197,8 +213,8 @@ fn write_enriched_json(
     let path = out_dir.join(format!("{}.json", filename));
     let mut json = String::new();
 
-    let node_rects: Vec<(&str, Rect)> = nodes.iter()
-        .map(|n| (n.id.as_str(), Rect { x: n.x, y: n.y, width: n.width, height: n.height }))
+    let node_rects: Vec<(String, Rect)> = nodes.iter()
+        .map(|n| (n.id.to_string(), Rect { x: n.x, y: n.y, width: n.width, height: n.height }))
         .collect();
 
     json.push_str("{\n");
@@ -247,7 +263,7 @@ fn write_enriched_json(
         for i in 0..n.saturating_sub(1) {
             for (node_id, rect) in &node_rects {
                 if rect.intersects_segment(pts[i], pts[i + 1]) {
-                    segment_crossings.push((i, node_id.to_string()));
+                    segment_crossings.push((i, node_id.clone()));
                 }
             }
         }
@@ -300,9 +316,9 @@ fn write_enriched_json(
             if i == 0 { flags.push("start"); }
             if i == n - 1 { flags.push("end"); }
             if i < 2 || i >= n - 2 { flags.push("stub"); }
-            let inside_nodes: Vec<&str> = node_rects.iter()
+            let inside_nodes: Vec<&String> = node_rects.iter()
                 .filter(|(_, rect)| rect.contains(pts[i]))
-                .map(|(id, _)| *id)
+                .map(|(id, _)| id)
                 .collect();
             if !inside_nodes.is_empty() { flags.push("in_node"); }
             let seg_dx = if i > 0 { pts[i].x - pts[i - 1].x } else { 0.0 };
@@ -321,9 +337,9 @@ fn write_enriched_json(
 
         json.push_str("      \"segment_crossings\": [\n");
         let mut crossing_entries: Vec<String> = Vec::new();
-        let mut seen_entries: Vec<(usize, &str)> = Vec::new();
+        let mut seen_entries: Vec<(usize, String)> = Vec::new();
         for (seg_idx, node_id) in &segment_crossings {
-            let key = (*seg_idx, node_id.as_str());
+            let key = (*seg_idx, node_id.clone());
             if !seen_entries.contains(&key) {
                 seen_entries.push(key);
                 crossing_entries.push(format!(
@@ -779,7 +795,7 @@ fn generate_layout(seed: u64) -> RandLayout {
                     && candidate.y + candidate.height + margin > r.y
             });
             if !overlaps {
-                nodes.push(InputNode { id: id.clone(), x, y, width: w, height: h, is_obstacle: is_obs });
+                nodes.push(InputNode { id: tid(TableKind::INode, &id), x, y, width: w, height: h, is_obstacle: is_obs });
                 node_ids.push(id.clone());
                 placed = true;
                 break;
@@ -788,7 +804,7 @@ fn generate_layout(seed: u64) -> RandLayout {
         if !placed {
             let fx = 50.0 + (i as f64 * 130.0);
             let fy = 50.0 + (i as f64 * 80.0) % 400.0;
-            nodes.push(InputNode { id: id.clone(), x: fx, y: fy, width: w, height: h, is_obstacle: is_obs });
+            nodes.push(InputNode { id: tid(TableKind::INode, &id), x: fx, y: fy, width: w, height: h, is_obstacle: is_obs });
             node_ids.push(id);
         }
     }
@@ -802,9 +818,9 @@ fn generate_layout(seed: u64) -> RandLayout {
     let ts = if rng.random_bool(0.6) { Some(sides[rng.random_range(0..4)].clone()) } else { None };
 
     let edge = InputEdge {
-        id: "e1".into(),
-        from_node_id: node_ids[from].clone(),
-        to_node_id: node_ids[to].clone(),
+        id: tid(TableKind::IRelation, "e1"),
+        from_node_id: tid(TableKind::INode, &node_ids[from]),
+        to_node_id: tid(TableKind::INode, &node_ids[to]),
         from_side: fs.clone(),
         to_side: ts.clone(),
         routing_mode: Some(RoutingMode::Orthogonal),

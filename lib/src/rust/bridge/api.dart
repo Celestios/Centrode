@@ -52,14 +52,14 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<List<ComputedRelation>> computeRelations({
     required RelationEngineConfig config,
-    List<String>? relationIds,
+    List<TypedRecordId>? relationIds,
   });
 
   Future<ComputedRelation> computeSingleRelation({
     required RelationEngineConfig config,
-    required String edgeId,
-    required String fromNodeId,
-    required String toNodeId,
+    required TypedRecordId edgeId,
+    required TypedRecordId fromNodeId,
+    required TypedRecordId toNodeId,
     PortSide? fromSide,
     PortSide? toSide,
     RoutingMode? routingMode,
@@ -79,9 +79,9 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<void> createTheme({required String key, required ThemeFields fields});
 
-  Future<void> deleteNodeEntry({required String table, required String key});
+  Future<void> deleteNodeEntry({required TypedRecordId id});
 
-  Future<void> deleteRelation({required String table, required String key});
+  Future<void> deleteRelation({required TypedRecordId id});
 
   Future<void> deleteTag({required String key});
 
@@ -97,7 +97,7 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<GraphSnapshot> getGraphSnapshot();
 
-  Future<Nodes?> getNode({required String table, required String key});
+  Future<Nodes?> getNode({required TypedRecordId id});
 
   Future<Tag?> getTag({required String key});
 
@@ -157,7 +157,7 @@ abstract class AppHandle implements RustOpaqueInterface {
   Future<void> updateNode({required Nodes input});
 
   Future<void> updateNodeCachePositions({
-    required List<(String, double, double, double, double)> positions,
+    required List<(TypedRecordId, double, double, double, double)> positions,
   });
 
   Future<void> updateRelation({required IRelation input});

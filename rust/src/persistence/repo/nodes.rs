@@ -1,4 +1,5 @@
 use crate::domain::base_models::{IsTable, MapData, Record};
+use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::{IsNode, Nodes};
 use crate::domain::relations::IRelation;
 use crate::domain::snapshot::GraphSnapshot;
@@ -29,17 +30,9 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn get_node(&self, table: String, key: String) -> Result<Option<Nodes>> {
-        let clean_key = key.split(':').last().unwrap_or(&key);
-        let record_id = if let Ok(u) = uuid::Uuid::parse_str(clean_key) {
-            if let Ok(kind) = std::str::FromStr::from_str(&table) {
-                crate::domain::id::TypedRecordId::new(kind, u).to_record_id()
-            } else {
-                RecordId::new(table.clone(), key.clone())
-            }
-        } else {
-            RecordId::new(table.clone(), key.clone())
-        };
+    pub async fn get_node(&self, id: TypedRecordId) -> Result<Option<Nodes>> {
+        let table = id.table.table_name().to_string();
+        let record_id = id.to_record_id();
 
         let fetch_fields = Nodes::fetch_fields_for_table(&table);
         let query_str = if fetch_fields.is_empty() {
@@ -95,23 +88,14 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn delete_node(&self, table: String, key: String) -> Result<()> {
+    pub async fn delete_node(&self, id: TypedRecordId) -> Result<()> {
         let query = "
             BEGIN TRANSACTION;
             DELETE IRelation WHERE in = $target OR out = $target;
             DELETE $target;
             COMMIT TRANSACTION;
         ";
-        let clean_key = key.split(':').last().unwrap_or(&key);
-        let record_id = if let Ok(u) = uuid::Uuid::parse_str(clean_key) {
-            if let Ok(kind) = std::str::FromStr::from_str(&table) {
-                crate::domain::id::TypedRecordId::new(kind, u).to_record_id()
-            } else {
-                RecordId::new(table.clone(), key.clone())
-            }
-        } else {
-            RecordId::new(table.clone(), key.clone())
-        };
+        let record_id = id.to_record_id();
         tracing::trace!(
             "REPO: BEGIN TRANSACTION for cascading delete of {:?}",
             record_id

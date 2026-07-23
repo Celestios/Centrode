@@ -398,8 +398,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
-  List<(String, double, double, double, double)>
-  dco_decode_list_record_string_f_64_f_64_f_64_f_64(dynamic raw);
+  List<(TypedRecordId, double, double, double, double)>
+  dco_decode_list_record_typed_record_id_f_64_f_64_f_64_f_64(dynamic raw);
 
   @protected
   List<RelationPatch> dco_decode_list_relation_patch(dynamic raw);
@@ -522,10 +522,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? dco_decode_opt_box_autoadd_u_8(dynamic raw);
 
   @protected
-  List<String>? dco_decode_opt_list_String(dynamic raw);
+  List<TextMark>? dco_decode_opt_list_text_mark(dynamic raw);
 
   @protected
-  List<TextMark>? dco_decode_opt_list_text_mark(dynamic raw);
+  List<TypedRecordId>? dco_decode_opt_list_typed_record_id(dynamic raw);
 
   @protected
   PathType dco_decode_path_type(dynamic raw);
@@ -537,8 +537,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PortSide dco_decode_port_side(dynamic raw);
 
   @protected
-  (String, double, double, double, double)
-  dco_decode_record_string_f_64_f_64_f_64_f_64(dynamic raw);
+  (TypedRecordId, double, double, double, double)
+  dco_decode_record_typed_record_id_f_64_f_64_f_64_f_64(dynamic raw);
 
   @protected
   Rect dco_decode_rect(dynamic raw);
@@ -994,8 +994,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
-  List<(String, double, double, double, double)>
-  sse_decode_list_record_string_f_64_f_64_f_64_f_64(
+  List<(TypedRecordId, double, double, double, double)>
+  sse_decode_list_record_typed_record_id_f_64_f_64_f_64_f_64(
     SseDeserializer deserializer,
   );
 
@@ -1142,10 +1142,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer);
 
   @protected
-  List<String>? sse_decode_opt_list_String(SseDeserializer deserializer);
+  List<TextMark>? sse_decode_opt_list_text_mark(SseDeserializer deserializer);
 
   @protected
-  List<TextMark>? sse_decode_opt_list_text_mark(SseDeserializer deserializer);
+  List<TypedRecordId>? sse_decode_opt_list_typed_record_id(
+    SseDeserializer deserializer,
+  );
 
   @protected
   PathType sse_decode_path_type(SseDeserializer deserializer);
@@ -1157,8 +1159,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PortSide sse_decode_port_side(SseDeserializer deserializer);
 
   @protected
-  (String, double, double, double, double)
-  sse_decode_record_string_f_64_f_64_f_64_f_64(SseDeserializer deserializer);
+  (TypedRecordId, double, double, double, double)
+  sse_decode_record_typed_record_id_f_64_f_64_f_64_f_64(
+    SseDeserializer deserializer,
+  );
 
   @protected
   Rect sse_decode_rect(SseDeserializer deserializer);
@@ -1725,8 +1729,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_list_record_string_f_64_f_64_f_64_f_64(
-    List<(String, double, double, double, double)> self,
+  void sse_encode_list_record_typed_record_id_f_64_f_64_f_64_f_64(
+    List<(TypedRecordId, double, double, double, double)> self,
     SseSerializer serializer,
   );
 
@@ -1891,11 +1895,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer);
 
   @protected
-  void sse_encode_opt_list_String(List<String>? self, SseSerializer serializer);
-
-  @protected
   void sse_encode_opt_list_text_mark(
     List<TextMark>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_typed_record_id(
+    List<TypedRecordId>? self,
     SseSerializer serializer,
   );
 
@@ -1909,8 +1916,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_port_side(PortSide self, SseSerializer serializer);
 
   @protected
-  void sse_encode_record_string_f_64_f_64_f_64_f_64(
-    (String, double, double, double, double) self,
+  void sse_encode_record_typed_record_id_f_64_f_64_f_64_f_64(
+    (TypedRecordId, double, double, double, double) self,
     SseSerializer serializer,
   );
 

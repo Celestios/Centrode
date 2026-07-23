@@ -55,7 +55,9 @@ impl Shaper for SineWaveShaper {
             path_points.push(p3);
         }
 
-        let mut computed = ComputedRelation::new_basic(String::new(), path_points, PathType::SineWave);
+        use crate::domain::id::TypedRecordId;
+        use crate::domain::traits::TableKind;
+        let mut computed = ComputedRelation::new_basic(TypedRecordId::nil(TableKind::IRelation), path_points, PathType::SineWave);
         computed.control_points = vec![p0, p1, p2, p3];
         computed
     }

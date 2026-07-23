@@ -216,7 +216,7 @@ pub fn render_svg(
 
     // 4. Draw paths, reference lines, control points, and port dots
     for r in results.iter() {
-        let group_color = edge_colors.get(&r.id).cloned().unwrap_or_else(|| "#ff0000".to_string());
+        let group_color = edge_colors.get(&r.id.to_string()).cloned().unwrap_or_else(|| "#ff0000".to_string());
         let default_color = group_color.as_str();
         let pts = &r.path_points;
         let cpts = &r.control_points;
@@ -315,7 +315,7 @@ pub fn render_svg(
     ));
     lx += label.len() as f64 * 6.6 + 12.0;
     for r in results.iter() {
-        let group_color = edge_colors.get(&r.id).cloned().unwrap_or_else(|| "#ff0000".to_string());
+        let group_color = edge_colors.get(&r.id.to_string()).cloned().unwrap_or_else(|| "#ff0000".to_string());
         let pts = &r.path_points;
         let info = format!(
             "{} ({} pts, {:.0}px)",

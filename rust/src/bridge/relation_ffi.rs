@@ -57,16 +57,13 @@ impl RelationFfi {
         Ok(())
     }
 
-    pub async fn delete_relation(&self, table: String, key: String) -> anyhow::Result<()> {
-        debug!("Deleting relation: {}", key);
-        let rel = self.repo.get_relation(table.clone(), key.clone()).await?;
+    pub async fn delete_relation(&self, id: TypedRecordId) -> anyhow::Result<()> {
+        debug!("Deleting relation: {:?}", id);
+        let rel = self.repo.get_relation(id).await?;
 
         self.repo
-            .delete_relation(table.clone(), key.clone())
+            .delete_relation(id)
             .await?;
-
-        let u = uuid::Uuid::parse_str(&key).unwrap_or_else(|_| uuid::Uuid::nil());
-        let id = TypedRecordId::new(TableKind::IRelation, u);
 
         self.repo
             .record_patch_history(
@@ -83,7 +80,7 @@ impl RelationFfi {
         debug!("FFI: update_relation called for {} with patch", input.key);
 
         self.repo
-            .update_relation("IRelation".to_string(), input.key.to_string(), input.fields)
+            .update_relation(input.key, input.fields)
             .await
             .map_err(|e| {
                 error!(
@@ -124,7 +121,7 @@ impl RelationFfi {
     pub async fn compute_relations(
         &self,
         config: RelationEngineConfig,
-        _relation_ids: Option<Vec<String>>,
+        _relation_ids: Option<Vec<TypedRecordId>>,
     ) -> anyhow::Result<Vec<crate::domain::relation_engine::computed::ComputedRelation>> {
         let mut is_empty = false;
         if let Ok(engine) = self.relation_engine.lock() {
@@ -167,9 +164,9 @@ impl RelationFfi {
     pub async fn compute_single_relation(
         &self,
         config: RelationEngineConfig,
-        edge_id: String,
-        from_node_id: String,
-        to_node_id: String,
+        edge_id: TypedRecordId,
+        from_node_id: TypedRecordId,
+        to_node_id: TypedRecordId,
         from_side: Option<crate::domain::styles::PortSide>,
         to_side: Option<crate::domain::styles::PortSide>,
         routing_mode: Option<crate::domain::relation_engine::config::RoutingMode>,
@@ -282,6 +279,6 @@ impl RelationFfi {
         results
             .into_iter()
             .find(|r| r.id == edge_id)
-            .ok_or_else(|| anyhow::anyhow!("Relation {} not found in results", edge_id))
+            .ok_or_else(|| anyhow::anyhow!("Relation {:?} not found in results", edge_id))
     }
 }

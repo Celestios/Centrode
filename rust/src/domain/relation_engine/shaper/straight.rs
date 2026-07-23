@@ -30,7 +30,9 @@ impl Shaper for StraightShaper {
         let start = raw_path[0];
         let end = raw_path[raw_path.len() - 1];
         let path_points = evaluate_straight(start, end, self.config.num_samples);
-        let mut computed = ComputedRelation::new_basic(String::new(), path_points, PathType::Straight);
+        use crate::domain::id::TypedRecordId;
+        use crate::domain::traits::TableKind;
+        let mut computed = ComputedRelation::new_basic(TypedRecordId::nil(TableKind::IRelation), path_points, PathType::Straight);
         computed.control_points = vec![start, end];
         computed
     }

@@ -134,9 +134,11 @@ pub fn compute_extension(node: &InputNode, extension_min: f64, extension_scale: 
     (node_dim * extension_scale).max(extension_min)
 }
 
+use crate::domain::id::TypedRecordId;
+
 pub fn resolve_ports_full(
     edge: &crate::domain::relation_engine::types::InputEdge,
-    node_map: &HashMap<String, InputNode>,
+    node_map: &HashMap<TypedRecordId, InputNode>,
     routing_mode: &RoutingMode,
     start_ext: f64,
     end_ext: f64,

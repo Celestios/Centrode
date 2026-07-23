@@ -85,7 +85,7 @@ async fn test_tags_crud_and_patching() {
 
     // 6. Retrieve INode and verify tag is added & hydrated
     let fetched_node = repo
-        .get_node("INode".to_string(), inode_id.key.to_string())
+        .get_node(inode_id)
         .await
         .unwrap()
         .unwrap();
@@ -114,7 +114,7 @@ async fn test_tags_crud_and_patching() {
 
     // 8. Retrieve INode and verify tag is removed
     let fetched_node_after_remove = repo
-        .get_node("INode".to_string(), inode_id.key.to_string())
+        .get_node(inode_id)
         .await
         .unwrap()
         .unwrap();
@@ -179,7 +179,7 @@ async fn test_tags_crud_and_patching() {
 
     // Verify tag2 is removed from INode's tags array
     let fetched_node2 = repo
-        .get_node("INode".to_string(), inode2_id.key.to_string())
+        .get_node(inode2_id)
         .await
         .unwrap()
         .unwrap();

@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use crate::domain::id::TypedRecordId;
 use crate::domain::relation_engine::geometry::Point;
 use crate::domain::relation_engine::types::{InputNode, InputEdge};
 use crate::domain::relation_engine::config::{RelationEngineConfig, RoutingConfig, RoutingMode};
@@ -24,13 +25,15 @@ use crate::domain::relation_engine::strategy::RoutingStrategy;
 pub struct RelationEngine {
     pub state: CanvasState,
     pub cache: RelationCache,
+    pub config: RelationEngineConfig,
 }
 
 impl RelationEngine {
-    pub fn new() -> Self {
+    pub fn new(config: RelationEngineConfig) -> Self {
         Self {
             state: CanvasState::new(),
             cache: RelationCache::new(),
+            config,
         }
     }
 
@@ -42,26 +45,25 @@ impl RelationEngine {
         nodes: &[InputNode],
         edges: &[InputEdge],
         config: &RelationEngineConfig,
-        relation_ids: Option<&[String]>,
+        relation_ids: Option<&[TypedRecordId]>,
     ) -> Vec<ComputedRelation> {
-        let mut engine = Self::new();
+        let mut engine = Self::new(config.clone());
         engine.compute_relations_stateful(nodes, edges, config, relation_ids)
     }
-
 
     pub fn compute_relations_stateful(
         &mut self,
         nodes: &[InputNode],
         edges: &[InputEdge],
         config: &RelationEngineConfig,
-        relation_ids: Option<&[String]>,
+        relation_ids: Option<&[TypedRecordId]>,
     ) -> Vec<ComputedRelation> {
         let apply_compose = config.apply_compose;
         let margin = config.routing.margin();
 
         // 1. Sync removed nodes
-        let incoming_node_ids: HashSet<String> = nodes.iter().map(|n| n.id.clone()).collect();
-        let current_node_ids: Vec<String> = self.state.nodes.keys().cloned().collect();
+        let incoming_node_ids: HashSet<TypedRecordId> = nodes.iter().map(|n| n.id.clone()).collect();
+        let current_node_ids: Vec<TypedRecordId> = self.state.nodes.keys().cloned().collect();
         for id in current_node_ids {
             if !incoming_node_ids.contains(&id) {
                 self.state.remove_node(&id);
@@ -83,7 +85,7 @@ impl RelationEngine {
         // 4. Filter edges by relation_ids if specified
         let mut edges_to_compute = edges.to_vec();
         if let Some(ids) = relation_ids {
-            let id_set: HashSet<&String> = ids.iter().collect();
+            let id_set: HashSet<&TypedRecordId> = ids.iter().collect();
             edges_to_compute.retain(|e| id_set.contains(&e.id));
         }
 
@@ -131,7 +133,7 @@ impl RelationEngine {
         if compose_run {
             let mut paths: Vec<Vec<Point>> = results.iter().map(|r| r.path_points.clone()).collect();
             let configs: Vec<RoutingConfig> = edges_to_compute.iter().map(|_| config.routing.clone()).collect();
-            let relation_ids_str: Vec<String> = edges_to_compute.iter().map(|e| e.id.clone()).collect();
+            let relation_ids_str: Vec<String> = edges_to_compute.iter().map(|e| e.id.to_string()).collect();
             let nudge_colors = crate::domain::relation_engine::compose::compose(
                 &mut paths,
                 &configs,
@@ -188,7 +190,7 @@ impl RelationEngine {
         self.compute_relations_stateful(nodes, edges, config, Some(&dirty_ids))
     }
 
-    pub fn apply_cache_patch(&mut self, id: &str, patch: &crate::domain::patches::EntityPatch, margin: f64) {
+    pub fn apply_cache_patch(&mut self, id: &TypedRecordId, patch: &crate::domain::patches::EntityPatch, margin: f64) {
         use crate::domain::patches::{EntityPatch, NodePatch};
         match patch {
             EntityPatch::Node(patches) => {
@@ -216,7 +218,7 @@ impl RelationEngine {
             }
             EntityPatch::DeleteNode(node_val, _) => {
                 use crate::domain::nodes::IsNode;
-                self.state.remove_node(&node_val.id().to_string());
+                self.state.remove_node(node_val.id());
             }
             _ => {}
         }
@@ -249,7 +251,7 @@ fn build_grid(nodes: &[InputNode], config: &RoutingConfig, start: Point, end: Po
 
 pub fn compute_single_relation(
     edge: &InputEdge,
-    node_map: &HashMap<String, InputNode>,
+    node_map: &HashMap<TypedRecordId, InputNode>,
     obstacles: &[InputNode],
     config: &RelationEngineConfig,
 ) -> ComputedRelation {

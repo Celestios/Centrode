@@ -5,12 +5,15 @@
 
 import '../../frb_generated.dart';
 import '../enums.dart';
+import '../id.dart';
+import '../traits.dart';
 import 'config.dart';
 import 'geometry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:uuid/uuid.dart';
 
 class ComputedRelation {
-  final String id;
+  final TypedRecordId id;
   final List<Point> pathPoints;
   final PathType pathType;
   final Point startTangent;
@@ -30,7 +33,7 @@ class ComputedRelation {
   final Point endArrowCenter;
   final double startMargin;
   final double endMargin;
-  final List<String> dependsOnNodes;
+  final List<TypedRecordId> dependsOnNodes;
   final String? bundleId;
   final double? bundleOffset;
   final List<Point> controlPoints;

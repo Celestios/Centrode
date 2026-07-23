@@ -1,3 +1,4 @@
+use crate::domain::id::TypedRecordId;
 use crate::domain::relation_engine::geometry::{Point, Rect};
 use crate::domain::styles::{EndpointShape, PortSide};
 
@@ -21,7 +22,7 @@ pub enum LabelAnchor {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ComputedRelation {
-    pub id: String,
+    pub id: TypedRecordId,
     pub path_points: Vec<Point>,
     pub path_type: PathType,
     pub start_tangent: Point,
@@ -41,7 +42,7 @@ pub struct ComputedRelation {
     pub end_arrow_center: Point,
     pub start_margin: f64,
     pub end_margin: f64,
-    pub depends_on_nodes: Vec<String>,
+    pub depends_on_nodes: Vec<TypedRecordId>,
     pub bundle_id: Option<String>,
     pub bundle_offset: Option<f64>,
     // PathForger additions:
@@ -53,7 +54,7 @@ pub struct ComputedRelation {
 }
 
 impl ComputedRelation {
-    pub fn new_basic(id: String, path_points: Vec<Point>, path_type: PathType) -> Self {
+    pub fn new_basic(id: TypedRecordId, path_points: Vec<Point>, path_type: PathType) -> Self {
         Self {
             id,
             path_points,

@@ -86,14 +86,14 @@ impl MetadataFfi {
     ) -> anyhow::Result<()> {
         let mut nodes = Vec::new();
         for key in node_keys {
-            if let Some(n) = self.repo.get_node(key.table.table_name().to_string(), key.key.to_string()).await? {
+            if let Some(n) = self.repo.get_node(key).await? {
                 nodes.push(n);
             }
         }
 
         let mut relations = Vec::new();
         for key in relation_keys {
-            if let Ok(r) = self.repo.get_relation(key.table.table_name().to_string(), key.key.to_string()).await {
+            if let Ok(r) = self.repo.get_relation(key).await {
                 relations.push(r);
             }
         }

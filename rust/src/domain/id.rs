@@ -20,6 +20,11 @@ impl TypedRecordId {
     }
 
     #[inline]
+    pub const fn nil(table: TableKind) -> Self {
+        Self { table, key: Uuid::nil() }
+    }
+
+    #[inline]
     pub fn new_v4(table: TableKind) -> Self {
         Self::new(table, Uuid::new_v4())
     }
@@ -48,6 +53,19 @@ impl TypedRecordId {
         let table = TableKind::try_from(bytes[0])?;
         let key = Uuid::from_slice(&bytes[1..17])?;
         Ok(Self { table, key })
+    }
+}
+
+impl From<&str> for TypedRecordId {
+    fn from(s: &str) -> Self {
+        let clean = s.split(':').last().unwrap_or(s);
+        let u = Uuid::parse_str(clean).expect("expected a valid UUID string for TypedRecordId");
+        let table = if let Some((tbl, _)) = s.split_once(':') {
+            TableKind::from_table_name(tbl).unwrap_or(TableKind::INode)
+        } else {
+            TableKind::INode
+        };
+        Self::new(table, u)
     }
 }
 

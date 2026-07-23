@@ -98,7 +98,8 @@ impl AppHandle {
     }
 
     pub fn with_repository(repo: Repository) -> Self {
-        let relation_engine = std::sync::Arc::new(Mutex::new(RelationEngine::new()));
+        use crate::domain::relation_engine::config::RelationEngineConfig;
+        let relation_engine = std::sync::Arc::new(Mutex::new(RelationEngine::new(RelationEngineConfig::default())));
         Self {
             repo: repo.clone(),
             relation_engine: relation_engine.clone(),
@@ -116,8 +117,8 @@ impl AppHandle {
         self.node_ffi.create_node(input, &self.relation_engine).await
     }
 
-    pub async fn get_node(&self, table: String, key: String) -> anyhow::Result<Option<Nodes>> {
-        self.node_ffi.get_node(table, key).await
+    pub async fn get_node(&self, id: TypedRecordId) -> anyhow::Result<Option<Nodes>> {
+        self.node_ffi.get_node(id).await
     }
 
     pub async fn update_node(&self, input: Nodes) -> anyhow::Result<()> {
@@ -131,16 +132,16 @@ impl AppHandle {
         self.node_ffi.apply_entity_mutation(mutation, &self.relation_engine).await
     }
 
-    pub async fn delete_node_entry(&self, table: String, key: String) -> anyhow::Result<()> {
-        self.node_ffi.delete_node_entry(table, key).await
+    pub async fn delete_node_entry(&self, id: TypedRecordId) -> anyhow::Result<()> {
+        self.node_ffi.delete_node_entry(id).await
     }
 
     pub async fn create_relation(&self, input: IRelation) -> anyhow::Result<()> {
         self.relation_ffi.create_relation(input).await
     }
 
-    pub async fn delete_relation(&self, table: String, key: String) -> anyhow::Result<()> {
-        self.relation_ffi.delete_relation(table, key).await
+    pub async fn delete_relation(&self, id: TypedRecordId) -> anyhow::Result<()> {
+        self.relation_ffi.delete_relation(id).await
     }
 
     pub async fn update_relation(&self, input: IRelation) -> anyhow::Result<()> {
@@ -333,14 +334,14 @@ impl AppHandle {
     pub async fn compute_relations(
         &self,
         config: crate::domain::relation_engine::config::RelationEngineConfig,
-        relation_ids: Option<Vec<String>>,
+        relation_ids: Option<Vec<TypedRecordId>>,
     ) -> anyhow::Result<Vec<crate::domain::relation_engine::computed::ComputedRelation>> {
         self.relation_ffi.compute_relations(config, relation_ids).await
     }
 
     pub fn update_node_cache_positions(
         &self,
-        positions: Vec<(String, f64, f64, f64, f64)>,
+        positions: Vec<(TypedRecordId, f64, f64, f64, f64)>,
     ) {
         self.node_ffi.update_node_cache_positions(positions, &self.relation_engine)
     }
@@ -348,9 +349,9 @@ impl AppHandle {
     pub async fn compute_single_relation(
         &self,
         config: crate::domain::relation_engine::config::RelationEngineConfig,
-        edge_id: String,
-        from_node_id: String,
-        to_node_id: String,
+        edge_id: TypedRecordId,
+        from_node_id: TypedRecordId,
+        to_node_id: TypedRecordId,
         from_side: Option<crate::domain::styles::PortSide>,
         to_side: Option<crate::domain::styles::PortSide>,
         routing_mode: Option<crate::domain::relation_engine::config::RoutingMode>,

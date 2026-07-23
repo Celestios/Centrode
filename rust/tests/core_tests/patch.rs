@@ -85,7 +85,7 @@ async fn test_targeted_patch_and_history() {
 
     // Verify forward state
     let fetched = repo
-        .get_node("INode".to_string(), inode_id.key.to_string())
+        .get_node(inode_id)
         .await
         .unwrap()
         .unwrap();
@@ -124,7 +124,7 @@ async fn test_targeted_patch_and_history() {
 
     // Verify undone state
     let fetched_undone = repo
-        .get_node("INode".to_string(), inode_id.key.to_string())
+        .get_node(inode_id)
         .await
         .unwrap()
         .unwrap();
@@ -150,7 +150,7 @@ async fn test_targeted_patch_and_history() {
 
     // Verify redone state
     let fetched_redone = repo
-        .get_node("INode".to_string(), inode_id.key.to_string())
+        .get_node(inode_id)
         .await
         .unwrap()
         .unwrap();
@@ -280,7 +280,7 @@ async fn test_relation_patching() {
         .unwrap();
 
     let fetched = repo
-        .get_relation("IRelation".to_string(), rel_id.key.to_string())
+        .get_relation(rel_id)
         .await
         .unwrap();
     assert_eq!(fetched.fields.verb, "patched_verb");
@@ -384,12 +384,12 @@ async fn test_create_and_delete_entity_patches() {
 
     // Verify node and relation were created
     assert!(repo
-        .get_node("INode".to_string(), in_id.key.to_string())
+        .get_node(in_id)
         .await
         .unwrap()
         .is_some());
     assert!(repo
-        .get_relation("IRelation".to_string(), rel_id.key.to_string())
+        .get_relation(rel_id)
         .await
         .is_ok());
 
@@ -399,7 +399,7 @@ async fn test_create_and_delete_entity_patches() {
         .await
         .unwrap();
     assert!(repo
-        .get_relation("IRelation".to_string(), rel_id.key.to_string())
+        .get_relation(rel_id)
         .await
         .is_err());
 
@@ -409,7 +409,7 @@ async fn test_create_and_delete_entity_patches() {
         .await
         .unwrap();
     assert!(repo
-        .get_relation("IRelation".to_string(), rel_id.key.to_string())
+        .get_relation(rel_id)
         .await
         .is_ok());
 
@@ -419,7 +419,7 @@ async fn test_create_and_delete_entity_patches() {
         .await
         .unwrap();
     assert!(repo
-        .get_node("INode".to_string(), in_id.key.to_string())
+        .get_node(in_id)
         .await
         .unwrap()
         .is_none());

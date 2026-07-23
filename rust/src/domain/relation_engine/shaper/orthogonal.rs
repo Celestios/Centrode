@@ -121,7 +121,9 @@ impl Shaper for OrthogonalShaper {
         } else {
             simplified.clone()
         };
-        let mut computed = ComputedRelation::new_basic(String::new(), path_points, PathType::Orthogonal);
+        use crate::domain::id::TypedRecordId;
+        use crate::domain::traits::TableKind;
+        let mut computed = ComputedRelation::new_basic(TypedRecordId::nil(TableKind::IRelation), path_points, PathType::Orthogonal);
         computed.control_points = simplified;
         computed
     }

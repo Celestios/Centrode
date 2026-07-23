@@ -1,5 +1,10 @@
+use rust_lib_mycelium::domain::id::TypedRecordId;
 use rust_lib_mycelium::domain::relation_engine::input::{InputEdge, InputNode};
 use rust_lib_mycelium::domain::styles::PortSide;
+use rust_lib_mycelium::domain::traits::TableKind;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct Scenario {
@@ -9,9 +14,20 @@ pub struct Scenario {
     pub edges: Vec<InputEdge>,
 }
 
+fn str_to_uuid(s: &str) -> Uuid {
+    let mut hasher = DefaultHasher::new();
+    s.hash(&mut hasher);
+    let hash = hasher.finish();
+    Uuid::from_u128(hash as u128)
+}
+
+fn tid(table: TableKind, s: &str) -> TypedRecordId {
+    TypedRecordId::new(table, str_to_uuid(s))
+}
+
 fn node(id: &str, x: f64, y: f64, w: f64, h: f64) -> InputNode {
     InputNode {
-        id: id.to_string(),
+        id: tid(TableKind::INode, id),
         x,
         y,
         width: w,
@@ -22,9 +38,9 @@ fn node(id: &str, x: f64, y: f64, w: f64, h: f64) -> InputNode {
 
 fn edge(id: &str, from: &str, to: &str, fs: Option<PortSide>, ts: Option<PortSide>) -> InputEdge {
     InputEdge {
-        id: id.to_string(),
-        from_node_id: from.to_string(),
-        to_node_id: to.to_string(),
+        id: tid(TableKind::IRelation, id),
+        from_node_id: tid(TableKind::INode, from),
+        to_node_id: tid(TableKind::INode, to),
         from_side: fs,
         to_side: ts,
         routing_mode: None,
@@ -236,7 +252,7 @@ pub fn all_scenarios() -> Vec<Scenario> {
                     let width = rng.next_range(60.0, 150.0);
                     let height = rng.next_range(50.0, 120.0);
                     nodes.push(InputNode {
-                        id: id.clone(),
+                        id: tid(TableKind::INode, &id),
                         x: x_base + dx - width / 2.0,
                         y: y_base + dy - height / 2.0,
                         width,
@@ -260,9 +276,9 @@ pub fn all_scenarios() -> Vec<Scenario> {
                 let fs = sides[(rng.next() as usize) % 4].clone();
                 let ts = sides[(rng.next() as usize) % 4].clone();
                 edges.push(InputEdge {
-                    id: format!("e{}", i + 1),
-                    from_node_id: from_id.clone(),
-                    to_node_id: to_id.clone(),
+                    id: tid(TableKind::IRelation, &format!("e{}", i + 1)),
+                    from_node_id: tid(TableKind::INode, from_id),
+                    to_node_id: tid(TableKind::INode, to_id),
                     from_side: Some(fs),
                     to_side: Some(ts),
                     routing_mode: None,
@@ -293,25 +309,25 @@ pub fn all_scenarios() -> Vec<Scenario> {
             filename: "23_star_radial",
             nodes: vec![
                 InputNode {
-                    id: "hub".into(), x: 360.0, y: 260.0, width: 140.0, height: 100.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "hub"), x: 360.0, y: 260.0, width: 140.0, height: 100.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n0".into(), x: 650.0, y: 270.0, width: 100.0, height: 60.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n0"), x: 650.0, y: 270.0, width: 100.0, height: 60.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n1".into(), x: 520.0, y: 50.0, width: 100.0, height: 60.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n1"), x: 520.0, y: 50.0, width: 100.0, height: 60.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n2".into(), x: 250.0, y: 50.0, width: 100.0, height: 60.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n2"), x: 250.0, y: 50.0, width: 100.0, height: 60.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n3".into(), x: 120.0, y: 280.0, width: 100.0, height: 60.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n3"), x: 120.0, y: 280.0, width: 100.0, height: 60.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n4".into(), x: 260.0, y: 510.0, width: 100.0, height: 60.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n4"), x: 260.0, y: 510.0, width: 100.0, height: 60.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n5".into(), x: 530.0, y: 510.0, width: 100.0, height: 60.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n5"), x: 530.0, y: 510.0, width: 100.0, height: 60.0, is_obstacle: true,
                 },
             ],
             edges: vec![
@@ -328,28 +344,28 @@ pub fn all_scenarios() -> Vec<Scenario> {
             filename: "24_fan_out",
             nodes: vec![
                 InputNode {
-                    id: "hub".into(), x: 100.0, y: 300.0, width: 140.0, height: 100.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "hub"), x: 100.0, y: 300.0, width: 140.0, height: 100.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n0".into(), x: 550.0, y: 150.0, width: 90.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n0"), x: 550.0, y: 150.0, width: 90.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n1".into(), x: 620.0, y: 270.0, width: 90.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n1"), x: 620.0, y: 270.0, width: 90.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n2".into(), x: 550.0, y: 400.0, width: 90.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n2"), x: 550.0, y: 400.0, width: 90.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n3".into(), x: 420.0, y: 90.0, width: 90.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n3"), x: 420.0, y: 90.0, width: 90.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n4".into(), x: 420.0, y: 470.0, width: 90.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n4"), x: 420.0, y: 470.0, width: 90.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n5".into(), x: 280.0, y: 80.0, width: 90.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n5"), x: 280.0, y: 80.0, width: 90.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n6".into(), x: 280.0, y: 490.0, width: 90.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n6"), x: 280.0, y: 490.0, width: 90.0, height: 50.0, is_obstacle: true,
                 },
             ],
             edges: vec![
@@ -367,25 +383,25 @@ pub fn all_scenarios() -> Vec<Scenario> {
             filename: "25_surround",
             nodes: vec![
                 InputNode {
-                    id: "hub".into(), x: 300.0, y: 230.0, width: 140.0, height: 100.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "hub"), x: 300.0, y: 230.0, width: 140.0, height: 100.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n_top".into(), x: 330.0, y: 60.0, width: 80.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n_top"), x: 330.0, y: 60.0, width: 80.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n_right".into(), x: 560.0, y: 260.0, width: 80.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n_right"), x: 560.0, y: 260.0, width: 80.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n_bottom".into(), x: 330.0, y: 460.0, width: 80.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n_bottom"), x: 330.0, y: 460.0, width: 80.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n_left".into(), x: 100.0, y: 260.0, width: 80.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n_left"), x: 100.0, y: 260.0, width: 80.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n_tr".into(), x: 560.0, y: 60.0, width: 80.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n_tr"), x: 560.0, y: 60.0, width: 80.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n_bl".into(), x: 100.0, y: 460.0, width: 80.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n_bl"), x: 100.0, y: 460.0, width: 80.0, height: 50.0, is_obstacle: true,
                 },
             ],
             edges: vec![
@@ -402,22 +418,22 @@ pub fn all_scenarios() -> Vec<Scenario> {
             filename: "26_staircase",
             nodes: vec![
                 InputNode {
-                    id: "hub".into(), x: 80.0, y: 150.0, width: 140.0, height: 100.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "hub"), x: 80.0, y: 150.0, width: 140.0, height: 100.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n0".into(), x: 360.0, y: 80.0, width: 90.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n0"), x: 360.0, y: 80.0, width: 90.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n1".into(), x: 520.0, y: 180.0, width: 90.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n1"), x: 520.0, y: 180.0, width: 90.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n2".into(), x: 680.0, y: 280.0, width: 90.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n2"), x: 680.0, y: 280.0, width: 90.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n3".into(), x: 840.0, y: 380.0, width: 90.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n3"), x: 840.0, y: 380.0, width: 90.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n4".into(), x: 1000.0, y: 480.0, width: 90.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n4"), x: 1000.0, y: 480.0, width: 90.0, height: 50.0, is_obstacle: true,
                 },
             ],
             edges: vec![
@@ -433,31 +449,31 @@ pub fn all_scenarios() -> Vec<Scenario> {
             filename: "27_dense_cluster",
             nodes: vec![
                 InputNode {
-                    id: "hub".into(), x: 270.0, y: 210.0, width: 120.0, height: 90.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "hub"), x: 270.0, y: 210.0, width: 120.0, height: 90.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n0".into(), x: 290.0, y: 60.0, width: 60.0, height: 40.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n0"), x: 290.0, y: 60.0, width: 60.0, height: 40.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n1".into(), x: 390.0, y: 70.0, width: 60.0, height: 40.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n1"), x: 390.0, y: 70.0, width: 60.0, height: 40.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n2".into(), x: 460.0, y: 150.0, width: 60.0, height: 40.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n2"), x: 460.0, y: 150.0, width: 60.0, height: 40.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n3".into(), x: 460.0, y: 300.0, width: 60.0, height: 40.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n3"), x: 460.0, y: 300.0, width: 60.0, height: 40.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n4".into(), x: 380.0, y: 380.0, width: 60.0, height: 40.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n4"), x: 380.0, y: 380.0, width: 60.0, height: 40.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n5".into(), x: 270.0, y: 390.0, width: 60.0, height: 40.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n5"), x: 270.0, y: 390.0, width: 60.0, height: 40.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n6".into(), x: 160.0, y: 310.0, width: 60.0, height: 40.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n6"), x: 160.0, y: 310.0, width: 60.0, height: 40.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n7".into(), x: 160.0, y: 140.0, width: 60.0, height: 40.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n7"), x: 160.0, y: 140.0, width: 60.0, height: 40.0, is_obstacle: true,
                 },
             ],
             edges: vec![
@@ -476,25 +492,25 @@ pub fn all_scenarios() -> Vec<Scenario> {
             filename: "28_opposite_sides",
             nodes: vec![
                 InputNode {
-                    id: "hub".into(), x: 350.0, y: 260.0, width: 120.0, height: 90.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "hub"), x: 350.0, y: 260.0, width: 120.0, height: 90.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n_l0".into(), x: 100.0, y: 150.0, width: 80.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n_l0"), x: 100.0, y: 150.0, width: 80.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n_l1".into(), x: 100.0, y: 260.0, width: 80.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n_l1"), x: 100.0, y: 260.0, width: 80.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n_l2".into(), x: 100.0, y: 370.0, width: 80.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n_l2"), x: 100.0, y: 370.0, width: 80.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n_r0".into(), x: 620.0, y: 150.0, width: 80.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n_r0"), x: 620.0, y: 150.0, width: 80.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n_r1".into(), x: 620.0, y: 260.0, width: 80.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n_r1"), x: 620.0, y: 260.0, width: 80.0, height: 50.0, is_obstacle: true,
                 },
                 InputNode {
-                    id: "n_r2".into(), x: 620.0, y: 370.0, width: 80.0, height: 50.0, is_obstacle: true,
+                    id: tid(TableKind::INode, "n_r2"), x: 620.0, y: 370.0, width: 80.0, height: 50.0, is_obstacle: true,
                 },
             ],
             edges: vec![

@@ -8,7 +8,7 @@ impl InputNode {
             Nodes::INode(_) | Nodes::TaskNode(_) => true,
             _ => false,
         };
-        let key = node.id().to_string();
+        let id = node.id().clone();
         let pos = node.position();
         let (x, y) = (pos.x as f64, pos.y as f64);
         let (width, height) = match node {
@@ -22,7 +22,7 @@ impl InputNode {
             Nodes::InterNode(_) => (0.0, 0.0),
         };
         Some(Self {
-            id: key,
+            id,
             x,
             y,
             width,
@@ -63,9 +63,9 @@ impl InputEdge {
         });
 
         Self {
-            id: rel.key.to_string(),
-            from_node_id: rel.in_.to_string(),
-            to_node_id: rel.out.to_string(),
+            id: rel.key.clone(),
+            from_node_id: rel.in_.clone(),
+            to_node_id: rel.out.clone(),
             from_side,
             to_side,
             routing_mode,

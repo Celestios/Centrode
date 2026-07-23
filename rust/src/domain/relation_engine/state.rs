@@ -1,13 +1,14 @@
 use std::collections::{HashMap, HashSet};
+use crate::domain::id::TypedRecordId;
 use crate::domain::relation_engine::geometry::Rect;
 use crate::domain::relation_engine::types::InputNode;
 use crate::domain::relation_engine::computed::ComputedRelation;
 
 pub struct IncrementalState {
-    pub dependencies: HashMap<String, Vec<String>>,
-    pub bboxes: HashMap<String, Rect>,
-    pub dirty_nodes: HashSet<String>,
-    pub dirty_relations: HashSet<String>,
+    pub dependencies: HashMap<TypedRecordId, Vec<TypedRecordId>>,
+    pub bboxes: HashMap<TypedRecordId, Rect>,
+    pub dirty_nodes: HashSet<TypedRecordId>,
+    pub dirty_relations: HashSet<TypedRecordId>,
 }
 
 impl IncrementalState {
@@ -20,35 +21,35 @@ impl IncrementalState {
         }
     }
 
-    pub fn register(&mut self, relation_id: String, depends_on_nodes: Vec<String>, bbox: Rect) {
+    pub fn register(&mut self, relation_id: TypedRecordId, depends_on_nodes: Vec<TypedRecordId>, bbox: Rect) {
         self.dependencies.insert(relation_id.clone(), depends_on_nodes);
         self.bboxes.insert(relation_id, bbox);
     }
 
-    pub fn unregister(&mut self, relation_id: &str) {
+    pub fn unregister(&mut self, relation_id: &TypedRecordId) {
         self.dependencies.remove(relation_id);
         self.bboxes.remove(relation_id);
         self.dirty_relations.remove(relation_id);
     }
 
-    pub fn mark_node_dirty(&mut self, node_id: String) {
+    pub fn mark_node_dirty(&mut self, node_id: TypedRecordId) {
         self.dirty_nodes.insert(node_id);
     }
 
-    pub fn mark_relation_dirty(&mut self, relation_id: String) {
+    pub fn mark_relation_dirty(&mut self, relation_id: TypedRecordId) {
         self.dirty_relations.insert(relation_id);
     }
 
     pub fn mark_all_dirty(&mut self) {
-        let keys: Vec<String> = self.dependencies.keys().cloned().collect();
+        let keys: Vec<TypedRecordId> = self.dependencies.keys().cloned().collect();
         self.dirty_relations.extend(keys);
     }
 
     pub fn dirty_relation_ids(
         &self,
-        dirty_node_positions: &HashMap<String, Rect>,
+        dirty_node_positions: &HashMap<TypedRecordId, Rect>,
         margin: f64,
-    ) -> Vec<String> {
+    ) -> Vec<TypedRecordId> {
         let mut affected = self.dirty_relations.clone();
 
         for dirty_node in &self.dirty_nodes {
@@ -60,7 +61,7 @@ impl IncrementalState {
         }
 
         for (rel_id, rel_bbox) in &self.bboxes {
-            if affected.contains(rel_id.as_str()) {
+            if affected.contains(rel_id) {
                 continue;
             }
             for (node_id, node_bbox) in dirty_node_positions {
@@ -82,7 +83,7 @@ impl IncrementalState {
         self.dirty_relations.clear();
     }
 
-    pub fn clear_dirty_id(&mut self, relation_id: &str) {
+    pub fn clear_dirty_id(&mut self, relation_id: &TypedRecordId) {
         self.dirty_relations.remove(relation_id);
     }
 
@@ -99,8 +100,8 @@ impl IncrementalState {
 }
 
 pub struct CanvasState {
-    pub nodes: HashMap<String, InputNode>,
-    pub relations: HashMap<String, ComputedRelation>,
+    pub nodes: HashMap<TypedRecordId, InputNode>,
+    pub relations: HashMap<TypedRecordId, ComputedRelation>,
     pub incremental: IncrementalState,
 }
 
@@ -135,7 +136,7 @@ impl CanvasState {
         self.incremental.mark_node_dirty(node.id);
     }
 
-    pub fn remove_node(&mut self, node_id: &str) {
+    pub fn remove_node(&mut self, node_id: &TypedRecordId) {
         self.nodes.remove(node_id);
 
         let mut to_invalidate = Vec::new();
@@ -150,7 +151,7 @@ impl CanvasState {
             self.incremental.mark_relation_dirty(rel_id);
         }
 
-        self.incremental.mark_node_dirty(node_id.to_string());
+        self.incremental.mark_node_dirty(node_id.clone());
     }
 
     pub fn clear(&mut self) {
@@ -161,7 +162,7 @@ impl CanvasState {
 }
 
 pub struct RelationCache {
-    pub routes: HashMap<String, ComputedRelation>,
+    pub routes: HashMap<TypedRecordId, ComputedRelation>,
 }
 
 impl RelationCache {
@@ -171,15 +172,15 @@ impl RelationCache {
         }
     }
 
-    pub fn get(&self, relation_id: &str) -> Option<&ComputedRelation> {
+    pub fn get(&self, relation_id: &TypedRecordId) -> Option<&ComputedRelation> {
         self.routes.get(relation_id)
     }
 
-    pub fn insert(&mut self, relation_id: String, relation: ComputedRelation) {
+    pub fn insert(&mut self, relation_id: TypedRecordId, relation: ComputedRelation) {
         self.routes.insert(relation_id, relation);
     }
 
-    pub fn remove(&mut self, relation_id: &str) {
+    pub fn remove(&mut self, relation_id: &TypedRecordId) {
         self.routes.remove(relation_id);
     }
 

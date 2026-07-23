@@ -1,13 +1,29 @@
+use rust_lib_mycelium::domain::id::TypedRecordId;
 use rust_lib_mycelium::domain::relation_engine::{
     engine::RelationEngine,
     config::{RelationEngineConfig, RoutingMode},
     types::{InputNode, InputEdge},
 };
 use rust_lib_mycelium::domain::styles::PortSide;
+use rust_lib_mycelium::domain::traits::TableKind;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+use uuid::Uuid;
+
+fn str_to_uuid(s: &str) -> Uuid {
+    let mut hasher = DefaultHasher::new();
+    s.hash(&mut hasher);
+    let hash = hasher.finish();
+    Uuid::from_u128(hash as u128)
+}
+
+fn tid(table: TableKind, s: &str) -> TypedRecordId {
+    TypedRecordId::new(table, str_to_uuid(s))
+}
 
 fn create_node(id: &str, x: f64, y: f64, w: f64, h: f64) -> InputNode {
     InputNode {
-        id: id.to_string(),
+        id: tid(TableKind::INode, id),
         x,
         y,
         width: w,
@@ -18,9 +34,9 @@ fn create_node(id: &str, x: f64, y: f64, w: f64, h: f64) -> InputNode {
 
 fn create_edge(id: &str, from: &str, to: &str, mode: RoutingMode) -> InputEdge {
     InputEdge {
-        id: id.to_string(),
-        from_node_id: from.to_string(),
-        to_node_id: to.to_string(),
+        id: tid(TableKind::IRelation, id),
+        from_node_id: tid(TableKind::INode, from),
+        to_node_id: tid(TableKind::INode, to),
         from_side: Some(PortSide::Right),
         to_side: Some(PortSide::Left),
         routing_mode: Some(mode),

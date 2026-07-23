@@ -1,3 +1,5 @@
+use crate::domain::id::TypedRecordId;
+use crate::domain::traits::TableKind;
 use crate::domain::relation_engine::geometry::Point;
 use crate::domain::relation_engine::shaper::core::{Shaper, ShaperContext};
 use crate::domain::relation_engine::computed::{ComputedRelation, PathType};
@@ -96,7 +98,7 @@ impl Shaper for BSplineShaper {
             context.end_stub_len > 0.0,
         );
         let (bspline_pts, knots) = evaluate_bspline(&simplified, bspline_samples);
-        let mut computed = ComputedRelation::new_basic(String::new(), bspline_pts, PathType::BSpline);
+        let mut computed = ComputedRelation::new_basic(TypedRecordId::nil(TableKind::IRelation), bspline_pts, PathType::BSpline);
         computed.control_points = simplified;
         computed.knots = knots;
         computed
@@ -106,7 +108,7 @@ impl Shaper for BSplineShaper {
         let path_len = crate::domain::relation_engine::geometry::polyline_length(prepped_path);
         let bspline_samples = ((path_len / 5.0).clamp(10.0, 200.0)) as usize;
         let (bspline_pts, knots) = evaluate_bspline(prepped_path, bspline_samples);
-        let mut computed = ComputedRelation::new_basic(String::new(), bspline_pts, PathType::BSpline);
+        let mut computed = ComputedRelation::new_basic(TypedRecordId::nil(TableKind::IRelation), bspline_pts, PathType::BSpline);
         computed.control_points = prepped_path.to_vec();
         computed.knots = knots;
         computed

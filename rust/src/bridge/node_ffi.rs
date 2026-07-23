@@ -36,17 +36,16 @@ impl NodeFfi {
         Ok(())
     }
 
-    pub async fn get_node(&self, table: String, key: String) -> anyhow::Result<Option<Nodes>> {
-        debug!("Fetching node: {}/{}", &table, &key);
-        self.repo.get_node(table, key).await
+    pub async fn get_node(&self, id: TypedRecordId) -> anyhow::Result<Option<Nodes>> {
+        debug!("Fetching node: {:?}", id);
+        self.repo.get_node(id).await
     }
 
     pub async fn update_node(&self, input: Nodes) -> anyhow::Result<()> {
-        let (table, key) = input.table_and_key();
         let id = *input.id();
         if let Some(old) = self
             .repo
-            .get_node(table.to_string(), key.to_string())
+            .get_node(id)
             .await?
         {
             self.repo.update_node(input.clone()).await.map_err(|e| {
@@ -84,7 +83,7 @@ impl NodeFfi {
         }
         let margin = RelationEngineConfig::default().routing.obstacle_margin;
         if let Ok(mut engine) = relation_engine.lock() {
-            engine.apply_cache_patch(&mutation.id.key.to_string(), &mutation.forward, margin);
+            engine.apply_cache_patch(&mutation.id, &mutation.forward, margin);
         }
         self.repo
             .record_patch_history(mutation.id, mutation.forward, mutation.reverse)
@@ -94,21 +93,16 @@ impl NodeFfi {
 
     pub async fn delete_node_entry(
         &self,
-        table: String,
-        key: String,
+        id: TypedRecordId,
     ) -> anyhow::Result<()> {
-        debug!("Deleting node: {}/{}", table, key);
-        let Some(node) = self.repo.get_node(table.clone(), key.clone()).await? else {
+        debug!("Deleting node: {:?}", id);
+        let Some(node) = self.repo.get_node(id).await? else {
             return Err(anyhow::anyhow!("Node not found for deletion"));
         };
 
-        let connected_relations = self.repo.get_connected_relations(&key).await?;
+        let connected_relations = self.repo.get_connected_relations(&id).await?;
 
-        self.repo.delete_node(table.clone(), key.clone()).await?;
-
-        let u = uuid::Uuid::parse_str(&key).unwrap_or_else(|_| uuid::Uuid::nil());
-        let tk = TableKind::from_table_name(&table).unwrap_or(TableKind::INode);
-        let id = TypedRecordId::new(tk, u);
+        self.repo.delete_node(id).await?;
 
         self.repo
             .record_patch_history(
@@ -124,7 +118,7 @@ impl NodeFfi {
 
     pub fn update_node_cache_positions(
         &self,
-        positions: Vec<(String, f64, f64, f64, f64)>,
+        positions: Vec<(TypedRecordId, f64, f64, f64, f64)>,
         relation_engine: &Arc<Mutex<RelationEngine>>,
     ) {
         let margin = RelationEngineConfig::default().routing.obstacle_margin;

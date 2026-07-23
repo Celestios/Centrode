@@ -6,7 +6,7 @@ use surrealdb::Surreal;
 
 #[derive(Debug, Clone, SurrealValue)]
 pub struct HistoryRecord {
-    pub id: Option<String>,
+    pub id: Option<RecordId>,
     pub action_type: String,
     pub payload: Value,
     pub status: HistoryStatus,
@@ -77,21 +77,18 @@ impl<'a> HistoryManager<'a> {
         let mut response = self
             .db
             .query(
-                "SELECT <string> id AS id, action_type, payload, status, created_at FROM History WHERE status = 'applied' ORDER BY created_at DESC LIMIT 1",
+                "SELECT id, action_type, payload, status, created_at FROM History WHERE status = 'applied' ORDER BY created_at DESC LIMIT 1",
             )
             .await?;
         let record: Option<HistoryRecord> = response.take(0)?;
 
         let Some(mut rec) = record else { return Ok(None); };
-        let Some(ref id_str) = rec.id else { return Ok(Some(rec)); };
-
-        let (table, key) = id_str.split_once(':').unwrap_or(("History", id_str));
-        let record_id = RecordId::new(table, key);
+        let Some(ref record_id) = rec.id else { return Ok(Some(rec)); };
 
         // Mark it as "undone"
         self.db
             .query("UPDATE $id SET status = 'undone'")
-            .bind(("id", record_id))
+            .bind(("id", record_id.clone()))
             .await?;
 
         rec.status = HistoryStatus::Undone;
@@ -103,21 +100,18 @@ impl<'a> HistoryManager<'a> {
         let mut response = self
             .db
             .query(
-                "SELECT <string> id AS id, action_type, payload, status, created_at FROM History WHERE status = 'undone' ORDER BY created_at DESC LIMIT 1",
+                "SELECT id, action_type, payload, status, created_at FROM History WHERE status = 'undone' ORDER BY created_at DESC LIMIT 1",
             )
             .await?;
         let record: Option<HistoryRecord> = response.take(0)?;
 
         let Some(mut rec) = record else { return Ok(None); };
-        let Some(ref id_str) = rec.id else { return Ok(Some(rec)); };
-
-        let (table, key) = id_str.split_once(':').unwrap_or(("History", id_str));
-        let record_id = RecordId::new(table, key);
+        let Some(ref record_id) = rec.id else { return Ok(Some(rec)); };
 
         // Mark it as "applied"
         self.db
             .query("UPDATE $id SET status = 'applied'")
-            .bind(("id", record_id))
+            .bind(("id", record_id.clone()))
             .await?;
 
         rec.status = HistoryStatus::Applied;

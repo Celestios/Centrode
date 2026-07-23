@@ -368,7 +368,8 @@ fn wire__crate__bridge__api__AppHandle_compute_relations_impl(
                 <crate::domain::relation_engine::config::RelationEngineConfig>::sse_decode(
                     &mut deserializer,
                 );
-            let api_relation_ids = <Option<Vec<String>>>::sse_decode(&mut deserializer);
+            let api_relation_ids =
+                <Option<Vec<crate::domain::id::TypedRecordId>>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -433,9 +434,10 @@ fn wire__crate__bridge__api__AppHandle_compute_single_relation_impl(
                 <crate::domain::relation_engine::config::RelationEngineConfig>::sse_decode(
                     &mut deserializer,
                 );
-            let api_edge_id = <String>::sse_decode(&mut deserializer);
-            let api_from_node_id = <String>::sse_decode(&mut deserializer);
-            let api_to_node_id = <String>::sse_decode(&mut deserializer);
+            let api_edge_id = <crate::domain::id::TypedRecordId>::sse_decode(&mut deserializer);
+            let api_from_node_id =
+                <crate::domain::id::TypedRecordId>::sse_decode(&mut deserializer);
+            let api_to_node_id = <crate::domain::id::TypedRecordId>::sse_decode(&mut deserializer);
             let api_from_side =
                 <Option<crate::domain::styles::PortSide>>::sse_decode(&mut deserializer);
             let api_to_side =
@@ -818,8 +820,7 @@ fn wire__crate__bridge__api__AppHandle_delete_node_entry_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
             >>::sse_decode(&mut deserializer);
-            let api_table = <String>::sse_decode(&mut deserializer);
-            let api_key = <String>::sse_decode(&mut deserializer);
+            let api_id = <crate::domain::id::TypedRecordId>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -843,8 +844,7 @@ fn wire__crate__bridge__api__AppHandle_delete_node_entry_impl(
                         let api_that_guard = api_that_guard.unwrap();
                         let output_ok = crate::bridge::api::AppHandle::delete_node_entry(
                             &*api_that_guard,
-                            api_table,
-                            api_key,
+                            api_id,
                         )
                         .await?;
                         Ok(output_ok)
@@ -880,8 +880,7 @@ fn wire__crate__bridge__api__AppHandle_delete_relation_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
             >>::sse_decode(&mut deserializer);
-            let api_table = <String>::sse_decode(&mut deserializer);
-            let api_key = <String>::sse_decode(&mut deserializer);
+            let api_id = <crate::domain::id::TypedRecordId>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -905,8 +904,7 @@ fn wire__crate__bridge__api__AppHandle_delete_relation_impl(
                         let api_that_guard = api_that_guard.unwrap();
                         let output_ok = crate::bridge::api::AppHandle::delete_relation(
                             &*api_that_guard,
-                            api_table,
-                            api_key,
+                            api_id,
                         )
                         .await?;
                         Ok(output_ok)
@@ -1343,8 +1341,7 @@ fn wire__crate__bridge__api__AppHandle_get_node_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
             >>::sse_decode(&mut deserializer);
-            let api_table = <String>::sse_decode(&mut deserializer);
-            let api_key = <String>::sse_decode(&mut deserializer);
+            let api_id = <crate::domain::id::TypedRecordId>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -1366,12 +1363,9 @@ fn wire__crate__bridge__api__AppHandle_get_node_impl(
                             }
                         }
                         let api_that_guard = api_that_guard.unwrap();
-                        let output_ok = crate::bridge::api::AppHandle::get_node(
-                            &*api_that_guard,
-                            api_table,
-                            api_key,
-                        )
-                        .await?;
+                        let output_ok =
+                            crate::bridge::api::AppHandle::get_node(&*api_that_guard, api_id)
+                                .await?;
                         Ok(output_ok)
                     })()
                     .await,
@@ -2340,7 +2334,10 @@ fn wire__crate__bridge__api__AppHandle_update_node_cache_positions_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
             >>::sse_decode(&mut deserializer);
-            let api_positions = <Vec<(String, f64, f64, f64, f64)>>::sse_decode(&mut deserializer);
+            let api_positions =
+                <Vec<(crate::domain::id::TypedRecordId, f64, f64, f64, f64)>>::sse_decode(
+                    &mut deserializer,
+                );
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, ()>((move || {
@@ -3025,7 +3022,7 @@ impl SseDecode for crate::domain::nodes::CommentNode {
 impl SseDecode for crate::domain::relation_engine::computed::ComputedRelation {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_id = <crate::domain::id::TypedRecordId>::sse_decode(deserializer);
         let mut var_pathPoints =
             <Vec<crate::domain::relation_engine::geometry::Point>>::sse_decode(deserializer);
         let mut var_pathType =
@@ -3057,7 +3054,8 @@ impl SseDecode for crate::domain::relation_engine::computed::ComputedRelation {
             <crate::domain::relation_engine::geometry::Point>::sse_decode(deserializer);
         let mut var_startMargin = <f64>::sse_decode(deserializer);
         let mut var_endMargin = <f64>::sse_decode(deserializer);
-        let mut var_dependsOnNodes = <Vec<String>>::sse_decode(deserializer);
+        let mut var_dependsOnNodes =
+            <Vec<crate::domain::id::TypedRecordId>>::sse_decode(deserializer);
         let mut var_bundleId = <Option<String>>::sse_decode(deserializer);
         let mut var_bundleOffset = <Option<f64>>::sse_decode(deserializer);
         let mut var_controlPoints =
@@ -3684,13 +3682,15 @@ impl SseDecode for Vec<u8> {
     }
 }
 
-impl SseDecode for Vec<(String, f64, f64, f64, f64)> {
+impl SseDecode for Vec<(crate::domain::id::TypedRecordId, f64, f64, f64, f64)> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut len_ = <i32>::sse_decode(deserializer);
         let mut ans_ = vec![];
         for idx_ in 0..len_ {
-            ans_.push(<(String, f64, f64, f64, f64)>::sse_decode(deserializer));
+            ans_.push(
+                <(crate::domain::id::TypedRecordId, f64, f64, f64, f64)>::sse_decode(deserializer),
+            );
         }
         return ans_;
     }
@@ -4321,22 +4321,24 @@ impl SseDecode for Option<u8> {
     }
 }
 
-impl SseDecode for Option<Vec<String>> {
+impl SseDecode for Option<Vec<crate::domain::contents::TextMark>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
-            return Some(<Vec<String>>::sse_decode(deserializer));
+            return Some(<Vec<crate::domain::contents::TextMark>>::sse_decode(
+                deserializer,
+            ));
         } else {
             return None;
         }
     }
 }
 
-impl SseDecode for Option<Vec<crate::domain::contents::TextMark>> {
+impl SseDecode for Option<Vec<crate::domain::id::TypedRecordId>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
-            return Some(<Vec<crate::domain::contents::TextMark>>::sse_decode(
+            return Some(<Vec<crate::domain::id::TypedRecordId>>::sse_decode(
                 deserializer,
             ));
         } else {
@@ -4388,10 +4390,10 @@ impl SseDecode for crate::domain::styles::PortSide {
     }
 }
 
-impl SseDecode for (String, f64, f64, f64, f64) {
+impl SseDecode for (crate::domain::id::TypedRecordId, f64, f64, f64, f64) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_field0 = <String>::sse_decode(deserializer);
+        let mut var_field0 = <crate::domain::id::TypedRecordId>::sse_decode(deserializer);
         let mut var_field1 = <f64>::sse_decode(deserializer);
         let mut var_field2 = <f64>::sse_decode(deserializer);
         let mut var_field3 = <f64>::sse_decode(deserializer);
@@ -7457,7 +7459,7 @@ impl SseEncode for crate::domain::nodes::CommentNode {
 impl SseEncode for crate::domain::relation_engine::computed::ComputedRelation {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <String>::sse_encode(self.id, serializer);
+        <crate::domain::id::TypedRecordId>::sse_encode(self.id, serializer);
         <Vec<crate::domain::relation_engine::geometry::Point>>::sse_encode(
             self.path_points,
             serializer,
@@ -7498,7 +7500,7 @@ impl SseEncode for crate::domain::relation_engine::computed::ComputedRelation {
         );
         <f64>::sse_encode(self.start_margin, serializer);
         <f64>::sse_encode(self.end_margin, serializer);
-        <Vec<String>>::sse_encode(self.depends_on_nodes, serializer);
+        <Vec<crate::domain::id::TypedRecordId>>::sse_encode(self.depends_on_nodes, serializer);
         <Option<String>>::sse_encode(self.bundle_id, serializer);
         <Option<f64>>::sse_encode(self.bundle_offset, serializer);
         <Vec<crate::domain::relation_engine::geometry::Point>>::sse_encode(
@@ -7975,12 +7977,12 @@ impl SseEncode for Vec<u8> {
     }
 }
 
-impl SseEncode for Vec<(String, f64, f64, f64, f64)> {
+impl SseEncode for Vec<(crate::domain::id::TypedRecordId, f64, f64, f64, f64)> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
-            <(String, f64, f64, f64, f64)>::sse_encode(item, serializer);
+            <(crate::domain::id::TypedRecordId, f64, f64, f64, f64)>::sse_encode(item, serializer);
         }
     }
 }
@@ -8498,22 +8500,22 @@ impl SseEncode for Option<u8> {
     }
 }
 
-impl SseEncode for Option<Vec<String>> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <bool>::sse_encode(self.is_some(), serializer);
-        if let Some(value) = self {
-            <Vec<String>>::sse_encode(value, serializer);
-        }
-    }
-}
-
 impl SseEncode for Option<Vec<crate::domain::contents::TextMark>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <Vec<crate::domain::contents::TextMark>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::domain::id::TypedRecordId>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::domain::id::TypedRecordId>>::sse_encode(value, serializer);
         }
     }
 }
@@ -8568,10 +8570,10 @@ impl SseEncode for crate::domain::styles::PortSide {
     }
 }
 
-impl SseEncode for (String, f64, f64, f64, f64) {
+impl SseEncode for (crate::domain::id::TypedRecordId, f64, f64, f64, f64) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <String>::sse_encode(self.0, serializer);
+        <crate::domain::id::TypedRecordId>::sse_encode(self.0, serializer);
         <f64>::sse_encode(self.1, serializer);
         <f64>::sse_encode(self.2, serializer);
         <f64>::sse_encode(self.3, serializer);

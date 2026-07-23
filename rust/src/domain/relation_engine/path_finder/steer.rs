@@ -41,11 +41,13 @@ impl CostGrid {
     }
 }
 
+use crate::domain::id::TypedRecordId;
+
 pub struct AStarContext<'a> {
     pub grid: &'a Grid,
     pub nodes: &'a [InputNode],
-    pub start_node_id: &'a str,
-    pub end_node_id: &'a str,
+    pub start_node_id: &'a TypedRecordId,
+    pub end_node_id: &'a TypedRecordId,
     pub start_pt: Point,
     pub start_terminus: Point,
     pub start_dir: Option<(i32, i32)>,

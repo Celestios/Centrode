@@ -1,4 +1,5 @@
 use crate::domain::id::TypedRecordId;
+use crate::domain::nodes::IsNode;
 use crate::domain::patches::{
     EntityPatch, NodePatch, RelationPatch, SymmetricEntityPatch, TagOperation,
 };
@@ -27,9 +28,8 @@ impl Repository {
                 Ok(())
             }
             EntityPatch::CreateNode(node, relations) => {
-                let (table, key) = node.table_and_key();
                 if self
-                    .get_node(table.to_string(), key.to_string())
+                    .get_node(node.id().clone())
                     .await?
                     .is_some()
                 {
@@ -43,8 +43,7 @@ impl Repository {
                 Ok(())
             }
             EntityPatch::DeleteNode(node, _) => {
-                let (table, key) = node.table_and_key();
-                self.delete_node(table.to_string(), key.to_string()).await?;
+                self.delete_node(node.id().clone()).await?;
                 Ok(())
             }
             EntityPatch::CreateRelation(rel) => {
@@ -52,8 +51,7 @@ impl Repository {
                 Ok(())
             }
             EntityPatch::DeleteRelation(rel) => {
-                self.delete_relation(IRelation::LABEL.to_string(), rel.key.key.to_string())
-                    .await?;
+                self.delete_relation(rel.key).await?;
                 Ok(())
             }
         }

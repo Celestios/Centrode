@@ -119,10 +119,12 @@ fn compute_bbox(path: &[Point], padding: f64) -> Rect {
     )
 }
 
+use crate::domain::id::TypedRecordId;
+
 pub fn finalize_relation(
     result: &mut ComputedRelation,
     edge: &InputEdge,
-    node_map: &HashMap<String, InputNode>,
+    node_map: &HashMap<TypedRecordId, InputNode>,
     config: &RelationEngineConfig,
 ) {
     // 1. Line snapping / center-to-center trimming

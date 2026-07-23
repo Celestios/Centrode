@@ -1,3 +1,4 @@
+use rust_lib_mycelium::domain::id::TypedRecordId;
 use rust_lib_mycelium::domain::relation_engine::geometry::{
     Point, Rect, distance_to_segment, polyline_length, segments_intersect
 };
@@ -8,6 +9,10 @@ use rust_lib_mycelium::domain::relation_engine::path_finder::port::{
 use rust_lib_mycelium::domain::relation_engine::input::InputNode;
 use rust_lib_mycelium::domain::styles::PortSide;
 use rust_lib_mycelium::domain::relation_engine::computed::{ComputedRelation, PathType};
+use rust_lib_mycelium::domain::traits::TableKind;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+use uuid::Uuid;
 
 #[test]
 fn test_geometry_distance_and_length() {
@@ -68,10 +73,21 @@ fn test_grid_conversion() {
     assert!(!grid.in_bounds(-1, 0));
 }
 
+fn str_to_uuid(s: &str) -> Uuid {
+    let mut hasher = DefaultHasher::new();
+    s.hash(&mut hasher);
+    let hash = hasher.finish();
+    Uuid::from_u128(hash as u128)
+}
+
+fn tid(table: TableKind, s: &str) -> TypedRecordId {
+    TypedRecordId::new(table, str_to_uuid(s))
+}
+
 #[test]
 fn test_port_side_resolution() {
     let node = InputNode {
-        id: "test".to_string(),
+        id: tid(TableKind::INode, "test"),
         x: 10.0,
         y: 20.0,
         width: 100.0,
@@ -108,11 +124,11 @@ fn test_port_side_resolution() {
 #[test]
 fn test_computed_relation_new_basic() {
     let r = ComputedRelation::new_basic(
-        "rel1".to_string(),
+        tid(TableKind::IRelation, "rel1"),
         vec![Point::new(0.0, 0.0), Point::new(10.0, 10.0)],
         PathType::Straight,
     );
-    assert_eq!(r.id, "rel1");
+    assert_eq!(r.id, tid(TableKind::IRelation, "rel1"));
     assert_eq!(r.path_points.len(), 2);
     assert_eq!(r.path_type, PathType::Straight);
 }

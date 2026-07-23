@@ -21,8 +21,9 @@ async fn assert_significance_eventually(
     let start = std::time::Instant::now();
     let timeout = std::time::Duration::from_millis(1000);
     let interval = std::time::Duration::from_millis(10);
+    let typed_id = TypedRecordId::from(format!("{}:{}", table, key).as_str());
     while start.elapsed() < timeout {
-        if let Ok(Some(node)) = repo.get_node(table.to_string(), key.to_string()).await {
+        if let Ok(Some(node)) = repo.get_node(typed_id).await {
             let sig = match node {
                 Nodes::INode(n) => n.significance,
                 Nodes::TaskNode(t) => t.significance,
@@ -35,7 +36,7 @@ async fn assert_significance_eventually(
         tokio::time::sleep(interval).await;
     }
     let node = repo
-        .get_node(table.to_string(), key.to_string())
+        .get_node(typed_id)
         .await
         .unwrap()
         .unwrap();
@@ -246,7 +247,7 @@ async fn test_graph_snapshot() {
 
     // Ensure old INode was deleted during clear_graph
     let old_inode = repo
-        .get_node("INode".to_string(), inode_id.key.to_string())
+        .get_node(inode_id)
         .await
         .expect("Query failed");
     assert!(old_inode.is_none());

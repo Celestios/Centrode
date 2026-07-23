@@ -52,6 +52,7 @@ DEFINE FIELD OVERWRITE content.blocks.*.content.*.marks.*.attrs.href ON TABLE IN
 DEFINE FIELD OVERWRITE content.blocks.*.attrs ON TABLE INode TYPE option<object>;
 DEFINE FIELD OVERWRITE content.blocks.*.attrs.level ON TABLE INode TYPE option<int>;
 DEFINE FIELD OVERWRITE content.blocks.*.attrs.language ON TABLE INode TYPE option<string>;
+DEFINE FIELD OVERWRITE content.blocks.*.attrs.text_align ON TABLE INode TYPE option<string>;
 DEFINE FIELD OVERWRITE style ON TABLE INode TYPE option<object>;
 DEFINE FIELD OVERWRITE style.bg_color ON TABLE INode TYPE int;
 DEFINE FIELD OVERWRITE style.stroke_color ON TABLE INode TYPE int;
@@ -134,8 +135,9 @@ DEFINE FIELD OVERWRITE content.blocks.*.content.*.marks.*.attrs.href ON TABLE Ta
 DEFINE FIELD OVERWRITE content.blocks.*.attrs ON TABLE TaskNode TYPE option<object>;
 DEFINE FIELD OVERWRITE content.blocks.*.attrs.level ON TABLE TaskNode TYPE option<int>;
 DEFINE FIELD OVERWRITE content.blocks.*.attrs.language ON TABLE TaskNode TYPE option<string>;
+DEFINE FIELD OVERWRITE content.blocks.*.attrs.text_align ON TABLE TaskNode TYPE option<string>;
 DEFINE FIELD OVERWRITE due_date ON TABLE TaskNode TYPE option<int>;
-DEFINE FIELD OVERWRITE state ON TABLE TaskNode TYPE any;
+DEFINE FIELD OVERWRITE state ON TABLE TaskNode TYPE string;
 DEFINE FIELD OVERWRITE size ON TABLE TaskNode TYPE object;
 DEFINE FIELD OVERWRITE size.width ON TABLE TaskNode TYPE int;
 DEFINE FIELD OVERWRITE size.height ON TABLE TaskNode TYPE int;
@@ -379,8 +381,8 @@ DEFINE FIELD OVERWRITE resolved_layout.control_point_2 ON TABLE IRelation TYPE o
 DEFINE FIELD OVERWRITE resolved_layout.control_point_2.x ON TABLE IRelation TYPE float;
 DEFINE FIELD OVERWRITE resolved_layout.control_point_2.y ON TABLE IRelation TYPE float;
 
-DEFINE FIELD OVERWRITE in ON TABLE IRelation TYPE record< INode | TaskNode | InterNode | CommentNode | DrawingNode | ShapeNode | FrameNode | MediaNode>;
-DEFINE FIELD OVERWRITE out ON TABLE IRelation TYPE record< INode | TaskNode | InterNode | CommentNode | DrawingNode | ShapeNode | FrameNode | MediaNode>;
+DEFINE FIELD OVERWRITE in ON TABLE IRelation TYPE record<INode | TaskNode | InterNode | CommentNode | DrawingNode | ShapeNode | FrameNode | MediaNode>;
+DEFINE FIELD OVERWRITE out ON TABLE IRelation TYPE record<INode | TaskNode | InterNode | CommentNode | DrawingNode | ShapeNode | FrameNode | MediaNode>;
 DEFINE FIELD OVERWRITE verb ON TABLE IRelation TYPE string;
 DEFINE FIELD OVERWRITE directionless ON TABLE IRelation TYPE bool;
 DEFINE FIELD OVERWRITE layer ON TABLE IRelation TYPE string;

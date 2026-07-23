@@ -47,7 +47,7 @@ async fn test_inode_crud() {
 
     // Read
     let fetched = repo
-        .get_node("INode".to_string(), inode_id.key.to_string())
+        .get_node(inode_id)
         .await
         .expect("Failed to get INode")
         .expect("INode not found");
@@ -74,7 +74,7 @@ async fn test_inode_crud() {
         .expect("Failed to update INode");
 
     let fetched_updated = repo
-        .get_node("INode".to_string(), inode_id.key.to_string())
+        .get_node(inode_id)
         .await
         .expect("Failed to get updated INode")
         .expect("INode not found");
@@ -91,12 +91,12 @@ async fn test_inode_crud() {
     }
 
     // Delete
-    repo.delete_node("INode".to_string(), inode_id.key.to_string())
+    repo.delete_node(inode_id)
         .await
         .expect("Failed to delete INode");
 
     let fetched_deleted = repo
-        .get_node("INode".to_string(), inode_id.key.to_string())
+        .get_node(inode_id)
         .await
         .expect("Query failed");
 
@@ -138,7 +138,7 @@ async fn test_task_node_crud() {
 
     // Read
     let fetched = repo
-        .get_node("TaskNode".to_string(), task_id.key.to_string())
+        .get_node(task_id)
         .await
         .expect("Failed to get TaskNode")
         .expect("TaskNode not found");
@@ -161,7 +161,7 @@ async fn test_task_node_crud() {
         .expect("Failed to update TaskNode");
 
     let fetched_updated = repo
-        .get_node("TaskNode".to_string(), task_id.key.to_string())
+        .get_node(task_id)
         .await
         .expect("Failed to get updated TaskNode")
         .expect("TaskNode not found");
@@ -173,12 +173,12 @@ async fn test_task_node_crud() {
     }
 
     // Delete
-    repo.delete_node("TaskNode".to_string(), task_id.key.to_string())
+    repo.delete_node(task_id)
         .await
         .expect("Failed to delete TaskNode");
 
     let fetched_deleted = repo
-        .get_node("TaskNode".to_string(), task_id.key.to_string())
+        .get_node(task_id)
         .await
         .expect("Query failed");
 
@@ -217,7 +217,7 @@ async fn test_irelation_crud() {
 
     // Read
     let fetched_rel = repo
-        .get_relation("IRelation".to_string(), rel_id.key.to_string())
+        .get_relation(rel_id)
         .await
         .expect("Failed to get IRelation");
 
@@ -230,24 +230,24 @@ async fn test_irelation_crud() {
     let mut updated_fields = relation.fields.clone();
     updated_fields.verb = "blocks".to_string();
 
-    repo.update_relation("IRelation".to_string(), rel_id.key.to_string(), updated_fields)
+    repo.update_relation(rel_id, updated_fields)
         .await
         .expect("Failed to update IRelation");
 
     let fetched_updated = repo
-        .get_relation("IRelation".to_string(), rel_id.key.to_string())
+        .get_relation(rel_id)
         .await
         .expect("Failed to get updated IRelation");
 
     assert_eq!(fetched_updated.fields.verb, "blocks");
 
     // Delete
-    repo.delete_relation("IRelation".to_string(), rel_id.key.to_string())
+    repo.delete_relation(rel_id)
         .await
         .expect("Failed to delete IRelation");
 
     let fetched_deleted = repo
-        .get_relation("IRelation".to_string(), rel_id.key.to_string())
+        .get_relation(rel_id)
         .await;
 
     assert!(fetched_deleted.is_err());
@@ -432,7 +432,7 @@ async fn test_relation_rerouting_and_deletion() {
         .unwrap();
 
     let fetched = repo
-        .get_relation("IRelation".to_string(), rel_id.key.to_string())
+        .get_relation(rel_id)
         .await
         .unwrap();
 
