@@ -42,7 +42,10 @@ class CommentUiNode extends UiNode {
   Nodes toRust() {
     return Nodes.commentNode(
       CommentNode(
-        id: frb.RecordStrings(table: tableName, key: id),
+        id: TypedRecordId(
+          table: TableKind.values.byName('commentNode'),
+          key: UuidValue.fromString(id),
+        ),
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -58,7 +61,7 @@ class CommentUiNode extends UiNode {
 
   factory CommentUiNode.fromRust(CommentNode node) {
     return CommentUiNode(
-      id: node.id.key,
+      id: node.id.key.uuid,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -111,7 +114,7 @@ class CommentUiNode extends UiNode {
 
 class DrawingUiNode extends UiNode {
   List<String> paths;
-  String brushType;
+  BrushType brushType;
   double brushThickness;
   String brushColor;
 
@@ -145,7 +148,10 @@ class DrawingUiNode extends UiNode {
   Nodes toRust() {
     return Nodes.drawingNode(
       DrawingNode(
-        id: frb.RecordStrings(table: tableName, key: id),
+        id: TypedRecordId(
+          table: TableKind.values.byName('drawingNode'),
+          key: UuidValue.fromString(id),
+        ),
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -165,7 +171,7 @@ class DrawingUiNode extends UiNode {
 
   factory DrawingUiNode.fromRust(DrawingNode node) {
     return DrawingUiNode(
-      id: node.id.key,
+      id: node.id.key.uuid,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -197,7 +203,7 @@ class DrawingUiNode extends UiNode {
     bool? locked,
     int? significance,
     List<String>? paths,
-    String? brushType,
+    BrushType? brushType,
     double? brushThickness,
     String? brushColor,
   }) {
@@ -256,7 +262,10 @@ class FrameUiNode extends UiNode {
   Nodes toRust() {
     return Nodes.frameNode(
       FrameNode(
-        id: frb.RecordStrings(table: tableName, key: id),
+        id: TypedRecordId(
+          table: TableKind.values.byName('frameNode'),
+          key: UuidValue.fromString(id),
+        ),
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -273,7 +282,7 @@ class FrameUiNode extends UiNode {
 
   factory FrameUiNode.fromRust(FrameNode node) {
     return FrameUiNode(
-      id: node.id.key,
+      id: node.id.key.uuid,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -361,7 +370,10 @@ class InfoUiNode extends UiNode {
   Nodes toRust() {
     return Nodes.iNode(
       INode(
-        id: frb.RecordStrings(table: tableName, key: id),
+        id: TypedRecordId(
+          table: TableKind.values.byName('iNode'),
+          key: UuidValue.fromString(id),
+        ),
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -390,7 +402,7 @@ class InfoUiNode extends UiNode {
 
   factory InfoUiNode.fromRust(INode node) {
     return InfoUiNode(
-      id: node.id.key,
+      id: node.id.key.uuid,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -410,9 +422,9 @@ class InfoUiNode extends UiNode {
         return edge.when(
           hydrated: (tag) => tag,
           pointer: (record) => Tag(
-            key: record.key,
+            key: record,
             fields: TagFields(
-              name: record.key,
+              name: record.key.uuid,
               color: 0xFF78909C,
               createdAt: DateTime.now().millisecondsSinceEpoch,
               updatedAt: DateTime.now().millisecondsSinceEpoch,
@@ -507,7 +519,10 @@ class InterUiNode extends UiNode {
   Nodes toRust() {
     return Nodes.interNode(
       InterNode(
-        id: frb.RecordStrings(table: tableName, key: id),
+        id: TypedRecordId(
+          table: TableKind.values.byName('interNode'),
+          key: UuidValue.fromString(id),
+        ),
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -524,7 +539,7 @@ class InterUiNode extends UiNode {
 
   factory InterUiNode.fromRust(InterNode node) {
     return InterUiNode(
-      id: node.id.key,
+      id: node.id.key.uuid,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -582,7 +597,7 @@ class InterUiNode extends UiNode {
 
 class MediaUiNode extends UiNode {
   String sourceUrl;
-  String mediaType;
+  MediaType mediaType;
 
   MediaUiNode({
     required super.position,
@@ -612,7 +627,10 @@ class MediaUiNode extends UiNode {
   Nodes toRust() {
     return Nodes.mediaNode(
       MediaNode(
-        id: frb.RecordStrings(table: tableName, key: id),
+        id: TypedRecordId(
+          table: TableKind.values.byName('mediaNode'),
+          key: UuidValue.fromString(id),
+        ),
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -629,7 +647,7 @@ class MediaUiNode extends UiNode {
 
   factory MediaUiNode.fromRust(MediaNode node) {
     return MediaUiNode(
-      id: node.id.key,
+      id: node.id.key.uuid,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -658,7 +676,7 @@ class MediaUiNode extends UiNode {
     bool? locked,
     int? significance,
     String? sourceUrl,
-    String? mediaType,
+    MediaType? mediaType,
   }) {
     return MediaUiNode(
       id: id ?? this.id,
@@ -684,7 +702,7 @@ class MediaUiNode extends UiNode {
 }
 
 class ShapeUiNode extends UiNode {
-  String shapeType;
+  ShapeType shapeType;
 
   ShapeUiNode({
     required super.position,
@@ -713,7 +731,10 @@ class ShapeUiNode extends UiNode {
   Nodes toRust() {
     return Nodes.shapeNode(
       ShapeNode(
-        id: frb.RecordStrings(table: tableName, key: id),
+        id: TypedRecordId(
+          table: TableKind.values.byName('shapeNode'),
+          key: UuidValue.fromString(id),
+        ),
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -730,7 +751,7 @@ class ShapeUiNode extends UiNode {
 
   factory ShapeUiNode.fromRust(ShapeNode node) {
     return ShapeUiNode(
-      id: node.id.key,
+      id: node.id.key.uuid,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -758,7 +779,7 @@ class ShapeUiNode extends UiNode {
     bool? isExpanded,
     bool? locked,
     int? significance,
-    String? shapeType,
+    ShapeType? shapeType,
   }) {
     return ShapeUiNode(
       id: id ?? this.id,
@@ -784,7 +805,7 @@ class ShapeUiNode extends UiNode {
 
 class TaskUiNode extends UiNode {
   int? dueDate;
-  String state;
+  TaskState state;
 
   TaskUiNode({
     required super.position,
@@ -804,7 +825,7 @@ class TaskUiNode extends UiNode {
     super.locked,
     super.significance,
     this.dueDate,
-    this.state = 'Not Done',
+    this.state = TaskState.todo,
   });
 
   @override
@@ -814,7 +835,10 @@ class TaskUiNode extends UiNode {
   Nodes toRust() {
     return Nodes.taskNode(
       TaskNode(
-        id: frb.RecordStrings(table: tableName, key: id),
+        id: TypedRecordId(
+          table: TableKind.values.byName('taskNode'),
+          key: UuidValue.fromString(id),
+        ),
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -839,7 +863,7 @@ class TaskUiNode extends UiNode {
 
   factory TaskUiNode.fromRust(TaskNode node) {
     return TaskUiNode(
-      id: node.id.key,
+      id: node.id.key.uuid,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -876,7 +900,7 @@ class TaskUiNode extends UiNode {
     bool? locked,
     int? significance,
     int? dueDate,
-    String? state,
+    TaskState? state,
   }) {
     return TaskUiNode(
       id: id ?? this.id,

@@ -119,7 +119,7 @@ return pointer(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Tag field0)?  hydrated,TResult Function( RecordStrings field0)?  pointer,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Tag field0)?  hydrated,TResult Function( TypedRecordId field0)?  pointer,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case TagEdge_Hydrated() when hydrated != null:
 return hydrated(_that.field0);case TagEdge_Pointer() when pointer != null:
@@ -141,7 +141,7 @@ return pointer(_that.field0);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Tag field0)  hydrated,required TResult Function( RecordStrings field0)  pointer,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Tag field0)  hydrated,required TResult Function( TypedRecordId field0)  pointer,}) {final _that = this;
 switch (_that) {
 case TagEdge_Hydrated():
 return hydrated(_that.field0);case TagEdge_Pointer():
@@ -159,7 +159,7 @@ return pointer(_that.field0);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Tag field0)?  hydrated,TResult? Function( RecordStrings field0)?  pointer,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Tag field0)?  hydrated,TResult? Function( TypedRecordId field0)?  pointer,}) {final _that = this;
 switch (_that) {
 case TagEdge_Hydrated() when hydrated != null:
 return hydrated(_that.field0);case TagEdge_Pointer() when pointer != null:
@@ -244,7 +244,7 @@ class TagEdge_Pointer extends TagEdge {
   const TagEdge_Pointer(this.field0): super._();
   
 
-@override final  RecordStrings field0;
+@override final  TypedRecordId field0;
 
 /// Create a copy of TagEdge
 /// with the given fields replaced by the non-null parameter values.
@@ -276,7 +276,7 @@ abstract mixin class $TagEdge_PointerCopyWith<$Res> implements $TagEdgeCopyWith<
   factory $TagEdge_PointerCopyWith(TagEdge_Pointer value, $Res Function(TagEdge_Pointer) _then) = _$TagEdge_PointerCopyWithImpl;
 @useResult
 $Res call({
- RecordStrings field0
+ TypedRecordId field0
 });
 
 
@@ -296,7 +296,7 @@ class _$TagEdge_PointerCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
   return _then(TagEdge_Pointer(
 null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
-as RecordStrings,
+as TypedRecordId,
   ));
 }
 

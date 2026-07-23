@@ -43,7 +43,7 @@ class UpdateNodeStyleCommand extends GraphCommand {
 
     if (forwardPatches.isNotEmpty) {
       final patch = SymmetricEntityPatch(
-        id: frb.RecordStrings(table: tableName, key: targetId),
+        id: parseTypedRecordId(tableName, targetId),
         forward: EntityPatch.node(forwardPatches),
         reverse: EntityPatch.node(reversePatches),
       );

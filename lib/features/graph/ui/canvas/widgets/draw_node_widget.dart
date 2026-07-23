@@ -45,7 +45,7 @@ class DrawNodeWidget extends StatelessWidget {
               painter: DrawingNodePainter(
                 brushColor: liveNode.brushColor,
                 brushThickness: liveNode.brushThickness,
-                brushType: liveNode.brushType,
+                brushType: liveNode.brushType.name,
                 paths: liveNode.paths,
                 parsedPaths: liveNode.parsedPaths,
               ),

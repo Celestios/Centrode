@@ -1,7 +1,18 @@
 import 'dart:ui';
+import 'package:uuid/uuid.dart';
+import 'package:mycelium/src/rust/domain/id.dart';
+import 'package:mycelium/src/rust/domain/traits.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
+
+TypedRecordId parseTypedRecordId(String table, String key) {
+  final kind = TableKind.values.firstWhere(
+    (t) => t.name.toLowerCase() == table.toLowerCase(),
+    orElse: () => TableKind.iNode,
+  );
+  return TypedRecordId(table: kind, key: UuidValue.fromString(key));
+}
 
 (List<NodePatch> forward, List<NodePatch> reverse) buildNodeStylePatches(
   NodeStyle? oldStyle,

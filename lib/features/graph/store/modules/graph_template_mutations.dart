@@ -1,6 +1,7 @@
 import 'dart:ui' show Offset;
 import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart' show RecordStrings;
+import 'package:mycelium/src/rust/domain/id.dart';
+import '../../models/commands/patch_helpers.dart';
 import '../../models/models.dart';
 import '../../models/commands/save_template.dart';
 import '../../models/commands/delete_template.dart';
@@ -26,17 +27,17 @@ class GraphTemplateMutations {
   ) async {
     _log.info('saveTemplateFromSelection name=$name nodes=${nodeIds.length} relations=${relationIds.length}');
     final api = controller.syncEngine.api;
-    final nodeRecords = nodeIds.map((id) {
+    final List<TypedRecordId> nodeRecords = nodeIds.map((id) {
       final node = controller.store.nodeLookup[id];
       final table =
           node?.tableName ?? (id.contains(':') ? id.split(':').first : 'INode');
       final key = id.contains(':') ? id.split(':').last : id;
-      return RecordStrings(table: table, key: key);
+      return parseTypedRecordId(table, key);
     }).toList();
-    final relationRecords = relationIds.map((id) {
+    final List<TypedRecordId> relationRecords = relationIds.map((id) {
       final table = id.contains(':') ? id.split(':').first : 'IRelation';
       final key = id.contains(':') ? id.split(':').last : id;
-      return RecordStrings(table: table, key: key);
+      return parseTypedRecordId(table, key);
     }).toList();
 
     final cmd = SaveTemplateCommand(

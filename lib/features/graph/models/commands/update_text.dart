@@ -7,6 +7,7 @@ import '../../store/graph_api.dart';
 import '../../store/graph_data_query.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+import 'patch_helpers.dart';
 
 final Logger _log = Logger('UpdateTextCommand');
 
@@ -53,7 +54,7 @@ class UpdateTextCommand extends GraphCommand {
       }
       if (forwardPatches.isNotEmpty) {
         final patch = SymmetricEntityPatch(
-          id: frb.RecordStrings(table: tableName, key: targetId),
+          id: parseTypedRecordId(tableName, targetId),
           forward: EntityPatch.relation(forwardPatches),
           reverse: EntityPatch.relation(reversePatches),
         );
@@ -86,7 +87,7 @@ class UpdateTextCommand extends GraphCommand {
       }
       if (forwardPatches.isNotEmpty) {
         final patch = SymmetricEntityPatch(
-          id: frb.RecordStrings(table: tableName, key: targetId),
+          id: parseTypedRecordId(tableName, targetId),
           forward: EntityPatch.node(forwardPatches),
           reverse: EntityPatch.node(reversePatches),
         );

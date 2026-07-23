@@ -148,6 +148,10 @@ read_file(D:/Projects/Open/flutter/code/mycelium/.agents/rules/git-file-operatio
   - *Data-Flow Tracing:* Run `trace` to trace pathways across languages (Dart <-> FFI <-> Rust) to pinpoint where to introduce debugging logs or checks.
   - *Compliance:* Run `audit` to ensure layer/tier boundaries match the architectural rules database before finalizing changes.
 
+## Rules
+
+- **Artifacts and codebase are the valid source of truth, not conversations.** When there is a discrepancy between what was discussed/said in a conversation and what actually exists in the code or generated artifacts, always trust the actual code and artifacts. Never assume something was implemented correctly based solely on conversational claims — verify against the actual source files.
+
 ## Style Rules
 
 - No error handling, no fallbacks, use standard logging, no migrations

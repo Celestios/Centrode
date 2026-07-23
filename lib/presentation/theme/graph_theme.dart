@@ -112,7 +112,7 @@ class GraphTheme extends AppTheme {
   factory GraphTheme.fromRust(frb.Theme theme) {
     final f = theme.fields;
     return GraphTheme(
-      id: theme.key,
+      id: theme.key.key.uuid,
       name: f.name,
       primaryColor: Color(f.primaryColor),
       secondaryColor: Color(f.secondaryColor),

@@ -10,6 +10,9 @@ import 'dart:convert';
 import 'dart:ffi' as ffi;
 import 'domain/base_models.dart';
 import 'domain/contents.dart';
+import 'domain/entity.dart';
+import 'domain/enums.dart';
+import 'domain/id.dart';
 import 'domain/nodes.dart';
 import 'domain/patches.dart';
 import 'domain/relation_engine/computed.dart';
@@ -21,9 +24,11 @@ import 'domain/styles.dart';
 import 'domain/tags.dart';
 import 'domain/templates.dart';
 import 'domain/theme.dart';
+import 'domain/traits.dart';
 import 'frb_generated.dart';
 import 'lib.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
+import 'package:uuid/uuid.dart';
 import 'persistence/history.dart';
 import 'persistence/repo.dart';
 import 'telemetry.dart';
@@ -125,6 +130,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String dco_decode_String(dynamic raw);
 
   @protected
+  UuidValue dco_decode_Uuid(dynamic raw);
+
+  @protected
   BlockAttrs dco_decode_block_attrs(dynamic raw);
 
   @protected
@@ -215,9 +223,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PortSide dco_decode_box_autoadd_port_side(dynamic raw);
 
   @protected
-  RecordStrings dco_decode_box_autoadd_record_strings(dynamic raw);
-
-  @protected
   RelationEngineConfig dco_decode_box_autoadd_relation_engine_config(
     dynamic raw,
   );
@@ -258,6 +263,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ThemeFields dco_decode_box_autoadd_theme_fields(dynamic raw);
 
   @protected
+  TypedRecordId dco_decode_box_autoadd_typed_record_id(dynamic raw);
+
+  @protected
   int dco_decode_box_autoadd_u_32(dynamic raw);
 
   @protected
@@ -265,6 +273,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ViewportState dco_decode_box_autoadd_viewport_state(dynamic raw);
+
+  @protected
+  BrushType dco_decode_brush_type(dynamic raw);
 
   @protected
   BundlingConfig dco_decode_bundling_config(dynamic raw);
@@ -391,9 +402,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   dco_decode_list_record_string_f_64_f_64_f_64_f_64(dynamic raw);
 
   @protected
-  List<RecordStrings> dco_decode_list_record_strings(dynamic raw);
-
-  @protected
   List<RelationPatch> dco_decode_list_relation_patch(dynamic raw);
 
   @protected
@@ -412,6 +420,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<Theme> dco_decode_list_theme(dynamic raw);
 
   @protected
+  List<TypedRecordId> dco_decode_list_typed_record_id(dynamic raw);
+
+  @protected
   LogState dco_decode_log_state(dynamic raw);
 
   @protected
@@ -425,6 +436,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MediaNode dco_decode_media_node(dynamic raw);
+
+  @protected
+  MediaType dco_decode_media_type(dynamic raw);
 
   @protected
   NodeLayout dco_decode_node_layout(dynamic raw);
@@ -527,9 +541,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   dco_decode_record_string_f_64_f_64_f_64_f_64(dynamic raw);
 
   @protected
-  RecordStrings dco_decode_record_strings(dynamic raw);
-
-  @protected
   Rect dco_decode_rect(dynamic raw);
 
   @protected
@@ -554,10 +565,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ShapeNode dco_decode_shape_node(dynamic raw);
 
   @protected
+  ShapeType dco_decode_shape_type(dynamic raw);
+
+  @protected
   Size dco_decode_size(dynamic raw);
 
   @protected
   SymmetricEntityPatch dco_decode_symmetric_entity_patch(dynamic raw);
+
+  @protected
+  TableKind dco_decode_table_kind(dynamic raw);
 
   @protected
   Tag dco_decode_tag(dynamic raw);
@@ -575,6 +592,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   TaskNode dco_decode_task_node(dynamic raw);
 
   @protected
+  TaskState dco_decode_task_state(dynamic raw);
+
+  @protected
   Template dco_decode_template(dynamic raw);
 
   @protected
@@ -588,6 +608,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ThemeFields dco_decode_theme_fields(dynamic raw);
+
+  @protected
+  TypedRecordId dco_decode_typed_record_id(dynamic raw);
 
   @protected
   int dco_decode_u_32(dynamic raw);
@@ -679,6 +702,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   String sse_decode_String(SseDeserializer deserializer);
+
+  @protected
+  UuidValue sse_decode_Uuid(SseDeserializer deserializer);
 
   @protected
   BlockAttrs sse_decode_block_attrs(SseDeserializer deserializer);
@@ -775,11 +801,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PortSide sse_decode_box_autoadd_port_side(SseDeserializer deserializer);
 
   @protected
-  RecordStrings sse_decode_box_autoadd_record_strings(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   RelationEngineConfig sse_decode_box_autoadd_relation_engine_config(
     SseDeserializer deserializer,
   );
@@ -826,6 +847,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ThemeFields sse_decode_box_autoadd_theme_fields(SseDeserializer deserializer);
 
   @protected
+  TypedRecordId sse_decode_box_autoadd_typed_record_id(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
 
   @protected
@@ -835,6 +861,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ViewportState sse_decode_box_autoadd_viewport_state(
     SseDeserializer deserializer,
   );
+
+  @protected
+  BrushType sse_decode_brush_type(SseDeserializer deserializer);
 
   @protected
   BundlingConfig sse_decode_bundling_config(SseDeserializer deserializer);
@@ -971,11 +1000,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  List<RecordStrings> sse_decode_list_record_strings(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   List<RelationPatch> sse_decode_list_relation_patch(
     SseDeserializer deserializer,
   );
@@ -996,6 +1020,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<Theme> sse_decode_list_theme(SseDeserializer deserializer);
 
   @protected
+  List<TypedRecordId> sse_decode_list_typed_record_id(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   LogState sse_decode_log_state(SseDeserializer deserializer);
 
   @protected
@@ -1009,6 +1038,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MediaNode sse_decode_media_node(SseDeserializer deserializer);
+
+  @protected
+  MediaType sse_decode_media_type(SseDeserializer deserializer);
 
   @protected
   NodeLayout sse_decode_node_layout(SseDeserializer deserializer);
@@ -1129,9 +1161,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   sse_decode_record_string_f_64_f_64_f_64_f_64(SseDeserializer deserializer);
 
   @protected
-  RecordStrings sse_decode_record_strings(SseDeserializer deserializer);
-
-  @protected
   Rect sse_decode_rect(SseDeserializer deserializer);
 
   @protected
@@ -1158,12 +1187,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ShapeNode sse_decode_shape_node(SseDeserializer deserializer);
 
   @protected
+  ShapeType sse_decode_shape_type(SseDeserializer deserializer);
+
+  @protected
   Size sse_decode_size(SseDeserializer deserializer);
 
   @protected
   SymmetricEntityPatch sse_decode_symmetric_entity_patch(
     SseDeserializer deserializer,
   );
+
+  @protected
+  TableKind sse_decode_table_kind(SseDeserializer deserializer);
 
   @protected
   Tag sse_decode_tag(SseDeserializer deserializer);
@@ -1181,6 +1216,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   TaskNode sse_decode_task_node(SseDeserializer deserializer);
 
   @protected
+  TaskState sse_decode_task_state(SseDeserializer deserializer);
+
+  @protected
   Template sse_decode_template(SseDeserializer deserializer);
 
   @protected
@@ -1194,6 +1232,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ThemeFields sse_decode_theme_fields(SseDeserializer deserializer);
+
+  @protected
+  TypedRecordId sse_decode_typed_record_id(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer);
@@ -1300,6 +1341,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_String(String self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_Uuid(UuidValue self, SseSerializer serializer);
 
   @protected
   void sse_encode_block_attrs(BlockAttrs self, SseSerializer serializer);
@@ -1441,12 +1485,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_box_autoadd_record_strings(
-    RecordStrings self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_box_autoadd_relation_engine_config(
     RelationEngineConfig self,
     SseSerializer serializer,
@@ -1510,6 +1548,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_typed_record_id(
+    TypedRecordId self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
 
   @protected
@@ -1520,6 +1564,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     ViewportState self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_brush_type(BrushType self, SseSerializer serializer);
 
   @protected
   void sse_encode_bundling_config(
@@ -1684,12 +1731,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_list_record_strings(
-    List<RecordStrings> self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_list_relation_patch(
     List<RelationPatch> self,
     SseSerializer serializer,
@@ -1711,6 +1752,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_theme(List<Theme> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_typed_record_id(
+    List<TypedRecordId> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_log_state(LogState self, SseSerializer serializer);
 
   @protected
@@ -1724,6 +1771,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_media_node(MediaNode self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_media_type(MediaType self, SseSerializer serializer);
 
   @protected
   void sse_encode_node_layout(NodeLayout self, SseSerializer serializer);
@@ -1865,9 +1915,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_record_strings(RecordStrings self, SseSerializer serializer);
-
-  @protected
   void sse_encode_rect(Rect self, SseSerializer serializer);
 
   @protected
@@ -1898,6 +1945,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_shape_node(ShapeNode self, SseSerializer serializer);
 
   @protected
+  void sse_encode_shape_type(ShapeType self, SseSerializer serializer);
+
+  @protected
   void sse_encode_size(Size self, SseSerializer serializer);
 
   @protected
@@ -1905,6 +1955,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     SymmetricEntityPatch self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_table_kind(TableKind self, SseSerializer serializer);
 
   @protected
   void sse_encode_tag(Tag self, SseSerializer serializer);
@@ -1920,6 +1973,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_task_node(TaskNode self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_task_state(TaskState self, SseSerializer serializer);
 
   @protected
   void sse_encode_template(Template self, SseSerializer serializer);
@@ -1938,6 +1994,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_theme_fields(ThemeFields self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_typed_record_id(TypedRecordId self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);

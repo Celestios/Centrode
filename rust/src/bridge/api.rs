@@ -3,7 +3,8 @@ use crate::bridge::node_ffi::NodeFfi;
 use crate::bridge::relation_ffi::RelationFfi;
 use crate::bridge::history_ffi::HistoryFfi;
 use crate::bridge::metadata_ffi::MetadataFfi;
-use crate::domain::base_models::{IsTable, RecordStrings, ViewportState};
+use crate::domain::base_models::ViewportState;
+use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::Nodes;
 use crate::domain::snapshot::GraphSnapshot;
 use crate::domain::tags::Tag;
@@ -15,6 +16,7 @@ use crate::domain::relation_engine::config::RelationEngineConfig;
 pub use crate::domain::relation_engine::engine::RelationEngine;
 use crate::domain::relation_engine::input::InputNode;
 use crate::domain::theme::{Theme, ThemeFields};
+pub use crate::domain::styles::{NodeStyle, NodeLayout, RelationLayout, RelationStyle};
 use crate::format::packager;
 use crate::frb_generated::StreamSink;
 use crate::persistence::db::Database;
@@ -147,9 +149,9 @@ impl AppHandle {
 
     pub async fn reroute_relation(
         &self,
-        record: RecordStrings,
-        from: RecordStrings,
-        to: RecordStrings,
+        record: TypedRecordId,
+        from: TypedRecordId,
+        to: TypedRecordId,
     ) -> anyhow::Result<()> {
         self.relation_ffi.reroute_relation(record, from, to).await
     }
@@ -297,8 +299,8 @@ impl AppHandle {
     pub async fn save_template_from_selection(
         &self,
         name: String,
-        node_keys: Vec<RecordStrings>,
-        relation_keys: Vec<RecordStrings>,
+        node_keys: Vec<TypedRecordId>,
+        relation_keys: Vec<TypedRecordId>,
     ) -> anyhow::Result<()> {
         self.metadata_ffi
             .save_template_from_selection(name, node_keys, relation_keys)

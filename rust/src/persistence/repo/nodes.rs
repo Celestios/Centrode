@@ -13,12 +13,16 @@ impl Repository {
     where
         N: IsNode,
     {
+        let record_id = input.id().to_record_id();
         let table = input.table_name();
-        let key = input.key().to_string();
-        let val = input.serialize_node();
+        let key = input.id().to_string();
+        let mut val = input.serialize_node();
+        if let Value::Object(ref mut map) = val {
+            map.remove("id");
+        }
         let _: Option<Value> = self
             .db
-            .create((table, key.clone()))
+            .create(record_id)
             .content(val)
             .await?;
         info!("REPO: Created Node of table {} with ID: {}", table, key);
@@ -26,22 +30,46 @@ impl Repository {
     }
 
     pub async fn get_node(&self, table: String, key: String) -> Result<Option<Nodes>> {
+        let clean_key = key.split(':').last().unwrap_or(&key);
+        let record_id = if let Ok(u) = uuid::Uuid::parse_str(clean_key) {
+            if let Ok(kind) = std::str::FromStr::from_str(&table) {
+                crate::domain::id::TypedRecordId::new(kind, u).to_record_id()
+            } else {
+                RecordId::new(table.clone(), key.clone())
+            }
+        } else {
+            RecordId::new(table.clone(), key.clone())
+        };
+
         let fetch_fields = Nodes::fetch_fields_for_table(&table);
         let query_str = if fetch_fields.is_empty() {
             "SELECT * FROM $id".to_string()
         } else {
-            format!("SELECT * FROM $id FETCH {}", fetch_fields.join(", "))
+            let fetches = fetch_fields
+                .iter()
+                .map(|f| format!("{}.* AS {}", f, f))
+                .collect::<Vec<_>>()
+                .join(", ");
+            format!("SELECT *, {} FROM $id", fetches)
         };
 
         let mut res = self
             .db
             .query(query_str)
-            .bind(("id", RecordId::new(table.clone(), key)))
+            .bind(("id", record_id))
             .await?;
         let val: Option<Value> = res.take(0)?;
 
-        if let Some(v) = val {
-            let node = Nodes::from_struct_value(&table, v)?;
+        if let Some(mut node) = val.and_then(|v| Nodes::from_struct_value(&table, v).ok()) {
+            if let Nodes::INode(ref mut inode) = node {
+                for i in 0..inode.tags.len() {
+                    if let crate::domain::tags::TagEdge::Pointer(ptr) = &inode.tags[i] {
+                        if let Ok(Some(tag)) = self.get_tag(ptr.key.to_string()).await {
+                            inode.tags[i] = crate::domain::tags::TagEdge::Hydrated(tag);
+                        }
+                    }
+                }
+            }
             return Ok(Some(node));
         }
         Ok(None)
@@ -52,11 +80,15 @@ impl Repository {
         N: IsNode,
     {
         let table = input.table_name();
-        let key = input.key().to_string();
-        let val = input.serialize_node();
+        let key = input.id().to_string();
+        let record_id = input.id().to_record_id();
+        let mut val = input.serialize_node();
+        if let Value::Object(ref mut map) = val {
+            map.remove("id");
+        }
         let _: Option<Value> = self
             .db
-            .update((table, key.clone()))
+            .update(record_id)
             .content(val)
             .await?;
         info!("REPO: Updated Node of table {} with ID: {}", table, key);
@@ -70,7 +102,16 @@ impl Repository {
             DELETE $target;
             COMMIT TRANSACTION;
         ";
-        let record_id = RecordId::new(table, key);
+        let clean_key = key.split(':').last().unwrap_or(&key);
+        let record_id = if let Ok(u) = uuid::Uuid::parse_str(clean_key) {
+            if let Ok(kind) = std::str::FromStr::from_str(&table) {
+                crate::domain::id::TypedRecordId::new(kind, u).to_record_id()
+            } else {
+                RecordId::new(table.clone(), key.clone())
+            }
+        } else {
+            RecordId::new(table.clone(), key.clone())
+        };
         tracing::trace!(
             "REPO: BEGIN TRANSACTION for cascading delete of {:?}",
             record_id
@@ -150,7 +191,7 @@ impl Repository {
         tracing::debug!("Fetched {} IRelations", relations.len());
 
         tracing::debug!("Fetching MapMetadata...");
-        let metadata: Option<MapData> = self.db.select((MapData::LABEL, MapData::KEY)).await?;
+        let metadata: Option<MapData> = self.db.select(MapData::record_id().to_record_id()).await?;
         let metadata = metadata.ok_or_else(|| anyhow::anyhow!("MapMetadata not found"))?;
 
         Ok(GraphSnapshot {
@@ -194,19 +235,16 @@ impl Repository {
 
         tracing::debug!("Inserting {} nodes...", snapshot.nodes.len());
         for node in snapshot.nodes {
-            let (table, key) = {
-                let (t, k) = node.table_and_key();
-                (t, k.to_string())
-            };
+            let record_id = node.id().to_record_id();
             let document = node.serialize_node();
-            let _: Option<Value> = tx.create((table, key)).content(document).await?;
+            let _: Option<Value> = tx.create(record_id).content(document).await?;
         }
 
         tracing::debug!("Inserting {} IRelations...", snapshot.relations.len());
         for relation in snapshot.relations {
-            let in_id = relation.in_.clone();
-            let out_id = relation.out.clone();
-            let record = RecordId::new(IRelation::LABEL, relation.key.clone());
+            let in_id = relation.in_;
+            let out_id = relation.out;
+            let record = relation.key.to_record_id();
 
             let mut res = tx
                 .query("RELATE $from -> $record -> $out CONTENT $data")
@@ -220,7 +258,7 @@ impl Repository {
 
         tracing::debug!("Inserting MapMetadata...");
         let _: Option<MapData> = tx
-            .create((MapData::LABEL, MapData::KEY))
+            .create(MapData::record_id().to_record_id())
             .content(snapshot.metadata)
             .await?;
 

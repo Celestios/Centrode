@@ -87,6 +87,14 @@ impl TableKind {
     }
 }
 
+impl std::str::FromStr for TableKind {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::from_table_name(s)
+    }
+}
+
 impl TryFrom<u8> for TableKind {
     type Error = anyhow::Error;
 

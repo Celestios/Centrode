@@ -47,7 +47,7 @@ class UpdateRelationLayoutCommand extends GraphCommand {
 
     if (forwardPatches.isNotEmpty) {
       final patch = SymmetricEntityPatch(
-        id: frb.RecordStrings(table: tableName, key: targetId),
+        id: parseTypedRecordId(tableName, targetId),
         forward: EntityPatch.relation(forwardPatches),
         reverse: EntityPatch.relation(reversePatches),
       );

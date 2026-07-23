@@ -423,7 +423,7 @@ class _CanvasNodesPainter extends CustomPainter {
       parsedPaths: node.parsedPaths,
       brushColor: node.brushColor,
       brushThickness: node.brushThickness,
-      brushType: node.brushType,
+      brushType: node.brushType.name,
     );
     drawingPainter.paint(canvas, size);
 

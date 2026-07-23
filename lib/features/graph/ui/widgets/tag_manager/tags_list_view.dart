@@ -7,6 +7,7 @@ import '../../../store/command_queue_processor.dart';
 import '../../../../../src/rust/domain/tags.dart';
 import 'package:mycelium/presentation/widgets/search/searchable_sort_list_header.dart';
 import 'delete_tag_dialog.dart';
+import '../../../models/commands/patch_helpers.dart';
 import 'tag_color_picker_panel.dart';
 
 const List<int> _presetColors = [
@@ -190,7 +191,7 @@ class _TagsListViewState extends State<TagsListView> {
 
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final newTag = Tag(
-      key: const Uuid().v4(),
+      key: parseTypedRecordId('Tag', const Uuid().v4()),
       fields: TagFields(
         name: name,
         color: _newTagColor,
@@ -263,7 +264,7 @@ class _TagsListViewState extends State<TagsListView> {
 
   void _startEditing(Tag tag) {
     setState(() {
-      _editingTagKey = tag.key;
+        _editingTagKey = tag.key.key.uuid;
       _renameController.text = tag.fields.name;
       _validationError = null;
     });
@@ -314,7 +315,7 @@ class _TagsListViewState extends State<TagsListView> {
         for (final node in queryController.nodeLookup.values) {
           if (node is InfoUiNode) {
             for (final tag in node.tags) {
-              usageCounts[tag.key] = (usageCounts[tag.key] ?? 0) + 1;
+                usageCounts[tag.key.key.uuid] = (usageCounts[tag.key.key.uuid] ?? 0) + 1;
             }
           }
         }
@@ -331,9 +332,9 @@ class _TagsListViewState extends State<TagsListView> {
                 a.fields.name.toLowerCase(),
               );
             case TagSortOption.usageDesc:
-              return (usageCounts[b.key] ?? 0).compareTo(usageCounts[a.key] ?? 0);
+              return (usageCounts[b.key.key.uuid] ?? 0).compareTo(usageCounts[a.key.key.uuid] ?? 0);
             case TagSortOption.usageAsc:
-              return (usageCounts[a.key] ?? 0).compareTo(usageCounts[b.key] ?? 0);
+              return (usageCounts[a.key.key.uuid] ?? 0).compareTo(usageCounts[b.key.key.uuid] ?? 0);
           }
         });
 
@@ -450,13 +451,13 @@ class _TagsListViewState extends State<TagsListView> {
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   itemBuilder: (context, index) {
                     final tag = filteredTags[index];
-                    final usageCount = _getTagUsageCount(tag.key, queryController);
-                    final isEditing = _editingTagKey == tag.key;
+                      final usageCount = _getTagUsageCount(tag.key.key.uuid, queryController);
+                      final isEditing = _editingTagKey == tag.key.key.uuid;
 
                     return MouseRegion(
                       onEnter: (_) {
                         setState(() {
-                          _hoveredTagKey = tag.key;
+                          _hoveredTagKey = tag.key.key.uuid;
                         });
                       },
                       onExit: (_) {
@@ -469,7 +470,7 @@ class _TagsListViewState extends State<TagsListView> {
                         padding: const EdgeInsets.symmetric(horizontal: 12.0),
                         color: isEditing
                             ? theme.colorScheme.primary.withValues(alpha: 0.05)
-                            : _hoveredTagKey == tag.key
+                            : _hoveredTagKey == tag.key.key.uuid
                             ? theme.colorScheme.onSurface.withValues(
                                 alpha: 0.04,
                               )
@@ -600,7 +601,7 @@ class _TagsListViewState extends State<TagsListView> {
                                   ),
                                 ],
                               )
-                            else if (_hoveredTagKey == tag.key)
+                            else if (_hoveredTagKey == tag.key.key.uuid)
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -631,7 +632,7 @@ class _TagsListViewState extends State<TagsListView> {
                                         tag.fields.name,
                                       );
                                       if (confirm == true) {
-                                        await controller.propertyMutations.deleteTag(tag.key);
+                                          await controller.propertyMutations.deleteTag(tag.key.key.uuid);
                                       }
                                     },
                                     padding: EdgeInsets.zero,

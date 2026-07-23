@@ -1,4 +1,6 @@
-#[derive(Clone, Debug, PartialEq)]
+use surrealdb::types::SurrealValue;
+
+#[derive(Clone, Debug, PartialEq, SurrealValue)]
 #[non_exhaustive]
 pub enum RoutingMode {
     Polyline,

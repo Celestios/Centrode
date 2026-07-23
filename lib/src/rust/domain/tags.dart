@@ -4,13 +4,15 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
-import 'base_models.dart';
+import 'id.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+import 'package:uuid/uuid.dart';
+import 'traits.dart';
 part 'tags.freezed.dart';
 
 class Tag {
-  final String key;
+  final TypedRecordId key;
   final TagFields fields;
 
   const Tag({required this.key, required this.fields});
@@ -32,7 +34,7 @@ sealed class TagEdge with _$TagEdge {
   const TagEdge._();
 
   const factory TagEdge.hydrated(Tag field0) = TagEdge_Hydrated;
-  const factory TagEdge.pointer(RecordStrings field0) = TagEdge_Pointer;
+  const factory TagEdge.pointer(TypedRecordId field0) = TagEdge_Pointer;
 }
 
 class TagFields {

@@ -60,7 +60,7 @@ impl IncrementalState {
         }
 
         for (rel_id, rel_bbox) in &self.bboxes {
-            if affected.contains(rel_id) {
+            if affected.contains(rel_id.as_str()) {
                 continue;
             }
             for (node_id, node_bbox) in dirty_node_positions {

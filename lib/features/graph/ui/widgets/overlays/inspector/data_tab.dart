@@ -376,7 +376,7 @@ class _DataTabState extends State<DataTab> {
                       GestureDetector(
                         onTap: () => widget.renderState.removeTagFromNode(
                           node.id,
-                          tag.key,
+                          tag.key.key.uuid,
                         ),
                         child: Icon(
                           Icons.close,

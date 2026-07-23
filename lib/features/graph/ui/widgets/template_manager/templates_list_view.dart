@@ -4,6 +4,7 @@ import '../../../store/command_queue_processor.dart';
 import '../../../presentation/viewport_state.dart';
 import '../../../models/models.dart';
 import '../../../../../src/rust/domain/nodes.dart';
+import '../../../../../src/rust/domain/entity.dart';
 import '../../../../../src/rust/domain/relations.dart';
 import 'package:mycelium/presentation/widgets/search/searchable_sort_list_header.dart';
 import 'template_preview_painter.dart';
@@ -248,7 +249,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                         .visibleRect
                                         .center;
                                     await controller.templateMutations.instantiateTemplate(
-                                      template.key,
+                                      template.key.key.uuid,
                                       visibleCenter,
                                     );
                                   },
@@ -277,7 +278,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                         );
                                     if (confirm == true) {
                                       await controller.templateMutations.deleteTemplate(
-                                        template.key,
+                                        template.key.key.uuid,
                                       );
                                     }
                                   },
@@ -310,7 +311,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                     return MouseRegion(
                       onEnter: (_) {
                         setState(() {
-                          _hoveredTemplateKey = template.key;
+                          _hoveredTemplateKey = template.key.key.uuid;
                         });
                       },
                       onExit: (_) {

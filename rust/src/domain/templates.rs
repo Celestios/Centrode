@@ -1,11 +1,13 @@
-use crate::domain::base_models::IsTable;
+use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::{IsNode, Nodes};
 use crate::domain::relations::IRelation;
+use crate::domain::traits::{AuxiliaryEntity, SurrealTable, TableKind};
 use surrealdb::types::SurrealValue;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, SurrealValue)]
 pub struct Template {
-    pub key: String,
+    pub key: TypedRecordId,
     pub name: String,
     pub created_at: i64,
     pub updated_at: i64,
@@ -13,13 +15,19 @@ pub struct Template {
     pub relations: Vec<IRelation>,
 }
 
-impl IsTable for Template {
-    const LABEL: &'static str = "Template";
+impl Template {
+    pub const LABEL: &'static str = "Template";
+}
 
-    fn get_key(&self) -> &str {
-        &self.key
+impl SurrealTable for Template {
+    const KIND: TableKind = TableKind::Template;
+
+    fn get_key(&self) -> &Uuid {
+        &self.key.key
     }
 }
+
+impl AuxiliaryEntity for Template {}
 
 impl Template {
     pub fn from_selection(
@@ -31,7 +39,6 @@ impl Template {
             return Err(anyhow::anyhow!("Cannot save template from empty selection"));
         }
 
-        // Calculate centroid of selected nodes
         let mut sum_x = 0.0;
         let mut sum_y = 0.0;
         for node in &nodes {
@@ -43,7 +50,6 @@ impl Template {
         let centroid_x = (sum_x / count).round() as i32;
         let centroid_y = (sum_y / count).round() as i32;
 
-        // Shift coordinates relative to (0, 0)
         for node in &mut nodes {
             let pos = node.position_mut();
             pos.x -= centroid_x;
@@ -51,7 +57,7 @@ impl Template {
         }
 
         let now = chrono::Utc::now().timestamp_millis();
-        let key = uuid::Uuid::new_v4().to_string();
+        let key = TypedRecordId::new_v4(TableKind::Template);
 
         Ok(Self {
             key,

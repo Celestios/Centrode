@@ -22,16 +22,16 @@ impl Seeder {
     pub async fn seed_default_data(db: &Surreal<Db>, name: String) -> Result<()> {
         use crate::domain::base_models::MapData;
 
-        tracing::debug!("Checking for existing MapMetadata...");
-        let existing: Option<MapData> = db.select((MapData::LABEL, MapData::KEY)).await?;
+        tracing::debug!("Checking for existing MapData...");
+        let existing: Option<MapData> = db.select(MapData::record_id().to_record_id()).await?;
 
         if existing.is_none() {
-            tracing::info!("First-time initialization: Creating MapMetadata record '{}'", name);
+            tracing::info!("First-time initialization: Creating MapData record '{}'", name);
             let mut metadata = MapData::default();
             metadata.map_name = name;
 
             let _: Option<MapData> = db
-                .create((MapData::LABEL, MapData::KEY))
+                .create(MapData::record_id().to_record_id())
                 .content(metadata)
                 .await?;
         }

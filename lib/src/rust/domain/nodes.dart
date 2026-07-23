@@ -6,14 +6,16 @@
 import '../frb_generated.dart';
 import 'base_models.dart';
 import 'contents.dart';
+import 'enums.dart';
+import 'id.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
-import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+import 'package:uuid/uuid.dart';
 import 'styles.dart';
 import 'tags.dart';
-part 'nodes.freezed.dart';
+import 'traits.dart';
 
 class CommentNode {
-  final RecordStrings id;
+  final TypedRecordId id;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
@@ -56,13 +58,13 @@ class CommentNode {
 }
 
 class DrawingNode {
-  final RecordStrings id;
+  final TypedRecordId id;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
   final List<String> paths;
-  final String brushType;
+  final BrushType brushType;
   final double brushThickness;
   final String brushColor;
   final Size size;
@@ -115,7 +117,7 @@ class DrawingNode {
 }
 
 class FrameNode {
-  final RecordStrings id;
+  final TypedRecordId id;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
@@ -162,7 +164,7 @@ class FrameNode {
 }
 
 class INode {
-  final RecordStrings id;
+  final TypedRecordId id;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
@@ -257,7 +259,7 @@ class INode {
 }
 
 class InterNode {
-  final RecordStrings id;
+  final TypedRecordId id;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
@@ -304,13 +306,13 @@ class InterNode {
 }
 
 class MediaNode {
-  final RecordStrings id;
+  final TypedRecordId id;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
   final String sourceUrl;
-  final String mediaType;
+  final MediaType mediaType;
   final Size size;
 
   const MediaNode({
@@ -350,27 +352,13 @@ class MediaNode {
           size == other.size;
 }
 
-@freezed
-sealed class Nodes with _$Nodes {
-  const Nodes._();
-
-  const factory Nodes.iNode(INode field0) = Nodes_INode;
-  const factory Nodes.taskNode(TaskNode field0) = Nodes_TaskNode;
-  const factory Nodes.interNode(InterNode field0) = Nodes_InterNode;
-  const factory Nodes.commentNode(CommentNode field0) = Nodes_CommentNode;
-  const factory Nodes.drawingNode(DrawingNode field0) = Nodes_DrawingNode;
-  const factory Nodes.shapeNode(ShapeNode field0) = Nodes_ShapeNode;
-  const factory Nodes.frameNode(FrameNode field0) = Nodes_FrameNode;
-  const factory Nodes.mediaNode(MediaNode field0) = Nodes_MediaNode;
-}
-
 class ShapeNode {
-  final RecordStrings id;
+  final TypedRecordId id;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
-  final String shapeType;
+  final ShapeType shapeType;
   final NodeStyle? style;
   final Size size;
 
@@ -412,14 +400,14 @@ class ShapeNode {
 }
 
 class TaskNode {
-  final RecordStrings id;
+  final TypedRecordId id;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
   final Content content;
   final PlatformInt64? dueDate;
-  final String state;
+  final TaskState state;
   final Size size;
   final bool expandable;
   final bool isExpanded;

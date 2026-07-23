@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/src/rust/domain/enums.dart';
 import '../../models/models.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
@@ -36,7 +37,7 @@ class GraphNodeMutations {
         node = DrawingUiNode(
           position: position,
           paths: paths ?? const [],
-          brushType: brushType ?? 'pen',
+          brushType: brushType is BrushType ? (brushType as BrushType) : BrushType.pencil,
           brushThickness: brushThickness ?? 4.0,
           brushColor: brushColor ?? '#00E5FF',
         );

@@ -85,6 +85,15 @@ pub fn derive_surreal_db_enum(input: TokenStream) -> TokenStream {
             }
         }
 
+        impl crate::domain::schema::SurqlSchemaField for #name {
+            fn field_type() -> String {
+                "string".to_string()
+            }
+            fn sub_field_paths() -> Vec<(String, String)> {
+                vec![]
+            }
+        }
+
         impl std::fmt::Display for #name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(f, "{}", crate::domain::traits::SurrealDbEnum::to_surreal_str(self))

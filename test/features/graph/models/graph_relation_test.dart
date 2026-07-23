@@ -49,11 +49,9 @@ void main() {
       );
 
       final rustObj = relation.toRust();
-      expect(rustObj.key, 'rel-ffi');
-      expect(rustObj.in_.table, 'INode');
-      expect(rustObj.in_.key, 'n1');
-      expect(rustObj.out.table, 'TaskNode');
-      expect(rustObj.out.key, 'n2');
+      expect(rustObj.key.key.uuid, 'rel-ffi');
+      expect(rustObj.in_.key.uuid, 'n1');
+      expect(rustObj.out.key.uuid, 'n2');
       expect(rustObj.fields.verb, 'blocks');
       expect(rustObj.fields.directionless, isFalse);
     });

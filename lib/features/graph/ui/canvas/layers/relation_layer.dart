@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/src/rust/domain/enums.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/config.dart' as rust_config;
 import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
 import '../../../engine/config.dart';

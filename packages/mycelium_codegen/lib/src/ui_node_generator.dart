@@ -143,7 +143,7 @@ class UiNodeGenerator extends Generator {
         final uiFieldName = _getUiFieldName(fieldName, field.type);
 
         if (uiFieldName == 'state' && ffiClassName == 'TaskNode') {
-          buffer.writeln("    this.state = 'Not Done',");
+          buffer.writeln("    this.state = TaskState.todo,");
         } else {
           final isList = field.type.isDartCoreList;
           final isNullable = field.type.nullabilitySuffix.name == 'question';
@@ -172,7 +172,7 @@ class UiNodeGenerator extends Generator {
       );
       buffer.writeln("      $ffiClassName(");
       buffer.writeln(
-        "        id: frb.RecordStrings(table: tableName, key: id),",
+        "        id: TypedRecordId(table: TableKind.values.byName('${_decapitalize(ffiClassName)}'), key: UuidValue.fromString(id)),",
       );
       buffer.writeln(
         "        position: frb.Coordinates(x: position.dx.round(), y: position.dy.round()),",
@@ -219,7 +219,7 @@ class UiNodeGenerator extends Generator {
       // fromRust() factory
       buffer.writeln("  factory $uiClassName.fromRust($ffiClassName node) {");
       buffer.writeln("    return $uiClassName(");
-      buffer.writeln("      id: node.id.key,");
+      buffer.writeln("      id: node.id.key.uuid,");
       buffer.writeln("      createdAt: node.createdAt,");
       buffer.writeln("      updatedAt: node.updatedAt,");
       buffer.writeln("      layer: node.layer,");
@@ -443,9 +443,9 @@ class UiNodeGenerator extends Generator {
         return edge.when(
           hydrated: (tag) => tag,
           pointer: (record) => Tag(
-            key: record.key,
+            key: record,
             fields: TagFields(
-              name: record.key,
+              name: record.key.uuid,
               color: 0xFF78909C,
               createdAt: DateTime.now().millisecondsSinceEpoch,
               updatedAt: DateTime.now().millisecondsSinceEpoch,

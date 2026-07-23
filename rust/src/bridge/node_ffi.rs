@@ -1,10 +1,11 @@
 use crate::bridge::api::RelationEngine;
 use crate::bridge::stream::{self, GraphEvent};
-use crate::domain::base_models::{RecordStrings};
-use crate::domain::nodes::Nodes;
+use crate::domain::id::TypedRecordId;
+use crate::domain::nodes::{IsNode, Nodes};
 use crate::domain::patches::{EntityPatch, SymmetricEntityPatch};
 use crate::domain::relation_engine::config::RelationEngineConfig;
 use crate::domain::relation_engine::input::InputNode;
+use crate::domain::traits::TableKind;
 use crate::persistence::repo::Repository;
 use std::sync::{Arc, Mutex};
 use tracing::{debug, error, info};
@@ -22,13 +23,10 @@ impl NodeFfi {
         debug!("FFI: create_node called with input: {:?}", input);
         self.repo.create_node(input.clone()).await?;
 
-        let (table, key) = input.table_and_key();
+        let id = *input.id();
         self.repo
             .record_patch_history(
-                RecordStrings {
-                    table: table.to_string(),
-                    key: key.to_string(),
-                },
+                id,
                 EntityPatch::CreateNode(input.clone(), vec![]),
                 EntityPatch::DeleteNode(input, vec![]),
             )
@@ -45,6 +43,7 @@ impl NodeFfi {
 
     pub async fn update_node(&self, input: Nodes) -> anyhow::Result<()> {
         let (table, key) = input.table_and_key();
+        let id = *input.id();
         if let Some(old) = self
             .repo
             .get_node(table.to_string(), key.to_string())
@@ -57,10 +56,7 @@ impl NodeFfi {
 
             self.repo
                 .record_patch_history(
-                    RecordStrings {
-                        table: table.to_string(),
-                        key: key.to_string(),
-                    },
+                    id,
                     EntityPatch::CreateNode(input.clone(), vec![]),
                     EntityPatch::CreateNode(old, vec![]),
                 )
@@ -88,7 +84,7 @@ impl NodeFfi {
         }
         let margin = RelationEngineConfig::default().routing.obstacle_margin;
         if let Ok(mut engine) = relation_engine.lock() {
-            engine.apply_cache_patch(&mutation.id.key, &mutation.forward, margin);
+            engine.apply_cache_patch(&mutation.id.key.to_string(), &mutation.forward, margin);
         }
         self.repo
             .record_patch_history(mutation.id, mutation.forward, mutation.reverse)
@@ -110,12 +106,13 @@ impl NodeFfi {
 
         self.repo.delete_node(table.clone(), key.clone()).await?;
 
+        let u = uuid::Uuid::parse_str(&key).unwrap_or_else(|_| uuid::Uuid::nil());
+        let tk = TableKind::from_table_name(&table).unwrap_or(TableKind::INode);
+        let id = TypedRecordId::new(tk, u);
+
         self.repo
             .record_patch_history(
-                RecordStrings {
-                    table: table.clone(),
-                    key: key.clone(),
-                },
+                id,
                 EntityPatch::DeleteNode(node.clone(), connected_relations.clone()),
                 EntityPatch::CreateNode(node, connected_relations),
             )

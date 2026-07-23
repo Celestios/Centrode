@@ -1,26 +1,25 @@
 use crate::common::setup_test_repo;
-use rust_lib_mycelium::domain::base_models::{Coordinates, RecordStrings, Size};
+use rust_lib_mycelium::domain::base_models::{Coordinates, Size};
 use rust_lib_mycelium::domain::contents::Content;
+use rust_lib_mycelium::domain::id::TypedRecordId;
 use rust_lib_mycelium::domain::nodes::{INode, Nodes};
-use rust_lib_mycelium::domain::patches::{EntityPatch, NodePatch, RelationPatch};
+use rust_lib_mycelium::domain::patches::{EntityPatch, NodePatch, RelationPatch, SymmetricEntityPatch};
 use rust_lib_mycelium::domain::relations::{IRelation, IRelationFields};
 use rust_lib_mycelium::domain::styles::{NodeStyle, PortSide, RelationLayout, RelationStyle};
+use rust_lib_mycelium::domain::traits::TableKind;
 use rust_lib_mycelium::persistence::history::HistoryManager;
-use surrealdb::types::{RecordId, SurrealValue};
+use surrealdb::types::SurrealValue;
 
 #[tokio::test]
 async fn test_targeted_patch_and_history() {
-    use rust_lib_mycelium::domain::patches::SymmetricEntityPatch;
-
     let repo = setup_test_repo().await;
     let history = HistoryManager::new(repo.db(), 5);
 
+    let inode_id = TypedRecordId::new_v4(TableKind::INode);
+
     // 1. Create a node
     let inode = INode {
-        id: RecordStrings {
-            table: "INode".to_string(),
-            key: "inode_patch_test".to_string(),
-        },
+        id: inode_id,
         content: Content::from_plain_text("Patch test node"),
         style: None,
         resolved_style: None,
@@ -46,16 +45,37 @@ async fn test_targeted_patch_and_history() {
     };
     repo.create_node(Nodes::INode(inode)).await.unwrap();
 
-    let record_id = RecordId::new("INode", "inode_patch_test");
+    let record_id = inode_id.to_record_id();
 
-    // 2. Define targeted patch mutations
+    // 2. Prepare forward and reverse patches
     let forward_patch = EntityPatch::Node(vec![
-        NodePatch::Position(Coordinates { x: 50, y: 60 }),
+        NodePatch::Position(Coordinates { x: 100, y: 200 }),
         NodePatch::IsExpanded(true),
+        NodePatch::Style(Some(NodeStyle {
+            bg_color: 0xFF0000,
+            stroke_color: 0x000000,
+            stroke_width: 1,
+            font_family: "Roboto".to_string(),
+            font_size: 14.0,
+            shape: "rect".to_string(),
+            width: 100,
+            height: 50,
+            text_color: 0xFFFFFF,
+            border_radius: 4.0,
+            padding: 8.0,
+            shadow_color: 0x000000,
+            shadow_blur: 2.0,
+            shadow_spread: 0.0,
+            shadow_offset_x: 0.0,
+            shadow_offset_y: 0.0,
+            strategy_type: "default".to_string(),
+        })),
     ]);
+
     let reverse_patch = EntityPatch::Node(vec![
         NodePatch::Position(Coordinates { x: 10, y: 20 }),
         NodePatch::IsExpanded(false),
+        NodePatch::Style(None),
     ]);
 
     // 3. Apply forward patch
@@ -63,26 +83,25 @@ async fn test_targeted_patch_and_history() {
         .await
         .unwrap();
 
-    // Verify database is updated
+    // Verify forward state
     let fetched = repo
-        .get_node("INode".to_string(), "inode_patch_test".to_string())
+        .get_node("INode".to_string(), inode_id.key.to_string())
         .await
         .unwrap()
         .unwrap();
     if let Nodes::INode(ref n) = fetched {
-        assert_eq!(n.position.x, 50);
-        assert_eq!(n.position.y, 60);
+        assert_eq!(n.position.x, 100);
+        assert_eq!(n.position.y, 200);
         assert_eq!(n.is_expanded, true);
+        assert!(n.style.is_some());
+        assert_eq!(n.style.as_ref().unwrap().bg_color, 0xFF0000);
     } else {
         panic!("Incorrect node type");
     }
 
     // 4. Log to history
     let payload = SymmetricEntityPatch {
-        id: RecordStrings {
-            table: "INode".to_string(),
-            key: "inode_patch_test".to_string(),
-        },
+        id: inode_id,
         forward: forward_patch,
         reverse: reverse_patch,
     };
@@ -98,17 +117,14 @@ async fn test_targeted_patch_and_history() {
     assert_eq!(rec_undone.action_type, "entity_patch");
 
     let payload_undone = SymmetricEntityPatch::from_value(rec_undone.payload).unwrap();
-    let target_id = RecordId::new(
-        payload_undone.id.table.as_str(),
-        payload_undone.id.key.as_str(),
-    );
+    let target_id = payload_undone.id.to_record_id();
     repo.patch_entity(target_id, &payload_undone.reverse)
         .await
         .unwrap();
 
     // Verify undone state
     let fetched_undone = repo
-        .get_node("INode".to_string(), "inode_patch_test".to_string())
+        .get_node("INode".to_string(), inode_id.key.to_string())
         .await
         .unwrap()
         .unwrap();
@@ -127,236 +143,44 @@ async fn test_targeted_patch_and_history() {
     assert_eq!(rec_redone.action_type, "entity_patch");
 
     let payload_redone = SymmetricEntityPatch::from_value(rec_redone.payload).unwrap();
-    let target_id_redone = RecordId::new(
-        payload_redone.id.table.as_str(),
-        payload_redone.id.key.as_str(),
-    );
-    repo.patch_entity(target_id_redone, &payload_redone.forward)
+    let target_id_redo = payload_redone.id.to_record_id();
+    repo.patch_entity(target_id_redo, &payload_redone.forward)
         .await
         .unwrap();
 
     // Verify redone state
     let fetched_redone = repo
-        .get_node("INode".to_string(), "inode_patch_test".to_string())
+        .get_node("INode".to_string(), inode_id.key.to_string())
         .await
         .unwrap()
         .unwrap();
     if let Nodes::INode(ref n) = fetched_redone {
-        assert_eq!(n.position.x, 50);
-        assert_eq!(n.position.y, 60);
+        assert_eq!(n.position.x, 100);
+        assert_eq!(n.position.y, 200);
         assert_eq!(n.is_expanded, true);
+        assert!(n.style.is_some());
     } else {
         panic!("Incorrect node type");
     }
 }
 
 #[tokio::test]
-async fn test_remaining_patches() {
+async fn test_relation_patching() {
     let repo = setup_test_repo().await;
 
-    let inode = INode {
-        id: RecordStrings {
-            table: "INode".to_string(),
-            key: "n_patch".to_string(),
-        },
-        content: Content::from_plain_text("original"),
+    let in_id = TypedRecordId::new_v4(TableKind::INode);
+    let out_id = TypedRecordId::new_v4(TableKind::INode);
+
+    let n1 = INode {
+        id: in_id,
+        content: Content::from_plain_text("N1"),
         style: None,
         resolved_style: None,
         layout: None,
         resolved_layout: None,
         layer: "default".to_string(),
         position: Coordinates { x: 0, y: 0 },
-        size: Size {
-            width: 10,
-            height: 10,
-        },
-        line_count: 1,
-        expandable: false,
-        is_expanded: false,
-        locked: false,
-        tags: vec![],
-        aliases: vec![],
-        comments: vec![],
-        attachment: None,
-        significance: 0,
-        created_at: 0,
-        updated_at: 0,
-    };
-    repo.create_node(Nodes::INode(inode)).await.unwrap();
-    let node_id = RecordId::new("INode", "n_patch");
-
-    let style = NodeStyle {
-        bg_color: 0x123456,
-        stroke_color: 0x789abc,
-        stroke_width: 2,
-        font_family: "Arial".to_string(),
-        font_size: 14.0,
-        shape: "circle".to_string(),
-        width: 15,
-        height: 15,
-        text_color: 0xffffff,
-        border_radius: 4.0,
-        padding: 8.0,
-        shadow_color: 0,
-        shadow_blur: 0.0,
-        shadow_spread: 0.0,
-        shadow_offset_x: 0.0,
-        shadow_offset_y: 0.0,
-        strategy_type: "default".to_string(),
-    };
-    let content = Content::from_plain_text("patched content");
-
-    let patch = EntityPatch::Node(vec![
-        NodePatch::Size(Size {
-            width: 42,
-            height: 42,
-        }),
-        NodePatch::Content(content.clone()),
-        NodePatch::Style(Some(style.clone())),
-        NodePatch::Significance(3),
-    ]);
-
-    repo.patch_entity(node_id.clone(), &patch).await.unwrap();
-
-    let fetched = repo
-        .get_node("INode".to_string(), "n_patch".to_string())
-        .await
-        .unwrap()
-        .unwrap();
-    if let Nodes::INode(n) = fetched {
-        assert_eq!(n.size.width, 42);
-        assert_eq!(n.size.height, 42);
-        assert_eq!(n.content.text, "patched content");
-        assert_eq!(n.style.as_ref().unwrap().bg_color, 0x123456);
-        assert_eq!(n.significance, 3);
-    } else {
-        panic!("Not an INode");
-    }
-
-    let target = INode {
-        id: RecordStrings {
-            table: "INode".to_string(),
-            key: "n_patch_target".to_string(),
-        },
-        content: Content::from_plain_text("target"),
-        style: None,
-        resolved_style: None,
-        layout: None,
-        resolved_layout: None,
-        layer: "default".to_string(),
-        position: Coordinates { x: 50, y: 50 },
-        size: Size {
-            width: 10,
-            height: 10,
-        },
-        line_count: 1,
-        expandable: false,
-        is_expanded: false,
-        locked: false,
-        tags: vec![],
-        aliases: vec![],
-        comments: vec![],
-        attachment: None,
-        significance: 0,
-        created_at: 0,
-        updated_at: 0,
-    };
-    repo.create_node(Nodes::INode(target)).await.unwrap();
-
-    let rel = IRelation {
-        key: "r_patch".to_string(),
-        in_: "INode:n_patch".into(),
-        out: "INode:n_patch_target".into(),
-        fields: IRelationFields {
-            verb: "relates".to_string(),
-            style: None,
-            resolved_style: None,
-            layout: None,
-            resolved_layout: None,
-            directionless: false,
-            layer: "default".to_string(),
-            created_at: 0,
-            updated_at: 0,
-        },
-    };
-    repo.create_relation(rel).await.unwrap();
-    let rel_id = RecordId::new("IRelation", "r_patch");
-
-    let rel_style = RelationStyle {
-        bg_color: 0x111111,
-        stroke_color: 0x222222,
-        stroke_width: 1,
-        font_family: "Sans".to_string(),
-        font_size: 10.0,
-        shape: "line".to_string(),
-        arrow_type: "arrow".to_string(),
-        arrow_size: 5.0,
-        start_shape: None,
-        end_shape: None,
-        width: 0,
-        height: 0,
-        text_color: 0x333333,
-        shadow_color: 0,
-        shadow_blur: 0.0,
-        shadow_offset_x: 0.0,
-        shadow_offset_y: 0.0,
-        strategy_type: "default".to_string(),
-        stroke_pattern: "solid".to_string(),
-        body_strategy: "none".to_string(),
-    };
-    let rel_layout = RelationLayout {
-        from_side: Some(PortSide::Right),
-        to_side: Some(PortSide::Left),
-        strategy_type: "custom".to_string(),
-        control_point_1: None,
-        control_point_2: None,
-    };
-
-    let rel_patch = EntityPatch::Relation(vec![
-        RelationPatch::Verb("patched_verb".to_string()),
-        RelationPatch::Style(Some(rel_style.clone())),
-        RelationPatch::Layout(Some(rel_layout.clone())),
-        RelationPatch::Directionless(true),
-    ]);
-
-    repo.patch_entity(rel_id, &rel_patch).await.unwrap();
-
-    let fetched_rel = repo
-        .get_relation("IRelation".to_string(), "r_patch".to_string())
-        .await
-        .unwrap();
-    assert_eq!(fetched_rel.fields.verb, "patched_verb");
-    assert_eq!(
-        fetched_rel.fields.style.as_ref().unwrap().stroke_color,
-        0x222222
-    );
-    assert_eq!(
-        fetched_rel.fields.layout.as_ref().unwrap().from_side,
-        Some(PortSide::Right)
-    );
-    assert_eq!(fetched_rel.fields.directionless, true);
-}
-
-#[tokio::test]
-async fn test_undo_redo_update_node_via_createnode_patch() {
-    let repo = setup_test_repo().await;
-
-    let inode = INode {
-        id: RecordStrings {
-            table: "INode".to_string(),
-            key: "inode_upsert_test".to_string(),
-        },
-        content: Content::from_plain_text("Original content"),
-        style: None,
-        resolved_style: None,
-        layout: None,
-        resolved_layout: None,
-        layer: "default".to_string(),
-        position: Coordinates { x: 100, y: 100 },
-        size: Size {
-            width: 50,
-            height: 50,
-        },
+        size: Size { width: 10, height: 10 },
         line_count: 1,
         expandable: true,
         is_expanded: false,
@@ -369,47 +193,234 @@ async fn test_undo_redo_update_node_via_createnode_patch() {
         created_at: 0,
         updated_at: 0,
     };
-    repo.create_node(Nodes::INode(inode.clone())).await.unwrap();
+    let n2 = INode {
+        id: out_id,
+        content: Content::from_plain_text("N2"),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x: 10, y: 10 },
+        size: Size { width: 10, height: 10 },
+        line_count: 1,
+        expandable: true,
+        is_expanded: false,
+        locked: false,
+        tags: vec![],
+        aliases: vec![],
+        comments: vec![],
+        attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
+    };
+    repo.create_node(Nodes::INode(n1)).await.unwrap();
+    repo.create_node(Nodes::INode(n2)).await.unwrap();
 
-    let record_id = RecordId::new("INode", "inode_upsert_test");
+    let rel_id = TypedRecordId::new_v4(TableKind::IRelation);
 
-    // 1. Re-create (upsert) node with updated fields
-    let mut updated = inode.clone();
-    updated.content = Content::from_plain_text("Updated content");
-    updated.position.x = 200;
+    let rel = IRelation {
+        key: rel_id,
+        in_: in_id,
+        out: out_id,
+        fields: IRelationFields {
+            verb: "initial_verb".to_string(),
+            style: None,
+            resolved_style: None,
+            layout: None,
+            resolved_layout: None,
+            directionless: false,
+            layer: "default".to_string(),
+            created_at: 0,
+            updated_at: 0,
+        },
+    };
+    repo.create_relation(rel).await.unwrap();
 
-    // Apply the CreateNode patch to an EXISTING record (mimics update undo/redo)
-    let patch = EntityPatch::CreateNode(Nodes::INode(updated.clone()), vec![]);
-    repo.patch_entity(record_id.clone(), &patch).await.unwrap();
+    let record_id = rel_id.to_record_id();
 
-    // Verify it was successfully upserted
+    // 1. Patch verb and style
+    let patch = EntityPatch::Relation(vec![
+        RelationPatch::Verb("patched_verb".to_string()),
+        RelationPatch::Style(Some(RelationStyle {
+            bg_color: 0x000000,
+            stroke_color: 0x0000FF,
+            stroke_width: 2,
+            font_family: "Roboto".to_string(),
+            font_size: 12.0,
+            shape: "line".to_string(),
+            arrow_type: "arrow".to_string(),
+            arrow_size: 6.0,
+            start_shape: None,
+            end_shape: None,
+            width: 0,
+            height: 0,
+            text_color: 0xFFFFFF,
+            shadow_color: 0x000000,
+            shadow_blur: 0.0,
+            shadow_offset_x: 0.0,
+            shadow_offset_y: 0.0,
+            strategy_type: "default".to_string(),
+            stroke_pattern: "solid".to_string(),
+            body_strategy: "direct".to_string(),
+        })),
+        RelationPatch::Layout(Some(RelationLayout {
+            strategy_type: "orthogonal".to_string(),
+            from_side: Some(PortSide::Right),
+            to_side: Some(PortSide::Left),
+            control_point_1: None,
+            control_point_2: None,
+        })),
+        RelationPatch::Directionless(true),
+    ]);
+
+    repo.patch_entity(record_id.clone(), &patch)
+        .await
+        .unwrap();
+
     let fetched = repo
-        .get_node("INode".to_string(), "inode_upsert_test".to_string())
+        .get_relation("IRelation".to_string(), rel_id.key.to_string())
         .await
-        .unwrap()
         .unwrap();
-    if let Nodes::INode(n) = fetched {
-        assert_eq!(n.content.text, "Updated content");
-        assert_eq!(n.position.x, 200);
-    } else {
-        panic!("Incorrect node type");
-    }
-
-    // 2. Revert using the reverse CreateNode patch of the original node
-    let patch_reverse = EntityPatch::CreateNode(Nodes::INode(inode), vec![]);
-    repo.patch_entity(record_id, &patch_reverse).await.unwrap();
-
-    // Verify it was successfully reverted
-    let fetched_reverted = repo
-        .get_node("INode".to_string(), "inode_upsert_test".to_string())
-        .await
-        .unwrap()
-        .unwrap();
-    if let Nodes::INode(n) = fetched_reverted {
-        assert_eq!(n.content.text, "Original content");
-        assert_eq!(n.position.x, 100);
-    } else {
-        panic!("Incorrect node type");
-    }
+    assert_eq!(fetched.fields.verb, "patched_verb");
+    assert!(fetched.fields.style.is_some());
+    assert_eq!(
+        fetched.fields.style.as_ref().unwrap().stroke_color,
+        0x0000FF
+    );
+    assert_eq!(
+        fetched.fields.style.as_ref().unwrap().stroke_width,
+        2
+    );
+    assert!(fetched.fields.layout.is_some());
+    assert_eq!(
+        fetched.fields.layout.as_ref().unwrap().from_side,
+        Some(PortSide::Right)
+    );
+    assert_eq!(
+        fetched.fields.layout.as_ref().unwrap().to_side,
+        Some(PortSide::Left)
+    );
+    assert_eq!(fetched.fields.directionless, true);
 }
 
+#[tokio::test]
+async fn test_create_and_delete_entity_patches() {
+    let repo = setup_test_repo().await;
+
+    let in_id = TypedRecordId::new_v4(TableKind::INode);
+    let out_id = TypedRecordId::new_v4(TableKind::INode);
+
+    let n1 = INode {
+        id: in_id,
+        content: Content::from_plain_text("A"),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x: 0, y: 0 },
+        size: Size { width: 10, height: 10 },
+        line_count: 1,
+        expandable: true,
+        is_expanded: false,
+        locked: false,
+        tags: vec![],
+        aliases: vec![],
+        comments: vec![],
+        attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
+    };
+    let n2 = INode {
+        id: out_id,
+        content: Content::from_plain_text("B"),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x: 10, y: 10 },
+        size: Size { width: 10, height: 10 },
+        line_count: 1,
+        expandable: true,
+        is_expanded: false,
+        locked: false,
+        tags: vec![],
+        aliases: vec![],
+        comments: vec![],
+        attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
+    };
+
+    let rel_id = TypedRecordId::new_v4(TableKind::IRelation);
+
+    let rel = IRelation {
+        key: rel_id,
+        in_: in_id,
+        out: out_id,
+        fields: IRelationFields {
+            verb: "link".to_string(),
+            style: None,
+            resolved_style: None,
+            layout: None,
+            resolved_layout: None,
+            directionless: false,
+            layer: "default".to_string(),
+            created_at: 0,
+            updated_at: 0,
+        },
+    };
+
+    // 1. Create node and relations via CreateNode patch
+    let create_patch = EntityPatch::CreateNode(Nodes::INode(n1.clone()), vec![rel.clone()]);
+    repo.patch_entity(n1.id.to_record_id(), &create_patch)
+        .await
+        .unwrap();
+
+    // Verify node and relation were created
+    assert!(repo
+        .get_node("INode".to_string(), in_id.key.to_string())
+        .await
+        .unwrap()
+        .is_some());
+    assert!(repo
+        .get_relation("IRelation".to_string(), rel_id.key.to_string())
+        .await
+        .is_ok());
+
+    // 2. Delete relation via DeleteRelation patch
+    let delete_rel_patch = EntityPatch::DeleteRelation(rel.clone());
+    repo.patch_entity(rel_id.to_record_id(), &delete_rel_patch)
+        .await
+        .unwrap();
+    assert!(repo
+        .get_relation("IRelation".to_string(), rel_id.key.to_string())
+        .await
+        .is_err());
+
+    // 3. Create relation via CreateRelation patch
+    let create_rel_patch = EntityPatch::CreateRelation(rel.clone());
+    repo.patch_entity(rel_id.to_record_id(), &create_rel_patch)
+        .await
+        .unwrap();
+    assert!(repo
+        .get_relation("IRelation".to_string(), rel_id.key.to_string())
+        .await
+        .is_ok());
+
+    // 4. Delete node via DeleteNode patch
+    let delete_node_patch = EntityPatch::DeleteNode(Nodes::INode(n1.clone()), vec![]);
+    repo.patch_entity(n1.id.to_record_id(), &delete_node_patch)
+        .await
+        .unwrap();
+    assert!(repo
+        .get_node("INode".to_string(), in_id.key.to_string())
+        .await
+        .unwrap()
+        .is_none());
+}

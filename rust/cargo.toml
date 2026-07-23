@@ -50,7 +50,7 @@ thiserror = "1.0"       # For typed domain errors
 mycelium_macros = { path = "mycelium_macros" }
 
 # --- The Bridge ---
-flutter_rust_bridge = "=2.11.1" 
+flutter_rust_bridge = { version = "=2.11.1", features = ["uuid"] } 
 
 # --- Database ---
 surrealdb = { version = "3.0", features = ["kv-surrealkv", "kv-mem"] }

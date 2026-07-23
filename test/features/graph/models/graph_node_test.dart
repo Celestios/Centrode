@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
+import 'package:mycelium/src/rust/domain/entity.dart';
+import 'package:mycelium/src/rust/domain/enums.dart';
 
 void main() {
   group('UiNode', () {
@@ -22,7 +24,7 @@ void main() {
       expect(node.id, isNotEmpty);
       expect(node.position, const Offset(30, 40));
       expect(node.layer, 'default');
-      expect(node.state, 'Not Done');
+      expect(node.state, TaskState.todo);
       expect(node.tableName, 'TaskNode');
     });
 
@@ -49,13 +51,13 @@ void main() {
       final node = TaskUiNode(
         id: 'task-1',
         position: const Offset(0, 0),
-        state: 'Not Done',
+        state: TaskState.todo,
       );
 
-      final copied = node.copyWith(state: 'Done', dueDate: 1620000000000);
+      final copied = node.copyWith(state: TaskState.done, dueDate: 1620000000000);
 
       expect(copied.id, 'task-1');
-      expect(copied.state, 'Done');
+      expect(copied.state, TaskState.done);
       expect(copied.dueDate, 1620000000000);
       expect(copied.position, const Offset(0, 0));
     });
@@ -77,7 +79,7 @@ void main() {
       );
 
       expect(asINode, isNotNull);
-      expect(asINode!.id.key, 'node-ffi-1');
+      expect(asINode!.id.key.uuid, 'node-ffi-1');
       expect(asINode.layer, 'bg');
       expect(asINode.position.x, 15);
       expect(asINode.position.y, 25);
@@ -89,7 +91,7 @@ void main() {
       final node = TaskUiNode(
         id: 'task-ffi-1',
         position: const Offset(50, 60),
-        state: 'In Progress',
+        state: TaskState.inProgress,
       );
 
       final rustObj = node.toRust();
@@ -100,8 +102,8 @@ void main() {
       );
 
       expect(asTaskNode, isNotNull);
-      expect(asTaskNode!.id.key, 'task-ffi-1');
-      expect(asTaskNode.state, 'In Progress');
+      expect(asTaskNode!.id.key.uuid, 'task-ffi-1');
+      expect(asTaskNode.state, TaskState.inProgress);
       expect(asTaskNode.position.x, 50);
       expect(asTaskNode.position.y, 60);
     });

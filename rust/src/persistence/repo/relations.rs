@@ -1,5 +1,6 @@
-use crate::domain::base_models::{IsTable, RecordStrings};
+use crate::domain::id::TypedRecordId;
 use crate::domain::relations::{IRelation, IRelationFields};
+use crate::domain::traits::SurrealTable;
 use crate::persistence::repo::Repository;
 
 use anyhow::Result;
@@ -8,18 +9,18 @@ use tracing::{debug, info};
 
 impl Repository {
     pub async fn create_relation(&self, input: IRelation) -> Result<()> {
-        let key = input.key.clone();
-        let in_id = input.in_.clone();
-        let out_id = input.out.clone();
-        let record = RecordId::new(IRelation::LABEL, key.clone());
+        let key = input.key.to_string();
+        let in_id = input.in_;
+        let out_id = input.out;
+        let record = input.key.to_record_id();
 
         let mut res = self
             .db
-            .query("RELATE $from -> $record -> $out CONTENT $data")
-            .bind(("record", record))
-            .bind(("from", in_id.into_record()))
-            .bind(("out", out_id.into_record()))
-            .bind(("data", input))
+            .query("RELATE $from -> $id -> $out CONTENT $data")
+            .bind(("id", record))
+            .bind(("from", in_id.to_record_id()))
+            .bind(("out", out_id.to_record_id()))
+            .bind(("data", input.fields))
             .await?;
         let created: Option<Value> = res.take(0)?;
         let _ = created.ok_or_else(|| anyhow::anyhow!("Failed to create Relation"))?;
@@ -34,14 +35,32 @@ impl Repository {
     }
 
     pub async fn get_relation(&self, table: String, key: String) -> Result<IRelation> {
-        let record_id = RecordId::new(table, key.clone());
+        let clean_key = key.split(':').last().unwrap_or(&key);
+        let record_id = if let Ok(u) = uuid::Uuid::parse_str(clean_key) {
+            if let Ok(kind) = std::str::FromStr::from_str(&table) {
+                crate::domain::id::TypedRecordId::new(kind, u).to_record_id()
+            } else {
+                RecordId::new(table, key)
+            }
+        } else {
+            RecordId::new(table, key)
+        };
         let val: Option<Value> = self.db.select(record_id).await?;
         let val = val.ok_or_else(|| anyhow::anyhow!("Relation not found"))?;
         IRelation::from_value(val).map_err(|e| anyhow::anyhow!("Failed to parse Relation: {}", e))
     }
 
     pub async fn delete_relation(&self, table: String, key: String) -> Result<()> {
-        let record_id = RecordId::new(table, key);
+        let clean_key = key.split(':').last().unwrap_or(&key);
+        let record_id = if let Ok(u) = uuid::Uuid::parse_str(clean_key) {
+            if let Ok(kind) = std::str::FromStr::from_str(&table) {
+                crate::domain::id::TypedRecordId::new(kind, u).to_record_id()
+            } else {
+                RecordId::new(table, key)
+            }
+        } else {
+            RecordId::new(table, key)
+        };
         let _: Option<Value> = self.db.delete(record_id).await?;
         Ok(())
     }
@@ -53,7 +72,16 @@ impl Repository {
         fields: IRelationFields,
     ) -> Result<()> {
         debug!("REPO: update_relation called for {} ", key);
-        let record_id = RecordId::new(table, key);
+        let clean_key = key.split(':').last().unwrap_or(&key);
+        let record_id = if let Ok(u) = uuid::Uuid::parse_str(clean_key) {
+            if let Ok(kind) = std::str::FromStr::from_str(&table) {
+                crate::domain::id::TypedRecordId::new(kind, u).to_record_id()
+            } else {
+                RecordId::new(table, key)
+            }
+        } else {
+            RecordId::new(table, key)
+        };
         debug!("REPO: Parsed relation RecordID: {:?}", record_id);
 
         let _: Option<Value> = self.db.update(record_id).merge(fields.into_value()).await?;
@@ -62,22 +90,22 @@ impl Repository {
 
     pub async fn reroute_relation(
         &self,
-        record_string: RecordStrings,
-        from: RecordStrings,
-        to: RecordStrings,
+        rel_id: TypedRecordId,
+        from: TypedRecordId,
+        to: TypedRecordId,
     ) -> Result<()> {
         let existing = self
-            .get_relation(record_string.table.clone(), record_string.key.clone())
+            .get_relation(rel_id.table.table_name().to_string(), rel_id.key.to_string())
             .await?;
 
-        let old_in_id = existing.in_.clone();
-        let old_out_id = existing.out.clone();
+        let old_in_id = existing.in_;
+        let old_out_id = existing.out;
 
         let mut updated = existing;
         updated.in_ = from;
         updated.out = to;
 
-        let _: Option<Value> = self.db.delete(record_string.into_record()).await?;
+        let _: Option<Value> = self.db.delete(rel_id.into_record()).await?;
 
         self.create_relation(updated).await?;
 
@@ -92,7 +120,7 @@ impl Repository {
         let mut connected_relations = Vec::new();
         for val in relations_raw {
             if let Ok(rel) = IRelation::from_value(val) {
-                if rel.in_.key == node_key || rel.out.key == node_key {
+                if rel.in_.key.to_string() == node_key || rel.out.key.to_string() == node_key {
                     connected_relations.push(rel);
                 }
             }

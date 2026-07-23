@@ -1,23 +1,16 @@
-use crate::domain::base_models::{Comment, Coordinates, IsTable, RecordStrings, Size};
+use crate::domain::base_models::{Comment, Coordinates, Size};
 use crate::domain::contents::Content;
+use crate::domain::enums::{BrushType, MediaType, ShapeType, TaskState};
+use crate::domain::id::TypedRecordId;
 use crate::domain::styles::{NodeLayout, NodeStyle};
 use crate::domain::tags::TagEdge;
 use surrealdb::types::{SurrealValue, Value};
+pub use crate::domain::entity::*;
 pub use crate::domain::schema::{SurqlSchema, SurqlSchemaField, generate_field_schema_lines};
 
 pub trait IsNode {
-    fn id(&self) -> &RecordStrings;
-    fn set_id(&mut self, id: RecordStrings);
-
-    fn key(&self) -> &str {
-        &self.id().key
-    }
-
-    fn set_key(&mut self, key: String) {
-        let mut current_id = self.id().clone();
-        current_id.key = key;
-        self.set_id(current_id);
-    }
+    fn id(&self) -> &TypedRecordId;
+    fn set_id(&mut self, id: TypedRecordId);
 
     fn position(&self) -> &Coordinates;
     fn position_mut(&mut self) -> &mut Coordinates;
@@ -32,7 +25,7 @@ pub trait IsNode {
     fn set_updated_at(&mut self, val: i64);
 
     fn table_name(&self) -> &'static str;
-    
+
     fn serialize_node(self) -> Value;
 }
 
@@ -62,8 +55,7 @@ define_nodes! {
     TaskNode, "TaskNode", [] {
         pub content: Content,
         pub due_date: Option<i64>,
-        #[surql_type = "any"]
-        pub state: String,
+        pub state: TaskState,
         pub size: Size,
         pub expandable: bool,
         pub is_expanded: bool,
@@ -88,7 +80,7 @@ define_nodes! {
 
     DrawingNode, "DrawingNode", [] {
         pub paths: Vec<String>,
-        pub brush_type: String,
+        pub brush_type: BrushType,
         pub brush_thickness: f64,
         pub brush_color: String,
         pub size: Size,
@@ -96,7 +88,7 @@ define_nodes! {
     };
 
     ShapeNode, "ShapeNode", [] {
-        pub shape_type: String,
+        pub shape_type: ShapeType,
         pub style: Option<NodeStyle>,
         pub size: Size,
     };
@@ -109,9 +101,7 @@ define_nodes! {
 
     MediaNode, "MediaNode", [] {
         pub source_url: String,
-        pub media_type: String,
+        pub media_type: MediaType,
         pub size: Size,
     };
 }
-
-

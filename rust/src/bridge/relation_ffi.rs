@@ -1,9 +1,10 @@
 use crate::bridge::api::RelationEngine;
-use crate::domain::base_models::{IsTable, RecordStrings};
+use crate::domain::id::TypedRecordId;
 use crate::domain::patches::EntityPatch;
 use crate::domain::relations::IRelation;
 use crate::domain::relation_engine::config::RelationEngineConfig;
 use crate::domain::relation_engine::input::{InputEdge, InputNode};
+use crate::domain::traits::TableKind;
 use crate::persistence::repo::Repository;
 use std::sync::{Arc, Mutex};
 use tracing::{debug, error, info};
@@ -47,10 +48,7 @@ impl RelationFfi {
 
         self.repo
             .record_patch_history(
-                RecordStrings {
-                    table: IRelation::LABEL.to_string(),
-                    key: input.key.clone(),
-                },
+                input.key,
                 EntityPatch::CreateRelation(input.clone()),
                 EntityPatch::DeleteRelation(input),
             )
@@ -67,12 +65,12 @@ impl RelationFfi {
             .delete_relation(table.clone(), key.clone())
             .await?;
 
+        let u = uuid::Uuid::parse_str(&key).unwrap_or_else(|_| uuid::Uuid::nil());
+        let id = TypedRecordId::new(TableKind::IRelation, u);
+
         self.repo
             .record_patch_history(
-                RecordStrings {
-                    table: table.clone(),
-                    key: key.clone(),
-                },
+                id,
                 EntityPatch::DeleteRelation(rel.clone()),
                 EntityPatch::CreateRelation(rel),
             )
@@ -85,7 +83,7 @@ impl RelationFfi {
         debug!("FFI: update_relation called for {} with patch", input.key);
 
         self.repo
-            .update_relation("IRelation".to_string(), input.key.clone(), input.fields)
+            .update_relation("IRelation".to_string(), input.key.to_string(), input.fields)
             .await
             .map_err(|e| {
                 error!(
@@ -100,17 +98,17 @@ impl RelationFfi {
 
     pub async fn reroute_relation(
         &self,
-        record: RecordStrings,
-        from: RecordStrings,
-        to: RecordStrings,
+        record: TypedRecordId,
+        from: TypedRecordId,
+        to: TypedRecordId,
     ) -> anyhow::Result<()> {
         debug!(
             "Rerouting relation {} to: {} -> {}",
-            record.to_str(),
-            from.to_str(),
-            to.to_str()
+            record,
+            from,
+            to
         );
-        let id = record.to_str();
+        let id = record.to_string();
         match self.repo.reroute_relation(record, from, to).await {
             Ok(rerouted_id) => {
                 info!("Relation {} rerouted successfully", id);

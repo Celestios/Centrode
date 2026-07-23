@@ -1,18 +1,22 @@
 use crate::common::setup_test_repo;
-use rust_lib_mycelium::domain::base_models::{Coordinates, RecordStrings, Size};
+use rust_lib_mycelium::domain::base_models::{Coordinates, Size};
 use rust_lib_mycelium::domain::contents::Content;
+use rust_lib_mycelium::domain::id::TypedRecordId;
 use rust_lib_mycelium::domain::nodes::{INode, Nodes};
 use rust_lib_mycelium::domain::patches::{EntityPatch, NodePatch, TagOperation};
 use rust_lib_mycelium::domain::tags::{Tag, TagEdge, TagFields};
+use rust_lib_mycelium::domain::traits::TableKind;
 use surrealdb::types::RecordId;
 
 #[tokio::test]
 async fn test_tags_crud_and_patching() {
     let repo = setup_test_repo().await;
 
+    let tag_id = TypedRecordId::new_v4(TableKind::Tag);
+
     // 1. Create a tag
     let tag = Tag {
-        key: "test_tag_rust_uuid".to_string(),
+        key: tag_id,
         fields: TagFields {
             name: "test_tag_rust".to_string(),
             color: 0xFF00FF,
@@ -26,12 +30,12 @@ async fn test_tags_crud_and_patching() {
 
     // 2. Read the tag back
     let fetched_tag = repo
-        .get_tag("test_tag_rust_uuid".to_string())
+        .get_tag(tag_id.key.to_string())
         .await
         .expect("Failed to get tag");
     assert!(fetched_tag.is_some());
     let fetched_tag = fetched_tag.unwrap();
-    assert_eq!(fetched_tag.key, "test_tag_rust_uuid");
+    assert_eq!(fetched_tag.key, tag_id);
     assert_eq!(fetched_tag.fields.name, "test_tag_rust");
     assert_eq!(fetched_tag.fields.color, 0xFF00FF);
 
@@ -39,11 +43,13 @@ async fn test_tags_crud_and_patching() {
     let all_tags = repo.get_all_tags().await.expect("Failed to get all tags");
     assert!(all_tags
         .iter()
-        .any(|t| t.key == "test_tag_rust_uuid" && t.fields.name == "test_tag_rust" && t.fields.color == 0xFF00FF));
+        .any(|t| t.key == tag_id && t.fields.name == "test_tag_rust" && t.fields.color == 0xFF00FF));
+
+    let inode_id = TypedRecordId::new_v4(TableKind::INode);
 
     // 4. Create an INode
     let inode = INode {
-        id: RecordStrings::from("INode:inode_tag_test"),
+        id: inode_id,
         content: Content::from_plain_text("Tag test node"),
         style: None,
         resolved_style: None,
@@ -69,19 +75,17 @@ async fn test_tags_crud_and_patching() {
     };
     repo.create_node(Nodes::INode(inode)).await.unwrap();
 
-    let record_id = RecordId::new("INode", "inode_tag_test");
+    let record_id = inode_id.to_record_id();
 
     // 5. Add tag to the INode using patch
-    let add_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Add(
-        "test_tag_rust_uuid".to_string(),
-    ))]);
+    let add_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Add(tag_id))]);
     repo.patch_entity(record_id.clone(), &add_patch)
         .await
         .unwrap();
 
     // 6. Retrieve INode and verify tag is added & hydrated
     let fetched_node = repo
-        .get_node("INode".to_string(), "inode_tag_test".to_string())
+        .get_node("INode".to_string(), inode_id.key.to_string())
         .await
         .unwrap()
         .unwrap();
@@ -89,30 +93,28 @@ async fn test_tags_crud_and_patching() {
         assert_eq!(n.tags.len(), 1);
         match &n.tags[0] {
             TagEdge::Hydrated(t) => {
-                assert_eq!(t.key, "test_tag_rust_uuid");
+                assert_eq!(t.key, tag_id);
                 assert_eq!(t.fields.name, "test_tag_rust");
                 assert_eq!(t.fields.color, 0xFF00FF);
             }
             TagEdge::Pointer(p) => {
                 panic!("Expected tag to be hydrated but got pointer: {:?}", p);
             }
-            _ => panic!("Unexpected non-exhaustive TagEdge variant"),
+            _ => panic!("Unexpected TagEdge variant"),
         }
     } else {
         panic!("Incorrect node type");
     }
 
     // 7. Remove tag from the INode using patch
-    let remove_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Remove(
-        "test_tag_rust_uuid".to_string(),
-    ))]);
+    let remove_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Remove(tag_id))]);
     repo.patch_entity(record_id.clone(), &remove_patch)
         .await
         .unwrap();
 
     // 8. Retrieve INode and verify tag is removed
     let fetched_node_after_remove = repo
-        .get_node("INode".to_string(), "inode_tag_test".to_string())
+        .get_node("INode".to_string(), inode_id.key.to_string())
         .await
         .unwrap()
         .unwrap();
@@ -122,48 +124,32 @@ async fn test_tags_crud_and_patching() {
         panic!("Incorrect node type");
     }
 
-    // 9. Delete the tag
-    repo.delete_tag("test_tag_rust_uuid".to_string())
-        .await
-        .expect("Failed to delete tag");
-    let fetched_tag_deleted = repo
-        .get_tag("test_tag_rust_uuid".to_string())
-        .await
-        .expect("Failed to get tag");
-    assert!(fetched_tag_deleted.is_none());
-}
-
-#[tokio::test]
-async fn test_tag_cascading_disassociation_on_delete() {
-    let repo = setup_test_repo().await;
-
-    // 1. Create a tag
-    let tag = Tag {
-        key: "work_uuid".to_string(),
+    // 9. Cascading tag deletion test
+    let tag2_id = TypedRecordId::new_v4(TableKind::Tag);
+    let tag2 = Tag {
+        key: tag2_id,
         fields: TagFields {
-            name: "Work".to_string(),
-            color: 0xFF0000,
-            created_at: 200,
-            updated_at: 200,
+            name: "work".to_string(),
+            color: 0x00FF00,
+            created_at: 100,
+            updated_at: 100,
         },
     };
-    repo.create_tag(tag.clone())
-        .await
-        .expect("Failed to create tag");
+    repo.create_tag(tag2.clone()).await.unwrap();
 
-    // 2. Create a node and associate the tag
-    let inode = INode {
-        id: RecordStrings::from("INode:inode_cascade_test"),
-        content: Content::from_plain_text("Cascade test node"),
+    let inode2_id = TypedRecordId::new_v4(TableKind::INode);
+    let inode2 = INode {
+        id: inode2_id,
+        content: Content::from_plain_text("Node to be tagged"),
         style: None,
         resolved_style: None,
         layout: None,
         resolved_layout: None,
         layer: "default".to_string(),
-        position: Coordinates { x: 10, y: 20 },
+        position: Coordinates { x: 0, y: 0 },
         size: Size {
-            width: 100,
-            height: 50,
+            width: 10,
+            height: 10,
         },
         line_count: 1,
         expandable: true,
@@ -177,44 +163,29 @@ async fn test_tag_cascading_disassociation_on_delete() {
         created_at: 0,
         updated_at: 0,
     };
-    repo.create_node(Nodes::INode(inode)).await.unwrap();
-    let record_id = RecordId::new("INode", "inode_cascade_test");
+    repo.create_node(Nodes::INode(inode2)).await.unwrap();
 
-    // Add tag to the INode using patch
-    let add_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Add(
-        "work_uuid".to_string(),
-    ))]);
-    repo.patch_entity(record_id.clone(), &add_patch)
+    let add_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Add(tag2_id))]);
+    repo.patch_entity(inode2_id.to_record_id(), &add_patch)
         .await
         .unwrap();
 
-    // Verify it is added
-    let fetched_node = repo
-        .get_node("INode".to_string(), "inode_cascade_test".to_string())
+    // Delete tag2
+    repo.delete_tag(tag2_id.key.to_string()).await.unwrap();
+
+    // Verify tag2 is deleted from Repository
+    let fetched_tag2 = repo.get_tag(tag2_id.key.to_string()).await.unwrap();
+    assert!(fetched_tag2.is_none());
+
+    // Verify tag2 is removed from INode's tags array
+    let fetched_node2 = repo
+        .get_node("INode".to_string(), inode2_id.key.to_string())
         .await
         .unwrap()
         .unwrap();
-    if let Nodes::INode(n) = fetched_node {
-        assert_eq!(n.tags.len(), 1);
-    } else {
-        panic!("Incorrect node type");
-    }
-
-    // 3. Delete the tag globally
-    repo.delete_tag("work_uuid".to_string())
-        .await
-        .expect("Failed to delete tag");
-
-    // 4. Verify the tag is removed from the node's tags array automatically
-    let fetched_node_after_delete = repo
-        .get_node("INode".to_string(), "inode_cascade_test".to_string())
-        .await
-        .unwrap()
-        .unwrap();
-    if let Nodes::INode(n) = fetched_node_after_delete {
+    if let Nodes::INode(n) = fetched_node2 {
         assert_eq!(n.tags.len(), 0);
     } else {
         panic!("Incorrect node type");
     }
 }
-

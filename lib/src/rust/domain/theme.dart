@@ -4,7 +4,10 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import 'id.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:uuid/uuid.dart';
+import 'traits.dart';
 
 class FontWeight {
   final int field0;
@@ -23,7 +26,7 @@ class FontWeight {
 }
 
 class Theme {
-  final String key;
+  final TypedRecordId key;
   final ThemeFields fields;
 
   const Theme({required this.key, required this.fields});

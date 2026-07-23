@@ -13,6 +13,7 @@ import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/config.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/geometry.dart' as rust_geom;
 import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/src/rust/domain/enums.dart';
 
 class MockInteractionContext extends Mock implements InteractionContext {}
 

@@ -6,12 +6,19 @@
 import '../frb_generated.dart';
 import 'base_models.dart';
 import 'contents.dart';
+import 'entity.dart';
+import 'enums.dart';
+import 'id.dart';
 import 'nodes.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+import 'package:uuid/uuid.dart';
+import 'relation_engine/config.dart';
+import 'relation_engine/geometry.dart';
 import 'relations.dart';
 import 'styles.dart';
 import 'tags.dart';
+import 'traits.dart';
 part 'patches.freezed.dart';
 
 @freezed
@@ -42,6 +49,13 @@ sealed class NodePatch with _$NodePatch {
   const factory NodePatch.style([NodeStyle? field0]) = NodePatch_Style;
   const factory NodePatch.tagOp(TagOperation field0) = NodePatch_TagOp;
   const factory NodePatch.significance(int field0) = NodePatch_Significance;
+  const factory NodePatch.taskState(TaskState field0) = NodePatch_TaskState;
+  const factory NodePatch.shapeType(ShapeType field0) = NodePatch_ShapeType;
+  const factory NodePatch.brushType(BrushType field0) = NodePatch_BrushType;
+  const factory NodePatch.mediaType(MediaType field0) = NodePatch_MediaType;
+  const factory NodePatch.sourceUrl([String? field0]) = NodePatch_SourceUrl;
+  const factory NodePatch.title(String field0) = NodePatch_Title;
+  const factory NodePatch.verb(String field0) = NodePatch_Verb;
 }
 
 @freezed
@@ -49,16 +63,24 @@ sealed class RelationPatch with _$RelationPatch {
   const RelationPatch._();
 
   const factory RelationPatch.verb(String field0) = RelationPatch_Verb;
+  const factory RelationPatch.endpoints(
+    TypedRecordId field0,
+    TypedRecordId field1,
+  ) = RelationPatch_Endpoints;
   const factory RelationPatch.style([RelationStyle? field0]) =
       RelationPatch_Style;
   const factory RelationPatch.layout([RelationLayout? field0]) =
       RelationPatch_Layout;
   const factory RelationPatch.directionless(bool field0) =
       RelationPatch_Directionless;
+  const factory RelationPatch.routingMode(RoutingMode field0) =
+      RelationPatch_RoutingMode;
+  const factory RelationPatch.portSides([PortSide? field0, PortSide? field1]) =
+      RelationPatch_PortSides;
 }
 
 class SymmetricEntityPatch {
-  final RecordStrings id;
+  final TypedRecordId id;
   final EntityPatch forward;
   final EntityPatch reverse;
 
@@ -85,6 +107,6 @@ class SymmetricEntityPatch {
 sealed class TagOperation with _$TagOperation {
   const TagOperation._();
 
-  const factory TagOperation.add(String field0) = TagOperation_Add;
-  const factory TagOperation.remove(String field0) = TagOperation_Remove;
+  const factory TagOperation.add(TypedRecordId field0) = TagOperation_Add;
+  const factory TagOperation.remove(TypedRecordId field0) = TagOperation_Remove;
 }

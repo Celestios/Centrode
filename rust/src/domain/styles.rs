@@ -1,187 +1,34 @@
 use flutter_rust_bridge::frb;
-use surrealdb::types::{SurrealValue, Value};
 use crate::define_surql_schema_struct;
+use mycelium_macros::SurrealDbEnum;
+use surrealdb::types::{SurrealValue, Value};
 use crate::domain::schema::SurqlSchemaField;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
-#[non_exhaustive]
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, SurrealDbEnum)]
 pub enum PortSide {
     #[default]
-    Auto,
-    Top,
-    Right,
-    Bottom,
-    Left,
-    TopLeft,
-    TopRight,
-    BottomLeft,
-    BottomRight,
+    Auto = 0,
+    Top = 1,
+    Right = 2,
+    Bottom = 3,
+    Left = 4,
+    TopLeft = 5,
+    TopRight = 6,
+    BottomLeft = 7,
+    BottomRight = 8,
 }
 
-impl PortSide {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            PortSide::Auto => "Auto",
-            PortSide::Top => "Top",
-            PortSide::Right => "Right",
-            PortSide::Bottom => "Bottom",
-            PortSide::Left => "Left",
-            PortSide::TopLeft => "TopLeft",
-            PortSide::TopRight => "TopRight",
-            PortSide::BottomLeft => "BottomLeft",
-            PortSide::BottomRight => "BottomRight",
-        }
-    }
-
-    pub fn from_str(s: &str) -> Self {
-        match s.to_lowercase().as_str() {
-            "top" => PortSide::Top,
-            "right" => PortSide::Right,
-            "bottom" => PortSide::Bottom,
-            "left" => PortSide::Left,
-            "topleft" => PortSide::TopLeft,
-            "topright" => PortSide::TopRight,
-            "bottomleft" => PortSide::BottomLeft,
-            "bottomright" => PortSide::BottomRight,
-            _ => PortSide::Auto,
-        }
-    }
-}
-
-impl SurrealValue for PortSide {
-    fn kind_of() -> surrealdb::types::Kind {
-        surrealdb::types::Kind::String
-    }
-
-    fn from_value(value: Value) -> Result<Self, surrealdb::types::Error> {
-        match value {
-            Value::String(s) => Ok(PortSide::from_str(&s)),
-            _ => Err(surrealdb::types::Error::thrown(format!(
-                "Expected string for PortSide, found: {:?}", value
-            ))),
-        }
-    }
-
-    fn into_value(self) -> Value {
-        Value::String(self.as_str().to_string())
-    }
-}
-
-impl SurqlSchemaField for PortSide {
-    fn field_type() -> String { "string".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-#[non_exhaustive]
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, SurrealDbEnum)]
 pub enum PortType {
     #[default]
-    Middle,
-    Corner,
-    Edge,
+    Middle = 0,
+    Corner = 1,
+    Edge = 2,
 }
 
-impl PortType {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            PortType::Middle => "Middle",
-            PortType::Corner => "Corner",
-            PortType::Edge => "Edge",
-        }
-    }
-
-    pub fn from_str(s: &str) -> Self {
-        match s.to_lowercase().as_str() {
-            "corner" => PortType::Corner,
-            "edge" => PortType::Edge,
-            _ => PortType::Middle,
-        }
-    }
-}
-
-impl SurrealValue for PortType {
-    fn kind_of() -> surrealdb::types::Kind {
-        surrealdb::types::Kind::String
-    }
-
-    fn from_value(value: Value) -> Result<Self, surrealdb::types::Error> {
-        match value {
-            Value::String(s) => Ok(PortType::from_str(&s)),
-            _ => Err(surrealdb::types::Error::thrown(format!(
-                "Expected string for PortType, found: {:?}", value
-            ))),
-        }
-    }
-
-    fn into_value(self) -> Value {
-        Value::String(self.as_str().to_string())
-    }
-}
-
-impl SurqlSchemaField for PortType {
-    fn field_type() -> String { "string".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-#[non_exhaustive]
-pub enum EndpointShape {
-    #[default]
-    None,
-    Arrow,
-    OpenArrow,
-    Circle,
-    Diamond,
-    Square,
-}
-
-impl EndpointShape {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            EndpointShape::None => "None",
-            EndpointShape::Arrow => "Arrow",
-            EndpointShape::OpenArrow => "OpenArrow",
-            EndpointShape::Circle => "Circle",
-            EndpointShape::Diamond => "Diamond",
-            EndpointShape::Square => "Square",
-        }
-    }
-
-    pub fn from_str(s: &str) -> Self {
-        match s {
-            "Arrow" => EndpointShape::Arrow,
-            "OpenArrow" => EndpointShape::OpenArrow,
-            "Circle" => EndpointShape::Circle,
-            "Diamond" => EndpointShape::Diamond,
-            "Square" => EndpointShape::Square,
-            _ => EndpointShape::None,
-        }
-    }
-}
-
-impl SurrealValue for EndpointShape {
-    fn kind_of() -> surrealdb::types::Kind {
-        surrealdb::types::Kind::String
-    }
-
-    fn from_value(value: Value) -> Result<Self, surrealdb::types::Error> {
-        match value {
-            Value::String(s) => Ok(EndpointShape::from_str(&s)),
-            _ => Err(surrealdb::types::Error::thrown(format!(
-                "Expected string for EndpointShape, found: {:?}", value
-            ))),
-        }
-    }
-
-    fn into_value(self) -> Value {
-        Value::String(self.as_str().to_string())
-    }
-}
-
-impl SurqlSchemaField for EndpointShape {
-    fn field_type() -> String { "string".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
-}
+pub use crate::domain::enums::EndpointShape;
 
 define_surql_schema_struct! {
     #[frb(dart_metadata=("freezed"))]

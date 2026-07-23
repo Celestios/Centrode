@@ -232,7 +232,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                   localOffset,
                 );
                 await commandProcessor.templateMutations.instantiateTemplate(
-                  details.data.key,
+                  details.data.key.key.uuid,
                   canvasOffset,
                 );
               },

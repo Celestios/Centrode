@@ -2,6 +2,8 @@ import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:uuid/uuid.dart';
 import 'package:mycelium/src/rust/domain/relations.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart';
+import 'package:mycelium/src/rust/domain/id.dart';
+import 'package:mycelium/src/rust/domain/traits.dart';
 
 // ---------------------------------------------------------------------------
 // Abstract base class
@@ -118,9 +120,24 @@ class InfoUiRelation extends UiRelation {
   @override
   IRelation toRust() {
     return IRelation(
-      key: id,
-      in_: RecordStrings(table: fromNodeTable, key: fromNodeId),
-      out: RecordStrings(table: toNodeTable, key: toNodeId),
+      key: TypedRecordId(
+        table: TableKind.iRelation,
+        key: UuidValue.fromString(id),
+      ),
+      in_: TypedRecordId(
+        table: TableKind.values.firstWhere(
+          (t) => t.name.toLowerCase() == fromNodeTable.toLowerCase(),
+          orElse: () => TableKind.iNode,
+        ),
+        key: UuidValue.fromString(fromNodeId),
+      ),
+      out: TypedRecordId(
+        table: TableKind.values.firstWhere(
+          (t) => t.name.toLowerCase() == toNodeTable.toLowerCase(),
+          orElse: () => TableKind.iNode,
+        ),
+        key: UuidValue.fromString(toNodeId),
+      ),
       fields: IRelationFields(
         verb: verb,
         style: style,
@@ -138,11 +155,11 @@ class InfoUiRelation extends UiRelation {
   /// Deserialises from an FFI [IRelation].
   factory InfoUiRelation.fromRust(IRelation relation) {
     return InfoUiRelation(
-      id: relation.key,
-      fromNodeId: relation.in_.key,
-      fromNodeTable: relation.in_.table,
-      toNodeId: relation.out.key,
-      toNodeTable: relation.out.table,
+      id: relation.key.key.uuid,
+      fromNodeId: relation.in_.key.uuid,
+      fromNodeTable: relation.in_.table.name,
+      toNodeId: relation.out.key.uuid,
+      toNodeTable: relation.out.table.name,
       verb: relation.fields.verb,
       directionless: relation.fields.directionless,
       style: relation.fields.style,

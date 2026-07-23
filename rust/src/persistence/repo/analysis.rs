@@ -1,29 +1,30 @@
-use crate::domain::base_models::{BoundingBox, IsTable, RecordStrings};
+use crate::domain::base_models::BoundingBox;
+use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::{INode, InterNode, TaskNode};
 use crate::domain::relations::IRelation;
+use crate::domain::traits::SurrealTable;
 use crate::persistence::repo::Repository;
 
 use anyhow::Result;
 
 impl Repository {
-    pub async fn trigger_significance_update(&self, node_id: &RecordStrings) -> Result<()> {
+    pub async fn trigger_significance_update(&self, node_id: &TypedRecordId) -> Result<()> {
         let self_clone = self.clone();
-        let id_clone = node_id.clone();
+        let id_clone = *node_id;
 
         tokio::spawn(async move {
             if let Err(e) = self_clone.recalculate_significance_area(id_clone).await {
                 tracing::error!("Significance update failed: {}", e);
             }
-            // TODO: Broadcast SignificanceUpdate packet via FFI Sink
         });
 
         Ok(())
     }
 
-    pub async fn recalculate_significance_area(&self, center_node_id: RecordStrings) -> Result<()> {
+    pub async fn recalculate_significance_area(&self, center_node_id: TypedRecordId) -> Result<()> {
         tracing::info!(
             "ANALYSIS: Recalculating significance area for center node: {:?}",
-            center_node_id.to_str()
+            center_node_id.to_string()
         );
 
         let sql = format!(

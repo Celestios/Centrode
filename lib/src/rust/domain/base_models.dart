@@ -103,24 +103,6 @@ class MapData {
           displayMode == other.displayMode;
 }
 
-class RecordStrings {
-  final String table;
-  final String key;
-
-  const RecordStrings({required this.table, required this.key});
-
-  @override
-  int get hashCode => table.hashCode ^ key.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is RecordStrings &&
-          runtimeType == other.runtimeType &&
-          table == other.table &&
-          key == other.key;
-}
-
 class Size {
   final int width;
   final int height;

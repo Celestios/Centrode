@@ -1,4 +1,5 @@
-import 'package:mycelium/src/rust/domain/styles.dart'; // RelationStyle, EndpointShape
+import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/src/rust/domain/enums.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
 import 'package:flutter/material.dart';

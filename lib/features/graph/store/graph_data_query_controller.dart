@@ -7,6 +7,7 @@ import 'modules/graph_store.dart';
 import 'modules/graph_spatial.dart';
 import 'graph_api.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
+import 'package:mycelium/src/rust/domain/entity.dart';
 
 class GraphDataQueryController implements GraphDataQuery {
   final GraphStore store = GraphStore();
@@ -76,22 +77,22 @@ class GraphDataQueryController implements GraphDataQuery {
       if (rustNode is Nodes_INode) {
         final node = rustNode.field0;
         results.add(DatabaseSearchResult(
-          key: node.id.key,
+          key: node.id.key.uuid,
           type: DatabaseSearchResultType.infoNode,
           text: node.content.text,
         ));
       } else if (rustNode is Nodes_TaskNode) {
         final node = rustNode.field0;
         results.add(DatabaseSearchResult(
-          key: node.id.key,
+          key: node.id.key.uuid,
           type: DatabaseSearchResultType.taskNode,
           text: node.content.text,
-          state: node.state,
+          state: node.state.name,
         ));
       } else if (rustNode is Nodes_InterNode) {
         final node = rustNode.field0;
         results.add(DatabaseSearchResult(
-          key: node.id.key,
+          key: node.id.key.uuid,
           type: DatabaseSearchResultType.relation,
           text: node.verb,
         ));

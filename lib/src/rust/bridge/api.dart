@@ -5,6 +5,9 @@
 
 import '../domain/base_models.dart';
 import '../domain/contents.dart';
+import '../domain/entity.dart';
+import '../domain/enums.dart';
+import '../domain/id.dart';
 import '../domain/nodes.dart';
 import '../domain/patches.dart';
 import '../domain/relation_engine/computed.dart';
@@ -16,12 +19,14 @@ import '../domain/styles.dart';
 import '../domain/tags.dart';
 import '../domain/templates.dart';
 import '../domain/theme.dart';
+import '../domain/traits.dart';
 import '../frb_generated.dart';
 import '../lib.dart';
 import '../persistence/history.dart';
 import '../persistence/repo.dart';
 import '../telemetry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:uuid/uuid.dart';
 import 'stream.dart';
 
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `drop`
@@ -125,9 +130,9 @@ abstract class AppHandle implements RustOpaqueInterface {
   Future<int> redoCount();
 
   Future<void> rerouteRelation({
-    required RecordStrings record,
-    required RecordStrings from,
-    required RecordStrings to,
+    required TypedRecordId record,
+    required TypedRecordId from,
+    required TypedRecordId to,
   });
 
   Future<void> saveMapToFile({
@@ -137,8 +142,8 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<void> saveTemplateFromSelection({
     required String name,
-    required List<RecordStrings> nodeKeys,
-    required List<RecordStrings> relationKeys,
+    required List<TypedRecordId> nodeKeys,
+    required List<TypedRecordId> relationKeys,
   });
 
   Future<void> setActiveTheme({required String themeKey});

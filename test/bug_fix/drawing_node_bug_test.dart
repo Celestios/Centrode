@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:mycelium/features/graph/models/models.dart';
+import 'package:mycelium/src/rust/domain/enums.dart';
 import 'package:mycelium/features/graph/presentation/style_manager.dart';
 import 'package:mycelium/features/graph/store/modules/graph_store.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
@@ -26,7 +27,7 @@ void main() {
       id: 'drawing_node_1',
       position: const Offset(10, 20),
       size: const Size(100, 100),
-      brushType: 'pen',
+      brushType: BrushType.pencil,
       brushThickness: 2.0,
       brushColor: '#FF0000',
       paths: ['10,20;30,40'],

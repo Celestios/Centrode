@@ -681,7 +681,7 @@ extension NodePatchPatterns on NodePatch {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( NodePatch_Position value)?  position,TResult Function( NodePatch_Size value)?  size,TResult Function( NodePatch_Content value)?  content,TResult Function( NodePatch_IsExpanded value)?  isExpanded,TResult Function( NodePatch_Style value)?  style,TResult Function( NodePatch_TagOp value)?  tagOp,TResult Function( NodePatch_Significance value)?  significance,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( NodePatch_Position value)?  position,TResult Function( NodePatch_Size value)?  size,TResult Function( NodePatch_Content value)?  content,TResult Function( NodePatch_IsExpanded value)?  isExpanded,TResult Function( NodePatch_Style value)?  style,TResult Function( NodePatch_TagOp value)?  tagOp,TResult Function( NodePatch_Significance value)?  significance,TResult Function( NodePatch_TaskState value)?  taskState,TResult Function( NodePatch_ShapeType value)?  shapeType,TResult Function( NodePatch_BrushType value)?  brushType,TResult Function( NodePatch_MediaType value)?  mediaType,TResult Function( NodePatch_SourceUrl value)?  sourceUrl,TResult Function( NodePatch_Title value)?  title,TResult Function( NodePatch_Verb value)?  verb,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case NodePatch_Position() when position != null:
@@ -691,7 +691,14 @@ return content(_that);case NodePatch_IsExpanded() when isExpanded != null:
 return isExpanded(_that);case NodePatch_Style() when style != null:
 return style(_that);case NodePatch_TagOp() when tagOp != null:
 return tagOp(_that);case NodePatch_Significance() when significance != null:
-return significance(_that);case _:
+return significance(_that);case NodePatch_TaskState() when taskState != null:
+return taskState(_that);case NodePatch_ShapeType() when shapeType != null:
+return shapeType(_that);case NodePatch_BrushType() when brushType != null:
+return brushType(_that);case NodePatch_MediaType() when mediaType != null:
+return mediaType(_that);case NodePatch_SourceUrl() when sourceUrl != null:
+return sourceUrl(_that);case NodePatch_Title() when title != null:
+return title(_that);case NodePatch_Verb() when verb != null:
+return verb(_that);case _:
   return orElse();
 
 }
@@ -709,7 +716,7 @@ return significance(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( NodePatch_Position value)  position,required TResult Function( NodePatch_Size value)  size,required TResult Function( NodePatch_Content value)  content,required TResult Function( NodePatch_IsExpanded value)  isExpanded,required TResult Function( NodePatch_Style value)  style,required TResult Function( NodePatch_TagOp value)  tagOp,required TResult Function( NodePatch_Significance value)  significance,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( NodePatch_Position value)  position,required TResult Function( NodePatch_Size value)  size,required TResult Function( NodePatch_Content value)  content,required TResult Function( NodePatch_IsExpanded value)  isExpanded,required TResult Function( NodePatch_Style value)  style,required TResult Function( NodePatch_TagOp value)  tagOp,required TResult Function( NodePatch_Significance value)  significance,required TResult Function( NodePatch_TaskState value)  taskState,required TResult Function( NodePatch_ShapeType value)  shapeType,required TResult Function( NodePatch_BrushType value)  brushType,required TResult Function( NodePatch_MediaType value)  mediaType,required TResult Function( NodePatch_SourceUrl value)  sourceUrl,required TResult Function( NodePatch_Title value)  title,required TResult Function( NodePatch_Verb value)  verb,}){
 final _that = this;
 switch (_that) {
 case NodePatch_Position():
@@ -719,7 +726,14 @@ return content(_that);case NodePatch_IsExpanded():
 return isExpanded(_that);case NodePatch_Style():
 return style(_that);case NodePatch_TagOp():
 return tagOp(_that);case NodePatch_Significance():
-return significance(_that);}
+return significance(_that);case NodePatch_TaskState():
+return taskState(_that);case NodePatch_ShapeType():
+return shapeType(_that);case NodePatch_BrushType():
+return brushType(_that);case NodePatch_MediaType():
+return mediaType(_that);case NodePatch_SourceUrl():
+return sourceUrl(_that);case NodePatch_Title():
+return title(_that);case NodePatch_Verb():
+return verb(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -733,7 +747,7 @@ return significance(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( NodePatch_Position value)?  position,TResult? Function( NodePatch_Size value)?  size,TResult? Function( NodePatch_Content value)?  content,TResult? Function( NodePatch_IsExpanded value)?  isExpanded,TResult? Function( NodePatch_Style value)?  style,TResult? Function( NodePatch_TagOp value)?  tagOp,TResult? Function( NodePatch_Significance value)?  significance,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( NodePatch_Position value)?  position,TResult? Function( NodePatch_Size value)?  size,TResult? Function( NodePatch_Content value)?  content,TResult? Function( NodePatch_IsExpanded value)?  isExpanded,TResult? Function( NodePatch_Style value)?  style,TResult? Function( NodePatch_TagOp value)?  tagOp,TResult? Function( NodePatch_Significance value)?  significance,TResult? Function( NodePatch_TaskState value)?  taskState,TResult? Function( NodePatch_ShapeType value)?  shapeType,TResult? Function( NodePatch_BrushType value)?  brushType,TResult? Function( NodePatch_MediaType value)?  mediaType,TResult? Function( NodePatch_SourceUrl value)?  sourceUrl,TResult? Function( NodePatch_Title value)?  title,TResult? Function( NodePatch_Verb value)?  verb,}){
 final _that = this;
 switch (_that) {
 case NodePatch_Position() when position != null:
@@ -743,7 +757,14 @@ return content(_that);case NodePatch_IsExpanded() when isExpanded != null:
 return isExpanded(_that);case NodePatch_Style() when style != null:
 return style(_that);case NodePatch_TagOp() when tagOp != null:
 return tagOp(_that);case NodePatch_Significance() when significance != null:
-return significance(_that);case _:
+return significance(_that);case NodePatch_TaskState() when taskState != null:
+return taskState(_that);case NodePatch_ShapeType() when shapeType != null:
+return shapeType(_that);case NodePatch_BrushType() when brushType != null:
+return brushType(_that);case NodePatch_MediaType() when mediaType != null:
+return mediaType(_that);case NodePatch_SourceUrl() when sourceUrl != null:
+return sourceUrl(_that);case NodePatch_Title() when title != null:
+return title(_that);case NodePatch_Verb() when verb != null:
+return verb(_that);case _:
   return null;
 
 }
@@ -760,7 +781,7 @@ return significance(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Coordinates field0)?  position,TResult Function( Size field0)?  size,TResult Function( Content field0)?  content,TResult Function( bool field0)?  isExpanded,TResult Function( NodeStyle? field0)?  style,TResult Function( TagOperation field0)?  tagOp,TResult Function( int field0)?  significance,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Coordinates field0)?  position,TResult Function( Size field0)?  size,TResult Function( Content field0)?  content,TResult Function( bool field0)?  isExpanded,TResult Function( NodeStyle? field0)?  style,TResult Function( TagOperation field0)?  tagOp,TResult Function( int field0)?  significance,TResult Function( TaskState field0)?  taskState,TResult Function( ShapeType field0)?  shapeType,TResult Function( BrushType field0)?  brushType,TResult Function( MediaType field0)?  mediaType,TResult Function( String? field0)?  sourceUrl,TResult Function( String field0)?  title,TResult Function( String field0)?  verb,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case NodePatch_Position() when position != null:
 return position(_that.field0);case NodePatch_Size() when size != null:
@@ -769,7 +790,14 @@ return content(_that.field0);case NodePatch_IsExpanded() when isExpanded != null
 return isExpanded(_that.field0);case NodePatch_Style() when style != null:
 return style(_that.field0);case NodePatch_TagOp() when tagOp != null:
 return tagOp(_that.field0);case NodePatch_Significance() when significance != null:
-return significance(_that.field0);case _:
+return significance(_that.field0);case NodePatch_TaskState() when taskState != null:
+return taskState(_that.field0);case NodePatch_ShapeType() when shapeType != null:
+return shapeType(_that.field0);case NodePatch_BrushType() when brushType != null:
+return brushType(_that.field0);case NodePatch_MediaType() when mediaType != null:
+return mediaType(_that.field0);case NodePatch_SourceUrl() when sourceUrl != null:
+return sourceUrl(_that.field0);case NodePatch_Title() when title != null:
+return title(_that.field0);case NodePatch_Verb() when verb != null:
+return verb(_that.field0);case _:
   return orElse();
 
 }
@@ -787,7 +815,7 @@ return significance(_that.field0);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Coordinates field0)  position,required TResult Function( Size field0)  size,required TResult Function( Content field0)  content,required TResult Function( bool field0)  isExpanded,required TResult Function( NodeStyle? field0)  style,required TResult Function( TagOperation field0)  tagOp,required TResult Function( int field0)  significance,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Coordinates field0)  position,required TResult Function( Size field0)  size,required TResult Function( Content field0)  content,required TResult Function( bool field0)  isExpanded,required TResult Function( NodeStyle? field0)  style,required TResult Function( TagOperation field0)  tagOp,required TResult Function( int field0)  significance,required TResult Function( TaskState field0)  taskState,required TResult Function( ShapeType field0)  shapeType,required TResult Function( BrushType field0)  brushType,required TResult Function( MediaType field0)  mediaType,required TResult Function( String? field0)  sourceUrl,required TResult Function( String field0)  title,required TResult Function( String field0)  verb,}) {final _that = this;
 switch (_that) {
 case NodePatch_Position():
 return position(_that.field0);case NodePatch_Size():
@@ -796,7 +824,14 @@ return content(_that.field0);case NodePatch_IsExpanded():
 return isExpanded(_that.field0);case NodePatch_Style():
 return style(_that.field0);case NodePatch_TagOp():
 return tagOp(_that.field0);case NodePatch_Significance():
-return significance(_that.field0);}
+return significance(_that.field0);case NodePatch_TaskState():
+return taskState(_that.field0);case NodePatch_ShapeType():
+return shapeType(_that.field0);case NodePatch_BrushType():
+return brushType(_that.field0);case NodePatch_MediaType():
+return mediaType(_that.field0);case NodePatch_SourceUrl():
+return sourceUrl(_that.field0);case NodePatch_Title():
+return title(_that.field0);case NodePatch_Verb():
+return verb(_that.field0);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -810,7 +845,7 @@ return significance(_that.field0);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Coordinates field0)?  position,TResult? Function( Size field0)?  size,TResult? Function( Content field0)?  content,TResult? Function( bool field0)?  isExpanded,TResult? Function( NodeStyle? field0)?  style,TResult? Function( TagOperation field0)?  tagOp,TResult? Function( int field0)?  significance,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Coordinates field0)?  position,TResult? Function( Size field0)?  size,TResult? Function( Content field0)?  content,TResult? Function( bool field0)?  isExpanded,TResult? Function( NodeStyle? field0)?  style,TResult? Function( TagOperation field0)?  tagOp,TResult? Function( int field0)?  significance,TResult? Function( TaskState field0)?  taskState,TResult? Function( ShapeType field0)?  shapeType,TResult? Function( BrushType field0)?  brushType,TResult? Function( MediaType field0)?  mediaType,TResult? Function( String? field0)?  sourceUrl,TResult? Function( String field0)?  title,TResult? Function( String field0)?  verb,}) {final _that = this;
 switch (_that) {
 case NodePatch_Position() when position != null:
 return position(_that.field0);case NodePatch_Size() when size != null:
@@ -819,7 +854,14 @@ return content(_that.field0);case NodePatch_IsExpanded() when isExpanded != null
 return isExpanded(_that.field0);case NodePatch_Style() when style != null:
 return style(_that.field0);case NodePatch_TagOp() when tagOp != null:
 return tagOp(_that.field0);case NodePatch_Significance() when significance != null:
-return significance(_that.field0);case _:
+return significance(_that.field0);case NodePatch_TaskState() when taskState != null:
+return taskState(_that.field0);case NodePatch_ShapeType() when shapeType != null:
+return shapeType(_that.field0);case NodePatch_BrushType() when brushType != null:
+return brushType(_that.field0);case NodePatch_MediaType() when mediaType != null:
+return mediaType(_that.field0);case NodePatch_SourceUrl() when sourceUrl != null:
+return sourceUrl(_that.field0);case NodePatch_Title() when title != null:
+return title(_that.field0);case NodePatch_Verb() when verb != null:
+return verb(_that.field0);case _:
   return null;
 
 }
@@ -1311,6 +1353,468 @@ as int,
 }
 
 /// @nodoc
+
+
+class NodePatch_TaskState extends NodePatch {
+  const NodePatch_TaskState(this.field0): super._();
+  
+
+@override final  TaskState field0;
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NodePatch_TaskStateCopyWith<NodePatch_TaskState> get copyWith => _$NodePatch_TaskStateCopyWithImpl<NodePatch_TaskState>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NodePatch_TaskState&&(identical(other.field0, field0) || other.field0 == field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0);
+
+@override
+String toString() {
+  return 'NodePatch.taskState(field0: $field0)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $NodePatch_TaskStateCopyWith<$Res> implements $NodePatchCopyWith<$Res> {
+  factory $NodePatch_TaskStateCopyWith(NodePatch_TaskState value, $Res Function(NodePatch_TaskState) _then) = _$NodePatch_TaskStateCopyWithImpl;
+@useResult
+$Res call({
+ TaskState field0
+});
+
+
+
+
+}
+/// @nodoc
+class _$NodePatch_TaskStateCopyWithImpl<$Res>
+    implements $NodePatch_TaskStateCopyWith<$Res> {
+  _$NodePatch_TaskStateCopyWithImpl(this._self, this._then);
+
+  final NodePatch_TaskState _self;
+  final $Res Function(NodePatch_TaskState) _then;
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(NodePatch_TaskState(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as TaskState,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class NodePatch_ShapeType extends NodePatch {
+  const NodePatch_ShapeType(this.field0): super._();
+  
+
+@override final  ShapeType field0;
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NodePatch_ShapeTypeCopyWith<NodePatch_ShapeType> get copyWith => _$NodePatch_ShapeTypeCopyWithImpl<NodePatch_ShapeType>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NodePatch_ShapeType&&(identical(other.field0, field0) || other.field0 == field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0);
+
+@override
+String toString() {
+  return 'NodePatch.shapeType(field0: $field0)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $NodePatch_ShapeTypeCopyWith<$Res> implements $NodePatchCopyWith<$Res> {
+  factory $NodePatch_ShapeTypeCopyWith(NodePatch_ShapeType value, $Res Function(NodePatch_ShapeType) _then) = _$NodePatch_ShapeTypeCopyWithImpl;
+@useResult
+$Res call({
+ ShapeType field0
+});
+
+
+
+
+}
+/// @nodoc
+class _$NodePatch_ShapeTypeCopyWithImpl<$Res>
+    implements $NodePatch_ShapeTypeCopyWith<$Res> {
+  _$NodePatch_ShapeTypeCopyWithImpl(this._self, this._then);
+
+  final NodePatch_ShapeType _self;
+  final $Res Function(NodePatch_ShapeType) _then;
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(NodePatch_ShapeType(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as ShapeType,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class NodePatch_BrushType extends NodePatch {
+  const NodePatch_BrushType(this.field0): super._();
+  
+
+@override final  BrushType field0;
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NodePatch_BrushTypeCopyWith<NodePatch_BrushType> get copyWith => _$NodePatch_BrushTypeCopyWithImpl<NodePatch_BrushType>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NodePatch_BrushType&&(identical(other.field0, field0) || other.field0 == field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0);
+
+@override
+String toString() {
+  return 'NodePatch.brushType(field0: $field0)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $NodePatch_BrushTypeCopyWith<$Res> implements $NodePatchCopyWith<$Res> {
+  factory $NodePatch_BrushTypeCopyWith(NodePatch_BrushType value, $Res Function(NodePatch_BrushType) _then) = _$NodePatch_BrushTypeCopyWithImpl;
+@useResult
+$Res call({
+ BrushType field0
+});
+
+
+
+
+}
+/// @nodoc
+class _$NodePatch_BrushTypeCopyWithImpl<$Res>
+    implements $NodePatch_BrushTypeCopyWith<$Res> {
+  _$NodePatch_BrushTypeCopyWithImpl(this._self, this._then);
+
+  final NodePatch_BrushType _self;
+  final $Res Function(NodePatch_BrushType) _then;
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(NodePatch_BrushType(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as BrushType,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class NodePatch_MediaType extends NodePatch {
+  const NodePatch_MediaType(this.field0): super._();
+  
+
+@override final  MediaType field0;
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NodePatch_MediaTypeCopyWith<NodePatch_MediaType> get copyWith => _$NodePatch_MediaTypeCopyWithImpl<NodePatch_MediaType>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NodePatch_MediaType&&(identical(other.field0, field0) || other.field0 == field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0);
+
+@override
+String toString() {
+  return 'NodePatch.mediaType(field0: $field0)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $NodePatch_MediaTypeCopyWith<$Res> implements $NodePatchCopyWith<$Res> {
+  factory $NodePatch_MediaTypeCopyWith(NodePatch_MediaType value, $Res Function(NodePatch_MediaType) _then) = _$NodePatch_MediaTypeCopyWithImpl;
+@useResult
+$Res call({
+ MediaType field0
+});
+
+
+
+
+}
+/// @nodoc
+class _$NodePatch_MediaTypeCopyWithImpl<$Res>
+    implements $NodePatch_MediaTypeCopyWith<$Res> {
+  _$NodePatch_MediaTypeCopyWithImpl(this._self, this._then);
+
+  final NodePatch_MediaType _self;
+  final $Res Function(NodePatch_MediaType) _then;
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(NodePatch_MediaType(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as MediaType,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class NodePatch_SourceUrl extends NodePatch {
+  const NodePatch_SourceUrl([this.field0]): super._();
+  
+
+@override final  String? field0;
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NodePatch_SourceUrlCopyWith<NodePatch_SourceUrl> get copyWith => _$NodePatch_SourceUrlCopyWithImpl<NodePatch_SourceUrl>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NodePatch_SourceUrl&&(identical(other.field0, field0) || other.field0 == field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0);
+
+@override
+String toString() {
+  return 'NodePatch.sourceUrl(field0: $field0)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $NodePatch_SourceUrlCopyWith<$Res> implements $NodePatchCopyWith<$Res> {
+  factory $NodePatch_SourceUrlCopyWith(NodePatch_SourceUrl value, $Res Function(NodePatch_SourceUrl) _then) = _$NodePatch_SourceUrlCopyWithImpl;
+@useResult
+$Res call({
+ String? field0
+});
+
+
+
+
+}
+/// @nodoc
+class _$NodePatch_SourceUrlCopyWithImpl<$Res>
+    implements $NodePatch_SourceUrlCopyWith<$Res> {
+  _$NodePatch_SourceUrlCopyWithImpl(this._self, this._then);
+
+  final NodePatch_SourceUrl _self;
+  final $Res Function(NodePatch_SourceUrl) _then;
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = freezed,}) {
+  return _then(NodePatch_SourceUrl(
+freezed == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class NodePatch_Title extends NodePatch {
+  const NodePatch_Title(this.field0): super._();
+  
+
+@override final  String field0;
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NodePatch_TitleCopyWith<NodePatch_Title> get copyWith => _$NodePatch_TitleCopyWithImpl<NodePatch_Title>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NodePatch_Title&&(identical(other.field0, field0) || other.field0 == field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0);
+
+@override
+String toString() {
+  return 'NodePatch.title(field0: $field0)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $NodePatch_TitleCopyWith<$Res> implements $NodePatchCopyWith<$Res> {
+  factory $NodePatch_TitleCopyWith(NodePatch_Title value, $Res Function(NodePatch_Title) _then) = _$NodePatch_TitleCopyWithImpl;
+@useResult
+$Res call({
+ String field0
+});
+
+
+
+
+}
+/// @nodoc
+class _$NodePatch_TitleCopyWithImpl<$Res>
+    implements $NodePatch_TitleCopyWith<$Res> {
+  _$NodePatch_TitleCopyWithImpl(this._self, this._then);
+
+  final NodePatch_Title _self;
+  final $Res Function(NodePatch_Title) _then;
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(NodePatch_Title(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class NodePatch_Verb extends NodePatch {
+  const NodePatch_Verb(this.field0): super._();
+  
+
+@override final  String field0;
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NodePatch_VerbCopyWith<NodePatch_Verb> get copyWith => _$NodePatch_VerbCopyWithImpl<NodePatch_Verb>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NodePatch_Verb&&(identical(other.field0, field0) || other.field0 == field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0);
+
+@override
+String toString() {
+  return 'NodePatch.verb(field0: $field0)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $NodePatch_VerbCopyWith<$Res> implements $NodePatchCopyWith<$Res> {
+  factory $NodePatch_VerbCopyWith(NodePatch_Verb value, $Res Function(NodePatch_Verb) _then) = _$NodePatch_VerbCopyWithImpl;
+@useResult
+$Res call({
+ String field0
+});
+
+
+
+
+}
+/// @nodoc
+class _$NodePatch_VerbCopyWithImpl<$Res>
+    implements $NodePatch_VerbCopyWith<$Res> {
+  _$NodePatch_VerbCopyWithImpl(this._self, this._then);
+
+  final NodePatch_Verb _self;
+  final $Res Function(NodePatch_Verb) _then;
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(NodePatch_Verb(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$RelationPatch {
 
  Object? get field0;
@@ -1354,14 +1858,17 @@ extension RelationPatchPatterns on RelationPatch {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( RelationPatch_Verb value)?  verb,TResult Function( RelationPatch_Style value)?  style,TResult Function( RelationPatch_Layout value)?  layout,TResult Function( RelationPatch_Directionless value)?  directionless,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( RelationPatch_Verb value)?  verb,TResult Function( RelationPatch_Endpoints value)?  endpoints,TResult Function( RelationPatch_Style value)?  style,TResult Function( RelationPatch_Layout value)?  layout,TResult Function( RelationPatch_Directionless value)?  directionless,TResult Function( RelationPatch_RoutingMode value)?  routingMode,TResult Function( RelationPatch_PortSides value)?  portSides,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case RelationPatch_Verb() when verb != null:
-return verb(_that);case RelationPatch_Style() when style != null:
+return verb(_that);case RelationPatch_Endpoints() when endpoints != null:
+return endpoints(_that);case RelationPatch_Style() when style != null:
 return style(_that);case RelationPatch_Layout() when layout != null:
 return layout(_that);case RelationPatch_Directionless() when directionless != null:
-return directionless(_that);case _:
+return directionless(_that);case RelationPatch_RoutingMode() when routingMode != null:
+return routingMode(_that);case RelationPatch_PortSides() when portSides != null:
+return portSides(_that);case _:
   return orElse();
 
 }
@@ -1379,14 +1886,17 @@ return directionless(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( RelationPatch_Verb value)  verb,required TResult Function( RelationPatch_Style value)  style,required TResult Function( RelationPatch_Layout value)  layout,required TResult Function( RelationPatch_Directionless value)  directionless,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( RelationPatch_Verb value)  verb,required TResult Function( RelationPatch_Endpoints value)  endpoints,required TResult Function( RelationPatch_Style value)  style,required TResult Function( RelationPatch_Layout value)  layout,required TResult Function( RelationPatch_Directionless value)  directionless,required TResult Function( RelationPatch_RoutingMode value)  routingMode,required TResult Function( RelationPatch_PortSides value)  portSides,}){
 final _that = this;
 switch (_that) {
 case RelationPatch_Verb():
-return verb(_that);case RelationPatch_Style():
+return verb(_that);case RelationPatch_Endpoints():
+return endpoints(_that);case RelationPatch_Style():
 return style(_that);case RelationPatch_Layout():
 return layout(_that);case RelationPatch_Directionless():
-return directionless(_that);}
+return directionless(_that);case RelationPatch_RoutingMode():
+return routingMode(_that);case RelationPatch_PortSides():
+return portSides(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -1400,14 +1910,17 @@ return directionless(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( RelationPatch_Verb value)?  verb,TResult? Function( RelationPatch_Style value)?  style,TResult? Function( RelationPatch_Layout value)?  layout,TResult? Function( RelationPatch_Directionless value)?  directionless,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( RelationPatch_Verb value)?  verb,TResult? Function( RelationPatch_Endpoints value)?  endpoints,TResult? Function( RelationPatch_Style value)?  style,TResult? Function( RelationPatch_Layout value)?  layout,TResult? Function( RelationPatch_Directionless value)?  directionless,TResult? Function( RelationPatch_RoutingMode value)?  routingMode,TResult? Function( RelationPatch_PortSides value)?  portSides,}){
 final _that = this;
 switch (_that) {
 case RelationPatch_Verb() when verb != null:
-return verb(_that);case RelationPatch_Style() when style != null:
+return verb(_that);case RelationPatch_Endpoints() when endpoints != null:
+return endpoints(_that);case RelationPatch_Style() when style != null:
 return style(_that);case RelationPatch_Layout() when layout != null:
 return layout(_that);case RelationPatch_Directionless() when directionless != null:
-return directionless(_that);case _:
+return directionless(_that);case RelationPatch_RoutingMode() when routingMode != null:
+return routingMode(_that);case RelationPatch_PortSides() when portSides != null:
+return portSides(_that);case _:
   return null;
 
 }
@@ -1424,13 +1937,16 @@ return directionless(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String field0)?  verb,TResult Function( RelationStyle? field0)?  style,TResult Function( RelationLayout? field0)?  layout,TResult Function( bool field0)?  directionless,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String field0)?  verb,TResult Function( TypedRecordId field0,  TypedRecordId field1)?  endpoints,TResult Function( RelationStyle? field0)?  style,TResult Function( RelationLayout? field0)?  layout,TResult Function( bool field0)?  directionless,TResult Function( RoutingMode field0)?  routingMode,TResult Function( PortSide? field0,  PortSide? field1)?  portSides,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case RelationPatch_Verb() when verb != null:
-return verb(_that.field0);case RelationPatch_Style() when style != null:
+return verb(_that.field0);case RelationPatch_Endpoints() when endpoints != null:
+return endpoints(_that.field0,_that.field1);case RelationPatch_Style() when style != null:
 return style(_that.field0);case RelationPatch_Layout() when layout != null:
 return layout(_that.field0);case RelationPatch_Directionless() when directionless != null:
-return directionless(_that.field0);case _:
+return directionless(_that.field0);case RelationPatch_RoutingMode() when routingMode != null:
+return routingMode(_that.field0);case RelationPatch_PortSides() when portSides != null:
+return portSides(_that.field0,_that.field1);case _:
   return orElse();
 
 }
@@ -1448,13 +1964,16 @@ return directionless(_that.field0);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String field0)  verb,required TResult Function( RelationStyle? field0)  style,required TResult Function( RelationLayout? field0)  layout,required TResult Function( bool field0)  directionless,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String field0)  verb,required TResult Function( TypedRecordId field0,  TypedRecordId field1)  endpoints,required TResult Function( RelationStyle? field0)  style,required TResult Function( RelationLayout? field0)  layout,required TResult Function( bool field0)  directionless,required TResult Function( RoutingMode field0)  routingMode,required TResult Function( PortSide? field0,  PortSide? field1)  portSides,}) {final _that = this;
 switch (_that) {
 case RelationPatch_Verb():
-return verb(_that.field0);case RelationPatch_Style():
+return verb(_that.field0);case RelationPatch_Endpoints():
+return endpoints(_that.field0,_that.field1);case RelationPatch_Style():
 return style(_that.field0);case RelationPatch_Layout():
 return layout(_that.field0);case RelationPatch_Directionless():
-return directionless(_that.field0);}
+return directionless(_that.field0);case RelationPatch_RoutingMode():
+return routingMode(_that.field0);case RelationPatch_PortSides():
+return portSides(_that.field0,_that.field1);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1468,13 +1987,16 @@ return directionless(_that.field0);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String field0)?  verb,TResult? Function( RelationStyle? field0)?  style,TResult? Function( RelationLayout? field0)?  layout,TResult? Function( bool field0)?  directionless,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String field0)?  verb,TResult? Function( TypedRecordId field0,  TypedRecordId field1)?  endpoints,TResult? Function( RelationStyle? field0)?  style,TResult? Function( RelationLayout? field0)?  layout,TResult? Function( bool field0)?  directionless,TResult? Function( RoutingMode field0)?  routingMode,TResult? Function( PortSide? field0,  PortSide? field1)?  portSides,}) {final _that = this;
 switch (_that) {
 case RelationPatch_Verb() when verb != null:
-return verb(_that.field0);case RelationPatch_Style() when style != null:
+return verb(_that.field0);case RelationPatch_Endpoints() when endpoints != null:
+return endpoints(_that.field0,_that.field1);case RelationPatch_Style() when style != null:
 return style(_that.field0);case RelationPatch_Layout() when layout != null:
 return layout(_that.field0);case RelationPatch_Directionless() when directionless != null:
-return directionless(_that.field0);case _:
+return directionless(_that.field0);case RelationPatch_RoutingMode() when routingMode != null:
+return routingMode(_that.field0);case RelationPatch_PortSides() when portSides != null:
+return portSides(_that.field0,_that.field1);case _:
   return null;
 
 }
@@ -1542,6 +2064,74 @@ class _$RelationPatch_VerbCopyWithImpl<$Res>
   return _then(RelationPatch_Verb(
 null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
 as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class RelationPatch_Endpoints extends RelationPatch {
+  const RelationPatch_Endpoints(this.field0, this.field1): super._();
+  
+
+@override final  TypedRecordId field0;
+ final  TypedRecordId field1;
+
+/// Create a copy of RelationPatch
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RelationPatch_EndpointsCopyWith<RelationPatch_Endpoints> get copyWith => _$RelationPatch_EndpointsCopyWithImpl<RelationPatch_Endpoints>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RelationPatch_Endpoints&&(identical(other.field0, field0) || other.field0 == field0)&&(identical(other.field1, field1) || other.field1 == field1));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0,field1);
+
+@override
+String toString() {
+  return 'RelationPatch.endpoints(field0: $field0, field1: $field1)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RelationPatch_EndpointsCopyWith<$Res> implements $RelationPatchCopyWith<$Res> {
+  factory $RelationPatch_EndpointsCopyWith(RelationPatch_Endpoints value, $Res Function(RelationPatch_Endpoints) _then) = _$RelationPatch_EndpointsCopyWithImpl;
+@useResult
+$Res call({
+ TypedRecordId field0, TypedRecordId field1
+});
+
+
+
+
+}
+/// @nodoc
+class _$RelationPatch_EndpointsCopyWithImpl<$Res>
+    implements $RelationPatch_EndpointsCopyWith<$Res> {
+  _$RelationPatch_EndpointsCopyWithImpl(this._self, this._then);
+
+  final RelationPatch_Endpoints _self;
+  final $Res Function(RelationPatch_Endpoints) _then;
+
+/// Create a copy of RelationPatch
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,Object? field1 = null,}) {
+  return _then(RelationPatch_Endpoints(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as TypedRecordId,null == field1 ? _self.field1 : field1 // ignore: cast_nullable_to_non_nullable
+as TypedRecordId,
   ));
 }
 
@@ -1771,9 +2361,152 @@ as bool,
 }
 
 /// @nodoc
+
+
+class RelationPatch_RoutingMode extends RelationPatch {
+  const RelationPatch_RoutingMode(this.field0): super._();
+  
+
+@override final  RoutingMode field0;
+
+/// Create a copy of RelationPatch
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RelationPatch_RoutingModeCopyWith<RelationPatch_RoutingMode> get copyWith => _$RelationPatch_RoutingModeCopyWithImpl<RelationPatch_RoutingMode>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RelationPatch_RoutingMode&&(identical(other.field0, field0) || other.field0 == field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0);
+
+@override
+String toString() {
+  return 'RelationPatch.routingMode(field0: $field0)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RelationPatch_RoutingModeCopyWith<$Res> implements $RelationPatchCopyWith<$Res> {
+  factory $RelationPatch_RoutingModeCopyWith(RelationPatch_RoutingMode value, $Res Function(RelationPatch_RoutingMode) _then) = _$RelationPatch_RoutingModeCopyWithImpl;
+@useResult
+$Res call({
+ RoutingMode field0
+});
+
+
+$RoutingModeCopyWith<$Res> get field0;
+
+}
+/// @nodoc
+class _$RelationPatch_RoutingModeCopyWithImpl<$Res>
+    implements $RelationPatch_RoutingModeCopyWith<$Res> {
+  _$RelationPatch_RoutingModeCopyWithImpl(this._self, this._then);
+
+  final RelationPatch_RoutingMode _self;
+  final $Res Function(RelationPatch_RoutingMode) _then;
+
+/// Create a copy of RelationPatch
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(RelationPatch_RoutingMode(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as RoutingMode,
+  ));
+}
+
+/// Create a copy of RelationPatch
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$RoutingModeCopyWith<$Res> get field0 {
+  
+  return $RoutingModeCopyWith<$Res>(_self.field0, (value) {
+    return _then(_self.copyWith(field0: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class RelationPatch_PortSides extends RelationPatch {
+  const RelationPatch_PortSides([this.field0, this.field1]): super._();
+  
+
+@override final  PortSide? field0;
+ final  PortSide? field1;
+
+/// Create a copy of RelationPatch
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RelationPatch_PortSidesCopyWith<RelationPatch_PortSides> get copyWith => _$RelationPatch_PortSidesCopyWithImpl<RelationPatch_PortSides>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RelationPatch_PortSides&&(identical(other.field0, field0) || other.field0 == field0)&&(identical(other.field1, field1) || other.field1 == field1));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0,field1);
+
+@override
+String toString() {
+  return 'RelationPatch.portSides(field0: $field0, field1: $field1)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RelationPatch_PortSidesCopyWith<$Res> implements $RelationPatchCopyWith<$Res> {
+  factory $RelationPatch_PortSidesCopyWith(RelationPatch_PortSides value, $Res Function(RelationPatch_PortSides) _then) = _$RelationPatch_PortSidesCopyWithImpl;
+@useResult
+$Res call({
+ PortSide? field0, PortSide? field1
+});
+
+
+
+
+}
+/// @nodoc
+class _$RelationPatch_PortSidesCopyWithImpl<$Res>
+    implements $RelationPatch_PortSidesCopyWith<$Res> {
+  _$RelationPatch_PortSidesCopyWithImpl(this._self, this._then);
+
+  final RelationPatch_PortSides _self;
+  final $Res Function(RelationPatch_PortSides) _then;
+
+/// Create a copy of RelationPatch
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = freezed,Object? field1 = freezed,}) {
+  return _then(RelationPatch_PortSides(
+freezed == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as PortSide?,freezed == field1 ? _self.field1 : field1 // ignore: cast_nullable_to_non_nullable
+as PortSide?,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$TagOperation {
 
- String get field0;
+ TypedRecordId get field0;
 /// Create a copy of TagOperation
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1804,7 +2537,7 @@ abstract mixin class $TagOperationCopyWith<$Res>  {
   factory $TagOperationCopyWith(TagOperation value, $Res Function(TagOperation) _then) = _$TagOperationCopyWithImpl;
 @useResult
 $Res call({
- String field0
+ TypedRecordId field0
 });
 
 
@@ -1824,7 +2557,7 @@ class _$TagOperationCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? field0 = null,}) {
   return _then(_self.copyWith(
 field0: null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
-as String,
+as TypedRecordId,
   ));
 }
 
@@ -1909,7 +2642,7 @@ return remove(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String field0)?  add,TResult Function( String field0)?  remove,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( TypedRecordId field0)?  add,TResult Function( TypedRecordId field0)?  remove,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case TagOperation_Add() when add != null:
 return add(_that.field0);case TagOperation_Remove() when remove != null:
@@ -1931,7 +2664,7 @@ return remove(_that.field0);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String field0)  add,required TResult Function( String field0)  remove,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( TypedRecordId field0)  add,required TResult Function( TypedRecordId field0)  remove,}) {final _that = this;
 switch (_that) {
 case TagOperation_Add():
 return add(_that.field0);case TagOperation_Remove():
@@ -1949,7 +2682,7 @@ return remove(_that.field0);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String field0)?  add,TResult? Function( String field0)?  remove,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( TypedRecordId field0)?  add,TResult? Function( TypedRecordId field0)?  remove,}) {final _that = this;
 switch (_that) {
 case TagOperation_Add() when add != null:
 return add(_that.field0);case TagOperation_Remove() when remove != null:
@@ -1968,7 +2701,7 @@ class TagOperation_Add extends TagOperation {
   const TagOperation_Add(this.field0): super._();
   
 
-@override final  String field0;
+@override final  TypedRecordId field0;
 
 /// Create a copy of TagOperation
 /// with the given fields replaced by the non-null parameter values.
@@ -2000,7 +2733,7 @@ abstract mixin class $TagOperation_AddCopyWith<$Res> implements $TagOperationCop
   factory $TagOperation_AddCopyWith(TagOperation_Add value, $Res Function(TagOperation_Add) _then) = _$TagOperation_AddCopyWithImpl;
 @override @useResult
 $Res call({
- String field0
+ TypedRecordId field0
 });
 
 
@@ -2020,7 +2753,7 @@ class _$TagOperation_AddCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
   return _then(TagOperation_Add(
 null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
-as String,
+as TypedRecordId,
   ));
 }
 
@@ -2034,7 +2767,7 @@ class TagOperation_Remove extends TagOperation {
   const TagOperation_Remove(this.field0): super._();
   
 
-@override final  String field0;
+@override final  TypedRecordId field0;
 
 /// Create a copy of TagOperation
 /// with the given fields replaced by the non-null parameter values.
@@ -2066,7 +2799,7 @@ abstract mixin class $TagOperation_RemoveCopyWith<$Res> implements $TagOperation
   factory $TagOperation_RemoveCopyWith(TagOperation_Remove value, $Res Function(TagOperation_Remove) _then) = _$TagOperation_RemoveCopyWithImpl;
 @override @useResult
 $Res call({
- String field0
+ TypedRecordId field0
 });
 
 
@@ -2086,7 +2819,7 @@ class _$TagOperation_RemoveCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
   return _then(TagOperation_Remove(
 null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
-as String,
+as TypedRecordId,
   ));
 }
 

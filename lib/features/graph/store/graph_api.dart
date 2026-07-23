@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:mycelium/src/rust/bridge/api.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
+import 'package:mycelium/src/rust/domain/entity.dart';
+import 'package:mycelium/src/rust/domain/id.dart';
 import 'package:mycelium/src/rust/domain/relations.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/src/rust/domain/tags.dart';
@@ -65,9 +67,9 @@ abstract class GraphApi {
   Future<HistoryRecord?> redo();
   Future<int> redoCount();
   Future<void> rerouteRelation({
-    required RecordStrings record,
-    required RecordStrings from,
-    required RecordStrings to,
+    required TypedRecordId record,
+    required TypedRecordId from,
+    required TypedRecordId to,
   });
   Future<void> saveMapToFile({
     required String filePath,
@@ -75,8 +77,8 @@ abstract class GraphApi {
   });
   Future<void> saveTemplateFromSelection({
     required String name,
-    required List<RecordStrings> nodeKeys,
-    required List<RecordStrings> relationKeys,
+    required List<TypedRecordId> nodeKeys,
+    required List<TypedRecordId> relationKeys,
   });
   Future<void> setActiveTheme({required String themeKey});
   Future<void> setActiveThemeId({required String themeId});
@@ -225,9 +227,9 @@ class RustAppHandleWrapper implements GraphApi {
 
   @override
   Future<void> rerouteRelation({
-    required RecordStrings record,
-    required RecordStrings from,
-    required RecordStrings to,
+    required TypedRecordId record,
+    required TypedRecordId from,
+    required TypedRecordId to,
   }) =>
       _api.rerouteRelation(record: record, from: from, to: to);
 
@@ -241,8 +243,8 @@ class RustAppHandleWrapper implements GraphApi {
   @override
   Future<void> saveTemplateFromSelection({
     required String name,
-    required List<RecordStrings> nodeKeys,
-    required List<RecordStrings> relationKeys,
+    required List<TypedRecordId> nodeKeys,
+    required List<TypedRecordId> relationKeys,
   }) =>
       _api.saveTemplateFromSelection(
         name: name,

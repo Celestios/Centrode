@@ -1,14 +1,14 @@
-pub use crate::domain::relation_engine::types::{InputNode, InputEdge};
-use crate::domain::relation_engine::config::{RoutingMode, BundlingMode};
+pub use crate::domain::relation_engine::types::{InputEdge, InputNode};
+use crate::domain::relation_engine::config::{BundlingMode, RoutingMode};
 
 impl InputNode {
     pub fn from_domain(node: &crate::domain::nodes::Nodes) -> Option<Self> {
-        use crate::domain::nodes::{Nodes, IsNode};
+        use crate::domain::nodes::{IsNode, Nodes};
         let is_obstacle = match node {
             Nodes::INode(_) | Nodes::TaskNode(_) => true,
             _ => false,
         };
-        let key = node.key().to_string();
+        let key = node.id().to_string();
         let pos = node.position();
         let (x, y) = (pos.x as f64, pos.y as f64);
         let (width, height) = match node {
@@ -43,9 +43,8 @@ impl InputEdge {
         let control_point_1 = layout.and_then(|l| l.control_point_1.as_ref().map(|cp| crate::domain::relation_engine::geometry::Point::new(cp.x, cp.y)));
         let control_point_2 = layout.and_then(|l| l.control_point_2.as_ref().map(|cp| crate::domain::relation_engine::geometry::Point::new(cp.x, cp.y)));
 
-        // Resolve routing mode
         let routing_mode = layout.and_then(|l| {
-            match l.strategy_type.to_lowercase().as_str() {
+            match l.strategy_type.as_str() {
                 "bspline" => Some(RoutingMode::BSpline),
                 "bezier" => Some(RoutingMode::Bezier { control_point_1, control_point_2 }),
                 "sinewave" | "sine_wave" => Some(RoutingMode::SineWave { control_point_1, control_point_2 }),
@@ -55,7 +54,6 @@ impl InputEdge {
             }
         });
 
-        // Resolve bundling mode
         let bundling_mode = style.map(|s| {
             if s.body_strategy == "bundled" {
                 BundlingMode::SharedEndpoint
@@ -65,9 +63,9 @@ impl InputEdge {
         });
 
         Self {
-            id: rel.key.clone(),
-            from_node_id: rel.in_.key.clone(),
-            to_node_id: rel.out.key.clone(),
+            id: rel.key.to_string(),
+            from_node_id: rel.in_.to_string(),
+            to_node_id: rel.out.to_string(),
             from_side,
             to_side,
             routing_mode,

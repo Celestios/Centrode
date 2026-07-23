@@ -122,11 +122,12 @@ fn test_nested_control_has_nested_key() {
 }
 
 // ----- Generic record wrapper test -----
-use rust_lib_mycelium::domain::base_models::RecordStrings;
+use rust_lib_mycelium::domain::id::TypedRecordId;
+use rust_lib_mycelium::domain::traits::TableKind;
 
 #[derive(Debug, Clone, SurrealValue)]
 pub struct GenericRecord<T: SurrealValue> {
-    pub id: RecordStrings,
+    pub id: TypedRecordId,
     pub created_at: i64,
     pub updated_at: i64,
     #[surreal(flatten)]
@@ -141,11 +142,9 @@ pub struct MockFields {
 
 #[test]
 fn test_generic_record_flatten_roundtrip() {
+    let id = TypedRecordId::new_v4(TableKind::INode);
     let record = GenericRecord {
-        id: RecordStrings {
-            table: "MockTable".to_string(),
-            key: "uuid-123".to_string(),
-        },
+        id,
         created_at: 12345,
         updated_at: 67890,
         data: MockFields {
@@ -170,8 +169,8 @@ fn test_generic_record_flatten_roundtrip() {
 
     // Roundtrip deserialization
     let deserialized = GenericRecord::<MockFields>::from_value(value).expect("Should deserialize GenericRecord");
-    assert_eq!(deserialized.id.table, "MockTable");
-    assert_eq!(deserialized.id.key, "uuid-123");
+    assert_eq!(deserialized.id.table, TableKind::INode);
+    assert_eq!(deserialized.id.key, id.key);
     assert_eq!(deserialized.created_at, 12345);
     assert_eq!(deserialized.updated_at, 67890);
     assert_eq!(deserialized.data.value, "Hello");

@@ -1,22 +1,30 @@
-use crate::domain::base_models::{IsTable, Record, RecordStrings};
+use crate::domain::id::TypedRecordId;
 use crate::domain::styles::{RelationLayout, RelationStyle};
-use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
+use crate::domain::traits::{RelationEntity, SurrealTable, TableKind};
+use surrealdb::types::{RecordId, SurrealValue, Value};
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct IRelation {
-    pub key: String,
-    pub in_: RecordStrings,
-    pub out: RecordStrings,
+    pub key: TypedRecordId,
+    pub in_: TypedRecordId,
+    pub out: TypedRecordId,
     pub fields: IRelationFields,
 }
 
-impl IsTable for IRelation {
-    const LABEL: &'static str = "IRelation";
+impl IRelation {
+    pub const LABEL: &'static str = "IRelation";
+}
 
-    fn get_key(&self) -> &str {
-        &self.key
+impl SurrealTable for IRelation {
+    const KIND: TableKind = TableKind::IRelation;
+
+    fn get_key(&self) -> &Uuid {
+        &self.key.key
     }
 }
+
+impl RelationEntity for IRelation {}
 
 impl SurrealValue for IRelation {
     fn kind_of() -> surrealdb::types::Kind {
@@ -24,24 +32,15 @@ impl SurrealValue for IRelation {
     }
 
     fn from_value(value: Value) -> Result<Self, surrealdb::types::Error> {
-        let record = Record::from_record_value(value).ok_or_else(|| {
-            surrealdb::types::Error::thrown(
-                "Expected an object with an 'id' field for IRelation".to_string(),
-            )
+        let Value::Object(mut fields_map) = value else {
+            return Err(surrealdb::types::Error::thrown(
+                "Fields must be an object for IRelation".to_string(),
+            ));
+        };
+
+        let id_val = fields_map.remove("id").ok_or_else(|| {
+            surrealdb::types::Error::thrown("Missing 'id' field in IRelation".to_string())
         })?;
-
-        let RecordIdKey::String(key) = record.id.key else {
-            return Err(surrealdb::types::Error::thrown(
-                "RecordId key must be a string".to_string(),
-            ));
-        };
-
-        let Value::Object(mut fields_map) = record.fields else {
-            return Err(surrealdb::types::Error::thrown(
-                "Fields must be an object".to_string(),
-            ));
-        };
-
         let in_val = fields_map.remove("in").ok_or_else(|| {
             surrealdb::types::Error::thrown("Missing 'in' field in IRelation".to_string())
         })?;
@@ -49,16 +48,17 @@ impl SurrealValue for IRelation {
             surrealdb::types::Error::thrown("Missing 'out' field in IRelation".to_string())
         })?;
 
-        let in_rs = RecordStrings::from_value(in_val)?;
-        let out_rs = RecordStrings::from_value(out_val)?;
+        let key = TypedRecordId::from_value(id_val)?;
+        let in_ = TypedRecordId::from_value(in_val)?;
+        let out = TypedRecordId::from_value(out_val)?;
 
         let fields_obj = Value::Object(fields_map);
         let fields = IRelationFields::from_value(fields_obj)?;
 
         Ok(IRelation {
             key,
-            in_: in_rs,
-            out: out_rs,
+            in_,
+            out,
             fields,
         })
     }
@@ -67,7 +67,7 @@ impl SurrealValue for IRelation {
         let val = self.fields.into_value();
         match val {
             Value::Object(mut obj) => {
-                obj.insert("id".to_string(), RecordId::new(Self::LABEL, self.key).into_value());
+                obj.insert("id".to_string(), self.key.into_value());
                 obj.insert("in".to_string(), self.in_.into_value());
                 obj.insert("out".to_string(), self.out.into_value());
                 Value::Object(obj)
@@ -75,14 +75,13 @@ impl SurrealValue for IRelation {
             other => {
                 debug_assert!(false, "IRelationFields serialized to non-Object: {:?}", other);
                 let mut obj = std::collections::BTreeMap::new();
-                obj.insert("id".to_string(), RecordId::new(Self::LABEL, self.key).into_value());
+                obj.insert("id".to_string(), self.key.into_value());
                 obj.insert("in".to_string(), self.in_.into_value());
                 obj.insert("out".to_string(), self.out.into_value());
                 Value::Object(obj.into())
             }
         }
     }
-
 }
 
 #[derive(Debug, Clone, SurrealValue)]

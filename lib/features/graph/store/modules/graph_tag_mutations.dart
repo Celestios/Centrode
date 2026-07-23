@@ -4,6 +4,7 @@ import '../../models/models.dart';
 import '../../models/commands/create_tag.dart';
 import '../../models/commands/update_tag.dart';
 import '../../models/commands/delete_tag.dart';
+import '../../models/commands/patch_helpers.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
@@ -85,7 +86,7 @@ class GraphTagMutations {
   Future<void> createTag(Tag tag) async {
     final api = controller.syncEngine.api;
     final cmd = CreateTagCommand(
-      targetId: tag.key,
+      targetId: tag.key.key.uuid,
       api: api,
       tag: tag,
       controller: controller,
@@ -98,7 +99,7 @@ class GraphTagMutations {
     final tags = await getAllTags();
     final oldTag = tags.firstWhere((t) => t.key == tag.key, orElse: () => tag);
     final cmd = UpdateTagCommand(
-      targetId: tag.key,
+      targetId: tag.key.key.uuid,
       api: api,
       oldTag: oldTag,
       newTag: tag,
@@ -169,7 +170,7 @@ class GraphTagMutations {
     if (node is InfoUiNode) {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final newTag = Tag(
-        key: const Uuid().v4(),
+        key: parseTypedRecordId('Tag', const Uuid().v4()),
         fields: TagFields(
           name: name,
           color: color,

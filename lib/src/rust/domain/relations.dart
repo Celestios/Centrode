@@ -4,14 +4,17 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
-import 'base_models.dart';
+import 'enums.dart';
+import 'id.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:uuid/uuid.dart';
 import 'styles.dart';
+import 'traits.dart';
 
 class IRelation {
-  final String key;
-  final RecordStrings in_;
-  final RecordStrings out;
+  final TypedRecordId key;
+  final TypedRecordId in_;
+  final TypedRecordId out;
   final IRelationFields fields;
 
   const IRelation({

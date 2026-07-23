@@ -1,13 +1,15 @@
-use crate::domain::base_models::{IsTable, Record, RecordStrings};
-use surrealdb::types::{RecordId, SurrealValue, Value};
+use crate::domain::id::TypedRecordId;
 use crate::domain::schema::SurqlSchemaField;
+use crate::domain::traits::{AuxiliaryEntity, SurrealTable, TableKind};
 use crate::define_surql_schema_struct;
+use surrealdb::types::{SurrealValue, Value};
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum TagEdge {
     Hydrated(Tag),
-    Pointer(RecordStrings),
+    Pointer(TypedRecordId),
 }
 
 impl SurrealValue for TagEdge {
@@ -20,17 +22,20 @@ impl SurrealValue for TagEdge {
 
     fn from_value(value: Value) -> Result<Self, surrealdb::types::Error> {
         match value {
-            val @ Value::RecordId(_) => RecordStrings::from_value(val).map(Self::Pointer),
+            val @ Value::RecordId(_) => TypedRecordId::from_value(val).map(Self::Pointer),
             val @ Value::Object(_) => {
-                if let Some(record) = Record::from_record_value(val.clone()) {
-                    if let Some((key, fields)) = record.to_type::<TagFields>() {
-                        return Ok(Self::Hydrated(Tag { key, fields }));
-                    }
+                let mut obj = match val {
+                    Value::Object(o) => o,
+                    _ => unreachable!(),
+                };
+                if let Some(id_val) = obj.remove("id") {
+                    let key = TypedRecordId::from_value(id_val)?;
+                    let fields = TagFields::from_value(Value::Object(obj))?;
+                    return Ok(Self::Hydrated(Tag { key, fields }));
                 }
-                Err(surrealdb::types::Error::thrown(format!(
-                    "Expected Hydrated Tag or Pointer, found: {:?}",
-                    val
-                )))
+                Err(surrealdb::types::Error::thrown(
+                    "Expected Hydrated Tag with id or Pointer".to_string(),
+                ))
             }
             unsupported => Err(surrealdb::types::Error::thrown(format!(
                 "Expected Object or RecordId for TagEdge, found: {:?}",
@@ -41,25 +46,31 @@ impl SurrealValue for TagEdge {
 
     fn into_value(self) -> Value {
         match self {
-            Self::Hydrated(v) => RecordId::new(Tag::LABEL, v.key).into_value(),
-            Self::Pointer(p) => RecordId::new(p.table, p.key).into_value(),
+            Self::Hydrated(v) => v.key.into_value(),
+            Self::Pointer(p) => p.into_value(),
         }
     }
 }
 
 #[derive(Debug, Clone, SurrealValue)]
 pub struct Tag {
-    pub key: String,
+    pub key: TypedRecordId,
     pub fields: TagFields,
 }
 
-impl IsTable for Tag {
-    const LABEL: &'static str = "Tag";
+impl Tag {
+    pub const LABEL: &'static str = "Tag";
+}
 
-    fn get_key(&self) -> &str {
-        &self.key
+impl SurrealTable for Tag {
+    const KIND: TableKind = TableKind::Tag;
+
+    fn get_key(&self) -> &Uuid {
+        &self.key.key
     }
 }
+
+impl AuxiliaryEntity for Tag {}
 
 define_surql_schema_struct! {
     #[derive(Debug, Clone, SurrealValue)]

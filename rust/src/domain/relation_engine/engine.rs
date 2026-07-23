@@ -216,7 +216,7 @@ impl RelationEngine {
             }
             EntityPatch::DeleteNode(node_val, _) => {
                 use crate::domain::nodes::IsNode;
-                self.state.remove_node(node_val.key());
+                self.state.remove_node(&node_val.id().to_string());
             }
             _ => {}
         }

@@ -3,6 +3,7 @@ pub mod macros;
 pub mod id;
 pub mod traits;
 pub mod enums;
+pub mod entity;
 pub mod base_models;
 pub mod contents;
 pub mod nodes;

@@ -8,6 +8,9 @@ import 'package:mycelium/features/graph/store/graph_api.dart';
 import 'package:mycelium/features/graph/models/commands/graph_command_context.dart';
 import 'package:mycelium/src/rust/domain/relations.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
+import 'package:mycelium/src/rust/domain/entity.dart';
+import 'package:mycelium/src/rust/domain/id.dart';
+import 'package:mycelium/features/graph/models/commands/patch_helpers.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/src/rust/domain/snapshot.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
@@ -31,7 +34,7 @@ void main() {
     registerFallbackValue(
       Nodes.iNode(
         INode(
-          id: const frb.RecordStrings(table: 'INode', key: 'dummy'),
+          id: parseTypedRecordId('INode', 'dummy'),
           content: ContentFactory.empty(),
           layer: 'default',
           position: const frb.Coordinates(x: 0, y: 0),
@@ -51,9 +54,9 @@ void main() {
     );
     registerFallbackValue(
       IRelation(
-        key: 'dummy',
-        in_: const frb.RecordStrings(table: 'dummy', key: 'in'),
-        out: const frb.RecordStrings(table: 'dummy', key: 'out'),
+        key: parseTypedRecordId('IRelation', 'dummy'),
+        in_: parseTypedRecordId('INode', 'in'),
+        out: parseTypedRecordId('INode', 'out'),
         fields: IRelationFields(
           verb: 'link',
           layer: 'default',
@@ -73,9 +76,9 @@ void main() {
     setUpAll(() {
       registerFallbackValue(
         IRelation(
-          key: 'dummy-rel',
-          in_: const frb.RecordStrings(table: 'INode', key: 'n1'),
-          out: const frb.RecordStrings(table: 'TaskNode', key: 'n2'),
+          key: parseTypedRecordId('IRelation', 'dummy-rel'),
+          in_: parseTypedRecordId('INode', 'n1'),
+          out: parseTypedRecordId('TaskNode', 'n2'),
           fields: IRelationFields(
             verb: 'depends',
             directionless: false,

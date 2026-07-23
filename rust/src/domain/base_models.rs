@@ -181,12 +181,17 @@ impl Default for ViewportState {
     }
 }
 
-#[derive(Debug, Clone, SurrealValue, Default)]
-#[non_exhaustive]
+use crate::domain::id::TypedRecordId;
+use crate::domain::traits::{AuxiliaryEntity, SurrealTable, TableKind};
+use mycelium_macros::SurrealDbEnum;
+use uuid::Uuid;
+
+#[repr(u8)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Default, SurrealDbEnum)]
 pub enum DisplayMode {
     #[default]
-    Importance,
-    Leveling,
+    Importance = 0,
+    Leveling = 1,
 }
 
 #[derive(Debug, Clone, SurrealValue)]
@@ -209,13 +214,24 @@ impl Default for MapData {
 }
 
 impl MapData {
-    pub const LABEL: &'static str = "MapMetaData";
+    pub const LABEL: &'static str = "MapData";
     pub const KEY: &'static str = "singleton";
+    pub const SINGLETON_KEY: Uuid = Uuid::nil();
 
-    pub fn get_record_id(&self) -> RecordId {
-        RecordId::new(Self::LABEL, Self::KEY)
+    pub fn record_id() -> TypedRecordId {
+        TypedRecordId::new(TableKind::MapData, Self::SINGLETON_KEY)
     }
 }
+
+impl SurrealTable for MapData {
+    const KIND: TableKind = TableKind::MapData;
+
+    fn get_key(&self) -> &Uuid {
+        &Self::SINGLETON_KEY
+    }
+}
+
+impl AuxiliaryEntity for MapData {}
 
 // -----------------------------------------------------------------------------
 // Elastic Boundary (BoundingBox)

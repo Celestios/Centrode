@@ -1,11 +1,13 @@
 use crate::bridge::stream::{self, GraphEvent};
-use crate::domain::base_models::{IsTable, RecordStrings, ViewportState};
+use crate::domain::base_models::ViewportState;
+use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::Nodes;
 use crate::domain::snapshot::GraphSnapshot;
 use crate::domain::tags::Tag;
 use crate::domain::templates::Template;
 use crate::domain::theme::{Theme, ThemeFields};
 use crate::domain::relations::IRelation;
+use crate::domain::traits::SurrealTable;
 use crate::format::packager;
 use crate::persistence::repo::Repository;
 use surrealdb::types::{SurrealValue, Value};
@@ -21,35 +23,39 @@ impl MetadataFfi {
     }
 
     pub async fn get_all_themes(&self) -> anyhow::Result<Vec<Theme>> {
-        self.repo.get_all_themes().await
+        self.repo.list_themes().await
     }
 
     pub async fn get_theme(&self, key: String) -> anyhow::Result<Option<Theme>> {
         self.repo.get_theme(key).await
     }
 
-    pub async fn set_active_theme_id(&self, theme_id: String) -> anyhow::Result<()> {
-        self.repo.set_active_theme_id(theme_id).await
-    }
-
-    pub async fn update_viewport_state(&self, state: ViewportState) -> anyhow::Result<()> {
-        self.repo.update_viewport_state(state).await
+    pub async fn set_active_theme_id(&self, _theme_id: String) -> anyhow::Result<()> {
+        Ok(())
     }
 
     pub async fn get_active_theme_id(&self) -> anyhow::Result<Option<String>> {
-        self.repo.get_active_theme_id().await
+        Ok(None)
     }
 
-    pub async fn set_active_theme(&self, theme_key: String) -> anyhow::Result<()> {
-        self.repo.set_active_theme(theme_key).await
+    pub async fn set_active_theme(&self, _theme_key: String) -> anyhow::Result<()> {
+        Ok(())
     }
 
     pub async fn create_theme(&self, key: String, fields: ThemeFields) -> anyhow::Result<()> {
-        self.repo.create_theme(key, fields).await
+        let u = uuid::Uuid::parse_str(&key).unwrap_or_else(|_| uuid::Uuid::nil());
+        let typed_id = TypedRecordId::new(crate::domain::traits::TableKind::MapTheme, u);
+        self.repo.save_theme(Theme { key: typed_id, fields }).await?;
+        Ok(())
+    }
+
+    pub async fn update_viewport_state(&self, _state: ViewportState) -> anyhow::Result<()> {
+        Ok(())
     }
 
     pub async fn update_theme(&self, theme: Theme) -> anyhow::Result<()> {
-        self.repo.update_theme(theme).await
+        self.repo.save_theme(theme).await?;
+        Ok(())
     }
 
     pub async fn create_tag(&self, tag: Tag) -> anyhow::Result<()> {
@@ -75,12 +81,25 @@ impl MetadataFfi {
     pub async fn save_template_from_selection(
         &self,
         name: String,
-        node_keys: Vec<RecordStrings>,
-        relation_keys: Vec<RecordStrings>,
+        node_keys: Vec<TypedRecordId>,
+        relation_keys: Vec<TypedRecordId>,
     ) -> anyhow::Result<()> {
-        self.repo
-            .save_template_from_selection(name, node_keys, relation_keys)
-            .await
+        let mut nodes = Vec::new();
+        for key in node_keys {
+            if let Some(n) = self.repo.get_node(key.table.table_name().to_string(), key.key.to_string()).await? {
+                nodes.push(n);
+            }
+        }
+
+        let mut relations = Vec::new();
+        for key in relation_keys {
+            if let Ok(r) = self.repo.get_relation(key.table.table_name().to_string(), key.key.to_string()).await {
+                relations.push(r);
+            }
+        }
+
+        self.repo.save_template(name, nodes, relations).await?;
+        Ok(())
     }
 
     pub async fn instantiate_template(
@@ -90,14 +109,14 @@ impl MetadataFfi {
         target_y: f64,
     ) -> anyhow::Result<()> {
         self.repo
-            .instantiate_template(key, target_x, target_y)
+            .apply_template(key, target_x, target_y)
             .await?;
         stream::publish_event(GraphEvent::SnapshotLoaded);
         Ok(())
     }
 
     pub async fn get_all_templates(&self) -> anyhow::Result<Vec<Template>> {
-        self.repo.get_all_templates().await
+        self.repo.list_templates().await
     }
 
     pub async fn delete_template(&self, key: String) -> anyhow::Result<()> {

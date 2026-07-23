@@ -1,5 +1,5 @@
 import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart' show RecordStrings;
+import 'package:mycelium/src/rust/domain/id.dart';
 import '../../store/graph_api.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
@@ -11,8 +11,8 @@ class SaveTemplateCommand extends GraphCommand {
   String targetId;
   final GraphApi api;
   final String name;
-  final List<RecordStrings> nodeKeys;
-  final List<RecordStrings> relationKeys;
+  final List<TypedRecordId> nodeKeys;
+  final List<TypedRecordId> relationKeys;
   final GraphCommandContext controller;
 
   SaveTemplateCommand({

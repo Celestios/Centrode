@@ -10,6 +10,9 @@ import 'package:mycelium/features/graph/presentation/strategies/node_layout_stra
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/features/graph/store/graph_api.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
+import 'package:mycelium/src/rust/domain/entity.dart';
+import 'package:mycelium/src/rust/domain/id.dart';
+import 'package:mycelium/features/graph/models/commands/patch_helpers.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/src/rust/domain/snapshot.dart';
 
@@ -36,12 +39,12 @@ void main() {
         () => mockApi.createGraphStream(),
       ).thenAnswer((_) => const Stream.empty());
       when(() => mockApi.getGraphSnapshot()).thenAnswer(
-        (_) async => const GraphSnapshot(
+        (_) async => GraphSnapshot(
           nodes: [],
           relations: [],
-          metadata: frb.MapData(
+          metadata: const frb.MapData(
             mapName: '',
-            viewportState: frb.ViewportState(
+            viewportState: const frb.ViewportState(
               xOffset: 0,
               yOffset: 0,
               zoomLevel: 1,
@@ -67,12 +70,12 @@ void main() {
         () => mockApi.createGraphStream(),
       ).thenAnswer((_) => const Stream.empty());
       when(() => mockApi.getGraphSnapshot()).thenAnswer(
-        (_) async => const GraphSnapshot(
+        (_) async => GraphSnapshot(
           nodes: [],
           relations: [],
-          metadata: frb.MapData(
+          metadata: const frb.MapData(
             mapName: '',
-            viewportState: frb.ViewportState(
+            viewportState: const frb.ViewportState(
               xOffset: 0,
               yOffset: 0,
               zoomLevel: 1,
@@ -97,7 +100,7 @@ void main() {
 
       // Mock snapshot containing a node with unparsed plain text content
       final rawNode = INode(
-        id: const frb.RecordStrings(table: 'INode', key: 'node_1'),
+        id: parseTypedRecordId('INode', 'node_1'),
         content: const Content(
           text: 'This is **bold** text with a [link](https://test.com)',
           blocks: [
@@ -136,7 +139,7 @@ void main() {
           relations: const [],
           metadata: const frb.MapData(
             mapName: '',
-            viewportState: frb.ViewportState(
+            viewportState: const frb.ViewportState(
               xOffset: 0,
               yOffset: 0,
               zoomLevel: 1,

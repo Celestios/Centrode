@@ -17,6 +17,7 @@ import 'package:mycelium/features/graph/store/spatial_index.dart';
 import 'package:mycelium/features/graph/store/relation_engine_state.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
+import 'package:mycelium/src/rust/domain/enums.dart';
 import 'dart:typed_data';
 import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
 import 'package:mycelium/src/rust/domain/relation_engine/config.dart';

@@ -1,13 +1,15 @@
-use crate::domain::base_models::{IsTable, Record};
+use crate::domain::base_models::Record;
+use crate::domain::id::TypedRecordId;
 use crate::domain::tags::{Tag, TagFields};
+use crate::domain::traits::{SurrealTable, TableKind};
 use crate::persistence::repo::Repository;
 
 use anyhow::Result;
-use surrealdb::types::{RecordId, Value};
+use surrealdb::types::{RecordId, SurrealValue, Value};
 
 impl Repository {
     pub async fn create_tag(&self, tag: Tag) -> Result<()> {
-        let record_id = RecordId::new(Tag::LABEL, tag.key.clone());
+        let record_id = tag.key.to_record_id();
         let res: surrealdb::Result<Option<TagFields>> = self.db.create(record_id).content(tag.fields).await;
         match res {
             Ok(_) => Ok(()),
@@ -23,7 +25,7 @@ impl Repository {
     }
 
     pub async fn update_tag(&self, tag: Tag) -> Result<()> {
-        let record_id = RecordId::new(Tag::LABEL, tag.key.clone());
+        let record_id = tag.key.to_record_id();
         let res: surrealdb::Result<Option<TagFields>> = self.db.update(record_id).content(tag.fields).await;
         match res {
             Ok(_) => Ok(()),
@@ -39,9 +41,10 @@ impl Repository {
     }
 
     pub async fn get_tag(&self, key: String) -> Result<Option<Tag>> {
-        let record_id = RecordId::new(Tag::LABEL, key.clone());
-        let fields: Option<TagFields> = self.db.select(record_id).await?;
-        Ok(fields.map(|f| Tag { key, fields: f }))
+        let u = uuid::Uuid::parse_str(&key).unwrap_or_else(|_| uuid::Uuid::nil());
+        let typed_id = TypedRecordId::new(TableKind::Tag, u);
+        let fields: Option<TagFields> = self.db.select(typed_id.to_record_id()).await?;
+        Ok(fields.map(|f| Tag { key: typed_id, fields: f }))
     }
 
     pub async fn get_all_tags(&self) -> Result<Vec<Tag>> {
@@ -50,7 +53,12 @@ impl Repository {
             .into_iter()
             .filter_map(|val| {
                 let record = Record::from_record_value(val)?;
-                let (key, fields) = record.to_type::<TagFields>()?;
+                let u = match &record.id.key {
+                    surrealdb::types::RecordIdKey::Uuid(u) => **u,
+                    _ => return None,
+                };
+                let key = TypedRecordId::new(TableKind::Tag, u);
+                let fields = TagFields::from_value(record.fields).ok()?;
                 Some(Tag { key, fields })
             })
             .collect();
@@ -58,7 +66,8 @@ impl Repository {
     }
 
     pub async fn delete_tag(&self, key: String) -> Result<()> {
-        let tag_id = RecordId::new(Tag::LABEL, key);
+        let u = uuid::Uuid::parse_str(&key).unwrap_or_else(|_| uuid::Uuid::nil());
+        let tag_id = TypedRecordId::new(TableKind::Tag, u).to_record_id();
 
         // Step 1: Remove the tag RecordId from all INode.tags arrays
         self.db

@@ -65,7 +65,7 @@ async fn test_theme_crud_and_active_theme() {
     assert_eq!(fetched_updated.secondary_color, 0x445566);
     assert_eq!(fetched_updated.accent_color, 0x778899);
 
-    let map_data_id = RecordId::new("MapMetaData", "singleton");
+    let map_data_id = rust_lib_mycelium::domain::base_models::MapData::record_id().to_record_id();
     repo.db()
         .query("UPDATE $record SET active_theme_id = $theme_id")
         .bind(("record", map_data_id.clone()))

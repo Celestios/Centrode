@@ -46,7 +46,7 @@ class UpdateNodesStyleCommand extends GraphCommand {
         final node = controller.store.nodeLookup[id];
         final tableName = node?.tableName ?? 'INode';
         final patch = SymmetricEntityPatch(
-          id: frb.RecordStrings(table: tableName, key: id),
+          id: parseTypedRecordId(tableName, id),
           forward: EntityPatch.node(forwardPatches),
           reverse: EntityPatch.node(reversePatches),
         );
