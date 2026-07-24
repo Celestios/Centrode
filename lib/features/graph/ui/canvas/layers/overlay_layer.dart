@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import '../../../engine/config.dart';
 import '../../../store/graph_data_query.dart';
 import '../../../presentation/node_render_state.dart';
@@ -89,7 +90,7 @@ class OverlayLayer extends StatelessWidget {
 /// target or cursor position.
 class _TempRelationPainter extends CustomPainter {
   final RelationDrawing state;
-  final Map<String, NodeViewState> nodeViewStates;
+  final Map<RawUuid, NodeViewState> nodeViewStates;
 
   _TempRelationPainter({required this.state, required this.nodeViewStates});
 

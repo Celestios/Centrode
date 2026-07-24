@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import 'package:mycelium/src/rust/relation_engine/config.dart' as rust_config;
 import 'package:mycelium/src/rust/relation_engine/computed.dart';
 import '../../../engine/config.dart';
@@ -140,8 +141,8 @@ class RelationLayer extends StatelessWidget {
 
   List<RelationPaintDto> _buildPaintDtos({
     required List<UiRelation> relations,
-    required Map<String, NodeViewState> nodeViewStates,
-    required Set<String> selectedEntities,
+    required Map<RawUuid, NodeViewState> nodeViewStates,
+    required Set<RawUuid> selectedEntities,
     required CanvasInteractionState? interactionState,
     required RelationEngineState? relationEngine,
     required ThemeData theme,

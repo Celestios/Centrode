@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/presentation/palette_action_registry.dart';
@@ -146,7 +147,7 @@ class SearchRegistry {
               subtitle: subtitle,
               icon: icon,
               type: SearchResultType.node,
-              onSelected: (ctx) => _focusOnUiNode(ctx, res.key),
+              onSelected: (ctx) => _focusOnUiNode(ctx, RawUuid.fromString(res.key)),
             ),
           );
         }
@@ -254,7 +255,7 @@ class SearchRegistry {
     return results;
   }
 
-  void _focusOnUiNode(BuildContext context, String nodeId) {
+  void _focusOnUiNode(BuildContext context, RawUuid nodeId) {
     final tabsController = context.read<WorkspaceTabsController>();
     final session = tabsController.activeSession;
     final uiNode = session.queryController?.nodeLookup[nodeId];

@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import '../../../store/graph_data_query.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../presentation/viewport_state.dart';
@@ -39,7 +40,7 @@ class NodeLayer extends StatelessWidget {
     final uiState = context.watch<NodeRenderState>();
     final viewport = context.read<ViewportController>();
 
-    return ValueListenableBuilder<Set<String>>(
+    return ValueListenableBuilder<Set<RawUuid>>(
       valueListenable: viewport.visibleNodeIds,
       builder: (context, visibleIds, _) {
         final renderStack = uiState.zOrder
@@ -151,8 +152,8 @@ class _CanvasNodesHost extends StatefulWidget {
 }
 
 class _CanvasNodesHostState extends State<_CanvasNodesHost> {
-  final Set<String> _dirtyNodeIds = {};
-  final Map<String, VoidCallback> _listeners = {};
+  final Set<RawUuid> _dirtyNodeIds = {};
+  final Map<RawUuid, VoidCallback> _listeners = {};
   _CanvasNodesPainter? _painter;
   final ValueNotifier<int> _repaintTrigger = ValueNotifier(0);
   bool _disposed = false;
@@ -238,13 +239,13 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
 
 class _CanvasNodesPainter extends CustomPainter {
   List<NodeRenderEntry> entries;
-  final Set<String> dirtyNodeIds;
+  final Set<RawUuid> dirtyNodeIds;
 
   ui.Picture? _cachedPicture;
   int _entriesGeneration = 0;
   int _cachedGeneration = -1;
 
-  final Map<String, (RRect, RRect)> _handleCache = {};
+  final Map<RawUuid, (RRect, RRect)> _handleCache = {};
   final Paint _shadowPaint = Paint();
   final Paint _bgPaint = Paint();
   final Paint _borderPaint = Paint();
@@ -258,7 +259,7 @@ class _CanvasNodesPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final activeIds = <String>{};
+    final activeIds = <RawUuid>{};
 
     // If cache is valid and no nodes changed, replay cached picture
     final bool cacheValid = _cachedPicture != null &&
@@ -546,7 +547,7 @@ class _CanvasNodesPainter extends CustomPainter {
     }
   }
 
-  (RRect, RRect) _getHandleRRects(String nodeId, Rect rect, double borderRadius, double scale, bool hasMetadataSphere) {
+  (RRect, RRect) _getHandleRRects(RawUuid nodeId, Rect rect, double borderRadius, double scale, bool hasMetadataSphere) {
     final cached = _handleCache[nodeId];
     final double handleWidth = NodeVisualConstants.handleWidth * scale;
     final double handleTopOffset = hasMetadataSphere ? NodeVisualConstants.handleTopOffset * scale : 0.0;
@@ -575,7 +576,7 @@ class _CanvasNodesPainter extends CustomPainter {
     return result;
   }
 
-  void _paintResizeHandles(Canvas canvas, String nodeId, Rect rect, NodeStyle style, double scale, bool hasMetadataSphere) {
+  void _paintResizeHandles(Canvas canvas, RawUuid nodeId, Rect rect, NodeStyle style, double scale, bool hasMetadataSphere) {
     final (rightHandle, leftHandle) = _getHandleRRects(nodeId, rect, style.borderRadius, scale, hasMetadataSphere);
     canvas.drawRRect(rightHandle, _handlePaint);
     canvas.drawRRect(leftHandle, _handlePaint);

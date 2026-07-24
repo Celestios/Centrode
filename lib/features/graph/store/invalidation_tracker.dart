@@ -5,10 +5,10 @@ import '../models/models.dart';
 import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class InvalidationTracker {
-  final Map<String, ComputedRelation> _cache = {};
-  final Set<String> _dirtyRelationIds = {};
+  final Map<RawUuid, ComputedRelation> _cache = {};
+  final Set<RawUuid> _dirtyRelationIds = {};
 
-  Map<String, ComputedRelation> get cache => _cache;
+  Map<RawUuid, ComputedRelation> get cache => _cache;
 
   void clear() {
     _cache.clear();
@@ -20,24 +20,23 @@ class InvalidationTracker {
   }
 
   void onRelationAdded(UiRelation relation) {
-    _dirtyRelationIds.add(relation.id.toUuidString());
+    _dirtyRelationIds.add(relation.id);
   }
 
   void onRelationDeleted(RawUuid relationId) {
-    final key = relationId.toUuidString();
-    _cache.remove(key);
-    _dirtyRelationIds.remove(key);
+    _cache.remove(relationId);
+    _dirtyRelationIds.remove(relationId);
   }
 
   void onRelationLayoutUpdated(RawUuid relationId) {
-    _dirtyRelationIds.add(relationId.toUuidString());
+    _dirtyRelationIds.add(relationId);
   }
 
   void onConfigUpdated() {
     _dirtyRelationIds.addAll(_cache.keys);
   }
 
-  Set<String> get dirtyRelationIds => Set.from(_dirtyRelationIds);
+  Set<RawUuid> get dirtyRelationIds => Set.from(_dirtyRelationIds);
 
   bool get hasDirtyRelations => _dirtyRelationIds.isNotEmpty;
 
@@ -45,7 +44,7 @@ class InvalidationTracker {
     _dirtyRelationIds.addAll(_cache.keys);
   }
 
-  void markIdsDirty(Iterable<String> ids) {
+  void markIdsDirty(Iterable<RawUuid> ids) {
     _dirtyRelationIds.addAll(ids);
   }
 
@@ -55,13 +54,13 @@ class InvalidationTracker {
 
   void updateCache(List<ComputedRelation> computed) {
     for (final rel in computed) {
-      final keyStr = rel.id.key.uuid;
-      _cache[keyStr] = rel;
-      _dirtyRelationIds.remove(keyStr);
+      final key = RawUuid.fromString(rel.id.key.uuid);
+      _cache[key] = rel;
+      _dirtyRelationIds.remove(key);
     }
   }
 
-  ComputedRelation? getCached(String relationId) {
+  ComputedRelation? getCached(RawUuid relationId) {
     return _cache[relationId];
   }
 
@@ -69,15 +68,19 @@ class InvalidationTracker {
     return _cache.values.toList();
   }
 
-  bool shouldRecompute(String relationId) {
+  bool shouldRecompute(RawUuid relationId) {
     return _dirtyRelationIds.contains(relationId);
   }
 
-  List<String> getRelationIdsForNode(String nodeId) {
-    return _cache.keys.where((id) {
-      final rel = _cache[id];
-      return rel != null && rel.dependsOnNodes.any((r) => r.key.uuid == nodeId);
-    }).toList();
+  List<String> getRelationIdsForNode(RawUuid nodeId) {
+    final nodeStr = nodeId.toUuidString();
+    return _cache.keys
+        .where((key) {
+          final rel = _cache[key];
+          return rel != null && rel.dependsOnNodes.any((r) => r.key.uuid == nodeStr);
+        })
+        .map((key) => key.toUuidString())
+        .toList();
   }
 
   Rect computeBbox(List<ComputedRelation> relations) {

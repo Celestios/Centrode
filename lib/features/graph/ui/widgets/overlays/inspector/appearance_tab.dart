@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
 import 'package:mycelium/features/graph/engine/config.dart';
@@ -7,7 +8,7 @@ import 'package:mycelium/shared/utils/color_utils.dart';
 import 'package:mycelium/shared/widgets/color_palette/color_palette.dart';
 
 class AppearanceTab extends StatelessWidget {
-  final Set<String> selectedEntities;
+  final Set<RawUuid> selectedEntities;
   final NodeRenderState renderState;
 
   const AppearanceTab({
@@ -21,7 +22,7 @@ class AppearanceTab extends StatelessWidget {
   }
 
   void _updateSelectedNodesStyle(
-    List<String> nodeIds,
+    List<RawUuid> nodeIds,
     NodeRenderState renderState,
     NodeStyle Function(NodeStyle style) updateFn,
   ) {
@@ -148,7 +149,7 @@ class AppearanceTab extends StatelessWidget {
 
   Widget _buildRelationAppearance(
     ThemeData theme,
-    List<String> relationIds,
+    List<RawUuid> relationIds,
   ) {
     final firstRelation = renderState.getRelation(relationIds.first)!;
     final currentStrategy = firstRelation.layout?.strategyType ?? 'default';
@@ -207,7 +208,7 @@ class AppearanceTab extends StatelessWidget {
     );
   }
 
-  Widget _buildNodeAppearance(BuildContext context, List<String> nodeIds) {
+  Widget _buildNodeAppearance(BuildContext context, List<RawUuid> nodeIds) {
     final theme = Theme.of(context);
     final firstNode = renderState.getNode(nodeIds.first)!;
     final currentStyle = _getEffectiveStyle(firstNode);

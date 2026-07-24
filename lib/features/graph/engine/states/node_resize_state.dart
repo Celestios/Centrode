@@ -10,7 +10,7 @@ enum ResizeEdge { left, right }
 /// Applies continuous grid snapping (like [NodeDragging]) and supports both
 /// left and right edges. All changes are volatile until [handlePointerUp].
 class NodeResizing extends CanvasInteractionState {
-  final String nodeId;
+  final RawUuid nodeId;
   final ResizeEdge edge;
   final double grabOffsetX;
   final double initialLeft;

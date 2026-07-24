@@ -6,6 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:mycelium/features/graph/ui/canvas/text/canvas_text_editor.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/presentation/node_render_state.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class MockNodeRenderState extends Mock
     with ChangeNotifier

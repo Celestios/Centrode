@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import '../../../../../src/rust/domain/contents.dart';
 import '../../../presentation/view_state.dart';
 import '../text/canvas_text_editor.dart';
 
 class NodeOverlayManager {
   final OverlayState? _overlay;
-  final Map<String, OverlayEntry> _activeOverlays = {};
+  final Map<RawUuid, OverlayEntry> _activeOverlays = {};
 
   NodeOverlayManager(BuildContext context)
       : _overlay = Overlay.of(context);
 
   void showEditor({
-    required String nodeId,
+    required RawUuid nodeId,
     required NodeViewState viewState,
     required String contentText,
     required double fontSize,
@@ -70,7 +71,7 @@ class NodeOverlayManager {
   }
 
   void showMetadataPreview({
-    required String nodeId,
+    required RawUuid nodeId,
     required NodeViewState viewState,
     required Widget child,
   }) {
@@ -89,7 +90,7 @@ class NodeOverlayManager {
       ),
     );
 
-    _activeOverlays['metadata_$nodeId'] = entry;
+    _activeOverlays[nodeId] = entry;
     _overlay.insert(entry);
   }
 

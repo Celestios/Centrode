@@ -42,7 +42,7 @@ class MarqueeSelecting extends CanvasInteractionState {
       nodeIdsToCheck = ctx.nodeViewStates.keys.toSet();
     }
 
-    final Set<String> hits = {};
+    final Set<RawUuid> hits = {};
 
     for (final id in nodeIdsToCheck) {
       final vs = ctx.nodeViewStates[id];

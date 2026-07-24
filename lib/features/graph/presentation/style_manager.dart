@@ -1,4 +1,5 @@
 import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
@@ -38,13 +39,13 @@ class StyleManager implements GraphStyleUpdater {
   }
 
   @override
-  void updateStyleForNode(String id) {
+  void updateStyleForNode(RawUuid id) {
     final node = _store.nodeLookup[id];
     if (node != null) _resolveAndCacheNode(node);
   }
 
   @override
-  void updateStyleForRelation(String id) {
+  void updateStyleForRelation(RawUuid id) {
     final rel = _store.relationLookup[id];
     if (rel != null) _resolveAndCacheRelation(rel);
   }

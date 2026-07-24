@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import 'config.dart';
 import 'package:mycelium/shared/utils/geometry.dart';
 import '../models/models.dart';
@@ -51,7 +52,7 @@ class HitTestResolver {
   final Logger _hitTestLog = Logger('HitTestResolver');
 
   PointerHitResult resolve(Offset pCanvas, InteractionContext ctx, bool isDoubleTap) {
-    final nodeIds = ctx.zOrder.reversed.toList();
+    final nodeIds = ctx.zOrder.reversed.map((id) => ctx.nodeViewStates.keys.firstWhere((k) => k.toUuidString() == id, orElse: () => ctx.nodeViewStates.keys.first)).toList();
     if (nodeIds.isEmpty) {
       nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
     }
@@ -76,7 +77,7 @@ class HitTestResolver {
   PointerHitResult? _resolveRelationTips(
     Offset pCanvas,
     InteractionContext ctx,
-    Set<String> selectedEntities,
+    Set<RawUuid> selectedEntities,
   ) {
     final cache = ctx.relationEngine.cache;
 
@@ -115,7 +116,7 @@ class HitTestResolver {
   PointerHitResult? _resolveMetadataSphere(
     Offset pCanvas,
     InteractionContext ctx,
-    List<String> nodeIds,
+    List<RawUuid> nodeIds,
   ) {
     for (final nodeId in nodeIds) {
       final vs = ctx.nodeViewStates[nodeId];
@@ -143,7 +144,7 @@ class HitTestResolver {
   static bool isMetadataSphereHit(
     Offset pCanvas,
     InteractionContext ctx,
-    String nodeId,
+    RawUuid nodeId,
   ) {
     final vs = ctx.nodeViewStates[nodeId];
     if (vs == null || vs.sizeNotifier.value == Size.zero) return false;
@@ -162,7 +163,7 @@ class HitTestResolver {
   PointerHitResult? _resolvePorts(
     Offset pCanvas,
     InteractionContext ctx,
-    List<String> nodeIds,
+    List<RawUuid> nodeIds,
   ) {
     for (final nodeId in nodeIds) {
       final vs = ctx.nodeViewStates[nodeId];
@@ -184,7 +185,7 @@ class HitTestResolver {
   PointerHitResult? _resolveNodeHits(
     Offset pCanvas,
     InteractionContext ctx,
-    List<String> nodeIds,
+    List<RawUuid> nodeIds,
   ) {
     for (final nodeId in nodeIds) {
       final vs = ctx.nodeViewStates[nodeId];

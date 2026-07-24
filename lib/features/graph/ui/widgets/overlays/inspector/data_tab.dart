@@ -1,11 +1,12 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
 import '../../../../engine/config.dart';
 
 class DataTab extends StatefulWidget {
-  final String nodeId;
+  final RawUuid nodeId;
   final NodeRenderState renderState;
 
   const DataTab({
@@ -27,7 +28,7 @@ class _DataTabState extends State<DataTab> {
   bool _isAddingTag = false;
   int? _selectedTagColor;
   List<int> _currentPalette = [...AppConfig.node.defaultTagColors];
-  String? _lastNodeId;
+  RawUuid? _lastNodeId;
 
   @override
   void dispose() {

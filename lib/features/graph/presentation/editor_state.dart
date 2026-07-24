@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mycelium/shared/logging.dart';
 import 'package:mycelium/shared/traceable_notifier.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import '../engine/config.dart';
 import '../store/graph_data_query.dart';
 import 'view_state.dart';
@@ -14,13 +15,13 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
   bool _disposed = false;
 
   /// Reference to the shared viewStates map owned by NodeRenderState.
-  final Map<String, NodeViewState> viewStates;
+  final Map<RawUuid, NodeViewState> viewStates;
 
   /// ID of the entity currently in text inline edit mode.
-  String? activeEditId;
+  RawUuid? activeEditId;
 
   /// ID of the node currently prompting a floating delete menu.
-  String? nodeShowingFloatingToolbar;
+  RawUuid? nodeShowingFloatingToolbar;
 
   /// Tracks active text selection during inline editing.
   final ValueNotifier<TextSelection?> activeTextSelectionNotifier = ValueNotifier(null);
@@ -59,7 +60,7 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
   }
 
   /// Focuses and opens inline text editor mode for an entity.
-  void enterEditMode(String id) {
+  void enterEditMode(RawUuid id) {
     activeEditId = id;
     _log.finer('Entering edit mode for entity: $id');
     notifyListeners();
@@ -93,7 +94,7 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
   }
 
   /// Triggers the delete menu to float near the specified node.
-  void showFloatingToolbar(String nodeId) {
+  void showFloatingToolbar(RawUuid nodeId) {
     if (nodeShowingFloatingToolbar != nodeId) {
       _log.finer('Showing delete menu for node: $nodeId');
       nodeShowingFloatingToolbar = nodeId;
@@ -111,7 +112,7 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
   }
 
   /// Calculates the visual anchor point for the floating toolbar based on selected entities.
-  Offset? calculateToolbarAnchor(Iterable<String> selectedIds) {
+  Offset? calculateToolbarAnchor(Iterable<RawUuid> selectedIds) {
     if (selectedIds.isEmpty) return null;
     if (selectedIds.length > 1) {
       return _calculateMultiSelectAnchor(selectedIds);
@@ -119,7 +120,7 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
     return _calculateSingleSelectAnchor(selectedIds.first);
   }
 
-  Offset? _calculateMultiSelectAnchor(Iterable<String> selectedIds) {
+  Offset? _calculateMultiSelectAnchor(Iterable<RawUuid> selectedIds) {
     double minX = double.infinity, minY = double.infinity,
         maxX = double.negativeInfinity, maxY = double.negativeInfinity;
     for (final id in selectedIds) {
@@ -139,7 +140,7 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
     );
   }
 
-  Offset? _calculateSingleSelectAnchor(String id) {
+  Offset? _calculateSingleSelectAnchor(RawUuid id) {
     final vs = viewStates[id];
     if (vs != null) return vs.positionNotifier.value;
 
@@ -154,7 +155,7 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
   }
 
   /// Cleans up volatile editor state when entities are removed from the data store.
-  void cleanupStaleState(Set<String> validKeys) {
+  void cleanupStaleState(Set<RawUuid> validKeys) {
     if (activeEditId != null && !validKeys.contains(activeEditId)) {
       activeEditId = null;
     }

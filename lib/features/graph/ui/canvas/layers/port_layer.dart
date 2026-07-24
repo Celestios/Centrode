@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:mycelium/features/graph/models/port.dart';
 import 'package:mycelium/features/graph/presentation/drag_state.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import '../../../engine/base_interaction_state.dart';
 import '../../../engine/config.dart';
 
 class PortLayer extends StatefulWidget {
-  final Map<String, NodeViewState> nodeViewStates;
-  final ValueNotifier<String?> hoveredNodeNotifier;
+  final Map<RawUuid, NodeViewState> nodeViewStates;
+  final ValueNotifier<RawUuid?> hoveredNodeNotifier;
   final ValueNotifier<CanvasInteractionState> interactionState;
   final DragState dragState;
 
@@ -25,7 +26,7 @@ class PortLayer extends StatefulWidget {
 }
 
 class _PortLayerState extends State<PortLayer> {
-  String? _activeNodeId;
+  RawUuid? _activeNodeId;
   Timer? _hideTimer;
 
   @override

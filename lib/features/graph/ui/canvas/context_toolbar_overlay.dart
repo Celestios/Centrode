@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import 'package:mycelium/features/graph/presentation/node_render_state.dart';
 import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
 import 'package:mycelium/features/graph/presentation/viewport_state.dart';
@@ -121,7 +122,7 @@ class ContextToolbarOverlay extends StatelessWidget {
         const double margin = 12.0; // Margin gap in canvas space
 
         if (isEditing) {
-          final String editedId = renderState.activeEditId!;
+          final RawUuid editedId = renderState.activeEditId!;
           
           final vs = renderState.viewStates[editedId];
           final Offset anchorCanvas;
@@ -234,22 +235,18 @@ class ContextToolbarOverlay extends StatelessWidget {
               },
               currentTextAlign: renderState.currentTextAlignNotifier.value,
               onIncreaseFontSize: () {
-                if (editedId.isNotEmpty) {
-                  interactionController.updateNodeStyle(editedId, (style) {
-                    return style.copyWith(
-                      fontSize: (style.fontSize + 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
-                    );
-                  });
-                }
+                interactionController.updateNodeStyle(editedId, (style) {
+                  return style.copyWith(
+                    fontSize: (style.fontSize + 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
+                  );
+                });
               },
               onDecreaseFontSize: () {
-                if (editedId.isNotEmpty) {
-                  interactionController.updateNodeStyle(editedId, (style) {
-                    return style.copyWith(
-                      fontSize: (style.fontSize - 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
-                    );
-                  });
-                }
+                interactionController.updateNodeStyle(editedId, (style) {
+                  return style.copyWith(
+                    fontSize: (style.fontSize - 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
+                  );
+                });
               },
               onAddHyperlink: () async {
                 final url = await showDialog<String>(
@@ -317,7 +314,7 @@ class ContextToolbarOverlay extends StatelessWidget {
             .where((id) => queryController.nodeLookup.containsKey(id))
             .toList();
         final canSaveTemplate = nodeIds.isNotEmpty;
-        final String? singleNodeId = (!isMulti && nodeIds.length == 1)
+        final RawUuid? singleNodeId = (!isMulti && nodeIds.length == 1)
             ? nodeIds.first
             : null;
 

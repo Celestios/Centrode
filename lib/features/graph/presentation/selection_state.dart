@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mycelium/shared/logging.dart';
 import 'package:mycelium/shared/traceable_notifier.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import '../store/graph_data_query.dart';
 import '../store/graph_data_command.dart';
 
@@ -16,12 +17,12 @@ class SelectionState extends ChangeNotifier with TraceableNotifier {
   final List<String> zOrder = [];
 
   /// Set of selected entity IDs (nodes or relations).
-  Set<String> selectedEntities = {};
+  Set<RawUuid> selectedEntities = {};
 
   SelectionState(this._dataQuery, this._dataCommand);
 
   /// Selects a single entity on the canvas.
-  void selectEntity(String? id) {
+  void selectEntity(RawUuid? id) {
     if (id == null) {
       if (selectedEntities.isEmpty) return;
       selectedEntities.clear();
@@ -39,7 +40,7 @@ class SelectionState extends ChangeNotifier with TraceableNotifier {
   }
 
   /// Selects multiple entities simultaneously (e.g., marquee selection).
-  void selectEntities(Iterable<String> ids) {
+  void selectEntities(Iterable<RawUuid> ids) {
     selectedEntities = ids.toSet();
     _log.finer(
       'Marquee selection updated: ${selectedEntities.length} entities',
@@ -66,20 +67,21 @@ class SelectionState extends ChangeNotifier with TraceableNotifier {
   }
 
   /// Brings the selected entity to the front of the Z-stack.
-  void moveToFront(String id) {
-    if (zOrder.remove(id)) {
-      zOrder.add(id);
+  void moveToFront(RawUuid id) {
+    if (zOrder.remove(id.toUuidString())) {
+      zOrder.add(id.toUuidString());
       _log.finer('Moved entity to front of Z-order: $id');
       notifyListeners();
     }
   }
 
   /// Syncs zOrder and selectedEntities with the current data store keys.
-  void syncFromDataStore(Set<String> nodeKeys, Set<String> allValidKeys) {
-    zOrder.removeWhere((id) => !nodeKeys.contains(id));
+  void syncFromDataStore(Set<RawUuid> nodeKeys, Set<RawUuid> allValidKeys) {
+    zOrder.removeWhere((id) => !nodeKeys.any((k) => k.toUuidString() == id));
     for (final id in nodeKeys) {
-      if (!zOrder.contains(id)) {
-        zOrder.add(id);
+      final idStr = id.toUuidString();
+      if (!zOrder.contains(idStr)) {
+        zOrder.add(idStr);
       }
     }
     selectedEntities.removeWhere((id) => !allValidKeys.contains(id));

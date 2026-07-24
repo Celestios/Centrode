@@ -3,6 +3,7 @@ import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:mycelium/features/graph/engine/config.dart';
 import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class VerticalContextToolbar extends StatelessWidget {
   final VoidCallback onDelete;
@@ -10,7 +11,7 @@ class VerticalContextToolbar extends StatelessWidget {
   final bool isMulti;
   final bool isRelationOnly;
   final bool canSaveTemplate;
-  final String? singleNodeId;
+  final RawUuid? singleNodeId;
   final Widget? dragHandle; // Passed from parent to enable gesture dragging
   final VoidCallback? onDrawConnection;
 

@@ -9,7 +9,7 @@ final Logger _nodeDragLog = Logger('NodeDragging');
 /// Updates the node position during drag and commits on pointer up.
 /// The [grabOffset] ensures the cursor maintains relative position to the node.
 class NodeDragging extends CanvasInteractionState {
-  final String nodeId;
+  final RawUuid nodeId;
   final Offset grabOffset;
 
   const NodeDragging(this.nodeId, this.grabOffset);

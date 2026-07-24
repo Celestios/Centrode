@@ -9,6 +9,7 @@ import 'package:mycelium/features/graph/presentation/theme_manager.dart';
 import 'package:mycelium/features/graph/models/commands/patch_helpers.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/presentation/theme/graph_theme.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class MockGraphApi extends Mock implements GraphApi {}
 

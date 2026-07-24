@@ -154,7 +154,7 @@ class CanvasIdle extends CanvasInteractionState {
     PointerHitResult result,
     Offset pCanvas,
     InteractionContext ctx,
-    Set<String> selectedEntities,
+    Set<RawUuid> selectedEntities,
   ) {
     final hitNodeId = result.hitNodeId!;
     final nodeIdsInSelection = selectedEntities
@@ -200,8 +200,12 @@ class CanvasIdle extends CanvasInteractionState {
     // Check candidates in reverse z-order for proper hit priority
     final zOrder = ctx.zOrder;
     for (int i = zOrder.length - 1; i >= 0; i--) {
-      final nodeId = zOrder[i];
-      if (!candidateIds.contains(nodeId)) continue;
+      final nodeIdStr = zOrder[i];
+      final nodeId = ctx.nodeViewStates.keys.firstWhere(
+        (k) => k.toUuidString() == nodeIdStr,
+        orElse: () => RawUuid.v4(),
+      );
+      if (!candidateIds.contains(nodeIdStr)) continue;
 
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;

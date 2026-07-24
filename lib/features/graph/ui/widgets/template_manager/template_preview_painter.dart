@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
 
@@ -22,7 +23,7 @@ class TemplatePreviewPainter extends CustomPainter {
     double maxX = double.negativeInfinity;
     double maxY = double.negativeInfinity;
 
-    final Map<String, Rect> nodeRects = {};
+    final Map<RawUuid, Rect> nodeRects = {};
 
     for (final node in nodes) {
       final double nx = node.position.dx;

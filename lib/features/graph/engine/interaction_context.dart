@@ -53,7 +53,7 @@ abstract interface class SelectionCapability {
 
 /// Read-only query interface for node/relation geometry data.
 abstract interface class QueryCapability {
-  Map<String, NodeViewState> get nodeViewStates;
+  Map<RawUuid, NodeViewState> get nodeViewStates;
   RelationEngineState get relationEngine;
   List<String> get zOrder;
   SpatialHashGrid get spatialGrid;
@@ -104,9 +104,9 @@ abstract interface class MutationCapability {
 
   void updateNodeStyle(RawUuid id, NodeStyle Function(NodeStyle style) updateFn);
 
-  void setHoveredNodeMetadata(String? nodeId);
+  void setHoveredNodeMetadata(RawUuid? nodeId);
 
-  void setHoveredNode(String? nodeId);
+  void setHoveredNode(RawUuid? nodeId);
 
   void onCreateDrawingNode({
     required Offset position,

@@ -1,9 +1,9 @@
 part of '../base_interaction_state.dart';
 
 class RelationDrawing extends CanvasInteractionState {
-  final Set<String> sourceNodeIds;
+  final Set<RawUuid> sourceNodeIds;
   final Offset currentCursorPosition;
-  final String? snappedTargetNodeId;
+  final RawUuid? snappedTargetNodeId;
   final Port? sourcePort;
   final Port? snappedTargetPort;
 

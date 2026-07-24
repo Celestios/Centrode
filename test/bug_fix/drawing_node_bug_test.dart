@@ -6,6 +6,7 @@ import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/features/graph/presentation/style_manager.dart';
 import 'package:mycelium/features/graph/store/modules/graph_store.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 void main() {
   test('StyleManager should resolve style for DrawingUiNode without warning logs', () {

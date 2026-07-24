@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import '../../../models/graph_node.dart';
 import '../../../store/graph_data_query_controller.dart';
 import '../../../store/command_queue_processor.dart';
@@ -192,7 +193,7 @@ class _TagsListViewState extends State<TagsListView> {
 
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final newTag = Tag(
-      key: parseTypedRecordId('Tag', const Uuid().v4()),
+      key: parseTypedRecordId('Tag', RawUuid.v4()),
       fields: TagFields(
         name: name,
         color: _newTagColor,

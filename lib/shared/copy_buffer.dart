@@ -1,12 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
-import 'package:uuid/uuid.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
 import 'package:mycelium/features/graph/store/graph_data_query.dart';
 import 'package:mycelium/features/graph/store/command_queue_processor.dart';
 import 'package:mycelium/features/graph/models/commands/create_node.dart';
 import 'package:mycelium/shared/traceable_notifier.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class CopyBuffer extends ChangeNotifier with TraceableNotifier {
   @override
@@ -21,7 +21,7 @@ class CopyBuffer extends ChangeNotifier with TraceableNotifier {
   List<UiRelation>? get relations => _relations;
   Offset? get copyOrigin => _copyOrigin;
 
-  void copy(List<String> selectedIds, GraphDataQuery dataQuery) {
+  void copy(List<RawUuid> selectedIds, GraphDataQuery dataQuery) {
     if (selectedIds.isEmpty) return;
 
     final selectedNodes = <UiNode>[];
@@ -41,10 +41,10 @@ class CopyBuffer extends ChangeNotifier with TraceableNotifier {
             selectedSet.contains(r.toNodeId))
         .toList();
 
-    final oldToNewId = <String, String>{};
+    final oldToNewId = <RawUuid, RawUuid>{};
     final newNodes = <UiNode>[];
     for (final node in selectedNodes) {
-      final newId = const Uuid().v4();
+      final newId = RawUuid.v4();
       oldToNewId[node.id] = newId;
       final copy = node.cloneWithId(newId);
       if (copy == null) continue;
@@ -58,7 +58,7 @@ class CopyBuffer extends ChangeNotifier with TraceableNotifier {
       if (newFromId == null || newToId == null) continue;
       if (rel is InfoUiRelation) {
         newRelations.add(rel.copyWith(
-          id: const Uuid().v4(),
+          id: RawUuid.v4(),
           fromNodeId: newFromId,
           toNodeId: newToId,
         ));
@@ -80,11 +80,11 @@ class CopyBuffer extends ChangeNotifier with TraceableNotifier {
     notifyListeners();
   }
 
-  Future<List<String>> paste(Offset cursorPosition, CommandQueueProcessor controller) async {
+  Future<List<RawUuid>> paste(Offset cursorPosition, CommandQueueProcessor controller) async {
     if (!hasData) return [];
 
-    final createdIds = <String>[];
-    final copyToPasteId = <String, String>{};
+    final createdIds = <RawUuid>[];
+    final copyToPasteId = <RawUuid, RawUuid>{};
 
     for (final node in _nodes!) {
       final newPos = cursorPosition + (node.position - _copyOrigin!);
@@ -165,7 +165,7 @@ class CopyBuffer extends ChangeNotifier with TraceableNotifier {
   }
 
   UiNode? _createNodeByType(UiNode source, Offset position) {
-    final clone = source.cloneWithId(const Uuid().v4());
+    final clone = source.cloneWithId(RawUuid.v4());
     if (clone == null) return null;
     clone.position = position;
     return clone;

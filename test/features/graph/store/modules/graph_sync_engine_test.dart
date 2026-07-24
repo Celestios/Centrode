@@ -14,6 +14,7 @@ import 'package:mycelium/src/rust/domain/base_models.dart' as frb_base;
 import 'package:mycelium/src/rust/domain/snapshot.dart';
 
 import 'package:mycelium/presentation/theme/graph_theme.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class MockGraphApi extends Mock implements GraphApi {}
 

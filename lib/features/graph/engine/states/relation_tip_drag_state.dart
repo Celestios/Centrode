@@ -4,14 +4,14 @@ part of '../base_interaction_state.dart';
 final Logger _relationTipLog = Logger('RelationTipDragging');
 
 class RelationTipDragging extends CanvasInteractionState {
-  final String relationId;
+  final RawUuid relationId;
   final bool
   isStartTip; // true = dragging from/source tip, false = dragging to/target tip
   final Offset originalPosition;
   final Offset currentCursorPosition;
 
   /// The currently snapped target node ID, if any.
-  final String? snappedTargetNodeId;
+  final RawUuid? snappedTargetNodeId;
 
   /// The side of the target node to connect to, if any.
   final PortSide? snappedTargetSide;
@@ -43,7 +43,7 @@ class RelationTipDragging extends CanvasInteractionState {
     GeometryCapability ctx,
   ) {
     // Find the relation to determine the opposite node ID (to prevent self-loops)
-    String? oppositeNodeId;
+    RawUuid? oppositeNodeId;
     for (final r in ctx.getRelations()) {
       if (r.id == relationId) {
         oppositeNodeId = isStartTip ? r.toNodeId : r.fromNodeId;

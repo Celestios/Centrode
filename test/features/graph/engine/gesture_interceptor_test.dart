@@ -14,6 +14,7 @@ import 'package:mycelium/features/graph/presentation/viewport_state.dart';
 
 import 'package:mycelium/features/graph/store/relation_engine_state.dart';
 import 'package:mycelium/src/rust/relation_engine/computed.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class MockInteractionContext extends Mock implements InteractionContext {}
 class MockTabSession extends Mock implements TabSession {}

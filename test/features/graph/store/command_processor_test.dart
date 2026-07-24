@@ -1,10 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mycelium/features/graph/models/commands.dart';
 import 'package:mycelium/features/graph/store/command_processor.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class FakeCommand extends GraphCommand {
   @override
-  String targetId;
+  RawUuid targetId;
 
   @override
   final CommandCategory category;

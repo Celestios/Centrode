@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/models/port.dart';
 import 'package:mycelium/features/graph/presentation/node_ports.dart';
@@ -10,7 +11,7 @@ import 'package:mycelium/features/graph/engine/volatile_node_state.dart';
 import 'package:mycelium/features/graph/presentation/view_state_geometry.dart';
 
 class NodeViewState implements VolatileNodeState {
-  final String nodeId;
+  final RawUuid nodeId;
   final ValueNotifier<Offset> positionNotifier;
   final ValueNotifier<Size> sizeNotifier;
   final ValueNotifier<bool> isExpandedNotifier;

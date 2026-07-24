@@ -1,9 +1,9 @@
 part of '../base_interaction_state.dart';
 
 class SnapResult {
-  final String? snappedNodeId;
+  final RawUuid? snappedNodeId;
   final Port? snappedPort;
-  final String? hoveredNodeId;
+  final RawUuid? hoveredNodeId;
 
   const SnapResult({
     this.snappedNodeId,
@@ -15,14 +15,14 @@ class SnapResult {
 SnapResult findNearestSnap(
   Offset pCanvas,
   GeometryCapability ctx,
-  Set<String> excludeNodeIds,
+  Set<RawUuid> excludeNodeIds,
 ) {
-  String? snappedId;
+  RawUuid? snappedId;
   Port? snappedPort;
-  String? hoveredNodeId;
+  RawUuid? hoveredNodeId;
   double bestTargetDist = double.infinity;
 
-  final nodeIds = ctx.zOrder.reversed.toList();
+  final nodeIds = ctx.zOrder.reversed.map((id) => ctx.nodeViewStates.keys.firstWhere((k) => k.toUuidString() == id, orElse: () => ctx.nodeViewStates.keys.first)).toList();
   if (nodeIds.isEmpty) {
     nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import '../engine/config.dart';
 import 'base_interaction_state.dart';
 import 'interaction_context.dart';
@@ -244,14 +245,14 @@ class InteractionController {
     state.dispose();
   }
 
-  void startRelationDrawing(Set<String> nodeIds, Offset initialPos) {
+  void startRelationDrawing(Set<RawUuid> nodeIds, Offset initialPos) {
     _transitionTo(RelationDrawing(
       nodeIds,
       initialPos,
     ));
   }
 
-  void updateNodeStyle(String nodeId, NodeStyle Function(NodeStyle style) updateFn) {
+  void updateNodeStyle(RawUuid nodeId, NodeStyle Function(NodeStyle style) updateFn) {
     environment.updateNodeStyle(nodeId, updateFn);
   }
 }

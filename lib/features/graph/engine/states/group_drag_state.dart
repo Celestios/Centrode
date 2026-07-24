@@ -9,10 +9,10 @@ final Logger _groupDragLog = Logger('GroupDragging');
 /// Updates positions of all selected nodes during drag relative to the anchor node,
 /// and commits their positions on pointer up.
 class GroupDragging extends CanvasInteractionState {
-  final List<String> nodeIds;
-  final String anchorNodeId;
+  final List<RawUuid> nodeIds;
+  final RawUuid anchorNodeId;
   final Offset grabOffset;
-  final Map<String, Offset> originalPositions;
+  final Map<RawUuid, Offset> originalPositions;
 
   const GroupDragging({
     required this.nodeIds,
@@ -58,7 +58,7 @@ class GroupDragging extends CanvasInteractionState {
 
     final delta = snappedAnchorPos - originalAnchorPos;
 
-    final List<(String, Offset)> dragUpdates = [];
+    final List<(RawUuid, Offset)> dragUpdates = [];
     for (final id in nodeIds) {
       final vs = ctx.nodeViewStates[id];
       final originalPos = originalPositions[id];

@@ -5,6 +5,7 @@ import 'package:mycelium/features/graph/presentation/view_state.dart';
 import 'package:mycelium/features/graph/engine/config.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 void main() {
   test('NodeViewState rightResizeHitbox offset shift check', () {

@@ -4,6 +4,7 @@ import 'package:mycelium/features/graph/presentation/node_render_state.dart';
 import 'package:mycelium/features/graph/store/graph_data_query.dart';
 import 'package:mycelium/features/graph/store/graph_data_command.dart';
 import 'package:mycelium/features/graph/models/models.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class MockGraphDataQuery extends Mock implements GraphDataQuery {}
 class MockGraphDataCommand extends Mock implements GraphDataCommand {}

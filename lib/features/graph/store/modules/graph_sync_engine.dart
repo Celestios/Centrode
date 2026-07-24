@@ -5,7 +5,6 @@ import 'package:mycelium/shared/logging.dart';
 import '../../models/models.dart';
 import '../../../../src/rust/bridge/stream.dart';
 import '../../../../src/rust/domain/patches.dart';
-import '../../../../src/rust/domain/types.dart';
 import '../command_queue_processor.dart';
 import '../command_processor.dart';
 import '../graph_data_query.dart';

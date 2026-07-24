@@ -292,8 +292,8 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
 
   void updateRelationLayout(
     RawUuid id, {
-    String? fromNodeId,
-    String? toNodeId,
+    RawUuid? fromNodeId,
+    RawUuid? toNodeId,
     PortSide? fromSide,
     PortSide? toSide,
     String? strategyType,

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mycelium/features/graph/models/graph_relation.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 void main() {
   group('UiRelation', () {

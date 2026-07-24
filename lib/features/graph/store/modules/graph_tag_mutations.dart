@@ -171,7 +171,7 @@ class GraphTagMutations {
     if (node is InfoUiNode) {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final newTag = Tag(
-        key: parseTypedRecordId('Tag', const Uuid().v4()),
+        key: parseTypedRecordId('Tag', RawUuid.v4()),
         fields: TagFields(
           name: name,
           color: color,

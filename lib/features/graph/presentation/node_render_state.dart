@@ -43,15 +43,15 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
   );
 
   /// ID of the node whose metadata is currently hovered on canvas.
-  final ValueNotifier<String?> hoveredNodeMetadataNotifier = ValueNotifier(
+  final ValueNotifier<RawUuid?> hoveredNodeMetadataNotifier = ValueNotifier(
     null,
   );
 
   /// ID of the node currently hovered on canvas (for port display).
-  final ValueNotifier<String?> hoveredNodeNotifier = ValueNotifier(null);
+  final ValueNotifier<RawUuid?> hoveredNodeNotifier = ValueNotifier(null);
 
   /// Map of currently active visual view states.
-  final Map<String, NodeViewState> viewStates = {};
+  final Map<RawUuid, NodeViewState> viewStates = {};
 
   /// Notification trigger for canvas relation repaints.
   final MovementNotifier movementNotifier = MovementNotifier();
@@ -80,7 +80,7 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
     _syncAtomicUIState();
   }
 
-  bool _syncNodeToViewState(String id, UiNode node) {
+  bool _syncNodeToViewState(RawUuid id, UiNode node) {
     final vs = viewStates[id];
     if (vs == null) return false;
 
@@ -113,7 +113,7 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
 
     switch (update.type) {
       case GraphUpdateType.position:
-        if (node != null) _syncNodeToViewState(id, node);
+        if (node != null && id != null) _syncNodeToViewState(id, node);
         break;
       case GraphUpdateType.size:
         if (node != null) {
@@ -128,7 +128,7 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
         }
         break;
       case GraphUpdateType.expansion:
-        if (node != null) _syncNodeToViewState(id, node);
+        if (node != null && id != null) _syncNodeToViewState(id, node);
         break;
       case GraphUpdateType.text:
         if (node != null) {
@@ -215,11 +215,11 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
   // Backward-compatible delegates — callers can still access via NodeRenderState
   // ===========================================================================
 
-  Set<String> get selectedEntities => selectionState.selectedEntities;
+  Set<RawUuid> get selectedEntities => selectionState.selectedEntities;
   List<String> get zOrder => selectionState.zOrder;
-  String? get activeEditId => editorState.activeEditId;
-  String? get nodeShowingFloatingToolbar => editorState.nodeShowingFloatingToolbar;
-  Set<String> get draggingNodes => dragState.draggingNodes;
+  RawUuid? get activeEditId => editorState.activeEditId;
+  RawUuid? get nodeShowingFloatingToolbar => editorState.nodeShowingFloatingToolbar;
+  Set<RawUuid> get draggingNodes => dragState.draggingNodes;
 
   ValueNotifier<Offset> get toolbarOffsetNotifier => editorState.toolbarOffsetNotifier;
   ValueNotifier<Offset> get multiToolbarOffsetNotifier => editorState.multiToolbarOffsetNotifier;
@@ -257,26 +257,26 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
   set commitActiveEditCallback(void Function()? value) => editorState.commitActiveEditCallback = value;
 
   void updateActiveTextSelection(TextSelection? selection) => editorState.updateActiveTextSelection(selection);
-  void enterEditMode(String id) => editorState.enterEditMode(id);
+  void enterEditMode(RawUuid id) => editorState.enterEditMode(id);
   void commitActiveEdit() => editorState.commitActiveEdit();
   void cancelActiveEdit() => editorState.cancelActiveEdit();
-  void showFloatingToolbar(String nodeId) => editorState.showFloatingToolbar(nodeId);
+  void showFloatingToolbar(RawUuid nodeId) => editorState.showFloatingToolbar(nodeId);
   void hideFloatingToolbar() => editorState.hideFloatingToolbar();
-  Offset? calculateToolbarAnchor(Iterable<String> selectedIds) => editorState.calculateToolbarAnchor(selectedIds);
+  Offset? calculateToolbarAnchor(Iterable<RawUuid> selectedIds) => editorState.calculateToolbarAnchor(selectedIds);
 
-  void selectEntity(String? id) => selectionState.selectEntity(id);
-  void selectEntities(Iterable<String> ids) => selectionState.selectEntities(ids);
+  void selectEntity(RawUuid? id) => selectionState.selectEntity(id);
+  void selectEntities(Iterable<RawUuid> ids) => selectionState.selectEntities(ids);
   void deleteSelectedEntities() => selectionState.deleteSelectedEntities();
-  void moveToFront(String id) => selectionState.moveToFront(id);
+  void moveToFront(RawUuid id) => selectionState.moveToFront(id);
 
-  void setNodeDragging(String id, bool dragging) => dragState.setNodeDragging(id, dragging);
+  void setNodeDragging(RawUuid id, bool dragging) => dragState.setNodeDragging(id, dragging);
 
   // ===========================================================================
   // Proxy Query & Mutation Delegate Methods
   // ===========================================================================
 
-  UiNode? getNode(String id) => _dataQuery.nodeLookup[id];
-  UiRelation? getRelation(String id) => _dataQuery.relationLookup[id];
+  UiNode? getNode(RawUuid id) => _dataQuery.nodeLookup[id];
+  UiRelation? getRelation(RawUuid id) => _dataQuery.relationLookup[id];
 
   // ===========================================================================
   // GraphDataQuery Implementation (delegates to _dataQuery)

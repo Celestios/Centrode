@@ -22,6 +22,7 @@ import 'package:mycelium/src/rust/relation_engine/computed.dart';
 import 'package:mycelium/src/rust/relation_engine/config.dart';
 import 'package:mycelium/src/rust/relation_engine/geometry.dart' as rust_geom;
 import 'package:mycelium/features/graph/models/commands/patch_helpers.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class MockGraphDataQueryController extends Mock implements GraphDataQueryController {}
 

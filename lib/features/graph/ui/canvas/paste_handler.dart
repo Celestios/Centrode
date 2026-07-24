@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
 import '../../models/content_builder.dart';
 import '../../models/graph_node.dart';
@@ -135,13 +136,13 @@ Future<void> _createTreeNodes(
   const double hGap = 280.0;
   const double vGap = 140.0;
 
-  final createdIds = <String>{};
-  final relations = <(String parentId, String childId, String verb)>[];
+  final createdIds = <RawUuid>{};
+  final relations = <(RawUuid parentId, RawUuid childId, String verb)>[];
 
-  String addNode(
+  RawUuid addNode(
     _TreeNode tree,
     Offset pos,
-    String? parentId, {
+    RawUuid? parentId, {
     String? parentVerb,
   }) {
     final id = dataController.createNode(

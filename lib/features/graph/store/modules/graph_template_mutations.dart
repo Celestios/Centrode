@@ -22,22 +22,18 @@ class GraphTemplateMutations {
 
   Future<void> saveTemplateFromSelection(
     String name,
-    List<String> nodeIds,
-    List<String> relationIds,
+    List<RawUuid> nodeIds,
+    List<RawUuid> relationIds,
   ) async {
     _log.info('saveTemplateFromSelection name=$name nodes=${nodeIds.length} relations=${relationIds.length}');
     final api = controller.syncEngine.api;
     final List<TypedRecordId> nodeRecords = nodeIds.map((id) {
       final node = controller.store.nodeLookup[id];
-      final table =
-          node?.tableName ?? (id.contains(':') ? id.split(':').first : 'INode');
-      final key = id.contains(':') ? id.split(':').last : id;
-      return parseTypedRecordId(table, key);
+      final table = node?.tableName ?? 'INode';
+      return parseTypedRecordId(table, id);
     }).toList();
     final List<TypedRecordId> relationRecords = relationIds.map((id) {
-      final table = id.contains(':') ? id.split(':').first : 'IRelation';
-      final key = id.contains(':') ? id.split(':').last : id;
-      return parseTypedRecordId(table, key);
+      return parseTypedRecordId('IRelation', id);
     }).toList();
 
     final cmd = SaveTemplateCommand(

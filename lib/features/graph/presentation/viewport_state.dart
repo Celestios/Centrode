@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import '../engine/config.dart';
 import '../../../src/rust/domain/base_models.dart' show BoundingBox;
 import '../store/graph_data_query.dart';
@@ -44,7 +45,7 @@ class ViewportController {
   AnimationController? _viewportAnimationController;
 
   /// Notifier exposing the set of node IDs currently residing inside the overscan buffer.
-  final ValueNotifier<Set<String>> visibleNodeIds = ValueNotifier({});
+  final ValueNotifier<Set<RawUuid>> visibleNodeIds = ValueNotifier({});
 
   final ValueNotifier<ViewportStateGrid> viewportStateNotifier = ValueNotifier(
     ViewportStateGrid(

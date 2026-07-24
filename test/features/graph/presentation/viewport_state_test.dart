@@ -5,6 +5,7 @@ import 'package:mycelium/features/graph/presentation/viewport_state.dart';
 import 'package:mycelium/features/graph/store/graph_data_query.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/store/spatial_index.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class MockGraphDataQuery extends Mock implements GraphDataQuery {}
 

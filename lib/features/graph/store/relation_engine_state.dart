@@ -47,7 +47,7 @@ class RelationEngineState {
   bool _pendingRecompute = false;
   final ValueNotifier<int> cacheNotifier = ValueNotifier<int>(0);
 
-  Map<String, ComputedRelation> get cache => _tracker.cache;
+  Map<RawUuid, ComputedRelation> get cache => _tracker.cache;
   InvalidationTracker get tracker => _tracker;
 
   RelationEngineState({required GraphApi api}) : _api = api;
@@ -111,7 +111,7 @@ class RelationEngineState {
     }
   }
 
-  Future<List<ComputedRelation>> recompute({List<String>? dirtyIds}) async {
+  Future<List<ComputedRelation>> recompute({List<RawUuid>? dirtyIds}) async {
     try {
       final typedIds = dirtyIds
           ?.map((id) => parseTypedRecordId('IRelation', id))
@@ -129,7 +129,7 @@ class RelationEngineState {
 
   void onInitialLoad({required Iterable<UiRelation> relations}) {
     _tracker.clear();
-    _tracker.markIdsDirty(relations.map((r) => r.id.toUuidString()));
+    _tracker.markIdsDirty(relations.map((r) => r.id));
   }
 
   void dispose() {

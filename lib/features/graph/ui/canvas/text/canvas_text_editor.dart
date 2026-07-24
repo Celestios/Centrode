@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 import '../../../presentation/node_render_state.dart';
 import '../../../models/models.dart';
@@ -11,7 +12,7 @@ import 'markdown_text_selection_controls.dart';
 import '../../../../../shared/widgets/context_menu_overlay.dart';
 
 class CanvasTextEditor extends StatefulWidget {
-  final String entityId;
+  final RawUuid entityId;
   final Content content;
   final TextStyle textStyle;
   final int? maxLines;

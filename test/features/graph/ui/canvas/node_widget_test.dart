@@ -8,12 +8,13 @@ import 'package:mycelium/features/graph/store/graph_data_query.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class MockGraphDataQuery extends Mock
     with ChangeNotifier
     implements GraphDataQuery {
   @override
-  Map<String, UiNode> get nodeLookup => {};
+  Map<RawUuid, UiNode> get nodeLookup => {};
 }
 
 class MockThemeController extends Mock implements ThemeController {

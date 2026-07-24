@@ -23,7 +23,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
   final ViewportController _viewportController;
   final double Function() _getScale;
   final TabSession? _boundSession;
-  final void Function(List<String> nodeIds, List<String> relationIds)?
+  final void Function(List<RawUuid> nodeIds, List<RawUuid> relationIds)?
   _onSaveTemplate;
 
   CanvasInteractionEnvironment({
@@ -33,7 +33,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
     required ViewportController viewportController,
     required double Function() getScale,
     TabSession? boundSession,
-    void Function(List<String> nodeIds, List<String> relationIds)?
+    void Function(List<RawUuid> nodeIds, List<RawUuid> relationIds)?
     onSaveTemplate,
   }) : _queryController = queryController,
        _commandProcessor = commandProcessor,
@@ -44,7 +44,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
        _onSaveTemplate = onSaveTemplate;
 
   @override
-  Map<String, NodeViewState> get nodeViewStates => _renderState.viewStates;
+  Map<RawUuid, NodeViewState> get nodeViewStates => _renderState.viewStates;
 
   @override
   RelationEngineState get relationEngine => _queryController.relationEngine;
@@ -172,7 +172,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
       _renderState.selectEntities(ids);
 
   @override
-  Set<String> getSelectedEntities() => _renderState.selectedEntities;
+  Set<RawUuid> getSelectedEntities() => _renderState.selectedEntities;
 
   @override
   Offset getToolbarOffset() {
@@ -243,14 +243,14 @@ class CanvasInteractionEnvironment implements InteractionContext {
       _renderState.calculateToolbarAnchor(selectedIds);
 
   @override
-  void setHoveredNodeMetadata(String? nodeId) {
+  void setHoveredNodeMetadata(RawUuid? nodeId) {
     if (_renderState.hoveredNodeMetadataNotifier.value != nodeId) {
       _renderState.hoveredNodeMetadataNotifier.value = nodeId;
     }
   }
 
   @override
-  void setHoveredNode(String? nodeId) {
+  void setHoveredNode(RawUuid? nodeId) {
     if (_renderState.hoveredNodeNotifier.value != nodeId) {
       _renderState.hoveredNodeNotifier.value = nodeId;
     }
