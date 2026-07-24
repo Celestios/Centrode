@@ -1,5 +1,6 @@
 use anyhow::Result;
-use crate::domain::enums::HistoryStatus;
+use crate::domain::snapshot::HistoryStatus;
+use crate::domain::traits::TableKind;
 use surrealdb::engine::local::Db;
 use surrealdb::types::{RecordId, SurrealValue, Value};
 use surrealdb::Surreal;
@@ -30,7 +31,8 @@ impl<'a> HistoryManager<'a> {
     pub async fn push_event_with_time(&self, action_type: &str, payload: Value, timestamp: i64) -> Result<()> {
         // Clear the "undone" redo stack when a new action is performed
         self.db
-            .query("DELETE History WHERE status = 'undone'")
+            .query("DELETE History WHERE status = $status")
+            .bind(("status", HistoryStatus::Undone.into_value()))
             .await?;
 
         let record = HistoryRecord {
@@ -42,12 +44,13 @@ impl<'a> HistoryManager<'a> {
         };
 
         // Insert into DB (deserialize result as generic Value to bypass strict struct mapping)
-        let _: Option<Value> = self.db.create("History").content(record).await?;
+        let _: Option<Value> = self.db.create(TableKind::History.table_name()).content(record).await?;
 
         // Enforce threshold (clean up old records)
         let mut count_response = self
             .db
-            .query("SELECT VALUE count() FROM History WHERE status = 'applied' GROUP ALL")
+            .query("SELECT VALUE count() FROM History WHERE status = $status GROUP ALL")
+            .bind(("status", HistoryStatus::Applied.into_value()))
             .await?;
         let count_vec: Vec<i64> = count_response.take(0)?;
         let count = count_vec.first().copied().unwrap_or(0);
@@ -60,7 +63,8 @@ impl<'a> HistoryManager<'a> {
             }
             let mut select_response = self
                 .db
-                .query("SELECT id, created_at FROM History WHERE status = 'applied' ORDER BY created_at ASC, id ASC LIMIT $limit")
+                .query("SELECT id, created_at FROM History WHERE status = $status ORDER BY created_at ASC, id ASC LIMIT $limit")
+                .bind(("status", HistoryStatus::Applied.into_value()))
                 .bind(("limit", limit))
                 .await?;
             let ids_to_delete: Vec<HistoryPrune> = select_response.take(0)?;
@@ -77,8 +81,9 @@ impl<'a> HistoryManager<'a> {
         let mut response = self
             .db
             .query(
-                "SELECT id, action_type, payload, status, created_at FROM History WHERE status = 'applied' ORDER BY created_at DESC LIMIT 1",
+                "SELECT id, action_type, payload, status, created_at FROM History WHERE status = $status ORDER BY created_at DESC LIMIT 1",
             )
+            .bind(("status", HistoryStatus::Applied.into_value()))
             .await?;
         let record: Option<HistoryRecord> = response.take(0)?;
 
@@ -87,8 +92,9 @@ impl<'a> HistoryManager<'a> {
 
         // Mark it as "undone"
         self.db
-            .query("UPDATE $id SET status = 'undone'")
+            .query("UPDATE $id SET status = $status")
             .bind(("id", record_id.clone()))
+            .bind(("status", HistoryStatus::Undone.into_value()))
             .await?;
 
         rec.status = HistoryStatus::Undone;
@@ -100,8 +106,9 @@ impl<'a> HistoryManager<'a> {
         let mut response = self
             .db
             .query(
-                "SELECT id, action_type, payload, status, created_at FROM History WHERE status = 'undone' ORDER BY created_at DESC LIMIT 1",
+                "SELECT id, action_type, payload, status, created_at FROM History WHERE status = $status ORDER BY created_at DESC LIMIT 1",
             )
+            .bind(("status", HistoryStatus::Undone.into_value()))
             .await?;
         let record: Option<HistoryRecord> = response.take(0)?;
 
@@ -110,8 +117,9 @@ impl<'a> HistoryManager<'a> {
 
         // Mark it as "applied"
         self.db
-            .query("UPDATE $id SET status = 'applied'")
+            .query("UPDATE $id SET status = $status")
             .bind(("id", record_id.clone()))
+            .bind(("status", HistoryStatus::Applied.into_value()))
             .await?;
 
         rec.status = HistoryStatus::Applied;

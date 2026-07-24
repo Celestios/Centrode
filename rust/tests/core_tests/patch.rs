@@ -334,28 +334,6 @@ async fn test_create_and_delete_entity_patches() {
         created_at: 0,
         updated_at: 0,
     };
-    let n2 = INode {
-        id: out_id,
-        content: Content::from_plain_text("B"),
-        style: None,
-        resolved_style: None,
-        layout: None,
-        resolved_layout: None,
-        layer: "default".to_string(),
-        position: Coordinates { x: 10, y: 10 },
-        size: Size { width: 10, height: 10 },
-        line_count: 1,
-        expandable: true,
-        is_expanded: false,
-        locked: false,
-        tags: vec![],
-        aliases: vec![],
-        comments: vec![],
-        attachment: None,
-        significance: 0,
-        created_at: 0,
-        updated_at: 0,
-    };
 
     let rel_id = TypedRecordId::new_v4(TableKind::IRelation);
 

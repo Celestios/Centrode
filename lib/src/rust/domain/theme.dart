@@ -4,10 +4,7 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
-import 'id.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
-import 'package:uuid/uuid.dart';
-import 'traits.dart';
 
 class FontWeight {
   final int field0;
@@ -23,24 +20,6 @@ class FontWeight {
       other is FontWeight &&
           runtimeType == other.runtimeType &&
           field0 == other.field0;
-}
-
-class Theme {
-  final TypedRecordId key;
-  final ThemeFields fields;
-
-  const Theme({required this.key, required this.fields});
-
-  @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Theme &&
-          runtimeType == other.runtimeType &&
-          key == other.key &&
-          fields == other.fields;
 }
 
 enum ThemeBrightness { light, dark }

@@ -55,14 +55,13 @@ extension GraphEventPatterns on GraphEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GraphEvent_NodeUpdated value)?  nodeUpdated,TResult Function( GraphEvent_NodeDeleted value)?  nodeDeleted,TResult Function( GraphEvent_RelationUpdated value)?  relationUpdated,TResult Function( GraphEvent_SnapshotLoaded value)?  snapshotLoaded,TResult Function( GraphEvent_BoundaryUpdated value)?  boundaryUpdated,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GraphEvent_NodeUpdated value)?  nodeUpdated,TResult Function( GraphEvent_RelationUpdated value)?  relationUpdated,TResult Function( GraphEvent_BatchUpdated value)?  batchUpdated,TResult Function( GraphEvent_BoundaryUpdated value)?  boundaryUpdated,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case GraphEvent_NodeUpdated() when nodeUpdated != null:
-return nodeUpdated(_that);case GraphEvent_NodeDeleted() when nodeDeleted != null:
-return nodeDeleted(_that);case GraphEvent_RelationUpdated() when relationUpdated != null:
-return relationUpdated(_that);case GraphEvent_SnapshotLoaded() when snapshotLoaded != null:
-return snapshotLoaded(_that);case GraphEvent_BoundaryUpdated() when boundaryUpdated != null:
+return nodeUpdated(_that);case GraphEvent_RelationUpdated() when relationUpdated != null:
+return relationUpdated(_that);case GraphEvent_BatchUpdated() when batchUpdated != null:
+return batchUpdated(_that);case GraphEvent_BoundaryUpdated() when boundaryUpdated != null:
 return boundaryUpdated(_that);case _:
   return orElse();
 
@@ -81,14 +80,13 @@ return boundaryUpdated(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GraphEvent_NodeUpdated value)  nodeUpdated,required TResult Function( GraphEvent_NodeDeleted value)  nodeDeleted,required TResult Function( GraphEvent_RelationUpdated value)  relationUpdated,required TResult Function( GraphEvent_SnapshotLoaded value)  snapshotLoaded,required TResult Function( GraphEvent_BoundaryUpdated value)  boundaryUpdated,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GraphEvent_NodeUpdated value)  nodeUpdated,required TResult Function( GraphEvent_RelationUpdated value)  relationUpdated,required TResult Function( GraphEvent_BatchUpdated value)  batchUpdated,required TResult Function( GraphEvent_BoundaryUpdated value)  boundaryUpdated,}){
 final _that = this;
 switch (_that) {
 case GraphEvent_NodeUpdated():
-return nodeUpdated(_that);case GraphEvent_NodeDeleted():
-return nodeDeleted(_that);case GraphEvent_RelationUpdated():
-return relationUpdated(_that);case GraphEvent_SnapshotLoaded():
-return snapshotLoaded(_that);case GraphEvent_BoundaryUpdated():
+return nodeUpdated(_that);case GraphEvent_RelationUpdated():
+return relationUpdated(_that);case GraphEvent_BatchUpdated():
+return batchUpdated(_that);case GraphEvent_BoundaryUpdated():
 return boundaryUpdated(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -103,14 +101,13 @@ return boundaryUpdated(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GraphEvent_NodeUpdated value)?  nodeUpdated,TResult? Function( GraphEvent_NodeDeleted value)?  nodeDeleted,TResult? Function( GraphEvent_RelationUpdated value)?  relationUpdated,TResult? Function( GraphEvent_SnapshotLoaded value)?  snapshotLoaded,TResult? Function( GraphEvent_BoundaryUpdated value)?  boundaryUpdated,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GraphEvent_NodeUpdated value)?  nodeUpdated,TResult? Function( GraphEvent_RelationUpdated value)?  relationUpdated,TResult? Function( GraphEvent_BatchUpdated value)?  batchUpdated,TResult? Function( GraphEvent_BoundaryUpdated value)?  boundaryUpdated,}){
 final _that = this;
 switch (_that) {
 case GraphEvent_NodeUpdated() when nodeUpdated != null:
-return nodeUpdated(_that);case GraphEvent_NodeDeleted() when nodeDeleted != null:
-return nodeDeleted(_that);case GraphEvent_RelationUpdated() when relationUpdated != null:
-return relationUpdated(_that);case GraphEvent_SnapshotLoaded() when snapshotLoaded != null:
-return snapshotLoaded(_that);case GraphEvent_BoundaryUpdated() when boundaryUpdated != null:
+return nodeUpdated(_that);case GraphEvent_RelationUpdated() when relationUpdated != null:
+return relationUpdated(_that);case GraphEvent_BatchUpdated() when batchUpdated != null:
+return batchUpdated(_that);case GraphEvent_BoundaryUpdated() when boundaryUpdated != null:
 return boundaryUpdated(_that);case _:
   return null;
 
@@ -128,13 +125,12 @@ return boundaryUpdated(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Nodes field0)?  nodeUpdated,TResult Function( String field0)?  nodeDeleted,TResult Function()?  relationUpdated,TResult Function()?  snapshotLoaded,TResult Function( BoundingBox field0)?  boundaryUpdated,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( TypedRecordId id,  List<NodePatch> patches)?  nodeUpdated,TResult Function( TypedRecordId id,  List<RelationPatch> patches)?  relationUpdated,TResult Function( GraphDelta field0)?  batchUpdated,TResult Function( BoundingBox field0)?  boundaryUpdated,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case GraphEvent_NodeUpdated() when nodeUpdated != null:
-return nodeUpdated(_that.field0);case GraphEvent_NodeDeleted() when nodeDeleted != null:
-return nodeDeleted(_that.field0);case GraphEvent_RelationUpdated() when relationUpdated != null:
-return relationUpdated();case GraphEvent_SnapshotLoaded() when snapshotLoaded != null:
-return snapshotLoaded();case GraphEvent_BoundaryUpdated() when boundaryUpdated != null:
+return nodeUpdated(_that.id,_that.patches);case GraphEvent_RelationUpdated() when relationUpdated != null:
+return relationUpdated(_that.id,_that.patches);case GraphEvent_BatchUpdated() when batchUpdated != null:
+return batchUpdated(_that.field0);case GraphEvent_BoundaryUpdated() when boundaryUpdated != null:
 return boundaryUpdated(_that.field0);case _:
   return orElse();
 
@@ -153,13 +149,12 @@ return boundaryUpdated(_that.field0);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Nodes field0)  nodeUpdated,required TResult Function( String field0)  nodeDeleted,required TResult Function()  relationUpdated,required TResult Function()  snapshotLoaded,required TResult Function( BoundingBox field0)  boundaryUpdated,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( TypedRecordId id,  List<NodePatch> patches)  nodeUpdated,required TResult Function( TypedRecordId id,  List<RelationPatch> patches)  relationUpdated,required TResult Function( GraphDelta field0)  batchUpdated,required TResult Function( BoundingBox field0)  boundaryUpdated,}) {final _that = this;
 switch (_that) {
 case GraphEvent_NodeUpdated():
-return nodeUpdated(_that.field0);case GraphEvent_NodeDeleted():
-return nodeDeleted(_that.field0);case GraphEvent_RelationUpdated():
-return relationUpdated();case GraphEvent_SnapshotLoaded():
-return snapshotLoaded();case GraphEvent_BoundaryUpdated():
+return nodeUpdated(_that.id,_that.patches);case GraphEvent_RelationUpdated():
+return relationUpdated(_that.id,_that.patches);case GraphEvent_BatchUpdated():
+return batchUpdated(_that.field0);case GraphEvent_BoundaryUpdated():
 return boundaryUpdated(_that.field0);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -174,13 +169,12 @@ return boundaryUpdated(_that.field0);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Nodes field0)?  nodeUpdated,TResult? Function( String field0)?  nodeDeleted,TResult? Function()?  relationUpdated,TResult? Function()?  snapshotLoaded,TResult? Function( BoundingBox field0)?  boundaryUpdated,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( TypedRecordId id,  List<NodePatch> patches)?  nodeUpdated,TResult? Function( TypedRecordId id,  List<RelationPatch> patches)?  relationUpdated,TResult? Function( GraphDelta field0)?  batchUpdated,TResult? Function( BoundingBox field0)?  boundaryUpdated,}) {final _that = this;
 switch (_that) {
 case GraphEvent_NodeUpdated() when nodeUpdated != null:
-return nodeUpdated(_that.field0);case GraphEvent_NodeDeleted() when nodeDeleted != null:
-return nodeDeleted(_that.field0);case GraphEvent_RelationUpdated() when relationUpdated != null:
-return relationUpdated();case GraphEvent_SnapshotLoaded() when snapshotLoaded != null:
-return snapshotLoaded();case GraphEvent_BoundaryUpdated() when boundaryUpdated != null:
+return nodeUpdated(_that.id,_that.patches);case GraphEvent_RelationUpdated() when relationUpdated != null:
+return relationUpdated(_that.id,_that.patches);case GraphEvent_BatchUpdated() when batchUpdated != null:
+return batchUpdated(_that.field0);case GraphEvent_BoundaryUpdated() when boundaryUpdated != null:
 return boundaryUpdated(_that.field0);case _:
   return null;
 
@@ -193,10 +187,17 @@ return boundaryUpdated(_that.field0);case _:
 
 
 class GraphEvent_NodeUpdated extends GraphEvent {
-  const GraphEvent_NodeUpdated(this.field0): super._();
+  const GraphEvent_NodeUpdated({required this.id, required final  List<NodePatch> patches}): _patches = patches,super._();
   
 
- final  Nodes field0;
+ final  TypedRecordId id;
+ final  List<NodePatch> _patches;
+ List<NodePatch> get patches {
+  if (_patches is EqualUnmodifiableListView) return _patches;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_patches);
+}
+
 
 /// Create a copy of GraphEvent
 /// with the given fields replaced by the non-null parameter values.
@@ -208,16 +209,16 @@ $GraphEvent_NodeUpdatedCopyWith<GraphEvent_NodeUpdated> get copyWith => _$GraphE
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GraphEvent_NodeUpdated&&(identical(other.field0, field0) || other.field0 == field0));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GraphEvent_NodeUpdated&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other._patches, _patches));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,field0);
+int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(_patches));
 
 @override
 String toString() {
-  return 'GraphEvent.nodeUpdated(field0: $field0)';
+  return 'GraphEvent.nodeUpdated(id: $id, patches: $patches)';
 }
 
 
@@ -228,11 +229,11 @@ abstract mixin class $GraphEvent_NodeUpdatedCopyWith<$Res> implements $GraphEven
   factory $GraphEvent_NodeUpdatedCopyWith(GraphEvent_NodeUpdated value, $Res Function(GraphEvent_NodeUpdated) _then) = _$GraphEvent_NodeUpdatedCopyWithImpl;
 @useResult
 $Res call({
- Nodes field0
+ TypedRecordId id, List<NodePatch> patches
 });
 
 
-$NodesCopyWith<$Res> get field0;
+
 
 }
 /// @nodoc
@@ -245,85 +246,11 @@ class _$GraphEvent_NodeUpdatedCopyWithImpl<$Res>
 
 /// Create a copy of GraphEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patches = null,}) {
   return _then(GraphEvent_NodeUpdated(
-null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
-as Nodes,
-  ));
-}
-
-/// Create a copy of GraphEvent
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$NodesCopyWith<$Res> get field0 {
-  
-  return $NodesCopyWith<$Res>(_self.field0, (value) {
-    return _then(_self.copyWith(field0: value));
-  });
-}
-}
-
-/// @nodoc
-
-
-class GraphEvent_NodeDeleted extends GraphEvent {
-  const GraphEvent_NodeDeleted(this.field0): super._();
-  
-
- final  String field0;
-
-/// Create a copy of GraphEvent
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$GraphEvent_NodeDeletedCopyWith<GraphEvent_NodeDeleted> get copyWith => _$GraphEvent_NodeDeletedCopyWithImpl<GraphEvent_NodeDeleted>(this, _$identity);
-
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GraphEvent_NodeDeleted&&(identical(other.field0, field0) || other.field0 == field0));
-}
-
-
-@override
-int get hashCode => Object.hash(runtimeType,field0);
-
-@override
-String toString() {
-  return 'GraphEvent.nodeDeleted(field0: $field0)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class $GraphEvent_NodeDeletedCopyWith<$Res> implements $GraphEventCopyWith<$Res> {
-  factory $GraphEvent_NodeDeletedCopyWith(GraphEvent_NodeDeleted value, $Res Function(GraphEvent_NodeDeleted) _then) = _$GraphEvent_NodeDeletedCopyWithImpl;
-@useResult
-$Res call({
- String field0
-});
-
-
-
-
-}
-/// @nodoc
-class _$GraphEvent_NodeDeletedCopyWithImpl<$Res>
-    implements $GraphEvent_NodeDeletedCopyWith<$Res> {
-  _$GraphEvent_NodeDeletedCopyWithImpl(this._self, this._then);
-
-  final GraphEvent_NodeDeleted _self;
-  final $Res Function(GraphEvent_NodeDeleted) _then;
-
-/// Create a copy of GraphEvent
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
-  return _then(GraphEvent_NodeDeleted(
-null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
-as String,
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as TypedRecordId,patches: null == patches ? _self._patches : patches // ignore: cast_nullable_to_non_nullable
+as List<NodePatch>,
   ));
 }
 
@@ -334,65 +261,141 @@ as String,
 
 
 class GraphEvent_RelationUpdated extends GraphEvent {
-  const GraphEvent_RelationUpdated(): super._();
+  const GraphEvent_RelationUpdated({required this.id, required final  List<RelationPatch> patches}): _patches = patches,super._();
   
 
+ final  TypedRecordId id;
+ final  List<RelationPatch> _patches;
+ List<RelationPatch> get patches {
+  if (_patches is EqualUnmodifiableListView) return _patches;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_patches);
+}
 
 
+/// Create a copy of GraphEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$GraphEvent_RelationUpdatedCopyWith<GraphEvent_RelationUpdated> get copyWith => _$GraphEvent_RelationUpdatedCopyWithImpl<GraphEvent_RelationUpdated>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GraphEvent_RelationUpdated);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GraphEvent_RelationUpdated&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other._patches, _patches));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(_patches));
 
 @override
 String toString() {
-  return 'GraphEvent.relationUpdated()';
+  return 'GraphEvent.relationUpdated(id: $id, patches: $patches)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class $GraphEvent_RelationUpdatedCopyWith<$Res> implements $GraphEventCopyWith<$Res> {
+  factory $GraphEvent_RelationUpdatedCopyWith(GraphEvent_RelationUpdated value, $Res Function(GraphEvent_RelationUpdated) _then) = _$GraphEvent_RelationUpdatedCopyWithImpl;
+@useResult
+$Res call({
+ TypedRecordId id, List<RelationPatch> patches
+});
 
 
+
+
+}
+/// @nodoc
+class _$GraphEvent_RelationUpdatedCopyWithImpl<$Res>
+    implements $GraphEvent_RelationUpdatedCopyWith<$Res> {
+  _$GraphEvent_RelationUpdatedCopyWithImpl(this._self, this._then);
+
+  final GraphEvent_RelationUpdated _self;
+  final $Res Function(GraphEvent_RelationUpdated) _then;
+
+/// Create a copy of GraphEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patches = null,}) {
+  return _then(GraphEvent_RelationUpdated(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as TypedRecordId,patches: null == patches ? _self._patches : patches // ignore: cast_nullable_to_non_nullable
+as List<RelationPatch>,
+  ));
+}
+
+
+}
 
 /// @nodoc
 
 
-class GraphEvent_SnapshotLoaded extends GraphEvent {
-  const GraphEvent_SnapshotLoaded(): super._();
+class GraphEvent_BatchUpdated extends GraphEvent {
+  const GraphEvent_BatchUpdated(this.field0): super._();
   
 
+ final  GraphDelta field0;
 
-
+/// Create a copy of GraphEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$GraphEvent_BatchUpdatedCopyWith<GraphEvent_BatchUpdated> get copyWith => _$GraphEvent_BatchUpdatedCopyWithImpl<GraphEvent_BatchUpdated>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GraphEvent_SnapshotLoaded);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GraphEvent_BatchUpdated&&(identical(other.field0, field0) || other.field0 == field0));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,field0);
 
 @override
 String toString() {
-  return 'GraphEvent.snapshotLoaded()';
+  return 'GraphEvent.batchUpdated(field0: $field0)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class $GraphEvent_BatchUpdatedCopyWith<$Res> implements $GraphEventCopyWith<$Res> {
+  factory $GraphEvent_BatchUpdatedCopyWith(GraphEvent_BatchUpdated value, $Res Function(GraphEvent_BatchUpdated) _then) = _$GraphEvent_BatchUpdatedCopyWithImpl;
+@useResult
+$Res call({
+ GraphDelta field0
+});
 
 
+
+
+}
+/// @nodoc
+class _$GraphEvent_BatchUpdatedCopyWithImpl<$Res>
+    implements $GraphEvent_BatchUpdatedCopyWith<$Res> {
+  _$GraphEvent_BatchUpdatedCopyWithImpl(this._self, this._then);
+
+  final GraphEvent_BatchUpdated _self;
+  final $Res Function(GraphEvent_BatchUpdated) _then;
+
+/// Create a copy of GraphEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(GraphEvent_BatchUpdated(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as GraphDelta,
+  ));
+}
+
+
+}
 
 /// @nodoc
 

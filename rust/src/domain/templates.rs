@@ -1,33 +1,8 @@
 use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::{IsNode, Nodes};
 use crate::domain::relations::IRelation;
-use crate::domain::traits::{AuxiliaryEntity, SurrealTable, TableKind};
-use surrealdb::types::SurrealValue;
-use uuid::Uuid;
-
-#[derive(Debug, Clone, SurrealValue)]
-pub struct Template {
-    pub key: TypedRecordId,
-    pub name: String,
-    pub created_at: i64,
-    pub updated_at: i64,
-    pub nodes: Vec<Nodes>,
-    pub relations: Vec<IRelation>,
-}
-
-impl Template {
-    pub const LABEL: &'static str = "Template";
-}
-
-impl SurrealTable for Template {
-    const KIND: TableKind = TableKind::Template;
-
-    fn get_key(&self) -> &Uuid {
-        &self.key.key
-    }
-}
-
-impl AuxiliaryEntity for Template {}
+use crate::domain::traits::TableKind;
+pub use crate::domain::types::Template;
 
 impl Template {
     pub fn from_selection(
@@ -39,16 +14,16 @@ impl Template {
             return Err(anyhow::anyhow!("Cannot save template from empty selection"));
         }
 
-        let mut sum_x = 0.0;
-        let mut sum_y = 0.0;
+        let mut sum_x: f64 = 0.0;
+        let mut sum_y: f64 = 0.0;
         for node in &nodes {
             let pos = node.position();
             sum_x += pos.x as f64;
             sum_y += pos.y as f64;
         }
-        let count = nodes.len() as f64;
-        let centroid_x = (sum_x / count).round() as i32;
-        let centroid_y = (sum_y / count).round() as i32;
+        let count: f64 = nodes.len() as f64;
+        let centroid_x: i32 = (sum_x / count).round() as i32;
+        let centroid_y: i32 = (sum_y / count).round() as i32;
 
         for node in &mut nodes {
             let pos = node.position_mut();

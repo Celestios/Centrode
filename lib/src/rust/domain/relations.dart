@@ -4,40 +4,8 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
-import 'enums.dart';
-import 'id.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
-import 'package:uuid/uuid.dart';
 import 'styles.dart';
-import 'traits.dart';
-
-class IRelation {
-  final TypedRecordId key;
-  final TypedRecordId in_;
-  final TypedRecordId out;
-  final IRelationFields fields;
-
-  const IRelation({
-    required this.key,
-    required this.in_,
-    required this.out,
-    required this.fields,
-  });
-
-  @override
-  int get hashCode =>
-      key.hashCode ^ in_.hashCode ^ out.hashCode ^ fields.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is IRelation &&
-          runtimeType == other.runtimeType &&
-          key == other.key &&
-          in_ == other.in_ &&
-          out == other.out &&
-          fields == other.fields;
-}
 
 class IRelationFields {
   final String verb;

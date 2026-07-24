@@ -2,7 +2,6 @@ use crate::domain::base_models::BoundingBox;
 use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::{INode, InterNode, TaskNode};
 use crate::domain::relations::IRelation;
-use crate::domain::traits::SurrealTable;
 use crate::persistence::repo::Repository;
 
 use anyhow::Result;

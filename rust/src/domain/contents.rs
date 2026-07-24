@@ -1,5 +1,6 @@
-use surrealdb::types::SurrealValue;
 use crate::domain::schema::SurqlSchemaField;
+use mycelium_macros::SurrealDbEnum;
+use surrealdb::types::SurrealValue;
 
 #[derive(Debug, Clone, SurrealValue, Default, PartialEq, Eq)]
 pub struct Content {
@@ -124,14 +125,15 @@ impl ContentBlock {
     }
 }
 
-#[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, SurrealDbEnum)]
 pub enum BlockType {
-    Paragraph,
-    Heading,
-    BulletList,
-    OrderedList,
-    CodeBlock,
-    Blockquote,
+    Paragraph = 0,
+    Heading = 1,
+    BulletList = 2,
+    OrderedList = 3,
+    CodeBlock = 4,
+    Blockquote = 5,
 }
 
 impl Default for BlockType {
@@ -192,10 +194,11 @@ impl InlineElement {
     }
 }
 
-#[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, SurrealDbEnum)]
 pub enum InlineType {
-    Text,
-    HardBreak,
+    Text = 0,
+    HardBreak = 1,
 }
 
 impl Default for InlineType {
@@ -261,17 +264,18 @@ impl TextMark {
     }
 }
 
-#[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, SurrealDbEnum)]
 pub enum MarkType {
-    Bold,
-    Italic,
-    Underline,
-    Strikethrough,
-    Code,
-    Link,
-    Highlight,
-    TextColor,
-    FontFamily,
+    Bold = 0,
+    Italic = 1,
+    Underline = 2,
+    Strikethrough = 3,
+    Code = 4,
+    Link = 5,
+    Highlight = 6,
+    TextColor = 7,
+    FontFamily = 8,
 }
 
 #[derive(Debug, Clone, SurrealValue, Default, PartialEq, Eq)]
@@ -282,26 +286,55 @@ pub struct MarkAttrs {
 }
 
 impl SurqlSchemaField for Content {
-    fn field_type() -> String { "object".to_string() }
+    fn field_type() -> String {
+        "object".to_string()
+    }
     fn sub_field_paths() -> Vec<(String, String)> {
         vec![
             ("text".to_string(), "string".to_string()),
             ("blocks".to_string(), "array".to_string()),
             ("blocks.*".to_string(), "object".to_string()),
-            ("blocks.*.block_type".to_string(), "any".to_string()),
+            ("blocks.*.block_type".to_string(), "int".to_string()),
             ("blocks.*.content".to_string(), "array".to_string()),
             ("blocks.*.content.*".to_string(), "object".to_string()),
-            ("blocks.*.content.*.inline_type".to_string(), "any".to_string()),
+            (
+                "blocks.*.content.*.inline_type".to_string(),
+                "int".to_string(),
+            ),
             ("blocks.*.content.*.text".to_string(), "string".to_string()),
-            ("blocks.*.content.*.marks".to_string(), "option<array>".to_string()),
-            ("blocks.*.content.*.marks.*".to_string(), "object".to_string()),
-            ("blocks.*.content.*.marks.*.mark_type".to_string(), "any".to_string()),
-            ("blocks.*.content.*.marks.*.attrs".to_string(), "option<object>".to_string()),
-            ("blocks.*.content.*.marks.*.attrs.href".to_string(), "option<string>".to_string()),
+            (
+                "blocks.*.content.*.marks".to_string(),
+                "option<array>".to_string(),
+            ),
+            (
+                "blocks.*.content.*.marks.*".to_string(),
+                "object".to_string(),
+            ),
+            (
+                "blocks.*.content.*.marks.*.mark_type".to_string(),
+                "int".to_string(),
+            ),
+            (
+                "blocks.*.content.*.marks.*.attrs".to_string(),
+                "option<object>".to_string(),
+            ),
+            (
+                "blocks.*.content.*.marks.*.attrs.href".to_string(),
+                "option<string>".to_string(),
+            ),
             ("blocks.*.attrs".to_string(), "option<object>".to_string()),
-            ("blocks.*.attrs.level".to_string(), "option<int>".to_string()),
-            ("blocks.*.attrs.language".to_string(), "option<string>".to_string()),
-            ("blocks.*.attrs.text_align".to_string(), "option<string>".to_string()),
+            (
+                "blocks.*.attrs.level".to_string(),
+                "option<int>".to_string(),
+            ),
+            (
+                "blocks.*.attrs.language".to_string(),
+                "option<string>".to_string(),
+            ),
+            (
+                "blocks.*.attrs.text_align".to_string(),
+                "option<string>".to_string(),
+            ),
         ]
     }
 }
@@ -341,7 +374,10 @@ mod tests {
         let code_block = ContentBlock::code_block("const x = 5;", Some("javascript".to_string()));
         assert_eq!(code_block.block_type, BlockType::CodeBlock);
         assert_eq!(code_block.content[0].text, "const x = 5;");
-        assert_eq!(code_block.attrs.as_ref().unwrap().language, Some("javascript".to_string()));
+        assert_eq!(
+            code_block.attrs.as_ref().unwrap().language,
+            Some("javascript".to_string())
+        );
 
         let bullet = ContentBlock::bullet_list("Bullet item");
         assert_eq!(bullet.block_type, BlockType::BulletList);
@@ -369,12 +405,24 @@ mod tests {
         assert_eq!(marks.len(), 2);
         assert_eq!(marks[0].mark_type, MarkType::Bold);
         assert_eq!(marks[1].mark_type, MarkType::Link);
-        assert_eq!(marks[1].attrs.as_ref().unwrap().href, Some("https://mycelium.org".to_string()));
+        assert_eq!(
+            marks[1].attrs.as_ref().unwrap().href,
+            Some("https://mycelium.org".to_string())
+        );
 
-        let text_with_marks = InlineElement::text_with_marks("italic text", vec![TextMark::italic(), TextMark::underline()]);
+        let text_with_marks = InlineElement::text_with_marks(
+            "italic text",
+            vec![TextMark::italic(), TextMark::underline()],
+        );
         assert_eq!(text_with_marks.marks.as_ref().unwrap().len(), 2);
-        assert_eq!(text_with_marks.marks.as_ref().unwrap()[0].mark_type, MarkType::Italic);
-        assert_eq!(text_with_marks.marks.as_ref().unwrap()[1].mark_type, MarkType::Underline);
+        assert_eq!(
+            text_with_marks.marks.as_ref().unwrap()[0].mark_type,
+            MarkType::Italic
+        );
+        assert_eq!(
+            text_with_marks.marks.as_ref().unwrap()[1].mark_type,
+            MarkType::Underline
+        );
 
         let hard_break = InlineElement::hard_break();
         assert_eq!(hard_break.inline_type, InlineType::HardBreak);
@@ -387,7 +435,11 @@ mod tests {
             ContentBlock {
                 block_type: BlockType::Heading,
                 content: vec![InlineElement::text("My Document Heading")],
-                attrs: Some(BlockAttrs { level: Some(1), language: None, text_align: None }),
+                attrs: Some(BlockAttrs {
+                    level: Some(1),
+                    language: None,
+                    text_align: None,
+                }),
             },
             ContentBlock {
                 block_type: BlockType::Paragraph,
@@ -407,22 +459,23 @@ mod tests {
         // Modify in-place
         content.blocks[1].content[1].text = "updated bold".to_string();
         content.refresh_text();
-        assert_eq!(content.text, "My Document Heading\nThis is updated bold text.");
+        assert_eq!(
+            content.text,
+            "My Document Heading\nThis is updated bold text."
+        );
     }
 
     #[test]
     fn test_hard_break_plain_text() {
-        let blocks = vec![
-            ContentBlock {
-                block_type: BlockType::Paragraph,
-                content: vec![
-                    InlineElement::text("Line 1"),
-                    InlineElement::hard_break(),
-                    InlineElement::text("Line 2"),
-                ],
-                attrs: None,
-            }
-        ];
+        let blocks = vec![ContentBlock {
+            block_type: BlockType::Paragraph,
+            content: vec![
+                InlineElement::text("Line 1"),
+                InlineElement::hard_break(),
+                InlineElement::text("Line 2"),
+            ],
+            attrs: None,
+        }];
         let content = Content::new(blocks);
         assert_eq!(content.text, "Line 1\nLine 2");
     }

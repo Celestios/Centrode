@@ -1,9 +1,8 @@
 use crate::common::setup_test_repo;
 use rust_lib_mycelium::domain::base_models::{Coordinates, Size};
 use rust_lib_mycelium::domain::contents::Content;
-use rust_lib_mycelium::domain::enums::TaskState;
 use rust_lib_mycelium::domain::id::TypedRecordId;
-use rust_lib_mycelium::domain::nodes::{INode, Nodes, TaskNode};
+use rust_lib_mycelium::domain::nodes::{INode, Nodes, TaskNode, TaskState};
 use rust_lib_mycelium::domain::relations::{IRelation, IRelationFields};
 use rust_lib_mycelium::domain::tags::{Tag, TagEdge, TagFields};
 use rust_lib_mycelium::domain::traits::TableKind;

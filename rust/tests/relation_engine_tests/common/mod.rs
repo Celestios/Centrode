@@ -1,7 +1,7 @@
-use rust_lib_mycelium::domain::relation_engine::computed::{ComputedRelation, PathType};
-use rust_lib_mycelium::domain::relation_engine::geometry::{polyline_length, Point, Rect};
-use rust_lib_mycelium::domain::relation_engine::input::{InputEdge, InputNode};
-use rust_lib_mycelium::domain::relation_engine::config::{RelationEngineConfig, RoutingMode};
+use rust_lib_mycelium::relation_engine::computed::{ComputedRelation, PathType};
+use rust_lib_mycelium::relation_engine::config::{RelationEngineConfig, RoutingMode};
+use rust_lib_mycelium::relation_engine::geometry::{polyline_length, Point};
+use rust_lib_mycelium::relation_engine::input::{InputEdge, InputNode};
 use std::io::Write;
 
 pub fn verify_octilinear_path(path: &[Point]) {
@@ -21,21 +21,10 @@ pub fn verify_octilinear_path(path: &[Point]) {
         assert!(
             is_ortho || is_diag,
             "Path segment is not octilinear! Segment from {:?} to {:?} has dx = {}, dy = {}",
-            p1, p2, dx, dy
-        );
-    }
-}
-
-pub fn verify_straight_path(path: &[Point]) {
-    assert!(path.len() >= 2, "Straight path must have at least 2 points");
-    let start = path[0];
-    let end = *path.last().unwrap();
-    for p in path {
-        let collinear = (p.x - start.x) * (end.y - start.y) - (p.y - start.y) * (end.x - start.x);
-        assert!(
-            collinear.abs() < 1e-6,
-            "Point {:?} is not collinear with start {:?} and end {:?}",
-            p, start, end
+            p1,
+            p2,
+            dx,
+            dy
         );
     }
 }
@@ -155,8 +144,8 @@ pub fn render_svg(
     // Load nudge groups to apply colors to paths
     let mut edge_colors = std::collections::HashMap::new();
     let palette = [
-        "#ff6b6b", "#4dabf7", "#51cf66", "#fcc419", "#cc5de8",
-        "#20c997", "#ff922b", "#748ffc", "#f06595", "#38d9a9",
+        "#ff6b6b", "#4dabf7", "#51cf66", "#fcc419", "#cc5de8", "#20c997", "#ff922b", "#748ffc",
+        "#f06595", "#38d9a9",
     ];
     if let Ok(file) = std::fs::File::open("target/nudge_line_groups.json") {
         let parsed: Result<Vec<Vec<String>>, _> = serde_json::from_reader(file);
@@ -216,7 +205,10 @@ pub fn render_svg(
 
     // 4. Draw paths, reference lines, control points, and port dots
     for r in results.iter() {
-        let group_color = edge_colors.get(&r.id.to_string()).cloned().unwrap_or_else(|| "#ff0000".to_string());
+        let group_color = edge_colors
+            .get(&r.id.to_string())
+            .cloned()
+            .unwrap_or_else(|| "#ff0000".to_string());
         let default_color = group_color.as_str();
         let pts = &r.path_points;
         let cpts = &r.control_points;
@@ -315,7 +307,10 @@ pub fn render_svg(
     ));
     lx += label.len() as f64 * 6.6 + 12.0;
     for r in results.iter() {
-        let group_color = edge_colors.get(&r.id.to_string()).cloned().unwrap_or_else(|| "#ff0000".to_string());
+        let group_color = edge_colors
+            .get(&r.id.to_string())
+            .cloned()
+            .unwrap_or_else(|| "#ff0000".to_string());
         let pts = &r.path_points;
         let info = format!(
             "{} ({} pts, {:.0}px)",
@@ -360,8 +355,7 @@ fn render_png(
     let svg_h = size.height();
     let width = svg_w.max(800.0) as u32;
     let height = svg_h.max(400.0) as u32;
-    let mut pixmap =
-        tiny_skia::Pixmap::new(width, height).ok_or("failed to create pixmap")?;
+    let mut pixmap = tiny_skia::Pixmap::new(width, height).ok_or("failed to create pixmap")?;
     let scale_x = width as f32 / svg_w;
     let scale_y = height as f32 / svg_h;
     let transform = tiny_skia::Transform::from_scale(scale_x, scale_y);
@@ -407,7 +401,10 @@ fn write_enriched_json(
         json.push_str(&format!("      \"id\": {:?},\n", r.id));
         json.push_str(&format!("      \"num_points\": {},\n", n));
         json.push_str(&format!("      \"path_length\": {:.3},\n", path_len));
-        json.push_str(&format!("      \"compose_active\": {},\n", r.compose_active));
+        json.push_str(&format!(
+            "      \"compose_active\": {},\n",
+            r.compose_active
+        ));
         json.push_str("      \"points\": [\n");
         for (i, p) in pts.iter().enumerate() {
             json.push_str(&format!("        {{\"x\":{:.2},\"y\":{:.2}}}", p.x, p.y));

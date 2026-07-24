@@ -1,7 +1,8 @@
-use rust_lib_mycelium::domain::relation_engine::config::{
-    RelationEngineConfig, RoutingConfig, RoutingMode, NudgingConfig, BundlingConfig, BodyConfig, EndpointConfig
+use rust_lib_mycelium::relation_engine::config::{
+    RelationEngineConfig,
+    RoutingMode,
 };
-use rust_lib_mycelium::domain::relation_engine::engine::RelationEngine;
+use rust_lib_mycelium::relation_engine::engine::RelationEngine;
 
 fn polyline_config() -> RelationEngineConfig {
     let mut config = RelationEngineConfig::default();
@@ -33,7 +34,10 @@ fn octilinear_config() -> RelationEngineConfig {
 
 fn bezier_config() -> RelationEngineConfig {
     let mut config = RelationEngineConfig::default();
-    config.routing.routing_mode = RoutingMode::Bezier { control_point_1: None, control_point_2: None };
+    config.routing.routing_mode = RoutingMode::Bezier {
+        control_point_1: None,
+        control_point_2: None,
+    };
     config.nudging.enabled = false;
     config
 }
@@ -57,9 +61,19 @@ fn run_all_polyline_diagnostics() {
 
         if s.filename == "30_missing_node_fallback" {
             for r in &results {
-                assert_eq!(r.path_points.len(), 2, "Missing node relation must have exactly 2 points");
-                assert_eq!(r.path_points[0], rust_lib_mycelium::domain::relation_engine::geometry::Point::new(0.0, 0.0));
-                assert_eq!(r.path_points[1], rust_lib_mycelium::domain::relation_engine::geometry::Point::new(0.0, 0.0));
+                assert_eq!(
+                    r.path_points.len(),
+                    2,
+                    "Missing node relation must have exactly 2 points"
+                );
+                assert_eq!(
+                    r.path_points[0],
+                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                );
+                assert_eq!(
+                    r.path_points[1],
+                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                );
             }
         } else {
             for r in &results {
@@ -68,7 +82,15 @@ fn run_all_polyline_diagnostics() {
             }
         }
 
-        super::common::render_svg("polyline", &format!("polyline_{}", s.filename), s.label, &s.nodes, &s.edges, &results, &config);
+        super::common::render_svg(
+            "polyline",
+            &format!("polyline_{}", s.filename),
+            s.label,
+            &s.nodes,
+            &s.edges,
+            &results,
+            &config,
+        );
     }
 }
 
@@ -84,9 +106,19 @@ fn run_all_orthogonal_diagnostics() {
 
         if s.filename == "30_missing_node_fallback" {
             for r in &results {
-                assert_eq!(r.path_points.len(), 2, "Missing node relation must have exactly 2 points");
-                assert_eq!(r.path_points[0], rust_lib_mycelium::domain::relation_engine::geometry::Point::new(0.0, 0.0));
-                assert_eq!(r.path_points[1], rust_lib_mycelium::domain::relation_engine::geometry::Point::new(0.0, 0.0));
+                assert_eq!(
+                    r.path_points.len(),
+                    2,
+                    "Missing node relation must have exactly 2 points"
+                );
+                assert_eq!(
+                    r.path_points[0],
+                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                );
+                assert_eq!(
+                    r.path_points[1],
+                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                );
             }
         } else {
             for r in &results {
@@ -95,7 +127,15 @@ fn run_all_orthogonal_diagnostics() {
             }
         }
 
-        super::common::render_svg("orthogonal", &format!("orthogonal_{}", s.filename), s.label, &s.nodes, &s.edges, &results, &config);
+        super::common::render_svg(
+            "orthogonal",
+            &format!("orthogonal_{}", s.filename),
+            s.label,
+            &s.nodes,
+            &s.edges,
+            &results,
+            &config,
+        );
     }
 }
 
@@ -111,9 +151,19 @@ fn run_all_bspline_diagnostics() {
 
         if s.filename == "30_missing_node_fallback" {
             for r in &results {
-                assert_eq!(r.path_points.len(), 2, "Missing node relation must have exactly 2 points");
-                assert_eq!(r.path_points[0], rust_lib_mycelium::domain::relation_engine::geometry::Point::new(0.0, 0.0));
-                assert_eq!(r.path_points[1], rust_lib_mycelium::domain::relation_engine::geometry::Point::new(0.0, 0.0));
+                assert_eq!(
+                    r.path_points.len(),
+                    2,
+                    "Missing node relation must have exactly 2 points"
+                );
+                assert_eq!(
+                    r.path_points[0],
+                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                );
+                assert_eq!(
+                    r.path_points[1],
+                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                );
             }
         } else {
             for r in &results {
@@ -122,7 +172,15 @@ fn run_all_bspline_diagnostics() {
             }
         }
 
-        super::common::render_svg("bspline", &format!("bspline_{}", s.filename), s.label, &s.nodes, &s.edges, &results, &config);
+        super::common::render_svg(
+            "bspline",
+            &format!("bspline_{}", s.filename),
+            s.label,
+            &s.nodes,
+            &s.edges,
+            &results,
+            &config,
+        );
     }
 }
 
@@ -138,9 +196,19 @@ fn run_all_octilinear_diagnostics() {
 
         if s.filename == "30_missing_node_fallback" {
             for r in &results {
-                assert_eq!(r.path_points.len(), 2, "Missing node relation must have exactly 2 points");
-                assert_eq!(r.path_points[0], rust_lib_mycelium::domain::relation_engine::geometry::Point::new(0.0, 0.0));
-                assert_eq!(r.path_points[1], rust_lib_mycelium::domain::relation_engine::geometry::Point::new(0.0, 0.0));
+                assert_eq!(
+                    r.path_points.len(),
+                    2,
+                    "Missing node relation must have exactly 2 points"
+                );
+                assert_eq!(
+                    r.path_points[0],
+                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                );
+                assert_eq!(
+                    r.path_points[1],
+                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                );
             }
         } else {
             for r in &results {
@@ -149,7 +217,15 @@ fn run_all_octilinear_diagnostics() {
             }
         }
 
-        super::common::render_svg("octilinear", &format!("octilinear_{}", s.filename), s.label, &s.nodes, &s.edges, &results, &config);
+        super::common::render_svg(
+            "octilinear",
+            &format!("octilinear_{}", s.filename),
+            s.label,
+            &s.nodes,
+            &s.edges,
+            &results,
+            &config,
+        );
     }
 }
 
@@ -159,24 +235,51 @@ fn run_all_bezier_diagnostics() {
     let scenarios = super::scenarios::all_scenarios();
     for mut s in scenarios {
         for edge in &mut s.edges {
-            edge.routing_mode = Some(RoutingMode::Bezier { control_point_1: None, control_point_2: None });
+            edge.routing_mode = Some(RoutingMode::Bezier {
+                control_point_1: None,
+                control_point_2: None,
+            });
         }
         let results = RelationEngine::compute_relations(&s.nodes, &s.edges, &config, None);
 
         if s.filename == "30_missing_node_fallback" {
             for r in &results {
-                assert_eq!(r.path_points.len(), 2, "Missing node relation must have exactly 2 points");
-                assert_eq!(r.path_points[0], rust_lib_mycelium::domain::relation_engine::geometry::Point::new(0.0, 0.0));
-                assert_eq!(r.path_points[1], rust_lib_mycelium::domain::relation_engine::geometry::Point::new(0.0, 0.0));
+                assert_eq!(
+                    r.path_points.len(),
+                    2,
+                    "Missing node relation must have exactly 2 points"
+                );
+                assert_eq!(
+                    r.path_points[0],
+                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                );
+                assert_eq!(
+                    r.path_points[1],
+                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                );
             }
         } else {
             for r in &results {
-                super::common::verify_path_properties(r, RoutingMode::Bezier { control_point_1: None, control_point_2: None });
+                super::common::verify_path_properties(
+                    r,
+                    RoutingMode::Bezier {
+                        control_point_1: None,
+                        control_point_2: None,
+                    },
+                );
                 super::common::verify_finalize_fields(r);
             }
         }
 
-        super::common::render_svg("bezier", &format!("bezier_{}", s.filename), s.label, &s.nodes, &s.edges, &results, &config);
+        super::common::render_svg(
+            "bezier",
+            &format!("bezier_{}", s.filename),
+            s.label,
+            &s.nodes,
+            &s.edges,
+            &results,
+            &config,
+        );
     }
 }
 
@@ -192,7 +295,15 @@ fn run_all_nudging_diagnostics() {
                 edge.routing_mode = Some(RoutingMode::Orthogonal);
             }
             let results = RelationEngine::compute_relations(&s.nodes, &s.edges, &ortho_nudge, None);
-            super::common::render_svg("orthogonal", &format!("nudge_orthogonal_{}", s.filename), s.label, &s.nodes, &s.edges, &results, &ortho_nudge);
+            super::common::render_svg(
+                "orthogonal",
+                &format!("nudge_orthogonal_{}", s.filename),
+                s.label,
+                &s.nodes,
+                &s.edges,
+                &results,
+                &ortho_nudge,
+            );
             super::common::verify_nudging(&results);
         }
     }
@@ -205,8 +316,17 @@ fn run_all_nudging_diagnostics() {
             for edge in &mut s.edges {
                 edge.routing_mode = Some(RoutingMode::BSpline);
             }
-            let results = RelationEngine::compute_relations(&s.nodes, &s.edges, &bspline_nudge, None);
-            super::common::render_svg("bspline", &format!("nudge_bspline_{}", s.filename), s.label, &s.nodes, &s.edges, &results, &bspline_nudge);
+            let results =
+                RelationEngine::compute_relations(&s.nodes, &s.edges, &bspline_nudge, None);
+            super::common::render_svg(
+                "bspline",
+                &format!("nudge_bspline_{}", s.filename),
+                s.label,
+                &s.nodes,
+                &s.edges,
+                &results,
+                &bspline_nudge,
+            );
             super::common::verify_nudging(&results);
         }
     }
@@ -214,7 +334,10 @@ fn run_all_nudging_diagnostics() {
 
 fn sinewave_config() -> RelationEngineConfig {
     let mut config = RelationEngineConfig::default();
-    config.routing.routing_mode = RoutingMode::SineWave { control_point_1: None, control_point_2: None };
+    config.routing.routing_mode = RoutingMode::SineWave {
+        control_point_1: None,
+        control_point_2: None,
+    };
     config.nudging.enabled = false;
     config
 }
@@ -225,23 +348,50 @@ fn run_all_sinewave_diagnostics() {
     let scenarios = super::scenarios::all_scenarios();
     for mut s in scenarios {
         for edge in &mut s.edges {
-            edge.routing_mode = Some(RoutingMode::SineWave { control_point_1: None, control_point_2: None });
+            edge.routing_mode = Some(RoutingMode::SineWave {
+                control_point_1: None,
+                control_point_2: None,
+            });
         }
         let results = RelationEngine::compute_relations(&s.nodes, &s.edges, &config, None);
 
         if s.filename == "30_missing_node_fallback" {
             for r in &results {
-                assert_eq!(r.path_points.len(), 2, "Missing node relation must have exactly 2 points");
-                assert_eq!(r.path_points[0], rust_lib_mycelium::domain::relation_engine::geometry::Point::new(0.0, 0.0));
-                assert_eq!(r.path_points[1], rust_lib_mycelium::domain::relation_engine::geometry::Point::new(0.0, 0.0));
+                assert_eq!(
+                    r.path_points.len(),
+                    2,
+                    "Missing node relation must have exactly 2 points"
+                );
+                assert_eq!(
+                    r.path_points[0],
+                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                );
+                assert_eq!(
+                    r.path_points[1],
+                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                );
             }
         } else {
             for r in &results {
-                super::common::verify_path_properties(r, RoutingMode::SineWave { control_point_1: None, control_point_2: None });
+                super::common::verify_path_properties(
+                    r,
+                    RoutingMode::SineWave {
+                        control_point_1: None,
+                        control_point_2: None,
+                    },
+                );
                 super::common::verify_finalize_fields(r);
             }
         }
 
-        super::common::render_svg("sinewave", &format!("sinewave_{}", s.filename), s.label, &s.nodes, &s.edges, &results, &config);
+        super::common::render_svg(
+            "sinewave",
+            &format!("sinewave_{}", s.filename),
+            s.label,
+            &s.nodes,
+            &s.edges,
+            &results,
+            &config,
+        );
     }
 }

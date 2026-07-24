@@ -6,7 +6,6 @@ use rust_lib_mycelium::domain::nodes::{INode, Nodes};
 use rust_lib_mycelium::domain::patches::{EntityPatch, NodePatch, TagOperation};
 use rust_lib_mycelium::domain::tags::{Tag, TagEdge, TagFields};
 use rust_lib_mycelium::domain::traits::TableKind;
-use surrealdb::types::RecordId;
 
 #[tokio::test]
 async fn test_tags_crud_and_patching() {

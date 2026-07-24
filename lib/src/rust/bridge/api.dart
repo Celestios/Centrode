@@ -5,31 +5,25 @@
 
 import '../domain/base_models.dart';
 import '../domain/contents.dart';
-import '../domain/entity.dart';
-import '../domain/enums.dart';
 import '../domain/id.dart';
 import '../domain/nodes.dart';
 import '../domain/patches.dart';
-import '../domain/relation_engine/computed.dart';
-import '../domain/relation_engine/config.dart';
-import '../domain/relation_engine/geometry.dart';
 import '../domain/relations.dart';
 import '../domain/snapshot.dart';
 import '../domain/styles.dart';
 import '../domain/tags.dart';
-import '../domain/templates.dart';
 import '../domain/theme.dart';
-import '../domain/traits.dart';
+import '../domain/types.dart';
 import '../frb_generated.dart';
-import '../lib.dart';
 import '../persistence/history.dart';
 import '../persistence/repo.dart';
+import '../relation_engine/computed.dart';
+import '../relation_engine/config.dart';
+import '../relation_engine/geometry.dart';
 import '../telemetry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:uuid/uuid.dart';
 import 'stream.dart';
-
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `drop`
 
 Future<void> setupLogger() => RustLib.instance.api.crateBridgeApiSetupLogger();
 
@@ -40,13 +34,16 @@ Stream<LogState> createLogStream() =>
 abstract class AppHandle implements RustOpaqueInterface {
   Future<void> applyEntityMutation({required SymmetricEntityPatch mutation});
 
-  ArcMutexRelationEngine get relationEngine;
+  Future<GraphDelta?> applyHistoryRecordPatch({
+    required HistoryRecord record,
+    required bool isForward,
+  });
 
-  Repository get repo;
+  ArcGraphService get service;
 
-  set relationEngine(ArcMutexRelationEngine relationEngine);
+  set service(ArcGraphService service);
 
-  set repo(Repository repo);
+  Future<void> broadcastBoundaries();
 
   Future<void> close();
 
@@ -93,7 +90,7 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<List<Template>> getAllTemplates();
 
-  Future<List<Theme>> getAllThemes();
+  Future<List<MapTheme>> getAllThemes();
 
   Future<GraphSnapshot> getGraphSnapshot();
 
@@ -101,7 +98,7 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<Tag?> getTag({required String key});
 
-  Future<Theme?> getTheme({required String key});
+  Future<MapTheme?> getTheme({required String key});
 
   Future<void> instantiateTemplate({
     required String key,
@@ -124,6 +121,8 @@ abstract class AppHandle implements RustOpaqueInterface {
   );
 
   Future<List<Nodes>> querySearch({required String query});
+
+  Future<void> rebuildNodeCache();
 
   Future<HistoryRecord?> redo();
 
@@ -164,10 +163,13 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<void> updateTag({required Tag tag});
 
-  Future<void> updateTheme({required Theme theme});
+  Future<void> updateTheme({required MapTheme theme});
 
   Future<void> updateViewportState({required ViewportState state});
 
   static Future<AppHandle> withRepository({required Repository repo}) =>
       RustLib.instance.api.crateBridgeApiAppHandleWithRepository(repo: repo);
 }
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < GraphService >>>
+abstract class ArcGraphService implements RustOpaqueInterface {}

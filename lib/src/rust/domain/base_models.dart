@@ -72,37 +72,6 @@ class Coordinates {
 
 enum DisplayMode { importance, leveling }
 
-class MapData {
-  final String mapName;
-  final ViewportState viewportState;
-  final String? activeThemeId;
-  final DisplayMode displayMode;
-
-  const MapData({
-    required this.mapName,
-    required this.viewportState,
-    this.activeThemeId,
-    required this.displayMode,
-  });
-
-  @override
-  int get hashCode =>
-      mapName.hashCode ^
-      viewportState.hashCode ^
-      activeThemeId.hashCode ^
-      displayMode.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is MapData &&
-          runtimeType == other.runtimeType &&
-          mapName == other.mapName &&
-          viewportState == other.viewportState &&
-          activeThemeId == other.activeThemeId &&
-          displayMode == other.displayMode;
-}
-
 class Size {
   final int width;
   final int height;

@@ -1,36 +1,34 @@
+use std::collections::HashMap;
 use crate::domain::base_models::Record;
 use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::{IsNode, Nodes};
 use crate::domain::relations::IRelation;
 use crate::domain::templates::Template;
-use crate::domain::theme::{Theme, ThemeFields};
-use crate::domain::traits::{SurrealTable, TableKind};
+use crate::domain::traits::TableKind;
 use crate::persistence::repo::Repository;
 
 use anyhow::Result;
-use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
+use surrealdb::types::{RecordIdKey, SurrealValue, Value};
 
-fn key_to_uuid(key: &RecordIdKey) -> uuid::Uuid {
+fn key_to_uuid(key: &RecordIdKey) -> Result<uuid::Uuid> {
     match key {
-        RecordIdKey::Uuid(u) => **u,
-        _ => uuid::Uuid::nil(),
+        RecordIdKey::Uuid(u) => Ok(**u),
+        _ => Err(anyhow::anyhow!("Non-UUID template key")),
     }
 }
 
 impl Repository {
     pub async fn get_template(&self, key: String) -> Result<Option<Template>> {
-        let record_id = if let Ok(u) = uuid::Uuid::parse_str(&key) {
-            TypedRecordId::new(TableKind::Template, u).to_record_id()
-        } else {
-            RecordId::new(Template::LABEL, key)
-        };
+        let u = uuid::Uuid::parse_str(&key)
+            .map_err(|e| anyhow::anyhow!("Invalid template key '{}': {}", key, e))?;
+        let record_id = TypedRecordId::new(TableKind::Template, u).to_record_id();
         let val: Option<Value> = self.db.select(record_id).await?;
         match val {
             Some(v) => {
                 let record = Record::from_record_value(v)
                     .ok_or_else(|| anyhow::anyhow!("Failed to parse Template record"))?;
                 let mut template = Template::from_value(record.fields)?;
-                template.key = TypedRecordId::new(TableKind::Template, key_to_uuid(&record.id.key));
+                template.key = TypedRecordId::new(TableKind::Template, key_to_uuid(&record.id.key)?);
                 Ok(Some(template))
             }
             None => Ok(None),
@@ -62,7 +60,7 @@ impl Repository {
         for v in vals {
             if let Some(record) = Record::from_record_value(v) {
                 if let Ok(mut template) = Template::from_value(record.fields) {
-                    template.key = TypedRecordId::new(TableKind::Template, key_to_uuid(&record.id.key));
+                    template.key = TypedRecordId::new(TableKind::Template, key_to_uuid(&record.id.key)?);
                     result.push(template);
                 }
             }
@@ -71,11 +69,9 @@ impl Repository {
     }
 
     pub async fn delete_template(&self, key: String) -> Result<()> {
-        let record_id = if let Ok(u) = uuid::Uuid::parse_str(&key) {
-            TypedRecordId::new(TableKind::Template, u).to_record_id()
-        } else {
-            RecordId::new(Template::LABEL, key)
-        };
+        let u = uuid::Uuid::parse_str(&key)
+            .map_err(|e| anyhow::anyhow!("Invalid template key '{}': {}", key, e))?;
+        let record_id = TypedRecordId::new(TableKind::Template, u).to_record_id();
         self.db.delete::<Option<Value>>(record_id).await?;
         Ok(())
     }
@@ -85,19 +81,16 @@ impl Repository {
         key: String,
         target_x: f64,
         target_y: f64,
-    ) -> Result<()> {
-        let record_id = if let Ok(u) = uuid::Uuid::parse_str(&key) {
-            TypedRecordId::new(TableKind::Template, u).to_record_id()
-        } else {
-            RecordId::new(Template::LABEL, key.clone())
-        };
+    ) -> Result<(Vec<Nodes>, Vec<IRelation>)> {
+        let u = uuid::Uuid::parse_str(&key)
+            .map_err(|e| anyhow::anyhow!("Invalid template key '{}': {}", key, e))?;
+        let record_id = TypedRecordId::new(TableKind::Template, u).to_record_id();
         let template_val: Option<Value> = self.db.select(record_id).await?;
         let template_val = template_val.ok_or_else(|| anyhow::anyhow!("Template not found"))?;
         let record = Record::from_record_value(template_val)
             .ok_or_else(|| anyhow::anyhow!("Failed to parse Template record"))?;
         let template = Template::from_value(record.fields)?;
 
-        use std::collections::HashMap;
         let mut key_map = HashMap::new();
         for node in &template.nodes {
             let old_key = node.id().to_string();
@@ -146,58 +139,16 @@ impl Repository {
             new_relations.push(cloned_rel);
         }
 
+        let result_nodes = new_nodes.clone();
+        let result_relations = new_relations.clone();
+
         for node in new_nodes {
             self.create_node(node).await?;
         }
         for rel in new_relations {
-            self.create_relation(rel.clone()).await?;
+            self.create_relation(rel).await?;
         }
 
-        Ok(())
-    }
-
-    pub async fn get_theme(&self, key: String) -> Result<Option<Theme>> {
-        let record_id = RecordId::new(Theme::LABEL, key.clone());
-        let val: Option<Value> = self.db.select(record_id).await?;
-        match val {
-            Some(v) => {
-                let fields = ThemeFields::from_value(v)?;
-                let u = uuid::Uuid::parse_str(&key).unwrap_or_else(|_| uuid::Uuid::nil());
-                let typed_id = TypedRecordId::new(TableKind::MapTheme, u);
-                Ok(Some(Theme { key: typed_id, fields }))
-            }
-            None => Ok(None),
-        }
-    }
-
-    pub async fn get_theme_by_key(&self, key: &str) -> Result<Option<Theme>> {
-        let u = uuid::Uuid::parse_str(key).unwrap_or_else(|_| uuid::Uuid::nil());
-        let typed_id = TypedRecordId::new(TableKind::MapTheme, u);
-        let val: Option<Value> = self.db.select(typed_id.to_record_id()).await?;
-        let fields = val.map(|v| ThemeFields::from_value(v)).transpose()?;
-        Ok(fields.map(|f| Theme { key: typed_id, fields: f }))
-    }
-
-    pub async fn save_theme(&self, theme: Theme) -> Result<Theme> {
-        let record_id = theme.key.to_record_id();
-        let _: Option<Value> = self.db
-            .create(record_id)
-            .content(theme.fields.clone().into_value())
-            .await?;
-        Ok(theme)
-    }
-
-    pub async fn list_themes(&self) -> Result<Vec<Theme>> {
-        let vals: Vec<Value> = self.db.select(Theme::LABEL).await?;
-        let mut result = Vec::new();
-        for v in vals {
-            if let Some(record) = Record::from_record_value(v) {
-                if let Ok(fields) = ThemeFields::from_value(record.fields) {
-                    let key = TypedRecordId::new(TableKind::MapTheme, key_to_uuid(&record.id.key));
-                    result.push(Theme { key, fields });
-                }
-            }
-        }
-        Ok(result)
+        Ok((result_nodes, result_relations))
     }
 }

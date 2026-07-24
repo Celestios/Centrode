@@ -1,4 +1,5 @@
 use anyhow::Result;
+use crate::domain::base_models::MapData;
 use surrealdb::engine::local::Db;
 use surrealdb::Surreal;
 
@@ -20,8 +21,6 @@ impl Schema {
 pub struct Seeder;
 impl Seeder {
     pub async fn seed_default_data(db: &Surreal<Db>, name: String) -> Result<()> {
-        use crate::domain::base_models::MapData;
-
         tracing::debug!("Checking for existing MapData...");
         let existing: Option<MapData> = db.select(MapData::record_id().to_record_id()).await?;
 

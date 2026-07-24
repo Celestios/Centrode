@@ -3,10 +3,9 @@ use rust_lib_mycelium::domain::base_models::{
     BoundingBox, Coordinates, MapData, Size,
 };
 use rust_lib_mycelium::domain::contents::Content;
-use rust_lib_mycelium::domain::enums::TaskState;
 use rust_lib_mycelium::domain::id::TypedRecordId;
 use rust_lib_mycelium::domain::nodes::{
-    INode, InterNode, Nodes, TaskNode,
+    INode, InterNode, Nodes, TaskNode, TaskState,
 };
 use rust_lib_mycelium::domain::relations::{IRelation, IRelationFields};
 use rust_lib_mycelium::domain::snapshot::GraphSnapshot;

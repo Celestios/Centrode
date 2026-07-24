@@ -12,35 +12,25 @@ pub fn generate_field_schema_lines(
     field_name: &str,
     type_override: Option<&str>,
     default_override: Option<&str>,
-    computed_override: Option<&str>,
     field_type: String,
     sub_field_paths: Vec<(String, String)>,
 ) -> Vec<String> {
     let mut lines = Vec::new();
 
-    if let Some(computed) = computed_override {
-        lines.push(format!(
-            "DEFINE FIELD OVERWRITE {} ON TABLE {} COMPUTED {};",
-            field_name, table, computed
-        ));
-    } else {
-        let ty = type_override.map(|s| s.to_string()).unwrap_or(field_type);
-        let default_str = default_override
-            .map(|d| format!(" DEFAULT {}", d))
-            .unwrap_or_default();
-        lines.push(format!(
-            "DEFINE FIELD OVERWRITE {} ON TABLE {} TYPE {}{};",
-            field_name, table, ty, default_str
-        ));
-    }
+    let ty = type_override.map(|s| s.to_string()).unwrap_or(field_type);
+    let default_str = default_override
+        .map(|d| format!(" DEFAULT {}", d))
+        .unwrap_or_default();
+    lines.push(format!(
+        "DEFINE FIELD OVERWRITE {} ON TABLE {} TYPE {}{};",
+        field_name, table, ty, default_str
+    ));
 
-    if computed_override.is_none() {
-        for (sub_path, sub_type) in sub_field_paths {
-            lines.push(format!(
-                "DEFINE FIELD OVERWRITE {}.{} ON TABLE {} TYPE {};",
-                field_name, sub_path, table, sub_type
-            ));
-        }
+    for (sub_path, sub_type) in sub_field_paths {
+        lines.push(format!(
+            "DEFINE FIELD OVERWRITE {}.{} ON TABLE {} TYPE {};",
+            field_name, sub_path, table, sub_type
+        ));
     }
 
     lines
@@ -132,38 +122,4 @@ impl SurqlSchemaField for f64 {
 impl SurqlSchemaField for f32 {
     fn field_type() -> String { "float".to_string() }
     fn sub_field_paths() -> Vec<(String, String)> { vec![] }
-}
-
-#[macro_export]
-macro_rules! define_surql_schema_struct {
-    (
-        $(#[$meta:meta])*
-        pub struct $struct_name:ident {
-            $(
-                $(#[$field_meta:meta])*
-                pub $field_name:ident : $field_type:ty
-            ),* $(,)?
-        }
-    ) => {
-        $(#[$meta])*
-        pub struct $struct_name {
-            $(
-                $(#[$field_meta])*
-                pub $field_name : $field_type,
-            )*
-        }
-
-        impl $crate::domain::schema::SurqlSchemaField for $struct_name {
-            fn field_type() -> String {
-                "object".to_string()
-            }
-            fn sub_field_paths() -> Vec<(String, String)> {
-                vec![
-                    $(
-                        (stringify!($field_name).to_string(), <$field_type as $crate::domain::schema::SurqlSchemaField>::field_type()),
-                    )*
-                ]
-            }
-        }
-    };
 }

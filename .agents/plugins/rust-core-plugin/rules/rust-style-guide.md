@@ -20,7 +20,7 @@ You MUST adhere to the following conventions when working in the `/rust` directo
 - **Explicit Type Casting**: Everything must be strictly typed.
 - **Idempotence**: Database setup and script configurations must be fully idempotent (`DEFINE TABLE OVERWRITE`, etc.).
 - **Import Conventions**: In-place imports (within function or block scopes) are preferred for implementing standard traits or using crate-specific errors that might pollute namespace globally.
-- **RecordStrings**: Since `flutter_rust_bridge` cannot bridge Rust's internal `RecordId` directly, use `RecordStrings` (table and key strings) to represent IDs across the FFI.
+- **TypedRecordId**: Use `TypedRecordId` (17-byte struct: `TableKind` + `Uuid`) to represent IDs across the FFI. It bridges directly via FRB.
 - **Freezed Integration**: Use `#[frb(dart_metadata=("freezed"))]` for structs needing copy-capabilities (like styles) in the Dart UI.
 - **FFI Cleanliness & Repository Separation**: The FFI layer (`bridge/api.rs`) should remain a clean interface layer. It must not contain database queries, raw history recording transactions, or complex patch checks. Instead, implement helper operations (e.g. history logging, patch application) in the repository (`persistence/repo.rs`) and orchestrate combinations of these methods directly in the FFI layer's handlers. Avoid creating bulky combined methods inside the repository.
 
@@ -28,7 +28,7 @@ You MUST adhere to the following conventions when working in the `/rust` directo
 ## 3. Database & SurrealDB Guidelines
 - **Schemful Tables**: Core tables must be declared `SCHEMAFULL` with precise constraints.
 - **Cascade Deletions & Edge Routing**: Relations are native graph edges. Delete incoming/outgoing edges in a transaction when deleting a node.
-- **Hydration & Pointer Resolution**: Use `TagEdge` (`Hydrated(Tag)` or `Pointer(RecordStrings)`) to balance lightweight references with complete payloads.
+- **Hydration & Pointer Resolution**: Use `TagEdge` (`Hydrated(Tag)` or `Pointer(TypedRecordId)`) to balance lightweight references with complete payloads.
 - **Query Preferences**: Prefer type-safe CRUD operations (`db.create()`, etc.) over raw query strings (`db.query()`), reserving raw queries strictly for advanced filters/aggregates.
 
 ## 4. Error Handling & API Preferences

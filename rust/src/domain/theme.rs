@@ -1,28 +1,6 @@
-use crate::domain::id::TypedRecordId;
-use crate::domain::traits::{AuxiliaryEntity, SurrealTable, TableKind};
+pub use crate::domain::types::MapTheme;
 use mycelium_macros::SurrealDbEnum;
 use surrealdb::types::SurrealValue;
-use uuid::Uuid;
-
-#[derive(Debug, Clone, SurrealValue)]
-pub struct Theme {
-    pub key: TypedRecordId,
-    pub fields: ThemeFields,
-}
-
-impl Theme {
-    pub const LABEL: &'static str = "MapTheme";
-}
-
-impl SurrealTable for Theme {
-    const KIND: TableKind = TableKind::MapTheme;
-
-    fn get_key(&self) -> &Uuid {
-        &self.key.key
-    }
-}
-
-impl AuxiliaryEntity for Theme {}
 
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, SurrealDbEnum)]

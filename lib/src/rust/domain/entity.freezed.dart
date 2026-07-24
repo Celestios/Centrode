@@ -14,7 +14,12 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Nodes {
 
- Object get field0;
+ InvalidType get field0;
+/// Create a copy of Nodes
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NodesCopyWith<Nodes> get copyWith => _$NodesCopyWithImpl<Nodes>(this as Nodes, _$identity);
 
 
 
@@ -36,8 +41,34 @@ String toString() {
 }
 
 /// @nodoc
-class $NodesCopyWith<$Res>  {
-$NodesCopyWith(Nodes _, $Res Function(Nodes) __);
+abstract mixin class $NodesCopyWith<$Res>  {
+  factory $NodesCopyWith(Nodes value, $Res Function(Nodes) _then) = _$NodesCopyWithImpl;
+@useResult
+$Res call({
+ InvalidType field0
+});
+
+
+
+
+}
+/// @nodoc
+class _$NodesCopyWithImpl<$Res>
+    implements $NodesCopyWith<$Res> {
+  _$NodesCopyWithImpl(this._self, this._then);
+
+  final Nodes _self;
+  final $Res Function(Nodes) _then;
+
+/// Create a copy of Nodes
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? field0 = freezed,}) {
+  return _then(_self.copyWith(
+field0: freezed == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as InvalidType,
+  ));
+}
+
 }
 
 
@@ -218,7 +249,7 @@ class Nodes_INode extends Nodes {
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
+@override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $Nodes_INodeCopyWith<Nodes_INode> get copyWith => _$Nodes_INodeCopyWithImpl<Nodes_INode>(this, _$identity);
 
@@ -226,12 +257,12 @@ $Nodes_INodeCopyWith<Nodes_INode> get copyWith => _$Nodes_INodeCopyWithImpl<Node
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_INode&&(identical(other.field0, field0) || other.field0 == field0));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_INode&&const DeepCollectionEquality().equals(other.field0, field0));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,field0);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(field0));
 
 @override
 String toString() {
@@ -244,7 +275,7 @@ String toString() {
 /// @nodoc
 abstract mixin class $Nodes_INodeCopyWith<$Res> implements $NodesCopyWith<$Res> {
   factory $Nodes_INodeCopyWith(Nodes_INode value, $Res Function(Nodes_INode) _then) = _$Nodes_INodeCopyWithImpl;
-@useResult
+@override @useResult
 $Res call({
  INode field0
 });
@@ -263,9 +294,9 @@ class _$Nodes_INodeCopyWithImpl<$Res>
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? field0 = freezed,}) {
   return _then(Nodes_INode(
-null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+freezed == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
 as INode,
   ));
 }
@@ -284,7 +315,7 @@ class Nodes_TaskNode extends Nodes {
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
+@override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $Nodes_TaskNodeCopyWith<Nodes_TaskNode> get copyWith => _$Nodes_TaskNodeCopyWithImpl<Nodes_TaskNode>(this, _$identity);
 
@@ -292,12 +323,12 @@ $Nodes_TaskNodeCopyWith<Nodes_TaskNode> get copyWith => _$Nodes_TaskNodeCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_TaskNode&&(identical(other.field0, field0) || other.field0 == field0));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_TaskNode&&const DeepCollectionEquality().equals(other.field0, field0));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,field0);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(field0));
 
 @override
 String toString() {
@@ -310,7 +341,7 @@ String toString() {
 /// @nodoc
 abstract mixin class $Nodes_TaskNodeCopyWith<$Res> implements $NodesCopyWith<$Res> {
   factory $Nodes_TaskNodeCopyWith(Nodes_TaskNode value, $Res Function(Nodes_TaskNode) _then) = _$Nodes_TaskNodeCopyWithImpl;
-@useResult
+@override @useResult
 $Res call({
  TaskNode field0
 });
@@ -329,9 +360,9 @@ class _$Nodes_TaskNodeCopyWithImpl<$Res>
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? field0 = freezed,}) {
   return _then(Nodes_TaskNode(
-null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+freezed == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
 as TaskNode,
   ));
 }
@@ -350,7 +381,7 @@ class Nodes_InterNode extends Nodes {
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
+@override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $Nodes_InterNodeCopyWith<Nodes_InterNode> get copyWith => _$Nodes_InterNodeCopyWithImpl<Nodes_InterNode>(this, _$identity);
 
@@ -358,12 +389,12 @@ $Nodes_InterNodeCopyWith<Nodes_InterNode> get copyWith => _$Nodes_InterNodeCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_InterNode&&(identical(other.field0, field0) || other.field0 == field0));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_InterNode&&const DeepCollectionEquality().equals(other.field0, field0));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,field0);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(field0));
 
 @override
 String toString() {
@@ -376,7 +407,7 @@ String toString() {
 /// @nodoc
 abstract mixin class $Nodes_InterNodeCopyWith<$Res> implements $NodesCopyWith<$Res> {
   factory $Nodes_InterNodeCopyWith(Nodes_InterNode value, $Res Function(Nodes_InterNode) _then) = _$Nodes_InterNodeCopyWithImpl;
-@useResult
+@override @useResult
 $Res call({
  InterNode field0
 });
@@ -395,9 +426,9 @@ class _$Nodes_InterNodeCopyWithImpl<$Res>
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? field0 = freezed,}) {
   return _then(Nodes_InterNode(
-null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+freezed == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
 as InterNode,
   ));
 }
@@ -416,7 +447,7 @@ class Nodes_CommentNode extends Nodes {
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
+@override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $Nodes_CommentNodeCopyWith<Nodes_CommentNode> get copyWith => _$Nodes_CommentNodeCopyWithImpl<Nodes_CommentNode>(this, _$identity);
 
@@ -424,12 +455,12 @@ $Nodes_CommentNodeCopyWith<Nodes_CommentNode> get copyWith => _$Nodes_CommentNod
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_CommentNode&&(identical(other.field0, field0) || other.field0 == field0));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_CommentNode&&const DeepCollectionEquality().equals(other.field0, field0));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,field0);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(field0));
 
 @override
 String toString() {
@@ -442,7 +473,7 @@ String toString() {
 /// @nodoc
 abstract mixin class $Nodes_CommentNodeCopyWith<$Res> implements $NodesCopyWith<$Res> {
   factory $Nodes_CommentNodeCopyWith(Nodes_CommentNode value, $Res Function(Nodes_CommentNode) _then) = _$Nodes_CommentNodeCopyWithImpl;
-@useResult
+@override @useResult
 $Res call({
  CommentNode field0
 });
@@ -461,9 +492,9 @@ class _$Nodes_CommentNodeCopyWithImpl<$Res>
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? field0 = freezed,}) {
   return _then(Nodes_CommentNode(
-null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+freezed == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
 as CommentNode,
   ));
 }
@@ -482,7 +513,7 @@ class Nodes_DrawingNode extends Nodes {
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
+@override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $Nodes_DrawingNodeCopyWith<Nodes_DrawingNode> get copyWith => _$Nodes_DrawingNodeCopyWithImpl<Nodes_DrawingNode>(this, _$identity);
 
@@ -490,12 +521,12 @@ $Nodes_DrawingNodeCopyWith<Nodes_DrawingNode> get copyWith => _$Nodes_DrawingNod
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_DrawingNode&&(identical(other.field0, field0) || other.field0 == field0));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_DrawingNode&&const DeepCollectionEquality().equals(other.field0, field0));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,field0);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(field0));
 
 @override
 String toString() {
@@ -508,7 +539,7 @@ String toString() {
 /// @nodoc
 abstract mixin class $Nodes_DrawingNodeCopyWith<$Res> implements $NodesCopyWith<$Res> {
   factory $Nodes_DrawingNodeCopyWith(Nodes_DrawingNode value, $Res Function(Nodes_DrawingNode) _then) = _$Nodes_DrawingNodeCopyWithImpl;
-@useResult
+@override @useResult
 $Res call({
  DrawingNode field0
 });
@@ -527,9 +558,9 @@ class _$Nodes_DrawingNodeCopyWithImpl<$Res>
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? field0 = freezed,}) {
   return _then(Nodes_DrawingNode(
-null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+freezed == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
 as DrawingNode,
   ));
 }
@@ -548,7 +579,7 @@ class Nodes_ShapeNode extends Nodes {
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
+@override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $Nodes_ShapeNodeCopyWith<Nodes_ShapeNode> get copyWith => _$Nodes_ShapeNodeCopyWithImpl<Nodes_ShapeNode>(this, _$identity);
 
@@ -556,12 +587,12 @@ $Nodes_ShapeNodeCopyWith<Nodes_ShapeNode> get copyWith => _$Nodes_ShapeNodeCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_ShapeNode&&(identical(other.field0, field0) || other.field0 == field0));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_ShapeNode&&const DeepCollectionEquality().equals(other.field0, field0));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,field0);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(field0));
 
 @override
 String toString() {
@@ -574,7 +605,7 @@ String toString() {
 /// @nodoc
 abstract mixin class $Nodes_ShapeNodeCopyWith<$Res> implements $NodesCopyWith<$Res> {
   factory $Nodes_ShapeNodeCopyWith(Nodes_ShapeNode value, $Res Function(Nodes_ShapeNode) _then) = _$Nodes_ShapeNodeCopyWithImpl;
-@useResult
+@override @useResult
 $Res call({
  ShapeNode field0
 });
@@ -593,9 +624,9 @@ class _$Nodes_ShapeNodeCopyWithImpl<$Res>
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? field0 = freezed,}) {
   return _then(Nodes_ShapeNode(
-null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+freezed == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
 as ShapeNode,
   ));
 }
@@ -614,7 +645,7 @@ class Nodes_FrameNode extends Nodes {
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
+@override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $Nodes_FrameNodeCopyWith<Nodes_FrameNode> get copyWith => _$Nodes_FrameNodeCopyWithImpl<Nodes_FrameNode>(this, _$identity);
 
@@ -622,12 +653,12 @@ $Nodes_FrameNodeCopyWith<Nodes_FrameNode> get copyWith => _$Nodes_FrameNodeCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_FrameNode&&(identical(other.field0, field0) || other.field0 == field0));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_FrameNode&&const DeepCollectionEquality().equals(other.field0, field0));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,field0);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(field0));
 
 @override
 String toString() {
@@ -640,7 +671,7 @@ String toString() {
 /// @nodoc
 abstract mixin class $Nodes_FrameNodeCopyWith<$Res> implements $NodesCopyWith<$Res> {
   factory $Nodes_FrameNodeCopyWith(Nodes_FrameNode value, $Res Function(Nodes_FrameNode) _then) = _$Nodes_FrameNodeCopyWithImpl;
-@useResult
+@override @useResult
 $Res call({
  FrameNode field0
 });
@@ -659,9 +690,9 @@ class _$Nodes_FrameNodeCopyWithImpl<$Res>
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? field0 = freezed,}) {
   return _then(Nodes_FrameNode(
-null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+freezed == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
 as FrameNode,
   ));
 }
@@ -680,7 +711,7 @@ class Nodes_MediaNode extends Nodes {
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
+@override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $Nodes_MediaNodeCopyWith<Nodes_MediaNode> get copyWith => _$Nodes_MediaNodeCopyWithImpl<Nodes_MediaNode>(this, _$identity);
 
@@ -688,12 +719,12 @@ $Nodes_MediaNodeCopyWith<Nodes_MediaNode> get copyWith => _$Nodes_MediaNodeCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_MediaNode&&(identical(other.field0, field0) || other.field0 == field0));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_MediaNode&&const DeepCollectionEquality().equals(other.field0, field0));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,field0);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(field0));
 
 @override
 String toString() {
@@ -706,7 +737,7 @@ String toString() {
 /// @nodoc
 abstract mixin class $Nodes_MediaNodeCopyWith<$Res> implements $NodesCopyWith<$Res> {
   factory $Nodes_MediaNodeCopyWith(Nodes_MediaNode value, $Res Function(Nodes_MediaNode) _then) = _$Nodes_MediaNodeCopyWithImpl;
-@useResult
+@override @useResult
 $Res call({
  MediaNode field0
 });
@@ -725,9 +756,9 @@ class _$Nodes_MediaNodeCopyWithImpl<$Res>
 
 /// Create a copy of Nodes
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? field0 = freezed,}) {
   return _then(Nodes_MediaNode(
-null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+freezed == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
 as MediaNode,
   ));
 }

@@ -35,8 +35,8 @@ class RelationEngineState {
       widthModulateFrequency: 3.0,
     ),
     endpoint: EndpointConfig(
-      defaultStartShape: EndpointShapeType.none,
-      defaultEndShape: EndpointShapeType.arrow,
+      defaultStartShape: EndpointShape.none,
+      defaultEndShape: EndpointShape.arrow,
       arrowSize: 10.0,
     ),
   );

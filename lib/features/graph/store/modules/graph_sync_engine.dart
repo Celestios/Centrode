@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:mycelium/shared/logging.dart';
 
 import '../../models/models.dart';
 import '../../../../src/rust/bridge/stream.dart';
 import '../../../../src/rust/domain/base_models.dart'
     show BoundingBox, MapData, ViewportState;
+import '../../../../src/rust/domain/patches.dart';
 import '../command_queue_processor.dart';
 import '../command_processor.dart';
 import '../graph_data_query.dart';
@@ -100,7 +102,7 @@ class GraphSyncEngine {
   }
 
   /// Handles incoming graph events from the Rust stream.
-  /// Updates local state based on asynchronous boundary updates.
+  /// Updates local state based on patch-based incremental updates.
   void _handleGraphEvent(GraphEvent event) {
     _syncLog.info('FFI EVENT: Incoming $event');
 
@@ -126,82 +128,112 @@ class GraphSyncEngine {
         );
         break;
 
-      case GraphEvent_NodeUpdated(:final field0):
-        final uiNode = UiNode.fromRust(field0);
-        final existing = controller.store.nodeLookup[uiNode.id];
-        if (existing != null) {
-          final oldPos = existing.position;
-          // Merge core layout and position properties from the FFI event
-          existing.position = uiNode.position;
-          existing.size = uiNode.size;
-          existing.lineCount = uiNode.lineCount;
-          existing.isExpanded = uiNode.isExpanded;
-          existing.content = uiNode.content;
-          existing.layer = uiNode.layer;
-          existing.style = uiNode.style;
-          existing.resolvedStyle = uiNode.resolvedStyle;
-          existing.layout = uiNode.layout;
-          existing.resolvedLayout = uiNode.resolvedLayout;
-
-          if (existing is InfoUiNode && uiNode is InfoUiNode) {
-            existing.aliases = uiNode.aliases;
-            existing.attachment = uiNode.attachment;
-            // Crucial: preserve existing.tags and existing.comments to avoid overwriting them with unhydrated lists!
-          } else if (existing is TaskUiNode && uiNode is TaskUiNode) {
-            existing.state = uiNode.state;
-            existing.dueDate = uiNode.dueDate;
-          }
-
-          _hydrateNode(existing);
-
-          controller.spatial.spatialGrid.update(
-            existing.id,
-            oldPos,
-            existing.position,
-          );
-          controller.spatial.saveConfirmedPosition(
-            existing.id,
-            existing.position,
-          );
-        } else {
-          controller.store.nodeLookup[uiNode.id] = uiNode;
-
-          _hydrateNode(uiNode);
-
-          controller.spatial.spatialGrid.insert(uiNode.id, uiNode.position);
-          controller.spatial.saveConfirmedPosition(uiNode.id, uiNode.position);
-        }
-        controller.publishUpdate(
-          GraphEntityUpdate(
-            id: uiNode.id,
-            tableName: uiNode.tableName,
-            type: GraphUpdateType.reset,
-          ),
-        );
+      case GraphEvent_NodeUpdated(:final id, :final patches):
+        _applyNodePatches(id, patches);
         break;
 
-      case GraphEvent_NodeDeleted(:final field0):
-        final existing = controller.store.nodeLookup[field0];
-        if (existing != null) {
-          final pos =
-              controller.spatial.getConfirmedPosition(field0) ??
-              existing.position;
-          controller.spatial.spatialGrid.remove(field0, pos);
-          controller.spatial.clearConfirmedPosition(field0);
-          controller.store.nodeLookup.remove(field0);
-        }
-        controller.publishUpdate(
-          GraphEntityUpdate(
-            id: field0,
-            tableName: '',
-            type: GraphUpdateType.nodeDeleted,
-          ),
-        );
+      case GraphEvent_RelationUpdated(:final id, :final patches):
+        _applyRelationPatches(id, patches);
         break;
 
-      case _:
+      case GraphEvent_BatchUpdated(:final field0):
+        _applyGraphDelta(field0);
         break;
     }
+  }
+
+  void _applyNodePatches(dynamic id, List<dynamic> patches) {
+    final idStr = id.toString();
+    final existing = controller.store.nodeLookup[idStr];
+    if (existing == null) return;
+
+    final oldPos = existing.position;
+    for (final patch in patches) {
+      if (patch is NodePatch_Position) {
+        final coords = patch.field0;
+        existing.position = Offset(coords.x.toDouble(), coords.y.toDouble());
+      } else if (patch is NodePatch_Size) {
+        final sz = patch.field0;
+        existing.size = Size(sz.width.toDouble(), sz.height.toDouble());
+      } else if (patch is NodePatch_Content) {
+        existing.content = patch.field0;
+      } else if (patch is NodePatch_IsExpanded) {
+        existing.isExpanded = patch.field0;
+      } else if (patch is NodePatch_Style) {
+        existing.style = patch.field0;
+      } else if (patch is NodePatch_Significance) {
+        existing.significance = patch.field0;
+      } else if (patch is NodePatch_TaskState && existing is TaskUiNode) {
+        existing.state = patch.field0;
+      }
+    }
+
+    controller.spatial.spatialGrid.update(existing.id, oldPos, existing.position);
+    controller.spatial.saveConfirmedPosition(existing.id, existing.position);
+    controller.publishUpdate(
+      GraphEntityUpdate(id: existing.id, tableName: existing.tableName, type: GraphUpdateType.reset),
+    );
+  }
+
+  void _applyRelationPatches(dynamic id, List<dynamic> patches) {
+    final idStr = id.toString();
+    final existing = controller.store.relationLookup[idStr];
+    if (existing == null) return;
+
+    for (final patch in patches) {
+      if (patch is RelationPatch_Verb) {
+        existing.verb = patch.field0;
+      } else if (patch is RelationPatch_Style) {
+        existing.style = patch.field0;
+      } else if (patch is RelationPatch_Layout) {
+        existing.layout = patch.field0;
+      } else if (patch is RelationPatch_Directionless) {
+        existing.directionless = patch.field0;
+      }
+    }
+
+    controller.publishUpdate(
+      GraphEntityUpdate(id: existing.id, tableName: 'IRelation', type: GraphUpdateType.reset),
+    );
+  }
+
+  void _applyGraphDelta(GraphDelta delta) {
+    _syncLog.info('Applying GraphDelta: ${delta.nodeCreations.length} creations, '
+        '${delta.nodeUpserts.length} upserts, ${delta.nodeDeletions.length} deletions');
+
+    for (final nodeId in delta.nodeDeletions) {
+      final idStr = nodeId.toString();
+      final node = controller.store.nodeLookup.remove(idStr);
+      if (node != null) {
+        controller.spatial.spatialGrid.remove(idStr, node.position);
+      }
+    }
+    for (final relId in delta.relationDeletions) {
+      controller.store.relationLookup.remove(relId.toString());
+    }
+
+    for (final ffiNode in delta.nodeCreations) {
+      final uiNode = UiNode.fromRust(ffiNode);
+      controller.store.nodeLookup[uiNode.id] = uiNode;
+      _hydrateNode(uiNode);
+      controller.spatial.spatialGrid.insert(uiNode.id, uiNode.position);
+      controller.spatial.saveConfirmedPosition(uiNode.id, uiNode.position);
+    }
+    for (final ffiRel in delta.relationCreations) {
+      final uiRel = UiRelation.fromRust(ffiRel);
+      controller.store.relationLookup[uiRel.id] = uiRel;
+    }
+
+    for (final entry in delta.nodeUpserts) {
+      _applyNodePatches(entry.$1, entry.$2);
+    }
+    for (final entry in delta.relationUpserts) {
+      _applyRelationPatches(entry.$1, entry.$2);
+    }
+
+    controller.publishUpdate(
+      GraphEntityUpdate(id: '', tableName: '', type: GraphUpdateType.reset),
+    );
   }
 
   // ===========================================================================
@@ -216,28 +248,28 @@ class GraphSyncEngine {
   /// Use this before operations that require the DB to be up to date (e.g., Undo).
   Future<void> flush() => processor.forceFlush();
 
-  /// Undoes the last operation and refreshes the graph.
+  /// Undoes the last operation.
+  /// The BatchUpdated event from Rust applies the inverse delta incrementally.
   Future<void> undo() async {
     _syncLog.info('Requesting Undo');
     await flush();
     final record = await api.undo();
     if (record != null) {
       _syncLog.info('Undo successful');
-      await controller.loadGraph();
       await controller.updateHistoryStatus();
     } else {
       _syncLog.info('Nothing to undo');
     }
   }
 
-  /// Redoes the last undone operation and refreshes the graph.
+  /// Redoes the last undone operation.
+  /// The BatchUpdated event from Rust applies the forward delta incrementally.
   Future<void> redo() async {
     _syncLog.info('Requesting Redo');
     await flush();
     final record = await api.redo();
     if (record != null) {
       _syncLog.info('Redo successful');
-      await controller.loadGraph();
       await controller.updateHistoryStatus();
     } else {
       _syncLog.info('Nothing to redo');

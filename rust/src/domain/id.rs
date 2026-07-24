@@ -116,3 +116,24 @@ impl SurrealValue for TypedRecordId {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use uuid::Uuid;
+
+    #[test]
+    fn test_typed_record_id_binary_roundtrip() {
+        let original = TypedRecordId::new(TableKind::TaskNode, Uuid::new_v4());
+        let bytes = original.to_bytes();
+        assert_eq!(bytes.len(), 17);
+        let decoded =
+            TypedRecordId::from_bytes(&bytes).expect("Failed to decode TypedRecordId");
+        assert_eq!(original, decoded);
+    }
+
+    #[test]
+    fn test_map_data_table_name_parity() {
+        assert_eq!(TableKind::MapData.table_name(), "MapData");
+    }
+}

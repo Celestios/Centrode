@@ -1,12 +1,50 @@
-use crate::domain::base_models::{Comment, Coordinates, Size};
-use crate::domain::contents::Content;
-use crate::domain::enums::{BrushType, MediaType, ShapeType, TaskState};
+use crate::domain::base_models::Coordinates;
 use crate::domain::id::TypedRecordId;
-use crate::domain::styles::{NodeLayout, NodeStyle};
-use crate::domain::tags::TagEdge;
-use surrealdb::types::{SurrealValue, Value};
-pub use crate::domain::entity::*;
-pub use crate::domain::schema::{SurqlSchema, SurqlSchemaField, generate_field_schema_lines};
+pub use crate::domain::schema::{generate_field_schema_lines, SurqlSchema, SurqlSchemaField};
+pub use crate::domain::types::{
+    CommentNode, DrawingNode, FrameNode, INode, InterNode, MediaNode, Nodes, ShapeNode, TaskNode,
+};
+use mycelium_macros::SurrealDbEnum;
+use surrealdb::types::Value;
+
+#[repr(u8)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, SurrealDbEnum)]
+pub enum TaskState {
+    Todo = 0,
+    InProgress = 1,
+    Done = 2,
+    Blocked = 3,
+    Cancelled = 4,
+}
+
+#[repr(u8)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, SurrealDbEnum)]
+pub enum ShapeType {
+    Rectangle = 0,
+    Circle = 1,
+    Diamond = 2,
+    Triangle = 3,
+    Star = 4,
+    Pill = 5,
+}
+
+#[repr(u8)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, SurrealDbEnum)]
+pub enum BrushType {
+    Pencil = 0,
+    Highlighter = 1,
+    Eraser = 2,
+    Calligraphy = 3,
+}
+
+#[repr(u8)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, SurrealDbEnum)]
+pub enum MediaType {
+    Image = 0,
+    Video = 1,
+    Audio = 2,
+    Pdf = 3,
+}
 
 pub trait IsNode {
     fn id(&self) -> &TypedRecordId;
@@ -27,81 +65,4 @@ pub trait IsNode {
     fn table_name(&self) -> &'static str;
 
     fn serialize_node(self) -> Value;
-}
-
-define_nodes! {
-    INode, "INode", ["tags"] {
-        pub content: Content,
-        pub style: Option<NodeStyle>,
-        pub resolved_style: Option<NodeStyle>,
-        pub layout: Option<NodeLayout>,
-        pub resolved_layout: Option<NodeLayout>,
-        pub size: Size,
-        #[surql_default = "1"]
-        pub line_count: i32,
-        pub expandable: bool,
-        pub is_expanded: bool,
-        pub locked: bool,
-        #[surql_type = "array<record<Tag>>"]
-        pub tags: Vec<TagEdge>,
-        #[surql_type = "array<string>"]
-        pub aliases: Vec<String>,
-        pub comments: Vec<Comment>,
-        pub attachment: Option<String>,
-        #[surql_default = "0"]
-        pub significance: u8,
-    };
-
-    TaskNode, "TaskNode", [] {
-        pub content: Content,
-        pub due_date: Option<i64>,
-        pub state: TaskState,
-        pub size: Size,
-        pub expandable: bool,
-        pub is_expanded: bool,
-        pub style: Option<NodeStyle>,
-        pub resolved_style: Option<NodeStyle>,
-        pub layout: Option<NodeLayout>,
-        pub resolved_layout: Option<NodeLayout>,
-        #[surql_default = "0"]
-        pub significance: u8,
-    };
-
-    InterNode, "InterNode", [] {
-        pub style: Option<String>,
-        pub verb: String,
-        pub behavioral_features: Option<String>,
-    };
-
-    CommentNode, "CommentNode", [] {
-        pub text: String,
-        pub size: Size,
-    };
-
-    DrawingNode, "DrawingNode", [] {
-        pub paths: Vec<String>,
-        pub brush_type: BrushType,
-        pub brush_thickness: f64,
-        pub brush_color: String,
-        pub size: Size,
-        pub locked: bool,
-    };
-
-    ShapeNode, "ShapeNode", [] {
-        pub shape_type: ShapeType,
-        pub style: Option<NodeStyle>,
-        pub size: Size,
-    };
-
-    FrameNode, "FrameNode", [] {
-        pub title: String,
-        pub style: Option<NodeStyle>,
-        pub size: Size,
-    };
-
-    MediaNode, "MediaNode", [] {
-        pub source_url: String,
-        pub media_type: MediaType,
-        pub size: Size,
-    };
 }

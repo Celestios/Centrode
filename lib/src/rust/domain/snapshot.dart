@@ -6,8 +6,6 @@
 import '../frb_generated.dart';
 import 'base_models.dart';
 import 'contents.dart';
-import 'entity.dart';
-import 'enums.dart';
 import 'id.dart';
 import 'nodes.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
@@ -15,7 +13,7 @@ import 'package:uuid/uuid.dart';
 import 'relations.dart';
 import 'styles.dart';
 import 'tags.dart';
-import 'traits.dart';
+import 'types.dart';
 
 class GraphSnapshot {
   final List<Nodes> nodes;

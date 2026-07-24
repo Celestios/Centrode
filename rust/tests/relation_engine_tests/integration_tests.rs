@@ -1,11 +1,11 @@
 use rust_lib_mycelium::domain::id::TypedRecordId;
-use rust_lib_mycelium::domain::relation_engine::{
-    engine::RelationEngine,
-    config::{RelationEngineConfig, RoutingMode},
-    types::{InputNode, InputEdge},
-};
 use rust_lib_mycelium::domain::styles::PortSide;
 use rust_lib_mycelium::domain::traits::TableKind;
+use rust_lib_mycelium::relation_engine::{
+    config::{RelationEngineConfig, RoutingMode},
+    engine::RelationEngine,
+    types::{InputEdge, InputNode},
+};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use uuid::Uuid;
@@ -60,7 +60,10 @@ fn test_relation_engine_orthogonal_compute() {
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
 
     assert_eq!(results.len(), 1);
-    assert!(!results[0].path_points.is_empty(), "Orthogonal path should contain points");
+    assert!(
+        !results[0].path_points.is_empty(),
+        "Orthogonal path should contain points"
+    );
 }
 
 #[test]
@@ -77,7 +80,10 @@ fn test_relation_engine_octilinear_compute() {
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
 
     assert_eq!(results.len(), 1);
-    assert!(!results[0].path_points.is_empty(), "Octilinear path should contain points");
+    assert!(
+        !results[0].path_points.is_empty(),
+        "Octilinear path should contain points"
+    );
 }
 
 #[test]
@@ -95,4 +101,3 @@ fn test_relation_engine_direct_compute() {
     assert_eq!(results.len(), 1);
     assert!(results[0].path_points.len() >= 2);
 }
-

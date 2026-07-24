@@ -2,8 +2,10 @@ mod frb_generated; /* AUTO INJECTED BY flutter_rust_bridge. This line may not be
 
 pub mod bridge;
 pub mod domain;
-pub mod persistence;
 pub mod format;
+pub mod persistence;
+pub mod relation_engine;
+pub mod services;
 pub mod telemetry;
 
 /// Initialize the Mycelium core with the telemetry subscriber.

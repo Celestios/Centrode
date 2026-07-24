@@ -10,6 +10,7 @@ use std::sync::{Arc, LazyLock, Mutex};
 use tokio::sync::broadcast;
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::Layer;
+use tracing_subscriber::prelude::*;
 
 // ============================================================================
 // LogState – FFI Transfer Struct (same fields as the working version)
@@ -139,8 +140,6 @@ impl<S: tracing::Subscriber> Layer<S> for TelemetryLayer {
 // ============================================================================
 
 pub fn init_telemetry() {
-    use tracing_subscriber::prelude::*;
-
     let filter = EnvFilter::new("info,mycelium_core=debug,surrealdb=warn");
     let layer = TelemetryLayer::instance();
     let subscriber = tracing_subscriber::registry().with(filter).with(layer);

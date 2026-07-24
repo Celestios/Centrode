@@ -5,14 +5,16 @@
 
 import '../domain/base_models.dart';
 import '../domain/contents.dart';
-import '../domain/entity.dart';
-import '../domain/enums.dart';
 import '../domain/id.dart';
 import '../domain/nodes.dart';
+import '../domain/patches.dart';
+import '../domain/relations.dart';
 import '../domain/styles.dart';
 import '../domain/tags.dart';
-import '../domain/traits.dart';
+import '../domain/types.dart';
 import '../frb_generated.dart';
+import '../relation_engine/config.dart';
+import '../relation_engine/geometry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 import 'package:uuid/uuid.dart';
@@ -22,10 +24,23 @@ part 'stream.freezed.dart';
 sealed class GraphEvent with _$GraphEvent {
   const GraphEvent._();
 
-  const factory GraphEvent.nodeUpdated(Nodes field0) = GraphEvent_NodeUpdated;
-  const factory GraphEvent.nodeDeleted(String field0) = GraphEvent_NodeDeleted;
-  const factory GraphEvent.relationUpdated() = GraphEvent_RelationUpdated;
-  const factory GraphEvent.snapshotLoaded() = GraphEvent_SnapshotLoaded;
+  /// Fine-grained node patch updates (e.g., single position move)
+  const factory GraphEvent.nodeUpdated({
+    required TypedRecordId id,
+    required List<NodePatch> patches,
+  }) = GraphEvent_NodeUpdated;
+
+  /// Fine-grained relation patch updates (e.g., control point re-routing)
+  const factory GraphEvent.relationUpdated({
+    required TypedRecordId id,
+    required List<RelationPatch> patches,
+  }) = GraphEvent_RelationUpdated;
+
+  /// Atomic batch update for history undo/redo cascades or template instantiations
+  const factory GraphEvent.batchUpdated(GraphDelta field0) =
+      GraphEvent_BatchUpdated;
+
+  /// Elastic canvas boundary recalculation
   const factory GraphEvent.boundaryUpdated(BoundingBox field0) =
       GraphEvent_BoundaryUpdated;
 }

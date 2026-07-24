@@ -1,10 +1,9 @@
 use crate::domain::id::TypedRecordId;
 use crate::domain::relations::{IRelation, IRelationFields};
-use crate::domain::traits::SurrealTable;
 use crate::persistence::repo::Repository;
 
 use anyhow::Result;
-use surrealdb::types::{RecordId, SurrealValue, Value};
+use surrealdb::types::{SurrealValue, Value};
 use tracing::{debug, info};
 
 impl Repository {

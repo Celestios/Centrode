@@ -1,15 +1,15 @@
 use rust_lib_mycelium::domain::id::TypedRecordId;
-use rust_lib_mycelium::domain::relation_engine::geometry::{
-    Point, Rect, distance_to_segment, polyline_length, segments_intersect
-};
-use rust_lib_mycelium::domain::relation_engine::path_finder::grid::Grid;
-use rust_lib_mycelium::domain::relation_engine::path_finder::port::{
-    port_position, get_port_dir, normal_for_side, closest_port_to
-};
-use rust_lib_mycelium::domain::relation_engine::input::InputNode;
 use rust_lib_mycelium::domain::styles::PortSide;
-use rust_lib_mycelium::domain::relation_engine::computed::{ComputedRelation, PathType};
 use rust_lib_mycelium::domain::traits::TableKind;
+use rust_lib_mycelium::relation_engine::computed::{ComputedRelation, PathType};
+use rust_lib_mycelium::relation_engine::geometry::{
+    distance_to_segment, polyline_length, segments_intersect, Point,
+};
+use rust_lib_mycelium::relation_engine::input::InputNode;
+use rust_lib_mycelium::relation_engine::path_finder::grid::Grid;
+use rust_lib_mycelium::relation_engine::path_finder::port::{
+    closest_port_to, get_port_dir, normal_for_side, port_position,
+};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use uuid::Uuid;
@@ -135,11 +135,11 @@ fn test_computed_relation_new_basic() {
 
 #[test]
 fn test_bezier_and_sinewave_perpendicular_exits() {
-    use rust_lib_mycelium::domain::relation_engine::config::BezierConfig;
-    use rust_lib_mycelium::domain::relation_engine::shaper::core::ShaperContext;
-    use rust_lib_mycelium::domain::relation_engine::shaper::bezier::BezierShaper;
-    use rust_lib_mycelium::domain::relation_engine::shaper::sinewave::SineWaveShaper;
-    use rust_lib_mycelium::domain::relation_engine::shaper::core::Shaper;
+    use rust_lib_mycelium::relation_engine::config::BezierConfig;
+    use rust_lib_mycelium::relation_engine::shaper::bezier::BezierShaper;
+    use rust_lib_mycelium::relation_engine::shaper::core::Shaper;
+    use rust_lib_mycelium::relation_engine::shaper::core::ShaperContext;
+    use rust_lib_mycelium::relation_engine::shaper::sinewave::SineWaveShaper;
 
     let p0 = Point::new(100.0, 100.0);
     let p3 = Point::new(300.0, 300.0);
@@ -203,5 +203,3 @@ fn test_bezier_and_sinewave_perpendicular_exits() {
     assert!(tn_sine.x.abs() < 0.5);
     assert!((tn_sine.y - 1.0).abs() < 0.5);
 }
-
-

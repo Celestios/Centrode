@@ -8,26 +8,8 @@ import 'id.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 import 'package:uuid/uuid.dart';
-import 'traits.dart';
+import 'types.dart';
 part 'tags.freezed.dart';
-
-class Tag {
-  final TypedRecordId key;
-  final TagFields fields;
-
-  const Tag({required this.key, required this.fields});
-
-  @override
-  int get hashCode => key.hashCode ^ fields.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Tag &&
-          runtimeType == other.runtimeType &&
-          key == other.key &&
-          fields == other.fields;
-}
 
 @freezed
 sealed class TagEdge with _$TagEdge {

@@ -4,21 +4,19 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import '../relation_engine/config.dart';
+import '../relation_engine/geometry.dart';
 import 'base_models.dart';
 import 'contents.dart';
-import 'entity.dart';
-import 'enums.dart';
 import 'id.dart';
 import 'nodes.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 import 'package:uuid/uuid.dart';
-import 'relation_engine/config.dart';
-import 'relation_engine/geometry.dart';
 import 'relations.dart';
 import 'styles.dart';
 import 'tags.dart';
-import 'traits.dart';
+import 'types.dart';
 part 'patches.freezed.dart';
 
 @freezed
@@ -36,6 +34,53 @@ sealed class EntityPatch with _$EntityPatch {
       EntityPatch_CreateRelation;
   const factory EntityPatch.deleteRelation(IRelation field0) =
       EntityPatch_DeleteRelation;
+}
+
+/// Atomic composite mutation set representing forward or inverse cascade deltas
+class GraphDelta {
+  /// Patch existing nodes (undo/redo cascades)
+  final List<(TypedRecordId, List<NodePatch>)> nodeUpserts;
+
+  /// Create brand-new nodes (template instantiation)
+  final List<Nodes> nodeCreations;
+  final List<TypedRecordId> nodeDeletions;
+
+  /// Patch existing relations
+  final List<(TypedRecordId, List<RelationPatch>)> relationUpserts;
+
+  /// Create brand-new relations
+  final List<IRelation> relationCreations;
+  final List<TypedRecordId> relationDeletions;
+
+  const GraphDelta({
+    required this.nodeUpserts,
+    required this.nodeCreations,
+    required this.nodeDeletions,
+    required this.relationUpserts,
+    required this.relationCreations,
+    required this.relationDeletions,
+  });
+
+  @override
+  int get hashCode =>
+      nodeUpserts.hashCode ^
+      nodeCreations.hashCode ^
+      nodeDeletions.hashCode ^
+      relationUpserts.hashCode ^
+      relationCreations.hashCode ^
+      relationDeletions.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GraphDelta &&
+          runtimeType == other.runtimeType &&
+          nodeUpserts == other.nodeUpserts &&
+          nodeCreations == other.nodeCreations &&
+          nodeDeletions == other.nodeDeletions &&
+          relationUpserts == other.relationUpserts &&
+          relationCreations == other.relationCreations &&
+          relationDeletions == other.relationDeletions;
 }
 
 @freezed

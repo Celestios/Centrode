@@ -1,11 +1,11 @@
 use crate::domain::base_models::Record;
 use crate::domain::id::TypedRecordId;
 use crate::domain::tags::{Tag, TagFields};
-use crate::domain::traits::{SurrealTable, TableKind};
+use crate::domain::traits::TableKind;
 use crate::persistence::repo::Repository;
 
 use anyhow::Result;
-use surrealdb::types::{RecordId, SurrealValue, Value};
+use surrealdb::types::{SurrealValue, Value};
 
 impl Repository {
     pub async fn create_tag(&self, tag: Tag) -> Result<()> {
@@ -41,7 +41,8 @@ impl Repository {
     }
 
     pub async fn get_tag(&self, key: String) -> Result<Option<Tag>> {
-        let u = uuid::Uuid::parse_str(&key).unwrap_or_else(|_| uuid::Uuid::nil());
+        let u = uuid::Uuid::parse_str(&key)
+            .map_err(|e| anyhow::anyhow!("Invalid tag key '{}': {}", key, e))?;
         let typed_id = TypedRecordId::new(TableKind::Tag, u);
         let fields: Option<TagFields> = self.db.select(typed_id.to_record_id()).await?;
         Ok(fields.map(|f| Tag { key: typed_id, fields: f }))
@@ -54,7 +55,9 @@ impl Repository {
             .filter_map(|val| {
                 let record = Record::from_record_value(val)?;
                 let u = match &record.id.key {
-                    surrealdb::types::RecordIdKey::Uuid(u) => **u,
+                    surrealdb::types::RecordIdKey::Uuid(u) => {
+                        uuid::Uuid::from_bytes(u.into_bytes())
+                    }
                     _ => return None,
                 };
                 let key = TypedRecordId::new(TableKind::Tag, u);
@@ -66,7 +69,8 @@ impl Repository {
     }
 
     pub async fn delete_tag(&self, key: String) -> Result<()> {
-        let u = uuid::Uuid::parse_str(&key).unwrap_or_else(|_| uuid::Uuid::nil());
+        let u = uuid::Uuid::parse_str(&key)
+            .map_err(|e| anyhow::anyhow!("Invalid tag key '{}': {}", key, e))?;
         let tag_id = TypedRecordId::new(TableKind::Tag, u).to_record_id();
 
         // Step 1: Remove the tag RecordId from all INode.tags arrays

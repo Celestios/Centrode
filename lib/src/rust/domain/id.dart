@@ -6,7 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:uuid/uuid.dart';
-import 'traits.dart';
+import 'types.dart';
 
 /// Unified record identifier across all tiers. 17 bytes on stack, 0 heap allocations.
 class TypedRecordId {

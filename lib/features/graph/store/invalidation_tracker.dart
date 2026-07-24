@@ -53,8 +53,9 @@ class InvalidationTracker {
 
   void updateCache(List<ComputedRelation> computed) {
     for (final rel in computed) {
-      _cache[rel.id] = rel;
-      _dirtyRelationIds.remove(rel.id);
+      final keyStr = rel.id.key.uuid;
+      _cache[keyStr] = rel;
+      _dirtyRelationIds.remove(keyStr);
     }
   }
 

@@ -4,7 +4,6 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
-import 'enums.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'styles.freezed.dart';
@@ -14,6 +13,8 @@ sealed class ControlPoint with _$ControlPoint {
   const factory ControlPoint({required double x, required double y}) =
       _ControlPoint;
 }
+
+enum EndpointShape { none, arrow, openArrow, circle, diamond, square }
 
 @freezed
 sealed class NodeLayout with _$NodeLayout {

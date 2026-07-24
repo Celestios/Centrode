@@ -1,10 +1,9 @@
-use core::convert::Into;
-use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
-use crate::define_surql_schema_struct;
-
-// -----------------------------------------------------------------------------
-// Core Identity & Spatial Types (Restored)
-// -----------------------------------------------------------------------------
+use crate::domain::id::TypedRecordId;
+use crate::domain::traits::TableKind;
+pub use crate::domain::types::MapData;
+use mycelium_macros::{SurqlSchemaField, SurrealDbEnum};
+use surrealdb::types::{RecordId, SurrealValue, Value};
+use uuid::Uuid;
 
 #[derive(Debug, Clone, SurrealValue)]
 pub struct Record {
@@ -24,142 +23,24 @@ impl Record {
         }
         None
     }
-
-    pub fn to_type<T: SurrealValue>(self) -> Option<(String, T)> {
-        let key = match self.id.key {
-            RecordIdKey::String(s) => s,
-            _ => return None,
-        };
-        let parsed_fields: T = T::from_value(self.fields).ok()?;
-        Some((key, parsed_fields))
-    }
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct RecordStrings {
-    pub table: String,
-    pub key: String,
-}
-impl std::str::FromStr for RecordStrings {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut parts = s.splitn(2, ':');
-        let table = parts.next().ok_or("Missing table name")?.to_string();
-        let key = parts.next().ok_or("Missing record key")?.to_string();
-
-        if table.is_empty() || key.is_empty() {
-            return Err("Table or Key cannot be empty".to_string());
-        }
-
-        Ok(RecordStrings { table, key })
-    }
+#[derive(Debug, Clone, SurrealValue, PartialEq, Eq, SurqlSchemaField)]
+pub struct Comment {
+    pub text: String,
+    pub created_at: i64,
 }
 
-impl From<&str> for RecordStrings {
-    fn from(s: &str) -> Self {
-        s.parse()
-            .unwrap_or_else(|e| panic!("Invalid RecordStrings literal '{}': {}", s, e))
-    }
+#[derive(Debug, Clone, SurrealValue, PartialEq, Eq, SurqlSchemaField)]
+pub struct Coordinates {
+    pub x: i32,
+    pub y: i32,
 }
 
-impl std::fmt::Display for RecordStrings {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}", self.table, self.key)
-    }
-}
-
-impl RecordStrings {
-    pub fn to_str(&self) -> String {
-        format!("{}:{}", self.table.as_str(), self.key.as_str())
-    }
-
-    pub fn into_record(&self) -> RecordId {
-        RecordId::new(self.table.clone(), self.key.clone())
-    }
-}
-
-impl SurrealValue for RecordStrings {
-    fn kind_of() -> surrealdb::types::Kind {
-        surrealdb::types::Kind::Record(vec![])
-    }
-
-    fn into_value(self) -> Value {
-        RecordId::new(self.table, self.key).into_value()
-    }
-
-    fn from_value(value: Value) -> Result<Self, surrealdb::types::Error> {
-        match value {
-            Value::RecordId(rid) => {
-                let key_str = match rid.key {
-                    RecordIdKey::String(s) => s.clone(),
-                    unsupported => {
-                        return Err(surrealdb::types::Error::thrown(format!(
-                            "Expected scalar Record key, found: {:?}",
-                            unsupported
-                        )))
-                    }
-                };
-
-                Ok(Self {
-                    table: rid.table.to_string(),
-                    key: key_str,
-                })
-            }
-            unsupported => Err(surrealdb::types::Error::thrown(format!(
-                "RecordStrings expected Value::RecordId, found: {:?}",
-                unsupported
-            ))),
-        }
-    }
-}
-
-pub trait IsTable {
-    const LABEL: &'static str;
-    const FETCH_FIELDS: &'static [&'static str] = &[];
-
-    fn get_label() -> &'static str {
-        Self::LABEL
-    }
-
-    fn get_key(&self) -> &str;
-
-    fn get_record_id(&self) -> RecordId {
-        RecordId::new(Self::LABEL, self.get_key())
-    }
-}
-
-impl<T: IsTable> From<&T> for RecordStrings {
-    fn from(table: &T) -> Self {
-        RecordStrings {
-            table: T::LABEL.to_string(),
-            key: table.get_key().to_string(),
-        }
-    }
-}
-
-define_surql_schema_struct! {
-    #[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
-    pub struct Comment {
-        pub text: String,
-        pub created_at: i64,
-    }
-}
-
-define_surql_schema_struct! {
-    #[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
-    pub struct Coordinates {
-        pub x: i32,
-        pub y: i32,
-    }
-}
-
-define_surql_schema_struct! {
-    #[derive(Debug, Clone, SurrealValue, PartialEq, Eq)]
-    pub struct Size {
-        pub width: i32,
-        pub height: i32,
-    }
+#[derive(Debug, Clone, SurrealValue, PartialEq, Eq, SurqlSchemaField)]
+pub struct Size {
+    pub width: i32,
+    pub height: i32,
 }
 
 #[derive(Debug, Clone, SurrealValue, PartialEq)]
@@ -181,25 +62,12 @@ impl Default for ViewportState {
     }
 }
 
-use crate::domain::id::TypedRecordId;
-use crate::domain::traits::{AuxiliaryEntity, SurrealTable, TableKind};
-use mycelium_macros::SurrealDbEnum;
-use uuid::Uuid;
-
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Default, SurrealDbEnum)]
 pub enum DisplayMode {
     #[default]
     Importance = 0,
     Leveling = 1,
-}
-
-#[derive(Debug, Clone, SurrealValue)]
-pub struct MapData {
-    pub map_name: String,
-    pub viewport_state: ViewportState,
-    pub active_theme_id: Option<String>,
-    pub display_mode: DisplayMode,
 }
 
 impl Default for MapData {
@@ -214,7 +82,6 @@ impl Default for MapData {
 }
 
 impl MapData {
-    pub const LABEL: &'static str = "MapData";
     pub const KEY: &'static str = "singleton";
     pub const SINGLETON_KEY: Uuid = Uuid::nil();
 
@@ -222,16 +89,6 @@ impl MapData {
         TypedRecordId::new(TableKind::MapData, Self::SINGLETON_KEY)
     }
 }
-
-impl SurrealTable for MapData {
-    const KIND: TableKind = TableKind::MapData;
-
-    fn get_key(&self) -> &Uuid {
-        &Self::SINGLETON_KEY
-    }
-}
-
-impl AuxiliaryEntity for MapData {}
 
 // -----------------------------------------------------------------------------
 // Elastic Boundary (BoundingBox)
@@ -271,4 +128,3 @@ impl Default for BoundingBox {
         }
     }
 }
-

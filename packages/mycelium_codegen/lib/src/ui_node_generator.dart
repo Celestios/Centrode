@@ -404,7 +404,6 @@ class UiNodeGenerator extends Generator {
 
   String _mapFfiTypeToUi(DartType ffiType) {
     final typeStr = ffiType.toString();
-    if (typeStr == 'RecordStrings') return 'String';
     if (typeStr == 'Coordinates') return 'Offset';
     if (typeStr == 'Size') return 'Size';
     if (typeStr == 'PlatformInt64') return 'int';

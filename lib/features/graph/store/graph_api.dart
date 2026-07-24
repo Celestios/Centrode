@@ -162,11 +162,11 @@ class RustAppHandleWrapper implements GraphApi {
 
   @override
   Future<void> deleteNodeEntry({required String table, required String key}) =>
-      _api.deleteNodeEntry(table: table, key: key);
+      _api.deleteNodeEntry(id: TypedRecordId(kind: TableKind.values.byName(table), key: UuidValue.fromString(key)));
 
   @override
   Future<void> deleteRelation({required String table, required String key}) =>
-      _api.deleteRelation(table: table, key: key);
+      _api.deleteRelation(id: TypedRecordId(kind: TableKind.values.byName(table), key: UuidValue.fromString(key)));
 
   @override
   Future<void> deleteTag({required String key}) => _api.deleteTag(key: key);
@@ -192,7 +192,7 @@ class RustAppHandleWrapper implements GraphApi {
 
   @override
   Future<Nodes?> getNode({required String table, required String key}) =>
-      _api.getNode(table: table, key: key);
+      _api.getNode(id: TypedRecordId(kind: TableKind.values.byName(table), key: UuidValue.fromString(key)));
 
   @override
   Future<Tag?> getTag({required String key}) => _api.getTag(key: key);
@@ -272,7 +272,7 @@ class RustAppHandleWrapper implements GraphApi {
 
   @override
   Future<void> updateNodeCachePositions({
-    required List<(String, double, double, double, double)> positions,
+    required List<(TypedRecordId, double, double, double, double)> positions,
   }) =>
       _api.updateNodeCachePositions(positions: positions);
 

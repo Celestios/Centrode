@@ -4,6 +4,7 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../../frb_generated.dart';
+import '../enums.dart';
 import 'geometry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
@@ -67,8 +68,8 @@ class BundlingConfig {
 enum BundlingMode { proximity, sharedEndpoint, none }
 
 class EndpointConfig {
-  final EndpointShapeType defaultStartShape;
-  final EndpointShapeType defaultEndShape;
+  final EndpointShape defaultStartShape;
+  final EndpointShape defaultEndShape;
   final double arrowSize;
 
   const EndpointConfig({
@@ -92,8 +93,6 @@ class EndpointConfig {
           defaultEndShape == other.defaultEndShape &&
           arrowSize == other.arrowSize;
 }
-
-enum EndpointShapeType { none, arrow, openArrow, circle, diamond, square }
 
 class NudgingConfig {
   final bool enabled;

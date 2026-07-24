@@ -1,9 +1,8 @@
 use crate::domain::id::TypedRecordId;
 use crate::domain::schema::SurqlSchemaField;
-use crate::domain::traits::{AuxiliaryEntity, SurrealTable, TableKind};
-use crate::define_surql_schema_struct;
+pub use crate::domain::types::Tag;
+use mycelium_macros::SurqlSchemaField;
 use surrealdb::types::{SurrealValue, Value};
-use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 #[non_exhaustive]
@@ -52,37 +51,19 @@ impl SurrealValue for TagEdge {
     }
 }
 
-#[derive(Debug, Clone, SurrealValue)]
-pub struct Tag {
-    pub key: TypedRecordId,
-    pub fields: TagFields,
-}
-
-impl Tag {
-    pub const LABEL: &'static str = "Tag";
-}
-
-impl SurrealTable for Tag {
-    const KIND: TableKind = TableKind::Tag;
-
-    fn get_key(&self) -> &Uuid {
-        &self.key.key
-    }
-}
-
-impl AuxiliaryEntity for Tag {}
-
-define_surql_schema_struct! {
-    #[derive(Debug, Clone, SurrealValue)]
-    pub struct TagFields {
-        pub name: String,
-        pub color: u32,
-        pub created_at: i64,
-        pub updated_at: i64,
-    }
+#[derive(Debug, Clone, SurrealValue, SurqlSchemaField)]
+pub struct TagFields {
+    pub name: String,
+    pub color: u32,
+    pub created_at: i64,
+    pub updated_at: i64,
 }
 
 impl SurqlSchemaField for TagEdge {
-    fn field_type() -> String { "any".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
+    fn field_type() -> String {
+        "any".to_string()
+    }
+    fn sub_field_paths() -> Vec<(String, String)> {
+        vec![]
+    }
 }

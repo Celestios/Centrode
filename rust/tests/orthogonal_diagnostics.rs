@@ -1,16 +1,17 @@
 use rust_lib_mycelium::domain::id::TypedRecordId;
-use rust_lib_mycelium::domain::relation_engine::config::{RelationEngineConfig, RoutingMode};
-use rust_lib_mycelium::domain::relation_engine::engine::RelationEngine;
-use rust_lib_mycelium::domain::relation_engine::geometry::{Rect, polyline_length, segments_intersect};
-use rust_lib_mycelium::domain::relation_engine::input::{InputEdge, InputNode};
-use rust_lib_mycelium::domain::styles::PortSide;
-use rust_lib_mycelium::domain::traits::TableKind;
+use rust_lib_mycelium::relation_engine::config::{RelationEngineConfig, RoutingMode};
+use rust_lib_mycelium::relation_engine::engine::RelationEngine;
+
 use rand::RngExt;
 use rand::SeedableRng;
+use rust_lib_mycelium::domain::styles::PortSide;
+use rust_lib_mycelium::domain::traits::TableKind;
+use rust_lib_mycelium::relation_engine::geometry::{polyline_length, segments_intersect, Rect};
+use rust_lib_mycelium::relation_engine::input::{InputEdge, InputNode};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
-use uuid::Uuid;
 use std::io::Write;
+use uuid::Uuid;
 
 fn str_to_uuid(s: &str) -> Uuid {
     let mut hasher = DefaultHasher::new();
@@ -24,7 +25,14 @@ fn tid(table: TableKind, s: &str) -> TypedRecordId {
 }
 
 fn node(id: &str, x: f64, y: f64, w: f64, h: f64) -> InputNode {
-    InputNode { id: tid(TableKind::INode, id), x, y, width: w, height: h, is_obstacle: true }
+    InputNode {
+        id: tid(TableKind::INode, id),
+        x,
+        y,
+        width: w,
+        height: h,
+        is_obstacle: true,
+    }
 }
 
 fn ortho_edge(id: &str, from: &str, to: &str) -> InputEdge {
@@ -57,7 +65,7 @@ fn render_svg(
     filename: &str,
     label: &str,
     nodes: &[InputNode],
-    results: &[rust_lib_mycelium::domain::relation_engine::computed::ComputedRelation],
+    results: &[rust_lib_mycelium::relation_engine::computed::ComputedRelation],
 ) {
     let colors = ["#e74c3c", "#3498db", "#2ecc71", "#f39c12", "#9b59b6"];
     let mut min_x: f64 = f64::MAX;
@@ -179,7 +187,10 @@ fn render_svg(
     write_enriched_json(filename, label, nodes, results);
 }
 
-fn render_png(svg_data: &str, png_path: &std::path::Path) -> Result<(), Box<dyn std::error::Error>> {
+fn render_png(
+    svg_data: &str,
+    png_path: &std::path::Path,
+) -> Result<(), Box<dyn std::error::Error>> {
     let opt = usvg::Options::default();
     let tree = usvg::Tree::from_data(svg_data.as_bytes(), &opt)?;
     let size = tree.size();
@@ -189,8 +200,7 @@ fn render_png(svg_data: &str, png_path: &std::path::Path) -> Result<(), Box<dyn 
     let width = svg_w.max(800.0) as u32;
     let height = svg_h.max(400.0) as u32;
 
-    let mut pixmap = tiny_skia::Pixmap::new(width, height)
-        .ok_or("failed to create pixmap")?;
+    let mut pixmap = tiny_skia::Pixmap::new(width, height).ok_or("failed to create pixmap")?;
 
     let scale_x = width as f32 / svg_w;
     let scale_y = height as f32 / svg_h;
@@ -199,7 +209,10 @@ fn render_png(svg_data: &str, png_path: &std::path::Path) -> Result<(), Box<dyn 
     resvg::render(&tree, transform, &mut pixmap.as_mut());
 
     pixmap.save_png(png_path)?;
-    println!("PNG written: {}", std::fs::canonicalize(png_path)?.display());
+    println!(
+        "PNG written: {}",
+        std::fs::canonicalize(png_path)?.display()
+    );
     Ok(())
 }
 
@@ -207,14 +220,25 @@ fn write_enriched_json(
     filename: &str,
     label: &str,
     nodes: &[InputNode],
-    results: &[rust_lib_mycelium::domain::relation_engine::computed::ComputedRelation],
+    results: &[rust_lib_mycelium::relation_engine::computed::ComputedRelation],
 ) {
     let out_dir = std::path::Path::new("target").join("ortho_diag");
     let path = out_dir.join(format!("{}.json", filename));
     let mut json = String::new();
 
-    let node_rects: Vec<(String, Rect)> = nodes.iter()
-        .map(|n| (n.id.to_string(), Rect { x: n.x, y: n.y, width: n.width, height: n.height }))
+    let node_rects: Vec<(String, Rect)> = nodes
+        .iter()
+        .map(|n| {
+            (
+                n.id.to_string(),
+                Rect {
+                    x: n.x,
+                    y: n.y,
+                    width: n.width,
+                    height: n.height,
+                },
+            )
+        })
         .collect();
 
     json.push_str("{\n");
@@ -226,7 +250,9 @@ fn write_enriched_json(
             "    {{\"id\":{:?},\"x\":{:.1},\"y\":{:.1},\"w\":{:.1},\"h\":{:.1},\"is_obstacle\":{}}}",
             n.id, n.x, n.y, n.width, n.height, n.is_obstacle,
         ));
-        if i < nodes.len() - 1 { json.push(','); }
+        if i < nodes.len() - 1 {
+            json.push(',');
+        }
         json.push('\n');
     }
     json.push_str("  ],\n");
@@ -235,14 +261,31 @@ fn write_enriched_json(
     for (ri, r) in results.iter().enumerate() {
         let pts = &r.path_points;
         let n = pts.len();
-        if n == 0 { continue; }
+        if n == 0 {
+            continue;
+        }
 
         let path_len = polyline_length(pts);
-        let straight_dist = if n >= 2 { pts[0].distance_to(pts[n - 1]) } else { 0.0 };
-        let ratio = if straight_dist > 1.0 { path_len / straight_dist } else { 1.0 };
-        let mut min_x = f64::MAX; let mut max_x = f64::MIN;
-        let mut min_y = f64::MAX; let mut max_y = f64::MIN;
-        for p in pts { min_x = min_x.min(p.x); max_x = max_x.max(p.x); min_y = min_y.min(p.y); max_y = max_y.max(p.y); }
+        let straight_dist = if n >= 2 {
+            pts[0].distance_to(pts[n - 1])
+        } else {
+            0.0
+        };
+        let ratio = if straight_dist > 1.0 {
+            path_len / straight_dist
+        } else {
+            1.0
+        };
+        let mut min_x = f64::MAX;
+        let mut max_x = f64::MIN;
+        let mut min_y = f64::MAX;
+        let mut max_y = f64::MIN;
+        for p in pts {
+            min_x = min_x.min(p.x);
+            max_x = max_x.max(p.x);
+            min_y = min_y.min(p.y);
+            max_y = max_y.max(p.y);
+        }
 
         let mut seg_angles = vec![0.0f64; n];
         let mut cum_len = vec![0.0f64; n];
@@ -255,7 +298,9 @@ fn write_enriched_json(
             } else if n > 1 {
                 seg_angles[i] = seg_angles[n - 2];
             }
-            if i > 0 { acc += pts[i - 1].distance_to(pts[i]); }
+            if i > 0 {
+                acc += pts[i - 1].distance_to(pts[i]);
+            }
             cum_len[i] = acc;
         }
 
@@ -272,7 +317,9 @@ fn write_enriched_json(
         for i in 1..n.saturating_sub(1) {
             let d = (seg_angles[i] - seg_angles[i - 1]).abs();
             let change = d.min(360.0 - d);
-            if change > 10.0 { sharp_turns.push((i, change)); }
+            if change > 10.0 {
+                sharp_turns.push((i, change));
+            }
         }
 
         let mut self_intersections: Vec<(usize, usize)> = Vec::new();
@@ -288,49 +335,85 @@ fn write_enriched_json(
         let overall_dy = pts[n - 1].y - pts[0].y;
         let mut backtracks: Vec<usize> = Vec::new();
         if overall_dx.abs() > 1.0 {
-            for i in 1..n { if (pts[i].x - pts[i - 1].x) * overall_dx < -1.0 { backtracks.push(i); } }
+            for i in 1..n {
+                if (pts[i].x - pts[i - 1].x) * overall_dx < -1.0 {
+                    backtracks.push(i);
+                }
+            }
         }
         if overall_dy.abs() > 1.0 {
-            for i in 1..n { if (pts[i].y - pts[i - 1].y) * overall_dy < -1.0 { backtracks.push(i); } }
+            for i in 1..n {
+                if (pts[i].y - pts[i - 1].y) * overall_dy < -1.0 {
+                    backtracks.push(i);
+                }
+            }
         }
         backtracks.sort_unstable();
         backtracks.dedup();
 
         json.push_str("    {\n");
         json.push_str(&format!("      \"id\": {:?},\n", r.id));
-        json.push_str(&format!("      \"path_type\": {:?},\n", format!("{:?}", r.path_type)));
+        json.push_str(&format!(
+            "      \"path_type\": {:?},\n",
+            format!("{:?}", r.path_type)
+        ));
         json.push_str(&format!("      \"num_points\": {},\n", n));
         json.push_str("      \"summary\": {\n");
         json.push_str(&format!("        \"path_length\": {:.3},\n", path_len));
-        json.push_str(&format!("        \"straight_distance\": {:.3},\n", straight_dist));
+        json.push_str(&format!(
+            "        \"straight_distance\": {:.3},\n",
+            straight_dist
+        ));
         json.push_str(&format!("        \"length_ratio\": {:.4},\n", ratio));
         json.push_str(&format!("        \"bbox\": {{\"min_x\":{:.1},\"min_y\":{:.1},\"max_x\":{:.1},\"max_y\":{:.1}}},\n", min_x, min_y, max_x, max_y));
         json.push_str(&format!("        \"y_deviation\": {:.1},\n", max_y - min_y));
-        json.push_str(&format!("        \"start\": {{\"x\":{:.2},\"y\":{:.2}}},\n", pts[0].x, pts[0].y));
-        json.push_str(&format!("        \"end\": {{\"x\":{:.2},\"y\":{:.2}}}\n", pts[n - 1].x, pts[n - 1].y));
+        json.push_str(&format!(
+            "        \"start\": {{\"x\":{:.2},\"y\":{:.2}}},\n",
+            pts[0].x, pts[0].y
+        ));
+        json.push_str(&format!(
+            "        \"end\": {{\"x\":{:.2},\"y\":{:.2}}}\n",
+            pts[n - 1].x,
+            pts[n - 1].y
+        ));
         json.push_str("      },\n");
 
         json.push_str("      \"points\": [\n");
         for i in 0..n {
             let mut flags = Vec::new();
-            if i == 0 { flags.push("start"); }
-            if i == n - 1 { flags.push("end"); }
-            if i < 2 || i >= n - 2 { flags.push("stub"); }
-            let inside_nodes: Vec<&String> = node_rects.iter()
+            if i == 0 {
+                flags.push("start");
+            }
+            if i == n - 1 {
+                flags.push("end");
+            }
+            if i < 2 || i >= n - 2 {
+                flags.push("stub");
+            }
+            let inside_nodes: Vec<&String> = node_rects
+                .iter()
                 .filter(|(_, rect)| rect.contains(pts[i]))
                 .map(|(id, _)| id)
                 .collect();
-            if !inside_nodes.is_empty() { flags.push("in_node"); }
+            if !inside_nodes.is_empty() {
+                flags.push("in_node");
+            }
             let seg_dx = if i > 0 { pts[i].x - pts[i - 1].x } else { 0.0 };
             let seg_dy = if i > 0 { pts[i].y - pts[i - 1].y } else { 0.0 };
-            let seg_len = if i > 0 { pts[i - 1].distance_to(pts[i]) } else { 0.0 };
+            let seg_len = if i > 0 {
+                pts[i - 1].distance_to(pts[i])
+            } else {
+                0.0
+            };
             json.push_str(&format!(
                 "        {{\"i\":{},\"x\":{:.2},\"y\":{:.2},\"dx\":{:.2},\"dy\":{:.2},\"sl\":{:.4},\"cl\":{:.3},\"ta\":{:.1},\"in\":[{}],\"fl\":[{}]}}",
                 i, pts[i].x, pts[i].y, seg_dx, seg_dy, seg_len, cum_len[i], seg_angles[i],
                 inside_nodes.iter().map(|id| format!("\"{}\"", id)).collect::<Vec<_>>().join(","),
                 flags.iter().map(|f| format!("\"{}\"", f)).collect::<Vec<_>>().join(","),
             ));
-            if i < n - 1 { json.push(','); }
+            if i < n - 1 {
+                json.push(',');
+            }
             json.push('\n');
         }
         json.push_str("      ],\n");
@@ -353,7 +436,11 @@ fn write_enriched_json(
         } else {
             for (idx, entry) in crossing_entries.iter().enumerate() {
                 json.push_str(entry);
-                if idx < crossing_entries.len() - 1 { json.push_str(",\n"); } else { json.push('\n'); }
+                if idx < crossing_entries.len() - 1 {
+                    json.push_str(",\n");
+                } else {
+                    json.push('\n');
+                }
             }
         }
         json.push_str("      ],\n");
@@ -361,19 +448,33 @@ fn write_enriched_json(
         json.push_str("      \"anomalies\": {\n");
         json.push_str(&format!(
             "        \"sharp_turns\": [{}],\n",
-            sharp_turns.iter().map(|(i, a)| format!("{{\"pt\":{},\"angle_deg\":{:.1}}}", i, a)).collect::<Vec<_>>().join(",")
+            sharp_turns
+                .iter()
+                .map(|(i, a)| format!("{{\"pt\":{},\"angle_deg\":{:.1}}}", i, a))
+                .collect::<Vec<_>>()
+                .join(",")
         ));
         json.push_str(&format!(
             "        \"self_intersections\": [{}],\n",
-            self_intersections.iter().map(|(i, j)| format!("{{\"seg_a\":{},\"seg_b\":{}}}", i, j)).collect::<Vec<_>>().join(",")
+            self_intersections
+                .iter()
+                .map(|(i, j)| format!("{{\"seg_a\":{},\"seg_b\":{}}}", i, j))
+                .collect::<Vec<_>>()
+                .join(",")
         ));
         json.push_str(&format!(
             "        \"backtracks\": [{}]\n",
-            backtracks.iter().map(|i| format!("{}", i)).collect::<Vec<_>>().join(",")
+            backtracks
+                .iter()
+                .map(|i| format!("{}", i))
+                .collect::<Vec<_>>()
+                .join(",")
         ));
         json.push_str("      }\n");
         json.push_str("    }");
-        if ri < results.len() - 1 { json.push(','); }
+        if ri < results.len() - 1 {
+            json.push(',');
+        }
         json.push('\n');
     }
     json.push_str("  ]\n");
@@ -381,23 +482,39 @@ fn write_enriched_json(
 
     let mut f = std::fs::File::create(&path).unwrap();
     f.write_all(json.as_bytes()).unwrap();
-    println!("JSON written: {}", std::fs::canonicalize(&path).unwrap().display());
+    println!(
+        "JSON written: {}",
+        std::fs::canonicalize(&path).unwrap().display()
+    );
 }
 
 fn print_log(
     label: &str,
-    results: &[rust_lib_mycelium::domain::relation_engine::computed::ComputedRelation],
+    results: &[rust_lib_mycelium::relation_engine::computed::ComputedRelation],
 ) {
     println!("\n============================================================");
     println!("SCENARIO: {}", label);
     println!("============================================================");
     for r in results {
         let pts = &r.path_points;
-        println!("  Relation: {}  path_type: {:?}  points: {}", r.id, r.path_type, pts.len());
+        println!(
+            "  Relation: {}  path_type: {:?}  points: {}",
+            r.id,
+            r.path_type,
+            pts.len()
+        );
         let mut min_y = f64::MAX;
         let mut max_y = f64::MIN;
-        for p in pts { min_y = min_y.min(p.y); max_y = max_y.max(p.y); }
-        println!("  y_range: [{:.1}, {:.1}]  deviation: {:.1}", min_y, max_y, max_y - min_y);
+        for p in pts {
+            min_y = min_y.min(p.y);
+            max_y = max_y.max(p.y);
+        }
+        println!(
+            "  y_range: [{:.1}, {:.1}]  deviation: {:.1}",
+            min_y,
+            max_y,
+            max_y - min_y
+        );
         for (i, p) in pts.iter().enumerate() {
             println!("    [{:3}] ({:8.2}, {:8.2})", i, p.x, p.y);
         }
@@ -441,7 +558,13 @@ fn ortho_vertical_stacked() {
         node("a", 100.0, 50.0, 120.0, 80.0),
         node("b", 100.0, 250.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::Bottom, PortSide::Top)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::Bottom,
+        PortSide::Top,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -455,7 +578,13 @@ fn ortho_top_to_top() {
         node("a", 100.0, 300.0, 120.0, 80.0),
         node("b", 400.0, 300.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::Top, PortSide::Top)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::Top,
+        PortSide::Top,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -469,7 +598,13 @@ fn ortho_bottom_to_bottom() {
         node("a", 100.0, 200.0, 120.0, 80.0),
         node("b", 400.0, 200.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::Bottom, PortSide::Bottom)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::Bottom,
+        PortSide::Bottom,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -483,7 +618,13 @@ fn ortho_left_to_right_facing_away() {
         node("a", 100.0, 200.0, 120.0, 80.0),
         node("b", 400.0, 200.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::Left, PortSide::Right)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::Left,
+        PortSide::Right,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -499,7 +640,13 @@ fn ortho_right_to_right_loop() {
         node("a", 100.0, 200.0, 120.0, 80.0),
         node("b", 400.0, 200.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::Right, PortSide::Right)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::Right,
+        PortSide::Right,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -513,7 +660,13 @@ fn ortho_left_to_left_loop() {
         node("a", 100.0, 200.0, 120.0, 80.0),
         node("b", 400.0, 200.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::Left, PortSide::Left)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::Left,
+        PortSide::Left,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -529,7 +682,13 @@ fn ortho_top_to_bottom_facing() {
         node("a", 100.0, 100.0, 120.0, 80.0),
         node("b", 100.0, 300.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::Top, PortSide::Bottom)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::Top,
+        PortSide::Bottom,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -543,7 +702,13 @@ fn ortho_left_to_bottom_cross() {
         node("a", 100.0, 100.0, 120.0, 80.0),
         node("b", 350.0, 240.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::Left, PortSide::Bottom)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::Left,
+        PortSide::Bottom,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -557,7 +722,13 @@ fn ortho_top_to_left_cross() {
         node("a", 100.0, 100.0, 120.0, 80.0),
         node("b", 350.0, 240.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::Top, PortSide::Left)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::Top,
+        PortSide::Left,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -571,7 +742,13 @@ fn ortho_right_to_top_cross() {
         node("a", 100.0, 200.0, 120.0, 80.0),
         node("b", 300.0, 100.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::Right, PortSide::Top)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::Right,
+        PortSide::Top,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -603,7 +780,13 @@ fn ortho_obstacle_offset_high() {
         node("obs", 350.0, 110.0, 100.0, 60.0),
         node("b", 600.0, 200.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::Right, PortSide::Left)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::Right,
+        PortSide::Left,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -649,7 +832,13 @@ fn ortho_wide_obstacle_detour() {
         node("obs", 280.0, 80.0, 300.0, 240.0),
         node("b", 700.0, 200.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::Right, PortSide::Left)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::Right,
+        PortSide::Left,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -664,7 +853,13 @@ fn ortho_tall_obstacle_vertical() {
         node("obs", 60.0, 190.0, 100.0, 200.0),
         node("b", 50.0, 480.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::Bottom, PortSide::Top)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::Bottom,
+        PortSide::Top,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -679,7 +874,13 @@ fn ortho_right_to_right_obstacle() {
         node("obs", 280.0, 150.0, 50.0, 160.0),
         node("b", 450.0, 200.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::Right, PortSide::Right)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::Right,
+        PortSide::Right,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -694,7 +895,13 @@ fn ortho_left_to_left_obstacle() {
         node("obs", 200.0, 360.0, 300.0, 50.0),
         node("b", 600.0, 200.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::Left, PortSide::Left)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::Left,
+        PortSide::Left,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -710,7 +917,13 @@ fn ortho_corner_top_left_to_bottom_right() {
         node("a", 100.0, 100.0, 120.0, 80.0),
         node("b", 350.0, 250.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::TopLeft, PortSide::BottomRight)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::TopLeft,
+        PortSide::BottomRight,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -724,7 +937,13 @@ fn ortho_corner_top_right_to_bottom_left() {
         node("a", 100.0, 100.0, 120.0, 80.0),
         node("b", 350.0, 250.0, 120.0, 80.0),
     ];
-    let edges = vec![ortho_edge_ports("e1", "a", "b", PortSide::TopRight, PortSide::BottomLeft)];
+    let edges = vec![ortho_edge_ports(
+        "e1",
+        "a",
+        "b",
+        PortSide::TopRight,
+        PortSide::BottomLeft,
+    )];
     let config = RelationEngineConfig::default();
     let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
     print_log(label, &results);
@@ -785,9 +1004,19 @@ fn generate_layout(seed: u64) -> RandLayout {
         for _ in 0..max_attempts {
             let x = rng.random_range(40.0..900.0);
             let y = rng.random_range(40.0..500.0);
-            let candidate = Rect { x, y, width: w, height: h };
+            let candidate = Rect {
+                x,
+                y,
+                width: w,
+                height: h,
+            };
             let overlaps = nodes.iter().any(|n: &InputNode| {
-                let r = Rect { x: n.x, y: n.y, width: n.width, height: n.height };
+                let r = Rect {
+                    x: n.x,
+                    y: n.y,
+                    width: n.width,
+                    height: n.height,
+                };
                 let margin = 20.0;
                 candidate.x < r.x + r.width + margin
                     && candidate.x + candidate.width + margin > r.x
@@ -795,7 +1024,14 @@ fn generate_layout(seed: u64) -> RandLayout {
                     && candidate.y + candidate.height + margin > r.y
             });
             if !overlaps {
-                nodes.push(InputNode { id: tid(TableKind::INode, &id), x, y, width: w, height: h, is_obstacle: is_obs });
+                nodes.push(InputNode {
+                    id: tid(TableKind::INode, &id),
+                    x,
+                    y,
+                    width: w,
+                    height: h,
+                    is_obstacle: is_obs,
+                });
                 node_ids.push(id.clone());
                 placed = true;
                 break;
@@ -804,18 +1040,42 @@ fn generate_layout(seed: u64) -> RandLayout {
         if !placed {
             let fx = 50.0 + (i as f64 * 130.0);
             let fy = 50.0 + (i as f64 * 80.0) % 400.0;
-            nodes.push(InputNode { id: tid(TableKind::INode, &id), x: fx, y: fy, width: w, height: h, is_obstacle: is_obs });
+            nodes.push(InputNode {
+                id: tid(TableKind::INode, &id),
+                x: fx,
+                y: fy,
+                width: w,
+                height: h,
+                is_obstacle: is_obs,
+            });
             node_ids.push(id);
         }
     }
 
     let valid: Vec<usize> = (0..count).filter(|&i| !nodes[i].is_obstacle).collect();
     let from = if valid.len() >= 2 { valid[0] } else { 0 };
-    let to = if valid.len() >= 2 { valid[1] } else { count.saturating_sub(1) };
+    let to = if valid.len() >= 2 {
+        valid[1]
+    } else {
+        count.saturating_sub(1)
+    };
 
-    let sides = [PortSide::Top, PortSide::Right, PortSide::Bottom, PortSide::Left];
-    let fs = if rng.random_bool(0.6) { Some(sides[rng.random_range(0..4)].clone()) } else { None };
-    let ts = if rng.random_bool(0.6) { Some(sides[rng.random_range(0..4)].clone()) } else { None };
+    let sides = [
+        PortSide::Top,
+        PortSide::Right,
+        PortSide::Bottom,
+        PortSide::Left,
+    ];
+    let fs = if rng.random_bool(0.6) {
+        Some(sides[rng.random_range(0..4)].clone())
+    } else {
+        None
+    };
+    let ts = if rng.random_bool(0.6) {
+        Some(sides[rng.random_range(0..4)].clone())
+    } else {
+        None
+    };
 
     let edge = InputEdge {
         id: tid(TableKind::IRelation, "e1"),
@@ -832,7 +1092,11 @@ fn generate_layout(seed: u64) -> RandLayout {
         "Random ortho seed={} ({} nodes, {}→{}, ports={:?}→{:?})",
         seed, count, node_ids[from], node_ids[to], fs, ts
     );
-    RandLayout { label, nodes, edges: vec![edge] }
+    RandLayout {
+        label,
+        nodes,
+        edges: vec![edge],
+    }
 }
 
 macro_rules! ortho_random_test {
@@ -843,7 +1107,12 @@ macro_rules! ortho_random_test {
             let config = RelationEngineConfig::default();
             let results = RelationEngine::compute_relations(&rl.nodes, &rl.edges, &config, None);
             print_log(&rl.label, &results);
-            render_svg(&format!("{}_random_ortho", $seed), &rl.label, &rl.nodes, &results);
+            render_svg(
+                &format!("{}_random_ortho", $seed),
+                &rl.label,
+                &rl.nodes,
+                &results,
+            );
         }
     };
 }

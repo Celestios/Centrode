@@ -1,12 +1,9 @@
 use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::IsNode;
 use crate::domain::patches::{
-    EntityPatch, NodePatch, RelationPatch, SymmetricEntityPatch, TagOperation,
+    EntityPatch, NodePatch, RelationPatch, TagOperation,
 };
-use crate::domain::relations::IRelation;
-use crate::domain::tags::Tag;
 use crate::domain::traits::SurrealDbEnum;
-use crate::persistence::history::{HistoryManager, HistoryRecord};
 use crate::persistence::repo::Repository;
 
 use anyhow::Result;
@@ -171,8 +168,8 @@ impl Repository {
                 self.db
                     .query("UPDATE $id SET layout.from_side = $fs, layout.to_side = $ts")
                     .bind(("id", id))
-                    .bind(("fs", from_side.map(|s| Value::String(s.to_surreal_str().to_string())).unwrap_or(Value::None)))
-                    .bind(("ts", to_side.map(|s| Value::String(s.to_surreal_str().to_string())).unwrap_or(Value::None)))
+                    .bind(("fs", from_side.map(|s| s.into_value()).unwrap_or(Value::None)))
+                    .bind(("ts", to_side.map(|s| s.into_value()).unwrap_or(Value::None)))
                     .await?;
                 return Ok(());
             }
@@ -182,24 +179,6 @@ impl Repository {
             .query(query_str)
             .bind(("id", id))
             .bind(("val", bind_val))
-            .await?;
-        Ok(())
-    }
-
-    pub async fn record_patch_history(
-        &self,
-        id: TypedRecordId,
-        forward: EntityPatch,
-        reverse: EntityPatch,
-    ) -> Result<()> {
-        let history_manager = HistoryManager::new(&self.db, 100);
-        let history_payload = SymmetricEntityPatch {
-            id,
-            forward,
-            reverse,
-        };
-        history_manager
-            .push_event("entity_patch", history_payload.into_value())
             .await?;
         Ok(())
     }
@@ -220,33 +199,5 @@ impl Repository {
             _ => false,
         };
         Ok(has_position_change)
-    }
-
-    pub async fn undo_count(&self) -> Result<u32> {
-        let mut response = self
-            .db
-            .query("SELECT VALUE count() FROM History WHERE status = 'applied' GROUP ALL")
-            .await?;
-        let count: Vec<i64> = response.take(0)?;
-        Ok(count.first().copied().unwrap_or(0) as u32)
-    }
-
-    pub async fn redo_count(&self) -> Result<u32> {
-        let mut response = self
-            .db
-            .query("SELECT VALUE count() FROM History WHERE status = 'undone' GROUP ALL")
-            .await?;
-        let count: Vec<i64> = response.take(0)?;
-        Ok(count.first().copied().unwrap_or(0) as u32)
-    }
-
-    pub async fn undo_event(&self) -> Result<Option<HistoryRecord>> {
-        let history_manager = HistoryManager::new(&self.db, 100);
-        history_manager.undo().await
-    }
-
-    pub async fn redo_event(&self) -> Result<Option<HistoryRecord>> {
-        let history_manager = HistoryManager::new(&self.db, 100);
-        history_manager.redo().await
     }
 }

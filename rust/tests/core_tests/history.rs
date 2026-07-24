@@ -78,7 +78,7 @@ async fn test_history_manager() {
     // Check threshold pruning (max 3 applied events should remain)
     let mut count_response = repo
         .db()
-        .query("SELECT VALUE count() FROM History WHERE status = 'applied' GROUP ALL")
+        .query("SELECT VALUE count() FROM History WHERE status = 0 GROUP ALL")
         .await
         .unwrap();
     let count_vec: Vec<i64> = count_response.take(0).unwrap();
@@ -97,7 +97,7 @@ async fn test_history_manager() {
     // Verify non-zero undone count query returns successfully
     let mut undone_count_response = repo
         .db()
-        .query("SELECT VALUE count() FROM History WHERE status = 'undone' GROUP ALL")
+        .query("SELECT VALUE count() FROM History WHERE status = 1 GROUP ALL")
         .await
         .unwrap();
     let undone_count_vec: Vec<i64> = undone_count_response.take(0).unwrap();
@@ -130,7 +130,7 @@ async fn test_history_manager() {
 
     let mut undone_query = repo
         .db()
-        .query("SELECT VALUE count() FROM History WHERE status = 'undone' GROUP ALL")
+        .query("SELECT VALUE count() FROM History WHERE status = 1 GROUP ALL")
         .await
         .unwrap();
     let undone_count_vec: Vec<i64> = undone_query.take(0).unwrap();
