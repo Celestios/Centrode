@@ -1,4 +1,4 @@
-import 'package:mycelium/src/rust/domain/styles.dart'; // NodeStyle
+import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape; // NodeStyle
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/engine/config.dart';

@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
-import 'package:mycelium/src/rust/domain/enums.dart';
 
 class RelationPaintDto {
   final String id;

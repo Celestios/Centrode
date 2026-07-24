@@ -6,8 +6,6 @@ import 'graph_data_query.dart';
 import 'modules/graph_store.dart';
 import 'modules/graph_spatial.dart';
 import 'graph_api.dart';
-import 'package:mycelium/src/rust/domain/nodes.dart';
-import 'package:mycelium/src/rust/domain/entity.dart';
 
 class GraphDataQueryController implements GraphDataQuery {
   final GraphStore store = GraphStore();

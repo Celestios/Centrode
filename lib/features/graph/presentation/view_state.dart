@@ -6,7 +6,6 @@ import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/models/port.dart';
 import 'package:mycelium/features/graph/presentation/node_ports.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
-import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/features/graph/engine/volatile_node_state.dart';
 import 'package:mycelium/features/graph/presentation/view_state_geometry.dart';
 
@@ -24,10 +23,12 @@ class NodeViewState implements VolatileNodeState {
 
   final Logger _log = Logger('NodeViewState');
 
-  static ({Size size, int lineCount}) Function(UiNode, {bool isEditing}) _sizeComputer =
-      NodeLayoutStrategy.calculateSize;
+  static ({Size size, int lineCount}) Function(UiNode, {bool isEditing})
+  _sizeComputer = NodeLayoutStrategy.calculateSize;
 
-  static void setSizeComputer(({Size size, int lineCount}) Function(UiNode, {bool isEditing}) computer) {
+  static void setSizeComputer(
+    ({Size size, int lineCount}) Function(UiNode, {bool isEditing}) computer,
+  ) {
     _sizeComputer = computer;
   }
 
@@ -143,15 +144,24 @@ class NodeViewState implements VolatileNodeState {
 
   Offset getPortPosition(PortSide side) {
     switch (side) {
-      case PortSide.top:     return topPort;
-      case PortSide.bottom:  return bottomPort;
-      case PortSide.left:    return leftPort;
-      case PortSide.right:   return rightPort;
-      case PortSide.topLeft:     return topLeftPort;
-      case PortSide.topRight:    return topRightPort;
-      case PortSide.bottomLeft:  return bottomLeftPort;
-      case PortSide.bottomRight: return bottomRightPort;
-      case PortSide.auto:    return rightPort;
+      case PortSide.top:
+        return topPort;
+      case PortSide.bottom:
+        return bottomPort;
+      case PortSide.left:
+        return leftPort;
+      case PortSide.right:
+        return rightPort;
+      case PortSide.topLeft:
+        return topLeftPort;
+      case PortSide.topRight:
+        return topRightPort;
+      case PortSide.bottomLeft:
+        return bottomLeftPort;
+      case PortSide.bottomRight:
+        return bottomRightPort;
+      case PortSide.auto:
+        return rightPort;
     }
   }
 
@@ -196,7 +206,12 @@ class NodeViewState implements VolatileNodeState {
 
   /// Finds the closest pair of ports between two nodes (from and to).
   /// Returns a record containing the start port side/position and the end port side/position.
-  static ({PortSide startSide, Offset startPos, PortSide endSide, Offset endPos})
+  static ({
+    PortSide startSide,
+    Offset startPos,
+    PortSide endSide,
+    Offset endPos,
+  })
   getClosestPortsBetween(NodeViewState fromVs, NodeViewState toVs) {
     double bestDist = double.infinity;
     PortSide bestStartSide = PortSide.right;
@@ -243,14 +258,14 @@ class NodeViewState implements VolatileNodeState {
   }
 
   Rect getExpandToggleHitbox(UiNode node) {
-    return _cachedExpandToggleHitbox ??= NodeHitboxCalculator.expandToggleHitbox(
-      positionNotifier.value,
-      sizeNotifier.value,
-      node,
-      isExpandedNotifier.value,
-    );
+    return _cachedExpandToggleHitbox ??=
+        NodeHitboxCalculator.expandToggleHitbox(
+          positionNotifier.value,
+          sizeNotifier.value,
+          node,
+          isExpandedNotifier.value,
+        );
   }
-
 
   void updatePosition(Offset delta) {
     positionNotifier.value += delta;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/src/rust/domain/enums.dart';
+import 'package:mycelium/src/rust/domain/nodes.dart';
 import 'package:mycelium/features/graph/presentation/style_manager.dart';
 import 'package:mycelium/features/graph/store/modules/graph_store.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';

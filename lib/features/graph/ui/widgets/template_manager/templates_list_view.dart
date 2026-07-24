@@ -3,9 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../store/command_queue_processor.dart';
 import '../../../presentation/viewport_state.dart';
 import '../../../models/models.dart';
-import '../../../../../src/rust/domain/nodes.dart';
-import '../../../../../src/rust/domain/entity.dart';
-import '../../../../../src/rust/domain/relations.dart';
 import 'package:mycelium/presentation/widgets/search/searchable_sort_list_header.dart';
 import 'template_preview_painter.dart';
 import 'delete_template_dialog.dart';
@@ -74,7 +71,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
           );
         }
 
-        final allTemplates = snapshot.data ?? [];
+        final allTemplates = (snapshot.data ?? []).whereType<Template>().toList();
 
         // Apply search query filter
         var filteredTemplates = allTemplates;
@@ -167,7 +164,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                     final nodeCount = template.nodes.length;
                     final relationCount = template.relations.length;
 
-                    final isHovered = _hoveredTemplateKey == template.key;
+                    final isHovered = _hoveredTemplateKey == template.key.key.uuid;
 
                     // Create the tile widget
                     final tileChild = Container(

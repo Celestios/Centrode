@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mycelium/shared/logging.dart';
 import 'package:mycelium/shared/traceable_notifier.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
+import 'package:mycelium/src/rust/domain/types.dart' as frb;
 import 'package:mycelium/src/rust/domain/theme.dart' as frb;
 import '../store/graph_api.dart';
 
@@ -20,7 +21,7 @@ class ThemeController extends ChangeNotifier with TraceableNotifier {
     final activeId = await _appHandle.getActiveThemeId();
 
     if (activeId != null) {
-      final frb.Theme? saved = await _appHandle.getTheme(key: activeId);
+      final frb.MapTheme? saved = await _appHandle.getTheme(key: activeId);
       if (saved != null) {
         final loaded = GraphTheme.fromRust(saved);
         _currentGraphTheme = loaded;
@@ -42,7 +43,7 @@ class ThemeController extends ChangeNotifier with TraceableNotifier {
 
 
   Future<void> selectTheme(String themeId) async {
-    final frb.Theme? rustTheme = await _appHandle.getTheme(key: themeId);
+    final frb.MapTheme? rustTheme = await _appHandle.getTheme(key: themeId);
     if (rustTheme != null) {
       _currentGraphTheme = GraphTheme.fromRust(rustTheme);
       await _appHandle.setActiveThemeId(themeId: themeId);

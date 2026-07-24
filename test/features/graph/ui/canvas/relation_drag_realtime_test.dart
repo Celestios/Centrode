@@ -17,12 +17,11 @@ import 'package:mycelium/features/graph/store/spatial_index.dart';
 import 'package:mycelium/features/graph/store/relation_engine_state.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
-import 'package:mycelium/src/rust/domain/enums.dart';
 import 'dart:typed_data';
-import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
-import 'package:mycelium/src/rust/domain/relation_engine/config.dart';
-import 'package:mycelium/src/rust/domain/relation_engine/geometry.dart' as rust_geom;
-import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/src/rust/relation_engine/computed.dart';
+import 'package:mycelium/src/rust/relation_engine/config.dart';
+import 'package:mycelium/src/rust/relation_engine/geometry.dart' as rust_geom;
+import 'package:mycelium/features/graph/models/commands/patch_helpers.dart';
 
 class MockGraphDataQueryController extends Mock implements GraphDataQueryController {}
 
@@ -36,9 +35,9 @@ class MockSpatialHashGrid extends Mock implements SpatialHashGrid {}
 
 class MockInteractionController extends Mock implements InteractionController {}
 
-ComputedRelation createTestComputedRelation(String id, List<rust_geom.Point> pathPoints) {
+ComputedRelation createTestComputedRelation(String idStr, List<rust_geom.Point> pathPoints) {
   return ComputedRelation(
-    id: id,
+    id: parseTypedRecordId('IRelation', idStr),
     pathPoints: pathPoints,
     pathType: PathType.straight,
     startTangent: const rust_geom.Point(x: 0, y: 0),

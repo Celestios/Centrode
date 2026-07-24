@@ -270,7 +270,7 @@ class NodeWidget extends StatelessWidget {
               ),
             ),
             child: Text(
-              (liveNode as TaskUiNode).state.name,
+              liveNode.state.name,
               style: TextStyle(
                 fontSize: scaledBadgeFontSize,
                 fontWeight: FontWeight.bold,

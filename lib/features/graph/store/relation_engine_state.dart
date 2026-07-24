@@ -2,9 +2,10 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:mycelium/shared/logging.dart';
 import 'graph_api.dart';
-import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
-import 'package:mycelium/src/rust/domain/relation_engine/config.dart';
+import 'package:mycelium/src/rust/relation_engine/computed.dart';
+import 'package:mycelium/src/rust/relation_engine/config.dart';
 import 'package:mycelium/features/graph/models/models.dart';
+import 'package:mycelium/features/graph/models/commands/patch_helpers.dart';
 import 'invalidation_tracker.dart';
 
 class RelationEngineState {
@@ -102,17 +103,6 @@ class RelationEngineState {
 
     try {
       final computed = await recompute(dirtyIds: dirtyIds);
-      for (final rel in computed) {
-        print('=== [DART-FFI] ComputedRelation: ${rel.id} ===');
-        print('  pathPoints (${rel.pathPoints.length}):');
-        for (var i = 0; i < rel.pathPoints.length; i++) {
-          final p = rel.pathPoints[i];
-          print('    [$i] (${p.x.toStringAsFixed(1)}, ${p.y.toStringAsFixed(1)})');
-        }
-        print('  startPoint: (${rel.startPoint.x.toStringAsFixed(1)}, ${rel.startPoint.y.toStringAsFixed(1)})');
-        print('  endPoint: (${rel.endPoint.x.toStringAsFixed(1)}, ${rel.endPoint.y.toStringAsFixed(1)})');
-        print('');
-      }
       _tracker.updateCache(computed);
       cacheNotifier.value++;
     } catch (e) {
@@ -122,9 +112,12 @@ class RelationEngineState {
 
   Future<List<ComputedRelation>> recompute({List<String>? dirtyIds}) async {
     try {
+      final typedIds = dirtyIds
+          ?.map((id) => parseTypedRecordId('IRelation', id))
+          .toList();
       final result = await _api.computeRelations(
         config: _config,
-        relationIds: dirtyIds,
+        relationIds: typedIds,
       );
       return result;
     } catch (e) {

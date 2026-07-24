@@ -1,4 +1,4 @@
-import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
 
 class NodeVisualConstants {
   NodeVisualConstants._();

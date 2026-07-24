@@ -1,6 +1,5 @@
 import 'dart:ui' show Offset;
 import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/domain/id.dart';
 import '../../models/commands/patch_helpers.dart';
 import '../../models/models.dart';
 import '../../models/commands/save_template.dart';
@@ -67,7 +66,7 @@ class GraphTemplateMutations {
     _log.info('deleteTemplate key=$key');
     final api = controller.syncEngine.api;
     final templates = await getAllTemplates();
-    final template = templates.firstWhere((t) => t.key == key);
+    final template = templates.firstWhere((t) => t.key.key.uuid == key);
     final cmd = DeleteTemplateCommand(
       targetId: key,
       api: api,

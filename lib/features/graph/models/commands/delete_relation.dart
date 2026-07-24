@@ -4,6 +4,7 @@ import '../graph_relation.dart';
 import '../../store/graph_api.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+import 'patch_helpers.dart';
 
 final Logger _log = Logger('DeleteRelationCommand');
 
@@ -29,7 +30,7 @@ class DeleteRelationCommand extends GraphCommand {
   @override
   Future<void> execute() async {
     _log.info('execute DeleteRelation key=$targetId table=$tableName');
-    await api.deleteRelation(table: tableName, key: targetId);
+    await api.deleteRelation(id: parseTypedRecordId(tableName, targetId));
   }
 
   @override

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:mycelium/features/graph/engine/config.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:mycelium/src/rust/domain/contents.dart';
 import 'node_style_strategy.dart';
 import 'node_text_span_builder.dart';

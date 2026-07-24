@@ -6,12 +6,8 @@ import 'package:mycelium/features/graph/store/command_queue_processor.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
 import 'package:mycelium/features/graph/store/graph_api.dart';
 import 'package:mycelium/features/graph/models/commands/graph_command_context.dart';
-import 'package:mycelium/src/rust/domain/relations.dart';
-import 'package:mycelium/src/rust/domain/nodes.dart';
-import 'package:mycelium/src/rust/domain/entity.dart';
-import 'package:mycelium/src/rust/domain/id.dart';
 import 'package:mycelium/features/graph/models/commands/patch_helpers.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
+import 'package:mycelium/src/rust/domain/base_models.dart';
 import 'package:mycelium/src/rust/domain/snapshot.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/presentation/theme/graph_theme.dart';
@@ -37,8 +33,8 @@ void main() {
           id: parseTypedRecordId('INode', 'dummy'),
           content: ContentFactory.empty(),
           layer: 'default',
-          position: const frb.Coordinates(x: 0, y: 0),
-          size: const frb.Size(width: 10, height: 10),
+          position: const Coordinates(x: 0, y: 0),
+          size: const Size(width: 10, height: 10),
           expandable: false,
           isExpanded: false,
           locked: false,
@@ -101,26 +97,25 @@ void main() {
       ).thenAnswer((_) async {});
       when(
         () => mockApi.deleteRelation(
-          table: any(named: 'table'),
-          key: any(named: 'key'),
+          id: any(named: 'id'),
         ),
       ).thenAnswer((_) async {});
       when(
         () => mockApi.createGraphStream(),
       ).thenAnswer((_) => const Stream.empty());
       when(() => mockApi.getGraphSnapshot()).thenAnswer(
-        (_) async => const GraphSnapshot(
+        (_) async => GraphSnapshot(
           nodes: [],
           relations: [],
-          metadata: frb.MapData(
+          metadata: MapData(
             mapName: '',
-            viewportState: frb.ViewportState(
+            viewportState: ViewportState(
               xOffset: 0,
               yOffset: 0,
               zoomLevel: 1,
               activeView: '',
             ),
-            displayMode: frb.DisplayMode.importance,
+            displayMode: DisplayMode.importance,
           ),
         ),
       );

@@ -3,6 +3,7 @@ import '../../store/graph_api.dart';
 import '../../store/graph_data_query.dart';
 import '../models.dart';
 import 'graph_command_context.dart';
+import 'patch_helpers.dart';
 
 final Logger _log = Logger('DeleteNodeCommand');
 
@@ -30,7 +31,7 @@ class DeleteNodeCommand extends GraphCommand {
   @override
   Future<void> execute() async {
     _log.info('execute DeleteNode key=$targetId table=$tableName');
-    await api.deleteNodeEntry(table: tableName, key: targetId);
+    await api.deleteNodeEntry(id: parseTypedRecordId(tableName, targetId));
   }
 
   @override

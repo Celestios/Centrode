@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
-import 'package:mycelium/src/rust/domain/enums.dart';
 import 'relation_painter_dto.dart';
 import '../../../engine/config.dart';
 

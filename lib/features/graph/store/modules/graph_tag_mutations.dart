@@ -136,7 +136,7 @@ class GraphTagMutations {
   Future<void> deleteTag(String tagKey) async {
     final api = controller.syncEngine.api;
     final tags = await getAllTags();
-    final tag = tags.firstWhere((t) => t.key == tagKey);
+    final tag = tags.firstWhere((t) => t.key.key.uuid == tagKey);
     final cmd = DeleteTagCommand(
       targetId: tagKey,
       api: api,
@@ -148,7 +148,7 @@ class GraphTagMutations {
     for (final node in controller.store.nodeLookup.values) {
       if (node is InfoUiNode) {
         final originalCount = node.tags.length;
-        final updatedTags = node.tags.where((t) => t.key != tagKey).toList();
+        final updatedTags = node.tags.where((t) => t.key.key.uuid != tagKey).toList();
         if (updatedTags.length != originalCount) {
           node.tags = updatedTags;
           controller.publishUpdate(
@@ -185,7 +185,7 @@ class GraphTagMutations {
   void removeTagFromNode(String nodeId, String tagKey) {
     final node = controller.store.nodeLookup[nodeId];
     if (node is InfoUiNode) {
-      final updatedTags = node.tags.where((t) => t.key != tagKey).toList();
+      final updatedTags = node.tags.where((t) => t.key.key.uuid != tagKey).toList();
       updateNodeTags(nodeId, updatedTags);
     }
   }

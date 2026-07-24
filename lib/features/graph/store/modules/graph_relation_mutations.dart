@@ -1,5 +1,5 @@
 import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
 import '../../models/commands.dart';
 import '../../models/graph_relation.dart';
 import '../command_queue_processor.dart';

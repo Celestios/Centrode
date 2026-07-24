@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../../models/graph_node.dart';
 import '../../../store/graph_data_query_controller.dart';
 import '../../../store/command_queue_processor.dart';
+import '../../../../../src/rust/domain/types.dart';
 import '../../../../../src/rust/domain/tags.dart';
 import 'package:mycelium/presentation/widgets/search/searchable_sort_list_header.dart';
 import 'delete_tag_dialog.dart';
@@ -75,7 +76,7 @@ class _TagsListViewState extends State<TagsListView> {
     int count = 0;
     for (final node in controller.nodeLookup.values) {
       if (node is InfoUiNode) {
-        if (node.tags.any((t) => t.key == tagKey)) {
+        if (node.tags.any((t) => t.key.key.uuid == tagKey)) {
           count++;
         }
       }
@@ -296,7 +297,7 @@ class _TagsListViewState extends State<TagsListView> {
           );
         }
 
-        final allTags = snapshot.data ?? [];
+        final allTags = (snapshot.data ?? []).whereType<Tag>().toList();
 
         // Apply search query filter
         var filteredTags = allTags;

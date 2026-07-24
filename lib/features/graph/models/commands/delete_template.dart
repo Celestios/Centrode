@@ -1,5 +1,5 @@
 import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/domain/templates.dart';
+import 'package:mycelium/src/rust/domain/types.dart';
 import '../../store/graph_api.dart';
 import 'base.dart';
 import 'graph_command_context.dart';

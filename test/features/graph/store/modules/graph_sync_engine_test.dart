@@ -9,11 +9,8 @@ import 'package:mycelium/features/graph/presentation/style_manager.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/features/graph/store/graph_api.dart';
-import 'package:mycelium/src/rust/domain/nodes.dart';
-import 'package:mycelium/src/rust/domain/entity.dart';
-import 'package:mycelium/src/rust/domain/id.dart';
 import 'package:mycelium/features/graph/models/commands/patch_helpers.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
+import 'package:mycelium/src/rust/domain/base_models.dart' as frb_base;
 import 'package:mycelium/src/rust/domain/snapshot.dart';
 
 import 'package:mycelium/presentation/theme/graph_theme.dart';
@@ -42,15 +39,15 @@ void main() {
         (_) async => GraphSnapshot(
           nodes: [],
           relations: [],
-          metadata: const frb.MapData(
+          metadata: const MapData(
             mapName: '',
-            viewportState: const frb.ViewportState(
+            viewportState: frb_base.ViewportState(
               xOffset: 0,
               yOffset: 0,
               zoomLevel: 1,
               activeView: '',
             ),
-            displayMode: frb.DisplayMode.importance,
+            displayMode: frb_base.DisplayMode.importance,
           ),
         ),
       );
@@ -73,15 +70,15 @@ void main() {
         (_) async => GraphSnapshot(
           nodes: [],
           relations: [],
-          metadata: const frb.MapData(
+          metadata: MapData(
             mapName: '',
-            viewportState: const frb.ViewportState(
+            viewportState: frb_base.ViewportState(
               xOffset: 0,
               yOffset: 0,
               zoomLevel: 1,
               activeView: '',
             ),
-            displayMode: frb.DisplayMode.importance,
+            displayMode: frb_base.DisplayMode.importance,
           ),
         ),
       );
@@ -116,8 +113,8 @@ void main() {
           ],
         ),
         layer: 'default',
-        position: const frb.Coordinates(x: 100, y: 100),
-        size: const frb.Size(width: 100, height: 80),
+        position: const frb_base.Coordinates(x: 100, y: 100),
+        size: const frb_base.Size(width: 100, height: 80),
         expandable: false,
         isExpanded: false,
         locked: false,
@@ -137,15 +134,15 @@ void main() {
         (_) async => GraphSnapshot(
           nodes: [Nodes.iNode(rawNode)],
           relations: const [],
-          metadata: const frb.MapData(
+          metadata: MapData(
             mapName: '',
-            viewportState: const frb.ViewportState(
+            viewportState: frb_base.ViewportState(
               xOffset: 0,
               yOffset: 0,
               zoomLevel: 1,
               activeView: '',
             ),
-            displayMode: frb.DisplayMode.importance,
+            displayMode: frb_base.DisplayMode.importance,
           ),
         ),
       );

@@ -12,10 +12,10 @@ class UiNodeGenerator extends Generator {
       return '';
     }
 
-    // Resolve the FFI nodes.dart library
-    final ffiAssetId = AssetId('mycelium', 'lib/src/rust/domain/nodes.dart');
+    // Resolve the FFI types.dart library
+    final ffiAssetId = AssetId('mycelium', 'lib/src/rust/domain/types.dart');
     if (!await buildStep.canRead(ffiAssetId)) {
-      log.warning("Could not read nodes FFI asset at $ffiAssetId");
+      log.warning("Could not read types FFI asset at $ffiAssetId");
       return '';
     }
     final ffiLibrary = await buildStep.resolver.libraryFor(ffiAssetId);
@@ -168,11 +168,11 @@ class UiNodeGenerator extends Generator {
       buffer.writeln("  @override");
       buffer.writeln("  Nodes toRust() {");
       buffer.writeln(
-        "    return Nodes.${_decapitalize(_getVariantName(ffiClassName))}(",
+        "    return Nodes.${_getVariantName(ffiClassName)}(",
       );
       buffer.writeln("      $ffiClassName(");
       buffer.writeln(
-        "        id: TypedRecordId(table: TableKind.values.byName('${_decapitalize(ffiClassName)}'), key: UuidValue.fromString(id)),",
+        "        id: TypedRecordId(table: TableKind.${_getVariantName(ffiClassName)}, key: UuidValue.fromString(id)),",
       );
       buffer.writeln(
         "        position: frb.Coordinates(x: position.dx.round(), y: position.dy.round()),",

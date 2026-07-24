@@ -15,6 +15,7 @@ import 'modules/graph_property_mutations.dart';
 import 'modules/graph_template_mutations.dart';
 import 'command_processor.dart';
 import '../models/commands/graph_command_context.dart';
+import '../models/commands/patch_helpers.dart';
 import 'graph_api.dart';
 
 class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
@@ -216,21 +217,21 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     final node = store.nodeLookup[id];
     if (node != null) {
       syncEngine.api.updateNodeCachePositions(
-        positions: [(id, newPosition.dx, newPosition.dy, node.size.width, node.size.height)],
+        positions: [(parseTypedRecordId(node.tableName, id), newPosition.dx, newPosition.dy, node.size.width, node.size.height)],
       );
     }
     relationEngine.onNodeMoved(id);
   }
 
   void updateNodePositionsVolatile(List<(String, Offset)> updates) {
-    final List<(String, double, double, double, double)> positions = [];
+    final List<(TypedRecordId, double, double, double, double)> positions = [];
     for (final update in updates) {
       final id = update.$1;
       final newPos = update.$2;
       final node = store.nodeLookup[id];
       if (node != null) {
         positions.add((
-          id,
+          parseTypedRecordId(node.tableName, id),
           newPos.dx,
           newPos.dy,
           node.size.width,
@@ -251,7 +252,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     final node = store.nodeLookup[id];
     if (node != null) {
       syncEngine.api.updateNodeCachePositions(
-        positions: [(id, node.position.dx, node.position.dy, node.size.width, node.size.height)],
+        positions: [(parseTypedRecordId(node.tableName, id), node.position.dx, node.position.dy, node.size.width, node.size.height)],
       );
     }
     relationEngine.onNodeMoved(id);
@@ -262,7 +263,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     final node = store.nodeLookup[id];
     if (node != null) {
       syncEngine.api.updateNodeCachePositions(
-        positions: [(id, node.position.dx, node.position.dy, node.size.width, node.size.height)],
+        positions: [(parseTypedRecordId(node.tableName, id), node.position.dx, node.position.dy, node.size.width, node.size.height)],
       );
     }
     relationEngine.onNodeMoved(id);

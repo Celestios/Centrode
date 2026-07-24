@@ -1,16 +1,14 @@
 import 'dart:ui';
 import 'package:mycelium/features/graph/models/content_builder.dart';
+import 'package:mycelium/src/rust/domain/types.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
-import 'package:mycelium/src/rust/domain/entity.dart';
-import 'package:mycelium/src/rust/domain/enums.dart';
+import 'package:mycelium/src/rust/domain/tags.dart';
 import 'package:mycelium/src/rust/domain/id.dart';
-import 'package:mycelium/src/rust/domain/traits.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
 import 'package:uuid/uuid.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/src/rust/domain/base_models.dart' hide Size;
 import 'package:mycelium/src/rust/domain/contents.dart';
-import 'package:mycelium/src/rust/domain/tags.dart';
 
 part 'graph_node.ui.dart';
 

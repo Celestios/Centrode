@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/domain/enums.dart';
+import 'package:mycelium/src/rust/domain/nodes.dart';
 import '../../models/models.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';

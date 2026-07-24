@@ -6,9 +6,6 @@ import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
 import 'package:mycelium/features/graph/store/command_queue_processor.dart';
 import 'package:mycelium/features/graph/store/graph_api.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
-import 'package:mycelium/src/rust/domain/nodes.dart';
-import 'package:mycelium/src/rust/domain/entity.dart';
-import 'package:mycelium/src/rust/domain/id.dart';
 import 'package:mycelium/features/graph/models/commands/patch_helpers.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/presentation/theme/graph_theme.dart';
@@ -60,8 +57,7 @@ void main() {
       ).thenAnswer((_) async {});
       when(
         () => mockApi.deleteNodeEntry(
-          table: any(named: 'table'),
-          key: any(named: 'key'),
+          id: any(named: 'id'),
         ),
       ).thenAnswer((_) async {});
 
@@ -112,7 +108,7 @@ void main() {
       // Verify API was called
       await controller.syncEngine.processor.forceFlush();
       verify(
-        () => mockApi.deleteNodeEntry(table: 'TaskNode', key: id),
+        () => mockApi.deleteNodeEntry(id: any(named: 'id')),
       ).called(1);
     });
 

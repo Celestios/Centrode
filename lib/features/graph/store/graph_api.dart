@@ -1,20 +1,16 @@
 import 'dart:async';
 import 'package:mycelium/src/rust/bridge/api.dart';
-import 'package:mycelium/src/rust/domain/nodes.dart';
-import 'package:mycelium/src/rust/domain/entity.dart';
+import 'package:mycelium/src/rust/domain/types.dart';
 import 'package:mycelium/src/rust/domain/id.dart';
-import 'package:mycelium/src/rust/domain/relations.dart';
 import 'package:mycelium/src/rust/domain/patches.dart';
-import 'package:mycelium/src/rust/domain/tags.dart';
-import 'package:mycelium/src/rust/domain/theme.dart';
-import 'package:mycelium/src/rust/domain/templates.dart';
-import 'package:mycelium/src/rust/domain/relation_engine/config.dart';
-import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart';
+import 'package:mycelium/src/rust/relation_engine/config.dart';
+import 'package:mycelium/src/rust/relation_engine/computed.dart';
+import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
+import 'package:mycelium/src/rust/domain/base_models.dart' hide Size;
 import 'package:mycelium/src/rust/persistence/history.dart';
 import 'package:mycelium/src/rust/domain/snapshot.dart';
 import 'package:mycelium/src/rust/bridge/stream.dart';
+import 'package:mycelium/src/rust/domain/theme.dart';
 
 /// Decoupled interface for the Rust FFI surface.
 abstract class GraphApi {
@@ -22,13 +18,13 @@ abstract class GraphApi {
   Future<void> close();
   Future<List<ComputedRelation>> computeRelations({
     required RelationEngineConfig config,
-    List<String>? relationIds,
+    List<TypedRecordId>? relationIds,
   });
   Future<ComputedRelation> computeSingleRelation({
     required RelationEngineConfig config,
-    required String edgeId,
-    required String fromNodeId,
-    required String toNodeId,
+    required TypedRecordId edgeId,
+    required TypedRecordId fromNodeId,
+    required TypedRecordId toNodeId,
     PortSide? fromSide,
     PortSide? toSide,
     RoutingMode? routingMode,
@@ -42,18 +38,18 @@ abstract class GraphApi {
   Future<void> createRelation({required IRelation input});
   Future<void> createTag({required Tag tag});
   Future<void> createTheme({required String key, required ThemeFields fields});
-  Future<void> deleteNodeEntry({required String table, required String key});
-  Future<void> deleteRelation({required String table, required String key});
+  Future<void> deleteNodeEntry({required TypedRecordId id});
+  Future<void> deleteRelation({required TypedRecordId id});
   Future<void> deleteTag({required String key});
   Future<void> deleteTemplate({required String key});
   Future<String?> getActiveThemeId();
   Future<List<Tag>> getAllTags();
   Future<List<Template>> getAllTemplates();
-  Future<List<Theme>> getAllThemes();
+  Future<List<MapTheme>> getAllThemes();
   Future<GraphSnapshot> getGraphSnapshot();
-  Future<Nodes?> getNode({required String table, required String key});
+  Future<Nodes?> getNode({required TypedRecordId id});
   Future<Tag?> getTag({required String key});
-  Future<Theme?> getTheme({required String key});
+  Future<MapTheme?> getTheme({required String key});
   Future<void> instantiateTemplate({
     required String key,
     required double targetX,
@@ -86,11 +82,11 @@ abstract class GraphApi {
   Future<int> undoCount();
   Future<void> updateNode({required Nodes input});
   Future<void> updateNodeCachePositions({
-    required List<(String, double, double, double, double)> positions,
+    required List<(TypedRecordId, double, double, double, double)> positions,
   });
   Future<void> updateRelation({required IRelation input});
   Future<void> updateTag({required Tag tag});
-  Future<void> updateTheme({required Theme theme});
+  Future<void> updateTheme({required MapTheme theme});
   Future<void> updateViewportState({required ViewportState state});
 }
 
@@ -110,16 +106,16 @@ class RustAppHandleWrapper implements GraphApi {
   @override
   Future<List<ComputedRelation>> computeRelations({
     required RelationEngineConfig config,
-    List<String>? relationIds,
+    List<TypedRecordId>? relationIds,
   }) =>
       _api.computeRelations(config: config, relationIds: relationIds);
 
   @override
   Future<ComputedRelation> computeSingleRelation({
     required RelationEngineConfig config,
-    required String edgeId,
-    required String fromNodeId,
-    required String toNodeId,
+    required TypedRecordId edgeId,
+    required TypedRecordId fromNodeId,
+    required TypedRecordId toNodeId,
     PortSide? fromSide,
     PortSide? toSide,
     RoutingMode? routingMode,
@@ -161,12 +157,12 @@ class RustAppHandleWrapper implements GraphApi {
       _api.createTheme(key: key, fields: fields);
 
   @override
-  Future<void> deleteNodeEntry({required String table, required String key}) =>
-      _api.deleteNodeEntry(id: TypedRecordId(kind: TableKind.values.byName(table), key: UuidValue.fromString(key)));
+  Future<void> deleteNodeEntry({required TypedRecordId id}) =>
+      _api.deleteNodeEntry(id: id);
 
   @override
-  Future<void> deleteRelation({required String table, required String key}) =>
-      _api.deleteRelation(id: TypedRecordId(kind: TableKind.values.byName(table), key: UuidValue.fromString(key)));
+  Future<void> deleteRelation({required TypedRecordId id}) =>
+      _api.deleteRelation(id: id);
 
   @override
   Future<void> deleteTag({required String key}) => _api.deleteTag(key: key);
@@ -185,20 +181,20 @@ class RustAppHandleWrapper implements GraphApi {
   Future<List<Template>> getAllTemplates() => _api.getAllTemplates();
 
   @override
-  Future<List<Theme>> getAllThemes() => _api.getAllThemes();
+  Future<List<MapTheme>> getAllThemes() => _api.getAllThemes();
 
   @override
   Future<GraphSnapshot> getGraphSnapshot() => _api.getGraphSnapshot();
 
   @override
-  Future<Nodes?> getNode({required String table, required String key}) =>
-      _api.getNode(id: TypedRecordId(kind: TableKind.values.byName(table), key: UuidValue.fromString(key)));
+  Future<Nodes?> getNode({required TypedRecordId id}) =>
+      _api.getNode(id: id);
 
   @override
   Future<Tag?> getTag({required String key}) => _api.getTag(key: key);
 
   @override
-  Future<Theme?> getTheme({required String key}) => _api.getTheme(key: key);
+  Future<MapTheme?> getTheme({required String key}) => _api.getTheme(key: key);
 
   @override
   Future<void> instantiateTemplate({
@@ -284,7 +280,7 @@ class RustAppHandleWrapper implements GraphApi {
   Future<void> updateTag({required Tag tag}) => _api.updateTag(tag: tag);
 
   @override
-  Future<void> updateTheme({required Theme theme}) =>
+  Future<void> updateTheme({required MapTheme theme}) =>
       _api.updateTheme(theme: theme);
 
   @override

@@ -3,7 +3,6 @@ import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:mycelium/features/graph/engine/config.dart';
 import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
-import 'package:mycelium/src/rust/domain/enums.dart';
 
 class VerticalContextToolbar extends StatelessWidget {
   final VoidCallback onDelete;

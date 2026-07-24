@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
-import 'package:mycelium/src/rust/domain/relation_engine/computed.dart';
+import 'package:mycelium/src/rust/relation_engine/computed.dart';
 import '../models/models.dart';
 
 class InvalidationTracker {
@@ -74,7 +74,7 @@ class InvalidationTracker {
   List<String> getRelationIdsForNode(String nodeId) {
     return _cache.keys.where((id) {
       final rel = _cache[id];
-      return rel != null && rel.dependsOnNodes.contains(nodeId);
+      return rel != null && rel.dependsOnNodes.any((r) => r.key.uuid == nodeId);
     }).toList();
   }
 

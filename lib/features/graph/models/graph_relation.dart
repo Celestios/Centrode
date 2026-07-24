@@ -1,9 +1,8 @@
-import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:uuid/uuid.dart';
-import 'package:mycelium/src/rust/domain/relations.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart';
+import 'package:mycelium/src/rust/domain/types.dart';
 import 'package:mycelium/src/rust/domain/id.dart';
-import 'package:mycelium/src/rust/domain/traits.dart';
+import 'package:mycelium/src/rust/domain/relations.dart';
 
 // ---------------------------------------------------------------------------
 // Abstract base class

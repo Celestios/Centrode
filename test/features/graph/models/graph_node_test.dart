@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
+import 'package:mycelium/src/rust/domain/types.dart';
 import 'package:mycelium/src/rust/domain/nodes.dart';
-import 'package:mycelium/src/rust/domain/entity.dart';
-import 'package:mycelium/src/rust/domain/enums.dart';
 
 void main() {
   group('UiNode', () {
