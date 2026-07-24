@@ -12,6 +12,7 @@ import '../store/relation_engine_state.dart';
 import '../presentation/node_render_state.dart';
 import '../presentation/viewport_state.dart';
 import '../presentation/workspace_tabs_controller.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 /// The Facade bridging the active FSM to the Data/UI Controllers.
 class CanvasInteractionEnvironment implements InteractionContext {
@@ -58,10 +59,10 @@ class CanvasInteractionEnvironment implements InteractionContext {
   Iterable<UiRelation> getRelations() => _queryController.relations;
 
   @override
-  UiNode? getNode(String id) => _queryController.nodeLookup[id];
+  UiNode? getNode(RawUuid id) => _queryController.nodeLookup[id];
 
   @override
-  void openDataInspector(String nodeId) {
+  void openDataInspector(RawUuid nodeId) {
     _log.info('openDataInspector nodeId=$nodeId');
     onSelectEntity(nodeId);
     _boundSession?.showRightPanel.value = true;
@@ -69,15 +70,15 @@ class CanvasInteractionEnvironment implements InteractionContext {
   }
 
   @override
-  void onNodeMove(String id, Offset pos) {
+  void onNodeMove(RawUuid id, Offset pos) {
     _log.fine('onNodeMove id=$id');
     _commandProcessor.updateNodePosition(id, pos);
   }
 
   @override
   void onRelationCreate(
-    String from,
-    String to, {
+    RawUuid from,
+    RawUuid to, {
     PortSide? fromSide,
     PortSide? toSide,
     String? verb,
@@ -94,9 +95,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
   @override
   void onRelationUpdateLayout(
-    String id, {
-    String? fromNodeId,
-    String? toNodeId,
+    RawUuid id, {
+    RawUuid? fromNodeId,
+    RawUuid? toNodeId,
     PortSide? fromSide,
     PortSide? toSide,
     String? strategyType,
@@ -112,7 +113,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
   }
 
   @override
-  void onRelationUpdateStyle(String id, RelationStyle newStyle) {
+  void onRelationUpdateStyle(RawUuid id, RelationStyle newStyle) {
     _commandProcessor.updateRelationStyle(id, newStyle);
   }
 
@@ -120,20 +121,20 @@ class CanvasInteractionEnvironment implements InteractionContext {
   void onNodeDragUpdate() => _renderState.notifyNodeDragUpdate();
 
   @override
-  void onNodesDrag(List<(String, Offset)> updates) {
+  void onNodesDrag(List<(RawUuid, Offset)> updates) {
     _commandProcessor.updateNodePositionsVolatile(updates);
     _renderState.notifyNodeDragUpdate();
   }
 
   @override
-  void setNodeDragging(String id, bool dragging) =>
+  void setNodeDragging(RawUuid id, bool dragging) =>
       _renderState.setNodeDragging(id, dragging);
 
   @override
-  String? getActiveEditId() => _renderState.activeEditId;
+  RawUuid? getActiveEditId() => _renderState.activeEditId;
 
   @override
-  void onEnterEditMode(String id) {
+  void onEnterEditMode(RawUuid id) {
     _log.info('onEnterEditMode id=$id');
     _renderState.enterEditMode(id);
     openDataInspector(id);
@@ -153,21 +154,21 @@ class CanvasInteractionEnvironment implements InteractionContext {
   }
 
   @override
-  void updateNodeWidth(String id, double leftEdge, double rightEdge) {
+  void updateNodeWidth(RawUuid id, double leftEdge, double rightEdge) {
     _commandProcessor.updateNodeWidth(id, leftEdge, rightEdge);
   }
 
   @override
-  void toggleNodeExpansion(String id) {
+  void toggleNodeExpansion(RawUuid id) {
     _log.fine('toggleNodeExpansion id=$id');
     _commandProcessor.toggleNodeExpansion(id);
   }
 
   @override
-  void onSelectEntity(String? id) => _renderState.selectEntity(id);
+  void onSelectEntity(RawUuid? id) => _renderState.selectEntity(id);
 
   @override
-  void onSelectEntities(Iterable<String> ids) =>
+  void onSelectEntities(Iterable<RawUuid> ids) =>
       _renderState.selectEntities(ids);
 
   @override
@@ -220,14 +221,14 @@ class CanvasInteractionEnvironment implements InteractionContext {
   }
 
   @override
-  Set<String> getVisibleNodeIds() => _viewportController.visibleNodeIds.value;
+  Set<RawUuid> getVisibleNodeIds() => _viewportController.visibleNodeIds.value;
 
   @override
   double get currentScale => _getScale();
 
   @override
   void updateNodeStyle(
-    String id,
+    RawUuid id,
     NodeStyle Function(NodeStyle style) updateFn,
   ) {
     final node = _queryController.nodeLookup[id];
@@ -238,7 +239,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
   }
 
   @override
-  Offset? calculateToolbarAnchor(Iterable<String> selectedIds) =>
+  Offset? calculateToolbarAnchor(Iterable<RawUuid> selectedIds) =>
       _renderState.calculateToolbarAnchor(selectedIds);
 
   @override

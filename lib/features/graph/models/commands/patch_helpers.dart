@@ -5,13 +5,15 @@ import 'package:mycelium/src/rust/domain/types.dart';
 import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
-TypedRecordId parseTypedRecordId(String table, String key) {
+TypedRecordId parseTypedRecordId(String table, dynamic key) {
   final kind = TableKind.values.firstWhere(
     (t) => t.name.toLowerCase() == table.toLowerCase(),
     orElse: () => TableKind.iNode,
   );
-  return TypedRecordId(table: kind, key: UuidValue.fromString(key));
+  final uuidStr = key is RawUuid ? key.toUuidString() : key as String;
+  return TypedRecordId(table: kind, key: UuidValue.fromString(uuidStr));
 }
 
 (List<NodePatch> forward, List<NodePatch> reverse) buildNodeStylePatches(

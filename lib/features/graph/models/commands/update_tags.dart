@@ -7,12 +7,13 @@ import '../graph_node.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
 import 'patch_helpers.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('UpdateTagsCommand');
 
 class UpdateTagsCommand extends GraphCommand {
   @override
-  String targetId;
+  RawUuid targetId;
   final String tableName;
   final GraphApi api;
   final List<Tag> oldTags;

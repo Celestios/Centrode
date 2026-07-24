@@ -7,18 +7,19 @@ import '../graph_relation.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
 import 'patch_helpers.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('UpdateRelationsLayoutCommand');
 
 class UpdateRelationsLayoutCommand extends GraphCommand {
   @override
-  String targetId;
+  RawUuid targetId;
   final GraphApi api;
-  final Map<String, RelationLayout?> oldLayouts;
-  final Map<String, RelationLayout?> newLayouts;
-  final Map<String, RelationStyle?> oldStyles;
-  final Map<String, RelationStyle?> newStyles;
-  final Map<String, UiRelation> oldRelations;
+  final Map<RawUuid, RelationLayout?> oldLayouts;
+  final Map<RawUuid, RelationLayout?> newLayouts;
+  final Map<RawUuid, RelationStyle?> oldStyles;
+  final Map<RawUuid, RelationStyle?> newStyles;
+  final Map<RawUuid, UiRelation> oldRelations;
   final GraphCommandContext controller;
 
   UpdateRelationsLayoutCommand({

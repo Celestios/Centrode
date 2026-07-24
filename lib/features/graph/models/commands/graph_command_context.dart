@@ -2,10 +2,11 @@ import '../../store/graph_data_query.dart';
 import '../../store/modules/graph_store.dart';
 import '../../store/modules/graph_spatial.dart';
 import '../../store/relation_engine_state.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 abstract class GraphStyleUpdater {
-  void updateStyleForNode(String id);
-  void updateStyleForRelation(String id);
+  void updateStyleForNode(RawUuid id);
+  void updateStyleForRelation(RawUuid id);
 }
 
 /// Abstract interface for commands to access graph state.

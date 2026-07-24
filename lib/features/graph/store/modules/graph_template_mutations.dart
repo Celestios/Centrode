@@ -1,5 +1,6 @@
 import 'dart:ui' show Offset;
 import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import '../../models/commands/patch_helpers.dart';
 import '../../models/models.dart';
 import '../../models/commands/save_template.dart';
@@ -40,7 +41,7 @@ class GraphTemplateMutations {
     }).toList();
 
     final cmd = SaveTemplateCommand(
-      targetId: name,
+      targetId: RawUuid.v4(),
       api: api,
       name: name,
       nodeKeys: nodeRecords,
@@ -53,11 +54,12 @@ class GraphTemplateMutations {
   Future<void> instantiateTemplate(String key, Offset canvasCoords) async {
     _log.info('instantiateTemplate key=$key pos=(${canvasCoords.dx}, ${canvasCoords.dy})');
     final cmd = InstantiateTemplateCommand(
-      targetId: key,
+      targetId: RawUuid.fromString(key),
       api: controller.syncEngine.api,
       targetX: canvasCoords.dx,
       targetY: canvasCoords.dy,
       controller: controller,
+      templateKey: key,
     );
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
   }
@@ -68,10 +70,11 @@ class GraphTemplateMutations {
     final templates = await getAllTemplates();
     final template = templates.firstWhere((t) => t.key.key.uuid == key);
     final cmd = DeleteTemplateCommand(
-      targetId: key,
+      targetId: RawUuid.fromString(key),
       api: api,
       template: template,
       controller: controller,
+      templateKey: key,
     );
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
   }

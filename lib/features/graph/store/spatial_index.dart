@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:mycelium/shared/logging.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 // -----------------------------------------------------------------------------
 // Spatial Hash Grid for O(1) Lookups
@@ -10,7 +11,7 @@ import 'package:mycelium/shared/logging.dart';
 /// Divides the canvas into chunks for efficient spatial queries.
 class SpatialHashGrid {
   final double chunkSize;
-  final Map<Point<int>, Set<String>> _grid = {};
+  final Map<Point<int>, Set<RawUuid>> _grid = {};
   final Logger _log = Logger('SpatialHashGrid');
 
   SpatialHashGrid({this.chunkSize = 1000.0});
@@ -20,13 +21,13 @@ class SpatialHashGrid {
       Point(position.dx ~/ chunkSize, position.dy ~/ chunkSize);
 
   /// Inserts a node ID at the specified position.
-  void insert(String nodeId, Offset position) {
+  void insert(RawUuid nodeId, Offset position) {
     _grid.putIfAbsent(getChunk(position), () => {}).add(nodeId);
   }
 
   /// Updates a node's position in the grid.
   /// Only modifies the grid if the node moves to a different chunk.
-  void update(String nodeId, Offset oldPos, Offset newPos) {
+  void update(RawUuid nodeId, Offset oldPos, Offset newPos) {
     final oldChunk = getChunk(oldPos);
     final newChunk = getChunk(newPos);
     if (oldChunk != newChunk) {
@@ -38,13 +39,13 @@ class SpatialHashGrid {
   }
 
   /// Removes a node from the grid.
-  void remove(String nodeId, Offset position) {
+  void remove(RawUuid nodeId, Offset position) {
     _grid[getChunk(position)]?.remove(nodeId);
   }
 
   /// Queries all node IDs within the specified rectangular bounds.
-  Set<String> queryRect(Rect bounds) {
-    final Set<String> visible = {};
+  Set<RawUuid> queryRect(Rect bounds) {
+    final Set<RawUuid> visible = {};
     final int minX = bounds.left ~/ chunkSize;
     final int maxX = bounds.right ~/ chunkSize;
     final int minY = bounds.top ~/ chunkSize;
@@ -62,9 +63,9 @@ class SpatialHashGrid {
 
   /// Returns node IDs in the chunk containing [point] plus all 8 neighbors.
   /// Used for hover hit-testing where nodes may extend into adjacent chunks.
-  Set<String> queryPoint(Offset point) {
+  Set<RawUuid> queryPoint(Offset point) {
     final center = getChunk(point);
-    final Set<String> result = {};
+    final Set<RawUuid> result = {};
     for (int dx = -1; dx <= 1; dx++) {
       for (int dy = -1; dy <= 1; dy++) {
         final chunk = _grid[Point(center.x + dx, center.y + dy)];

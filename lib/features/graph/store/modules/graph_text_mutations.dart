@@ -3,6 +3,7 @@ import 'package:mycelium/shared/logging.dart';
 import '../../models/models.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 /// Text mutation operations for the graph.
 class GraphTextMutations {
@@ -11,7 +12,7 @@ class GraphTextMutations {
 
   GraphTextMutations(this.controller);
 
-  void commitEntityText(String id, dynamic newTextOrContent, {dynamic originalTextOrContent}) {
+  void commitEntityText(RawUuid id, dynamic newTextOrContent, {dynamic originalTextOrContent}) {
     final node = controller.store.nodeLookup[id];
     final rel = controller.store.relationLookup[id];
 
@@ -99,7 +100,7 @@ class GraphTextMutations {
     }
   }
 
-  void updateEntityTextLive(String id, dynamic newTextOrContent) {
+  void updateEntityTextLive(RawUuid id, dynamic newTextOrContent) {
     final node = controller.store.nodeLookup[id];
     final rel = controller.store.relationLookup[id];
 

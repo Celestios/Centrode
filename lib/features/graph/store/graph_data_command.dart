@@ -1,14 +1,15 @@
 import '../models/models.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 abstract interface class GraphDataCommand {
-  void deleteNode(String id);
-  void deleteRelation(String id);
-  void updateRelationsLayout(List<String> ids, {String? strategyType});
-  void updateNodesStyle(List<String> ids, NodeStyle Function(NodeStyle style) updateFn);
-  void addTagToNode(String nodeId, String name, int color);
-  void removeTagFromNode(String nodeId, String tagKey);
-  void addCommentToNode(String nodeId, String text);
-  void removeCommentFromNode(String nodeId, Comment comment);
-  void commitEntityText(String id, dynamic newTextOrContent, {dynamic originalTextOrContent});
-  void updateEntityTextLive(String id, dynamic newTextOrContent);
+  void deleteNode(RawUuid id);
+  void deleteRelation(RawUuid id);
+  void updateRelationsLayout(List<RawUuid> ids, {String? strategyType});
+  void updateNodesStyle(List<RawUuid> ids, NodeStyle Function(NodeStyle style) updateFn);
+  void addTagToNode(RawUuid nodeId, String name, int color);
+  void removeTagFromNode(RawUuid nodeId, String tagKey);
+  void addCommentToNode(RawUuid nodeId, String text);
+  void removeCommentFromNode(RawUuid nodeId, Comment comment);
+  void commitEntityText(RawUuid id, dynamic newTextOrContent, {dynamic originalTextOrContent});
+  void updateEntityTextLive(RawUuid id, dynamic newTextOrContent);
 }

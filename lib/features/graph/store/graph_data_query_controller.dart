@@ -6,6 +6,7 @@ import 'graph_data_query.dart';
 import 'modules/graph_store.dart';
 import 'modules/graph_spatial.dart';
 import 'graph_api.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class GraphDataQueryController implements GraphDataQuery {
   final GraphStore store = GraphStore();
@@ -37,7 +38,7 @@ class GraphDataQueryController implements GraphDataQuery {
 
   void triggerUpdate() {
     publishUpdate(
-      GraphEntityUpdate(id: '', tableName: '', type: GraphUpdateType.reset),
+      GraphEntityUpdate(tableName: '', type: GraphUpdateType.reset),
     );
   }
 
@@ -45,10 +46,10 @@ class GraphDataQueryController implements GraphDataQuery {
   SpatialHashGrid get spatialGrid => spatial.spatialGrid;
 
   @override
-  Map<String, UiNode> get nodeLookup => store.nodeLookup;
+  Map<RawUuid, UiNode> get nodeLookup => store.nodeLookup;
 
   @override
-  Map<String, UiRelation> get relationLookup => store.relationLookup;
+  Map<RawUuid, UiRelation> get relationLookup => store.relationLookup;
 
   @override
   Iterable<UiRelation> get relations => store.relations;

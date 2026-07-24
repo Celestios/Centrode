@@ -2,6 +2,7 @@ import 'dart:async';
 import '../models/models.dart';
 import 'spatial_index.dart';
 import 'relation_engine_state.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 enum GraphUpdateType {
   position,
@@ -21,13 +22,13 @@ enum GraphUpdateType {
 }
 
 class GraphEntityUpdate {
-  final String id;
+  final RawUuid? id;
   final String tableName;
   final GraphUpdateType type;
   final dynamic payload;
 
   GraphEntityUpdate({
-    required this.id,
+    this.id,
     required this.tableName,
     required this.type,
     this.payload,
@@ -41,8 +42,8 @@ abstract interface class GraphDataQuery {
   bool get isLoading;
   String? get errorMessage;
   SpatialHashGrid get spatialGrid;
-  Map<String, UiNode> get nodeLookup;
-  Map<String, UiRelation> get relationLookup;
+  Map<RawUuid, UiNode> get nodeLookup;
+  Map<RawUuid, UiRelation> get relationLookup;
   Iterable<UiRelation> get relations;
   BoundingBox get canvasBounds;
   RelationEngineState get relationEngine;

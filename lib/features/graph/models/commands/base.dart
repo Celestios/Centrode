@@ -1,3 +1,5 @@
+import 'package:mycelium/shared/domain/raw_uuid.dart';
+
 enum CommandCategory { spatial, content, aesthetic, lifecycle }
 
 /// Abstract base class for all graph mutation commands.
@@ -5,7 +7,7 @@ enum CommandCategory { spatial, content, aesthetic, lifecycle }
 abstract class GraphCommand {
   /// The ID of the entity being modified.
   /// Mutable to allow ID swapping for optimistic commands (temp ID → real DB ID).
-  abstract String targetId;
+  abstract RawUuid targetId;
 
   /// Forced namespace for the debouncer to create composite keys.
   CommandCategory get category;

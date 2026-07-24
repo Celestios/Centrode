@@ -3,15 +3,16 @@ import 'package:uuid/uuid.dart';
 import 'package:mycelium/src/rust/domain/types.dart';
 import 'package:mycelium/src/rust/domain/id.dart';
 import 'package:mycelium/src/rust/domain/relations.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 // ---------------------------------------------------------------------------
 // Abstract base class
 // ---------------------------------------------------------------------------
 sealed class UiRelation {
-  final String id;
-  String fromNodeId;
+  final RawUuid id;
+  RawUuid fromNodeId;
   String fromNodeTable;
-  String toNodeId;
+  RawUuid toNodeId;
   String toNodeTable;
   String verb;
   String layer;
@@ -24,7 +25,7 @@ sealed class UiRelation {
   int updatedAt;
 
   UiRelation({
-    String? id,
+    RawUuid? id,
     required this.fromNodeId,
     required this.fromNodeTable,
     required this.toNodeId,
@@ -38,7 +39,7 @@ sealed class UiRelation {
     String? layer,
     int? createdAt,
     int? updatedAt,
-  }) : id = id ?? const Uuid().v4(),
+  }) : id = id ?? RawUuid.v4(),
        verb = verb ?? "default",
        directionless = directionless ?? false,
        layer = layer ?? "default",
@@ -83,10 +84,10 @@ class InfoUiRelation extends UiRelation {
 
   /// Creates a shallow copy with optional field overrides.
   InfoUiRelation copyWith({
-    String? id,
-    String? fromNodeId,
+    RawUuid? id,
+    RawUuid? fromNodeId,
     String? fromNodeTable,
-    String? toNodeId,
+    RawUuid? toNodeId,
     String? toNodeTable,
     String? verb,
     String? layer,
@@ -121,21 +122,21 @@ class InfoUiRelation extends UiRelation {
     return IRelation(
       key: TypedRecordId(
         table: TableKind.iRelation,
-        key: UuidValue.fromString(id),
+        key: UuidValue.fromString(id.toUuidString()),
       ),
       in_: TypedRecordId(
         table: TableKind.values.firstWhere(
           (t) => t.name.toLowerCase() == fromNodeTable.toLowerCase(),
           orElse: () => TableKind.iNode,
         ),
-        key: UuidValue.fromString(fromNodeId),
+        key: UuidValue.fromString(fromNodeId.toUuidString()),
       ),
       out: TypedRecordId(
         table: TableKind.values.firstWhere(
           (t) => t.name.toLowerCase() == toNodeTable.toLowerCase(),
           orElse: () => TableKind.iNode,
         ),
-        key: UuidValue.fromString(toNodeId),
+        key: UuidValue.fromString(toNodeId.toUuidString()),
       ),
       fields: IRelationFields(
         verb: verb,
@@ -154,10 +155,10 @@ class InfoUiRelation extends UiRelation {
   /// Deserialises from an FFI [IRelation].
   factory InfoUiRelation.fromRust(IRelation relation) {
     return InfoUiRelation(
-      id: relation.key.key.uuid,
-      fromNodeId: relation.in_.key.uuid,
+      id: RawUuid.fromString(relation.key.key.uuid),
+      fromNodeId: RawUuid.fromString(relation.in_.key.uuid),
       fromNodeTable: relation.in_.table.name,
-      toNodeId: relation.out.key.uuid,
+      toNodeId: RawUuid.fromString(relation.out.key.uuid),
       toNodeTable: relation.out.table.name,
       verb: relation.fields.verb,
       directionless: relation.fields.directionless,

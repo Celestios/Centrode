@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/src/rust/domain/base_models.dart' hide Size;
 import 'package:mycelium/src/rust/domain/contents.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 part 'graph_node.ui.dart';
 
@@ -19,7 +20,7 @@ part 'graph_node.ui.dart';
 sealed class UiNode {
   static const Size defaultNodeSize = Size(100.0, 80.0);
 
-  final String id;
+  final RawUuid id;
   final int createdAt;
   String layer;
   int updatedAt;
@@ -48,7 +49,7 @@ sealed class UiNode {
 
   // ──────────────────── normal constructor ────────────────────────────────
   UiNode({
-    String? id,
+    RawUuid? id,
     int? createdAt,
     int? updatedAt,
     bool? locked,
@@ -64,7 +65,7 @@ sealed class UiNode {
     Content? content,
     this.significance = 0,
     required this.position,
-  }) : id = id ?? const Uuid().v4(),
+  }) : id = id ?? RawUuid.v4(),
        createdAt = createdAt ?? DateTime.now().millisecondsSinceEpoch,
        updatedAt = updatedAt ?? DateTime.now().millisecondsSinceEpoch,
        locked = locked ?? false,
@@ -80,7 +81,7 @@ sealed class UiNode {
 
   static UiNode? copy(UiNode? node) => _$uiNodeCopy(node);
 
-  UiNode? cloneWithId(String newId) {
+  UiNode? cloneWithId(RawUuid newId) {
     if (this is InfoUiNode) return (this as InfoUiNode).copyWith(id: newId);
     if (this is TaskUiNode) return (this as TaskUiNode).copyWith(id: newId);
     if (this is CommentUiNode) return (this as CommentUiNode).copyWith(id: newId);

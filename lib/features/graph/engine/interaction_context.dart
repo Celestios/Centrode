@@ -4,6 +4,7 @@ import '../models/models.dart';
 import '../presentation/view_state.dart';
 import '../store/spatial_index.dart';
 import '../store/relation_engine_state.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 /// Scoped capability interface for active interaction states.
 ///
@@ -17,19 +18,19 @@ abstract interface class ViewportCapability {
   double get currentScale;
 
   /// Returns the current set of visible node IDs for O(V) hit testing.
-  Set<String> getVisibleNodeIds();
+  Set<RawUuid> getVisibleNodeIds();
 }
 
 /// Interface segregating selection and toolbar actions.
 abstract interface class SelectionCapability {
   /// Callback to set the active selected entity (node or relation), or clear if null.
-  void onSelectEntity(String? id);
+  void onSelectEntity(RawUuid? id);
 
   /// Gets the IDs of the currently selected entities.
-  Set<String> getSelectedEntities();
+  Set<RawUuid> getSelectedEntities();
 
   /// Callback to set multiple entities as selected (Marquee).
-  void onSelectEntities(Iterable<String> ids);
+  void onSelectEntities(Iterable<RawUuid> ids);
 
   /// Gets the current relative offset for the floating toolbar.
   Offset getToolbarOffset();
@@ -44,10 +45,10 @@ abstract interface class SelectionCapability {
   void onSaveTemplate();
 
   /// Opens the right property panel and switches to the Data tab for the specified node.
-  void openDataInspector(String nodeId);
+  void openDataInspector(RawUuid nodeId);
 
   /// Calculates the visual anchor point for the floating toolbar based on selected entities.
-  Offset? calculateToolbarAnchor(Iterable<String> selectedIds);
+  Offset? calculateToolbarAnchor(Iterable<RawUuid> selectedIds);
 }
 
 /// Read-only query interface for node/relation geometry data.
@@ -57,51 +58,51 @@ abstract interface class QueryCapability {
   List<String> get zOrder;
   SpatialHashGrid get spatialGrid;
   Iterable<UiRelation> getRelations();
-  UiNode? getNode(String id);
+  UiNode? getNode(RawUuid id);
 }
 
 /// Write/mutation interface for structural layout, node/relation edits.
 abstract interface class MutationCapability {
-  void onNodeMove(String id, Offset pos);
+  void onNodeMove(RawUuid id, Offset pos);
 
   void onRelationCreate(
-    String from,
-    String to, {
+    RawUuid from,
+    RawUuid to, {
     PortSide? fromSide,
     PortSide? toSide,
     String? verb,
   });
 
   void onRelationUpdateLayout(
-    String id, {
-    String? fromNodeId,
-    String? toNodeId,
+    RawUuid id, {
+    RawUuid? fromNodeId,
+    RawUuid? toNodeId,
     PortSide? fromSide,
     PortSide? toSide,
     String? strategyType,
   });
 
-  void onRelationUpdateStyle(String id, RelationStyle newStyle);
+  void onRelationUpdateStyle(RawUuid id, RelationStyle newStyle);
 
   void onNodeDragUpdate();
 
-  void onNodesDrag(List<(String, Offset)> updates);
+  void onNodesDrag(List<(RawUuid, Offset)> updates);
 
-  void setNodeDragging(String id, bool dragging);
+  void setNodeDragging(RawUuid id, bool dragging);
 
   void onCommitActiveEdit();
 
-  String? getActiveEditId();
+  RawUuid? getActiveEditId();
 
-  void onEnterEditMode(String id);
+  void onEnterEditMode(RawUuid id);
 
   void onCreateNode(Offset position);
 
-  void updateNodeWidth(String id, double leftEdge, double rightEdge);
+  void updateNodeWidth(RawUuid id, double leftEdge, double rightEdge);
 
-  void toggleNodeExpansion(String id);
+  void toggleNodeExpansion(RawUuid id);
 
-  void updateNodeStyle(String id, NodeStyle Function(NodeStyle style) updateFn);
+  void updateNodeStyle(RawUuid id, NodeStyle Function(NodeStyle style) updateFn);
 
   void setHoveredNodeMetadata(String? nodeId);
 

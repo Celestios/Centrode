@@ -3,21 +3,24 @@ import 'package:mycelium/src/rust/domain/types.dart';
 import '../../store/graph_api.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('DeleteTemplateCommand');
 
 class DeleteTemplateCommand extends GraphCommand {
   @override
-  String targetId;
+  RawUuid targetId;
   final GraphApi api;
   final Template template;
   final GraphCommandContext controller;
+  final String templateKey;
 
   DeleteTemplateCommand({
     required this.targetId,
     required this.api,
     required this.template,
     required this.controller,
+    required this.templateKey,
   });
 
   @override
@@ -25,8 +28,8 @@ class DeleteTemplateCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
-    _log.info('execute DeleteTemplate key=$targetId');
-    await api.deleteTemplate(key: targetId);
+    _log.info('execute DeleteTemplate key=$templateKey');
+    await api.deleteTemplate(key: templateKey);
   }
 
   @override

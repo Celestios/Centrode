@@ -2,16 +2,18 @@ import 'package:mycelium/shared/logging.dart';
 import '../../store/graph_api.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('InstantiateTemplateCommand');
 
 class InstantiateTemplateCommand extends GraphCommand {
   @override
-  String targetId;
+  RawUuid targetId;
   final GraphApi api;
   final double targetX;
   final double targetY;
   final GraphCommandContext controller;
+  final String templateKey;
 
   InstantiateTemplateCommand({
     required this.targetId,
@@ -19,6 +21,7 @@ class InstantiateTemplateCommand extends GraphCommand {
     required this.targetX,
     required this.targetY,
     required this.controller,
+    required this.templateKey,
   });
 
   @override
@@ -26,9 +29,9 @@ class InstantiateTemplateCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
-    _log.info('execute InstantiateTemplate key=$targetId pos=($targetX, $targetY)');
+    _log.info('execute InstantiateTemplate key=$templateKey pos=($targetX, $targetY)');
     await api.instantiateTemplate(
-      key: targetId,
+      key: templateKey,
       targetX: targetX,
       targetY: targetY,
     );

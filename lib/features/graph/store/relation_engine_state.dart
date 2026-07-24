@@ -6,6 +6,7 @@ import 'package:mycelium/src/rust/relation_engine/computed.dart';
 import 'package:mycelium/src/rust/relation_engine/config.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/models/commands/patch_helpers.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 import 'invalidation_tracker.dart';
 
 class RelationEngineState {
@@ -58,7 +59,7 @@ class RelationEngineState {
 
   RelationEngineConfig get config => _config;
 
-  void onNodeMoved(String nodeId) {
+  void onNodeMoved(RawUuid nodeId) {
     _tracker.onNodeMoved(nodeId);
     _scheduleRecompute();
   }
@@ -68,11 +69,11 @@ class RelationEngineState {
     _scheduleRecompute();
   }
 
-  void onRelationDeleted(String relationId) {
+  void onRelationDeleted(RawUuid relationId) {
     _tracker.onRelationDeleted(relationId);
   }
 
-  void onRelationLayoutUpdated(String relationId) {
+  void onRelationLayoutUpdated(RawUuid relationId) {
     _tracker.onRelationLayoutUpdated(relationId);
     _scheduleRecompute();
   }
@@ -128,7 +129,7 @@ class RelationEngineState {
 
   void onInitialLoad({required Iterable<UiRelation> relations}) {
     _tracker.clear();
-    _tracker.markIdsDirty(relations.map((r) => r.id));
+    _tracker.markIdsDirty(relations.map((r) => r.id.toUuidString()));
   }
 
   void dispose() {

@@ -4,6 +4,7 @@ import '../../models/commands.dart';
 import '../../models/graph_relation.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 /// Relation mutation operations for the graph.
 class GraphRelationMutations {
@@ -16,8 +17,8 @@ class GraphRelationMutations {
   /// Called by InteractionController when relation drawing completes.
   /// Implements pre-flight validation to prevent duplicate relation crashes.
   void createRelation(
-    String fromId,
-    String toId, {
+    RawUuid fromId,
+    RawUuid toId, {
     PortSide? fromSide,
     PortSide? toSide,
     String? verb,
@@ -78,7 +79,7 @@ class GraphRelationMutations {
   }
 
   /// Deletes a relation with immediate command execution via CommandProcessor.
-  Future<void> deleteRelation(String id) async {
+  Future<void> deleteRelation(RawUuid id) async {
     final relation = controller.store.relationLookup[id];
     if (relation == null) return;
 
@@ -110,9 +111,9 @@ class GraphRelationMutations {
 
   /// Updates the layout and endpoints of a relation.
   void updateRelationLayout(
-    String id, {
-    String? fromNodeId,
-    String? toNodeId,
+    RawUuid id, {
+    RawUuid? fromNodeId,
+    RawUuid? toNodeId,
     PortSide? fromSide,
     PortSide? toSide,
     String? strategyType,
@@ -173,16 +174,16 @@ class GraphRelationMutations {
   }
 
   void updateRelationsLayout(
-    List<String> ids, {
+    List<RawUuid> ids, {
     String? strategyType,
   }) {
     if (ids.isEmpty) return;
 
-    final Map<String, RelationLayout?> oldLayouts = {};
-    final Map<String, RelationLayout?> newLayouts = {};
-    final Map<String, RelationStyle?> oldStyles = {};
-    final Map<String, RelationStyle?> newStyles = {};
-    final Map<String, UiRelation> oldRelations = {};
+    final Map<RawUuid, RelationLayout?> oldLayouts = {};
+    final Map<RawUuid, RelationLayout?> newLayouts = {};
+    final Map<RawUuid, RelationStyle?> oldStyles = {};
+    final Map<RawUuid, RelationStyle?> newStyles = {};
+    final Map<RawUuid, UiRelation> oldRelations = {};
 
     for (final id in ids) {
       final relation = controller.store.relationLookup[id];

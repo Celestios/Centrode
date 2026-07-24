@@ -11,6 +11,7 @@ import '../models/models.dart';
 import 'editor_state.dart';
 import 'selection_state.dart';
 import 'drag_state.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 /// Notifier pulsed to trigger relation painter repaints when node coordinates change.
 class MovementNotifier extends ChangeNotifier with TraceableNotifier {
@@ -291,10 +292,10 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
   SpatialHashGrid get spatialGrid => _dataQuery.spatialGrid;
 
   @override
-  Map<String, UiNode> get nodeLookup => _dataQuery.nodeLookup;
+  Map<RawUuid, UiNode> get nodeLookup => _dataQuery.nodeLookup;
 
   @override
-  Map<String, UiRelation> get relationLookup => _dataQuery.relationLookup;
+  Map<RawUuid, UiRelation> get relationLookup => _dataQuery.relationLookup;
 
   @override
   Iterable<UiRelation> get relations => _dataQuery.relations;
@@ -308,31 +309,31 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
   @override
   Stream<GraphEntityUpdate> get onEntityUpdate => _dataQuery.onEntityUpdate;
 
-  void updateRelationsLayout(List<String> ids, {String? strategyType}) {
+  void updateRelationsLayout(List<RawUuid> ids, {String? strategyType}) {
     _dataCommand.updateRelationsLayout(ids, strategyType: strategyType);
   }
 
-  void updateNodesStyle(List<String> ids, NodeStyle Function(NodeStyle style) updateFn) {
+  void updateNodesStyle(List<RawUuid> ids, NodeStyle Function(NodeStyle style) updateFn) {
     _dataCommand.updateNodesStyle(ids, updateFn);
   }
 
-  void addTagToNode(String nodeId, String name, int color) {
+  void addTagToNode(RawUuid nodeId, String name, int color) {
     _dataCommand.addTagToNode(nodeId, name, color);
   }
 
-  void removeTagFromNode(String nodeId, String tagKey) {
+  void removeTagFromNode(RawUuid nodeId, String tagKey) {
     _dataCommand.removeTagFromNode(nodeId, tagKey);
   }
 
-  void addCommentToNode(String nodeId, String text) {
+  void addCommentToNode(RawUuid nodeId, String text) {
     _dataCommand.addCommentToNode(nodeId, text);
   }
 
-  void removeCommentFromNode(String nodeId, Comment comment) {
+  void removeCommentFromNode(RawUuid nodeId, Comment comment) {
     _dataCommand.removeCommentFromNode(nodeId, comment);
   }
 
-  void commitEntityText(String id, dynamic newTextOrContent, {dynamic originalTextOrContent}) {
+  void commitEntityText(RawUuid id, dynamic newTextOrContent, {dynamic originalTextOrContent}) {
     _dataCommand.commitEntityText(
       id,
       newTextOrContent,
@@ -340,7 +341,7 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
     );
   }
 
-  void updateEntityTextLive(String id, dynamic newTextOrContent) {
+  void updateEntityTextLive(RawUuid id, dynamic newTextOrContent) {
     _dataCommand.updateEntityTextLive(id, newTextOrContent);
   }
 

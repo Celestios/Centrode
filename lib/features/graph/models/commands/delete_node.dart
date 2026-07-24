@@ -4,6 +4,7 @@ import '../../store/graph_data_query.dart';
 import '../models.dart';
 import 'graph_command_context.dart';
 import 'patch_helpers.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('DeleteNodeCommand');
 
@@ -11,7 +12,7 @@ final Logger _log = Logger('DeleteNodeCommand');
 /// Captures the node data for restoration on FFI failure.
 class DeleteNodeCommand extends GraphCommand {
   @override
-  String targetId; // Mutable to allow ID swapping for optimistic commands
+  RawUuid targetId; // Mutable to allow ID swapping for optimistic commands
   final GraphApi api;
   final String tableName;
   final UiNode node;

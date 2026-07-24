@@ -7,17 +7,18 @@ import '../../store/graph_data_query.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
 import 'patch_helpers.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('UpdateNodesStyleCommand');
 
 class UpdateNodesStyleCommand extends GraphCommand {
   @override
-  String targetId;
+  RawUuid targetId;
   final GraphApi api;
-  final Map<String, NodeStyle> oldStyles;
-  final Map<String, NodeStyle> newStyles;
-  final Map<String, Size> oldSizes;
-  final Map<String, Size> newSizes;
+  final Map<RawUuid, NodeStyle> oldStyles;
+  final Map<RawUuid, NodeStyle> newStyles;
+  final Map<RawUuid, Size> oldSizes;
+  final Map<RawUuid, Size> newSizes;
   final GraphCommandContext controller;
 
   UpdateNodesStyleCommand({

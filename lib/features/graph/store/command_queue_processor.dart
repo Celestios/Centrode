@@ -17,6 +17,7 @@ import 'command_processor.dart';
 import '../models/commands/graph_command_context.dart';
 import '../models/commands/patch_helpers.dart';
 import 'graph_api.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   final Logger _log = Logger('CommandQueueProcessor');
@@ -189,7 +190,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     await updateHistoryStatus();
   }
 
-  String createNode(
+  RawUuid createNode(
     UiNodes type,
     Offset position, {
     List<String>? paths,
@@ -210,9 +211,9 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   );
 
   @override
-  Future<void> deleteNode(String id) => nodeMutations.deleteNode(id);
+  Future<void> deleteNode(RawUuid id) => nodeMutations.deleteNode(id);
 
-  void updateNodePosition(String id, Offset newPosition) {
+  void updateNodePosition(RawUuid id, Offset newPosition) {
     nodeMutations.updateNodePosition(id, newPosition);
     final node = store.nodeLookup[id];
     if (node != null) {
@@ -223,7 +224,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     relationEngine.onNodeMoved(id);
   }
 
-  void updateNodePositionsVolatile(List<(String, Offset)> updates) {
+  void updateNodePositionsVolatile(List<(RawUuid, Offset)> updates) {
     final List<(TypedRecordId, double, double, double, double)> positions = [];
     for (final update in updates) {
       final id = update.$1;
@@ -247,7 +248,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     }
   }
 
-  void updateNodeWidth(String id, double leftEdge, double rightEdge) {
+  void updateNodeWidth(RawUuid id, double leftEdge, double rightEdge) {
     nodeMutations.updateNodeWidth(id, leftEdge, rightEdge);
     final node = store.nodeLookup[id];
     if (node != null) {
@@ -258,7 +259,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     relationEngine.onNodeMoved(id);
   }
 
-  void toggleNodeExpansion(String id) {
+  void toggleNodeExpansion(RawUuid id) {
     nodeMutations.toggleNodeExpansion(id);
     final node = store.nodeLookup[id];
     if (node != null) {
@@ -270,8 +271,8 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   }
 
   void createRelation(
-    String fromId,
-    String toId, {
+    RawUuid fromId,
+    RawUuid toId, {
     PortSide? fromSide,
     PortSide? toSide,
     String? verb,
@@ -284,13 +285,13 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   );
 
   @override
-  Future<void> deleteRelation(String id) async {
+  Future<void> deleteRelation(RawUuid id) async {
     await relationMutations.deleteRelation(id);
     relationEngine.onRelationDeleted(id);
   }
 
   void updateRelationLayout(
-    String id, {
+    RawUuid id, {
     String? fromNodeId,
     String? toNodeId,
     PortSide? fromSide,
@@ -308,14 +309,14 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     relationEngine.onRelationLayoutUpdated(id);
   }
 
-  void updateRelationStyle(String id, RelationStyle newStyle) {
+  void updateRelationStyle(RawUuid id, RelationStyle newStyle) {
     propertyMutations.updateRelationStyle(id, newStyle);
     relationEngine.onRelationLayoutUpdated(id);
   }
 
   @override
   void updateRelationsLayout(
-    List<String> ids, {
+    List<RawUuid> ids, {
     String? strategyType,
   }) {
     relationMutations.updateRelationsLayout(ids, strategyType: strategyType);
@@ -325,36 +326,36 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   }
 
   @override
-  void updateNodesStyle(List<String> ids, NodeStyle Function(NodeStyle style) updateFn) =>
+  void updateNodesStyle(List<RawUuid> ids, NodeStyle Function(NodeStyle style) updateFn) =>
       propertyMutations.updateNodesStyle(ids, updateFn);
 
   @override
-  void addTagToNode(String nodeId, String name, int color) {
+  void addTagToNode(RawUuid nodeId, String name, int color) {
     propertyMutations.addTagToNode(nodeId, name, color);
   }
 
   @override
-  void removeTagFromNode(String nodeId, String tagKey) {
+  void removeTagFromNode(RawUuid nodeId, String tagKey) {
     propertyMutations.removeTagFromNode(nodeId, tagKey);
   }
 
   @override
-  void addCommentToNode(String nodeId, String text) {
+  void addCommentToNode(RawUuid nodeId, String text) {
     propertyMutations.addCommentToNode(nodeId, text);
   }
 
   @override
-  void removeCommentFromNode(String nodeId, Comment comment) {
+  void removeCommentFromNode(RawUuid nodeId, Comment comment) {
     propertyMutations.removeCommentFromNode(nodeId, comment);
   }
 
   @override
-  void commitEntityText(String id, dynamic newTextOrContent, {dynamic originalTextOrContent}) {
+  void commitEntityText(RawUuid id, dynamic newTextOrContent, {dynamic originalTextOrContent}) {
     propertyMutations.commitEntityText(id, newTextOrContent, originalTextOrContent: originalTextOrContent);
   }
 
   @override
-  void updateEntityTextLive(String id, dynamic newTextOrContent) {
+  void updateEntityTextLive(RawUuid id, dynamic newTextOrContent) {
     propertyMutations.updateEntityTextLive(id, newTextOrContent);
   }
 

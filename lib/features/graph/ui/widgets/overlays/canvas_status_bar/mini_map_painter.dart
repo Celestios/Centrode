@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../models/graph_node.dart';
 import '../../../../models/graph_relation.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class MiniMapPainter extends CustomPainter {
   final List<UiNode> nodes;
@@ -10,7 +11,7 @@ class MiniMapPainter extends CustomPainter {
   final Rect visibleRect;
   final Color primaryColor;
 
-  late final Map<String, UiNode> _nodeMap;
+  late final Map<RawUuid, UiNode> _nodeMap;
   late final Paint _linePaint;
   late final Paint _viewportFill;
   late final Paint _viewportBorder;

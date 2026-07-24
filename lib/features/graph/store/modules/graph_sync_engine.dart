@@ -5,10 +5,12 @@ import 'package:mycelium/shared/logging.dart';
 import '../../models/models.dart';
 import '../../../../src/rust/bridge/stream.dart';
 import '../../../../src/rust/domain/patches.dart';
+import '../../../../src/rust/domain/types.dart';
 import '../command_queue_processor.dart';
 import '../command_processor.dart';
 import '../graph_data_query.dart';
 import '../graph_api.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 /// Handles communication between the local store/spatial structures and the Rust backend.
 class GraphSyncEngine {
@@ -91,7 +93,7 @@ class GraphSyncEngine {
       controller.spatial.reindexAll(controller.store.nodeLookup);
 
       controller.publishUpdate(
-        GraphEntityUpdate(id: '', tableName: '', type: GraphUpdateType.reset),
+        GraphEntityUpdate(tableName: '', type: GraphUpdateType.reset),
       );
     } catch (e) {
       _syncLog.severe('Failed to load graph snapshot', e);
@@ -118,7 +120,6 @@ class GraphSyncEngine {
         controller.queryController.canvasBounds = canvasBounds;
         controller.publishUpdate(
           GraphEntityUpdate(
-            id: '',
             tableName: '',
             type: GraphUpdateType.boundary,
             payload: canvasBounds,
@@ -140,9 +141,9 @@ class GraphSyncEngine {
     }
   }
 
-  void _applyNodePatches(dynamic id, List<dynamic> patches) {
-    final idStr = id.toString();
-    final existing = controller.store.nodeLookup[idStr];
+  void _applyNodePatches(TypedRecordId id, List<NodePatch> patches) {
+    final rawId = RawUuid.fromString(id.key.uuid);
+    final existing = controller.store.nodeLookup[rawId];
     if (existing == null) return;
 
     final oldPos = existing.position;
@@ -173,9 +174,9 @@ class GraphSyncEngine {
     );
   }
 
-  void _applyRelationPatches(dynamic id, List<dynamic> patches) {
-    final idStr = id.toString();
-    final existing = controller.store.relationLookup[idStr];
+  void _applyRelationPatches(TypedRecordId id, List<RelationPatch> patches) {
+    final rawId = RawUuid.fromString(id.key.uuid);
+    final existing = controller.store.relationLookup[rawId];
     if (existing == null) return;
 
     for (final patch in patches) {
@@ -200,14 +201,14 @@ class GraphSyncEngine {
         '${delta.nodeUpserts.length} upserts, ${delta.nodeDeletions.length} deletions');
 
     for (final nodeId in delta.nodeDeletions) {
-      final idStr = nodeId.toString();
-      final node = controller.store.nodeLookup.remove(idStr);
+      final rawId = RawUuid.fromString(nodeId.key.uuid);
+      final node = controller.store.nodeLookup.remove(rawId);
       if (node != null) {
-        controller.spatial.spatialGrid.remove(idStr, node.position);
+        controller.spatial.spatialGrid.remove(rawId, node.position);
       }
     }
     for (final relId in delta.relationDeletions) {
-      controller.store.relationLookup.remove(relId.toString());
+      controller.store.relationLookup.remove(RawUuid.fromString(relId.key.uuid));
     }
 
     for (final ffiNode in delta.nodeCreations) {
@@ -230,7 +231,7 @@ class GraphSyncEngine {
     }
 
     controller.publishUpdate(
-      GraphEntityUpdate(id: '', tableName: '', type: GraphUpdateType.reset),
+      GraphEntityUpdate(tableName: '', type: GraphUpdateType.reset),
     );
   }
 

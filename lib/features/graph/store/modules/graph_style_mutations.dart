@@ -2,6 +2,7 @@ import 'dart:ui';
 import '../../models/models.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 /// Style mutation operations for the graph.
 class GraphStyleMutations {
@@ -9,7 +10,7 @@ class GraphStyleMutations {
 
   GraphStyleMutations(this.controller);
 
-  void updateNodeStyle(String id, NodeStyle newStyle) {
+  void updateNodeStyle(RawUuid id, NodeStyle newStyle) {
     final node = controller.store.nodeLookup[id];
     if (node == null) return;
 
@@ -56,13 +57,13 @@ class GraphStyleMutations {
     );
   }
 
-  void updateNodesStyle(List<String> ids, NodeStyle Function(NodeStyle style) updateFn) {
+  void updateNodesStyle(List<RawUuid> ids, NodeStyle Function(NodeStyle style) updateFn) {
     if (ids.isEmpty) return;
 
-    final Map<String, NodeStyle> oldStyles = {};
-    final Map<String, NodeStyle> newStyles = {};
-    final Map<String, Size> oldSizes = {};
-    final Map<String, Size> newSizes = {};
+    final Map<RawUuid, NodeStyle> oldStyles = {};
+    final Map<RawUuid, NodeStyle> newStyles = {};
+    final Map<RawUuid, Size> oldSizes = {};
+    final Map<RawUuid, Size> newSizes = {};
 
     for (final id in ids) {
       final node = controller.store.nodeLookup[id];
@@ -121,7 +122,7 @@ class GraphStyleMutations {
     controller.triggerUpdate();
   }
 
-  void updateRelationStyle(String id, RelationStyle newStyle) {
+  void updateRelationStyle(RawUuid id, RelationStyle newStyle) {
     final relation = controller.store.relationLookup[id];
     if (relation == null) return;
 

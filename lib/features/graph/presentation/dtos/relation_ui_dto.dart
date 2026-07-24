@@ -1,7 +1,8 @@
 import 'dart:ui';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class RelationUiDto {
-  final String id;
+  final RawUuid id;
   final String sourceId;
   final String targetId;
   final List<Offset> pathPoints;

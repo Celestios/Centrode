@@ -8,6 +8,7 @@ import '../../store/graph_data_query.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
 import 'patch_helpers.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('UpdateTextCommand');
 
@@ -15,7 +16,7 @@ final Logger _log = Logger('UpdateTextCommand');
 /// Handles both node text and relation labels with appropriate field mapping.
 class UpdateTextCommand extends GraphCommand {
   @override
-  String targetId;
+  RawUuid targetId;
   final String tableName;
   final GraphApi api;
   final Content? oldContent;

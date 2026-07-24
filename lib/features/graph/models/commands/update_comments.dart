@@ -5,12 +5,13 @@ import '../../store/graph_data_query.dart';
 import '../graph_node.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('UpdateCommentsCommand');
 
 class UpdateCommentsCommand extends GraphCommand {
   @override
-  String targetId;
+  RawUuid targetId;
   final GraphApi api;
   final UiNode node;
   final List<frb.Comment> oldComments;

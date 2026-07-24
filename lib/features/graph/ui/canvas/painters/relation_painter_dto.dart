@@ -1,9 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class RelationPaintDto {
-  final String id;
+  final RawUuid id;
   final Path path;
   final List<Offset> points;
   final List<double> widths;

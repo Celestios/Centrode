@@ -2,28 +2,29 @@ import 'dart:ui';
 import 'package:mycelium/shared/logging.dart';
 import '../../models/models.dart';
 import '../spatial_index.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 /// Encapsulates viewport culling and reactive geometry.
 class GraphSpatial {
   final Logger _log = Logger('GraphSpatial');
   final SpatialHashGrid spatialGrid = SpatialHashGrid();
-  final Map<String, Offset> _lastConfirmedPositions = {};
+  final Map<RawUuid, Offset> _lastConfirmedPositions = {};
 
-  void saveConfirmedPosition(String id, Offset pos) {
+  void saveConfirmedPosition(RawUuid id, Offset pos) {
     _log.fine('saveConfirmedPosition id=$id');
     _lastConfirmedPositions[id] = pos;
   }
 
-  Offset? getConfirmedPosition(String id) => _lastConfirmedPositions[id];
+  Offset? getConfirmedPosition(RawUuid id) => _lastConfirmedPositions[id];
 
-  void clearConfirmedPosition(String id) {
+  void clearConfirmedPosition(RawUuid id) {
     _log.fine('clearConfirmedPosition id=$id');
     _lastConfirmedPositions.remove(id);
   }
 
   /// Rebuilds the spatial index from scratch using a set of nodes.
   /// Triggered during bulk load or major graph resets.
-  void reindexAll(Map<String, UiNode> nodes) {
+  void reindexAll(Map<RawUuid, UiNode> nodes) {
     _log.info('reindexAll: reindexing ${nodes.length} nodes');
     spatialGrid.clear();
     for (final node in nodes.values) {

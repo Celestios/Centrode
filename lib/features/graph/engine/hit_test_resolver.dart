@@ -23,10 +23,10 @@ enum HitTestType {
 
 class PointerHitResult {
   final HitTestType type;
-  final String? hitNodeId;
-  final String? hitEntityId;
+  final RawUuid? hitNodeId;
+  final RawUuid? hitEntityId;
   final ResizeEdge? draggedEdge;
-  final String? relationId;
+  final RawUuid? relationId;
   final Port? hitPort;
   final Offset? originalPosition;
   final double? grabOffsetX;

@@ -18,6 +18,12 @@ class RawUuid {
     return RawUuid(list);
   }
 
+  factory RawUuid.fromString(String uuid) {
+    final list = Uint8List(16);
+    Uuid.parse(uuid, buffer: list);
+    return RawUuid(list);
+  }
+
   /// Converts to standard 36-character hyphenated UUID string for display/logging.
   String toUuidString() => Uuid.unparse(bytes);
 

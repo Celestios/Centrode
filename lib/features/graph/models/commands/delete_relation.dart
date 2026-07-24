@@ -5,12 +5,13 @@ import '../../store/graph_api.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
 import 'patch_helpers.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('DeleteRelationCommand');
 
 class DeleteRelationCommand extends GraphCommand {
   @override
-  String targetId;
+  RawUuid targetId;
   final GraphApi api;
   final String tableName;
   final UiRelation relation;

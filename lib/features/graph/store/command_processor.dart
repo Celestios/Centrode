@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:ui';
 import 'package:mycelium/shared/logging.dart';
 import '../models/models.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 /// Manages the lifecycle of state mutations with FIFO ordering for FFI calls.
 /// Implements write-behind debouncing to batch high-frequency spatial updates.
@@ -115,8 +116,10 @@ class CommandProcessor {
   /// Updates any pending commands that reference the temp ID to use the real ID.
   /// This ensures commands queued during optimistic creation don't get trapped
   /// with the temp ID when the real ID becomes available.
-  void notifyIdSwap(String tempId, String realId) {
+  void notifyIdSwap(RawUuid tempId, RawUuid realId) {
     _log.fine('ID Swap notification: $tempId -> $realId');
+    final tempStr = tempId.toUuidString();
+    final realStr = realId.toUuidString();
 
     // 1. Update pending commands and their internal targetIds
     final keysToUpdate = <String>[];
@@ -129,10 +132,7 @@ class CommandProcessor {
     for (final oldKey in keysToUpdate) {
       final cmd = _pendingCommands.remove(oldKey);
       if (cmd != null) {
-        // Update the command's internal ID so the FFI call uses the real one
         cmd.targetId = realId;
-
-        // Re-insert with the new composite key
         final newKey = _getCompositeKey(cmd);
         _pendingCommands[newKey] = cmd;
         _log.fine('Updated pending command: $oldKey -> $newKey');
@@ -150,8 +150,8 @@ class CommandProcessor {
     // 3. Update debouncers map keys
     final debouncerKeysToUpdate = <String, String>{};
     for (final key in _debouncers.keys) {
-      if (key.contains(tempId)) {
-        debouncerKeysToUpdate[key] = key.replaceAll(tempId, realId);
+      if (key.contains(tempStr)) {
+        debouncerKeysToUpdate[key] = key.replaceAll(tempStr, realStr);
       }
     }
 

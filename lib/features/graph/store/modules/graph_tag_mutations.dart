@@ -8,6 +8,7 @@ import '../../models/commands/patch_helpers.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 /// Tag and comment mutation operations for the graph.
 class GraphTagMutations {
@@ -16,7 +17,7 @@ class GraphTagMutations {
 
   GraphTagMutations(this.controller);
 
-  void updateNodeTags(String id, List<Tag> newTags) {
+  void updateNodeTags(RawUuid id, List<Tag> newTags) {
     _log.info('Updating tags for $id: $newTags');
     final node = controller.store.nodeLookup[id];
     if (node is! InfoUiNode) return;
@@ -47,7 +48,7 @@ class GraphTagMutations {
     controller.triggerUpdate();
   }
 
-  void updateNodeComments(String id, List<frb.Comment> newComments) {
+  void updateNodeComments(RawUuid id, List<frb.Comment> newComments) {
     _log.info('Updating comments for $id: $newComments');
     final node = controller.store.nodeLookup[id];
     if (node is! InfoUiNode) return;
@@ -86,7 +87,7 @@ class GraphTagMutations {
   Future<void> createTag(Tag tag) async {
     final api = controller.syncEngine.api;
     final cmd = CreateTagCommand(
-      targetId: tag.key.key.uuid,
+      targetId: RawUuid.fromString(tag.key.key.uuid),
       api: api,
       tag: tag,
       controller: controller,
@@ -99,7 +100,7 @@ class GraphTagMutations {
     final tags = await getAllTags();
     final oldTag = tags.firstWhere((t) => t.key == tag.key, orElse: () => tag);
     final cmd = UpdateTagCommand(
-      targetId: tag.key.key.uuid,
+      targetId: RawUuid.fromString(tag.key.key.uuid),
       api: api,
       oldTag: oldTag,
       newTag: tag,
@@ -138,7 +139,7 @@ class GraphTagMutations {
     final tags = await getAllTags();
     final tag = tags.firstWhere((t) => t.key.key.uuid == tagKey);
     final cmd = DeleteTagCommand(
-      targetId: tagKey,
+      targetId: RawUuid.fromString(tagKey),
       api: api,
       tag: tag,
       controller: controller,
@@ -165,7 +166,7 @@ class GraphTagMutations {
     controller.triggerUpdate();
   }
 
-  void addTagToNode(String nodeId, String name, int color) {
+  void addTagToNode(RawUuid nodeId, String name, int color) {
     final node = controller.store.nodeLookup[nodeId];
     if (node is InfoUiNode) {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -182,7 +183,7 @@ class GraphTagMutations {
     }
   }
 
-  void removeTagFromNode(String nodeId, String tagKey) {
+  void removeTagFromNode(RawUuid nodeId, String tagKey) {
     final node = controller.store.nodeLookup[nodeId];
     if (node is InfoUiNode) {
       final updatedTags = node.tags.where((t) => t.key.key.uuid != tagKey).toList();
@@ -190,7 +191,7 @@ class GraphTagMutations {
     }
   }
 
-  void addCommentToNode(String nodeId, String text) {
+  void addCommentToNode(RawUuid nodeId, String text) {
     final node = controller.store.nodeLookup[nodeId];
     if (node is InfoUiNode) {
       final newComment = frb.Comment(
@@ -201,7 +202,7 @@ class GraphTagMutations {
     }
   }
 
-  void removeCommentFromNode(String nodeId, frb.Comment comment) {
+  void removeCommentFromNode(RawUuid nodeId, frb.Comment comment) {
     final node = controller.store.nodeLookup[nodeId];
     if (node is InfoUiNode) {
       final updatedComments = node.comments.where((c) => c != comment).toList();

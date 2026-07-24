@@ -5,6 +5,7 @@ import 'package:mycelium/src/rust/domain/nodes.dart';
 import '../../models/models.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 /// Node mutation operations for the graph.
 class GraphNodeMutations {
@@ -14,7 +15,7 @@ class GraphNodeMutations {
   GraphNodeMutations(this.controller);
 
   /// Creates a node with immediate UI injection (T=0.0ms pattern).
-  String createNode(
+  RawUuid createNode(
     UiNodes type,
     Offset position, {
     List<String>? paths,
@@ -45,7 +46,7 @@ class GraphNodeMutations {
       default:
         throw ArgumentError('Unsupported or unhandled node type: $type');
     }
-    String id = node.id;
+    RawUuid id = node.id;
     controller.store.nodeLookup[id] = node;
     controller.spatial.spatialGrid.insert(id, position);
     controller.spatial.saveConfirmedPosition(id, position);
@@ -79,7 +80,7 @@ class GraphNodeMutations {
 
   /// Deletes a node with immediate command execution via CommandProcessor.
   /// Handles deletion race condition by ensuring delete executes before any pending moves.
-  Future<void> deleteNode(String id) async {
+  Future<void> deleteNode(RawUuid id) async {
     final node = controller.store.nodeLookup[id];
     if (node == null) return;
 
@@ -114,7 +115,7 @@ class GraphNodeMutations {
 
   /// Updates node position with write-behind debouncing via CommandProcessor.
   /// Tracks the last confirmed DB position to prevent "Superseded Rollback Traps".
-  void updateNodePosition(String id, Offset newPosition) {
+  void updateNodePosition(RawUuid id, Offset newPosition) {
     final node = controller.store.nodeLookup[id];
     if (node == null) return;
 
@@ -150,7 +151,7 @@ class GraphNodeMutations {
 
   /// Updates node width based on left and right edges.
   /// Calculates width and updates position if the left edge moved.
-  void updateNodeWidth(String id, double leftEdge, double rightEdge) {
+  void updateNodeWidth(RawUuid id, double leftEdge, double rightEdge) {
     final node = controller.store.nodeLookup[id];
     if (node == null) return;
 
@@ -215,7 +216,7 @@ class GraphNodeMutations {
   }
 
   /// Toggles the node's expanded/collapsed state and recalculates height.
-  void toggleNodeExpansion(String id) {
+  void toggleNodeExpansion(RawUuid id) {
     final node = controller.store.nodeLookup[id];
     if (node == null) return;
 

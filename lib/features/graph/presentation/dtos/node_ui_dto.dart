@@ -1,7 +1,8 @@
 import 'dart:ui';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 class NodeUiDto {
-  final String id;
+  final RawUuid id;
   final String type;
   final String label;
   final Offset position;

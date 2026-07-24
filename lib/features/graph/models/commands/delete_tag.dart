@@ -3,12 +3,13 @@ import 'package:mycelium/src/rust/domain/types.dart';
 import '../../store/graph_api.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('DeleteTagCommand');
 
 class DeleteTagCommand extends GraphCommand {
   @override
-  String targetId;
+  RawUuid targetId;
   final GraphApi api;
   final Tag tag;
   final GraphCommandContext controller;
@@ -26,7 +27,7 @@ class DeleteTagCommand extends GraphCommand {
   @override
   Future<void> execute() async {
     _log.info('execute DeleteTag key=$targetId');
-    await api.deleteTag(key: targetId);
+    await api.deleteTag(key: targetId.toUuidString());
   }
 
   @override

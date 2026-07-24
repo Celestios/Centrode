@@ -1,15 +1,16 @@
 import '../../models/models.dart';
+import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 /// Encapsulates canonical O(1) in-memory storage for the graph.
 class GraphStore {
-  final Map<String, UiNode> _nodesMap = {};
-  final Map<String, UiRelation> _relationsMap = {};
+  final Map<RawUuid, UiNode> _nodesMap = {};
+  final Map<RawUuid, UiRelation> _relationsMap = {};
 
   /// O(1) lookup map for nodes by ID.
-  Map<String, UiNode> get nodeLookup => _nodesMap;
+  Map<RawUuid, UiNode> get nodeLookup => _nodesMap;
 
   /// O(1) lookup map for relations by ID.
-  Map<String, UiRelation> get relationLookup => _relationsMap;
+  Map<RawUuid, UiRelation> get relationLookup => _relationsMap;
 
   /// Iterable of all nodes.
   Iterable<UiNode> get nodes => _nodesMap.values;

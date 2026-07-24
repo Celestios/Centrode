@@ -44,7 +44,7 @@ class CommentUiNode extends UiNode {
       CommentNode(
         id: TypedRecordId(
           table: TableKind.commentNode,
-          key: UuidValue.fromString(id),
+          key: UuidValue.fromString(id.toUuidString()),
         ),
         position: frb.Coordinates(
           x: position.dx.round(),
@@ -61,7 +61,7 @@ class CommentUiNode extends UiNode {
 
   factory CommentUiNode.fromRust(CommentNode node) {
     return CommentUiNode(
-      id: node.id.key.uuid,
+      id: RawUuid.fromString(node.id.key.uuid),
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -72,7 +72,7 @@ class CommentUiNode extends UiNode {
   }
 
   CommentUiNode copyWith({
-    String? id,
+    RawUuid? id,
     int? createdAt,
     int? updatedAt,
     String? layer,
@@ -150,7 +150,7 @@ class DrawingUiNode extends UiNode {
       DrawingNode(
         id: TypedRecordId(
           table: TableKind.drawingNode,
-          key: UuidValue.fromString(id),
+          key: UuidValue.fromString(id.toUuidString()),
         ),
         position: frb.Coordinates(
           x: position.dx.round(),
@@ -171,7 +171,7 @@ class DrawingUiNode extends UiNode {
 
   factory DrawingUiNode.fromRust(DrawingNode node) {
     return DrawingUiNode(
-      id: node.id.key.uuid,
+      id: RawUuid.fromString(node.id.key.uuid),
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -186,7 +186,7 @@ class DrawingUiNode extends UiNode {
   }
 
   DrawingUiNode copyWith({
-    String? id,
+    RawUuid? id,
     int? createdAt,
     int? updatedAt,
     String? layer,
@@ -264,7 +264,7 @@ class FrameUiNode extends UiNode {
       FrameNode(
         id: TypedRecordId(
           table: TableKind.frameNode,
-          key: UuidValue.fromString(id),
+          key: UuidValue.fromString(id.toUuidString()),
         ),
         position: frb.Coordinates(
           x: position.dx.round(),
@@ -282,7 +282,7 @@ class FrameUiNode extends UiNode {
 
   factory FrameUiNode.fromRust(FrameNode node) {
     return FrameUiNode(
-      id: node.id.key.uuid,
+      id: RawUuid.fromString(node.id.key.uuid),
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -294,7 +294,7 @@ class FrameUiNode extends UiNode {
   }
 
   FrameUiNode copyWith({
-    String? id,
+    RawUuid? id,
     int? createdAt,
     int? updatedAt,
     String? layer,
@@ -372,7 +372,7 @@ class InfoUiNode extends UiNode {
       INode(
         id: TypedRecordId(
           table: TableKind.iNode,
-          key: UuidValue.fromString(id),
+          key: UuidValue.fromString(id.toUuidString()),
         ),
         position: frb.Coordinates(
           x: position.dx.round(),
@@ -402,7 +402,7 @@ class InfoUiNode extends UiNode {
 
   factory InfoUiNode.fromRust(INode node) {
     return InfoUiNode(
-      id: node.id.key.uuid,
+      id: RawUuid.fromString(node.id.key.uuid),
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -439,7 +439,7 @@ class InfoUiNode extends UiNode {
   }
 
   InfoUiNode copyWith({
-    String? id,
+    RawUuid? id,
     int? createdAt,
     int? updatedAt,
     String? layer,
@@ -521,7 +521,7 @@ class InterUiNode extends UiNode {
       InterNode(
         id: TypedRecordId(
           table: TableKind.interNode,
-          key: UuidValue.fromString(id),
+          key: UuidValue.fromString(id.toUuidString()),
         ),
         position: frb.Coordinates(
           x: position.dx.round(),
@@ -539,7 +539,7 @@ class InterUiNode extends UiNode {
 
   factory InterUiNode.fromRust(InterNode node) {
     return InterUiNode(
-      id: node.id.key.uuid,
+      id: RawUuid.fromString(node.id.key.uuid),
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -551,7 +551,7 @@ class InterUiNode extends UiNode {
   }
 
   InterUiNode copyWith({
-    String? id,
+    RawUuid? id,
     int? createdAt,
     int? updatedAt,
     String? layer,
@@ -629,7 +629,7 @@ class MediaUiNode extends UiNode {
       MediaNode(
         id: TypedRecordId(
           table: TableKind.mediaNode,
-          key: UuidValue.fromString(id),
+          key: UuidValue.fromString(id.toUuidString()),
         ),
         position: frb.Coordinates(
           x: position.dx.round(),
@@ -647,7 +647,7 @@ class MediaUiNode extends UiNode {
 
   factory MediaUiNode.fromRust(MediaNode node) {
     return MediaUiNode(
-      id: node.id.key.uuid,
+      id: RawUuid.fromString(node.id.key.uuid),
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -659,7 +659,7 @@ class MediaUiNode extends UiNode {
   }
 
   MediaUiNode copyWith({
-    String? id,
+    RawUuid? id,
     int? createdAt,
     int? updatedAt,
     String? layer,
@@ -733,7 +733,7 @@ class ShapeUiNode extends UiNode {
       ShapeNode(
         id: TypedRecordId(
           table: TableKind.shapeNode,
-          key: UuidValue.fromString(id),
+          key: UuidValue.fromString(id.toUuidString()),
         ),
         position: frb.Coordinates(
           x: position.dx.round(),
@@ -751,7 +751,7 @@ class ShapeUiNode extends UiNode {
 
   factory ShapeUiNode.fromRust(ShapeNode node) {
     return ShapeUiNode(
-      id: node.id.key.uuid,
+      id: RawUuid.fromString(node.id.key.uuid),
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -763,7 +763,7 @@ class ShapeUiNode extends UiNode {
   }
 
   ShapeUiNode copyWith({
-    String? id,
+    RawUuid? id,
     int? createdAt,
     int? updatedAt,
     String? layer,
@@ -837,7 +837,7 @@ class TaskUiNode extends UiNode {
       TaskNode(
         id: TypedRecordId(
           table: TableKind.taskNode,
-          key: UuidValue.fromString(id),
+          key: UuidValue.fromString(id.toUuidString()),
         ),
         position: frb.Coordinates(
           x: position.dx.round(),
@@ -863,7 +863,7 @@ class TaskUiNode extends UiNode {
 
   factory TaskUiNode.fromRust(TaskNode node) {
     return TaskUiNode(
-      id: node.id.key.uuid,
+      id: RawUuid.fromString(node.id.key.uuid),
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -883,7 +883,7 @@ class TaskUiNode extends UiNode {
   }
 
   TaskUiNode copyWith({
-    String? id,
+    RawUuid? id,
     int? createdAt,
     int? updatedAt,
     String? layer,
