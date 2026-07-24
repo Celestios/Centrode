@@ -12,7 +12,7 @@ class MockNodeRenderState extends Mock
     with ChangeNotifier
     implements NodeRenderState {
   @override
-  String? get activeEditId => 'test-node-1';
+  RawUuid? get activeEditId => 'test-node-1';
 
   @override
   final ValueNotifier<TextSelection?> activeTextSelectionNotifier = ValueNotifier(null);

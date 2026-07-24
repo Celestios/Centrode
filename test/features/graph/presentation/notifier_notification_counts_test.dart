@@ -14,16 +14,20 @@ import 'package:mycelium/shared/domain/raw_uuid.dart';
 class MockGraphDataQuery extends Mock implements GraphDataQuery {}
 class MockGraphDataCommand extends Mock implements GraphDataCommand {}
 
-UiNode _makeNode(String id) => InfoUiNode(
+UiNode _makeNode(RawUuid id) => InfoUiNode(
   position: Offset.zero,
   id: id,
   size: const Size(100, 50),
 );
 
+final _node1 = RawUuid.fromString('node-1');
+final _node2 = RawUuid.fromString('node-2');
+final _testId = RawUuid.fromString('test-id');
+
 void main() {
   late MockGraphDataQuery mockQuery;
   late MockGraphDataCommand mockCommand;
-  final testNodes = {'node-1': _makeNode('node-1'), 'node-2': _makeNode('node-2')};
+  final testNodes = {_node1: _makeNode(_node1), _node2: _makeNode(_node2)};
 
   setUp(() {
     mockQuery = MockGraphDataQuery();
@@ -40,7 +44,7 @@ void main() {
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
 
-      state.selectEntity('node-1');
+      state.selectEntity(_node1);
 
       expect(notifyCount, 1, reason: 'selectEntity should forward notification from SelectionState');
       state.dispose();
@@ -51,7 +55,7 @@ void main() {
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
 
-      state.selectEntities(['node-1', 'node-2']);
+      state.selectEntities([_node1, _node2]);
 
       expect(notifyCount, 1);
       state.dispose();
@@ -62,7 +66,7 @@ void main() {
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
 
-      state.enterEditMode('test-id');
+      state.enterEditMode(_testId);
 
       expect(notifyCount, 1);
       state.dispose();
@@ -70,7 +74,7 @@ void main() {
 
     test('cancelActiveEdit notifies exactly once', () {
       final state = NodeRenderState(mockQuery, mockCommand);
-      state.enterEditMode('test-id');
+      state.enterEditMode(_testId);
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
 
@@ -85,7 +89,7 @@ void main() {
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
 
-      state.setNodeDragging('test-id', true);
+      state.setNodeDragging(_testId, true);
 
       expect(notifyCount, 0);
       state.dispose();
@@ -93,14 +97,14 @@ void main() {
   });
 
   group('EditorState notification counts', () {
-    final viewStates = <String, NodeViewState>{};
+    final viewStates = <RawUuid, NodeViewState>{};
 
     test('enterEditMode notifies exactly once', () {
       final state = EditorState(mockQuery, viewStates);
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
 
-      state.enterEditMode('test-id');
+      state.enterEditMode(_testId);
 
       expect(notifyCount, 1);
       state.dispose();
@@ -108,7 +112,7 @@ void main() {
 
     test('cancelActiveEdit notifies exactly once', () {
       final state = EditorState(mockQuery, viewStates);
-      state.enterEditMode('test-id');
+      state.enterEditMode(_testId);
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
 
@@ -123,7 +127,7 @@ void main() {
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
 
-      state.showFloatingToolbar('node-1');
+      state.showFloatingToolbar(_node1);
 
       expect(notifyCount, 1);
       state.dispose();
@@ -131,11 +135,11 @@ void main() {
 
     test('showFloatingToolbar same node does not re-notify', () {
       final state = EditorState(mockQuery, viewStates);
-      state.showFloatingToolbar('node-1');
+      state.showFloatingToolbar(_node1);
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
 
-      state.showFloatingToolbar('node-1');
+      state.showFloatingToolbar(_node1);
 
       expect(notifyCount, 0);
       state.dispose();
@@ -148,7 +152,7 @@ void main() {
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
 
-      state.selectEntity('node-1');
+      state.selectEntity(_node1);
 
       expect(notifyCount, 1, reason: 'selectEntity should notify once when selecting a valid entity');
     });
@@ -168,7 +172,7 @@ void main() {
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
 
-      state.selectEntities(['node-1', 'node-2']);
+      state.selectEntities([_node1, _node2]);
 
       expect(notifyCount, 1);
     });
@@ -180,7 +184,7 @@ void main() {
       int notifyCount = 0;
       state.addListener(() => notifyCount++);
 
-      state.setNodeDragging('test-id', true);
+      state.setNodeDragging(_testId, true);
 
       expect(notifyCount, 1);
     });

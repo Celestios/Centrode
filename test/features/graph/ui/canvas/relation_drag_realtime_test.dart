@@ -80,21 +80,21 @@ void main() {
       final mockTheme = MockThemeController();
 
       final fromNode = InfoUiNode(
-        id: 'node-from',
+        id: RawUuid.fromString('node-from'),
         position: const Offset(10, 10),
         size: const Size(100, 50),
       );
       final toNode = InfoUiNode(
-        id: 'node-to',
+        id: RawUuid.fromString('node-to'),
         position: const Offset(210, 10),
         size: const Size(100, 50),
       );
 
       final rel = InfoUiRelation(
-        id: 'rel-1',
-        fromNodeId: 'node-from',
+        id: RawUuid.fromString('rel-1'),
+        fromNodeId: RawUuid.fromString('node-from'),
         fromNodeTable: 'inode',
-        toNodeId: 'node-to',
+        toNodeId: RawUuid.fromString('node-to'),
         toNodeTable: 'inode',
         layout: const RelationLayout(
           fromSide: null,
@@ -134,7 +134,7 @@ void main() {
 
       when(
         () => mockTheme.currentGraphTheme,
-      ).thenReturn(const GraphTheme(id: 'test', name: 'test'));
+      ).thenReturn(const GraphTheme(id: RawUuid.fromString('test'), name: 'test'));
       when(() => mockTheme.addListener(any())).thenAnswer((_) {});
       when(() => mockTheme.removeListener(any())).thenAnswer((_) {});
 
@@ -146,7 +146,7 @@ void main() {
       final mockInteraction = MockInteractionController();
       final stateNotifier = ValueNotifier<CanvasInteractionState>(
         RelationTipDragging(
-          relationId: 'rel-1',
+          relationId: RawUuid.fromString('rel-1'),
           isStartTip: true,
           originalPosition: const Offset(110, 35),
           currentCursorPosition: const Offset(110, 35),
@@ -187,7 +187,7 @@ void main() {
 
       // Now update state (simulate pointer move event)
       stateNotifier.value = RelationTipDragging(
-        relationId: 'rel-1',
+        relationId: RawUuid.fromString('rel-1'),
         isStartTip: true,
         originalPosition: const Offset(110, 35),
         currentCursorPosition: const Offset(150, 40), // Moved by 40px
@@ -216,21 +216,21 @@ void main() {
       final mockTheme = MockThemeController();
 
       final fromNode = InfoUiNode(
-        id: 'node-from',
+        id: RawUuid.fromString('node-from'),
         position: const Offset(10, 10),
         size: const Size(100, 50),
       );
       final toNode = InfoUiNode(
-        id: 'node-to',
+        id: RawUuid.fromString('node-to'),
         position: const Offset(210, 10),
         size: const Size(100, 50),
       );
 
       final rel = InfoUiRelation(
-        id: 'rel-1',
-        fromNodeId: 'node-from',
+        id: RawUuid.fromString('rel-1'),
+        fromNodeId: RawUuid.fromString('node-from'),
         fromNodeTable: 'inode',
-        toNodeId: 'node-to',
+        toNodeId: RawUuid.fromString('node-to'),
         toNodeTable: 'inode',
         layout: const RelationLayout(
           fromSide: null,
@@ -278,7 +278,7 @@ void main() {
 
       when(
         () => mockTheme.currentGraphTheme,
-      ).thenReturn(const GraphTheme(id: 'test', name: 'test'));
+      ).thenReturn(const GraphTheme(id: RawUuid.fromString('test'), name: 'test'));
       when(() => mockTheme.addListener(any())).thenAnswer((_) {});
       when(() => mockTheme.removeListener(any())).thenAnswer((_) {});
 

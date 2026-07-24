@@ -10,7 +10,7 @@ import 'package:mycelium/shared/domain/raw_uuid.dart';
 void main() {
   test('NodeViewState rightResizeHitbox offset shift check', () {
     final node = InfoUiNode(
-      id: 'test-node-1',
+      id: RawUuid.fromString('test-node-1'),
       position: const Offset(100.0, 150.0),
       size: const Size(200.0, 100.0),
     );
@@ -47,8 +47,8 @@ void main() {
     expect(NodeLayoutStrategy.fromType('task'), isA<TaskNodeLayoutStrategy>());
     expect(NodeLayoutStrategy.fromType('info'), isA<InfoNodeLayoutStrategy>());
 
-    final infoNode = InfoUiNode(id: 'info-1', position: Offset.zero);
-    final taskNode = TaskUiNode(id: 'task-1', position: Offset.zero);
+    final infoNode = InfoUiNode(id: RawUuid.fromString('info-1'), position: Offset.zero);
+    final taskNode = TaskUiNode(id: RawUuid.fromString('task-1'), position: Offset.zero);
 
     expect(
       NodeLayoutStrategy.fromType(null, fallbackNode: infoNode),
@@ -75,7 +75,7 @@ void main() {
 
   test('NodeViewState getClosestPort finds the correct closest port', () {
     final node = InfoUiNode(
-      id: 'test-node-1',
+      id: RawUuid.fromString('test-node-1'),
       position: const Offset(100.0, 100.0),
       size: const Size(100.0, 100.0),
     );
@@ -100,12 +100,12 @@ void main() {
 
   test('NodeViewState getClosestPortsBetween finds closest pair of ports', () {
     final node1 = InfoUiNode(
-      id: 'test-node-1',
+      id: RawUuid.fromString('test-node-1'),
       position: const Offset(100.0, 100.0),
       size: const Size(100.0, 100.0),
     );
     final node2 = InfoUiNode(
-      id: 'test-node-2',
+      id: RawUuid.fromString('test-node-2'),
       position: const Offset(300.0, 100.0), // directly to the right
       size: const Size(100.0, 100.0),
     );

@@ -15,7 +15,7 @@ void main() {
     
     // Set a test theme
     styleManager.setTheme(const GraphTheme(
-      id: 'test',
+      id: RawUuid.fromString('test'),
       name: 'test',
       primaryColor: Color(0xFF123456),
       fontFamily: 'Roboto',
@@ -25,7 +25,7 @@ void main() {
 
     // Create a DrawingUiNode
     final drawingNode = DrawingUiNode(
-      id: 'drawing_node_1',
+      id: RawUuid.fromString('drawing_node_1'),
       position: const Offset(10, 20),
       size: const Size(100, 100),
       brushType: BrushType.pencil,

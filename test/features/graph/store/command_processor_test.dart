@@ -14,7 +14,8 @@ class FakeCommand extends GraphCommand {
   bool isUndone = false;
   bool shouldFail = false;
 
-  FakeCommand(this.targetId, this.category, {this.shouldFail = false});
+  FakeCommand(RawUuid targetId, this.category, {this.shouldFail = false})
+      : targetId = targetId;
 
   @override
   Future<void> execute() async {
@@ -41,7 +42,7 @@ void main() {
     });
 
     test('executes immediate command right away', () async {
-      final cmd = FakeCommand('node-1', CommandCategory.spatial);
+      final cmd = FakeCommand(RawUuid.fromString('node-1'), CommandCategory.spatial);
 
       processor.queueCommand(cmd, immediate: true);
 
@@ -53,7 +54,7 @@ void main() {
     });
 
     test('debounces non-immediate command', () async {
-      final cmd = FakeCommand('node-2', CommandCategory.spatial);
+      final cmd = FakeCommand(RawUuid.fromString('node-2'), CommandCategory.spatial);
 
       processor.queueCommand(cmd, immediate: false);
 
@@ -65,9 +66,9 @@ void main() {
     });
 
     test('overwrites previous pending command of same category', () async {
-      final cmd1 = FakeCommand('node-3', CommandCategory.spatial);
+      final cmd1 = FakeCommand(RawUuid.fromString('node-3'), CommandCategory.spatial);
       final cmd2 = FakeCommand(
-        'node-3',
+        RawUuid.fromString('node-3'),
         CommandCategory.spatial,
       ); // Same ID and Category
 
@@ -81,9 +82,9 @@ void main() {
     });
 
     test('keeps pending commands of different categories', () async {
-      final cmd1 = FakeCommand('node-4', CommandCategory.spatial);
+      final cmd1 = FakeCommand(RawUuid.fromString('node-4'), CommandCategory.spatial);
       final cmd2 = FakeCommand(
-        'node-4',
+        RawUuid.fromString('node-4'),
         CommandCategory.content,
       ); // Different Category
 
@@ -98,7 +99,7 @@ void main() {
 
     test('undoes command on failure and reports error', () async {
       final cmd = FakeCommand(
-        'node-5',
+        RawUuid.fromString('node-5'),
         CommandCategory.lifecycle,
         shouldFail: true,
       );
@@ -114,7 +115,7 @@ void main() {
     });
 
     test('forceFlush executes pending commands instantly', () async {
-      final cmd = FakeCommand('node-6', CommandCategory.spatial);
+      final cmd = FakeCommand(RawUuid.fromString('node-6'), CommandCategory.spatial);
 
       processor.queueCommand(cmd, immediate: false);
 
@@ -124,11 +125,11 @@ void main() {
     });
 
     test('notifyIdSwap updates pending commands to use real DB id', () async {
-      final cmd = FakeCommand('temp-uuid', CommandCategory.content);
+      final cmd = FakeCommand(RawUuid.fromString('temp-uuid'), CommandCategory.content);
 
       processor.queueCommand(cmd, immediate: false);
 
-      processor.notifyIdSwap('temp-uuid', 'real-db-id');
+      processor.notifyIdSwap(RawUuid.fromString('temp-uuid'), RawUuid.fromString('real-db-id'));
 
       await processor.forceFlush();
 

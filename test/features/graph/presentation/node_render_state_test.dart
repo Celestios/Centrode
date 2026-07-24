@@ -19,7 +19,7 @@ void main() {
       mockQuery = MockGraphDataQuery();
       mockCommand = MockGraphDataCommand();
 
-      final dummyNode = InfoUiNode(id: 'node-1', position: Offset.zero);
+      final dummyNode = InfoUiNode(id: RawUuid.fromString('node-1'), position: Offset.zero);
       when(() => mockQuery.nodeLookup).thenReturn({'node-1': dummyNode});
       when(() => mockQuery.relationLookup).thenReturn({});
       when(() => mockQuery.relations).thenReturn([]);

@@ -20,7 +20,7 @@ class MockGraphDataQuery extends Mock
 class MockThemeController extends Mock implements ThemeController {
   @override
   GraphTheme get currentGraphTheme =>
-      const GraphTheme(id: 'test', name: 'test');
+      const GraphTheme(id: RawUuid.fromString('test'), name: 'test');
 }
 
 void main() {
@@ -31,7 +31,7 @@ void main() {
     final mockTheme = MockThemeController();
 
     final node = InfoUiNode(
-      id: 'test-node-1',
+      id: RawUuid.fromString('test-node-1'),
       position: const Offset(0, 0),
       size: const Size(200, 100),
       content: ContentFactory.fromText('Test Node'),

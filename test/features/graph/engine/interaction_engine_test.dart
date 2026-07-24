@@ -124,21 +124,21 @@ void main() {
       () {
         // 1. Setup mock views, nodes and selected relation
         final fromNode = InfoUiNode(
-          id: 'node-from',
+          id: RawUuid.fromString('node-from'),
           position: const Offset(0, 0),
           size: const Size(100, 60),
         );
         final toNode = InfoUiNode(
-          id: 'node-to',
+          id: RawUuid.fromString('node-to'),
           position: const Offset(300, 0),
           size: const Size(100, 60),
         );
 
         final rel = InfoUiRelation(
-          id: 'rel-1',
-          fromNodeId: 'node-from',
+          id: RawUuid.fromString('rel-1'),
+          fromNodeId: RawUuid.fromString('node-from'),
           fromNodeTable: 'inode',
-          toNodeId: 'node-to',
+          toNodeId: RawUuid.fromString('node-to'),
           toNodeTable: 'inode',
           layout: RelationLayout(
             fromSide: PortSide.right,
@@ -188,21 +188,21 @@ void main() {
       'pointer move during RelationTipDragging updates position and emits logs',
       () {
         final fromNode = InfoUiNode(
-          id: 'node-from',
+          id: RawUuid.fromString('node-from'),
           position: const Offset(0, 0),
           size: const Size(100, 60),
         );
         final toNode = InfoUiNode(
-          id: 'node-to',
+          id: RawUuid.fromString('node-to'),
           position: const Offset(300, 0),
           size: const Size(100, 60),
         );
 
         final rel = InfoUiRelation(
-          id: 'rel-1',
-          fromNodeId: 'node-from',
+          id: RawUuid.fromString('rel-1'),
+          fromNodeId: RawUuid.fromString('node-from'),
           fromNodeTable: 'inode',
-          toNodeId: 'node-to',
+          toNodeId: RawUuid.fromString('node-to'),
           toNodeTable: 'inode',
           layout: RelationLayout(
             fromSide: PortSide.right,

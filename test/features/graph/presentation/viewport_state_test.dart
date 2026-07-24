@@ -52,7 +52,7 @@ void main() {
         const Size(800, 600),
       );
       await Future.delayed(Duration.zero);
-      expect(controller.visibleNodeIds.value.contains('node-1'), isTrue);
+      expect(controller.visibleNodeIds.value.contains(RawUuid.fromString('node-1')), isTrue);
     });
 
     test('focusOnBounds centers camera properly', () {

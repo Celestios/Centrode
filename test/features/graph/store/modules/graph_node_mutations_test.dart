@@ -16,7 +16,7 @@ class MockGraphApi extends Mock implements GraphApi {}
 class MockThemeController extends Mock implements ThemeController {
   @override
   GraphTheme get currentGraphTheme =>
-      const GraphTheme(id: 'test', name: 'test');
+      const GraphTheme(id: RawUuid.fromString('test'), name: 'test');
 }
 
 void main() {

@@ -6,9 +6,9 @@ void main() {
   group('UiRelation', () {
     test('InfoUiRelation creates with defaults', () {
       final relation = InfoUiRelation(
-        fromNodeId: 'node-1',
+        fromNodeId: RawUuid.fromString('node-1'),
         fromNodeTable: 'INode',
-        toNodeId: 'node-2',
+        toNodeId: RawUuid.fromString('node-2'),
         toNodeTable: 'TaskNode',
       );
 
@@ -22,10 +22,10 @@ void main() {
 
     test('InfoUiRelation copyWith updates fields', () {
       final relation = InfoUiRelation(
-        id: 'rel-1',
-        fromNodeId: 'n1',
+        id: RawUuid.fromString('rel-1'),
+        fromNodeId: RawUuid.fromString('n1'),
         fromNodeTable: 'INode',
-        toNodeId: 'n2',
+        toNodeId: RawUuid.fromString('n2'),
         toNodeTable: 'INode',
         verb: 'relates_to',
       );
@@ -40,10 +40,10 @@ void main() {
 
     test('InfoUiRelation toRust generates valid FFI object', () {
       final relation = InfoUiRelation(
-        id: 'rel-ffi',
-        fromNodeId: 'n1',
+        id: RawUuid.fromString('rel-ffi'),
+        fromNodeId: RawUuid.fromString('n1'),
         fromNodeTable: 'INode',
-        toNodeId: 'n2',
+        toNodeId: RawUuid.fromString('n2'),
         toNodeTable: 'TaskNode',
         verb: 'blocks',
         directionless: false,

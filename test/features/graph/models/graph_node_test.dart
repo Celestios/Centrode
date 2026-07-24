@@ -30,7 +30,7 @@ void main() {
 
     test('InfoUiNode copyWith updates fields correctly', () {
       final node = InfoUiNode(
-        id: '123',
+        id: RawUuid.fromString('123'),
         position: const Offset(0, 0),
         layer: 'base',
       );
@@ -49,7 +49,7 @@ void main() {
 
     test('TaskUiNode copyWith updates fields correctly', () {
       final node = TaskUiNode(
-        id: 'task-1',
+        id: RawUuid.fromString('task-1'),
         position: const Offset(0, 0),
         state: TaskState.todo,
       );
@@ -64,7 +64,7 @@ void main() {
 
     test('InfoUiNode toRust generates valid FFI object', () {
       final node = InfoUiNode(
-        id: 'node-ffi-1',
+        id: RawUuid.fromString('node-ffi-1'),
         position: const Offset(15, 25),
         layer: 'bg',
         size: const Size(100, 200),
@@ -89,7 +89,7 @@ void main() {
 
     test('TaskUiNode toRust generates valid FFI object', () {
       final node = TaskUiNode(
-        id: 'task-ffi-1',
+        id: RawUuid.fromString('task-ffi-1'),
         position: const Offset(50, 60),
         state: TaskState.inProgress,
       );

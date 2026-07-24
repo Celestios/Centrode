@@ -21,7 +21,7 @@ class MockGraphApi extends Mock implements GraphApi {}
 class MockThemeController extends Mock implements ThemeController {
   @override
   GraphTheme get currentGraphTheme =>
-      const GraphTheme(id: 'test', name: 'test');
+      const GraphTheme(id: RawUuid.fromString('test'), name: 'test');
 }
 
 void main() {
@@ -91,7 +91,7 @@ void main() {
     test('loadGraph hydrates node formatting and layout size', () async {
       // Configure style, resolver, and size calculator on controller
       final styleManager = StyleManager(queryController.store);
-      styleManager.setTheme(const GraphTheme(id: 'test', name: 'test'));
+      styleManager.setTheme(const GraphTheme(id: RawUuid.fromString('test'), name: 'test'));
       controller.sizeCalculator = NodeLayoutStrategy.calculateSize;
       controller.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
       controller.styleUpdater = styleManager;
