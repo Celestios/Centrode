@@ -5,6 +5,7 @@ import 'package:mycelium/presentation/theme/graph_theme.dart';
 import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/relation_style_strategy.dart';
 import 'package:mycelium/features/graph/presentation/strategies/significance_strategy.dart';
+import 'package:mycelium/features/graph/presentation/style_flyweight.dart';
 import 'package:mycelium/features/graph/store/modules/graph_store.dart';
 import 'package:mycelium/features/graph/models/commands/graph_command_context.dart'
     show GraphStyleUpdater;
@@ -17,6 +18,7 @@ class StyleManager implements GraphStyleUpdater {
   final RelationStyleStrategy _relationStrategy =
       const DefaultRelationStyleStrategy();
   final SignificanceStrategy _modifier = const SignificanceStrategy();
+  final StyleFlyweight _flyweight = StyleFlyweight();
 
   GraphTheme? _theme;
   DisplayMode _displayMode = DisplayMode.leveling;
@@ -25,6 +27,7 @@ class StyleManager implements GraphStyleUpdater {
 
   void updateAllStyles(Iterable<UiNode> nodes, Iterable<UiRelation> relations) {
     _log.info('Rebuilding all styles (theme: ${_theme?.name})');
+    _flyweight.clear();
     for (final node in nodes) {
       _resolveAndCacheNode(node);
     }
@@ -47,11 +50,13 @@ class StyleManager implements GraphStyleUpdater {
 
   void setTheme(GraphTheme? theme) {
     _theme = theme;
+    _flyweight.clear();
   }
 
   void setDisplayMode(DisplayMode mode) {
     if (_displayMode == mode) return;
     _displayMode = mode;
+    _flyweight.clear();
     for (final node in _store.nodeLookup.values) {
       _applyModifierAndCache(node);
     }
@@ -59,7 +64,7 @@ class StyleManager implements GraphStyleUpdater {
 
   void _resolveAndCacheNode(UiNode node) {
     if (_theme == null) return;
-    final NodeStyle base = _styleStrategy.computeStyle(node, _theme!);
+    final NodeStyle base = _flyweight.resolve(node, _theme!, _styleStrategy);
     final resolvedBase = _applyModifier(base, node.significance);
     node.resolvedStyle = NodeStyleStrategy.scaleStyle(resolvedBase);
   }
