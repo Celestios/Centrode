@@ -22,10 +22,7 @@ SnapResult findNearestSnap(
   RawUuid? hoveredNodeId;
   double bestTargetDist = double.infinity;
 
-  final nodeIds = ctx.zOrder.reversed.map((id) => ctx.nodeViewStates.keys.firstWhere((k) => k.toUuidString() == id, orElse: () => ctx.nodeViewStates.keys.first)).toList();
-  if (nodeIds.isEmpty) {
-    nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
-  }
+  final nodeIds = resolveZOrderToNodeIds(ctx.zOrder, ctx.nodeViewStates);
 
   for (final nodeId in nodeIds) {
     if (excludeNodeIds.contains(nodeId)) continue;

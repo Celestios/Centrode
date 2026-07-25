@@ -359,6 +359,15 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     propertyMutations.updateEntityTextLive(id, newTextOrContent);
   }
 
+  @override
+  Future<void> createTag(Tag tag) => propertyMutations.createTag(tag);
+
+  @override
+  Future<void> updateTag(Tag tag) => propertyMutations.updateTag(tag);
+
+  @override
+  Future<void> deleteTag(String tagKey) => propertyMutations.deleteTag(tagKey);
+
   void dispose() {
     syncEngine.dispose();
   }

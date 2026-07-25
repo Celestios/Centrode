@@ -37,15 +37,14 @@ class DeleteRelationCommand extends GraphCommand {
   @override
   void undo() {
     _log.info('undo DeleteRelation key=$targetId');
-    controller.store.relationLookup[targetId] = relation;
-    controller.publishUpdate(
-      GraphEntityUpdate(
-        id: targetId,
-        tableName: tableName,
-        type: GraphUpdateType.relationAdded,
-        payload: relation,
-      ),
+    restoreDeletedEntity(
+      controller: controller,
+      targetId: targetId,
+      tableName: tableName,
+      lookupMap: controller.store.relationLookup,
+      entity: relation,
+      updateType: GraphUpdateType.relationAdded,
+      payload: relation,
     );
-    controller.triggerUpdate();
   }
 }

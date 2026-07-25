@@ -1,13 +1,13 @@
 import 'dart:ui';
 import 'package:mycelium/shared/logging.dart';
 import 'package:mycelium/shared/domain/raw_uuid.dart';
-import '../domain/behaviors/behavior_registry.dart';
 import 'config.dart';
 import 'package:mycelium/shared/utils/geometry.dart';
 import '../models/models.dart';
 import '../models/port.dart';
 import 'interaction_context.dart';
 import 'base_interaction_state.dart';
+import 'z_order_utils.dart';
 
 enum HitTestType {
   none,
@@ -50,17 +50,12 @@ class PointerHitResult {
 }
 
 class HitTestResolver {
-  final Logger _hitTestLog = Logger('HitTestResolver');
-  final BehaviorRegistry _behaviors;
+  static final Logger _hitTestLog = Logger('HitTestResolver');
 
-  HitTestResolver({BehaviorRegistry? behaviors})
-    : _behaviors = behaviors ?? BehaviorRegistry();
+  const HitTestResolver();
 
   PointerHitResult resolve(Offset pCanvas, InteractionContext ctx, bool isDoubleTap) {
-    final nodeIds = ctx.zOrder.reversed.map((id) => ctx.nodeViewStates.keys.firstWhere((k) => k.toUuidString() == id, orElse: () => ctx.nodeViewStates.keys.first)).toList();
-    if (nodeIds.isEmpty) {
-      nodeIds.addAll(ctx.nodeViewStates.keys.toList().reversed);
-    }
+    final nodeIds = resolveZOrderToNodeIds(ctx.zOrder, ctx.nodeViewStates);
 
     final selectedEntities = ctx.getSelectedEntities();
     _hitTestLog.fine('resolve pCanvas=(${pCanvas.dx}, ${pCanvas.dy}) selected=${selectedEntities.length}');

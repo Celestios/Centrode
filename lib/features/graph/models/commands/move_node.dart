@@ -10,9 +10,9 @@ import 'graph_command_context.dart';
 import 'patch_helpers.dart';
 import 'package:mycelium/shared/domain/raw_uuid.dart';
 
-final Logger _log = Logger('MoveNodeCommand');
+final Logger _log = Logger('PatchNodeCommand');
 
-class MoveNodeCommand extends GraphCommand {
+class PatchNodeCommand extends GraphCommand {
   @override
   RawUuid targetId;
   final String tableName;
@@ -27,7 +27,7 @@ class MoveNodeCommand extends GraphCommand {
   final bool? oldExpanded;
   final bool? newExpanded;
 
-  MoveNodeCommand({
+  PatchNodeCommand({
     required this.targetId,
     required this.tableName,
     required this.api,

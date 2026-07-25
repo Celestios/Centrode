@@ -123,7 +123,7 @@ class _TagsListViewState extends State<TagsListView> {
                         updatedAt: DateTime.now().millisecondsSinceEpoch,
                       ),
                     );
-                    await controller.propertyMutations.updateTag(updatedTag);
+                    await controller.updateTag(updatedTag);
                   },
                 ),
               ),
@@ -202,7 +202,7 @@ class _TagsListViewState extends State<TagsListView> {
     );
 
     try {
-      await controller.propertyMutations.createTag(newTag);
+      await controller.createTag(newTag);
       _createController.clear();
       // Generate a new random color for next tag
       setState(() {
@@ -253,7 +253,7 @@ class _TagsListViewState extends State<TagsListView> {
           updatedAt: DateTime.now().millisecondsSinceEpoch,
         ),
       );
-      await controller.propertyMutations.updateTag(updatedTag);
+      await controller.updateTag(updatedTag);
       setState(() {
         _editingTagKey = null;
         _validationError = null;
@@ -633,7 +633,7 @@ class _TagsListViewState extends State<TagsListView> {
                                         tag.fields.name,
                                       );
                                       if (confirm == true) {
-                                          await controller.propertyMutations.deleteTag(tag.key.key.uuid);
+                                          await controller.deleteTag(tag.key.key.uuid);
                                       }
                                     },
                                     padding: EdgeInsets.zero,

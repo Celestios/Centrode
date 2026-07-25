@@ -12,4 +12,7 @@ abstract interface class GraphDataCommand {
   void removeCommentFromNode(RawUuid nodeId, Comment comment);
   void commitEntityText(RawUuid id, dynamic newTextOrContent, {dynamic originalTextOrContent});
   void updateEntityTextLive(RawUuid id, dynamic newTextOrContent);
+  Future<void> createTag(Tag tag);
+  Future<void> updateTag(Tag tag);
+  Future<void> deleteTag(String tagKey);
 }

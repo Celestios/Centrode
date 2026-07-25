@@ -1,5 +1,4 @@
 import 'package:mycelium/shared/logging.dart';
-import 'package:uuid/uuid.dart';
 import '../../models/models.dart';
 import '../../models/commands/create_tag.dart';
 import '../../models/commands/update_tag.dart';

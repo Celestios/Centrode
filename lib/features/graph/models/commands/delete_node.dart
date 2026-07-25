@@ -38,15 +38,14 @@ class DeleteNodeCommand extends GraphCommand {
   @override
   void undo() {
     _log.info('undo DeleteNode key=$targetId restoring node');
-    controller.store.nodeLookup[targetId] = node;
-    controller.spatial.spatialGrid.insert(targetId, node.position);
-    controller.publishUpdate(
-      GraphEntityUpdate(
-        id: targetId,
-        tableName: tableName,
-        type: GraphUpdateType.nodeAdded,
-      ),
+    restoreDeletedEntity(
+      controller: controller,
+      targetId: targetId,
+      tableName: tableName,
+      lookupMap: controller.store.nodeLookup,
+      entity: node,
+      updateType: GraphUpdateType.nodeAdded,
     );
-    controller.triggerUpdate();
+    controller.spatial.spatialGrid.insert(targetId, node.position);
   }
 }

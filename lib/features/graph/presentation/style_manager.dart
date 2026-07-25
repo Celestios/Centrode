@@ -14,16 +14,22 @@ class StyleManager implements GraphStyleUpdater {
   final Logger _log = Logger('StyleManager');
 
   final GraphStore _store;
-  final NodeStyleStrategy _styleStrategy = const DefaultNodeStyleStrategy();
-  final RelationStyleStrategy _relationStrategy =
-      const DefaultRelationStyleStrategy();
-  final SignificanceStrategy _modifier = const SignificanceStrategy();
+  final NodeStyleStrategy _styleStrategy;
+  final RelationStyleStrategy _relationStrategy;
+  final SignificanceStrategy _modifier;
   final StyleFlyweight _flyweight = StyleFlyweight();
 
   GraphTheme? _theme;
   DisplayMode _displayMode = DisplayMode.leveling;
 
-  StyleManager(this._store);
+  StyleManager(
+    this._store, {
+    NodeStyleStrategy? styleStrategy,
+    RelationStyleStrategy? relationStrategy,
+    SignificanceStrategy? modifier,
+  })  : _styleStrategy = styleStrategy ?? const DefaultNodeStyleStrategy(),
+        _relationStrategy = relationStrategy ?? const DefaultRelationStyleStrategy(),
+        _modifier = modifier ?? const SignificanceStrategy();
 
   void updateAllStyles(Iterable<UiNode> nodes, Iterable<UiRelation> relations) {
     _log.info('Rebuilding all styles (theme: ${_theme?.name})');
@@ -58,7 +64,7 @@ class StyleManager implements GraphStyleUpdater {
     _displayMode = mode;
     _flyweight.clear();
     for (final node in _store.nodeLookup.values) {
-      _applyModifierAndCache(node);
+      _resolveAndCacheNode(node);
     }
   }
 
@@ -73,14 +79,6 @@ class StyleManager implements GraphStyleUpdater {
     if (_theme == null) return;
     final base = _relationStrategy.resolve(relation, _theme!);
     relation.resolvedStyle = base;
-  }
-
-  void _applyModifierAndCache(UiNode node) {
-    if (node.resolvedStyle == null) {
-      _resolveAndCacheNode(node);
-      return;
-    }
-    _resolveAndCacheNode(node);
   }
 
   NodeStyle _applyModifier(NodeStyle base, int significance) {

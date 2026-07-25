@@ -6,6 +6,8 @@ import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:mycelium/src/rust/domain/patches.dart';
 import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
 import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'graph_command_context.dart';
+import '../../store/graph_data_query.dart';
 
 TypedRecordId parseTypedRecordId(String table, RawUuid key) {
   final kind = TableKind.values.firstWhere(
@@ -61,4 +63,25 @@ TypedRecordId parseTypedRecordId(String table, RawUuid key) {
   }
 
   return (forwardPatches, reversePatches);
+}
+
+void restoreDeletedEntity({
+  required GraphCommandContext controller,
+  required RawUuid targetId,
+  required String tableName,
+  required Map<RawUuid, dynamic> lookupMap,
+  required dynamic entity,
+  required GraphUpdateType updateType,
+  dynamic payload,
+}) {
+  lookupMap[targetId] = entity;
+  controller.publishUpdate(
+    GraphEntityUpdate(
+      id: targetId,
+      tableName: tableName,
+      type: updateType,
+      payload: payload,
+    ),
+  );
+  controller.triggerUpdate();
 }

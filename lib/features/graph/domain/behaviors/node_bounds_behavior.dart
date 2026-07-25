@@ -20,16 +20,6 @@ class DefaultNodeBounds implements NodeBoundsBehavior {
   }
 }
 
-/// Frame nodes use standard rect bounds (same as default).
-class FrameNodeBounds implements NodeBoundsBehavior {
-  const FrameNodeBounds();
-
-  @override
-  Rect computeBounds(UiNode node, Size size, Offset position) {
-    return Rect.fromLTWH(position.dx, position.dy, size.width, size.height);
-  }
-}
-
 /// Shape nodes compute bounds centered on the position.
 class ShapeNodeBounds implements NodeBoundsBehavior {
   const ShapeNodeBounds();

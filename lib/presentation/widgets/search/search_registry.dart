@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mycelium/shared/domain/raw_uuid.dart';
 import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
+import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
 import 'package:mycelium/features/graph/models/models.dart';
 import 'package:mycelium/features/graph/presentation/palette_action_registry.dart';
 
@@ -27,157 +28,196 @@ class SearchResult {
   });
 }
 
-class SearchRegistry {
-  SearchRegistry._();
-  static final SearchRegistry instance = SearchRegistry._();
+abstract class SearchSource {
+  bool canHandle(String query);
+  Future<List<SearchResult>> search(String query, SearchContext context);
+}
 
-  int _activeQueryId = 0;
+class SearchContext {
+  final WorkspaceTabsController tabsController;
+  final BuildContext buildContext;
 
-  /// Performs search based on the query and handles sequence numbers to ignore stale results.
-  /// Returns null if this query was superseded by a newer query.
-  Future<List<SearchResult>?> search(
-    String rawQuery,
-    BuildContext context,
-  ) async {
-    final queryId = ++_activeQueryId;
-    final results = await _performSearch(rawQuery, context);
+  SearchContext({required this.tabsController, required this.buildContext});
 
-    if (queryId != _activeQueryId) {
-      return null; // Stale query
+  GraphDataQueryController? get queryController =>
+      tabsController.activeSession.queryController;
+}
+
+class CommandPaletteSearchSource extends SearchSource {
+  @override
+  bool canHandle(String query) => query.startsWith('>');
+
+  @override
+  Future<List<SearchResult>> search(String query, SearchContext context) async {
+    final term = query.substring(1).trim().toLowerCase();
+    final actions =
+        PaletteActionRegistry.instance.getActions(context.buildContext);
+    return actions
+        .where((act) => act.title.toLowerCase().contains(term))
+        .map(
+          (act) => SearchResult(
+            title: act.title,
+            subtitle: act.subtitle,
+            icon: act.icon,
+            type: SearchResultType.command,
+            onSelected: act.onSelected,
+          ),
+        )
+        .toList();
+  }
+}
+
+class TagSearchSource extends SearchSource {
+  @override
+  bool canHandle(String query) => query.startsWith('#');
+
+  @override
+  Future<List<SearchResult>> search(String query, SearchContext context) async {
+    final queryController = context.queryController;
+    if (queryController == null) return [];
+    final term = query.substring(1).trim().toLowerCase();
+    final results = <SearchResult>[];
+
+    for (final node in queryController.nodeLookup.values) {
+      if (node is InfoUiNode) {
+        final matchesTag = node.tags.any(
+          (t) => t.fields.name.toLowerCase().contains(term),
+        );
+        if (matchesTag) {
+          results.add(
+            SearchResult(
+              title: node.text.isEmpty ? 'Untitled Node' : node.text,
+              subtitle:
+                  'Node • Tagged • ${node.tags.map((t) => '#${t.fields.name}').join(', ')}',
+              icon: Icons.tag_rounded,
+              type: SearchResultType.tag,
+              onSelected: (ctx) => _focusOnUiNode(ctx, node.id),
+            ),
+          );
+        }
+      }
     }
     return results;
   }
 
-  Future<List<SearchResult>> _performSearch(
-    String rawQuery,
-    BuildContext context,
-  ) async {
-    final query = rawQuery.trim();
-    if (query.isEmpty) {
-      return [];
-    }
-
+  void _focusOnUiNode(BuildContext context, RawUuid nodeId) {
     final tabsController = context.read<WorkspaceTabsController>();
     final session = tabsController.activeSession;
-    final queryController = session.queryController;
+    final uiNode = session.queryController?.nodeLookup[nodeId];
+    final viewportController = session.viewportController;
 
-    // 1. Command Palette Prefix ('>')
-    if (query.startsWith('>')) {
-      final term = query.substring(1).trim().toLowerCase();
-      final actions = PaletteActionRegistry.instance.getActions(context);
-      return actions
-          .where((act) => act.title.toLowerCase().contains(term))
-          .map(
-            (act) => SearchResult(
-              title: act.title,
-              subtitle: act.subtitle,
-              icon: act.icon,
-              type: SearchResultType.command,
-              onSelected: act.onSelected,
-            ),
-          )
-          .toList();
+    if (uiNode != null && viewportController != null) {
+      final bounds = BoundingBox(
+        minX: uiNode.position.dx - 150,
+        minY: uiNode.position.dy - 150,
+        maxX: uiNode.position.dx + uiNode.size.width + 150,
+        maxY: uiNode.position.dy + uiNode.size.height + 150,
+      );
+      viewportController.focusOnBounds(bounds);
     }
+  }
+}
 
-    // 2. Tag Filter Prefix ('#')
-    if (query.startsWith('#')) {
-      if (queryController == null) return [];
-      final term = query.substring(1).trim().toLowerCase();
+class DatabaseSearchSource extends SearchSource {
+  @override
+  bool canHandle(String query) => query.startsWith('?');
+
+  @override
+  Future<List<SearchResult>> search(String query, SearchContext context) async {
+    final queryController = context.queryController;
+    if (queryController == null) return [];
+    final term = query.substring(1).trim();
+
+    try {
+      final dbResults = await queryController.searchDatabase(term);
       final results = <SearchResult>[];
 
-      for (final node in queryController.nodeLookup.values) {
-        if (node is InfoUiNode) {
-          final matchesTag = node.tags.any(
-            (t) => t.fields.name.toLowerCase().contains(term),
-          );
-          if (matchesTag) {
-            results.add(
-              SearchResult(
-                title: node.text.isEmpty ? 'Untitled Node' : node.text,
-                subtitle:
-                    'Node • Tagged • ${node.tags.map((t) => '#${t.fields.name}').join(', ')}',
-                icon: Icons.tag_rounded,
-                type: SearchResultType.tag,
-                onSelected: (ctx) => _focusOnUiNode(ctx, node.id),
-              ),
-            );
-          }
+      for (final res in dbResults) {
+        IconData icon = Icons.help_outline_rounded;
+        String subtitle = 'Database';
+        switch (res.type) {
+          case DatabaseSearchResultType.infoNode:
+            icon = Icons.description_outlined;
+            subtitle = 'Database • Info';
+            break;
+          case DatabaseSearchResultType.taskNode:
+            icon = Icons.task_alt_outlined;
+            subtitle =
+                'Database • Task${res.state != null ? ' • State: ${res.state}' : ''}';
+            break;
+          case DatabaseSearchResultType.relation:
+            icon = Icons.alt_route_rounded;
+            subtitle = 'Database • Inter';
+            break;
         }
+
+        final title = res.text.isEmpty
+            ? (res.type == DatabaseSearchResultType.relation
+                ? 'Untitled Relation'
+                : 'Untitled Node')
+            : res.text;
+
+        results.add(
+          SearchResult(
+            title: title,
+            subtitle: subtitle,
+            icon: icon,
+            type: SearchResultType.node,
+            onSelected: (ctx) => _focusOnUiNode(ctx, RawUuid.fromString(res.key)),
+          ),
+        );
       }
       return results;
+    } catch (e) {
+      debugPrint('SearchRegistry: FFI querySearch error: $e');
+      return [
+        SearchResult(
+          title: 'Error executing query',
+          subtitle: e.toString(),
+          icon: Icons.error_outline_rounded,
+          type: SearchResultType.command,
+          onSelected: (_) {},
+        ),
+      ];
     }
+  }
 
-    // 3. Database Query Prefix ('?')
-    if (query.startsWith('?')) {
-      final term = query.substring(1).trim();
-      final dc = queryController;
-      if (dc == null) return [];
+  void _focusOnUiNode(BuildContext context, RawUuid nodeId) {
+    final tabsController = context.read<WorkspaceTabsController>();
+    final session = tabsController.activeSession;
+    final uiNode = session.queryController?.nodeLookup[nodeId];
+    final viewportController = session.viewportController;
 
-      try {
-        final dbResults = await dc.searchDatabase(term);
-        final results = <SearchResult>[];
-
-        for (final res in dbResults) {
-          IconData icon = Icons.help_outline_rounded;
-          String subtitle = 'Database';
-          switch (res.type) {
-            case DatabaseSearchResultType.infoNode:
-              icon = Icons.description_outlined;
-              subtitle = 'Database • Info';
-              break;
-            case DatabaseSearchResultType.taskNode:
-              icon = Icons.task_alt_outlined;
-              subtitle = 'Database • Task${res.state != null ? ' • State: ${res.state}' : ''}';
-              break;
-            case DatabaseSearchResultType.relation:
-              icon = Icons.alt_route_rounded;
-              subtitle = 'Database • Inter';
-              break;
-          }
-
-          final title = res.text.isEmpty
-              ? (res.type == DatabaseSearchResultType.relation
-                  ? 'Untitled Relation'
-                  : 'Untitled Node')
-              : res.text;
-
-          results.add(
-            SearchResult(
-              title: title,
-              subtitle: subtitle,
-              icon: icon,
-              type: SearchResultType.node,
-              onSelected: (ctx) => _focusOnUiNode(ctx, RawUuid.fromString(res.key)),
-            ),
-          );
-        }
-        return results;
-      } catch (e) {
-        debugPrint('SearchRegistry: FFI querySearch error: $e');
-        return [
-          SearchResult(
-            title: 'Error executing query',
-            subtitle: e.toString(),
-            icon: Icons.error_outline_rounded,
-            type: SearchResultType.command,
-            onSelected: (_) {},
-          ),
-        ];
-      }
+    if (uiNode != null && viewportController != null) {
+      final bounds = BoundingBox(
+        minX: uiNode.position.dx - 150,
+        minY: uiNode.position.dy - 150,
+        maxX: uiNode.position.dx + uiNode.size.width + 150,
+        maxY: uiNode.position.dy + uiNode.size.height + 150,
+      );
+      viewportController.focusOnBounds(bounds);
     }
+  }
+}
 
-    // 4. Default Canvas Node/Relation Search (no prefix)
+class CanvasSearchSource extends SearchSource {
+  @override
+  bool canHandle(String query) => true;
+
+  @override
+  Future<List<SearchResult>> search(String query, SearchContext context) async {
+    final queryController = context.queryController;
     if (queryController == null) return [];
     final term = query.toLowerCase();
     final results = <SearchResult>[];
 
-    // Search Nodes
     for (final node in queryController.nodeLookup.values) {
       if (node.text.toLowerCase().contains(term)) {
         results.add(
           SearchResult(
             title: node.text.isEmpty ? 'Untitled Node' : node.text,
-            subtitle: 'Node • ${node.tableName == 'INode' ? 'Info' : 'Task'}',
+            subtitle:
+                'Node • ${node.tableName == 'INode' ? 'Info' : 'Task'}',
             icon: node.tableName == 'INode'
                 ? Icons.description_outlined
                 : Icons.task_alt_outlined,
@@ -188,7 +228,6 @@ class SearchRegistry {
       }
     }
 
-    // Search Relations and Group by Verb
     final matchingRelations = <UiRelation>[];
     for (final relation in queryController.relations) {
       final fromNode = queryController.nodeLookup[relation.fromNodeId];
@@ -206,19 +245,15 @@ class SearchRegistry {
     }
 
     if (matchingRelations.isNotEmpty) {
-      // Group by verb (case-insensitive/lowercase, but preserve first spelling found)
       final groupedRelations = <String, List<UiRelation>>{};
       for (final rel in matchingRelations) {
         final verbKey = rel.verb.trim().toLowerCase();
         groupedRelations.putIfAbsent(verbKey, () => []).add(rel);
       }
 
-      // Add groups to search results
       for (final entry in groupedRelations.entries) {
-        // Find canonical verb casing from the first relation in the group
         final canonicalVerb = entry.value.first.verb;
 
-        // Add header
         results.add(
           SearchResult(
             title: '',
@@ -230,7 +265,6 @@ class SearchRegistry {
           ),
         );
 
-        // Add matching relations
         for (final rel in entry.value) {
           final fromNode = queryController.nodeLookup[rel.fromNodeId];
           final toNode = queryController.nodeLookup[rel.toNodeId];
@@ -284,7 +318,6 @@ class SearchRegistry {
 
     if (viewportController != null) {
       if (fromNode != null && toNode != null) {
-        // Construct bounding box to frame the connection
         final double minX = fromNode.position.dx < toNode.position.dx
             ? fromNode.position.dx
             : toNode.position.dx;
@@ -293,14 +326,14 @@ class SearchRegistry {
             : toNode.position.dy;
         final double maxX =
             (fromNode.position.dx + fromNode.size.width) >
-                (toNode.position.dx + toNode.size.width)
-            ? (fromNode.position.dx + fromNode.size.width)
-            : (toNode.position.dx + toNode.size.width);
+                    (toNode.position.dx + toNode.size.width)
+                ? (fromNode.position.dx + fromNode.size.width)
+                : (toNode.position.dx + toNode.size.width);
         final double maxY =
             (fromNode.position.dy + fromNode.size.height) >
-                (toNode.position.dy + toNode.size.height)
-            ? (fromNode.position.dy + fromNode.size.height)
-            : (toNode.position.dy + toNode.size.height);
+                    (toNode.position.dy + toNode.size.height)
+                ? (fromNode.position.dy + fromNode.size.height)
+                : (toNode.position.dy + toNode.size.height);
 
         final bounds = BoundingBox(
           minX: minX - 150,
@@ -327,5 +360,53 @@ class SearchRegistry {
         viewportController.focusOnBounds(bounds);
       }
     }
+  }
+}
+
+class SearchRegistry {
+  SearchRegistry._();
+  static final SearchRegistry instance = SearchRegistry._();
+
+  int _activeQueryId = 0;
+
+  final List<SearchSource> _sources = [
+    CommandPaletteSearchSource(),
+    TagSearchSource(),
+    DatabaseSearchSource(),
+    CanvasSearchSource(),
+  ];
+
+  Future<List<SearchResult>?> search(
+    String rawQuery,
+    BuildContext context,
+  ) async {
+    final queryId = ++_activeQueryId;
+    final results = await _performSearch(rawQuery, context);
+
+    if (queryId != _activeQueryId) {
+      return null;
+    }
+    return results;
+  }
+
+  Future<List<SearchResult>> _performSearch(
+    String rawQuery,
+    BuildContext context,
+  ) async {
+    final query = rawQuery.trim();
+    if (query.isEmpty) return [];
+
+    final tabsController = context.read<WorkspaceTabsController>();
+    final searchContext = SearchContext(
+      tabsController: tabsController,
+      buildContext: context,
+    );
+
+    for (final source in _sources) {
+      if (source.canHandle(query)) {
+        return await source.search(query, searchContext);
+      }
+    }
+    return [];
   }
 }

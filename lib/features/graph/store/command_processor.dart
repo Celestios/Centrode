@@ -75,7 +75,7 @@ class CommandProcessor {
             'FFI Synchronization failed for ${cmd.targetId}. Rollback.',
             e,
           );
-          cmd.undo();
+          if (cmd.isUndoable) cmd.undo();
           _executionQueue.removeWhere((c) => _getCompositeKey(c) == key);
           _pendingCommands.remove(key);
           onError("Sync failed: $e");

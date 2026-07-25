@@ -27,6 +27,9 @@ class DeleteTemplateCommand extends GraphCommand {
   CommandCategory get category => CommandCategory.lifecycle;
 
   @override
+  bool get isUndoable => false;
+
+  @override
   Future<void> execute() async {
     _log.info('execute DeleteTemplate key=$templateKey');
     await api.deleteTemplate(key: templateKey);

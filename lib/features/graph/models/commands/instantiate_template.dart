@@ -28,6 +28,9 @@ class InstantiateTemplateCommand extends GraphCommand {
   CommandCategory get category => CommandCategory.lifecycle;
 
   @override
+  bool get isUndoable => false;
+
+  @override
   Future<void> execute() async {
     _log.info('execute InstantiateTemplate key=$templateKey pos=($targetX, $targetY)');
     await api.instantiateTemplate(

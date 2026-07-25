@@ -15,7 +15,6 @@ class BehaviorRegistry {
       UiNodes.values.length,
       (_) => const DefaultNodeBounds(),
     );
-    _boundsBehaviors[UiNodes.frame.index] = const FrameNodeBounds();
     _boundsBehaviors[UiNodes.shape.index] = const ShapeNodeBounds();
     _boundsBehaviors[UiNodes.drawing.index] = const DrawingNodeBounds();
 

@@ -12,6 +12,10 @@ abstract class GraphCommand {
   /// Forced namespace for the debouncer to create composite keys.
   CommandCategory get category;
 
+  /// Whether this command supports undo rollback.
+  /// Commands with FFI-only undo (no local state restoration) should override to false.
+  bool get isUndoable => true;
+
   /// Executes the command (typically an FFI call).
   Future<void> execute();
 

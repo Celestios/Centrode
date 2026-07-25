@@ -128,7 +128,7 @@ class GraphNodeMutations {
     controller.spatial.spatialGrid.update(id, node.position, newPosition);
     node.position = newPosition;
 
-    final cmd = MoveNodeCommand(
+    final cmd = PatchNodeCommand(
       targetId: id,
       tableName: node.tableName,
       api: controller.syncEngine.api,
@@ -183,7 +183,7 @@ class GraphNodeMutations {
 
     controller.spatial.spatialGrid.update(id, oldPosition, newPosition);
 
-    final cmd = MoveNodeCommand(
+    final cmd = PatchNodeCommand(
       targetId: id,
       tableName: node.tableName,
       api: controller.syncEngine.api,
@@ -235,7 +235,7 @@ class GraphNodeMutations {
       'TOGGLING EXPANSION: $id oldExpanded=$oldExpanded -> newExpanded=$newExpanded, newSize=${node.size}',
     );
 
-    final cmd = MoveNodeCommand(
+    final cmd = PatchNodeCommand(
       targetId: id,
       tableName: node.tableName,
       api: controller.syncEngine.api,
