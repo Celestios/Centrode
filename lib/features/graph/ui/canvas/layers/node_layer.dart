@@ -153,6 +153,7 @@ class _CanvasNodesHost extends StatefulWidget {
 
 class _CanvasNodesHostState extends State<_CanvasNodesHost> {
   final Set<RawUuid> _dirtyNodeIds = {};
+  final Set<RawUuid> _positionOnlyNodeIds = {};
   final Map<RawUuid, VoidCallback> _listeners = {};
   _CanvasNodesPainter? _painter;
   final ValueNotifier<int> _repaintTrigger = ValueNotifier(0);
@@ -179,14 +180,24 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
   void dispose() {
     _disposed = true;
     _unsubscribeAll();
-    _painter?._cachedPicture?.dispose();
+    _disposeNodeCache();
     super.dispose();
+  }
+
+  void _disposeNodeCache() {
+    if (_painter != null) {
+      for (final picture in _painter!._nodeCache.values) {
+        picture.dispose();
+      }
+      _painter!._nodeCache.clear();
+    }
   }
 
   void _createPainter() {
     _painter = _CanvasNodesPainter(
       entries: widget.entries,
       dirtyNodeIds: _dirtyNodeIds,
+      positionOnlyNodeIds: _positionOnlyNodeIds,
     );
   }
 
@@ -198,7 +209,12 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
         _dirtyNodeIds.add(id);
         _repaintTrigger.value++;
       }
-      entry.viewState.positionNotifier.addListener(markDirty);
+      void markPosition() {
+        if (_disposed) return;
+        _positionOnlyNodeIds.add(id);
+        _repaintTrigger.value++;
+      }
+      entry.viewState.positionNotifier.addListener(markPosition);
       entry.viewState.sizeNotifier.addListener(markDirty);
       entry.viewState.dragWidthNotifier.addListener(markDirty);
       entry.viewState.isExpandedNotifier.addListener(markDirty);
@@ -240,7 +256,9 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
 class _CanvasNodesPainter extends CustomPainter {
   List<NodeRenderEntry> entries;
   final Set<RawUuid> dirtyNodeIds;
+  final Set<RawUuid> positionOnlyNodeIds;
 
+  final Map<RawUuid, ui.Picture> _nodeCache = {};
   ui.Picture? _cachedPicture;
   int _entriesGeneration = 0;
   int _cachedGeneration = -1;
@@ -255,38 +273,90 @@ class _CanvasNodesPainter extends CustomPainter {
   _CanvasNodesPainter({
     required this.entries,
     required this.dirtyNodeIds,
+    required this.positionOnlyNodeIds,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final activeIds = <RawUuid>{};
+    final bool hasDirty = dirtyNodeIds.isNotEmpty;
+    final bool hasPositionOnly = positionOnlyNodeIds.isNotEmpty;
 
-    // If cache is valid and no nodes changed, replay cached picture
-    final bool cacheValid = _cachedPicture != null &&
-        _cachedGeneration == _entriesGeneration &&
-        dirtyNodeIds.isEmpty;
-    if (cacheValid) {
-      canvas.drawPicture(_cachedPicture!);
+    // Case 1: Nothing changed — replay cached picture
+    if (!hasDirty && !hasPositionOnly) {
+      final bool cacheValid = _cachedPicture != null &&
+          _cachedGeneration == _entriesGeneration;
+      if (cacheValid) {
+        canvas.drawPicture(_cachedPicture!);
+        return;
+      }
+    }
+
+    // Ensure all nodes have cached pictures (lazy-record on first paint)
+    for (final entry in entries) {
+      final nodeId = entry.node.id;
+      activeIds.add(nodeId);
+      if (!_nodeCache.containsKey(nodeId)) {
+        _nodeCache[nodeId] = _recordNodePicture(entry);
+      }
+    }
+
+    // Case 2: Only positions changed — draw cached pictures at new positions
+    if (!hasDirty) {
+      for (final entry in entries) {
+        final pos = entry.viewState.positionNotifier.value;
+        canvas.save();
+        canvas.translate(pos.dx, pos.dy);
+        canvas.drawPicture(_nodeCache[entry.node.id]!);
+        canvas.restore();
+      }
+      _updateCachedPicture(activeIds);
+      positionOnlyNodeIds.clear();
       return;
     }
 
-    // Full repaint — record into a Picture for future replay
-    final recorder = ui.PictureRecorder();
-    final recordCanvas = Canvas(recorder);
-
+    // Case 3: Content changed — re-record dirty nodes, then composite
     for (final entry in entries) {
-      activeIds.add(entry.node.id);
-      _paintNode(recordCanvas, entry);
+      final nodeId = entry.node.id;
+      if (dirtyNodeIds.contains(nodeId)) {
+        _nodeCache[nodeId]?.dispose();
+        _nodeCache[nodeId] = _recordNodePicture(entry);
+      }
     }
 
+    for (final entry in entries) {
+      final pos = entry.viewState.positionNotifier.value;
+      canvas.save();
+      canvas.translate(pos.dx, pos.dy);
+      canvas.drawPicture(_nodeCache[entry.node.id]!);
+      canvas.restore();
+    }
+
+    _updateCachedPicture(activeIds);
+    dirtyNodeIds.clear();
+    positionOnlyNodeIds.clear();
+  }
+
+  void _updateCachedPicture(Set<RawUuid> activeIds) {
+    final recorder = ui.PictureRecorder();
+    final recordCanvas = Canvas(recorder);
+    for (final entry in entries) {
+      final pos = entry.viewState.positionNotifier.value;
+      recordCanvas.save();
+      recordCanvas.translate(pos.dx, pos.dy);
+      recordCanvas.drawPicture(_nodeCache[entry.node.id]!);
+      recordCanvas.restore();
+    }
     _cachedPicture?.dispose();
     _cachedPicture = recorder.endRecording();
     _cachedGeneration = _entriesGeneration;
-    dirtyNodeIds.clear();
 
-    // Draw the newly recorded picture onto the real canvas
-    canvas.drawPicture(_cachedPicture!);
-
+    for (final id in _nodeCache.keys.toList()) {
+      if (!activeIds.contains(id)) {
+        _nodeCache[id]?.dispose();
+        _nodeCache.remove(id);
+      }
+    }
     for (final id in _handleCache.keys.toList()) {
       if (!activeIds.contains(id)) {
         _handleCache.remove(id);
@@ -294,18 +364,25 @@ class _CanvasNodesPainter extends CustomPainter {
     }
   }
 
-  void _paintNode(Canvas canvas, NodeRenderEntry entry) {
+  ui.Picture _recordNodePicture(NodeRenderEntry entry) {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    _drawNodeContent(canvas, entry);
+    return recorder.endRecording();
+  }
+
+  void _drawNodeContent(Canvas canvas, NodeRenderEntry entry) {
     if (entry.isEditing) return;
     final node = entry.node;
     final vs = entry.viewState;
     final resolvedStyle = node.resolvedStyle;
     if (resolvedStyle == null) return;
 
-    final pos = vs.positionNotifier.value;
     final rawSize = vs.sizeNotifier.value;
     final w = vs.dragWidthNotifier.value ?? rawSize.width;
     final h = rawSize.height;
-    final rect = Rect.fromLTWH(pos.dx, pos.dy, w, h);
+    // Record at origin — canvas is translated to node position during compositing
+    final rect = Rect.fromLTWH(0, 0, w, h);
 
     final double scale = NodeVisualConstants.fontScale(resolvedStyle.fontSize);
     final bool isHighlighted = entry.isSelected || entry.isEditing;
@@ -314,7 +391,6 @@ class _CanvasNodesPainter extends CustomPainter {
 
     final rrect = _buildRRect(rect, resolvedStyle, 0.0, scale);
 
-    // Shadow — skip for drawing nodes (transparent bg, no rect needed)
     if (node is! DrawingUiNode) {
       if (entry.isEditing) {
         _shadowPaint.color = Color(NodeVisualConstants.editingShadowColor);
@@ -339,12 +415,10 @@ class _CanvasNodesPainter extends CustomPainter {
         canvas.drawRRect(rrect, _shadowPaint);
       }
 
-      // Background
       _bgPaint.color = Color(resolvedStyle.bgColor);
       canvas.drawRRect(rrect, _bgPaint);
     }
 
-    // Base Border — skip for drawing nodes (transparent stroke)
     if (node is! DrawingUiNode) {
       _borderPaint
         ..color = Color(resolvedStyle.strokeColor)
@@ -353,7 +427,6 @@ class _CanvasNodesPainter extends CustomPainter {
       canvas.drawRRect(rrect, _borderPaint);
     }
 
-    // Highlight/Editing Border — skip for drawing nodes (handled in _paintDrawingPaths)
     if (isHighlighted && node is! DrawingUiNode) {
       final double inflateAmount = gap + stroke / 2;
       final highlightRect = rect.inflate(inflateAmount);
@@ -371,24 +444,18 @@ class _CanvasNodesPainter extends CustomPainter {
       _paintDrawingPaths(
         canvas,
         node,
-        pos,
+        Offset.zero,
         resolvedStyle,
         Size(w, h),
         isHighlighted: isHighlighted,
         isEditing: entry.isEditing,
       );
     } else {
-      // Text
       _paintText(canvas, entry, rect, resolvedStyle);
-
-      // Metadata sphere
       _paintMetadataSphere(canvas, node, rect, scale);
-
-      // Expand toggle
       _paintExpandToggle(canvas, entry, rect, resolvedStyle, scale);
     }
 
-    // Resize handles
     if (node is! DrawingUiNode) {
       final hasMetadataSphere = node is InfoUiNode && (node.tags.isNotEmpty || node.comments.isNotEmpty);
       _paintResizeHandles(canvas, node.id, rect, resolvedStyle, scale, hasMetadataSphere);
@@ -665,6 +732,8 @@ class _CanvasNodesPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CanvasNodesPainter oldDelegate) {
-    return dirtyNodeIds.isNotEmpty || _entriesGeneration != _cachedGeneration;
+    return dirtyNodeIds.isNotEmpty ||
+        positionOnlyNodeIds.isNotEmpty ||
+        _entriesGeneration != _cachedGeneration;
   }
 }
