@@ -13,9 +13,7 @@ class StyleManager implements GraphStyleUpdater {
   final Logger _log = Logger('StyleManager');
 
   final GraphStore _store;
-  final NodeStyleStrategy _infoStrategy = const InfoNodeStyleStrategy();
-  final NodeStyleStrategy _taskStrategy = const TaskNodeStyleStrategy();
-  final NodeStyleStrategy _drawingStrategy = const DrawingNodeStyleStrategy();
+  final NodeStyleStrategy _styleStrategy = const DefaultNodeStyleStrategy();
   final RelationStyleStrategy _relationStrategy =
       const DefaultRelationStyleStrategy();
   final SignificanceStrategy _modifier = const SignificanceStrategy();
@@ -25,9 +23,6 @@ class StyleManager implements GraphStyleUpdater {
 
   StyleManager(this._store);
 
-  // --- Public triggers ---
-
-  /// Called when the theme changes or after initial load.
   void updateAllStyles(Iterable<UiNode> nodes, Iterable<UiRelation> relations) {
     _log.info('Rebuilding all styles (theme: ${_theme?.name})');
     for (final node in nodes) {
@@ -57,27 +52,14 @@ class StyleManager implements GraphStyleUpdater {
   void setDisplayMode(DisplayMode mode) {
     if (_displayMode == mode) return;
     _displayMode = mode;
-    // Reapply the modifier to all already‑styled nodes
     for (final node in _store.nodeLookup.values) {
       _applyModifierAndCache(node);
     }
   }
 
-  // --- Internal resolution ---
-
   void _resolveAndCacheNode(UiNode node) {
     if (_theme == null) return;
-    final NodeStyle base;
-    if (node is InfoUiNode) {
-      base = _infoStrategy.resolve(node, _theme!);
-    } else if (node is TaskUiNode) {
-      base = _taskStrategy.resolve(node, _theme!);
-    } else if (node is DrawingUiNode) {
-      base = _drawingStrategy.resolve(node, _theme!);
-    } else {
-      _log.warning('StyleManager: Unknown node type encountered: ${node.runtimeType} (ID: ${node.id}, Table: ${node.tableName})');
-      return;
-    }
+    final NodeStyle base = _styleStrategy.computeStyle(node, _theme!);
     final resolvedBase = _applyModifier(base, node.significance);
     node.resolvedStyle = NodeStyleStrategy.scaleStyle(resolvedBase);
   }
@@ -93,8 +75,6 @@ class StyleManager implements GraphStyleUpdater {
       _resolveAndCacheNode(node);
       return;
     }
-    // Re‑resolve base? Or reapply modifier on cached base?
-    // For simplicity, we re‑resolve using the strategy (it will use node.style override again).
     _resolveAndCacheNode(node);
   }
 

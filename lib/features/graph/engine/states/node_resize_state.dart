@@ -57,7 +57,7 @@ class NodeResizing extends CanvasInteractionState {
 
     final node = ctx.getNode(nodeId);
     if (node != null) {
-      final result = NodeLayoutStrategy.calculateSize(node, overrideWidth: clampedWidth);
+      final result = const DefaultNodeLayoutStrategy().calculateSize(node, overrideWidth: clampedWidth);
       vs.sizeNotifier.value = result.size;
       vs.lineCountNotifier.value = result.lineCount;
     }

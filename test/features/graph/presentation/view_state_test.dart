@@ -3,8 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mycelium/features/graph/models/graph_node.dart';
 import 'package:mycelium/features/graph/presentation/view_state.dart';
 import 'package:mycelium/features/graph/engine/config.dart';
-import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
-import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:mycelium/shared/domain/raw_uuid.dart';
 
 void main() {
@@ -40,37 +38,6 @@ void main() {
     );
 
     expect(viewState.leftResizeHitbox, expectedLeftHitbox);
-  });
-
-  test('NodeLayoutStrategy and NodeStyleStrategy fromType resolution', () {
-    // Test layout resolution
-    expect(NodeLayoutStrategy.fromType('task'), isA<TaskNodeLayoutStrategy>());
-    expect(NodeLayoutStrategy.fromType('info'), isA<InfoNodeLayoutStrategy>());
-
-    final infoNode = InfoUiNode(id: RawUuid.fromString('info-1'), position: Offset.zero);
-    final taskNode = TaskUiNode(id: RawUuid.fromString('task-1'), position: Offset.zero);
-
-    expect(
-      NodeLayoutStrategy.fromType(null, fallbackNode: infoNode),
-      isA<InfoNodeLayoutStrategy>(),
-    );
-    expect(
-      NodeLayoutStrategy.fromType(null, fallbackNode: taskNode),
-      isA<TaskNodeLayoutStrategy>(),
-    );
-
-    // Test style resolution
-    expect(NodeStyleStrategy.fromType('task'), isA<TaskNodeStyleStrategy>());
-    expect(NodeStyleStrategy.fromType('info'), isA<InfoNodeStyleStrategy>());
-
-    expect(
-      NodeStyleStrategy.fromType(null, fallbackNode: infoNode),
-      isA<InfoNodeStyleStrategy>(),
-    );
-    expect(
-      NodeStyleStrategy.fromType(null, fallbackNode: taskNode),
-      isA<TaskNodeStyleStrategy>(),
-    );
   });
 
   test('NodeViewState getClosestPort finds the correct closest port', () {

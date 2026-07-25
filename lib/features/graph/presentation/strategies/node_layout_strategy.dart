@@ -7,44 +7,12 @@ import 'package:mycelium/src/rust/domain/contents.dart';
 import 'node_style_strategy.dart';
 import 'node_text_span_builder.dart';
 
-/// Responsible for computing the physical size of a node based on its content,
-/// style, and grid constraints.
 abstract class NodeLayoutStrategy {
   const NodeLayoutStrategy();
 
-  /// Resolves the correct layout strategy based on type.
-  static NodeLayoutStrategy fromType(String? type, {UiNode? fallbackNode}) {
-    if (type == 'task') {
-      return const TaskNodeLayoutStrategy();
-    }
-    if (type == 'info') {
-      return const InfoNodeLayoutStrategy();
-    }
-    if (type == 'drawing') {
-      return const DrawingNodeLayoutStrategy();
-    }
-    if (fallbackNode != null) {
-      if (fallbackNode is DrawingUiNode) {
-        return const DrawingNodeLayoutStrategy();
-      }
-      return fallbackNode is TaskUiNode
-          ? const TaskNodeLayoutStrategy()
-          : const InfoNodeLayoutStrategy();
-    }
-    return const InfoNodeLayoutStrategy();
-  }
+  Size calculateIntrinsicSize(UiNode node, NodeStyle style, BoxConstraints constraints);
 
-  /// Calculates the size and line count of the node.
-  /// Snaps the result to the grid defined in [AppConfig].
-  ({Size size, int lineCount}) calculate(UiNode node, NodeStyle? style, {bool isEditing = false, double? overrideWidth});
-
-  /// Centralized helper to compute a node's physical size based on its runtime type.
-  static ({Size size, int lineCount}) calculateSize(UiNode node, {bool isEditing = false, double? overrideWidth}) {
-    final strategyType =
-        node.resolvedLayout?.strategyType ?? node.layout?.strategyType;
-    final strategy = fromType(strategyType, fallbackNode: node);
-    return strategy.calculate(node, node.resolvedStyle, isEditing: isEditing, overrideWidth: overrideWidth);
-  }
+  ({Size size, int lineCount}) calculateSize(UiNode node, {bool isEditing = false, double? overrideWidth});
 
   static TextSpan buildRichTextSpan(
     Content content,
@@ -75,22 +43,46 @@ abstract class NodeLayoutStrategy {
   }
 }
 
-class InfoNodeLayoutStrategy extends NodeLayoutStrategy {
-  const InfoNodeLayoutStrategy();
+class DefaultNodeLayoutStrategy implements NodeLayoutStrategy {
+  const DefaultNodeLayoutStrategy();
 
   @override
-  ({Size size, int lineCount}) calculate(UiNode node, NodeStyle? style, {bool isEditing = false, double? overrideWidth}) {
-    return _calculateDefaultLayout(node, style, isEditing: isEditing, overrideWidth: overrideWidth);
-  }
-}
+  Size calculateIntrinsicSize(UiNode node, NodeStyle style, BoxConstraints constraints) {
+    final minW = _computeMinWidth(node);
+    final hasFixedAspect = _hasFixedAspectRatio(node);
 
-class TaskNodeLayoutStrategy extends NodeLayoutStrategy {
-  const TaskNodeLayoutStrategy();
+    final width = node.size.width.clamp(minW, constraints.maxWidth);
+    final height = hasFixedAspect
+        ? (width / (node.size.width / node.size.height))
+        : node.size.height.clamp(0.0, constraints.maxHeight);
+
+    return Size(width, height);
+  }
 
   @override
-  ({Size size, int lineCount}) calculate(UiNode node, NodeStyle? style, {bool isEditing = false, double? overrideWidth}) {
-    return _calculateDefaultLayout(node, style, isEditing: isEditing, overrideWidth: overrideWidth);
+  ({Size size, int lineCount}) calculateSize(UiNode node, {bool isEditing = false, double? overrideWidth}) {
+    if (node is DrawingUiNode) {
+      return (size: node.size, lineCount: 0);
+    }
+    return _calculateDefaultLayout(node, node.resolvedStyle,
+        isEditing: isEditing, overrideWidth: overrideWidth);
   }
+
+  static double _computeMinWidth(UiNode node) => switch (node) {
+    CommentUiNode() => 200.0,
+    DrawingUiNode() => 100.0,
+    FrameUiNode() => 400.0,
+    InfoUiNode() => 250.0,
+    InterUiNode() => 150.0,
+    MediaUiNode() => 300.0,
+    ShapeUiNode() => 100.0,
+    TaskUiNode() => 280.0,
+  };
+
+  static bool _hasFixedAspectRatio(UiNode node) => switch (node) {
+    DrawingUiNode() || MediaUiNode() => true,
+    _ => false,
+  };
 }
 
 ({Size size, int lineCount}) _calculateDefaultLayout(
@@ -100,7 +92,6 @@ class TaskNodeLayoutStrategy extends NodeLayoutStrategy {
   double? overrideWidth,
 }) {
   final content = node.content;
-  // Fallback if text is empty — preserve the node's current size
   if (content.text.isEmpty) {
     return (size: node.size, lineCount: node.lineCount);
   }
@@ -119,8 +110,6 @@ class TaskNodeLayoutStrategy extends NodeLayoutStrategy {
 
   final richSpan = NodeLayoutStrategy.buildRichTextSpan(content, textStyle);
 
-  // 1. Determine dynamic or manual width target
-  // If the node has custom style set, it has been manually resized
   final bool isManual = node.style != null && node.style!.width > 0;
   double targetWidth;
 
@@ -129,26 +118,21 @@ class TaskNodeLayoutStrategy extends NodeLayoutStrategy {
   } else if (isManual) {
     targetWidth = node.style!.width.toDouble();
   } else {
-    // Dynamic Sizing Mode: Measure the text on a single line to see how wide it naturally wants to be
     final tempPainter = TextPainter(
       text: richSpan,
       textDirection: TextDirection.ltr,
-    )..layout(); // infinite maxWidth default
+    )..layout();
 
-    // In edit mode, add a horizontal breathing room/buffer space
-    // to prevent late wrapping visual glitches in the inline text field.
     final neededWidth =
         tempPainter.width +
         16.0 +
         (isEditing ? AppConfig.node.scaledEditingBufferWidth(fontSize) : 0.0);
-    // Auto-grow between defaultWidth and autoWrapThreshold
     targetWidth = neededWidth.clamp(
       AppConfig.node.scaledDefaultWidth(fontSize),
       AppConfig.node.scaledAutoWrapThreshold(fontSize),
     );
   }
 
-  // Double-safe clamp to absolute physical node limits
   targetWidth = targetWidth.clamp(
     AppConfig.node.scaledMinWidth(fontSize),
     AppConfig.node.scaledMaxWidth(fontSize),
@@ -168,15 +152,12 @@ class TaskNodeLayoutStrategy extends NodeLayoutStrategy {
   final lineCount = lineMetrics.length;
   double textHeight;
 
-  // Handle "Show More" logic based on line count
   if (lineCount > AppConfig.node.collapsedLineLimit && !node.isExpanded) {
     textHeight = lineMetrics
         .take(AppConfig.node.collapsedLineLimit)
         .fold(0.0, (sum, m) => sum + m.height);
-    textHeight += 2.0; // Buffer
+    textHeight += 2.0;
   } else if (node.isExpanded) {
-    // Measure using per-block TextSpans (same method as rendering) to avoid
-    // measurement/rendering mismatch that causes overflow.
     final blockSpans = NodeLayoutStrategy.buildPerBlockTextSpans(content, textStyle);
     textHeight = 0.0;
     for (final (span, _) in blockSpans) {
@@ -204,26 +185,9 @@ class TaskNodeLayoutStrategy extends NodeLayoutStrategy {
 
   final totalHeight = textHeight + 2 * resolvedStyle.padding + extraHeight;
 
-  // Quantization: Snap to grid
   final gridSize = AppConfig.grid.baseSize;
-
-  // We ceil to the next grid step to ensure content fits and avoid loops
   final snappedWidth = (targetWidth / gridSize).ceil() * gridSize;
   final snappedHeight = (totalHeight / gridSize).ceil() * gridSize;
 
   return (size: Size(snappedWidth, snappedHeight), lineCount: lineCount);
-}
-
-class DrawingNodeLayoutStrategy extends NodeLayoutStrategy {
-  const DrawingNodeLayoutStrategy();
-
-  @override
-  ({Size size, int lineCount}) calculate(
-    UiNode node,
-    NodeStyle? style, {
-    bool isEditing = false,
-    double? overrideWidth,
-  }) {
-    return (size: node.size, lineCount: 0);
-  }
 }

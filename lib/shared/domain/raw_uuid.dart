@@ -50,16 +50,3 @@ class RawUuid {
   @override
   String toString() => toUuidString();
 }
-
-/// Slot index manager mapping 128-bit RawUuid keys to contiguous array slots (0..N) in SpatialBuffer.
-/// Avoids array index hash collisions by using exact RawUuid equality in HashMap lookups.
-class SpatialBufferSlotManager {
-  final Map<RawUuid, int> _slotMap = {};
-  int _nextSlot = 0;
-
-  int getOrAssignSlot(RawUuid id) {
-    return _slotMap.putIfAbsent(id, () => _nextSlot++);
-  }
-
-  int? getSlot(RawUuid id) => _slotMap[id];
-}

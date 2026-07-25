@@ -24,8 +24,10 @@ class NodeViewState implements VolatileNodeState {
 
   final Logger _log = Logger('NodeViewState');
 
+  static final _defaultLayoutStrategy = DefaultNodeLayoutStrategy();
+
   static ({Size size, int lineCount}) Function(UiNode, {bool isEditing})
-  _sizeComputer = NodeLayoutStrategy.calculateSize;
+  _sizeComputer = _defaultLayoutStrategy.calculateSize;
 
   static void setSizeComputer(
     ({Size size, int lineCount}) Function(UiNode, {bool isEditing}) computer,

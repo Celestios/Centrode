@@ -92,7 +92,8 @@ void main() {
       // Configure style, resolver, and size calculator on controller
       final styleManager = StyleManager(queryController.store);
       styleManager.setTheme(const GraphTheme(id: 'test', name: 'test'));
-      controller.sizeCalculator = NodeLayoutStrategy.calculateSize;
+      final layoutStrategy = DefaultNodeLayoutStrategy();
+      controller.sizeCalculator = layoutStrategy.calculateSize;
       controller.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
       controller.styleUpdater = styleManager;
 

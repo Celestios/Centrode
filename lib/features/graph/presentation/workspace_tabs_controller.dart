@@ -156,7 +156,8 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     nodeRenderState = NodeRenderState(qc, processor);
 
     final styleManager = StyleManager(qc.store);
-    processor.sizeCalculator = NodeLayoutStrategy.calculateSize;
+    final layoutStrategy = DefaultNodeLayoutStrategy();
+    processor.sizeCalculator = layoutStrategy.calculateSize;
     processor.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
     processor.styleUpdater = styleManager;
 
