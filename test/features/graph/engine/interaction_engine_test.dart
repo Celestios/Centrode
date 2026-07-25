@@ -179,7 +179,7 @@ void main() {
 
         expect(controller.state.value, isA<RelationTipDragging>());
         final draggingState = controller.state.value as RelationTipDragging;
-        expect(draggingState.relationId, 'rel-1');
+        expect(draggingState.relationId, RawUuid.fromString('rel-1'));
         expect(draggingState.isStartTip, true);
       },
     );

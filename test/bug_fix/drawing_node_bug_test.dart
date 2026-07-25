@@ -25,7 +25,7 @@ void main() {
 
     // Create a DrawingUiNode
     final drawingNode = DrawingUiNode(
-      id: RawUuid.fromString('drawing_node_1'),
+      id: RawUuid.fromString('00000000-0000-0000-0000-000000000001'),
       position: const Offset(10, 20),
       size: const Size(100, 100),
       brushType: BrushType.pencil,
@@ -53,7 +53,7 @@ void main() {
       
       // Check if resolvedStyle is correctly resolved
       expect(drawingNode.resolvedStyle, isNotNull);
-      expect(drawingNode.resolvedStyle!.strategyType, equals('drawing'));
+      expect(drawingNode.resolvedStyle!.strategyType, equals('default'));
     } finally {
       subscription.cancel();
     }

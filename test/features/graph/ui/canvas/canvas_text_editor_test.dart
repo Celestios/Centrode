@@ -23,6 +23,7 @@ class MockNodeRenderState extends Mock
 
 void main() {
   setUpAll(() {
+    registerFallbackValue(RawUuid.fromString('dummy'));
     registerFallbackValue(const Content(text: '', blocks: []));
   });
 

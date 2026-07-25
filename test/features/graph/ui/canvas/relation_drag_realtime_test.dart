@@ -203,7 +203,7 @@ void main() {
       final painter = customPaint.painter as RelationPainter;
       expect(painter.paintDtos, hasLength(1));
       final dto = painter.paintDtos.first;
-      expect(dto.id, 'rel-1');
+      expect(dto.id, RawUuid.fromString('rel-1'));
       expect(dto.startPoint, const Offset(150, 40));
     },
   );
@@ -356,7 +356,7 @@ void main() {
       final painter = customPaint.painter as RelationPainter;
       expect(painter.paintDtos, hasLength(1));
       final dto = painter.paintDtos.first;
-      expect(dto.id, 'rel-1');
+      expect(dto.id, RawUuid.fromString('rel-1'));
       expect(dto.startPoint, const Offset(150, 40));
 
       await gesture.up();

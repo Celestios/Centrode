@@ -39,16 +39,18 @@ void main() {
 
 
     test('selecting entity delegates to selection state', () {
-      renderState.selectEntity(RawUuid.fromString('node-1'));
-      expect(renderState.selectedEntities, contains('node-1'));
+      final id = RawUuid.fromString('node-1');
+      renderState.selectEntity(id);
+      expect(renderState.selectedEntities, contains(id));
 
       renderState.selectEntity(null);
       expect(renderState.selectedEntities, isEmpty);
     });
 
     test('entering and committing edit mode updates editor state', () {
-      renderState.enterEditMode(RawUuid.fromString('node-1'));
-      expect(renderState.activeEditId, equals('node-1'));
+      final id = RawUuid.fromString('node-1');
+      renderState.enterEditMode(id);
+      expect(renderState.activeEditId, equals(id));
 
       renderState.commitActiveEdit();
       expect(renderState.activeEditId, isNull);

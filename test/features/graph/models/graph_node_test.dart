@@ -10,7 +10,7 @@ void main() {
     test('InfoUiNode creates with defaults', () {
       final node = InfoUiNode(position: const Offset(10, 20));
 
-      expect(node.id, isNotEmpty);
+      expect(node.id, isNotNull);
       expect(node.position, const Offset(10, 20));
       expect(node.layer, 'default');
       expect(node.locked, isFalse);
@@ -21,7 +21,7 @@ void main() {
     test('TaskUiNode creates with defaults', () {
       final node = TaskUiNode(position: const Offset(30, 40));
 
-      expect(node.id, isNotEmpty);
+      expect(node.id, isNotNull);
       expect(node.position, const Offset(30, 40));
       expect(node.layer, 'default');
       expect(node.state, TaskState.todo);
@@ -41,7 +41,7 @@ void main() {
         locked: true,
       );
 
-      expect(copied.id, '123'); // Unchanged
+      expect(copied.id, RawUuid.fromString('123')); // Unchanged
       expect(copied.layer, 'top'); // Changed
       expect(copied.position, const Offset(100, 100)); // Changed
       expect(copied.locked, isTrue); // Changed
@@ -56,15 +56,16 @@ void main() {
 
       final copied = node.copyWith(state: TaskState.done, dueDate: 1620000000000);
 
-      expect(copied.id, 'task-1');
+      expect(copied.id, RawUuid.fromString('task-1'));
       expect(copied.state, TaskState.done);
       expect(copied.dueDate, 1620000000000);
       expect(copied.position, const Offset(0, 0));
     });
 
     test('InfoUiNode toRust generates valid FFI object', () {
+      final id = RawUuid.fromString('node-ffi-1');
       final node = InfoUiNode(
-        id: RawUuid.fromString('node-ffi-1'),
+        id: id,
         position: const Offset(15, 25),
         layer: 'bg',
         size: const Size(100, 200),
@@ -79,7 +80,7 @@ void main() {
       );
 
       expect(asINode, isNotNull);
-      expect(asINode!.id.key.uuid, 'node-ffi-1');
+      expect(asINode!.id.key.uuid, id.toUuidString());
       expect(asINode.layer, 'bg');
       expect(asINode.position.x, 15);
       expect(asINode.position.y, 25);
@@ -88,8 +89,9 @@ void main() {
     });
 
     test('TaskUiNode toRust generates valid FFI object', () {
+      final id = RawUuid.fromString('task-ffi-1');
       final node = TaskUiNode(
-        id: RawUuid.fromString('task-ffi-1'),
+        id: id,
         position: const Offset(50, 60),
         state: TaskState.inProgress,
       );
@@ -102,7 +104,7 @@ void main() {
       );
 
       expect(asTaskNode, isNotNull);
-      expect(asTaskNode!.id.key.uuid, 'task-ffi-1');
+      expect(asTaskNode!.id.key.uuid, id.toUuidString());
       expect(asTaskNode.state, TaskState.inProgress);
       expect(asTaskNode.position.x, 50);
       expect(asTaskNode.position.y, 60);

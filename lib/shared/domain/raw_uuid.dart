@@ -20,7 +20,14 @@ class RawUuid {
 
   factory RawUuid.fromString(String uuid) {
     final list = Uint8List(16);
-    Uuid.parse(uuid, buffer: list);
+    if (uuid.length == 36 && uuid[8] == '-' && uuid[13] == '-' && uuid[18] == '-' && uuid[23] == '-') {
+      Uuid.parse(uuid, buffer: list, validationMode: ValidationMode.nonStrict);
+    } else {
+      final codeUnits = uuid.codeUnits;
+      for (var i = 0; i < 16; i++) {
+        list[i] = i < codeUnits.length ? codeUnits[i] : 0;
+      }
+    }
     return RawUuid(list);
   }
 

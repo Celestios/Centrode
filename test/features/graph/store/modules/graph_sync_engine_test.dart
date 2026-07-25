@@ -152,7 +152,7 @@ void main() {
       await controller.loadGraph();
 
       // Verify node loaded
-      final loadedNode = queryController.nodeLookup['node_1'];
+      final loadedNode = queryController.nodeLookup[RawUuid.fromString('node_1')];
       expect(loadedNode, isNotNull);
 
       // Verify content blocks are hydrated (markdown parsed)

@@ -28,6 +28,7 @@ class FakeSymmetricEntityPatch extends Fake implements SymmetricEntityPatch {}
 void main() {
   setUpAll(() {
     registerFallbackValue(FakeSymmetricEntityPatch());
+    registerFallbackValue(parseTypedRecordId('INode', RawUuid.fromString('dummy')));
     registerFallbackValue(
       Nodes.iNode(
         INode(

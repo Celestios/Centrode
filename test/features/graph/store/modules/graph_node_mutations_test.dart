@@ -27,6 +27,7 @@ void main() {
 
     setUpAll(() {
       registerFallbackValue(const Offset(0, 0));
+      registerFallbackValue(parseTypedRecordId('INode', RawUuid.fromString('dummy')));
       registerFallbackValue(
         Nodes.iNode(
           INode(

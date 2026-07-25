@@ -12,9 +12,9 @@ void main() {
         toNodeTable: 'TaskNode',
       );
 
-      expect(relation.id, isNotEmpty);
-      expect(relation.fromNodeId, 'node-1');
-      expect(relation.toNodeId, 'node-2');
+      expect(relation.id, isNotNull);
+      expect(relation.fromNodeId, RawUuid.fromString('node-1'));
+      expect(relation.toNodeId, RawUuid.fromString('node-2'));
       expect(relation.verb, 'default');
       expect(relation.directionless, isFalse);
       expect(relation.layer, 'default');
@@ -32,27 +32,30 @@ void main() {
 
       final copied = relation.copyWith(verb: 'depends_on', directionless: true);
 
-      expect(copied.id, 'rel-1');
-      expect(copied.fromNodeId, 'n1');
+      expect(copied.id, RawUuid.fromString('rel-1'));
+      expect(copied.fromNodeId, RawUuid.fromString('n1'));
       expect(copied.verb, 'depends_on');
       expect(copied.directionless, isTrue);
     });
 
     test('InfoUiRelation toRust generates valid FFI object', () {
+      final relId = RawUuid.fromString('rel-ffi');
+      final n1Id = RawUuid.fromString('n1');
+      final n2Id = RawUuid.fromString('n2');
       final relation = InfoUiRelation(
-        id: RawUuid.fromString('rel-ffi'),
-        fromNodeId: RawUuid.fromString('n1'),
+        id: relId,
+        fromNodeId: n1Id,
         fromNodeTable: 'INode',
-        toNodeId: RawUuid.fromString('n2'),
+        toNodeId: n2Id,
         toNodeTable: 'TaskNode',
         verb: 'blocks',
         directionless: false,
       );
 
       final rustObj = relation.toRust();
-      expect(rustObj.key.key.uuid, 'rel-ffi');
-      expect(rustObj.in_.key.uuid, 'n1');
-      expect(rustObj.out.key.uuid, 'n2');
+      expect(rustObj.key.key.uuid, relId.toUuidString());
+      expect(rustObj.in_.key.uuid, n1Id.toUuidString());
+      expect(rustObj.out.key.uuid, n2Id.toUuidString());
       expect(rustObj.fields.verb, 'blocks');
       expect(rustObj.fields.directionless, isFalse);
     });
