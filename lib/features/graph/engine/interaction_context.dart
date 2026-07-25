@@ -2,6 +2,9 @@
 import 'dart:ui';
 import '../models/models.dart';
 import '../presentation/view_state.dart';
+import '../presentation/handlers/spatial_action_handler.dart';
+import '../presentation/handlers/topology_action_handler.dart';
+import '../presentation/handlers/content_action_handler.dart';
 import '../store/spatial_index.dart';
 import '../store/relation_engine_state.dart';
 import 'package:mycelium/shared/domain/raw_uuid.dart';
@@ -125,6 +128,16 @@ abstract interface class GeometryCapability
 abstract interface class GeometryAndViewportCapability
     implements GeometryCapability, ViewportCapability {}
 
+/// Provides access to category-specific action handlers.
+///
+/// The FSM governs *what state we are in*, while the handlers execute
+/// the *business logic for that state*.
+abstract interface class HandlerCapability {
+  SpatialActionHandler get spatialHandler;
+  TopologyActionHandler get topologyHandler;
+  ContentActionHandler get contentHandler;
+}
+
 /// Scoped capability interface for active interaction states.
 ///
 /// This interface isolates the environment data and callbacks from the
@@ -132,4 +145,4 @@ abstract interface class GeometryAndViewportCapability
 /// state objects can interact with the context without direct coupling
 /// to the controller implementation.
 abstract interface class InteractionContext
-    implements SelectionCapability, GeometryAndViewportCapability {}
+    implements SelectionCapability, GeometryAndViewportCapability, HandlerCapability {}

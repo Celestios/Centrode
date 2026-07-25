@@ -4,6 +4,9 @@ import 'package:mycelium/shared/logging.dart';
 import '../models/models.dart';
 import '../presentation/view_state.dart';
 import '../presentation/strategies/node_style_strategy.dart';
+import '../presentation/handlers/spatial_action_handler.dart';
+import '../presentation/handlers/topology_action_handler.dart';
+import '../presentation/handlers/content_action_handler.dart';
 import 'interaction_context.dart';
 import '../store/graph_data_query_controller.dart';
 import '../store/command_queue_processor.dart';
@@ -26,6 +29,13 @@ class CanvasInteractionEnvironment implements InteractionContext {
   final void Function(List<RawUuid> nodeIds, List<RawUuid> relationIds)?
   _onSaveTemplate;
 
+  @override
+  final SpatialActionHandler spatialHandler;
+  @override
+  final TopologyActionHandler topologyHandler;
+  @override
+  final ContentActionHandler contentHandler;
+
   CanvasInteractionEnvironment({
     required GraphDataQueryController queryController,
     required CommandQueueProcessor commandProcessor,
@@ -35,13 +45,19 @@ class CanvasInteractionEnvironment implements InteractionContext {
     TabSession? boundSession,
     void Function(List<RawUuid> nodeIds, List<RawUuid> relationIds)?
     onSaveTemplate,
+    SpatialActionHandler? spatialHandler,
+    TopologyActionHandler? topologyHandler,
+    ContentActionHandler? contentHandler,
   }) : _queryController = queryController,
        _commandProcessor = commandProcessor,
        _renderState = renderState,
        _viewportController = viewportController,
        _getScale = getScale,
        _boundSession = boundSession,
-       _onSaveTemplate = onSaveTemplate;
+       _onSaveTemplate = onSaveTemplate,
+       spatialHandler = spatialHandler ?? const DefaultSpatialActionHandler(),
+       topologyHandler = topologyHandler ?? const DefaultTopologyActionHandler(),
+       contentHandler = contentHandler ?? const DefaultContentActionHandler();
 
   @override
   Map<RawUuid, NodeViewState> get nodeViewStates => _renderState.viewStates;
