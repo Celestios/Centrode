@@ -20,7 +20,7 @@ void main() {
       mockCommand = MockGraphDataCommand();
 
       final dummyNode = InfoUiNode(id: RawUuid.fromString('node-1'), position: Offset.zero);
-      when(() => mockQuery.nodeLookup).thenReturn({'node-1': dummyNode});
+      when(() => mockQuery.nodeLookup).thenReturn({RawUuid.fromString('node-1'): dummyNode});
       when(() => mockQuery.relationLookup).thenReturn({});
       when(() => mockQuery.relations).thenReturn([]);
       when(() => mockQuery.onEntityUpdate).thenAnswer((_) => const Stream.empty());
@@ -39,7 +39,7 @@ void main() {
 
 
     test('selecting entity delegates to selection state', () {
-      renderState.selectEntity('node-1');
+      renderState.selectEntity(RawUuid.fromString('node-1'));
       expect(renderState.selectedEntities, contains('node-1'));
 
       renderState.selectEntity(null);
@@ -47,7 +47,7 @@ void main() {
     });
 
     test('entering and committing edit mode updates editor state', () {
-      renderState.enterEditMode('node-1');
+      renderState.enterEditMode(RawUuid.fromString('node-1'));
       expect(renderState.activeEditId, equals('node-1'));
 
       renderState.commitActiveEdit();

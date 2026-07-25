@@ -101,12 +101,12 @@ void main() {
 
       // Stub environment calls since FSM CanvasIdle handlePointerDown will run
       when(() => mockEnv.getActiveEditId()).thenReturn(null);
-      when(() => mockEnv.getSelectedEntities()).thenReturn(<String>{});
+      when(() => mockEnv.getSelectedEntities()).thenReturn(<RawUuid>{});
       when(() => mockEnv.getRelations()).thenReturn(<UiRelation>[]);
       when(() => mockEnv.zOrder).thenReturn(<String>[]);
-      when(() => mockEnv.nodeViewStates).thenReturn(<String, NodeViewState>{});
+      when(() => mockEnv.nodeViewStates).thenReturn(<RawUuid, NodeViewState>{});
       final mockRelationEngine = MockRelationEngineState();
-      when(() => mockRelationEngine.cache).thenReturn(<String, ComputedRelation>{});
+      when(() => mockRelationEngine.cache).thenReturn(<RawUuid, ComputedRelation>{});
       when(() => mockEnv.relationEngine).thenReturn(mockRelationEngine);
       when(() => mockEnv.onSelectEntity(any())).thenAnswer((_) {});
     });
@@ -190,12 +190,12 @@ void main() {
 
       // Stub environment calls since FSM CanvasIdle handlePointerDown will run when bubbling
       when(() => mockEnv.getActiveEditId()).thenReturn(null);
-      when(() => mockEnv.getSelectedEntities()).thenReturn(<String>{});
+      when(() => mockEnv.getSelectedEntities()).thenReturn(<RawUuid>{});
       when(() => mockEnv.getRelations()).thenReturn(<UiRelation>[]);
       when(() => mockEnv.zOrder).thenReturn(<String>[]);
-      when(() => mockEnv.nodeViewStates).thenReturn(<String, NodeViewState>{});
+      when(() => mockEnv.nodeViewStates).thenReturn(<RawUuid, NodeViewState>{});
       final mockRelationEngine = MockRelationEngineState();
-      when(() => mockRelationEngine.cache).thenReturn(<String, ComputedRelation>{});
+      when(() => mockRelationEngine.cache).thenReturn(<RawUuid, ComputedRelation>{});
       when(() => mockEnv.relationEngine).thenReturn(mockRelationEngine);
       when(() => mockEnv.onSelectEntity(any())).thenAnswer((_) {});
 

@@ -16,7 +16,7 @@ class MockGraphApi extends Mock implements GraphApi {}
 class MockThemeController extends Mock implements ThemeController {
   @override
   GraphTheme get currentGraphTheme =>
-      const GraphTheme(id: RawUuid.fromString('test'), name: 'test');
+      const GraphTheme(id: 'test', name: 'test');
 }
 
 void main() {
@@ -30,7 +30,7 @@ void main() {
       registerFallbackValue(
         Nodes.iNode(
           INode(
-            id: parseTypedRecordId('INode', 'dummy'),
+            id: parseTypedRecordId('INode', RawUuid.fromString('dummy')),
             content: ContentFactory.empty(),
             layer: 'default',
             position: const frb.Coordinates(x: 0, y: 0),

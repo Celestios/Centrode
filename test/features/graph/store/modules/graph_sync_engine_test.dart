@@ -21,7 +21,7 @@ class MockGraphApi extends Mock implements GraphApi {}
 class MockThemeController extends Mock implements ThemeController {
   @override
   GraphTheme get currentGraphTheme =>
-      const GraphTheme(id: RawUuid.fromString('test'), name: 'test');
+      const GraphTheme(id: 'test', name: 'test');
 }
 
 void main() {
@@ -91,14 +91,14 @@ void main() {
     test('loadGraph hydrates node formatting and layout size', () async {
       // Configure style, resolver, and size calculator on controller
       final styleManager = StyleManager(queryController.store);
-      styleManager.setTheme(const GraphTheme(id: RawUuid.fromString('test'), name: 'test'));
+      styleManager.setTheme(const GraphTheme(id: 'test', name: 'test'));
       controller.sizeCalculator = NodeLayoutStrategy.calculateSize;
       controller.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
       controller.styleUpdater = styleManager;
 
       // Mock snapshot containing a node with unparsed plain text content
       final rawNode = INode(
-        id: parseTypedRecordId('INode', 'node_1'),
+        id: parseTypedRecordId('INode', RawUuid.fromString('node_1')),
         content: const Content(
           text: 'This is **bold** text with a [link](https://test.com)',
           blocks: [

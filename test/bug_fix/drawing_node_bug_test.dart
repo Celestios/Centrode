@@ -15,7 +15,7 @@ void main() {
     
     // Set a test theme
     styleManager.setTheme(const GraphTheme(
-      id: RawUuid.fromString('test'),
+      id: 'test',
       name: 'test',
       primaryColor: Color(0xFF123456),
       fontFamily: 'Roboto',

@@ -18,7 +18,7 @@ class MockGraphApi extends Mock implements GraphApi {}
 class MockThemeController extends Mock implements ThemeController {
   @override
   GraphTheme get currentGraphTheme =>
-      const GraphTheme(id: RawUuid.fromString('test'), name: 'test');
+      const GraphTheme(id: 'test', name: 'test');
 }
 
 class MockStyleUpdater extends Mock implements GraphStyleUpdater {}
@@ -31,7 +31,7 @@ void main() {
     registerFallbackValue(
       Nodes.iNode(
         INode(
-          id: parseTypedRecordId('INode', 'dummy'),
+          id: parseTypedRecordId('INode', RawUuid.fromString('dummy')),
           content: ContentFactory.empty(),
           layer: 'default',
           position: const Coordinates(x: 0, y: 0),
@@ -51,9 +51,9 @@ void main() {
     );
     registerFallbackValue(
       IRelation(
-        key: parseTypedRecordId('IRelation', 'dummy'),
-        in_: parseTypedRecordId('INode', 'in'),
-        out: parseTypedRecordId('INode', 'out'),
+        key: parseTypedRecordId('IRelation', RawUuid.fromString('dummy')),
+        in_: parseTypedRecordId('INode', RawUuid.fromString('in')),
+        out: parseTypedRecordId('INode', RawUuid.fromString('out')),
         fields: IRelationFields(
           verb: 'link',
           layer: 'default',
@@ -73,9 +73,9 @@ void main() {
     setUpAll(() {
       registerFallbackValue(
         IRelation(
-          key: parseTypedRecordId('IRelation', 'dummy-rel'),
-          in_: parseTypedRecordId('INode', 'n1'),
-          out: parseTypedRecordId('TaskNode', 'n2'),
+          key: parseTypedRecordId('IRelation', RawUuid.fromString('dummy-rel')),
+          in_: parseTypedRecordId('INode', RawUuid.fromString('n1')),
+          out: parseTypedRecordId('TaskNode', RawUuid.fromString('n2')),
           fields: IRelationFields(
             verb: 'depends',
             directionless: false,

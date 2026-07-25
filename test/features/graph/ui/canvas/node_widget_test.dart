@@ -20,7 +20,7 @@ class MockGraphDataQuery extends Mock
 class MockThemeController extends Mock implements ThemeController {
   @override
   GraphTheme get currentGraphTheme =>
-      const GraphTheme(id: RawUuid.fromString('test'), name: 'test');
+      const GraphTheme(id: 'test', name: 'test');
 }
 
 void main() {

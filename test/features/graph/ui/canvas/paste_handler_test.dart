@@ -22,7 +22,7 @@ void main() {
     registerFallbackValue(
       Nodes.iNode(
         INode(
-          id: parseTypedRecordId('INode', 'dummy'),
+          id: parseTypedRecordId('INode', RawUuid.fromString('dummy')),
           content: ContentFactory.empty(),
           layer: 'default',
           position: const Coordinates(x: 0, y: 0),
@@ -42,9 +42,9 @@ void main() {
     );
     registerFallbackValue(
       IRelation(
-        key: parseTypedRecordId('IRelation', 'dummy'),
-        in_: parseTypedRecordId('INode', 'in'),
-        out: parseTypedRecordId('INode', 'out'),
+        key: parseTypedRecordId('IRelation', RawUuid.fromString('dummy')),
+        in_: parseTypedRecordId('INode', RawUuid.fromString('in')),
+        out: parseTypedRecordId('INode', RawUuid.fromString('out')),
         fields: IRelationFields(
           verb: 'link',
           layer: 'default',
@@ -55,7 +55,7 @@ void main() {
       ),
     );
     registerFallbackValue(SymmetricEntityPatch(
-      id: parseTypedRecordId('INode', 'dummy'),
+      id: parseTypedRecordId('INode', RawUuid.fromString('dummy')),
       forward: const EntityPatch.node([]),
       reverse: const EntityPatch.node([]),
     ));

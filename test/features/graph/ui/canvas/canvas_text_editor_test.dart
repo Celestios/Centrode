@@ -12,7 +12,7 @@ class MockNodeRenderState extends Mock
     with ChangeNotifier
     implements NodeRenderState {
   @override
-  RawUuid? get activeEditId => 'test-node-1';
+  RawUuid? get activeEditId => RawUuid.fromString('test-node-1');
 
   @override
   final ValueNotifier<TextSelection?> activeTextSelectionNotifier = ValueNotifier(null);
@@ -47,7 +47,7 @@ void main() {
           body: ChangeNotifierProvider<NodeRenderState>.value(
             value: mockRenderState,
             child: CanvasTextEditor(
-              entityId: 'test-node-1',
+              entityId: RawUuid.fromString('test-node-1'),
               content: initialContent,
               textStyle: const TextStyle(),
             ),

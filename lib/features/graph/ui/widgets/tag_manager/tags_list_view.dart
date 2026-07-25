@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
 import 'package:mycelium/shared/domain/raw_uuid.dart';
 import '../../../models/graph_node.dart';
 import '../../../store/graph_data_query_controller.dart';

@@ -35,7 +35,7 @@ void main() {
       when(() => mockQuery.spatialGrid).thenReturn(mockSpatial);
       when(() => mockQuery.canvasBounds).thenAnswer((_) => mockBoundsNotifier.value);
       when(() => mockQuery.onEntityUpdate).thenAnswer((_) => mockEntityUpdates);
-      when(() => mockSpatial.queryRect(any())).thenReturn(<String>{'node-1'});
+      when(() => mockSpatial.queryRect(any())).thenReturn(<RawUuid>{RawUuid.fromString('node-1')});
 
       controller = ViewportController(mockQuery);
     });

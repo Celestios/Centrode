@@ -133,7 +133,7 @@ void main() {
 
       await processor.forceFlush();
 
-      expect(cmd.targetId, 'real-db-id'); // Target ID should be updated
+      expect(cmd.targetId, RawUuid.fromString('real-db-id')); // Target ID should be updated
       expect(cmd.isExecuted, isTrue);
     });
   });

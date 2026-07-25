@@ -36,7 +36,7 @@ class MockSpatialHashGrid extends Mock implements SpatialHashGrid {}
 
 class MockInteractionController extends Mock implements InteractionController {}
 
-ComputedRelation createTestComputedRelation(String idStr, List<rust_geom.Point> pathPoints) {
+ComputedRelation createTestComputedRelation(RawUuid idStr, List<rust_geom.Point> pathPoints) {
   return ComputedRelation(
     id: parseTypedRecordId('IRelation', idStr),
     pathPoints: pathPoints,
@@ -112,21 +112,21 @@ void main() {
       when(() => mockQueryController.relations).thenReturn([rel]);
       when(
         () => mockQueryController.nodeLookup,
-      ).thenReturn({'node-from': fromNode, 'node-to': toNode});
-      when(() => mockQueryController.relationLookup).thenReturn({'rel-1': rel});
+      ).thenReturn({RawUuid.fromString('node-from'): fromNode, RawUuid.fromString('node-to'): toNode});
+      when(() => mockQueryController.relationLookup).thenReturn({RawUuid.fromString('rel-1'): rel});
       when(
         () => mockQueryController.onEntityUpdate,
       ).thenAnswer((_) => const Stream.empty());
 
       final mockRelationEngine = MockRelationEngineState();
       final testComputed = createTestComputedRelation(
-        'rel-1',
+        RawUuid.fromString('rel-1'),
         [
           const rust_geom.Point(x: 110, y: 35),
           const rust_geom.Point(x: 210, y: 35),
         ],
       );
-      when(() => mockRelationEngine.cache).thenReturn({'rel-1': testComputed});
+      when(() => mockRelationEngine.cache).thenReturn({RawUuid.fromString('rel-1'): testComputed});
       when(() => mockRelationEngine.cacheNotifier)
           .thenReturn(ValueNotifier<int>(0));
       when(() => mockQueryController.relationEngine)
@@ -134,14 +134,14 @@ void main() {
 
       when(
         () => mockTheme.currentGraphTheme,
-      ).thenReturn(const GraphTheme(id: RawUuid.fromString('test'), name: 'test'));
+      ).thenReturn(const GraphTheme(id: 'test', name: 'test'));
       when(() => mockTheme.addListener(any())).thenAnswer((_) {});
       when(() => mockTheme.removeListener(any())).thenAnswer((_) {});
 
       final renderState = NodeRenderState(mockQueryController, mockCommandProcessor);
-      renderState.viewStates['node-from'] = fromVs;
-      renderState.viewStates['node-to'] = toVs;
-      renderState.selectedEntities.add('rel-1');
+      renderState.viewStates[RawUuid.fromString('node-from')] = fromVs;
+      renderState.viewStates[RawUuid.fromString('node-to')] = toVs;
+      renderState.selectedEntities.add(RawUuid.fromString('rel-1'));
 
       final mockInteraction = MockInteractionController();
       final stateNotifier = ValueNotifier<CanvasInteractionState>(
@@ -248,16 +248,16 @@ void main() {
       when(() => mockQueryController.relations).thenReturn([rel]);
       when(
         () => mockQueryController.nodeLookup,
-      ).thenReturn({'node-from': fromNode, 'node-to': toNode});
-      when(() => mockQueryController.relationLookup).thenReturn({'rel-1': rel});
+      ).thenReturn({RawUuid.fromString('node-from'): fromNode, RawUuid.fromString('node-to'): toNode});
+      when(() => mockQueryController.relationLookup).thenReturn({RawUuid.fromString('rel-1'): rel});
       when(
         () => mockQueryController.onEntityUpdate,
       ).thenAnswer((_) => const Stream.empty());
 
       final mockRelationEngine = MockRelationEngineState();
       when(() => mockRelationEngine.cache).thenReturn({
-        'rel-1': createTestComputedRelation(
-          'rel-1',
+        RawUuid.fromString('rel-1'): createTestComputedRelation(
+          RawUuid.fromString('rel-1'),
           [
             const rust_geom.Point(x: 110, y: 35),
             const rust_geom.Point(x: 210, y: 35),
@@ -274,18 +274,18 @@ void main() {
       when(() => mockQueryController.canvasBounds).thenReturn(
         BoundingBox(minX: 0, minY: 0, maxX: 100, maxY: 100),
       );
-      when(() => mockSpatial.queryRect(any())).thenReturn(<String>{});
+      when(() => mockSpatial.queryRect(any())).thenReturn(<RawUuid>{});
 
       when(
         () => mockTheme.currentGraphTheme,
-      ).thenReturn(const GraphTheme(id: RawUuid.fromString('test'), name: 'test'));
+      ).thenReturn(const GraphTheme(id: 'test', name: 'test'));
       when(() => mockTheme.addListener(any())).thenAnswer((_) {});
       when(() => mockTheme.removeListener(any())).thenAnswer((_) {});
 
       final renderState = NodeRenderState(mockQueryController, mockCommandProcessor);
-      renderState.viewStates['node-from'] = fromVs;
-      renderState.viewStates['node-to'] = toVs;
-      renderState.selectedEntities.add('rel-1');
+      renderState.viewStates[RawUuid.fromString('node-from')] = fromVs;
+      renderState.viewStates[RawUuid.fromString('node-to')] = toVs;
+      renderState.selectedEntities.add(RawUuid.fromString('rel-1'));
 
       final transformController = TransformationController();
       final viewportController = ViewportController(mockQueryController);
