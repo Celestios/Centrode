@@ -18,7 +18,7 @@ class OverlayLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dataController = context.watch<GraphDataQuery>();
-    final renderState = context.watch<NodeRenderState>();
+    final renderState = context.read<NodeRenderState>();
     final interactionController = context.read<InteractionController>();
 
     return ValueListenableBuilder<CanvasInteractionState>(

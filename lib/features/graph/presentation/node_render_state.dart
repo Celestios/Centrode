@@ -77,8 +77,6 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
 
     editorState.addListener(notifyListeners);
     selectionState.addListener(notifyListeners);
-    hoveredNodeNotifier.addListener(notifyListeners);
-    hoveredPortNotifier.addListener(notifyListeners);
 
     _updateSubscription = _dataQuery.onEntityUpdate.listen(
       _handleEntityUpdate,
@@ -362,8 +360,6 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
 
     editorState.removeListener(notifyListeners);
     selectionState.removeListener(notifyListeners);
-    hoveredNodeNotifier.removeListener(notifyListeners);
-    hoveredPortNotifier.removeListener(notifyListeners);
 
     for (final vs in viewStates.values) {
       vs.dispose();

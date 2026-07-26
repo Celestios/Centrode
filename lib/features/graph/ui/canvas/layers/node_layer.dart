@@ -22,14 +22,12 @@ class NodeRenderEntry {
   final NodeViewState viewState;
   final bool isSelected;
   final bool isEditing;
-  final bool isHovered;
 
   const NodeRenderEntry({
     required this.node,
     required this.viewState,
     required this.isSelected,
     required this.isEditing,
-    required this.isHovered,
   });
 }
 
@@ -61,14 +59,12 @@ class NodeLayer extends StatelessWidget {
           final viewState = uiState.viewStates[id]!;
           final isSelected = uiState.selectedEntities.contains(id);
           final isEditing = uiState.activeEditId == id;
-          final isHovered = uiState.hoveredNodeNotifier.value == id;
 
           final entry = NodeRenderEntry(
             node: node,
             viewState: viewState,
             isSelected: isSelected,
             isEditing: isEditing,
-            isHovered: isHovered,
           );
 
           if (isEditing) {
@@ -81,7 +77,10 @@ class NodeLayer extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             RepaintBoundary(
-              child: _CanvasNodesHost(entries: entries),
+              child: _CanvasNodesHost(
+                entries: entries,
+                hoveredNodeNotifier: uiState.hoveredNodeNotifier,
+              ),
             ),
             if (editingEntry != null)
               Builder(
@@ -106,6 +105,7 @@ class NodeLayer extends StatelessWidget {
                       final shape = resolvedStyle?.shape ?? 'rectangle';
                       final double fontSize = resolvedStyle?.fontSize ?? 14.0;
                       final double scale = NodeVisualConstants.fontScale(fontSize);
+                      final isHovered = uiState.hoveredNodeNotifier.value == entry.node.id;
 
                       final Widget editWidget;
                       if (entry.node is DrawingUiNode) {
@@ -119,7 +119,7 @@ class NodeLayer extends StatelessWidget {
                         editWidget = HighlightFrame(
                           isEditing: true,
                           isSelected: entry.isSelected,
-                          isHovered: entry.isHovered,
+                          isHovered: isHovered,
                           borderRadius: borderRadius,
                           shape: shape,
                           size: size,
@@ -152,9 +152,11 @@ class NodeLayer extends StatelessWidget {
 
 class _CanvasNodesHost extends StatefulWidget {
   final List<NodeRenderEntry> entries;
+  final ValueNotifier<RawUuid?> hoveredNodeNotifier;
 
   const _CanvasNodesHost({
     required this.entries,
+    required this.hoveredNodeNotifier,
   });
 
   @override
@@ -232,8 +234,11 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
       entry.viewState.sizeNotifier.addListener(markDirty);
       entry.viewState.dragWidthNotifier.addListener(markDirty);
       entry.viewState.isExpandedNotifier.addListener(markDirty);
+      entry.viewState.lineCountNotifier.addListener(markDirty);
+      entry.viewState.styleNotifier.addListener(markDirty);
       _listeners[id] = markDirty;
     }
+    widget.hoveredNodeNotifier.addListener(_onHoverChanged);
   }
 
   void _unsubscribeAll() {
@@ -244,8 +249,26 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
         entry.viewState.sizeNotifier.removeListener(listener);
         entry.viewState.dragWidthNotifier.removeListener(listener);
         entry.viewState.isExpandedNotifier.removeListener(listener);
+        entry.viewState.lineCountNotifier.removeListener(listener);
+        entry.viewState.styleNotifier.removeListener(listener);
       }
     }
+    widget.hoveredNodeNotifier.removeListener(_onHoverChanged);
+  }
+
+  void _onHoverChanged() {
+    if (_disposed) return;
+    final oldHovered = _painter!._hoveredNodeId;
+    final newHovered = widget.hoveredNodeNotifier.value;
+
+    if (oldHovered == newHovered) return;
+
+    _painter!._hoveredNodeId = newHovered;
+
+    if (oldHovered != null) _dirtyNodeIds.add(oldHovered);
+    if (newHovered != null) _dirtyNodeIds.add(newHovered);
+
+    if (_dirtyNodeIds.isNotEmpty) _repaintTrigger.value++;
   }
 
   @override
@@ -271,6 +294,7 @@ class _CanvasNodesPainter extends CustomPainter {
   List<NodeRenderEntry> entries;
   final Set<RawUuid> dirtyNodeIds;
   final Set<RawUuid> positionOnlyNodeIds;
+  RawUuid? _hoveredNodeId;
 
   final Map<RawUuid, ui.Picture> _nodeCache = {};
   ui.Picture? _cachedPicture;
@@ -399,7 +423,8 @@ class _CanvasNodesPainter extends CustomPainter {
     final rect = Rect.fromLTWH(0, 0, w, h);
 
     final double scale = NodeVisualConstants.fontScale(resolvedStyle.fontSize);
-    final bool isHighlighted = entry.isSelected || entry.isEditing || entry.isHovered;
+    final bool isHovered = entry.node.id == _hoveredNodeId;
+    final bool isHighlighted = entry.isSelected || entry.isEditing || isHovered;
     final double stroke = (entry.isEditing
         ? 1.0
         : entry.isSelected
@@ -476,7 +501,7 @@ class _CanvasNodesPainter extends CustomPainter {
         isHighlighted: isHighlighted,
         isEditing: entry.isEditing,
         isSelected: entry.isSelected,
-        isHovered: entry.isHovered,
+        isHovered: isHovered,
       );
     } else {
       _paintText(canvas, entry, rect, resolvedStyle);

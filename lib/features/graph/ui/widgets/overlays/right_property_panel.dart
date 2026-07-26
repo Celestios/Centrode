@@ -16,9 +16,11 @@ class RightPropertyPanel extends StatefulWidget {
 class _RightPropertyPanelState extends State<RightPropertyPanel> {
   @override
   Widget build(BuildContext context) {
-    final renderState = context.watch<NodeRenderState>();
+    final isSelected = context.select<NodeRenderState, bool>(
+      (s) => s.selectedEntities.isNotEmpty,
+    );
+    final renderState = context.read<NodeRenderState>();
     final selectedEntities = renderState.selectedEntities;
-    final isSelected = selectedEntities.isNotEmpty;
 
     return CollapsibleSidebar(
       title: 'INSPECTOR',

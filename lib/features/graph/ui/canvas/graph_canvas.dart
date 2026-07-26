@@ -195,7 +195,7 @@ class _GraphCanvasState extends State<GraphCanvas>
 
     final backdropRepaintListenable = Listenable.merge([
       viewportController.transformController,
-      renderState,
+      renderState.movementNotifier,
     ]);
 
     return MultiProvider(
