@@ -172,7 +172,7 @@ class UiNodeGenerator extends Generator {
       );
       buffer.writeln("      $ffiClassName(");
       buffer.writeln(
-        "        id: TypedRecordId(table: TableKind.${_getVariantName(ffiClassName)}, key: UuidValue.fromString(id)),",
+        "        id: TypedRecordId(table: TableKind.${_getVariantName(ffiClassName)}, key: UuidValue.fromString(id.toUuidString())),",
       );
       buffer.writeln(
         "        position: frb.Coordinates(x: position.dx.round(), y: position.dy.round()),",
@@ -219,7 +219,7 @@ class UiNodeGenerator extends Generator {
       // fromRust() factory
       buffer.writeln("  factory $uiClassName.fromRust($ffiClassName node) {");
       buffer.writeln("    return $uiClassName(");
-      buffer.writeln("      id: node.id.key.uuid,");
+      buffer.writeln("      id: RawUuid.fromString(node.id.key.uuid),");
       buffer.writeln("      createdAt: node.createdAt,");
       buffer.writeln("      updatedAt: node.updatedAt,");
       buffer.writeln("      layer: node.layer,");
@@ -266,7 +266,7 @@ class UiNodeGenerator extends Generator {
 
       // copyWith() method
       buffer.writeln("  $uiClassName copyWith({");
-      buffer.writeln("    String? id,");
+      buffer.writeln("    RawUuid? id,");
       buffer.writeln("    int? createdAt,");
       buffer.writeln("    int? updatedAt,");
       buffer.writeln("    String? layer,");

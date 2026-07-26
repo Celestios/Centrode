@@ -51,17 +51,6 @@ class CanvasOverlayLayout extends StatelessWidget {
               children: [
                 const CanvasToolRibbon(),
                 const SizedBox(width: 8),
-                Text(
-                  '\\',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w300,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.3),
-                  ),
-                ),
-                const SizedBox(width: 8),
                 const Flexible(child: CanvasTabBar()),
               ],
             ),

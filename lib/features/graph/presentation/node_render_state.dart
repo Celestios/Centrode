@@ -8,6 +8,7 @@ import '../store/spatial_index.dart';
 import '../store/relation_engine_state.dart';
 import 'view_state.dart';
 import '../models/models.dart';
+import '../models/port.dart';
 import 'editor_state.dart';
 import 'selection_state.dart';
 import 'drag_state.dart';
@@ -50,6 +51,9 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
   /// ID of the node currently hovered on canvas (for port display).
   final ValueNotifier<RawUuid?> hoveredNodeNotifier = ValueNotifier(null);
 
+  /// Port currently hovered on canvas (for port highlight).
+  final ValueNotifier<Port?> hoveredPortNotifier = ValueNotifier(null);
+
   /// Map of currently active visual view states.
   final Map<RawUuid, NodeViewState> viewStates = {};
 
@@ -73,6 +77,8 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
 
     editorState.addListener(notifyListeners);
     selectionState.addListener(notifyListeners);
+    hoveredNodeNotifier.addListener(notifyListeners);
+    hoveredPortNotifier.addListener(notifyListeners);
 
     _updateSubscription = _dataQuery.onEntityUpdate.listen(
       _handleEntityUpdate,
@@ -216,7 +222,7 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
   // ===========================================================================
 
   Set<RawUuid> get selectedEntities => selectionState.selectedEntities;
-  List<String> get zOrder => selectionState.zOrder;
+  List<RawUuid> get zOrder => selectionState.zOrder;
   RawUuid? get activeEditId => editorState.activeEditId;
   RawUuid? get nodeShowingFloatingToolbar => editorState.nodeShowingFloatingToolbar;
   Set<RawUuid> get draggingNodes => dragState.draggingNodes;
@@ -356,6 +362,8 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
 
     editorState.removeListener(notifyListeners);
     selectionState.removeListener(notifyListeners);
+    hoveredNodeNotifier.removeListener(notifyListeners);
+    hoveredPortNotifier.removeListener(notifyListeners);
 
     for (final vs in viewStates.values) {
       vs.dispose();
@@ -368,6 +376,7 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
     activeInspectorTabNotifier.dispose();
     hoveredNodeMetadataNotifier.dispose();
     hoveredNodeNotifier.dispose();
+    hoveredPortNotifier.dispose();
 
     editorState.dispose();
     selectionState.dispose();

@@ -192,6 +192,7 @@ class CanvasIdle extends CanvasInteractionState {
     if (candidateIds.isEmpty) {
       ctx.setHoveredNode(null);
       ctx.setHoveredNodeMetadata(null);
+      ctx.setHoveredPort(null);
       return cursor == SystemMouseCursors.basic
           ? this
           : const CanvasIdle(cursor: SystemMouseCursors.basic);
@@ -200,12 +201,8 @@ class CanvasIdle extends CanvasInteractionState {
     // Check candidates in reverse z-order for proper hit priority
     final zOrder = ctx.zOrder;
     for (int i = zOrder.length - 1; i >= 0; i--) {
-      final nodeIdStr = zOrder[i];
-      final nodeId = ctx.nodeViewStates.keys.firstWhere(
-        (k) => k.toUuidString() == nodeIdStr,
-        orElse: () => RawUuid.v4(),
-      );
-      if (!candidateIds.contains(nodeIdStr)) continue;
+      final nodeId = zOrder[i];
+      if (!candidateIds.contains(nodeId)) continue;
 
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
@@ -218,6 +215,7 @@ class CanvasIdle extends CanvasInteractionState {
            vs.leftResizeHitbox.contains(pCanvas))) {
         ctx.setHoveredNode(null);
         ctx.setHoveredNodeMetadata(null);
+        ctx.setHoveredPort(null);
         return cursor == SystemMouseCursors.resizeLeftRight
             ? this
             : CanvasIdle(cursor: SystemMouseCursors.resizeLeftRight);
@@ -225,6 +223,7 @@ class CanvasIdle extends CanvasInteractionState {
       if (vs.lineCount > AppConfig.node.collapsedLineLimit && vs.getExpandToggleHitbox(node).contains(pCanvas)) {
         ctx.setHoveredNode(null);
         ctx.setHoveredNodeMetadata(null);
+        ctx.setHoveredPort(null);
         return cursor == SystemMouseCursors.click
             ? this
             : CanvasIdle(cursor: SystemMouseCursors.click);
@@ -243,6 +242,16 @@ class CanvasIdle extends CanvasInteractionState {
       if (vs.rect.inflate(12.0 * vs.currentScale).contains(pCanvas)) {
         ctx.setHoveredNode(nodeId);
         ctx.setHoveredNodeMetadata(null);
+
+        Port? hoveredPort;
+        for (final port in vs.ports.allPorts) {
+          if ((pCanvas - port.position).distance < AppConfig.port.hitRadius) {
+            hoveredPort = port;
+            break;
+          }
+        }
+        ctx.setHoveredPort(hoveredPort);
+
         return cursor == SystemMouseCursors.click
             ? this
             : const CanvasIdle(cursor: SystemMouseCursors.click);
@@ -251,6 +260,7 @@ class CanvasIdle extends CanvasInteractionState {
 
     ctx.setHoveredNode(null);
     ctx.setHoveredNodeMetadata(null);
+    ctx.setHoveredPort(null);
     return cursor == SystemMouseCursors.basic
         ? this
         : const CanvasIdle(cursor: SystemMouseCursors.basic);

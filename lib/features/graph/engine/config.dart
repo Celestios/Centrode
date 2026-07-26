@@ -104,6 +104,7 @@ class _Toolbar {
 class _Visuals {
   const _Visuals();
 
+  final Color hoverAccent = const Color(0xFF90CAF9);
   final Color selectionAccent = const Color(0xFF42A5F5);
   final String defaultFont = 'Inter';
   final String defaultShape = 'rectangle';

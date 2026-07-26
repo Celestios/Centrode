@@ -1,6 +1,7 @@
 // lib/features/graph/state/interaction_context.dart
 import 'dart:ui';
 import '../models/models.dart';
+import '../models/port.dart';
 import '../presentation/view_state.dart';
 import '../presentation/handlers/spatial_action_handler.dart';
 import '../presentation/handlers/topology_action_handler.dart';
@@ -58,7 +59,7 @@ abstract interface class SelectionCapability {
 abstract interface class QueryCapability {
   Map<RawUuid, NodeViewState> get nodeViewStates;
   RelationEngineState get relationEngine;
-  List<String> get zOrder;
+  List<RawUuid> get zOrder;
   SpatialHashGrid get spatialGrid;
   Iterable<UiRelation> getRelations();
   UiNode? getNode(RawUuid id);
@@ -110,6 +111,8 @@ abstract interface class MutationCapability {
   void setHoveredNodeMetadata(RawUuid? nodeId);
 
   void setHoveredNode(RawUuid? nodeId);
+
+  void setHoveredPort(Port? port);
 
   void onCreateDrawingNode({
     required Offset position,

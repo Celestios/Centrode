@@ -6,6 +6,7 @@ class HighlightFrame extends StatelessWidget {
   final Widget child;
   final bool isEditing;
   final bool isSelected;
+  final bool isHovered;
   final double borderRadius;
   final String shape;
   final Size size;
@@ -16,6 +17,7 @@ class HighlightFrame extends StatelessWidget {
     required this.child,
     required this.isEditing,
     required this.isSelected,
+    required this.isHovered,
     required this.borderRadius,
     required this.shape,
     required this.size,
@@ -24,10 +26,23 @@ class HighlightFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isHighlighted = isSelected || isEditing;
+    final bool isHighlighted = isSelected || isEditing || isHovered;
     if (!isHighlighted) return child;
 
-    final double stroke = (isEditing ? 1.0 : 0.6) * scale;
+    final double stroke;
+    final Color color;
+
+    if (isEditing) {
+      stroke = 1.0 * scale;
+      color = Color(NodeVisualConstants.editingBorderColor);
+    } else if (isSelected) {
+      stroke = 1.0 * scale;
+      color = AppConfig.visuals.selectionAccent;
+    } else {
+      stroke = 0.5 * scale;
+      color = AppConfig.visuals.hoverAccent;
+    }
+
     final double gap = 1.5 * scale;
     final double totalOffset = gap + stroke;
 
@@ -47,9 +62,7 @@ class HighlightFrame extends StatelessWidget {
                     ? BorderRadius.circular((size.width + totalOffset * 2) / 2)
                     : BorderRadius.circular(borderRadius + totalOffset),
                 border: Border.all(
-                  color: isEditing
-                      ? Color(NodeVisualConstants.editingBorderColor)
-                      : AppConfig.visuals.selectionAccent,
+                  color: color,
                   width: stroke,
                 ),
               ),

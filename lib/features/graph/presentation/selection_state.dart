@@ -14,7 +14,7 @@ class SelectionState extends ChangeNotifier with TraceableNotifier {
   final GraphDataCommand _dataCommand;
 
   /// Visual Z-Order stack determining painting and hit-testing hierarchy.
-  final List<String> zOrder = [];
+  final List<RawUuid> zOrder = [];
 
   /// Set of selected entity IDs (nodes or relations).
   Set<RawUuid> selectedEntities = {};
@@ -68,8 +68,8 @@ class SelectionState extends ChangeNotifier with TraceableNotifier {
 
   /// Brings the selected entity to the front of the Z-stack.
   void moveToFront(RawUuid id) {
-    if (zOrder.remove(id.toUuidString())) {
-      zOrder.add(id.toUuidString());
+    if (zOrder.remove(id)) {
+      zOrder.add(id);
       _log.finer('Moved entity to front of Z-order: $id');
       notifyListeners();
     }
@@ -77,11 +77,10 @@ class SelectionState extends ChangeNotifier with TraceableNotifier {
 
   /// Syncs zOrder and selectedEntities with the current data store keys.
   void syncFromDataStore(Set<RawUuid> nodeKeys, Set<RawUuid> allValidKeys) {
-    zOrder.removeWhere((id) => !nodeKeys.any((k) => k.toUuidString() == id));
+    zOrder.removeWhere((id) => !nodeKeys.contains(id));
     for (final id in nodeKeys) {
-      final idStr = id.toUuidString();
-      if (!zOrder.contains(idStr)) {
-        zOrder.add(idStr);
+      if (!zOrder.contains(id)) {
+        zOrder.add(id);
       }
     }
     selectedEntities.removeWhere((id) => !allValidKeys.contains(id));

@@ -28,6 +28,7 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
   bool _capturing = false;
   bool _listenerRegistered = false;
 
+  NodeRenderState? _cachedRenderState;
   late final Paint _viewportFill = Paint()
     ..style = PaintingStyle.fill;
   late final Paint _viewportBorder = Paint()
@@ -42,7 +43,8 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
     _startTickerIfNeeded();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.read<NodeRenderState>().addListener(_onGraphChanged);
+      _cachedRenderState = context.read<NodeRenderState>();
+      _cachedRenderState!.addListener(_onGraphChanged);
       _listenerRegistered = true;
     });
   }
@@ -52,9 +54,10 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
     WidgetsBinding.instance.removeObserver(this);
     _viewportTicker?.dispose();
     _snapshot?.dispose();
-    if (_listenerRegistered) {
-      context.read<NodeRenderState>().removeListener(_onGraphChanged);
+    if (_listenerRegistered && _cachedRenderState != null) {
+      _cachedRenderState!.removeListener(_onGraphChanged);
     }
+    _cachedRenderState = null;
     super.dispose();
   }
 

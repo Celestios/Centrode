@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:mycelium/shared/logging.dart';
 import '../models/models.dart';
+import '../models/port.dart';
 import '../presentation/view_state.dart';
 import '../presentation/strategies/node_style_strategy.dart';
 import '../presentation/handlers/spatial_action_handler.dart';
@@ -66,7 +67,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
   RelationEngineState get relationEngine => _queryController.relationEngine;
 
   @override
-  List<String> get zOrder => _renderState.zOrder;
+  List<RawUuid> get zOrder => _renderState.zOrder;
 
   @override
   SpatialHashGrid get spatialGrid => _queryController.spatialGrid;
@@ -269,6 +270,13 @@ class CanvasInteractionEnvironment implements InteractionContext {
   void setHoveredNode(RawUuid? nodeId) {
     if (_renderState.hoveredNodeNotifier.value != nodeId) {
       _renderState.hoveredNodeNotifier.value = nodeId;
+    }
+  }
+
+  @override
+  void setHoveredPort(Port? port) {
+    if (_renderState.hoveredPortNotifier.value != port) {
+      _renderState.hoveredPortNotifier.value = port;
     }
   }
 
