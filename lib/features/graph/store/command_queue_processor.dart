@@ -276,13 +276,29 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     PortSide? fromSide,
     PortSide? toSide,
     String? verb,
-  }) => relationMutations.createRelation(
-    fromId,
-    toId,
-    fromSide: fromSide,
-    toSide: toSide,
-    verb: verb,
-  );
+  }) {
+    final fromNode = store.nodeLookup[fromId];
+    final toNode = store.nodeLookup[toId];
+    if (fromNode != null && toNode != null) {
+      syncEngine.api.updateNodeCachePositions(
+        positions: [
+          (parseTypedRecordId(fromNode.tableName, fromId), fromNode.position.dx, fromNode.position.dy, fromNode.size.width, fromNode.size.height),
+          (parseTypedRecordId(toNode.tableName, toId), toNode.position.dx, toNode.position.dy, toNode.size.width, toNode.size.height),
+        ],
+      );
+    }
+
+    final relation = relationMutations.createRelation(
+      fromId,
+      toId,
+      fromSide: fromSide,
+      toSide: toSide,
+      verb: verb,
+    );
+    if (relation != null) {
+      relationEngine.onRelationAdded(relation);
+    }
+  }
 
   @override
   Future<void> deleteRelation(RawUuid id) async {

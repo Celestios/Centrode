@@ -159,11 +159,6 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
       case GraphUpdateType.comments:
       case GraphUpdateType.reset:
         _syncAtomicUIState();
-        if (update.type == GraphUpdateType.relationLayout ||
-            update.type == GraphUpdateType.relationAdded ||
-            update.type == GraphUpdateType.relationDeleted) {
-          movementNotifier.pulse();
-        }
         break;
       case GraphUpdateType.boundary:
         break;

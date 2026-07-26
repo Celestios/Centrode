@@ -16,7 +16,7 @@ class GraphRelationMutations {
   /// Creates a relation between two nodes.
   /// Called by InteractionController when relation drawing completes.
   /// Implements pre-flight validation to prevent duplicate relation crashes.
-  void createRelation(
+  UiRelation? createRelation(
     RawUuid fromId,
     RawUuid toId, {
     PortSide? fromSide,
@@ -31,7 +31,7 @@ class GraphRelationMutations {
       _relLog.fine(
         'Pre-flight Validation: Relation $fromId -> $toId already exists. Aborting quietly.',
       );
-      return;
+      return null;
     }
 
     final fromNode = controller.store.nodeLookup[fromId];
@@ -40,7 +40,7 @@ class GraphRelationMutations {
       _relLog.warning(
         'Failed to create relation: source or target node not found in store lookup.',
       );
-      return;
+      return null;
     }
 
     final relation = InfoUiRelation(
@@ -76,6 +76,7 @@ class GraphRelationMutations {
       ),
     );
     controller.triggerUpdate();
+    return relation;
   }
 
   /// Deletes a relation with immediate command execution via CommandProcessor.

@@ -16,7 +16,12 @@ class InvalidationTracker {
   }
 
   void onNodeMoved(RawUuid nodeId) {
-    _dirtyRelationIds.addAll(_cache.keys);
+    final nodeStr = nodeId.toUuidString();
+    _dirtyRelationIds.addAll(
+      _cache.entries
+          .where((e) => e.value.dependsOnNodes.any((r) => r.key.uuid == nodeStr))
+          .map((e) => e.key),
+    );
   }
 
   void onRelationAdded(UiRelation relation) {

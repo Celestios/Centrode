@@ -43,6 +43,7 @@ class RelationEngineState {
     ),
   );
   Timer? _throttleTimer;
+  Timer? _cacheNotifierDebounce;
   bool _recomputeInFlight = false;
   bool _pendingRecompute = false;
   final ValueNotifier<int> cacheNotifier = ValueNotifier<int>(0);
@@ -66,7 +67,31 @@ class RelationEngineState {
 
   void onRelationAdded(UiRelation relation) {
     _tracker.onRelationAdded(relation);
-    _scheduleRecompute();
+    _computeSingleRelation(relation);
+  }
+
+  Future<void> _computeSingleRelation(UiRelation relation) async {
+    try {
+      final computed = await _api.computeSingleRelation(
+        config: _config,
+        edgeId: parseTypedRecordId('IRelation', relation.id),
+        fromNodeId: parseTypedRecordId(relation.fromNodeTable, relation.fromNodeId),
+        toNodeId: parseTypedRecordId(relation.toNodeTable, relation.toNodeId),
+        fromSide: relation.layout?.fromSide,
+        toSide: relation.layout?.toSide,
+      );
+      _tracker.updateCache([computed]);
+      _bumpCacheNotifier();
+    } catch (e) {
+      _log.warning('computeSingleRelation failed for ${relation.id}: $e');
+    }
+  }
+
+  void _bumpCacheNotifier() {
+    _cacheNotifierDebounce?.cancel();
+    _cacheNotifierDebounce = Timer(const Duration(milliseconds: 8), () {
+      cacheNotifier.value++;
+    });
   }
 
   void onRelationDeleted(RawUuid relationId) {
@@ -100,12 +125,11 @@ class RelationEngineState {
     if (!_tracker.hasDirtyRelations) return;
 
     final dirtyIds = _tracker.dirtyRelationIds.toList();
-    _log.fine('Recomputing ${dirtyIds.length} dirty relations');
 
     try {
       final computed = await recompute(dirtyIds: dirtyIds);
       _tracker.updateCache(computed);
-      cacheNotifier.value++;
+      _bumpCacheNotifier();
     } catch (e) {
       _log.warning('Failed to recompute relations: $e');
     }
@@ -134,6 +158,7 @@ class RelationEngineState {
 
   void dispose() {
     _throttleTimer?.cancel();
+    _cacheNotifierDebounce?.cancel();
     _tracker.clear();
     cacheNotifier.dispose();
   }

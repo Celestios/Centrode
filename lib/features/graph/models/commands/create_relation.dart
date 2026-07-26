@@ -27,16 +27,9 @@ class CreateRelationCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
-    try {
-      _log.info('Executing CreateRelationCommand for $targetId');
-      await api.createRelation(input: relation.toRust());
-      _log.info('Calling reloadGraph...');
-      await controller.loadGraph();
-      _log.info('Executed CreateRelationCommand successfully.');
-    } catch (e, st) {
-      _log.severe('CreateRelationCommand FAILED: $e', e, st);
-      rethrow;
-    }
+    _log.info('Executing CreateRelationCommand for $targetId');
+    await api.createRelation(input: relation.toRust());
+    _log.info('Executed CreateRelationCommand successfully.');
   }
 
   @override
