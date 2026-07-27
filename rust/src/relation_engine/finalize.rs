@@ -1,8 +1,8 @@
 use crate::domain::id::TypedRecordId;
+use crate::domain::styles::EndpointShape;
 use crate::relation_engine::computed::{ComputedRelation, LabelAnchor};
 use crate::relation_engine::config;
 use crate::relation_engine::geometry::{polyline_length, Point, Rect};
-use crate::relation_engine::path_finder::port::port_position;
 use crate::relation_engine::types::{InputEdge, InputNode};
 use std::collections::HashMap;
 
@@ -201,18 +201,10 @@ pub fn finalize_relation(
     result.start_endpoint = start_shape;
     result.end_endpoint = end_shape;
 
-    // Direction (orthogonal snaps to port outward normal angle)
-    if let (Some(start_node), Some(side)) = (start_node, edge.from_side.as_ref()) {
-        result.start_direction = port_position(start_node, Some(side)).1;
-    } else {
-        result.start_direction = st.y.atan2(st.x) + std::f64::consts::PI;
-    }
-
-    if let (Some(end_node), Some(side)) = (end_node, edge.to_side.as_ref()) {
-        result.end_direction = port_position(end_node, Some(side)).1;
-    } else {
-        result.end_direction = et.y.atan2(et.x);
-    }
+    // Direction follows the relation tangent so shapes dynamically reorient
+    // as the relation body bends. Tip points outward (toward the node).
+    result.start_direction = st.y.atan2(st.x) + std::f64::consts::PI;
+    result.end_direction = et.y.atan2(et.x);
 
     // Dynamic scale based on node size
     let start_node_size = start_node.map(|n| n.width.min(n.height)).unwrap_or(80.0);
@@ -252,12 +244,60 @@ pub fn finalize_relation(
     let padding = start_arrow_sz.max(end_arrow_sz).max(base_width) + 10.0;
     result.bbox = compute_bbox(&result.path_points, padding);
 
+    let start_shape_size = if start_shape != EndpointShape::None {
+        let style_endpoint_sz = edge.style.as_ref().map(|s| s.arrow_size as f64).unwrap_or(config.endpoint.arrow_size);
+        style_endpoint_sz * (base_width / 2.0).max(1.0)
+    } else {
+        0.0
+    };
+
+    let end_shape_size = if end_shape != EndpointShape::None {
+        let style_endpoint_sz = edge.style.as_ref().map(|s| s.arrow_size as f64).unwrap_or(config.endpoint.arrow_size);
+        style_endpoint_sz * (base_width / 2.0).max(1.0)
+    } else {
+        0.0
+    };
+
+    result.start_margin = start_shape_size;
+    result.end_margin = end_shape_size;
+
     let n = result.path_points.len();
     result.start_point = result.path_points[0];
     result.end_point = result.path_points[n - 1];
 
-    result.start_arrow_center = result.start_point + st * (start_arrow_sz * 0.5);
-    result.end_arrow_center = result.end_point - et * (end_arrow_sz * 0.5);
+    // Trim start & end path points by shape margins so line stops cleanly at shape back base
+    if start_shape_size > 0.0 && n >= 2 {
+        result.path_points[0] = result.path_points[0] + st * start_shape_size;
+    }
+    if end_shape_size > 0.0 && n >= 2 {
+        result.path_points[n - 1] = result.path_points[n - 1] - et * end_shape_size;
+    }
+
+    result.start_arrow_center = result.start_point;
+    result.end_arrow_center = result.end_point;
+
+    result.start_shape_path = if start_shape != EndpointShape::None {
+        start_shape.generate_polygon(
+            result.start_point,
+            result.start_direction,
+            start_shape_size,
+        )
+    } else {
+        vec![]
+    };
+
+    result.end_shape_path = if end_shape != EndpointShape::None {
+        end_shape.generate_polygon(
+            result.end_point,
+            result.end_direction,
+            end_shape_size,
+        )
+    } else {
+        vec![]
+    };
+
+    result.start_shape_filled = start_shape.is_filled();
+    result.end_shape_filled = end_shape.is_filled();
 
     // 7. Dependencies
     result.depends_on_nodes = vec![edge.from_node_id.clone(), edge.to_node_id.clone()];

@@ -38,14 +38,14 @@ impl InputEdge {
     pub fn from_domain(rel: &IRelation) -> Self {
         let layout = rel
             .fields
-            .resolved_layout
+            .layout
             .as_ref()
-            .or(rel.fields.layout.as_ref());
+            .or(rel.fields.resolved_layout.as_ref());
         let style = rel
             .fields
-            .resolved_style
+            .style
             .as_ref()
-            .or(rel.fields.style.as_ref());
+            .or(rel.fields.resolved_style.as_ref());
 
         let from_side = layout.and_then(|l| l.from_side.clone());
         let to_side = layout.and_then(|l| l.to_side.clone());

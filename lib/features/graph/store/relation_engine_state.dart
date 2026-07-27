@@ -103,6 +103,11 @@ class RelationEngineState {
     _scheduleRecompute();
   }
 
+  void onRelationStyleUpdated(RawUuid relationId) {
+    _tracker.onRelationLayoutUpdated(relationId);
+    _scheduleRecompute();
+  }
+
   void _scheduleRecompute() {
     if (_recomputeInFlight) {
       _pendingRecompute = true;

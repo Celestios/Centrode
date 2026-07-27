@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
 import 'relation_painter_dto.dart';
 import '../../../engine/config.dart';
 
@@ -57,11 +56,23 @@ class RelationPainter extends CustomPainter {
     );
   }
 
-  Path _createPatternedPath(Path source, String pattern) {
+  Path _verticesToPath(List<Offset> points, {bool close = false}) {
+    if (points.isEmpty) return Path();
+    final path = Path();
+    path.moveTo(points.first.dx, points.first.dy);
+    for (int i = 1; i < points.length; i++) {
+      path.lineTo(points[i].dx, points[i].dy);
+    }
+    if (close) path.close();
+    return path;
+  }
+
+  Path _createPatternedPath(List<Offset> points, String pattern) {
     final Path dest = Path();
     final double dashLen = pattern == 'dashed' ? 8.0 : 2.0;
     final double gapLen = pattern == 'dashed' ? 6.0 : 4.0;
 
+    final source = _verticesToPath(points);
     for (final PathMetric metric in source.computeMetrics()) {
       double distance = 0.0;
       bool draw = true;
@@ -103,6 +114,21 @@ class RelationPainter extends CustomPainter {
     }
   }
 
+  void _drawShape(
+    Canvas canvas,
+    List<Offset> vertices,
+    Color color,
+    bool filled,
+  ) {
+    if (vertices.length < 2) return;
+    final path = _verticesToPath(vertices, close: filled);
+    final paint = Paint()
+      ..color = color.withAlpha(255)
+      ..style = filled ? PaintingStyle.fill : PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+    canvas.drawPath(path, paint);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -113,36 +139,17 @@ class RelationPainter extends CustomPainter {
       paint.strokeWidth = dto.strokeWidth;
 
       if (dto.isVariableWidth) {
-        _drawVariableWidthPoints(canvas, dto.points, dto.widths, paint.color);
+        _drawVariableWidthPoints(canvas, dto.bodyPoints, dto.widths, paint.color);
+      } else if (dto.strokePattern == 'dashed' || dto.strokePattern == 'dotted') {
+        final decoratedPath = _createPatternedPath(dto.bodyPoints, dto.strokePattern);
+        canvas.drawPath(decoratedPath, paint);
       } else {
-        if (dto.strokePattern == 'dashed' || dto.strokePattern == 'dotted') {
-          final decoratedPath = _createPatternedPath(dto.path, dto.strokePattern);
-          canvas.drawPath(decoratedPath, paint);
-        } else {
-          canvas.drawPath(dto.path, paint);
-        }
+        final bodyPath = _verticesToPath(dto.bodyPoints);
+        canvas.drawPath(bodyPath, paint);
       }
 
-      if (dto.startShape != null && dto.startShape != EndpointShape.none) {
-        _drawEndpointShape(
-          canvas,
-          dto.startArrowCenter,
-          dto.startArrowDirection,
-          dto.startShape!,
-          dto.color.withAlpha(255),
-          dto.startArrowMargin,
-        );
-      }
-      if (dto.endShape != null && dto.endShape != EndpointShape.none) {
-        _drawEndpointShape(
-          canvas,
-          dto.endArrowCenter,
-          dto.endArrowDirection,
-          dto.endShape!,
-          dto.color.withAlpha(255),
-          dto.endArrowMargin,
-        );
-      }
+      _drawShape(canvas, dto.startShapeVertices, dto.color, dto.startShapeFilled);
+      _drawShape(canvas, dto.endShapeVertices, dto.color, dto.endShapeFilled);
 
       if (dto.isSelected) {
         _drawSelectionHandles(canvas, dto.startPoint, dto.endPoint);
@@ -167,68 +174,6 @@ class RelationPainter extends CustomPainter {
     canvas.drawCircle(start, 5.0, handlePaint);
     canvas.drawCircle(end, 6.0, borderPaint);
     canvas.drawCircle(end, 5.0, handlePaint);
-  }
-
-  void _drawEndpointShape(
-    Canvas canvas,
-    Offset position,
-    double direction,
-    EndpointShape shape,
-    Color color,
-    double size,
-  ) {
-    final half = size / 2;
-    final opaqueColor = color.withAlpha(255);
-    final fillPaint = Paint()
-      ..color = opaqueColor
-      ..style = PaintingStyle.fill;
-    final strokePaint = Paint()
-      ..color = opaqueColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    canvas.save();
-    canvas.translate(position.dx, position.dy);
-    canvas.rotate(direction);
-
-    switch (shape) {
-      case EndpointShape.none:
-        break;
-      case EndpointShape.arrow:
-        final path = Path();
-        path.moveTo(half, 0);
-        path.lineTo(-half, -half);
-        path.lineTo(-half, half);
-        path.close();
-        canvas.drawPath(path, fillPaint);
-        break;
-      case EndpointShape.openArrow:
-        final path = Path();
-        path.moveTo(half, 0);
-        path.lineTo(-half, -half);
-        path.moveTo(half, 0);
-        path.lineTo(-half, half);
-        canvas.drawPath(path, strokePaint);
-        break;
-      case EndpointShape.circle:
-        canvas.drawCircle(Offset.zero, half, fillPaint);
-        break;
-      case EndpointShape.diamond:
-        final path = Path();
-        path.moveTo(0, -half);
-        path.lineTo(half, 0);
-        path.lineTo(0, half);
-        path.lineTo(-half, 0);
-        path.close();
-        canvas.drawPath(path, fillPaint);
-        break;
-      case EndpointShape.square:
-        final rect = Rect.fromCenter(center: Offset.zero, width: size, height: size);
-        canvas.drawRect(rect, fillPaint);
-        break;
-    }
-
-    canvas.restore();
   }
 
   @override

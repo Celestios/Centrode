@@ -41,6 +41,10 @@ class ComputedRelation {
   final List<String> nudgeColors;
   final List<Point> hitTestPoints;
   final bool composeActive;
+  final List<Point> startShapePath;
+  final List<Point> endShapePath;
+  final bool startShapeFilled;
+  final bool endShapeFilled;
 
   const ComputedRelation({
     required this.id,
@@ -71,6 +75,10 @@ class ComputedRelation {
     required this.nudgeColors,
     required this.hitTestPoints,
     required this.composeActive,
+    required this.startShapePath,
+    required this.endShapePath,
+    required this.startShapeFilled,
+    required this.endShapeFilled,
   });
 
   @override
@@ -102,7 +110,11 @@ class ComputedRelation {
       knots.hashCode ^
       nudgeColors.hashCode ^
       hitTestPoints.hashCode ^
-      composeActive.hashCode;
+      composeActive.hashCode ^
+      startShapePath.hashCode ^
+      endShapePath.hashCode ^
+      startShapeFilled.hashCode ^
+      endShapeFilled.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -136,7 +148,11 @@ class ComputedRelation {
           knots == other.knots &&
           nudgeColors == other.nudgeColors &&
           hitTestPoints == other.hitTestPoints &&
-          composeActive == other.composeActive;
+          composeActive == other.composeActive &&
+          startShapePath == other.startShapePath &&
+          endShapePath == other.endShapePath &&
+          startShapeFilled == other.startShapeFilled &&
+          endShapeFilled == other.endShapeFilled;
 }
 
 enum LabelAnchor { center, left, right }

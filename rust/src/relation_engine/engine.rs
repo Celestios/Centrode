@@ -99,7 +99,8 @@ impl RelationEngine {
         let mut miss_edges = Vec::new();
 
         for (i, edge) in edges_to_compute.iter().enumerate() {
-            let cached = if !self.state.incremental.dirty_relations.contains(&edge.id) {
+            let force_dirty = relation_ids.map(|ids| ids.contains(&edge.id)).unwrap_or(false);
+            let cached = if !force_dirty && !self.state.incremental.dirty_relations.contains(&edge.id) {
                 self.cache.get(&edge.id).cloned()
             } else {
                 None

@@ -148,6 +148,7 @@ class GraphRelationMutations {
 
     // OPTIMISTIC UPDATE
     controller.store.relationLookup[id] = updatedRelation;
+    controller.relationEngine.onRelationLayoutUpdated(id);
 
     final cmd = UpdateRelationLayoutCommand(
       targetId: id,
@@ -205,6 +206,7 @@ class GraphRelationMutations {
 
       // OPTIMISTIC UPDATE
       controller.store.relationLookup[id] = updatedRelation;
+      controller.relationEngine.onRelationLayoutUpdated(id);
 
       oldLayouts[id] = oldRelation.layout;
       newLayouts[id] = updatedRelation.layout;

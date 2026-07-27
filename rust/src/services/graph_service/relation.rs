@@ -85,7 +85,7 @@ impl GraphService {
     pub async fn compute_relations(
         &self,
         config: RelationEngineConfig,
-        _relation_ids: Option<Vec<TypedRecordId>>,
+        relation_ids: Option<Vec<TypedRecordId>>,
     ) -> anyhow::Result<Vec<ComputedRelation>> {
         let mut is_empty = false;
         if let Ok(engine) = self.relation_engine.lock() {
@@ -116,7 +116,7 @@ impl GraphService {
             Err(_) => return Err(anyhow::anyhow!("Failed to lock relation engine")),
         };
 
-        let result = engine.compute_relations_stateful(&nodes, &edges, &config, None);
+        let result = engine.compute_relations_stateful(&nodes, &edges, &config, relation_ids.as_deref());
         Ok(result)
     }
 

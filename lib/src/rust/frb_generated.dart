@@ -2732,8 +2732,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ComputedRelation dco_decode_computed_relation(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 28)
-      throw Exception('unexpected arr length: expect 28 but see ${arr.length}');
+    if (arr.length != 32)
+      throw Exception('unexpected arr length: expect 32 but see ${arr.length}');
     return ComputedRelation(
       id: dco_decode_typed_record_id(arr[0]),
       pathPoints: dco_decode_list_point(arr[1]),
@@ -2763,6 +2763,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       nudgeColors: dco_decode_list_String(arr[25]),
       hitTestPoints: dco_decode_list_point(arr[26]),
       composeActive: dco_decode_bool(arr[27]),
+      startShapePath: dco_decode_list_point(arr[28]),
+      endShapePath: dco_decode_list_point(arr[29]),
+      startShapeFilled: dco_decode_bool(arr[30]),
+      endShapeFilled: dco_decode_bool(arr[31]),
     );
   }
 
@@ -4643,6 +4647,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_nudgeColors = sse_decode_list_String(deserializer);
     var var_hitTestPoints = sse_decode_list_point(deserializer);
     var var_composeActive = sse_decode_bool(deserializer);
+    var var_startShapePath = sse_decode_list_point(deserializer);
+    var var_endShapePath = sse_decode_list_point(deserializer);
+    var var_startShapeFilled = sse_decode_bool(deserializer);
+    var var_endShapeFilled = sse_decode_bool(deserializer);
     return ComputedRelation(
       id: var_id,
       pathPoints: var_pathPoints,
@@ -4672,6 +4680,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       nudgeColors: var_nudgeColors,
       hitTestPoints: var_hitTestPoints,
       composeActive: var_composeActive,
+      startShapePath: var_startShapePath,
+      endShapePath: var_endShapePath,
+      startShapeFilled: var_startShapeFilled,
+      endShapeFilled: var_endShapeFilled,
     );
   }
 
@@ -7045,6 +7057,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_String(self.nudgeColors, serializer);
     sse_encode_list_point(self.hitTestPoints, serializer);
     sse_encode_bool(self.composeActive, serializer);
+    sse_encode_list_point(self.startShapePath, serializer);
+    sse_encode_list_point(self.endShapePath, serializer);
+    sse_encode_bool(self.startShapeFilled, serializer);
+    sse_encode_bool(self.endShapeFilled, serializer);
   }
 
   @protected

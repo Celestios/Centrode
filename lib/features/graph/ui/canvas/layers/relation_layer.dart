@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:mycelium/shared/domain/raw_uuid.dart';
 import 'package:mycelium/src/rust/relation_engine/config.dart' as rust_config;
 import 'package:mycelium/src/rust/relation_engine/computed.dart';
+import 'package:mycelium/src/rust/relation_engine/geometry.dart';
 import '../../../engine/config.dart';
 import '../../../store/graph_data_query_controller.dart';
 import '../../../presentation/node_render_state.dart';
@@ -129,16 +130,6 @@ class RelationLayer extends StatelessWidget {
     );
   }
 
-  Path _buildPathFromOffsets(List<Offset> points) {
-    if (points.isEmpty) return Path();
-    final path = Path();
-    path.moveTo(points.first.dx, points.first.dy);
-    for (int i = 1; i < points.length; i++) {
-      path.lineTo(points[i].dx, points[i].dy);
-    }
-    return path;
-  }
-
   List<RelationPaintDto> _buildPaintDtos({
     required List<UiRelation> relations,
     required Map<RawUuid, NodeViewState> nodeViewStates,
@@ -243,83 +234,77 @@ class RelationLayer extends StatelessWidget {
     required Color color,
     required double strokeWidth,
   }) {
-    final s0 = Offset(cached.pathPoints.first.x, cached.pathPoints.first.y);
-    final e0 = Offset(cached.pathPoints.last.x, cached.pathPoints.last.y);
-    final startTangent = Offset(cached.startTangent.x, cached.startTangent.y);
-    final endTangent = Offset(cached.endTangent.x, cached.endTangent.y);
+    final bool isDraggingThisTip = tipDrag != null && dragPos != null;
+    final startPoint = Offset(cached.startPoint.x, cached.startPoint.y);
+    final endPoint = Offset(cached.endPoint.x, cached.endPoint.y);
 
+    final List<Offset> bodyPoints;
+    final List<Offset> startShapeVertices;
+    final List<Offset> endShapeVertices;
+    final Offset labelPos;
     final Offset targetStart;
     final Offset targetEnd;
 
-    if (tipDrag != null && dragPos != null) {
-      targetStart = tipDrag.isStartTip ? dragPos : Offset(cached.startPoint.x, cached.startPoint.y);
-      targetEnd = !tipDrag.isStartTip ? dragPos : Offset(cached.endPoint.x, cached.endPoint.y);
+    if (isDraggingThisTip) {
+      final s0 = cached.pathPoints.isNotEmpty
+          ? Offset(cached.pathPoints.first.x, cached.pathPoints.first.y)
+          : startPoint;
+      final e0 = cached.pathPoints.isNotEmpty
+          ? Offset(cached.pathPoints.last.x, cached.pathPoints.last.y)
+          : endPoint;
+      targetStart = tipDrag.isStartTip ? dragPos : startPoint;
+      targetEnd = !tipDrag.isStartTip ? dragPos : endPoint;
+
+      List<Offset> transform(List<Point> pts) => transformPathPoints(
+        points: pts.map((p) => Offset(p.x, p.y)).toList(),
+        sourceStart: s0,
+        sourceEnd: e0,
+        targetStart: targetStart,
+        targetEnd: targetEnd,
+      );
+
+      bodyPoints = transform(cached.pathPoints);
+      startShapeVertices = cached.startShapePath.isNotEmpty
+          ? transform(cached.startShapePath)
+          : const [];
+      endShapeVertices = cached.endShapePath.isNotEmpty
+          ? transform(cached.endShapePath)
+          : const [];
+
+      final labelTransformed = transform([Point(x: cached.labelPosition.x, y: cached.labelPosition.y)]);
+      labelPos = labelTransformed.isNotEmpty
+          ? labelTransformed.first
+          : Offset.lerp(targetStart, targetEnd, 0.5)!;
     } else {
-      targetStart = Offset(cached.startPoint.x, cached.startPoint.y);
-      targetEnd = Offset(cached.endPoint.x, cached.endPoint.y);
+      targetStart = startPoint;
+      targetEnd = endPoint;
+      bodyPoints = cached.pathPoints.map((p) => Offset(p.x, p.y)).toList();
+      startShapeVertices = cached.startShapePath.isNotEmpty
+          ? cached.startShapePath.map((p) => Offset(p.x, p.y)).toList()
+          : const [];
+      endShapeVertices = cached.endShapePath.isNotEmpty
+          ? cached.endShapePath.map((p) => Offset(p.x, p.y)).toList()
+          : const [];
+      labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
     }
-
-    final startWidth = cached.bodyWidths.isNotEmpty ? cached.bodyWidths.first : resolved.strokeWidth.toDouble();
-    final endWidth = cached.bodyWidths.isNotEmpty ? cached.bodyWidths.last : resolved.strokeWidth.toDouble();
-    final startScale = startWidth > 0.0 ? startWidth / 2.0 : 1.0;
-    final endScale = endWidth > 0.0 ? endWidth / 2.0 : 1.0;
-
-    final startArrowMargin = (resolved.startShape != null && resolved.startShape != EndpointShape.none)
-        ? resolved.arrowSize * startScale
-        : 0.0;
-    final endArrowMargin = (resolved.endShape != null && resolved.endShape != EndpointShape.none)
-        ? resolved.arrowSize * endScale
-        : 0.0;
-
-    final start = targetStart + startTangent * (startArrowMargin * 0.5);
-    final end = targetEnd - endTangent * (endArrowMargin * 0.5);
-
-    final pointsOffset = cached.pathPoints.map((p) => Offset(p.x, p.y)).toList();
-    final transformedPoints = transformPathPoints(
-      points: pointsOffset,
-      sourceStart: s0,
-      sourceEnd: e0,
-      targetStart: start,
-      targetEnd: end,
-    );
-
-
-
-    final path = _buildPathFromOffsets(transformedPoints);
-
-    final p0Label = Offset(cached.labelPosition.x, cached.labelPosition.y);
-    final labelTransformedList = transformPathPoints(
-      points: [p0Label],
-      sourceStart: s0,
-      sourceEnd: e0,
-      targetStart: start,
-      targetEnd: end,
-    );
-    final labelPos = labelTransformedList.isNotEmpty ? labelTransformedList.first : Offset.lerp(start, end, 0.5)!;
 
     return RelationPaintDto(
       id: rel.id,
-      path: path,
-      points: transformedPoints,
-      widths: cached.bodyWidths,
-      isVariableWidth: cached.bodyType != rust_config.BodyType.uniform,
+      bodyPoints: bodyPoints,
+      startShapeVertices: startShapeVertices,
+      endShapeVertices: endShapeVertices,
+      startShapeFilled: cached.startShapeFilled,
+      endShapeFilled: cached.endShapeFilled,
       color: color,
       strokeWidth: strokeWidth,
       strokePattern: resolved.strokePattern,
-      startShape: resolved.startShape,
-      endShape: resolved.endShape,
-      arrowSize: resolved.arrowSize,
-      startArrowCenter: Offset(cached.startArrowCenter.x, cached.startArrowCenter.y),
-      endArrowCenter: Offset(cached.endArrowCenter.x, cached.endArrowCenter.y),
-      startArrowDirection: cached.startDirection,
-      endArrowDirection: cached.endDirection,
-      startArrowMargin: startArrowMargin,
-      endArrowMargin: endArrowMargin,
       isSelected: isSelected,
       startPoint: targetStart,
       endPoint: targetEnd,
       verb: rel.verb,
       labelPos: labelPos,
+      widths: cached.bodyWidths,
+      isVariableWidth: cached.bodyType != rust_config.BodyType.uniform,
     );
   }
 }

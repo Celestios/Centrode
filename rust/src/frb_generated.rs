@@ -3169,6 +3169,12 @@ impl SseDecode for crate::relation_engine::computed::ComputedRelation {
         let mut var_hitTestPoints =
             <Vec<crate::relation_engine::geometry::Point>>::sse_decode(deserializer);
         let mut var_composeActive = <bool>::sse_decode(deserializer);
+        let mut var_startShapePath =
+            <Vec<crate::relation_engine::geometry::Point>>::sse_decode(deserializer);
+        let mut var_endShapePath =
+            <Vec<crate::relation_engine::geometry::Point>>::sse_decode(deserializer);
+        let mut var_startShapeFilled = <bool>::sse_decode(deserializer);
+        let mut var_endShapeFilled = <bool>::sse_decode(deserializer);
         return crate::relation_engine::computed::ComputedRelation {
             id: var_id,
             path_points: var_pathPoints,
@@ -3198,6 +3204,10 @@ impl SseDecode for crate::relation_engine::computed::ComputedRelation {
             nudge_colors: var_nudgeColors,
             hit_test_points: var_hitTestPoints,
             compose_active: var_composeActive,
+            start_shape_path: var_startShapePath,
+            end_shape_path: var_endShapePath,
+            start_shape_filled: var_startShapeFilled,
+            end_shape_filled: var_endShapeFilled,
         };
     }
 }
@@ -5762,6 +5772,10 @@ impl flutter_rust_bridge::IntoDart for crate::relation_engine::computed::Compute
             self.nudge_colors.into_into_dart().into_dart(),
             self.hit_test_points.into_into_dart().into_dart(),
             self.compose_active.into_into_dart().into_dart(),
+            self.start_shape_path.into_into_dart().into_dart(),
+            self.end_shape_path.into_into_dart().into_dart(),
+            self.start_shape_filled.into_into_dart().into_dart(),
+            self.end_shape_filled.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -7669,6 +7683,13 @@ impl SseEncode for crate::relation_engine::computed::ComputedRelation {
             serializer,
         );
         <bool>::sse_encode(self.compose_active, serializer);
+        <Vec<crate::relation_engine::geometry::Point>>::sse_encode(
+            self.start_shape_path,
+            serializer,
+        );
+        <Vec<crate::relation_engine::geometry::Point>>::sse_encode(self.end_shape_path, serializer);
+        <bool>::sse_encode(self.start_shape_filled, serializer);
+        <bool>::sse_encode(self.end_shape_filled, serializer);
     }
 }
 

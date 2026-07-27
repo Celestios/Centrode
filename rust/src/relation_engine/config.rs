@@ -213,7 +213,7 @@ impl Default for EndpointConfig {
         Self {
             default_start_shape: EndpointShape::None,
             default_end_shape: EndpointShape::Arrow,
-            arrow_size: 16.0,
+            arrow_size: 12.0,
         }
     }
 }

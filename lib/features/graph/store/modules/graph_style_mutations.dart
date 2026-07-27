@@ -136,6 +136,7 @@ class GraphStyleMutations {
 
     controller.store.relationLookup[id] = updatedRelation;
     controller.styleUpdater?.updateStyleForRelation(id);
+    controller.relationEngine.onRelationStyleUpdated(id);
 
     final cmd = UpdateRelationLayoutCommand(
       targetId: id,

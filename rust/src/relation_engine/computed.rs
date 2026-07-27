@@ -52,6 +52,11 @@ pub struct ComputedRelation {
     pub nudge_colors: Vec<String>,
     pub hit_test_points: Vec<Point>,
     pub compose_active: bool,
+    // Pre-computed endpoint shape polygons (world coordinates)
+    pub start_shape_path: Vec<Point>,
+    pub end_shape_path: Vec<Point>,
+    pub start_shape_filled: bool,
+    pub end_shape_filled: bool,
 }
 
 impl ComputedRelation {
@@ -85,6 +90,10 @@ impl ComputedRelation {
             nudge_colors: vec![],
             hit_test_points: vec![],
             compose_active: false,
+            start_shape_path: vec![],
+            end_shape_path: vec![],
+            start_shape_filled: false,
+            end_shape_filled: false,
         }
     }
 }

@@ -64,6 +64,10 @@ ComputedRelation createTestComputedRelation(RawUuid idStr, List<rust_geom.Point>
     knots: Float64List(0),
     nudgeColors: const [],
     composeActive: false,
+    startShapePath: const [],
+    endShapePath: const [],
+    startShapeFilled: false,
+    endShapeFilled: false,
   );
 }
 
