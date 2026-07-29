@@ -2732,8 +2732,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ComputedRelation dco_decode_computed_relation(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 32)
-      throw Exception('unexpected arr length: expect 32 but see ${arr.length}');
+    if (arr.length != 34)
+      throw Exception('unexpected arr length: expect 34 but see ${arr.length}');
     return ComputedRelation(
       id: dco_decode_typed_record_id(arr[0]),
       pathPoints: dco_decode_list_point(arr[1]),
@@ -2767,6 +2767,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       endShapePath: dco_decode_list_point(arr[29]),
       startShapeFilled: dco_decode_bool(arr[30]),
       endShapeFilled: dco_decode_bool(arr[31]),
+      startHandlePos: dco_decode_point(arr[32]),
+      endHandlePos: dco_decode_point(arr[33]),
     );
   }
 
@@ -2844,12 +2846,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   EndpointConfig dco_decode_endpoint_config(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
     return EndpointConfig(
       defaultStartShape: dco_decode_endpoint_shape(arr[0]),
       defaultEndShape: dco_decode_endpoint_shape(arr[1]),
       arrowSize: dco_decode_f_64(arr[2]),
+      handleInset: dco_decode_f_64(arr[3]),
     );
   }
 
@@ -4651,6 +4654,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_endShapePath = sse_decode_list_point(deserializer);
     var var_startShapeFilled = sse_decode_bool(deserializer);
     var var_endShapeFilled = sse_decode_bool(deserializer);
+    var var_startHandlePos = sse_decode_point(deserializer);
+    var var_endHandlePos = sse_decode_point(deserializer);
     return ComputedRelation(
       id: var_id,
       pathPoints: var_pathPoints,
@@ -4684,6 +4689,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       endShapePath: var_endShapePath,
       startShapeFilled: var_startShapeFilled,
       endShapeFilled: var_endShapeFilled,
+      startHandlePos: var_startHandlePos,
+      endHandlePos: var_endHandlePos,
     );
   }
 
@@ -4766,10 +4773,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_defaultStartShape = sse_decode_endpoint_shape(deserializer);
     var var_defaultEndShape = sse_decode_endpoint_shape(deserializer);
     var var_arrowSize = sse_decode_f_64(deserializer);
+    var var_handleInset = sse_decode_f_64(deserializer);
     return EndpointConfig(
       defaultStartShape: var_defaultStartShape,
       defaultEndShape: var_defaultEndShape,
       arrowSize: var_arrowSize,
+      handleInset: var_handleInset,
     );
   }
 
@@ -7061,6 +7070,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_point(self.endShapePath, serializer);
     sse_encode_bool(self.startShapeFilled, serializer);
     sse_encode_bool(self.endShapeFilled, serializer);
+    sse_encode_point(self.startHandlePos, serializer);
+    sse_encode_point(self.endHandlePos, serializer);
   }
 
   @protected
@@ -7123,6 +7134,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_endpoint_shape(self.defaultStartShape, serializer);
     sse_encode_endpoint_shape(self.defaultEndShape, serializer);
     sse_encode_f_64(self.arrowSize, serializer);
+    sse_encode_f_64(self.handleInset, serializer);
   }
 
   @protected

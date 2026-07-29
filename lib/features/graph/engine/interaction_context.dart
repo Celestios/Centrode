@@ -63,6 +63,7 @@ abstract interface class QueryCapability {
   SpatialHashGrid get spatialGrid;
   Iterable<UiRelation> getRelations();
   UiNode? getNode(RawUuid id);
+  RawUuid? get hoveredNodeId;
 }
 
 /// Write/mutation interface for structural layout, node/relation edits.

@@ -2,6 +2,7 @@ use crate::domain::id::TypedRecordId;
 use crate::domain::styles::EndpointShape;
 use crate::relation_engine::computed::{ComputedRelation, LabelAnchor};
 use crate::relation_engine::config;
+use crate::relation_engine::config::RoutingMode;
 use crate::relation_engine::geometry::{polyline_length, Point, Rect};
 use crate::relation_engine::types::{InputEdge, InputNode};
 use std::collections::HashMap;
@@ -10,18 +11,28 @@ fn intersect_line_rect(p0: Point, p1: Point, rect: Rect) -> Option<Point> {
     rect.intersect_segment_t(p0, p1).map(|t| p0.lerp(p1, t))
 }
 
-fn compute_tangents(path: &[Point]) -> (Point, Point) {
-    let start = if path.len() >= 2 {
-        (path[1] - path[0]).normalize()
+fn compute_tangents(path: &[Point], start_inset: f64, end_inset: f64) -> (Point, Point) {
+    if path.len() < 2 {
+        return (Point::new(1.0, 0.0), Point::new(1.0, 0.0));
+    }
+    let total_len = polyline_length(path);
+    let s_inset = start_inset.clamp(1.0, 40.0).min(total_len / 2.0);
+    let e_inset = end_inset.clamp(1.0, 40.0).min(total_len / 2.0);
+
+    let start_target = inset_along_polyline(path, true, s_inset);
+    let end_target = inset_along_polyline(path, false, e_inset);
+
+    let start = if start_target.distance_to(path[0]) > 1e-6 {
+        (start_target - path[0]).normalize()
     } else {
-        Point::new(1.0, 0.0)
+        (path[1] - path[0]).normalize()
     };
 
-    let end = if path.len() >= 2 {
+    let end = if end_target.distance_to(*path.last().unwrap()) > 1e-6 {
+        (*path.last().unwrap() - end_target).normalize()
+    } else {
         let n = path.len();
         (path[n - 1] - path[n - 2]).normalize()
-    } else {
-        Point::new(1.0, 0.0)
     };
 
     (start, end)
@@ -50,6 +61,116 @@ fn polyline_midpoint(path: &[Point]) -> Point {
         current_len += d;
     }
     *path.last().unwrap()
+}
+
+fn inset_along_polyline(points: &[Point], from_start: bool, inset: f64) -> Point {
+    if points.is_empty() {
+        return Point::new(0.0, 0.0);
+    }
+    if points.len() == 1 {
+        return points[0];
+    }
+    let mut remaining = inset;
+    let n = points.len();
+    for i in 0..n - 1 {
+        let idx = if from_start { i } else { n - 1 - i };
+        let next = if from_start { idx + 1 } else {
+            if idx == 0 { break; }
+            idx - 1
+        };
+        let seg_len = points[idx].distance_to(points[next]);
+        if seg_len < 1e-6 {
+            continue;
+        }
+        if remaining <= seg_len {
+            let t = remaining / seg_len;
+            return points[idx].lerp(points[next], t);
+        }
+        remaining -= seg_len;
+    }
+    if from_start {
+        points[n - 1]
+    } else {
+        points[0]
+    }
+}
+
+fn trim_polyline_endpoint(points: &mut Vec<Point>, from_start: bool, trim_distance: f64) {
+    if trim_distance <= 0.0 || points.len() < 2 {
+        return;
+    }
+    let mut accumulated = 0.0;
+    let n = points.len();
+    let mut cut_idx = if from_start { 0 } else { n - 1 };
+    let mut new_endpoint = points[cut_idx];
+
+    for step in 0..n - 1 {
+        let curr_idx = if from_start { step } else { n - 1 - step };
+        let next_idx = if from_start { curr_idx + 1 } else { curr_idx - 1 };
+
+        let seg_len = points[curr_idx].distance_to(points[next_idx]);
+        if accumulated + seg_len >= trim_distance {
+            let remaining = trim_distance - accumulated;
+            let t = if seg_len > 1e-6 { remaining / seg_len } else { 0.0 };
+            new_endpoint = points[curr_idx].lerp(points[next_idx], t);
+            cut_idx = curr_idx;
+            break;
+        }
+        accumulated += seg_len;
+        cut_idx = curr_idx;
+        if step == n - 2 {
+            new_endpoint = points[curr_idx].lerp(points[next_idx], 0.45);
+        }
+    }
+
+    if from_start {
+        if cut_idx > 0 {
+            points.drain(0..cut_idx);
+        }
+        if !points.is_empty() {
+            points[0] = new_endpoint;
+        }
+    } else {
+        if cut_idx < points.len() {
+            points.truncate(cut_idx + 1);
+        }
+        if !points.is_empty() {
+            let last = points.len() - 1;
+            points[last] = new_endpoint;
+        }
+    }
+}
+
+fn smooth_path_at_endpoint(
+    points: &mut Vec<Point>,
+    from_start: bool,
+    base_center: Point,
+    tangent: Point,
+    blend_dist: f64,
+) {
+    if points.len() < 2 || blend_dist <= 0.0 {
+        return;
+    }
+    let n = points.len();
+    let target_dir = if from_start { tangent } else { tangent * -1.0 };
+    let endpoint_idx = if from_start { 0 } else { n - 1 };
+    points[endpoint_idx] = base_center;
+
+    let mut accumulated = 0.0;
+    for step in 1..n {
+        let curr_idx = if from_start { step } else { n - 1 - step };
+        let prev_idx = if from_start { step - 1 } else { n - step };
+
+        let seg_len = points[prev_idx].distance_to(points[curr_idx]);
+        accumulated += seg_len;
+        if accumulated >= blend_dist {
+            break;
+        }
+        let norm_t = (accumulated / blend_dist).clamp(0.0, 1.0);
+        let blend_factor = (1.0 - norm_t) * (1.0 - norm_t);
+        let ideal_pt = base_center + target_dir * accumulated;
+        points[curr_idx] = points[curr_idx].lerp(ideal_pt, blend_factor);
+    }
 }
 
 fn compute_body_widths(
@@ -143,7 +264,17 @@ pub fn finalize_relation(
     config: &config::RelationEngineConfig,
 ) {
     // 1. Line snapping / center-to-center trimming
-    if edge.from_side.is_none() || edge.to_side.is_none() {
+    // Skip for Bezier/SineWave — the shaper already positions endpoints at the port positions,
+    // and the body path tangent at the endpoint should reflect the curve's actual direction.
+    let mode = edge
+        .routing_mode
+        .as_ref()
+        .unwrap_or(&config.routing.routing_mode);
+    let skip_line_snapping = matches!(
+        mode,
+        RoutingMode::Bezier { .. } | RoutingMode::SineWave { .. }
+    );
+    if !skip_line_snapping && (edge.from_side.is_none() || edge.to_side.is_none()) {
         if let (Some(start_node), Some(end_node)) = (
             node_map.get(&edge.from_node_id),
             node_map.get(&edge.to_node_id),
@@ -177,12 +308,7 @@ pub fn finalize_relation(
         return;
     }
 
-    // 2. Tangents
-    let (st, et) = compute_tangents(&result.path_points);
-    result.start_tangent = st;
-    result.end_tangent = et;
-
-    // 3. Endpoint Shapes & Directions
+    // 2. Endpoint Shapes & Sizes
     let start_node = node_map.get(&edge.from_node_id);
     let end_node = node_map.get(&edge.to_node_id);
 
@@ -201,6 +327,33 @@ pub fn finalize_relation(
     result.start_endpoint = start_shape;
     result.end_endpoint = end_shape;
 
+    let base_width = edge
+        .style
+        .as_ref()
+        .map(|s| s.stroke_width as f64)
+        .unwrap_or(2.0);
+
+    let start_shape_size = if start_shape != EndpointShape::None {
+        let style_endpoint_sz = edge.style.as_ref().map(|s| s.arrow_size as f64).unwrap_or(config.endpoint.arrow_size);
+        style_endpoint_sz * (base_width / 2.0).max(1.0)
+    } else {
+        0.0
+    };
+
+    let end_shape_size = if end_shape != EndpointShape::None {
+        let style_endpoint_sz = edge.style.as_ref().map(|s| s.arrow_size as f64).unwrap_or(config.endpoint.arrow_size);
+        style_endpoint_sz * (base_width / 2.0).max(1.0)
+    } else {
+        0.0
+    };
+
+    // 3. Tangents — derived from lookahead along body path geometry
+    let start_inset = (start_shape_size * 1.5).max(15.0);
+    let end_inset = (end_shape_size * 1.5).max(15.0);
+    let (st, et) = compute_tangents(&result.path_points, start_inset, end_inset);
+    result.start_tangent = st;
+    result.end_tangent = et;
+
     // Direction follows the relation tangent so shapes dynamically reorient
     // as the relation body bends. Tip points outward (toward the node).
     result.start_direction = st.y.atan2(st.x) + std::f64::consts::PI;
@@ -216,11 +369,6 @@ pub fn finalize_relation(
     let end_arrow_sz = config.endpoint.arrow_size * end_scale;
 
     // 4. Body Widths & Types
-    let base_width = edge
-        .style
-        .as_ref()
-        .map(|s| s.stroke_width as f64)
-        .unwrap_or(2.0);
     let body_type_str = edge
         .style
         .as_ref()
@@ -244,37 +392,32 @@ pub fn finalize_relation(
     let padding = start_arrow_sz.max(end_arrow_sz).max(base_width) + 10.0;
     result.bbox = compute_bbox(&result.path_points, padding);
 
-    let start_shape_size = if start_shape != EndpointShape::None {
-        let style_endpoint_sz = edge.style.as_ref().map(|s| s.arrow_size as f64).unwrap_or(config.endpoint.arrow_size);
-        style_endpoint_sz * (base_width / 2.0).max(1.0)
-    } else {
-        0.0
-    };
+    let start_base_offset = start_shape.base_offset(start_shape_size);
+    let end_base_offset = end_shape.base_offset(end_shape_size);
 
-    let end_shape_size = if end_shape != EndpointShape::None {
-        let style_endpoint_sz = edge.style.as_ref().map(|s| s.arrow_size as f64).unwrap_or(config.endpoint.arrow_size);
-        style_endpoint_sz * (base_width / 2.0).max(1.0)
-    } else {
-        0.0
-    };
-
-    result.start_margin = start_shape_size;
-    result.end_margin = end_shape_size;
+    result.start_margin = start_base_offset;
+    result.end_margin = end_base_offset;
 
     let n = result.path_points.len();
     result.start_point = result.path_points[0];
     result.end_point = result.path_points[n - 1];
 
-    // Trim start & end path points by shape margins so line stops cleanly at shape back base
-    if start_shape_size > 0.0 && n >= 2 {
-        result.path_points[0] = result.path_points[0] + st * start_shape_size;
+    // Trim start & end path points by shape base offset so line stops cleanly at shape back base
+    if start_base_offset > 0.0 {
+        trim_polyline_endpoint(&mut result.path_points, true, start_base_offset);
+        let start_base_center = result.start_point + st * start_base_offset;
+        let blend_dist = (start_base_offset * 3.0).max(35.0);
+        smooth_path_at_endpoint(&mut result.path_points, true, start_base_center, st, blend_dist);
     }
-    if end_shape_size > 0.0 && n >= 2 {
-        result.path_points[n - 1] = result.path_points[n - 1] - et * end_shape_size;
+    if end_base_offset > 0.0 {
+        trim_polyline_endpoint(&mut result.path_points, false, end_base_offset);
+        let end_base_center = result.end_point - et * end_base_offset;
+        let blend_dist = (end_base_offset * 3.0).max(35.0);
+        smooth_path_at_endpoint(&mut result.path_points, false, end_base_center, et, blend_dist);
     }
 
-    result.start_arrow_center = result.start_point;
-    result.end_arrow_center = result.end_point;
+    result.start_arrow_center = result.start_point + st * (start_base_offset / 2.0);
+    result.end_arrow_center = result.end_point - et * (end_base_offset / 2.0);
 
     result.start_shape_path = if start_shape != EndpointShape::None {
         start_shape.generate_polygon(
@@ -299,7 +442,12 @@ pub fn finalize_relation(
     result.start_shape_filled = start_shape.is_filled();
     result.end_shape_filled = end_shape.is_filled();
 
-    // 7. Dependencies
+    // 7. Handle positions inset from endpoint shapes
+    let handle_inset = config.endpoint.handle_inset;
+    result.start_handle_pos = inset_along_polyline(&result.path_points, true, handle_inset);
+    result.end_handle_pos = inset_along_polyline(&result.path_points, false, handle_inset);
+
+    // 8. Dependencies
     result.depends_on_nodes = vec![edge.from_node_id.clone(), edge.to_node_id.clone()];
     result.hit_test_points = result.path_points.clone();
 }

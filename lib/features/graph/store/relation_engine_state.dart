@@ -40,6 +40,7 @@ class RelationEngineState {
       defaultStartShape: EndpointShape.none,
       defaultEndShape: EndpointShape.arrow,
       arrowSize: 10.0,
+      handleInset: 50.0,
     ),
   );
   Timer? _throttleTimer;

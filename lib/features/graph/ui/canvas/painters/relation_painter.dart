@@ -121,12 +121,19 @@ class RelationPainter extends CustomPainter {
     bool filled,
   ) {
     if (vertices.length < 2) return;
-    final path = _verticesToPath(vertices, close: filled);
     final paint = Paint()
-      ..color = color.withAlpha(255)
+      ..color = color
       ..style = filled ? PaintingStyle.fill : PaintingStyle.stroke
       ..strokeWidth = 2.0;
-    canvas.drawPath(path, paint);
+    if (filled) {
+      final path = _verticesToPath(vertices, close: true);
+      canvas.drawPath(path, paint);
+    } else {
+      final tip = vertices.first;
+      for (int i = 1; i < vertices.length; i++) {
+        canvas.drawLine(tip, vertices[i], paint);
+      }
+    }
   }
 
   @override
@@ -151,8 +158,8 @@ class RelationPainter extends CustomPainter {
       _drawShape(canvas, dto.startShapeVertices, dto.color, dto.startShapeFilled);
       _drawShape(canvas, dto.endShapeVertices, dto.color, dto.endShapeFilled);
 
-      if (dto.isSelected) {
-        _drawSelectionHandles(canvas, dto.startPoint, dto.endPoint);
+      if (dto.isSelected && !dto.isDragging) {
+        _drawSelectionHandles(canvas, dto.startHandlePos, dto.endHandlePos);
       }
 
       if (dto.verb.isNotEmpty) {

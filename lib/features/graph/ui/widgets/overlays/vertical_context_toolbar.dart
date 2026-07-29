@@ -188,6 +188,18 @@ class VerticalContextToolbar extends StatelessWidget {
                               onRelationLayoutChanged?.call('snake'),
                         ),
                         SubmenuButtonData(
+                          icon: Icons.ssid_chart_rounded,
+                          tooltip: 'Smooth Route',
+                          onPressed: () =>
+                              onRelationLayoutChanged?.call('bspline'),
+                        ),
+                        SubmenuButtonData(
+                          icon: Icons.polyline_rounded,
+                          tooltip: 'Diagonal Route',
+                          onPressed: () =>
+                              onRelationLayoutChanged?.call('octilinear'),
+                        ),
+                        SubmenuButtonData(
                           icon: Icons.border_style_rounded,
                           tooltip: 'Solid Line',
                           onPressed: () =>

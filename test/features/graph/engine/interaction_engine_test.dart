@@ -44,8 +44,10 @@ ComputedRelation createTestComputedRelation(RawUuid idStr, List<rust_geom.Point>
     endMargin: 0.0,
     startArrowCenter: const rust_geom.Point(x: 0, y: 0),
     endArrowCenter: const rust_geom.Point(x: 0, y: 0),
-    startPoint: const rust_geom.Point(x: 0, y: 0),
-    endPoint: const rust_geom.Point(x: 0, y: 0),
+    startPoint: pathPoints.isNotEmpty ? pathPoints.first : const rust_geom.Point(x: 0, y: 0),
+    endPoint: pathPoints.isNotEmpty ? pathPoints.last : const rust_geom.Point(x: 0, y: 0),
+    startHandlePos: pathPoints.isNotEmpty ? rust_geom.Point(x: pathPoints.first.x + 16, y: pathPoints.first.y) : const rust_geom.Point(x: 0, y: 0),
+    endHandlePos: pathPoints.length >= 2 ? rust_geom.Point(x: pathPoints.last.x - 16, y: pathPoints.last.y) : const rust_geom.Point(x: 0, y: 0),
     controlPoints: const [],
     knots: Float64List(0),
     nudgeColors: const [],
@@ -159,7 +161,7 @@ void main() {
         ).thenReturn({RawUuid.fromString('node-from'): fromVs, RawUuid.fromString('node-to'): toVs});
         when(() => mockContext.getRelations()).thenReturn([rel]);
         when(() => mockContext.getSelectedEntities()).thenReturn({RawUuid.fromString('rel-1')});
-        when(() => mockContext.zOrder).thenReturn(['node-from', 'node-to']);
+        when(() => mockContext.zOrder).thenReturn([RawUuid.fromString('node-from'), RawUuid.fromString('node-to')]);
 
         final mockRelationEngine = MockRelationEngineState();
         when(() => mockRelationEngine.cache).thenReturn({
@@ -223,7 +225,7 @@ void main() {
         ).thenReturn({RawUuid.fromString('node-from'): fromVs, RawUuid.fromString('node-to'): toVs});
         when(() => mockContext.getRelations()).thenReturn([rel]);
         when(() => mockContext.getSelectedEntities()).thenReturn({RawUuid.fromString('rel-1')});
-        when(() => mockContext.zOrder).thenReturn(['node-from', 'node-to']);
+        when(() => mockContext.zOrder).thenReturn([RawUuid.fromString('node-from'), RawUuid.fromString('node-to')]);
         final mockRelationEngine = MockRelationEngineState();
         when(() => mockRelationEngine.cache).thenReturn({
           RawUuid.fromString('rel-1'): createTestComputedRelation(

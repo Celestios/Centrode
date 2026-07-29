@@ -79,6 +79,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
   UiNode? getNode(RawUuid id) => _queryController.nodeLookup[id];
 
   @override
+  RawUuid? get hoveredNodeId => _renderState.hoveredNodeNotifier.value;
+
+  @override
   void openDataInspector(RawUuid nodeId) {
     _log.info('openDataInspector nodeId=$nodeId');
     onSelectEntity(nodeId);

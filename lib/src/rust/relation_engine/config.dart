@@ -71,18 +71,21 @@ class EndpointConfig {
   final EndpointShape defaultStartShape;
   final EndpointShape defaultEndShape;
   final double arrowSize;
+  final double handleInset;
 
   const EndpointConfig({
     required this.defaultStartShape,
     required this.defaultEndShape,
     required this.arrowSize,
+    required this.handleInset,
   });
 
   @override
   int get hashCode =>
       defaultStartShape.hashCode ^
       defaultEndShape.hashCode ^
-      arrowSize.hashCode;
+      arrowSize.hashCode ^
+      handleInset.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -91,7 +94,8 @@ class EndpointConfig {
           runtimeType == other.runtimeType &&
           defaultStartShape == other.defaultStartShape &&
           defaultEndShape == other.defaultEndShape &&
-          arrowSize == other.arrowSize;
+          arrowSize == other.arrowSize &&
+          handleInset == other.handleInset;
 }
 
 class NudgingConfig {

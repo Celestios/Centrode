@@ -245,7 +245,7 @@ class CanvasIdle extends CanvasInteractionState {
 
         Port? hoveredPort;
         for (final port in vs.ports.allPorts) {
-          if ((pCanvas - port.position).distance < AppConfig.port.hitRadius) {
+          if ((pCanvas - port.position).distance < AppConfig.port.hitRadius * vs.currentScale) {
             hoveredPort = port;
             break;
           }

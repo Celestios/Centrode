@@ -62,6 +62,7 @@ class RelationTipDragging extends CanvasInteractionState {
     final isExplicit = snap.snappedNodeId != null;
 
     ctx.onNodeDragUpdate(); // Pulse MovementNotifier to redraw the drag line
+    ctx.setHoveredNode(snap.hoveredNodeId);
     _relationTipLog.fine('handlePointerMove relation=$relationId snap=${snappedId ?? "none"}');
     return RelationTipDragging(
       relationId: relationId,
@@ -98,6 +99,7 @@ class RelationTipDragging extends CanvasInteractionState {
     }
 
     ctx.onNodeDragUpdate(); // Repaint
+    ctx.setHoveredNode(null);
     return const CanvasIdle();
   }
 
@@ -107,6 +109,7 @@ class RelationTipDragging extends CanvasInteractionState {
     GeometryCapability ctx,
   ) {
     ctx.onNodeDragUpdate(); // Repaint
+    ctx.setHoveredNode(null);
     return const CanvasIdle();
   }
 }

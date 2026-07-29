@@ -176,12 +176,10 @@ fn test_bezier_and_sinewave_perpendicular_exits() {
     });
     let bezier_res = bezier_shaper.shape(&[], &context);
     assert_eq!(bezier_res.path_points.len(), 10000);
-    // At start, tangent should point along start_normal (1.0, 0.0)
     let t0 = (bezier_res.path_points[1] - bezier_res.path_points[0]).normalize();
     assert!((t0.x - 1.0).abs() < 1e-3);
     assert!(t0.y.abs() < 1e-3);
 
-    // At end, tangent should point along -end_normal (0.0, 1.0) as it approaches p3
     let tn = (bezier_res.path_points[9999] - bezier_res.path_points[9998]).normalize();
     assert!(tn.x.abs() < 1e-3);
     assert!((tn.y - 1.0).abs() < 1e-3);
@@ -190,11 +188,9 @@ fn test_bezier_and_sinewave_perpendicular_exits() {
     let sinewave_shaper = SineWaveShaper::new(20.0, 3.0, 100);
     let sinewave_res = sinewave_shaper.shape(&[], &context);
     assert_eq!(sinewave_res.path_points.len(), 100);
-    // Since envelope is 0 at both ends, the points must start and end exactly at p0 and p3
     assert_eq!(sinewave_res.path_points[0], p0);
     assert_eq!(sinewave_res.path_points[99], p3);
 
-    // Tangent at start should also be along (1.0, 0.0) due to envelope zeroing out the wave offset derivative
     let t0_sine = (sinewave_res.path_points[1] - sinewave_res.path_points[0]).normalize();
     assert!((t0_sine.x - 1.0).abs() < 0.5);
     assert!(t0_sine.y.abs() < 0.5);
@@ -202,4 +198,32 @@ fn test_bezier_and_sinewave_perpendicular_exits() {
     let tn_sine = (sinewave_res.path_points[99] - sinewave_res.path_points[98]).normalize();
     assert!(tn_sine.x.abs() < 0.5);
     assert!((tn_sine.y - 1.0).abs() < 0.5);
+}
+
+#[test]
+fn test_bezier_control_points_distance_scaling() {
+    use rust_lib_mycelium::relation_engine::geometry::Point;
+    use rust_lib_mycelium::relation_engine::shaper::core::resolve_control_points;
+
+    let start = Point::new(0.0, 0.0);
+    let end_short = Point::new(100.0, 0.0);
+    let end_long = Point::new(2000.0, 0.0);
+
+    let start_normal = Point::new(1.0, 0.0);
+    let end_normal = Point::new(-1.0, 0.0);
+    let size = (50.0, 50.0);
+
+    let (cp1_short, _) = resolve_control_points(
+        start, end_short, start_normal, end_normal, size, size, None, None, true,
+    );
+    let (cp1_long, _) = resolve_control_points(
+        start, end_long, start_normal, end_normal, size, size, None, None, true,
+    );
+
+    // Short distance (100px): uses base size minimum (50px) projection along normal
+    assert!((cp1_short.x - 50.0).abs() < 1e-3);
+
+    // Long distance (2000px): scales proportionally with distance (18% of 2000 = 360px)
+    assert!((cp1_long.x - 360.0).abs() < 1e-3);
+    assert!(cp1_long.x > cp1_short.x * 5.0);
 }

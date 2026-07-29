@@ -15,6 +15,9 @@ class RelationPaintDto {
   final bool isSelected;
   final Offset startPoint;
   final Offset endPoint;
+  final Offset startHandlePos;
+  final Offset endHandlePos;
+  final bool isDragging;
   final String verb;
   final Offset labelPos;
   final List<double> widths;
@@ -33,6 +36,9 @@ class RelationPaintDto {
     required this.isSelected,
     required this.startPoint,
     required this.endPoint,
+    required this.startHandlePos,
+    required this.endHandlePos,
+    required this.isDragging,
     required this.verb,
     required this.labelPos,
     required this.widths,

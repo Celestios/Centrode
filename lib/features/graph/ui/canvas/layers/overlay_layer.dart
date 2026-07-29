@@ -112,6 +112,10 @@ class _TempRelationPainter extends CustomPainter {
       final sourceVs = nodeViewStates[sourceId];
       if (sourceVs == null) continue;
 
+      final scale = sourceVs.currentScale;
+      final cursorRadius = 6.0 * scale;
+      final strokePaint = paint..strokeWidth = 2.0 * scale;
+
       final sourcePort = state.sourcePort;
 
       if (targetVs != null) {
@@ -121,15 +125,15 @@ class _TempRelationPainter extends CustomPainter {
         final path = Path()
           ..moveTo(startPos.dx, startPos.dy)
           ..lineTo(endPos.dx, endPos.dy);
-        canvas.drawPath(path, paint);
+        canvas.drawPath(path, strokePaint);
       } else {
         final startPos = sourcePort?.position ?? sourceVs.getPortPosition(sourceVs.getClosestPort(state.currentCursorPosition).side);
         final path = Path()
           ..moveTo(startPos.dx, startPos.dy)
           ..lineTo(state.currentCursorPosition.dx, state.currentCursorPosition.dy);
-        canvas.drawPath(path, paint);
-        canvas.drawCircle(state.currentCursorPosition, 6, paint..style = PaintingStyle.fill);
-        paint.style = PaintingStyle.stroke;
+        canvas.drawPath(path, strokePaint);
+        canvas.drawCircle(state.currentCursorPosition, cursorRadius, strokePaint..style = PaintingStyle.fill);
+        strokePaint.style = PaintingStyle.stroke;
       }
     }
   }

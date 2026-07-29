@@ -187,6 +187,8 @@ class RelationLayer extends StatelessWidget {
           cached: cached,
           tipDrag: tipDrag,
           dragPos: dragPos,
+          fromVs: from,
+          toVs: to,
           resolved: resolved,
           isSelected: isSelected,
           color: color,
@@ -229,6 +231,8 @@ class RelationLayer extends StatelessWidget {
     required ComputedRelation cached,
     required RelationTipDragging? tipDrag,
     required Offset? dragPos,
+    required NodeViewState fromVs,
+    required NodeViewState toVs,
     required RelationStyle resolved,
     required bool isSelected,
     required Color color,
@@ -238,22 +242,39 @@ class RelationLayer extends StatelessWidget {
     final startPoint = Offset(cached.startPoint.x, cached.startPoint.y);
     final endPoint = Offset(cached.endPoint.x, cached.endPoint.y);
 
+    final fromSide = rel.resolvedLayout?.fromSide ?? rel.layout?.fromSide;
+    final toSide = rel.resolvedLayout?.toSide ?? rel.layout?.toSide;
+
+    final Offset liveStart = fromSide != null
+        ? fromVs.getPortPosition(fromSide)
+        : fromVs.getClosestPort(endPoint).position;
+
+    final Offset liveEnd = toSide != null
+        ? toVs.getPortPosition(toSide)
+        : toVs.getClosestPort(startPoint).position;
+
+    final Offset targetStart = isDraggingThisTip
+        ? (tipDrag.isStartTip ? dragPos : startPoint)
+        : liveStart;
+
+    final Offset targetEnd = isDraggingThisTip
+        ? (!tipDrag.isStartTip ? dragPos : endPoint)
+        : liveEnd;
+
+    final bool needsTransform = isDraggingThisTip ||
+        (targetStart - startPoint).distanceSquared > 1e-4 ||
+        (targetEnd - endPoint).distanceSquared > 1e-4;
+
     final List<Offset> bodyPoints;
     final List<Offset> startShapeVertices;
     final List<Offset> endShapeVertices;
     final Offset labelPos;
-    final Offset targetStart;
-    final Offset targetEnd;
+    final Offset startHandlePos;
+    final Offset endHandlePos;
 
-    if (isDraggingThisTip) {
-      final s0 = cached.pathPoints.isNotEmpty
-          ? Offset(cached.pathPoints.first.x, cached.pathPoints.first.y)
-          : startPoint;
-      final e0 = cached.pathPoints.isNotEmpty
-          ? Offset(cached.pathPoints.last.x, cached.pathPoints.last.y)
-          : endPoint;
-      targetStart = tipDrag.isStartTip ? dragPos : startPoint;
-      targetEnd = !tipDrag.isStartTip ? dragPos : endPoint;
+    if (needsTransform) {
+      final s0 = startPoint;
+      final e0 = endPoint;
 
       List<Offset> transform(List<Point> pts) => transformPathPoints(
         points: pts.map((p) => Offset(p.x, p.y)).toList(),
@@ -275,9 +296,10 @@ class RelationLayer extends StatelessWidget {
       labelPos = labelTransformed.isNotEmpty
           ? labelTransformed.first
           : Offset.lerp(targetStart, targetEnd, 0.5)!;
+
+      startHandlePos = targetStart;
+      endHandlePos = targetEnd;
     } else {
-      targetStart = startPoint;
-      targetEnd = endPoint;
       bodyPoints = cached.pathPoints.map((p) => Offset(p.x, p.y)).toList();
       startShapeVertices = cached.startShapePath.isNotEmpty
           ? cached.startShapePath.map((p) => Offset(p.x, p.y)).toList()
@@ -286,6 +308,8 @@ class RelationLayer extends StatelessWidget {
           ? cached.endShapePath.map((p) => Offset(p.x, p.y)).toList()
           : const [];
       labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
+      startHandlePos = Offset(cached.startHandlePos.x, cached.startHandlePos.y);
+      endHandlePos = Offset(cached.endHandlePos.x, cached.endHandlePos.y);
     }
 
     return RelationPaintDto(
@@ -301,6 +325,9 @@ class RelationLayer extends StatelessWidget {
       isSelected: isSelected,
       startPoint: targetStart,
       endPoint: targetEnd,
+      startHandlePos: startHandlePos,
+      endHandlePos: endHandlePos,
+      isDragging: isDraggingThisTip,
       verb: rel.verb,
       labelPos: labelPos,
       widths: cached.bodyWidths,

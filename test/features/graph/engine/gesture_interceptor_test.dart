@@ -103,7 +103,7 @@ void main() {
       when(() => mockEnv.getActiveEditId()).thenReturn(null);
       when(() => mockEnv.getSelectedEntities()).thenReturn(<RawUuid>{});
       when(() => mockEnv.getRelations()).thenReturn(<UiRelation>[]);
-      when(() => mockEnv.zOrder).thenReturn(<String>[]);
+      when(() => mockEnv.zOrder).thenReturn(<RawUuid>[]);
       when(() => mockEnv.nodeViewStates).thenReturn(<RawUuid, NodeViewState>{});
       final mockRelationEngine = MockRelationEngineState();
       when(() => mockRelationEngine.cache).thenReturn(<RawUuid, ComputedRelation>{});
@@ -192,7 +192,7 @@ void main() {
       when(() => mockEnv.getActiveEditId()).thenReturn(null);
       when(() => mockEnv.getSelectedEntities()).thenReturn(<RawUuid>{});
       when(() => mockEnv.getRelations()).thenReturn(<UiRelation>[]);
-      when(() => mockEnv.zOrder).thenReturn(<String>[]);
+      when(() => mockEnv.zOrder).thenReturn(<RawUuid>[]);
       when(() => mockEnv.nodeViewStates).thenReturn(<RawUuid, NodeViewState>{});
       final mockRelationEngine = MockRelationEngineState();
       when(() => mockRelationEngine.cache).thenReturn(<RawUuid, ComputedRelation>{});

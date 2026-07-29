@@ -67,7 +67,7 @@ impl InputEdge {
                 control_point_1,
                 control_point_2,
             }),
-            "sinewave" | "sine_wave" => Some(RoutingMode::SineWave {
+            "sinewave" | "sine_wave" | "snake" => Some(RoutingMode::SineWave {
                 control_point_1,
                 control_point_2,
             }),

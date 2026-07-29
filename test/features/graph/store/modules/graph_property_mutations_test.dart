@@ -92,6 +92,11 @@ void main() {
       mockApi = MockGraphApi();
 
       when(
+        () => mockApi.updateNodeCachePositions(
+          positions: any(named: 'positions'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
         () => mockApi.createRelation(input: any(named: 'input')),
       ).thenAnswer((_) async {});
       when(

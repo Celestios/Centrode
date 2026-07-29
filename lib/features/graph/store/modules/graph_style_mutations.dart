@@ -1,5 +1,6 @@
 import 'dart:ui';
 import '../../models/models.dart';
+import '../../models/commands/patch_helpers.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
 import 'package:mycelium/shared/domain/raw_uuid.dart';
@@ -38,6 +39,11 @@ class GraphStyleMutations {
       ),
       immediate: true,
     );
+
+    controller.syncEngine.api.updateNodeCachePositions(
+      positions: [(parseTypedRecordId(node.tableName, id), node.position.dx, node.position.dy, newSize.width, newSize.height)],
+    );
+    controller.relationEngine.onNodeMoved(id);
 
     controller.publishUpdate(
       GraphEntityUpdate(
@@ -99,6 +105,24 @@ class GraphStyleMutations {
       controller: controller,
     );
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
+
+    final List<(TypedRecordId, double, double, double, double)> positions = [];
+    for (final id in newStyles.keys) {
+      final node = controller.store.nodeLookup[id]!;
+      positions.add((
+        parseTypedRecordId(node.tableName, id),
+        node.position.dx,
+        node.position.dy,
+        newSizes[id]!.width,
+        newSizes[id]!.height,
+      ));
+    }
+    if (positions.isNotEmpty) {
+      controller.syncEngine.api.updateNodeCachePositions(positions: positions);
+      for (final id in newStyles.keys) {
+        controller.relationEngine.onNodeMoved(id);
+      }
+    }
 
     for (final id in newStyles.keys) {
       final node = controller.store.nodeLookup[id]!;

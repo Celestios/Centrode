@@ -206,6 +206,7 @@ pub struct EndpointConfig {
     pub default_start_shape: EndpointShape,
     pub default_end_shape: EndpointShape,
     pub arrow_size: f64,
+    pub handle_inset: f64,
 }
 
 impl Default for EndpointConfig {
@@ -214,6 +215,7 @@ impl Default for EndpointConfig {
             default_start_shape: EndpointShape::None,
             default_end_shape: EndpointShape::Arrow,
             arrow_size: 12.0,
+            handle_inset: 20.0,
         }
     }
 }

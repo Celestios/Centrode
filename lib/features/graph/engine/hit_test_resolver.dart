@@ -85,28 +85,22 @@ class HitTestResolver {
       final cached = cache[id];
       if (cached == null || cached.pathPoints.isEmpty) continue;
 
-      final handleStart = Offset(cached.pathPoints.first.x, cached.pathPoints.first.y);
-      final handleEnd = Offset(cached.pathPoints.last.x, cached.pathPoints.last.y);
+      final startHandle = Offset(cached.startHandlePos.x, cached.startHandlePos.y);
+      final endHandle = Offset(cached.endHandlePos.x, cached.endHandlePos.y);
 
-      final startTangent = Offset(cached.startTangent.x, cached.startTangent.y);
-      final endTangent = Offset(cached.endTangent.x, cached.endTangent.y);
-
-      final untrimmedStart = handleStart - startTangent * cached.startMargin;
-      final untrimmedEnd = handleEnd + endTangent * cached.endMargin;
-
-      if ((pCanvas - untrimmedStart).distance <
+      if ((pCanvas - startHandle).distance <
           AppConfig.interaction.relationTipHitDistance) {
         return PointerHitResult(
           type: HitTestType.relationTipStart,
           relationId: id,
-          originalPosition: untrimmedStart,
+          originalPosition: startHandle,
         );
-      } else if ((pCanvas - untrimmedEnd).distance <
+      } else if ((pCanvas - endHandle).distance <
           AppConfig.interaction.relationTipHitDistance) {
         return PointerHitResult(
           type: HitTestType.relationTipEnd,
           relationId: id,
-          originalPosition: untrimmedEnd,
+          originalPosition: endHandle,
         );
       }
     }
@@ -165,12 +159,29 @@ class HitTestResolver {
     InteractionContext ctx,
     List<RawUuid> nodeIds,
   ) {
+    final hoveredId = ctx.hoveredNodeId;
+    if (hoveredId != null) {
+      final vs = ctx.nodeViewStates[hoveredId];
+      if (vs != null && vs.sizeNotifier.value != Size.zero) {
+        for (final port in vs.ports.allPorts) {
+          if ((pCanvas - port.position).distance < AppConfig.port.hitRadius * vs.currentScale) {
+            return PointerHitResult(
+              type: HitTestType.port,
+              hitNodeId: hoveredId,
+              hitPort: port,
+            );
+          }
+        }
+      }
+      return null;
+    }
+
     for (final nodeId in nodeIds) {
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
 
       for (final port in vs.ports.allPorts) {
-        if ((pCanvas - port.position).distance < AppConfig.port.hitRadius) {
+        if ((pCanvas - port.position).distance < AppConfig.port.hitRadius * vs.currentScale) {
           return PointerHitResult(
             type: HitTestType.port,
             hitNodeId: nodeId,

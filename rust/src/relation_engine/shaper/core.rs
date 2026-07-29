@@ -40,8 +40,13 @@ pub fn resolve_control_points(
         }
     };
 
-    let start_size = get_scale(start_node_size, start_normal);
-    let end_size = get_scale(end_node_size, end_normal);
+    let base_start_size = get_scale(start_node_size, start_normal);
+    let base_end_size = get_scale(end_node_size, end_normal);
+
+    let dist = start.distance_to(end);
+    let distance_factor = 0.18;
+    let start_size = base_start_size.max(dist * distance_factor);
+    let end_size = base_end_size.max(dist * distance_factor);
 
     let mut cp1 = match custom_cp1 {
         Some(cp) => cp,
@@ -60,22 +65,24 @@ pub fn resolve_control_points(
         && end_normal.x * to_start.x + end_normal.y * to_start.y < 0.0
         && start_normal.x * end_normal.x + start_normal.y * end_normal.y < -0.9;
 
-    let cp1_mult = if is_totally_opposite { 3.0 } else { 1.0 };
-    let cp2_mult = if is_totally_opposite { 3.0 } else { 1.0 };
+    let cp1_mult = if is_totally_opposite { 2.5 } else { 1.25 };
+    let cp2_mult = if is_totally_opposite { 2.5 } else { 1.25 };
 
     // 1. Handle opposite direction exits to prevent going through the node
     if start_normal.x * to_target.x + start_normal.y * to_target.y < 0.0 {
         let perp = Point::new(-start_normal.y, start_normal.x);
         let dot = to_target.x * perp.x + to_target.y * perp.y;
         let side = if dot >= 0.0 { 1.0 } else { -1.0 };
-        cp1 = start + start_normal * (start_size * cp1_mult) + perp * (side * start_size * cp1_mult);
+        let proj = base_start_size * cp1_mult + dist * 0.10;
+        cp1 = start + start_normal * proj + perp * (side * proj);
     }
 
     if end_normal.x * to_start.x + end_normal.y * to_start.y < 0.0 {
         let perp = Point::new(-end_normal.y, end_normal.x);
         let dot = to_start.x * perp.x + to_start.y * perp.y;
         let side = if dot >= 0.0 { 1.0 } else { -1.0 };
-        cp2 = end + end_normal * (end_size * cp2_mult) + perp * (side * end_size * cp2_mult);
+        let proj = base_end_size * cp2_mult + dist * 0.10;
+        cp2 = end + end_normal * proj + perp * (side * proj);
     }
 
     // 2. Handle face-to-face ports (for Bezier only) to create a slight wave pattern
@@ -86,7 +93,7 @@ pub fn resolve_control_points(
                 let dir = to_target.normalize();
                 if (start_normal.x * dir.x + start_normal.y * dir.y).abs() > 0.9 {
                     let perp = Point::new(-start_normal.y, start_normal.x);
-                    let wave_offset = start_size * 0.3;
+                    let wave_offset = start_size * 0.30;
                     cp1 = cp1 + perp * wave_offset;
                     cp2 = cp2 - perp * wave_offset;
                 }

@@ -45,6 +45,8 @@ class ComputedRelation {
   final List<Point> endShapePath;
   final bool startShapeFilled;
   final bool endShapeFilled;
+  final Point startHandlePos;
+  final Point endHandlePos;
 
   const ComputedRelation({
     required this.id,
@@ -79,6 +81,8 @@ class ComputedRelation {
     required this.endShapePath,
     required this.startShapeFilled,
     required this.endShapeFilled,
+    required this.startHandlePos,
+    required this.endHandlePos,
   });
 
   @override
@@ -114,7 +118,9 @@ class ComputedRelation {
       startShapePath.hashCode ^
       endShapePath.hashCode ^
       startShapeFilled.hashCode ^
-      endShapeFilled.hashCode;
+      endShapeFilled.hashCode ^
+      startHandlePos.hashCode ^
+      endHandlePos.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -152,7 +158,9 @@ class ComputedRelation {
           startShapePath == other.startShapePath &&
           endShapePath == other.endShapePath &&
           startShapeFilled == other.startShapeFilled &&
-          endShapeFilled == other.endShapeFilled;
+          endShapeFilled == other.endShapeFilled &&
+          startHandlePos == other.startHandlePos &&
+          endHandlePos == other.endHandlePos;
 }
 
 enum LabelAnchor { center, left, right }

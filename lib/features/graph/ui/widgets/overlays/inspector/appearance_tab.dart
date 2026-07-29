@@ -202,6 +202,48 @@ class AppearanceTab extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: _StrategyButton(
+                icon: Icons.waves_rounded,
+                label: 'Snake',
+                strategyType: 'snake',
+                currentStrategy: currentStrategy,
+                theme: theme,
+                onTap: () => renderState.updateRelationsLayout(
+                  relationIds,
+                  strategyType: 'snake',
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: _StrategyButton(
+                icon: Icons.ssid_chart_rounded,
+                label: 'Smooth',
+                strategyType: 'bspline',
+                currentStrategy: currentStrategy,
+                theme: theme,
+                onTap: () => renderState.updateRelationsLayout(
+                  relationIds,
+                  strategyType: 'bspline',
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: _StrategyButton(
+                icon: Icons.polyline_rounded,
+                label: 'Diagonal',
+                strategyType: 'octilinear',
+                currentStrategy: currentStrategy,
+                theme: theme,
+                onTap: () => renderState.updateRelationsLayout(
+                  relationIds,
+                  strategyType: 'octilinear',
+                ),
+              ),
+            ),
           ],
         ),
       ],
@@ -348,6 +390,9 @@ class _StrategyButton extends StatelessWidget {
       currentStrategy == strategyType ||
       (currentStrategy != 'bezier' &&
           currentStrategy != 'orthogonal' &&
+          currentStrategy != 'snake' &&
+          currentStrategy != 'bspline' &&
+          currentStrategy != 'octilinear' &&
           strategyType == 'default');
 
   @override

@@ -80,7 +80,7 @@ class _PortLayerState extends State<PortLayer> {
       final hoveredId = widget.hoveredNodeNotifier.value;
       if (hoveredId != _activeNodeId) {
         setState(() => _activeNodeId = hoveredId);
-      } else if (isDrawing) {
+      } else if (isDrawing || interaction is RelationTipDragging) {
         setState(() {});
       }
     } else {
@@ -132,6 +132,7 @@ class _PortLayerState extends State<PortLayer> {
 
     final interaction = widget.interactionState.value;
     final drawing = interaction is RelationDrawing ? interaction : null;
+    final tipDrag = interaction is RelationTipDragging ? interaction : null;
 
     if (drawing != null && drawing.sourceNodeIds.contains(nodeId)) {
       return const SizedBox.shrink();
@@ -140,7 +141,7 @@ class _PortLayerState extends State<PortLayer> {
     final ports = vs.ports.allPorts;
     if (ports.isEmpty) return const SizedBox.shrink();
 
-    final snappedTarget = drawing?.snappedTargetPort;
+    final snappedTarget = drawing?.snappedTargetPort ?? tipDrag?.snappedPort;
     final hoveredPort = widget.hoveredPortNotifier.value;
 
     return IgnorePointer(

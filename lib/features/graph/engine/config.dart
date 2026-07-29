@@ -129,7 +129,7 @@ class _Port {
   const _Port();
 
   final double edgeOffset = 8.0;
-  final double hitRadius = 4.0;
+  final double hitRadius = 16.0;
   final double drawRadius = 3.0;
 }
 
@@ -163,7 +163,7 @@ class _LiquidGlass {
 
 double calculateEffectiveGridSize(double scale) {
   if (scale <= 0) return AppConfig.grid.baseSize;
-  final double lod = max(1.0, (1.0 / scale).floorToDouble());
-  final effectiveSize = AppConfig.grid.baseSize * lod;
-  return effectiveSize;
+  final double lod = pow(1.0 / scale, 0.85).toDouble();
+  final double clampedLod = lod.clamp(1.0, 8.0);
+  return AppConfig.grid.baseSize * clampedLod.roundToDouble();
 }

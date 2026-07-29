@@ -45,7 +45,8 @@ class NodeViewState implements VolatileNodeState {
     : nodeId = node.id,
       positionNotifier = ValueNotifier<Offset>(node.position),
       sizeNotifier = ValueNotifier<Size>(node.size),
-      isExpandedNotifier = ValueNotifier<bool>(node.isExpanded) {
+      isExpandedNotifier = ValueNotifier<bool>(node.isExpanded),
+      _currentNode = node {
     lineCountNotifier.value = node.lineCount;
     positionNotifier.addListener(_invalidateGeometry);
     sizeNotifier.addListener(_invalidateGeometry);
@@ -281,6 +282,7 @@ class NodeViewState implements VolatileNodeState {
 
   /// Called when size-affecting properties change (content, size, expansion).
   void onSizeChanged(UiNode node, {bool isEditing = false}) {
+    _currentNode = node;
     isExpandedNotifier.value = node.isExpanded;
     _recomputeSizeWithStrategy(node, isEditing: isEditing);
     sizeNotifier.value = node.size;

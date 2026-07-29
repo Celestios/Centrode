@@ -57,6 +57,9 @@ pub struct ComputedRelation {
     pub end_shape_path: Vec<Point>,
     pub start_shape_filled: bool,
     pub end_shape_filled: bool,
+    // Handle positions inset from endpoint shapes
+    pub start_handle_pos: Point,
+    pub end_handle_pos: Point,
 }
 
 impl ComputedRelation {
@@ -94,6 +97,8 @@ impl ComputedRelation {
             end_shape_path: vec![],
             start_shape_filled: false,
             end_shape_filled: false,
+            start_handle_pos: Point::new(0.0, 0.0),
+            end_handle_pos: Point::new(0.0, 0.0),
         }
     }
 }

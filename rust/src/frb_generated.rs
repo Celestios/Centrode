@@ -3175,6 +3175,10 @@ impl SseDecode for crate::relation_engine::computed::ComputedRelation {
             <Vec<crate::relation_engine::geometry::Point>>::sse_decode(deserializer);
         let mut var_startShapeFilled = <bool>::sse_decode(deserializer);
         let mut var_endShapeFilled = <bool>::sse_decode(deserializer);
+        let mut var_startHandlePos =
+            <crate::relation_engine::geometry::Point>::sse_decode(deserializer);
+        let mut var_endHandlePos =
+            <crate::relation_engine::geometry::Point>::sse_decode(deserializer);
         return crate::relation_engine::computed::ComputedRelation {
             id: var_id,
             path_points: var_pathPoints,
@@ -3208,6 +3212,8 @@ impl SseDecode for crate::relation_engine::computed::ComputedRelation {
             end_shape_path: var_endShapePath,
             start_shape_filled: var_startShapeFilled,
             end_shape_filled: var_endShapeFilled,
+            start_handle_pos: var_startHandlePos,
+            end_handle_pos: var_endHandlePos,
         };
     }
 }
@@ -3307,10 +3313,12 @@ impl SseDecode for crate::relation_engine::config::EndpointConfig {
         let mut var_defaultEndShape =
             <crate::domain::styles::EndpointShape>::sse_decode(deserializer);
         let mut var_arrowSize = <f64>::sse_decode(deserializer);
+        let mut var_handleInset = <f64>::sse_decode(deserializer);
         return crate::relation_engine::config::EndpointConfig {
             default_start_shape: var_defaultStartShape,
             default_end_shape: var_defaultEndShape,
             arrow_size: var_arrowSize,
+            handle_inset: var_handleInset,
         };
     }
 }
@@ -5776,6 +5784,8 @@ impl flutter_rust_bridge::IntoDart for crate::relation_engine::computed::Compute
             self.end_shape_path.into_into_dart().into_dart(),
             self.start_shape_filled.into_into_dart().into_dart(),
             self.end_shape_filled.into_into_dart().into_dart(),
+            self.start_handle_pos.into_into_dart().into_dart(),
+            self.end_handle_pos.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -5934,6 +5944,7 @@ impl flutter_rust_bridge::IntoDart for crate::relation_engine::config::EndpointC
             self.default_start_shape.into_into_dart().into_dart(),
             self.default_end_shape.into_into_dart().into_dart(),
             self.arrow_size.into_into_dart().into_dart(),
+            self.handle_inset.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -7690,6 +7701,8 @@ impl SseEncode for crate::relation_engine::computed::ComputedRelation {
         <Vec<crate::relation_engine::geometry::Point>>::sse_encode(self.end_shape_path, serializer);
         <bool>::sse_encode(self.start_shape_filled, serializer);
         <bool>::sse_encode(self.end_shape_filled, serializer);
+        <crate::relation_engine::geometry::Point>::sse_encode(self.start_handle_pos, serializer);
+        <crate::relation_engine::geometry::Point>::sse_encode(self.end_handle_pos, serializer);
     }
 }
 
@@ -7765,6 +7778,7 @@ impl SseEncode for crate::relation_engine::config::EndpointConfig {
         <crate::domain::styles::EndpointShape>::sse_encode(self.default_start_shape, serializer);
         <crate::domain::styles::EndpointShape>::sse_encode(self.default_end_shape, serializer);
         <f64>::sse_encode(self.arrow_size, serializer);
+        <f64>::sse_encode(self.handle_inset, serializer);
     }
 }
 

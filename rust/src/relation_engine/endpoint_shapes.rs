@@ -10,9 +10,8 @@ impl EndpointShape {
     ) -> Vec<Point> {
         match self {
             EndpointShape::None => vec![],
-            EndpointShape::Arrow | EndpointShape::OpenArrow => {
-                Self::arrow_vertices(tip_position, direction_rad, size)
-            }
+            EndpointShape::Arrow => Self::arrow_vertices(tip_position, direction_rad, size),
+            EndpointShape::OpenArrow => Self::open_arrow_vertices(tip_position, direction_rad, size),
             EndpointShape::Circle => Self::circle_vertices(tip_position, direction_rad, size),
             EndpointShape::Diamond => Self::diamond_vertices(tip_position, direction_rad, size),
             EndpointShape::Square => Self::square_vertices(tip_position, direction_rad, size),
@@ -21,6 +20,16 @@ impl EndpointShape {
 
     pub fn is_filled(&self) -> bool {
         *self != EndpointShape::OpenArrow
+    }
+
+    pub fn base_offset(&self, size: f64) -> f64 {
+        match self {
+            EndpointShape::None => 0.0,
+            EndpointShape::Arrow | EndpointShape::OpenArrow => size,
+            EndpointShape::Circle => size * 0.6,
+            EndpointShape::Diamond => size,
+            EndpointShape::Square => size,
+        }
     }
 
     fn arrow_vertices(tip: Point, direction_rad: f64, size: f64) -> Vec<Point> {
@@ -37,8 +46,22 @@ impl EndpointShape {
         vec![tip, base_left, base_right]
     }
 
+    fn open_arrow_vertices(tip: Point, direction_rad: f64, size: f64) -> Vec<Point> {
+        let half_width = size * 0.30;
+        let cos = direction_rad.cos();
+        let sin = direction_rad.sin();
+        let dir = Point::new(cos, sin);
+        let perp = Point::new(-sin, cos);
+
+        let base_center = tip - dir * size;
+        let base_left = base_center + perp * half_width;
+        let base_right = base_center - perp * half_width;
+
+        vec![tip, base_left, base_right, base_center]
+    }
+
     fn circle_vertices(tip: Point, direction_rad: f64, size: f64) -> Vec<Point> {
-        let radius = size / 2.0;
+        let radius = size * 0.3;
         let cos = direction_rad.cos();
         let sin = direction_rad.sin();
         let dir = Point::new(cos, sin);
