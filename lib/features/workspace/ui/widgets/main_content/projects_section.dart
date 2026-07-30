@@ -3,6 +3,7 @@ import 'package:mycelium/shared/utils/map_scanner.dart';
 import '../shared/section_header.dart';
 import '../shared/horizontal_scroll_row.dart';
 import 'project_card.dart';
+import 'empty_section_card.dart';
 
 class ProjectsSection extends StatefulWidget {
   const ProjectsSection({super.key});
@@ -33,36 +34,34 @@ class _ProjectsSectionState extends State<ProjectsSection> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SectionHeader(title: 'PROJECTS'),
-          SizedBox(height: 48),
-        ],
-      );
-    }
-
-    if (_projectMaps.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SectionHeader(title: 'PROJECTS'),
-        HorizontalScrollRow(
-          children: _projectMaps.map((map) {
-            final timeAgo = _formatTimeAgo(map.createdAt);
-            return ProjectCard(
-              name: map.name,
-              lastOpened: timeAgo,
-              onTap: () {
-                // TODO: Open map
-              },
-            );
-          }).toList(),
-        ),
+        if (_isLoading)
+          const SizedBox(height: 48)
+        else if (_projectMaps.isEmpty)
+          const HorizontalScrollRow(
+            children: [
+              EmptySectionCard(
+                title: 'PROJECTS',
+                description: 'Your created maps are organized here.',
+              ),
+            ],
+          )
+        else
+          HorizontalScrollRow(
+            children: _projectMaps.map((map) {
+              final timeAgo = _formatTimeAgo(map.createdAt);
+              return ProjectCard(
+                name: map.name,
+                lastOpened: timeAgo,
+                onTap: () {
+                  // TODO: Open map
+                },
+              );
+            }).toList(),
+          ),
       ],
     );
   }
