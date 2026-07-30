@@ -15,7 +15,6 @@ class TemplatesSection extends StatelessWidget {
         HorizontalScrollRow(
           children: [
             EmptySectionCard(
-              title: 'TEMPLATES',
               description: 'Save map snippets as templates for reuse.',
             ),
           ],

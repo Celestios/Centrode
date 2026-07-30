@@ -44,7 +44,6 @@ class _ProjectsSectionState extends State<ProjectsSection> {
           const HorizontalScrollRow(
             children: [
               EmptySectionCard(
-                title: 'PROJECTS',
                 description: 'Your created maps are organized here.',
               ),
             ],

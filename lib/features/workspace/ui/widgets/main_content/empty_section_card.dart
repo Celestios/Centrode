@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
 class EmptySectionCard extends StatelessWidget {
-  final String title;
   final String description;
 
   const EmptySectionCard({
     super.key,
-    required this.title,
     required this.description,
   });
 
@@ -29,29 +27,19 @@ class EmptySectionCard extends StatelessWidget {
         painter: _DashedBorderPainter(
           color: theme.dividerColor.withValues(alpha: 0.4),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
-                ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(
+              description,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 11,
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
               ),
-              const Spacer(),
-              Text(
-                description,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
-                  color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+              textAlign: TextAlign.center,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ),
       ),

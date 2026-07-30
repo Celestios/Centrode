@@ -44,7 +44,6 @@ class _RecentSectionState extends State<RecentSection> {
           const HorizontalScrollRow(
             children: [
               EmptySectionCard(
-                title: 'RECENT',
                 description: 'Maps you open will appear here for quick access.',
               ),
             ],
