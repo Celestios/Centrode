@@ -26,7 +26,6 @@ class CanvasInteractionEnvironment implements InteractionContext {
   final NodeRenderState _renderState;
   final ViewportController _viewportController;
   final double Function() _getScale;
-  final TabSession? _boundSession;
   final void Function(List<RawUuid> nodeIds, List<RawUuid> relationIds)?
   _onSaveTemplate;
 
@@ -54,7 +53,6 @@ class CanvasInteractionEnvironment implements InteractionContext {
        _renderState = renderState,
        _viewportController = viewportController,
        _getScale = getScale,
-       _boundSession = boundSession,
        _onSaveTemplate = onSaveTemplate,
        spatialHandler = spatialHandler ?? const DefaultSpatialActionHandler(),
        topologyHandler = topologyHandler ?? const DefaultTopologyActionHandler(),
@@ -85,7 +83,6 @@ class CanvasInteractionEnvironment implements InteractionContext {
   void openDataInspector(RawUuid nodeId) {
     _log.info('openDataInspector nodeId=$nodeId');
     onSelectEntity(nodeId);
-    _boundSession?.showRightPanel.value = true;
     _renderState.activeInspectorTabNotifier.value = InspectorTab.data;
   }
 
@@ -302,5 +299,54 @@ class CanvasInteractionEnvironment implements InteractionContext {
       brushColor: brushColor,
       size: size,
     );
+  }
+
+  @override
+  void onRelationSnapPreview({
+    required RawUuid relationId,
+    required bool isStartTip,
+    required RawUuid targetNodeId,
+    required String targetNodeTable,
+    required PortSide? targetSide,
+    required Offset overridePosition,
+  }) {
+    final rel = _queryController.relationLookup[relationId];
+    if (rel != null) {
+      _queryController.relationEngine.computeRelationPreview(
+        previewId: relationId,
+        fromNodeId: isStartTip ? targetNodeId : rel.fromNodeId,
+        toNodeId: isStartTip ? rel.toNodeId : targetNodeId,
+        fromNodeTable: isStartTip ? targetNodeTable : rel.fromNodeTable,
+        toNodeTable: isStartTip ? rel.toNodeTable : targetNodeTable,
+        fromSide: isStartTip
+            ? targetSide
+            : rel.resolvedLayout?.fromSide ?? rel.layout?.fromSide,
+        toSide: isStartTip
+            ? rel.resolvedLayout?.toSide ?? rel.layout?.toSide
+            : targetSide,
+        overrideStart: isStartTip && targetSide == null ? overridePosition : null,
+        overrideEnd: !isStartTip && targetSide == null ? overridePosition : null,
+      );
+    } else {
+      final sourceNode = getNode(relationId);
+      if (sourceNode != null) {
+        _queryController.relationEngine.computeRelationPreview(
+          previewId: relationId,
+          fromNodeId: relationId,
+          toNodeId: targetNodeId,
+          fromNodeTable: sourceNode.tableName,
+          toNodeTable: targetNodeTable,
+          fromSide: null,
+          toSide: targetSide,
+          overrideStart: null,
+          overrideEnd: targetSide == null ? overridePosition : null,
+        );
+      }
+    }
+  }
+
+  @override
+  void onRelationSnapPreviewClear(RawUuid relationId) {
+    _queryController.relationEngine.clearRelationPreview(relationId);
   }
 }

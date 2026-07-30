@@ -61,6 +61,27 @@ class RelationTipDragging extends CanvasInteractionState {
     final snappedPortSide = snap.snappedPort?.side;
     final isExplicit = snap.snappedNodeId != null;
 
+    final prevSnappedId = snappedTargetNodeId;
+    if (snappedId != null) {
+      if (snappedId != prevSnappedId || snappedPort != this.snappedPort) {
+        final targetVs = ctx.nodeViewStates[snappedId];
+        if (targetVs != null) {
+          final targetNode = ctx.getNode(snappedId);
+          final overridePos = snappedPort?.position ?? targetVs.rect.center;
+          ctx.onRelationSnapPreview(
+            relationId: relationId,
+            isStartTip: isStartTip,
+            targetNodeId: snappedId,
+            targetNodeTable: targetNode?.tableName ?? 'Nodes',
+            targetSide: snappedPortSide,
+            overridePosition: overridePos,
+          );
+        }
+      }
+    } else if (snappedId == null && prevSnappedId != null) {
+      ctx.onRelationSnapPreviewClear(relationId);
+    }
+
     ctx.onNodeDragUpdate(); // Pulse MovementNotifier to redraw the drag line
     ctx.setHoveredNode(snap.hoveredNodeId);
     _relationTipLog.fine('handlePointerMove relation=$relationId snap=${snappedId ?? "none"}');
@@ -82,6 +103,7 @@ class RelationTipDragging extends CanvasInteractionState {
     GeometryCapability ctx,
   ) {
     _relationTipLog.info('handlePointerUp relation=$relationId snapped=${snappedTargetNodeId ?? "none"} side=${snappedTargetSide ?? "none"}');
+    ctx.onRelationSnapPreviewClear(relationId);
     if (snappedTargetNodeId != null) {
       if (isStartTip) {
         ctx.onRelationUpdateLayout(
@@ -108,6 +130,7 @@ class RelationTipDragging extends CanvasInteractionState {
     PointerCancelEvent e,
     GeometryCapability ctx,
   ) {
+    ctx.onRelationSnapPreviewClear(relationId);
     ctx.onNodeDragUpdate(); // Repaint
     ctx.setHoveredNode(null);
     return const CanvasIdle();

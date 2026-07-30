@@ -1,6 +1,7 @@
 // lib/features/graph/state/canvas_interaction_states.dart
 library;
 
+import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:mycelium/shared/logging.dart';

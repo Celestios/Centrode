@@ -14,8 +14,7 @@ class FakeCommand extends GraphCommand {
   bool isUndone = false;
   bool shouldFail = false;
 
-  FakeCommand(RawUuid targetId, this.category, {this.shouldFail = false})
-      : targetId = targetId;
+  FakeCommand(this.targetId, this.category, {this.shouldFail = false});
 
   @override
   Future<void> execute() async {

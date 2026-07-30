@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../presentation/widgets/window_title_bar.dart';
-import 'liquid_glass_test_screen.dart';
+
 import '../../graph/ui/graph_screen.dart';
 
 class ProjectSelectorScreen extends StatelessWidget {
@@ -14,11 +14,6 @@ class ProjectSelectorScreen extends StatelessWidget {
     );
   }
 
-  void _openGlassTestScreen(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const LiquidGlassDemo()));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,11 +30,7 @@ class ProjectSelectorScreen extends StatelessWidget {
                     onPressed: () => _openDefaultGraph(context),
                     child: const Text('Open Default Graph'),
                   ),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () => _openGlassTestScreen(context),
-                    child: const Text('Open Glass Test Screen'),
-                  ),
+
                 ],
               ),
             ),

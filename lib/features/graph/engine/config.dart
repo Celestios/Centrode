@@ -26,7 +26,8 @@ class _Grid {
 class _Canvas {
   const _Canvas();
 
-  final double boundaryMargin = 500.0;
+  final double boundaryMargin = 2000.0;
+  final double initialBoundaryMargin = 800.0;
   final double minScale = 0.2;
   final double maxScale = 3.0;
   final double scaleFactor = 1000.0;
@@ -163,7 +164,10 @@ class _LiquidGlass {
 
 double calculateEffectiveGridSize(double scale) {
   if (scale <= 0) return AppConfig.grid.baseSize;
-  final double lod = pow(1.0 / scale, 0.85).toDouble();
-  final double clampedLod = lod.clamp(1.0, 8.0);
-  return AppConfig.grid.baseSize * clampedLod.roundToDouble();
+  const double targetScreenSpacing = 20.0;
+  final double targetGridSize = targetScreenSpacing / scale;
+  final double ratio = targetGridSize / AppConfig.grid.baseSize;
+  final double step = pow(2, (log(ratio) / ln2).round() + 1).toDouble();
+  final double clampedStep = step.clamp(1.0, 10.0);
+  return AppConfig.grid.baseSize * clampedStep;
 }

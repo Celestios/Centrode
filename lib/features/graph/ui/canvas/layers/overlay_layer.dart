@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:mycelium/shared/domain/raw_uuid.dart';
 import '../../../engine/config.dart';
 import '../../../store/graph_data_query.dart';
+import '../../../store/relation_engine_state.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../engine/base_interaction_state.dart';
 import '../../../engine/interaction_engine.dart';
@@ -30,11 +31,17 @@ class OverlayLayer extends StatelessWidget {
             // 3. Temporary Relation Drag Line (when drawing relation)
             if (interactionState is RelationDrawing)
               Positioned.fill(
-                child: CustomPaint(
-                  painter: _TempRelationPainter(
-                    state: interactionState,
-                    nodeViewStates: renderState.viewStates,
-                  ),
+                child: ValueListenableBuilder<int>(
+                  valueListenable: dataController.relationEngine.cacheNotifier,
+                  builder: (context, _, __) {
+                    return CustomPaint(
+                      painter: _TempRelationPainter(
+                        state: interactionState,
+                        nodeViewStates: renderState.viewStates,
+                        relationEngine: dataController.relationEngine,
+                      ),
+                    );
+                  },
                 ),
               ),
 
@@ -91,8 +98,13 @@ class OverlayLayer extends StatelessWidget {
 class _TempRelationPainter extends CustomPainter {
   final RelationDrawing state;
   final Map<RawUuid, NodeViewState> nodeViewStates;
+  final RelationEngineState relationEngine;
 
-  _TempRelationPainter({required this.state, required this.nodeViewStates});
+  _TempRelationPainter({
+    required this.state,
+    required this.nodeViewStates,
+    required this.relationEngine,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -119,13 +131,24 @@ class _TempRelationPainter extends CustomPainter {
       final sourcePort = state.sourcePort;
 
       if (targetVs != null) {
-        final targetPort = state.snappedTargetPort;
-        final startPos = sourcePort?.position ?? sourceVs.getPortPosition(sourceVs.getClosestPort(targetVs.rect.center).side);
-        final endPos = targetPort?.position ?? targetVs.getPortPosition(targetVs.getClosestPort(startPos).side);
-        final path = Path()
-          ..moveTo(startPos.dx, startPos.dy)
-          ..lineTo(endPos.dx, endPos.dy);
-        canvas.drawPath(path, strokePaint);
+        final cached = relationEngine.previewCache[sourceId];
+
+        if (cached != null && cached.pathPoints.length >= 2) {
+          final path = Path()
+            ..moveTo(cached.pathPoints.first.x, cached.pathPoints.first.y);
+          for (int i = 1; i < cached.pathPoints.length; i++) {
+            path.lineTo(cached.pathPoints[i].x, cached.pathPoints[i].y);
+          }
+          canvas.drawPath(path, strokePaint);
+        } else {
+          final targetPort = state.snappedTargetPort;
+          final startPos = sourcePort?.position ?? sourceVs.getPortPosition(sourceVs.getClosestPort(targetVs.rect.center).side);
+          final endPos = targetPort?.position ?? targetVs.getPortPosition(targetVs.getClosestPort(startPos).side);
+          final path = Path()
+            ..moveTo(startPos.dx, startPos.dy)
+            ..lineTo(endPos.dx, endPos.dy);
+          canvas.drawPath(path, strokePaint);
+        }
       } else {
         final startPos = sourcePort?.position ?? sourceVs.getPortPosition(sourceVs.getClosestPort(state.currentCursorPosition).side);
         final path = Path()

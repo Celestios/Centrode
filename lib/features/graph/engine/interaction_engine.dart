@@ -83,6 +83,7 @@ class InteractionController {
     // Clear hover metadata when transitioning away from CanvasIdle
     if (!isIdle) {
       environment.setHoveredNodeMetadata(null);
+      environment.setHoveredPort(null);
     }
 
     // Update cursor
@@ -246,6 +247,7 @@ class InteractionController {
   }
 
   void startRelationDrawing(Set<RawUuid> nodeIds, Offset initialPos) {
+    environment.setHoveredPort(null);
     _transitionTo(RelationDrawing(
       nodeIds,
       initialPos,

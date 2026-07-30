@@ -13,8 +13,9 @@ class GroupDragging extends CanvasInteractionState {
   final RawUuid anchorNodeId;
   final Offset grabOffset;
   final Map<RawUuid, Offset> originalPositions;
+  Timer? _snapTimer;
 
-  const GroupDragging({
+  GroupDragging({
     required this.nodeIds,
     required this.anchorNodeId,
     required this.grabOffset,
@@ -29,7 +30,7 @@ class GroupDragging extends CanvasInteractionState {
   ) {
     final anchorVs = ctx.nodeViewStates[anchorNodeId];
     if (anchorVs == null) {
-      // Dangling pointer reset
+      _snapTimer?.cancel();
       _groupDragLog.severe(
         'Dangling Pointer: Dragging group anchor $anchorNodeId but ViewState is null. Resetting to Idle.',
       );
@@ -43,36 +44,50 @@ class GroupDragging extends CanvasInteractionState {
       ctx.setNodeDragging(id, true);
     }
 
-    // Snapped position of the anchor node
     final rawAnchorPos = pCanvas - grabOffset;
-    final effectiveGridSize = calculateEffectiveGridSize(ctx.currentScale);
-    final snappedAnchorPos = _snapToGrid(rawAnchorPos, effectiveGridSize);
-
     final originalAnchorPos = originalPositions[anchorNodeId];
     if (originalAnchorPos == null) {
+      _snapTimer?.cancel();
       _groupDragLog.severe(
         'Anchor node $anchorNodeId missing original position.',
       );
       return const CanvasIdle();
     }
 
-    final delta = snappedAnchorPos - originalAnchorPos;
+    final rawDelta = rawAnchorPos - originalAnchorPos;
+    final effectiveGridSize = calculateEffectiveGridSize(ctx.currentScale);
+    final snappedAnchorPos = _snapToGrid(rawAnchorPos, effectiveGridSize);
+    final snappedDelta = snappedAnchorPos - originalAnchorPos;
 
     final List<(RawUuid, Offset)> dragUpdates = [];
+
+    // Continuous visual movement
     for (final id in nodeIds) {
       final vs = ctx.nodeViewStates[id];
       final originalPos = originalPositions[id];
       if (vs != null && originalPos != null) {
-        final snappedPos = _snapToGrid(
-          originalPos + delta,
-          effectiveGridSize,
-        );
-        vs.positionNotifier.value = snappedPos;
-        dragUpdates.add((id, snappedPos));
+        vs.positionNotifier.value = originalPos + rawDelta;
+        dragUpdates.add((id, originalPos + snappedDelta));
       }
     }
 
     ctx.onNodesDrag(dragUpdates);
+
+    // Delayed snap when mouse pauses
+    _snapTimer?.cancel();
+    _snapTimer = Timer(const Duration(milliseconds: 150), () {
+      for (final id in nodeIds) {
+        final vs = ctx.nodeViewStates[id];
+        final originalPos = originalPositions[id];
+        if (vs != null && originalPos != null) {
+          vs.positionNotifier.value = _snapToGrid(
+            originalPos + snappedDelta,
+            effectiveGridSize,
+          );
+        }
+      }
+    });
+
     return this;
   }
 
@@ -81,12 +96,16 @@ class GroupDragging extends CanvasInteractionState {
     PointerUpEvent e,
     GeometryAndViewportCapability ctx,
   ) {
+    _snapTimer?.cancel();
     _groupDragLog.info('Group Drag Commit for ${nodeIds.length} nodes');
+    final effectiveGridSize = calculateEffectiveGridSize(ctx.currentScale);
     for (final id in nodeIds) {
       ctx.setNodeDragging(id, false);
       final vs = ctx.nodeViewStates[id];
       if (vs != null) {
-        ctx.onNodeMove(id, vs.positionNotifier.value);
+        final snappedPos = _snapToGrid(vs.positionNotifier.value, effectiveGridSize);
+        vs.positionNotifier.value = snappedPos;
+        ctx.onNodeMove(id, snappedPos);
       }
     }
     return const CanvasIdle();
@@ -97,6 +116,7 @@ class GroupDragging extends CanvasInteractionState {
     PointerCancelEvent e,
     GeometryAndViewportCapability ctx,
   ) {
+    _snapTimer?.cancel();
     for (final id in nodeIds) {
       ctx.setNodeDragging(id, false);
     }

@@ -73,21 +73,15 @@ class _PortLayerState extends State<PortLayer> {
 
   void _onInteractionChanged() {
     final interaction = widget.interactionState.value;
-    final isDrawing = interaction is RelationDrawing;
-    if (isDrawing || interaction is RelationTipDragging) {
+    if (interaction is RelationDrawing || interaction is RelationTipDragging) {
       _hideTimer?.cancel();
       _hideTimer = null;
-      final hoveredId = widget.hoveredNodeNotifier.value;
-      if (hoveredId != _activeNodeId) {
-        setState(() => _activeNodeId = hoveredId);
-      } else if (isDrawing || interaction is RelationTipDragging) {
-        setState(() {});
-      }
+    }
+    final hoveredId = widget.hoveredNodeNotifier.value;
+    if (hoveredId != _activeNodeId) {
+      setState(() => _activeNodeId = hoveredId);
     } else {
-      final hoveredId = widget.hoveredNodeNotifier.value;
-      if (hoveredId != _activeNodeId) {
-        setState(() => _activeNodeId = hoveredId);
-      }
+      setState(() {});
     }
   }
 
@@ -142,7 +136,7 @@ class _PortLayerState extends State<PortLayer> {
     if (ports.isEmpty) return const SizedBox.shrink();
 
     final snappedTarget = drawing?.snappedTargetPort ?? tipDrag?.snappedPort;
-    final hoveredPort = widget.hoveredPortNotifier.value;
+    final hoveredPort = interaction is CanvasIdle ? widget.hoveredPortNotifier.value : null;
 
     return IgnorePointer(
       child: CustomPaint(

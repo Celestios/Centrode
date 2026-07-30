@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:mycelium/shared/logging.dart';
 import 'graph_api.dart';
@@ -49,6 +50,8 @@ class RelationEngineState {
   bool _pendingRecompute = false;
   final ValueNotifier<int> cacheNotifier = ValueNotifier<int>(0);
 
+  final Map<RawUuid, ComputedRelation> previewCache = {};
+
   Map<RawUuid, ComputedRelation> get cache => _tracker.cache;
   InvalidationTracker get tracker => _tracker;
 
@@ -86,6 +89,42 @@ class RelationEngineState {
     } catch (e) {
       _log.warning('computeSingleRelation failed for ${relation.id}: $e');
     }
+  }
+
+  Future<void> computeRelationPreview({
+    required RawUuid previewId,
+    required RawUuid fromNodeId,
+    required RawUuid toNodeId,
+    required String fromNodeTable,
+    required String toNodeTable,
+    PortSide? fromSide,
+    PortSide? toSide,
+    Offset? overrideStart,
+    Offset? overrideEnd,
+  }) async {
+    try {
+      final computed = await _api.computeSingleRelation(
+        config: _config,
+        edgeId: parseTypedRecordId('IRelation', previewId),
+        fromNodeId: parseTypedRecordId(fromNodeTable, fromNodeId),
+        toNodeId: parseTypedRecordId(toNodeTable, toNodeId),
+        fromSide: fromSide,
+        toSide: toSide,
+        overrideStartX: overrideStart?.dx,
+        overrideStartY: overrideStart?.dy,
+        overrideEndX: overrideEnd?.dx,
+        overrideEndY: overrideEnd?.dy,
+      );
+      previewCache[previewId] = computed;
+      _bumpCacheNotifier();
+    } catch (e) {
+      _log.warning('computeRelationPreview failed for $previewId: $e');
+    }
+  }
+
+  void clearRelationPreview(RawUuid previewId) {
+    previewCache.remove(previewId);
+    _bumpCacheNotifier();
   }
 
   void _bumpCacheNotifier() {
@@ -166,6 +205,7 @@ class RelationEngineState {
     _throttleTimer?.cancel();
     _cacheNotifierDebounce?.cancel();
     _tracker.clear();
+    previewCache.clear();
     cacheNotifier.dispose();
   }
 }

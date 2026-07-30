@@ -35,6 +35,7 @@ class CanvasIdle extends CanvasInteractionState {
     switch (result.type) {
       case HitTestType.relationTipStart:
       case HitTestType.relationTipEnd:
+        ctx.setHoveredPort(null);
         return RelationTipDragging(
           relationId: result.relationId!,
           isStartTip: result.type == HitTestType.relationTipStart,
@@ -43,6 +44,7 @@ class CanvasIdle extends CanvasInteractionState {
         );
 
       case HitTestType.port:
+        ctx.setHoveredPort(null);
         return RelationDrawing(
           {result.hitNodeId!},
           pCanvas,

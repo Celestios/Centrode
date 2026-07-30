@@ -406,13 +406,13 @@ pub fn finalize_relation(
     if start_base_offset > 0.0 {
         trim_polyline_endpoint(&mut result.path_points, true, start_base_offset);
         let start_base_center = result.start_point + st * start_base_offset;
-        let blend_dist = (start_base_offset * 3.0).max(35.0);
+        let blend_dist = start_base_offset * 0.5;
         smooth_path_at_endpoint(&mut result.path_points, true, start_base_center, st, blend_dist);
     }
     if end_base_offset > 0.0 {
         trim_polyline_endpoint(&mut result.path_points, false, end_base_offset);
         let end_base_center = result.end_point - et * end_base_offset;
-        let blend_dist = (end_base_offset * 3.0).max(35.0);
+        let blend_dist = end_base_offset * 0.5;
         smooth_path_at_endpoint(&mut result.path_points, false, end_base_center, et, blend_dist);
     }
 

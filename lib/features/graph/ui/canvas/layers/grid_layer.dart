@@ -263,6 +263,10 @@ class _GlowGridPainter extends CustomPainter {
   final Offset velocity;
 
   static const int _colorRampSize = 32;
+  static Color? _cachedDotColor;
+  static Color? _cachedGlowColor;
+  static List<Color>? _cachedColorRamp;
+
   late final List<Color> _colorRamp;
 
   _GlowGridPainter({
@@ -274,10 +278,15 @@ class _GlowGridPainter extends CustomPainter {
     required this.glowOpacity,
     required this.velocity,
   }) {
-    _colorRamp = List.generate(_colorRampSize, (i) {
-      final t = i / (_colorRampSize - 1);
-      return Color.lerp(dotColor, glowColor, t)!;
-    });
+    if (_cachedColorRamp == null || _cachedDotColor != dotColor || _cachedGlowColor != glowColor) {
+      _cachedDotColor = dotColor;
+      _cachedGlowColor = glowColor;
+      _cachedColorRamp = List.generate(_colorRampSize, (i) {
+        final t = i / (_colorRampSize - 1);
+        return Color.lerp(dotColor, glowColor, t)!;
+      });
+    }
+    _colorRamp = _cachedColorRamp!;
   }
 
   @override
@@ -289,29 +298,32 @@ class _GlowGridPainter extends CustomPainter {
 
     final Offset glowPos = visibleRect.topLeft + (glowPosLocal / scale);
 
-    final Offset displacementLogical = velocity / scale;
-    final double lagDistance = displacementLogical.distance;
+    final double lagDistanceViewport = velocity.distance;
 
-    const double baseInfluenceRadius = 160.0;
+    const double baseInfluenceRadiusViewport = 120.0;
 
-    double a = baseInfluenceRadius;
-    double b = baseInfluenceRadius;
+    double aViewport = baseInfluenceRadiusViewport;
+    double bViewport = baseInfluenceRadiusViewport;
     double cosAngle = 1.0;
     double sinAngle = 0.0;
 
-    if (lagDistance > 2.0) {
-      final double saturation = lagDistance / (lagDistance + 60.0);
+    if (lagDistanceViewport > 2.0) {
+      final double saturation =
+          lagDistanceViewport / (lagDistanceViewport + 60.0);
 
-      const double maxStretch = 120.0;
-      const double maxCompress = 40.0;
+      const double maxStretchViewport = 90.0;
+      const double maxCompressViewport = 30.0;
 
-      a = baseInfluenceRadius + maxStretch * saturation;
-      b = baseInfluenceRadius - maxCompress * saturation;
+      aViewport = baseInfluenceRadiusViewport + maxStretchViewport * saturation;
+      bViewport = baseInfluenceRadiusViewport - maxCompressViewport * saturation;
 
-      final Offset dir = displacementLogical / lagDistance;
+      final Offset dir = velocity / lagDistanceViewport;
       cosAngle = dir.dx;
       sinAngle = dir.dy;
     }
+
+    final double a = aViewport / scale;
+    final double b = bViewport / scale;
 
     final double maxDim = a > b ? a : b;
     final double minGlowX =

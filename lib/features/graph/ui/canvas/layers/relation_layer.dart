@@ -180,11 +180,17 @@ class RelationLayer extends StatelessWidget {
         dragPos = null;
       }
 
-      final cached = relationEngine?.cache[rel.id];
-      if (cached != null && cached.pathPoints.isNotEmpty) {
-        dtos.add(_buildCachedPaintDto(
+      final bool isNodeDragging = (interactionState is NodeDragging && (interactionState.nodeId == rel.fromNodeId || interactionState.nodeId == rel.toNodeId)) ||
+          (interactionState is GroupDragging && (interactionState.nodeIds.contains(rel.fromNodeId) || interactionState.nodeIds.contains(rel.toNodeId))) ||
+          (interactionState is NodeResizing && (interactionState.nodeId == rel.fromNodeId || interactionState.nodeId == rel.toNodeId));
+
+      final previewCached = relationEngine?.previewCache[rel.id];
+      final usePreview = tipDrag != null && tipDrag.snappedTargetNodeId != null && previewCached != null;
+
+      if (usePreview) {
+        dtos.add(_buildPreviewPaintDto(
           rel: rel,
-          cached: cached,
+          cached: previewCached,
           tipDrag: tipDrag,
           dragPos: dragPos,
           fromVs: from,
@@ -194,6 +200,23 @@ class RelationLayer extends StatelessWidget {
           color: color,
           strokeWidth: strokeWidth,
         ));
+      } else {
+        final cached = relationEngine?.cache[rel.id];
+        if (cached != null && cached.pathPoints.isNotEmpty) {
+          dtos.add(_buildCachedPaintDto(
+            rel: rel,
+            cached: cached,
+            tipDrag: tipDrag,
+            dragPos: dragPos,
+            isNodeDragging: isNodeDragging,
+            fromVs: from,
+            toVs: to,
+            resolved: resolved,
+            isSelected: isSelected,
+            color: color,
+            strokeWidth: strokeWidth,
+          ));
+        }
       }
     }
 
@@ -231,6 +254,7 @@ class RelationLayer extends StatelessWidget {
     required ComputedRelation cached,
     required RelationTipDragging? tipDrag,
     required Offset? dragPos,
+    required bool isNodeDragging,
     required NodeViewState fromVs,
     required NodeViewState toVs,
     required RelationStyle resolved,
@@ -239,31 +263,10 @@ class RelationLayer extends StatelessWidget {
     required double strokeWidth,
   }) {
     final bool isDraggingThisTip = tipDrag != null && dragPos != null;
+    final bool needsTransform = isDraggingThisTip || isNodeDragging;
+
     final startPoint = Offset(cached.startPoint.x, cached.startPoint.y);
     final endPoint = Offset(cached.endPoint.x, cached.endPoint.y);
-
-    final fromSide = rel.resolvedLayout?.fromSide ?? rel.layout?.fromSide;
-    final toSide = rel.resolvedLayout?.toSide ?? rel.layout?.toSide;
-
-    final Offset liveStart = fromSide != null
-        ? fromVs.getPortPosition(fromSide)
-        : fromVs.getClosestPort(endPoint).position;
-
-    final Offset liveEnd = toSide != null
-        ? toVs.getPortPosition(toSide)
-        : toVs.getClosestPort(startPoint).position;
-
-    final Offset targetStart = isDraggingThisTip
-        ? (tipDrag.isStartTip ? dragPos : startPoint)
-        : liveStart;
-
-    final Offset targetEnd = isDraggingThisTip
-        ? (!tipDrag.isStartTip ? dragPos : endPoint)
-        : liveEnd;
-
-    final bool needsTransform = isDraggingThisTip ||
-        (targetStart - startPoint).distanceSquared > 1e-4 ||
-        (targetEnd - endPoint).distanceSquared > 1e-4;
 
     final List<Offset> bodyPoints;
     final List<Offset> startShapeVertices;
@@ -271,17 +274,31 @@ class RelationLayer extends StatelessWidget {
     final Offset labelPos;
     final Offset startHandlePos;
     final Offset endHandlePos;
+    final Offset startPointResult;
+    final Offset endPointResult;
 
     if (needsTransform) {
-      final s0 = startPoint;
-      final e0 = endPoint;
+      final fromSide = rel.resolvedLayout?.fromSide ?? rel.layout?.fromSide;
+      final toSide = rel.resolvedLayout?.toSide ?? rel.layout?.toSide;
+
+      final Offset liveStart = isDraggingThisTip && tipDrag.isStartTip
+          ? dragPos
+          : (fromSide != null
+              ? fromVs.getPortPosition(fromSide)
+              : fromVs.getClosestPort(endPoint).position);
+
+      final Offset liveEnd = isDraggingThisTip && !tipDrag.isStartTip
+          ? dragPos
+          : (toSide != null
+              ? toVs.getPortPosition(toSide)
+              : toVs.getClosestPort(startPoint).position);
 
       List<Offset> transform(List<Point> pts) => transformPathPoints(
         points: pts.map((p) => Offset(p.x, p.y)).toList(),
-        sourceStart: s0,
-        sourceEnd: e0,
-        targetStart: targetStart,
-        targetEnd: targetEnd,
+        sourceStart: startPoint,
+        sourceEnd: endPoint,
+        targetStart: liveStart,
+        targetEnd: liveEnd,
       );
 
       bodyPoints = transform(cached.pathPoints);
@@ -295,10 +312,12 @@ class RelationLayer extends StatelessWidget {
       final labelTransformed = transform([Point(x: cached.labelPosition.x, y: cached.labelPosition.y)]);
       labelPos = labelTransformed.isNotEmpty
           ? labelTransformed.first
-          : Offset.lerp(targetStart, targetEnd, 0.5)!;
+          : Offset.lerp(liveStart, liveEnd, 0.5)!;
 
-      startHandlePos = targetStart;
-      endHandlePos = targetEnd;
+      startHandlePos = isDraggingThisTip ? liveStart : Offset(cached.startHandlePos.x, cached.startHandlePos.y);
+      endHandlePos = isDraggingThisTip ? liveEnd : Offset(cached.endHandlePos.x, cached.endHandlePos.y);
+      startPointResult = liveStart;
+      endPointResult = liveEnd;
     } else {
       bodyPoints = cached.pathPoints.map((p) => Offset(p.x, p.y)).toList();
       startShapeVertices = cached.startShapePath.isNotEmpty
@@ -310,6 +329,8 @@ class RelationLayer extends StatelessWidget {
       labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
       startHandlePos = Offset(cached.startHandlePos.x, cached.startHandlePos.y);
       endHandlePos = Offset(cached.endHandlePos.x, cached.endHandlePos.y);
+      startPointResult = startPoint;
+      endPointResult = endPoint;
     }
 
     return RelationPaintDto(
@@ -323,11 +344,59 @@ class RelationLayer extends StatelessWidget {
       strokeWidth: strokeWidth,
       strokePattern: resolved.strokePattern,
       isSelected: isSelected,
-      startPoint: targetStart,
-      endPoint: targetEnd,
+      startPoint: startPointResult,
+      endPoint: endPointResult,
       startHandlePos: startHandlePos,
       endHandlePos: endHandlePos,
       isDragging: isDraggingThisTip,
+      verb: rel.verb,
+      labelPos: labelPos,
+      widths: cached.bodyWidths,
+      isVariableWidth: cached.bodyType != rust_config.BodyType.uniform,
+    );
+  }
+
+  RelationPaintDto _buildPreviewPaintDto({
+    required UiRelation rel,
+    required ComputedRelation cached,
+    required RelationTipDragging? tipDrag,
+    required Offset? dragPos,
+    required NodeViewState fromVs,
+    required NodeViewState toVs,
+    required RelationStyle resolved,
+    required bool isSelected,
+    required Color color,
+    required double strokeWidth,
+  }) {
+    final bodyPoints = cached.pathPoints.map((p) => Offset(p.x, p.y)).toList();
+    final startShapeVertices = cached.startShapePath.isNotEmpty
+        ? cached.startShapePath.map((p) => Offset(p.x, p.y)).toList()
+        : const <Offset>[];
+    final endShapeVertices = cached.endShapePath.isNotEmpty
+        ? cached.endShapePath.map((p) => Offset(p.x, p.y)).toList()
+        : const <Offset>[];
+    final labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
+    final startHandlePos = Offset(cached.startHandlePos.x, cached.startHandlePos.y);
+    final endHandlePos = Offset(cached.endHandlePos.x, cached.endHandlePos.y);
+    final startPoint = Offset(cached.startPoint.x, cached.startPoint.y);
+    final endPoint = Offset(cached.endPoint.x, cached.endPoint.y);
+
+    return RelationPaintDto(
+      id: rel.id,
+      bodyPoints: bodyPoints,
+      startShapeVertices: startShapeVertices,
+      endShapeVertices: endShapeVertices,
+      startShapeFilled: cached.startShapeFilled,
+      endShapeFilled: cached.endShapeFilled,
+      color: color,
+      strokeWidth: strokeWidth,
+      strokePattern: resolved.strokePattern,
+      isSelected: isSelected,
+      startPoint: startPoint,
+      endPoint: endPoint,
+      startHandlePos: startHandlePos,
+      endHandlePos: endHandlePos,
+      isDragging: true,
       verb: rel.verb,
       labelPos: labelPos,
       widths: cached.bodyWidths,

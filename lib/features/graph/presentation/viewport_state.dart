@@ -172,10 +172,7 @@ class ViewportController {
     // Scale-Aware Geometric Decoupling & Elastic Margin calculation.
     final bounds = _dataController.canvasBounds;
     final padding = AppConfig.canvas.boundaryMargin;
-    final minScale = AppConfig.canvas.minScale;
-
-    final effectiveViewportWidth = _currentViewportSize.width / minScale;
-    final effectiveViewportHeight = _currentViewportSize.height / minScale;
+    final initialPadding = AppConfig.canvas.initialBoundaryMargin;
 
     // 1. Calculate boundaries based on graph node coordinates
     final nodeLeftBound = -bounds.minX.toDouble() + padding;
@@ -186,19 +183,19 @@ class ViewportController {
     // 2. Adjust boundaries to guarantee they enclose the current camera viewport
     // to prevent sudden snap backs when the nodes boundary shrinks.
     final leftBound = math.max(
-      math.max(effectiveViewportWidth, nodeLeftBound),
+      math.max(initialPadding, nodeLeftBound),
       viewport != Rect.zero ? -viewport.left : 0.0,
     );
     final topBound = math.max(
-      math.max(effectiveViewportHeight, nodeTopBound),
+      math.max(initialPadding, nodeTopBound),
       viewport != Rect.zero ? -viewport.top : 0.0,
     );
     final rightBound = math.max(
-      math.max(effectiveViewportWidth, nodeRightBound),
+      math.max(initialPadding, nodeRightBound),
       viewport != Rect.zero ? viewport.right - _currentViewportSize.width : 0.0,
     );
     final bottomBound = math.max(
-      math.max(effectiveViewportHeight, nodeBottomBound),
+      math.max(initialPadding, nodeBottomBound),
       viewport != Rect.zero
           ? viewport.bottom - _currentViewportSize.height
           : 0.0,

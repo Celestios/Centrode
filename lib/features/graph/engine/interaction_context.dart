@@ -123,6 +123,17 @@ abstract interface class MutationCapability {
     required String brushColor,
     required Size size,
   });
+
+  void onRelationSnapPreview({
+    required RawUuid relationId,
+    required bool isStartTip,
+    required RawUuid targetNodeId,
+    required String targetNodeTable,
+    required PortSide? targetSide,
+    required Offset overridePosition,
+  });
+
+  void onRelationSnapPreviewClear(RawUuid relationId);
 }
 
 abstract interface class GeometryCapability
