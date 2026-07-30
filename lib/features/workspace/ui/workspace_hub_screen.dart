@@ -6,8 +6,24 @@ import 'widgets/left_panel/left_panel.dart';
 import 'widgets/main_content/main_content_area.dart';
 import 'widgets/window_controls.dart';
 
-class WorkspaceHubScreen extends StatelessWidget {
+class WorkspaceHubScreen extends StatefulWidget {
   const WorkspaceHubScreen({super.key});
+
+  @override
+  State<WorkspaceHubScreen> createState() => _WorkspaceHubScreenState();
+}
+
+class _WorkspaceHubScreenState extends State<WorkspaceHubScreen> {
+  int _refreshKey = 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route?.isCurrent ?? false) {
+      setState(() => _refreshKey++);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +48,7 @@ class WorkspaceHubScreen extends StatelessWidget {
     return Row(
       children: [
         const LeftPanel(),
-        const Expanded(child: MainContentArea()),
+        Expanded(child: MainContentArea(key: ValueKey(_refreshKey))),
       ],
     );
   }

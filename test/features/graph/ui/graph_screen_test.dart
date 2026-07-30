@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:mycelium/features/graph/ui/graph_screen.dart';
+import 'package:mycelium/features/graph/presentation/map_manager.dart';
 import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
 import 'package:mycelium/features/graph/presentation/theme_manager.dart';
 import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
@@ -35,6 +36,7 @@ void main() {
     when(() => mockSession.id).thenReturn('test-session');
     when(() => mockSession.storagePath).thenReturn('');
     when(() => mockSession.name).thenReturn('Test Map');
+    when(() => mockSession.isMock).thenReturn(false);
     when(() => mockSession.isInitialized).thenReturn(true);
     when(() => mockSession.themeController).thenReturn(mockTheme);
     when(() => mockSession.queryController).thenReturn(mockQuery);
@@ -72,12 +74,12 @@ void main() {
     when(() => mockQuery.isLoading).thenReturn(false);
     when(() => mockQuery.errorMessage).thenReturn(null);
 
+    // Set up MapManager singleton with mock controller
+    MapManager.instance.tabsControllerForTesting = mockTabsController;
+
     await tester.pumpWidget(
       MaterialApp(
-        home: GraphScreen(
-          storagePath: '',
-          tabsController: mockTabsController,
-        ),
+        home: GraphScreen(),
       ),
     );
 

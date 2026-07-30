@@ -6,6 +6,7 @@ import '../store/graph_data_query_controller.dart';
 import '../store/command_queue_processor.dart';
 import '../presentation/node_render_state.dart';
 import '../presentation/workspace_tabs_controller.dart';
+import '../presentation/map_manager.dart';
 import '../presentation/theme_manager.dart';
 import '../store/graph_data_query.dart';
 import 'canvas/graph_canvas.dart';
@@ -14,9 +15,7 @@ import 'package:mycelium/shared/copy_buffer.dart';
 import 'package:mycelium/presentation/theme/app_theme_manager.dart';
 
 class GraphScreen extends StatefulWidget {
-  final String storagePath;
-  final WorkspaceTabsController? tabsController;
-  const GraphScreen({super.key, required this.storagePath, this.tabsController});
+  const GraphScreen({super.key});
 
   @override
   State<GraphScreen> createState() => _GraphScreenState();
@@ -31,16 +30,20 @@ class _GraphScreenState extends State<GraphScreen> {
   @override
   void initState() {
     super.initState();
-    _tabsController = widget.tabsController ?? WorkspaceTabsController(
-      initialPath: widget.storagePath,
-      initialName: 'Default Map',
-    );
+    _tabsController = MapManager.instance.tabsController;
+    MapManager.instance.onAllTabsClosed = _onAllTabsClosed;
+  }
+
+  void _onAllTabsClosed() {
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   @override
   void dispose() {
+    MapManager.instance.onAllTabsClosed = null;
     _copyBuffer.dispose();
-    _tabsController.dispose();
     super.dispose();
   }
 
@@ -52,6 +55,9 @@ class _GraphScreenState extends State<GraphScreen> {
         value: _tabsController,
         child: Consumer<WorkspaceTabsController>(
           builder: (context, tabsController, _) {
+            if (tabsController.tabs.isEmpty) {
+              return const Scaffold(body: Center(child: CircularProgressIndicator()));
+            }
             final activeSession = tabsController.activeSession;
 
             return ListenableBuilder(

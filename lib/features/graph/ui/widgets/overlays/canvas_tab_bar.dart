@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
+import 'package:mycelium/shared/utils/name_generator.dart';
 
 import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
 
@@ -32,7 +33,7 @@ class CanvasTabBar extends StatelessWidget {
                     child: _TabItem(
                       name: session.name,
                       isActive: isActive,
-                      canClose: tabs.length > 1,
+                      canClose: true,
                       onTap: () => tabsController.selectTab(index),
                       onClose: () => tabsController.closeTab(index),
                     ),
@@ -160,10 +161,10 @@ class _AddTabButton extends StatelessWidget {
 
     return HoverScaleButton(
       onTap: () {
-        final newIndex = tabsController.tabs.length + 1;
+        final name = NameGenerator.generate();
         tabsController.addTab(
-          'maps/mycelium_tab_$newIndex.db',
-          'Map $newIndex',
+          'maps/$name.db',
+          name,
         );
       },
       hoverScale: 1.05,

@@ -202,6 +202,7 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
     final allValidKeys = keys.union(_dataQuery.relationLookup.keys.toSet());
     selectionState.syncFromDataStore(keys, allValidKeys);
     editorState.cleanupStaleState(keys);
+    dragState.cleanupStaleQuarantine(keys);
 
     _log.finest(
       'NodeRenderState synchronized: ${selectionState.zOrder.length} nodes in render stack.',

@@ -103,6 +103,8 @@ class RustAppHandleWrapper implements GraphApi {
   @override
   Future<void> close() => _api.close();
 
+  void dispose() => _api.dispose();
+
   @override
   Future<List<ComputedRelation>> computeRelations({
     required RelationEngineConfig config,

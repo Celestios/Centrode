@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mycelium/shared/logging.dart';
 import 'package:mycelium/shared/traceable_notifier.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import 'package:mycelium/shared/utils/app_paths.dart';
 import '../../../src/rust/bridge/api.dart';
 import '../../../src/rust/domain/base_models.dart' show ViewportState;
 import '../store/graph_data_query_controller.dart';
@@ -127,12 +126,9 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     _log.info('Initializing TabSession name=$name path=$storagePath');
     String resolvedPath = storagePath;
     if (!p.isAbsolute(storagePath)) {
-      if (!kReleaseMode) {
-        resolvedPath = p.join(Directory.current.path, storagePath);
-      } else {
-        final appDocsDir = await getApplicationDocumentsDirectory();
-        resolvedPath = p.join(appDocsDir.path, storagePath);
-      }
+      resolvedPath = await AppPaths.resolveMapPath(
+        p.basenameWithoutExtension(storagePath),
+      );
     }
 
     final file = File(resolvedPath);
@@ -180,6 +176,19 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     notifyListeners();
   }
 
+  Future<void> close() async {
+    _log.info('Closing TabSession name=$name path=$storagePath');
+    _debounceTimer?.cancel();
+    final h = handle;
+    if (h != null) {
+      try {
+        await h.close();
+      } catch (e) {
+        _log.warning('Error closing handle for session $name: $e');
+      }
+    }
+  }
+
   @override
   void dispose() {
     _log.info('Disposing TabSession name=$name');
@@ -201,7 +210,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     showRightPanel.dispose();
     showBottomPanel.dispose();
     _viewportController = null;
-    handle?.close();
+    (handle as RustAppHandleWrapper?)?.dispose();
     super.dispose();
   }
 }
@@ -249,18 +258,20 @@ class WorkspaceTabsController extends ChangeNotifier with TraceableNotifier {
 
   Future<void> closeTab(int index) async {
     _log.info('closeTab index=$index');
-    if (_tabs.length <= 1) return; // Keep at least one tab open
-    final closedSession = _tabs[index];
-    await closedSession.saveViewportState();
-
-    _tabs.removeAt(index);
-    if (index < _activeIndex) {
+    if (_tabs.isEmpty || index < 0 || index >= _tabs.length) return;
+    
+    final closedSession = _tabs.removeAt(index);
+    if (_tabs.isEmpty) {
+      _activeIndex = 0;
+    } else if (index < _activeIndex) {
       _activeIndex--;
     } else if (_activeIndex >= _tabs.length) {
       _activeIndex = _tabs.length - 1;
     }
     notifyListeners();
 
+    await closedSession.saveViewportState();
+    await closedSession.close();
     closedSession.dispose();
   }
 

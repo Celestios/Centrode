@@ -41,7 +41,11 @@ class SelectionState extends ChangeNotifier with TraceableNotifier {
 
   /// Selects multiple entities simultaneously (e.g., marquee selection).
   void selectEntities(Iterable<RawUuid> ids) {
-    selectedEntities = ids.toSet();
+    selectedEntities = ids.where(
+      (id) =>
+          _dataQuery.nodeLookup.containsKey(id) ||
+          _dataQuery.relationLookup.containsKey(id),
+    ).toSet();
     _log.finer(
       'Marquee selection updated: ${selectedEntities.length} entities',
     );

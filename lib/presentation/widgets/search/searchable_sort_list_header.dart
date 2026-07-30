@@ -103,6 +103,7 @@ class SearchableSortedListHeader<T> extends StatelessWidget {
                 ),
               const Spacer(),
               PopupMenuButton<T>(
+                popUpAnimationStyle: AnimationStyle.noAnimation,
                 icon: Icon(
                   Icons.sort_rounded,
                   size: 16,

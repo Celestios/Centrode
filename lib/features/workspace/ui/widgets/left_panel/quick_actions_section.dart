@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mycelium/shared/utils/name_generator.dart';
 import 'package:mycelium/features/graph/ui/graph_screen.dart';
+import 'package:mycelium/features/graph/presentation/map_manager.dart';
+import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
 
 class QuickActionsSection extends StatelessWidget {
   const QuickActionsSection({super.key});
@@ -13,13 +16,7 @@ class QuickActionsSection extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Text(
-            'QUICK ACTIONS',
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.5,
-            ),
-          ),
+          const _ReturnToMapButton(),
           const SizedBox(height: 16),
           ListTile(
             leading: Icon(
@@ -60,6 +57,80 @@ class QuickActionsSection extends StatelessWidget {
   }
 }
 
+class _ReturnToMapButton extends StatelessWidget {
+  const _ReturnToMapButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return ListenableBuilder(
+      listenable: MapManager.instance,
+      builder: (context, _) {
+        final hasOpenMaps = MapManager.instance.hasOpenMaps;
+        final primaryColor = theme.colorScheme.primary;
+        final disabledColor = theme.disabledColor;
+
+        final buttonColor = hasOpenMaps ? primaryColor : disabledColor;
+
+        return HoverScaleButton(
+          isEnabled: hasOpenMaps,
+          onTap: hasOpenMaps
+              ? () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const GraphScreen(),
+                    ),
+                  );
+                }
+              : null,
+          hoverScale: hasOpenMaps ? 1.02 : 1.0,
+          pressScale: hasOpenMaps ? 0.98 : 1.0,
+          borderRadius: BorderRadius.circular(10),
+          builder: (context, isHovered, isPressed) {
+            return GlassPanel(
+              borderRadius: 10,
+              color: hasOpenMaps
+                  ? (isHovered
+                      ? primaryColor.withValues(alpha: 0.18)
+                      : primaryColor.withValues(alpha: 0.1))
+                  : theme.cardColor.withValues(alpha: 0.3),
+              shadow: hasOpenMaps && isHovered
+                  ? BoxShadow(
+                      color: primaryColor.withValues(alpha: 0.1),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    )
+                  : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.map_outlined,
+                      color: buttonColor.withValues(alpha: hasOpenMaps ? 1.0 : 0.4),
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Return to Map',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: buttonColor.withValues(alpha: hasOpenMaps ? 1.0 : 0.4),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
 class _NewMapButton extends StatelessWidget {
   const _NewMapButton();
 
@@ -81,11 +152,10 @@ class _NewMapButton extends StatelessWidget {
         ),
         onPressed: () {
           final name = NameGenerator.generate();
+          MapManager.instance.openMap('maps/$name.db', name);
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => GraphScreen(
-                storagePath: 'maps/$name.db',
-              ),
+              builder: (_) => const GraphScreen(),
             ),
           );
         },

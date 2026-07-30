@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:mycelium/features/graph/ui/graph_screen.dart';
+import 'package:mycelium/features/graph/presentation/map_manager.dart';
 import 'package:mycelium/shared/utils/map_scanner.dart';
+import 'package:mycelium/shared/utils/app_paths.dart';
+import 'package:mycelium/shared/utils/recent_maps_store.dart';
+import 'package:path/path.dart' as p;
+import 'dart:io';
 import '../shared/section_header.dart';
 import '../shared/horizontal_scroll_row.dart';
 import 'project_card.dart';
@@ -51,12 +57,56 @@ class _RecentSectionState extends State<RecentSection> {
         else
           HorizontalScrollRow(
             children: _recentMaps.map((map) {
-              final timeAgo = _formatTimeAgo(map.lastModified);
+              final timeAgo = _formatTimeAgo(map.lastAccessed);
               return ProjectCard(
                 name: map.name,
                 lastOpened: timeAgo,
                 onTap: () {
-                  // TODO: Open map
+                  MapManager.instance.openMap(map.path, map.name);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const GraphScreen(),
+                    ),
+                  );
+                },
+                onRename: (newName) async {
+                  final oldPath = map.path;
+                  final newPath = p.join(await AppPaths.mapsDirectory, '$newName.db');
+                  final wasOpen = MapManager.instance.isPathOpen(oldPath);
+                  if (wasOpen) {
+                    await MapManager.instance.closeByPath(oldPath);
+                  }
+                  await AppPaths.renameMapStorage(oldPath, newPath);
+                  await RecentMapsStore.rename(oldPath, newPath);
+                  if (wasOpen) {
+                    MapManager.instance.openMap(newPath, newName);
+                  }
+                  _loadRecentMaps();
+                },
+                onDelete: () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Delete map'),
+                      content: Text('Delete "${map.name}"?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(true),
+                          child: const Text('Delete'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmed == true) {
+                    await MapManager.instance.closeByPath(map.path);
+                    await AppPaths.deleteMapStorage(map.path);
+                    await RecentMapsStore.remove(map.path);
+                    _loadRecentMaps();
+                  }
                 },
               );
             }).toList(),

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mycelium/shared/logging.dart';
 import 'package:mycelium/shared/traceable_notifier.dart';
+import 'package:mycelium/shared/utils/app_paths.dart';
 import 'package:mycelium/src/rust/frb_generated.dart';
 import 'package:window_manager/window_manager.dart';
 import 'infrastructure/telemetry/log_manager.dart';
@@ -40,6 +41,7 @@ Future<void> main() async {
   await RustLib.init();
   await LogManager().init();
   await GlassShaderProvider.load();
+  await AppPaths.ensureDirectories();
 
   final log = Logger('BootSequence');
   log.info('Rust FFI loaded. Mycelium core ready.');
@@ -71,6 +73,7 @@ class MyApp extends StatelessWidget {
       builder: (context, currentTheme, _) {
         return MaterialApp(
           title: 'Mycelium',
+          debugShowCheckedModeBanner: false,
           theme: currentTheme.toThemeData(),
           home: const WorkspaceHubScreen(),
         );

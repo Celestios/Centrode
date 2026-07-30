@@ -115,20 +115,52 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    ShaderMask(
-                      shaderCallback: (bounds) => LinearGradient(
-                        colors: [
-                          theme.colorScheme.primary,
-                          theme.colorScheme.primary.withValues(alpha: 0.7),
-                        ],
-                      ).createShader(bounds),
-                      child: const Text(
-                        'MYCELIUM',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 18,
-                          color: Colors.white,
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
                         ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ShaderMask(
+                            shaderCallback: (bounds) => LinearGradient(
+                              colors: [
+                                theme.colorScheme.primary,
+                                theme.colorScheme.primary.withValues(alpha: 0.7),
+                              ],
+                            ).createShader(bounds),
+                            child: CustomPaint(
+                              size: const Size(18, 20),
+                              painter: _HomePolygonPainter(),
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          ShaderMask(
+                            shaderCallback: (bounds) => LinearGradient(
+                              colors: [
+                                theme.colorScheme.primary,
+                                theme.colorScheme.primary.withValues(alpha: 0.7),
+                              ],
+                            ).createShader(bounds),
+                            child: const Text(
+                              'MYCELIUM',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -152,18 +184,6 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
                             SubmenuButton(
                               style: menuButtonStyle,
                               menuChildren: [
-                                MenuItemButton(
-                                  onPressed: () {
-                                    Navigator.of(
-                                      context,
-                                    ).pop(); // Go back to Project Selection
-                                  },
-                                  leadingIcon: const Icon(
-                                    Icons.folder_open_outlined,
-                                    size: 16,
-                                  ),
-                                  child: const Text('Open Workspace Hub'),
-                                ),
                                 MenuItemButton(
                                   onPressed: () {
                                     if (commandProcessor != null) {
@@ -523,4 +543,26 @@ class _WindowControlButtonsState extends State<WindowControlButtons>
       ),
     );
   }
+}
+
+class _HomePolygonPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    final path = Path()
+      ..moveTo(size.width, 0)
+      ..lineTo(0, size.height * 0.45)
+      ..lineTo(size.width * 0.35, size.height * 0.45)
+      ..lineTo(size.width * 0.35, size.height)
+      ..lineTo(size.width, size.height)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_HomePolygonPainter oldDelegate) => false;
 }

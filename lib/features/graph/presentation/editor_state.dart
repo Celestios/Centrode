@@ -169,6 +169,16 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
   void dispose() {
     if (_disposed) return;
     _disposed = true;
+    applyFormatCallback = null;
+    toggleHeadingCallback = null;
+    clearBlockFormatCallback = null;
+    cycleFontFamilyCallback = null;
+    setFontFamilyCallback = null;
+    cycleTextColorCallback = null;
+    toggleHighlightCallback = null;
+    cycleHighlightColorCallback = null;
+    cycleTextAlignCallback = null;
+    commitActiveEditCallback = null;
     activeTextSelectionNotifier.dispose();
     toolbarOffsetNotifier.dispose();
     multiToolbarOffsetNotifier.dispose();

@@ -41,6 +41,23 @@ class DragState extends ChangeNotifier with TraceableNotifier {
     _log.finest('QUARANTINE: Node $id ViewState quarantined in DragState.');
   }
 
+  /// Evicts and disposes a quarantined ViewState when deletion is finalized.
+  void evictQuarantine(RawUuid id) {
+    final vs = _quarantineCache.remove(id);
+    if (vs != null) {
+      vs.dispose();
+      _log.finest('QUARANTINE: Node $id ViewState evicted and disposed.');
+    }
+  }
+
+  /// Purges any quarantined ViewStates whose IDs are not in the valid active keys set.
+  void cleanupStaleQuarantine(Set<RawUuid> activeKeys) {
+    final staleIds = _quarantineCache.keys.toSet().difference(activeKeys);
+    for (final id in staleIds) {
+      evictQuarantine(id);
+    }
+  }
+
   /// Attempts to rehydrate a quarantined ViewState for the given node ID.
   /// Returns the rehydrated ViewState, or null if not in quarantine.
   NodeViewState? tryRehydrate(RawUuid id) {

@@ -1,52 +1,47 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import 'app_paths.dart';
+import 'recent_maps_store.dart';
 
 class MapInfo {
   final String name;
   final String path;
   final DateTime createdAt;
   final DateTime lastModified;
+  final DateTime lastAccessed;
 
   const MapInfo({
     required this.name,
     required this.path,
     required this.createdAt,
     required this.lastModified,
+    required this.lastAccessed,
   });
 }
 
 class MapScanner {
-  static Future<String> get _mapsDirectory async {
-    if (!kReleaseMode) {
-      return p.join(Directory.current.path, 'maps');
-    } else {
-      final appDocsDir = await getApplicationDocumentsDirectory();
-      return p.join(appDocsDir.path, 'maps');
-    }
-  }
-
   static Future<List<MapInfo>> scanMaps() async {
-    final mapsDir = await _mapsDirectory;
+    final mapsDir = await AppPaths.mapsDirectory;
     final directory = Directory(mapsDir);
+    final accessTimes = await RecentMapsStore.getAll();
 
     if (!directory.existsSync()) {
       return [];
     }
 
     final maps = <MapInfo>[];
-    final files = directory.listSync().whereType<File>();
+    final entities = await directory.list().toList();
 
-    for (final file in files) {
-      if (file.path.endsWith('.db')) {
-        final stat = file.statSync();
-        final name = p.basenameWithoutExtension(file.path);
+    for (final entity in entities) {
+      if (entity.path.endsWith('.db')) {
+        final stat = await entity.stat();
+        final name = p.basenameWithoutExtension(entity.path);
         maps.add(MapInfo(
           name: name,
-          path: file.path,
+          path: entity.path,
           createdAt: stat.changed,
           lastModified: stat.modified,
+          lastAccessed: accessTimes[entity.path] ?? stat.modified,
         ));
       }
     }
@@ -56,7 +51,7 @@ class MapScanner {
 
   static Future<List<MapInfo>> getRecentMaps() async {
     final maps = await scanMaps();
-    maps.sort((a, b) => b.lastModified.compareTo(a.lastModified));
+    maps.sort((a, b) => b.lastAccessed.compareTo(a.lastAccessed));
     return maps;
   }
 
