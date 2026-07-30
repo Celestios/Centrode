@@ -13,14 +13,54 @@ class MainContentArea extends StatelessWidget {
       clipper: _InwardLeftClipper(),
       child: Container(
         color: theme.scaffoldBackgroundColor,
-        child: const Column(
+        child: Stack(
           children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: MapsSection(),
+            const Positioned.fill(
+              child: Column(
+                children: [
+                  SizedBox(height: 48),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.only(top: 16),
+                      child: MapsSection(),
+                    ),
+                  ),
+                  AnalyticsBox(),
+                ],
               ),
             ),
-            AnalyticsBox(),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 38,
+              child: Center(
+                child: RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'MYCELIUM',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      TextSpan(
+                        text: '  Workspace Hub',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.5),
+                          fontWeight: FontWeight.w400,
+                          fontSize: 12,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

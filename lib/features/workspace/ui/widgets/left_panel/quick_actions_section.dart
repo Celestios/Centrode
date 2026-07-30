@@ -12,40 +12,12 @@ class QuickActionsSection extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'QUICK ACTIONS',
             style: theme.textTheme.bodySmall?.copyWith(
               fontWeight: FontWeight.w600,
               letterSpacing: 1.5,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Center(
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: IconButton(
-                icon: Icon(
-                  Icons.add,
-                  color: theme.colorScheme.primary,
-                ),
-                onPressed: () {
-                  final name = NameGenerator.generate();
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => GraphScreen(
-                        storagePath: 'maps/$name.db',
-                      ),
-                    ),
-                  );
-                },
-              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -56,7 +28,7 @@ class QuickActionsSection extends StatelessWidget {
               size: 20,
             ),
             title: Text(
-              'Open File...',
+              'Open',
               style: theme.textTheme.bodyMedium,
             ),
             onTap: () {},
@@ -70,14 +42,53 @@ class QuickActionsSection extends StatelessWidget {
               size: 20,
             ),
             title: Text(
-              'Import .celi',
+              'Import',
               style: theme.textTheme.bodyMedium,
             ),
             onTap: () {},
             contentPadding: EdgeInsets.zero,
             dense: true,
           ),
+          const Expanded(
+            child: Center(
+              child: _NewMapButton(),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _NewMapButton extends StatelessWidget {
+  const _NewMapButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: IconButton(
+        icon: Icon(
+          Icons.add,
+          color: theme.colorScheme.primary,
+        ),
+        onPressed: () {
+          final name = NameGenerator.generate();
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => GraphScreen(
+                storagePath: 'maps/$name.db',
+              ),
+            ),
+          );
+        },
       ),
     );
   }

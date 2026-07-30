@@ -12,7 +12,6 @@ class LeftPanel extends StatelessWidget {
     return Container(
       width: 200,
       decoration: BoxDecoration(
-        color: theme.cardColor,
         borderRadius: const BorderRadius.only(
           topRight: Radius.circular(16),
           bottomRight: Radius.circular(16),
@@ -28,11 +27,14 @@ class LeftPanel extends StatelessWidget {
           topRight: Radius.circular(16),
           bottomRight: Radius.circular(16),
         ),
-        child: Column(
-          children: [
-            const Expanded(child: QuickActionsSection()),
-            const PanelFooterSection(),
-          ],
+        child: Material(
+          color: theme.cardColor,
+          child: Column(
+            children: [
+              const Expanded(child: QuickActionsSection()),
+              const PanelFooterSection(),
+            ],
+          ),
         ),
       ),
     );
