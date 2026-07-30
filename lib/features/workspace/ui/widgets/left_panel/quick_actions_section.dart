@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mycelium/shared/utils/name_generator.dart';
 
 class QuickActionsSection extends StatelessWidget {
   const QuickActionsSection({super.key});
@@ -33,7 +34,10 @@ class QuickActionsSection extends StatelessWidget {
                   Icons.add,
                   color: theme.colorScheme.primary,
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  final name = NameGenerator.generate();
+                  debugPrint('Creating map: $name');
+                },
               ),
             ),
           ),
