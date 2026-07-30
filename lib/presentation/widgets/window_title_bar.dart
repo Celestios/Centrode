@@ -26,26 +26,42 @@ class SimpleWindowTitleBar extends StatelessWidget {
     return Container(
       height: 38,
       color: theme.colorScheme.surface,
-      child: Row(
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          // Drag area
-          Expanded(
-            child: DragToMoveArea(
-              child: Container(
-                padding: const EdgeInsets.only(left: 12),
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                    letterSpacing: 0.5,
+          Positioned.fill(
+            child: DragToMoveArea(child: const SizedBox.expand()),
+          ),
+          Center(
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'MYCELIUM',
+                    style: TextStyle(
+                      color: theme.textTheme.bodyMedium?.color,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
+                      letterSpacing: 1.5,
+                    ),
                   ),
-                ),
+                  TextSpan(
+                    text: '  Workspace Hub',
+                    style: TextStyle(
+                      color: theme.textTheme.bodySmall?.color,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 12,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-          const WindowControlButtons(),
+          const Positioned(
+            right: 0,
+            child: WindowControlButtons(),
+          ),
         ],
       ),
     );
@@ -146,7 +162,7 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
                                     Icons.folder_open_outlined,
                                     size: 16,
                                   ),
-                                  child: const Text('Open Project Selector'),
+                                  child: const Text('Open Workspace Hub'),
                                 ),
                                 MenuItemButton(
                                   onPressed: () {

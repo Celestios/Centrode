@@ -7,7 +7,7 @@ import 'package:mycelium/shared/traceable_notifier.dart';
 import 'package:mycelium/src/rust/frb_generated.dart';
 import 'package:window_manager/window_manager.dart';
 import 'infrastructure/telemetry/log_manager.dart';
-import 'features/workspace/ui/project_selector_screen.dart'; // your existing screen
+import 'features/workspace/ui/workspace_hub_screen.dart';
 import 'presentation/theme/app_theme.dart'; // from previous step
 import 'presentation/theme/theme_repository.dart'; // from previous step
 import 'presentation/theme/app_theme_manager.dart';
@@ -72,7 +72,7 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'Mycelium',
           theme: currentTheme.toThemeData(),
-          home: const ProjectSelectorScreen(),
+          home: const WorkspaceHubScreen(),
         );
       },
     );
