@@ -24,6 +24,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
   final String id;
   final String storagePath;
   final String name;
+  final String? centFilePath;
   GraphApi? handle;
   ThemeController? themeController;
   GraphDataQueryController? queryController;
@@ -114,7 +115,12 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
 
   Future<void>? _initFuture;
 
-  TabSession({required this.id, required this.storagePath, required this.name}) {
+  TabSession({
+    required this.id,
+    required this.storagePath,
+    required this.name,
+    this.centFilePath,
+  }) {
     handle = _deferredApi;
     final tc = ThemeController(_deferredApi);
     themeController = tc;
@@ -167,6 +173,21 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     );
     final wrapper = RustAppHandleWrapper(activeHandle);
     _deferredApi.attach(wrapper);
+
+    if (centFilePath != null) {
+      final attachmentDir = p.join(
+        directory.path,
+        'attachments',
+        p.basenameWithoutExtension(centFilePath!),
+      );
+      if (!Directory(attachmentDir).existsSync()) {
+        Directory(attachmentDir).createSync(recursive: true);
+      }
+      await wrapper.loadMapFromFile(
+        filePath: centFilePath!,
+        attachmentDir: attachmentDir,
+      );
+    }
 
     final tc = themeController!;
     final qc = queryController!;
@@ -234,8 +255,9 @@ class WorkspaceTabsController extends ChangeNotifier with TraceableNotifier {
   WorkspaceTabsController({
     required String initialPath,
     required String initialName,
+    String? initialCentFilePath,
   }) {
-    addTab(initialPath, initialName);
+    addTab(initialPath, initialName, centFilePath: initialCentFilePath);
   }
 
   List<TabSession> get tabs => List.unmodifiable(_tabs);
@@ -243,11 +265,16 @@ class WorkspaceTabsController extends ChangeNotifier with TraceableNotifier {
 
   TabSession get activeSession => _tabs[_activeIndex];
 
-  void addTab(String storagePath, String name) {
+  void addTab(String storagePath, String name, {String? centFilePath}) {
     _log.info('addTab name=$name');
     final id =
         '${DateTime.now().millisecondsSinceEpoch}_${storagePath.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}';
-    final newSession = TabSession(id: id, storagePath: storagePath, name: name);
+    final newSession = TabSession(
+      id: id,
+      storagePath: storagePath,
+      name: name,
+      centFilePath: centFilePath,
+    );
     _tabs.add(newSession);
     _activeIndex = _tabs.length - 1;
     notifyListeners();

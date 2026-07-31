@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as p;
 import 'package:centrode/shared/utils/name_generator.dart';
 import 'package:centrode/features/graph/ui/graph_screen.dart';
 import 'package:centrode/features/graph/presentation/map_manager.dart';
@@ -25,7 +27,22 @@ class QuickActionsSection extends StatelessWidget {
               size: 20,
             ),
             title: Text('Open', style: theme.textTheme.bodyMedium),
-            onTap: () {},
+            onTap: () async {
+              final result = await FilePicker.platform.pickFiles(
+                type: FileType.custom,
+                allowedExtensions: ['cent'],
+              );
+              if (result != null && result.files.single.path != null) {
+                final filePath = result.files.single.path!;
+                final name = p.basenameWithoutExtension(filePath);
+                MapManager.instance.openCentFile(filePath, name);
+                if (context.mounted) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const GraphScreen()),
+                  );
+                }
+              }
+            },
             contentPadding: EdgeInsets.zero,
             dense: true,
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/utils/app_paths.dart';
 import 'package:centrode/shared/utils/recent_maps_store.dart';
 import 'workspace_tabs_controller.dart';
 
@@ -86,6 +87,38 @@ class MapManager extends ChangeNotifier {
       _log.info('closeByPath closing tab $index for $storagePath');
       await _tabsController!.closeTab(index);
     }
+  }
+
+  Future<bool> openCentFile(String centFilePath, String name) async {
+    _log.info('openCentFile name=$name centPath=$centFilePath');
+
+    final storagePath = await AppPaths.resolveMapPath(name);
+    RecentMapsStore.touch(storagePath);
+
+    if (_tabsController != null) {
+      final canonicalTarget = p.canonicalize(storagePath);
+      final existingIndex = _tabsController!.tabs.indexWhere(
+        (t) => p.canonicalize(t.storagePath) == canonicalTarget,
+      );
+      if (existingIndex >= 0) {
+        _log.info('Map already open at tab $existingIndex, selecting it');
+        _tabsController!.selectTab(existingIndex);
+        notifyListeners();
+        return true;
+      }
+      _tabsController!.addTab(storagePath, name, centFilePath: centFilePath);
+      notifyListeners();
+      return false;
+    }
+
+    _tabsController = WorkspaceTabsController(
+      initialPath: storagePath,
+      initialName: name,
+      initialCentFilePath: centFilePath,
+    );
+    _tabsController!.addListener(_onTabsChanged);
+    notifyListeners();
+    return false;
   }
 
   void closeAll() {
