@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
-import 'package:mycelium/shared/logging.dart';
+import 'package:centrode/shared/logging.dart';
 import '../models/models.dart';
 import '../models/port.dart';
 import '../presentation/view_state.dart';
@@ -16,7 +16,7 @@ import '../store/relation_engine_state.dart';
 import '../presentation/node_render_state.dart';
 import '../presentation/viewport_state.dart';
 import '../presentation/workspace_tabs_controller.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 /// The Facade bridging the active FSM to the Data/UI Controllers.
 class CanvasInteractionEnvironment implements InteractionContext {
@@ -55,7 +55,8 @@ class CanvasInteractionEnvironment implements InteractionContext {
        _getScale = getScale,
        _onSaveTemplate = onSaveTemplate,
        spatialHandler = spatialHandler ?? const DefaultSpatialActionHandler(),
-       topologyHandler = topologyHandler ?? const DefaultTopologyActionHandler(),
+       topologyHandler =
+           topologyHandler ?? const DefaultTopologyActionHandler(),
        contentHandler = contentHandler ?? const DefaultContentActionHandler();
 
   @override
@@ -100,7 +101,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
     PortSide? toSide,
     String? verb,
   }) {
-    debugPrint('[InteractionFacade] onRelationCreate from=$from to=$to fromSide=$fromSide toSide=$toSide');
+    debugPrint(
+      '[InteractionFacade] onRelationCreate from=$from to=$to fromSide=$fromSide toSide=$toSide',
+    );
     _commandProcessor.createRelation(
       from,
       to,
@@ -289,7 +292,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
     required String brushColor,
     required Size size,
   }) {
-    _log.info('onCreateDrawingNode pos=(${position.dx}, ${position.dy}) type=$brushType');
+    _log.info(
+      'onCreateDrawingNode pos=(${position.dx}, ${position.dy}) type=$brushType',
+    );
     _commandProcessor.createNode(
       UiNodes.drawing,
       position,
@@ -324,8 +329,12 @@ class CanvasInteractionEnvironment implements InteractionContext {
         toSide: isStartTip
             ? rel.resolvedLayout?.toSide ?? rel.layout?.toSide
             : targetSide,
-        overrideStart: isStartTip && targetSide == null ? overridePosition : null,
-        overrideEnd: !isStartTip && targetSide == null ? overridePosition : null,
+        overrideStart: isStartTip && targetSide == null
+            ? overridePosition
+            : null,
+        overrideEnd: !isStartTip && targetSide == null
+            ? overridePosition
+            : null,
       );
     } else {
       final sourceNode = getNode(relationId);

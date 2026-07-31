@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/traceable_notifier.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/traceable_notifier.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../engine/config.dart';
 import '../store/graph_data_query.dart';
 import 'view_state.dart';
@@ -24,7 +24,8 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
   RawUuid? nodeShowingFloatingToolbar;
 
   /// Tracks active text selection during inline editing.
-  final ValueNotifier<TextSelection?> activeTextSelectionNotifier = ValueNotifier(null);
+  final ValueNotifier<TextSelection?> activeTextSelectionNotifier =
+      ValueNotifier(null);
 
   /// Value notifier tracking unified toolbar offset for single selections.
   final ValueNotifier<Offset> toolbarOffsetNotifier = ValueNotifier(
@@ -37,7 +38,9 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
   );
 
   /// Tracks the current paragraph's alignment for the toolbar icon.
-  final ValueNotifier<TextAlign> currentTextAlignNotifier = ValueNotifier(TextAlign.center);
+  final ValueNotifier<TextAlign> currentTextAlignNotifier = ValueNotifier(
+    TextAlign.center,
+  );
 
   /// Decoupled callbacks for text formatting in the UI layer.
   void Function(dynamic formatType, {String? url})? applyFormatCallback;
@@ -121,8 +124,10 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
   }
 
   Offset? _calculateMultiSelectAnchor(Iterable<RawUuid> selectedIds) {
-    double minX = double.infinity, minY = double.infinity,
-        maxX = double.negativeInfinity, maxY = double.negativeInfinity;
+    double minX = double.infinity,
+        minY = double.infinity,
+        maxX = double.negativeInfinity,
+        maxY = double.negativeInfinity;
     for (final id in selectedIds) {
       final vs = viewStates[id];
       if (vs == null) continue;

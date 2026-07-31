@@ -42,15 +42,15 @@ This workflow coordinates detailed visual UI designs, motion mapping, database s
 - Engage in an iterative loop as the user describes features and requirements progressively.
 - For each distinct component, tier, or subsystem, create or refine specialized design artifacts. These artifacts describe **what** to build and **how** it should look/behave — not the step-by-step implementation sequence.
 - Align designs with the respective architectural guidelines:
-  - **Visual & UI mockups**: Adhere to [ui-designer](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/ui-designer/SKILL.md) guidelines (HSL colors, glassmorphic depths, spring physics).
-  - **FFI & Logic structures**: Adhere to [architecture-designer](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/architecture-designer/SKILL.md) guidelines (Command patterns, state patterns).
-  - **Architectural boundaries**: Adhere to [architectural-bounds](file:///d:/Projects/Open/flutter/code/mycelium/.agents/rules/architectural-bounds.md) guidelines (3-tier isolation, no cross-layer database mutations from the UI).
-  - **Design symmetry**: Adhere to [symmetrical-design](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/symmetrical-design/SKILL.md) guidelines (symmetrical commands, file structures, lifecycles).
-  - **Persistence schemas**: Model SurrealDB tables, fields, transaction queries, and trait representations (no manual edits to `schema.surql`) according to [persistence-schemas](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/persistence-schemas/SKILL.md).
-  - **Gesture & Interaction FSM**: Map gesture recognizers, event bubbling hierarchies, and state machine transitions using [gesture-interaction-fsm](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/gesture-interaction-fsm/SKILL.md).
-  - **Package & Package Format (.celi)**: Model data zip compression archives, directory hierarchies, and file-system serialization structures using [package-format-celi](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/package-format-celi/SKILL.md).
-  - **Physics & Layout Simulation**: Define force-directed canvas node math, link forces, and boundary restrictions using [physics-layout-simulation](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/physics-layout-simulation/SKILL.md).
-  - **Telemetry & Diagnostics**: Define structured warning/error logs, metrics hooks, and tracing schemas using [telemetry-diagnostics](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/telemetry-diagnostics/SKILL.md).
+  - **Visual & UI mockups**: Adhere to [ui-designer](.agents/skills/design/ui-designer/SKILL.md) guidelines (HSL colors, glassmorphic depths, spring physics).
+  - **FFI & Logic structures**: Adhere to [architecture-designer](.agents/skills/design/architecture-designer/SKILL.md) guidelines (Command patterns, state patterns).
+  - **Architectural boundaries**: Adhere to [architectural-bounds](.agents/rules/architectural-bounds.md) guidelines (3-tier isolation, no cross-layer database mutations from the UI).
+  - **Design symmetry**: Adhere to [symmetrical-design](.agents/skills/design/symmetrical-design/SKILL.md) guidelines (symmetrical commands, file structures, lifecycles).
+  - **Persistence schemas**: Model SurrealDB tables, fields, transaction queries, and trait representations (no manual edits to `schema.surql`) according to [persistence-schemas](.agents/skills/design/persistence-schemas/SKILL.md).
+  - **Gesture & Interaction FSM**: Map gesture recognizers, event bubbling hierarchies, and state machine transitions using [gesture-interaction-fsm](.agents/skills/design/gesture-interaction-fsm/SKILL.md).
+  - **Package & Package Format (.cent)**: Model data zip compression archives, directory hierarchies, and file-system serialization structures using [package-format-cent](.agents/skills/design/package-format-cent/SKILL.md).
+  - **Physics & Layout Simulation**: Define force-directed canvas node math, link forces, and boundary restrictions using [physics-layout-simulation](.agents/skills/design/physics-layout-simulation/SKILL.md).
+  - **Telemetry & Diagnostics**: Define structured warning/error logs, metrics hooks, and tracing schemas using [telemetry-diagnostics](.agents/skills/design/telemetry-diagnostics/SKILL.md).
 
 - *Constraint: Present the newly generated or modified design artifacts, then pause and wait for the USER's feedback. Repeat this phase for every iteration.*
 

@@ -1,3 +1,3 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.flutter_rust_bridge.rust_lib_mycelium">
+  package="com.flutter_rust_bridge.centrode_core">
 </manifest>

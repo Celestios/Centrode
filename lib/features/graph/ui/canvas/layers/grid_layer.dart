@@ -3,8 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import '../../../engine/config.dart';
-import 'package:mycelium/features/graph/presentation/viewport_state.dart';
-import 'package:mycelium/shared/utils/color_utils.dart';
+import 'package:centrode/features/graph/presentation/viewport_state.dart';
+import 'package:centrode/shared/utils/color_utils.dart';
 
 class GridLayer extends StatefulWidget {
   final ViewportStateGrid viewportState;
@@ -109,11 +109,7 @@ class _GridLayerState extends State<GridLayer>
           _velocity = Offset.zero;
           _ticker!.stop();
         } else {
-          _visualGlowPos = Offset.lerp(
-            _visualGlowPos,
-            physicalMousePos,
-            step,
-          );
+          _visualGlowPos = Offset.lerp(_visualGlowPos, physicalMousePos, step);
           _velocity = physicalMousePos - _visualGlowPos!;
         }
       }
@@ -278,7 +274,9 @@ class _GlowGridPainter extends CustomPainter {
     required this.glowOpacity,
     required this.velocity,
   }) {
-    if (_cachedColorRamp == null || _cachedDotColor != dotColor || _cachedGlowColor != glowColor) {
+    if (_cachedColorRamp == null ||
+        _cachedDotColor != dotColor ||
+        _cachedGlowColor != glowColor) {
       _cachedDotColor = dotColor;
       _cachedGlowColor = glowColor;
       _cachedColorRamp = List.generate(_colorRampSize, (i) {
@@ -315,7 +313,8 @@ class _GlowGridPainter extends CustomPainter {
       const double maxCompressViewport = 30.0;
 
       aViewport = baseInfluenceRadiusViewport + maxStretchViewport * saturation;
-      bViewport = baseInfluenceRadiusViewport - maxCompressViewport * saturation;
+      bViewport =
+          baseInfluenceRadiusViewport - maxCompressViewport * saturation;
 
       final Offset dir = velocity / lagDistanceViewport;
       cosAngle = dir.dx;
@@ -354,13 +353,14 @@ class _GlowGridPainter extends CustomPainter {
           final double targetRadius =
               (AppConfig.grid.dotRadius + strength) / scale;
 
-          final int rampIndex =
-              (strength * (_colorRampSize - 1)).round().clamp(
-                0,
-                _colorRampSize - 1,
-              );
+          final int rampIndex = (strength * (_colorRampSize - 1)).round().clamp(
+            0,
+            _colorRampSize - 1,
+          );
           final baseColor = _colorRamp[rampIndex];
-          glowPaint.color = baseColor.withValues(alpha: baseColor.a * glowOpacity);
+          glowPaint.color = baseColor.withValues(
+            alpha: baseColor.a * glowOpacity,
+          );
 
           canvas.drawCircle(Offset(x, y), targetRadius, glowPaint);
         }

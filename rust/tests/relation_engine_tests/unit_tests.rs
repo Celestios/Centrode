@@ -1,13 +1,13 @@
-use rust_lib_mycelium::domain::id::TypedRecordId;
-use rust_lib_mycelium::domain::styles::PortSide;
-use rust_lib_mycelium::domain::traits::TableKind;
-use rust_lib_mycelium::relation_engine::computed::{ComputedRelation, PathType};
-use rust_lib_mycelium::relation_engine::geometry::{
+use centrode_core::domain::id::TypedRecordId;
+use centrode_core::domain::styles::PortSide;
+use centrode_core::domain::traits::TableKind;
+use centrode_core::relation_engine::computed::{ComputedRelation, PathType};
+use centrode_core::relation_engine::geometry::{
     distance_to_segment, polyline_length, segments_intersect, Point,
 };
-use rust_lib_mycelium::relation_engine::input::InputNode;
-use rust_lib_mycelium::relation_engine::path_finder::grid::Grid;
-use rust_lib_mycelium::relation_engine::path_finder::port::{
+use centrode_core::relation_engine::input::InputNode;
+use centrode_core::relation_engine::path_finder::grid::Grid;
+use centrode_core::relation_engine::path_finder::port::{
     closest_port_to, get_port_dir, normal_for_side, port_position,
 };
 use std::collections::hash_map::DefaultHasher;
@@ -135,11 +135,11 @@ fn test_computed_relation_new_basic() {
 
 #[test]
 fn test_bezier_and_sinewave_perpendicular_exits() {
-    use rust_lib_mycelium::relation_engine::config::BezierConfig;
-    use rust_lib_mycelium::relation_engine::shaper::bezier::BezierShaper;
-    use rust_lib_mycelium::relation_engine::shaper::core::Shaper;
-    use rust_lib_mycelium::relation_engine::shaper::core::ShaperContext;
-    use rust_lib_mycelium::relation_engine::shaper::sinewave::SineWaveShaper;
+    use centrode_core::relation_engine::config::BezierConfig;
+    use centrode_core::relation_engine::shaper::bezier::BezierShaper;
+    use centrode_core::relation_engine::shaper::core::Shaper;
+    use centrode_core::relation_engine::shaper::core::ShaperContext;
+    use centrode_core::relation_engine::shaper::sinewave::SineWaveShaper;
 
     let p0 = Point::new(100.0, 100.0);
     let p3 = Point::new(300.0, 300.0);
@@ -202,8 +202,8 @@ fn test_bezier_and_sinewave_perpendicular_exits() {
 
 #[test]
 fn test_bezier_control_points_distance_scaling() {
-    use rust_lib_mycelium::relation_engine::geometry::Point;
-    use rust_lib_mycelium::relation_engine::shaper::core::resolve_control_points;
+    use centrode_core::relation_engine::geometry::Point;
+    use centrode_core::relation_engine::shaper::core::resolve_control_points;
 
     let start = Point::new(0.0, 0.0);
     let end_short = Point::new(100.0, 0.0);

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
-import 'package:mycelium/src/rust/relation_engine/config.dart' as rust_config;
-import 'package:mycelium/src/rust/relation_engine/computed.dart';
-import 'package:mycelium/src/rust/relation_engine/geometry.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/src/rust/relation_engine/config.dart' as rust_config;
+import 'package:centrode/src/rust/relation_engine/computed.dart';
+import 'package:centrode/src/rust/relation_engine/geometry.dart';
 import '../../../engine/config.dart';
 import '../../../store/graph_data_query_controller.dart';
 import '../../../presentation/node_render_state.dart';
@@ -12,7 +12,7 @@ import '../../../models/models.dart';
 import '../painters/relation_painter.dart';
 import '../painters/relation_painter_dto.dart';
 import '../text/canvas_text_editor.dart';
-import 'package:mycelium/shared/widgets/unbounded_stack.dart';
+import 'package:centrode/shared/widgets/unbounded_stack.dart';
 import '../../../presentation/view_state.dart';
 import '../../../presentation/strategies/relation_style_strategy.dart';
 import '../../../presentation/relation_utils.dart';
@@ -54,7 +54,10 @@ class RelationLayer extends StatelessWidget {
           if (editedRel != null) {
             final cached = queryController.relationEngine.cache[editedRel.id];
             if (cached != null) {
-              final labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
+              final labelPos = Offset(
+                cached.labelPosition.x,
+                cached.labelPosition.y,
+              );
               final width = AppConfig.relation.editorMinWidth;
               final position =
                   labelPos -
@@ -146,7 +149,8 @@ class RelationLayer extends StatelessWidget {
 
       if (from == null || to == null) continue;
 
-      final tipDrag = (interactionState is RelationTipDragging &&
+      final tipDrag =
+          (interactionState is RelationTipDragging &&
               interactionState.relationId == rel.id)
           ? interactionState
           : null;
@@ -168,7 +172,8 @@ class RelationLayer extends StatelessWidget {
 
       final Offset? dragPos;
       if (tipDrag != null) {
-        if (tipDrag.snappedTargetNodeId != null && tipDrag.snappedTargetSide != null) {
+        if (tipDrag.snappedTargetNodeId != null &&
+            tipDrag.snappedTargetSide != null) {
           final targetVs = nodeViewStates[tipDrag.snappedTargetNodeId!];
           dragPos = targetVs != null
               ? targetVs.getPortPosition(tipDrag.snappedTargetSide!)
@@ -180,42 +185,56 @@ class RelationLayer extends StatelessWidget {
         dragPos = null;
       }
 
-      final bool isNodeDragging = (interactionState is NodeDragging && (interactionState.nodeId == rel.fromNodeId || interactionState.nodeId == rel.toNodeId)) ||
-          (interactionState is GroupDragging && (interactionState.nodeIds.contains(rel.fromNodeId) || interactionState.nodeIds.contains(rel.toNodeId))) ||
-          (interactionState is NodeResizing && (interactionState.nodeId == rel.fromNodeId || interactionState.nodeId == rel.toNodeId));
+      final bool isNodeDragging =
+          (interactionState is NodeDragging &&
+              (interactionState.nodeId == rel.fromNodeId ||
+                  interactionState.nodeId == rel.toNodeId)) ||
+          (interactionState is GroupDragging &&
+              (interactionState.nodeIds.contains(rel.fromNodeId) ||
+                  interactionState.nodeIds.contains(rel.toNodeId))) ||
+          (interactionState is NodeResizing &&
+              (interactionState.nodeId == rel.fromNodeId ||
+                  interactionState.nodeId == rel.toNodeId));
 
       final previewCached = relationEngine?.previewCache[rel.id];
-      final usePreview = tipDrag != null && tipDrag.snappedTargetNodeId != null && previewCached != null;
+      final usePreview =
+          tipDrag != null &&
+          tipDrag.snappedTargetNodeId != null &&
+          previewCached != null;
 
       if (usePreview) {
-        dtos.add(_buildPreviewPaintDto(
-          rel: rel,
-          cached: previewCached,
-          tipDrag: tipDrag,
-          dragPos: dragPos,
-          fromVs: from,
-          toVs: to,
-          resolved: resolved,
-          isSelected: isSelected,
-          color: color,
-          strokeWidth: strokeWidth,
-        ));
-      } else {
-        final cached = relationEngine?.cache[rel.id];
-        if (cached != null && cached.pathPoints.isNotEmpty) {
-          dtos.add(_buildCachedPaintDto(
+        dtos.add(
+          _buildPreviewPaintDto(
             rel: rel,
-            cached: cached,
+            cached: previewCached,
             tipDrag: tipDrag,
             dragPos: dragPos,
-            isNodeDragging: isNodeDragging,
             fromVs: from,
             toVs: to,
             resolved: resolved,
             isSelected: isSelected,
             color: color,
             strokeWidth: strokeWidth,
-          ));
+          ),
+        );
+      } else {
+        final cached = relationEngine?.cache[rel.id];
+        if (cached != null && cached.pathPoints.isNotEmpty) {
+          dtos.add(
+            _buildCachedPaintDto(
+              rel: rel,
+              cached: cached,
+              tipDrag: tipDrag,
+              dragPos: dragPos,
+              isNodeDragging: isNodeDragging,
+              fromVs: from,
+              toVs: to,
+              resolved: resolved,
+              isSelected: isSelected,
+              color: color,
+              strokeWidth: strokeWidth,
+            ),
+          );
         }
       }
     }
@@ -230,7 +249,9 @@ class RelationLayer extends StatelessWidget {
     required ThemeData theme,
   }) {
     if (tipDrag != null) {
-      return tipDrag.snappedTargetNodeId != null ? Colors.green : Colors.blueAccent;
+      return tipDrag.snappedTargetNodeId != null
+          ? Colors.green
+          : Colors.blueAccent;
     }
     if (isSelected) {
       return AppConfig.visuals.selectionAccent;
@@ -284,14 +305,14 @@ class RelationLayer extends StatelessWidget {
       final Offset liveStart = isDraggingThisTip && tipDrag.isStartTip
           ? dragPos
           : (fromSide != null
-              ? fromVs.getPortPosition(fromSide)
-              : fromVs.getClosestPort(endPoint).position);
+                ? fromVs.getPortPosition(fromSide)
+                : fromVs.getClosestPort(endPoint).position);
 
       final Offset liveEnd = isDraggingThisTip && !tipDrag.isStartTip
           ? dragPos
           : (toSide != null
-              ? toVs.getPortPosition(toSide)
-              : toVs.getClosestPort(startPoint).position);
+                ? toVs.getPortPosition(toSide)
+                : toVs.getClosestPort(startPoint).position);
 
       List<Offset> transform(List<Point> pts) => transformPathPoints(
         points: pts.map((p) => Offset(p.x, p.y)).toList(),
@@ -309,13 +330,19 @@ class RelationLayer extends StatelessWidget {
           ? transform(cached.endShapePath)
           : const [];
 
-      final labelTransformed = transform([Point(x: cached.labelPosition.x, y: cached.labelPosition.y)]);
+      final labelTransformed = transform([
+        Point(x: cached.labelPosition.x, y: cached.labelPosition.y),
+      ]);
       labelPos = labelTransformed.isNotEmpty
           ? labelTransformed.first
           : Offset.lerp(liveStart, liveEnd, 0.5)!;
 
-      startHandlePos = isDraggingThisTip ? liveStart : Offset(cached.startHandlePos.x, cached.startHandlePos.y);
-      endHandlePos = isDraggingThisTip ? liveEnd : Offset(cached.endHandlePos.x, cached.endHandlePos.y);
+      startHandlePos = isDraggingThisTip
+          ? liveStart
+          : Offset(cached.startHandlePos.x, cached.startHandlePos.y);
+      endHandlePos = isDraggingThisTip
+          ? liveEnd
+          : Offset(cached.endHandlePos.x, cached.endHandlePos.y);
       startPointResult = liveStart;
       endPointResult = liveEnd;
     } else {
@@ -376,7 +403,10 @@ class RelationLayer extends StatelessWidget {
         ? cached.endShapePath.map((p) => Offset(p.x, p.y)).toList()
         : const <Offset>[];
     final labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
-    final startHandlePos = Offset(cached.startHandlePos.x, cached.startHandlePos.y);
+    final startHandlePos = Offset(
+      cached.startHandlePos.x,
+      cached.startHandlePos.y,
+    );
     final endHandlePos = Offset(cached.endHandlePos.x, cached.endHandlePos.y);
     final startPoint = Offset(cached.startPoint.x, cached.startPoint.y);
     final endPoint = Offset(cached.endPoint.x, cached.endPoint.y);

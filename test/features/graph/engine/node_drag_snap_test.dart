@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:mycelium/features/graph/engine/base_interaction_state.dart';
-import 'package:mycelium/features/graph/engine/interaction_context.dart';
-import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/presentation/view_state.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/engine/base_interaction_state.dart';
+import 'package:centrode/features/graph/engine/interaction_context.dart';
+import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/features/graph/presentation/view_state.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockGeometryAndViewportCapability extends Mock
     implements GeometryAndViewportCapability {}
@@ -38,31 +38,36 @@ void main() {
       when(() => mockCtx.onNodeMove(any(), any())).thenReturn(null);
     });
 
-    test('updates position continuously and sends quantized updates during move', () {
-      final state = NodeDragging(nodeId, Offset.zero);
+    test(
+      'updates position continuously and sends quantized updates during move',
+      () {
+        final state = NodeDragging(nodeId, Offset.zero);
 
-      // Move to unquantized canvas position (107.4, 113.8)
-      final event = PointerMoveEvent(position: const Offset(107.4, 113.8));
-      state.handlePointerMove(event, const Offset(107.4, 113.8), mockCtx);
+        // Move to unquantized canvas position (107.4, 113.8)
+        final event = PointerMoveEvent(position: const Offset(107.4, 113.8));
+        state.handlePointerMove(event, const Offset(107.4, 113.8), mockCtx);
 
-      // Node view state positionNotifier should reflect continuous raw position
-      expect(viewState.positionNotifier.value, const Offset(107.4, 113.8));
+        // Node view state positionNotifier should reflect continuous raw position
+        expect(viewState.positionNotifier.value, const Offset(107.4, 113.8));
 
-      // onNodesDrag should receive quantized position (100.0, 120.0) for grid baseSize=20
-      verify(
-        () => mockCtx.onNodesDrag(
-          any(
-            that: predicate<List<(RawUuid, Offset)>>((list) {
-              return list.length == 1 &&
-                  list.first.$1 == nodeId &&
-                  list.first.$2 == const Offset(100.0, 120.0);
-            }),
+        // onNodesDrag should receive quantized position (100.0, 120.0) for grid baseSize=20
+        verify(
+          () => mockCtx.onNodesDrag(
+            any(
+              that: predicate<List<(RawUuid, Offset)>>((list) {
+                return list.length == 1 &&
+                    list.first.$1 == nodeId &&
+                    list.first.$2 == const Offset(100.0, 120.0);
+              }),
+            ),
           ),
-        ),
-      ).called(1);
-    });
+        ).called(1);
+      },
+    );
 
-    testWidgets('snaps position to grid when movement pauses for snapPauseMs', (tester) async {
+    testWidgets('snaps position to grid when movement pauses for snapPauseMs', (
+      tester,
+    ) async {
       final state = NodeDragging(nodeId, Offset.zero);
 
       final event = PointerMoveEvent(position: const Offset(107.4, 113.8));
@@ -90,7 +95,9 @@ void main() {
       expect(viewState.positionNotifier.value, const Offset(100.0, 120.0));
 
       // onNodeMove committed with final snapped position
-      verify(() => mockCtx.onNodeMove(nodeId, const Offset(100.0, 120.0))).called(1);
+      verify(
+        () => mockCtx.onNodeMove(nodeId, const Offset(100.0, 120.0)),
+      ).called(1);
     });
   });
 
@@ -120,10 +127,9 @@ void main() {
       anchorVs = NodeViewState(anchorNode);
       otherVs = NodeViewState(otherNode);
 
-      when(() => mockCtx.nodeViewStates).thenReturn({
-        anchorId: anchorVs,
-        otherId: otherVs,
-      });
+      when(
+        () => mockCtx.nodeViewStates,
+      ).thenReturn({anchorId: anchorVs, otherId: otherVs});
       when(() => mockCtx.currentScale).thenReturn(1.0);
       when(() => mockCtx.setNodeDragging(any(), any())).thenReturn(null);
       when(() => mockCtx.onNodesDrag(any())).thenReturn(null);

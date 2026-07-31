@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-/// Centralized geometric math utilities for Mycelium.
+/// Centralized geometric math utilities for Centrode.
 double distanceToSegment(Offset p, Offset a, Offset b) {
   final ab = b - a;
   final ap = p - a;

@@ -2,7 +2,7 @@ import '../../store/graph_data_query.dart';
 import '../../store/modules/graph_store.dart';
 import '../../store/modules/graph_spatial.dart';
 import '../../store/relation_engine_state.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 abstract class GraphStyleUpdater {
   void updateStyleForNode(RawUuid id);

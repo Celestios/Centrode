@@ -1,7 +1,7 @@
-use rust_lib_mycelium::domain::id::TypedRecordId;
-use rust_lib_mycelium::domain::styles::PortSide;
-use rust_lib_mycelium::domain::traits::TableKind;
-use rust_lib_mycelium::relation_engine::input::{InputEdge, InputNode};
+use centrode_core::domain::id::TypedRecordId;
+use centrode_core::domain::styles::PortSide;
+use centrode_core::domain::traits::TableKind;
+use centrode_core::relation_engine::input::{InputEdge, InputNode};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use uuid::Uuid;

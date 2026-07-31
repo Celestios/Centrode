@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
-import 'package:mycelium/features/graph/presentation/node_render_state.dart';
-import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
-import 'package:mycelium/features/graph/presentation/viewport_state.dart';
-import 'package:mycelium/features/graph/engine/config.dart';
-import 'package:mycelium/features/graph/engine/interaction_context.dart';
-import 'package:mycelium/features/graph/engine/interaction_engine.dart';
-import 'package:mycelium/features/graph/presentation/view_state.dart';
-import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart';
-import 'package:mycelium/features/graph/presentation/strategies/relation_style_strategy.dart';
-import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_text_format_toolbar.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/presentation/node_render_state.dart';
+import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
+import 'package:centrode/features/graph/presentation/viewport_state.dart';
+import 'package:centrode/features/graph/engine/config.dart';
+import 'package:centrode/features/graph/engine/interaction_context.dart';
+import 'package:centrode/features/graph/engine/interaction_engine.dart';
+import 'package:centrode/features/graph/presentation/view_state.dart';
+import 'package:centrode/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart';
+import 'package:centrode/features/graph/presentation/strategies/relation_style_strategy.dart';
+import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/features/graph/ui/widgets/overlays/vertical_text_format_toolbar.dart';
 import 'text/content_text_editing_controller.dart';
-import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
-import 'package:mycelium/shared/copy_buffer.dart';
+import 'package:centrode/features/graph/presentation/workspace_tabs_controller.dart';
+import 'package:centrode/shared/copy_buffer.dart';
 
 class ContextToolbarOverlay extends StatelessWidget {
   final NodeRenderState renderState;
@@ -32,7 +32,10 @@ class ContextToolbarOverlay extends StatelessWidget {
     required this.interactionController,
   });
 
-  Widget _buildDragHandle(Matrix4 matrix, ValueNotifier<Offset> offsetNotifier) {
+  Widget _buildDragHandle(
+    Matrix4 matrix,
+    ValueNotifier<Offset> offsetNotifier,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: GestureDetector(
@@ -113,7 +116,7 @@ class ContextToolbarOverlay extends StatelessWidget {
         final session = tabsController.activeSession;
         final leftVisible = session.showLeftPanel.value;
         final activeLeftPanel = renderState.activeLeftPanelNotifier.value;
-        
+
         final double leftThreshold = activeLeftPanel != LeftPanelType.none
             ? 356.0
             : (leftVisible ? 76.0 : 12.0);
@@ -123,11 +126,11 @@ class ContextToolbarOverlay extends StatelessWidget {
 
         if (isEditing) {
           final RawUuid editedId = renderState.activeEditId!;
-          
+
           final vs = renderState.viewStates[editedId];
           final Offset anchorCanvas;
           final double entityWidth;
-          
+
           if (vs != null) {
             final size = Size(
               vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width,
@@ -138,13 +141,18 @@ class ContextToolbarOverlay extends StatelessWidget {
           } else {
             UiRelation? rel;
             try {
-              rel = queryController.relations.firstWhere((r) => r.id == editedId);
+              rel = queryController.relations.firstWhere(
+                (r) => r.id == editedId,
+              );
             } catch (_) {}
-            
+
             if (rel != null) {
               final cached = queryController.relationEngine.cache[editedId];
               if (cached != null) {
-                anchorCanvas = Offset(cached.labelPosition.x, cached.labelPosition.y);
+                anchorCanvas = Offset(
+                  cached.labelPosition.x,
+                  cached.labelPosition.y,
+                );
                 entityWidth = 0;
               } else {
                 return const SizedBox.shrink();
@@ -155,7 +163,9 @@ class ContextToolbarOverlay extends StatelessWidget {
           }
 
           final offset = offsetNotifier.value;
-          final defaultOffset = isMulti ? AppConfig.toolbar.multiOffset : AppConfig.toolbar.singleOffset;
+          final defaultOffset = isMulti
+              ? AppConfig.toolbar.multiOffset
+              : AppConfig.toolbar.singleOffset;
           final dragDelta = offset - defaultOffset;
           final nodeLeftCanvas = anchorCanvas + dragDelta;
 
@@ -168,9 +178,11 @@ class ContextToolbarOverlay extends StatelessWidget {
           const double toolbarHeight = 430; // Two-column layout
 
           // Try left placement first
-          final double leftX = screenPosition.dx - toolbarWidth - (margin * scale);
+          final double leftX =
+              screenPosition.dx - toolbarWidth - (margin * scale);
           // Try right placement
-          final double rightX = screenPosition.dx + (entityWidth * scale) + (margin * scale);
+          final double rightX =
+              screenPosition.dx + (entityWidth * scale) + (margin * scale);
 
           bool useRight = false;
           if (leftX < leftThreshold) {
@@ -178,8 +190,12 @@ class ContextToolbarOverlay extends StatelessWidget {
           }
 
           double toolbarLeft = useRight ? rightX : leftX;
-          toolbarLeft = toolbarLeft.clamp(leftThreshold, rightThreshold - toolbarWidth).toDouble();
-          double toolbarTop = screenPosition.dy.clamp(topThreshold, screenHeight - toolbarHeight - 12.0).toDouble();
+          toolbarLeft = toolbarLeft
+              .clamp(leftThreshold, rightThreshold - toolbarWidth)
+              .toDouble();
+          double toolbarTop = screenPosition.dy
+              .clamp(topThreshold, screenHeight - toolbarHeight - 12.0)
+              .toDouble();
 
           return Positioned(
             left: toolbarLeft,
@@ -195,25 +211,39 @@ class ContextToolbarOverlay extends StatelessWidget {
                 renderState.applyFormatCallback?.call(TextFormatType.underline);
               },
               onToggleHeader1: () {
-                renderState.toggleHeadingCallback?.call(TextFormatType.heading1);
+                renderState.toggleHeadingCallback?.call(
+                  TextFormatType.heading1,
+                );
               },
               onToggleHeader2: () {
-                renderState.toggleHeadingCallback?.call(TextFormatType.heading2);
+                renderState.toggleHeadingCallback?.call(
+                  TextFormatType.heading2,
+                );
               },
               onToggleHeader3: () {
-                renderState.toggleHeadingCallback?.call(TextFormatType.heading3);
+                renderState.toggleHeadingCallback?.call(
+                  TextFormatType.heading3,
+                );
               },
               onToggleBlockquote: () {
-                renderState.toggleHeadingCallback?.call(TextFormatType.blockquote);
+                renderState.toggleHeadingCallback?.call(
+                  TextFormatType.blockquote,
+                );
               },
               onToggleCodeBlock: () {
-                renderState.toggleHeadingCallback?.call(TextFormatType.codeBlock);
+                renderState.toggleHeadingCallback?.call(
+                  TextFormatType.codeBlock,
+                );
               },
               onToggleBulletList: () {
-                renderState.toggleHeadingCallback?.call(TextFormatType.bulletList);
+                renderState.toggleHeadingCallback?.call(
+                  TextFormatType.bulletList,
+                );
               },
               onToggleOrderedList: () {
-                renderState.toggleHeadingCallback?.call(TextFormatType.orderedList);
+                renderState.toggleHeadingCallback?.call(
+                  TextFormatType.orderedList,
+                );
               },
               onClearBlockFormat: () {
                 renderState.clearBlockFormatCallback?.call();
@@ -237,14 +267,20 @@ class ContextToolbarOverlay extends StatelessWidget {
               onIncreaseFontSize: () {
                 interactionController.updateNodeStyle(editedId, (style) {
                   return style.copyWith(
-                    fontSize: (style.fontSize + 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
+                    fontSize: (style.fontSize + 2.0).clamp(
+                      AppConfig.node.minFontSize,
+                      AppConfig.node.maxFontSize,
+                    ),
                   );
                 });
               },
               onDecreaseFontSize: () {
                 interactionController.updateNodeStyle(editedId, (style) {
                   return style.copyWith(
-                    fontSize: (style.fontSize - 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
+                    fontSize: (style.fontSize - 2.0).clamp(
+                      AppConfig.node.minFontSize,
+                      AppConfig.node.maxFontSize,
+                    ),
                   );
                 });
               },
@@ -268,7 +304,8 @@ class ContextToolbarOverlay extends StatelessWidget {
                           child: const Text('Cancel'),
                         ),
                         TextButton(
-                          onPressed: () => Navigator.pop(context, controller.text),
+                          onPressed: () =>
+                              Navigator.pop(context, controller.text),
                           child: const Text('Insert'),
                         ),
                       ],
@@ -276,7 +313,10 @@ class ContextToolbarOverlay extends StatelessWidget {
                   },
                 );
                 if (url != null && url.isNotEmpty) {
-                  renderState.applyFormatCallback?.call(TextFormatType.link, url: url);
+                  renderState.applyFormatCallback?.call(
+                    TextFormatType.link,
+                    url: url,
+                  );
                 }
               },
               dragHandle: _buildDragHandle(matrix, offsetNotifier),
@@ -294,12 +334,14 @@ class ContextToolbarOverlay extends StatelessWidget {
         }
 
         final offset = offsetNotifier.value;
-        
+
         // Calculate the base node position in canvas space including user's drag delta
-        final defaultOffset = isMulti ? AppConfig.toolbar.multiOffset : AppConfig.toolbar.singleOffset;
+        final defaultOffset = isMulti
+            ? AppConfig.toolbar.multiOffset
+            : AppConfig.toolbar.singleOffset;
         final dragDelta = offset - defaultOffset;
         final nodeLeftCanvas = anchor + dragDelta;
-        
+
         final nodeLeftScreen = MatrixUtils.transformPoint(
           matrix,
           nodeLeftCanvas,
@@ -320,15 +362,17 @@ class ContextToolbarOverlay extends StatelessWidget {
 
         const double toolbarWidth = 520;
         const double toolbarHeight = 360;
-        
+
         final double nodeWidth = selectedViewStates.isNotEmpty
-            ? (selectedViewStates.first.dragWidthNotifier.value ?? selectedViewStates.first.sizeNotifier.value.width)
+            ? (selectedViewStates.first.dragWidthNotifier.value ??
+                  selectedViewStates.first.sizeNotifier.value.width)
             : 150.0;
 
         // Try left placement first
         final double leftX = nodeLeftScreen - toolbarWidth - (margin * scale);
         // Try right placement
-        final double rightX = nodeLeftScreen + (nodeWidth * scale) + (margin * scale);
+        final double rightX =
+            nodeLeftScreen + (nodeWidth * scale) + (margin * scale);
 
         bool useRight = false;
         if (leftX < leftThreshold) {
@@ -338,8 +382,12 @@ class ContextToolbarOverlay extends StatelessWidget {
         double toolbarLeft = useRight ? rightX : leftX;
 
         // Clamp X and Y coordinates to keep the toolbar fully visible on screen
-        toolbarLeft = toolbarLeft.clamp(leftThreshold, rightThreshold - toolbarWidth).toDouble();
-        double toolbarTop = nodeTopScreen.clamp(topThreshold, screenHeight - toolbarHeight - 12.0).toDouble();
+        toolbarLeft = toolbarLeft
+            .clamp(leftThreshold, rightThreshold - toolbarWidth)
+            .toDouble();
+        double toolbarTop = nodeTopScreen
+            .clamp(topThreshold, screenHeight - toolbarHeight - 12.0)
+            .toDouble();
 
         // If the selected node itself is completely off-screen, hide the toolbar
         if (selectedViewStates.isNotEmpty) {
@@ -348,7 +396,10 @@ class ContextToolbarOverlay extends StatelessWidget {
             vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width,
             vs.sizeNotifier.value.height,
           );
-          final tl = MatrixUtils.transformPoint(matrix, vs.positionNotifier.value);
+          final tl = MatrixUtils.transformPoint(
+            matrix,
+            vs.positionNotifier.value,
+          );
           final br = MatrixUtils.transformPoint(
             matrix,
             vs.positionNotifier.value + Offset(s.width, s.height),
@@ -434,14 +485,20 @@ class ContextToolbarOverlay extends StatelessWidget {
               if (nodeIds.isNotEmpty) {
                 final vs = renderState.viewStates[nodeIds.first];
                 final initialPos = vs != null ? vs.rect.center : Offset.zero;
-                interactionController.startRelationDrawing(nodeIds.toSet(), initialPos);
+                interactionController.startRelationDrawing(
+                  nodeIds.toSet(),
+                  initialPos,
+                );
               }
             },
             onDecreaseFontSize: () {
               if (singleNodeId != null) {
                 interactionController.updateNodeStyle(singleNodeId, (style) {
                   return style.copyWith(
-                    fontSize: (style.fontSize - 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
+                    fontSize: (style.fontSize - 2.0).clamp(
+                      AppConfig.node.minFontSize,
+                      AppConfig.node.maxFontSize,
+                    ),
                   );
                 });
               }
@@ -450,7 +507,10 @@ class ContextToolbarOverlay extends StatelessWidget {
               if (singleNodeId != null) {
                 interactionController.updateNodeStyle(singleNodeId, (style) {
                   return style.copyWith(
-                    fontSize: (style.fontSize + 2.0).clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize),
+                    fontSize: (style.fontSize + 2.0).clamp(
+                      AppConfig.node.minFontSize,
+                      AppConfig.node.maxFontSize,
+                    ),
                   );
                 });
               }

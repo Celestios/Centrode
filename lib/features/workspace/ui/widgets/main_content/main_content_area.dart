@@ -38,17 +38,13 @@ class MainContentArea extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.home_rounded,
-                      color: Colors.white,
-                      size: 16,
-                    ),
+                    Icon(Icons.home_rounded, color: Colors.white, size: 16),
                     const SizedBox(width: 4),
                     RichText(
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            text: 'MYCELIUM',
+                            text: 'CENTRODE',
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w800,

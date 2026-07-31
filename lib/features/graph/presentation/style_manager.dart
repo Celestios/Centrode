@@ -1,13 +1,13 @@
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
-import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/presentation/theme/graph_theme.dart';
-import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
-import 'package:mycelium/features/graph/presentation/strategies/relation_style_strategy.dart';
-import 'package:mycelium/features/graph/presentation/strategies/significance_strategy.dart';
-import 'package:mycelium/features/graph/presentation/style_flyweight.dart';
-import 'package:mycelium/features/graph/store/modules/graph_store.dart';
-import 'package:mycelium/features/graph/models/commands/graph_command_context.dart'
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/presentation/theme/graph_theme.dart';
+import 'package:centrode/features/graph/presentation/strategies/node_style_strategy.dart';
+import 'package:centrode/features/graph/presentation/strategies/relation_style_strategy.dart';
+import 'package:centrode/features/graph/presentation/strategies/significance_strategy.dart';
+import 'package:centrode/features/graph/presentation/style_flyweight.dart';
+import 'package:centrode/features/graph/store/modules/graph_store.dart';
+import 'package:centrode/features/graph/models/commands/graph_command_context.dart'
     show GraphStyleUpdater;
 
 class StyleManager implements GraphStyleUpdater {
@@ -27,9 +27,10 @@ class StyleManager implements GraphStyleUpdater {
     NodeStyleStrategy? styleStrategy,
     RelationStyleStrategy? relationStrategy,
     SignificanceStrategy? modifier,
-  })  : _styleStrategy = styleStrategy ?? const DefaultNodeStyleStrategy(),
-        _relationStrategy = relationStrategy ?? const DefaultRelationStyleStrategy(),
-        _modifier = modifier ?? const SignificanceStrategy();
+  }) : _styleStrategy = styleStrategy ?? const DefaultNodeStyleStrategy(),
+       _relationStrategy =
+           relationStrategy ?? const DefaultRelationStyleStrategy(),
+       _modifier = modifier ?? const SignificanceStrategy();
 
   void updateAllStyles(Iterable<UiNode> nodes, Iterable<UiRelation> relations) {
     _log.info('Rebuilding all styles (theme: ${_theme?.name})');

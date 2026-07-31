@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../../../engine/config.dart';
 import '../../../store/graph_data_query.dart';
 import '../../../store/relation_engine_state.dart';
@@ -11,7 +11,7 @@ import '../../../engine/interaction_engine.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
 import '../widgets/metadata_preview_overlay.dart';
-import 'package:mycelium/shared/widgets/unbounded_stack.dart';
+import 'package:centrode/shared/widgets/unbounded_stack.dart';
 
 class OverlayLayer extends StatelessWidget {
   const OverlayLayer({super.key});
@@ -142,20 +142,37 @@ class _TempRelationPainter extends CustomPainter {
           canvas.drawPath(path, strokePaint);
         } else {
           final targetPort = state.snappedTargetPort;
-          final startPos = sourcePort?.position ?? sourceVs.getPortPosition(sourceVs.getClosestPort(targetVs.rect.center).side);
-          final endPos = targetPort?.position ?? targetVs.getPortPosition(targetVs.getClosestPort(startPos).side);
+          final startPos =
+              sourcePort?.position ??
+              sourceVs.getPortPosition(
+                sourceVs.getClosestPort(targetVs.rect.center).side,
+              );
+          final endPos =
+              targetPort?.position ??
+              targetVs.getPortPosition(targetVs.getClosestPort(startPos).side);
           final path = Path()
             ..moveTo(startPos.dx, startPos.dy)
             ..lineTo(endPos.dx, endPos.dy);
           canvas.drawPath(path, strokePaint);
         }
       } else {
-        final startPos = sourcePort?.position ?? sourceVs.getPortPosition(sourceVs.getClosestPort(state.currentCursorPosition).side);
+        final startPos =
+            sourcePort?.position ??
+            sourceVs.getPortPosition(
+              sourceVs.getClosestPort(state.currentCursorPosition).side,
+            );
         final path = Path()
           ..moveTo(startPos.dx, startPos.dy)
-          ..lineTo(state.currentCursorPosition.dx, state.currentCursorPosition.dy);
+          ..lineTo(
+            state.currentCursorPosition.dx,
+            state.currentCursorPosition.dy,
+          );
         canvas.drawPath(path, strokePaint);
-        canvas.drawCircle(state.currentCursorPosition, cursorRadius, strokePaint..style = PaintingStyle.fill);
+        canvas.drawCircle(
+          state.currentCursorPosition,
+          cursorRadius,
+          strokePaint..style = PaintingStyle.fill,
+        );
         strokePaint.style = PaintingStyle.stroke;
       }
     }

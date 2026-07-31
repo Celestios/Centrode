@@ -1,6 +1,6 @@
-# Mycelium 🍄
+# Centrode 🍄
 
-A high-performance, canvas-based visual knowledge graphing and relational mapping environment. Mycelium combines a fluid, hardware-accelerated Flutter frontend with an embedded SurrealDB-powered Rust core via FFI, allowing users to build complex, structured, and beautiful maps of interrelated ideas.
+A high-performance, canvas-based visual knowledge graphing and relational mapping environment. Centrode combines a fluid, hardware-accelerated Flutter frontend with an embedded SurrealDB-powered Rust core via FFI, allowing users to build complex, structured, and beautiful maps of interrelated ideas.
 
 ---
 
@@ -26,16 +26,16 @@ A high-performance, canvas-based visual knowledge graphing and relational mappin
 * **Connection Rerouting:** Dynamically detach and re-attach connection endpoints on the canvas.
 * **Relation Styling:** Custom layout styles, stroke weights, directional cues, and aesthetic overlays resolved dynamically via style strategies.
 
-### 4. High-Performance Rust Core Backend (`mycelium_core`)
-* **Bilingual Architecture:** Powered by a local Rust library (`mycelium_core`) bound to Flutter via Flutter Rust Bridge (FRB v2).
+### 4. High-Performance Rust Core Backend (`centrode_core`)
+* **Bilingual Architecture:** Powered by a local Rust library (`centrode_core`) bound to Flutter via Flutter Rust Bridge (FRB v2).
 * **SurrealDB Embedded Database:** Employs an embedded instance of SurrealDB (with Key-Value storage via Surrealkv and memory support) to manage records and relations locally.
 * **State-level Undo/Redo Engine:** Changes are recorded as symmetric entity patches, allowing complete state restoration and forward history walking directly from the database level.
 * **Telemetry Streaming:** Low-latency telemetry log stream bridging Rust's `tracing` framework into the Flutter runtime.
 
-### 5. Zipped Portable Package Format (`.celi`)
-* **Self-Contained Maps:** Saves the entire canvas workspace as a zipped `.celi` package.
+### 5. Zipped Portable Package Format (`.cent`)
+* **Self-Contained Maps:** Saves the entire canvas workspace as a zipped `.cent` package.
 * **MessagePack Serialization:** Encodes the SurrealDB graph snapshot using efficient binary MessagePack serialization (`graph.msgpack`).
-* **Embedded Attachments:** Automatically collects and bundles local file/media attachments into the compressed `.celi` archive.
+* **Embedded Attachments:** Automatically collects and bundles local file/media attachments into the compressed `.cent` archive.
 
 ### 6. Liquid Glass & Rich Aesthetics
 * **Liquid Glass Shader:** Implements a premium glassmorphic blending effect via a custom GLSL fragment shader (`shaders/liquid_glass.frag`). The shader features:
@@ -51,7 +51,7 @@ A high-performance, canvas-based visual knowledge graphing and relational mappin
 The project is structured as a bilingual Flutter + Rust application:
 
 ```
-mycelium/
+centrode/
 ├── lib/                             # Flutter frontend application
 │   ├── main.dart                    # Application boots, initializes Rust FFI, and loads themes
 │   ├── features/
@@ -65,13 +65,13 @@ mycelium/
 │   ├── infrastructure/              # Telemetry, logger hooks, and device services
 │   └── shared/                      # Shared widgets, glass panel rendering, and common code
 ├── packages/
-│   └── mycelium_codegen/            # Custom Dart build_runner generator for UI nodes
-├── rust/                            # Rust mycelium_core crate
+│   └── centrode_codegen/            # Custom Dart build_runner generator for UI nodes
+├── rust/                            # Rust centrode_core crate
 │   ├── Cargo.toml                   # Rust dependency configuration (SurrealDB, FRB, tokio)
 │   └── src/
 │       ├── bridge/                  # FFI endpoints exposed via flutter_rust_bridge
 │       ├── domain/                  # Node/relation structs, patches, and schema definitions
-│       ├── format/                  # .celi packager implementation (Zip & MessagePack)
+│       ├── format/                  # .cent packager implementation (Zip & MessagePack)
 │       ├── persistence/             # SurrealDB connection, schema queries, and history manager
 │       ├── plugin_system/           # Extension layer for external features
 │       └── telemetry.rs             # Log subscriber bridging to the frontend

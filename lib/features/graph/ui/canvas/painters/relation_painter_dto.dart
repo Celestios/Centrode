@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class RelationPaintDto {
   final RawUuid id;

@@ -8,7 +8,7 @@ pub mod relation_engine;
 pub mod services;
 pub mod telemetry;
 
-/// Initialize the Mycelium core with the telemetry subscriber.
+/// Initialize the Centrode core with the telemetry subscriber.
 /// This should be called once during app startup.
 pub fn init_core() {
     telemetry::init_telemetry();

@@ -1,12 +1,12 @@
-use rust_lib_mycelium::domain::id::TypedRecordId;
-use rust_lib_mycelium::domain::styles::{EndpointShape, PortSide, RelationStyle};
-use rust_lib_mycelium::domain::traits::TableKind;
-use rust_lib_mycelium::relation_engine::config::{
+use centrode_core::domain::id::TypedRecordId;
+use centrode_core::domain::styles::{EndpointShape, PortSide, RelationStyle};
+use centrode_core::domain::traits::TableKind;
+use centrode_core::relation_engine::config::{
     EndpointConfig, RelationEngineConfig, RoutingMode,
 };
-use rust_lib_mycelium::relation_engine::engine::RelationEngine;
-use rust_lib_mycelium::relation_engine::geometry::Point;
-use rust_lib_mycelium::relation_engine::types::{InputEdge, InputNode};
+use centrode_core::relation_engine::engine::RelationEngine;
+use centrode_core::relation_engine::geometry::Point;
+use centrode_core::relation_engine::types::{InputEdge, InputNode};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use uuid::Uuid;
@@ -1042,7 +1042,7 @@ fn test_body_path_smooth_but_endpoint_quantized() {
         let results = RelationEngine::compute_relations(&nodes, &edges, &config, None);
         let r = &results[0];
 
-        let body_len = rust_lib_mycelium::relation_engine::geometry::polyline_length(&r.path_points);
+        let body_len = centrode_core::relation_engine::geometry::polyline_length(&r.path_points);
         if let Some(prev) = prev_body_len {
             let body_delta = (body_len - prev).abs();
             if body_delta < 50.0 {
@@ -1189,7 +1189,7 @@ fn test_port_side_normal_is_only_8_directions() {
 
     let mut unique_normals = std::collections::HashSet::new();
     for side in &sides {
-        let normal = rust_lib_mycelium::relation_engine::path_finder::port::normal_for_side(side);
+        let normal = centrode_core::relation_engine::path_finder::port::normal_for_side(side);
         let bucket = angle_to_quantized_bucket(normal.y.atan2(normal.x));
         unique_normals.insert(bucket);
     }

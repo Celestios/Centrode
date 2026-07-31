@@ -1,10 +1,10 @@
-import 'package:mycelium/shared/logging.dart';
+import 'package:centrode/shared/logging.dart';
 import '../../store/graph_api.dart';
 import '../../store/graph_data_query.dart';
 import '../models.dart';
 import 'graph_command_context.dart';
 import 'patch_helpers.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('DeleteNodeCommand');
 

@@ -1,14 +1,10 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/utils/color_harmony_generator.dart';
-import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
-import 'package:mycelium/shared/utils/color_utils.dart';
+import 'package:centrode/shared/utils/color_harmony_generator.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/utils/color_utils.dart';
 
-enum ColorPaletteMode {
-  compactPresets,
-  radial,
-  advanced,
-}
+enum ColorPaletteMode { compactPresets, radial, advanced }
 
 class UniversalColorPalette extends StatefulWidget {
   final Color initialColor;
@@ -217,7 +213,11 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
                 // Radial colors
                 ...List.generate(displayedPresets.length, (index) {
                   final c = displayedPresets[index];
-                  final angle = index * (360.0 / displayedPresets.length) * math.pi / 180.0;
+                  final angle =
+                      index *
+                      (360.0 / displayedPresets.length) *
+                      math.pi /
+                      180.0;
                   const radius = 48.0;
                   final x = 65.0 + radius * math.cos(angle) - 11.0;
                   final y = 65.0 + radius * math.sin(angle) - 11.0;
@@ -303,7 +303,9 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
                       color: c,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isSelected ? theme.colorScheme.primary : Colors.white24,
+                        color: isSelected
+                            ? theme.colorScheme.primary
+                            : Colors.white24,
                         width: isSelected ? 2 : 1,
                       ),
                     ),
@@ -328,7 +330,10 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
   Widget _buildAdvanced(BuildContext context) {
     final theme = Theme.of(context);
     final baseColorNoAlpha = _selectedColor.withValues(alpha: 1.0);
-    final harmonyColors = ColorHarmonyGenerator.generateHarmony(baseColorNoAlpha, _selectedHarmonyType);
+    final harmonyColors = ColorHarmonyGenerator.generateHarmony(
+      baseColorNoAlpha,
+      _selectedHarmonyType,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -368,7 +373,11 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.primary,
               ),
-              icon: Icon(Icons.arrow_drop_down, size: 14, color: theme.colorScheme.primary),
+              icon: Icon(
+                Icons.arrow_drop_down,
+                size: 14,
+                color: theme.colorScheme.primary,
+              ),
               items: ColorHarmonyType.values.map((type) {
                 return DropdownMenuItem(
                   value: type,
@@ -384,14 +393,15 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
           ],
         ),
         const SizedBox(height: 6),
-        
+
         // Harmony Swatch Display
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: harmonyColors.map((c) {
             final targetColor = c.withValues(alpha: _selectedColor.a);
-            final isActive = _selectedColor.toARGB32() == targetColor.toARGB32();
+            final isActive =
+                _selectedColor.toARGB32() == targetColor.toARGB32();
             return GestureDetector(
               onTap: () => _updateColor(targetColor),
               child: MouseRegion(
@@ -404,7 +414,9 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
                     shape: BoxShape.circle,
                     color: c,
                     border: Border.all(
-                      color: isActive ? theme.colorScheme.primary : Colors.white24,
+                      color: isActive
+                          ? theme.colorScheme.primary
+                          : Colors.white24,
                       width: isActive ? 2.5 : 1,
                     ),
                     boxShadow: isActive
@@ -459,7 +471,10 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
             activeTrackColor: Colors.transparent,
             inactiveTrackColor: Colors.transparent,
             thumbColor: Colors.white,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7, elevation: 2),
+            thumbShape: const RoundSliderThumbShape(
+              enabledThumbRadius: 7,
+              elevation: 2,
+            ),
             overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
           ),
           child: Container(
@@ -520,7 +535,10 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
               activeTrackColor: Colors.transparent,
               inactiveTrackColor: Colors.transparent,
               thumbColor: Colors.white,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7, elevation: 2),
+              thumbShape: const RoundSliderThumbShape(
+                enabledThumbRadius: 7,
+                elevation: 2,
+              ),
               overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
             ),
             child: Container(
@@ -594,7 +612,8 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: _shuffledColors.map((c) {
             final targetColor = c.withValues(alpha: _selectedColor.a);
-            final isSelected = _selectedColor.toARGB32() == targetColor.toARGB32();
+            final isSelected =
+                _selectedColor.toARGB32() == targetColor.toARGB32();
             return GestureDetector(
               onTap: () => _updateColor(targetColor),
               child: MouseRegion(
@@ -607,7 +626,9 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
                     color: c,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isSelected ? theme.colorScheme.primary : Colors.white24,
+                      color: isSelected
+                          ? theme.colorScheme.primary
+                          : Colors.white24,
                       width: isSelected ? 2 : 1,
                     ),
                   ),

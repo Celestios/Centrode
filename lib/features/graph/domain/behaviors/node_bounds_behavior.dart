@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:mycelium/features/graph/models/graph_node.dart';
+import 'package:centrode/features/graph/models/graph_node.dart';
 
 /// Computes variant-specific bounding boxes.
 ///

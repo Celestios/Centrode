@@ -1,11 +1,11 @@
 use crate::common::setup_test_repo;
-use rust_lib_mycelium::domain::base_models::{Coordinates, Size};
-use rust_lib_mycelium::domain::contents::Content;
-use rust_lib_mycelium::domain::id::TypedRecordId;
-use rust_lib_mycelium::domain::nodes::{INode, Nodes, TaskNode, TaskState};
-use rust_lib_mycelium::domain::relations::{IRelation, IRelationFields};
-use rust_lib_mycelium::domain::tags::{Tag, TagEdge, TagFields};
-use rust_lib_mycelium::domain::traits::TableKind;
+use centrode_core::domain::base_models::{Coordinates, Size};
+use centrode_core::domain::contents::Content;
+use centrode_core::domain::id::TypedRecordId;
+use centrode_core::domain::nodes::{INode, Nodes, TaskNode, TaskState};
+use centrode_core::domain::relations::{IRelation, IRelationFields};
+use centrode_core::domain::tags::{Tag, TagEdge, TagFields};
+use centrode_core::domain::traits::TableKind;
 
 #[tokio::test]
 async fn test_templates_save_and_instantiate() {
@@ -41,7 +41,7 @@ async fn test_templates_save_and_instantiate() {
         locked: false,
         tags: vec![TagEdge::Hydrated(tag)],
         aliases: vec![],
-        comments: vec![rust_lib_mycelium::domain::base_models::Comment {
+        comments: vec![centrode_core::domain::base_models::Comment {
             text: "test comment".to_string(),
             created_at: 0,
         }],

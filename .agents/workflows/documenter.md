@@ -4,7 +4,7 @@ description: Writing API specs, system markdown documents, and developer referen
 
 # Workflow: /documenter
 
-This workflow is used when updating, creating, or auditing markdown documentation, API specifications, READMEs, or architectural guides in the Mycelium workspace.
+This workflow is used when updating, creating, or auditing markdown documentation, API specifications, READMEs, or architectural guides in the Centrode workspace.
 
 ## Execution Steps
 

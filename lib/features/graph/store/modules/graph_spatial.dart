@@ -1,8 +1,8 @@
 import 'dart:ui';
-import 'package:mycelium/shared/logging.dart';
+import 'package:centrode/shared/logging.dart';
 import '../../models/models.dart';
 import '../spatial_index.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 /// Encapsulates viewport culling and reactive geometry.
 class GraphSpatial {

@@ -1,8 +1,8 @@
-import 'package:mycelium/src/rust/domain/styles.dart';
-import 'package:mycelium/presentation/theme/graph_theme.dart';
-import 'package:mycelium/features/graph/models/graph_relation.dart';
+import 'package:centrode/src/rust/domain/styles.dart';
+import 'package:centrode/presentation/theme/graph_theme.dart';
+import 'package:centrode/features/graph/models/graph_relation.dart';
 import 'package:flutter/material.dart';
-import 'package:mycelium/features/graph/engine/config.dart';
+import 'package:centrode/features/graph/engine/config.dart';
 
 abstract class RelationStyleStrategy {
   const RelationStyleStrategy();
@@ -50,8 +50,6 @@ abstract class RelationStyleStrategy {
       bodyStrategy: 'none',
     );
   }
-
-
 }
 
 class DefaultRelationStyleStrategy extends RelationStyleStrategy {

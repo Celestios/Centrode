@@ -122,8 +122,8 @@ fn test_nested_control_has_nested_key() {
 }
 
 // ----- Generic record wrapper test -----
-use rust_lib_mycelium::domain::id::TypedRecordId;
-use rust_lib_mycelium::domain::traits::TableKind;
+use centrode_core::domain::id::TypedRecordId;
+use centrode_core::domain::traits::TableKind;
 
 #[derive(Debug, Clone, SurrealValue)]
 pub struct GenericRecord<T: SurrealValue> {

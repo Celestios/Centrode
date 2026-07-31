@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/features/graph/ui/graph_screen.dart';
-import 'package:mycelium/features/graph/presentation/map_manager.dart';
-import 'package:mycelium/shared/utils/map_scanner.dart';
-import 'package:mycelium/shared/utils/app_paths.dart';
-import 'package:mycelium/shared/utils/recent_maps_store.dart';
+import 'package:centrode/features/graph/ui/graph_screen.dart';
+import 'package:centrode/features/graph/presentation/map_manager.dart';
+import 'package:centrode/shared/utils/map_scanner.dart';
+import 'package:centrode/shared/utils/app_paths.dart';
+import 'package:centrode/shared/utils/recent_maps_store.dart';
 import 'package:path/path.dart' as p;
 import 'dart:io';
 import '../shared/section_header.dart';
@@ -64,14 +64,15 @@ class _RecentSectionState extends State<RecentSection> {
                 onTap: () {
                   MapManager.instance.openMap(map.path, map.name);
                   Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const GraphScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const GraphScreen()),
                   );
                 },
                 onRename: (newName) async {
                   final oldPath = map.path;
-                  final newPath = p.join(await AppPaths.mapsDirectory, '$newName.db');
+                  final newPath = p.join(
+                    await AppPaths.mapsDirectory,
+                    '$newName.db',
+                  );
                   final wasOpen = MapManager.instance.isPathOpen(oldPath);
                   if (wasOpen) {
                     await MapManager.instance.closeByPath(oldPath);

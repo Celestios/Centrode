@@ -6,7 +6,7 @@ import 'graph_data_query.dart';
 import 'modules/graph_store.dart';
 import 'modules/graph_spatial.dart';
 import 'graph_api.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class GraphDataQueryController implements GraphDataQuery {
   final GraphStore store = GraphStore();
@@ -30,7 +30,8 @@ class GraphDataQueryController implements GraphDataQuery {
       StreamController<GraphEntityUpdate>.broadcast();
 
   @override
-  Stream<GraphEntityUpdate> get onEntityUpdate => _entityUpdateController.stream;
+  Stream<GraphEntityUpdate> get onEntityUpdate =>
+      _entityUpdateController.stream;
 
   void publishUpdate(GraphEntityUpdate update) {
     _entityUpdateController.add(update);
@@ -54,7 +55,12 @@ class GraphDataQueryController implements GraphDataQuery {
   @override
   Iterable<UiRelation> get relations => store.relations;
 
-  BoundingBox _canvasBounds = const BoundingBox(minX: 0, minY: 0, maxX: 1000, maxY: 1000);
+  BoundingBox _canvasBounds = const BoundingBox(
+    minX: 0,
+    minY: 0,
+    maxX: 1000,
+    maxY: 1000,
+  );
 
   @override
   BoundingBox get canvasBounds => _canvasBounds;
@@ -75,26 +81,32 @@ class GraphDataQueryController implements GraphDataQuery {
     for (final rustNode in rustNodes) {
       if (rustNode is Nodes_INode) {
         final node = rustNode.field0;
-        results.add(DatabaseSearchResult(
-          key: node.id.key.uuid,
-          type: DatabaseSearchResultType.infoNode,
-          text: node.content.text,
-        ));
+        results.add(
+          DatabaseSearchResult(
+            key: node.id.key.uuid,
+            type: DatabaseSearchResultType.infoNode,
+            text: node.content.text,
+          ),
+        );
       } else if (rustNode is Nodes_TaskNode) {
         final node = rustNode.field0;
-        results.add(DatabaseSearchResult(
-          key: node.id.key.uuid,
-          type: DatabaseSearchResultType.taskNode,
-          text: node.content.text,
-          state: node.state.name,
-        ));
+        results.add(
+          DatabaseSearchResult(
+            key: node.id.key.uuid,
+            type: DatabaseSearchResultType.taskNode,
+            text: node.content.text,
+            state: node.state.name,
+          ),
+        );
       } else if (rustNode is Nodes_InterNode) {
         final node = rustNode.field0;
-        results.add(DatabaseSearchResult(
-          key: node.id.key.uuid,
-          type: DatabaseSearchResultType.relation,
-          text: node.verb,
-        ));
+        results.add(
+          DatabaseSearchResult(
+            key: node.id.key.uuid,
+            type: DatabaseSearchResultType.relation,
+            text: node.verb,
+          ),
+        );
       }
     }
     return results;

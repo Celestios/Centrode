@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/shared/logging.dart';
+import 'package:centrode/shared/logging.dart';
 import '../../engine/config.dart';
 import '../../store/graph_data_query_controller.dart';
 import '../../store/command_queue_processor.dart';
@@ -10,7 +10,7 @@ import '../../presentation/viewport_state.dart';
 import '../../engine/interaction_engine.dart';
 import '../../engine/drawing_interceptor.dart';
 import 'painters/active_drawing_painter.dart';
-import 'package:mycelium/features/graph/engine/interaction_facade.dart';
+import 'package:centrode/features/graph/engine/interaction_facade.dart';
 import '../../presentation/workspace_tabs_controller.dart';
 import 'layers/relation_layer.dart';
 import 'layers/node_layer.dart';
@@ -19,13 +19,13 @@ import 'layers/port_layer.dart';
 import '../../models/models.dart';
 import 'layers/grid_layer.dart';
 import '../../../../shared/widgets/canvas_interactive_viewer.dart';
-import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
-import 'package:mycelium/features/graph/ui/widgets/template_manager/save_template_dialog.dart';
-import 'package:mycelium/shared/widgets/unbounded_stack.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/features/graph/ui/widgets/template_manager/save_template_dialog.dart';
+import 'package:centrode/shared/widgets/unbounded_stack.dart';
 import 'canvas_overlay_layout.dart';
 import 'canvas_keyboard_handler.dart';
 import 'canvas_context_menu.dart';
-import 'package:mycelium/shared/copy_buffer.dart';
+import 'package:centrode/shared/copy_buffer.dart';
 
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
@@ -41,8 +41,6 @@ class _GraphCanvasState extends State<GraphCanvas>
   DrawingGestureInterceptor? _drawingInterceptor;
   final Logger _log = Logger('GraphCanvas');
   TabSession? _boundSession;
-
-
 
   bool _hasInitialFramed = false;
   bool _viewportRestoreAttempted = false;
@@ -209,246 +207,254 @@ class _GraphCanvasState extends State<GraphCanvas>
         child: LayoutBuilder(
           builder: (context, constraints) {
             return GlassStage(
-            mode: GlassMode.performance,
-            settings: GlassSettings(
-              refractStrength: AppConfig.liquidGlass.refractStrength,
-              bridgeReachFactor: AppConfig.liquidGlass.bridgeReachFactor,
-              bridgeThicknessFactor:
-                  AppConfig.liquidGlass.bridgeThicknessFactor,
-              useLocalCoordinates: AppConfig.liquidGlass.useLocalCoordinates,
-            ),
-            backdropRepaint: backdropRepaintListenable,
-            background: DragTarget<Template>(
-              onWillAcceptWithDetails: (details) => true,
-              onAcceptWithDetails: (details) async {
-                final renderBox = context.findRenderObject() as RenderBox?;
-                if (renderBox == null) return;
-                final localOffset = renderBox.globalToLocal(details.offset);
-                final transform = viewportController.transformController.value;
-                if (transform.determinant() == 0.0) return;
-                final inverse = Matrix4.inverted(transform);
-                final canvasOffset = MatrixUtils.transformPoint(
-                  inverse,
-                  localOffset,
-                );
-                await commandProcessor.templateMutations.instantiateTemplate(
-                  details.data.key.key.uuid,
-                  canvasOffset,
-                );
-              },
-              builder: (context, candidateData, rejectedData) {
-                return ValueListenableBuilder<MouseCursor>(
-                  valueListenable: interactionController.cursor,
-                  builder: (context, cursor, child) {
-                    return MouseRegion(
-                      cursor: cursor,
-                      onExit: (_) {
-                        _mousePositionNotifier.value = null;
-                        interactionController.environment
-                            .setHoveredNodeMetadata(null);
+              mode: GlassMode.performance,
+              settings: GlassSettings(
+                refractStrength: AppConfig.liquidGlass.refractStrength,
+                bridgeReachFactor: AppConfig.liquidGlass.bridgeReachFactor,
+                bridgeThicknessFactor:
+                    AppConfig.liquidGlass.bridgeThicknessFactor,
+                useLocalCoordinates: AppConfig.liquidGlass.useLocalCoordinates,
+              ),
+              backdropRepaint: backdropRepaintListenable,
+              background: DragTarget<Template>(
+                onWillAcceptWithDetails: (details) => true,
+                onAcceptWithDetails: (details) async {
+                  final renderBox = context.findRenderObject() as RenderBox?;
+                  if (renderBox == null) return;
+                  final localOffset = renderBox.globalToLocal(details.offset);
+                  final transform =
+                      viewportController.transformController.value;
+                  if (transform.determinant() == 0.0) return;
+                  final inverse = Matrix4.inverted(transform);
+                  final canvasOffset = MatrixUtils.transformPoint(
+                    inverse,
+                    localOffset,
+                  );
+                  await commandProcessor.templateMutations.instantiateTemplate(
+                    details.data.key.key.uuid,
+                    canvasOffset,
+                  );
+                },
+                builder: (context, candidateData, rejectedData) {
+                  return ValueListenableBuilder<MouseCursor>(
+                    valueListenable: interactionController.cursor,
+                    builder: (context, cursor, child) {
+                      return MouseRegion(
+                        cursor: cursor,
+                        onExit: (_) {
+                          _mousePositionNotifier.value = null;
+                          interactionController.environment
+                              .setHoveredNodeMetadata(null);
+                        },
+                        child: child,
+                      );
+                    },
+                    child: Listener(
+                      onPointerDown: (event) {
+                        if (event.kind == PointerDeviceKind.mouse &&
+                            event.buttons == kSecondaryMouseButton) {
+                          _rightClickDownScreenPos = event.position;
+                          _isRightClickDrag = false;
+                        }
+                        interactionController.handlePointerDown(event);
                       },
-                      child: child,
-                    );
-                  },
-                  child: Listener(
-                    onPointerDown: (event) {
-                      if (event.kind == PointerDeviceKind.mouse &&
-                          event.buttons == kSecondaryMouseButton) {
-                        _rightClickDownScreenPos = event.position;
+                      onPointerMove: (event) {
+                        if (_rightClickDownScreenPos != null &&
+                            !_isRightClickDrag) {
+                          final dragDistance =
+                              (event.position - _rightClickDownScreenPos!)
+                                  .distance;
+                          if (dragDistance > 5.0) {
+                            _isRightClickDrag = true;
+                          }
+                        }
+                        interactionController.handlePointerMove(event);
+                        _updateMousePosition(event.localPosition);
+                      },
+                      onPointerUp: (event) {
+                        if (_rightClickDownScreenPos != null &&
+                            !_isRightClickDrag &&
+                            renderState.activeEditId == null) {
+                          CanvasContextMenu.show(
+                            context: context,
+                            position: _rightClickDownScreenPos!,
+                            queryController: queryController,
+                            commandProcessor: commandProcessor,
+                            renderState: renderState,
+                            copyBuffer: context.read<CopyBuffer>(),
+                            viewportController: viewportController,
+                          );
+                        }
+                        _rightClickDownScreenPos = null;
                         _isRightClickDrag = false;
-                      }
-                      interactionController.handlePointerDown(event);
-                    },
-                    onPointerMove: (event) {
-                      if (_rightClickDownScreenPos != null && !_isRightClickDrag) {
-                        final dragDistance =
-                            (event.position - _rightClickDownScreenPos!).distance;
-                        if (dragDistance > 5.0) {
-                          _isRightClickDrag = true;
-                        }
-                      }
-                      interactionController.handlePointerMove(event);
-                      _updateMousePosition(event.localPosition);
-                    },
-                    onPointerUp: (event) {
-                      if (_rightClickDownScreenPos != null && !_isRightClickDrag && renderState.activeEditId == null) {
-                        CanvasContextMenu.show(
-                          context: context,
-                          position: _rightClickDownScreenPos!,
-                          queryController: queryController,
-                          commandProcessor: commandProcessor,
-                          renderState: renderState,
-                          copyBuffer: context.read<CopyBuffer>(),
-                          viewportController: viewportController,
-                        );
-                      }
-                      _rightClickDownScreenPos = null;
-                      _isRightClickDrag = false;
-                      interactionController.handlePointerUp(event);
-                    },
-                    onPointerCancel: (event) {
-                      interactionController.handlePointerCancel(event);
-                      _mousePositionNotifier.value = null;
-                    },
-                    onPointerHover: (event) {
-                      interactionController.handlePointerHover(event);
-                      _updateMousePosition(event.localPosition);
-                    },
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final viewport = constraints.biggest;
+                        interactionController.handlePointerUp(event);
+                      },
+                      onPointerCancel: (event) {
+                        interactionController.handlePointerCancel(event);
+                        _mousePositionNotifier.value = null;
+                      },
+                      onPointerHover: (event) {
+                        interactionController.handlePointerHover(event);
+                        _updateMousePosition(event.localPosition);
+                      },
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final viewport = constraints.biggest;
 
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (context.mounted) {
-                            viewportController.updateViewportSize(viewport);
-                          }
-                        });
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (context.mounted) {
+                              viewportController.updateViewportSize(viewport);
+                            }
+                          });
 
-                        if (!_hasInitialFramed && viewport != Size.zero) {
-                          _hasInitialFramed = true;
-                          // Only auto-frame if no saved state was restored
-                          if (!_viewportRestored) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              viewportController.focusOnBounds(
-                                queryController.canvasBounds,
-                              );
-                            });
-                          } else {
-                            // Still recalc margins after layout
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              viewportController.recalculateElasticMargins();
-                            });
-                          }
-                        }
-
-                        return ValueListenableBuilder<EdgeInsets>(
-                          valueListenable: viewportController.elasticMargins,
-                          builder: (context, elasticMargins, _) {
-                            return ValueListenableBuilder<bool>(
-                              valueListenable:
-                                  interactionController.panScaleEnabled,
-                              builder: (context, panScaleEnabled, child) {
-                                return ValueListenableBuilder<String>(
-                                  valueListenable: session.toolModeNotifier,
-                                  builder: (context, currentMode, _) {
-                                    final viewerPanEnabled =
-                                        panScaleEnabled &&
-                                        renderState.activeEditId == null;
-                                    return GestureDetector(
-                                      behavior: HitTestBehavior.deferToChild,
-                                      onTap: renderState.activeEditId != null
-                                          ? null
-                                          : () {
-                                              renderState.hideFloatingToolbar();
-                                            },
-                                      onDoubleTap: renderState.activeEditId != null
-                                          ? null
-                                          : () {},
-                                      onLongPress: renderState.activeEditId != null
-                                          ? null
-                                          : () {},
-                                      child: CanvasInteractiveViewer(
-                                        transformationController:
-                                            viewportController
-                                                .transformController,
-                                        constrained: true,
-                                        clipBehavior: Clip.none,
-                                        boundaryMargin: elasticMargins,
-                                        minScale: AppConfig.canvas.minScale,
-                                        maxScale: AppConfig.canvas.maxScale,
-                                        scaleFactor: AppConfig.canvas.scaleFactor,
-                                        panEnabled: viewerPanEnabled,
-                                        scaleEnabled: viewerPanEnabled,
-                                        onInteractionEnd: (details) {
-                                          viewportController
-                                              .recalculateElasticMargins();
-                                        },
-                                        child: child!,
-                                      ),
-                                    );
-                                  },
+                          if (!_hasInitialFramed && viewport != Size.zero) {
+                            _hasInitialFramed = true;
+                            // Only auto-frame if no saved state was restored
+                            if (!_viewportRestored) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                viewportController.focusOnBounds(
+                                  queryController.canvasBounds,
                                 );
-                              },
-                              child: UnboundedStack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  ValueListenableBuilder<
-                                    ViewportStateGrid
-                                  >(
-                                    valueListenable: viewportController
-                                        .viewportStateNotifier,
-                                    builder: (context, state, _) {
-                                      return GridLayer(
-                                        viewportState: state,
-                                        mousePositionNotifier:
-                                            _mousePositionNotifier,
+                              });
+                            } else {
+                              // Still recalc margins after layout
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                viewportController.recalculateElasticMargins();
+                              });
+                            }
+                          }
+
+                          return ValueListenableBuilder<EdgeInsets>(
+                            valueListenable: viewportController.elasticMargins,
+                            builder: (context, elasticMargins, _) {
+                              return ValueListenableBuilder<bool>(
+                                valueListenable:
+                                    interactionController.panScaleEnabled,
+                                builder: (context, panScaleEnabled, child) {
+                                  return ValueListenableBuilder<String>(
+                                    valueListenable: session.toolModeNotifier,
+                                    builder: (context, currentMode, _) {
+                                      final viewerPanEnabled =
+                                          panScaleEnabled &&
+                                          renderState.activeEditId == null;
+                                      return GestureDetector(
+                                        behavior: HitTestBehavior.deferToChild,
+                                        onTap: renderState.activeEditId != null
+                                            ? null
+                                            : () {
+                                                renderState
+                                                    .hideFloatingToolbar();
+                                              },
+                                        onDoubleTap:
+                                            renderState.activeEditId != null
+                                            ? null
+                                            : () {},
+                                        onLongPress:
+                                            renderState.activeEditId != null
+                                            ? null
+                                            : () {},
+                                        child: CanvasInteractiveViewer(
+                                          transformationController:
+                                              viewportController
+                                                  .transformController,
+                                          constrained: true,
+                                          clipBehavior: Clip.none,
+                                          boundaryMargin: elasticMargins,
+                                          minScale: AppConfig.canvas.minScale,
+                                          maxScale: AppConfig.canvas.maxScale,
+                                          scaleFactor:
+                                              AppConfig.canvas.scaleFactor,
+                                          panEnabled: viewerPanEnabled,
+                                          scaleEnabled: viewerPanEnabled,
+                                          onInteractionEnd: (details) {
+                                            viewportController
+                                                .recalculateElasticMargins();
+                                          },
+                                          child: child!,
+                                        ),
                                       );
                                     },
-                                  ),
-                                   RelationLayer(),
-                                  const NodeLayer(),
-                                  const OverlayLayer(),
-                                   Positioned.fill(
-                                     child: PortLayer(
-                                       nodeViewStates: renderState.viewStates,
-                                       hoveredNodeNotifier: renderState.hoveredNodeNotifier,
-                                       hoveredPortNotifier: renderState.hoveredPortNotifier,
-                                       interactionState: interactionController.state,
-                                       dragState: renderState.dragState,
-                                     ),
-                                   ),
-                                  if (_drawingInterceptor != null)
-                                    ValueListenableBuilder<List<Offset>>(
-                                      valueListenable:
-                                          _drawingInterceptor!
-                                              .activeStroke,
-                                      builder: (context, stroke, _) {
-                                        if (stroke.isEmpty) {
-                                          return const SizedBox.shrink();
-                                        }
-                                        return IgnorePointer(
-                                          child: CustomPaint(
-                                            painter: ActiveDrawingPainter(
-                                              points: stroke,
-                                              brushColor: session
-                                                  .brushColorNotifier
-                                                  .value,
-                                              brushThickness: session
-                                                  .brushThicknessNotifier
-                                                  .value,
-                                              brushType: session
-                                                  .brushTypeNotifier
-                                                  .value,
-                                            ),
-                                          ),
+                                  );
+                                },
+                                child: UnboundedStack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    ValueListenableBuilder<ViewportStateGrid>(
+                                      valueListenable: viewportController
+                                          .viewportStateNotifier,
+                                      builder: (context, state, _) {
+                                        return GridLayer(
+                                          viewportState: state,
+                                          mousePositionNotifier:
+                                              _mousePositionNotifier,
                                         );
                                       },
                                     ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
+                                    RelationLayer(),
+                                    const NodeLayer(),
+                                    const OverlayLayer(),
+                                    Positioned.fill(
+                                      child: PortLayer(
+                                        nodeViewStates: renderState.viewStates,
+                                        hoveredNodeNotifier:
+                                            renderState.hoveredNodeNotifier,
+                                        hoveredPortNotifier:
+                                            renderState.hoveredPortNotifier,
+                                        interactionState:
+                                            interactionController.state,
+                                        dragState: renderState.dragState,
+                                      ),
+                                    ),
+                                    if (_drawingInterceptor != null)
+                                      ValueListenableBuilder<List<Offset>>(
+                                        valueListenable:
+                                            _drawingInterceptor!.activeStroke,
+                                        builder: (context, stroke, _) {
+                                          if (stroke.isEmpty) {
+                                            return const SizedBox.shrink();
+                                          }
+                                          return IgnorePointer(
+                                            child: CustomPaint(
+                                              painter: ActiveDrawingPainter(
+                                                points: stroke,
+                                                brushColor: session
+                                                    .brushColorNotifier
+                                                    .value,
+                                                brushThickness: session
+                                                    .brushThicknessNotifier
+                                                    .value,
+                                                brushType: session
+                                                    .brushTypeNotifier
+                                                    .value,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-            child: CanvasOverlayLayout(
-              constraints: constraints,
-              renderState: renderState,
-              queryController: queryController,
-              interactionController: interactionController,
-              viewportController: viewportController,
-              session: session,
-              drawingInterceptor: _drawingInterceptor,
-            ),
-          );
-        },
-      ),
+                  );
+                },
+              ),
+              child: CanvasOverlayLayout(
+                constraints: constraints,
+                renderState: renderState,
+                queryController: queryController,
+                interactionController: interactionController,
+                viewportController: viewportController,
+                session: session,
+                drawingInterceptor: _drawingInterceptor,
+              ),
+            );
+          },
+        ),
       ),
     );
   }
 }
-

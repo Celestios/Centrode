@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mycelium/features/graph/models/content_builder.dart';
-import 'package:mycelium/src/rust/domain/contents.dart';
+import 'package:centrode/features/graph/models/content_builder.dart';
+import 'package:centrode/src/rust/domain/contents.dart';
 
 void main() {
   group('ContentFactory.fromText', () {
@@ -102,7 +102,10 @@ void main() {
         orElse: () => c.blocks[0].content.first,
       );
       expect(codeSegment.marks, isNotNull);
-      expect(codeSegment.marks!.any((m) => m.markType == MarkType.code), isTrue);
+      expect(
+        codeSegment.marks!.any((m) => m.markType == MarkType.code),
+        isTrue,
+      );
     });
 
     test('link', () {
@@ -176,7 +179,8 @@ void main() {
     });
 
     test('full user markdown round-trips structure', () {
-      final md = '# Heading\n\n```\nCode block\n```\n\n**bold** and *italic* and <u>underline</u>\n\n***<u>because</u>*** is important\n\n[text](https://example.com)';
+      final md =
+          '# Heading\n\n```\nCode block\n```\n\n**bold** and *italic* and <u>underline</u>\n\n***<u>because</u>*** is important\n\n[text](https://example.com)';
       final c = ContentFactory.fromText(md);
       final result = ContentFactory.toMarkdown(c);
 
@@ -192,16 +196,21 @@ void main() {
 
   group('Complex markdown scenarios', () {
     test('mixed headings, code, emphasis, and links', () {
-      final md = '# The standard Lorem Ipsum passage, used since 1966\n<u>"Lorem ipsum dolor sit amet."</u>\n\n## Section 1.10.32\n\n```\n"Sed ut perspiciatis unde omnis."\n```\n\n### 1914 translation by H. Rackham';
+      final md =
+          '# The standard Lorem Ipsum passage, used since 1966\n<u>"Lorem ipsum dolor sit amet."</u>\n\n## Section 1.10.32\n\n```\n"Sed ut perspiciatis unde omnis."\n```\n\n### 1914 translation by H. Rackham';
       final c = ContentFactory.fromText(md);
 
-      final headings = c.blocks.where((b) => b.blockType == BlockType.heading).toList();
+      final headings = c.blocks
+          .where((b) => b.blockType == BlockType.heading)
+          .toList();
       expect(headings.length, equals(3));
       expect(headings[0].attrs?.level, equals(1));
       expect(headings[1].attrs?.level, equals(2));
       expect(headings[2].attrs?.level, equals(3));
 
-      final codeBlocks = c.blocks.where((b) => b.blockType == BlockType.codeBlock).toList();
+      final codeBlocks = c.blocks
+          .where((b) => b.blockType == BlockType.codeBlock)
+          .toList();
       expect(codeBlocks.length, equals(1));
 
       final underlined = c.blocks[1].content.first.marks;

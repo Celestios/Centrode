@@ -1,5 +1,5 @@
 use crate::domain::schema::SurqlSchemaField;
-use mycelium_macros::SurrealDbEnum;
+use centrode_macros::SurrealDbEnum;
 use surrealdb::types::SurrealValue;
 
 #[derive(Debug, Clone, SurrealValue, Default, PartialEq, Eq)]
@@ -351,12 +351,12 @@ mod tests {
         assert!(content_empty.blocks.is_empty());
 
         // Single line text
-        let content_single = Content::from_plain_text("Hello Mycelium");
-        assert_eq!(content_single.text, "Hello Mycelium");
+        let content_single = Content::from_plain_text("Hello Centrode");
+        assert_eq!(content_single.text, "Hello Centrode");
         assert_eq!(content_single.blocks.len(), 1);
         assert_eq!(content_single.blocks[0].block_type, BlockType::Paragraph);
         assert_eq!(content_single.blocks[0].content.len(), 1);
-        assert_eq!(content_single.blocks[0].content[0].text, "Hello Mycelium");
+        assert_eq!(content_single.blocks[0].content[0].text, "Hello Centrode");
     }
 
     #[test]
@@ -399,7 +399,7 @@ mod tests {
         assert!(inline.marks.is_none());
 
         inline.add_mark(TextMark::bold());
-        inline.add_mark(TextMark::link("https://mycelium.org"));
+        inline.add_mark(TextMark::link("https://centrode.org"));
 
         let marks = inline.marks.unwrap();
         assert_eq!(marks.len(), 2);
@@ -407,7 +407,7 @@ mod tests {
         assert_eq!(marks[1].mark_type, MarkType::Link);
         assert_eq!(
             marks[1].attrs.as_ref().unwrap().href,
-            Some("https://mycelium.org".to_string())
+            Some("https://centrode.org".to_string())
         );
 
         let text_with_marks = InlineElement::text_with_marks(

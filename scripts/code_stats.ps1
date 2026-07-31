@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Codebase statistics for Mycelium project
+    Codebase statistics for Centrode project
 .DESCRIPTION
     Counts lines of code, separating manual from generated files,
     broken down by Rust and Dart sides.
@@ -68,7 +68,7 @@ function Print-Section {
 $rustGenerated = @("rust/src/frb_generated.rs")
 
 $rustTestFiles = Get-ChildItem -Path "$root\rust\tests" -Filter "*.rs" -Recurse -File -ErrorAction SilentlyContinue
-$rustMacroFiles = Get-ChildItem -Path "$root\rust\mycelium_macros\src" -Filter "*.rs" -Recurse -File -ErrorAction SilentlyContinue
+$rustMacroFiles = Get-ChildItem -Path "$root\rust\centrode_macros\src" -Filter "*.rs" -Recurse -File -ErrorAction SilentlyContinue
 $rustScriptFiles = Get-ChildItem -Path "$root\rust\scripts" -Filter "*.rs" -Recurse -File -ErrorAction SilentlyContinue
 
 $rustSrcFiles = Get-ChildItem -Path "$root\rust\src" -Filter "*.rs" -Recurse -File -ErrorAction SilentlyContinue |
@@ -188,7 +188,7 @@ if ($Json) {
 # ──────────────────────────────────────────────────────────────
 Write-Host ""
 Write-Host ("#" * 70) -ForegroundColor Yellow
-Write-Host "  MYCELIUM CODEBASE STATISTICS" -ForegroundColor Yellow
+Write-Host "  CENTRODE CODEBASE STATISTICS" -ForegroundColor Yellow
 Write-Host ("#" * 70) -ForegroundColor Yellow
 
 Print-Section "RUST SIDE" "Magenta"

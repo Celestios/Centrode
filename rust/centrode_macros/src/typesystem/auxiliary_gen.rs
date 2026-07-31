@@ -34,7 +34,7 @@ pub fn generate_auxiliary(entities: &[EntityDef]) -> TokenStream {
 
         struct_tokens.push(quote! {
             #(#attrs)*
-            #[derive(Debug, Clone, surrealdb::types::SurrealValue, mycelium_macros::SurrealTable, mycelium_macros::AuxiliaryEntity)]
+            #[derive(Debug, Clone, surrealdb::types::SurrealValue, centrode_macros::SurrealTable, centrode_macros::AuxiliaryEntity)]
             #vis struct #name {
                 #(#injected_fields,)*
                 #(#user_fields,)*

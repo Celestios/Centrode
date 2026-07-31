@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:mycelium/shared/logging.dart';
+import 'package:centrode/shared/logging.dart';
 
 import '../../models/models.dart';
 import '../../../../src/rust/bridge/stream.dart';
@@ -9,7 +9,7 @@ import '../command_queue_processor.dart';
 import '../command_processor.dart';
 import '../graph_data_query.dart';
 import '../graph_api.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 /// Handles communication between the local store/spatial structures and the Rust backend.
 class GraphSyncEngine {
@@ -21,7 +21,12 @@ class GraphSyncEngine {
   MapData? _lastLoadedMetadata;
 
   // The reactive bounding box updated asynchronously by Rust
-  BoundingBox canvasBounds = const BoundingBox(minX: -500, minY: -500, maxX: 500, maxY: 500);
+  BoundingBox canvasBounds = const BoundingBox(
+    minX: -500,
+    minY: -500,
+    maxX: 500,
+    maxY: 500,
+  );
 
   StreamSubscription? _graphStreamSub;
 
@@ -166,10 +171,18 @@ class GraphSyncEngine {
       }
     }
 
-    controller.spatial.spatialGrid.update(existing.id, oldPos, existing.position);
+    controller.spatial.spatialGrid.update(
+      existing.id,
+      oldPos,
+      existing.position,
+    );
     controller.spatial.saveConfirmedPosition(existing.id, existing.position);
     controller.publishUpdate(
-      GraphEntityUpdate(id: existing.id, tableName: existing.tableName, type: GraphUpdateType.reset),
+      GraphEntityUpdate(
+        id: existing.id,
+        tableName: existing.tableName,
+        type: GraphUpdateType.reset,
+      ),
     );
   }
 
@@ -191,13 +204,19 @@ class GraphSyncEngine {
     }
 
     controller.publishUpdate(
-      GraphEntityUpdate(id: existing.id, tableName: 'IRelation', type: GraphUpdateType.reset),
+      GraphEntityUpdate(
+        id: existing.id,
+        tableName: 'IRelation',
+        type: GraphUpdateType.reset,
+      ),
     );
   }
 
   void _applyGraphDelta(GraphDelta delta) {
-    _syncLog.info('Applying GraphDelta: ${delta.nodeCreations.length} creations, '
-        '${delta.nodeUpserts.length} upserts, ${delta.nodeDeletions.length} deletions');
+    _syncLog.info(
+      'Applying GraphDelta: ${delta.nodeCreations.length} creations, '
+      '${delta.nodeUpserts.length} upserts, ${delta.nodeDeletions.length} deletions',
+    );
 
     for (final nodeId in delta.nodeDeletions) {
       final rawId = RawUuid.fromString(nodeId.key.uuid);
@@ -207,7 +226,9 @@ class GraphSyncEngine {
       }
     }
     for (final relId in delta.relationDeletions) {
-      controller.store.relationLookup.remove(RawUuid.fromString(relId.key.uuid));
+      controller.store.relationLookup.remove(
+        RawUuid.fromString(relId.key.uuid),
+      );
     }
 
     for (final ffiNode in delta.nodeCreations) {

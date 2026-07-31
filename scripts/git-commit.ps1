@@ -29,7 +29,7 @@ param(
 
 $gitDir = Join-Path $PSScriptRoot "..\.git"
 if (-not (Test-Path $gitDir)) {
-    Write-Error "Error: Must be run from within the Mycelium repository."
+    Write-Error "Error: Must be run from within the Centrode repository."
     exit 1
 }
 

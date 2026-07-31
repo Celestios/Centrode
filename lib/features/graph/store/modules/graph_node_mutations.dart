@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/domain/nodes.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/src/rust/domain/nodes.dart';
 import '../../models/models.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 /// Node mutation operations for the graph.
 class GraphNodeMutations {
@@ -38,7 +38,9 @@ class GraphNodeMutations {
         node = DrawingUiNode(
           position: position,
           paths: paths ?? const [],
-          brushType: brushType is BrushType ? (brushType as BrushType) : BrushType.pencil,
+          brushType: brushType is BrushType
+              ? (brushType as BrushType)
+              : BrushType.pencil,
           brushThickness: brushThickness ?? 4.0,
           brushColor: brushColor ?? '#00E5FF',
         );

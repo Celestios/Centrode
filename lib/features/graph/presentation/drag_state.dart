@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/traceable_notifier.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/traceable_notifier.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'view_state.dart';
 
 /// Manages drag protection and quarantine cache for optimistic deletes.

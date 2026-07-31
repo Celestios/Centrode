@@ -27,9 +27,9 @@ pub struct GraphService {
 impl GraphService {
     pub async fn new(storage_path: String, name: String) -> anyhow::Result<Self> {
         let path = if storage_path.is_empty() {
-            ProjectDirs::from("com", "mycelium", "mycelium")
+            ProjectDirs::from("com", "centrode", "centrode")
                 .map(|pd| pd.data_local_dir().join("data.db"))
-                .unwrap_or_else(|| PathBuf::from("mycelium.db"))
+                .unwrap_or_else(|| PathBuf::from("centrode.db"))
         } else {
             PathBuf::from(&storage_path)
         };

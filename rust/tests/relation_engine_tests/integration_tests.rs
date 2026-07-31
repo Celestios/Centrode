@@ -1,7 +1,7 @@
-use rust_lib_mycelium::domain::id::TypedRecordId;
-use rust_lib_mycelium::domain::styles::PortSide;
-use rust_lib_mycelium::domain::traits::TableKind;
-use rust_lib_mycelium::relation_engine::{
+use centrode_core::domain::id::TypedRecordId;
+use centrode_core::domain::styles::PortSide;
+use centrode_core::domain::traits::TableKind;
+use centrode_core::relation_engine::{
     config::{RelationEngineConfig, RoutingMode},
     engine::RelationEngine,
     types::{InputEdge, InputNode},

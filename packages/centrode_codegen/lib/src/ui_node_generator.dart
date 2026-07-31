@@ -13,7 +13,7 @@ class UiNodeGenerator extends Generator {
     }
 
     // Resolve the FFI types.dart library
-    final ffiAssetId = AssetId('mycelium', 'lib/src/rust/domain/types.dart');
+    final ffiAssetId = AssetId('centrode', 'lib/src/rust/domain/types.dart');
     if (!await buildStep.canRead(ffiAssetId)) {
       log.warning("Could not read types FFI asset at $ffiAssetId");
       return '';
@@ -167,9 +167,7 @@ class UiNodeGenerator extends Generator {
       // toRust() method
       buffer.writeln("  @override");
       buffer.writeln("  Nodes toRust() {");
-      buffer.writeln(
-        "    return Nodes.${_getVariantName(ffiClassName)}(",
-      );
+      buffer.writeln("    return Nodes.${_getVariantName(ffiClassName)}(");
       buffer.writeln("      $ffiClassName(");
       buffer.writeln(
         "        id: TypedRecordId(table: TableKind.${_getVariantName(ffiClassName)}, key: UuidValue.fromString(id.toUuidString())),",
@@ -371,7 +369,9 @@ class UiNodeGenerator extends Generator {
       final uiClassName = _getUiClassName(ffiClassName);
       buffer.writeln("  if (node is $uiClassName) { return node.copyWith(); }");
     }
-    buffer.writeln("  throw ArgumentError('Unsupported node type: \${node.runtimeType}');");
+    buffer.writeln(
+      "  throw ArgumentError('Unsupported node type: \${node.runtimeType}');",
+    );
     buffer.writeln("}\n");
 
     return buffer.toString();

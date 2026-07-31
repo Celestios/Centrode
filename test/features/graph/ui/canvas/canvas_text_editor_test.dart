@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:mycelium/features/graph/ui/canvas/text/canvas_text_editor.dart';
-import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/presentation/node_render_state.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/ui/canvas/text/canvas_text_editor.dart';
+import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/features/graph/presentation/node_render_state.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockNodeRenderState extends Mock
     with ChangeNotifier
@@ -15,10 +15,13 @@ class MockNodeRenderState extends Mock
   RawUuid? get activeEditId => RawUuid.fromString('test-node-1');
 
   @override
-  final ValueNotifier<TextSelection?> activeTextSelectionNotifier = ValueNotifier(null);
+  final ValueNotifier<TextSelection?> activeTextSelectionNotifier =
+      ValueNotifier(null);
 
   @override
-  final ValueNotifier<TextAlign> currentTextAlignNotifier = ValueNotifier(TextAlign.center);
+  final ValueNotifier<TextAlign> currentTextAlignNotifier = ValueNotifier(
+    TextAlign.center,
+  );
 }
 
 void main() {
@@ -31,14 +34,18 @@ void main() {
     WidgetTester tester,
   ) async {
     final mockRenderState = MockNodeRenderState();
-    
+
     // Stub callbacks
     mockRenderState.applyFormatCallback = null;
     mockRenderState.toggleHeadingCallback = null;
     mockRenderState.clearBlockFormatCallback = null;
 
-    when(() => mockRenderState.updateActiveTextSelection(any())).thenReturn(null);
-    when(() => mockRenderState.updateEntityTextLive(any(), any())).thenReturn(null);
+    when(
+      () => mockRenderState.updateActiveTextSelection(any()),
+    ).thenReturn(null);
+    when(
+      () => mockRenderState.updateEntityTextLive(any(), any()),
+    ).thenReturn(null);
 
     final initialContent = ContentFactory.fromText('Hello');
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
-import 'package:mycelium/features/graph/models/graph_node.dart';
-import 'package:mycelium/features/graph/models/graph_relation.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/models/graph_node.dart';
+import 'package:centrode/features/graph/models/graph_relation.dart';
 
 class TemplatePreviewPainter extends CustomPainter {
   final List<UiNode> nodes;

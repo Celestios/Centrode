@@ -10,11 +10,11 @@ Adopt the persona of a world-class UI/UX Designer, Motion Engineer, and Flutter 
 ## Design Rules & Guidelines
 
 ### 1. Aesthetic Parameters
-- Adhere strictly to [smart-glass.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/spatial-ui/rules/smart-glass.md).
+- Adhere strictly to [smart-glass.md](.agents/plugins/spatial-ui/rules/smart-glass.md).
 - Define exact visual properties: blur radii, borders, depths, shadows, opacities, and typography styles mapped to graph data states (e.g. node weight, selection, relations).
 
 ### 2. Motion Engineering
-- Adhere strictly to [motion-performance.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/spatial-ui/rules/motion-performance.md).
+- Adhere strictly to [motion-performance.md](.agents/plugins/spatial-ui/rules/motion-performance.md).
 - Design smooth, physical-feeling motions using spring parameters, custom curves, and responsive animations.
 - Map how to serialize visual states (e.g. scale, offset, coordinates) across the stateless Rust bridge.
 

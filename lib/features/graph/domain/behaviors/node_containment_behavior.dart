@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:mycelium/features/graph/models/graph_node.dart';
+import 'package:centrode/features/graph/models/graph_node.dart';
 
 /// Determines child node containment for composite nodes (frames).
 abstract class NodeContainmentBehavior {
@@ -28,7 +28,8 @@ class FrameContainment implements NodeContainmentBehavior {
       parent.size.width,
       parent.size.height,
     );
-    final childCenter = childPosition + Offset(childSize.width / 2, childSize.height / 2);
+    final childCenter =
+        childPosition + Offset(childSize.width / 2, childSize.height / 2);
     return parentRect.contains(childCenter);
   }
 }

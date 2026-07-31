@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:mycelium/features/graph/engine/interaction_engine.dart';
-import 'package:mycelium/features/graph/engine/interaction_context.dart';
-import 'package:mycelium/features/graph/engine/base_interaction_state.dart';
-import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/presentation/view_state.dart';
+import 'package:centrode/features/graph/engine/interaction_engine.dart';
+import 'package:centrode/features/graph/engine/interaction_context.dart';
+import 'package:centrode/features/graph/engine/base_interaction_state.dart';
+import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/features/graph/presentation/view_state.dart';
 
 import 'dart:typed_data';
-import 'package:mycelium/features/graph/store/relation_engine_state.dart';
-import 'package:mycelium/src/rust/relation_engine/computed.dart';
-import 'package:mycelium/src/rust/relation_engine/config.dart';
-import 'package:mycelium/src/rust/relation_engine/geometry.dart' as rust_geom;
-import 'package:mycelium/features/graph/models/commands/patch_helpers.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/store/relation_engine_state.dart';
+import 'package:centrode/src/rust/relation_engine/computed.dart';
+import 'package:centrode/src/rust/relation_engine/config.dart';
+import 'package:centrode/src/rust/relation_engine/geometry.dart' as rust_geom;
+import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockInteractionContext extends Mock implements InteractionContext {}
 
@@ -22,7 +22,10 @@ class MockTransformationController extends Mock
 
 class MockRelationEngineState extends Mock implements RelationEngineState {}
 
-ComputedRelation createTestComputedRelation(RawUuid idStr, List<rust_geom.Point> pathPoints) {
+ComputedRelation createTestComputedRelation(
+  RawUuid idStr,
+  List<rust_geom.Point> pathPoints,
+) {
   return ComputedRelation(
     id: parseTypedRecordId('IRelation', idStr),
     pathPoints: pathPoints,
@@ -44,10 +47,18 @@ ComputedRelation createTestComputedRelation(RawUuid idStr, List<rust_geom.Point>
     endMargin: 0.0,
     startArrowCenter: const rust_geom.Point(x: 0, y: 0),
     endArrowCenter: const rust_geom.Point(x: 0, y: 0),
-    startPoint: pathPoints.isNotEmpty ? pathPoints.first : const rust_geom.Point(x: 0, y: 0),
-    endPoint: pathPoints.isNotEmpty ? pathPoints.last : const rust_geom.Point(x: 0, y: 0),
-    startHandlePos: pathPoints.isNotEmpty ? rust_geom.Point(x: pathPoints.first.x + 16, y: pathPoints.first.y) : const rust_geom.Point(x: 0, y: 0),
-    endHandlePos: pathPoints.length >= 2 ? rust_geom.Point(x: pathPoints.last.x - 16, y: pathPoints.last.y) : const rust_geom.Point(x: 0, y: 0),
+    startPoint: pathPoints.isNotEmpty
+        ? pathPoints.first
+        : const rust_geom.Point(x: 0, y: 0),
+    endPoint: pathPoints.isNotEmpty
+        ? pathPoints.last
+        : const rust_geom.Point(x: 0, y: 0),
+    startHandlePos: pathPoints.isNotEmpty
+        ? rust_geom.Point(x: pathPoints.first.x + 16, y: pathPoints.first.y)
+        : const rust_geom.Point(x: 0, y: 0),
+    endHandlePos: pathPoints.length >= 2
+        ? rust_geom.Point(x: pathPoints.last.x - 16, y: pathPoints.last.y)
+        : const rust_geom.Point(x: 0, y: 0),
     controlPoints: const [],
     knots: Float64List(0),
     nudgeColors: const [],
@@ -71,7 +82,9 @@ void main() {
 
       mockContext = MockInteractionContext();
       final mockRelationEngine = MockRelationEngineState();
-      when(() => mockRelationEngine.cache).thenReturn(<RawUuid, ComputedRelation>{});
+      when(
+        () => mockRelationEngine.cache,
+      ).thenReturn(<RawUuid, ComputedRelation>{});
       when(() => mockContext.relationEngine).thenReturn(mockRelationEngine);
 
       controller = InteractionController(
@@ -156,12 +169,18 @@ void main() {
         final fromVs = NodeViewState(fromNode);
         final toVs = NodeViewState(toNode);
 
-        when(
-          () => mockContext.nodeViewStates,
-        ).thenReturn({RawUuid.fromString('node-from'): fromVs, RawUuid.fromString('node-to'): toVs});
+        when(() => mockContext.nodeViewStates).thenReturn({
+          RawUuid.fromString('node-from'): fromVs,
+          RawUuid.fromString('node-to'): toVs,
+        });
         when(() => mockContext.getRelations()).thenReturn([rel]);
-        when(() => mockContext.getSelectedEntities()).thenReturn({RawUuid.fromString('rel-1')});
-        when(() => mockContext.zOrder).thenReturn([RawUuid.fromString('node-from'), RawUuid.fromString('node-to')]);
+        when(
+          () => mockContext.getSelectedEntities(),
+        ).thenReturn({RawUuid.fromString('rel-1')});
+        when(() => mockContext.zOrder).thenReturn([
+          RawUuid.fromString('node-from'),
+          RawUuid.fromString('node-to'),
+        ]);
 
         final mockRelationEngine = MockRelationEngineState();
         when(() => mockRelationEngine.cache).thenReturn({
@@ -220,12 +239,18 @@ void main() {
         final fromVs = NodeViewState(fromNode);
         final toVs = NodeViewState(toNode);
 
-        when(
-          () => mockContext.nodeViewStates,
-        ).thenReturn({RawUuid.fromString('node-from'): fromVs, RawUuid.fromString('node-to'): toVs});
+        when(() => mockContext.nodeViewStates).thenReturn({
+          RawUuid.fromString('node-from'): fromVs,
+          RawUuid.fromString('node-to'): toVs,
+        });
         when(() => mockContext.getRelations()).thenReturn([rel]);
-        when(() => mockContext.getSelectedEntities()).thenReturn({RawUuid.fromString('rel-1')});
-        when(() => mockContext.zOrder).thenReturn([RawUuid.fromString('node-from'), RawUuid.fromString('node-to')]);
+        when(
+          () => mockContext.getSelectedEntities(),
+        ).thenReturn({RawUuid.fromString('rel-1')});
+        when(() => mockContext.zOrder).thenReturn([
+          RawUuid.fromString('node-from'),
+          RawUuid.fromString('node-to'),
+        ]);
         final mockRelationEngine = MockRelationEngineState();
         when(() => mockRelationEngine.cache).thenReturn({
           RawUuid.fromString('rel-1'): createTestComputedRelation(

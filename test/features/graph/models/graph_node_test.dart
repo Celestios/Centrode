@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mycelium/features/graph/models/graph_node.dart';
-import 'package:mycelium/src/rust/domain/types.dart';
-import 'package:mycelium/src/rust/domain/nodes.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/models/graph_node.dart';
+import 'package:centrode/src/rust/domain/types.dart';
+import 'package:centrode/src/rust/domain/nodes.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 void main() {
   group('UiNode', () {
@@ -54,7 +54,10 @@ void main() {
         state: TaskState.todo,
       );
 
-      final copied = node.copyWith(state: TaskState.done, dueDate: 1620000000000);
+      final copied = node.copyWith(
+        state: TaskState.done,
+        dueDate: 1620000000000,
+      );
 
       expect(copied.id, RawUuid.fromString('task-1'));
       expect(copied.state, TaskState.done);

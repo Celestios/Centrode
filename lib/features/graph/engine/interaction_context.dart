@@ -8,7 +8,7 @@ import '../presentation/handlers/topology_action_handler.dart';
 import '../presentation/handlers/content_action_handler.dart';
 import '../store/spatial_index.dart';
 import '../store/relation_engine_state.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 /// Scoped capability interface for active interaction states.
 ///
@@ -107,7 +107,10 @@ abstract interface class MutationCapability {
 
   void toggleNodeExpansion(RawUuid id);
 
-  void updateNodeStyle(RawUuid id, NodeStyle Function(NodeStyle style) updateFn);
+  void updateNodeStyle(
+    RawUuid id,
+    NodeStyle Function(NodeStyle style) updateFn,
+  );
 
   void setHoveredNodeMetadata(RawUuid? nodeId);
 
@@ -160,4 +163,7 @@ abstract interface class HandlerCapability {
 /// state objects can interact with the context without direct coupling
 /// to the controller implementation.
 abstract interface class InteractionContext
-    implements SelectionCapability, GeometryAndViewportCapability, HandlerCapability {}
+    implements
+        SelectionCapability,
+        GeometryAndViewportCapability,
+        HandlerCapability {}

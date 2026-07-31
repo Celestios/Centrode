@@ -1,15 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:mycelium/features/graph/ui/canvas/paste_handler.dart';
-import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
-import 'package:mycelium/features/graph/store/command_queue_processor.dart';
-import 'package:mycelium/features/graph/store/graph_api.dart';
-import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/src/rust/domain/snapshot.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart';
-import 'package:mycelium/src/rust/domain/patches.dart';
-import 'package:mycelium/features/graph/models/commands/patch_helpers.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/ui/canvas/paste_handler.dart';
+import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
+import 'package:centrode/features/graph/store/command_queue_processor.dart';
+import 'package:centrode/features/graph/store/graph_api.dart';
+import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/src/rust/domain/snapshot.dart';
+import 'package:centrode/src/rust/domain/base_models.dart';
+import 'package:centrode/src/rust/domain/patches.dart';
+import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockGraphApi extends Mock implements GraphApi {}
 
@@ -54,33 +54,43 @@ void main() {
         ),
       ),
     );
-    registerFallbackValue(SymmetricEntityPatch(
-      id: parseTypedRecordId('INode', RawUuid.fromString('dummy')),
-      forward: const EntityPatch.node([]),
-      reverse: const EntityPatch.node([]),
-    ));
+    registerFallbackValue(
+      SymmetricEntityPatch(
+        id: parseTypedRecordId('INode', RawUuid.fromString('dummy')),
+        forward: const EntityPatch.node([]),
+        reverse: const EntityPatch.node([]),
+      ),
+    );
   });
 
   setUp(() {
     mockApi = MockGraphApi();
-    when(() => mockApi.createNode(input: any(named: 'input')))
-        .thenAnswer((_) async {});
-    when(() => mockApi.createRelation(input: any(named: 'input')))
-        .thenAnswer((_) async {});
-    when(() => mockApi.createGraphStream())
-        .thenAnswer((_) => const Stream.empty());
+    when(
+      () => mockApi.createNode(input: any(named: 'input')),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockApi.createRelation(input: any(named: 'input')),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockApi.createGraphStream(),
+    ).thenAnswer((_) => const Stream.empty());
     when(() => mockApi.undoCount()).thenAnswer((_) async => 0);
     when(() => mockApi.redoCount()).thenAnswer((_) async => 0);
-    when(() => mockApi.applyEntityMutation(mutation: any(named: 'mutation')))
-        .thenAnswer((_) async {});
+    when(
+      () => mockApi.applyEntityMutation(mutation: any(named: 'mutation')),
+    ).thenAnswer((_) async {});
 
     queryController = GraphDataQueryController(mockApi);
     controller = CommandQueueProcessor(mockApi, queryController);
 
     when(() => mockApi.getGraphSnapshot()).thenAnswer(
       (_) async => GraphSnapshot(
-        nodes: queryController.nodeLookup.values.map((n) => n.toRust()).toList(),
-        relations: queryController.relationLookup.values.map((r) => r.toRust()).toList(),
+        nodes: queryController.nodeLookup.values
+            .map((n) => n.toRust())
+            .toList(),
+        relations: queryController.relationLookup.values
+            .map((r) => r.toRust())
+            .toList(),
         metadata: MapData(
           mapName: '',
           viewportState: ViewportState(
@@ -149,15 +159,18 @@ void main() {
       expect(queryController.nodeLookup.length, equals(1));
     });
 
-    test('heading with children creates tree of nodes with relations', () async {
-      await pasteTextToCanvas(
-        dataController: controller,
-        text: '# Root\n\n- Child 1\n- Child 2',
-        canvasPosition: const Offset(100, 100),
-      );
-      await controller.flush();
-      expect(queryController.nodeLookup.length, equals(3));
-    });
+    test(
+      'heading with children creates tree of nodes with relations',
+      () async {
+        await pasteTextToCanvas(
+          dataController: controller,
+          text: '# Root\n\n- Child 1\n- Child 2',
+          canvasPosition: const Offset(100, 100),
+        );
+        await controller.flush();
+        expect(queryController.nodeLookup.length, equals(3));
+      },
+    );
 
     test('nested headings create deep tree', () async {
       await pasteTextToCanvas(

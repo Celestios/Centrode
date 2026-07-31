@@ -1,10 +1,10 @@
 // lib/features/graph/theme/graph_theme.dart
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import 'package:mycelium/presentation/theme/app_theme.dart';
+import 'package:centrode/presentation/theme/app_theme.dart';
 
-import 'package:mycelium/src/rust/domain/types.dart' as frb;
-import 'package:mycelium/src/rust/domain/theme.dart' as frb;
+import 'package:centrode/src/rust/domain/types.dart' as frb;
+import 'package:centrode/src/rust/domain/theme.dart' as frb;
 
 class GraphTheme extends AppTheme {
   final String id;

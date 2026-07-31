@@ -1,9 +1,9 @@
-import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
+import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:uuid/uuid.dart';
-import 'package:mycelium/src/rust/domain/types.dart';
-import 'package:mycelium/src/rust/domain/id.dart';
-import 'package:mycelium/src/rust/domain/relations.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/src/rust/domain/types.dart';
+import 'package:centrode/src/rust/domain/id.dart';
+import 'package:centrode/src/rust/domain/relations.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 // ---------------------------------------------------------------------------
 // Abstract base class

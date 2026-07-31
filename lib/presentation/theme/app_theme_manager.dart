@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:mycelium/presentation/theme/app_theme.dart';
+import 'package:centrode/presentation/theme/app_theme.dart';
 
 class AppThemeManager {
   static final AppThemeManager instance = AppThemeManager._();

@@ -43,7 +43,7 @@ class AppPaths {
       final pubspec = File(p.join(dir, 'pubspec.yaml'));
       if (pubspec.existsSync()) {
         final content = pubspec.readAsStringSync();
-        if (content.contains('name: mycelium')) {
+        if (content.contains('name: centrode')) {
           _cachedDevRoot = dir;
           return dir;
         }
@@ -59,7 +59,7 @@ class AppPaths {
       final pubspec = File(p.join(dir, 'pubspec.yaml'));
       if (pubspec.existsSync()) {
         final content = pubspec.readAsStringSync();
-        if (content.contains('name: mycelium')) {
+        if (content.contains('name: centrode')) {
           _cachedDevRoot = dir;
           return dir;
         }
@@ -102,7 +102,10 @@ class AppPaths {
     }
   }
 
-  static Future<void> renameMapStorage(String rawOldPath, String rawNewPath) async {
+  static Future<void> renameMapStorage(
+    String rawOldPath,
+    String rawNewPath,
+  ) async {
     final oldPath = p.canonicalize(rawOldPath);
     final newPath = p.canonicalize(rawNewPath);
     for (var attempt = 0; attempt < 5; attempt++) {
@@ -131,4 +134,3 @@ class AppPaths {
     }
   }
 }
-

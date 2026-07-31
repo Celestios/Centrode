@@ -1,14 +1,14 @@
 import 'dart:ui';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
-import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import '../../models/content_builder.dart';
 import '../../models/graph_node.dart';
 import '../../models/graph_relation.dart';
 import '../../store/command_queue_processor.dart';
-import 'package:mycelium/src/rust/domain/contents.dart';
-import 'package:mycelium/features/graph/presentation/relation_utils.dart';
-import 'package:mycelium/features/graph/presentation/view_state.dart';
+import 'package:centrode/src/rust/domain/contents.dart';
+import 'package:centrode/features/graph/presentation/relation_utils.dart';
+import 'package:centrode/features/graph/presentation/view_state.dart';
 
 final Logger _log = Logger('PasteHandler');
 
@@ -124,7 +124,11 @@ void _createSingleNode(
   Content content,
   Offset position,
 ) {
-  final id = dataController.createNode(UiNodes.info, position, content: content);
+  final id = dataController.createNode(
+    UiNodes.info,
+    position,
+    content: content,
+  );
   _log.info('Pasted plain text as single node: $id');
 }
 
@@ -154,7 +158,8 @@ Future<void> _createTreeNodes(
 
     if (parentId != null) {
       final isParentHeading = parentVerb != null;
-      final isChildBody = tree.content.blocks.first.blockType != BlockType.heading;
+      final isChildBody =
+          tree.content.blocks.first.blockType != BlockType.heading;
       final verb = isParentHeading && isChildBody ? 'description' : 'contains';
       relations.add((parentId, id, verb));
     }
@@ -164,12 +169,15 @@ Future<void> _createTreeNodes(
       final startX = pos.dx - ((childCount - 1) * hGap) / 2;
       for (int i = 0; i < childCount; i++) {
         final childPos = Offset(startX + i * hGap, pos.dy + vGap);
-        final isHeading = tree.content.blocks.first.blockType == BlockType.heading;
+        final isHeading =
+            tree.content.blocks.first.blockType == BlockType.heading;
         addNode(
           tree.children[i],
           childPos,
           id,
-          parentVerb: isHeading ? _blockText(tree.content.blocks.first) : parentVerb,
+          parentVerb: isHeading
+              ? _blockText(tree.content.blocks.first)
+              : parentVerb,
         );
       }
     }
@@ -215,7 +223,9 @@ Future<void> _createTreeNodes(
     dataController.styleUpdater?.updateStyleForRelation(relation.id);
 
     try {
-      await dataController.syncEngine.api.createRelation(input: relation.toRust());
+      await dataController.syncEngine.api.createRelation(
+        input: relation.toRust(),
+      );
     } catch (e) {
       _log.warning('Failed to persist relation to Rust: $e');
     }

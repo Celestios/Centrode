@@ -1,13 +1,13 @@
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/domain/types.dart';
-import 'package:mycelium/src/rust/domain/patches.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/src/rust/domain/types.dart';
+import 'package:centrode/src/rust/domain/patches.dart';
 import '../../store/graph_api.dart';
 import '../../store/graph_data_query.dart';
 import '../graph_node.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
 import 'patch_helpers.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('UpdateTagsCommand');
 
@@ -35,7 +35,9 @@ class UpdateTagsCommand extends GraphCommand {
 
   @override
   Future<void> execute() async {
-    _log.info('execute UpdateTags key=$targetId old=${oldTags.length} new=${newTags.length}');
+    _log.info(
+      'execute UpdateTags key=$targetId old=${oldTags.length} new=${newTags.length}',
+    );
     final allTags = await api.getAllTags();
     final Map<String, Tag> nameToTag = {
       for (final t in allTags) t.fields.name.toLowerCase(): t,

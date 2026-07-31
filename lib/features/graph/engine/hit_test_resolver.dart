@@ -1,8 +1,8 @@
 import 'dart:ui';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'config.dart';
-import 'package:mycelium/shared/utils/geometry.dart';
+import 'package:centrode/shared/utils/geometry.dart';
 import '../models/models.dart';
 import '../models/port.dart';
 import 'interaction_context.dart';
@@ -54,13 +54,20 @@ class HitTestResolver {
 
   const HitTestResolver();
 
-  PointerHitResult resolve(Offset pCanvas, InteractionContext ctx, bool isDoubleTap) {
+  PointerHitResult resolve(
+    Offset pCanvas,
+    InteractionContext ctx,
+    bool isDoubleTap,
+  ) {
     final nodeIds = resolveZOrderToNodeIds(ctx.zOrder, ctx.nodeViewStates);
 
     final selectedEntities = ctx.getSelectedEntities();
-    _hitTestLog.fine('resolve pCanvas=(${pCanvas.dx}, ${pCanvas.dy}) selected=${selectedEntities.length}');
+    _hitTestLog.fine(
+      'resolve pCanvas=(${pCanvas.dx}, ${pCanvas.dy}) selected=${selectedEntities.length}',
+    );
 
-    final result = _resolveRelationTips(pCanvas, ctx, selectedEntities) ??
+    final result =
+        _resolveRelationTips(pCanvas, ctx, selectedEntities) ??
         _resolveMetadataSphere(pCanvas, ctx, nodeIds) ??
         _resolvePorts(pCanvas, ctx, nodeIds) ??
         _resolveNodeHits(pCanvas, ctx, nodeIds) ??
@@ -68,7 +75,9 @@ class HitTestResolver {
         const PointerHitResult(type: HitTestType.none);
 
     if (result.type != HitTestType.none) {
-      _hitTestLog.fine('resolve hit: ${result.type} entity=${result.hitNodeId ?? result.hitEntityId ?? result.relationId}');
+      _hitTestLog.fine(
+        'resolve hit: ${result.type} entity=${result.hitNodeId ?? result.hitEntityId ?? result.relationId}',
+      );
     }
 
     return result;
@@ -85,7 +94,10 @@ class HitTestResolver {
       final cached = cache[id];
       if (cached == null || cached.pathPoints.isEmpty) continue;
 
-      final startHandle = Offset(cached.startHandlePos.x, cached.startHandlePos.y);
+      final startHandle = Offset(
+        cached.startHandlePos.x,
+        cached.startHandlePos.y,
+      );
       final endHandle = Offset(cached.endHandlePos.x, cached.endHandlePos.y);
 
       if ((pCanvas - startHandle).distance <
@@ -164,7 +176,8 @@ class HitTestResolver {
       final vs = ctx.nodeViewStates[hoveredId];
       if (vs != null && vs.sizeNotifier.value != Size.zero) {
         for (final port in vs.ports.allPorts) {
-          if ((pCanvas - port.position).distance < AppConfig.port.hitRadius * vs.currentScale) {
+          if ((pCanvas - port.position).distance <
+              AppConfig.port.hitRadius * vs.currentScale) {
             return PointerHitResult(
               type: HitTestType.port,
               hitNodeId: hoveredId,
@@ -181,7 +194,8 @@ class HitTestResolver {
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
 
       for (final port in vs.ports.allPorts) {
-        if ((pCanvas - port.position).distance < AppConfig.port.hitRadius * vs.currentScale) {
+        if ((pCanvas - port.position).distance <
+            AppConfig.port.hitRadius * vs.currentScale) {
           return PointerHitResult(
             type: HitTestType.port,
             hitNodeId: nodeId,
@@ -206,7 +220,10 @@ class HitTestResolver {
       if (node == null) continue;
       if (vs.lineCount > AppConfig.node.collapsedLineLimit &&
           vs.getExpandToggleHitbox(node).contains(pCanvas)) {
-        return PointerHitResult(type: HitTestType.expandToggle, hitNodeId: nodeId);
+        return PointerHitResult(
+          type: HitTestType.expandToggle,
+          hitNodeId: nodeId,
+        );
       }
 
       if (node is! DrawingUiNode) {
@@ -254,25 +271,39 @@ class HitTestResolver {
         width: AppConfig.interaction.relationLabelHitArea.width,
         height: AppConfig.interaction.relationLabelHitArea.height,
       ).contains(pCanvas)) {
-        return PointerHitResult(type: HitTestType.relationLabel, hitEntityId: rel.id);
+        return PointerHitResult(
+          type: HitTestType.relationLabel,
+          hitEntityId: rel.id,
+        );
       }
 
-      final points = cached.pathPoints
-          .map((p) => Offset(p.x, p.y))
-          .toList();
+      final points = cached.pathPoints.map((p) => Offset(p.x, p.y)).toList();
 
-      if (isPointNearPolyline(pCanvas, points, AppConfig.interaction.relationLineHitThreshold)) {
-        return PointerHitResult(type: HitTestType.relationLabel, hitEntityId: rel.id);
+      if (isPointNearPolyline(
+        pCanvas,
+        points,
+        AppConfig.interaction.relationLineHitThreshold,
+      )) {
+        return PointerHitResult(
+          type: HitTestType.relationLabel,
+          hitEntityId: rel.id,
+        );
       }
     }
     return null;
   }
 
-  static bool _isPointNearDrawing(Offset pCanvas, DrawingUiNode node, Offset nodePos) {
+  static bool _isPointNearDrawing(
+    Offset pCanvas,
+    DrawingUiNode node,
+    Offset nodePos,
+  ) {
     final double threshold = node.brushThickness * 0.5 + 24.0;
 
     for (final rawPoints in node.parsedPaths) {
-      final points = rawPoints.map((pt) => Offset(pt.dx + nodePos.dx, pt.dy + nodePos.dy)).toList();
+      final points = rawPoints
+          .map((pt) => Offset(pt.dx + nodePos.dx, pt.dy + nodePos.dy))
+          .toList();
       if (points.isEmpty) continue;
 
       if (points.length == 1) {

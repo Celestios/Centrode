@@ -12,7 +12,7 @@
 /// ```
 library;
 
-import 'package:mycelium/src/rust/domain/contents.dart';
+import 'package:centrode/src/rust/domain/contents.dart';
 
 /// Fluent builder for constructing Content with blocks.
 class ContentBuilder {
@@ -213,7 +213,10 @@ class ContentFactory {
   /// Parses inline elements from a line of text, identifying bold, italic,
   /// underline, strikethrough, code, and hyperlinks.
   /// Uses a delimiter-stack approach to handle arbitrary nesting.
-  static List<InlineElement> parseInline(String text, [List<TextMark>? activeMarks]) {
+  static List<InlineElement> parseInline(
+    String text, [
+    List<TextMark>? activeMarks,
+  ]) {
     final marks = activeMarks ?? [];
     if (text.isEmpty) return [];
 
@@ -231,7 +234,12 @@ class ContentFactory {
     final boldItalicReg = RegExp(r'\*\*\*([^*]+)\*\*\*');
     final boldItalicM = boldItalicReg.firstMatch(text);
     if (boldItalicM != null && _isBetterMatch(boldItalicM, bestMatch)) {
-      bestMatch = _DelimiterMatch(boldItalicM.start, boldItalicM.end, 'boldItalic', boldItalicM);
+      bestMatch = _DelimiterMatch(
+        boldItalicM.start,
+        boldItalicM.end,
+        'boldItalic',
+        boldItalicM,
+      );
     }
 
     // Bold: **text**
@@ -245,21 +253,36 @@ class ContentFactory {
     final italicReg = RegExp(r'\*([^*]+)\*');
     final italicM = italicReg.firstMatch(text);
     if (italicM != null && _isBetterMatch(italicM, bestMatch)) {
-      bestMatch = _DelimiterMatch(italicM.start, italicM.end, 'italic', italicM);
+      bestMatch = _DelimiterMatch(
+        italicM.start,
+        italicM.end,
+        'italic',
+        italicM,
+      );
     }
 
     // Underline: <u>text</u>
     final underlineReg = RegExp(r'<u>([^<]+)</u>');
     final underlineM = underlineReg.firstMatch(text);
     if (underlineM != null && _isBetterMatch(underlineM, bestMatch)) {
-      bestMatch = _DelimiterMatch(underlineM.start, underlineM.end, 'underline', underlineM);
+      bestMatch = _DelimiterMatch(
+        underlineM.start,
+        underlineM.end,
+        'underline',
+        underlineM,
+      );
     }
 
     // Strikethrough: ~~text~~
     final strikeReg = RegExp(r'~~([^~]+)~~');
     final strikeM = strikeReg.firstMatch(text);
     if (strikeM != null && _isBetterMatch(strikeM, bestMatch)) {
-      bestMatch = _DelimiterMatch(strikeM.start, strikeM.end, 'strike', strikeM);
+      bestMatch = _DelimiterMatch(
+        strikeM.start,
+        strikeM.end,
+        'strike',
+        strikeM,
+      );
     }
 
     // Inline code: `text`
@@ -275,7 +298,7 @@ class ContentFactory {
           inlineType: InlineType.text,
           text: text,
           marks: marks.isEmpty ? null : List.from(marks),
-        )
+        ),
       ];
     }
 
@@ -318,7 +341,12 @@ class ContentFactory {
         break;
       case 'link':
         final url = bestMatch.match.group(2) ?? '';
-        nextMarks.add(TextMark(markType: MarkType.link, attrs: MarkAttrs(href: url)));
+        nextMarks.add(
+          TextMark(
+            markType: MarkType.link,
+            attrs: MarkAttrs(href: url),
+          ),
+        );
         list.addAll(parseInline(matchText, nextMarks));
         break;
     }
@@ -343,14 +371,14 @@ class ContentFactory {
     if (text.isEmpty) {
       return const Content(text: '', blocks: []);
     }
-    
+
     final lines = text.split('\n');
     final blocks = <ContentBlock>[];
-    
+
     bool inCodeBlock = false;
     String? codeBlockLanguage;
     final codeBlockBuffer = StringBuffer();
-    
+
     for (var line in lines) {
       line = line.replaceAll('\r', '');
       if (inCodeBlock) {
@@ -359,7 +387,12 @@ class ContentFactory {
           blocks.add(
             ContentBlock(
               blockType: BlockType.codeBlock,
-              content: [InlineElement(inlineType: InlineType.text, text: codeBlockBuffer.toString().trimRight())],
+              content: [
+                InlineElement(
+                  inlineType: InlineType.text,
+                  text: codeBlockBuffer.toString().trimRight(),
+                ),
+              ],
               attrs: BlockAttrs(language: codeBlockLanguage),
             ),
           );
@@ -369,7 +402,7 @@ class ContentFactory {
         }
         continue;
       }
-      
+
       // Check for code block start
       if (line.startsWith('```')) {
         inCodeBlock = true;
@@ -377,7 +410,7 @@ class ContentFactory {
         codeBlockLanguage = lang.isEmpty ? null : lang;
         continue;
       }
-      
+
       // Heading: starts with #
       final headingMatch = RegExp(r'^(#{1,6})\s+(.*)$').firstMatch(line);
       if (headingMatch != null) {
@@ -392,7 +425,7 @@ class ContentFactory {
         );
         continue;
       }
-      
+
       // Blockquote: starts with >
       if (line.startsWith('>') && (line.length == 1 || line[1] == ' ')) {
         final contentText = line.length == 1 ? '' : line.substring(2);
@@ -404,7 +437,7 @@ class ContentFactory {
         );
         continue;
       }
-      
+
       // Bullet List: starts with - , * , or +
       final bulletMatch = RegExp(r'^[-*+]\s+(.*)$').firstMatch(line);
       if (bulletMatch != null) {
@@ -417,7 +450,7 @@ class ContentFactory {
         );
         continue;
       }
-      
+
       // Ordered List: starts with 1. or 2. etc.
       final orderedMatch = RegExp(r'^(\d+)\.\s+(.*)$').firstMatch(line);
       if (orderedMatch != null) {
@@ -430,7 +463,7 @@ class ContentFactory {
         );
         continue;
       }
-      
+
       // Otherwise, it's a paragraph
       blocks.add(
         ContentBlock(
@@ -439,18 +472,23 @@ class ContentFactory {
         ),
       );
     }
-    
+
     // Handle unclosed code block
     if (inCodeBlock) {
       blocks.add(
         ContentBlock(
           blockType: BlockType.codeBlock,
-          content: [InlineElement(inlineType: InlineType.text, text: codeBlockBuffer.toString().trimRight())],
+          content: [
+            InlineElement(
+              inlineType: InlineType.text,
+              text: codeBlockBuffer.toString().trimRight(),
+            ),
+          ],
           attrs: BlockAttrs(language: codeBlockLanguage),
         ),
       );
     }
-    
+
     // Compute the plain text representation
     final plainText = ContentBuilder._computePlainText(blocks);
     return Content(text: plainText, blocks: blocks);
@@ -473,13 +511,13 @@ class ContentFactory {
         final lang = block.attrs?.language ?? '';
         buffer.writeln('```$lang');
       }
-      
+
       for (final inline in block.content) {
         if (inline.inlineType == InlineType.hardBreak) {
           buffer.write('\n');
           continue;
         }
-        
+
         var text = inline.text;
         if (inline.marks != null && block.blockType != BlockType.codeBlock) {
           // Apply marks in order
@@ -502,13 +540,13 @@ class ContentFactory {
         }
         buffer.write(text);
       }
-      
+
       if (block.blockType == BlockType.codeBlock) {
         buffer.write('\n```');
       }
       buffer.writeln();
     }
-    
+
     final result = buffer.toString();
     return result.endsWith('\n')
         ? result.substring(0, result.length - 1)

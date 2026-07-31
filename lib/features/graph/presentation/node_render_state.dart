@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/traceable_notifier.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/traceable_notifier.dart';
 import '../store/graph_data_query.dart';
 import '../store/graph_data_command.dart';
 import '../store/spatial_index.dart';
@@ -12,7 +12,7 @@ import '../models/port.dart';
 import 'editor_state.dart';
 import 'selection_state.dart';
 import 'drag_state.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 /// Notifier pulsed to trigger relation painter repaints when node coordinates change.
 class MovementNotifier extends ChangeNotifier with TraceableNotifier {
@@ -26,7 +26,9 @@ enum InspectorTab { appearance, data }
 
 /// Thin coordinator that owns the data subscription and wires three focused sub-controllers:
 /// [EditorState], [SelectionState], and [DragState].
-class NodeRenderState extends ChangeNotifier with TraceableNotifier implements GraphDataQuery {
+class NodeRenderState extends ChangeNotifier
+    with TraceableNotifier
+    implements GraphDataQuery {
   @override
   String get notifierName => 'NodeRenderState';
   final Logger _log = Logger('NodeRenderState');
@@ -78,9 +80,7 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
     editorState.addListener(notifyListeners);
     selectionState.addListener(notifyListeners);
 
-    _updateSubscription = _dataQuery.onEntityUpdate.listen(
-      _handleEntityUpdate,
-    );
+    _updateSubscription = _dataQuery.onEntityUpdate.listen(_handleEntityUpdate);
     _syncAtomicUIState();
   }
 
@@ -90,7 +90,8 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
 
     bool changed = false;
 
-    if (!dragState.isNodeDragging(id) && vs.positionNotifier.value != node.position) {
+    if (!dragState.isNodeDragging(id) &&
+        vs.positionNotifier.value != node.position) {
       vs.positionNotifier.value = node.position;
       movementNotifier.pulse();
       changed = true;
@@ -218,58 +219,89 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
   Set<RawUuid> get selectedEntities => selectionState.selectedEntities;
   List<RawUuid> get zOrder => selectionState.zOrder;
   RawUuid? get activeEditId => editorState.activeEditId;
-  RawUuid? get nodeShowingFloatingToolbar => editorState.nodeShowingFloatingToolbar;
+  RawUuid? get nodeShowingFloatingToolbar =>
+      editorState.nodeShowingFloatingToolbar;
   Set<RawUuid> get draggingNodes => dragState.draggingNodes;
 
-  ValueNotifier<Offset> get toolbarOffsetNotifier => editorState.toolbarOffsetNotifier;
-  ValueNotifier<Offset> get multiToolbarOffsetNotifier => editorState.multiToolbarOffsetNotifier;
-  ValueNotifier<TextSelection?> get activeTextSelectionNotifier => editorState.activeTextSelectionNotifier;
-  ValueNotifier<TextAlign> get currentTextAlignNotifier => editorState.currentTextAlignNotifier;
+  ValueNotifier<Offset> get toolbarOffsetNotifier =>
+      editorState.toolbarOffsetNotifier;
+  ValueNotifier<Offset> get multiToolbarOffsetNotifier =>
+      editorState.multiToolbarOffsetNotifier;
+  ValueNotifier<TextSelection?> get activeTextSelectionNotifier =>
+      editorState.activeTextSelectionNotifier;
+  ValueNotifier<TextAlign> get currentTextAlignNotifier =>
+      editorState.currentTextAlignNotifier;
 
-  void Function(dynamic formatType, {String? url})? get applyFormatCallback => editorState.applyFormatCallback;
-  set applyFormatCallback(void Function(dynamic formatType, {String? url})? value) => editorState.applyFormatCallback = value;
+  void Function(dynamic formatType, {String? url})? get applyFormatCallback =>
+      editorState.applyFormatCallback;
+  set applyFormatCallback(
+    void Function(dynamic formatType, {String? url})? value,
+  ) => editorState.applyFormatCallback = value;
 
-  void Function(dynamic headingType)? get toggleHeadingCallback => editorState.toggleHeadingCallback;
-  set toggleHeadingCallback(void Function(dynamic headingType)? value) => editorState.toggleHeadingCallback = value;
+  void Function(dynamic headingType)? get toggleHeadingCallback =>
+      editorState.toggleHeadingCallback;
+  set toggleHeadingCallback(void Function(dynamic headingType)? value) =>
+      editorState.toggleHeadingCallback = value;
 
-  void Function()? get clearBlockFormatCallback => editorState.clearBlockFormatCallback;
-  set clearBlockFormatCallback(void Function()? value) => editorState.clearBlockFormatCallback = value;
+  void Function()? get clearBlockFormatCallback =>
+      editorState.clearBlockFormatCallback;
+  set clearBlockFormatCallback(void Function()? value) =>
+      editorState.clearBlockFormatCallback = value;
 
-  void Function()? get cycleFontFamilyCallback => editorState.cycleFontFamilyCallback;
-  set cycleFontFamilyCallback(void Function()? value) => editorState.cycleFontFamilyCallback = value;
+  void Function()? get cycleFontFamilyCallback =>
+      editorState.cycleFontFamilyCallback;
+  set cycleFontFamilyCallback(void Function()? value) =>
+      editorState.cycleFontFamilyCallback = value;
 
-  void Function(String fontFamily)? get setFontFamilyCallback => editorState.setFontFamilyCallback;
-  set setFontFamilyCallback(void Function(String fontFamily)? value) => editorState.setFontFamilyCallback = value;
+  void Function(String fontFamily)? get setFontFamilyCallback =>
+      editorState.setFontFamilyCallback;
+  set setFontFamilyCallback(void Function(String fontFamily)? value) =>
+      editorState.setFontFamilyCallback = value;
 
-  void Function()? get cycleTextColorCallback => editorState.cycleTextColorCallback;
-  set cycleTextColorCallback(void Function()? value) => editorState.cycleTextColorCallback = value;
+  void Function()? get cycleTextColorCallback =>
+      editorState.cycleTextColorCallback;
+  set cycleTextColorCallback(void Function()? value) =>
+      editorState.cycleTextColorCallback = value;
 
-  void Function({String? colorUrl})? get toggleHighlightCallback => editorState.toggleHighlightCallback;
-  set toggleHighlightCallback(void Function({String? colorUrl})? value) => editorState.toggleHighlightCallback = value;
+  void Function({String? colorUrl})? get toggleHighlightCallback =>
+      editorState.toggleHighlightCallback;
+  set toggleHighlightCallback(void Function({String? colorUrl})? value) =>
+      editorState.toggleHighlightCallback = value;
 
-  void Function()? get cycleHighlightColorCallback => editorState.cycleHighlightColorCallback;
-  set cycleHighlightColorCallback(void Function()? value) => editorState.cycleHighlightColorCallback = value;
+  void Function()? get cycleHighlightColorCallback =>
+      editorState.cycleHighlightColorCallback;
+  set cycleHighlightColorCallback(void Function()? value) =>
+      editorState.cycleHighlightColorCallback = value;
 
-  void Function()? get cycleTextAlignCallback => editorState.cycleTextAlignCallback;
-  set cycleTextAlignCallback(void Function()? value) => editorState.cycleTextAlignCallback = value;
+  void Function()? get cycleTextAlignCallback =>
+      editorState.cycleTextAlignCallback;
+  set cycleTextAlignCallback(void Function()? value) =>
+      editorState.cycleTextAlignCallback = value;
 
-  void Function()? get commitActiveEditCallback => editorState.commitActiveEditCallback;
-  set commitActiveEditCallback(void Function()? value) => editorState.commitActiveEditCallback = value;
+  void Function()? get commitActiveEditCallback =>
+      editorState.commitActiveEditCallback;
+  set commitActiveEditCallback(void Function()? value) =>
+      editorState.commitActiveEditCallback = value;
 
-  void updateActiveTextSelection(TextSelection? selection) => editorState.updateActiveTextSelection(selection);
+  void updateActiveTextSelection(TextSelection? selection) =>
+      editorState.updateActiveTextSelection(selection);
   void enterEditMode(RawUuid id) => editorState.enterEditMode(id);
   void commitActiveEdit() => editorState.commitActiveEdit();
   void cancelActiveEdit() => editorState.cancelActiveEdit();
-  void showFloatingToolbar(RawUuid nodeId) => editorState.showFloatingToolbar(nodeId);
+  void showFloatingToolbar(RawUuid nodeId) =>
+      editorState.showFloatingToolbar(nodeId);
   void hideFloatingToolbar() => editorState.hideFloatingToolbar();
-  Offset? calculateToolbarAnchor(Iterable<RawUuid> selectedIds) => editorState.calculateToolbarAnchor(selectedIds);
+  Offset? calculateToolbarAnchor(Iterable<RawUuid> selectedIds) =>
+      editorState.calculateToolbarAnchor(selectedIds);
 
   void selectEntity(RawUuid? id) => selectionState.selectEntity(id);
-  void selectEntities(Iterable<RawUuid> ids) => selectionState.selectEntities(ids);
+  void selectEntities(Iterable<RawUuid> ids) =>
+      selectionState.selectEntities(ids);
   void deleteSelectedEntities() => selectionState.deleteSelectedEntities();
   void moveToFront(RawUuid id) => selectionState.moveToFront(id);
 
-  void setNodeDragging(RawUuid id, bool dragging) => dragState.setNodeDragging(id, dragging);
+  void setNodeDragging(RawUuid id, bool dragging) =>
+      dragState.setNodeDragging(id, dragging);
 
   // ===========================================================================
   // Proxy Query & Mutation Delegate Methods
@@ -313,7 +345,10 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
     _dataCommand.updateRelationsLayout(ids, strategyType: strategyType);
   }
 
-  void updateNodesStyle(List<RawUuid> ids, NodeStyle Function(NodeStyle style) updateFn) {
+  void updateNodesStyle(
+    List<RawUuid> ids,
+    NodeStyle Function(NodeStyle style) updateFn,
+  ) {
     _dataCommand.updateNodesStyle(ids, updateFn);
   }
 
@@ -333,7 +368,11 @@ class NodeRenderState extends ChangeNotifier with TraceableNotifier implements G
     _dataCommand.removeCommentFromNode(nodeId, comment);
   }
 
-  void commitEntityText(RawUuid id, dynamic newTextOrContent, {dynamic originalTextOrContent}) {
+  void commitEntityText(
+    RawUuid id,
+    dynamic newTextOrContent, {
+    dynamic originalTextOrContent,
+  }) {
     _dataCommand.commitEntityText(
       id,
       newTextOrContent,

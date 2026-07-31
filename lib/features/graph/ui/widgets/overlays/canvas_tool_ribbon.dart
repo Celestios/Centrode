@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
 import '../../../store/command_queue_processor.dart';
-import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
+import 'package:centrode/presentation/widgets/hover_scale_button.dart';
 
 class CanvasToolRibbon extends StatefulWidget {
   const CanvasToolRibbon({super.key});
@@ -123,8 +123,7 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                       label: tools[i].label,
                       isActive: currentMode == tools[i].mode,
                       isCompact: _isCompact,
-                      onPressed: () =>
-                          session.setToolMode(tools[i].mode),
+                      onPressed: () => session.setToolMode(tools[i].mode),
                       primaryColor: primaryColor,
                       textColor: textColor,
                     ),

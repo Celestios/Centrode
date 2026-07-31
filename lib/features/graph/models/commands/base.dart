@@ -1,4 +1,4 @@
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 enum CommandCategory { spatial, content, aesthetic, lifecycle }
 

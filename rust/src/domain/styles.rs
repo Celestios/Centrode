@@ -1,5 +1,5 @@
 use flutter_rust_bridge::frb;
-use mycelium_macros::{SurrealDbEnum, SurqlSchemaField};
+use centrode_macros::{SurrealDbEnum, SurqlSchemaField};
 use surrealdb::types::SurrealValue;
 
 #[repr(u8)]

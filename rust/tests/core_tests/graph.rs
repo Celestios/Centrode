@@ -1,18 +1,18 @@
 use crate::common::setup_test_repo;
-use rust_lib_mycelium::domain::base_models::{
+use centrode_core::domain::base_models::{
     BoundingBox, Coordinates, MapData, Size,
 };
-use rust_lib_mycelium::domain::contents::Content;
-use rust_lib_mycelium::domain::id::TypedRecordId;
-use rust_lib_mycelium::domain::nodes::{
+use centrode_core::domain::contents::Content;
+use centrode_core::domain::id::TypedRecordId;
+use centrode_core::domain::nodes::{
     INode, InterNode, Nodes, TaskNode, TaskState,
 };
-use rust_lib_mycelium::domain::relations::{IRelation, IRelationFields};
-use rust_lib_mycelium::domain::snapshot::GraphSnapshot;
-use rust_lib_mycelium::domain::traits::TableKind;
+use centrode_core::domain::relations::{IRelation, IRelationFields};
+use centrode_core::domain::snapshot::GraphSnapshot;
+use centrode_core::domain::traits::TableKind;
 
 async fn assert_significance_eventually(
-    repo: &rust_lib_mycelium::persistence::repo::Repository,
+    repo: &centrode_core::persistence::repo::Repository,
     table: &str,
     key: &str,
     expected: u8,
@@ -199,14 +199,14 @@ async fn test_graph_snapshot() {
         relations: new_relations,
         metadata: MapData {
             map_name: "Overwritten Map".to_string(),
-            viewport_state: rust_lib_mycelium::domain::base_models::ViewportState {
+            viewport_state: centrode_core::domain::base_models::ViewportState {
                 x_offset: 10.0,
                 y_offset: 20.0,
                 zoom_level: 1.5,
                 active_view: "canvas".to_string(),
             },
             active_theme_id: None,
-            display_mode: rust_lib_mycelium::domain::base_models::DisplayMode::Importance,
+            display_mode: centrode_core::domain::base_models::DisplayMode::Importance,
         },
     };
 

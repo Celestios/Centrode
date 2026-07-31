@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mycelium/features/graph/ui/canvas/node_widget.dart';
-import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/presentation/view_state.dart';
+import 'package:centrode/features/graph/ui/canvas/node_widget.dart';
+import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/features/graph/presentation/view_state.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/features/graph/store/graph_data_query.dart';
-import 'package:mycelium/features/graph/presentation/theme_manager.dart';
+import 'package:centrode/features/graph/store/graph_data_query.dart';
+import 'package:centrode/features/graph/presentation/theme_manager.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:mycelium/presentation/theme/graph_theme.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/presentation/theme/graph_theme.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockGraphDataQuery extends Mock
     with ChangeNotifier

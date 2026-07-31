@@ -4,7 +4,7 @@ description: Canvas rendering analysis, repaint boundaries, gesture latency, and
 
 # Workflow: /perf-profiler
 
-This workflow is used when profiling, diagnosing, and optimizing performance bottlenecks in the Mycelium workspace, particularly around rendering, FFI communication, and database performance.
+This workflow is used when profiling, diagnosing, and optimizing performance bottlenecks in the Centrode workspace, particularly around rendering, FFI communication, and database performance.
 
 ## Execution Steps
 
@@ -16,8 +16,8 @@ This workflow is used when profiling, diagnosing, and optimizing performance bot
 
 ### Step 2: Load Style and Performance Rules
 - Based on the area of optimization:
-  - For Dart/Flutter optimizations: View and activate the [dart-coding](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/dart-coding/SKILL.md) skill.
-  - For Rust/Database optimizations: View and activate the [rust-coding](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/rust-coding/SKILL.md) skill.
+  - For Dart/Flutter optimizations: View and activate the [dart-coding](.agents/skills/dart-coding/SKILL.md) skill.
+  - For Rust/Database optimizations: View and activate the [rust-coding](.agents/skills/rust-coding/SKILL.md) skill.
 
 ### Step 3: Performance Auditing
 - Verify common performance hotspots:

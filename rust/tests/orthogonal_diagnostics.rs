@@ -1,13 +1,13 @@
-use rust_lib_mycelium::domain::id::TypedRecordId;
-use rust_lib_mycelium::relation_engine::config::{RelationEngineConfig, RoutingMode};
-use rust_lib_mycelium::relation_engine::engine::RelationEngine;
+use centrode_core::domain::id::TypedRecordId;
+use centrode_core::relation_engine::config::{RelationEngineConfig, RoutingMode};
+use centrode_core::relation_engine::engine::RelationEngine;
 
+use centrode_core::domain::styles::PortSide;
+use centrode_core::domain::traits::TableKind;
+use centrode_core::relation_engine::geometry::{polyline_length, segments_intersect, Rect};
+use centrode_core::relation_engine::input::{InputEdge, InputNode};
 use rand::RngExt;
 use rand::SeedableRng;
-use rust_lib_mycelium::domain::styles::PortSide;
-use rust_lib_mycelium::domain::traits::TableKind;
-use rust_lib_mycelium::relation_engine::geometry::{polyline_length, segments_intersect, Rect};
-use rust_lib_mycelium::relation_engine::input::{InputEdge, InputNode};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::io::Write;
@@ -65,7 +65,7 @@ fn render_svg(
     filename: &str,
     label: &str,
     nodes: &[InputNode],
-    results: &[rust_lib_mycelium::relation_engine::computed::ComputedRelation],
+    results: &[centrode_core::relation_engine::computed::ComputedRelation],
 ) {
     let colors = ["#e74c3c", "#3498db", "#2ecc71", "#f39c12", "#9b59b6"];
     let mut min_x: f64 = f64::MAX;
@@ -220,7 +220,7 @@ fn write_enriched_json(
     filename: &str,
     label: &str,
     nodes: &[InputNode],
-    results: &[rust_lib_mycelium::relation_engine::computed::ComputedRelation],
+    results: &[centrode_core::relation_engine::computed::ComputedRelation],
 ) {
     let out_dir = std::path::Path::new("target").join("ortho_diag");
     let path = out_dir.join(format!("{}.json", filename));
@@ -488,10 +488,7 @@ fn write_enriched_json(
     );
 }
 
-fn print_log(
-    label: &str,
-    results: &[rust_lib_mycelium::relation_engine::computed::ComputedRelation],
-) {
+fn print_log(label: &str, results: &[centrode_core::relation_engine::computed::ComputedRelation]) {
     println!("\n============================================================");
     println!("SCENARIO: {}", label);
     println!("============================================================");

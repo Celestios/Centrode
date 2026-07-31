@@ -1,12 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:mycelium/features/graph/presentation/node_render_state.dart';
-import 'package:mycelium/features/graph/store/graph_data_query.dart';
-import 'package:mycelium/features/graph/store/graph_data_command.dart';
-import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/presentation/node_render_state.dart';
+import 'package:centrode/features/graph/store/graph_data_query.dart';
+import 'package:centrode/features/graph/store/graph_data_command.dart';
+import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockGraphDataQuery extends Mock implements GraphDataQuery {}
+
 class MockGraphDataCommand extends Mock implements GraphDataCommand {}
 
 void main() {
@@ -19,24 +20,31 @@ void main() {
       mockQuery = MockGraphDataQuery();
       mockCommand = MockGraphDataCommand();
 
-      final dummyNode = InfoUiNode(id: RawUuid.fromString('node-1'), position: Offset.zero);
-      when(() => mockQuery.nodeLookup).thenReturn({RawUuid.fromString('node-1'): dummyNode});
+      final dummyNode = InfoUiNode(
+        id: RawUuid.fromString('node-1'),
+        position: Offset.zero,
+      );
+      when(
+        () => mockQuery.nodeLookup,
+      ).thenReturn({RawUuid.fromString('node-1'): dummyNode});
       when(() => mockQuery.relationLookup).thenReturn({});
       when(() => mockQuery.relations).thenReturn([]);
-      when(() => mockQuery.onEntityUpdate).thenAnswer((_) => const Stream.empty());
-
+      when(
+        () => mockQuery.onEntityUpdate,
+      ).thenAnswer((_) => const Stream.empty());
 
       renderState = NodeRenderState(mockQuery, mockCommand);
     });
 
-
     test('initial state populates viewStates for nodes in lookup', () {
       expect(renderState.viewStates, hasLength(1));
       expect(renderState.activeLeftPanelNotifier.value, LeftPanelType.none);
-      expect(renderState.activeInspectorTabNotifier.value, InspectorTab.appearance);
+      expect(
+        renderState.activeInspectorTabNotifier.value,
+        InspectorTab.appearance,
+      );
       expect(renderState.hoveredNodeNotifier.value, isNull);
     });
-
 
     test('selecting entity delegates to selection state', () {
       final id = RawUuid.fromString('node-1');

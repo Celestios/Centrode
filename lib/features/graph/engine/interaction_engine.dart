@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../engine/config.dart';
 import 'base_interaction_state.dart';
 import 'interaction_context.dart';
@@ -146,7 +146,12 @@ class InteractionController {
 
     // Run interceptors first
     for (final interceptor in List<GestureInterceptor>.from(_interceptors)) {
-      final disposition = interceptor.onPointerDown(e, pCanvas, environment, isDoubleTap);
+      final disposition = interceptor.onPointerDown(
+        e,
+        pCanvas,
+        environment,
+        isDoubleTap,
+      );
       if (disposition == InterceptorDisposition.consumed) {
         return;
       }
@@ -248,13 +253,13 @@ class InteractionController {
 
   void startRelationDrawing(Set<RawUuid> nodeIds, Offset initialPos) {
     environment.setHoveredPort(null);
-    _transitionTo(RelationDrawing(
-      nodeIds,
-      initialPos,
-    ));
+    _transitionTo(RelationDrawing(nodeIds, initialPos));
   }
 
-  void updateNodeStyle(RawUuid nodeId, NodeStyle Function(NodeStyle style) updateFn) {
+  void updateNodeStyle(
+    RawUuid nodeId,
+    NodeStyle Function(NodeStyle style) updateFn,
+  ) {
     environment.updateNodeStyle(nodeId, updateFn);
   }
 }

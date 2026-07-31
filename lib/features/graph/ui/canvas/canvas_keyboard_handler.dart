@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 import '../../store/graph_data_query_controller.dart';
 import '../../store/command_queue_processor.dart';
 import '../../presentation/node_render_state.dart';
-import 'package:mycelium/shared/copy_buffer.dart';
+import 'package:centrode/shared/copy_buffer.dart';
 import 'paste_handler.dart';
-import 'package:mycelium/features/graph/presentation/viewport_state.dart';
+import 'package:centrode/features/graph/presentation/viewport_state.dart';
 
 /// Dedicated keyboard handler for canvas shortcuts (Ctrl+C/X/V).
 /// This widget owns the Focus and does not rebuild on provider changes.

@@ -1,13 +1,13 @@
-import 'package:mycelium/shared/logging.dart';
+import 'package:centrode/shared/logging.dart';
 import '../../store/graph_api.dart';
-import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
-import 'package:mycelium/src/rust/domain/patches.dart';
+import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
+import 'package:centrode/src/rust/domain/patches.dart';
 import '../../store/graph_data_query.dart';
 import '../graph_relation.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
 import 'patch_helpers.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('UpdateRelationsLayoutCommand');
 
@@ -41,7 +41,10 @@ class UpdateRelationsLayoutCommand extends GraphCommand {
     _log.info('execute UpdateRelationsLayout count=${newLayouts.length}');
     for (final id in newLayouts.keys) {
       final (forwardPatches, reversePatches) = buildRelationLayoutPatches(
-        oldLayouts[id], newLayouts[id], oldStyles[id], newStyles[id],
+        oldLayouts[id],
+        newLayouts[id],
+        oldStyles[id],
+        newStyles[id],
       );
 
       if (forwardPatches.isNotEmpty) {

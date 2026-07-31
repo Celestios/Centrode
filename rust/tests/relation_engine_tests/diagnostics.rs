@@ -1,8 +1,8 @@
-use rust_lib_mycelium::relation_engine::config::{
+use centrode_core::relation_engine::config::{
     RelationEngineConfig,
     RoutingMode,
 };
-use rust_lib_mycelium::relation_engine::engine::RelationEngine;
+use centrode_core::relation_engine::engine::RelationEngine;
 
 fn polyline_config() -> RelationEngineConfig {
     let mut config = RelationEngineConfig::default();
@@ -68,11 +68,11 @@ fn run_all_polyline_diagnostics() {
                 );
                 assert_eq!(
                     r.path_points[0],
-                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                    centrode_core::relation_engine::geometry::Point::new(0.0, 0.0)
                 );
                 assert_eq!(
                     r.path_points[1],
-                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                    centrode_core::relation_engine::geometry::Point::new(0.0, 0.0)
                 );
             }
         } else {
@@ -113,11 +113,11 @@ fn run_all_orthogonal_diagnostics() {
                 );
                 assert_eq!(
                     r.path_points[0],
-                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                    centrode_core::relation_engine::geometry::Point::new(0.0, 0.0)
                 );
                 assert_eq!(
                     r.path_points[1],
-                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                    centrode_core::relation_engine::geometry::Point::new(0.0, 0.0)
                 );
             }
         } else {
@@ -158,11 +158,11 @@ fn run_all_bspline_diagnostics() {
                 );
                 assert_eq!(
                     r.path_points[0],
-                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                    centrode_core::relation_engine::geometry::Point::new(0.0, 0.0)
                 );
                 assert_eq!(
                     r.path_points[1],
-                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                    centrode_core::relation_engine::geometry::Point::new(0.0, 0.0)
                 );
             }
         } else {
@@ -203,11 +203,11 @@ fn run_all_octilinear_diagnostics() {
                 );
                 assert_eq!(
                     r.path_points[0],
-                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                    centrode_core::relation_engine::geometry::Point::new(0.0, 0.0)
                 );
                 assert_eq!(
                     r.path_points[1],
-                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                    centrode_core::relation_engine::geometry::Point::new(0.0, 0.0)
                 );
             }
         } else {
@@ -251,11 +251,11 @@ fn run_all_bezier_diagnostics() {
                 );
                 assert_eq!(
                     r.path_points[0],
-                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                    centrode_core::relation_engine::geometry::Point::new(0.0, 0.0)
                 );
                 assert_eq!(
                     r.path_points[1],
-                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                    centrode_core::relation_engine::geometry::Point::new(0.0, 0.0)
                 );
             }
         } else {
@@ -364,11 +364,11 @@ fn run_all_sinewave_diagnostics() {
                 );
                 assert_eq!(
                     r.path_points[0],
-                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                    centrode_core::relation_engine::geometry::Point::new(0.0, 0.0)
                 );
                 assert_eq!(
                     r.path_points[1],
-                    rust_lib_mycelium::relation_engine::geometry::Point::new(0.0, 0.0)
+                    centrode_core::relation_engine::geometry::Point::new(0.0, 0.0)
                 );
             }
         } else {

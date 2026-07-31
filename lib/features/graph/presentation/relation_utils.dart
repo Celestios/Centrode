@@ -1,6 +1,6 @@
-import 'package:mycelium/features/graph/models/port.dart';
-import 'package:mycelium/features/graph/presentation/view_state.dart';
-export 'package:mycelium/shared/utils/geometry.dart';
+import 'package:centrode/features/graph/models/port.dart';
+import 'package:centrode/features/graph/presentation/view_state.dart';
+export 'package:centrode/shared/utils/geometry.dart';
 
 ({Port startPort, Port endPort}) getClosestMiddlePorts(
   NodeViewState fromVs,

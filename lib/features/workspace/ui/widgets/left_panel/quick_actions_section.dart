@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/utils/name_generator.dart';
-import 'package:mycelium/features/graph/ui/graph_screen.dart';
-import 'package:mycelium/features/graph/presentation/map_manager.dart';
-import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
-import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
+import 'package:centrode/shared/utils/name_generator.dart';
+import 'package:centrode/features/graph/ui/graph_screen.dart';
+import 'package:centrode/features/graph/presentation/map_manager.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/presentation/widgets/hover_scale_button.dart';
 
 class QuickActionsSection extends StatelessWidget {
   const QuickActionsSection({super.key});
@@ -24,10 +24,7 @@ class QuickActionsSection extends StatelessWidget {
               color: theme.iconTheme.color,
               size: 20,
             ),
-            title: Text(
-              'Open',
-              style: theme.textTheme.bodyMedium,
-            ),
+            title: Text('Open', style: theme.textTheme.bodyMedium),
             onTap: () {},
             contentPadding: EdgeInsets.zero,
             dense: true,
@@ -38,19 +35,12 @@ class QuickActionsSection extends StatelessWidget {
               color: theme.iconTheme.color,
               size: 20,
             ),
-            title: Text(
-              'Import',
-              style: theme.textTheme.bodyMedium,
-            ),
+            title: Text('Import', style: theme.textTheme.bodyMedium),
             onTap: () {},
             contentPadding: EdgeInsets.zero,
             dense: true,
           ),
-          const Expanded(
-            child: Center(
-              child: _NewMapButton(),
-            ),
-          ),
+          const Expanded(child: Center(child: _NewMapButton())),
         ],
       ),
     );
@@ -78,9 +68,7 @@ class _ReturnToMapButton extends StatelessWidget {
           onTap: hasOpenMaps
               ? () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const GraphScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const GraphScreen()),
                   );
                 }
               : null,
@@ -92,8 +80,8 @@ class _ReturnToMapButton extends StatelessWidget {
               borderRadius: 10,
               color: hasOpenMaps
                   ? (isHovered
-                      ? primaryColor.withValues(alpha: 0.18)
-                      : primaryColor.withValues(alpha: 0.1))
+                        ? primaryColor.withValues(alpha: 0.18)
+                        : primaryColor.withValues(alpha: 0.1))
                   : theme.cardColor.withValues(alpha: 0.3),
               shadow: hasOpenMaps && isHovered
                   ? BoxShadow(
@@ -103,20 +91,27 @@ class _ReturnToMapButton extends StatelessWidget {
                     )
                   : null,
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 12,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       Icons.map_outlined,
-                      color: buttonColor.withValues(alpha: hasOpenMaps ? 1.0 : 0.4),
+                      color: buttonColor.withValues(
+                        alpha: hasOpenMaps ? 1.0 : 0.4,
+                      ),
                       size: 18,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       'Return to Map',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: buttonColor.withValues(alpha: hasOpenMaps ? 1.0 : 0.4),
+                        color: buttonColor.withValues(
+                          alpha: hasOpenMaps ? 1.0 : 0.4,
+                        ),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -146,18 +141,13 @@ class _NewMapButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: IconButton(
-        icon: Icon(
-          Icons.add,
-          color: theme.colorScheme.primary,
-        ),
+        icon: Icon(Icons.add, color: theme.colorScheme.primary),
         onPressed: () {
           final name = NameGenerator.generate();
           MapManager.instance.openMap('maps/$name.db', name);
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const GraphScreen(),
-            ),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const GraphScreen()));
         },
       ),
     );

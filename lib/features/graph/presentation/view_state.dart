@@ -1,14 +1,14 @@
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
-import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/models/port.dart';
-import 'package:mycelium/features/graph/presentation/node_ports.dart';
-import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
-import 'package:mycelium/features/graph/engine/volatile_node_state.dart';
-import 'package:mycelium/features/graph/presentation/view_state_geometry.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/features/graph/models/port.dart';
+import 'package:centrode/features/graph/presentation/node_ports.dart';
+import 'package:centrode/features/graph/presentation/strategies/node_layout_strategy.dart';
+import 'package:centrode/features/graph/engine/volatile_node_state.dart';
+import 'package:centrode/features/graph/presentation/view_state_geometry.dart';
 
 class NodeViewState implements VolatileNodeState {
   final RawUuid nodeId;

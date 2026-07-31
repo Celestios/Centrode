@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../../../../../src/rust/domain/contents.dart';
 import '../../../presentation/view_state.dart';
 import '../text/canvas_text_editor.dart';
@@ -8,8 +8,7 @@ class NodeOverlayManager {
   final OverlayState? _overlay;
   final Map<RawUuid, OverlayEntry> _activeOverlays = {};
 
-  NodeOverlayManager(BuildContext context)
-      : _overlay = Overlay.of(context);
+  NodeOverlayManager(BuildContext context) : _overlay = Overlay.of(context);
 
   void showEditor({
     required RawUuid nodeId,
@@ -54,10 +53,9 @@ class NodeOverlayManager {
               maxLines: null,
               textStyle: TextStyle(
                 fontSize: fontSize,
-                fontFamily:
-                    fontFamily.isEmpty || fontFamily == 'System'
-                        ? null
-                        : fontFamily,
+                fontFamily: fontFamily.isEmpty || fontFamily == 'System'
+                    ? null
+                    : fontFamily,
                 color: Color(textColor),
               ),
             ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/shared/logging.dart';
+import 'package:centrode/shared/logging.dart';
 import '../../../../presentation/widgets/window_title_bar.dart';
 import '../store/graph_data_query_controller.dart';
 import '../store/command_queue_processor.dart';
@@ -11,8 +11,8 @@ import '../presentation/theme_manager.dart';
 import '../store/graph_data_query.dart';
 import 'canvas/graph_canvas.dart';
 import 'widgets/init_error_widget.dart';
-import 'package:mycelium/shared/copy_buffer.dart';
-import 'package:mycelium/presentation/theme/app_theme_manager.dart';
+import 'package:centrode/shared/copy_buffer.dart';
+import 'package:centrode/presentation/theme/app_theme_manager.dart';
 
 class GraphScreen extends StatefulWidget {
   const GraphScreen({super.key});
@@ -56,7 +56,9 @@ class _GraphScreenState extends State<GraphScreen> {
         child: Consumer<WorkspaceTabsController>(
           builder: (context, tabsController, _) {
             if (tabsController.tabs.isEmpty) {
-              return const Scaffold(body: Center(child: CircularProgressIndicator()));
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
             }
             final activeSession = tabsController.activeSession;
 
@@ -68,10 +70,12 @@ class _GraphScreenState extends State<GraphScreen> {
                 ].whereType<Listenable>(),
               ),
               builder: (context, _) {
-                final mapTheme = activeSession.themeController?.currentGraphTheme;
+                final mapTheme =
+                    activeSession.themeController?.currentGraphTheme;
                 ThemeData fallbackTheme() {
                   try {
-                    return AppThemeManager.instance.themeNotifier.value.toThemeData();
+                    return AppThemeManager.instance.themeNotifier.value
+                        .toThemeData();
                   } catch (_) {
                     return Theme.of(context);
                   }
@@ -80,7 +84,8 @@ class _GraphScreenState extends State<GraphScreen> {
                 final ThemeData themeData;
                 if (mapTheme != null) {
                   final newThemeData = mapTheme.toThemeData();
-                  final themeChanged = _lastThemeData != null && _lastThemeData != newThemeData;
+                  final themeChanged =
+                      _lastThemeData != null && _lastThemeData != newThemeData;
                   _lastThemeData = newThemeData;
                   themeData = newThemeData;
                   if (themeChanged) {
@@ -166,7 +171,8 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
     if (oldWidget.session.id != widget.session.id) {
       ThemeData globalTheme;
       try {
-        globalTheme = AppThemeManager.instance.themeNotifier.value.toThemeData();
+        globalTheme = AppThemeManager.instance.themeNotifier.value
+            .toThemeData();
       } catch (_) {
         globalTheme = Theme.of(context);
       }

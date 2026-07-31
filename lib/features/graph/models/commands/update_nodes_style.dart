@@ -1,13 +1,13 @@
 import 'dart:ui';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
-import 'package:mycelium/src/rust/domain/patches.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
+import 'package:centrode/src/rust/domain/patches.dart';
 import '../../store/graph_api.dart';
 import '../../store/graph_data_query.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
 import 'patch_helpers.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('UpdateNodesStyleCommand');
 
@@ -39,7 +39,10 @@ class UpdateNodesStyleCommand extends GraphCommand {
     _log.info('execute UpdateNodesStyle count=${newStyles.length}');
     for (final id in newStyles.keys) {
       final (forwardPatches, reversePatches) = buildNodeStylePatches(
-        oldStyles[id], newStyles[id], oldSizes[id], newSizes[id],
+        oldStyles[id],
+        newStyles[id],
+        oldSizes[id],
+        newSizes[id],
       );
 
       if (forwardPatches.isNotEmpty) {

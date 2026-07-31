@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import '../../../../store/graph_data_query_controller.dart';
 
 // -----------------------------------------------------------------------------

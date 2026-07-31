@@ -81,8 +81,8 @@
 // =============================================================================
 
 import 'package:flutter/material.dart';
-import 'package:mycelium/features/graph/presentation/strategies/node_text_span_builder.dart';
-import 'package:mycelium/src/rust/domain/contents.dart';
+import 'package:centrode/features/graph/presentation/strategies/node_text_span_builder.dart';
+import 'package:centrode/src/rust/domain/contents.dart';
 
 void main() {
   runApp(const MaterialApp(home: AlignmentBugTestWidget()));
@@ -104,34 +104,47 @@ class _AlignmentBugTestWidgetState extends State<AlignmentBugTestWidget> {
     blocks: [
       ContentBlock(
         blockType: BlockType.paragraph,
-        content: [InlineElement(inlineType: InlineType.text, text: 'first paragraph')],
+        content: [
+          InlineElement(inlineType: InlineType.text, text: 'first paragraph'),
+        ],
         attrs: BlockAttrs(textAlign: _block0Align.name),
       ),
       ContentBlock(
         blockType: BlockType.paragraph,
-        content: [InlineElement(inlineType: InlineType.text, text: 'second paragraph')],
+        content: [
+          InlineElement(inlineType: InlineType.text, text: 'second paragraph'),
+        ],
         attrs: BlockAttrs(textAlign: _block1Align.name),
       ),
     ],
   );
 
-  Widget _buildAlignSelector(String label, TextAlign current, ValueChanged<TextAlign> onChanged) {
+  Widget _buildAlignSelector(
+    String label,
+    TextAlign current,
+    ValueChanged<TextAlign> onChanged,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('$label: ${current.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(
+          '$label: ${current.name}',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 4),
         Row(
-          children: [TextAlign.left, TextAlign.center, TextAlign.right].map((a) =>
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: ChoiceChip(
-                label: Text(a.name),
-                selected: current == a,
-                onSelected: (_) => onChanged(a),
-              ),
-            ),
-          ).toList(),
+          children: [TextAlign.left, TextAlign.center, TextAlign.right]
+              .map(
+                (a) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(a.name),
+                    selected: current == a,
+                    onSelected: (_) => onChanged(a),
+                  ),
+                ),
+              )
+              .toList(),
         ),
       ],
     );
@@ -140,7 +153,10 @@ class _AlignmentBugTestWidgetState extends State<AlignmentBugTestWidget> {
   @override
   Widget build(BuildContext context) {
     final baseStyle = const TextStyle(fontSize: 16, color: Colors.black);
-    final blockSpans = NodeTextSpanBuilder.buildPerBlockTextSpans(_content, baseStyle);
+    final blockSpans = NodeTextSpanBuilder.buildPerBlockTextSpans(
+      _content,
+      baseStyle,
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Alignment Bug Test')),
@@ -148,12 +164,23 @@ class _AlignmentBugTestWidgetState extends State<AlignmentBugTestWidget> {
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            _buildAlignSelector('Block 0', _block0Align, (a) => setState(() => _block0Align = a)),
+            _buildAlignSelector(
+              'Block 0',
+              _block0Align,
+              (a) => setState(() => _block0Align = a),
+            ),
             const SizedBox(height: 12),
-            _buildAlignSelector('Block 1', _block1Align, (a) => setState(() => _block1Align = a)),
+            _buildAlignSelector(
+              'Block 1',
+              _block1Align,
+              (a) => setState(() => _block1Align = a),
+            ),
             const SizedBox(height: 24),
             const Divider(),
-            const Text('Widget path (per-block RichText):', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Widget path (per-block RichText):',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Container(
               width: 300,
@@ -162,7 +189,10 @@ class _AlignmentBugTestWidgetState extends State<AlignmentBugTestWidget> {
               child: _buildWidgetPath(blockSpans),
             ),
             const SizedBox(height: 24),
-            const Text('Painter path (per-block RichText):', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Painter path (per-block RichText):',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Container(
               width: 300,
@@ -171,7 +201,10 @@ class _AlignmentBugTestWidgetState extends State<AlignmentBugTestWidget> {
               child: _buildPainterPath(blockSpans),
             ),
             const SizedBox(height: 24),
-            const Text('Data check:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Data check:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             for (int i = 0; i < blockSpans.length; i++)
               Text('Block $i: textAlign=${blockSpans[i].$2}'),

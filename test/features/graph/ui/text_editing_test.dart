@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mycelium/features/graph/ui/canvas/text/text_format_state_machine.dart';
-import 'package:mycelium/features/graph/ui/canvas/text/text_format_models.dart';
+import 'package:centrode/features/graph/ui/canvas/text/text_format_state_machine.dart';
+import 'package:centrode/features/graph/ui/canvas/text/text_format_models.dart';
 
 void main() {
   group('TextFormatStateMachine', () {

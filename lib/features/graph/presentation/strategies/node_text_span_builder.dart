@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:mycelium/src/rust/domain/contents.dart';
+import 'package:centrode/src/rust/domain/contents.dart';
 
 class NodeTextSpanBuilder {
   static TextSpan buildRichTextSpan(
@@ -18,7 +18,11 @@ class NodeTextSpanBuilder {
     for (int i = 0; i < content.blocks.length; i++) {
       final block = content.blocks[i];
       final inlineSpans = _buildInlineSpansForBlock(
-        block, i, baseStyle, onLinkTap: onLinkTap, registerRecognizer: registerRecognizer,
+        block,
+        i,
+        baseStyle,
+        onLinkTap: onLinkTap,
+        registerRecognizer: registerRecognizer,
       );
 
       if (i < content.blocks.length - 1) {
@@ -46,7 +50,11 @@ class NodeTextSpanBuilder {
     for (int i = 0; i < content.blocks.length; i++) {
       final block = content.blocks[i];
       final inlineSpans = _buildInlineSpansForBlock(
-        block, i, baseStyle, onLinkTap: onLinkTap, registerRecognizer: registerRecognizer,
+        block,
+        i,
+        baseStyle,
+        onLinkTap: onLinkTap,
+        registerRecognizer: registerRecognizer,
       );
 
       TextAlign textAlign = TextAlign.center;
@@ -125,9 +133,13 @@ class NodeTextSpanBuilder {
           } else if (mark.markType == MarkType.italic) {
             inlineStyle = inlineStyle.copyWith(fontStyle: FontStyle.italic);
           } else if (mark.markType == MarkType.underline) {
-            inlineStyle = inlineStyle.copyWith(decoration: TextDecoration.underline);
+            inlineStyle = inlineStyle.copyWith(
+              decoration: TextDecoration.underline,
+            );
           } else if (mark.markType == MarkType.strikethrough) {
-            inlineStyle = inlineStyle.copyWith(decoration: TextDecoration.lineThrough);
+            inlineStyle = inlineStyle.copyWith(
+              decoration: TextDecoration.lineThrough,
+            );
           } else if (mark.markType == MarkType.code) {
             inlineStyle = inlineStyle.copyWith(
               fontFamily: 'Consolas',
@@ -151,9 +163,7 @@ class NodeTextSpanBuilder {
             );
           } else if (mark.markType == MarkType.textColor) {
             final colorVal = mark.attrs?.color ?? 0xFF000000;
-            inlineStyle = inlineStyle.copyWith(
-              color: Color(colorVal),
-            );
+            inlineStyle = inlineStyle.copyWith(color: Color(colorVal));
           } else if (mark.markType == MarkType.fontFamily) {
             final fontFam = mark.attrs?.fontFamily;
             if (fontFam != null && fontFam.isNotEmpty) {
@@ -165,11 +175,13 @@ class NodeTextSpanBuilder {
         }
       }
 
-      inlineSpans.add(TextSpan(
-        text: inline.text,
-        style: inlineStyle,
-        recognizer: linkRecognizer,
-      ));
+      inlineSpans.add(
+        TextSpan(
+          text: inline.text,
+          style: inlineStyle,
+          recognizer: linkRecognizer,
+        ),
+      );
     }
 
     return inlineSpans;

@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:ui';
-import 'package:mycelium/shared/logging.dart';
+import 'package:centrode/shared/logging.dart';
 import '../models/models.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 /// Manages the lifecycle of state mutations with FIFO ordering for FFI calls.
 /// Implements write-behind debouncing to batch high-frequency spatial updates.

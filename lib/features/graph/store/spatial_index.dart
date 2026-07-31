@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 // -----------------------------------------------------------------------------
 // Spatial Hash Grid for O(1) Lookups

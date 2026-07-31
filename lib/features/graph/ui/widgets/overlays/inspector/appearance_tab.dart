@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
-import 'package:mycelium/features/graph/engine/config.dart';
-import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
-import 'package:mycelium/shared/utils/color_utils.dart';
-import 'package:mycelium/shared/widgets/color_palette/color_palette.dart';
+import 'package:centrode/features/graph/engine/config.dart';
+import 'package:centrode/features/graph/presentation/strategies/node_style_strategy.dart';
+import 'package:centrode/shared/utils/color_utils.dart';
+import 'package:centrode/shared/widgets/color_palette/color_palette.dart';
 
 class AppearanceTab extends StatelessWidget {
   final Set<RawUuid> selectedEntities;
@@ -147,10 +147,7 @@ class AppearanceTab extends StatelessWidget {
     );
   }
 
-  Widget _buildRelationAppearance(
-    ThemeData theme,
-    List<RawUuid> relationIds,
-  ) {
+  Widget _buildRelationAppearance(ThemeData theme, List<RawUuid> relationIds) {
     final firstRelation = renderState.getRelation(relationIds.first)!;
     final currentStrategy = firstRelation.layout?.strategyType ?? 'default';
 
@@ -320,8 +317,7 @@ class AppearanceTab extends StatelessWidget {
             (style) => style.copyWith(
               bgColor: col.toARGB32(),
               textColor: ColorUtils.getContrastTextColorInt(col.toARGB32()),
-              strokeColor:
-                  ColorUtils.getContrastStrokeColorInt(col.toARGB32()),
+              strokeColor: ColorUtils.getContrastStrokeColorInt(col.toARGB32()),
             ),
           ),
         ),
@@ -421,9 +417,7 @@ class _StrategyButton extends StatelessWidget {
             ? theme.colorScheme.primary.withValues(alpha: 0.1)
             : Colors.transparent,
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

@@ -1,9 +1,9 @@
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/domain/id.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/src/rust/domain/id.dart';
 import '../../store/graph_api.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('SaveTemplateCommand');
 

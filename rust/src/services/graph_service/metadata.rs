@@ -158,7 +158,7 @@ impl GraphService {
         );
 
         tokio::task::spawn_blocking(move || {
-            packager::save_project_to_celi(&file_path, &attachment_dir, content, snapshot.metadata)
+            packager::save_project_to_cent(&file_path, &attachment_dir, content, snapshot.metadata)
         })
         .await??;
 
@@ -171,7 +171,7 @@ impl GraphService {
         attachment_dir: String,
     ) -> anyhow::Result<()> {
         let (mut content, metadata) = tokio::task::spawn_blocking(move || {
-            packager::load_project_from_celi(&file_path, &attachment_dir)
+            packager::load_project_from_cent(&file_path, &attachment_dir)
         })
         .await??;
 

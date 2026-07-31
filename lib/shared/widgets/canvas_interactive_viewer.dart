@@ -34,21 +34,21 @@ typedef InteractiveViewerWidgetBuilder =
 ///
 /// The user can transform the child by dragging to pan or pinching to zoom.
 ///
-/// By default, MyceliumInteractiveViewer clips its child using [Clip.hardEdge].
+/// By default, CentrodeInteractiveViewer clips its child using [Clip.hardEdge].
 /// To prevent this behavior, consider setting [clipBehavior] to [Clip.none].
-/// When [clipBehavior] is [Clip.none], MyceliumInteractiveViewer may draw outside of
+/// When [clipBehavior] is [Clip.none], CentrodeInteractiveViewer may draw outside of
 /// its original area of the screen, such as when a child is zoomed in and
 /// increases in size. However, it will not receive gestures outside of its original area.
-/// To prevent dead areas where MyceliumInteractiveViewer does not receive gestures,
-/// don't set [clipBehavior] or be sure that the MyceliumInteractiveViewer widget is the
+/// To prevent dead areas where CentrodeInteractiveViewer does not receive gestures,
+/// don't set [clipBehavior] or be sure that the CentrodeInteractiveViewer widget is the
 /// size of the area that should be interactive.
 ///
 /// See also:
 ///   * The [Flutter Gallery's transformations demo](https://github.com/flutter/gallery/blob/main/lib/demos/reference/transformations_demo.dart),
-///     which includes the use of MyceliumInteractiveViewer.
-///   * The [flutter-go demo](https://github.com/justinmc/flutter-go), which includes robust positioning of an MyceliumInteractiveViewer child
+///     which includes the use of CentrodeInteractiveViewer.
+///   * The [flutter-go demo](https://github.com/justinmc/flutter-go), which includes robust positioning of an CentrodeInteractiveViewer child
 ///     that works for all screen sizes and child sizes.
-///   * The [Lazy Flutter Performance Session](https://www.youtube.com/watch?v=qax_nOpgz7E), which includes the use of an MyceliumInteractiveViewer to
+///   * The [Lazy Flutter Performance Session](https://www.youtube.com/watch?v=qax_nOpgz7E), which includes the use of an CentrodeInteractiveViewer to
 ///     performantly view subsets of a large set of widgets using the builder constructor.
 ///
 /// {@tool dartpad}
@@ -58,7 +58,7 @@ typedef InteractiveViewerWidgetBuilder =
 /// {@end-tool}
 @immutable
 class CanvasInteractiveViewer extends StatefulWidget {
-  /// Create an MyceliumInteractiveViewer.
+  /// Create an CentrodeInteractiveViewer.
   CanvasInteractiveViewer({
     super.key,
     this.clipBehavior = Clip.hardEdge,
@@ -98,7 +98,7 @@ class CanvasInteractiveViewer extends StatefulWidget {
        ),
        builder = null;
 
-  /// Creates an MyceliumInteractiveViewer for a child that is created on demand.
+  /// Creates an CentrodeInteractiveViewer for a child that is created on demand.
   ///
   /// Can be used to render a child that changes in response to the current
   /// transformation.
@@ -147,9 +147,9 @@ class CanvasInteractiveViewer extends StatefulWidget {
   /// The alignment of the child's origin, relative to the size of the box.
   final Alignment? alignment;
 
-  /// If set to [Clip.none], the child may extend beyond the size of the MyceliumInteractiveViewer,
+  /// If set to [Clip.none], the child may extend beyond the size of the CentrodeInteractiveViewer,
   /// but it will not receive gestures in these areas.
-  /// Be sure that the MyceliumInteractiveViewer is the desired size when using [Clip.none].
+  /// Be sure that the CentrodeInteractiveViewer is the desired size when using [Clip.none].
   ///
   /// Defaults to [Clip.hardEdge].
   final Clip clipBehavior;
@@ -201,7 +201,7 @@ class CanvasInteractiveViewer extends StatefulWidget {
   ///   * [ListView.builder], which follows a similar pattern.
   final InteractiveViewerWidgetBuilder? builder;
 
-  /// The child [Widget] that is transformed by MyceliumInteractiveViewer.
+  /// The child [Widget] that is transformed by CentrodeInteractiveViewer.
   ///
   /// If the [CanvasInteractiveViewer.builder] constructor is used, then this will be
   /// null, otherwise it is required.
@@ -211,7 +211,7 @@ class CanvasInteractiveViewer extends StatefulWidget {
   /// applied to the child.
   ///
   /// If set to false, then the child will be given infinite constraints. This
-  /// is often useful when a child should be bigger than the MyceliumInteractiveViewer.
+  /// is often useful when a child should be bigger than the CentrodeInteractiveViewer.
   ///
   /// For example, for a child which is bigger than the viewport but can be
   /// panned to reveal parts that were initially offscreen, [constrained] must
@@ -306,11 +306,11 @@ class CanvasInteractiveViewer extends StatefulWidget {
   /// already been updated to reflect the change caused by the interaction,
   /// though a pan may cause an inertia animation after this is called as well.
   ///
-  /// {@template flutter.widgets.MyceliumInteractiveViewer.onInteractionEnd}
+  /// {@template flutter.widgets.CentrodeInteractiveViewer.onInteractionEnd}
   /// Will be called even if the interaction is disabled with [panEnabled] or
   /// [scaleEnabled] for both touch gestures and mouse interactions.
   ///
-  /// A [GestureDetector] wrapping the MyceliumInteractiveViewer will not respond to
+  /// A [GestureDetector] wrapping the CentrodeInteractiveViewer will not respond to
   /// [GestureDetector.onScaleStart], [GestureDetector.onScaleUpdate], and
   /// [GestureDetector.onScaleEnd]. Use [onInteractionStart],
   /// [onInteractionUpdate], and [onInteractionEnd] to respond to those
@@ -328,11 +328,11 @@ class CanvasInteractiveViewer extends StatefulWidget {
   /// At the time this is called, the [TransformationController] will not have
   /// changed due to this interaction.
   ///
-  /// {@macro flutter.widgets.MyceliumInteractiveViewer.onInteractionEnd}
+  /// {@macro flutter.widgets.CentrodeInteractiveViewer.onInteractionEnd}
   ///
   /// The coordinates provided in the details' `focalPoint` and
   /// `localFocalPoint` are normal Flutter event coordinates, not
-  /// MyceliumInteractiveViewer scene coordinates. See
+  /// CentrodeInteractiveViewer scene coordinates. See
   /// [TransformationController.toScene] for how to convert these coordinates to
   /// scene coordinates relative to the child.
   ///
@@ -348,11 +348,11 @@ class CanvasInteractiveViewer extends StatefulWidget {
   /// already been updated to reflect the change caused by the interaction, if
   /// the interaction caused the matrix to change.
   ///
-  /// {@macro flutter.widgets.MyceliumInteractiveViewer.onInteractionEnd}
+  /// {@macro flutter.widgets.CentrodeInteractiveViewer.onInteractionEnd}
   ///
   /// The coordinates provided in the details' `focalPoint` and
   /// `localFocalPoint` are normal Flutter event coordinates, not
-  /// MyceliumInteractiveViewer scene coordinates. See
+  /// CentrodeInteractiveViewer scene coordinates. See
   /// [TransformationController.toScene] for how to convert these coordinates to
   /// scene coordinates relative to the child.
   ///
@@ -366,7 +366,7 @@ class CanvasInteractiveViewer extends StatefulWidget {
   /// child.
   ///
   /// Whenever the child is transformed, the [Matrix4] value is updated and all
-  /// listeners are notified. If the value is set, MyceliumInteractiveViewer will update
+  /// listeners are notified. If the value is set, CentrodeInteractiveViewer will update
   /// to respect the new value.
   ///
   /// {@tool dartpad}
@@ -552,7 +552,7 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
     );
     assert(
       !boundaryRect.isEmpty,
-      "MyceliumInteractiveViewer's child must have nonzero dimensions.",
+      "CentrodeInteractiveViewer's child must have nonzero dimensions.",
     );
     // Boundaries that are partially infinite are not allowed because Matrix4's
     // rotation and translation methods don't handle infinites well.
@@ -710,7 +710,8 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
       widget.maxScale,
     );
     final double clampedScale = clampedTotalScale / currentScale;
-    return matrix.clone()..scaleByDouble(clampedScale, clampedScale, clampedScale, 1);
+    return matrix.clone()
+      ..scaleByDouble(clampedScale, clampedScale, clampedScale, 1);
   }
 
   // Return a new matrix representing the given matrix after applying the given
@@ -1153,7 +1154,7 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
   Widget build(BuildContext context) {
     Widget child;
     if (widget.child != null) {
-      child = _MyceliumInteractiveViewerBuilt(
+      child = _CentrodeInteractiveViewerBuilt(
         childKey: _childKey,
         clipBehavior: widget.clipBehavior,
         constrained: widget.constrained,
@@ -1162,14 +1163,14 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
         child: widget.child!,
       );
     } else {
-      // When using MyceliumInteractiveViewer.builder, then constrained is false and the
+      // When using CentrodeInteractiveViewer.builder, then constrained is false and the
       // viewport is the size of the constraints.
       assert(widget.builder != null);
       assert(!widget.constrained);
       child = LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           final Matrix4 matrix = _transformer.value;
-          return _MyceliumInteractiveViewerBuilt(
+          return _CentrodeInteractiveViewerBuilt(
             childKey: _childKey,
             clipBehavior: widget.clipBehavior,
             constrained: widget.constrained,
@@ -1256,9 +1257,15 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
       },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque, // Necessary when panning off screen.
-        onScaleStart: (widget.panEnabled || widget.scaleEnabled) ? _onScaleStart : null,
-        onScaleUpdate: (widget.panEnabled || widget.scaleEnabled) ? _onScaleUpdate : null,
-        onScaleEnd: (widget.panEnabled || widget.scaleEnabled) ? _onScaleEnd : null,
+        onScaleStart: (widget.panEnabled || widget.scaleEnabled)
+            ? _onScaleStart
+            : null,
+        onScaleUpdate: (widget.panEnabled || widget.scaleEnabled)
+            ? _onScaleUpdate
+            : null,
+        onScaleEnd: (widget.panEnabled || widget.scaleEnabled)
+            ? _onScaleEnd
+            : null,
         trackpadScrollCausesScale: widget.trackpadScrollCausesScale,
         trackpadScrollToScaleFactor: Offset(0, -1 / widget.scaleFactor),
         child: child,
@@ -1268,9 +1275,9 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
 }
 
 // This widget allows us to easily swap in and out the LayoutBuilder in
-// MyceliumInteractiveViewer's depending on if it's using a builder or a child.
-class _MyceliumInteractiveViewerBuilt extends StatelessWidget {
-  const _MyceliumInteractiveViewerBuilt({
+// CentrodeInteractiveViewer's depending on if it's using a builder or a child.
+class _CentrodeInteractiveViewerBuilt extends StatelessWidget {
+  const _CentrodeInteractiveViewerBuilt({
     required this.child,
     required this.childKey,
     required this.clipBehavior,

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
-import 'package:mycelium/features/graph/engine/config.dart';
-import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/features/graph/engine/config.dart';
+import 'package:centrode/presentation/widgets/hover_scale_button.dart';
+import 'package:centrode/src/rust/domain/styles.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class VerticalContextToolbar extends StatelessWidget {
   final VoidCallback onDelete;
@@ -232,8 +232,9 @@ class VerticalContextToolbar extends StatelessWidget {
                         SubmenuButtonData(
                           icon: Icons.waves_rounded,
                           tooltip: 'Wave',
-                          onPressed: () =>
-                              onRelationBodyStrategyChanged?.call('widthModulate'),
+                          onPressed: () => onRelationBodyStrategyChanged?.call(
+                            'widthModulate',
+                          ),
                         ),
                         SubmenuButtonData(
                           icon: Icons.arrow_forward_rounded,
@@ -272,8 +273,9 @@ class VerticalContextToolbar extends StatelessWidget {
                         SubmenuButtonData(
                           icon: Icons.arrow_right_alt_rounded,
                           tooltip: 'Open Arrow',
-                          onPressed: () =>
-                              onStartShapeChanged?.call(EndpointShape.openArrow),
+                          onPressed: () => onStartShapeChanged?.call(
+                            EndpointShape.openArrow,
+                          ),
                         ),
                         SubmenuButtonData(
                           icon: Icons.circle,
@@ -609,7 +611,10 @@ class _VerticalToolbarGroupButtonState
                           children: widget.submenuButtons
                               .map(
                                 (btn) => _buildSubmenuButton(
-                                    btn, textColor, primaryColor),
+                                  btn,
+                                  textColor,
+                                  primaryColor,
+                                ),
                               )
                               .toList(),
                         ),
@@ -639,7 +644,10 @@ class _VerticalToolbarGroupButtonState
                           children: widget.submenuButtons
                               .map(
                                 (btn) => _buildSubmenuButton(
-                                    btn, textColor, primaryColor),
+                                  btn,
+                                  textColor,
+                                  primaryColor,
+                                ),
                               )
                               .toList(),
                         ),

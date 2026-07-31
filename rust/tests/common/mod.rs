@@ -1,5 +1,5 @@
-use rust_lib_mycelium::persistence::repo::Repository;
-use rust_lib_mycelium::persistence::schema::Schema;
+use centrode_core::persistence::repo::Repository;
+use centrode_core::persistence::schema::Schema;
 use surrealdb::engine::local::Mem;
 use surrealdb::Surreal;
 
@@ -20,7 +20,7 @@ pub async fn setup_test_repo() -> Repository {
         .await
         .expect("Failed to initialize DB schema in tests");
 
-    use rust_lib_mycelium::persistence::schema::Seeder;
+    use centrode_core::persistence::schema::Seeder;
     Seeder::seed_default_data(&db, "Test Map".to_string())
         .await
         .expect("Failed to seed default data in tests");

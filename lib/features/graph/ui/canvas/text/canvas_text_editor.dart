@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 import '../../../presentation/node_render_state.dart';
 import '../../../models/models.dart';
@@ -63,7 +63,9 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
 
     _controller.addListener(_onControllerChanged);
     _focusNode = FocusNode();
-    _gestureBuilder = TextSelectionGestureDetectorBuilder(delegate: _gestureDelegate);
+    _gestureBuilder = TextSelectionGestureDetectorBuilder(
+      delegate: _gestureDelegate,
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -195,7 +197,8 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     TextAlign found = TextAlign.center;
     for (final span in _controller.formattingSpans) {
       if (span.type == TextFormatType.textAlign &&
-          span.start <= lineEnd && span.end >= lineStart) {
+          span.start <= lineEnd &&
+          span.end >= lineStart) {
         switch (span.url) {
           case 'left':
             found = TextAlign.left;
@@ -263,7 +266,8 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     if (tapPosition == null) return;
 
     final selection = _controller.selection;
-    final hasSelection = !selection.isCollapsed && selection.start >= 0 && selection.end >= 0;
+    final hasSelection =
+        !selection.isCollapsed && selection.start >= 0 && selection.end >= 0;
 
     _contextMenuEntry = ContextMenuOverlay.show(
       context: context,
@@ -372,40 +376,43 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
                     child: _gestureBuilder.buildGestureDetector(
                       behavior: HitTestBehavior.translucent,
                       child: EditableText(
-                      key: _gestureDelegate.editableTextKey,
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      maxLines: widget.maxLines,
-                      minLines: widget.maxLines == null ? 1 : null,
-                      expands: false,
-                      textAlign: textAlign,
-                      textDirection: TextDirection.ltr,
-                      autofocus: true,
-                      cursorColor: const Color(0xFF2196F3),
-                      backgroundCursorColor: Colors.grey,
-                      selectionColor: const Color(0x602196F3),
-                      style: widget.textStyle,
-                      strutStyle: StrutStyle.disabled,
-                      selectionControls: _selectionControls,
-                      showSelectionHandles: false,
-                      magnifierConfiguration: TextMagnifierConfiguration.disabled,
-                      onTapOutside: (event) {},
+                        key: _gestureDelegate.editableTextKey,
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        maxLines: widget.maxLines,
+                        minLines: widget.maxLines == null ? 1 : null,
+                        expands: false,
+                        textAlign: textAlign,
+                        textDirection: TextDirection.ltr,
+                        autofocus: true,
+                        cursorColor: const Color(0xFF2196F3),
+                        backgroundCursorColor: Colors.grey,
+                        selectionColor: const Color(0x602196F3),
+                        style: widget.textStyle,
+                        strutStyle: StrutStyle.disabled,
+                        selectionControls: _selectionControls,
+                        showSelectionHandles: false,
+                        magnifierConfiguration:
+                            TextMagnifierConfiguration.disabled,
+                        onTapOutside: (event) {},
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
         );
       },
     );
   }
 }
 
-class _CanvasGestureDelegate implements TextSelectionGestureDetectorBuilderDelegate {
+class _CanvasGestureDelegate
+    implements TextSelectionGestureDetectorBuilderDelegate {
   @override
-  final GlobalKey<EditableTextState> editableTextKey = GlobalKey<EditableTextState>();
+  final GlobalKey<EditableTextState> editableTextKey =
+      GlobalKey<EditableTextState>();
 
   @override
   bool get forcePressEnabled => false;

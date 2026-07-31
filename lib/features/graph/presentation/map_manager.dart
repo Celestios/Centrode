@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/utils/recent_maps_store.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/utils/recent_maps_store.dart';
 import 'workspace_tabs_controller.dart';
 
 class MapManager extends ChangeNotifier {
@@ -18,7 +18,8 @@ class MapManager extends ChangeNotifier {
     return _tabsController!;
   }
 
-  bool get hasOpenMaps => _tabsController != null && _tabsController!.tabs.isNotEmpty;
+  bool get hasOpenMaps =>
+      _tabsController != null && _tabsController!.tabs.isNotEmpty;
 
   bool isPathOpen(String storagePath) {
     if (_tabsController == null) return false;

@@ -1,12 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
-import 'package:mycelium/features/graph/models/graph_node.dart';
-import 'package:mycelium/features/graph/models/graph_relation.dart';
-import 'package:mycelium/features/graph/store/graph_data_query.dart';
-import 'package:mycelium/features/graph/store/command_queue_processor.dart';
-import 'package:mycelium/features/graph/models/commands/create_node.dart';
-import 'package:mycelium/shared/traceable_notifier.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/models/graph_node.dart';
+import 'package:centrode/features/graph/models/graph_relation.dart';
+import 'package:centrode/features/graph/store/graph_data_query.dart';
+import 'package:centrode/features/graph/store/command_queue_processor.dart';
+import 'package:centrode/features/graph/models/commands/create_node.dart';
+import 'package:centrode/shared/traceable_notifier.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class CopyBuffer extends ChangeNotifier with TraceableNotifier {
   @override
@@ -36,9 +36,11 @@ class CopyBuffer extends ChangeNotifier with TraceableNotifier {
 
     final selectedSet = selectedIds.toSet();
     final selectedRelations = dataQuery.relationLookup.values
-        .where((r) =>
-            selectedSet.contains(r.fromNodeId) &&
-            selectedSet.contains(r.toNodeId))
+        .where(
+          (r) =>
+              selectedSet.contains(r.fromNodeId) &&
+              selectedSet.contains(r.toNodeId),
+        )
         .toList();
 
     final oldToNewId = <RawUuid, RawUuid>{};
@@ -57,11 +59,13 @@ class CopyBuffer extends ChangeNotifier with TraceableNotifier {
       final newToId = oldToNewId[rel.toNodeId];
       if (newFromId == null || newToId == null) continue;
       if (rel is InfoUiRelation) {
-        newRelations.add(rel.copyWith(
-          id: RawUuid.v4(),
-          fromNodeId: newFromId,
-          toNodeId: newToId,
-        ));
+        newRelations.add(
+          rel.copyWith(
+            id: RawUuid.v4(),
+            fromNodeId: newFromId,
+            toNodeId: newToId,
+          ),
+        );
       }
     }
 
@@ -70,17 +74,17 @@ class CopyBuffer extends ChangeNotifier with TraceableNotifier {
       sumX += node.position.dx;
       sumY += node.position.dy;
     }
-    _copyOrigin = Offset(
-      sumX / newNodes.length,
-      sumY / newNodes.length,
-    );
+    _copyOrigin = Offset(sumX / newNodes.length, sumY / newNodes.length);
 
     _nodes = newNodes;
     _relations = newRelations;
     notifyListeners();
   }
 
-  Future<List<RawUuid>> paste(Offset cursorPosition, CommandQueueProcessor controller) async {
+  Future<List<RawUuid>> paste(
+    Offset cursorPosition,
+    CommandQueueProcessor controller,
+  ) async {
     if (!hasData) return [];
 
     final createdIds = <RawUuid>[];

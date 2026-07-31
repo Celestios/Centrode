@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/widgets/color_palette/color_palette.dart';
+import 'package:centrode/shared/widgets/color_palette/color_palette.dart';
 
 class TagColorPickerPanel extends StatelessWidget {
   final int initialColor;
@@ -23,4 +23,3 @@ class TagColorPickerPanel extends StatelessWidget {
     );
   }
 }
-

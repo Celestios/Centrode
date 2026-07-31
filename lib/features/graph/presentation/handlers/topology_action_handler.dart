@@ -1,6 +1,6 @@
 import 'dart:ui';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
-import 'package:mycelium/features/graph/engine/interaction_context.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/engine/interaction_context.dart';
 
 /// Handles topology actions: link creation, edge drawing, connection points.
 ///

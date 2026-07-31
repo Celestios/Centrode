@@ -3,8 +3,8 @@ import '../command_queue_processor.dart';
 import 'graph_text_mutations.dart';
 import 'graph_style_mutations.dart';
 import 'graph_tag_mutations.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/src/rust/domain/base_models.dart' as frb;
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 /// Property mutation operations for the graph.
 /// Facade that delegates to focused mutation modules.
@@ -20,8 +20,15 @@ class GraphPropertyMutations {
     tags = GraphTagMutations(controller);
   }
 
-  void commitEntityText(RawUuid id, dynamic newTextOrContent, {dynamic originalTextOrContent}) =>
-      text.commitEntityText(id, newTextOrContent, originalTextOrContent: originalTextOrContent);
+  void commitEntityText(
+    RawUuid id,
+    dynamic newTextOrContent, {
+    dynamic originalTextOrContent,
+  }) => text.commitEntityText(
+    id,
+    newTextOrContent,
+    originalTextOrContent: originalTextOrContent,
+  );
 
   void updateEntityTextLive(RawUuid id, dynamic newTextOrContent) =>
       text.updateEntityTextLive(id, newTextOrContent);
@@ -29,8 +36,10 @@ class GraphPropertyMutations {
   void updateNodeStyle(RawUuid id, NodeStyle newStyle) =>
       style.updateNodeStyle(id, newStyle);
 
-  void updateNodesStyle(List<RawUuid> ids, NodeStyle Function(NodeStyle style) updateFn) =>
-      style.updateNodesStyle(ids, updateFn);
+  void updateNodesStyle(
+    List<RawUuid> ids,
+    NodeStyle Function(NodeStyle style) updateFn,
+  ) => style.updateNodesStyle(ids, updateFn);
 
   void updateRelationStyle(RawUuid id, RelationStyle newStyle) =>
       style.updateRelationStyle(id, newStyle);

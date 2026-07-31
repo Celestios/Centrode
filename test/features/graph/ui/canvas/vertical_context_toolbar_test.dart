@@ -1,8 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 void main() {
   testWidgets(

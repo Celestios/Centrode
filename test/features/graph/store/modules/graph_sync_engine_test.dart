@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
-import 'package:mycelium/features/graph/store/command_queue_processor.dart';
-import 'package:mycelium/features/graph/presentation/theme_manager.dart';
-import 'package:mycelium/features/graph/presentation/style_manager.dart';
-import 'package:mycelium/features/graph/presentation/strategies/node_layout_strategy.dart';
-import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
-import 'package:mycelium/features/graph/store/graph_api.dart';
-import 'package:mycelium/features/graph/models/commands/patch_helpers.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart' as frb_base;
-import 'package:mycelium/src/rust/domain/snapshot.dart';
+import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
+import 'package:centrode/features/graph/store/command_queue_processor.dart';
+import 'package:centrode/features/graph/presentation/theme_manager.dart';
+import 'package:centrode/features/graph/presentation/style_manager.dart';
+import 'package:centrode/features/graph/presentation/strategies/node_layout_strategy.dart';
+import 'package:centrode/features/graph/presentation/strategies/node_style_strategy.dart';
+import 'package:centrode/features/graph/store/graph_api.dart';
+import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
+import 'package:centrode/src/rust/domain/base_models.dart' as frb_base;
+import 'package:centrode/src/rust/domain/snapshot.dart';
 
-import 'package:mycelium/presentation/theme/graph_theme.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/presentation/theme/graph_theme.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockGraphApi extends Mock implements GraphApi {}
 
@@ -109,9 +109,9 @@ void main() {
                 InlineElement(
                   inlineType: InlineType.text,
                   text: 'This is **bold** text with a [link](https://test.com)',
-                )
+                ),
               ],
-            )
+            ),
           ],
         ),
         layer: 'default',
@@ -152,7 +152,8 @@ void main() {
       await controller.loadGraph();
 
       // Verify node loaded
-      final loadedNode = queryController.nodeLookup[RawUuid.fromString('node_1')];
+      final loadedNode =
+          queryController.nodeLookup[RawUuid.fromString('node_1')];
       expect(loadedNode, isNotNull);
 
       // Verify content blocks are hydrated (markdown parsed)

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/traceable_notifier.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/traceable_notifier.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../store/graph_data_query.dart';
 import '../store/graph_data_command.dart';
 
@@ -41,11 +41,13 @@ class SelectionState extends ChangeNotifier with TraceableNotifier {
 
   /// Selects multiple entities simultaneously (e.g., marquee selection).
   void selectEntities(Iterable<RawUuid> ids) {
-    selectedEntities = ids.where(
-      (id) =>
-          _dataQuery.nodeLookup.containsKey(id) ||
-          _dataQuery.relationLookup.containsKey(id),
-    ).toSet();
+    selectedEntities = ids
+        .where(
+          (id) =>
+              _dataQuery.nodeLookup.containsKey(id) ||
+              _dataQuery.relationLookup.containsKey(id),
+        )
+        .toSet();
     _log.finer(
       'Marquee selection updated: ${selectedEntities.length} entities',
     );

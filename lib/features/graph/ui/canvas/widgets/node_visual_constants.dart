@@ -1,13 +1,19 @@
-import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
+import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 
 class NodeVisualConstants {
   NodeVisualConstants._();
 
   static double fontScale(double fontSize) => fontSize / 14.0;
-  static double scaledBadgeFontSize(double fontSize) => 10.0 * fontScale(fontSize);
-  static double scaledShowMoreFontSize(double fontSize) => 10.0 * fontScale(fontSize);
+  static double scaledBadgeFontSize(double fontSize) =>
+      10.0 * fontScale(fontSize);
+  static double scaledShowMoreFontSize(double fontSize) =>
+      10.0 * fontScale(fontSize);
 
-  static double scaledPadding(NodeStyle style, double scale, {required bool isEditing}) {
+  static double scaledPadding(
+    NodeStyle style,
+    double scale, {
+    required bool isEditing,
+  }) {
     final double basePadding = isEditing ? 2.0 : style.padding;
     final double extraCornerPadding = style.borderRadius * 0.15;
     return (basePadding + extraCornerPadding) * scale;
@@ -28,7 +34,10 @@ class NodeVisualConstants {
   static const double expandToggleFontSize = 10.0;
   static const double hoverOverlayAlpha = 0.05;
 
-  static int metadataSphereColor({required bool hasTags, required bool hasComments}) {
+  static int metadataSphereColor({
+    required bool hasTags,
+    required bool hasComments,
+  }) {
     if (hasTags && hasComments) return 0xFFEC407A;
     if (hasTags) return 0xFF5C6BC0;
     return 0xFF26A69A;

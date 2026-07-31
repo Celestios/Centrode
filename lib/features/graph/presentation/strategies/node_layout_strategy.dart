@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:mycelium/features/graph/engine/config.dart';
-import 'package:mycelium/features/graph/models/graph_node.dart';
-import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
-import 'package:mycelium/src/rust/domain/contents.dart';
+import 'package:centrode/features/graph/engine/config.dart';
+import 'package:centrode/features/graph/models/graph_node.dart';
+import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
+import 'package:centrode/src/rust/domain/contents.dart';
 import 'node_style_strategy.dart';
 import 'node_text_span_builder.dart';
 
 abstract class NodeLayoutStrategy {
   const NodeLayoutStrategy();
 
-  Size calculateIntrinsicSize(UiNode node, NodeStyle style, BoxConstraints constraints);
+  Size calculateIntrinsicSize(
+    UiNode node,
+    NodeStyle style,
+    BoxConstraints constraints,
+  );
 
-  ({Size size, int lineCount}) calculateSize(UiNode node, {bool isEditing = false, double? overrideWidth});
+  ({Size size, int lineCount}) calculateSize(
+    UiNode node, {
+    bool isEditing = false,
+    double? overrideWidth,
+  });
 
   static TextSpan buildRichTextSpan(
     Content content,
@@ -47,7 +55,11 @@ class DefaultNodeLayoutStrategy implements NodeLayoutStrategy {
   const DefaultNodeLayoutStrategy();
 
   @override
-  Size calculateIntrinsicSize(UiNode node, NodeStyle style, BoxConstraints constraints) {
+  Size calculateIntrinsicSize(
+    UiNode node,
+    NodeStyle style,
+    BoxConstraints constraints,
+  ) {
     final minW = _computeMinWidth(node);
     final hasFixedAspect = _hasFixedAspectRatio(node);
 
@@ -60,12 +72,20 @@ class DefaultNodeLayoutStrategy implements NodeLayoutStrategy {
   }
 
   @override
-  ({Size size, int lineCount}) calculateSize(UiNode node, {bool isEditing = false, double? overrideWidth}) {
+  ({Size size, int lineCount}) calculateSize(
+    UiNode node, {
+    bool isEditing = false,
+    double? overrideWidth,
+  }) {
     if (node is DrawingUiNode) {
       return (size: node.size, lineCount: 0);
     }
-    return _calculateDefaultLayout(node, node.resolvedStyle,
-        isEditing: isEditing, overrideWidth: overrideWidth);
+    return _calculateDefaultLayout(
+      node,
+      node.resolvedStyle,
+      isEditing: isEditing,
+      overrideWidth: overrideWidth,
+    );
   }
 
   static double _computeMinWidth(UiNode node) => switch (node) {
@@ -99,7 +119,8 @@ class DefaultNodeLayoutStrategy implements NodeLayoutStrategy {
   final resolvedStyle = style ?? NodeStyleStrategy.fallbackStyle();
   final fontSize = resolvedStyle.fontSize;
 
-  final fontFamily = resolvedStyle.fontFamily.isEmpty || resolvedStyle.fontFamily == 'System'
+  final fontFamily =
+      resolvedStyle.fontFamily.isEmpty || resolvedStyle.fontFamily == 'System'
       ? null
       : resolvedStyle.fontFamily;
 
@@ -143,10 +164,8 @@ class DefaultNodeLayoutStrategy implements NodeLayoutStrategy {
     double.infinity,
   );
 
-  final tp = TextPainter(
-    text: richSpan,
-    textDirection: TextDirection.ltr,
-  )..layout(maxWidth: contentWidth);
+  final tp = TextPainter(text: richSpan, textDirection: TextDirection.ltr)
+    ..layout(maxWidth: contentWidth);
 
   final lineMetrics = tp.computeLineMetrics();
   final lineCount = lineMetrics.length;
@@ -158,7 +177,10 @@ class DefaultNodeLayoutStrategy implements NodeLayoutStrategy {
         .fold(0.0, (sum, m) => sum + m.height);
     textHeight += 2.0;
   } else if (node.isExpanded) {
-    final blockSpans = NodeLayoutStrategy.buildPerBlockTextSpans(content, textStyle);
+    final blockSpans = NodeLayoutStrategy.buildPerBlockTextSpans(
+      content,
+      textStyle,
+    );
     textHeight = 0.0;
     for (final (span, _) in blockSpans) {
       final blockPainter = TextPainter(
@@ -180,7 +202,10 @@ class DefaultNodeLayoutStrategy implements NodeLayoutStrategy {
     extraHeight += NodeStyleStrategy.taskBadgeHeight(fontScale);
   }
   if (lineCount > AppConfig.node.collapsedLineLimit) {
-    extraHeight += NodeStyleStrategy.expandToggleSpace(node.isExpanded, fontScale);
+    extraHeight += NodeStyleStrategy.expandToggleSpace(
+      node.isExpanded,
+      fontScale,
+    );
   }
 
   final totalHeight = textHeight + 2 * resolvedStyle.padding + extraHeight;

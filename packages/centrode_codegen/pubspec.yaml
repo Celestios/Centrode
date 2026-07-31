@@ -1,4 +1,4 @@
-name: mycelium_codegen
+name: centrode_codegen
 description: Automatically generates Flutter UiNode wrappers from FFI models.
 version: 1.0.0
 environment:

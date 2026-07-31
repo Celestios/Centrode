@@ -1,7 +1,7 @@
 // lib/core/theme/theme_loader.dart
 import 'package:flutter/services.dart';
 import 'dart:convert';
-import 'package:mycelium/presentation/theme/app_theme.dart';
+import 'package:centrode/presentation/theme/app_theme.dart';
 
 class ThemeLoader {
   static Future<Map<String, AppTheme>> loadBundledThemes() async {

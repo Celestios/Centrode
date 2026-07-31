@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../models/graph_node.dart';
 import '../../../../models/graph_relation.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MiniMapPainter extends CustomPainter {
   final List<UiNode> nodes;

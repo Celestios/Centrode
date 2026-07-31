@@ -1,14 +1,14 @@
 import 'dart:ui';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/domain/contents.dart';
-import 'package:mycelium/src/rust/domain/patches.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/src/rust/domain/contents.dart';
+import 'package:centrode/src/rust/domain/patches.dart';
+import 'package:centrode/src/rust/domain/base_models.dart' as frb;
 import '../../store/graph_api.dart';
 import '../../store/graph_data_query.dart';
 import 'base.dart';
 import 'graph_command_context.dart';
 import 'patch_helpers.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 final Logger _log = Logger('UpdateTextCommand');
 

@@ -41,7 +41,7 @@ pub fn generate_relations(entities: &[EntityDef]) -> TokenStream {
 
         struct_tokens.push(quote! {
             #(#attrs)*
-            #[derive(Debug, Clone, mycelium_macros::SurrealTable, mycelium_macros::RelationEntity)]
+            #[derive(Debug, Clone, centrode_macros::SurrealTable, centrode_macros::RelationEntity)]
             #vis struct #name {
                 #(#injected_fields,)*
                 #(#user_fields,)*

@@ -1,8 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
-import 'package:mycelium/src/rust/relation_engine/computed.dart';
+import 'package:centrode/src/rust/relation_engine/computed.dart';
 import '../models/models.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class InvalidationTracker {
   final Map<RawUuid, ComputedRelation> _cache = {};
@@ -19,7 +19,9 @@ class InvalidationTracker {
     final nodeStr = nodeId.toUuidString();
     _dirtyRelationIds.addAll(
       _cache.entries
-          .where((e) => e.value.dependsOnNodes.any((r) => r.key.uuid == nodeStr))
+          .where(
+            (e) => e.value.dependsOnNodes.any((r) => r.key.uuid == nodeStr),
+          )
           .map((e) => e.key),
     );
   }
@@ -82,7 +84,8 @@ class InvalidationTracker {
     return _cache.keys
         .where((key) {
           final rel = _cache[key];
-          return rel != null && rel.dependsOnNodes.any((r) => r.key.uuid == nodeStr);
+          return rel != null &&
+              rel.dependsOnNodes.any((r) => r.key.uuid == nodeStr);
         })
         .map((key) => key.toUuidString())
         .toList();

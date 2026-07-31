@@ -1,6 +1,6 @@
 import 'dart:ui';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
-import 'package:mycelium/features/graph/engine/interaction_context.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/engine/interaction_context.dart';
 
 /// Handles spatial actions: node dragging, canvas panning, positional updates.
 ///
@@ -21,10 +21,7 @@ abstract class SpatialActionHandler {
     GeometryAndViewportCapability ctx,
   );
 
-  void handleNodeDragEnd(
-    RawUuid nodeId,
-    GeometryAndViewportCapability ctx,
-  );
+  void handleNodeDragEnd(RawUuid nodeId, GeometryAndViewportCapability ctx);
 
   void handleCanvasPan(Offset delta, GeometryAndViewportCapability ctx);
 }
@@ -54,10 +51,7 @@ class DefaultSpatialActionHandler implements SpatialActionHandler {
   }
 
   @override
-  void handleNodeDragEnd(
-    RawUuid nodeId,
-    GeometryAndViewportCapability ctx,
-  ) {
+  void handleNodeDragEnd(RawUuid nodeId, GeometryAndViewportCapability ctx) {
     final vs = ctx.nodeViewStates[nodeId];
     ctx.setNodeDragging(nodeId, false);
     if (vs != null) {

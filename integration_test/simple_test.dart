@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mycelium/main.dart';
-import 'package:mycelium/src/rust/frb_generated.dart';
+import 'package:centrode/main.dart';
+import 'package:centrode/src/rust/frb_generated.dart';
 import 'package:integration_test/integration_test.dart';
 
 void main() {

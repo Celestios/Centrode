@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:mycelium/features/graph/models/port.dart';
-import 'package:mycelium/features/graph/presentation/drag_state.dart';
-import 'package:mycelium/features/graph/presentation/view_state.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/models/port.dart';
+import 'package:centrode/features/graph/presentation/drag_state.dart';
+import 'package:centrode/features/graph/presentation/view_state.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../../../engine/base_interaction_state.dart';
 import '../../../engine/config.dart';
 
@@ -136,7 +136,9 @@ class _PortLayerState extends State<PortLayer> {
     if (ports.isEmpty) return const SizedBox.shrink();
 
     final snappedTarget = drawing?.snappedTargetPort ?? tipDrag?.snappedPort;
-    final hoveredPort = interaction is CanvasIdle ? widget.hoveredPortNotifier.value : null;
+    final hoveredPort = interaction is CanvasIdle
+        ? widget.hoveredPortNotifier.value
+        : null;
 
     return IgnorePointer(
       child: CustomPaint(
@@ -175,7 +177,8 @@ class PortPainter extends CustomPainter {
 
     for (final port in ports) {
       final isSnapped = snappedTargetPort != null && port == snappedTargetPort;
-      final isHovered = !isSnapped && hoveredPort != null && port == hoveredPort;
+      final isHovered =
+          !isSnapped && hoveredPort != null && port == hoveredPort;
 
       final paint = Paint()
         ..color = isSnapped || isHovered

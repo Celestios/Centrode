@@ -1,7 +1,7 @@
-use rust_lib_mycelium::relation_engine::computed::{ComputedRelation, PathType};
-use rust_lib_mycelium::relation_engine::config::{RelationEngineConfig, RoutingMode};
-use rust_lib_mycelium::relation_engine::geometry::{polyline_length, Point};
-use rust_lib_mycelium::relation_engine::input::{InputEdge, InputNode};
+use centrode_core::relation_engine::computed::{ComputedRelation, PathType};
+use centrode_core::relation_engine::config::{RelationEngineConfig, RoutingMode};
+use centrode_core::relation_engine::geometry::{polyline_length, Point};
+use centrode_core::relation_engine::input::{InputEdge, InputNode};
 use std::io::Write;
 
 pub fn verify_octilinear_path(path: &[Point]) {

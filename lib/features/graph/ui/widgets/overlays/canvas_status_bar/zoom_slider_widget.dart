@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../presentation/viewport_state.dart';
-import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 
 // -----------------------------------------------------------------------------
 // BOTTOM RIGHT: Zoom slider & percentage indicator

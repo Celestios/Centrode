@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mycelium/features/graph/models/content_builder.dart';
-import 'package:mycelium/src/rust/domain/contents.dart';
+import 'package:centrode/features/graph/models/content_builder.dart';
+import 'package:centrode/src/rust/domain/contents.dart';
 
 void main() {
   group('ContentBuilder', () {

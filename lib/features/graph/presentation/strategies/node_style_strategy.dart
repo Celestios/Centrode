@@ -1,8 +1,8 @@
-import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
-import 'package:mycelium/features/graph/models/graph_node.dart';
-import 'package:mycelium/features/graph/engine/config.dart';
-import 'package:mycelium/presentation/theme/graph_theme.dart';
-import 'package:mycelium/shared/utils/color_utils.dart';
+import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
+import 'package:centrode/features/graph/models/graph_node.dart';
+import 'package:centrode/features/graph/engine/config.dart';
+import 'package:centrode/presentation/theme/graph_theme.dart';
+import 'package:centrode/shared/utils/color_utils.dart';
 
 abstract class NodeStyleStrategy {
   const NodeStyleStrategy();
@@ -15,7 +15,11 @@ abstract class NodeStyleStrategy {
       (isExpanded ? 24.0 : 18.0) * fontScale;
   static double taskBadgeHeight(double fontScale) => 22.0 * fontScale;
 
-  static NodeStyle fallbackStyle([double? width, double? height, double? fontSize]) {
+  static NodeStyle fallbackStyle([
+    double? width,
+    double? height,
+    double? fontSize,
+  ]) {
     final fs = fontSize ?? _referenceFontSize;
     return NodeStyle(
       bgColor: 0xFFFFFFFF,
@@ -89,7 +93,9 @@ class DefaultNodeStyleStrategy implements NodeStyleStrategy {
 
     final int bgColor = _computeBaseColor(node, theme);
     return NodeStyleStrategy.fallbackStyle(
-      null, null, theme.bodyFontSize,
+      null,
+      null,
+      theme.bodyFontSize,
     ).copyWith(
       bgColor: bgColor,
       strokeColor: ColorUtils.getContrastStrokeColorInt(bgColor),

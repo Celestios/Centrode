@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
-import 'package:mycelium/shared/logging.dart';
+import 'package:centrode/shared/logging.dart';
 import 'graph_api.dart';
-import 'package:mycelium/src/rust/relation_engine/computed.dart';
-import 'package:mycelium/src/rust/relation_engine/config.dart';
-import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/models/commands/patch_helpers.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/src/rust/relation_engine/computed.dart';
+import 'package:centrode/src/rust/relation_engine/config.dart';
+import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'invalidation_tracker.dart';
 
 class RelationEngineState {
@@ -79,7 +79,10 @@ class RelationEngineState {
       final computed = await _api.computeSingleRelation(
         config: _config,
         edgeId: parseTypedRecordId('IRelation', relation.id),
-        fromNodeId: parseTypedRecordId(relation.fromNodeTable, relation.fromNodeId),
+        fromNodeId: parseTypedRecordId(
+          relation.fromNodeTable,
+          relation.fromNodeId,
+        ),
         toNodeId: parseTypedRecordId(relation.toNodeTable, relation.toNodeId),
         fromSide: relation.layout?.fromSide,
         toSide: relation.layout?.toSide,

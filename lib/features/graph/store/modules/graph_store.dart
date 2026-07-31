@@ -1,5 +1,5 @@
 import '../../models/models.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 /// Encapsulates canonical O(1) in-memory storage for the graph.
 class GraphStore {

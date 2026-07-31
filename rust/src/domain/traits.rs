@@ -16,7 +16,7 @@ pub trait SurrealDbEnum: Sized + Copy {
     fn from_surreal_bytes(bytes: &[u8]) -> Result<Self, anyhow::Error>;
 }
 
-/// Base trait implemented by ALL database structs in Mycelium.
+/// Base trait implemented by ALL database structs in Centrode.
 pub trait SurrealTable {
     const KIND: TableKind;
     const FETCH_FIELDS: &'static [&'static str] = &[];

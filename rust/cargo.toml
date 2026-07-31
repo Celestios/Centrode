@@ -1,8 +1,8 @@
 [package]
-name = "rust_lib_mycelium"
+name = "centrode_core"
 version = "0.3.0"
 edition = "2021"
-description = "Core logic and persistence layer for Mycelium, exposed via FFI."
+description = "Core logic and persistence layer for Centrode, exposed via FFI."
 authors = ["Celestios <shahin.id5638@gmail.com>"]
 
 
@@ -47,7 +47,7 @@ strip = true         # Strip symbols and debug info automatically (Rust 1.59+)
 tokio = { version = "1.40", features = ["rt", "macros", "sync", "time"] }
 anyhow = "1.0"          # Simplified error handling for Bridge functions
 thiserror = "1.0"       # For typed domain errors
-mycelium_macros = { path = "mycelium_macros" }
+centrode_macros = { path = "centrode_macros" }
 
 # --- The Bridge ---
 flutter_rust_bridge = { version = "=2.11.1", features = ["uuid"] } 

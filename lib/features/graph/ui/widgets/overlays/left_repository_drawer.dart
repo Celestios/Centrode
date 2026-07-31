@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/left_panel_type.dart';
-import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
-import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/presentation/widgets/hover_scale_button.dart';
 
 class LeftRepositoryDrawer extends StatelessWidget {
   final LeftPanelType activePanel;

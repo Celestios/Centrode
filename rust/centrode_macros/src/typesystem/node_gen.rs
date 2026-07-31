@@ -139,7 +139,7 @@ pub fn generate_nodes(entities: &[EntityDef]) -> TokenStream {
 
         struct_tokens.push(quote! {
             #(#attrs)*
-            #[derive(Debug, Clone, surrealdb::types::SurrealValue, mycelium_macros::SurrealTable, mycelium_macros::NodeEntity)]
+            #[derive(Debug, Clone, surrealdb::types::SurrealValue, centrode_macros::SurrealTable, centrode_macros::NodeEntity)]
             #vis struct #name {
                 #(#injected_fields,)*
                 #(#cleaned_user_fields,)*

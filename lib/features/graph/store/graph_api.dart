@@ -1,16 +1,16 @@
 import 'dart:async';
-import 'package:mycelium/src/rust/bridge/api.dart';
-import 'package:mycelium/src/rust/domain/types.dart';
-import 'package:mycelium/src/rust/domain/id.dart';
-import 'package:mycelium/src/rust/domain/patches.dart';
-import 'package:mycelium/src/rust/relation_engine/config.dart';
-import 'package:mycelium/src/rust/relation_engine/computed.dart';
-import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
-import 'package:mycelium/src/rust/domain/base_models.dart' hide Size;
-import 'package:mycelium/src/rust/persistence/history.dart';
-import 'package:mycelium/src/rust/domain/snapshot.dart';
-import 'package:mycelium/src/rust/bridge/stream.dart';
-import 'package:mycelium/src/rust/domain/theme.dart';
+import 'package:centrode/src/rust/bridge/api.dart';
+import 'package:centrode/src/rust/domain/types.dart';
+import 'package:centrode/src/rust/domain/id.dart';
+import 'package:centrode/src/rust/domain/patches.dart';
+import 'package:centrode/src/rust/relation_engine/config.dart';
+import 'package:centrode/src/rust/relation_engine/computed.dart';
+import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
+import 'package:centrode/src/rust/domain/base_models.dart' hide Size;
+import 'package:centrode/src/rust/persistence/history.dart';
+import 'package:centrode/src/rust/domain/snapshot.dart';
+import 'package:centrode/src/rust/bridge/stream.dart';
+import 'package:centrode/src/rust/domain/theme.dart';
 
 /// Decoupled interface for the Rust FFI surface.
 abstract class GraphApi {
@@ -109,8 +109,7 @@ class RustAppHandleWrapper implements GraphApi {
   Future<List<ComputedRelation>> computeRelations({
     required RelationEngineConfig config,
     List<TypedRecordId>? relationIds,
-  }) =>
-      _api.computeRelations(config: config, relationIds: relationIds);
+  }) => _api.computeRelations(config: config, relationIds: relationIds);
 
   @override
   Future<ComputedRelation> computeSingleRelation({
@@ -125,20 +124,19 @@ class RustAppHandleWrapper implements GraphApi {
     double? overrideStartY,
     double? overrideEndX,
     double? overrideEndY,
-  }) =>
-      _api.computeSingleRelation(
-        config: config,
-        edgeId: edgeId,
-        fromNodeId: fromNodeId,
-        toNodeId: toNodeId,
-        fromSide: fromSide,
-        toSide: toSide,
-        routingMode: routingMode,
-        overrideStartX: overrideStartX,
-        overrideStartY: overrideStartY,
-        overrideEndX: overrideEndX,
-        overrideEndY: overrideEndY,
-      );
+  }) => _api.computeSingleRelation(
+    config: config,
+    edgeId: edgeId,
+    fromNodeId: fromNodeId,
+    toNodeId: toNodeId,
+    fromSide: fromSide,
+    toSide: toSide,
+    routingMode: routingMode,
+    overrideStartX: overrideStartX,
+    overrideStartY: overrideStartY,
+    overrideEndX: overrideEndX,
+    overrideEndY: overrideEndY,
+  );
 
   @override
   Stream<GraphEvent> createGraphStream() => _api.createGraphStream();
@@ -155,8 +153,10 @@ class RustAppHandleWrapper implements GraphApi {
   Future<void> createTag({required Tag tag}) => _api.createTag(tag: tag);
 
   @override
-  Future<void> createTheme({required String key, required ThemeFields fields}) =>
-      _api.createTheme(key: key, fields: fields);
+  Future<void> createTheme({
+    required String key,
+    required ThemeFields fields,
+  }) => _api.createTheme(key: key, fields: fields);
 
   @override
   Future<void> deleteNodeEntry({required TypedRecordId id}) =>
@@ -189,8 +189,7 @@ class RustAppHandleWrapper implements GraphApi {
   Future<GraphSnapshot> getGraphSnapshot() => _api.getGraphSnapshot();
 
   @override
-  Future<Nodes?> getNode({required TypedRecordId id}) =>
-      _api.getNode(id: id);
+  Future<Nodes?> getNode({required TypedRecordId id}) => _api.getNode(id: id);
 
   @override
   Future<Tag?> getTag({required String key}) => _api.getTag(key: key);
@@ -203,15 +202,13 @@ class RustAppHandleWrapper implements GraphApi {
     required String key,
     required double targetX,
     required double targetY,
-  }) =>
-      _api.instantiateTemplate(key: key, targetX: targetX, targetY: targetY);
+  }) => _api.instantiateTemplate(key: key, targetX: targetX, targetY: targetY);
 
   @override
   Future<void> loadMapFromFile({
     required String filePath,
     required String attachmentDir,
-  }) =>
-      _api.loadMapFromFile(filePath: filePath, attachmentDir: attachmentDir);
+  }) => _api.loadMapFromFile(filePath: filePath, attachmentDir: attachmentDir);
 
   @override
   Future<List<Nodes>> querySearch({required String query}) =>
@@ -228,27 +225,24 @@ class RustAppHandleWrapper implements GraphApi {
     required TypedRecordId record,
     required TypedRecordId from,
     required TypedRecordId to,
-  }) =>
-      _api.rerouteRelation(record: record, from: from, to: to);
+  }) => _api.rerouteRelation(record: record, from: from, to: to);
 
   @override
   Future<void> saveMapToFile({
     required String filePath,
     required String attachmentDir,
-  }) =>
-      _api.saveMapToFile(filePath: filePath, attachmentDir: attachmentDir);
+  }) => _api.saveMapToFile(filePath: filePath, attachmentDir: attachmentDir);
 
   @override
   Future<void> saveTemplateFromSelection({
     required String name,
     required List<TypedRecordId> nodeKeys,
     required List<TypedRecordId> relationKeys,
-  }) =>
-      _api.saveTemplateFromSelection(
-        name: name,
-        nodeKeys: nodeKeys,
-        relationKeys: relationKeys,
-      );
+  }) => _api.saveTemplateFromSelection(
+    name: name,
+    nodeKeys: nodeKeys,
+    relationKeys: relationKeys,
+  );
 
   @override
   Future<void> setActiveTheme({required String themeKey}) =>
@@ -271,8 +265,7 @@ class RustAppHandleWrapper implements GraphApi {
   @override
   Future<void> updateNodeCachePositions({
     required List<(TypedRecordId, double, double, double, double)> positions,
-  }) =>
-      _api.updateNodeCachePositions(positions: positions);
+  }) => _api.updateNodeCachePositions(positions: positions);
 
   @override
   Future<void> updateRelation({required IRelation input}) =>

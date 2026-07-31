@@ -55,7 +55,7 @@ jobs:
         shell: powershell
         run: |
           $sourceDir = "build\windows\x64\runner\Release"
-          $outputZip = "mycelium-windows-x64.zip"
+          $outputZip = "centrode-windows-x64.zip"
           if (Test-Path $sourceDir) {
               Compress-Archive -Path "$sourceDir\*" -DestinationPath $outputZip -Force
           } else {
@@ -67,11 +67,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.PUBLIC_REPO_TOKEN }}
-          repository: Celestios/Mycelium
+          repository: Celestios/Centrode
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: true
           files: |
-            mycelium-windows-x64.zip
-            mycelium-windows-x64-installer.exe
+            centrode-windows-x64.zip
+            centrode-windows-x64-installer.exe

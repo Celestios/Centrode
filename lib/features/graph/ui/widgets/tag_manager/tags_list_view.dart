@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../../../models/graph_node.dart';
 import '../../../store/graph_data_query_controller.dart';
 import '../../../store/command_queue_processor.dart';
 import '../../../../../src/rust/domain/types.dart';
 import '../../../../../src/rust/domain/tags.dart';
-import 'package:mycelium/presentation/widgets/search/searchable_sort_list_header.dart';
+import 'package:centrode/presentation/widgets/search/searchable_sort_list_header.dart';
 import 'delete_tag_dialog.dart';
 import '../../../models/commands/patch_helpers.dart';
 import 'tag_color_picker_panel.dart';
@@ -265,7 +265,7 @@ class _TagsListViewState extends State<TagsListView> {
 
   void _startEditing(Tag tag) {
     setState(() {
-        _editingTagKey = tag.key.key.uuid;
+      _editingTagKey = tag.key.key.uuid;
       _renameController.text = tag.fields.name;
       _validationError = null;
     });
@@ -316,7 +316,8 @@ class _TagsListViewState extends State<TagsListView> {
         for (final node in queryController.nodeLookup.values) {
           if (node is InfoUiNode) {
             for (final tag in node.tags) {
-                usageCounts[tag.key.key.uuid] = (usageCounts[tag.key.key.uuid] ?? 0) + 1;
+              usageCounts[tag.key.key.uuid] =
+                  (usageCounts[tag.key.key.uuid] ?? 0) + 1;
             }
           }
         }
@@ -333,9 +334,13 @@ class _TagsListViewState extends State<TagsListView> {
                 a.fields.name.toLowerCase(),
               );
             case TagSortOption.usageDesc:
-              return (usageCounts[b.key.key.uuid] ?? 0).compareTo(usageCounts[a.key.key.uuid] ?? 0);
+              return (usageCounts[b.key.key.uuid] ?? 0).compareTo(
+                usageCounts[a.key.key.uuid] ?? 0,
+              );
             case TagSortOption.usageAsc:
-              return (usageCounts[a.key.key.uuid] ?? 0).compareTo(usageCounts[b.key.key.uuid] ?? 0);
+              return (usageCounts[a.key.key.uuid] ?? 0).compareTo(
+                usageCounts[b.key.key.uuid] ?? 0,
+              );
           }
         });
 
@@ -452,8 +457,11 @@ class _TagsListViewState extends State<TagsListView> {
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   itemBuilder: (context, index) {
                     final tag = filteredTags[index];
-                      final usageCount = _getTagUsageCount(tag.key.key.uuid, queryController);
-                      final isEditing = _editingTagKey == tag.key.key.uuid;
+                    final usageCount = _getTagUsageCount(
+                      tag.key.key.uuid,
+                      queryController,
+                    );
+                    final isEditing = _editingTagKey == tag.key.key.uuid;
 
                     return MouseRegion(
                       onEnter: (_) {
@@ -633,7 +641,9 @@ class _TagsListViewState extends State<TagsListView> {
                                         tag.fields.name,
                                       );
                                       if (confirm == true) {
-                                          await controller.deleteTag(tag.key.key.uuid);
+                                        await controller.deleteTag(
+                                          tag.key.key.uuid,
+                                        );
                                       }
                                     },
                                     padding: EdgeInsets.zero,

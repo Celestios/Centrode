@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../store/command_queue_processor.dart';
 import '../../../presentation/viewport_state.dart';
 import '../../../models/models.dart';
-import 'package:mycelium/presentation/widgets/search/searchable_sort_list_header.dart';
+import 'package:centrode/presentation/widgets/search/searchable_sort_list_header.dart';
 import 'template_preview_painter.dart';
 import 'delete_template_dialog.dart';
 
@@ -71,7 +71,9 @@ class _TemplatesListViewState extends State<TemplatesListView> {
           );
         }
 
-        final allTemplates = (snapshot.data ?? []).whereType<Template>().toList();
+        final allTemplates = (snapshot.data ?? [])
+            .whereType<Template>()
+            .toList();
 
         // Apply search query filter
         var filteredTemplates = allTemplates;
@@ -164,7 +166,8 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                     final nodeCount = template.nodes.length;
                     final relationCount = template.relations.length;
 
-                    final isHovered = _hoveredTemplateKey == template.key.key.uuid;
+                    final isHovered =
+                        _hoveredTemplateKey == template.key.key.uuid;
 
                     // Create the tile widget
                     final tileChild = Container(
@@ -245,10 +248,11 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                         .value
                                         .visibleRect
                                         .center;
-                                    await controller.templateMutations.instantiateTemplate(
-                                      template.key.key.uuid,
-                                      visibleCenter,
-                                    );
+                                    await controller.templateMutations
+                                        .instantiateTemplate(
+                                          template.key.key.uuid,
+                                          visibleCenter,
+                                        );
                                   },
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(
@@ -274,9 +278,10 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                           template.name,
                                         );
                                     if (confirm == true) {
-                                      await controller.templateMutations.deleteTemplate(
-                                        template.key.key.uuid,
-                                      );
+                                      await controller.templateMutations
+                                          .deleteTemplate(
+                                            template.key.key.uuid,
+                                          );
                                     }
                                   },
                                   padding: EdgeInsets.zero,

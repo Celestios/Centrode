@@ -1,5 +1,5 @@
 pub use crate::domain::types::MapTheme;
-use mycelium_macros::SurrealDbEnum;
+use centrode_macros::SurrealDbEnum;
 use surrealdb::types::SurrealValue;
 
 #[repr(u8)]

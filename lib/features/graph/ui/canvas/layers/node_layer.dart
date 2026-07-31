@@ -1,7 +1,7 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../../../store/graph_data_query.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../presentation/viewport_state.dart';
@@ -15,7 +15,7 @@ import '../widgets/highlight_frame.dart';
 import '../painters/drawing_node_painter.dart';
 import '../../../presentation/strategies/node_text_span_builder.dart';
 import '../../../presentation/strategies/node_style_strategy.dart';
-import 'package:mycelium/shared/widgets/unbounded_stack.dart';
+import 'package:centrode/shared/widgets/unbounded_stack.dart';
 
 class NodeRenderEntry {
   final UiNode node;
@@ -41,15 +41,10 @@ class NodeLayer extends StatelessWidget {
     final viewport = context.read<ViewportController>();
 
     return ListenableBuilder(
-      listenable: Listenable.merge([
-        uiState,
-        viewport.visibleNodeIds,
-      ]),
+      listenable: Listenable.merge([uiState, viewport.visibleNodeIds]),
       builder: (context, _) {
         final visibleIds = viewport.visibleNodeIds.value;
-        final renderStack = uiState.zOrder
-            .where(visibleIds.contains)
-            .toList();
+        final renderStack = uiState.zOrder.where(visibleIds.contains).toList();
 
         final entries = <NodeRenderEntry>[];
         NodeRenderEntry? editingEntry;
@@ -97,15 +92,19 @@ class NodeLayer extends StatelessWidget {
                       final pos = entry.viewState.positionNotifier.value;
                       final rawSize = entry.viewState.sizeNotifier.value;
                       final size = Size(
-                        entry.viewState.dragWidthNotifier.value ?? rawSize.width,
+                        entry.viewState.dragWidthNotifier.value ??
+                            rawSize.width,
                         rawSize.height,
                       );
                       final resolvedStyle = entry.node.resolvedStyle;
                       final borderRadius = resolvedStyle?.borderRadius ?? 8.0;
                       final shape = resolvedStyle?.shape ?? 'rectangle';
                       final double fontSize = resolvedStyle?.fontSize ?? 14.0;
-                      final double scale = NodeVisualConstants.fontScale(fontSize);
-                      final isHovered = uiState.hoveredNodeNotifier.value == entry.node.id;
+                      final double scale = NodeVisualConstants.fontScale(
+                        fontSize,
+                      );
+                      final isHovered =
+                          uiState.hoveredNodeNotifier.value == entry.node.id;
 
                       final Widget editWidget;
                       if (entry.node is DrawingUiNode) {
@@ -225,11 +224,13 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
         _dirtyNodeIds.add(id);
         _repaintTrigger.value++;
       }
+
       void markPosition() {
         if (_disposed) return;
         _positionOnlyNodeIds.add(id);
         _repaintTrigger.value++;
       }
+
       entry.viewState.positionNotifier.addListener(markPosition);
       entry.viewState.sizeNotifier.addListener(markDirty);
       entry.viewState.dragWidthNotifier.addListener(markDirty);
@@ -279,10 +280,7 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
         return LayoutBuilder(
           builder: (context, constraints) {
             final size = Size(constraints.maxWidth, constraints.maxHeight);
-            return CustomPaint(
-              size: size,
-              painter: _painter,
-            );
+            return CustomPaint(size: size, painter: _painter);
           },
         );
       },
@@ -305,8 +303,8 @@ class _CanvasNodesPainter extends CustomPainter {
   final Paint _shadowPaint = Paint();
   final Paint _bgPaint = Paint();
   final Paint _borderPaint = Paint();
-  final Paint _handlePaint = Paint()..color = Color(NodeVisualConstants.handleColor);
-
+  final Paint _handlePaint = Paint()
+    ..color = Color(NodeVisualConstants.handleColor);
 
   _CanvasNodesPainter({
     required this.entries,
@@ -322,8 +320,8 @@ class _CanvasNodesPainter extends CustomPainter {
 
     // Case 1: Nothing changed — replay cached picture
     if (!hasDirty && !hasPositionOnly) {
-      final bool cacheValid = _cachedPicture != null &&
-          _cachedGeneration == _entriesGeneration;
+      final bool cacheValid =
+          _cachedPicture != null && _cachedGeneration == _entriesGeneration;
       if (cacheValid) {
         canvas.drawPicture(_cachedPicture!);
         return;
@@ -425,11 +423,13 @@ class _CanvasNodesPainter extends CustomPainter {
     final double scale = NodeVisualConstants.fontScale(resolvedStyle.fontSize);
     final bool isHovered = entry.node.id == _hoveredNodeId;
     final bool isHighlighted = entry.isSelected || entry.isEditing || isHovered;
-    final double stroke = (entry.isEditing
-        ? 1.0
-        : entry.isSelected
+    final double stroke =
+        (entry.isEditing
             ? 1.0
-            : 0.5) * scale;
+            : entry.isSelected
+            ? 1.0
+            : 0.5) *
+        scale;
     final double gap = 1.5 * scale;
 
     final rrect = _buildRRect(rect, resolvedStyle, 0.0, scale);
@@ -443,8 +443,10 @@ class _CanvasNodesPainter extends CustomPainter {
         _shadowPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 8 * scale);
       } else {
         _shadowPaint.color = Color(resolvedStyle.shadowColor);
-        _shadowPaint.maskFilter =
-            MaskFilter.blur(BlurStyle.normal, resolvedStyle.shadowBlur);
+        _shadowPaint.maskFilter = MaskFilter.blur(
+          BlurStyle.normal,
+          resolvedStyle.shadowBlur,
+        );
       }
 
       final double shadowOffsetX = resolvedStyle.shadowOffsetX;
@@ -452,7 +454,12 @@ class _CanvasNodesPainter extends CustomPainter {
       final shadowOffset = Offset(shadowOffsetX, shadowOffsetY);
 
       if (shadowOffset != Offset.zero) {
-        final shadowRRect = _buildRRect(rect.shift(shadowOffset), resolvedStyle, 0.0, scale);
+        final shadowRRect = _buildRRect(
+          rect.shift(shadowOffset),
+          resolvedStyle,
+          0.0,
+          scale,
+        );
         canvas.drawRRect(shadowRRect, _shadowPaint);
       } else {
         canvas.drawRRect(rrect, _shadowPaint);
@@ -473,7 +480,12 @@ class _CanvasNodesPainter extends CustomPainter {
     if (isHighlighted && node is! DrawingUiNode) {
       final double inflateAmount = gap + stroke / 2;
       final highlightRect = rect.inflate(inflateAmount);
-      final highlightRRect = _buildRRect(highlightRect, resolvedStyle, inflateAmount, scale);
+      final highlightRRect = _buildRRect(
+        highlightRect,
+        resolvedStyle,
+        inflateAmount,
+        scale,
+      );
 
       final Color highlightColor;
       if (entry.isEditing) {
@@ -510,8 +522,17 @@ class _CanvasNodesPainter extends CustomPainter {
     }
 
     if (node is! DrawingUiNode) {
-      final hasMetadataSphere = node is InfoUiNode && (node.tags.isNotEmpty || node.comments.isNotEmpty);
-      _paintResizeHandles(canvas, node.id, rect, resolvedStyle, scale, hasMetadataSphere);
+      final hasMetadataSphere =
+          node is InfoUiNode &&
+          (node.tags.isNotEmpty || node.comments.isNotEmpty);
+      _paintResizeHandles(
+        canvas,
+        node.id,
+        rect,
+        resolvedStyle,
+        scale,
+        hasMetadataSphere,
+      );
     }
   }
 
@@ -596,7 +617,12 @@ class _CanvasNodesPainter extends CustomPainter {
     }
   }
 
-  RRect _buildRRect(Rect rect, NodeStyle style, [double extraRadius = 0.0, double scale = 1.0]) {
+  RRect _buildRRect(
+    Rect rect,
+    NodeStyle style, [
+    double extraRadius = 0.0,
+    double scale = 1.0,
+  ]) {
     final radius = style.shape == 'circle'
         ? Radius.circular(rect.shortestSide / 2)
         : Radius.circular(style.borderRadius + extraRadius);
@@ -614,10 +640,9 @@ class _CanvasNodesPainter extends CustomPainter {
 
     final baseStyle = TextStyle(
       fontSize: style.fontSize,
-      fontFamily:
-          style.fontFamily.isEmpty || style.fontFamily == 'System'
-              ? null
-              : style.fontFamily,
+      fontFamily: style.fontFamily.isEmpty || style.fontFamily == 'System'
+          ? null
+          : style.fontFamily,
       color: Color(style.textColor),
     );
 
@@ -648,7 +673,8 @@ class _CanvasNodesPainter extends CustomPainter {
       final lineCount = tp.computeLineMetrics().length;
       final effectiveLines = lineCount > 0 ? lineCount : 1;
 
-      if (maxLines != null && totalLinesPainted + effectiveLines > maxLines) break;
+      if (maxLines != null && totalLinesPainted + effectiveLines > maxLines)
+        break;
 
       painters.add(tp);
       totalTextHeight += tp.height;
@@ -661,10 +687,16 @@ class _CanvasNodesPainter extends CustomPainter {
       extraHeight += NodeStyleStrategy.taskBadgeHeight(fontScale);
     }
     if (entry.viewState.lineCount > AppConfig.node.collapsedLineLimit) {
-      extraHeight += NodeStyleStrategy.expandToggleSpace(entry.viewState.isExpandedNotifier.value, fontScale);
+      extraHeight += NodeStyleStrategy.expandToggleSpace(
+        entry.viewState.isExpandedNotifier.value,
+        fontScale,
+      );
     }
 
-    final yCenter = rect.top + style.padding + (rect.height - style.padding * 2 - extraHeight) / 2;
+    final yCenter =
+        rect.top +
+        style.padding +
+        (rect.height - style.padding * 2 - extraHeight) / 2;
     double y = yCenter - totalTextHeight / 2;
 
     for (final tp in painters) {
@@ -674,21 +706,46 @@ class _CanvasNodesPainter extends CustomPainter {
     }
   }
 
-  (RRect, RRect) _getHandleRRects(RawUuid nodeId, Rect rect, double borderRadius, double scale, bool hasMetadataSphere) {
+  (RRect, RRect) _getHandleRRects(
+    RawUuid nodeId,
+    Rect rect,
+    double borderRadius,
+    double scale,
+    bool hasMetadataSphere,
+  ) {
     final cached = _handleCache[nodeId];
     final double handleWidth = NodeVisualConstants.handleWidth * scale;
-    final double handleTopOffset = hasMetadataSphere ? NodeVisualConstants.handleTopOffset * scale : 0.0;
+    final double handleTopOffset = hasMetadataSphere
+        ? NodeVisualConstants.handleTopOffset * scale
+        : 0.0;
     if (cached != null) {
       final (right, left) = cached;
-      if (right.outerRect == Rect.fromLTRB(rect.right - handleWidth, rect.top + handleTopOffset, rect.right, rect.bottom) &&
-          left.outerRect == Rect.fromLTRB(rect.left, rect.top, rect.left + handleWidth, rect.bottom)) {
+      if (right.outerRect ==
+              Rect.fromLTRB(
+                rect.right - handleWidth,
+                rect.top + handleTopOffset,
+                rect.right,
+                rect.bottom,
+              ) &&
+          left.outerRect ==
+              Rect.fromLTRB(
+                rect.left,
+                rect.top,
+                rect.left + handleWidth,
+                rect.bottom,
+              )) {
         return cached;
       }
     }
 
     final r = Radius.circular(borderRadius);
     final rightHandle = RRect.fromRectAndCorners(
-      Rect.fromLTRB(rect.right - handleWidth, rect.top + handleTopOffset, rect.right, rect.bottom),
+      Rect.fromLTRB(
+        rect.right - handleWidth,
+        rect.top + handleTopOffset,
+        rect.right,
+        rect.bottom,
+      ),
       topRight: r,
       bottomRight: r,
     );
@@ -703,13 +760,31 @@ class _CanvasNodesPainter extends CustomPainter {
     return result;
   }
 
-  void _paintResizeHandles(Canvas canvas, RawUuid nodeId, Rect rect, NodeStyle style, double scale, bool hasMetadataSphere) {
-    final (rightHandle, leftHandle) = _getHandleRRects(nodeId, rect, style.borderRadius, scale, hasMetadataSphere);
+  void _paintResizeHandles(
+    Canvas canvas,
+    RawUuid nodeId,
+    Rect rect,
+    NodeStyle style,
+    double scale,
+    bool hasMetadataSphere,
+  ) {
+    final (rightHandle, leftHandle) = _getHandleRRects(
+      nodeId,
+      rect,
+      style.borderRadius,
+      scale,
+      hasMetadataSphere,
+    );
     canvas.drawRRect(rightHandle, _handlePaint);
     canvas.drawRRect(leftHandle, _handlePaint);
   }
 
-  void _paintMetadataSphere(Canvas canvas, UiNode node, Rect rect, double scale) {
+  void _paintMetadataSphere(
+    Canvas canvas,
+    UiNode node,
+    Rect rect,
+    double scale,
+  ) {
     if (node is! InfoUiNode) return;
     if (node.tags.isEmpty && node.comments.isEmpty) return;
 
@@ -748,18 +823,32 @@ class _CanvasNodesPainter extends CustomPainter {
   ) {
     if (entry.viewState.lineCount <= 3) return;
 
-    final toggleSpace = NodeStyleStrategy.expandToggleSpace(entry.viewState.isExpandedNotifier.value, scale);
-    final taskBadgeHeight = entry.node is TaskUiNode ? NodeStyleStrategy.taskBadgeHeight(scale) : 0.0;
+    final toggleSpace = NodeStyleStrategy.expandToggleSpace(
+      entry.viewState.isExpandedNotifier.value,
+      scale,
+    );
+    final taskBadgeHeight = entry.node is TaskUiNode
+        ? NodeStyleStrategy.taskBadgeHeight(scale)
+        : 0.0;
 
-    final yCenter = rect.bottom - style.padding - taskBadgeHeight - toggleSpace / 2;
+    final yCenter =
+        rect.bottom - style.padding - taskBadgeHeight - toggleSpace / 2;
 
     // Draw background wide narrow button
     final double buttonHeight = 16.0 * scale;
     final double buttonWidth = rect.width - 2 * style.padding;
     final double buttonLeft = rect.left + style.padding;
     final double buttonTop = yCenter - buttonHeight / 2;
-    final buttonRect = Rect.fromLTWH(buttonLeft, buttonTop, buttonWidth, buttonHeight);
-    final buttonRRect = RRect.fromRectAndRadius(buttonRect, Radius.circular(4.0 * scale));
+    final buttonRect = Rect.fromLTWH(
+      buttonLeft,
+      buttonTop,
+      buttonWidth,
+      buttonHeight,
+    );
+    final buttonRRect = RRect.fromRectAndRadius(
+      buttonRect,
+      Radius.circular(4.0 * scale),
+    );
 
     final bgPaint = Paint()
       ..color = Color(style.textColor).withValues(alpha: 0.08)

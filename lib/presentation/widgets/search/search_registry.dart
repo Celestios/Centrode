@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
-import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
-import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
-import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/presentation/palette_action_registry.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/presentation/workspace_tabs_controller.dart';
+import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
+import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/features/graph/presentation/palette_action_registry.dart';
 
 enum SearchResultType { command, node, tag, relation, relationHeader }
 
@@ -50,8 +50,9 @@ class CommandPaletteSearchSource extends SearchSource {
   @override
   Future<List<SearchResult>> search(String query, SearchContext context) async {
     final term = query.substring(1).trim().toLowerCase();
-    final actions =
-        PaletteActionRegistry.instance.getActions(context.buildContext);
+    final actions = PaletteActionRegistry.instance.getActions(
+      context.buildContext,
+    );
     return actions
         .where((act) => act.title.toLowerCase().contains(term))
         .map(
@@ -153,8 +154,8 @@ class DatabaseSearchSource extends SearchSource {
 
         final title = res.text.isEmpty
             ? (res.type == DatabaseSearchResultType.relation
-                ? 'Untitled Relation'
-                : 'Untitled Node')
+                  ? 'Untitled Relation'
+                  : 'Untitled Node')
             : res.text;
 
         results.add(
@@ -163,7 +164,8 @@ class DatabaseSearchSource extends SearchSource {
             subtitle: subtitle,
             icon: icon,
             type: SearchResultType.node,
-            onSelected: (ctx) => _focusOnUiNode(ctx, RawUuid.fromString(res.key)),
+            onSelected: (ctx) =>
+                _focusOnUiNode(ctx, RawUuid.fromString(res.key)),
           ),
         );
       }
@@ -216,8 +218,7 @@ class CanvasSearchSource extends SearchSource {
         results.add(
           SearchResult(
             title: node.text.isEmpty ? 'Untitled Node' : node.text,
-            subtitle:
-                'Node • ${node.tableName == 'INode' ? 'Info' : 'Task'}',
+            subtitle: 'Node • ${node.tableName == 'INode' ? 'Info' : 'Task'}',
             icon: node.tableName == 'INode'
                 ? Icons.description_outlined
                 : Icons.task_alt_outlined,
@@ -326,14 +327,14 @@ class CanvasSearchSource extends SearchSource {
             : toNode.position.dy;
         final double maxX =
             (fromNode.position.dx + fromNode.size.width) >
-                    (toNode.position.dx + toNode.size.width)
-                ? (fromNode.position.dx + fromNode.size.width)
-                : (toNode.position.dx + toNode.size.width);
+                (toNode.position.dx + toNode.size.width)
+            ? (fromNode.position.dx + fromNode.size.width)
+            : (toNode.position.dx + toNode.size.width);
         final double maxY =
             (fromNode.position.dy + fromNode.size.height) >
-                    (toNode.position.dy + toNode.size.height)
-                ? (fromNode.position.dy + fromNode.size.height)
-                : (toNode.position.dy + toNode.size.height);
+                (toNode.position.dy + toNode.size.height)
+            ? (fromNode.position.dy + fromNode.size.height)
+            : (toNode.position.dy + toNode.size.height);
 
         final bounds = BoundingBox(
           minX: minX - 150,

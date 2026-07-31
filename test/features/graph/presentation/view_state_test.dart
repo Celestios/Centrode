@@ -1,9 +1,9 @@
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mycelium/features/graph/models/graph_node.dart';
-import 'package:mycelium/features/graph/presentation/view_state.dart';
-import 'package:mycelium/features/graph/engine/config.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/models/graph_node.dart';
+import 'package:centrode/features/graph/presentation/view_state.dart';
+import 'package:centrode/features/graph/engine/config.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 void main() {
   test('NodeViewState rightResizeHitbox offset shift check', () {

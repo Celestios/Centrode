@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mycelium/shared/utils/app_paths.dart';
-import 'package:mycelium/shared/utils/map_scanner.dart';
+import 'package:centrode/shared/utils/app_paths.dart';
+import 'package:centrode/shared/utils/map_scanner.dart';
 import 'package:path/path.dart' as p;
 
 void main() {

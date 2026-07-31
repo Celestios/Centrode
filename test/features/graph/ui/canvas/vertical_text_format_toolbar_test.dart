@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mycelium/features/graph/ui/widgets/overlays/vertical_text_format_toolbar.dart';
+import 'package:centrode/features/graph/ui/widgets/overlays/vertical_text_format_toolbar.dart';
 
 void main() {
-  testWidgets('VerticalTextFormatToolbar renders without crashing', (WidgetTester tester) async {
+  testWidgets('VerticalTextFormatToolbar renders without crashing', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(

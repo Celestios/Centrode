@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/traceable_notifier.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/traceable_notifier.dart';
 import 'package:path/path.dart' as p;
-import 'package:mycelium/shared/utils/app_paths.dart';
+import 'package:centrode/shared/utils/app_paths.dart';
 import '../../../src/rust/bridge/api.dart';
 import '../../../src/rust/domain/base_models.dart' show ViewportState;
 import '../store/graph_data_query_controller.dart';
@@ -259,7 +259,7 @@ class WorkspaceTabsController extends ChangeNotifier with TraceableNotifier {
   Future<void> closeTab(int index) async {
     _log.info('closeTab index=$index');
     if (_tabs.isEmpty || index < 0 || index >= _tabs.length) return;
-    
+
     final closedSession = _tabs.removeAt(index);
     if (_tabs.isEmpty) {
       _activeIndex = 0;

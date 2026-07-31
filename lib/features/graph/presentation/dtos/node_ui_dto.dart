@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class NodeUiDto {
   final RawUuid id;

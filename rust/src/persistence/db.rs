@@ -21,7 +21,7 @@ impl Database {
             e
         })?;
 
-        let ns = namespace.unwrap_or("mycelium");
+        let ns = namespace.unwrap_or("centrode");
         let db_name = database.unwrap_or("core");
 
         // Select Namespace/Database

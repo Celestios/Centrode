@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:mycelium/shared/logging.dart';
+import 'package:centrode/shared/logging.dart';
 import 'app_paths.dart';
 
 class RecentMapsStore {

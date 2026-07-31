@@ -1,11 +1,11 @@
 use crate::common::setup_test_repo;
-use rust_lib_mycelium::domain::base_models::{Coordinates, Size};
-use rust_lib_mycelium::domain::contents::Content;
-use rust_lib_mycelium::domain::id::TypedRecordId;
-use rust_lib_mycelium::domain::nodes::{INode, Nodes};
-use rust_lib_mycelium::domain::patches::{EntityPatch, NodePatch, TagOperation};
-use rust_lib_mycelium::domain::tags::{Tag, TagEdge, TagFields};
-use rust_lib_mycelium::domain::traits::TableKind;
+use centrode_core::domain::base_models::{Coordinates, Size};
+use centrode_core::domain::contents::Content;
+use centrode_core::domain::id::TypedRecordId;
+use centrode_core::domain::nodes::{INode, Nodes};
+use centrode_core::domain::patches::{EntityPatch, NodePatch, TagOperation};
+use centrode_core::domain::tags::{Tag, TagEdge, TagFields};
+use centrode_core::domain::traits::TableKind;
 
 #[tokio::test]
 async fn test_tags_crud_and_patching() {

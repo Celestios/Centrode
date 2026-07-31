@@ -1,7 +1,7 @@
 use crate::domain::id::TypedRecordId;
 use crate::domain::schema::SurqlSchemaField;
 pub use crate::domain::types::Tag;
-use mycelium_macros::SurqlSchemaField;
+use centrode_macros::SurqlSchemaField;
 use surrealdb::types::{SurrealValue, Value};
 
 #[derive(Debug, Clone)]

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
-import 'package:mycelium/shared/utils/name_generator.dart';
+import 'package:centrode/shared/utils/name_generator.dart';
 
-import 'package:mycelium/presentation/widgets/hover_scale_button.dart';
+import 'package:centrode/presentation/widgets/hover_scale_button.dart';
 
 class CanvasTabBar extends StatelessWidget {
   const CanvasTabBar({super.key});
@@ -162,10 +162,7 @@ class _AddTabButton extends StatelessWidget {
     return HoverScaleButton(
       onTap: () {
         final name = NameGenerator.generate();
-        tabsController.addTab(
-          'maps/$name.db',
-          name,
-        );
+        tabsController.addTab('maps/$name.db', name);
       },
       hoverScale: 1.05,
       pressScale: 0.95,

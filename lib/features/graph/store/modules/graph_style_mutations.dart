@@ -3,7 +3,7 @@ import '../../models/models.dart';
 import '../../models/commands/patch_helpers.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 /// Style mutation operations for the graph.
 class GraphStyleMutations {
@@ -41,7 +41,15 @@ class GraphStyleMutations {
     );
 
     controller.syncEngine.api.updateNodeCachePositions(
-      positions: [(parseTypedRecordId(node.tableName, id), node.position.dx, node.position.dy, newSize.width, newSize.height)],
+      positions: [
+        (
+          parseTypedRecordId(node.tableName, id),
+          node.position.dx,
+          node.position.dy,
+          newSize.width,
+          newSize.height,
+        ),
+      ],
     );
     controller.relationEngine.onNodeMoved(id);
 
@@ -63,7 +71,10 @@ class GraphStyleMutations {
     );
   }
 
-  void updateNodesStyle(List<RawUuid> ids, NodeStyle Function(NodeStyle style) updateFn) {
+  void updateNodesStyle(
+    List<RawUuid> ids,
+    NodeStyle Function(NodeStyle style) updateFn,
+  ) {
     if (ids.isEmpty) return;
 
     final Map<RawUuid, NodeStyle> oldStyles = {};

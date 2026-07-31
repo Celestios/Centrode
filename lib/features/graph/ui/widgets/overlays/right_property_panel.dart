@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../presentation/node_render_state.dart';
 import 'collapsible_sidebar.dart';
-import 'package:mycelium/shared/utils/color_utils.dart';
+import 'package:centrode/shared/utils/color_utils.dart';
 import 'inspector/appearance_tab.dart';
 import 'inspector/data_tab.dart';
 

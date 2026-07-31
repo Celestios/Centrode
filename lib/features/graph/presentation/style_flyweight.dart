@@ -1,6 +1,6 @@
-import 'package:mycelium/features/graph/models/graph_node.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
-import 'package:mycelium/presentation/theme/graph_theme.dart';
+import 'package:centrode/features/graph/models/graph_node.dart';
+import 'package:centrode/src/rust/domain/styles.dart';
+import 'package:centrode/presentation/theme/graph_theme.dart';
 import 'strategies/node_style_strategy.dart';
 
 /// Flyweight cache for interned [NodeStyle] instances.
@@ -12,11 +12,7 @@ import 'strategies/node_style_strategy.dart';
 class StyleFlyweight {
   final Map<int, NodeStyle> _cache = {};
 
-  NodeStyle resolve(
-    UiNode node,
-    GraphTheme theme,
-    NodeStyleStrategy strategy,
-  ) {
+  NodeStyle resolve(UiNode node, GraphTheme theme, NodeStyleStrategy strategy) {
     final signature = Object.hash(
       strategy.runtimeType,
       node.runtimeType,

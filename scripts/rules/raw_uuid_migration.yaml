@@ -2,7 +2,7 @@ name: RawUuid Migration
 description: String -> RawUuid type migration across graph feature
 
 import:
-  path: "package:mycelium/shared/domain/raw_uuid.dart"
+  path: "package:centrode/shared/domain/raw_uuid.dart"
   target_files:
     - "lib/features/graph/**/*.dart"
     - "test/**/*.dart"
@@ -16,7 +16,7 @@ exclude:
   - "*.g.dart"
   - "*.freezed.dart"
   - "*.ui.dart"
-  - "part of "  # skip part files
+  - "part of " # skip part files
 
 # ── Global replacement rules ──
 # Applied to all files matching scan_dirs
@@ -24,492 +24,492 @@ exclude:
 rules:
   # ── Type declarations ──
   - find: 'abstract\s+String\s+targetId'
-    replace: 'abstract RawUuid targetId'
-    desc: 'abstract RawUuid targetId'
+    replace: "abstract RawUuid targetId"
+    desc: "abstract RawUuid targetId"
 
   - find: '@override\s*\n\s*String\s+targetId;'
     replace: '@override\n  RawUuid targetId;'
-    desc: '@override RawUuid targetId'
+    desc: "@override RawUuid targetId"
 
   - find: 'final\s+String\s+targetId;'
-    replace: 'final RawUuid targetId;'
-    desc: 'final RawUuid targetId'
+    replace: "final RawUuid targetId;"
+    desc: "final RawUuid targetId"
 
   - find: 'String\s+targetId;'
-    replace: 'RawUuid targetId;'
-    desc: 'RawUuid targetId'
+    replace: "RawUuid targetId;"
+    desc: "RawUuid targetId"
 
   - find: 'String\s+targetId\s*='
-    replace: 'RawUuid targetId ='
-    desc: 'RawUuid targetId field'
+    replace: "RawUuid targetId ="
+    desc: "RawUuid targetId field"
 
   - find: 'String\?\s+activeEditId;'
-    replace: 'RawUuid? activeEditId;'
-    desc: 'RawUuid? activeEditId'
+    replace: "RawUuid? activeEditId;"
+    desc: "RawUuid? activeEditId"
 
   - find: 'String\?\s+nodeShowingFloatingToolbar;'
-    replace: 'RawUuid? nodeShowingFloatingToolbar;'
-    desc: 'RawUuid? nodeShowingFloatingToolbar'
+    replace: "RawUuid? nodeShowingFloatingToolbar;"
+    desc: "RawUuid? nodeShowingFloatingToolbar"
 
-  - find: 'String get activeEditId =>'
-    replace: 'RawUuid? get activeEditId =>'
-    desc: 'activeEditId getter'
+  - find: "String get activeEditId =>"
+    replace: "RawUuid? get activeEditId =>"
+    desc: "activeEditId getter"
 
   - find: 'String\? get activeEditId =>'
-    replace: 'RawUuid? get activeEditId =>'
-    desc: 'activeEditId? getter'
+    replace: "RawUuid? get activeEditId =>"
+    desc: "activeEditId? getter"
 
   # ── Model type declarations ──
   - find: 'final String id;\n  String fromNodeId;\n  String fromNodeTable;\n  String toNodeId;\n  String toNodeTable;'
     replace: 'final RawUuid id;\n  RawUuid fromNodeId;\n  String fromNodeTable;\n  RawUuid toNodeId;\n  String toNodeTable;'
-    desc: 'UiRelation id + from/to fields'
+    desc: "UiRelation id + from/to fields"
 
   - find: 'UiRelation\(\{\n\s*String\? id,\n\s*required this\.fromNodeId,\n\s*required this\.fromNodeTable,\n\s*required this\.toNodeId,\n\s*required this\.toNodeTable,'
     replace: 'UiRelation({\n    RawUuid? id,\n    required this.fromNodeId,\n    required this.fromNodeTable,\n    required this.toNodeId,\n    required this.toNodeTable,'
-    desc: 'UiRelation constructor params'
+    desc: "UiRelation constructor params"
 
   - find: '\}\) : id = id \?\? const Uuid\(\)\.v4\(\),'
-    replace: '}) : id = id ?? RawUuid.v4(),'
-    desc: 'entity default id'
+    replace: "}) : id = id ?? RawUuid.v4(),"
+    desc: "entity default id"
 
   - find: 'InfoUiRelation copyWith\(\{\n\s*String\? id,\n\s*String\? fromNodeId,\n\s*String\? fromNodeTable,\n\s*String\? toNodeId,\n\s*String\? toNodeTable,'
     replace: 'InfoUiRelation copyWith({\n    RawUuid? id,\n    RawUuid? fromNodeId,\n    String? fromNodeTable,\n    RawUuid? toNodeId,\n    RawUuid? toNodeTable,'
-    desc: 'InfoUiRelation.copyWith params'
+    desc: "InfoUiRelation.copyWith params"
 
   # ── Map types for entity ID lookups ──
   - find: 'Map<String,\s*UiNode>'
-    replace: 'Map<RawUuid, UiNode>'
-    desc: 'Map<RawUuid, UiNode>'
+    replace: "Map<RawUuid, UiNode>"
+    desc: "Map<RawUuid, UiNode>"
 
   - find: 'Map<String,\s*UiRelation>'
-    replace: 'Map<RawUuid, UiRelation>'
-    desc: 'Map<RawUuid, UiRelation>'
+    replace: "Map<RawUuid, UiRelation>"
+    desc: "Map<RawUuid, UiRelation>"
 
   - find: 'Map<String,\s*RelationLayout\?>'
-    replace: 'Map<RawUuid, RelationLayout?>'
-    desc: 'Map<RawUuid, RelationLayout?>'
+    replace: "Map<RawUuid, RelationLayout?>"
+    desc: "Map<RawUuid, RelationLayout?>"
 
   - find: 'Map<String,\s*RelationStyle\?>'
-    replace: 'Map<RawUuid, RelationStyle?>'
-    desc: 'Map<RawUuid, RelationStyle?>'
+    replace: "Map<RawUuid, RelationStyle?>"
+    desc: "Map<RawUuid, RelationStyle?>"
 
   - find: 'Map<String,\s*NodeStyle>'
-    replace: 'Map<RawUuid, NodeStyle>'
-    desc: 'Map<RawUuid, NodeStyle>'
+    replace: "Map<RawUuid, NodeStyle>"
+    desc: "Map<RawUuid, NodeStyle>"
 
   - find: 'Map<String,\s*Size>'
-    replace: 'Map<RawUuid, Size>'
-    desc: 'Map<RawUuid, Size>'
+    replace: "Map<RawUuid, Size>"
+    desc: "Map<RawUuid, Size>"
 
   - find: 'Map<String,\s*Offset>'
-    replace: 'Map<RawUuid, Offset>'
-    desc: 'Map<RawUuid, Offset>'
+    replace: "Map<RawUuid, Offset>"
+    desc: "Map<RawUuid, Offset>"
 
   - find: 'Map<String,\s*NodeViewState>'
-    replace: 'Map<RawUuid, NodeViewState>'
-    desc: 'Map<RawUuid, NodeViewState>'
+    replace: "Map<RawUuid, NodeViewState>"
+    desc: "Map<RawUuid, NodeViewState>"
 
   - find: 'Map<String,\s*ComputedRelation>'
-    replace: 'Map<RawUuid, ComputedRelation>'
-    desc: 'Map<RawUuid, ComputedRelation>'
+    replace: "Map<RawUuid, ComputedRelation>"
+    desc: "Map<RawUuid, ComputedRelation>"
 
   # ── Set types for entity ID sets ──
   - find: 'Set<String>\s+selectedEntities'
-    replace: 'Set<RawUuid> selectedEntities'
-    desc: 'Set<RawUuid> selectedEntities'
+    replace: "Set<RawUuid> selectedEntities"
+    desc: "Set<RawUuid> selectedEntities"
 
   - find: 'Set<String>\s+draggingNodes'
-    replace: 'Set<RawUuid> draggingNodes'
-    desc: 'Set<RawUuid> draggingNodes'
+    replace: "Set<RawUuid> draggingNodes"
+    desc: "Set<RawUuid> draggingNodes"
 
   - find: 'Set<String>\s+_dirtyNodeIds'
-    replace: 'Set<RawUuid> _dirtyNodeIds'
-    desc: 'Set<RawUuid> _dirtyNodeIds'
+    replace: "Set<RawUuid> _dirtyNodeIds"
+    desc: "Set<RawUuid> _dirtyNodeIds"
 
   - find: 'Set<String>\s+dirtyNodeIds'
-    replace: 'Set<RawUuid> dirtyNodeIds'
-    desc: 'Set<RawUuid> dirtyNodeIds'
+    replace: "Set<RawUuid> dirtyNodeIds"
+    desc: "Set<RawUuid> dirtyNodeIds"
 
   - find: 'Set<String>\s+hits'
-    replace: 'Set<RawUuid> hits'
-    desc: 'Set<RawUuid> hits'
+    replace: "Set<RawUuid> hits"
+    desc: "Set<RawUuid> hits"
 
   - find: 'Set<String>\s+sourceNodeIds'
-    replace: 'Set<RawUuid> sourceNodeIds'
-    desc: 'Set<RawUuid> sourceNodeIds'
+    replace: "Set<RawUuid> sourceNodeIds"
+    desc: "Set<RawUuid> sourceNodeIds"
 
   - find: 'Set<String>\s+visible\b'
-    replace: 'Set<RawUuid> visible'
-    desc: 'Set<RawUuid> visible'
+    replace: "Set<RawUuid> visible"
+    desc: "Set<RawUuid> visible"
 
   - find: 'Set<String>\s+result\b'
-    replace: 'Set<RawUuid> result'
-    desc: 'Set<RawUuid> result'
+    replace: "Set<RawUuid> result"
+    desc: "Set<RawUuid> result"
 
   - find: 'Set<String>\s+visibleNodeIds'
-    replace: 'Set<RawUuid> visibleNodeIds'
-    desc: 'Set<RawUuid> visibleNodeIds'
+    replace: "Set<RawUuid> visibleNodeIds"
+    desc: "Set<RawUuid> visibleNodeIds"
 
   - find: 'Set<String>\s+excludeNodeIds'
-    replace: 'Set<RawUuid> excludeNodeIds'
-    desc: 'Set<RawUuid> excludeNodeIds'
+    replace: "Set<RawUuid> excludeNodeIds"
+    desc: "Set<RawUuid> excludeNodeIds"
 
   - find: 'Set<String>\s+_dirtyRelationIds'
-    replace: 'Set<RawUuid> _dirtyRelationIds'
-    desc: 'Set<RawUuid> _dirtyRelationIds'
+    replace: "Set<RawUuid> _dirtyRelationIds"
+    desc: "Set<RawUuid> _dirtyRelationIds"
 
   - find: 'Set<String>\s+get\s+dirtyRelationIds'
-    replace: 'Set<RawUuid> get dirtyRelationIds'
-    desc: 'dirtyRelationIds getter'
+    replace: "Set<RawUuid> get dirtyRelationIds"
+    desc: "dirtyRelationIds getter"
 
-  - find: 'ValueNotifier<Set<String>>'
-    replace: 'ValueNotifier<Set<RawUuid>>'
-    desc: 'ValueNotifier<Set<RawUuid>>'
+  - find: "ValueNotifier<Set<String>>"
+    replace: "ValueNotifier<Set<RawUuid>>"
+    desc: "ValueNotifier<Set<RawUuid>>"
 
   - find: 'ValueNotifier<String\?>'
-    replace: 'ValueNotifier<RawUuid?>'
-    desc: 'ValueNotifier<RawUuid?>'
+    replace: "ValueNotifier<RawUuid?>"
+    desc: "ValueNotifier<RawUuid?>"
 
   - find: 'Set<String>\s+get\s+'
-    replace: 'Set<RawUuid> get '
-    desc: 'Set<RawUuid> getter'
+    replace: "Set<RawUuid> get "
+    desc: "Set<RawUuid> getter"
 
   - find: 'Set<String>\s+_\w+'
-    replace: 'Set<RawUuid> _'
-    desc: 'Set<RawUuid> field'
+    replace: "Set<RawUuid> _"
+    desc: "Set<RawUuid> field"
 
   - find: 'Set<String>\s+\w+\s*=\s*\{\}'
-    replace: 'Set<RawUuid> {} = {}'
-    desc: 'Set<RawUuid> field init'
+    replace: "Set<RawUuid> {} = {}"
+    desc: "Set<RawUuid> field init"
 
   - find: 'final\s+Set<String>\s+\w+\s*=\s*\{\}'
-    replace: 'final Set<RawUuid> {} = {}'
-    desc: 'final Set<RawUuid> field'
+    replace: "final Set<RawUuid> {} = {}"
+    desc: "final Set<RawUuid> field"
 
   # ── List types ──
   - find: 'List<String>\s+nodeIds'
-    replace: 'List<RawUuid> nodeIds'
-    desc: 'List<RawUuid> nodeIds'
+    replace: "List<RawUuid> nodeIds"
+    desc: "List<RawUuid> nodeIds"
 
   - find: 'List<String>\s+relationIds'
-    replace: 'List<RawUuid> relationIds'
-    desc: 'List<RawUuid> relationIds'
+    replace: "List<RawUuid> relationIds"
+    desc: "List<RawUuid> relationIds"
 
   # ── Spatial index ──
   - find: 'Map<Point<int>,\s*Set<String>>'
-    replace: 'Map<Point<int>, Set<RawUuid>>'
-    desc: 'SpatialHashGrid._grid'
+    replace: "Map<Point<int>, Set<RawUuid>>"
+    desc: "SpatialHashGrid._grid"
 
   - find: 'void insert\(String\s+nodeId,'
-    replace: 'void insert(RawUuid nodeId,'
-    desc: 'SpatialHashGrid.insert'
+    replace: "void insert(RawUuid nodeId,"
+    desc: "SpatialHashGrid.insert"
 
   - find: 'void update\(String\s+nodeId,'
-    replace: 'void update(RawUuid nodeId,'
-    desc: 'SpatialHashGrid.update'
+    replace: "void update(RawUuid nodeId,"
+    desc: "SpatialHashGrid.update"
 
   - find: 'void remove\(String\s+nodeId,'
-    replace: 'void remove(RawUuid nodeId,'
-    desc: 'SpatialHashGrid.remove'
+    replace: "void remove(RawUuid nodeId,"
+    desc: "SpatialHashGrid.remove"
 
   - find: 'Set<String>\s+queryRect\('
-    replace: 'Set<RawUuid> queryRect('
-    desc: 'SpatialHashGrid.queryRect'
+    replace: "Set<RawUuid> queryRect("
+    desc: "SpatialHashGrid.queryRect"
 
   - find: 'Set<String>\s+queryPoint\('
-    replace: 'Set<RawUuid> queryPoint('
-    desc: 'SpatialHashGrid.queryPoint'
+    replace: "Set<RawUuid> queryPoint("
+    desc: "SpatialHashGrid.queryPoint"
 
   # ── GraphEntityUpdate ──
   - find: 'final String id;\n\s*final String tableName;\n\s*final GraphUpdateType type;\n\s*final dynamic payload;\n\n\s*GraphEntityUpdate\(\{\n\s*required this\.id,'
     replace: 'final RawUuid? id;\n  final String tableName;\n  final GraphUpdateType type;\n  final dynamic payload;\n\n  GraphEntityUpdate({\n    this.id,'
-    desc: 'GraphEntityUpdate.id -> RawUuid?'
+    desc: "GraphEntityUpdate.id -> RawUuid?"
 
   - find: 'GraphEntityUpdate\(id:.*GraphUpdateType\.reset\),'
-    replace: 'GraphEntityUpdate(tableName: '''', type: GraphUpdateType.reset),'
-    desc: 'remove empty-string sentinel'
+    replace: "GraphEntityUpdate(tableName: '', type: GraphUpdateType.reset),"
+    desc: "remove empty-string sentinel"
 
   # ── Function parameters: entity IDs ──
   - find: 'void\s+deleteNode\(String\s+id\)'
-    replace: 'void deleteNode(RawUuid id)'
-    desc: 'deleteNode(RawUuid)'
+    replace: "void deleteNode(RawUuid id)"
+    desc: "deleteNode(RawUuid)"
 
   - find: 'Future<void>\s+deleteNode\(String\s+id\)'
-    replace: 'Future<void> deleteNode(RawUuid id)'
-    desc: 'deleteNode(RawUuid)'
+    replace: "Future<void> deleteNode(RawUuid id)"
+    desc: "deleteNode(RawUuid)"
 
   - find: 'void\s+deleteRelation\(String\s+id\)'
-    replace: 'void deleteRelation(RawUuid id)'
-    desc: 'deleteRelation(RawUuid)'
+    replace: "void deleteRelation(RawUuid id)"
+    desc: "deleteRelation(RawUuid)"
 
   - find: 'Future<void>\s+deleteRelation\(String\s+id\)'
-    replace: 'Future<void> deleteRelation(RawUuid id)'
-    desc: 'deleteRelation(RawUuid)'
+    replace: "Future<void> deleteRelation(RawUuid id)"
+    desc: "deleteRelation(RawUuid)"
 
   - find: 'void\s+updateNodePosition\(String\s+id'
-    replace: 'void updateNodePosition(RawUuid id'
-    desc: 'updateNodePosition(RawUuid)'
+    replace: "void updateNodePosition(RawUuid id"
+    desc: "updateNodePosition(RawUuid)"
 
   - find: 'void\s+updateNodeWidth\(String\s+id'
-    replace: 'void updateNodeWidth(RawUuid id'
-    desc: 'updateNodeWidth(RawUuid)'
+    replace: "void updateNodeWidth(RawUuid id"
+    desc: "updateNodeWidth(RawUuid)"
 
   - find: 'void\s+toggleNodeExpansion\(String\s+id\)'
-    replace: 'void toggleNodeExpansion(RawUuid id)'
-    desc: 'toggleNodeExpansion(RawUuid)'
+    replace: "void toggleNodeExpansion(RawUuid id)"
+    desc: "toggleNodeExpansion(RawUuid)"
 
   - find: 'void\s+updateRelationLayout\(String\s+id'
-    replace: 'void updateRelationLayout(RawUuid id'
-    desc: 'updateRelationLayout(RawUuid)'
+    replace: "void updateRelationLayout(RawUuid id"
+    desc: "updateRelationLayout(RawUuid)"
 
   - find: 'void\s+updateRelationStyle\(String\s+id'
-    replace: 'void updateRelationStyle(RawUuid id'
-    desc: 'updateRelationStyle(RawUuid)'
+    replace: "void updateRelationStyle(RawUuid id"
+    desc: "updateRelationStyle(RawUuid)"
 
   - find: 'void\s+updateNodeStyle\(String\s+id'
-    replace: 'void updateNodeStyle(RawUuid id'
-    desc: 'updateNodeStyle(RawUuid)'
+    replace: "void updateNodeStyle(RawUuid id"
+    desc: "updateNodeStyle(RawUuid)"
 
   - find: 'void\s+updateNodesStyle\(List<String>\s+ids'
-    replace: 'void updateNodesStyle(List<RawUuid> ids'
-    desc: 'updateNodesStyle(List<RawUuid>)'
+    replace: "void updateNodesStyle(List<RawUuid> ids"
+    desc: "updateNodesStyle(List<RawUuid>)"
 
   - find: 'void\s+updateRelationsLayout\(List<String>\s+ids'
-    replace: 'void updateRelationsLayout(List<RawUuid> ids'
-    desc: 'updateRelationsLayout(List<RawUuid>)'
+    replace: "void updateRelationsLayout(List<RawUuid> ids"
+    desc: "updateRelationsLayout(List<RawUuid>)"
 
   - find: 'void\s+commitEntityText\(String\s+id'
-    replace: 'void commitEntityText(RawUuid id'
-    desc: 'commitEntityText(RawUuid)'
+    replace: "void commitEntityText(RawUuid id"
+    desc: "commitEntityText(RawUuid)"
 
   - find: 'void\s+updateEntityTextLive\(String\s+id'
-    replace: 'void updateEntityTextLive(RawUuid id'
-    desc: 'updateEntityTextLive(RawUuid)'
+    replace: "void updateEntityTextLive(RawUuid id"
+    desc: "updateEntityTextLive(RawUuid)"
 
   - find: 'void\s+updateNodeTags\(String\s+id'
-    replace: 'void updateNodeTags(RawUuid id'
-    desc: 'updateNodeTags(RawUuid)'
+    replace: "void updateNodeTags(RawUuid id"
+    desc: "updateNodeTags(RawUuid)"
 
   - find: 'void\s+updateNodeComments\(String\s+id'
-    replace: 'void updateNodeComments(RawUuid id'
-    desc: 'updateNodeComments(RawUuid)'
+    replace: "void updateNodeComments(RawUuid id"
+    desc: "updateNodeComments(RawUuid)"
 
   - find: 'void\s+addTagToNode\(String\s+nodeId'
-    replace: 'void addTagToNode(RawUuid nodeId'
-    desc: 'addTagToNode(RawUuid)'
+    replace: "void addTagToNode(RawUuid nodeId"
+    desc: "addTagToNode(RawUuid)"
 
   - find: 'void\s+removeTagFromNode\(String\s+nodeId'
-    replace: 'void removeTagFromNode(RawUuid nodeId'
-    desc: 'removeTagFromNode(RawUuid)'
+    replace: "void removeTagFromNode(RawUuid nodeId"
+    desc: "removeTagFromNode(RawUuid)"
 
   - find: 'void\s+addCommentToNode\(String\s+nodeId'
-    replace: 'void addCommentToNode(RawUuid nodeId'
-    desc: 'addCommentToNode(RawUuid)'
+    replace: "void addCommentToNode(RawUuid nodeId"
+    desc: "addCommentToNode(RawUuid)"
 
   - find: 'void\s+removeCommentFromNode\(String\s+nodeId'
-    replace: 'void removeCommentFromNode(RawUuid nodeId'
-    desc: 'removeCommentFromNode(RawUuid)'
+    replace: "void removeCommentFromNode(RawUuid nodeId"
+    desc: "removeCommentFromNode(RawUuid)"
 
   - find: 'void\s+saveConfirmedPosition\(String\s+id'
-    replace: 'void saveConfirmedPosition(RawUuid id'
-    desc: 'saveConfirmedPosition(RawUuid)'
+    replace: "void saveConfirmedPosition(RawUuid id"
+    desc: "saveConfirmedPosition(RawUuid)"
 
   - find: 'Offset\?\s+getConfirmedPosition\(String\s+id\)'
-    replace: 'Offset? getConfirmedPosition(RawUuid id)'
-    desc: 'getConfirmedPosition(RawUuid)'
+    replace: "Offset? getConfirmedPosition(RawUuid id)"
+    desc: "getConfirmedPosition(RawUuid)"
 
   - find: 'void\s+clearConfirmedPosition\(String\s+id\)'
-    replace: 'void clearConfirmedPosition(RawUuid id)'
-    desc: 'clearConfirmedPosition(RawUuid)'
+    replace: "void clearConfirmedPosition(RawUuid id)"
+    desc: "clearConfirmedPosition(RawUuid)"
 
   - find: 'void\s+reindexAll\(Map<String,\s*UiNode>\s+nodes\)'
-    replace: 'void reindexAll(Map<RawUuid, UiNode> nodes)'
-    desc: 'reindexAll(Map<RawUuid, UiNode>)'
+    replace: "void reindexAll(Map<RawUuid, UiNode> nodes)"
+    desc: "reindexAll(Map<RawUuid, UiNode>)"
 
   - find: 'void\s+createRelation\(\s*String\s+fromId'
     replace: 'void createRelation(\n    RawUuid fromId'
-    desc: 'createRelation(RawUuid)'
+    desc: "createRelation(RawUuid)"
 
   - find: 'void\s+onNodeMoved\(String\s+nodeId\)'
-    replace: 'void onNodeMoved(RawUuid nodeId)'
-    desc: 'onNodeMoved(RawUuid)'
+    replace: "void onNodeMoved(RawUuid nodeId)"
+    desc: "onNodeMoved(RawUuid)"
 
   - find: 'void\s+onRelationDeleted\(String\s+relationId\)'
-    replace: 'void onRelationDeleted(RawUuid relationId)'
-    desc: 'onRelationDeleted(RawUuid)'
+    replace: "void onRelationDeleted(RawUuid relationId)"
+    desc: "onRelationDeleted(RawUuid)"
 
   - find: 'void\s+onRelationLayoutUpdated\(String\s+relationId\)'
-    replace: 'void onRelationLayoutUpdated(RawUuid relationId)'
-    desc: 'onRelationLayoutUpdated(RawUuid)'
+    replace: "void onRelationLayoutUpdated(RawUuid relationId)"
+    desc: "onRelationLayoutUpdated(RawUuid)"
 
   - find: 'void\s+notifyIdSwap\(String\s+tempId,\s*String\s+realId\)'
-    replace: 'void notifyIdSwap(RawUuid tempId, RawUuid realId)'
-    desc: 'notifyIdSwap(RawUuid, RawUuid)'
+    replace: "void notifyIdSwap(RawUuid tempId, RawUuid realId)"
+    desc: "notifyIdSwap(RawUuid, RawUuid)"
 
   - find: 'UiNode\?\s+cloneWithId\(String\s+newId\)'
-    replace: 'UiNode? cloneWithId(RawUuid newId)'
-    desc: 'cloneWithId(RawUuid)'
+    replace: "UiNode? cloneWithId(RawUuid newId)"
+    desc: "cloneWithId(RawUuid)"
 
   - find: 'String\s+createNode\('
-    replace: 'RawUuid createNode('
-    desc: 'createNode returns RawUuid'
+    replace: "RawUuid createNode("
+    desc: "createNode returns RawUuid"
 
   - find: 'void\s+onSelectEntity\(String\?\s+id\)'
-    replace: 'void onSelectEntity(RawUuid? id)'
-    desc: 'onSelectEntity(RawUuid?)'
+    replace: "void onSelectEntity(RawUuid? id)"
+    desc: "onSelectEntity(RawUuid?)"
 
   - find: 'UiNode\?\s+getNode\(String\s+id\)'
-    replace: 'UiNode? getNode(RawUuid id)'
-    desc: 'getNode(RawUuid)'
+    replace: "UiNode? getNode(RawUuid id)"
+    desc: "getNode(RawUuid)"
 
   - find: 'void\s+onNodeMove\(String\s+id'
-    replace: 'void onNodeMove(RawUuid id'
-    desc: 'onNodeMove(RawUuid)'
+    replace: "void onNodeMove(RawUuid id"
+    desc: "onNodeMove(RawUuid)"
 
   - find: 'void\s+setNodeDragging\(String\s+id'
-    replace: 'void setNodeDragging(RawUuid id'
-    desc: 'setNodeDragging(RawUuid)'
+    replace: "void setNodeDragging(RawUuid id"
+    desc: "setNodeDragging(RawUuid)"
 
   - find: 'void\s+onEnterEditMode\(String\s+id\)'
-    replace: 'void onEnterEditMode(RawUuid id)'
-    desc: 'onEnterEditMode(RawUuid)'
+    replace: "void onEnterEditMode(RawUuid id)"
+    desc: "onEnterEditMode(RawUuid)"
 
   - find: 'void\s+unregisterAction\(String\s+id\)'
-    replace: 'void unregisterAction(RawUuid id)'
-    desc: 'unregisterAction(RawUuid)'
+    replace: "void unregisterAction(RawUuid id)"
+    desc: "unregisterAction(RawUuid)"
 
   - find: 'bool\s+isNodeDragging\(String\s+id\)'
-    replace: 'bool isNodeDragging(RawUuid id)'
-    desc: 'isNodeDragging(RawUuid)'
+    replace: "bool isNodeDragging(RawUuid id)"
+    desc: "isNodeDragging(RawUuid)"
 
   - find: 'void\s+quarantine\(String\s+id'
-    replace: 'void quarantine(RawUuid id'
-    desc: 'quarantine(RawUuid)'
+    replace: "void quarantine(RawUuid id"
+    desc: "quarantine(RawUuid)"
 
   - find: 'NodeViewState\?\s+tryRehydrate\(String\s+id\)'
-    replace: 'NodeViewState? tryRehydrate(RawUuid id)'
-    desc: 'tryRehydrate(RawUuid)'
+    replace: "NodeViewState? tryRehydrate(RawUuid id)"
+    desc: "tryRehydrate(RawUuid)"
 
   - find: 'bool\s+_syncNodeToViewState\(String\s+id'
-    replace: 'bool _syncNodeToViewState(RawUuid id'
-    desc: '_syncNodeToViewState(RawUuid)'
+    replace: "bool _syncNodeToViewState(RawUuid id"
+    desc: "_syncNodeToViewState(RawUuid)"
 
   - find: 'void\s+moveToFront\(String\s+id\)'
-    replace: 'void moveToFront(RawUuid id)'
-    desc: 'moveToFront(RawUuid)'
+    replace: "void moveToFront(RawUuid id)"
+    desc: "moveToFront(RawUuid)"
 
   - find: 'void\s+selectEntity\(String\?\s+id\)'
-    replace: 'void selectEntity(RawUuid? id)'
-    desc: 'selectEntity(RawUuid?)'
+    replace: "void selectEntity(RawUuid? id)"
+    desc: "selectEntity(RawUuid?)"
 
   - find: 'void\s+enterEditMode\(String\s+id\)'
-    replace: 'void enterEditMode(RawUuid id)'
-    desc: 'enterEditMode(RawUuid)'
+    replace: "void enterEditMode(RawUuid id)"
+    desc: "enterEditMode(RawUuid)"
 
   - find: 'Offset\?\s+_calculateSingleSelectAnchor\(String\s+id\)'
-    replace: 'Offset? _calculateSingleSelectAnchor(RawUuid id)'
-    desc: '_calculateSingleSelectAnchor(RawUuid)'
+    replace: "Offset? _calculateSingleSelectAnchor(RawUuid id)"
+    desc: "_calculateSingleSelectAnchor(RawUuid)"
 
   - find: 'void\s+cleanupStaleState\(Set<String>\s+validKeys\)'
-    replace: 'void cleanupStaleState(Set<RawUuid> validKeys)'
-    desc: 'cleanupStaleState(Set<RawUuid>)'
+    replace: "void cleanupStaleState(Set<RawUuid> validKeys)"
+    desc: "cleanupStaleState(Set<RawUuid>)"
 
   - find: 'void\s+syncFromDataStore\(Set<String>\s+nodeKeys,\s*Set<String>\s+allValidKeys\)'
-    replace: 'void syncFromDataStore(Set<RawUuid> nodeKeys, Set<RawUuid> allValidKeys)'
-    desc: 'syncFromDataStore(Set<RawUuid>, Set<RawUuid>)'
+    replace: "void syncFromDataStore(Set<RawUuid> nodeKeys, Set<RawUuid> allValidKeys)"
+    desc: "syncFromDataStore(Set<RawUuid>, Set<RawUuid>)"
 
   - find: 'void\s+startRelationDrawing\(Set<String>\s+nodeIds'
-    replace: 'void startRelationDrawing(Set<RawUuid> nodeIds'
-    desc: 'startRelationDrawing(Set<RawUuid>)'
+    replace: "void startRelationDrawing(Set<RawUuid> nodeIds"
+    desc: "startRelationDrawing(Set<RawUuid>)"
 
   - find: 'Set<String>\s+getSelectedEntities\(\)'
-    replace: 'Set<RawUuid> getSelectedEntities()'
-    desc: 'getSelectedEntities()'
+    replace: "Set<RawUuid> getSelectedEntities()"
+    desc: "getSelectedEntities()"
 
   - find: 'Set<String>\s+getVisibleNodeIds\(\)'
-    replace: 'Set<RawUuid> getVisibleNodeIds()'
-    desc: 'getVisibleNodeIds()'
+    replace: "Set<RawUuid> getVisibleNodeIds()"
+    desc: "getVisibleNodeIds()"
 
   # ── Node ID local variable ──
   - find: 'String\s+id\s*=\s*node\.id;'
-    replace: 'RawUuid id = node.id;'
-    desc: 'RawUuid id = node.id'
+    replace: "RawUuid id = node.id;"
+    desc: "RawUuid id = node.id"
 
   - find: 'String\s+id\s*=\s*node\.id'
-    replace: 'RawUuid id = node.id'
-    desc: 'RawUuid id = node.id'
+    replace: "RawUuid id = node.id"
+    desc: "RawUuid id = node.id"
 
   # ── FFI boundary conversions ──
   - find: 'id\.toString\(\)'
-    replace: 'id.toUuidString()'
-    desc: 'id.toUuidString()'
+    replace: "id.toUuidString()"
+    desc: "id.toUuidString()"
 
   - find: 'relId\.toString\(\)'
-    replace: 'relId.toUuidString()'
-    desc: 'relId.toUuidString()'
+    replace: "relId.toUuidString()"
+    desc: "relId.toUuidString()"
 
   - find: 'nodeId\.toString\(\)'
-    replace: 'nodeId.toUuidString()'
-    desc: 'nodeId.toUuidString()'
+    replace: "nodeId.toUuidString()"
+    desc: "nodeId.toUuidString()"
 
   - find: 'UuidValue\.fromString\(id\)'
-    replace: 'UuidValue.fromString(id.toUuidString())'
-    desc: 'UuidValue.fromString(id.toUuidString())'
+    replace: "UuidValue.fromString(id.toUuidString())"
+    desc: "UuidValue.fromString(id.toUuidString())"
 
   - find: 'UuidValue\.fromString\(fromNodeId\)'
-    replace: 'UuidValue.fromString(fromNodeId.toUuidString())'
-    desc: 'UuidValue.fromString(fromNodeId.toUuidString())'
+    replace: "UuidValue.fromString(fromNodeId.toUuidString())"
+    desc: "UuidValue.fromString(fromNodeId.toUuidString())"
 
   - find: 'UuidValue\.fromString\(toNodeId\)'
-    replace: 'UuidValue.fromString(toNodeId.toUuidString())'
-    desc: 'UuidValue.fromString(toNodeId.toUuidString())'
+    replace: "UuidValue.fromString(toNodeId.toUuidString())"
+    desc: "UuidValue.fromString(toNodeId.toUuidString())"
 
   # ── fromRust conversions ──
   - find: 'id:\s*relation\.key\.key\.uuid'
-    replace: 'id: RawUuid.fromString(relation.key.key.uuid)'
-    desc: 'RawUuid.fromString(relation.key.key.uuid)'
+    replace: "id: RawUuid.fromString(relation.key.key.uuid)"
+    desc: "RawUuid.fromString(relation.key.key.uuid)"
 
   - find: 'id:\s*node\.id\.key\.uuid'
-    replace: 'id: RawUuid.fromString(node.id.key.uuid)'
-    desc: 'RawUuid.fromString(node.id.key.uuid)'
+    replace: "id: RawUuid.fromString(node.id.key.uuid)"
+    desc: "RawUuid.fromString(node.id.key.uuid)"
 
   - find: 'fromNodeId:\s*relation\.in_\.key\.uuid'
-    replace: 'fromNodeId: RawUuid.fromString(relation.in_.key.uuid)'
-    desc: 'fromRust fromNodeId'
+    replace: "fromNodeId: RawUuid.fromString(relation.in_.key.uuid)"
+    desc: "fromRust fromNodeId"
 
   - find: 'toNodeId:\s*relation\.out\.key\.uuid'
-    replace: 'toNodeId: RawUuid.fromString(relation.out.key.uuid)'
-    desc: 'fromRust toNodeId'
+    replace: "toNodeId: RawUuid.fromString(relation.out.key.uuid)"
+    desc: "fromRust toNodeId"
 
   # ── Query interface ──
   - find: 'Map<String,\s*UiNode>\s+get\s+nodeLookup'
-    replace: 'Map<RawUuid, UiNode> get nodeLookup'
-    desc: 'GraphDataQuery.nodeLookup'
+    replace: "Map<RawUuid, UiNode> get nodeLookup"
+    desc: "GraphDataQuery.nodeLookup"
 
   - find: 'Map<String,\s*UiRelation>\s+get\s+relationLookup'
-    replace: 'Map<RawUuid, UiRelation> get relationLookup'
-    desc: 'GraphDataQuery.relationLookup'
+    replace: "Map<RawUuid, UiRelation> get relationLookup"
+    desc: "GraphDataQuery.relationLookup"
 
   # ── Sync engine ──
   - find: 'final idStr = id\.toUuidString\(\);\s*\n\s*final existing = controller\.store\.nodeLookup\[idStr\];'
     replace: 'final rawId = id is TypedRecordId ? RawUuid.fromString(id.key.uuid) : id;\n    final existing = controller.store.nodeLookup[rawId];'
-    desc: 'sync: node lookup from TypedRecordId'
+    desc: "sync: node lookup from TypedRecordId"
 
   - find: 'final idStr = id\.toUuidString\(\);\s*\n\s*final existing = controller\.store\.relationLookup\[idStr\];'
     replace: 'final rawId = id is TypedRecordId ? RawUuid.fromString(id.key.uuid) : id;\n    final existing = controller.store.relationLookup[rawId];'
-    desc: 'sync: relation lookup from TypedRecordId'
+    desc: "sync: relation lookup from TypedRecordId"
 
   - find: 'final idStr = nodeId\.toUuidString\(\);\s*\n\s*final node = controller\.store\.nodeLookup\.remove\(idStr\);'
     replace: 'final rawId = RawUuid.fromString(nodeId.key.uuid);\n      final node = controller.store.nodeLookup.remove(rawId);'
-    desc: 'sync: delta node deletion'
+    desc: "sync: delta node deletion"
 
   - find: 'controller\.spatial\.spatialGrid\.remove\(idStr, node\.position\);'
-    replace: 'controller.spatial.spatialGrid.remove(rawId, node.position);'
-    desc: 'sync: delta spatial remove'
+    replace: "controller.spatial.spatialGrid.remove(rawId, node.position);"
+    desc: "sync: delta spatial remove"
 
   - find: 'controller\.store\.relationLookup\.remove\(relId\.toUuidString\(\)\);'
-    replace: 'controller.store.relationLookup.remove(RawUuid.fromString(relId.key.uuid));'
-    desc: 'sync: delta relation deletion'
+    replace: "controller.store.relationLookup.remove(RawUuid.fromString(relId.key.uuid));"
+    desc: "sync: delta relation deletion"
 
 # ── File-specific exclusions ──
 # Rules listed here are skipped for the given files
@@ -524,9 +524,9 @@ file_exclusions:
   "lib/features/graph/store/relation_engine_state.dart":
     - 'Map<String,\s*ComputedRelation>'
   "lib/features/graph/presentation/workspace_tabs_controller.dart":
-    - '.*'  # Tab IDs, not entity IDs
+    - ".*" # Tab IDs, not entity IDs
   "lib/features/graph/presentation/palette_action_registry.dart":
-    - '.*'  # Action IDs, not entity IDs
+    - ".*" # Action IDs, not entity IDs
 
 # ── Literal transforms ──
 # Convert string literals to function calls (for test files)

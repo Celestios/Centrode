@@ -1,10 +1,10 @@
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/src/rust/domain/styles.dart' hide EndpointShape;
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import '../../models/commands.dart';
 import '../../models/graph_relation.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 /// Relation mutation operations for the graph.
 class GraphRelationMutations {
@@ -175,10 +175,7 @@ class GraphRelationMutations {
     controller.triggerUpdate();
   }
 
-  void updateRelationsLayout(
-    List<RawUuid> ids, {
-    String? strategyType,
-  }) {
+  void updateRelationsLayout(List<RawUuid> ids, {String? strategyType}) {
     if (ids.isEmpty) return;
 
     final Map<RawUuid, RelationLayout?> oldLayouts = {};
@@ -197,7 +194,8 @@ class GraphRelationMutations {
       final newLayout = RelationLayout(
         fromSide: relation.layout?.fromSide,
         toSide: relation.layout?.toSide,
-        strategyType: strategyType ?? relation.layout?.strategyType ?? 'default',
+        strategyType:
+            strategyType ?? relation.layout?.strategyType ?? 'default',
       );
 
       final updatedRelation = (relation as InfoUiRelation).copyWith(

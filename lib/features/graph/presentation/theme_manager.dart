@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/traceable_notifier.dart';
-import 'package:mycelium/presentation/theme/graph_theme.dart';
-import 'package:mycelium/src/rust/domain/types.dart' as frb;
-import 'package:mycelium/src/rust/domain/theme.dart' as frb;
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/traceable_notifier.dart';
+import 'package:centrode/presentation/theme/graph_theme.dart';
+import 'package:centrode/src/rust/domain/types.dart' as frb;
+import 'package:centrode/src/rust/domain/theme.dart' as frb;
 import '../store/graph_api.dart';
 
 class ThemeController extends ChangeNotifier with TraceableNotifier {
@@ -40,7 +40,6 @@ class ThemeController extends ChangeNotifier with TraceableNotifier {
     // 3. Persist and activate theme
     await _persistAndActivate(defaultTheme);
   }
-
 
   Future<void> selectTheme(String themeId) async {
     final frb.MapTheme? rustTheme = await _appHandle.getTheme(key: themeId);

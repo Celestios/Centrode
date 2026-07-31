@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mycelium/features/graph/presentation/viewport_state.dart';
-import 'package:mycelium/features/graph/ui/canvas/layers/grid_layer.dart';
+import 'package:centrode/features/graph/presentation/viewport_state.dart';
+import 'package:centrode/features/graph/ui/canvas/layers/grid_layer.dart';
 
 void main() {
-  testWidgets('GridLayer renders cleanly at zoom scale 1.0 and scale 0.2', (tester) async {
+  testWidgets('GridLayer renders cleanly at zoom scale 1.0 and scale 0.2', (
+    tester,
+  ) async {
     final viewportNotifier = ValueNotifier<ViewportStateGrid>(
       const ViewportStateGrid(
         viewportSize: Size(800, 600),

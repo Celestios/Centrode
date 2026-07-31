@@ -1,24 +1,22 @@
 import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mycelium/features/graph/presentation/editor_state.dart';
-import 'package:mycelium/features/graph/presentation/selection_state.dart';
-import 'package:mycelium/features/graph/presentation/drag_state.dart';
-import 'package:mycelium/features/graph/presentation/node_render_state.dart';
-import 'package:mycelium/features/graph/presentation/view_state.dart';
-import 'package:mycelium/features/graph/store/graph_data_query.dart';
-import 'package:mycelium/features/graph/store/graph_data_command.dart';
-import 'package:mycelium/features/graph/models/graph_node.dart';
+import 'package:centrode/features/graph/presentation/editor_state.dart';
+import 'package:centrode/features/graph/presentation/selection_state.dart';
+import 'package:centrode/features/graph/presentation/drag_state.dart';
+import 'package:centrode/features/graph/presentation/node_render_state.dart';
+import 'package:centrode/features/graph/presentation/view_state.dart';
+import 'package:centrode/features/graph/store/graph_data_query.dart';
+import 'package:centrode/features/graph/store/graph_data_command.dart';
+import 'package:centrode/features/graph/models/graph_node.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockGraphDataQuery extends Mock implements GraphDataQuery {}
+
 class MockGraphDataCommand extends Mock implements GraphDataCommand {}
 
-UiNode _makeNode(RawUuid id) => InfoUiNode(
-  position: Offset.zero,
-  id: id,
-  size: const Size(100, 50),
-);
+UiNode _makeNode(RawUuid id) =>
+    InfoUiNode(position: Offset.zero, id: id, size: const Size(100, 50));
 
 final _node1 = RawUuid.fromString('node-1');
 final _node2 = RawUuid.fromString('node-2');
@@ -35,7 +33,9 @@ void main() {
     when(() => mockQuery.nodeLookup).thenReturn(testNodes);
     when(() => mockQuery.relationLookup).thenReturn({});
     when(() => mockQuery.relations).thenReturn([]);
-    when(() => mockQuery.onEntityUpdate).thenAnswer((_) => const Stream.empty());
+    when(
+      () => mockQuery.onEntityUpdate,
+    ).thenAnswer((_) => const Stream.empty());
   });
 
   group('NodeRenderState notification counts', () {
@@ -46,7 +46,11 @@ void main() {
 
       state.selectEntity(_node1);
 
-      expect(notifyCount, 1, reason: 'selectEntity should forward notification from SelectionState');
+      expect(
+        notifyCount,
+        1,
+        reason: 'selectEntity should forward notification from SelectionState',
+      );
       state.dispose();
     });
 
@@ -154,7 +158,11 @@ void main() {
 
       state.selectEntity(_node1);
 
-      expect(notifyCount, 1, reason: 'selectEntity should notify once when selecting a valid entity');
+      expect(
+        notifyCount,
+        1,
+        reason: 'selectEntity should notify once when selecting a valid entity',
+      );
     });
 
     test('selectEntity null with empty selection does not notify', () {
@@ -164,7 +172,11 @@ void main() {
 
       state.selectEntity(null);
 
-      expect(notifyCount, 0, reason: 'selectEntity(null) on empty selection should not notify');
+      expect(
+        notifyCount,
+        0,
+        reason: 'selectEntity(null) on empty selection should not notify',
+      );
     });
 
     test('selectEntities notifies exactly once', () {

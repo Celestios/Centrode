@@ -1,6 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/logging.dart';
+import 'package:centrode/shared/logging.dart';
 import 'gesture_interceptor.dart';
 import 'interaction_context.dart';
 import '../presentation/workspace_tabs_controller.dart';
@@ -15,7 +15,7 @@ class DrawingGestureInterceptor extends GestureInterceptor {
   final Logger _log = Logger('DrawingGestureInterceptor');
   final TabSession session;
   final ViewportController viewportController;
-  
+
   /// Exposes the active drawing stroke so the UI layer can paint it.
   final ValueNotifier<List<Offset>> activeStroke = ValueNotifier([]);
 
@@ -73,10 +73,7 @@ class DrawingGestureInterceptor extends GestureInterceptor {
   }
 
   @override
-  InterceptorDisposition onPointerUp(
-    PointerUpEvent e,
-    InteractionContext ctx,
-  ) {
+  InterceptorDisposition onPointerUp(PointerUpEvent e, InteractionContext ctx) {
     if (session.toolModeNotifier.value == 'draw' &&
         activeStroke.value.isNotEmpty) {
       _endDrawing(ctx);

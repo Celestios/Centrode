@@ -4,7 +4,7 @@ description: Guided workflow to brainstorm new workspace features, UI designs, r
 
 # Workflow: /brain-stormer
 
-This workflow guides features, design patterns, refactoring pathways, and architectural brainstorming in the Mycelium workspace. It functions as a decision tree to classify the brainstorming target, consult with specialists, and align on a conceptual direction.
+This workflow guides features, design patterns, refactoring pathways, and architectural brainstorming in the Centrode workspace. It functions as a decision tree to classify the brainstorming target, consult with specialists, and align on a conceptual direction.
 
 ---
 
@@ -24,15 +24,15 @@ Evaluate the user's inquiry and classify it into one of the following brainstorm
 
 #### Branch A: New Feature Proposal
 - *Focus*: Introducing entirely new capabilities, UI modules, or interactive components.
-- *Specialized Skill*: View and activate [feature-ideator](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/feature-ideator/SKILL.md).
+- *Specialized Skill*: View and activate [feature-ideator](.agents/skills/design/feature-ideator/SKILL.md).
 
 #### Branch B: Design Pattern Selection
 - *Focus*: Determining structural patterns for a feature (e.g., Strategy, Command, FSM state machine).
-- *Specialized Skill*: View and activate [ui-designer](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/ui-designer/SKILL.md) and [architecture-designer](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/architecture-designer/SKILL.md).
+- *Specialized Skill*: View and activate [ui-designer](.agents/skills/design/ui-designer/SKILL.md) and [architecture-designer](.agents/skills/design/architecture-designer/SKILL.md).
 
 #### Branch C: Refactoring & Architectural Ideas
 - *Focus*: Restructuring existing code, improving SOLID compliance, fixing DRY duplicates, or changing abstraction levels.
-- *Specialized Skill*: View and load [architecture-auditor](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/code-health/skills/architecture-auditor/SKILL.md).
+- *Specialized Skill*: View and load [architecture-auditor](.agents/plugins/code-health/skills/architecture-auditor/SKILL.md).
 
 *Note: Incorporate ONLY the explicit constraints provided by the user in their request.*
 

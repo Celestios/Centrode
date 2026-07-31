@@ -1,7 +1,7 @@
 import 'dart:ui';
-import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/presentation/strategies/node_style_strategy.dart';
-import 'package:mycelium/features/graph/engine/config.dart';
+import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/features/graph/presentation/strategies/node_style_strategy.dart';
+import 'package:centrode/features/graph/engine/config.dart';
 
 /// Isolated helper calculator for node resize and expand toggle hitboxes.
 abstract class NodeHitboxCalculator {
@@ -28,11 +28,22 @@ abstract class NodeHitboxCalculator {
     );
   }
 
-  static Rect expandToggleHitbox(Offset position, Size size, UiNode node, bool isExpanded) {
-    final style = node.resolvedStyle ?? node.style ?? NodeStyleStrategy.fallbackStyle();
+  static Rect expandToggleHitbox(
+    Offset position,
+    Size size,
+    UiNode node,
+    bool isExpanded,
+  ) {
+    final style =
+        node.resolvedStyle ?? node.style ?? NodeStyleStrategy.fallbackStyle();
     final fontScale = style.fontSize / 14.0;
-    final toggleSpace = NodeStyleStrategy.expandToggleSpace(isExpanded, fontScale);
-    final taskBadgeHeight = node is TaskUiNode ? NodeStyleStrategy.taskBadgeHeight(fontScale) : 0.0;
+    final toggleSpace = NodeStyleStrategy.expandToggleSpace(
+      isExpanded,
+      fontScale,
+    );
+    final taskBadgeHeight = node is TaskUiNode
+        ? NodeStyleStrategy.taskBadgeHeight(fontScale)
+        : 0.0;
 
     final bottomOffset = style.padding + taskBadgeHeight;
     final rectBottom = position.dy + size.height;

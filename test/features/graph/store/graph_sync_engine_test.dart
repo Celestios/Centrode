@@ -1,12 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:mycelium/features/graph/store/modules/graph_sync_engine.dart';
-import 'package:mycelium/features/graph/store/command_queue_processor.dart';
-import 'package:mycelium/features/graph/store/command_processor.dart';
-import 'package:mycelium/features/graph/store/graph_api.dart';
+import 'package:centrode/features/graph/store/modules/graph_sync_engine.dart';
+import 'package:centrode/features/graph/store/command_queue_processor.dart';
+import 'package:centrode/features/graph/store/command_processor.dart';
+import 'package:centrode/features/graph/store/graph_api.dart';
 
 class MockCommandQueueProcessor extends Mock implements CommandQueueProcessor {}
+
 class MockGraphApi extends Mock implements GraphApi {}
+
 class MockCommandProcessor extends Mock implements CommandProcessor {}
 
 void main() {
@@ -28,9 +30,12 @@ void main() {
       );
     });
 
-    test('initial savedViewportState returns null when no metadata is loaded', () {
-      expect(syncEngine.savedViewportState, isNull);
-    });
+    test(
+      'initial savedViewportState returns null when no metadata is loaded',
+      () {
+        expect(syncEngine.savedViewportState, isNull);
+      },
+    );
 
     test('canvasBounds has default initial values', () {
       expect(syncEngine.canvasBounds.minX, -500);

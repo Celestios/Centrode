@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
-import 'package:mycelium/shared/color_utils.dart';
-import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
-import 'package:mycelium/features/graph/models/graph_node.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/color_utils.dart';
+import 'package:centrode/features/graph/presentation/workspace_tabs_controller.dart';
+import 'package:centrode/features/graph/models/graph_node.dart';
 import 'search_registry.dart';
 
 class SearchOverlayWidget extends StatelessWidget {
@@ -79,8 +79,7 @@ class SearchOverlayWidget extends StatelessWidget {
                         final item = results[index];
                         final isSelected = index == selectedIndex;
 
-                        if (item.type ==
-                            SearchResultType.relationHeader) {
+                        if (item.type == SearchResultType.relationHeader) {
                           final verbColor = getVerbColor(
                             item.relationVerb,
                             theme,
@@ -100,18 +99,12 @@ class SearchOverlayWidget extends StatelessWidget {
                                     vertical: 3,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: verbColor.withValues(
-                                      alpha: 0.1,
-                                    ),
+                                    color: verbColor.withValues(alpha: 0.1),
                                     border: Border.all(
-                                      color: verbColor.withValues(
-                                        alpha: 0.4,
-                                      ),
+                                      color: verbColor.withValues(alpha: 0.4),
                                       width: 1,
                                     ),
-                                    borderRadius: BorderRadius.circular(
-                                      6,
-                                    ),
+                                    borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -123,8 +116,7 @@ class SearchOverlayWidget extends StatelessWidget {
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
-                                        item.relationVerb
-                                                ?.toUpperCase() ??
+                                        item.relationVerb?.toUpperCase() ??
                                             'RELATION',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
@@ -140,8 +132,9 @@ class SearchOverlayWidget extends StatelessWidget {
                                 Expanded(
                                   child: Container(
                                     height: 1,
-                                    color: theme.dividerColor
-                                        .withValues(alpha: 0.15),
+                                    color: theme.dividerColor.withValues(
+                                      alpha: 0.15,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -172,8 +165,9 @@ class SearchOverlayWidget extends StatelessWidget {
                                 bottom: 8,
                               ),
                               color: isSelected
-                                  ? theme.colorScheme.primary
-                                        .withValues(alpha: 0.15)
+                                  ? theme.colorScheme.primary.withValues(
+                                      alpha: 0.15,
+                                    )
                                   : Colors.transparent,
                               child: Row(
                                 children: [
@@ -182,18 +176,15 @@ class SearchOverlayWidget extends StatelessWidget {
                                     size: 14,
                                     color: isSelected
                                         ? theme.colorScheme.primary
-                                        : verbColor.withValues(
-                                            alpha: 0.7,
-                                          ),
+                                        : verbColor.withValues(alpha: 0.7),
                                   ),
                                   const SizedBox(width: 8),
                                   _buildNodePreview(fromNode, theme),
                                   Expanded(
                                     child: Container(
-                                      margin:
-                                          const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                          ),
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                      ),
                                       child: Stack(
                                         alignment: Alignment.center,
                                         children: [
@@ -204,49 +195,40 @@ class SearchOverlayWidget extends StatelessWidget {
                                             ),
                                           ),
                                           Align(
-                                            alignment:
-                                                Alignment.centerRight,
+                                            alignment: Alignment.centerRight,
                                             child: Icon(
-                                              Icons
-                                                  .chevron_right_rounded,
+                                              Icons.chevron_right_rounded,
                                               size: 14,
-                                              color: verbColor
-                                                  .withValues(
-                                                    alpha: 0.5,
-                                                  ),
+                                              color: verbColor.withValues(
+                                                alpha: 0.5,
+                                              ),
                                             ),
                                           ),
                                           Container(
-                                            padding:
-                                                const EdgeInsets.symmetric(
-                                                  horizontal: 6,
-                                                  vertical: 1.5,
-                                                ),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 1.5,
+                                            ),
                                             decoration: BoxDecoration(
                                               color: theme.cardColor,
                                               border: Border.all(
-                                                color: verbColor
-                                                    .withValues(
-                                                      alpha: 0.4,
-                                                    ),
+                                                color: verbColor.withValues(
+                                                  alpha: 0.4,
+                                                ),
                                                 width: 1,
                                               ),
                                               borderRadius:
-                                                  BorderRadius.circular(
-                                                    4,
-                                                  ),
+                                                  BorderRadius.circular(4),
                                             ),
                                             child: Text(
                                               item.relationVerb ?? '',
                                               style: TextStyle(
                                                 fontSize: 8,
-                                                fontWeight:
-                                                    FontWeight.bold,
+                                                fontWeight: FontWeight.bold,
                                                 color: verbColor,
                                               ),
                                               maxLines: 1,
-                                              overflow:
-                                                  TextOverflow.ellipsis,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
                                         ],
@@ -260,9 +242,7 @@ class SearchOverlayWidget extends StatelessWidget {
                                       'Enter',
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
-                                            color: theme
-                                                .colorScheme
-                                                .primary,
+                                            color: theme.colorScheme.primary,
                                             fontSize: 10,
                                           ),
                                     ),
@@ -292,8 +272,9 @@ class SearchOverlayWidget extends StatelessWidget {
                                   size: 18,
                                   color: isSelected
                                       ? theme.colorScheme.primary
-                                      : theme.iconTheme.color
-                                            ?.withValues(alpha: 0.7),
+                                      : theme.iconTheme.color?.withValues(
+                                          alpha: 0.7,
+                                        ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
@@ -304,9 +285,7 @@ class SearchOverlayWidget extends StatelessWidget {
                                     children: [
                                       Text(
                                         item.title,
-                                        style: theme
-                                            .textTheme
-                                            .bodyMedium
+                                        style: theme.textTheme.bodyMedium
                                             ?.copyWith(
                                               fontWeight: isSelected
                                                   ? FontWeight.bold
@@ -327,12 +306,10 @@ class SearchOverlayWidget extends StatelessWidget {
                                 if (isSelected)
                                   Text(
                                     'Enter',
-                                    style: theme.textTheme.bodySmall
-                                        ?.copyWith(
-                                          color:
-                                              theme.colorScheme.primary,
-                                          fontSize: 10,
-                                        ),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.primary,
+                                      fontSize: 10,
+                                    ),
                                   ),
                               ],
                             ),

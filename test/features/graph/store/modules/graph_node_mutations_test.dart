@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:mycelium/features/graph/models/models.dart';
-import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
-import 'package:mycelium/features/graph/store/command_queue_processor.dart';
-import 'package:mycelium/features/graph/store/graph_api.dart';
-import 'package:mycelium/features/graph/presentation/theme_manager.dart';
-import 'package:mycelium/features/graph/models/commands/patch_helpers.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
-import 'package:mycelium/presentation/theme/graph_theme.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
+import 'package:centrode/features/graph/store/command_queue_processor.dart';
+import 'package:centrode/features/graph/store/graph_api.dart';
+import 'package:centrode/features/graph/presentation/theme_manager.dart';
+import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
+import 'package:centrode/src/rust/domain/base_models.dart' as frb;
+import 'package:centrode/presentation/theme/graph_theme.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockGraphApi extends Mock implements GraphApi {}
 
@@ -27,7 +27,9 @@ void main() {
 
     setUpAll(() {
       registerFallbackValue(const Offset(0, 0));
-      registerFallbackValue(parseTypedRecordId('INode', RawUuid.fromString('dummy')));
+      registerFallbackValue(
+        parseTypedRecordId('INode', RawUuid.fromString('dummy')),
+      );
       registerFallbackValue(
         Nodes.iNode(
           INode(
@@ -58,9 +60,7 @@ void main() {
         () => mockApi.createNode(input: any(named: 'input')),
       ).thenAnswer((_) async {});
       when(
-        () => mockApi.deleteNodeEntry(
-          id: any(named: 'id'),
-        ),
+        () => mockApi.deleteNodeEntry(id: any(named: 'id')),
       ).thenAnswer((_) async {});
 
       queryController = GraphDataQueryController(mockApi);
@@ -109,9 +109,7 @@ void main() {
 
       // Verify API was called
       await controller.syncEngine.processor.forceFlush();
-      verify(
-        () => mockApi.deleteNodeEntry(id: any(named: 'id')),
-      ).called(1);
+      verify(() => mockApi.deleteNodeEntry(id: any(named: 'id'))).called(1);
     });
 
     test('updateNodePosition moves node and updates spatial grid', () {

@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:mycelium/src/rust/bridge/api.dart';
+import 'package:centrode/src/rust/bridge/api.dart';
 
 import 'log_models.dart';
 import 'disk_writer.dart';
@@ -84,19 +84,19 @@ class LogManager {
 
     String logPath;
     if (!kReleaseMode) {
-      logPath = p.join(Directory.current.path, 'mycelium.log');
+      logPath = p.join(Directory.current.path, 'centrode.log');
     } else {
       if (Platform.isWindows) {
         final appData = Platform.environment['APPDATA'];
         if (appData != null) {
-          logPath = p.join(appData, 'mycelium', 'mycelium.log');
+          logPath = p.join(appData, 'centrode', 'centrode.log');
         } else {
           final supportDir = await getApplicationSupportDirectory();
-          logPath = p.join(supportDir.path, 'mycelium.log');
+          logPath = p.join(supportDir.path, 'centrode.log');
         }
       } else {
         final supportDir = await getApplicationSupportDirectory();
-        logPath = p.join(supportDir.path, 'mycelium.log');
+        logPath = p.join(supportDir.path, 'centrode.log');
       }
     }
 

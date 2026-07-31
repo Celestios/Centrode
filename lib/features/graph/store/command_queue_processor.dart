@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:mycelium/shared/logging.dart';
+import 'package:centrode/shared/logging.dart';
 import '../models/models.dart';
 import 'graph_data_query_controller.dart';
 import 'graph_data_query.dart';
@@ -17,7 +17,7 @@ import 'command_processor.dart';
 import '../models/commands/graph_command_context.dart';
 import '../models/commands/patch_helpers.dart';
 import 'graph_api.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   final Logger _log = Logger('CommandQueueProcessor');
@@ -33,7 +33,8 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   late final CommandProcessor processor;
 
   // Sizing & styling delegates
-  ({Size size, int lineCount}) Function(UiNode, {bool isEditing})? sizeCalculator;
+  ({Size size, int lineCount}) Function(UiNode, {bool isEditing})?
+  sizeCalculator;
   NodeStyle Function(UiNode)? styleResolver;
 
   @override
@@ -88,8 +89,12 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   // Sizing & Styling delegates
   // ===========================================================================
 
-  ({Size size, int lineCount}) calculateNodeSize(UiNode node, {bool isEditing = false}) {
-    return sizeCalculator?.call(node, isEditing: isEditing) ?? (size: node.size, lineCount: node.lineCount);
+  ({Size size, int lineCount}) calculateNodeSize(
+    UiNode node, {
+    bool isEditing = false,
+  }) {
+    return sizeCalculator?.call(node, isEditing: isEditing) ??
+        (size: node.size, lineCount: node.lineCount);
   }
 
   NodeStyle resolveNodeStyle(UiNode node) {
@@ -156,9 +161,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
       await syncEngine.loadGraph();
       await updateHistoryStatus();
 
-      relationEngine.onInitialLoad(
-        relations: store.relations,
-      );
+      relationEngine.onInitialLoad(relations: store.relations);
       unawaited(relationEngine.recomputeDirty());
 
       stopwatch.stop();
@@ -218,7 +221,15 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     final node = store.nodeLookup[id];
     if (node != null) {
       syncEngine.api.updateNodeCachePositions(
-        positions: [(parseTypedRecordId(node.tableName, id), newPosition.dx, newPosition.dy, node.size.width, node.size.height)],
+        positions: [
+          (
+            parseTypedRecordId(node.tableName, id),
+            newPosition.dx,
+            newPosition.dy,
+            node.size.width,
+            node.size.height,
+          ),
+        ],
       );
     }
     relationEngine.onNodeMoved(id);
@@ -253,7 +264,15 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     final node = store.nodeLookup[id];
     if (node != null) {
       syncEngine.api.updateNodeCachePositions(
-        positions: [(parseTypedRecordId(node.tableName, id), node.position.dx, node.position.dy, node.size.width, node.size.height)],
+        positions: [
+          (
+            parseTypedRecordId(node.tableName, id),
+            node.position.dx,
+            node.position.dy,
+            node.size.width,
+            node.size.height,
+          ),
+        ],
       );
     }
     relationEngine.onNodeMoved(id);
@@ -264,7 +283,15 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     final node = store.nodeLookup[id];
     if (node != null) {
       syncEngine.api.updateNodeCachePositions(
-        positions: [(parseTypedRecordId(node.tableName, id), node.position.dx, node.position.dy, node.size.width, node.size.height)],
+        positions: [
+          (
+            parseTypedRecordId(node.tableName, id),
+            node.position.dx,
+            node.position.dy,
+            node.size.width,
+            node.size.height,
+          ),
+        ],
       );
     }
     relationEngine.onNodeMoved(id);
@@ -282,8 +309,20 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     if (fromNode != null && toNode != null) {
       syncEngine.api.updateNodeCachePositions(
         positions: [
-          (parseTypedRecordId(fromNode.tableName, fromId), fromNode.position.dx, fromNode.position.dy, fromNode.size.width, fromNode.size.height),
-          (parseTypedRecordId(toNode.tableName, toId), toNode.position.dx, toNode.position.dy, toNode.size.width, toNode.size.height),
+          (
+            parseTypedRecordId(fromNode.tableName, fromId),
+            fromNode.position.dx,
+            fromNode.position.dy,
+            fromNode.size.width,
+            fromNode.size.height,
+          ),
+          (
+            parseTypedRecordId(toNode.tableName, toId),
+            toNode.position.dx,
+            toNode.position.dy,
+            toNode.size.width,
+            toNode.size.height,
+          ),
         ],
       );
     }
@@ -331,10 +370,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   }
 
   @override
-  void updateRelationsLayout(
-    List<RawUuid> ids, {
-    String? strategyType,
-  }) {
+  void updateRelationsLayout(List<RawUuid> ids, {String? strategyType}) {
     relationMutations.updateRelationsLayout(ids, strategyType: strategyType);
     for (final id in ids) {
       relationEngine.onRelationLayoutUpdated(id);
@@ -342,8 +378,10 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   }
 
   @override
-  void updateNodesStyle(List<RawUuid> ids, NodeStyle Function(NodeStyle style) updateFn) =>
-      propertyMutations.updateNodesStyle(ids, updateFn);
+  void updateNodesStyle(
+    List<RawUuid> ids,
+    NodeStyle Function(NodeStyle style) updateFn,
+  ) => propertyMutations.updateNodesStyle(ids, updateFn);
 
   @override
   void addTagToNode(RawUuid nodeId, String name, int color) {
@@ -366,8 +404,16 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   }
 
   @override
-  void commitEntityText(RawUuid id, dynamic newTextOrContent, {dynamic originalTextOrContent}) {
-    propertyMutations.commitEntityText(id, newTextOrContent, originalTextOrContent: originalTextOrContent);
+  void commitEntityText(
+    RawUuid id,
+    dynamic newTextOrContent, {
+    dynamic originalTextOrContent,
+  }) {
+    propertyMutations.commitEntityText(
+      id,
+      newTextOrContent,
+      originalTextOrContent: originalTextOrContent,
+    );
   }
 
   @override

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mycelium/presentation/widgets/left_repository_panel.dart';
+import 'package:centrode/presentation/widgets/left_repository_panel.dart';
 import 'tags_list_view.dart';
 
 class GlobalTagsManagerPanel extends StatelessWidget {

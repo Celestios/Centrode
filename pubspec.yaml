@@ -1,4 +1,4 @@
-name: mycelium
+name: centrode
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -44,7 +44,7 @@ dependencies:
   json_annotation: ^4.9.0
   vector_math: ^2.1.4
   window_manager: ^0.4.3
-  rust_lib_mycelium:
+  centrode_core:
     path: rust_builder
   url_launcher: ^6.3.2
 
@@ -61,8 +61,8 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   build_runner: ^2.10.4
-  mycelium_codegen:
-    path: packages/mycelium_codegen
+  centrode_codegen:
+    path: packages/centrode_codegen
   freezed: ^3.2.3
   json_serializable: ^6.11.2
   mocktail: ^1.0.5

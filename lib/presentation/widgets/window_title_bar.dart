@@ -6,7 +6,7 @@ import 'package:window_manager/window_manager.dart';
 import 'hover_scale_button.dart';
 import '../../features/graph/presentation/workspace_tabs_controller.dart';
 import '../../features/graph/store/command_queue_processor.dart';
-import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'search/search_command_palette.dart';
 
 class SimpleWindowTitleBar extends StatelessWidget {
@@ -37,7 +37,7 @@ class SimpleWindowTitleBar extends StatelessWidget {
               text: TextSpan(
                 children: [
                   TextSpan(
-                    text: 'MYCELIUM',
+                    text: 'CENTRODE',
                     style: TextStyle(
                       color: theme.textTheme.bodyMedium?.color,
                       fontWeight: FontWeight.w800,
@@ -58,10 +58,7 @@ class SimpleWindowTitleBar extends StatelessWidget {
               ),
             ),
           ),
-          const Positioned(
-            right: 0,
-            child: WindowControlButtons(),
-          ),
+          const Positioned(right: 0, child: WindowControlButtons()),
         ],
       ),
     );
@@ -135,7 +132,9 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
                             shaderCallback: (bounds) => LinearGradient(
                               colors: [
                                 theme.colorScheme.primary,
-                                theme.colorScheme.primary.withValues(alpha: 0.7),
+                                theme.colorScheme.primary.withValues(
+                                  alpha: 0.7,
+                                ),
                               ],
                             ).createShader(bounds),
                             child: CustomPaint(
@@ -148,11 +147,13 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
                             shaderCallback: (bounds) => LinearGradient(
                               colors: [
                                 theme.colorScheme.primary,
-                                theme.colorScheme.primary.withValues(alpha: 0.7),
+                                theme.colorScheme.primary.withValues(
+                                  alpha: 0.7,
+                                ),
                               ],
                             ).createShader(bounds),
                             child: const Text(
-                              'MYCELIUM',
+                              'CENTRODE',
                               style: TextStyle(
                                 fontWeight: FontWeight.w900,
                                 fontSize: 18,
@@ -286,7 +287,7 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
                                   onPressed: () {
                                     showAboutDialog(
                                       context: context,
-                                      applicationName: 'Mycelium',
+                                      applicationName: 'Centrode',
                                       applicationVersion: '1.0.0',
                                       applicationIcon: Icon(
                                         Icons.hub_outlined,
@@ -295,7 +296,7 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
                                       ),
                                       children: const [
                                         Text(
-                                          'Mycelium is a fast Labeled Property Graph Editor designed in Flutter, powered by SurrealDB and Rust.',
+                                          'Centrode is a fast Labeled Property Graph Editor designed in Flutter, powered by SurrealDB and Rust.',
                                         ),
                                       ],
                                     );
@@ -304,7 +305,7 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
                                     Icons.info_outline,
                                     size: 16,
                                   ),
-                                  child: const Text('About Mycelium'),
+                                  child: const Text('About Centrode'),
                                 ),
                               ],
                               child: const Text(

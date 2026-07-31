@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mycelium/features/graph/store/graph_data_query_controller.dart';
-import 'package:mycelium/features/graph/store/command_queue_processor.dart';
-import 'package:mycelium/features/graph/presentation/node_render_state.dart';
-import 'package:mycelium/features/graph/presentation/viewport_state.dart';
-import 'package:mycelium/shared/copy_buffer.dart';
-import 'package:mycelium/shared/widgets/context_menu_overlay.dart';
+import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
+import 'package:centrode/features/graph/store/command_queue_processor.dart';
+import 'package:centrode/features/graph/presentation/node_render_state.dart';
+import 'package:centrode/features/graph/presentation/viewport_state.dart';
+import 'package:centrode/shared/copy_buffer.dart';
+import 'package:centrode/shared/widgets/context_menu_overlay.dart';
 import 'paste_handler.dart';
 
 class CanvasContextMenu {
@@ -56,23 +56,24 @@ class CanvasContextMenu {
           label: 'Paste',
           onTap: () async {
             if (copyBuffer.hasData) {
-              final transform =
-                  viewportController.transformController.value;
+              final transform = viewportController.transformController.value;
               final canvasPos = transform.determinant() == 0.0
                   ? Offset.zero
                   : MatrixUtils.transformPoint(
                       Matrix4.inverted(transform),
                       position,
                     );
-              final newIds = await copyBuffer.paste(canvasPos, commandProcessor);
+              final newIds = await copyBuffer.paste(
+                canvasPos,
+                commandProcessor,
+              );
               if (newIds.isNotEmpty) {
                 renderState.selectEntities(newIds);
               }
             } else {
               final data = await Clipboard.getData('text/plain');
               if (data?.text != null && data!.text!.isNotEmpty) {
-                final transform =
-                    viewportController.transformController.value;
+                final transform = viewportController.transformController.value;
                 final canvasPos = transform.determinant() == 0.0
                     ? Offset.zero
                     : MatrixUtils.transformPoint(

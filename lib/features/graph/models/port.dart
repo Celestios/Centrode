@@ -1,7 +1,7 @@
 import 'dart:ui';
-import 'package:mycelium/src/rust/domain/styles.dart' show PortSide;
+import 'package:centrode/src/rust/domain/styles.dart' show PortSide;
 
-export 'package:mycelium/src/rust/domain/styles.dart' show PortSide;
+export 'package:centrode/src/rust/domain/styles.dart' show PortSide;
 
 enum PortType { corner, middle, edge }
 

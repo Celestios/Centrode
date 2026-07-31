@@ -1,7 +1,7 @@
 use crate::domain::base_models::MapData;
 use crate::domain::nodes::Nodes;
 use crate::domain::relations::IRelation;
-use mycelium_macros::SurrealDbEnum;
+use centrode_macros::SurrealDbEnum;
 
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, SurrealDbEnum)]

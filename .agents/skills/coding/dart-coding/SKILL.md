@@ -25,8 +25,8 @@ You must strictly respect the application layers:
 
 ### 3. Spatial UI & Aesthetics
 Ensure the user interface matches premium quality standards:
-- **Aesthetics**: Adhere to Glassmorphism 2.0 specs from [smart-glass.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/spatial-ui/rules/smart-glass.md). Use HSL color maps, layered opacities, and fine borders.
-- **Motion & Performance**: Adhere to spring physics and repaint limits from [motion-performance.md](file:///d:/Projects/Open/flutter/code/mycelium/.agents/plugins/spatial-ui/rules/motion-performance.md). Place `RepaintBoundary` wrappers on fast-moving canvas elements, and limit the usage of complex widgets like `BackdropFilter` inside scrollable areas.
+- **Aesthetics**: Adhere to Glassmorphism 2.0 specs from [smart-glass.md](.agents/plugins/spatial-ui/rules/smart-glass.md). Use HSL color maps, layered opacities, and fine borders.
+- **Motion & Performance**: Adhere to spring physics and repaint limits from [motion-performance.md](.agents/plugins/spatial-ui/rules/motion-performance.md). Place `RepaintBoundary` wrappers on fast-moving canvas elements, and limit the usage of complex widgets like `BackdropFilter` inside scrollable areas.
 
 ### 4. Style Rules & Logging
 - Do NOT add error-handling fallback overrides. Let exceptions propagate and log them using the standard telemetry/logger.

@@ -1,4 +1,4 @@
-import 'package:mycelium/shared/logging.dart';
+import 'package:centrode/shared/logging.dart';
 import '../../models/models.dart';
 import '../../models/commands/create_tag.dart';
 import '../../models/commands/update_tag.dart';
@@ -6,8 +6,8 @@ import '../../models/commands/delete_tag.dart';
 import '../../models/commands/patch_helpers.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/src/rust/domain/base_models.dart' as frb;
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 /// Tag and comment mutation operations for the graph.
 class GraphTagMutations {
@@ -148,7 +148,9 @@ class GraphTagMutations {
     for (final node in controller.store.nodeLookup.values) {
       if (node is InfoUiNode) {
         final originalCount = node.tags.length;
-        final updatedTags = node.tags.where((t) => t.key.key.uuid != tagKey).toList();
+        final updatedTags = node.tags
+            .where((t) => t.key.key.uuid != tagKey)
+            .toList();
         if (updatedTags.length != originalCount) {
           node.tags = updatedTags;
           controller.publishUpdate(
@@ -185,7 +187,9 @@ class GraphTagMutations {
   void removeTagFromNode(RawUuid nodeId, String tagKey) {
     final node = controller.store.nodeLookup[nodeId];
     if (node is InfoUiNode) {
-      final updatedTags = node.tags.where((t) => t.key.key.uuid != tagKey).toList();
+      final updatedTags = node.tags
+          .where((t) => t.key.key.uuid != tagKey)
+          .toList();
       updateNodeTags(nodeId, updatedTags);
     }
   }

@@ -21,7 +21,7 @@ use crate::domain::relations::IRelationFields;
 use crate::domain::styles::{NodeLayout, NodeStyle};
 use crate::domain::tags::{TagEdge, TagFields};
 use crate::domain::theme::ThemeFields;
-use mycelium_macros::define_domain_types;
+use centrode_macros::define_domain_types;
 use surrealdb::types::SurrealValue;
 
 define_domain_types! {

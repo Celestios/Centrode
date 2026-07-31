@@ -1,9 +1,9 @@
-#define MyAppName "Mycelium"
+#define MyAppName "Centrode"
 #define MyAppPublisher "Celestios"
-#define MyAppExeName "mycelium.exe"
+#define MyAppExeName "centrode.exe"
 
 #ifndef MyAppVersion
-#define MyAppVersion "0.3.0"
+#define MyAppVersion "0.5.0"
 #endif
 
 [Setup]
@@ -14,7 +14,7 @@ AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
 OutputDir=..
-OutputBaseFilename=mycelium-windows-x64-installer
+OutputBaseFilename=centrode-windows-x64-installer
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern

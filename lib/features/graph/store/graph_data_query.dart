@@ -2,7 +2,7 @@ import 'dart:async';
 import '../models/models.dart';
 import 'spatial_index.dart';
 import 'relation_engine_state.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 enum GraphUpdateType {
   position,

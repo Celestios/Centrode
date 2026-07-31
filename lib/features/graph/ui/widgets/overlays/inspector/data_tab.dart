@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
 import '../../../../engine/config.dart';
@@ -9,11 +9,7 @@ class DataTab extends StatefulWidget {
   final RawUuid nodeId;
   final NodeRenderState renderState;
 
-  const DataTab({
-    super.key,
-    required this.nodeId,
-    required this.renderState,
-  });
+  const DataTab({super.key, required this.nodeId, required this.renderState});
 
   @override
   State<DataTab> createState() => _DataTabState();

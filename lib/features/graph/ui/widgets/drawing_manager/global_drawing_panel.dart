@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:mycelium/features/graph/presentation/workspace_tabs_controller.dart';
-import 'package:mycelium/presentation/widgets/left_repository_panel.dart';
-import 'package:mycelium/shared/widgets/color_palette/color_palette.dart';
+import 'package:centrode/features/graph/presentation/workspace_tabs_controller.dart';
+import 'package:centrode/presentation/widgets/left_repository_panel.dart';
+import 'package:centrode/shared/widgets/color_palette/color_palette.dart';
 
 class GlobalDrawingPanel extends StatelessWidget {
   const GlobalDrawingPanel({super.key});
@@ -143,7 +143,8 @@ class GlobalDrawingPanel extends StatelessWidget {
                     Color(0xFFFBBF24),
                   ],
                   onColorSelected: (color) {
-                    final hexStr = '#${color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
+                    final hexStr =
+                        '#${color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
                     session.setBrushColor(hexStr);
                   },
                 );

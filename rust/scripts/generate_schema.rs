@@ -1,4 +1,4 @@
-use rust_lib_mycelium::persistence::schema_gen::generate_and_update_schema;
+use centrode_core::persistence::schema_gen::generate_and_update_schema;
 use std::path::Path;
 
 fn main() {

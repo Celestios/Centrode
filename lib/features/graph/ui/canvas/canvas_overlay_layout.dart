@@ -12,9 +12,9 @@ import '../widgets/overlays/left_repository_drawer.dart';
 import '../widgets/overlays/right_property_panel.dart';
 import '../widgets/overlays/canvas_status_bar/canvas_status_bar.dart';
 import 'context_toolbar_overlay.dart';
-import 'package:mycelium/features/graph/ui/widgets/tag_manager/global_tags_manager_panel.dart';
-import 'package:mycelium/features/graph/ui/widgets/template_manager/global_templates_manager_panel.dart';
-import 'package:mycelium/features/graph/ui/widgets/drawing_manager/global_drawing_panel.dart';
+import 'package:centrode/features/graph/ui/widgets/tag_manager/global_tags_manager_panel.dart';
+import 'package:centrode/features/graph/ui/widgets/template_manager/global_templates_manager_panel.dart';
+import 'package:centrode/features/graph/ui/widgets/drawing_manager/global_drawing_panel.dart';
 
 class CanvasOverlayLayout extends StatelessWidget {
   final BoxConstraints constraints;
@@ -110,14 +110,11 @@ class CanvasOverlayLayout extends StatelessWidget {
                             minWidth: 280.0,
                             maxWidth: 280.0,
                             minHeight: 180,
-                            maxHeight:
-                                (constraints.maxHeight - 112 - 86)
-                                    .clamp(180, 10000)
-                                    .toDouble(),
+                            maxHeight: (constraints.maxHeight - 112 - 86)
+                                .clamp(180, 10000)
+                                .toDouble(),
                           ),
-                          child: _buildLeftPanelContent(
-                            activeLeftPanel,
-                          ),
+                          child: _buildLeftPanelContent(activeLeftPanel),
                         ),
                       ),
                     ),

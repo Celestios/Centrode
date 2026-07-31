@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
-import 'package:mycelium/features/graph/ui/canvas/text/markdown_text_selection_controls.dart';
-import 'package:mycelium/features/graph/ui/canvas/text/content_text_editing_controller.dart';
+import 'package:centrode/features/graph/ui/canvas/text/markdown_text_selection_controls.dart';
+import 'package:centrode/features/graph/ui/canvas/text/content_text_editing_controller.dart';
 
 void main() {
   group('MarkdownTextSelectionControls', () {
@@ -75,17 +75,18 @@ class _FakeDelegate with TextSelectionDelegate {
   final TextSelection _selection;
 
   _FakeDelegate({String text = '', TextSelection? selection})
-      : _text = text,
-        _selection = selection ?? const TextSelection.collapsed(offset: 0);
+    : _text = text,
+      _selection = selection ?? const TextSelection.collapsed(offset: 0);
 
   @override
-  TextEditingValue get textEditingValue => TextEditingValue(
-        text: _text,
-        selection: _selection,
-      );
+  TextEditingValue get textEditingValue =>
+      TextEditingValue(text: _text, selection: _selection);
 
   @override
-  void userUpdateTextEditingValue(TextEditingValue value, SelectionChangedCause cause) {}
+  void userUpdateTextEditingValue(
+    TextEditingValue value,
+    SelectionChangedCause cause,
+  ) {}
 
   @override
   void hideToolbar([bool hideHandles = true]) {}

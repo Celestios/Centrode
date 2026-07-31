@@ -2,17 +2,17 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/traceable_notifier.dart';
-import 'package:mycelium/shared/utils/app_paths.dart';
-import 'package:mycelium/src/rust/frb_generated.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/traceable_notifier.dart';
+import 'package:centrode/shared/utils/app_paths.dart';
+import 'package:centrode/src/rust/frb_generated.dart';
 import 'package:window_manager/window_manager.dart';
 import 'infrastructure/telemetry/log_manager.dart';
 import 'features/workspace/ui/workspace_hub_screen.dart';
 import 'presentation/theme/app_theme.dart'; // from previous step
 import 'presentation/theme/theme_repository.dart'; // from previous step
 import 'presentation/theme/app_theme_manager.dart';
-import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,7 +44,7 @@ Future<void> main() async {
   await AppPaths.ensureDirectories();
 
   final log = Logger('BootSequence');
-  log.info('Rust FFI loaded. Mycelium core ready.');
+  log.info('Rust FFI loaded. Centrode core ready.');
 
   final themes = await ThemeLoader.loadBundledThemes();
   if (themes.isEmpty) {
@@ -72,7 +72,7 @@ class MyApp extends StatelessWidget {
       valueListenable: AppThemeManager.instance.themeNotifier,
       builder: (context, currentTheme, _) {
         return MaterialApp(
-          title: 'Mycelium',
+          title: 'Centrode',
           debugShowCheckedModeBanner: false,
           theme: currentTheme.toThemeData(),
           home: const WorkspaceHubScreen(),

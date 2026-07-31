@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/logging.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../engine/config.dart';
 import '../../../src/rust/domain/base_models.dart' show BoundingBox;
 import '../store/graph_data_query.dart';
@@ -119,7 +119,8 @@ class ViewportController {
     final double dy = (_currentViewportSize.height / 2) - centerY;
 
     _log.info('Translating Camera Matrix to center: ($centerX, $centerY)');
-    transformController.value = Matrix4.identity()..translateByDouble(dx, dy, 0, 1);
+    transformController.value = Matrix4.identity()
+      ..translateByDouble(dx, dy, 0, 1);
     recalculateElasticMargins();
   }
 

@@ -1,9 +1,9 @@
 import 'dart:ui';
-import 'package:mycelium/shared/logging.dart';
+import 'package:centrode/shared/logging.dart';
 import '../../models/models.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 /// Text mutation operations for the graph.
 class GraphTextMutations {
@@ -12,7 +12,11 @@ class GraphTextMutations {
 
   GraphTextMutations(this.controller);
 
-  void commitEntityText(RawUuid id, dynamic newTextOrContent, {dynamic originalTextOrContent}) {
+  void commitEntityText(
+    RawUuid id,
+    dynamic newTextOrContent, {
+    dynamic originalTextOrContent,
+  }) {
     final node = controller.store.nodeLookup[id];
     final rel = controller.store.relationLookup[id];
 
@@ -23,12 +27,10 @@ class GraphTextMutations {
     final Content oldContent = originalTextOrContent is Content
         ? originalTextOrContent
         : (originalTextOrContent is String
-            ? ContentFactory.fromText(originalTextOrContent)
-            : (node?.content ?? ContentFactory.empty()));
+              ? ContentFactory.fromText(originalTextOrContent)
+              : (node?.content ?? ContentFactory.empty()));
 
-    _log.info(
-      'Committing text for $id: "${newContent.text}"',
-    );
+    _log.info('Committing text for $id: "${newContent.text}"');
 
     if (node != null && _contentEquals(oldContent, newContent)) {
       return;
@@ -160,7 +162,7 @@ class GraphTextMutations {
         final ib = bb.content[j];
         if (ia.inlineType != ib.inlineType) return false;
         if (ia.text != ib.text) return false;
-        
+
         final marksA = ia.marks;
         final marksB = ib.marks;
         if (marksA == null && marksB == null) continue;

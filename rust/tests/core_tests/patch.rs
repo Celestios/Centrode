@@ -1,13 +1,13 @@
 use crate::common::setup_test_repo;
-use rust_lib_mycelium::domain::base_models::{Coordinates, Size};
-use rust_lib_mycelium::domain::contents::Content;
-use rust_lib_mycelium::domain::id::TypedRecordId;
-use rust_lib_mycelium::domain::nodes::{INode, Nodes};
-use rust_lib_mycelium::domain::patches::{EntityPatch, NodePatch, RelationPatch, SymmetricEntityPatch};
-use rust_lib_mycelium::domain::relations::{IRelation, IRelationFields};
-use rust_lib_mycelium::domain::styles::{NodeStyle, PortSide, RelationLayout, RelationStyle};
-use rust_lib_mycelium::domain::traits::TableKind;
-use rust_lib_mycelium::persistence::history::HistoryManager;
+use centrode_core::domain::base_models::{Coordinates, Size};
+use centrode_core::domain::contents::Content;
+use centrode_core::domain::id::TypedRecordId;
+use centrode_core::domain::nodes::{INode, Nodes};
+use centrode_core::domain::patches::{EntityPatch, NodePatch, RelationPatch, SymmetricEntityPatch};
+use centrode_core::domain::relations::{IRelation, IRelationFields};
+use centrode_core::domain::styles::{NodeStyle, PortSide, RelationLayout, RelationStyle};
+use centrode_core::domain::traits::TableKind;
+use centrode_core::persistence::history::HistoryManager;
 use surrealdb::types::SurrealValue;
 
 #[tokio::test]

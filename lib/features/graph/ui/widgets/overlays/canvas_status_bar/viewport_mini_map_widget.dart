@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../../presentation/viewport_state.dart';
 import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
-import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'mini_map_painter.dart';
 
 class ViewportMiniMapWidget extends StatefulWidget {
@@ -29,8 +29,7 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
   bool _listenerRegistered = false;
 
   NodeRenderState? _cachedRenderState;
-  late final Paint _viewportFill = Paint()
-    ..style = PaintingStyle.fill;
+  late final Paint _viewportFill = Paint()..style = PaintingStyle.fill;
   late final Paint _viewportBorder = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.0;
@@ -63,7 +62,8 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.inactive || state == AppLifecycleState.hidden) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
       _pauseTicker();
     } else if (state == AppLifecycleState.resumed) {
       _startTickerIfNeeded();
@@ -103,7 +103,9 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
     final margins = vc.elasticMargins.value;
 
     // Trigger re-capture when viewport transitions from zero to non-zero
-    if (_snapshot == null && !_capturing && gridState.viewportSize != Size.zero) {
+    if (_snapshot == null &&
+        !_capturing &&
+        gridState.viewportSize != Size.zero) {
       final renderState = context.read<NodeRenderState>();
       if (renderState.nodeLookup.isNotEmpty) {
         _scheduleCapture();
@@ -133,8 +135,9 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
   }
 
   Future<void> _captureSnapshot() async {
-    final boundary = _captureKey.currentContext?.findRenderObject()
-        as RenderRepaintBoundary?;
+    final boundary =
+        _captureKey.currentContext?.findRenderObject()
+            as RenderRepaintBoundary?;
     if (boundary == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _captureSnapshot();

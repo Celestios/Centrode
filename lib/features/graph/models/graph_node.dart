@@ -1,15 +1,15 @@
 import 'dart:ui';
-import 'package:mycelium/features/graph/models/content_builder.dart';
-import 'package:mycelium/src/rust/domain/types.dart';
-import 'package:mycelium/src/rust/domain/nodes.dart';
-import 'package:mycelium/src/rust/domain/tags.dart';
-import 'package:mycelium/src/rust/domain/id.dart';
-import 'package:mycelium/src/rust/domain/styles.dart';
+import 'package:centrode/features/graph/models/content_builder.dart';
+import 'package:centrode/src/rust/domain/types.dart';
+import 'package:centrode/src/rust/domain/nodes.dart';
+import 'package:centrode/src/rust/domain/tags.dart';
+import 'package:centrode/src/rust/domain/id.dart';
+import 'package:centrode/src/rust/domain/styles.dart';
 import 'package:uuid/uuid.dart';
-import 'package:mycelium/src/rust/domain/base_models.dart' as frb;
-import 'package:mycelium/src/rust/domain/base_models.dart' hide Size;
-import 'package:mycelium/src/rust/domain/contents.dart';
-import 'package:mycelium/shared/domain/raw_uuid.dart';
+import 'package:centrode/src/rust/domain/base_models.dart' as frb;
+import 'package:centrode/src/rust/domain/base_models.dart' hide Size;
+import 'package:centrode/src/rust/domain/contents.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 
 part 'graph_node.ui.dart';
 
@@ -84,8 +84,10 @@ sealed class UiNode {
   UiNode? cloneWithId(RawUuid newId) {
     if (this is InfoUiNode) return (this as InfoUiNode).copyWith(id: newId);
     if (this is TaskUiNode) return (this as TaskUiNode).copyWith(id: newId);
-    if (this is CommentUiNode) return (this as CommentUiNode).copyWith(id: newId);
-    if (this is DrawingUiNode) return (this as DrawingUiNode).copyWith(id: newId);
+    if (this is CommentUiNode)
+      return (this as CommentUiNode).copyWith(id: newId);
+    if (this is DrawingUiNode)
+      return (this as DrawingUiNode).copyWith(id: newId);
     if (this is FrameUiNode) return (this as FrameUiNode).copyWith(id: newId);
     if (this is InterUiNode) return (this as InterUiNode).copyWith(id: newId);
     if (this is MediaUiNode) return (this as MediaUiNode).copyWith(id: newId);

@@ -1,4 +1,4 @@
-import 'package:mycelium/features/graph/models/graph_node.dart';
+import 'package:centrode/features/graph/models/graph_node.dart';
 import 'node_bounds_behavior.dart';
 import 'node_containment_behavior.dart';
 

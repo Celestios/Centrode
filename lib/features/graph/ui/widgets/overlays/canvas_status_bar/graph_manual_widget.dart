@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:mycelium/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 
 // -----------------------------------------------------------------------------
 // BOTTOM LEFT: Graph Manual Legend Dialog Trigger

@@ -51,9 +51,9 @@ Present the plan to the user for approval before proceeding.
 ### Step 4: Implement Code Changes
 
 - Determine the languages involved:
-  - For Dart/Flutter changes: View and activate the [dart-coding](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/coding/dart-coding/SKILL.md) skill.
-  - For Rust core changes: View and activate the [rust-coding](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/coding/rust-coding/SKILL.md) skill.
-- Ensure all code conforms strictly to [solid-principles](file:///d:/Projects/Open/flutter/code/mycelium/.agents/rules/solid-principles.md) (SRP, OCP, LSP, ISP, DIP, DRY), respects the [architectural-bounds](file:///d:/Projects/Open/flutter/code/mycelium/.agents/rules/architectural-bounds.md) (layer boundaries), and aligns with [symmetrical-design](file:///d:/Projects/Open/flutter/code/mycelium/.agents/skills/design/symmetrical-design/SKILL.md) guidelines.
+  - For Dart/Flutter changes: View and activate the [dart-coding](.agents/skills/coding/dart-coding/SKILL.md) skill.
+  - For Rust core changes: View and activate the [rust-coding](.agents/skills/coding/rust-coding/SKILL.md) skill.
+- Ensure all code conforms strictly to [solid-principles](.agents/rules/solid-principles.md) (SRP, OCP, LSP, ISP, DIP, DRY), respects the [architectural-bounds](.agents/rules/architectural-bounds.md) (layer boundaries), and aligns with [symmetrical-design](.agents/skills/design/symmetrical-design/SKILL.md) guidelines.
 - Apply code changes surgically. Keep changes focused and clean, preserving unrelated comments/docstrings.
 - **Rule**: Follow style guidelines (layer boundaries, no UI database calls, no manual schema changes, no custom error fallbacks) from line one.
 - **Subagent mode**: If delegated, each subagent receives its own subtask scope from the plan. The orchestrator merges results and resolves conflicts.
@@ -116,4 +116,4 @@ This prevents future agents from re-executing completed work.
 When the user provides a short, raw request without a designer handover:
 
 - **Simple** (few files, single subsystem, trivial logic): Implement directly. No designer step needed.
-- **Complex** (cross-tier, new feature, schema changes, multiple files): Refer back to the [/designer](file:///d:/Projects/Open/flutter/code/mycelium/.agents/workflows/designer.md) workflow first, then resume this workflow with those artifacts.
+- **Complex** (cross-tier, new feature, schema changes, multiple files): Refer back to the [/designer](.agents/workflows/designer.md) workflow first, then resume this workflow with those artifacts.

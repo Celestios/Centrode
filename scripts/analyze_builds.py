@@ -280,7 +280,7 @@ def print_notify_chains(analyzer: NotifyAnalyzer, top_n: int = 20) -> None:
         print("No notification chain data found.")
         print(
             "\nTo enable, add TraceableNotifier mixin to your ChangeNotifiers:\n"
-            "  import 'package:mycelium/shared/traceable_notifier.dart';\n"
+            "  import 'package:centrode/shared/traceable_notifier.dart';\n"
             "  class MyNotifier extends ChangeNotifier with TraceableNotifier {\n"
             "    MyNotifier() : super('MyNotifier');\n"
             "  }\n"

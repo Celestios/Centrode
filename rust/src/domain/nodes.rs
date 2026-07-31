@@ -4,7 +4,7 @@ pub use crate::domain::schema::{generate_field_schema_lines, SurqlSchema, SurqlS
 pub use crate::domain::types::{
     CommentNode, DrawingNode, FrameNode, INode, InterNode, MediaNode, Nodes, ShapeNode, TaskNode,
 };
-use mycelium_macros::SurrealDbEnum;
+use centrode_macros::SurrealDbEnum;
 use surrealdb::types::Value;
 
 #[repr(u8)]
