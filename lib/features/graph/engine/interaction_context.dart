@@ -101,7 +101,7 @@ abstract interface class MutationCapability {
 
   void onEnterEditMode(RawUuid id);
 
-  void onCreateNode(Offset position);
+  RawUuid onCreateNode(Offset position);
 
   void updateNodeWidth(RawUuid id, double leftEdge, double rightEdge);
 

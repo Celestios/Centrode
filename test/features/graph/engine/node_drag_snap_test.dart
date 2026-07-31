@@ -57,7 +57,7 @@ void main() {
               that: predicate<List<(RawUuid, Offset)>>((list) {
                 return list.length == 1 &&
                     list.first.$1 == nodeId &&
-                    list.first.$2 == const Offset(100.0, 120.0);
+                    list.first.$2 == const Offset(120.0, 120.0);
               }),
             ),
           ),
@@ -79,7 +79,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 150));
 
       // Now view state position should be snapped to grid (100.0, 120.0)
-      expect(viewState.positionNotifier.value, const Offset(100.0, 120.0));
+      expect(viewState.positionNotifier.value, const Offset(120.0, 120.0));
     });
 
     test('snaps final position and commits on handlePointerUp', () {
@@ -92,11 +92,11 @@ void main() {
       state.handlePointerUp(upEvent, mockCtx);
 
       // Final position in viewState should be snapped to (100.0, 120.0)
-      expect(viewState.positionNotifier.value, const Offset(100.0, 120.0));
+      expect(viewState.positionNotifier.value, const Offset(120.0, 120.0));
 
       // onNodeMove committed with final snapped position
       verify(
-        () => mockCtx.onNodeMove(nodeId, const Offset(100.0, 120.0)),
+        () => mockCtx.onNodeMove(nodeId, const Offset(120.0, 120.0)),
       ).called(1);
     });
   });
@@ -173,8 +173,8 @@ void main() {
 
       await tester.pump(const Duration(milliseconds: 150));
 
-      expect(anchorVs.positionNotifier.value, const Offset(100.0, 120.0));
-      expect(otherVs.positionNotifier.value, const Offset(200.0, 120.0));
+      expect(anchorVs.positionNotifier.value, const Offset(120.0, 120.0));
+      expect(otherVs.positionNotifier.value, const Offset(240.0, 120.0));
     });
   });
 }

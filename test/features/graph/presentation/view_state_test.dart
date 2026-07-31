@@ -1,43 +1,50 @@
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:centrode/features/graph/models/graph_node.dart';
+import 'package:centrode/src/rust/domain/base_models.dart' hide Size;
 import 'package:centrode/features/graph/presentation/view_state.dart';
 import 'package:centrode/features/graph/engine/config.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
 void main() {
-  test('NodeViewState rightResizeHitbox offset shift check', () {
-    final node = InfoUiNode(
+  test('NodeViewState rightResizeHitbox extends full height without metadata and shifts with metadata', () {
+    final nodeWithoutMeta = InfoUiNode(
       id: RawUuid.fromString('test-node-1'),
       position: const Offset(100.0, 150.0),
       size: const Size(200.0, 100.0),
     );
 
-    final viewState = NodeViewState(node);
-    viewState.sizeNotifier.value = const Size(200.0, 100.0);
+    final viewState1 = NodeViewState(nodeWithoutMeta);
+    viewState1.sizeNotifier.value = const Size(200.0, 100.0);
 
-    // Verify properties
-    expect(viewState.rect, const Rect.fromLTWH(100.0, 150.0, 200.0, 100.0));
-
-    // Verify rightResizeHitbox is shifted down by 24.0 pixels from the top edge
-    final expectedRightHitbox = Rect.fromLTRB(
+    // Verify rightResizeHitbox extends full height from top (150.0) when no metadata exists
+    final expectedFullHeightRightHitbox = Rect.fromLTRB(
       300.0 - AppConfig.interaction.resizeEdgeWidth, // right - edgeWidth
-      150.0 + 24.0, // top + 24.0
+      150.0, // top (0 offset)
       300.0, // right
       250.0, // bottom
     );
+    expect(viewState1.rightResizeHitbox, expectedFullHeightRightHitbox);
 
-    expect(viewState.rightResizeHitbox, expectedRightHitbox);
-
-    // Verify leftResizeHitbox is not shifted
-    final expectedLeftHitbox = Rect.fromLTRB(
-      100.0, // left
-      150.0, // top
-      100.0 + AppConfig.interaction.resizeEdgeWidth, // left + edgeWidth
-      250.0, // bottom
+    // Node with comments has metadata sphere
+    final nodeWithMeta = InfoUiNode(
+      id: RawUuid.fromString('test-node-2'),
+      position: const Offset(100.0, 150.0),
+      size: const Size(200.0, 100.0),
+      comments: const [Comment(text: 'test comment', createdAt: 0)],
     );
 
-    expect(viewState.leftResizeHitbox, expectedLeftHitbox);
+    final viewState2 = NodeViewState(nodeWithMeta);
+    viewState2.sizeNotifier.value = const Size(200.0, 100.0);
+
+    // Verify rightResizeHitbox is shifted down by 24.0 pixels when metadata exists
+    final expectedShiftedRightHitbox = Rect.fromLTRB(
+      300.0 - AppConfig.interaction.resizeEdgeWidth,
+      150.0 + 24.0, // top + 24.0
+      300.0,
+      250.0,
+    );
+    expect(viewState2.rightResizeHitbox, expectedShiftedRightHitbox);
   });
 
   test('NodeViewState getClosestPort finds the correct closest port', () {

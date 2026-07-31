@@ -164,13 +164,15 @@ class CanvasInteractionEnvironment implements InteractionContext {
   void onCommitActiveEdit() => _renderState.commitActiveEdit();
 
   @override
-  void onCreateNode(Offset position) {
+  RawUuid onCreateNode(Offset position) {
     _log.info('onCreateNode pos=(${position.dx}, ${position.dy})');
     // 1. Create the node via data layer
     final id = _commandProcessor.createNode(UiNodes.info, position);
 
-    // 2. Open Data Inspector (which also selects and opens edit/inspector state)
+    // 2. Open Data Inspector and activate edit mode
     openDataInspector(id);
+    onEnterEditMode(id);
+    return id;
   }
 
   @override

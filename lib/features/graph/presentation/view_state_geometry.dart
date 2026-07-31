@@ -5,13 +5,19 @@ import 'package:centrode/features/graph/engine/config.dart';
 
 /// Isolated helper calculator for node resize and expand toggle hitboxes.
 abstract class NodeHitboxCalculator {
-  static Rect rightResizeHitbox(Offset position, Size size, double? dragWidth) {
+  static Rect rightResizeHitbox(
+    Offset position,
+    Size size,
+    double? dragWidth, {
+    bool hasMetadata = false,
+  }) {
     final w = dragWidth ?? size.width;
     final r = position.dx + w;
     final bottom = position.dy + size.height;
+    final top = position.dy + (hasMetadata ? 24.0 : 0.0);
     return Rect.fromLTRB(
       r - AppConfig.interaction.resizeEdgeWidth,
-      position.dy + 24.0,
+      top,
       r,
       bottom,
     );

@@ -151,6 +151,9 @@ void main() {
         () => mockRelationEngine.cache,
       ).thenReturn({RawUuid.fromString('rel-1'): testComputed});
       when(
+        () => mockRelationEngine.previewCache,
+      ).thenReturn({});
+      when(
         () => mockRelationEngine.cacheNotifier,
       ).thenReturn(ValueNotifier<int>(0));
       when(
@@ -302,6 +305,9 @@ void main() {
       when(
         () => mockRelationEngine.cacheNotifier,
       ).thenReturn(ValueNotifier<int>(0));
+      when(
+        () => mockRelationEngine.previewCache,
+      ).thenReturn({});
       when(
         () => mockQueryController.relationEngine,
       ).thenReturn(mockRelationEngine);

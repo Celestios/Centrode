@@ -3,6 +3,7 @@ part of '../base_interaction_state.dart';
 class RelationDrawing extends CanvasInteractionState {
   final Set<RawUuid> sourceNodeIds;
   final Offset currentCursorPosition;
+  final Offset initialCursorPosition;
   final RawUuid? snappedTargetNodeId;
   final Port? sourcePort;
   final Port? snappedTargetPort;
@@ -10,10 +11,11 @@ class RelationDrawing extends CanvasInteractionState {
   const RelationDrawing(
     this.sourceNodeIds,
     this.currentCursorPosition, {
+    Offset? initialCursorPosition,
     this.snappedTargetNodeId,
     this.sourcePort,
     this.snappedTargetPort,
-  });
+  }) : initialCursorPosition = initialCursorPosition ?? currentCursorPosition;
 
   @override
   CanvasInteractionState handlePointerDown(
@@ -66,6 +68,7 @@ class RelationDrawing extends CanvasInteractionState {
     return RelationDrawing(
       sourceNodeIds,
       pCanvas,
+      initialCursorPosition: initialCursorPosition,
       snappedTargetNodeId: snappedId,
       sourcePort: sourcePort,
       snappedTargetPort: snappedPort,
@@ -85,6 +88,57 @@ class RelationDrawing extends CanvasInteractionState {
           snappedTargetNodeId!,
           fromSide: sourcePort?.side,
           toSide: snappedTargetPort?.side,
+        );
+      }
+    } else if (sourceNodeIds.isNotEmpty) {
+      for (final sourceId in sourceNodeIds) {
+        ctx.onRelationSnapPreviewClear(sourceId);
+
+        final sourceVs = ctx.nodeViewStates[sourceId];
+        final sourceNode = ctx.getNode(sourceId);
+        final sourcePos = sourceNode?.position ??
+            (sourceVs != null ? sourceVs.positionNotifier.value : Offset.zero);
+        final sourceSize =
+            sourceVs?.sizeNotifier.value ?? const Size(160, 80);
+
+        final isTap =
+            (currentCursorPosition - initialCursorPosition).distance < 8.0;
+        final Offset targetPos;
+
+        if (isTap && sourcePort != null) {
+          const spacing = 160.0;
+          switch (sourcePort!.side) {
+            case PortSide.right:
+              targetPos = sourcePos + Offset(sourceSize.width + spacing, 0);
+              break;
+            case PortSide.left:
+              targetPos = sourcePos - Offset(160.0 + spacing, 0);
+              break;
+            case PortSide.bottom:
+              targetPos = sourcePos + Offset(0, sourceSize.height + spacing);
+              break;
+            case PortSide.top:
+              targetPos = sourcePos - Offset(0, 80.0 + spacing);
+              break;
+            case PortSide.auto:
+            default:
+              targetPos = sourcePos + Offset(sourceSize.width + spacing, 0);
+              break;
+          }
+        } else {
+          targetPos = currentCursorPosition;
+        }
+
+        final double scale =
+            ctx is ViewportCapability ? (ctx as ViewportCapability).currentScale : 1.0;
+        final effectiveGridSize = calculateEffectiveGridSize(scale);
+        final snappedPos = _snapToGrid(targetPos, effectiveGridSize);
+
+        final newNodeId = ctx.onCreateNode(snappedPos);
+        ctx.onRelationCreate(
+          sourceId,
+          newNodeId,
+          fromSide: sourcePort?.side,
         );
       }
     }
@@ -133,6 +187,7 @@ class RelationDrawing extends CanvasInteractionState {
     return RelationDrawing(
       sourceNodeIds,
       pCanvas,
+      initialCursorPosition: initialCursorPosition,
       snappedTargetNodeId: snappedId,
       sourcePort: sourcePort,
       snappedTargetPort: snappedPort,

@@ -5,6 +5,7 @@ import 'package:centrode/features/graph/engine/interaction_engine.dart';
 import 'package:centrode/features/graph/engine/interaction_context.dart';
 import 'package:centrode/features/graph/engine/base_interaction_state.dart';
 import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/features/graph/models/port.dart';
 import 'package:centrode/features/graph/presentation/view_state.dart';
 
 import 'dart:typed_data';
@@ -71,6 +72,10 @@ ComputedRelation createTestComputedRelation(
 }
 
 void main() {
+  setUpAll(() {
+    registerFallbackValue(Offset.zero);
+  });
+
   group('InteractionController (FSM Engine)', () {
     late InteractionController controller;
     late MockTransformationController mockTransform;
@@ -278,5 +283,39 @@ void main() {
         expect(draggingState.currentCursorPosition, const Offset(150, 40));
       },
     );
+
+    test('RelationDrawing pointerUp creates connected node and enters edit mode', () {
+      final sourceId = RawUuid.fromString('source-1');
+      final newId = RawUuid.fromString('new-1');
+      final sourcePort = Port(
+        side: PortSide.right,
+        type: PortType.middle,
+        index: 0,
+        position: const Offset(100, 30),
+        edgePosition: const Offset(100, 30),
+      );
+
+      when(() => mockContext.nodeViewStates).thenReturn({});
+      when(() => mockContext.getNode(sourceId)).thenReturn(null);
+      when(() => mockContext.currentScale).thenReturn(1.0);
+      when(() => mockContext.onRelationSnapPreviewClear(sourceId)).thenReturn(null);
+      when(() => mockContext.onCreateNode(any())).thenReturn(newId);
+      when(() => mockContext.onRelationCreate(sourceId, newId, fromSide: PortSide.right)).thenReturn(null);
+
+      final state = RelationDrawing(
+        {sourceId},
+        const Offset(100, 30),
+        sourcePort: sourcePort,
+      );
+
+      final nextState = state.handlePointerUp(
+        const PointerUpEvent(position: Offset(100, 30)),
+        mockContext,
+      );
+
+      expect(nextState, isA<CanvasIdle>());
+      verify(() => mockContext.onCreateNode(any())).called(1);
+      verify(() => mockContext.onRelationCreate(sourceId, newId, fromSide: PortSide.right)).called(1);
+    });
   });
 }

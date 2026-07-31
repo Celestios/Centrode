@@ -246,11 +246,20 @@ class NodeViewState implements VolatileNodeState {
     );
   }
 
+  bool get hasMetadataSphere {
+    final node = _currentNode;
+    if (node is InfoUiNode) {
+      return node.tags.isNotEmpty || node.comments.isNotEmpty;
+    }
+    return false;
+  }
+
   Rect get rightResizeHitbox {
     return _cachedRightResizeHitbox ??= NodeHitboxCalculator.rightResizeHitbox(
       positionNotifier.value,
       sizeNotifier.value,
       dragWidthNotifier.value,
+      hasMetadata: hasMetadataSphere,
     );
   }
 

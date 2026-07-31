@@ -189,6 +189,24 @@ class PortPainter extends CustomPainter {
       final radius = isSnapped || isHovered ? _hoveredPortRadius : _portRadius;
 
       canvas.drawCircle(port.position, radius, paint);
+
+      final plusPaint = Paint()
+        ..color = Colors.white
+        ..strokeWidth = (isHovered || isSnapped ? 2.0 : 1.5) * scale
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+
+      final armLength = radius * 0.5;
+      canvas.drawLine(
+        Offset(port.position.dx - armLength, port.position.dy),
+        Offset(port.position.dx + armLength, port.position.dy),
+        plusPaint,
+      );
+      canvas.drawLine(
+        Offset(port.position.dx, port.position.dy - armLength),
+        Offset(port.position.dx, port.position.dy + armLength),
+        plusPaint,
+      );
     }
   }
 
