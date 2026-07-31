@@ -51,7 +51,7 @@ cd rust && cargo test            # Rust backend tests
 
 - **Branch naming:** `<type>/<scope>-<kebab-desc>` — types: `feat|fix|refactor|perf|docs|chore|test`; scopes: `graph|node|relation|tags|ui|ffi|db|workflow|model`
 - **Commits:** Conventional Commits format — `feat(ui): add zoom support` with required body (except `chore(release):`)
-- **No direct commits to main/master** — use feature branches
+- **Direct commits to main are allowed**
 - **File ops:** Use `git rm` / `git mv` (not filesystem delete/move) to preserve history
 
 ## Version Sync

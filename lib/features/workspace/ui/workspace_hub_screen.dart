@@ -34,10 +34,16 @@ class _WorkspaceHubScreenState extends State<WorkspaceHubScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: isDesktop
-                ? DragToMoveArea(child: _buildContent(context))
-                : _buildContent(context),
+            child: _buildContent(context),
           ),
+          if (isDesktop)
+            const Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 48,
+              child: DragToMoveArea(child: SizedBox.expand()),
+            ),
           if (isDesktop) const PositionedWindowControls(),
         ],
       ),

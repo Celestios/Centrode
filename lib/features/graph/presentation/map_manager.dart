@@ -62,8 +62,12 @@ class MapManager extends ChangeNotifier {
     notifyListeners();
     if (_tabsController != null && _tabsController!.tabs.isEmpty) {
       _log.info('All tabs closed');
-      _tabsController?.dispose();
+      final controller = _tabsController;
       _tabsController = null;
+      controller?.removeListener(_onTabsChanged);
+      Future.microtask(() {
+        controller?.dispose();
+      });
       _onAllTabsClosed?.call();
     }
   }

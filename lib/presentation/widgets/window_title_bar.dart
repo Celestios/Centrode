@@ -479,16 +479,17 @@ class _WindowControlButtonsState extends State<WindowControlButtons>
         _buildHoverButton(
           icon: Icons.minimize_rounded,
           color: color,
-          hoverColor: Colors.grey.withValues(alpha: 0.2),
+          isDark: isDark,
           onPressed: () => windowManager.minimize(),
         ),
+        const SizedBox(width: 4),
         // Maximize/Restore
         _buildHoverButton(
           icon: _isMaximized
               ? Icons.filter_none_rounded
               : Icons.crop_square_rounded,
           color: color,
-          hoverColor: Colors.grey.withValues(alpha: 0.2),
+          isDark: isDark,
           onPressed: () async {
             if (_isMaximized) {
               await windowManager.unmaximize();
@@ -498,12 +499,13 @@ class _WindowControlButtonsState extends State<WindowControlButtons>
             _checkMaximizeState();
           },
         ),
+        const SizedBox(width: 4),
         // Close
         _buildHoverButton(
           icon: Icons.close_rounded,
           color: color,
-          hoverColor: Colors.red.withValues(alpha: 0.8),
-          hoverIconColor: Colors.white,
+          isDark: isDark,
+          isClose: true,
           onPressed: () => windowManager.close(),
         ),
       ],
@@ -513,35 +515,43 @@ class _WindowControlButtonsState extends State<WindowControlButtons>
   Widget _buildHoverButton({
     required IconData icon,
     required Color color,
-    required Color hoverColor,
-    Color? hoverIconColor,
+    required bool isDark,
+    bool isClose = false,
     required VoidCallback onPressed,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
-      child: HoverScaleButton(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(6),
-        hoverScale: 1.0,
-        pressScale: 1.0,
-        builder: (context, isHovered, isPressed) {
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            width: 42,
-            height: 32,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: isHovered ? hoverColor : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Icon(
-              icon,
-              size: 16,
-              color: isHovered ? (hoverIconColor ?? color) : color,
-            ),
-          );
-        },
-      ),
+    final defaultBg = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.black.withValues(alpha: 0.06);
+    final hoverBg = isClose
+        ? Colors.red.withValues(alpha: 0.85)
+        : (isDark
+            ? Colors.white.withValues(alpha: 0.16)
+            : Colors.black.withValues(alpha: 0.12));
+
+    return HoverScaleButton(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(8),
+      hoverScale: 1.0,
+      pressScale: 1.0,
+      builder: (context, isHovered, isPressed) {
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: 32,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isHovered ? hoverBg : defaultBg,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            size: 16,
+            color: (isHovered && isClose)
+                ? Colors.white
+                : color.withValues(alpha: 0.8),
+          ),
+        );
+      },
     );
   }
 }

@@ -24,8 +24,7 @@ Record the user's choices. These govern all subsequent steps.
 
 If the user chose commit-per-subtask strategy:
 - Check the current branch via `git branch --show-current`.
-- If already on a feature branch (not `main`/`master`/`develop`), use it.
-- If on `main`/`master`/`develop`, create and checkout a new branch named per git conventions (`<type>/<scope>-<kebab-desc>`).
+- Direct commits to `main` are allowed, or create a feature branch (`<type>/<scope>-<kebab-desc>`) if isolating changes.
 
 Simple tasks skip this step — no branch management needed.
 

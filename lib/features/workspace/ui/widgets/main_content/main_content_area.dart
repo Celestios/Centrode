@@ -33,7 +33,7 @@ class MainContentArea extends StatelessWidget {
               top: 0,
               left: 0,
               right: 0,
-              height: 38,
+              height: 48,
               child: Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

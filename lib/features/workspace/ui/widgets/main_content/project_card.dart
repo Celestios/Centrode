@@ -8,6 +8,9 @@ class ProjectCard extends StatefulWidget {
   final VoidCallback? onMenuPressed;
   final ValueChanged<String>? onRename;
   final VoidCallback? onDelete;
+  final bool isSelected;
+  final bool isSelectionMode;
+  final ValueChanged<bool>? onSelectionChanged;
 
   const ProjectCard({
     super.key,
@@ -18,6 +21,9 @@ class ProjectCard extends StatefulWidget {
     this.onMenuPressed,
     this.onRename,
     this.onDelete,
+    this.isSelected = false,
+    this.isSelectionMode = false,
+    this.onSelectionChanged,
   });
 
   @override
@@ -53,22 +59,26 @@ class _ProjectCardState extends State<ProjectCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
+    return RepaintBoundary(
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: _isHovered
+          color: _isHovered || widget.isSelected
               ? theme.cardColor.withValues(alpha: 0.9)
               : theme.cardColor,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: _isHovered
-                ? theme.colorScheme.primary.withValues(alpha: 0.4)
-                : theme.dividerColor.withValues(alpha: 0.2),
+            color: widget.isSelected
+                ? theme.colorScheme.primary
+                : (_isHovered
+                    ? theme.colorScheme.primary.withValues(alpha: 0.4)
+                    : theme.dividerColor.withValues(alpha: 0.2)),
+            width: widget.isSelected ? 1.5 : 1.0,
           ),
-          boxShadow: _isHovered
+          boxShadow: _isHovered || widget.isSelected
               ? [
                   BoxShadow(
                     color: theme.shadowColor.withValues(alpha: 0.1),
@@ -83,27 +93,73 @@ class _ProjectCardState extends State<ProjectCard> {
           children: [
             Expanded(
               flex: 4,
-              child: InkWell(
-                onTap: widget.onTap,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(8),
-                ),
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(8),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: InkWell(
+                      onTap: () {
+                        if (widget.isSelectionMode) {
+                          widget.onSelectionChanged?.call(!widget.isSelected);
+                        } else {
+                          widget.onTap?.call();
+                        }
+                      },
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(8),
+                      ),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(8),
+                          ),
+                        ),
+                        child: widget.previewPath != null
+                            ? Image.asset(
+                                widget.previewPath!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => _buildPlaceholder(theme),
+                              )
+                            : _buildPlaceholder(theme),
+                      ),
                     ),
                   ),
-                  child: widget.previewPath != null
-                      ? Image.asset(
-                          widget.previewPath!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildPlaceholder(theme),
-                        )
-                      : _buildPlaceholder(theme),
-                ),
+                  if (_isHovered || widget.isSelected || widget.isSelectionMode)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: InkWell(
+                        onTap: () {
+                          widget.onSelectionChanged?.call(!widget.isSelected);
+                        },
+                        borderRadius: BorderRadius.circular(4),
+                        child: Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            color: widget.isSelected
+                                ? theme.colorScheme.primary
+                                : theme.cardColor.withValues(alpha: 0.85),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: widget.isSelected
+                                  ? theme.colorScheme.primary
+                                  : theme.dividerColor.withValues(alpha: 0.8),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: widget.isSelected
+                              ? const Icon(
+                                  Icons.check,
+                                  size: 15,
+                                  color: Colors.white,
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             SizedBox(
@@ -230,8 +286,9 @@ class _ProjectCardState extends State<ProjectCard> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildPlaceholder(ThemeData theme) {
     return Center(

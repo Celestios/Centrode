@@ -20,6 +20,7 @@ class ProjectsSection extends StatefulWidget {
 
 class _ProjectsSectionState extends State<ProjectsSection> {
   List<MapInfo> _projectMaps = [];
+  final Set<String> _selectedPaths = {};
   bool _isLoading = true;
 
   @override
@@ -38,12 +39,60 @@ class _ProjectsSectionState extends State<ProjectsSection> {
     }
   }
 
+  Future<void> _deleteMaps(List<MapInfo> mapsToDelete) async {
+    if (mapsToDelete.isEmpty) return;
+
+    final isPlural = mapsToDelete.length > 1;
+    final message = isPlural
+        ? 'Delete ${mapsToDelete.length} selected maps?'
+        : 'Delete "${mapsToDelete.first.name}"?';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(isPlural ? 'Delete maps' : 'Delete map'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      for (final map in mapsToDelete) {
+        await MapManager.instance.closeByPath(map.path);
+        await AppPaths.deleteMapStorage(map.path);
+        await RecentMapsStore.remove(map.path);
+      }
+      setState(() {
+        _selectedPaths.clear();
+      });
+      _loadProjectMaps();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionHeader(title: 'PROJECTS'),
+        SectionHeader(
+          title: 'PROJECTS',
+          selectedCount: _selectedPaths.length,
+          onCancel: () => setState(() => _selectedPaths.clear()),
+          onDelete: () {
+            final selectedMaps =
+                _projectMaps.where((m) => _selectedPaths.contains(m.path)).toList();
+            _deleteMaps(selectedMaps);
+          },
+        ),
         if (_isLoading)
           const SizedBox(height: 48)
         else if (_projectMaps.isEmpty)
@@ -61,6 +110,17 @@ class _ProjectsSectionState extends State<ProjectsSection> {
               return ProjectCard(
                 name: map.name,
                 lastOpened: timeAgo,
+                isSelected: _selectedPaths.contains(map.path),
+                isSelectionMode: _selectedPaths.isNotEmpty,
+                onSelectionChanged: (selected) {
+                  setState(() {
+                    if (selected) {
+                      _selectedPaths.add(map.path);
+                    } else {
+                      _selectedPaths.remove(map.path);
+                    }
+                  });
+                },
                 onTap: () {
                   MapManager.instance.openMap(map.path, map.name);
                   Navigator.of(context).push(
@@ -84,31 +144,7 @@ class _ProjectsSectionState extends State<ProjectsSection> {
                   }
                   _loadProjectMaps();
                 },
-                onDelete: () async {
-                  final confirmed = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Delete map'),
-                      content: Text('Delete "${map.name}"?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(false),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(true),
-                          child: const Text('Delete'),
-                        ),
-                      ],
-                    ),
-                  );
-                  if (confirmed == true) {
-                    await MapManager.instance.closeByPath(map.path);
-                    await AppPaths.deleteMapStorage(map.path);
-                    await RecentMapsStore.remove(map.path);
-                    _loadProjectMaps();
-                  }
-                },
+                onDelete: () => _deleteMaps([map]),
               );
             }).toList(),
           ),

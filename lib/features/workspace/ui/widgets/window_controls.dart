@@ -86,6 +86,7 @@ class _WindowControlButtonsState extends State<WindowControlButtons> with Window
           const SizedBox(width: 4),
           _WindowButton(
             icon: Icons.close_rounded,
+            isClose: true,
             onTap: () => windowManager.close(),
           ),
         ],
@@ -97,10 +98,12 @@ class _WindowControlButtonsState extends State<WindowControlButtons> with Window
 class _WindowButton extends StatefulWidget {
   final IconData icon;
   final VoidCallback onTap;
+  final bool isClose;
 
   const _WindowButton({
     required this.icon,
     required this.onTap,
+    this.isClose = false,
   });
 
   @override
@@ -117,19 +120,24 @@ class _WindowButtonState extends State<_WindowButton> {
       onExit: (_) => setState(() => _isHovered = false),
       child: GestureDetector(
         onTap: widget.onTap,
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
           width: 32,
           height: 32,
           decoration: BoxDecoration(
             color: _isHovered
-                ? Colors.white.withValues(alpha: 0.15)
+                ? (widget.isClose
+                    ? Colors.red.withValues(alpha: 0.85)
+                    : Colors.white.withValues(alpha: 0.16))
                 : Colors.white.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             widget.icon,
             size: 16,
-            color: Colors.white.withValues(alpha: 0.7),
+            color: _isHovered && widget.isClose
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.8),
           ),
         ),
       ),

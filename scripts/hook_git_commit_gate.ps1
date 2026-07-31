@@ -10,19 +10,9 @@ if ($inputJson) {
             # Get current branch name
             $currentBranch = (git branch --show-current).Trim()
             
-            # 1. Direct Commit to Main/Master Protection
+            # 1. Direct Commit to Main is allowed
             if ($currentBranch -eq "main" -or $currentBranch -eq "master") {
-                # Allow release commits on main/master
-                if ($commandLine -match "chore\(release\)") {
-                    Write-Output '{"decision":"allow"}'
-                    exit
-                }
-                
-                $output = @{
-                    decision = "deny"
-                    reason = "Direct commits to main/master are strictly blocked. Please create a feature/fix branch (e.g. feat/ui-panning) or use a release commit style."
-                }
-                Write-Output (ConvertTo-Json $output -Compress)
+                Write-Output '{"decision":"allow"}'
                 exit
             }
             

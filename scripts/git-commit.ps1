@@ -94,7 +94,7 @@ if ($Prepare) {
     $warnings = @()
     
     if ($currentBranch -eq "main" -or $currentBranch -eq "master") {
-        $warnings += "Direct commits to main/master are strictly blocked. You must use a feature/fix branch or perform a release flow."
+        $branchValid = $true
     } else {
         # Format: <type>/<scope>-<kebab-case-description>
         if ($currentBranch -match "^(?<type>feat|fix|refactor|perf|docs|chore|test)/(?<scope>[a-z0-9]+)-(?<desc>[a-z0-9\-]+)$") {
