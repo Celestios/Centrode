@@ -181,6 +181,13 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
   }
 
   Widget _buildSessionContent(BuildContext context) {
+    if (widget.session.themeController == null ||
+        widget.session.queryController == null ||
+        widget.session.commandProcessor == null ||
+        widget.session.nodeRenderState == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return MultiProvider(
       key: ValueKey(
         widget.session.id,
@@ -208,10 +215,6 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.session.isInitialized) {
-      return _buildSessionContent(context);
-    }
-
     return FutureBuilder<void>(
       future: _initFuture,
       builder: (context, snapshot) {
@@ -229,11 +232,6 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
               },
             ),
           );
-        }
-
-        if (snapshot.connectionState != ConnectionState.done ||
-            !widget.session.isInitialized) {
-          return const Center(child: CircularProgressIndicator());
         }
 
         return _buildSessionContent(context);

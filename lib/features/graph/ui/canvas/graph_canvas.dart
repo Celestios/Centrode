@@ -431,6 +431,12 @@ class _GraphCanvasState extends State<GraphCanvas>
                                           );
                                         },
                                       ),
+                                    if (!session.isInitialized)
+                                      const Positioned.fill(
+                                        child: Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      ),
                                   ],
                                 ),
                               );
