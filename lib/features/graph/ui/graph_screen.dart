@@ -103,11 +103,11 @@ class _GraphScreenState extends State<GraphScreen> {
                         data: themeData,
                         duration: const Duration(milliseconds: 400),
                         curve: Curves.easeInOut,
-                        child: _buildScaffold(activeSession),
+                        child: _buildScaffold(tabsController),
                       )
                     : Theme(
                         data: themeData,
-                        child: _buildScaffold(activeSession),
+                        child: _buildScaffold(tabsController),
                       );
 
                 return themeWidget;
@@ -119,14 +119,19 @@ class _GraphScreenState extends State<GraphScreen> {
     );
   }
 
-  Widget _buildScaffold(TabSession activeSession) {
+  Widget _buildScaffold(WorkspaceTabsController tabsController) {
     return Scaffold(
       body: Stack(
         children: [
           Positioned.fill(
-            child: ActiveSessionWidget(
-              key: ValueKey(activeSession.id),
-              session: activeSession,
+            child: IndexedStack(
+              index: tabsController.activeIndex,
+              children: tabsController.tabs.map((session) {
+                return ActiveSessionWidget(
+                  key: ValueKey(session.id),
+                  session: session,
+                );
+              }).toList(),
             ),
           ),
           const Positioned(

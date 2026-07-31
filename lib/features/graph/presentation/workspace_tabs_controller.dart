@@ -110,10 +110,34 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
   final ValueNotifier<bool> showBottomPanel = ValueNotifier(true);
   bool isInitialized = false;
   VoidCallback? _themeListener;
+  final DeferredGraphApi _deferredApi = DeferredGraphApi();
 
   Future<void>? _initFuture;
 
-  TabSession({required this.id, required this.storagePath, required this.name});
+  TabSession({required this.id, required this.storagePath, required this.name}) {
+    handle = _deferredApi;
+    final tc = ThemeController(_deferredApi);
+    themeController = tc;
+    final qc = GraphDataQueryController(_deferredApi);
+    queryController = qc;
+    final processor = CommandQueueProcessor(_deferredApi, qc);
+    commandProcessor = processor;
+    nodeRenderState = NodeRenderState(qc, processor);
+
+    final styleManager = StyleManager(qc.store);
+    final layoutStrategy = DefaultNodeLayoutStrategy();
+    processor.sizeCalculator = layoutStrategy.calculateSize;
+    processor.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
+    processor.styleUpdater = styleManager;
+
+    _themeListener = () {
+      final newTheme = tc.currentGraphTheme;
+      styleManager.setTheme(newTheme);
+      styleManager.updateAllStyles(qc.store.nodes, qc.store.relations);
+      qc.triggerUpdate();
+    };
+    tc.addListener(_themeListener!);
+  }
 
   Future<void> initialize(ThemeData globalTheme) {
     return _initFuture ??= _doInitialize(globalTheme).catchError((e) {
@@ -142,33 +166,17 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
       name: name,
     );
     final wrapper = RustAppHandleWrapper(activeHandle);
-    handle = wrapper;
-    final tc = ThemeController(wrapper);
-    themeController = tc;
-    final qc = GraphDataQueryController(wrapper);
-    queryController = qc;
-    final processor = CommandQueueProcessor(wrapper, qc);
-    commandProcessor = processor;
-    nodeRenderState = NodeRenderState(qc, processor);
+    _deferredApi.attach(wrapper);
 
-    final styleManager = StyleManager(qc.store);
-    final layoutStrategy = DefaultNodeLayoutStrategy();
-    processor.sizeCalculator = layoutStrategy.calculateSize;
-    processor.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
-    processor.styleUpdater = styleManager;
-
-    _themeListener = () {
-      final newTheme = tc.currentGraphTheme;
-      styleManager.setTheme(newTheme);
-      styleManager.updateAllStyles(qc.store.nodes, qc.store.relations);
-      qc.triggerUpdate();
-    };
-    tc.addListener(_themeListener!);
+    final tc = themeController!;
+    final qc = queryController!;
+    final processor = commandProcessor!;
 
     await tc.initialize(globalTheme);
     // Seeding initial theme style
-    styleManager.setTheme(tc.currentGraphTheme);
-    styleManager.updateAllStyles(qc.store.nodes, qc.store.relations);
+    final styleManager = processor.styleUpdater as StyleManager?;
+    styleManager?.setTheme(tc.currentGraphTheme);
+    styleManager?.updateAllStyles(qc.store.nodes, qc.store.relations);
 
     await processor.loadGraph();
     isInitialized = true;
@@ -210,7 +218,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     showRightPanel.dispose();
     showBottomPanel.dispose();
     _viewportController = null;
-    (handle as RustAppHandleWrapper?)?.dispose();
+    _deferredApi.dispose();
     super.dispose();
   }
 }

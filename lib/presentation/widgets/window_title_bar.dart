@@ -473,7 +473,7 @@ class _WindowControlButtonsState extends State<WindowControlButtons>
         theme.iconTheme.color ?? (isDark ? Colors.white : Colors.black);
 
     return Padding(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.only(right: 8),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

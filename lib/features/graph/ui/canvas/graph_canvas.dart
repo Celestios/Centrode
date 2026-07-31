@@ -239,14 +239,26 @@ class _GraphCanvasState extends State<GraphCanvas>
                   return ValueListenableBuilder<MouseCursor>(
                     valueListenable: interactionController.cursor,
                     builder: (context, cursor, child) {
-                      return MouseRegion(
-                        cursor: cursor,
-                        onExit: (_) {
-                          _mousePositionNotifier.value = null;
-                          interactionController.environment
-                              .setHoveredNodeMetadata(null);
-                        },
-                        child: child,
+                      return Stack(
+                        children: [
+                          MouseRegion(
+                            cursor: cursor,
+                            onExit: (_) {
+                              _mousePositionNotifier.value = null;
+                              interactionController.environment
+                                  .setHoveredNodeMetadata(null);
+                            },
+                            child: child,
+                          ),
+                          if (!session.isInitialized)
+                            const Positioned.fill(
+                              child: IgnorePointer(
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
+                            ),
+                        ],
                       );
                     },
                     child: Listener(
@@ -430,12 +442,6 @@ class _GraphCanvasState extends State<GraphCanvas>
                                             ),
                                           );
                                         },
-                                      ),
-                                    if (!session.isInitialized)
-                                      const Positioned.fill(
-                                        child: Center(
-                                          child: CircularProgressIndicator(),
-                                        ),
                                       ),
                                   ],
                                 ),
