@@ -472,43 +472,46 @@ class _WindowControlButtonsState extends State<WindowControlButtons>
     final color =
         theme.iconTheme.color ?? (isDark ? Colors.white : Colors.black);
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Minimize
-        _buildHoverButton(
-          icon: Icons.minimize_rounded,
-          color: color,
-          isDark: isDark,
-          onPressed: () => windowManager.minimize(),
-        ),
-        const SizedBox(width: 4),
-        // Maximize/Restore
-        _buildHoverButton(
-          icon: _isMaximized
-              ? Icons.filter_none_rounded
-              : Icons.crop_square_rounded,
-          color: color,
-          isDark: isDark,
-          onPressed: () async {
-            if (_isMaximized) {
-              await windowManager.unmaximize();
-            } else {
-              await windowManager.maximize();
-            }
-            _checkMaximizeState();
-          },
-        ),
-        const SizedBox(width: 4),
-        // Close
-        _buildHoverButton(
-          icon: Icons.close_rounded,
-          color: color,
-          isDark: isDark,
-          isClose: true,
-          onPressed: () => windowManager.close(),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Minimize
+          _buildHoverButton(
+            icon: Icons.minimize_rounded,
+            color: color,
+            isDark: isDark,
+            onPressed: () => windowManager.minimize(),
+          ),
+          const SizedBox(width: 4),
+          // Maximize/Restore
+          _buildHoverButton(
+            icon: _isMaximized
+                ? Icons.filter_none_rounded
+                : Icons.crop_square_rounded,
+            color: color,
+            isDark: isDark,
+            onPressed: () async {
+              if (_isMaximized) {
+                await windowManager.unmaximize();
+              } else {
+                await windowManager.maximize();
+              }
+              _checkMaximizeState();
+            },
+          ),
+          const SizedBox(width: 4),
+          // Close
+          _buildHoverButton(
+            icon: Icons.close_rounded,
+            color: color,
+            isDark: isDark,
+            isClose: true,
+            onPressed: () => windowManager.close(),
+          ),
+        ],
+      ),
     );
   }
 

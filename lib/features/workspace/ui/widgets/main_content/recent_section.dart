@@ -71,6 +71,7 @@ class _RecentSectionState extends State<RecentSection> {
         await AppPaths.deleteMapStorage(map.path);
         await RecentMapsStore.remove(map.path);
       }
+      if (!mounted) return;
       setState(() {
         _selectedPaths.clear();
       });
@@ -142,6 +143,7 @@ class _RecentSectionState extends State<RecentSection> {
                   if (wasOpen) {
                     MapManager.instance.openMap(newPath, newName);
                   }
+                  if (!mounted) return;
                   _loadRecentMaps();
                 },
                 onDelete: () => _deleteMaps([map]),
