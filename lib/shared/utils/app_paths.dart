@@ -87,7 +87,7 @@ class AppPaths {
 
   static Future<void> deleteMapStorage(String rawPath) async {
     final path = p.canonicalize(rawPath);
-    for (var attempt = 0; attempt < 5; attempt++) {
+    for (var attempt = 0; attempt < 10; attempt++) {
       try {
         if (Directory(path).existsSync()) {
           await Directory(path).delete(recursive: true);
@@ -96,8 +96,8 @@ class AppPaths {
         }
         return;
       } catch (e) {
-        if (attempt == 4) rethrow;
-        await Future<void>.delayed(const Duration(milliseconds: 100));
+        if (attempt == 9) rethrow;
+        await Future<void>.delayed(const Duration(milliseconds: 20));
       }
     }
   }
@@ -108,7 +108,11 @@ class AppPaths {
   ) async {
     final oldPath = p.canonicalize(rawOldPath);
     final newPath = p.canonicalize(rawNewPath);
-    for (var attempt = 0; attempt < 5; attempt++) {
+    if (!Directory(oldPath).existsSync() && !File(oldPath).existsSync()) {
+      return;
+    }
+
+    for (var attempt = 0; attempt < 10; attempt++) {
       try {
         if (Directory(oldPath).existsSync()) {
           await Directory(oldPath).rename(newPath);
@@ -117,8 +121,32 @@ class AppPaths {
         }
         return;
       } catch (e) {
-        if (attempt == 4) rethrow;
-        await Future<void>.delayed(const Duration(milliseconds: 100));
+        if (attempt == 9) {
+          // If direct atomic rename failed due to OS file locks on Windows, fall back to recursive copy + delete
+          if (Directory(oldPath).existsSync()) {
+            await _copyDirectory(Directory(oldPath), Directory(newPath));
+            await deleteMapStorage(oldPath);
+            return;
+          } else if (File(oldPath).existsSync()) {
+            await File(oldPath).copy(newPath);
+            await deleteMapStorage(oldPath);
+            return;
+          }
+          rethrow;
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+    }
+  }
+
+  static Future<void> _copyDirectory(Directory source, Directory destination) async {
+    await destination.create(recursive: true);
+    await for (final entity in source.list(recursive: false)) {
+      final newPath = p.join(destination.path, p.basename(entity.path));
+      if (entity is Directory) {
+        await _copyDirectory(entity, Directory(newPath));
+      } else if (entity is File) {
+        await entity.copy(newPath);
       }
     }
   }

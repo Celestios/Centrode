@@ -72,7 +72,10 @@ class GraphDataQueryController implements GraphDataQuery {
   final GraphApi api;
 
   GraphDataQueryController(this.api) {
-    relationEngine = RelationEngineState(api: api);
+    relationEngine = RelationEngineState(
+      api: api,
+      nodeLookupGetter: () => nodeLookup,
+    );
   }
 
   Future<List<DatabaseSearchResult>> searchDatabase(String term) async {

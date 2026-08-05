@@ -97,6 +97,7 @@ class GraphRelationMutations {
 
     // OPTIMISTIC TEARDOWN
     controller.store.relationLookup.remove(id);
+    controller.relationEngine.onRelationDeleted(id);
 
     // Queue command with immediate execution
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);

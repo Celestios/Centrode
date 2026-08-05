@@ -12,6 +12,7 @@ class NodeDragging extends CanvasInteractionState {
   final RawUuid nodeId;
   final Offset grabOffset;
   Timer? _snapTimer;
+  bool _hasMoved = false;
 
   NodeDragging(this.nodeId, this.grabOffset);
 
@@ -21,6 +22,7 @@ class NodeDragging extends CanvasInteractionState {
     Offset pCanvas,
     GeometryAndViewportCapability ctx,
   ) {
+    _hasMoved = true;
     final vs = ctx.nodeViewStates[nodeId];
     if (vs == null) {
       _snapTimer?.cancel();
@@ -57,7 +59,7 @@ class NodeDragging extends CanvasInteractionState {
     _snapTimer?.cancel();
     final vs = ctx.nodeViewStates[nodeId];
     ctx.setNodeDragging(nodeId, false);
-    if (vs != null) {
+    if (vs != null && _hasMoved) {
       final effectiveGridSize = calculateEffectiveGridSize(ctx.currentScale);
       final snappedPos = _snapToGrid(vs.positionNotifier.value, effectiveGridSize);
       vs.positionNotifier.value = snappedPos;

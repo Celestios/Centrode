@@ -72,6 +72,9 @@ void main() {
       () => mockApi.createRelation(input: any(named: 'input')),
     ).thenAnswer((_) async {});
     when(
+      () => mockApi.updateNodeCachePositions(positions: any(named: 'positions')),
+    ).thenAnswer((_) async {});
+    when(
       () => mockApi.createGraphStream(),
     ).thenAnswer((_) => const Stream.empty());
     when(() => mockApi.undoCount()).thenAnswer((_) async => 0);

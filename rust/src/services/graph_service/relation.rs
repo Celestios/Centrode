@@ -156,15 +156,19 @@ impl GraphService {
             if let Some(n) = nodes.iter_mut().find(|n| n.id == from_node_id) {
                 n.x = sx;
                 n.y = sy;
-                n.width = 0.0;
-                n.height = 0.0;
+                if n.width <= 0.0 {
+                    n.width = 160.0;
+                }
+                if n.height <= 0.0 {
+                    n.height = 80.0;
+                }
             } else {
                 nodes.push(InputNode {
                     id: from_node_id.clone(),
                     x: sx,
                     y: sy,
-                    width: 0.0,
-                    height: 0.0,
+                    width: 160.0,
+                    height: 80.0,
                     is_obstacle: true,
                 });
             }
@@ -174,15 +178,19 @@ impl GraphService {
             if let Some(n) = nodes.iter_mut().find(|n| n.id == to_node_id) {
                 n.x = ex;
                 n.y = ey;
-                n.width = 0.0;
-                n.height = 0.0;
+                if n.width <= 0.0 {
+                    n.width = 160.0;
+                }
+                if n.height <= 0.0 {
+                    n.height = 80.0;
+                }
             } else {
                 nodes.push(InputNode {
                     id: to_node_id.clone(),
                     x: ex,
                     y: ey,
-                    width: 0.0,
-                    height: 0.0,
+                    width: 160.0,
+                    height: 80.0,
                     is_obstacle: true,
                 });
             }
@@ -240,7 +248,6 @@ impl GraphService {
     pub async fn rebuild_node_cache(&self) {
         let margin = RelationEngineConfig::default().routing.obstacle_margin;
         if let Ok(mut engine) = self.relation_engine.lock() {
-            engine.state.clear();
             engine.cache.clear();
         }
         if let Ok(snapshot) = self.repo.get_graph_snapshot().await {

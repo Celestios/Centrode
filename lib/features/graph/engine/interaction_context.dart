@@ -62,6 +62,7 @@ abstract interface class QueryCapability {
   List<RawUuid> get zOrder;
   SpatialHashGrid get spatialGrid;
   Iterable<UiRelation> getRelations();
+  UiRelation? getRelation(RawUuid id);
   UiNode? getNode(RawUuid id);
   RawUuid? get hoveredNodeId;
 }
@@ -134,6 +135,7 @@ abstract interface class MutationCapability {
     required String targetNodeTable,
     required PortSide? targetSide,
     required Offset overridePosition,
+    PortSide? sourceSide,
   });
 
   void onRelationSnapPreviewClear(RawUuid relationId);

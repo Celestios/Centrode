@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:centrode/shared/logging.dart';
 import 'package:centrode/src/rust/domain/nodes.dart';
+import '../../models/commands/patch_helpers.dart';
 import '../../models/models.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
@@ -61,6 +62,18 @@ class GraphNodeMutations {
     node.size = result.size;
     node.lineCount = result.lineCount;
 
+    controller.syncEngine.api.updateNodeCachePositions(
+      positions: [
+        (
+          parseTypedRecordId(node.tableName, id),
+          position.dx,
+          position.dy,
+          node.size.width,
+          node.size.height,
+        ),
+      ],
+    );
+
     final cmd = CreateNodeCommand(
       targetId: id,
       api: controller.syncEngine.api,
@@ -103,6 +116,13 @@ class GraphNodeMutations {
     controller.spatial.spatialGrid.remove(id, node.position);
     controller.spatial.clearConfirmedPosition(id);
 
+    final connectedRelations = controller.store.relationLookup.values
+        .where((r) => r.fromNodeId == id || r.toNodeId == id)
+        .toList();
+    for (final rel in connectedRelations) {
+      controller.relationMutations.deleteRelation(rel.id);
+    }
+
     // Queue command with immediate execution
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
     controller.publishUpdate(
@@ -120,6 +140,7 @@ class GraphNodeMutations {
   void updateNodePosition(RawUuid id, Offset newPosition) {
     final node = controller.store.nodeLookup[id];
     if (node == null) return;
+    if (node.position == newPosition) return;
 
     // Track the LAST confirmed position if this is a new sequence of moves
     final confirmedPos =

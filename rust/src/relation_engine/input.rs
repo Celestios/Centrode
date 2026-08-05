@@ -63,7 +63,7 @@ impl InputEdge {
 
         let routing_mode = layout.and_then(|l| match l.strategy_type.as_str() {
             "bspline" => Some(RoutingMode::BSpline),
-            "bezier" => Some(RoutingMode::Bezier {
+            "bezier" | "default" => Some(RoutingMode::Bezier {
                 control_point_1,
                 control_point_2,
             }),
@@ -73,7 +73,11 @@ impl InputEdge {
             }),
             "orthogonal" => Some(RoutingMode::Orthogonal),
             "octilinear" => Some(RoutingMode::Octilinear),
-            _ => Some(RoutingMode::Polyline),
+            "polyline" | "straight" => Some(RoutingMode::Polyline),
+            _ => Some(RoutingMode::Bezier {
+                control_point_1,
+                control_point_2,
+            }),
         });
 
         let bundling_mode = style.map(|s| {

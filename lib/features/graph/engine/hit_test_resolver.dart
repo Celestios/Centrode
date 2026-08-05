@@ -91,6 +91,13 @@ class HitTestResolver {
     final cache = ctx.relationEngine.cache;
 
     for (final id in selectedEntities) {
+      final rel = ctx.getRelation(id);
+      if (rel != null) {
+        final fromVs = ctx.nodeViewStates[rel.fromNodeId];
+        final toVs = ctx.nodeViewStates[rel.toNodeId];
+        if (fromVs == null || toVs == null) continue;
+      }
+
       final cached = cache[id];
       if (cached == null || cached.pathPoints.isEmpty) continue;
 
@@ -261,6 +268,10 @@ class HitTestResolver {
     final cache = ctx.relationEngine.cache;
 
     for (final rel in ctx.getRelations()) {
+      final fromVs = ctx.nodeViewStates[rel.fromNodeId];
+      final toVs = ctx.nodeViewStates[rel.toNodeId];
+      if (fromVs == null || toVs == null) continue;
+
       final cached = cache[rel.id];
       if (cached == null) continue;
 

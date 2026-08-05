@@ -17,7 +17,7 @@ class RelationEngineState {
   final InvalidationTracker _tracker = InvalidationTracker();
   RelationEngineConfig _config = const RelationEngineConfig(
     routing: RoutingConfig(
-      routingMode: RoutingMode.polyline(),
+      routingMode: RoutingMode.bezier(),
       obstacleMargin: 45.0,
       cornerRadius: 8.0,
       projectionFactor: 2,
@@ -55,7 +55,13 @@ class RelationEngineState {
   Map<RawUuid, ComputedRelation> get cache => _tracker.cache;
   InvalidationTracker get tracker => _tracker;
 
-  RelationEngineState({required GraphApi api}) : _api = api;
+  final Map<RawUuid, UiNode> Function()? _nodeLookupGetter;
+
+  RelationEngineState({
+    required GraphApi api,
+    Map<RawUuid, UiNode> Function()? nodeLookupGetter,
+  })  : _api = api,
+        _nodeLookupGetter = nodeLookupGetter;
 
   void updateConfig(RelationEngineConfig config) {
     _config = config;
@@ -69,13 +75,45 @@ class RelationEngineState {
     _scheduleRecompute();
   }
 
-  void onRelationAdded(UiRelation relation) {
+  void onRelationAdded(UiRelation relation, {UiNode? fromNode, UiNode? toNode}) {
     _tracker.onRelationAdded(relation);
-    _computeSingleRelation(relation);
+    _computeSingleRelation(relation, fromNode: fromNode, toNode: toNode);
   }
 
-  Future<void> _computeSingleRelation(UiRelation relation) async {
+  RoutingMode _mapStrategyToRoutingMode(String? strategyType) {
+    if (strategyType == null) return const RoutingMode.bezier();
+    switch (strategyType.toLowerCase()) {
+      case 'bezier':
+        return const RoutingMode.bezier();
+      case 'sinewave':
+      case 'sine_wave':
+      case 'wave':
+      case 'snake':
+        return const RoutingMode.sineWave();
+      case 'orthogonal':
+        return const RoutingMode.orthogonal();
+      case 'bspline':
+      case 'b_spline':
+        return const RoutingMode.bSpline();
+      case 'octilinear':
+        return const RoutingMode.octilinear();
+      case 'polyline':
+      case 'straight':
+        return const RoutingMode.polyline();
+      default:
+        return const RoutingMode.bezier();
+    }
+  }
+
+  Future<void> _computeSingleRelation(
+    UiRelation relation, {
+    UiNode? fromNode,
+    UiNode? toNode,
+  }) async {
     try {
+      final from = fromNode ?? _nodeLookupGetter?.call()[relation.fromNodeId];
+      final to = toNode ?? _nodeLookupGetter?.call()[relation.toNodeId];
+
       final computed = await _api.computeSingleRelation(
         config: _config,
         edgeId: parseTypedRecordId('IRelation', relation.id),
@@ -86,6 +124,11 @@ class RelationEngineState {
         toNodeId: parseTypedRecordId(relation.toNodeTable, relation.toNodeId),
         fromSide: relation.layout?.fromSide,
         toSide: relation.layout?.toSide,
+        routingMode: _mapStrategyToRoutingMode(relation.layout?.strategyType),
+        overrideStartX: from?.position.dx,
+        overrideStartY: from?.position.dy,
+        overrideEndX: to?.position.dx,
+        overrideEndY: to?.position.dy,
       );
       _tracker.updateCache([computed]);
       _bumpCacheNotifier();
@@ -113,6 +156,7 @@ class RelationEngineState {
         toNodeId: parseTypedRecordId(toNodeTable, toNodeId),
         fromSide: fromSide,
         toSide: toSide,
+        routingMode: const RoutingMode.bezier(),
         overrideStartX: overrideStart?.dx,
         overrideStartY: overrideStart?.dy,
         overrideEndX: overrideEnd?.dx,

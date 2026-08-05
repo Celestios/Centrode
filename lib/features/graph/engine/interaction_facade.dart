@@ -75,6 +75,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
   Iterable<UiRelation> getRelations() => _queryController.relations;
 
   @override
+  UiRelation? getRelation(RawUuid id) => _queryController.relationLookup[id];
+
+  @override
   UiNode? getNode(RawUuid id) => _queryController.nodeLookup[id];
 
   @override
@@ -316,6 +319,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
     required String targetNodeTable,
     required PortSide? targetSide,
     required Offset overridePosition,
+    PortSide? sourceSide,
   }) {
     final rel = _queryController.relationLookup[relationId];
     if (rel != null) {
@@ -327,16 +331,10 @@ class CanvasInteractionEnvironment implements InteractionContext {
         toNodeTable: isStartTip ? rel.toNodeTable : targetNodeTable,
         fromSide: isStartTip
             ? targetSide
-            : rel.resolvedLayout?.fromSide ?? rel.layout?.fromSide,
+            : (sourceSide ?? rel.resolvedLayout?.fromSide ?? rel.layout?.fromSide),
         toSide: isStartTip
-            ? rel.resolvedLayout?.toSide ?? rel.layout?.toSide
+            ? (rel.resolvedLayout?.toSide ?? rel.layout?.toSide)
             : targetSide,
-        overrideStart: isStartTip && targetSide == null
-            ? overridePosition
-            : null,
-        overrideEnd: !isStartTip && targetSide == null
-            ? overridePosition
-            : null,
       );
     } else {
       final sourceNode = getNode(relationId);
@@ -347,10 +345,8 @@ class CanvasInteractionEnvironment implements InteractionContext {
           toNodeId: targetNodeId,
           fromNodeTable: sourceNode.tableName,
           toNodeTable: targetNodeTable,
-          fromSide: null,
+          fromSide: sourceSide,
           toSide: targetSide,
-          overrideStart: null,
-          overrideEnd: targetSide == null ? overridePosition : null,
         );
       }
     }

@@ -14,13 +14,14 @@ class GroupDragging extends CanvasInteractionState {
   final Offset grabOffset;
   final Map<RawUuid, Offset> originalPositions;
   Timer? _snapTimer;
+  bool _hasMoved = false;
 
   GroupDragging({
-    required this.nodeIds,
+    required Iterable<RawUuid> nodeIds,
     required this.anchorNodeId,
     required this.grabOffset,
     required this.originalPositions,
-  });
+  }) : nodeIds = nodeIds.toList();
 
   @override
   CanvasInteractionState handlePointerMove(
@@ -28,6 +29,7 @@ class GroupDragging extends CanvasInteractionState {
     Offset pCanvas,
     GeometryAndViewportCapability ctx,
   ) {
+    _hasMoved = true;
     final anchorVs = ctx.nodeViewStates[anchorNodeId];
     if (anchorVs == null) {
       _snapTimer?.cancel();
@@ -102,7 +104,7 @@ class GroupDragging extends CanvasInteractionState {
     for (final id in nodeIds) {
       ctx.setNodeDragging(id, false);
       final vs = ctx.nodeViewStates[id];
-      if (vs != null) {
+      if (vs != null && _hasMoved) {
         final snappedPos = _snapToGrid(vs.positionNotifier.value, effectiveGridSize);
         vs.positionNotifier.value = snappedPos;
         ctx.onNodeMove(id, snappedPos);

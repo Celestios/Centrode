@@ -5,6 +5,7 @@ class SectionHeader extends StatelessWidget {
   final int selectedCount;
   final VoidCallback? onCancel;
   final VoidCallback? onDelete;
+  final VoidCallback? onSelectAll;
 
   const SectionHeader({
     super.key,
@@ -12,6 +13,7 @@ class SectionHeader extends StatelessWidget {
     this.selectedCount = 0,
     this.onCancel,
     this.onDelete,
+    this.onSelectAll,
   });
 
   @override
@@ -48,6 +50,23 @@ class SectionHeader extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 10),
+                      if (onSelectAll != null) ...[
+                        InkWell(
+                          onTap: onSelectAll,
+                          borderRadius: BorderRadius.circular(4),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            child: Text(
+                              'Select all',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 11,
+                                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
                       InkWell(
                         onTap: onCancel,
                         borderRadius: BorderRadius.circular(4),

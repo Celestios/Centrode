@@ -53,6 +53,10 @@ void main() {
         ),
       );
 
+      when(
+        () => mockApi.updateNodeCachePositions(positions: any(named: 'positions')),
+      ).thenAnswer((_) async {});
+
       queryController = GraphDataQueryController(mockApi);
       controller = CommandQueueProcessor(mockApi, queryController);
     });

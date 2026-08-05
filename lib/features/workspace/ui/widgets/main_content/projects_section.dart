@@ -5,31 +5,38 @@ import 'package:centrode/shared/utils/map_scanner.dart';
 import 'package:centrode/shared/utils/app_paths.dart';
 import 'package:centrode/shared/utils/recent_maps_store.dart';
 import 'package:path/path.dart' as p;
-import 'dart:io';
 import '../shared/section_header.dart';
 import '../shared/horizontal_scroll_row.dart';
 import 'project_card.dart';
 import 'empty_section_card.dart';
 
 class ProjectsSection extends StatefulWidget {
-  const ProjectsSection({super.key});
+  final Set<String> selectedPaths;
+  final ValueChanged<Set<String>> onSelectionChanged;
+  final VoidCallback? onMapsChanged;
+
+  const ProjectsSection({
+    super.key,
+    required this.selectedPaths,
+    required this.onSelectionChanged,
+    this.onMapsChanged,
+  });
 
   @override
-  State<ProjectsSection> createState() => _ProjectsSectionState();
+  State<ProjectsSection> createState() => ProjectsSectionState();
 }
 
-class _ProjectsSectionState extends State<ProjectsSection> {
+class ProjectsSectionState extends State<ProjectsSection> {
   List<MapInfo> _projectMaps = [];
-  final Set<String> _selectedPaths = {};
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadProjectMaps();
+    reload();
   }
 
-  Future<void> _loadProjectMaps() async {
+  Future<void> reload() async {
     final maps = await MapScanner.getProjectMaps();
     if (mounted) {
       setState(() {
@@ -66,31 +73,39 @@ class _ProjectsSectionState extends State<ProjectsSection> {
     );
 
     if (confirmed == true) {
+      final newSelection = Set<String>.from(widget.selectedPaths);
       for (final map in mapsToDelete) {
         await MapManager.instance.closeByPath(map.path);
         await AppPaths.deleteMapStorage(map.path);
         await RecentMapsStore.remove(map.path);
+        newSelection.remove(map.path);
       }
-      if (!mounted) return;
-      setState(() {
-        _selectedPaths.clear();
-      });
-      _loadProjectMaps();
+      widget.onSelectionChanged(newSelection);
+      widget.onMapsChanged?.call();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final selectedInSectionCount =
+        _projectMaps.where((m) => widget.selectedPaths.contains(m.path)).length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeader(
           title: 'PROJECTS',
-          selectedCount: _selectedPaths.length,
-          onCancel: () => setState(() => _selectedPaths.clear()),
+          selectedCount: selectedInSectionCount,
+          onSelectAll: () {
+            final newSelection = Set<String>.from(widget.selectedPaths);
+            newSelection.addAll(_projectMaps.map((m) => m.path));
+            widget.onSelectionChanged(newSelection);
+          },
+          onCancel: () => widget.onSelectionChanged({}),
           onDelete: () {
-            final selectedMaps =
-                _projectMaps.where((m) => _selectedPaths.contains(m.path)).toList();
+            final selectedMaps = _projectMaps
+                .where((m) => widget.selectedPaths.contains(m.path))
+                .toList();
             _deleteMaps(selectedMaps);
           },
         ),
@@ -111,16 +126,16 @@ class _ProjectsSectionState extends State<ProjectsSection> {
               return ProjectCard(
                 name: map.name,
                 lastOpened: timeAgo,
-                isSelected: _selectedPaths.contains(map.path),
-                isSelectionMode: _selectedPaths.isNotEmpty,
+                isSelected: widget.selectedPaths.contains(map.path),
+                isSelectionMode: widget.selectedPaths.isNotEmpty,
                 onSelectionChanged: (selected) {
-                  setState(() {
-                    if (selected) {
-                      _selectedPaths.add(map.path);
-                    } else {
-                      _selectedPaths.remove(map.path);
-                    }
-                  });
+                  final newSelection = Set<String>.from(widget.selectedPaths);
+                  if (selected) {
+                    newSelection.add(map.path);
+                  } else {
+                    newSelection.remove(map.path);
+                  }
+                  widget.onSelectionChanged(newSelection);
                 },
                 onTap: () {
                   MapManager.instance.openMap(map.path, map.name);
@@ -143,8 +158,13 @@ class _ProjectsSectionState extends State<ProjectsSection> {
                   if (wasOpen) {
                     MapManager.instance.openMap(newPath, newName);
                   }
-                  if (!mounted) return;
-                  _loadProjectMaps();
+                  if (widget.selectedPaths.contains(oldPath)) {
+                    final newSelection = Set<String>.from(widget.selectedPaths);
+                    newSelection.remove(oldPath);
+                    newSelection.add(newPath);
+                    widget.onSelectionChanged(newSelection);
+                  }
+                  widget.onMapsChanged?.call();
                 },
                 onDelete: () => _deleteMaps([map]),
               );

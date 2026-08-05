@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:centrode/shared/logging.dart';
 import '../models/models.dart';
 import 'graph_data_query_controller.dart';
@@ -304,6 +305,14 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     PortSide? toSide,
     String? verb,
   }) {
+    final relation = relationMutations.createRelation(
+      fromId,
+      toId,
+      fromSide: fromSide,
+      toSide: toSide,
+      verb: verb,
+    );
+
     final fromNode = store.nodeLookup[fromId];
     final toNode = store.nodeLookup[toId];
     if (fromNode != null && toNode != null) {
@@ -327,15 +336,12 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
       );
     }
 
-    final relation = relationMutations.createRelation(
-      fromId,
-      toId,
-      fromSide: fromSide,
-      toSide: toSide,
-      verb: verb,
-    );
     if (relation != null) {
-      relationEngine.onRelationAdded(relation);
+      relationEngine.onRelationAdded(
+        relation,
+        fromNode: fromNode,
+        toNode: toNode,
+      );
     }
   }
 

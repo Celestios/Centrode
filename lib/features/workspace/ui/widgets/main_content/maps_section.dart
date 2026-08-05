@@ -3,16 +3,50 @@ import 'recent_section.dart';
 import 'projects_section.dart';
 import 'templates_section.dart';
 
-class MapsSection extends StatelessWidget {
+class MapsSection extends StatefulWidget {
   const MapsSection({super.key});
 
   @override
+  State<MapsSection> createState() => _MapsSectionState();
+}
+
+class _MapsSectionState extends State<MapsSection> {
+  final Set<String> _selectedPaths = {};
+  final GlobalKey<RecentSectionState> _recentKey = GlobalKey();
+  final GlobalKey<ProjectsSectionState> _projectsKey = GlobalKey();
+
+  void _onMapsChanged() {
+    _recentKey.currentState?.reload();
+    _projectsKey.currentState?.reload();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
-        RecentSection(),
-        ProjectsSection(),
-        TemplatesSection(),
+        RecentSection(
+          key: _recentKey,
+          selectedPaths: _selectedPaths,
+          onSelectionChanged: (newSelection) {
+            setState(() {
+              _selectedPaths.clear();
+              _selectedPaths.addAll(newSelection);
+            });
+          },
+          onMapsChanged: _onMapsChanged,
+        ),
+        ProjectsSection(
+          key: _projectsKey,
+          selectedPaths: _selectedPaths,
+          onSelectionChanged: (newSelection) {
+            setState(() {
+              _selectedPaths.clear();
+              _selectedPaths.addAll(newSelection);
+            });
+          },
+          onMapsChanged: _onMapsChanged,
+        ),
+        const TemplatesSection(),
       ],
     );
   }

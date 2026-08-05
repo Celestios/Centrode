@@ -53,6 +53,7 @@ class RelationDrawing extends CanvasInteractionState {
               targetNodeTable: targetNode?.tableName ?? 'Nodes',
               targetSide: snappedPort?.side,
               overridePosition: overridePos,
+              sourceSide: sourcePort?.side,
             );
           }
         }
@@ -106,23 +107,60 @@ class RelationDrawing extends CanvasInteractionState {
         final Offset targetPos;
 
         if (isTap && sourcePort != null) {
-          const spacing = 160.0;
+          const baseCardinalSpacing = 200.0;
+          const baseDiagSpacing = 100.0;
+
+          final widthFactor = (sourceSize.width / 160.0).clamp(1.0, 4.0);
+          final heightFactor = (sourceSize.height / 80.0).clamp(1.0, 4.0);
+
+          final cardinalX =
+              (baseCardinalSpacing * widthFactor / 20.0).round() * 20.0;
+          final cardinalY =
+              (baseCardinalSpacing * heightFactor / 20.0).round() * 20.0;
+          final diagX = (baseDiagSpacing * widthFactor / 20.0).round() * 20.0;
+          final diagY = (baseDiagSpacing * heightFactor / 20.0).round() * 20.0;
+
           switch (sourcePort!.side) {
             case PortSide.right:
-              targetPos = sourcePos + Offset(sourceSize.width + spacing, 0);
+              targetPos = sourcePos + Offset(sourceSize.width + cardinalX, 0);
               break;
             case PortSide.left:
-              targetPos = sourcePos - Offset(160.0 + spacing, 0);
+              targetPos = sourcePos - Offset(160.0 + cardinalX, 0);
               break;
             case PortSide.bottom:
-              targetPos = sourcePos + Offset(0, sourceSize.height + spacing);
+              targetPos = sourcePos + Offset(0, sourceSize.height + cardinalY);
               break;
             case PortSide.top:
-              targetPos = sourcePos - Offset(0, 80.0 + spacing);
+              targetPos = sourcePos - Offset(0, 80.0 + cardinalY);
+              break;
+            case PortSide.topRight:
+              targetPos = sourcePos +
+                  Offset(
+                    sourceSize.width + diagX,
+                    -(80.0 + diagY),
+                  );
+              break;
+            case PortSide.topLeft:
+              targetPos = sourcePos +
+                  Offset(-(160.0 + diagX), -(80.0 + diagY));
+              break;
+            case PortSide.bottomRight:
+              targetPos = sourcePos +
+                  Offset(
+                    sourceSize.width + diagX,
+                    sourceSize.height + diagY,
+                  );
+              break;
+            case PortSide.bottomLeft:
+              targetPos = sourcePos +
+                  Offset(
+                    -(160.0 + diagX),
+                    sourceSize.height + diagY,
+                  );
               break;
             case PortSide.auto:
             default:
-              targetPos = sourcePos + Offset(sourceSize.width + spacing, 0);
+              targetPos = sourcePos + Offset(sourceSize.width + cardinalX, 0);
               break;
           }
         } else {
@@ -171,6 +209,7 @@ class RelationDrawing extends CanvasInteractionState {
               targetNodeTable: targetNode?.tableName ?? 'Nodes',
               targetSide: snappedPort?.side,
               overridePosition: overridePos,
+              sourceSide: sourcePort?.side,
             );
           }
         }

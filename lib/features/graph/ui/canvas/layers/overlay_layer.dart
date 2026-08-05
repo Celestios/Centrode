@@ -183,7 +183,9 @@ class _TempRelationPainter extends CustomPainter {
     return oldDelegate.state.currentCursorPosition !=
             state.currentCursorPosition ||
         oldDelegate.state.snappedTargetNodeId != state.snappedTargetNodeId ||
-        !setEquals(oldDelegate.state.sourceNodeIds, state.sourceNodeIds);
+        !setEquals(oldDelegate.state.sourceNodeIds, state.sourceNodeIds) ||
+        oldDelegate.relationEngine.cacheNotifier.value !=
+            relationEngine.cacheNotifier.value;
   }
 }
 
