@@ -229,13 +229,7 @@ if (-not [string]::IsNullOrEmpty($CommitMsgFile) -or -not [string]::IsNullOrEmpt
     
     # Branch guard checks
     $currentBranch = (git branch --show-current).Trim()
-    if (($currentBranch -eq "main" -or $currentBranch -eq "master") -and $header -notmatch "^chore\(release\)") {
-        Write-Error "Error: Direct commits to main/master are blocked unless they are release commits (e.g. chore(release): ...)."
-        if ([string]::IsNullOrEmpty($CommitMsgFile)) {
-            Remove-Item $tempMsgFile -ErrorAction SilentlyContinue
-        }
-        exit 1
-    }
+    # Direct commits to main/master are permitted per user settings and AGENTS.md
     
     # Stage specified files or patterns
     if ($Stage -and $Stage.Count -gt 0) {

@@ -82,13 +82,38 @@ class ZoomSliderWidget extends StatelessWidget {
                 padding: EdgeInsets.zero,
               ),
               const SizedBox(width: 4),
-              Text(
-                '$percent%',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor,
+              Tooltip(
+                message: 'Reset zoom to 100%',
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(4),
+                  onTap: () => _updateZoom(viewportController, 1.0),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
+                    child: Text(
+                      '$percent%',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: primaryColor,
+                      ),
+                    ),
+                  ),
                 ),
+              ),
+              const SizedBox(width: 2),
+              IconButton(
+                icon: Icon(
+                  Icons.center_focus_strong,
+                  color: textColor.withValues(alpha: 0.7),
+                  size: 14,
+                ),
+                tooltip: 'Reset zoom to 100%',
+                onPressed: () => _updateZoom(viewportController, 1.0),
+                constraints: const BoxConstraints(),
+                padding: EdgeInsets.zero,
               ),
             ],
           );

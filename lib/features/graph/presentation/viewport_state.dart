@@ -124,6 +124,26 @@ class ViewportController {
     recalculateElasticMargins();
   }
 
+  /// Mutates the Transformation Matrix to center the camera on a specific canvas coordinate.
+  void centerOnCanvasPoint(Offset canvasPoint) {
+    if (_currentViewportSize == Size.zero) return;
+
+    final currentMatrix = transformController.value;
+    final double currentScale = currentMatrix.getMaxScaleOnAxis();
+
+    final double dx =
+        (_currentViewportSize.width / 2) - (canvasPoint.dx * currentScale);
+    final double dy =
+        (_currentViewportSize.height / 2) - (canvasPoint.dy * currentScale);
+
+    _log.finest(
+      'Centering Camera Matrix on canvas point: $canvasPoint at scale $currentScale',
+    );
+    transformController.value = Matrix4.identity()
+      ..translateByDouble(dx, dy, 0, 1)
+      ..scaleByDouble(currentScale, currentScale, currentScale, 1);
+  }
+
   /// Updates the zoom scale while preserving the current camera translation.
   void updateScale(double newScale) {
     final currentMatrix = transformController.value;

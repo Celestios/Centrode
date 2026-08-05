@@ -120,5 +120,19 @@ void main() {
       expect(initialTranslation.x, 0.0);
       expect(initialTranslation.y, 0.0);
     });
+
+    test('centerOnCanvasPoint positions target point in viewport center', () {
+      controller.updateViewportSize(const Size(1000, 1000));
+      // Viewport size 1000x1000 -> center is (500, 500)
+      // Target point is (200, 300)
+      // Expected dx = 500 - 200 = 300, dy = 500 - 300 = 200
+      controller.centerOnCanvasPoint(const Offset(200, 300));
+
+      final transform = controller.transformController.value;
+      final translation = transform.getTranslation();
+
+      expect(translation.x, 300.0);
+      expect(translation.y, 200.0);
+    });
   });
 }

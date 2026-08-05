@@ -164,10 +164,38 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
     _capturing = false;
   }
 
+  void _handleMiniMapInteraction(
+    Offset localPosition,
+    ViewportController controller,
+  ) {
+    const Size miniMapSize = Size(200, 200);
+    final clampedX = localPosition.dx.clamp(0.0, miniMapSize.width);
+    final clampedY = localPosition.dy.clamp(0.0, miniMapSize.height);
+
+    final gridState = controller.viewportStateNotifier.value;
+    final margins = controller.elasticMargins.value;
+    final viewportSize = gridState.viewportSize;
+
+    if (viewportSize.width <= 0 || viewportSize.height <= 0) return;
+
+    final double totalW = viewportSize.width + margins.left + margins.right;
+    final double totalH = viewportSize.height + margins.top + margins.bottom;
+
+    if (totalW <= 0 || totalH <= 0) return;
+
+    final double scaleX = miniMapSize.width / totalW;
+    final double scaleY = miniMapSize.height / totalH;
+
+    final double canvasX = (clampedX / scaleX) - margins.left;
+    final double canvasY = (clampedY / scaleY) - margins.top;
+
+    controller.centerOnCanvasPoint(Offset(canvasX, canvasY));
+  }
+
   @override
   Widget build(BuildContext context) {
     final renderState = context.read<NodeRenderState>();
-    final viewportController = context.watch<ViewportController>();
+    final viewportController = context.read<ViewportController>();
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
 
@@ -183,29 +211,45 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
       borderRadius: 10,
       width: 200,
       height: 200,
-      child: _snapshot != null
-          ? CustomPaint(
-              size: const Size(200, 200),
-              painter: _SnapshotPainter(
-                snapshot: _snapshot!,
-                viewportLeft: _viewportLeft,
-                viewportTop: _viewportTop,
-                viewportWidth: _viewportWidth,
-                viewportHeight: _viewportHeight,
-                viewportFill: _viewportFill,
-                viewportBorder: _viewportBorder,
-              ),
-            )
-          : RepaintBoundary(
-              key: _captureKey,
-              child: _MiniMapContent(
-                nodes: nodes,
-                relations: relations,
-                primaryColor: primaryColor,
-                viewportSize: gridState.viewportSize,
-                margins: margins,
-              ),
-            ),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (details) => _handleMiniMapInteraction(
+            details.localPosition,
+            viewportController,
+          ),
+          onPanUpdate: (details) => _handleMiniMapInteraction(
+            details.localPosition,
+            viewportController,
+          ),
+          onPanEnd: (_) => viewportController.recalculateElasticMargins(),
+          onTapUp: (_) => viewportController.recalculateElasticMargins(),
+          child: _snapshot != null
+              ? CustomPaint(
+                  size: const Size(200, 200),
+                  painter: _SnapshotPainter(
+                    snapshot: _snapshot!,
+                    viewportLeft: _viewportLeft,
+                    viewportTop: _viewportTop,
+                    viewportWidth: _viewportWidth,
+                    viewportHeight: _viewportHeight,
+                    viewportFill: _viewportFill,
+                    viewportBorder: _viewportBorder,
+                  ),
+                )
+              : RepaintBoundary(
+                  key: _captureKey,
+                  child: _MiniMapContent(
+                    nodes: nodes,
+                    relations: relations,
+                    primaryColor: primaryColor,
+                    viewportSize: gridState.viewportSize,
+                    margins: margins,
+                  ),
+                ),
+        ),
+      ),
     );
   }
 }
