@@ -207,6 +207,7 @@ async fn test_graph_snapshot() {
             },
             active_theme_id: None,
             display_mode: centrode_core::domain::base_models::DisplayMode::Importance,
+            opt_area: None,
         },
     };
 

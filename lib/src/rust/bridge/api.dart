@@ -15,6 +15,8 @@ import '../domain/tags.dart';
 import '../domain/theme.dart';
 import '../domain/types.dart';
 import '../frb_generated.dart';
+import '../layout_engine/config.dart';
+import '../layout_engine/types.dart';
 import '../persistence/history.dart';
 import '../persistence/repo.dart';
 import '../relation_engine/computed.dart';
@@ -96,6 +98,8 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<Nodes?> getNode({required TypedRecordId id});
 
+  Future<BoundingBox?> getOptArea();
+
   Future<Tag?> getTag({required String key});
 
   Future<MapTheme?> getTheme({required String key});
@@ -148,6 +152,10 @@ abstract class AppHandle implements RustOpaqueInterface {
   Future<void> setActiveTheme({required String themeKey});
 
   Future<void> setActiveThemeId({required String themeId});
+
+  Future<void> setOptArea({BoundingBox? bounds});
+
+  Future<void> triggerLayoutOptimization({required LayoutConfig config});
 
   Future<HistoryRecord?> undo();
 

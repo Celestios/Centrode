@@ -13,6 +13,7 @@ import '../domain/styles.dart';
 import '../domain/tags.dart';
 import '../domain/types.dart';
 import '../frb_generated.dart';
+import '../layout_engine/types.dart';
 import '../relation_engine/config.dart';
 import '../relation_engine/geometry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
@@ -43,4 +44,8 @@ sealed class GraphEvent with _$GraphEvent {
   /// Elastic canvas boundary recalculation
   const factory GraphEvent.boundaryUpdated(BoundingBox field0) =
       GraphEvent_BoundaryUpdated;
+
+  /// Layout engine tick — batch of position patches emitted during force simulation
+  const factory GraphEvent.layoutTick(LayoutTickResult field0) =
+      GraphEvent_LayoutTick;
 }

@@ -30,6 +30,7 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
       (icon: Icons.near_me_outlined, label: 'Select', mode: 'select'),
       (icon: Icons.pan_tool_outlined, label: 'Pan', mode: 'pan'),
       (icon: Icons.timeline_outlined, label: 'Connect', mode: 'connect'),
+      (icon: Icons.auto_fix_high_outlined, label: 'Optimize', mode: 'optimize'),
     ];
 
     final actions = [

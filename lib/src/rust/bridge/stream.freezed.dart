@@ -55,14 +55,15 @@ extension GraphEventPatterns on GraphEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GraphEvent_NodeUpdated value)?  nodeUpdated,TResult Function( GraphEvent_RelationUpdated value)?  relationUpdated,TResult Function( GraphEvent_BatchUpdated value)?  batchUpdated,TResult Function( GraphEvent_BoundaryUpdated value)?  boundaryUpdated,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GraphEvent_NodeUpdated value)?  nodeUpdated,TResult Function( GraphEvent_RelationUpdated value)?  relationUpdated,TResult Function( GraphEvent_BatchUpdated value)?  batchUpdated,TResult Function( GraphEvent_BoundaryUpdated value)?  boundaryUpdated,TResult Function( GraphEvent_LayoutTick value)?  layoutTick,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case GraphEvent_NodeUpdated() when nodeUpdated != null:
 return nodeUpdated(_that);case GraphEvent_RelationUpdated() when relationUpdated != null:
 return relationUpdated(_that);case GraphEvent_BatchUpdated() when batchUpdated != null:
 return batchUpdated(_that);case GraphEvent_BoundaryUpdated() when boundaryUpdated != null:
-return boundaryUpdated(_that);case _:
+return boundaryUpdated(_that);case GraphEvent_LayoutTick() when layoutTick != null:
+return layoutTick(_that);case _:
   return orElse();
 
 }
@@ -80,14 +81,15 @@ return boundaryUpdated(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GraphEvent_NodeUpdated value)  nodeUpdated,required TResult Function( GraphEvent_RelationUpdated value)  relationUpdated,required TResult Function( GraphEvent_BatchUpdated value)  batchUpdated,required TResult Function( GraphEvent_BoundaryUpdated value)  boundaryUpdated,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GraphEvent_NodeUpdated value)  nodeUpdated,required TResult Function( GraphEvent_RelationUpdated value)  relationUpdated,required TResult Function( GraphEvent_BatchUpdated value)  batchUpdated,required TResult Function( GraphEvent_BoundaryUpdated value)  boundaryUpdated,required TResult Function( GraphEvent_LayoutTick value)  layoutTick,}){
 final _that = this;
 switch (_that) {
 case GraphEvent_NodeUpdated():
 return nodeUpdated(_that);case GraphEvent_RelationUpdated():
 return relationUpdated(_that);case GraphEvent_BatchUpdated():
 return batchUpdated(_that);case GraphEvent_BoundaryUpdated():
-return boundaryUpdated(_that);}
+return boundaryUpdated(_that);case GraphEvent_LayoutTick():
+return layoutTick(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -101,14 +103,15 @@ return boundaryUpdated(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GraphEvent_NodeUpdated value)?  nodeUpdated,TResult? Function( GraphEvent_RelationUpdated value)?  relationUpdated,TResult? Function( GraphEvent_BatchUpdated value)?  batchUpdated,TResult? Function( GraphEvent_BoundaryUpdated value)?  boundaryUpdated,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GraphEvent_NodeUpdated value)?  nodeUpdated,TResult? Function( GraphEvent_RelationUpdated value)?  relationUpdated,TResult? Function( GraphEvent_BatchUpdated value)?  batchUpdated,TResult? Function( GraphEvent_BoundaryUpdated value)?  boundaryUpdated,TResult? Function( GraphEvent_LayoutTick value)?  layoutTick,}){
 final _that = this;
 switch (_that) {
 case GraphEvent_NodeUpdated() when nodeUpdated != null:
 return nodeUpdated(_that);case GraphEvent_RelationUpdated() when relationUpdated != null:
 return relationUpdated(_that);case GraphEvent_BatchUpdated() when batchUpdated != null:
 return batchUpdated(_that);case GraphEvent_BoundaryUpdated() when boundaryUpdated != null:
-return boundaryUpdated(_that);case _:
+return boundaryUpdated(_that);case GraphEvent_LayoutTick() when layoutTick != null:
+return layoutTick(_that);case _:
   return null;
 
 }
@@ -125,13 +128,14 @@ return boundaryUpdated(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( TypedRecordId id,  List<NodePatch> patches)?  nodeUpdated,TResult Function( TypedRecordId id,  List<RelationPatch> patches)?  relationUpdated,TResult Function( GraphDelta field0)?  batchUpdated,TResult Function( BoundingBox field0)?  boundaryUpdated,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( TypedRecordId id,  List<NodePatch> patches)?  nodeUpdated,TResult Function( TypedRecordId id,  List<RelationPatch> patches)?  relationUpdated,TResult Function( GraphDelta field0)?  batchUpdated,TResult Function( BoundingBox field0)?  boundaryUpdated,TResult Function( LayoutTickResult field0)?  layoutTick,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case GraphEvent_NodeUpdated() when nodeUpdated != null:
 return nodeUpdated(_that.id,_that.patches);case GraphEvent_RelationUpdated() when relationUpdated != null:
 return relationUpdated(_that.id,_that.patches);case GraphEvent_BatchUpdated() when batchUpdated != null:
 return batchUpdated(_that.field0);case GraphEvent_BoundaryUpdated() when boundaryUpdated != null:
-return boundaryUpdated(_that.field0);case _:
+return boundaryUpdated(_that.field0);case GraphEvent_LayoutTick() when layoutTick != null:
+return layoutTick(_that.field0);case _:
   return orElse();
 
 }
@@ -149,13 +153,14 @@ return boundaryUpdated(_that.field0);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( TypedRecordId id,  List<NodePatch> patches)  nodeUpdated,required TResult Function( TypedRecordId id,  List<RelationPatch> patches)  relationUpdated,required TResult Function( GraphDelta field0)  batchUpdated,required TResult Function( BoundingBox field0)  boundaryUpdated,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( TypedRecordId id,  List<NodePatch> patches)  nodeUpdated,required TResult Function( TypedRecordId id,  List<RelationPatch> patches)  relationUpdated,required TResult Function( GraphDelta field0)  batchUpdated,required TResult Function( BoundingBox field0)  boundaryUpdated,required TResult Function( LayoutTickResult field0)  layoutTick,}) {final _that = this;
 switch (_that) {
 case GraphEvent_NodeUpdated():
 return nodeUpdated(_that.id,_that.patches);case GraphEvent_RelationUpdated():
 return relationUpdated(_that.id,_that.patches);case GraphEvent_BatchUpdated():
 return batchUpdated(_that.field0);case GraphEvent_BoundaryUpdated():
-return boundaryUpdated(_that.field0);}
+return boundaryUpdated(_that.field0);case GraphEvent_LayoutTick():
+return layoutTick(_that.field0);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -169,13 +174,14 @@ return boundaryUpdated(_that.field0);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( TypedRecordId id,  List<NodePatch> patches)?  nodeUpdated,TResult? Function( TypedRecordId id,  List<RelationPatch> patches)?  relationUpdated,TResult? Function( GraphDelta field0)?  batchUpdated,TResult? Function( BoundingBox field0)?  boundaryUpdated,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( TypedRecordId id,  List<NodePatch> patches)?  nodeUpdated,TResult? Function( TypedRecordId id,  List<RelationPatch> patches)?  relationUpdated,TResult? Function( GraphDelta field0)?  batchUpdated,TResult? Function( BoundingBox field0)?  boundaryUpdated,TResult? Function( LayoutTickResult field0)?  layoutTick,}) {final _that = this;
 switch (_that) {
 case GraphEvent_NodeUpdated() when nodeUpdated != null:
 return nodeUpdated(_that.id,_that.patches);case GraphEvent_RelationUpdated() when relationUpdated != null:
 return relationUpdated(_that.id,_that.patches);case GraphEvent_BatchUpdated() when batchUpdated != null:
 return batchUpdated(_that.field0);case GraphEvent_BoundaryUpdated() when boundaryUpdated != null:
-return boundaryUpdated(_that.field0);case _:
+return boundaryUpdated(_that.field0);case GraphEvent_LayoutTick() when layoutTick != null:
+return layoutTick(_that.field0);case _:
   return null;
 
 }
@@ -457,6 +463,72 @@ class _$GraphEvent_BoundaryUpdatedCopyWithImpl<$Res>
   return _then(GraphEvent_BoundaryUpdated(
 null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
 as BoundingBox,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class GraphEvent_LayoutTick extends GraphEvent {
+  const GraphEvent_LayoutTick(this.field0): super._();
+  
+
+ final  LayoutTickResult field0;
+
+/// Create a copy of GraphEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$GraphEvent_LayoutTickCopyWith<GraphEvent_LayoutTick> get copyWith => _$GraphEvent_LayoutTickCopyWithImpl<GraphEvent_LayoutTick>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GraphEvent_LayoutTick&&(identical(other.field0, field0) || other.field0 == field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0);
+
+@override
+String toString() {
+  return 'GraphEvent.layoutTick(field0: $field0)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $GraphEvent_LayoutTickCopyWith<$Res> implements $GraphEventCopyWith<$Res> {
+  factory $GraphEvent_LayoutTickCopyWith(GraphEvent_LayoutTick value, $Res Function(GraphEvent_LayoutTick) _then) = _$GraphEvent_LayoutTickCopyWithImpl;
+@useResult
+$Res call({
+ LayoutTickResult field0
+});
+
+
+
+
+}
+/// @nodoc
+class _$GraphEvent_LayoutTickCopyWithImpl<$Res>
+    implements $GraphEvent_LayoutTickCopyWith<$Res> {
+  _$GraphEvent_LayoutTickCopyWithImpl(this._self, this._then);
+
+  final GraphEvent_LayoutTick _self;
+  final $Res Function(GraphEvent_LayoutTick) _then;
+
+/// Create a copy of GraphEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(GraphEvent_LayoutTick(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as LayoutTickResult,
   ));
 }
 

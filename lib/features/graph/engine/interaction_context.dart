@@ -23,6 +23,9 @@ abstract interface class ViewportCapability {
 
   /// Returns the current set of visible node IDs for O(V) hit testing.
   Set<RawUuid> getVisibleNodeIds();
+
+  /// Gets the current active tool mode string ('select', 'pan', 'connect', 'optimize', 'draw').
+  String get toolMode;
 }
 
 /// Interface segregating selection and toolbar actions.
@@ -139,6 +142,8 @@ abstract interface class MutationCapability {
   });
 
   void onRelationSnapPreviewClear(RawUuid relationId);
+
+  void onSetOptArea(Rect? bounds);
 }
 
 abstract interface class GeometryCapability

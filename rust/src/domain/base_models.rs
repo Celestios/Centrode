@@ -77,6 +77,7 @@ impl Default for MapData {
             viewport_state: ViewportState::default(),
             active_theme_id: None,
             display_mode: DisplayMode::default(),
+            opt_area: None,
         }
     }
 }

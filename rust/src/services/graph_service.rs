@@ -1,5 +1,7 @@
 use crate::bridge::stream::{self, GraphEvent};
 use crate::frb_generated::StreamSink;
+use crate::layout_engine::config::LayoutConfig;
+use crate::layout_engine::engine::LayoutEngine;
 use crate::persistence::db::Database;
 use crate::persistence::repo::Repository;
 use crate::relation_engine::config::RelationEngineConfig;
@@ -14,6 +16,7 @@ pub use crate::domain::styles::{NodeLayout, NodeStyle, RelationLayout, RelationS
 pub use crate::relation_engine::engine::RelationEngine;
 
 pub mod history;
+pub mod layout;
 pub mod metadata;
 pub mod node;
 pub mod relation;
@@ -21,6 +24,7 @@ pub mod relation;
 pub struct GraphService {
     pub repo: Repository,
     pub relation_engine: std::sync::Arc<Mutex<RelationEngine>>,
+    pub layout_engine: std::sync::Arc<Mutex<LayoutEngine>>,
     tasks: Mutex<Vec<JoinHandle<()>>>,
 }
 
@@ -43,9 +47,13 @@ impl GraphService {
         let relation_engine = std::sync::Arc::new(Mutex::new(RelationEngine::new(
             RelationEngineConfig::default(),
         )));
+        let layout_engine = std::sync::Arc::new(Mutex::new(LayoutEngine::new(
+            LayoutConfig::default(),
+        )));
         Self {
             repo,
             relation_engine,
+            layout_engine,
             tasks: Mutex::new(Vec::new()),
         }
     }

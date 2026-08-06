@@ -105,6 +105,9 @@ class CanvasIdle extends CanvasInteractionState {
     if (e.buttons == kPrimaryMouseButton &&
         hitEntityId == null &&
         !isDoubleTap) {
+      if (ctx.toolMode == 'optimize') {
+        return OptAreaDrawing(pCanvas, pCanvas);
+      }
       return MarqueeSelecting(pCanvas, pCanvas);
     }
 

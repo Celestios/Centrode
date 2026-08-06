@@ -8,6 +8,20 @@ use anyhow::Result;
 use surrealdb::types::{SurrealValue, Value};
 
 impl Repository {
+    pub async fn get_map_data(&self) -> Result<MapData> {
+        let metadata: Option<MapData> = self.db.select(MapData::record_id().to_record_id()).await?;
+        metadata.ok_or_else(|| anyhow::anyhow!("MapData not found"))
+    }
+
+    pub async fn update_map_data(&self, data: MapData) -> Result<()> {
+        let _: Option<MapData> = self
+            .db
+            .update(MapData::record_id().to_record_id())
+            .content(data)
+            .await?;
+        Ok(())
+    }
+
     pub async fn get_graph_snapshot(&self) -> Result<GraphSnapshot> {
         tracing::info!("Fetching graph snapshot...");
 

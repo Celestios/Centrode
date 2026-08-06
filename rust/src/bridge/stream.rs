@@ -1,6 +1,7 @@
 use crate::domain::base_models::BoundingBox;
 use crate::domain::id::TypedRecordId;
 use crate::domain::patches::{NodePatch, RelationPatch};
+use crate::layout_engine::types::LayoutTickResult;
 use flutter_rust_bridge::frb;
 use std::sync::LazyLock;
 use tokio::sync::broadcast;
@@ -21,6 +22,8 @@ pub enum GraphEvent {
     BatchUpdated(GraphDelta),
     /// Elastic canvas boundary recalculation
     BoundaryUpdated(BoundingBox),
+    /// Layout engine tick — batch of position patches emitted during force simulation
+    LayoutTick(LayoutTickResult),
 }
 
 // Global broadcast channel for graph events (capacity of 1000 messages)

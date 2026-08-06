@@ -5,6 +5,7 @@ import 'package:centrode/shared/logging.dart';
 import '../../models/models.dart';
 import '../../../../src/rust/bridge/stream.dart';
 import '../../../../src/rust/domain/patches.dart';
+import '../../../../src/rust/layout_engine/types.dart';
 import '../command_queue_processor.dart';
 import '../command_processor.dart';
 import '../graph_data_query.dart';
@@ -142,6 +143,10 @@ class GraphSyncEngine {
       case GraphEvent_BatchUpdated(:final field0):
         _applyGraphDelta(field0);
         break;
+
+      case GraphEvent_LayoutTick(:final field0):
+        _applyLayoutTick(field0);
+        break;
     }
   }
 
@@ -253,6 +258,61 @@ class GraphSyncEngine {
     controller.publishUpdate(
       GraphEntityUpdate(tableName: '', type: GraphUpdateType.reset),
     );
+  }
+
+  void _applyLayoutTick(LayoutTickResult result) {
+    _syncLog.fine(
+      'LayoutTick: iter=${result.iteration}, energy=${result.energy.toStringAsFixed(2)}, '
+      'converged=${result.converged}, patches=${result.positionPatches.length}',
+    );
+
+    for (final patch in result.positionPatches) {
+      final rawId = RawUuid.fromString(patch.id.key.uuid);
+      final newPos = Offset(patch.x, patch.y);
+      final node = controller.store.nodeLookup[rawId];
+      if (node != null) {
+        node.position = newPos;
+      }
+    }
+
+    if (result.positionPatches.isNotEmpty) {
+      controller.spatial.reindexAll(controller.store.nodeLookup);
+      controller.publishUpdate(
+        GraphEntityUpdate(tableName: '', type: GraphUpdateType.reset),
+      );
+    }
+
+    final movedNodeIds = result.positionPatches
+        .map((p) => RawUuid.fromString(p.id.key.uuid))
+        .toSet();
+
+    if (movedNodeIds.isNotEmpty) {
+      final affectedRelations = controller.store.relationLookup.values
+          .where(
+            (r) =>
+                movedNodeIds.contains(r.fromNodeId) ||
+                movedNodeIds.contains(r.toNodeId),
+          )
+          .map((r) => r.id);
+      controller.relationEngine.markRelationsDirty(affectedRelations);
+    }
+
+    if (result.converged) {
+      _syncLog.info(
+        'Layout optimization converged after ${result.iteration} iterations',
+      );
+      _persistLayoutPositions(result.positionPatches);
+    }
+  }
+
+  Future<void> _persistLayoutPositions(List<LayoutPatch> patches) async {
+    final updates = <(RawUuid, Offset)>[];
+    for (final patch in patches) {
+      final rawId = RawUuid.fromString(patch.id.key.uuid);
+      final newPos = Offset(patch.x, patch.y);
+      updates.add((rawId, newPos));
+      controller.nodeMutations.updateNodePosition(rawId, newPos);
+    }
   }
 
   // ===========================================================================

@@ -1,4 +1,5 @@
 use crate::bridge::stream::{GraphDelta, GraphEvent};
+pub use crate::domain::base_models::BoundingBox;
 pub use crate::domain::base_models::ViewportState;
 pub use crate::domain::id::TypedRecordId;
 pub use crate::domain::nodes::Nodes;
@@ -11,6 +12,7 @@ pub use crate::domain::templates::Template;
 pub use crate::domain::theme::{MapTheme, ThemeFields};
 pub use crate::domain::types::{Auxiliary, DomainEntity, Relations};
 pub use crate::frb_generated::StreamSink;
+pub use crate::layout_engine::config::LayoutConfig;
 pub use crate::persistence::history::HistoryRecord;
 pub use crate::persistence::repo::Repository;
 pub use crate::relation_engine::computed::ComputedRelation;
@@ -283,6 +285,22 @@ impl AppHandle {
         self.service
             .load_map_from_file(file_path, attachment_dir)
             .await
+    }
+
+    // Layout Engine FFI Endpoints
+    pub async fn set_opt_area(&self, bounds: Option<BoundingBox>) -> anyhow::Result<()> {
+        self.service.set_opt_area(bounds).await
+    }
+
+    pub async fn get_opt_area(&self) -> anyhow::Result<Option<BoundingBox>> {
+        self.service.get_opt_area().await
+    }
+
+    pub async fn trigger_layout_optimization(
+        &self,
+        config: LayoutConfig,
+    ) -> anyhow::Result<()> {
+        self.service.trigger_layout_optimization(config).await
     }
 }
 

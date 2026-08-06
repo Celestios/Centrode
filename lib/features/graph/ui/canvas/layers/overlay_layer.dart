@@ -53,6 +53,14 @@ class OverlayLayer extends StatelessWidget {
                 ),
               ),
 
+            // 5. OptArea Drawing Box Layer
+            if (interactionState is OptAreaDrawing)
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _OptAreaPainter(state: interactionState),
+                ),
+              ),
+
             // 6. Metadata Preview Overlay Card
             ListenableBuilder(
               listenable: renderState.hoveredNodeMetadataNotifier,
@@ -218,6 +226,39 @@ class _MarqueePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _MarqueePainter oldDelegate) {
+    return oldDelegate.state.currentPos != state.currentPos;
+  }
+}
+
+/// Painter for the OptArea Selection box.
+class _OptAreaPainter extends CustomPainter {
+  final OptAreaDrawing state;
+
+  _OptAreaPainter({required this.state});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromPoints(state.startPos, state.currentPos);
+
+    // Fill
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..color = Colors.amberAccent.withValues(alpha: 0.15)
+        ..style = PaintingStyle.fill,
+    );
+    // Border
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..color = Colors.amberAccent
+        ..strokeWidth = 2.0
+        ..style = PaintingStyle.stroke,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _OptAreaPainter oldDelegate) {
     return oldDelegate.state.currentPos != state.currentPos;
   }
 }

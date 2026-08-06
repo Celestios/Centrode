@@ -20,6 +20,8 @@ import 'domain/tags.dart';
 import 'domain/theme.dart';
 import 'domain/types.dart';
 import 'frb_generated.dart';
+import 'layout_engine/config.dart';
+import 'layout_engine/types.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
 import 'package:uuid/uuid.dart';
 import 'persistence/history.dart';
@@ -207,6 +209,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   InterNode dco_decode_box_autoadd_inter_node(dynamic raw);
 
   @protected
+  LayoutConfig dco_decode_box_autoadd_layout_config(dynamic raw);
+
+  @protected
+  LayoutTickResult dco_decode_box_autoadd_layout_tick_result(dynamic raw);
+
+  @protected
   MapTheme dco_decode_box_autoadd_map_theme(dynamic raw);
 
   @protected
@@ -307,6 +315,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ControlPoint dco_decode_control_point(dynamic raw);
 
   @protected
+  ConvergenceCriteria dco_decode_convergence_criteria(dynamic raw);
+
+  @protected
   Coordinates dco_decode_coordinates(dynamic raw);
 
   @protected
@@ -329,6 +340,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FontWeight dco_decode_font_weight(dynamic raw);
+
+  @protected
+  ForceConfig dco_decode_force_config(dynamic raw);
 
   @protected
   FrameNode dco_decode_frame_node(dynamic raw);
@@ -370,6 +384,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LabelAnchor dco_decode_label_anchor(dynamic raw);
 
   @protected
+  LayoutConfig dco_decode_layout_config(dynamic raw);
+
+  @protected
+  LayoutPatch dco_decode_layout_patch(dynamic raw);
+
+  @protected
+  LayoutTickResult dco_decode_layout_tick_result(dynamic raw);
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
@@ -386,6 +409,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<InlineElement> dco_decode_list_inline_element(dynamic raw);
+
+  @protected
+  List<LayoutPatch> dco_decode_list_layout_patch(dynamic raw);
 
   @protected
   List<MapTheme> dco_decode_list_map_theme(dynamic raw);
@@ -485,6 +511,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
+
+  @protected
+  BoundingBox? dco_decode_opt_box_autoadd_bounding_box(dynamic raw);
 
   @protected
   ControlPoint? dco_decode_opt_box_autoadd_control_point(dynamic raw);
@@ -813,6 +842,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   InterNode sse_decode_box_autoadd_inter_node(SseDeserializer deserializer);
 
   @protected
+  LayoutConfig sse_decode_box_autoadd_layout_config(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LayoutTickResult sse_decode_box_autoadd_layout_tick_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   MapTheme sse_decode_box_autoadd_map_theme(SseDeserializer deserializer);
 
   @protected
@@ -923,6 +962,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ControlPoint sse_decode_control_point(SseDeserializer deserializer);
 
   @protected
+  ConvergenceCriteria sse_decode_convergence_criteria(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   Coordinates sse_decode_coordinates(SseDeserializer deserializer);
 
   @protected
@@ -945,6 +989,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FontWeight sse_decode_font_weight(SseDeserializer deserializer);
+
+  @protected
+  ForceConfig sse_decode_force_config(SseDeserializer deserializer);
 
   @protected
   FrameNode sse_decode_frame_node(SseDeserializer deserializer);
@@ -986,6 +1033,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LabelAnchor sse_decode_label_anchor(SseDeserializer deserializer);
 
   @protected
+  LayoutConfig sse_decode_layout_config(SseDeserializer deserializer);
+
+  @protected
+  LayoutPatch sse_decode_layout_patch(SseDeserializer deserializer);
+
+  @protected
+  LayoutTickResult sse_decode_layout_tick_result(SseDeserializer deserializer);
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
@@ -1008,6 +1064,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<InlineElement> sse_decode_list_inline_element(
     SseDeserializer deserializer,
   );
+
+  @protected
+  List<LayoutPatch> sse_decode_list_layout_patch(SseDeserializer deserializer);
 
   @protected
   List<MapTheme> sse_decode_list_map_theme(SseDeserializer deserializer);
@@ -1119,6 +1178,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
+
+  @protected
+  BoundingBox? sse_decode_opt_box_autoadd_bounding_box(
+    SseDeserializer deserializer,
+  );
 
   @protected
   ControlPoint? sse_decode_opt_box_autoadd_control_point(
@@ -1526,6 +1590,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_layout_config(
+    LayoutConfig self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_layout_tick_result(
+    LayoutTickResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_map_theme(
     MapTheme self,
     SseSerializer serializer,
@@ -1679,6 +1755,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_control_point(ControlPoint self, SseSerializer serializer);
 
   @protected
+  void sse_encode_convergence_criteria(
+    ConvergenceCriteria self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_coordinates(Coordinates self, SseSerializer serializer);
 
   @protected
@@ -1704,6 +1786,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_font_weight(FontWeight self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_force_config(ForceConfig self, SseSerializer serializer);
 
   @protected
   void sse_encode_frame_node(FrameNode self, SseSerializer serializer);
@@ -1748,6 +1833,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_label_anchor(LabelAnchor self, SseSerializer serializer);
 
   @protected
+  void sse_encode_layout_config(LayoutConfig self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_layout_patch(LayoutPatch self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_layout_tick_result(
+    LayoutTickResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
@@ -1774,6 +1871,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_inline_element(
     List<InlineElement> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_layout_patch(
+    List<LayoutPatch> self,
     SseSerializer serializer,
   );
 
@@ -1900,6 +2003,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_bounding_box(
+    BoundingBox? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_box_autoadd_control_point(

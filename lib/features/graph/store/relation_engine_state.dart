@@ -75,6 +75,11 @@ class RelationEngineState {
     _scheduleRecompute();
   }
 
+  void markRelationsDirty(Iterable<RawUuid> ids) {
+    _tracker.markIdsDirty(ids);
+    _scheduleRecompute();
+  }
+
   void onRelationAdded(UiRelation relation, {UiNode? fromNode, UiNode? toNode}) {
     _tracker.onRelationAdded(relation);
     _computeSingleRelation(relation, fromNode: fromNode, toNode: toNode);

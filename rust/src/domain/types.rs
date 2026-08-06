@@ -13,7 +13,7 @@
 //!   the sum-type union enums and trait implementations. Do not manually create wrapper 
 //!   modules for individual entities or variants.
 
-use crate::domain::base_models::{Comment, DisplayMode, Size, ViewportState};
+use crate::domain::base_models::{BoundingBox, Comment, DisplayMode, Size, ViewportState};
 use crate::domain::contents::Content;
 use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::{BrushType, MediaType, ShapeType, TaskState};
@@ -140,6 +140,7 @@ define_domain_types! {
         pub viewport_state: ViewportState,
         pub active_theme_id: Option<String>,
         pub display_mode: DisplayMode,
+        pub opt_area: Option<BoundingBox>,
     }
 
     #[category(auxiliary)]

@@ -3,6 +3,7 @@ import 'package:centrode/src/rust/bridge/api.dart';
 import 'package:centrode/src/rust/domain/types.dart';
 import 'package:centrode/src/rust/domain/id.dart';
 import 'package:centrode/src/rust/domain/patches.dart';
+import 'package:centrode/src/rust/layout_engine/config.dart';
 import 'package:centrode/src/rust/relation_engine/config.dart';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
@@ -88,6 +89,9 @@ abstract class GraphApi {
   Future<void> updateTag({required Tag tag});
   Future<void> updateTheme({required MapTheme theme});
   Future<void> updateViewportState({required ViewportState state});
+  Future<BoundingBox?> getOptArea();
+  Future<void> setOptArea({BoundingBox? bounds});
+  Future<void> triggerLayoutOptimization({required LayoutConfig config});
 }
 
 /// Concrete FFI-backed implementation of [GraphApi] wrapping [AppHandle].
@@ -281,6 +285,17 @@ class RustAppHandleWrapper implements GraphApi {
   @override
   Future<void> updateViewportState({required ViewportState state}) =>
       _api.updateViewportState(state: state);
+
+  @override
+  Future<BoundingBox?> getOptArea() => _api.getOptArea();
+
+  @override
+  Future<void> setOptArea({BoundingBox? bounds}) =>
+      _api.setOptArea(bounds: bounds);
+
+  @override
+  Future<void> triggerLayoutOptimization({required LayoutConfig config}) =>
+      _api.triggerLayoutOptimization(config: config);
 }
 
 /// A proxy [GraphApi] that buffers or returns safe defaults before the underlying FFI handle finishes loading.
@@ -570,5 +585,20 @@ class DeferredGraphApi implements GraphApi {
   @override
   Future<void> updateViewportState({required ViewportState state}) async {
     await _handle?.updateViewportState(state: state);
+  }
+
+  @override
+  Future<BoundingBox?> getOptArea() async {
+    return await _handle?.getOptArea();
+  }
+
+  @override
+  Future<void> setOptArea({BoundingBox? bounds}) async {
+    await _handle?.setOptArea(bounds: bounds);
+  }
+
+  @override
+  Future<void> triggerLayoutOptimization({required LayoutConfig config}) async {
+    await _handle?.triggerLayoutOptimization(config: config);
   }
 }

@@ -17,6 +17,8 @@ import '../presentation/node_render_state.dart';
 import '../presentation/viewport_state.dart';
 import '../presentation/workspace_tabs_controller.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/src/rust/domain/base_models.dart' hide Size;
+import 'package:centrode/src/rust/layout_engine/config.dart';
 
 /// The Facade bridging the active FSM to the Data/UI Controllers.
 class CanvasInteractionEnvironment implements InteractionContext {
@@ -26,6 +28,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
   final NodeRenderState _renderState;
   final ViewportController _viewportController;
   final double Function() _getScale;
+  final TabSession? _boundSession;
   final void Function(List<RawUuid> nodeIds, List<RawUuid> relationIds)?
   _onSaveTemplate;
 
@@ -53,11 +56,15 @@ class CanvasInteractionEnvironment implements InteractionContext {
        _renderState = renderState,
        _viewportController = viewportController,
        _getScale = getScale,
+       _boundSession = boundSession,
        _onSaveTemplate = onSaveTemplate,
        spatialHandler = spatialHandler ?? const DefaultSpatialActionHandler(),
        topologyHandler =
            topologyHandler ?? const DefaultTopologyActionHandler(),
        contentHandler = contentHandler ?? const DefaultContentActionHandler();
+
+  @override
+  String get toolMode => _boundSession?.toolModeNotifier.value ?? 'select';
 
   @override
   Map<RawUuid, NodeViewState> get nodeViewStates => _renderState.viewStates;
@@ -355,5 +362,46 @@ class CanvasInteractionEnvironment implements InteractionContext {
   @override
   void onRelationSnapPreviewClear(RawUuid relationId) {
     _queryController.relationEngine.clearRelationPreview(relationId);
+  }
+
+  @override
+  void onSetOptArea(Rect? bounds) async {
+    final boundingBox = bounds == null
+        ? null
+        : BoundingBox(
+            minX: bounds.left,
+            minY: bounds.top,
+            maxX: bounds.right,
+            maxY: bounds.bottom,
+          );
+    _log.info('Setting OptArea: $boundingBox');
+    await _commandProcessor.api.setOptArea(bounds: boundingBox);
+    if (boundingBox != null) {
+      _log.info('Triggering layout optimization for OptArea');
+      await _commandProcessor.api.triggerLayoutOptimization(
+        config: const LayoutConfig(
+          force: ForceConfig(
+            repulsionConstant: 5000.0,
+            springConstant: 0.05,
+            idealLinkDistance: 200.0,
+            collisionStrength: 0.8,
+            baseMargin: 10.0,
+            marginScale: 0.1,
+            wallStrength: 1.0,
+            wallPadding: 20.0,
+            damping: 0.4,
+            alphaDecay: 0.02,
+            alphaMin: 0.001,
+          ),
+          convergence: ConvergenceCriteria(
+            maxIterations: 500,
+            energyThreshold: 0.01,
+            displacementThreshold: 0.5,
+            oscillationWindow: 10,
+          ),
+          batchSize: 5,
+        ),
+      );
+    }
   }
 }
