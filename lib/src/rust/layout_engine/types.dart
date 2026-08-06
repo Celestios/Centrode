@@ -4,10 +4,13 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../domain/id.dart';
+import '../domain/styles.dart';
 import '../domain/types.dart';
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:uuid/uuid.dart';
+
+enum Axis { horizontal, vertical }
 
 class LayoutPatch {
   final TypedRecordId id;
@@ -31,12 +34,14 @@ class LayoutPatch {
 
 class LayoutTickResult {
   final List<LayoutPatch> positionPatches;
+  final List<PortPatch> portPatches;
   final bool converged;
   final int iteration;
   final double energy;
 
   const LayoutTickResult({
     required this.positionPatches,
+    required this.portPatches,
     required this.converged,
     required this.iteration,
     required this.energy,
@@ -45,6 +50,7 @@ class LayoutTickResult {
   @override
   int get hashCode =>
       positionPatches.hashCode ^
+      portPatches.hashCode ^
       converged.hashCode ^
       iteration.hashCode ^
       energy.hashCode;
@@ -55,7 +61,32 @@ class LayoutTickResult {
       other is LayoutTickResult &&
           runtimeType == other.runtimeType &&
           positionPatches == other.positionPatches &&
+          portPatches == other.portPatches &&
           converged == other.converged &&
           iteration == other.iteration &&
           energy == other.energy;
+}
+
+class PortPatch {
+  final TypedRecordId relationId;
+  final PortSide fromSide;
+  final PortSide toSide;
+
+  const PortPatch({
+    required this.relationId,
+    required this.fromSide,
+    required this.toSide,
+  });
+
+  @override
+  int get hashCode => relationId.hashCode ^ fromSide.hashCode ^ toSide.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PortPatch &&
+          runtimeType == other.runtimeType &&
+          relationId == other.relationId &&
+          fromSide == other.fromSide &&
+          toSide == other.toSide;
 }

@@ -1,3 +1,5 @@
+pub mod alignment;
+pub mod anchor;
 pub mod attraction;
 pub mod collision;
 pub mod repulsion;
@@ -6,7 +8,7 @@ pub mod wall;
 use crate::domain::base_models::BoundingBox;
 use crate::domain::id::TypedRecordId;
 use crate::layout_engine::config::ForceConfig;
-use crate::layout_engine::types::{LayoutEdge, NodePhysics};
+use crate::layout_engine::types::{AlignmentConstraint, AnchorSpring, LayoutEdge, NodePhysics};
 use std::collections::HashMap;
 
 pub struct ForceAccumulator;
@@ -16,6 +18,8 @@ impl ForceAccumulator {
         nodes: &mut HashMap<TypedRecordId, NodePhysics>,
         edges: &[LayoutEdge],
         opt_area: &Option<BoundingBox>,
+        anchors: &HashMap<TypedRecordId, AnchorSpring>,
+        alignments: &[AlignmentConstraint],
         config: &ForceConfig,
         alpha: f64,
     ) {
@@ -63,11 +67,41 @@ impl ForceAccumulator {
         }
 
         for i in 0..n {
+            let id = &node_ids[i];
+            let node = &nodes[id];
+
             if let Some(area) = opt_area {
-                let node = &nodes[&node_ids[i]];
                 let (w_fx, w_fy) = wall::wall_force(node, area, config);
                 forces[i].0 += w_fx;
                 forces[i].1 += w_fy;
+            }
+
+            if let Some(anc) = anchors.get(id) {
+                let (a_fx, a_fy) = anchor::anchor_force(node, anc);
+                forces[i].0 += a_fx;
+                forces[i].1 += a_fy;
+            }
+        }
+
+        for constraint in alignments {
+            let member_indices: Vec<(usize, &NodePhysics)> = constraint
+                .node_ids
+                .iter()
+                .filter_map(|id| {
+                    node_ids
+                        .iter()
+                        .position(|nid| nid == id)
+                        .map(|idx| (idx, &nodes[id]))
+                })
+                .collect();
+
+            if !member_indices.is_empty() {
+                let member_nodes: Vec<&NodePhysics> = member_indices.iter().map(|(_, n)| *n).collect();
+                let align_forces = alignment::alignment_force(&member_nodes, constraint, 0.5);
+                for ((idx, _), (afx, afy)) in member_indices.into_iter().zip(align_forces) {
+                    forces[idx].0 += afx;
+                    forces[idx].1 += afy;
+                }
             }
         }
 

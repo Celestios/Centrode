@@ -19,15 +19,15 @@ pub struct ForceConfig {
 impl Default for ForceConfig {
     fn default() -> Self {
         Self {
-            repulsion_constant: 6000.0,
+            repulsion_constant: 5000.0,
             spring_constant: 0.05,
-            ideal_link_distance: 300.0,
+            ideal_link_distance: 200.0,
             collision_strength: 0.8,
             base_margin: 10.0,
             margin_scale: 0.1,
             wall_strength: 1.0,
             wall_padding: 20.0,
-            damping: 0.3,
+            damping: 0.4,
             alpha_decay: 0.02,
             alpha_min: 0.001,
         }

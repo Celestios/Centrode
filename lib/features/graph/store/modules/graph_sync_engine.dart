@@ -94,6 +94,18 @@ class GraphSyncEngine {
 
       _syncLog.fine('Hydration complete. Seeding spatial index.');
 
+      if (_lastLoadedMetadata?.optArea != null) {
+        final box = _lastLoadedMetadata!.optArea!;
+        controller.queryController.optAreaNotifier.value = Rect.fromLTRB(
+          box.minX,
+          box.minY,
+          box.maxX,
+          box.maxY,
+        );
+      } else {
+        controller.queryController.optAreaNotifier.value = null;
+      }
+
       // Seed the passive spatial index with the new node positions
       controller.spatial.reindexAll(controller.store.nodeLookup);
 
@@ -263,7 +275,7 @@ class GraphSyncEngine {
   void _applyLayoutTick(LayoutTickResult result) {
     _syncLog.fine(
       'LayoutTick: iter=${result.iteration}, energy=${result.energy.toStringAsFixed(2)}, '
-      'converged=${result.converged}, patches=${result.positionPatches.length}',
+      'converged=${result.converged}, posPatches=${result.positionPatches.length}, portPatches=${result.portPatches.length}',
     );
 
     for (final patch in result.positionPatches) {
@@ -275,11 +287,15 @@ class GraphSyncEngine {
       }
     }
 
-    if (result.positionPatches.isNotEmpty) {
-      controller.spatial.reindexAll(controller.store.nodeLookup);
-      controller.publishUpdate(
-        GraphEntityUpdate(tableName: '', type: GraphUpdateType.reset),
-      );
+    for (final patch in result.portPatches) {
+      final relId = RawUuid.fromString(patch.relationId.key.uuid);
+      final rel = controller.store.relationLookup[relId];
+      if (rel != null && rel.layout != null) {
+        rel.layout = rel.layout!.copyWith(
+          fromSide: patch.fromSide,
+          toSide: patch.toSide,
+        );
+      }
     }
 
     final movedNodeIds = result.positionPatches
@@ -301,7 +317,14 @@ class GraphSyncEngine {
       _syncLog.info(
         'Layout optimization converged after ${result.iteration} iterations',
       );
+      if (result.positionPatches.isNotEmpty) {
+        controller.spatial.reindexAll(controller.store.nodeLookup);
+        controller.publishUpdate(
+          GraphEntityUpdate(tableName: '', type: GraphUpdateType.reset),
+        );
+      }
       _persistLayoutPositions(result.positionPatches);
+      _persistLayoutPorts(result.portPatches);
     }
   }
 
@@ -312,6 +335,20 @@ class GraphSyncEngine {
       final newPos = Offset(patch.x, patch.y);
       updates.add((rawId, newPos));
       controller.nodeMutations.updateNodePosition(rawId, newPos);
+    }
+  }
+
+  Future<void> _persistLayoutPorts(List<PortPatch> patches) async {
+    for (final patch in patches) {
+      final relId = RawUuid.fromString(patch.relationId.key.uuid);
+      final rel = controller.store.relationLookup[relId];
+      if (rel != null && rel.layout != null) {
+        controller.relationMutations.updateRelationLayout(
+          relId,
+          fromSide: patch.fromSide,
+          toSide: patch.toSide,
+        );
+      }
     }
   }
 

@@ -339,6 +339,9 @@ class NodeRenderState extends ChangeNotifier
   RelationEngineState get relationEngine => _dataQuery.relationEngine;
 
   @override
+  ValueNotifier<Rect?> get optAreaNotifier => _dataQuery.optAreaNotifier;
+
+  @override
   Stream<GraphEntityUpdate> get onEntityUpdate => _dataQuery.onEntityUpdate;
 
   void updateRelationsLayout(List<RawUuid> ids, {String? strategyType}) {

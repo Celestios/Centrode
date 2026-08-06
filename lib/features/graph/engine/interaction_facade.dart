@@ -121,6 +121,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
       toSide: toSide,
       verb: verb,
     );
+    final fromNode = _queryController.nodeLookup[from];
+    final toNode = _queryController.nodeLookup[to];
+    _triggerOptAreaLayoutIfActive(fromNode?.position ?? toNode?.position);
   }
 
   @override
@@ -182,6 +185,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
     // 2. Open Data Inspector and activate edit mode
     openDataInspector(id);
     onEnterEditMode(id);
+
+    // 3. Trigger OptArea layout optimization if inside bounds
+    _triggerOptAreaLayoutIfActive(position);
     return id;
   }
 
@@ -228,6 +234,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
   void onDeleteSelectedEntities() {
     _log.info('onDeleteSelectedEntities');
     _renderState.deleteSelectedEntities();
+    _triggerOptAreaLayoutIfActive();
   }
 
   @override
@@ -338,7 +345,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
         toNodeTable: isStartTip ? rel.toNodeTable : targetNodeTable,
         fromSide: isStartTip
             ? targetSide
-            : (sourceSide ?? rel.resolvedLayout?.fromSide ?? rel.layout?.fromSide),
+            : (sourceSide ??
+                  rel.resolvedLayout?.fromSide ??
+                  rel.layout?.fromSide),
         toSide: isStartTip
             ? (rel.resolvedLayout?.toSide ?? rel.layout?.toSide)
             : targetSide,
@@ -364,6 +373,38 @@ class CanvasInteractionEnvironment implements InteractionContext {
     _queryController.relationEngine.clearRelationPreview(relationId);
   }
 
+  void _triggerOptAreaLayoutIfActive([Offset? testPoint]) {
+    final area = _queryController.optAreaNotifier.value;
+    if (area == null) return;
+    if (testPoint != null && !area.contains(testPoint)) return;
+
+    _log.info('Triggering event-driven layout optimization pass for OptArea');
+    _commandProcessor.api.triggerLayoutOptimization(
+      config: const LayoutConfig(
+        force: ForceConfig(
+          repulsionConstant: 7000.0,
+          springConstant: 0.05,
+          idealLinkDistance: 300.0,
+          collisionStrength: 0.8,
+          baseMargin: 10.0,
+          marginScale: 0.1,
+          wallStrength: 1.0,
+          wallPadding: 20.0,
+          damping: 0.3,
+          alphaDecay: 0.02,
+          alphaMin: 0.001,
+        ),
+        convergence: ConvergenceCriteria(
+          maxIterations: 500,
+          energyThreshold: 0.01,
+          displacementThreshold: 0.5,
+          oscillationWindow: 10,
+        ),
+        batchSize: 5,
+      ),
+    );
+  }
+
   @override
   void onSetOptArea(Rect? bounds) async {
     final boundingBox = bounds == null
@@ -375,33 +416,10 @@ class CanvasInteractionEnvironment implements InteractionContext {
             maxY: bounds.bottom,
           );
     _log.info('Setting OptArea: $boundingBox');
+    _queryController.optAreaNotifier.value = bounds;
     await _commandProcessor.api.setOptArea(bounds: boundingBox);
     if (boundingBox != null) {
-      _log.info('Triggering layout optimization for OptArea');
-      await _commandProcessor.api.triggerLayoutOptimization(
-        config: const LayoutConfig(
-          force: ForceConfig(
-            repulsionConstant: 5000.0,
-            springConstant: 0.05,
-            idealLinkDistance: 200.0,
-            collisionStrength: 0.8,
-            baseMargin: 10.0,
-            marginScale: 0.1,
-            wallStrength: 1.0,
-            wallPadding: 20.0,
-            damping: 0.4,
-            alphaDecay: 0.02,
-            alphaMin: 0.001,
-          ),
-          convergence: ConvergenceCriteria(
-            maxIterations: 500,
-            energyThreshold: 0.01,
-            displacementThreshold: 0.5,
-            oscillationWindow: 10,
-          ),
-          batchSize: 5,
-        ),
-      );
+      _triggerOptAreaLayoutIfActive();
     }
   }
 }

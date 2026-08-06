@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import '../models/models.dart';
 import 'spatial_index.dart';
 import 'relation_engine_state.dart';
@@ -13,6 +15,9 @@ class GraphDataQueryController implements GraphDataQuery {
   final GraphSpatial spatial = GraphSpatial();
   @override
   late final RelationEngineState relationEngine;
+
+  @override
+  final ValueNotifier<Rect?> optAreaNotifier = ValueNotifier<Rect?>(null);
 
   bool _isLoading = false;
   String? _errorMessage;

@@ -13,6 +13,7 @@ pub use crate::domain::theme::{MapTheme, ThemeFields};
 pub use crate::domain::types::{Auxiliary, DomainEntity, Relations};
 pub use crate::frb_generated::StreamSink;
 pub use crate::layout_engine::config::LayoutConfig;
+pub use crate::layout_engine::types::Axis;
 pub use crate::persistence::history::HistoryRecord;
 pub use crate::persistence::repo::Repository;
 pub use crate::relation_engine::computed::ComputedRelation;
@@ -301,6 +302,32 @@ impl AppHandle {
         config: LayoutConfig,
     ) -> anyhow::Result<()> {
         self.service.trigger_layout_optimization(config).await
+    }
+
+    pub async fn compute_auto_placement(
+        &self,
+        source_id: TypedRecordId,
+        port_side: PortSide,
+    ) -> anyhow::Result<(f64, f64)> {
+        self.service.compute_auto_placement(source_id, port_side).await
+    }
+
+    pub async fn set_alignment_constraint(
+        &self,
+        node_ids: Vec<TypedRecordId>,
+        axis: Axis,
+    ) -> anyhow::Result<()> {
+        self.service.set_alignment_constraint(node_ids, axis).await
+    }
+
+    pub async fn add_anchor_spring(
+        &self,
+        node_id: TypedRecordId,
+        x: f64,
+        y: f64,
+        strength: f64,
+    ) -> anyhow::Result<()> {
+        self.service.add_anchor_spring(node_id, x, y, strength).await
     }
 }
 

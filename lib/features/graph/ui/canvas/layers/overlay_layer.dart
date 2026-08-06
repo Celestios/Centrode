@@ -18,7 +18,7 @@ class OverlayLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dataController = context.watch<GraphDataQuery>();
+    final dataController = context.read<GraphDataQuery>();
     final renderState = context.read<NodeRenderState>();
     final interactionController = context.read<InteractionController>();
 
@@ -53,7 +53,20 @@ class OverlayLayer extends StatelessWidget {
                 ),
               ),
 
-            // 5. OptArea Drawing Box Layer
+            // 5. Persistent OptArea Box Layer
+            ValueListenableBuilder<Rect?>(
+              valueListenable: dataController.optAreaNotifier,
+              builder: (context, persistentOptRect, _) {
+                if (persistentOptRect == null) return const SizedBox.shrink();
+                return Positioned.fill(
+                  child: CustomPaint(
+                    painter: _PersistentOptAreaPainter(rect: persistentOptRect),
+                  ),
+                );
+              },
+            ),
+
+            // 6. OptArea Drawing Box Layer
             if (interactionState is OptAreaDrawing)
               Positioned.fill(
                 child: CustomPaint(
@@ -260,5 +273,66 @@ class _OptAreaPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _OptAreaPainter oldDelegate) {
     return oldDelegate.state.currentPos != state.currentPos;
+  }
+}
+
+/// Painter for the Persistent OptArea boundary box on canvas.
+class _PersistentOptAreaPainter extends CustomPainter {
+  final Rect rect;
+
+  _PersistentOptAreaPainter({required this.rect});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..color = Colors.amber.withValues(alpha: 0.08)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..color = Colors.amber.withValues(alpha: 0.7)
+        ..strokeWidth = 1.5
+        ..style = PaintingStyle.stroke,
+    );
+
+    final textSpan = TextSpan(
+      text: ' OPT AREA ',
+      style: TextStyle(
+        color: Colors.amber.shade200,
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 0.8,
+      ),
+    );
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final badgeRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        rect.left + 4,
+        rect.top + 4,
+        textPainter.width + 8,
+        textPainter.height + 4,
+      ),
+      const Radius.circular(4),
+    );
+
+    canvas.drawRRect(
+      badgeRect,
+      Paint()
+        ..color = Colors.amber.shade900.withValues(alpha: 0.75)
+        ..style = PaintingStyle.fill,
+    );
+    textPainter.paint(canvas, Offset(rect.left + 8, rect.top + 6));
+  }
+
+  @override
+  bool shouldRepaint(covariant _PersistentOptAreaPainter oldDelegate) {
+    return oldDelegate.rect != rect;
   }
 }

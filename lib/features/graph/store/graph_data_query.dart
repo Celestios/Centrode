@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import '../models/models.dart';
 import 'spatial_index.dart';
 import 'relation_engine_state.dart';
@@ -47,5 +49,6 @@ abstract interface class GraphDataQuery {
   Iterable<UiRelation> get relations;
   BoundingBox get canvasBounds;
   RelationEngineState get relationEngine;
+  ValueNotifier<Rect?> get optAreaNotifier;
   Stream<GraphEntityUpdate> get onEntityUpdate;
 }

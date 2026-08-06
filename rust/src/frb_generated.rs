@@ -40,7 +40,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -2072960341;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1046117986;
 
 // Section: executor
 
@@ -48,6 +48,72 @@ flutter_rust_bridge::frb_generated_default_handler!();
 
 // Section: wire_funcs
 
+fn wire__crate__bridge__api__AppHandle_add_anchor_spring_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "AppHandle_add_anchor_spring",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
+            >>::sse_decode(&mut deserializer);
+            let api_node_id = <crate::domain::id::TypedRecordId>::sse_decode(&mut deserializer);
+            let api_x = <f64>::sse_decode(&mut deserializer);
+            let api_y = <f64>::sse_decode(&mut deserializer);
+            let api_strength = <f64>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => {
+                                    api_that_guard =
+                                        Some(api_that.lockable_decode_async_ref().await)
+                                }
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok = crate::bridge::api::AppHandle::add_anchor_spring(
+                            &*api_that_guard,
+                            api_node_id,
+                            api_x,
+                            api_y,
+                            api_strength,
+                        )
+                        .await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__bridge__api__AppHandle_apply_entity_mutation_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -387,6 +453,68 @@ fn wire__crate__bridge__api__AppHandle_close_impl(
                         let output_ok = crate::bridge::api::AppHandle::close(&*api_that_guard)?;
                         Ok(output_ok)
                     })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__bridge__api__AppHandle_compute_auto_placement_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "AppHandle_compute_auto_placement",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
+            >>::sse_decode(&mut deserializer);
+            let api_source_id = <crate::domain::id::TypedRecordId>::sse_decode(&mut deserializer);
+            let api_port_side = <crate::domain::styles::PortSide>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => {
+                                    api_that_guard =
+                                        Some(api_that.lockable_decode_async_ref().await)
+                                }
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok = crate::bridge::api::AppHandle::compute_auto_placement(
+                            &*api_that_guard,
+                            api_source_id,
+                            api_port_side,
+                        )
+                        .await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
                 )
             }
         },
@@ -2304,6 +2432,69 @@ fn wire__crate__bridge__api__AppHandle_set_active_theme_id_impl(
         },
     )
 }
+fn wire__crate__bridge__api__AppHandle_set_alignment_constraint_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "AppHandle_set_alignment_constraint",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
+            >>::sse_decode(&mut deserializer);
+            let api_node_ids =
+                <Vec<crate::domain::id::TypedRecordId>>::sse_decode(&mut deserializer);
+            let api_axis = <crate::layout_engine::types::Axis>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => {
+                                    api_that_guard =
+                                        Some(api_that.lockable_decode_async_ref().await)
+                                }
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok = crate::bridge::api::AppHandle::set_alignment_constraint(
+                            &*api_that_guard,
+                            api_node_ids,
+                            api_axis,
+                        )
+                        .await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__bridge__api__AppHandle_set_opt_area_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -3144,6 +3335,18 @@ impl SseDecode for uuid::Uuid {
     }
 }
 
+impl SseDecode for crate::layout_engine::types::Axis {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::layout_engine::types::Axis::Horizontal,
+            1 => crate::layout_engine::types::Axis::Vertical,
+            _ => unreachable!("Invalid variant for Axis: {}", inner),
+        };
+    }
+}
+
 impl SseDecode for crate::domain::contents::BlockAttrs {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3939,11 +4142,14 @@ impl SseDecode for crate::layout_engine::types::LayoutTickResult {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_positionPatches =
             <Vec<crate::layout_engine::types::LayoutPatch>>::sse_decode(deserializer);
+        let mut var_portPatches =
+            <Vec<crate::layout_engine::types::PortPatch>>::sse_decode(deserializer);
         let mut var_converged = <bool>::sse_decode(deserializer);
         let mut var_iteration = <u32>::sse_decode(deserializer);
         let mut var_energy = <f64>::sse_decode(deserializer);
         return crate::layout_engine::types::LayoutTickResult {
             position_patches: var_positionPatches,
+            port_patches: var_portPatches,
             converged: var_converged,
             iteration: var_iteration,
             energy: var_energy,
@@ -4090,6 +4296,20 @@ impl SseDecode for Vec<crate::relation_engine::geometry::Point> {
         let mut ans_ = vec![];
         for idx_ in 0..len_ {
             ans_.push(<crate::relation_engine::geometry::Point>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::layout_engine::types::PortPatch> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::layout_engine::types::PortPatch>::sse_decode(
                 deserializer,
             ));
         }
@@ -4877,6 +5097,20 @@ impl SseDecode for crate::relation_engine::geometry::Point {
     }
 }
 
+impl SseDecode for crate::layout_engine::types::PortPatch {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_relationId = <crate::domain::id::TypedRecordId>::sse_decode(deserializer);
+        let mut var_fromSide = <crate::domain::styles::PortSide>::sse_decode(deserializer);
+        let mut var_toSide = <crate::domain::styles::PortSide>::sse_decode(deserializer);
+        return crate::layout_engine::types::PortPatch {
+            relation_id: var_relationId,
+            from_side: var_fromSide,
+            to_side: var_toSide,
+        };
+    }
+}
+
 impl SseDecode for crate::domain::styles::PortSide {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4893,6 +5127,15 @@ impl SseDecode for crate::domain::styles::PortSide {
             8 => crate::domain::styles::PortSide::BottomRight,
             _ => unreachable!("Invalid variant for PortSide: {}", inner),
         };
+    }
+}
+
+impl SseDecode for (f64, f64) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_field0 = <f64>::sse_decode(deserializer);
+        let mut var_field1 = <f64>::sse_decode(deserializer);
+        return (var_field0, var_field1);
     }
 }
 
@@ -5537,216 +5780,234 @@ fn pde_ffi_dispatcher_primary_impl(
 ) {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        1 => wire__crate__bridge__api__AppHandle_apply_entity_mutation_impl(
+        1 => wire__crate__bridge__api__AppHandle_add_anchor_spring_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        2 => wire__crate__bridge__api__AppHandle_apply_history_record_patch_impl(
+        2 => wire__crate__bridge__api__AppHandle_apply_entity_mutation_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        5 => wire__crate__bridge__api__AppHandle_broadcast_boundaries_impl(
+        3 => wire__crate__bridge__api__AppHandle_apply_history_record_patch_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        6 => wire__crate__bridge__api__AppHandle_close_impl(port, ptr, rust_vec_len, data_len),
-        7 => wire__crate__bridge__api__AppHandle_compute_relations_impl(
+        6 => wire__crate__bridge__api__AppHandle_broadcast_boundaries_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        8 => wire__crate__bridge__api__AppHandle_compute_single_relation_impl(
+        7 => wire__crate__bridge__api__AppHandle_close_impl(port, ptr, rust_vec_len, data_len),
+        8 => wire__crate__bridge__api__AppHandle_compute_auto_placement_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        9 => wire__crate__bridge__api__AppHandle_create_graph_stream_impl(
+        9 => wire__crate__bridge__api__AppHandle_compute_relations_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        10 => {
-            wire__crate__bridge__api__AppHandle_create_node_impl(port, ptr, rust_vec_len, data_len)
-        }
-        11 => wire__crate__bridge__api__AppHandle_create_relation_impl(
+        10 => wire__crate__bridge__api__AppHandle_compute_single_relation_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        11 => wire__crate__bridge__api__AppHandle_create_graph_stream_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
         12 => {
+            wire__crate__bridge__api__AppHandle_create_node_impl(port, ptr, rust_vec_len, data_len)
+        }
+        13 => wire__crate__bridge__api__AppHandle_create_relation_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        14 => {
             wire__crate__bridge__api__AppHandle_create_tag_impl(port, ptr, rust_vec_len, data_len)
         }
-        13 => {
+        15 => {
             wire__crate__bridge__api__AppHandle_create_theme_impl(port, ptr, rust_vec_len, data_len)
         }
-        14 => wire__crate__bridge__api__AppHandle_delete_node_entry_impl(
+        16 => wire__crate__bridge__api__AppHandle_delete_node_entry_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        15 => wire__crate__bridge__api__AppHandle_delete_relation_impl(
+        17 => wire__crate__bridge__api__AppHandle_delete_relation_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        16 => {
+        18 => {
             wire__crate__bridge__api__AppHandle_delete_tag_impl(port, ptr, rust_vec_len, data_len)
         }
-        17 => wire__crate__bridge__api__AppHandle_delete_template_impl(
+        19 => wire__crate__bridge__api__AppHandle_delete_template_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        18 => wire__crate__bridge__api__AppHandle_get_active_theme_id_impl(
+        20 => wire__crate__bridge__api__AppHandle_get_active_theme_id_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        19 => {
+        21 => {
             wire__crate__bridge__api__AppHandle_get_all_tags_impl(port, ptr, rust_vec_len, data_len)
         }
-        20 => wire__crate__bridge__api__AppHandle_get_all_templates_impl(
+        22 => wire__crate__bridge__api__AppHandle_get_all_templates_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        21 => wire__crate__bridge__api__AppHandle_get_all_themes_impl(
+        23 => wire__crate__bridge__api__AppHandle_get_all_themes_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        22 => wire__crate__bridge__api__AppHandle_get_graph_snapshot_impl(
+        24 => wire__crate__bridge__api__AppHandle_get_graph_snapshot_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        23 => wire__crate__bridge__api__AppHandle_get_node_impl(port, ptr, rust_vec_len, data_len),
-        24 => {
+        25 => wire__crate__bridge__api__AppHandle_get_node_impl(port, ptr, rust_vec_len, data_len),
+        26 => {
             wire__crate__bridge__api__AppHandle_get_opt_area_impl(port, ptr, rust_vec_len, data_len)
         }
-        25 => wire__crate__bridge__api__AppHandle_get_tag_impl(port, ptr, rust_vec_len, data_len),
-        26 => wire__crate__bridge__api__AppHandle_get_theme_impl(port, ptr, rust_vec_len, data_len),
-        27 => wire__crate__bridge__api__AppHandle_instantiate_template_impl(
+        27 => wire__crate__bridge__api__AppHandle_get_tag_impl(port, ptr, rust_vec_len, data_len),
+        28 => wire__crate__bridge__api__AppHandle_get_theme_impl(port, ptr, rust_vec_len, data_len),
+        29 => wire__crate__bridge__api__AppHandle_instantiate_template_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        28 => wire__crate__bridge__api__AppHandle_load_map_from_file_impl(
+        30 => wire__crate__bridge__api__AppHandle_load_map_from_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        29 => wire__crate__bridge__api__AppHandle_new_impl(port, ptr, rust_vec_len, data_len),
-        30 => {
+        31 => wire__crate__bridge__api__AppHandle_new_impl(port, ptr, rust_vec_len, data_len),
+        32 => {
             wire__crate__bridge__api__AppHandle_query_search_impl(port, ptr, rust_vec_len, data_len)
         }
-        31 => wire__crate__bridge__api__AppHandle_rebuild_node_cache_impl(
+        33 => wire__crate__bridge__api__AppHandle_rebuild_node_cache_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        32 => wire__crate__bridge__api__AppHandle_redo_impl(port, ptr, rust_vec_len, data_len),
-        33 => {
+        34 => wire__crate__bridge__api__AppHandle_redo_impl(port, ptr, rust_vec_len, data_len),
+        35 => {
             wire__crate__bridge__api__AppHandle_redo_count_impl(port, ptr, rust_vec_len, data_len)
         }
-        34 => wire__crate__bridge__api__AppHandle_reroute_relation_impl(
+        36 => wire__crate__bridge__api__AppHandle_reroute_relation_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        35 => wire__crate__bridge__api__AppHandle_save_map_to_file_impl(
+        37 => wire__crate__bridge__api__AppHandle_save_map_to_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        36 => wire__crate__bridge__api__AppHandle_save_template_from_selection_impl(
+        38 => wire__crate__bridge__api__AppHandle_save_template_from_selection_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        37 => wire__crate__bridge__api__AppHandle_set_active_theme_impl(
+        39 => wire__crate__bridge__api__AppHandle_set_active_theme_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        38 => wire__crate__bridge__api__AppHandle_set_active_theme_id_impl(
+        40 => wire__crate__bridge__api__AppHandle_set_active_theme_id_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        39 => {
+        41 => wire__crate__bridge__api__AppHandle_set_alignment_constraint_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        42 => {
             wire__crate__bridge__api__AppHandle_set_opt_area_impl(port, ptr, rust_vec_len, data_len)
         }
-        40 => wire__crate__bridge__api__AppHandle_trigger_layout_optimization_impl(
+        43 => wire__crate__bridge__api__AppHandle_trigger_layout_optimization_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        41 => wire__crate__bridge__api__AppHandle_undo_impl(port, ptr, rust_vec_len, data_len),
-        42 => {
+        44 => wire__crate__bridge__api__AppHandle_undo_impl(port, ptr, rust_vec_len, data_len),
+        45 => {
             wire__crate__bridge__api__AppHandle_undo_count_impl(port, ptr, rust_vec_len, data_len)
         }
-        43 => {
+        46 => {
             wire__crate__bridge__api__AppHandle_update_node_impl(port, ptr, rust_vec_len, data_len)
         }
-        44 => wire__crate__bridge__api__AppHandle_update_node_cache_positions_impl(
+        47 => wire__crate__bridge__api__AppHandle_update_node_cache_positions_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        45 => wire__crate__bridge__api__AppHandle_update_relation_impl(
+        48 => wire__crate__bridge__api__AppHandle_update_relation_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        46 => {
+        49 => {
             wire__crate__bridge__api__AppHandle_update_tag_impl(port, ptr, rust_vec_len, data_len)
         }
-        47 => {
+        50 => {
             wire__crate__bridge__api__AppHandle_update_theme_impl(port, ptr, rust_vec_len, data_len)
         }
-        48 => wire__crate__bridge__api__AppHandle_update_viewport_state_impl(
+        51 => wire__crate__bridge__api__AppHandle_update_viewport_state_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        49 => wire__crate__bridge__api__AppHandle_with_repository_impl(
+        52 => wire__crate__bridge__api__AppHandle_with_repository_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        50 => wire__crate__bridge__api__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
-        51 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
+        53 => wire__crate__bridge__api__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
+        54 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -5759,12 +6020,12 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        3 => wire__crate__bridge__api__AppHandle_auto_accessor_get_service_impl(
+        4 => wire__crate__bridge__api__AppHandle_auto_accessor_get_service_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        4 => wire__crate__bridge__api__AppHandle_auto_accessor_set_service_impl(
+        5 => wire__crate__bridge__api__AppHandle_auto_accessor_set_service_impl(
             ptr,
             rust_vec_len,
             data_len,
@@ -5835,6 +6096,27 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<Repository>> for Repository {
     }
 }
 
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::layout_engine::types::Axis {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Horizontal => 0.into_dart(),
+            Self::Vertical => 1.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::layout_engine::types::Axis
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::layout_engine::types::Axis>
+    for crate::layout_engine::types::Axis
+{
+    fn into_into_dart(self) -> crate::layout_engine::types::Axis {
+        self
+    }
+}
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::domain::contents::BlockAttrs {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
@@ -6761,6 +7043,7 @@ impl flutter_rust_bridge::IntoDart for crate::layout_engine::types::LayoutTickRe
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.position_patches.into_into_dart().into_dart(),
+            self.port_patches.into_into_dart().into_dart(),
             self.converged.into_into_dart().into_dart(),
             self.iteration.into_into_dart().into_dart(),
             self.energy.into_into_dart().into_dart(),
@@ -7161,6 +7444,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::relation_engine::geometry::Point>
     for crate::relation_engine::geometry::Point
 {
     fn into_into_dart(self) -> crate::relation_engine::geometry::Point {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::layout_engine::types::PortPatch {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.relation_id.into_into_dart().into_dart(),
+            self.from_side.into_into_dart().into_dart(),
+            self.to_side.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::layout_engine::types::PortPatch
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::layout_engine::types::PortPatch>
+    for crate::layout_engine::types::PortPatch
+{
+    fn into_into_dart(self) -> crate::layout_engine::types::PortPatch {
         self
     }
 }
@@ -7962,6 +8267,22 @@ impl SseEncode for uuid::Uuid {
     }
 }
 
+impl SseEncode for crate::layout_engine::types::Axis {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::layout_engine::types::Axis::Horizontal => 0,
+                crate::layout_engine::types::Axis::Vertical => 1,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for crate::domain::contents::BlockAttrs {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -8547,6 +8868,7 @@ impl SseEncode for crate::layout_engine::types::LayoutTickResult {
             self.position_patches,
             serializer,
         );
+        <Vec<crate::layout_engine::types::PortPatch>>::sse_encode(self.port_patches, serializer);
         <bool>::sse_encode(self.converged, serializer);
         <u32>::sse_encode(self.iteration, serializer);
         <f64>::sse_encode(self.energy, serializer);
@@ -8659,6 +8981,16 @@ impl SseEncode for Vec<crate::relation_engine::geometry::Point> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::relation_engine::geometry::Point>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::layout_engine::types::PortPatch> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::layout_engine::types::PortPatch>::sse_encode(item, serializer);
         }
     }
 }
@@ -9308,6 +9640,15 @@ impl SseEncode for crate::relation_engine::geometry::Point {
     }
 }
 
+impl SseEncode for crate::layout_engine::types::PortPatch {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::domain::id::TypedRecordId>::sse_encode(self.relation_id, serializer);
+        <crate::domain::styles::PortSide>::sse_encode(self.from_side, serializer);
+        <crate::domain::styles::PortSide>::sse_encode(self.to_side, serializer);
+    }
+}
+
 impl SseEncode for crate::domain::styles::PortSide {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -9328,6 +9669,14 @@ impl SseEncode for crate::domain::styles::PortSide {
             },
             serializer,
         );
+    }
+}
+
+impl SseEncode for (f64, f64) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <f64>::sse_encode(self.0, serializer);
+        <f64>::sse_encode(self.1, serializer);
     }
 }
 

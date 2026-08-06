@@ -17,7 +17,7 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
 
   @override
   Widget build(BuildContext context) {
-    final tabsController = context.watch<WorkspaceTabsController>();
+    final tabsController = context.read<WorkspaceTabsController>();
     final session = tabsController.activeSession;
     final dataController = context.watch<CommandQueueProcessor>();
 
@@ -392,14 +392,14 @@ class _ActionButton extends StatelessWidget {
                               duration: const Duration(milliseconds: 200),
                               transitionBuilder:
                                   (Widget child, Animation<double> animation) {
-                                    return FadeTransition(
-                                      opacity: animation,
-                                      child: ScaleTransition(
-                                        scale: animation,
-                                        child: child,
-                                      ),
-                                    );
-                                  },
+                                     return FadeTransition(
+                                       opacity: animation,
+                                       child: ScaleTransition(
+                                         scale: animation,
+                                         child: child,
+                                       ),
+                                     );
+                                   },
                               child: Text(
                                 '$count',
                                 key: ValueKey<int>(count),

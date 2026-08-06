@@ -137,6 +137,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   UuidValue dco_decode_Uuid(dynamic raw);
 
   @protected
+  Axis dco_decode_axis(dynamic raw);
+
+  @protected
   BlockAttrs dco_decode_block_attrs(dynamic raw);
 
   @protected
@@ -426,6 +429,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<Point> dco_decode_list_point(dynamic raw);
 
   @protected
+  List<PortPatch> dco_decode_list_port_patch(dynamic raw);
+
+  @protected
   Float64List dco_decode_list_prim_f_64_strict(dynamic raw);
 
   @protected
@@ -582,7 +588,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Point dco_decode_point(dynamic raw);
 
   @protected
+  PortPatch dco_decode_port_patch(dynamic raw);
+
+  @protected
   PortSide dco_decode_port_side(dynamic raw);
+
+  @protected
+  (double, double) dco_decode_record_f_64_f_64(dynamic raw);
 
   @protected
   (TypedRecordId, double, double, double, double)
@@ -764,6 +776,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   UuidValue sse_decode_Uuid(SseDeserializer deserializer);
+
+  @protected
+  Axis sse_decode_axis(SseDeserializer deserializer);
 
   @protected
   BlockAttrs sse_decode_block_attrs(SseDeserializer deserializer);
@@ -1081,6 +1096,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<Point> sse_decode_list_point(SseDeserializer deserializer);
 
   @protected
+  List<PortPatch> sse_decode_list_port_patch(SseDeserializer deserializer);
+
+  @protected
   Float64List sse_decode_list_prim_f_64_strict(SseDeserializer deserializer);
 
   @protected
@@ -1271,7 +1289,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Point sse_decode_point(SseDeserializer deserializer);
 
   @protected
+  PortPatch sse_decode_port_patch(SseDeserializer deserializer);
+
+  @protected
   PortSide sse_decode_port_side(SseDeserializer deserializer);
+
+  @protected
+  (double, double) sse_decode_record_f_64_f_64(SseDeserializer deserializer);
 
   @protected
   (TypedRecordId, double, double, double, double)
@@ -1479,6 +1503,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_Uuid(UuidValue self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_axis(Axis self, SseSerializer serializer);
 
   @protected
   void sse_encode_block_attrs(BlockAttrs self, SseSerializer serializer);
@@ -1896,6 +1923,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_point(List<Point> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_port_patch(
+    List<PortPatch> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_f_64_strict(
     Float64List self,
     SseSerializer serializer,
@@ -2119,7 +2152,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_point(Point self, SseSerializer serializer);
 
   @protected
+  void sse_encode_port_patch(PortPatch self, SseSerializer serializer);
+
+  @protected
   void sse_encode_port_side(PortSide self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_record_f_64_f_64(
+    (double, double) self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_record_typed_record_id_f_64_f_64_f_64_f_64(

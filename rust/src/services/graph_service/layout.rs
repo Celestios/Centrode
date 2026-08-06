@@ -1,6 +1,9 @@
 use crate::bridge::stream::{self, GraphEvent};
 use crate::domain::base_models::BoundingBox;
+use crate::domain::id::TypedRecordId;
+use crate::domain::styles::PortSide;
 use crate::layout_engine::config::LayoutConfig;
+use crate::layout_engine::types::Axis;
 use crate::relation_engine::config::RelationEngineConfig;
 use crate::relation_engine::input::InputNode;
 use crate::services::graph_service::GraphService;
@@ -16,6 +19,41 @@ impl GraphService {
     pub async fn get_opt_area(&self) -> anyhow::Result<Option<BoundingBox>> {
         let map_data = self.repo.get_map_data().await?;
         Ok(map_data.opt_area)
+    }
+
+    pub async fn compute_auto_placement(
+        &self,
+        source_id: TypedRecordId,
+        port_side: PortSide,
+    ) -> anyhow::Result<(f64, f64)> {
+        let opt_area = self.get_opt_area().await?;
+        let snapshot = self.repo.get_graph_snapshot().await?;
+        let mut engine = self.layout_engine.lock().map_err(|_| anyhow::anyhow!("Mutex poisoned"))?;
+        engine.sync_from_canvas(&snapshot.nodes, &snapshot.relations, opt_area);
+        let pos = engine.compute_auto_placement(source_id, port_side);
+        Ok(pos)
+    }
+
+    pub async fn set_alignment_constraint(
+        &self,
+        node_ids: Vec<TypedRecordId>,
+        axis: Axis,
+    ) -> anyhow::Result<()> {
+        let mut engine = self.layout_engine.lock().map_err(|_| anyhow::anyhow!("Mutex poisoned"))?;
+        engine.set_alignment_constraint(node_ids, axis);
+        Ok(())
+    }
+
+    pub async fn add_anchor_spring(
+        &self,
+        node_id: TypedRecordId,
+        x: f64,
+        y: f64,
+        strength: f64,
+    ) -> anyhow::Result<()> {
+        let mut engine = self.layout_engine.lock().map_err(|_| anyhow::anyhow!("Mutex poisoned"))?;
+        engine.add_anchor_spring(node_id, x, y, strength);
+        Ok(())
     }
 
     pub async fn trigger_layout_optimization(
@@ -49,6 +87,9 @@ impl GraphService {
                         Ok(e) => e,
                         Err(_) => break,
                     };
+                    if engine.state.nodes.is_empty() {
+                        break;
+                    }
                     let batch_res = engine.run_batch();
 
                     if let Ok(mut rel_engine) = rel_engine_arc.lock() {
@@ -79,11 +120,10 @@ impl GraphService {
                     break;
                 }
 
-                tokio::task::yield_now().await;
+                tokio::time::sleep(std::time::Duration::from_millis(16)).await;
             }
         });
 
         Ok(())
     }
 }
-

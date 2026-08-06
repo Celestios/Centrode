@@ -4,6 +4,7 @@ import 'package:centrode/src/rust/domain/types.dart';
 import 'package:centrode/src/rust/domain/id.dart';
 import 'package:centrode/src/rust/domain/patches.dart';
 import 'package:centrode/src/rust/layout_engine/config.dart';
+import 'package:centrode/src/rust/layout_engine/types.dart';
 import 'package:centrode/src/rust/relation_engine/config.dart';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
@@ -92,6 +93,20 @@ abstract class GraphApi {
   Future<BoundingBox?> getOptArea();
   Future<void> setOptArea({BoundingBox? bounds});
   Future<void> triggerLayoutOptimization({required LayoutConfig config});
+  Future<(double, double)> computeAutoPlacement({
+    required TypedRecordId sourceId,
+    required PortSide portSide,
+  });
+  Future<void> setAlignmentConstraint({
+    required List<TypedRecordId> nodeIds,
+    required Axis axis,
+  });
+  Future<void> addAnchorSpring({
+    required TypedRecordId nodeId,
+    required double x,
+    required double y,
+    required double strength,
+  });
 }
 
 /// Concrete FFI-backed implementation of [GraphApi] wrapping [AppHandle].
@@ -296,6 +311,29 @@ class RustAppHandleWrapper implements GraphApi {
   @override
   Future<void> triggerLayoutOptimization({required LayoutConfig config}) =>
       _api.triggerLayoutOptimization(config: config);
+
+  @override
+  Future<(double, double)> computeAutoPlacement({
+    required TypedRecordId sourceId,
+    required PortSide portSide,
+  }) =>
+      _api.computeAutoPlacement(sourceId: sourceId, portSide: portSide);
+
+  @override
+  Future<void> setAlignmentConstraint({
+    required List<TypedRecordId> nodeIds,
+    required Axis axis,
+  }) =>
+      _api.setAlignmentConstraint(nodeIds: nodeIds, axis: axis);
+
+  @override
+  Future<void> addAnchorSpring({
+    required TypedRecordId nodeId,
+    required double x,
+    required double y,
+    required double strength,
+  }) =>
+      _api.addAnchorSpring(nodeId: nodeId, x: x, y: y, strength: strength);
 }
 
 /// A proxy [GraphApi] that buffers or returns safe defaults before the underlying FFI handle finishes loading.
@@ -600,5 +638,37 @@ class DeferredGraphApi implements GraphApi {
   @override
   Future<void> triggerLayoutOptimization({required LayoutConfig config}) async {
     await _handle?.triggerLayoutOptimization(config: config);
+  }
+
+  @override
+  Future<(double, double)> computeAutoPlacement({
+    required TypedRecordId sourceId,
+    required PortSide portSide,
+  }) async {
+    return await _handle?.computeAutoPlacement(sourceId: sourceId, portSide: portSide) ??
+        (0.0, 0.0);
+  }
+
+  @override
+  Future<void> setAlignmentConstraint({
+    required List<TypedRecordId> nodeIds,
+    required Axis axis,
+  }) async {
+    await _handle?.setAlignmentConstraint(nodeIds: nodeIds, axis: axis);
+  }
+
+  @override
+  Future<void> addAnchorSpring({
+    required TypedRecordId nodeId,
+    required double x,
+    required double y,
+    required double strength,
+  }) async {
+    await _handle?.addAnchorSpring(
+      nodeId: nodeId,
+      x: x,
+      y: y,
+      strength: strength,
+    );
   }
 }

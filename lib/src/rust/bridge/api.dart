@@ -34,6 +34,13 @@ Stream<LogState> createLogStream() =>
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>>
 abstract class AppHandle implements RustOpaqueInterface {
+  Future<void> addAnchorSpring({
+    required TypedRecordId nodeId,
+    required double x,
+    required double y,
+    required double strength,
+  });
+
   Future<void> applyEntityMutation({required SymmetricEntityPatch mutation});
 
   Future<GraphDelta?> applyHistoryRecordPatch({
@@ -48,6 +55,11 @@ abstract class AppHandle implements RustOpaqueInterface {
   Future<void> broadcastBoundaries();
 
   Future<void> close();
+
+  Future<(double, double)> computeAutoPlacement({
+    required TypedRecordId sourceId,
+    required PortSide portSide,
+  });
 
   Future<List<ComputedRelation>> computeRelations({
     required RelationEngineConfig config,
@@ -152,6 +164,11 @@ abstract class AppHandle implements RustOpaqueInterface {
   Future<void> setActiveTheme({required String themeKey});
 
   Future<void> setActiveThemeId({required String themeId});
+
+  Future<void> setAlignmentConstraint({
+    required List<TypedRecordId> nodeIds,
+    required Axis axis,
+  });
 
   Future<void> setOptArea({BoundingBox? bounds});
 
