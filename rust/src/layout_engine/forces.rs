@@ -2,6 +2,8 @@ pub mod alignment;
 pub mod anchor;
 pub mod attraction;
 pub mod collision;
+pub mod density;
+pub mod node_edge;
 pub mod repulsion;
 pub mod wall;
 
@@ -31,6 +33,14 @@ impl ForceAccumulator {
             .map(|(idx, id)| (id.clone(), idx))
             .collect();
         let mut forces: Vec<(f64, f64)> = vec![(0.0, 0.0); n];
+
+        let mut degrees: HashMap<TypedRecordId, usize> = HashMap::new();
+        for edge in edges {
+            *degrees.entry(edge.from_id.clone()).or_insert(0) += 1;
+            *degrees.entry(edge.to_id.clone()).or_insert(0) += 1;
+        }
+
+        let node_refs: Vec<&NodePhysics> = node_ids.iter().map(|id| &nodes[id]).collect();
 
         for i in 0..n {
             let a = &nodes[&node_ids[i]];
@@ -63,6 +73,7 @@ impl ForceAccumulator {
                     b,
                     config.spring_constant,
                     config.ideal_link_distance,
+                    config.relation_stretch_factor,
                 );
                 forces[ai].0 += f_fx;
                 forces[ai].1 += f_fy;
@@ -71,9 +82,41 @@ impl ForceAccumulator {
             }
         }
 
+        if config.node_edge_repulsion > 0.0 {
+            for i in 0..n {
+                let node = &nodes[&node_ids[i]];
+                for edge in edges {
+                    if let (Some(from_node), Some(to_node)) =
+                        (nodes.get(&edge.from_id), nodes.get(&edge.to_id))
+                    {
+                        let (ne_fx, ne_fy) = node_edge::node_edge_repulsion_force(
+                            node,
+                            from_node,
+                            to_node,
+                            config.node_edge_repulsion,
+                        );
+                        forces[i].0 += ne_fx;
+                        forces[i].1 += ne_fy;
+                    }
+                }
+            }
+        }
+
         for i in 0..n {
             let id = &node_ids[i];
             let node = &nodes[id];
+
+            if config.density_dispersion_strength > 0.0 {
+                let deg = degrees.get(id).copied().unwrap_or(0);
+                let (d_fx, d_fy) = density::density_dispersion_force(
+                    node,
+                    &node_refs,
+                    deg,
+                    config.density_dispersion_strength,
+                );
+                forces[i].0 += d_fx;
+                forces[i].1 += d_fy;
+            }
 
             if let Some(area) = opt_area {
                 let (w_fx, w_fy) = wall::wall_force(node, area, config);

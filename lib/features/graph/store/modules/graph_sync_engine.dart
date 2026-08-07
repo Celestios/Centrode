@@ -326,7 +326,7 @@ class GraphSyncEngine {
     for (final patch in patches) {
       final relId = RawUuid.fromString(patch.relationId.key.uuid);
       final rel = controller.store.relationLookup[relId];
-      if (rel != null && rel.layout != null) {
+      if (rel != null) {
         controller.relationMutations.updateRelationLayout(
           relId,
           fromSide: patch.fromSide,

@@ -3220,8 +3220,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ForceConfig dco_decode_force_config(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 11)
-      throw Exception('unexpected arr length: expect 11 but see ${arr.length}');
+    if (arr.length != 14)
+      throw Exception('unexpected arr length: expect 14 but see ${arr.length}');
     return ForceConfig(
       repulsionConstant: dco_decode_f_64(arr[0]),
       springConstant: dco_decode_f_64(arr[1]),
@@ -3234,6 +3234,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       damping: dco_decode_f_64(arr[8]),
       alphaDecay: dco_decode_f_64(arr[9]),
       alphaMin: dco_decode_f_64(arr[10]),
+      relationStretchFactor: dco_decode_f_64(arr[11]),
+      nodeEdgeRepulsion: dco_decode_f_64(arr[12]),
+      densityDispersionStrength: dco_decode_f_64(arr[13]),
     );
   }
 
@@ -5303,6 +5306,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_damping = sse_decode_f_64(deserializer);
     var var_alphaDecay = sse_decode_f_64(deserializer);
     var var_alphaMin = sse_decode_f_64(deserializer);
+    var var_relationStretchFactor = sse_decode_f_64(deserializer);
+    var var_nodeEdgeRepulsion = sse_decode_f_64(deserializer);
+    var var_densityDispersionStrength = sse_decode_f_64(deserializer);
     return ForceConfig(
       repulsionConstant: var_repulsionConstant,
       springConstant: var_springConstant,
@@ -5315,6 +5321,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       damping: var_damping,
       alphaDecay: var_alphaDecay,
       alphaMin: var_alphaMin,
+      relationStretchFactor: var_relationStretchFactor,
+      nodeEdgeRepulsion: var_nodeEdgeRepulsion,
+      densityDispersionStrength: var_densityDispersionStrength,
     );
   }
 
@@ -7821,6 +7830,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_f_64(self.damping, serializer);
     sse_encode_f_64(self.alphaDecay, serializer);
     sse_encode_f_64(self.alphaMin, serializer);
+    sse_encode_f_64(self.relationStretchFactor, serializer);
+    sse_encode_f_64(self.nodeEdgeRepulsion, serializer);
+    sse_encode_f_64(self.densityDispersionStrength, serializer);
   }
 
   @protected

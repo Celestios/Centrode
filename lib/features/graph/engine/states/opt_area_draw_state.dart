@@ -30,6 +30,7 @@ class OptAreaDrawing extends CanvasInteractionState {
     } else {
       ctx.onSetOptArea(optRect);
     }
+    ctx.setToolMode('select');
     return const CanvasIdle();
   }
 }

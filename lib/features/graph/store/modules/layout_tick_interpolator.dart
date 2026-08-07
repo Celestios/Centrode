@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:centrode/shared/logging.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../../../../src/rust/layout_engine/types.dart';
+import 'package:centrode/src/rust/domain/styles.dart';
 import 'graph_store.dart';
 
 final Logger _interpolatorLog = Logger('LayoutTickInterpolator');
@@ -103,11 +104,11 @@ class LayoutTickInterpolator {
         for (final patch in currentTick.portPatches) {
           final relId = RawUuid.fromString(patch.relationId.key.uuid);
           final rel = store.relationLookup[relId];
-          if (rel != null && rel.layout != null) {
-            rel.layout = rel.layout!.copyWith(
-              fromSide: patch.fromSide,
-              toSide: patch.toSide,
-            );
+          if (rel != null) {
+            final baseLayout = rel.resolvedLayout ?? rel.layout;
+            rel.resolvedLayout = baseLayout != null
+                ? baseLayout.copyWith(fromSide: patch.fromSide, toSide: patch.toSide)
+                : RelationLayout(fromSide: patch.fromSide, toSide: patch.toSide, strategyType: 'default');
           }
         }
 
@@ -123,11 +124,11 @@ class LayoutTickInterpolator {
             for (final patch in remainingTick.portPatches) {
               final relId = RawUuid.fromString(patch.relationId.key.uuid);
               final rel = store.relationLookup[relId];
-              if (rel != null && rel.layout != null) {
-                rel.layout = rel.layout!.copyWith(
-                  fromSide: patch.fromSide,
-                  toSide: patch.toSide,
-                );
+              if (rel != null) {
+                final baseLayout = rel.resolvedLayout ?? rel.layout;
+                rel.resolvedLayout = baseLayout != null
+                    ? baseLayout.copyWith(fromSide: patch.fromSide, toSide: patch.toSide)
+                    : RelationLayout(fromSide: patch.fromSide, toSide: patch.toSide, strategyType: 'default');
               }
             }
           }

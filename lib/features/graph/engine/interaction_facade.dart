@@ -69,6 +69,11 @@ class CanvasInteractionEnvironment implements InteractionContext {
   String get toolMode => _boundSession?.toolModeNotifier.value ?? 'select';
 
   @override
+  void setToolMode(String mode) {
+    _boundSession?.setToolMode(mode);
+  }
+
+  @override
   Map<RawUuid, NodeViewState> get nodeViewStates => _renderState.viewStates;
 
   @override
@@ -399,17 +404,20 @@ class CanvasInteractionEnvironment implements InteractionContext {
     _commandProcessor.api.triggerLayoutOptimization(
       config: const LayoutConfig(
         force: ForceConfig(
-          repulsionConstant: 4500.0,
+          repulsionConstant: 8000.0,
           springConstant: 0.06,
-          idealLinkDistance: 150.0,
-          collisionStrength: 1.0,
-          baseMargin: 15.0,
-          marginScale: 0.1,
+          idealLinkDistance: 220.0,
+          collisionStrength: 1.2,
+          baseMargin: 35.0,
+          marginScale: 0.2,
           wallStrength: 1.2,
           wallPadding: 20.0,
           damping: 0.35,
           alphaDecay: 0.006,
           alphaMin: 0.001,
+          relationStretchFactor: 0.5,
+          nodeEdgeRepulsion: 1500.0,
+          densityDispersionStrength: 300.0,
         ),
         convergence: ConvergenceCriteria(
           maxIterations: 600,

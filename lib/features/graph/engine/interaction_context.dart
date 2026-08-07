@@ -27,6 +27,9 @@ abstract interface class ViewportCapability {
   /// Gets the current active tool mode string ('select', 'pan', 'connect', 'optimize', 'draw').
   String get toolMode;
 
+  /// Sets the current active tool mode string ('select', 'pan', 'connect', 'optimize', 'draw').
+  void setToolMode(String mode);
+
   /// Gets the current OptArea rectangle if set, or null.
   Rect? get optArea;
 }

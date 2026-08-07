@@ -228,21 +228,16 @@ impl LayoutEngine {
 
         let mut port_patches: Vec<PortPatch> = Vec::new();
         for edge in &self.state.edges {
-            let is_auto_from = edge.from_side.map_or(true, |s| s == PortSide::Auto);
-            let is_auto_to = edge.to_side.map_or(true, |s| s == PortSide::Auto);
-
-            if is_auto_from || is_auto_to {
-                if let (Some(source), Some(target)) = (
-                    self.state.nodes.get(&edge.from_id),
-                    self.state.nodes.get(&edge.to_id),
-                ) {
-                    let (opt_from, opt_to) = port_optimizer::compute_optimal_ports(source, target);
-                    port_patches.push(PortPatch {
-                        relation_id: edge.id,
-                        from_side: if is_auto_from { opt_from } else { edge.from_side.unwrap() },
-                        to_side: if is_auto_to { opt_to } else { edge.to_side.unwrap() },
-                    });
-                }
+            if let (Some(source), Some(target)) = (
+                self.state.nodes.get(&edge.from_id),
+                self.state.nodes.get(&edge.to_id),
+            ) {
+                let (opt_from, opt_to) = port_optimizer::compute_optimal_ports(source, target);
+                port_patches.push(PortPatch {
+                    relation_id: edge.id,
+                    from_side: opt_from,
+                    to_side: opt_to,
+                });
             }
         }
 

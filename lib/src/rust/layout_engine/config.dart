@@ -49,6 +49,9 @@ class ForceConfig {
   final double damping;
   final double alphaDecay;
   final double alphaMin;
+  final double relationStretchFactor;
+  final double nodeEdgeRepulsion;
+  final double densityDispersionStrength;
 
   const ForceConfig({
     required this.repulsionConstant,
@@ -62,6 +65,9 @@ class ForceConfig {
     required this.damping,
     required this.alphaDecay,
     required this.alphaMin,
+    required this.relationStretchFactor,
+    required this.nodeEdgeRepulsion,
+    required this.densityDispersionStrength,
   });
 
   @override
@@ -76,7 +82,10 @@ class ForceConfig {
       wallPadding.hashCode ^
       damping.hashCode ^
       alphaDecay.hashCode ^
-      alphaMin.hashCode;
+      alphaMin.hashCode ^
+      relationStretchFactor.hashCode ^
+      nodeEdgeRepulsion.hashCode ^
+      densityDispersionStrength.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -93,7 +102,10 @@ class ForceConfig {
           wallPadding == other.wallPadding &&
           damping == other.damping &&
           alphaDecay == other.alphaDecay &&
-          alphaMin == other.alphaMin;
+          alphaMin == other.alphaMin &&
+          relationStretchFactor == other.relationStretchFactor &&
+          nodeEdgeRepulsion == other.nodeEdgeRepulsion &&
+          densityDispersionStrength == other.densityDispersionStrength;
 }
 
 class LayoutConfig {

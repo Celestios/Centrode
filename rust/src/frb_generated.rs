@@ -3810,6 +3810,9 @@ impl SseDecode for crate::layout_engine::config::ForceConfig {
         let mut var_damping = <f64>::sse_decode(deserializer);
         let mut var_alphaDecay = <f64>::sse_decode(deserializer);
         let mut var_alphaMin = <f64>::sse_decode(deserializer);
+        let mut var_relationStretchFactor = <f64>::sse_decode(deserializer);
+        let mut var_nodeEdgeRepulsion = <f64>::sse_decode(deserializer);
+        let mut var_densityDispersionStrength = <f64>::sse_decode(deserializer);
         return crate::layout_engine::config::ForceConfig {
             repulsion_constant: var_repulsionConstant,
             spring_constant: var_springConstant,
@@ -3822,6 +3825,9 @@ impl SseDecode for crate::layout_engine::config::ForceConfig {
             damping: var_damping,
             alpha_decay: var_alphaDecay,
             alpha_min: var_alphaMin,
+            relation_stretch_factor: var_relationStretchFactor,
+            node_edge_repulsion: var_nodeEdgeRepulsion,
+            density_dispersion_strength: var_densityDispersionStrength,
         };
     }
 }
@@ -6687,6 +6693,11 @@ impl flutter_rust_bridge::IntoDart for crate::layout_engine::config::ForceConfig
             self.damping.into_into_dart().into_dart(),
             self.alpha_decay.into_into_dart().into_dart(),
             self.alpha_min.into_into_dart().into_dart(),
+            self.relation_stretch_factor.into_into_dart().into_dart(),
+            self.node_edge_repulsion.into_into_dart().into_dart(),
+            self.density_dispersion_strength
+                .into_into_dart()
+                .into_dart(),
         ]
         .into_dart()
     }
@@ -8642,6 +8653,9 @@ impl SseEncode for crate::layout_engine::config::ForceConfig {
         <f64>::sse_encode(self.damping, serializer);
         <f64>::sse_encode(self.alpha_decay, serializer);
         <f64>::sse_encode(self.alpha_min, serializer);
+        <f64>::sse_encode(self.relation_stretch_factor, serializer);
+        <f64>::sse_encode(self.node_edge_repulsion, serializer);
+        <f64>::sse_encode(self.density_dispersion_strength, serializer);
     }
 }
 

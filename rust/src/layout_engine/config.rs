@@ -14,22 +14,28 @@ pub struct ForceConfig {
     pub damping: f64,
     pub alpha_decay: f64,
     pub alpha_min: f64,
+    pub relation_stretch_factor: f64,
+    pub node_edge_repulsion: f64,
+    pub density_dispersion_strength: f64,
 }
 
 impl Default for ForceConfig {
     fn default() -> Self {
         Self {
-            repulsion_constant: 5000.0,
+            repulsion_constant: 8000.0,
             spring_constant: 0.05,
-            ideal_link_distance: 200.0,
-            collision_strength: 0.8,
-            base_margin: 10.0,
-            margin_scale: 0.1,
+            ideal_link_distance: 220.0,
+            collision_strength: 1.2,
+            base_margin: 35.0,
+            margin_scale: 0.2,
             wall_strength: 1.0,
             wall_padding: 20.0,
             damping: 0.4,
             alpha_decay: 0.02,
             alpha_min: 0.001,
+            relation_stretch_factor: 0.5,
+            node_edge_repulsion: 1500.0,
+            density_dispersion_strength: 300.0,
         }
     }
 }

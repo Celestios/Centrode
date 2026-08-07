@@ -130,7 +130,7 @@ fn test_attraction_force() {
         vy: 0.0,
     };
 
-    let (fx, fy) = link_spring_force(&node_a, &node_b, 0.05, 200.0);
+    let (fx, fy) = link_spring_force(&node_a, &node_b, 0.05, 200.0, 0.5);
     assert!(fx > 0.0, "Attraction should pull node_a towards node_b when beyond ideal distance");
     assert_eq!(fy, 0.0);
 }
