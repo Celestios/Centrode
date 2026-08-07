@@ -71,22 +71,67 @@ fn test_auto_placement_clamping() {
     };
     engine.state.nodes.insert(source_id.clone(), source);
 
-    let (target_x, target_y) = engine.compute_auto_placement(source_id, PortSide::Right);
+    let (target_x, target_y) = engine
+        .compute_auto_placement(source_id, PortSide::Right)
+        .expect("Auto placement failed");
+
     assert!(target_x >= 20.0 && target_x <= 500.0 - 160.0 - 20.0);
     assert!(target_y >= 20.0 && target_y <= 500.0 - 80.0 - 20.0);
 }
 
 #[test]
-fn test_anchor_decay() {
-    let mut engine = LayoutEngine::new(LayoutConfig::default());
-    let node_id = TypedRecordId::new_v4(TableKind::INode);
-    engine.add_anchor_spring(node_id.clone(), 100.0, 100.0, 1.0);
-    assert_eq!(engine.state.anchors.len(), 1);
+fn test_repulsion_force() {
+    use centrode_core::layout_engine::forces::repulsion::repulsion_force;
 
-    // Run batch iterations
-    engine.run_batch();
-    // Anchor strength decays
-    if let Some(anc) = engine.state.anchors.get(&node_id) {
-        assert!(anc.strength < 1.0);
-    }
+    let node_a = NodePhysics {
+        id: TypedRecordId::new_v4(TableKind::INode),
+        x: 0.0,
+        y: 0.0,
+        width: 50.0,
+        height: 50.0,
+        vx: 0.0,
+        vy: 0.0,
+    };
+    let node_b = NodePhysics {
+        id: TypedRecordId::new_v4(TableKind::INode),
+        x: 100.0,
+        y: 0.0,
+        width: 50.0,
+        height: 50.0,
+        vx: 0.0,
+        vy: 0.0,
+    };
+
+    let (fx, fy) = repulsion_force(&node_a, &node_b, 5000.0);
+    assert!(fx < 0.0, "Repulsion should push node_a to the left");
+    assert_eq!(fy, 0.0);
 }
+
+#[test]
+fn test_attraction_force() {
+    use centrode_core::layout_engine::forces::attraction::link_spring_force;
+
+    let node_a = NodePhysics {
+        id: TypedRecordId::new_v4(TableKind::INode),
+        x: 0.0,
+        y: 0.0,
+        width: 50.0,
+        height: 50.0,
+        vx: 0.0,
+        vy: 0.0,
+    };
+    let node_b = NodePhysics {
+        id: TypedRecordId::new_v4(TableKind::INode),
+        x: 300.0,
+        y: 0.0,
+        width: 50.0,
+        height: 50.0,
+        vx: 0.0,
+        vy: 0.0,
+    };
+
+    let (fx, fy) = link_spring_force(&node_a, &node_b, 0.05, 200.0);
+    assert!(fx > 0.0, "Attraction should pull node_a towards node_b when beyond ideal distance");
+    assert_eq!(fy, 0.0);
+}
+

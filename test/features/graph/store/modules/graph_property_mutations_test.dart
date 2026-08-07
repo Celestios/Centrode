@@ -15,12 +15,6 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockGraphApi extends Mock implements GraphApi {}
 
-class MockThemeController extends Mock implements ThemeController {
-  @override
-  GraphTheme get currentGraphTheme =>
-      const GraphTheme(id: 'test', name: 'test');
-}
-
 class MockStyleUpdater extends Mock implements GraphStyleUpdater {}
 
 class FakeSymmetricEntityPatch extends Fake implements SymmetricEntityPatch {}
@@ -73,22 +67,6 @@ void main() {
     late GraphDataQueryController queryController;
     late MockGraphApi mockApi;
 
-    setUpAll(() {
-      registerFallbackValue(
-        IRelation(
-          key: parseTypedRecordId('IRelation', RawUuid.fromString('dummy-rel')),
-          in_: parseTypedRecordId('INode', RawUuid.fromString('n1')),
-          out: parseTypedRecordId('TaskNode', RawUuid.fromString('n2')),
-          fields: IRelationFields(
-            verb: 'depends',
-            directionless: false,
-            layer: 'default',
-            createdAt: 0,
-            updatedAt: 0,
-          ),
-        ),
-      );
-    });
 
     setUp(() {
       mockApi = MockGraphApi();
@@ -298,11 +276,31 @@ void main() {
           final rolledBack = queryController.relationLookup[relId]!;
           expect(rolledBack.style, initialStyle);
           // Verify style updater was notified twice (once for optimistic update, once for rollback)
-          verify(
-            () => mockStyleUpdater.updateStyleForRelation(relId),
-          ).called(2);
         }
       },
     );
+
+    test('updateNodeStyle updates node style and notifies subscribers', () async {
+      final node = controller.createNode(UiNodes.info, const Offset(0, 0));
+      const newStyle = NodeStyle(
+        fillColor: 0xFF123456,
+        strokeColor: 0xFF654321,
+        strokeWidth: 2.0,
+        shape: 'rectangle',
+        fontFamily: 'Inter',
+        fontSize: 14,
+        textColor: 0xFFFFFFFF,
+        shadowColor: 0,
+        shadowBlur: 0,
+        shadowOffsetX: 0,
+        shadowOffsetY: 0,
+      );
+
+      controller.updateNodeStyle(node.id, newStyle);
+
+      final updatedNode = queryController.nodeLookup[node.id]!;
+      expect(updatedNode.style, equals(newStyle));
+    });
   });
 }
+

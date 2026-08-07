@@ -126,29 +126,37 @@ class HitTestResolver {
     return null;
   }
 
+  static Offset? _getMetadataSphereCenter(
+    InteractionContext ctx,
+    RawUuid nodeId,
+  ) {
+    final vs = ctx.nodeViewStates[nodeId];
+    if (vs == null || vs.sizeNotifier.value == Size.zero) return null;
+    final node = ctx.getNode(nodeId);
+    if (node is InfoUiNode &&
+        (node.tags.isNotEmpty || node.comments.isNotEmpty)) {
+      final nodeRect = vs.rect;
+      return Offset(
+        nodeRect.right - AppConfig.node.metadataSphereOffsetFromRight,
+        nodeRect.top + AppConfig.node.metadataSphereOffsetFromTop,
+      );
+    }
+    return null;
+  }
+
   PointerHitResult? _resolveMetadataSphere(
     Offset pCanvas,
     InteractionContext ctx,
     List<RawUuid> nodeIds,
   ) {
     for (final nodeId in nodeIds) {
-      final vs = ctx.nodeViewStates[nodeId];
-      if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
-      final node = ctx.getNode(nodeId);
-      if (node is InfoUiNode &&
-          (node.tags.isNotEmpty || node.comments.isNotEmpty)) {
-        final nodeRect = vs.rect;
-        final center = Offset(
-          nodeRect.right - AppConfig.node.metadataSphereOffsetFromRight,
-          nodeRect.top + AppConfig.node.metadataSphereOffsetFromTop,
+      final center = _getMetadataSphereCenter(ctx, nodeId);
+      if (center != null &&
+          (pCanvas - center).distance < AppConfig.node.metadataSphereHitboxRadius) {
+        return PointerHitResult(
+          type: HitTestType.metadataSphere,
+          hitNodeId: nodeId,
         );
-        if ((pCanvas - center).distance <
-            AppConfig.node.metadataSphereHitboxRadius) {
-          return PointerHitResult(
-            type: HitTestType.metadataSphere,
-            hitNodeId: nodeId,
-          );
-        }
       }
     }
     return null;
@@ -159,19 +167,12 @@ class HitTestResolver {
     InteractionContext ctx,
     RawUuid nodeId,
   ) {
-    final vs = ctx.nodeViewStates[nodeId];
-    if (vs == null || vs.sizeNotifier.value == Size.zero) return false;
-    final node = ctx.getNode(nodeId);
-    if (node is! InfoUiNode) return false;
-    if (node.tags.isEmpty && node.comments.isEmpty) return false;
-    final nodeRect = vs.rect;
-    final center = Offset(
-      nodeRect.right - AppConfig.node.metadataSphereOffsetFromRight,
-      nodeRect.top + AppConfig.node.metadataSphereOffsetFromTop,
-    );
+    final center = _getMetadataSphereCenter(ctx, nodeId);
+    if (center == null) return false;
     return (pCanvas - center).distance <
         AppConfig.node.metadataSphereHitboxRadius;
   }
+
 
   PointerHitResult? _resolvePorts(
     Offset pCanvas,

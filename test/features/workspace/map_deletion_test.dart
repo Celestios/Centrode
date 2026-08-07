@@ -11,14 +11,17 @@ void main() {
     late Directory tempDir;
 
     setUp(() async {
+      MapManager.instance.closeAll();
       tempDir = await Directory.systemTemp.createTemp('centrode_map_test_');
     });
 
     tearDown(() async {
+      MapManager.instance.closeAll();
       if (tempDir.existsSync()) {
         await tempDir.delete(recursive: true);
       }
     });
+
 
     test(
       'deleteMapStorage deletes both single files and SurrealKV directories',

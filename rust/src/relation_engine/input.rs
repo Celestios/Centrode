@@ -13,16 +13,8 @@ impl InputNode {
         let id = node.id().clone();
         let pos = node.position();
         let (x, y) = (pos.x as f64, pos.y as f64);
-        let (width, height) = match node {
-            Nodes::INode(n) => (n.size.width as f64, n.size.height as f64),
-            Nodes::TaskNode(n) => (n.size.width as f64, n.size.height as f64),
-            Nodes::CommentNode(n) => (n.size.width as f64, n.size.height as f64),
-            Nodes::DrawingNode(n) => (n.size.width as f64, n.size.height as f64),
-            Nodes::ShapeNode(n) => (n.size.width as f64, n.size.height as f64),
-            Nodes::FrameNode(n) => (n.size.width as f64, n.size.height as f64),
-            Nodes::MediaNode(n) => (n.size.width as f64, n.size.height as f64),
-            Nodes::InterNode(_) => (0.0, 0.0),
-        };
+        let (width, height) = node.dimensions();
+
         Some(Self {
             id,
             x,
@@ -74,11 +66,9 @@ impl InputEdge {
             "orthogonal" => Some(RoutingMode::Orthogonal),
             "octilinear" => Some(RoutingMode::Octilinear),
             "polyline" | "straight" => Some(RoutingMode::Polyline),
-            _ => Some(RoutingMode::Bezier {
-                control_point_1,
-                control_point_2,
-            }),
+            _ => None,
         });
+
 
         let bundling_mode = style.map(|s| {
             if s.body_strategy == "bundled" {

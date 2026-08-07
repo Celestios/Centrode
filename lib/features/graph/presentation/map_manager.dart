@@ -123,6 +123,7 @@ class MapManager extends ChangeNotifier {
 
   void closeAll() {
     _log.info('closeAll');
+    _tabsController?.removeListener(_onTabsChanged);
     _tabsController?.dispose();
     _tabsController = null;
     notifyListeners();
@@ -139,8 +140,10 @@ class MapManager extends ChangeNotifier {
 
   @override
   void dispose() {
+    _tabsController?.removeListener(_onTabsChanged);
     _tabsController?.dispose();
     _tabsController = null;
     super.dispose();
   }
+
 }

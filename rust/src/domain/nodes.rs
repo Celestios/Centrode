@@ -66,3 +66,19 @@ pub trait IsNode {
 
     fn serialize_node(self) -> Value;
 }
+
+impl Nodes {
+    pub fn dimensions(&self) -> (f64, f64) {
+        match self {
+            Nodes::INode(n) => (n.size.width as f64, n.size.height as f64),
+            Nodes::TaskNode(n) => (n.size.width as f64, n.size.height as f64),
+            Nodes::CommentNode(n) => (n.size.width as f64, n.size.height as f64),
+            Nodes::DrawingNode(n) => (n.size.width as f64, n.size.height as f64),
+            Nodes::ShapeNode(n) => (n.size.width as f64, n.size.height as f64),
+            Nodes::FrameNode(n) => (n.size.width as f64, n.size.height as f64),
+            Nodes::MediaNode(n) => (n.size.width as f64, n.size.height as f64),
+            Nodes::InterNode(_) => (0.0, 0.0),
+        }
+    }
+}
+

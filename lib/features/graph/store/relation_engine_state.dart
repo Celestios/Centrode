@@ -115,8 +115,8 @@ class RelationEngineState {
     UiNode? fromNode,
     UiNode? toNode,
   }) async {
-    try {
-      final from = fromNode ?? _nodeLookupGetter?.call()[relation.fromNodeId];
+    final from = fromNode ?? _nodeLookupGetter?.call()[relation.fromNodeId];
+
       final to = toNode ?? _nodeLookupGetter?.call()[relation.toNodeId];
 
       final computed = await _api.computeSingleRelation(
@@ -137,9 +137,6 @@ class RelationEngineState {
       );
       _tracker.updateCache([computed]);
       _bumpCacheNotifier();
-    } catch (e) {
-      _log.warning('computeSingleRelation failed for ${relation.id}: $e');
-    }
   }
 
   Future<void> computeRelationPreview({
@@ -153,7 +150,6 @@ class RelationEngineState {
     Offset? overrideStart,
     Offset? overrideEnd,
   }) async {
-    try {
       final computed = await _api.computeSingleRelation(
         config: _config,
         edgeId: parseTypedRecordId('IRelation', previewId),
@@ -169,9 +165,6 @@ class RelationEngineState {
       );
       previewCache[previewId] = computed;
       _bumpCacheNotifier();
-    } catch (e) {
-      _log.warning('computeRelationPreview failed for $previewId: $e');
-    }
   }
 
   void clearRelationPreview(RawUuid previewId) {
@@ -223,30 +216,22 @@ class RelationEngineState {
 
     final dirtyIds = _tracker.dirtyRelationIds.toList();
 
-    try {
-      final computed = await recompute(dirtyIds: dirtyIds);
-      _tracker.updateCache(computed);
-      _bumpCacheNotifier();
-    } catch (e) {
-      _log.warning('Failed to recompute relations: $e');
-    }
+    final computed = await recompute(dirtyIds: dirtyIds);
+    _tracker.updateCache(computed);
+    _bumpCacheNotifier();
   }
 
   Future<List<ComputedRelation>> recompute({List<RawUuid>? dirtyIds}) async {
-    try {
-      final typedIds = dirtyIds
-          ?.map((id) => parseTypedRecordId('IRelation', id))
-          .toList();
-      final result = await _api.computeRelations(
-        config: _config,
-        relationIds: typedIds,
-      );
-      return result;
-    } catch (e) {
-      _log.warning('Failed to call compute_relations: $e');
-      return [];
-    }
+    final typedIds = dirtyIds
+        ?.map((id) => parseTypedRecordId('IRelation', id))
+        .toList();
+    final result = await _api.computeRelations(
+      config: _config,
+      relationIds: typedIds,
+    );
+    return result;
   }
+
 
   void onInitialLoad({required Iterable<UiRelation> relations}) {
     _tracker.clear();

@@ -205,6 +205,20 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     notifyListeners();
   }
 
+  bool get canUndo => commandProcessor?.canUndo ?? false;
+  bool get canRedo => commandProcessor?.canRedo ?? false;
+
+  Future<void> undo() async {
+    await commandProcessor?.undo();
+    notifyListeners();
+  }
+
+  Future<void> redo() async {
+    await commandProcessor?.redo();
+    notifyListeners();
+  }
+
+
   Future<void> close() async {
     _log.info('Closing TabSession name=$name path=$storagePath');
     _debounceTimer?.cancel();

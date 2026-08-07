@@ -22,6 +22,13 @@ class ContentTextEditingController extends TextEditingController {
     );
   }
 
+  @override
+  void dispose() {
+    textAlignNotifier.dispose();
+    super.dispose();
+  }
+
+
   void loadFromContent(Content content) {
     final result = serializer.loadFromContent(content);
     formattingSpans = result.$2;

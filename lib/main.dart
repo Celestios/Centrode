@@ -47,16 +47,18 @@ Future<void> main() async {
   log.info('Rust FFI loaded. Centrode core ready.');
 
   final themes = await ThemeLoader.loadBundledThemes();
+  final AppTheme initialTheme;
   if (themes.isEmpty) {
     log.severe(
       'No JSON themes found in assets. Falling back to bare defaults.',
     );
-    AppThemeManager.instance.themeNotifier = ValueNotifier(AppTheme());
+    initialTheme = AppTheme();
   } else {
-    final initialTheme = themes['dark'] ?? themes.values.first;
-    AppThemeManager.instance.themeNotifier = ValueNotifier(initialTheme);
+    initialTheme = themes['dark'] ?? themes.values.first;
     log.info('Loaded themes: ${themes.keys.join(', ')}');
   }
+  AppThemeManager.instance.themeNotifier = ValueNotifier(initialTheme);
+
 
   runApp(MyApp(allThemes: themes));
 }

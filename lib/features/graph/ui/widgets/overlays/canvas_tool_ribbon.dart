@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
-import '../../../store/command_queue_processor.dart';
 import 'package:centrode/presentation/widgets/hover_scale_button.dart';
 
 class CanvasToolRibbon extends StatefulWidget {
@@ -17,9 +16,8 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
 
   @override
   Widget build(BuildContext context) {
-    final tabsController = context.read<WorkspaceTabsController>();
+    final tabsController = context.watch<WorkspaceTabsController>();
     final session = tabsController.activeSession;
-    final dataController = context.watch<CommandQueueProcessor>();
 
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
@@ -33,27 +31,27 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
       (icon: Icons.auto_fix_high_outlined, label: 'Optimize', mode: 'optimize'),
     ];
 
+    final canUndo = session?.canUndo ?? false;
+    final canRedo = session?.canRedo ?? false;
+
     final actions = [
       (
         icon: Icons.undo_rounded,
-        tooltip: dataController.canUndo
-            ? 'Undo (${dataController.undoCount} actions remaining)'
-            : 'Undo (No actions available)',
-        action: dataController.undo,
+        tooltip: canUndo ? 'Undo' : 'Undo (No actions available)',
+        action: () => session?.undo(),
         showAlways: true,
-        isEnabled: dataController.canUndo,
-        count: dataController.undoCount,
+        isEnabled: canUndo,
+        count: 0,
       ),
       (
         icon: Icons.redo_rounded,
-        tooltip: dataController.canRedo
-            ? 'Redo (${dataController.redoCount} actions remaining)'
-            : 'Redo (No actions available)',
-        action: dataController.redo,
+        tooltip: canRedo ? 'Redo' : 'Redo (No actions available)',
+        action: () => session?.redo(),
         showAlways: true,
-        isEnabled: dataController.canRedo,
-        count: dataController.redoCount,
+        isEnabled: canRedo,
+        count: 0,
       ),
+
       (
         icon: Icons.file_download_outlined,
         tooltip: 'Import Map',

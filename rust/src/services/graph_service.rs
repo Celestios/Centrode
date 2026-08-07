@@ -5,12 +5,13 @@ use crate::layout_engine::engine::LayoutEngine;
 use crate::persistence::db::Database;
 use crate::persistence::repo::Repository;
 use crate::relation_engine::config::RelationEngineConfig;
-use crate::telemetry::{connect_log_stream, init_telemetry, subscribe_to_logs, LogState};
 use directories::ProjectDirs;
 use std::path::PathBuf;
 pub use std::sync::Mutex;
 use tokio::task::JoinHandle;
 use tokio_stream::StreamExt;
+
+
 
 pub use crate::domain::styles::{NodeLayout, NodeStyle, RelationLayout, RelationStyle};
 pub use crate::relation_engine::engine::RelationEngine;
@@ -81,7 +82,10 @@ impl GraphService {
             }
         });
 
-        self.tasks.lock().unwrap().push(task);
+        match self.tasks.lock() {
+            Ok(mut tasks) => tasks.push(task),
+            Err(poisoned) => poisoned.into_inner().push(task),
+        }
 
         Ok(())
     }
@@ -124,41 +128,3 @@ impl Drop for GraphService {
     }
 }
 
-// ============================================================================
-// Telemetry FFI Endpoints (standalone, no AppHandle)
-// ============================================================================
-
-pub async fn setup_logger() -> anyhow::Result<()> {
-    init_telemetry();
-    tracing::debug!("FFI: setup_logger completed");
-    Ok(())
-}
-
-pub async fn create_log_stream(sink: StreamSink<LogState>) -> anyhow::Result<()> {
-    tracing::debug!("FFI: create_log_stream called");
-
-    connect_log_stream();
-
-    let receiver = subscribe_to_logs();
-
-    tokio::spawn(async move {
-        let stream = tokio_stream::wrappers::BroadcastStream::new(receiver);
-        tokio::pin!(stream);
-
-        while let Some(result) = stream.next().await {
-            match result {
-                Ok(log_state) => {
-                    if sink.add(log_state).is_err() {
-                        break;
-                    }
-                }
-                Err(e) => {
-                    tracing::warn!("FFI: Log stream overflow. Dropped messages: {}", e);
-                    continue;
-                }
-            }
-        }
-    });
-
-    Ok(())
-}

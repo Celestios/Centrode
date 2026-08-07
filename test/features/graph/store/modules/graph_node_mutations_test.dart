@@ -13,13 +13,8 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockGraphApi extends Mock implements GraphApi {}
 
-class MockThemeController extends Mock implements ThemeController {
-  @override
-  GraphTheme get currentGraphTheme =>
-      const GraphTheme(id: 'test', name: 'test');
-}
-
 void main() {
+
   group('GraphNodeMutations', () {
     late CommandQueueProcessor controller;
     late GraphDataQueryController queryController;
@@ -126,5 +121,31 @@ void main() {
       final node = queryController.nodeLookup[id]!;
       expect(node.position, const Offset(2000, 2000));
     });
+
+    test('updateNodeWidth updates custom width on node', () {
+      final id = controller.nodeMutations.createNode(
+        UiNodes.info,
+        const Offset(0, 0),
+      );
+
+      controller.nodeMutations.updateNodeWidth(id, 350.0);
+
+      final node = queryController.nodeLookup[id]!;
+      expect(node.size.width, equals(350.0));
+    });
+
+    test('toggleNodeExpansion toggles isExpanded state', () {
+      final id = controller.nodeMutations.createNode(
+        UiNodes.info,
+        const Offset(0, 0),
+      );
+
+      final initial = queryController.nodeLookup[id]!.isExpanded;
+      controller.nodeMutations.toggleNodeExpansion(id);
+
+      final toggled = queryController.nodeLookup[id]!;
+      expect(toggled.isExpanded, equals(!initial));
+    });
   });
 }
+

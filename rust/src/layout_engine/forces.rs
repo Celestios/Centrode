@@ -25,6 +25,11 @@ impl ForceAccumulator {
     ) {
         let node_ids: Vec<TypedRecordId> = nodes.keys().cloned().collect();
         let n = node_ids.len();
+        let id_to_index: HashMap<TypedRecordId, usize> = node_ids
+            .iter()
+            .enumerate()
+            .map(|(idx, id)| (id.clone(), idx))
+            .collect();
         let mut forces: Vec<(f64, f64)> = vec![(0.0, 0.0); n];
 
         for i in 0..n {
@@ -48,8 +53,8 @@ impl ForceAccumulator {
         }
 
         for edge in edges {
-            let a_idx = node_ids.iter().position(|id| *id == edge.from_id);
-            let b_idx = node_ids.iter().position(|id| *id == edge.to_id);
+            let a_idx = id_to_index.get(&edge.from_id).copied();
+            let b_idx = id_to_index.get(&edge.to_id).copied();
             if let (Some(ai), Some(bi)) = (a_idx, b_idx) {
                 let a = &nodes[&node_ids[ai]];
                 let b = &nodes[&node_ids[bi]];
@@ -88,12 +93,13 @@ impl ForceAccumulator {
                 .node_ids
                 .iter()
                 .filter_map(|id| {
-                    node_ids
-                        .iter()
-                        .position(|nid| nid == id)
+                    id_to_index
+                        .get(id)
+                        .copied()
                         .map(|idx| (idx, &nodes[id]))
                 })
                 .collect();
+
 
             if !member_indices.is_empty() {
                 let member_nodes: Vec<&NodePhysics> = member_indices.iter().map(|(_, n)| *n).collect();

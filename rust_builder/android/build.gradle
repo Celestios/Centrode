@@ -33,9 +33,9 @@ android {
     // to bump the version in their app.
     compileSdkVersion 33
 
-    // Use NDK 27.0.12077973
-    ndkVersion "27.0.12077973"
-    ndkPath "${android.sdkDirectory.path}/ndk/27.0.12077973"
+    // Use NDK 28.2.13676358
+    ndkVersion "28.2.13676358"
+
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

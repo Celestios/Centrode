@@ -73,11 +73,11 @@ class NodeViewState implements VolatileNodeState {
     _log.fine('VIEWSTATE: Rehydrated state for $nodeId');
   }
 
-  void _recomputeSizeWithStrategy(UiNode node, {bool isEditing = false}) {
+  ({Size size, int lineCount}) computeSizeWithStrategy(UiNode node, {bool isEditing = false}) {
     final result = _sizeComputer(node, isEditing: isEditing);
-    node.size = result.size;
-    node.lineCount = result.lineCount;
+    return (size: result.size, lineCount: result.lineCount);
   }
+
 
   // --- DRY Geometry Getters ---
   Rect get rect => _cachedRect ??= positionNotifier.value & sizeNotifier.value;
@@ -293,10 +293,11 @@ class NodeViewState implements VolatileNodeState {
   void onSizeChanged(UiNode node, {bool isEditing = false}) {
     _currentNode = node;
     isExpandedNotifier.value = node.isExpanded;
-    _recomputeSizeWithStrategy(node, isEditing: isEditing);
-    sizeNotifier.value = node.size;
-    lineCountNotifier.value = node.lineCount;
+    final computed = computeSizeWithStrategy(node, isEditing: isEditing);
+    sizeNotifier.value = computed.size;
+    lineCountNotifier.value = computed.lineCount;
   }
+
 
   /// Called when only visual properties change (no size impact).
   void onStyleChanged() {

@@ -4,9 +4,14 @@ import 'package:centrode/features/graph/presentation/map_manager.dart';
 import 'package:centrode/features/workspace/ui/widgets/left_panel/quick_actions_section.dart';
 
 void main() {
+  setUp(() {
+    MapManager.instance.closeAll();
+  });
+
   tearDown(() {
     MapManager.instance.closeAll();
   });
+
 
   group('Return to Map Button Tests', () {
     testWidgets(

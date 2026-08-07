@@ -30,9 +30,11 @@ impl GraphService {
         let snapshot = self.repo.get_graph_snapshot().await?;
         let mut engine = self.layout_engine.lock().map_err(|_| anyhow::anyhow!("Mutex poisoned"))?;
         engine.sync_from_canvas(&snapshot.nodes, &snapshot.relations, opt_area);
-        let pos = engine.compute_auto_placement(source_id, port_side);
-        Ok(pos)
+        engine
+            .compute_auto_placement(source_id, port_side)
+            .ok_or_else(|| anyhow::anyhow!("Source node not found in layout engine"))
     }
+
 
     pub async fn set_alignment_constraint(
         &self,
@@ -78,7 +80,7 @@ impl GraphService {
             );
         }
 
-        tokio::spawn(async move {
+        let task = tokio::spawn(async move {
             let margin = RelationEngineConfig::default().routing.obstacle_margin;
 
             loop {
@@ -124,6 +126,12 @@ impl GraphService {
             }
         });
 
+        match self.tasks.lock() {
+            Ok(mut tasks) => tasks.push(task),
+            Err(poisoned) => poisoned.into_inner().push(task),
+        }
+
         Ok(())
     }
 }
+

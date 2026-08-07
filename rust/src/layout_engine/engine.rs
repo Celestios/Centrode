@@ -109,22 +109,19 @@ impl LayoutEngine {
         &self,
         source_id: TypedRecordId,
         port_side: PortSide,
-    ) -> (f64, f64) {
-        let (source_x, source_y, s_w, s_h) = if let Some(source) = self.state.nodes.get(&source_id) {
-            (source.x, source.y, source.width, source.height)
-        } else {
-            (0.0, 0.0, 160.0, 80.0)
-        };
+    ) -> Option<(f64, f64)> {
+        let source = self.state.nodes.get(&source_id)?;
+        let (source_x, source_y, s_w, s_h) = (source.x, source.y, source.width, source.height);
 
         let (dir_x, dir_y) = match port_side {
             PortSide::Right => (1.0, 0.0),
             PortSide::Left => (-1.0, 0.0),
             PortSide::Bottom => (0.0, 1.0),
             PortSide::Top => (0.0, -1.0),
-            PortSide::TopRight => (0.707, -0.707),
-            PortSide::TopLeft => (-0.707, -0.707),
-            PortSide::BottomRight => (0.707, 0.707),
-            PortSide::BottomLeft => (-0.707, 0.707),
+            PortSide::TopRight => (std::f64::consts::FRAC_1_SQRT_2, -std::f64::consts::FRAC_1_SQRT_2),
+            PortSide::TopLeft => (-std::f64::consts::FRAC_1_SQRT_2, -std::f64::consts::FRAC_1_SQRT_2),
+            PortSide::BottomRight => (std::f64::consts::FRAC_1_SQRT_2, std::f64::consts::FRAC_1_SQRT_2),
+            PortSide::BottomLeft => (-std::f64::consts::FRAC_1_SQRT_2, std::f64::consts::FRAC_1_SQRT_2),
             PortSide::Auto => (1.0, 0.0),
         };
 
@@ -165,8 +162,9 @@ impl LayoutEngine {
             target_y = target_y.clamp(area.min_y + padding, area.max_y - new_h - padding);
         }
 
-        (target_x, target_y)
+        Some((target_x, target_y))
     }
+
 
     pub fn run_batch(&mut self) -> LayoutTickResult {
         let batch_size = self.config.batch_size;
@@ -272,14 +270,6 @@ impl LayoutEngine {
 }
 
 fn node_size(node: &Nodes) -> (f64, f64) {
-    match node {
-        Nodes::INode(n) => (n.size.width as f64, n.size.height as f64),
-        Nodes::TaskNode(n) => (n.size.width as f64, n.size.height as f64),
-        Nodes::CommentNode(n) => (n.size.width as f64, n.size.height as f64),
-        Nodes::DrawingNode(n) => (n.size.width as f64, n.size.height as f64),
-        Nodes::ShapeNode(n) => (n.size.width as f64, n.size.height as f64),
-        Nodes::FrameNode(n) => (n.size.width as f64, n.size.height as f64),
-        Nodes::MediaNode(n) => (n.size.width as f64, n.size.height as f64),
-        Nodes::InterNode(_) => (0.0, 0.0),
-    }
+    node.dimensions()
 }
+

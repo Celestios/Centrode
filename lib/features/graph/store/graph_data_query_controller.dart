@@ -123,5 +123,7 @@ class GraphDataQueryController implements GraphDataQuery {
   void dispose() {
     _entityUpdateController.close();
     relationEngine.dispose();
+    optAreaNotifier.dispose();
   }
 }
+

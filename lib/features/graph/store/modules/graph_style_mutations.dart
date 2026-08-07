@@ -12,64 +12,9 @@ class GraphStyleMutations {
   GraphStyleMutations(this.controller);
 
   void updateNodeStyle(RawUuid id, NodeStyle newStyle) {
-    final node = controller.store.nodeLookup[id];
-    if (node == null) return;
-
-    final oldStyle = node.style;
-    final oldSize = node.size;
-
-    node.style = newStyle;
-    controller.styleUpdater?.updateStyleForNode(id);
-
-    final newSizeResult = controller.calculateNodeSize(node);
-    final newSize = newSizeResult.size;
-    node.size = newSize;
-    node.lineCount = newSizeResult.lineCount;
-
-    controller.syncEngine.processor.queueCommand(
-      UpdateNodeStyleCommand(
-        targetId: id,
-        tableName: node.tableName,
-        api: controller.syncEngine.api,
-        oldStyle: oldStyle,
-        newStyle: newStyle,
-        oldSize: oldSize,
-        newSize: newSize,
-        controller: controller,
-      ),
-      immediate: true,
-    );
-
-    controller.syncEngine.api.updateNodeCachePositions(
-      positions: [
-        (
-          parseTypedRecordId(node.tableName, id),
-          node.position.dx,
-          node.position.dy,
-          newSize.width,
-          newSize.height,
-        ),
-      ],
-    );
-    controller.relationEngine.onNodeMoved(id);
-
-    controller.publishUpdate(
-      GraphEntityUpdate(
-        id: id,
-        tableName: node.tableName,
-        type: GraphUpdateType.style,
-        payload: newStyle,
-      ),
-    );
-    controller.publishUpdate(
-      GraphEntityUpdate(
-        id: id,
-        tableName: node.tableName,
-        type: GraphUpdateType.size,
-        payload: newSize,
-      ),
-    );
+    updateNodesStyle([id], (_) => newStyle);
   }
+
 
   void updateNodesStyle(
     List<RawUuid> ids,

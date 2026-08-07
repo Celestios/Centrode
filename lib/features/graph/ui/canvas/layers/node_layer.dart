@@ -166,6 +166,7 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
   final Set<RawUuid> _dirtyNodeIds = {};
   final Set<RawUuid> _positionOnlyNodeIds = {};
   final Map<RawUuid, VoidCallback> _listeners = {};
+  final Map<RawUuid, VoidCallback> _positionListeners = {};
   _CanvasNodesPainter? _painter;
   final ValueNotifier<int> _repaintTrigger = ValueNotifier(0);
   bool _disposed = false;
@@ -196,6 +197,7 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
     _disposed = true;
     _unsubscribeAll();
     _disposeNodeCache();
+    _repaintTrigger.dispose();
     super.dispose();
   }
 
@@ -237,6 +239,7 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
       entry.viewState.isExpandedNotifier.addListener(markDirty);
       entry.viewState.lineCountNotifier.addListener(markDirty);
       entry.viewState.styleNotifier.addListener(markDirty);
+      _positionListeners[id] = markPosition;
       _listeners[id] = markDirty;
     }
     widget.hoveredNodeNotifier.addListener(_onHoverChanged);
@@ -244,9 +247,12 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
 
   void _unsubscribeAll() {
     for (final entry in widget.entries) {
+      final posListener = _positionListeners.remove(entry.node.id);
+      if (posListener != null) {
+        entry.viewState.positionNotifier.removeListener(posListener);
+      }
       final listener = _listeners.remove(entry.node.id);
       if (listener != null) {
-        entry.viewState.positionNotifier.removeListener(listener);
         entry.viewState.sizeNotifier.removeListener(listener);
         entry.viewState.dragWidthNotifier.removeListener(listener);
         entry.viewState.isExpandedNotifier.removeListener(listener);
@@ -256,6 +262,7 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
     }
     widget.hoveredNodeNotifier.removeListener(_onHoverChanged);
   }
+
 
   void _onHoverChanged() {
     if (_disposed) return;
