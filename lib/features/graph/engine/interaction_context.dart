@@ -26,6 +26,9 @@ abstract interface class ViewportCapability {
 
   /// Gets the current active tool mode string ('select', 'pan', 'connect', 'optimize', 'draw').
   String get toolMode;
+
+  /// Gets the current OptArea rectangle if set, or null.
+  Rect? get optArea;
 }
 
 /// Interface segregating selection and toolbar actions.
@@ -143,7 +146,7 @@ abstract interface class MutationCapability {
 
   void onRelationSnapPreviewClear(RawUuid relationId);
 
-  void onSetOptArea(Rect? bounds);
+  void onSetOptArea(Rect? bounds, {bool commitToBackend = true});
 }
 
 abstract interface class GeometryCapability

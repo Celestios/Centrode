@@ -13,7 +13,7 @@ pub use crate::domain::theme::{MapTheme, ThemeFields};
 pub use crate::domain::types::{Auxiliary, DomainEntity, Relations};
 pub use crate::frb_generated::StreamSink;
 pub use crate::layout_engine::config::LayoutConfig;
-pub use crate::layout_engine::types::Axis;
+pub use crate::layout_engine::types::{Axis, LayoutPatch};
 pub use crate::persistence::history::HistoryRecord;
 pub use crate::persistence::repo::Repository;
 pub use crate::relation_engine::computed::ComputedRelation;
@@ -300,8 +300,11 @@ impl AppHandle {
     pub async fn trigger_layout_optimization(
         &self,
         config: LayoutConfig,
+        live_positions: Vec<LayoutPatch>,
     ) -> anyhow::Result<()> {
-        self.service.trigger_layout_optimization(config).await
+        self.service
+            .trigger_layout_optimization(config, live_positions)
+            .await
     }
 
     pub async fn compute_auto_placement(

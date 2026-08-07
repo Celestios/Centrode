@@ -100,6 +100,8 @@ void main() {
       );
 
       // Stub environment calls since FSM CanvasIdle handlePointerDown will run
+      when(() => mockEnv.toolMode).thenReturn('select');
+      when(() => mockEnv.optArea).thenReturn(null);
       when(() => mockEnv.getActiveEditId()).thenReturn(null);
       when(() => mockEnv.getSelectedEntities()).thenReturn(<RawUuid>{});
       when(() => mockEnv.getRelations()).thenReturn(<UiRelation>[]);
@@ -202,6 +204,8 @@ void main() {
       brushTypeNotifier = ValueNotifier<String>('pen');
 
       // Stub environment calls since FSM CanvasIdle handlePointerDown will run when bubbling
+      when(() => mockEnv.toolMode).thenReturn('select');
+      when(() => mockEnv.optArea).thenReturn(null);
       when(() => mockEnv.getActiveEditId()).thenReturn(null);
       when(() => mockEnv.getSelectedEntities()).thenReturn(<RawUuid>{});
       when(() => mockEnv.getRelations()).thenReturn(<UiRelation>[]);

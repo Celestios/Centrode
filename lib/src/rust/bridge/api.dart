@@ -172,7 +172,10 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<void> setOptArea({BoundingBox? bounds});
 
-  Future<void> triggerLayoutOptimization({required LayoutConfig config});
+  Future<void> triggerLayoutOptimization({
+    required LayoutConfig config,
+    required List<LayoutPatch> livePositions,
+  });
 
   Future<HistoryRecord?> undo();
 

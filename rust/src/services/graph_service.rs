@@ -27,6 +27,7 @@ pub struct GraphService {
     pub relation_engine: std::sync::Arc<Mutex<RelationEngine>>,
     pub layout_engine: std::sync::Arc<Mutex<LayoutEngine>>,
     tasks: Mutex<Vec<JoinHandle<()>>>,
+    pub layout_task: Mutex<Option<JoinHandle<()>>>,
 }
 
 impl GraphService {
@@ -56,6 +57,7 @@ impl GraphService {
             relation_engine,
             layout_engine,
             tasks: Mutex::new(Vec::new()),
+            layout_task: Mutex::new(None),
         }
     }
 
@@ -92,6 +94,11 @@ impl GraphService {
 
     pub fn close(&self) -> anyhow::Result<()> {
         tracing::info!("Closing AppHandle, aborting background tasks...");
+        if let Ok(mut handle) = self.layout_task.lock() {
+            if let Some(t) = handle.take() {
+                t.abort();
+            }
+        }
         match self.tasks.lock() {
             Ok(mut tasks) => {
                 for task in tasks.drain(..) {
@@ -113,6 +120,11 @@ impl GraphService {
 impl Drop for GraphService {
     fn drop(&mut self) {
         tracing::info!("Dropping AppHandle, aborting background tasks...");
+        if let Ok(mut handle) = self.layout_task.lock() {
+            if let Some(t) = handle.take() {
+                t.abort();
+            }
+        }
         match self.tasks.lock() {
             Ok(mut tasks) => {
                 for task in tasks.drain(..) {

@@ -29,7 +29,7 @@ impl GraphService {
         let opt_area = self.get_opt_area().await?;
         let snapshot = self.repo.get_graph_snapshot().await?;
         let mut engine = self.layout_engine.lock().map_err(|_| anyhow::anyhow!("Mutex poisoned"))?;
-        engine.sync_from_canvas(&snapshot.nodes, &snapshot.relations, opt_area);
+        engine.sync_from_canvas(&snapshot.nodes, &snapshot.relations, opt_area, &[]);
         engine
             .compute_auto_placement(source_id, port_side)
             .ok_or_else(|| anyhow::anyhow!("Source node not found in layout engine"))
@@ -61,10 +61,17 @@ impl GraphService {
     pub async fn trigger_layout_optimization(
         &self,
         config: LayoutConfig,
+        live_positions: Vec<crate::layout_engine::types::LayoutPatch>,
     ) -> anyhow::Result<()> {
         let opt_area = self.get_opt_area().await?;
         if opt_area.is_none() {
             return Ok(());
+        }
+
+        if let Ok(mut prev) = self.layout_task.lock() {
+            if let Some(handle) = prev.take() {
+                handle.abort();
+            }
         }
 
         let snapshot = self.repo.get_graph_snapshot().await?;
@@ -77,6 +84,7 @@ impl GraphService {
                 &snapshot.nodes,
                 &snapshot.relations,
                 opt_area,
+                &live_positions,
             );
         }
 
@@ -126,9 +134,8 @@ impl GraphService {
             }
         });
 
-        match self.tasks.lock() {
-            Ok(mut tasks) => tasks.push(task),
-            Err(poisoned) => poisoned.into_inner().push(task),
+        if let Ok(mut slot) = self.layout_task.lock() {
+            *slot = Some(task);
         }
 
         Ok(())

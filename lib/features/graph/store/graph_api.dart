@@ -92,7 +92,10 @@ abstract class GraphApi {
   Future<void> updateViewportState({required ViewportState state});
   Future<BoundingBox?> getOptArea();
   Future<void> setOptArea({BoundingBox? bounds});
-  Future<void> triggerLayoutOptimization({required LayoutConfig config});
+  Future<void> triggerLayoutOptimization({
+    required LayoutConfig config,
+    List<LayoutPatch> livePositions = const [],
+  });
   Future<(double, double)> computeAutoPlacement({
     required TypedRecordId sourceId,
     required PortSide portSide,
@@ -309,8 +312,14 @@ class RustAppHandleWrapper implements GraphApi {
       _api.setOptArea(bounds: bounds);
 
   @override
-  Future<void> triggerLayoutOptimization({required LayoutConfig config}) =>
-      _api.triggerLayoutOptimization(config: config);
+  Future<void> triggerLayoutOptimization({
+    required LayoutConfig config,
+    List<LayoutPatch> livePositions = const [],
+  }) =>
+      _api.triggerLayoutOptimization(
+        config: config,
+        livePositions: livePositions,
+      );
 
   @override
   Future<(double, double)> computeAutoPlacement({
@@ -636,8 +645,14 @@ class DeferredGraphApi implements GraphApi {
   }
 
   @override
-  Future<void> triggerLayoutOptimization({required LayoutConfig config}) async {
-    await _handle?.triggerLayoutOptimization(config: config);
+  Future<void> triggerLayoutOptimization({
+    required LayoutConfig config,
+    List<LayoutPatch> livePositions = const [],
+  }) async {
+    await _handle?.triggerLayoutOptimization(
+      config: config,
+      livePositions: livePositions,
+    );
   }
 
   @override

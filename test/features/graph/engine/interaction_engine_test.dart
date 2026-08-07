@@ -86,6 +86,8 @@ void main() {
       when(() => mockTransform.value).thenReturn(Matrix4.identity());
 
       mockContext = MockInteractionContext();
+      when(() => mockContext.toolMode).thenReturn('select');
+      when(() => mockContext.optArea).thenReturn(null);
       final mockRelationEngine = MockRelationEngineState();
       when(
         () => mockRelationEngine.cache,

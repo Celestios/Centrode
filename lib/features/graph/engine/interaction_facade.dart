@@ -19,6 +19,8 @@ import '../presentation/workspace_tabs_controller.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'package:centrode/src/rust/domain/base_models.dart' hide Size;
 import 'package:centrode/src/rust/layout_engine/config.dart';
+import 'package:centrode/src/rust/layout_engine/types.dart';
+import '../models/commands/patch_helpers.dart';
 
 /// The Facade bridging the active FSM to the Data/UI Controllers.
 class CanvasInteractionEnvironment implements InteractionContext {
@@ -101,6 +103,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
   void onNodeMove(RawUuid id, Offset pos) {
     _log.fine('onNodeMove id=$id');
     _commandProcessor.updateNodePosition(id, pos);
+    _triggerOptAreaLayoutIfActive(pos);
   }
 
   @override
@@ -143,6 +146,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
       toSide: toSide,
       strategyType: strategyType,
     );
+    _triggerOptAreaLayoutIfActive();
   }
 
   @override
@@ -369,44 +373,58 @@ class CanvasInteractionEnvironment implements InteractionContext {
   }
 
   @override
+  Rect? get optArea => _queryController.optAreaNotifier.value;
+
+  @override
   void onRelationSnapPreviewClear(RawUuid relationId) {
     _queryController.relationEngine.clearRelationPreview(relationId);
   }
 
-  void _triggerOptAreaLayoutIfActive([Offset? testPoint]) {
+  void _triggerOptAreaLayoutIfActive([Offset? testPoint]) async {
     final area = _queryController.optAreaNotifier.value;
     if (area == null) return;
     if (testPoint != null && !area.contains(testPoint)) return;
 
     _log.info('Triggering event-driven layout optimization pass for OptArea');
+    await _commandProcessor.flush();
+
+    final livePatches = _queryController.nodeLookup.values.map((node) {
+      return LayoutPatch(
+        id: parseTypedRecordId(node.tableName, node.id),
+        x: node.position.dx,
+        y: node.position.dy,
+      );
+    }).toList();
+
     _commandProcessor.api.triggerLayoutOptimization(
       config: const LayoutConfig(
         force: ForceConfig(
-          repulsionConstant: 7000.0,
-          springConstant: 0.05,
-          idealLinkDistance: 300.0,
-          collisionStrength: 0.8,
-          baseMargin: 10.0,
+          repulsionConstant: 4500.0,
+          springConstant: 0.06,
+          idealLinkDistance: 150.0,
+          collisionStrength: 1.0,
+          baseMargin: 15.0,
           marginScale: 0.1,
-          wallStrength: 1.0,
+          wallStrength: 1.2,
           wallPadding: 20.0,
-          damping: 0.3,
-          alphaDecay: 0.02,
+          damping: 0.35,
+          alphaDecay: 0.006,
           alphaMin: 0.001,
         ),
         convergence: ConvergenceCriteria(
-          maxIterations: 500,
-          energyThreshold: 0.01,
-          displacementThreshold: 0.5,
+          maxIterations: 600,
+          energyThreshold: 0.005,
+          displacementThreshold: 0.2,
           oscillationWindow: 10,
         ),
-        batchSize: 5,
+        batchSize: 1,
       ),
+      livePositions: livePatches,
     );
   }
 
   @override
-  void onSetOptArea(Rect? bounds) async {
+  void onSetOptArea(Rect? bounds, {bool commitToBackend = true}) async {
     final boundingBox = bounds == null
         ? null
         : BoundingBox(
@@ -415,11 +433,13 @@ class CanvasInteractionEnvironment implements InteractionContext {
             maxX: bounds.right,
             maxY: bounds.bottom,
           );
-    _log.info('Setting OptArea: $boundingBox');
+    _log.info('Setting OptArea: $boundingBox (commitToBackend: $commitToBackend)');
     _queryController.optAreaNotifier.value = bounds;
-    await _commandProcessor.api.setOptArea(bounds: boundingBox);
-    if (boundingBox != null) {
-      _triggerOptAreaLayoutIfActive();
+    if (commitToBackend) {
+      await _commandProcessor.api.setOptArea(bounds: boundingBox);
+      if (boundingBox != null) {
+        _triggerOptAreaLayoutIfActive();
+      }
     }
   }
 }

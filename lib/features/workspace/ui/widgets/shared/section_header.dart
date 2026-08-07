@@ -54,13 +54,21 @@ class SectionHeader extends StatelessWidget {
                         InkWell(
                           onTap: onSelectAll,
                           borderRadius: BorderRadius.circular(4),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
+                              ),
+                            ),
                             child: Text(
                               'Select all',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 fontSize: 11,
-                                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
@@ -70,13 +78,21 @@ class SectionHeader extends StatelessWidget {
                       InkWell(
                         onTap: onCancel,
                         borderRadius: BorderRadius.circular(4),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
+                            ),
+                          ),
                           child: Text(
                             'Cancel',
                             style: theme.textTheme.bodySmall?.copyWith(
                               fontSize: 11,
-                              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),

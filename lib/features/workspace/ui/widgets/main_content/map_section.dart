@@ -88,6 +88,7 @@ class MapSectionState extends State<MapSection> {
         await RecentMapsStore.remove(map.path);
         newSelection.remove(map.path);
       }
+      if (!mounted) return;
       widget.onSelectionChanged(newSelection);
       widget.onMapsChanged?.call();
     }
@@ -129,8 +130,12 @@ class MapSectionState extends State<MapSection> {
             child: Center(child: CircularProgressIndicator()),
           )
         else if (_maps.isEmpty)
-          EmptySectionCard(
-            description: widget.emptySubtitle,
+          HorizontalScrollRow(
+            children: [
+              EmptySectionCard(
+                description: widget.emptySubtitle,
+              ),
+            ],
           )
         else
           HorizontalScrollRow(
@@ -166,6 +171,7 @@ class MapSectionState extends State<MapSection> {
                     await MapManager.instance.closeByPath(map.path);
                     await AppPaths.renameMapStorage(map.path, newPath);
                     await RecentMapsStore.rename(map.path, newPath);
+                    if (!mounted) return;
                     if (widget.selectedPaths.contains(map.path)) {
                       final newSelection = Set<String>.from(widget.selectedPaths)
                         ..remove(map.path)

@@ -67,7 +67,7 @@ impl Default for LayoutConfig {
         Self {
             force: ForceConfig::default(),
             convergence: ConvergenceCriteria::default(),
-            batch_size: 5,
+            batch_size: 1,
         }
     }
 }

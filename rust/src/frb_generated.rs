@@ -2583,6 +2583,8 @@ fn wire__crate__bridge__api__AppHandle_trigger_layout_optimization_impl(
             >>::sse_decode(&mut deserializer);
             let api_config =
                 <crate::layout_engine::config::LayoutConfig>::sse_decode(&mut deserializer);
+            let api_live_positions =
+                <Vec<crate::layout_engine::types::LayoutPatch>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -2607,6 +2609,7 @@ fn wire__crate__bridge__api__AppHandle_trigger_layout_optimization_impl(
                         let output_ok = crate::bridge::api::AppHandle::trigger_layout_optimization(
                             &*api_that_guard,
                             api_config,
+                            api_live_positions,
                         )
                         .await?;
                         Ok(output_ok)

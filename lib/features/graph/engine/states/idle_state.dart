@@ -33,6 +33,38 @@ class CanvasIdle extends CanvasInteractionState {
     final selectedEntities = ctx.getSelectedEntities();
 
     switch (result.type) {
+      case HitTestType.optAreaClose:
+        ctx.onSetOptArea(null);
+        return this;
+
+      case HitTestType.optAreaResizeLeft:
+        return OptAreaResizing(
+          edge: OptAreaResizeEdge.left,
+          initialRect: ctx.optArea!,
+          startPos: pCanvas,
+        );
+
+      case HitTestType.optAreaResizeRight:
+        return OptAreaResizing(
+          edge: OptAreaResizeEdge.right,
+          initialRect: ctx.optArea!,
+          startPos: pCanvas,
+        );
+
+      case HitTestType.optAreaResizeTop:
+        return OptAreaResizing(
+          edge: OptAreaResizeEdge.top,
+          initialRect: ctx.optArea!,
+          startPos: pCanvas,
+        );
+
+      case HitTestType.optAreaResizeBottom:
+        return OptAreaResizing(
+          edge: OptAreaResizeEdge.bottom,
+          initialRect: ctx.optArea!,
+          startPos: pCanvas,
+        );
+
       case HitTestType.relationTipStart:
       case HitTestType.relationTipEnd:
         ctx.setHoveredPort(null);
@@ -106,6 +138,7 @@ class CanvasIdle extends CanvasInteractionState {
         hitEntityId == null &&
         !isDoubleTap) {
       if (ctx.toolMode == 'optimize') {
+        ctx.onSetOptArea(null);
         return OptAreaDrawing(pCanvas, pCanvas);
       }
       return MarqueeSelecting(pCanvas, pCanvas);
@@ -192,6 +225,24 @@ class CanvasIdle extends CanvasInteractionState {
     Offset pCanvas,
     InteractionContext ctx,
   ) {
+    // Check OptArea hits first (close button and 4-side resize handles)
+    final optHit = const HitTestResolver().resolveOptAreaHit(pCanvas, ctx);
+    if (optHit != null) {
+      ctx.setHoveredNode(null);
+      ctx.setHoveredNodeMetadata(null);
+      ctx.setHoveredPort(null);
+      final targetCursor = optHit.type == HitTestType.optAreaClose
+          ? SystemMouseCursors.click
+          : (optHit.type == HitTestType.optAreaResizeLeft ||
+                  optHit.type == HitTestType.optAreaResizeRight)
+              ? SystemMouseCursors.resizeLeftRight
+              : SystemMouseCursors.resizeUpDown;
+
+      return cursor == targetCursor
+          ? this
+          : CanvasIdle(cursor: targetCursor);
+    }
+
     // Use spatial grid to find candidate nodes near the cursor (O(K) not O(N))
     final candidateIds = ctx.spatialGrid.queryPoint(pCanvas);
     if (candidateIds.isEmpty) {

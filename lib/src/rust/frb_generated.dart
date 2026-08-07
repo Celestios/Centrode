@@ -316,6 +316,7 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateBridgeApiAppHandleTriggerLayoutOptimization({
     required AppHandle that,
     required LayoutConfig config,
+    required List<LayoutPatch> livePositions,
   });
 
   Future<HistoryRecord?> crateBridgeApiAppHandleUndo({required AppHandle that});
@@ -2046,6 +2047,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Future<void> crateBridgeApiAppHandleTriggerLayoutOptimization({
     required AppHandle that,
     required LayoutConfig config,
+    required List<LayoutPatch> livePositions,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -2056,6 +2058,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             serializer,
           );
           sse_encode_box_autoadd_layout_config(config, serializer);
+          sse_encode_list_layout_patch(livePositions, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -2068,7 +2071,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateBridgeApiAppHandleTriggerLayoutOptimizationConstMeta,
-        argValues: [that, config],
+        argValues: [that, config, livePositions],
         apiImpl: this,
       ),
     );
@@ -2078,7 +2081,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   get kCrateBridgeApiAppHandleTriggerLayoutOptimizationConstMeta =>
       const TaskConstMeta(
         debugName: "AppHandle_trigger_layout_optimization",
-        argNames: ["that", "config"],
+        argNames: ["that", "config", "livePositions"],
       );
 
   @override
@@ -9410,11 +9413,14 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
   Future<void> setOptArea({BoundingBox? bounds}) => RustLib.instance.api
       .crateBridgeApiAppHandleSetOptArea(that: this, bounds: bounds);
 
-  Future<void> triggerLayoutOptimization({required LayoutConfig config}) =>
-      RustLib.instance.api.crateBridgeApiAppHandleTriggerLayoutOptimization(
-        that: this,
-        config: config,
-      );
+  Future<void> triggerLayoutOptimization({
+    required LayoutConfig config,
+    required List<LayoutPatch> livePositions,
+  }) => RustLib.instance.api.crateBridgeApiAppHandleTriggerLayoutOptimization(
+    that: this,
+    config: config,
+    livePositions: livePositions,
+  );
 
   Future<HistoryRecord?> undo() =>
       RustLib.instance.api.crateBridgeApiAppHandleUndo(that: this);

@@ -12,6 +12,11 @@ import 'z_order_utils.dart';
 enum HitTestType {
   none,
   rightClick,
+  optAreaClose,
+  optAreaResizeLeft,
+  optAreaResizeRight,
+  optAreaResizeTop,
+  optAreaResizeBottom,
   relationTipStart,
   relationTipEnd,
   metadataSphere,
@@ -54,6 +59,14 @@ class HitTestResolver {
 
   const HitTestResolver();
 
+  PointerHitResult? resolveOptAreaHit(
+    Offset pCanvas,
+    InteractionContext ctx,
+  ) {
+    return _resolveOptAreaClose(pCanvas, ctx) ??
+        _resolveOptAreaResize(pCanvas, ctx);
+  }
+
   PointerHitResult resolve(
     Offset pCanvas,
     InteractionContext ctx,
@@ -67,6 +80,8 @@ class HitTestResolver {
     );
 
     final result =
+        _resolveOptAreaClose(pCanvas, ctx) ??
+        _resolveOptAreaResize(pCanvas, ctx) ??
         _resolveRelationTips(pCanvas, ctx, selectedEntities) ??
         _resolveMetadataSphere(pCanvas, ctx, nodeIds) ??
         _resolvePorts(pCanvas, ctx, nodeIds) ??
@@ -81,6 +96,65 @@ class HitTestResolver {
     }
 
     return result;
+  }
+
+  PointerHitResult? _resolveOptAreaClose(
+    Offset pCanvas,
+    InteractionContext ctx,
+  ) {
+    final area = ctx.optArea;
+    if (area == null) return null;
+
+    final closeCenter = Offset(area.right - 14, area.top + 14);
+    if (Rect.fromCenter(center: closeCenter, width: 24, height: 24)
+        .contains(pCanvas)) {
+      return const PointerHitResult(type: HitTestType.optAreaClose);
+    }
+    return null;
+  }
+
+  PointerHitResult? _resolveOptAreaResize(
+    Offset pCanvas,
+    InteractionContext ctx,
+  ) {
+    final area = ctx.optArea;
+    if (area == null) return null;
+
+    const margin = 10.0;
+    final expandedBox = area.inflate(margin);
+    if (!expandedBox.contains(pCanvas)) return null;
+
+    final closeCenter = Offset(area.right - 14, area.top + 14);
+    if (Rect.fromCenter(center: closeCenter, width: 28, height: 28)
+        .contains(pCanvas)) {
+      return null;
+    }
+
+    if ((pCanvas.dx - area.left).abs() <= margin &&
+        pCanvas.dy >= area.top - margin &&
+        pCanvas.dy <= area.bottom + margin) {
+      return const PointerHitResult(type: HitTestType.optAreaResizeLeft);
+    }
+
+    if ((pCanvas.dx - area.right).abs() <= margin &&
+        pCanvas.dy >= area.top - margin &&
+        pCanvas.dy <= area.bottom + margin) {
+      return const PointerHitResult(type: HitTestType.optAreaResizeRight);
+    }
+
+    if ((pCanvas.dy - area.top).abs() <= margin &&
+        pCanvas.dx >= area.left - margin &&
+        pCanvas.dx <= area.right + margin) {
+      return const PointerHitResult(type: HitTestType.optAreaResizeTop);
+    }
+
+    if ((pCanvas.dy - area.bottom).abs() <= margin &&
+        pCanvas.dx >= area.left - margin &&
+        pCanvas.dx <= area.right + margin) {
+      return const PointerHitResult(type: HitTestType.optAreaResizeBottom);
+    }
+
+    return null;
   }
 
   PointerHitResult? _resolveRelationTips(

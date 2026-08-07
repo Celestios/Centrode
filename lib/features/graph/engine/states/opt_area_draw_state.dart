@@ -25,7 +25,11 @@ class OptAreaDrawing extends CanvasInteractionState {
   ) {
     final optRect = Rect.fromPoints(startPos, currentPos);
     _optAreaLog.info('OptArea Defined: $optRect');
-    ctx.onSetOptArea(optRect);
+    if (optRect.width.abs() < 5 || optRect.height.abs() < 5) {
+      ctx.onSetOptArea(null);
+    } else {
+      ctx.onSetOptArea(optRect);
+    }
     return const CanvasIdle();
   }
 }

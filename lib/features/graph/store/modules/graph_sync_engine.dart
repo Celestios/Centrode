@@ -11,6 +11,7 @@ import '../command_processor.dart';
 import '../graph_data_query.dart';
 import '../graph_api.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'layout_tick_interpolator.dart';
 
 /// Handles communication between the local store/spatial structures and the Rust backend.
 class GraphSyncEngine {
@@ -19,6 +20,7 @@ class GraphSyncEngine {
   final CommandQueueProcessor controller;
   final GraphApi api;
   final CommandProcessor processor;
+  final LayoutTickInterpolator _interpolator = LayoutTickInterpolator();
   MapData? _lastLoadedMetadata;
 
   // The reactive bounding box updated asynchronously by Rust
@@ -278,54 +280,36 @@ class GraphSyncEngine {
       'converged=${result.converged}, posPatches=${result.positionPatches.length}, portPatches=${result.portPatches.length}',
     );
 
-    for (final patch in result.positionPatches) {
-      final rawId = RawUuid.fromString(patch.id.key.uuid);
-      final newPos = Offset(patch.x, patch.y);
-      final node = controller.store.nodeLookup[rawId];
-      if (node != null) {
-        node.position = newPos;
-      }
-    }
-
-    for (final patch in result.portPatches) {
-      final relId = RawUuid.fromString(patch.relationId.key.uuid);
-      final rel = controller.store.relationLookup[relId];
-      if (rel != null && rel.layout != null) {
-        rel.layout = rel.layout!.copyWith(
-          fromSide: patch.fromSide,
-          toSide: patch.toSide,
-        );
-      }
-    }
-
-    final movedNodeIds = result.positionPatches
-        .map((p) => RawUuid.fromString(p.id.key.uuid))
-        .toSet();
-
-    if (movedNodeIds.isNotEmpty) {
-      final affectedRelations = controller.store.relationLookup.values
-          .where(
-            (r) =>
-                movedNodeIds.contains(r.fromNodeId) ||
-                movedNodeIds.contains(r.toNodeId),
-          )
-          .map((r) => r.id);
-      controller.relationEngine.markRelationsDirty(affectedRelations);
-    }
-
-    if (result.converged) {
-      _syncLog.info(
-        'Layout optimization converged after ${result.iteration} iterations',
-      );
-      if (result.positionPatches.isNotEmpty) {
-        controller.spatial.reindexAll(controller.store.nodeLookup);
+    _interpolator.processTick(
+      tick: result,
+      store: controller.store,
+      onSubStep: (movedNodeIds) {
+        final affectedRelations = controller.store.relationLookup.values
+            .where(
+              (r) =>
+                  movedNodeIds.contains(r.fromNodeId) ||
+                  movedNodeIds.contains(r.toNodeId),
+            )
+            .map((r) => r.id);
+        controller.relationEngine.markRelationsDirty(affectedRelations);
         controller.publishUpdate(
           GraphEntityUpdate(tableName: '', type: GraphUpdateType.reset),
         );
-      }
-      _persistLayoutPositions(result.positionPatches);
-      _persistLayoutPorts(result.portPatches);
-    }
+      },
+      onConverged: (convergedTick) {
+        _syncLog.info(
+          'Layout optimization converged after ${convergedTick.iteration} iterations',
+        );
+        if (convergedTick.positionPatches.isNotEmpty) {
+          controller.spatial.reindexAll(controller.store.nodeLookup);
+          controller.publishUpdate(
+            GraphEntityUpdate(tableName: '', type: GraphUpdateType.reset),
+          );
+        }
+        _persistLayoutPositions(convergedTick.positionPatches);
+        _persistLayoutPorts(convergedTick.portPatches);
+      },
+    );
   }
 
   Future<void> _persistLayoutPositions(List<LayoutPatch> patches) async {
@@ -394,6 +378,7 @@ class GraphSyncEngine {
 
   /// Disposes all resources held by this sync engine.
   void dispose() {
+    _interpolator.cancel();
     processor.flushSync();
     _graphStreamSub?.cancel();
   }

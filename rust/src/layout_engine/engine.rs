@@ -31,7 +31,13 @@ impl LayoutEngine {
         nodes: &[Nodes],
         edges: &[IRelation],
         opt_area: Option<BoundingBox>,
+        live_positions: &[LayoutPatch],
     ) {
+        let live_map: std::collections::HashMap<TypedRecordId, (f64, f64)> = live_positions
+            .iter()
+            .map(|p| (p.id.clone(), (p.x, p.y)))
+            .collect();
+
         self.state.opt_area = opt_area;
         self.state.nodes.clear();
         self.state.energy_history.clear();
@@ -43,8 +49,12 @@ impl LayoutEngine {
                 }
 
                 let id = *node.id();
-                let pos = node.position();
-                let (x, y) = (pos.x as f64, pos.y as f64);
+                let (x, y) = if let Some(&(lx, ly)) = live_map.get(&id) {
+                    (lx, ly)
+                } else {
+                    let pos = node.position();
+                    (pos.x as f64, pos.y as f64)
+                };
                 let (width, height) = node_size(node);
 
                 if x + width >= area.min_x
@@ -85,7 +95,7 @@ impl LayoutEngine {
             }
         }
 
-        self.state.alpha = 1.0;
+        self.state.alpha = 0.5;
         self.state.iteration = 0;
     }
 
@@ -260,12 +270,28 @@ impl LayoutEngine {
     fn is_oscillating(&self) -> bool {
         let window = self.config.convergence.oscillation_window as usize;
         let history = &self.state.energy_history;
-        if history.len() < window + 1 {
+        let min_warmup = window * 3;
+        if history.len() < min_warmup {
             return false;
         }
         let start = history.len() - window;
-        let baseline = history[start - 1];
-        history[start..].iter().all(|&e| e >= baseline)
+        let peak = history[..start]
+            .iter()
+            .copied()
+            .fold(0.0f64, f64::max);
+        if peak < 1e-6 {
+            return false;
+        }
+        let recent_min = history[start..]
+            .iter()
+            .copied()
+            .fold(f64::INFINITY, f64::min);
+        let recent_max = history[start..]
+            .iter()
+            .copied()
+            .fold(0.0f64, f64::max);
+        let range = recent_max - recent_min;
+        range < peak * 0.05
     }
 }
 

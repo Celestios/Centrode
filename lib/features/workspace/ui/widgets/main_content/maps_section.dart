@@ -16,6 +16,7 @@ class _MapsSectionState extends State<MapsSection> {
   final GlobalKey<ProjectsSectionState> _projectsKey = GlobalKey();
 
   void _onMapsChanged() {
+    if (!mounted) return;
     _recentKey.currentState?.reload();
     _projectsKey.currentState?.reload();
   }
@@ -28,6 +29,7 @@ class _MapsSectionState extends State<MapsSection> {
           key: _recentKey,
           selectedPaths: _selectedPaths,
           onSelectionChanged: (newSelection) {
+            if (!mounted) return;
             setState(() {
               _selectedPaths.clear();
               _selectedPaths.addAll(newSelection);
@@ -39,6 +41,7 @@ class _MapsSectionState extends State<MapsSection> {
           key: _projectsKey,
           selectedPaths: _selectedPaths,
           onSelectionChanged: (newSelection) {
+            if (!mounted) return;
             setState(() {
               _selectedPaths.clear();
               _selectedPaths.addAll(newSelection);

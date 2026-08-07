@@ -284,10 +284,23 @@ class RelationLayer extends StatelessWidget {
     required double strokeWidth,
   }) {
     final bool isDraggingThisTip = tipDrag != null && dragPos != null;
-    final bool needsTransform = isDraggingThisTip || isNodeDragging;
 
     final startPoint = Offset(cached.startPoint.x, cached.startPoint.y);
     final endPoint = Offset(cached.endPoint.x, cached.endPoint.y);
+
+    final fromSide = rel.resolvedLayout?.fromSide ?? rel.layout?.fromSide;
+    final toSide = rel.resolvedLayout?.toSide ?? rel.layout?.toSide;
+    final liveStart = fromSide != null
+        ? fromVs.getPortPosition(fromSide)
+        : fromVs.getClosestPort(endPoint).position;
+    final liveEnd = toSide != null
+        ? toVs.getPortPosition(toSide)
+        : toVs.getClosestPort(startPoint).position;
+    final bool isCacheStale =
+        (startPoint - liveStart).distance > 0.5 ||
+        (endPoint - liveEnd).distance > 0.5;
+    final bool needsTransform =
+        isDraggingThisTip || isNodeDragging || isCacheStale;
 
     final List<Offset> bodyPoints;
     final List<Offset> startShapeVertices;
@@ -299,27 +312,19 @@ class RelationLayer extends StatelessWidget {
     final Offset endPointResult;
 
     if (needsTransform) {
-      final fromSide = rel.resolvedLayout?.fromSide ?? rel.layout?.fromSide;
-      final toSide = rel.resolvedLayout?.toSide ?? rel.layout?.toSide;
-
-      final Offset liveStart = isDraggingThisTip && tipDrag.isStartTip
+      final Offset transformStart = isDraggingThisTip && tipDrag.isStartTip
           ? dragPos
-          : (fromSide != null
-                ? fromVs.getPortPosition(fromSide)
-                : fromVs.getClosestPort(endPoint).position);
-
-      final Offset liveEnd = isDraggingThisTip && !tipDrag.isStartTip
+          : liveStart;
+      final Offset transformEnd = isDraggingThisTip && !tipDrag.isStartTip
           ? dragPos
-          : (toSide != null
-                ? toVs.getPortPosition(toSide)
-                : toVs.getClosestPort(startPoint).position);
+          : liveEnd;
 
       List<Offset> transform(List<Point> pts) => transformPathPoints(
         points: pts.map((p) => Offset(p.x, p.y)).toList(),
         sourceStart: startPoint,
         sourceEnd: endPoint,
-        targetStart: liveStart,
-        targetEnd: liveEnd,
+        targetStart: transformStart,
+        targetEnd: transformEnd,
       );
 
       bodyPoints = transform(cached.pathPoints);
@@ -335,16 +340,16 @@ class RelationLayer extends StatelessWidget {
       ]);
       labelPos = labelTransformed.isNotEmpty
           ? labelTransformed.first
-          : Offset.lerp(liveStart, liveEnd, 0.5)!;
+          : Offset.lerp(transformStart, transformEnd, 0.5)!;
 
       startHandlePos = isDraggingThisTip
-          ? liveStart
+          ? transformStart
           : Offset(cached.startHandlePos.x, cached.startHandlePos.y);
       endHandlePos = isDraggingThisTip
-          ? liveEnd
+          ? transformEnd
           : Offset(cached.endHandlePos.x, cached.endHandlePos.y);
-      startPointResult = liveStart;
-      endPointResult = liveEnd;
+      startPointResult = transformStart;
+      endPointResult = transformEnd;
     } else {
       bodyPoints = cached.pathPoints.map((p) => Offset(p.x, p.y)).toList();
       startShapeVertices = cached.startShapePath.isNotEmpty

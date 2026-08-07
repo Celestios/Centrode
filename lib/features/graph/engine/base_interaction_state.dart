@@ -23,6 +23,7 @@ part 'states/toolbar_drag_state.dart';
 part 'states/marquee_state.dart';
 part 'states/relation_tip_drag_state.dart';
 part 'states/opt_area_draw_state.dart';
+part 'states/opt_area_resize_state.dart';
 part 'states/snap_utils.dart';
 
 final Logger _snapLog = Logger('GridSnapping');
