@@ -21,6 +21,7 @@ void main(List<String> arguments) {
   final command = arguments[0].toLowerCase();
   final pubspecFile = File('pubspec.yaml');
   final cargoFile = File('rust/Cargo.toml');
+  final installerFile = File('windows/installer.iss');
 
   if (!pubspecFile.existsSync()) {
     print('Error: pubspec.yaml not found in the root directory.');
@@ -118,5 +119,23 @@ void main(List<String> arguments) {
     print(
       '⚠️ Warning: Could not find version line in rust/Cargo.toml. Skipping Cargo update.',
     );
+  }
+
+  // 5. Write new version to windows/installer.iss
+  if (installerFile.existsSync()) {
+    var installerContent = installerFile.readAsStringSync();
+    final installerRegex = RegExp(
+      r'#define\s+MyAppVersion\s+"[^"]+"',
+      multiLine: true,
+    );
+
+    if (installerRegex.hasMatch(installerContent)) {
+      installerContent = installerContent.replaceFirst(
+        installerRegex,
+        '#define MyAppVersion "$newVersion"',
+      );
+      installerFile.writeAsStringSync(installerContent);
+      print('✅ Updated windows/installer.iss: MyAppVersion ➡️ "$newVersion"');
+    }
   }
 }

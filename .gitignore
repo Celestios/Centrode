@@ -16,7 +16,10 @@
 .pub-cache/
 **/doc/api/
 **/ios/Flutter/.last_build_id
-/android/
+/android/build/
+/android/.gradle/
+/android/.kotlin/
+/android/local.properties
 /build/
 /ios/
 /linux/

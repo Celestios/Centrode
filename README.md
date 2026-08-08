@@ -115,12 +115,26 @@ graph TD
    ```
    Ensure the Rust bridge code compiles and bindings are generated automatically.
 
-3. **Run in Development Mode:**
-   To compile the Rust dll/so library and run the Flutter application:
+3. **Run in Development Mode & Build Releases:**
+   To compile the Rust library and run the Flutter application:
    ```bash
-   flutter run -d windows
+   flutter run -d windows          # Run on Windows
+   flutter run -d android          # Run on Android device or emulator
    ```
-   *(Note: Supports Windows, Linux, and macOS platforms).*
+   *(Note: Supports Windows, Android, Linux, and macOS platforms).*
+
+   To build release binaries:
+   ```bash
+   flutter build windows --release # Build Windows binary
+   flutter build apk --release     # Build standalone Android APK
+   flutter build appbundle --release # Build Android AppBundle (AAB)
+   ```
+
+### Version Synchronization
+Keep versions in sync across `pubspec.yaml`, `rust/Cargo.toml`, and `windows/installer.iss`:
+```bash
+dart scripts/sync_version.dart 0.6.0
+```
 
 ### Rust Core Tests
 To execute backend logic, SurrealDB queries, and history engine tests:
