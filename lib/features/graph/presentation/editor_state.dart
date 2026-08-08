@@ -128,14 +128,28 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
         minY = double.infinity,
         maxX = double.negativeInfinity,
         maxY = double.negativeInfinity;
+    final cache = _dataQuery.relationEngine.cache;
     for (final id in selectedIds) {
       final vs = viewStates[id];
-      if (vs == null) continue;
-      final rect = vs.rect;
-      if (rect.left < minX) minX = rect.left;
-      if (rect.top < minY) minY = rect.top;
-      if (rect.right > maxX) maxX = rect.right;
-      if (rect.bottom > maxY) maxY = rect.bottom;
+      if (vs != null) {
+        final rect = vs.rect;
+        if (rect.left < minX) minX = rect.left;
+        if (rect.top < minY) minY = rect.top;
+        if (rect.right > maxX) maxX = rect.right;
+        if (rect.bottom > maxY) maxY = rect.bottom;
+      } else {
+        final computed = cache[id];
+        if (computed != null) {
+          final left = computed.bbox.x;
+          final top = computed.bbox.y;
+          final right = left + computed.bbox.width;
+          final bottom = top + computed.bbox.height;
+          if (left < minX) minX = left;
+          if (top < minY) minY = top;
+          if (right > maxX) maxX = right;
+          if (bottom > maxY) maxY = bottom;
+        }
+      }
     }
     if (minX == double.infinity) return null;
     final centerX = minX + (maxX - minX) / 2;
