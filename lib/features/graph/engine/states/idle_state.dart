@@ -23,8 +23,8 @@ class CanvasIdle extends CanvasInteractionState {
     InteractionContext ctx,
     bool isDoubleTap,
   ) {
-    if (e.buttons == kSecondaryMouseButton) {
-      _canvasIdleLog.fine('Right-click detected: Preserving idle for panning');
+    if (e.buttons == kSecondaryMouseButton || ctx.toolMode == 'pan') {
+      _canvasIdleLog.fine('Pan mode or Right-click detected: Preserving idle for panning');
       return this;
     }
 

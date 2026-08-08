@@ -287,7 +287,7 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                 child: Center(
                   child: Transform.translate(
                     offset: Offset(offset, 0),
-                    child: _WindowUndoRedoButtons(session: session),
+                    child: UndoRedoButtons(session: session),
                   ),
                 ),
               );
@@ -831,10 +831,15 @@ class _HoverExpandableMenuBarState extends State<_HoverExpandableMenuBar> {
   }
 }
 
-class _WindowUndoRedoButtons extends StatelessWidget {
+class UndoRedoButtons extends StatelessWidget {
   final TabSession? session;
+  final bool isVertical;
 
-  const _WindowUndoRedoButtons({required this.session});
+  const UndoRedoButtons({
+    super.key,
+    required this.session,
+    this.isVertical = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -852,6 +857,46 @@ class _WindowUndoRedoButtons extends StatelessWidget {
         final canRedo = sessionObj.canRedo;
         final undoCount = sessionObj.undoCount;
         final redoCount = sessionObj.redoCount;
+
+        if (isVertical) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: theme.dividerColor.withValues(alpha: 0.2),
+                width: 0.8,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _HistoryBadgeButton(
+                  icon: Icons.undo_rounded,
+                  isEnabled: canUndo,
+                  count: undoCount,
+                  tooltip: canUndo
+                      ? 'Undo ($undoCount actions)'
+                      : 'Undo (No actions)',
+                  onTap: canUndo ? () => sessionObj.undo() : null,
+                  textColor: textColor,
+                ),
+                const SizedBox(height: 6),
+                _HistoryBadgeButton(
+                  icon: Icons.redo_rounded,
+                  isEnabled: canRedo,
+                  count: redoCount,
+                  tooltip: canRedo
+                      ? 'Redo ($redoCount actions)'
+                      : 'Redo (No actions)',
+                  onTap: canRedo ? () => sessionObj.redo() : null,
+                  textColor: textColor,
+                ),
+              ],
+            ),
+          );
+        }
 
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),

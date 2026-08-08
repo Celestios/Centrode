@@ -6,7 +6,12 @@ import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 // BOTTOM LEFT: Graph Manual Legend Dialog Trigger
 // -----------------------------------------------------------------------------
 class GraphManualWidget extends StatelessWidget {
-  const GraphManualWidget({super.key});
+  final bool isSquareIconOnly;
+
+  const GraphManualWidget({
+    super.key,
+    this.isSquareIconOnly = false,
+  });
 
   void _showManualDialog(
     BuildContext context,
@@ -167,6 +172,22 @@ class GraphManualWidget extends StatelessWidget {
     final primaryColor = theme.colorScheme.primary;
     final onSurface = theme.colorScheme.onSurface;
     final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
+
+    if (isSquareIconOnly) {
+      return GlassPanel(
+        borderRadius: 14,
+        width: 40,
+        height: 40,
+        padding: EdgeInsets.zero,
+        onTap: () => _showManualDialog(context, theme, primaryColor, textColor),
+        child: Tooltip(
+          message: 'Manual & Guide',
+          child: Center(
+            child: Icon(Icons.menu_book_rounded, color: primaryColor, size: 18),
+          ),
+        ),
+      );
+    }
 
     return GlassPanel(
       borderRadius: 10,

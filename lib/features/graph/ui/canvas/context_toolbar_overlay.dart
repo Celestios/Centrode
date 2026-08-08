@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
@@ -189,12 +190,15 @@ class ContextToolbarOverlay extends StatelessWidget {
             useRight = true;
           }
 
+          final double maxX1 = math.max(leftThreshold, rightThreshold - toolbarWidth);
+          final double maxY1 = math.max(topThreshold, screenHeight - toolbarHeight - 12.0);
+
           double toolbarLeft = useRight ? rightX : leftX;
           toolbarLeft = toolbarLeft
-              .clamp(leftThreshold, rightThreshold - toolbarWidth)
+              .clamp(leftThreshold, maxX1)
               .toDouble();
           double toolbarTop = screenPosition.dy
-              .clamp(topThreshold, screenHeight - toolbarHeight - 12.0)
+              .clamp(topThreshold, maxY1)
               .toDouble();
 
           return Positioned(
@@ -379,14 +383,17 @@ class ContextToolbarOverlay extends StatelessWidget {
           useRight = true;
         }
 
+        final double maxX2 = math.max(leftThreshold, rightThreshold - toolbarWidth);
+        final double maxY2 = math.max(topThreshold, screenHeight - toolbarHeight - 12.0);
+
         double toolbarLeft = useRight ? rightX : leftX;
 
         // Clamp X and Y coordinates to keep the toolbar fully visible on screen
         toolbarLeft = toolbarLeft
-            .clamp(leftThreshold, rightThreshold - toolbarWidth)
+            .clamp(leftThreshold, maxX2)
             .toDouble();
         double toolbarTop = nodeTopScreen
-            .clamp(topThreshold, screenHeight - toolbarHeight - 12.0)
+            .clamp(topThreshold, maxY2)
             .toDouble();
 
         // If the selected node itself is completely off-screen, hide the toolbar

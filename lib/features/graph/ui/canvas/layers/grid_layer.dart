@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -124,13 +126,32 @@ class _GridLayerState extends State<GridLayer>
 
   @override
   Widget build(BuildContext context) {
+    final isAndroid = !kIsWeb && Platform.isAndroid;
     final theme = Theme.of(context);
     final Color backgroundColor = theme.scaffoldBackgroundColor;
     final isDark = ColorUtils.isDark(backgroundColor);
 
-    final Color dotColor = isDark
-        ? Colors.white.withValues(alpha: 0.08)
-        : Colors.black.withValues(alpha: 0.06);
+    final Color dotColor = isAndroid
+        ? (isDark
+            ? Colors.white.withValues(alpha: 0.28)
+            : Colors.black.withValues(alpha: 0.22))
+        : (isDark
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.black.withValues(alpha: 0.06));
+
+    if (isAndroid) {
+      return RepaintBoundary(
+        child: CustomPaint(
+          size: widget.viewportState.viewportSize,
+          painter: _StaticGridPainter(
+            visibleRect: widget.viewportState.visibleRect,
+            scale: widget.viewportState.scale,
+            backgroundColor: backgroundColor,
+            dotColor: dotColor,
+          ),
+        ),
+      );
+    }
 
     final Color glowColor = isDark
         ? Colors.white.withValues(alpha: 0.65)

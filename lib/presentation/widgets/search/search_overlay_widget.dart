@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/color_utils.dart';
-import 'package:centrode/features/graph/presentation/workspace_tabs_controller.dart';
+import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
 import 'package:centrode/features/graph/models/graph_node.dart';
 import 'search_registry.dart';
 
@@ -12,6 +11,7 @@ class SearchOverlayWidget extends StatelessWidget {
   final bool isLoading;
   final void Function(SearchResult) onSelected;
   final ScrollController scrollController;
+  final GraphDataQueryController? queryController;
 
   const SearchOverlayWidget({
     super.key,
@@ -20,15 +20,12 @@ class SearchOverlayWidget extends StatelessWidget {
     required this.isLoading,
     required this.onSelected,
     required this.scrollController,
+    this.queryController,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final queryController = context
-        .read<WorkspaceTabsController>()
-        .activeSession
-        .queryController;
 
     return Positioned(
       width: 500,

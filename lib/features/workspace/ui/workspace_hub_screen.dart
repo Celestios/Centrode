@@ -6,35 +6,21 @@ import 'widgets/left_panel/left_panel.dart';
 import 'widgets/main_content/main_content_area.dart';
 import 'widgets/window_controls.dart';
 
-class WorkspaceHubScreen extends StatefulWidget {
+class WorkspaceHubScreen extends StatelessWidget {
   const WorkspaceHubScreen({super.key});
-
-  @override
-  State<WorkspaceHubScreen> createState() => _WorkspaceHubScreenState();
-}
-
-class _WorkspaceHubScreenState extends State<WorkspaceHubScreen> {
-  int _refreshKey = 0;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final route = ModalRoute.of(context);
-    if (route?.isCurrent ?? false) {
-      setState(() => _refreshKey++);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final isDesktop = !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
+    final isAndroid = !kIsWeb && Platform.isAndroid;
 
     return Scaffold(
       backgroundColor: Colors.black,
+      drawer: isAndroid ? const Drawer(child: SafeArea(child: LeftPanel())) : null,
       body: Stack(
         children: [
           Positioned.fill(
-            child: _buildContent(context),
+            child: _buildContent(context, isAndroid),
           ),
           if (isDesktop)
             const Positioned(
@@ -50,11 +36,14 @@ class _WorkspaceHubScreenState extends State<WorkspaceHubScreen> {
     );
   }
 
-  Widget _buildContent(BuildContext context) {
-    return Row(
+  Widget _buildContent(BuildContext context, bool isAndroid) {
+    if (isAndroid) {
+      return const MainContentArea();
+    }
+    return const Row(
       children: [
-        const LeftPanel(),
-        Expanded(child: MainContentArea(key: ValueKey(_refreshKey))),
+        LeftPanel(),
+        Expanded(child: MainContentArea()),
       ],
     );
   }

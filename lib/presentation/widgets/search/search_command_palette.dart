@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/features/graph/presentation/workspace_tabs_controller.dart';
+import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
 import 'search_registry.dart';
 import 'search_overlay_widget.dart';
 
@@ -113,6 +116,12 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
   void _showOverlay() {
     if (_overlayEntry != null) return;
 
+    GraphDataQueryController? queryController;
+    try {
+      final tabsController = context.read<WorkspaceTabsController>();
+      queryController = tabsController.activeSession.queryController;
+    } catch (_) {}
+
     final overlay = Overlay.of(context);
     _overlayEntry = OverlayEntry(
       builder: (overlayContext) {
@@ -132,6 +141,7 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
               isLoading: _isLoading,
               onSelected: _selectItem,
               scrollController: _scrollController,
+              queryController: queryController,
             ),
           ),
         );

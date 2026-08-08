@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
@@ -26,6 +28,8 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
   Widget build(BuildContext context) {
     final tabsController = context.watch<WorkspaceTabsController>();
     final session = tabsController.activeSession;
+    final isAndroid = !kIsWeb && Platform.isAndroid;
+    final effectiveCompact = isAndroid || _isCompact;
 
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
@@ -33,8 +37,9 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
     final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
 
     final tools = <SegmentItem<String>>[
-      (icon: Icons.near_me_outlined, label: 'Select', mode: 'select', tooltip: 'Select Tool', accentBadge: null),
-      (icon: Icons.pan_tool_outlined, label: 'Pan', mode: 'pan', tooltip: 'Pan Canvas', accentBadge: null),
+      (icon: Icons.near_me_outlined, label: 'Select', mode: 'select', tooltip: 'Select Tool (Single or Marquee)', accentBadge: null),
+      if (isAndroid)
+        (icon: Icons.pan_tool_outlined, label: 'Pan', mode: 'pan', tooltip: 'Pan Canvas (No accidental selections)', accentBadge: null),
       (icon: Icons.draw_rounded, label: 'Draw', mode: 'draw', tooltip: 'Freehand Drawing', accentBadge: null),
       (icon: Icons.auto_fix_high_outlined, label: 'Optimize', mode: 'optimize', tooltip: 'Optimize Graph', accentBadge: null),
     ];
@@ -61,157 +66,296 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Compact Toggle Button on the left
-            IconButton(
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              icon: Icon(
-                _isCompact
-                    ? Icons.chevron_right_rounded
-                    : Icons.chevron_left_rounded,
-                color: textColor.withValues(alpha: 0.7),
-                size: 20,
+            // Compact Toggle Button on the left (Desktop only)
+            if (!isAndroid) ...[
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: Icon(
+                  effectiveCompact
+                      ? Icons.chevron_right_rounded
+                      : Icons.chevron_left_rounded,
+                  color: textColor.withValues(alpha: 0.7),
+                  size: 20,
+                ),
+                tooltip: effectiveCompact ? 'Expand ribbon' : 'Compact ribbon',
+                onPressed: () {
+                  setState(() {
+                    _isCompact = !_isCompact;
+                  });
+                },
               ),
-              tooltip: _isCompact ? 'Expand ribbon' : 'Compact ribbon',
-              onPressed: () {
-                setState(() {
-                  _isCompact = !_isCompact;
-                });
-              },
-            ),
-            const SizedBox(width: 2),
-            const _GlassDivider(),
-            const SizedBox(width: 2),
+              const SizedBox(width: 2),
+              const _GlassDivider(),
+              const SizedBox(width: 2),
+            ],
 
             // Track 1: TOOLS (Select, Pan, Connect, Optimize)
             ValueListenableBuilder<String>(
               valueListenable: session.toolModeNotifier,
               builder: (context, currentMode, _) {
                 return _RibbonCapsule(
-                  label: _isCompact ? null : 'TOOLS',
+                  label: effectiveCompact ? null : 'TOOLS',
                   child: GlassSlidingSegmentedControl<String>(
                     items: tools,
                     currentMode: currentMode,
-                    isCompact: _isCompact,
+                    isCompact: effectiveCompact,
                     onSelected: (newMode) => session.setToolMode(newMode),
                   ),
                 );
               },
             ),
 
-            const SizedBox(width: 2),
-            const _GlassDivider(),
-            const SizedBox(width: 2),
+            if (!isAndroid) ...[
+              const SizedBox(width: 2),
+              const _GlassDivider(),
+              const SizedBox(width: 2),
 
-            // Track 2: VIEWS (Canvas, Graph, Tasks, Flashcards)
-            ValueListenableBuilder<String>(
-              valueListenable: session.currentViewNotifier,
-              builder: (context, currentView, _) {
-                return _RibbonCapsule(
-                  label: _isCompact ? null : 'VIEWS',
-                  child: GlassSlidingSegmentedControl<String>(
-                    items: views,
-                    currentMode: currentView,
-                    isCompact: _isCompact,
-                    onSelected: (newView) => session.currentViewNotifier.value = newView,
-                  ),
-                );
-              },
-            ),
+              // Track 2: VIEWS (Canvas, Graph, Tasks, Flashcards)
+              ValueListenableBuilder<String>(
+                valueListenable: session.currentViewNotifier,
+                builder: (context, currentView, _) {
+                  return _RibbonCapsule(
+                    label: effectiveCompact ? null : 'VIEWS',
+                    child: GlassSlidingSegmentedControl<String>(
+                      items: views,
+                      currentMode: currentView,
+                      isCompact: effectiveCompact,
+                      onSelected: (newView) => session.currentViewNotifier.value = newView,
+                    ),
+                  );
+                },
+              ),
 
-            const SizedBox(width: 2),
-            const _GlassDivider(),
-            const SizedBox(width: 2),
+              const SizedBox(width: 2),
+              const _GlassDivider(),
+              const SizedBox(width: 2),
 
-            // Track 3: Relation Label Display Mode (Cycle through Auto -> Always -> Never)
-            ValueListenableBuilder<String>(
-              valueListenable: session.relationLabelModeNotifier,
-              builder: (context, mode, _) {
-                final labelIcons = {
-                  'auto': Icons.auto_mode_rounded,
-                  'always': Icons.visibility_rounded,
-                  'never': Icons.visibility_off_rounded,
-                };
-                final labelTitles = {
-                  'auto': 'Auto',
-                  'always': 'Always',
-                  'never': 'Never',
-                };
-                return _RibbonCapsule(
-                  label: _isCompact ? null : 'LABELS',
-                  child: HoverScaleButton(
-                    onTap: () {
-                      const modes = ['auto', 'always', 'never'];
-                      final nextIndex = (modes.indexOf(mode) + 1) % modes.length;
-                      session.relationLabelModeNotifier.value = modes[nextIndex];
-                    },
-                    tooltip: 'Relation Label Display: ${labelTitles[mode]} (Click to cycle)',
-                    borderRadius: BorderRadius.circular(10),
-                    builder: (context, isHovered, isPressed) {
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: _isCompact ? 8 : 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: mode != 'auto'
-                              ? primaryColor.withValues(alpha: 0.25)
-                              : (isHovered
-                                  ? primaryColor.withValues(alpha: 0.12)
-                                  : Colors.transparent),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: mode != 'auto'
-                                ? primaryColor.withValues(alpha: 0.55)
-                                : (isHovered
-                                    ? primaryColor.withValues(alpha: 0.3)
-                                    : Colors.transparent),
-                            width: 1.0,
+              // Track 3: Relation Label Display Mode
+              ValueListenableBuilder<String>(
+                valueListenable: session.relationLabelModeNotifier,
+                builder: (context, mode, _) {
+                  final labelIcons = {
+                    'auto': Icons.auto_mode_rounded,
+                    'always': Icons.visibility_rounded,
+                    'never': Icons.visibility_off_rounded,
+                  };
+                  final labelTitles = {
+                    'auto': 'Auto',
+                    'always': 'Always',
+                    'never': 'Never',
+                  };
+                  return _RibbonCapsule(
+                    label: effectiveCompact ? null : 'LABELS',
+                    child: HoverScaleButton(
+                      onTap: () {
+                        const modes = ['auto', 'always', 'never'];
+                        final nextIndex = (modes.indexOf(mode) + 1) % modes.length;
+                        session.relationLabelModeNotifier.value = modes[nextIndex];
+                      },
+                      tooltip: 'Relation Label Display: ${labelTitles[mode]} (Click to cycle)',
+                      borderRadius: BorderRadius.circular(10),
+                      builder: (context, isHovered, isPressed) {
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: effectiveCompact ? 8 : 10,
+                            vertical: 5,
                           ),
-                          boxShadow: mode != 'auto'
-                              ? [
-                                  BoxShadow(
-                                    color: primaryColor.withValues(alpha: 0.2),
-                                    blurRadius: 8,
-                                    spreadRadius: -1,
-                                  ),
-                                ]
-                              : [],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              labelIcons[mode] ?? Icons.label_outlined,
-                              size: 16,
+                          decoration: BoxDecoration(
+                            color: mode != 'auto'
+                                ? primaryColor.withValues(alpha: 0.25)
+                                : (isHovered
+                                    ? primaryColor.withValues(alpha: 0.12)
+                                    : Colors.transparent),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
                               color: mode != 'auto'
-                                  ? textColor
-                                  : (isHovered ? primaryColor : textColor.withValues(alpha: 0.8)),
+                                  ? primaryColor.withValues(alpha: 0.55)
+                                  : (isHovered
+                                      ? primaryColor.withValues(alpha: 0.3)
+                                      : Colors.transparent),
+                              width: 1.0,
                             ),
-                            if (!_isCompact) ...[
-                              const SizedBox(width: 5),
-                              Text(
-                                labelTitles[mode] ?? mode,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: mode != 'auto' ? FontWeight.bold : FontWeight.w500,
-                                  color: mode != 'auto'
-                                      ? textColor
-                                      : (isHovered ? primaryColor : textColor),
-                                ),
+                            boxShadow: mode != 'auto'
+                                ? [
+                                    BoxShadow(
+                                      color: primaryColor.withValues(alpha: 0.2),
+                                      blurRadius: 8,
+                                      spreadRadius: -1,
+                                    ),
+                                  ]
+                                : [],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                labelIcons[mode] ?? Icons.label_outlined,
+                                size: 16,
+                                color: mode != 'auto'
+                                    ? textColor
+                                    : (isHovered ? primaryColor : textColor.withValues(alpha: 0.8)),
                               ),
+                              if (!effectiveCompact) ...[
+                                const SizedBox(width: 5),
+                                Text(
+                                  labelTitles[mode] ?? mode,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: mode != 'auto' ? FontWeight.bold : FontWeight.w500,
+                                    color: mode != 'auto'
+                                        ? textColor
+                                        : (isHovered ? primaryColor : textColor),
+                                  ),
+                                ),
+                              ],
                             ],
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class ExtraRibbonMenuWidget extends StatelessWidget {
+  final TabSession? session;
+
+  const ExtraRibbonMenuWidget({super.key, this.session});
+
+  @override
+  Widget build(BuildContext context) {
+    final tabsController = Provider.of<WorkspaceTabsController>(context);
+    final activeSession = session ?? tabsController.activeSession;
+    if (activeSession == null) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+    final onSurface = theme.colorScheme.onSurface;
+    final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
+
+    final views = <SegmentItem<String>>[
+      (icon: Icons.bubble_chart_outlined, label: 'Canvas', mode: 'canvas', tooltip: 'Standard Knowledge Graph Canvas', accentBadge: null),
+      (icon: Icons.hub_outlined, label: 'Graph', mode: 'force_graph', tooltip: 'Live Force-Directed Dot & Line Graph View', accentBadge: 'LIVE'),
+      (icon: Icons.task_alt_rounded, label: 'Tasks', mode: 'task_view', tooltip: 'Task Overview', accentBadge: null),
+      (icon: Icons.style_rounded, label: 'Flashcards', mode: 'flashcard_view', tooltip: 'Spaced Repetition Flashcards', accentBadge: null),
+    ];
+
+    return GlassPanel(
+      borderRadius: 14,
+      width: 40,
+      height: 40,
+      padding: EdgeInsets.zero,
+      child: PopupMenuButton<String>(
+        padding: EdgeInsets.zero,
+        icon: Icon(
+          Icons.grid_view_rounded,
+          color: primaryColor,
+          size: 20,
+        ),
+        tooltip: 'Extra Ribbon Options',
+        offset: const Offset(0, -180),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        color: theme.cardColor,
+        onSelected: (value) {
+          if (value.startsWith('view_')) {
+            activeSession.currentViewNotifier.value = value.substring(5);
+          } else if (value.startsWith('label_')) {
+            activeSession.relationLabelModeNotifier.value = value.substring(6);
+          }
+        },
+        itemBuilder: (context) {
+          final currentView = activeSession.currentViewNotifier.value;
+          final currentLabelMode = activeSession.relationLabelModeNotifier.value;
+
+          return [
+            const PopupMenuItem<String>(
+              enabled: false,
+              child: Text(
+                'VIEWS',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ),
+            for (final view in views)
+              PopupMenuItem<String>(
+                value: 'view_${view.mode}',
+                child: Row(
+                  children: [
+                    Icon(
+                      view.icon,
+                      size: 16,
+                      color: view.mode == currentView ? primaryColor : textColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      view.label,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: view.mode == currentView ? FontWeight.bold : FontWeight.normal,
+                        color: view.mode == currentView ? primaryColor : textColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            const PopupMenuDivider(),
+            const PopupMenuItem<String>(
+              enabled: false,
+              child: Text(
+                'RELATION LABELS',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ),
+            PopupMenuItem<String>(
+              value: 'label_auto',
+              child: Row(
+                children: [
+                  Icon(Icons.auto_mode_rounded, size: 16, color: currentLabelMode == 'auto' ? primaryColor : textColor),
+                  const SizedBox(width: 8),
+                  Text('Auto Display', style: TextStyle(fontSize: 12, color: currentLabelMode == 'auto' ? primaryColor : textColor)),
+                ],
+              ),
+            ),
+            PopupMenuItem<String>(
+              value: 'label_always',
+              child: Row(
+                children: [
+                  Icon(Icons.visibility_rounded, size: 16, color: currentLabelMode == 'always' ? primaryColor : textColor),
+                  const SizedBox(width: 8),
+                  Text('Always Show', style: TextStyle(fontSize: 12, color: currentLabelMode == 'always' ? primaryColor : textColor)),
+                ],
+              ),
+            ),
+            PopupMenuItem<String>(
+              value: 'label_never',
+              child: Row(
+                children: [
+                  Icon(Icons.visibility_off_rounded, size: 16, color: currentLabelMode == 'never' ? primaryColor : textColor),
+                  const SizedBox(width: 8),
+                  Text('Never Show', style: TextStyle(fontSize: 12, color: currentLabelMode == 'never' ? primaryColor : textColor)),
+                ],
+              ),
+            ),
+          ];
+        },
       ),
     );
   }

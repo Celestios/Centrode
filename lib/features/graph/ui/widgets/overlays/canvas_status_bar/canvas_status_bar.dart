@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'graph_manual_widget.dart';
@@ -10,6 +12,8 @@ class CanvasStatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isAndroid = !kIsWeb && Platform.isAndroid;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final double maxWidth = constraints.maxWidth;
@@ -17,8 +21,10 @@ class CanvasStatusBar extends StatelessWidget {
         // Guard against zero layout width
         if (maxWidth <= 0) return const SizedBox.shrink();
 
-        final showMiniMap = maxWidth >= 700;
-        final showMetrics = maxWidth >= 500;
+        // On Android, minimap, metrics, and zoom slider are disabled and removed.
+        final showMiniMap = !isAndroid && maxWidth >= 700;
+        final showMetrics = !isAndroid && maxWidth >= 500;
+        final showZoom = !isAndroid;
         final showManual = maxWidth >= 300;
 
         return Row(
@@ -31,26 +37,27 @@ class CanvasStatusBar extends StatelessWidget {
             else
               const SizedBox.shrink(),
 
-            // Bottom Center: Graph Metrics & Sync Info
+            // Bottom Center: Graph Metrics & Sync Info (Disabled on Android)
             if (showMetrics)
               const StatusMetricsWidget()
             else
               const SizedBox.shrink(),
 
-            // Bottom Right: Zoom & Mini-Map group
-            GlassGroup(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const ZoomSliderWidget(),
-                  if (showMiniMap) ...[
-                    const SizedBox(width: 10),
-                    const ViewportMiniMapWidget(),
+            // Bottom Right: Zoom & Mini-Map group (Disabled on Android)
+            if (showZoom)
+              GlassGroup(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const ZoomSliderWidget(),
+                    if (showMiniMap) ...[
+                      const SizedBox(width: 10),
+                      const ViewportMiniMapWidget(),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
           ],
         );
       },
