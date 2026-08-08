@@ -19,7 +19,7 @@ class LeftRepositoryDrawer extends StatelessWidget {
     final cardColor = theme.cardColor.withValues(alpha: 0.9);
 
     return GlassPanel(
-      borderRadius: 10,
+      borderRadius: 16.0,
       blur: 12.0,
       color: cardColor,
       shadow: BoxShadow(
@@ -31,29 +31,11 @@ class LeftRepositoryDrawer extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _GlassIconTile(
-            icon: activePanel == LeftPanelType.draw
-                ? Icons.arrow_back_rounded
-                : Icons.draw_rounded,
-            animateIcon: true,
-            onTap: () {
-              onPanelChanged(
-                activePanel == LeftPanelType.draw
-                    ? LeftPanelType.none
-                    : LeftPanelType.draw,
-              );
-            },
-          ),
-          Divider(
-            height: 1,
-            color: theme.dividerColor.withValues(alpha: 0.3),
-            indent: 8,
-            endIndent: 8,
-          ),
-          _GlassIconTile(
             icon: activePanel == LeftPanelType.tags
                 ? Icons.arrow_back_rounded
                 : Icons.local_offer_outlined,
             animateIcon: true,
+            tileBorderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             onTap: () {
               onPanelChanged(
                 activePanel == LeftPanelType.tags
@@ -73,6 +55,7 @@ class LeftRepositoryDrawer extends StatelessWidget {
                 ? Icons.arrow_back_rounded
                 : Icons.layers_outlined,
             animateIcon: true,
+            tileBorderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
             onTap: () {
               onPanelChanged(
                 activePanel == LeftPanelType.templates
@@ -95,11 +78,13 @@ class _GlassIconTile extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   final bool animateIcon;
+  final BorderRadius tileBorderRadius;
 
   const _GlassIconTile({
     required this.icon,
     required this.onTap,
     this.animateIcon = false,
+    this.tileBorderRadius = BorderRadius.zero,
   });
 
   @override
@@ -112,7 +97,7 @@ class _GlassIconTile extends StatelessWidget {
       onTap: onTap,
       hoverScale: 1.08,
       pressScale: 0.94,
-      borderRadius: BorderRadius.zero,
+      borderRadius: tileBorderRadius,
       builder: (context, isHovered, isPressed) {
         final iconColor = isHovered
             ? primaryColor
@@ -139,6 +124,7 @@ class _GlassIconTile extends StatelessWidget {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           decoration: BoxDecoration(
+            borderRadius: tileBorderRadius,
             gradient: isHovered
                 ? LinearGradient(
                     colors: [

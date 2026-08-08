@@ -4,6 +4,7 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
 import '../../../../engine/config.dart';
+import '../../inspector/relation_appearance_section.dart';
 
 class DataTab extends StatefulWidget {
   final RawUuid nodeId;
@@ -100,81 +101,62 @@ class _DataTabState extends State<DataTab> {
     return '${dt.year}-${pad(dt.month)}-${pad(dt.day)} ${pad(dt.hour)}:${pad(dt.minute)}';
   }
 
-  Widget _buildSectionHeader(ThemeData theme, String title, {IconData? icon}) {
-    if (icon != null) {
-      return Row(
-        children: [
-          Icon(
-            icon,
-            size: 10,
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-            ),
-          ),
-        ],
-      );
-    }
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 10,
-        fontWeight: FontWeight.bold,
-        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-      ),
-    );
-  }
-
   Widget _buildCenteredPlaceholder(ThemeData theme, String text) {
     return Center(
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 12,
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildAddTagTriggerButton(ThemeData theme) {
-    return InkWell(
+  Widget _buildAddTagTriggerButton(ThemeData theme, Color primaryAccent) {
+    return GestureDetector(
       onTap: _startAddingTag,
-      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         decoration: BoxDecoration(
-          color: theme.colorScheme.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
+          color: primaryAccent.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: theme.colorScheme.primary.withValues(alpha: 0.3),
-            width: 1,
+            color: primaryAccent.withValues(alpha: 0.35),
+            width: 0.8,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.add_rounded, size: 14, color: theme.colorScheme.primary),
+            Icon(Icons.add_rounded, size: 12, color: primaryAccent),
+            const SizedBox(width: 4),
+            Text(
+              'Add Tag',
+              style: TextStyle(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w700,
+                color: primaryAccent,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTagEditor(ThemeData theme, InfoUiNode node) {
+  Widget _buildTagEditor(ThemeData theme, InfoUiNode node, Color primaryAccent) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+        color: Colors.black.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: primaryAccent.withValues(alpha: 0.2), width: 0.8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,26 +165,28 @@ class _DataTabState extends State<DataTab> {
             children: [
               Expanded(
                 child: SizedBox(
-                  height: 32,
+                  height: 28,
                   child: TextField(
                     controller: _tagController,
                     focusNode: _tagFocusNode,
-                    style: const TextStyle(fontSize: 11),
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      color: theme.textTheme.bodyMedium?.color,
+                    ),
                     decoration: InputDecoration(
-                      hintText: 'Tag name...',
+                      hintText: 'New tag name...',
                       hintStyle: TextStyle(
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.4,
-                        ),
+                        fontSize: 10,
+                        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.4),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
+                        horizontal: 8,
+                        vertical: 6,
                       ),
                       filled: true,
-                      fillColor: Colors.black.withValues(alpha: 0.15),
+                      fillColor: Colors.black.withValues(alpha: 0.25),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(6),
                         borderSide: BorderSide.none,
                       ),
                     ),
@@ -210,35 +194,45 @@ class _DataTabState extends State<DataTab> {
                   ),
                 ),
               ),
-              const SizedBox(width: 6),
-              IconButton(
-                icon: const Icon(Icons.close_rounded, size: 14),
-                onPressed: _cancelAddingTag,
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: theme.colorScheme.onSurface.withValues(
-                    alpha: 0.6,
+              const SizedBox(width: 4),
+              GestureDetector(
+                onTap: _cancelAddingTag,
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                  padding: const EdgeInsets.all(8),
-                  minimumSize: const Size(32, 32),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 12,
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                  ),
                 ),
               ),
               const SizedBox(width: 4),
-              IconButton(
-                icon: const Icon(Icons.check_rounded, size: 14),
-                onPressed: () => _addTag(node),
-                style: IconButton.styleFrom(
-                  backgroundColor: theme.colorScheme.primary.withValues(
-                    alpha: 0.15,
+              GestureDetector(
+                onTap: () => _addTag(node),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: primaryAccent.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: primaryAccent.withValues(alpha: 0.5),
+                      width: 0.8,
+                    ),
                   ),
-                  foregroundColor: theme.colorScheme.primary,
-                  padding: const EdgeInsets.all(8),
-                  minimumSize: const Size(32, 32),
+                  child: Icon(
+                    Icons.check_rounded,
+                    size: 12,
+                    color: primaryAccent,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
@@ -255,25 +249,30 @@ class _DataTabState extends State<DataTab> {
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 150),
-                          margin: const EdgeInsets.only(right: 6),
-                          width: 20,
-                          height: 20,
+                          margin: const EdgeInsets.only(right: 5),
+                          width: 18,
+                          height: 18,
                           decoration: BoxDecoration(
                             color: Color(colorValue),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: isSelected
-                                  ? theme.colorScheme.primary
-                                  : Colors.white24,
-                              width: isSelected ? 2 : 1,
+                              color: isSelected ? Colors.white : Colors.white24,
+                              width: isSelected ? 1.8 : 0.8,
                             ),
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: Color(colorValue).withValues(alpha: 0.4),
+                                      blurRadius: 4,
+                                    ),
+                                  ]
+                                : [],
                           ),
                           child: isSelected
                               ? Icon(
                                   Icons.check,
-                                  size: 10,
-                                  color:
-                                      ThemeData.estimateBrightnessForColor(
+                                  size: 9,
+                                  color: ThemeData.estimateBrightnessForColor(
                                             Color(colorValue),
                                           ) ==
                                           Brightness.dark
@@ -287,23 +286,22 @@ class _DataTabState extends State<DataTab> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Tooltip(
-                message: 'Randomize Colors',
-                child: InkWell(
-                  onTap: _randomizePalette,
-                  borderRadius: BorderRadius.circular(6),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
+              GestureDetector(
+                onTap: _randomizePalette,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      width: 0.6,
                     ),
-                    child: Icon(
-                      Icons.shuffle_rounded,
-                      size: 14,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
+                  ),
+                  child: Icon(
+                    Icons.shuffle_rounded,
+                    size: 12,
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                   ),
                 ),
               ),
@@ -317,6 +315,7 @@ class _DataTabState extends State<DataTab> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final primaryAccent = theme.colorScheme.primary;
     final node = widget.renderState.getNode(widget.nodeId);
 
     if (_lastNodeId != widget.nodeId) {
@@ -329,201 +328,233 @@ class _DataTabState extends State<DataTab> {
     if (node is! InfoUiNode) {
       return _buildCenteredPlaceholder(
         theme,
-        'Metadata is only available for information nodes',
+        'Metadata is available for information nodes.',
       );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // TAGS SECTION
-        _buildSectionHeader(theme, 'TAGS', icon: Icons.local_offer),
-        const SizedBox(height: 8),
-        if (node.tags.isNotEmpty || !_isAddingTag)
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
+        // Sub-block 1: TAGS
+        SubBlockShell(
+          title: 'Tags',
+          accentColor: primaryAccent,
+          initiallyExpanded: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ...node.tags.map((tag) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Color(tag.fields.color).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Color(tag.fields.color).withValues(alpha: 0.4),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        tag.fields.name,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Color(tag.fields.color),
-                          fontWeight: FontWeight.bold,
+              if (node.tags.isNotEmpty || !_isAddingTag)
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    ...node.tags.map((tag) {
+                      final tagColor = Color(tag.fields.color);
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      GestureDetector(
-                        onTap: () => widget.renderState.removeTagFromNode(
-                          node.id,
-                          tag.key.key.uuid,
+                        decoration: BoxDecoration(
+                          color: tagColor.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: tagColor.withValues(alpha: 0.45),
+                            width: 0.8,
+                          ),
                         ),
-                        child: Icon(
-                          Icons.close,
-                          size: 10,
-                          color: Color(tag.fields.color),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-              if (!_isAddingTag) _buildAddTagTriggerButton(theme),
-            ],
-          )
-        else if (!_isAddingTag)
-          _buildAddTagTriggerButton(theme),
-        if (_isAddingTag) ...[
-          const SizedBox(height: 8),
-          _buildTagEditor(theme, node),
-        ],
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 16.0),
-          child: Divider(height: 1),
-        ),
-
-        // COMMENTS SECTION
-        _buildSectionHeader(theme, 'COMMENTS'),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: SizedBox(
-                height: 32,
-                child: TextField(
-                  controller: _commentController,
-                  focusNode: _commentFocusNode,
-                  style: const TextStyle(fontSize: 11),
-                  decoration: InputDecoration(
-                    hintText: 'Write a comment...',
-                    hintStyle: TextStyle(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 8,
-                    ),
-                    filled: true,
-                    fillColor: Colors.black.withValues(alpha: 0.1),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  onSubmitted: (val) => _addComment(node),
-                ),
-              ),
-            ),
-            const SizedBox(width: 6),
-            IconButton(
-              icon: const Icon(Icons.send_rounded, size: 14),
-              onPressed: () => _addComment(node),
-              style: IconButton.styleFrom(
-                backgroundColor: theme.colorScheme.primary.withValues(
-                  alpha: 0.15,
-                ),
-                foregroundColor: theme.colorScheme.primary,
-                padding: const EdgeInsets.all(8),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-
-        // Scrollable List of Comments
-        if (node.comments.isNotEmpty)
-          Container(
-            constraints: const BoxConstraints(maxHeight: 250),
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                children: node.comments.map((comment) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: theme.dividerColor.withValues(alpha: 0.1),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              _formatTimestamp(comment.createdAt.toInt()),
-                              style: TextStyle(
-                                fontSize: 9,
-                                color: theme.colorScheme.onSurface.withValues(
-                                  alpha: 0.4,
-                                ),
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: tagColor,
+                                shape: BoxShape.circle,
                               ),
                             ),
+                            const SizedBox(width: 5),
+                            Text(
+                              tag.fields.name,
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                color: theme.textTheme.bodyMedium?.color
+                                    ?.withValues(alpha: 0.9),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
                             GestureDetector(
-                              onTap: () => widget.renderState
-                                  .removeCommentFromNode(node.id, comment),
+                              onTap: () => widget.renderState.removeTagFromNode(
+                                node.id,
+                                tag.key.key.uuid,
+                              ),
                               child: Icon(
-                                Icons.delete_outline_rounded,
-                                size: 12,
-                                color: theme.colorScheme.error.withValues(
-                                  alpha: 0.6,
-                                ),
+                                Icons.close_rounded,
+                                size: 11,
+                                color: theme.textTheme.bodyMedium?.color
+                                    ?.withValues(alpha: 0.5),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          comment.text,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.85,
-                            ),
-                            height: 1.3,
+                      );
+                    }),
+                    if (!_isAddingTag) _buildAddTagTriggerButton(theme, primaryAccent),
+                  ],
+                )
+              else if (!_isAddingTag)
+                _buildAddTagTriggerButton(theme, primaryAccent),
+
+              if (_isAddingTag) ...[
+                const SizedBox(height: 6),
+                _buildTagEditor(theme, node, primaryAccent),
+              ],
+            ],
+          ),
+        ),
+
+        // Sub-block 2: COMMENTS
+        SubBlockShell(
+          title: 'Comments',
+          accentColor: primaryAccent,
+          initiallyExpanded: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 28,
+                      child: TextField(
+                        controller: _commentController,
+                        focusNode: _commentFocusNode,
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          color: theme.textTheme.bodyMedium?.color,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Write a comment...',
+                          hintStyle: TextStyle(
+                            fontSize: 10,
+                            color: theme.textTheme.bodyMedium?.color
+                                ?.withValues(alpha: 0.4),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+                          filled: true,
+                          fillColor: Colors.black.withValues(alpha: 0.2),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: BorderSide.none,
                           ),
                         ),
-                      ],
+                        onSubmitted: (val) => _addComment(node),
+                      ),
                     ),
-                  );
-                }).toList(),
+                  ),
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: () => _addComment(node),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: primaryAccent.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: primaryAccent.withValues(alpha: 0.5),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.send_rounded,
+                        size: 12,
+                        color: primaryAccent,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          )
-        else
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24.0),
-            child: Center(
-              child: Text(
-                'No comments yet',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+              const SizedBox(height: 8),
+
+              if (node.comments.isNotEmpty)
+                Column(
+                  children: node.comments.map((comment) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 6),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.06),
+                          width: 0.6,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatTimestamp(comment.createdAt.toInt()),
+                                style: TextStyle(
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.textTheme.bodyMedium?.color
+                                      ?.withValues(alpha: 0.4),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () => widget.renderState
+                                    .removeCommentFromNode(node.id, comment),
+                                child: Icon(
+                                  Icons.delete_outline_rounded,
+                                  size: 11,
+                                  color: theme.colorScheme.error.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            comment.text,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: theme.textTheme.bodyMedium?.color
+                                  ?.withValues(alpha: 0.85),
+                              height: 1.25,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Center(
+                    child: Text(
+                      'No comments added',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: theme.textTheme.bodyMedium?.color
+                            ?.withValues(alpha: 0.4),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
+            ],
           ),
+        ),
       ],
     );
   }

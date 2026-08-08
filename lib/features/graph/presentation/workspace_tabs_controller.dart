@@ -82,6 +82,15 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
   final ValueNotifier<double> brushThicknessNotifier = ValueNotifier(4.0);
   final ValueNotifier<String> brushTypeNotifier = ValueNotifier('pen');
 
+  // Ribbon View Modes & Settings Notifiers
+  final ValueNotifier<String> currentViewNotifier = ValueNotifier('canvas');
+  final ValueNotifier<String> relationLabelModeNotifier = ValueNotifier('auto');
+
+  // Ribbon & Global Format Defaults Notifiers
+  final ValueNotifier<String> defaultTextFormatNotifier = ValueNotifier('Markdown');
+  final ValueNotifier<String> defaultNodeShapeNotifier = ValueNotifier('Rounded Rectangle');
+  final ValueNotifier<String> defaultRelationTypeNotifier = ValueNotifier('Directed Arrow');
+
   void setToolMode(String mode) {
     if (toolModeNotifier.value != mode) {
       toolModeNotifier.value = mode;
@@ -207,6 +216,8 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
 
   bool get canUndo => commandProcessor?.canUndo ?? false;
   bool get canRedo => commandProcessor?.canRedo ?? false;
+  int get undoCount => commandProcessor?.undoCount ?? 0;
+  int get redoCount => commandProcessor?.redoCount ?? 0;
 
   Future<void> undo() async {
     await commandProcessor?.undo();
@@ -249,6 +260,11 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     brushColorNotifier.dispose();
     brushThicknessNotifier.dispose();
     brushTypeNotifier.dispose();
+    currentViewNotifier.dispose();
+    relationLabelModeNotifier.dispose();
+    defaultTextFormatNotifier.dispose();
+    defaultNodeShapeNotifier.dispose();
+    defaultRelationTypeNotifier.dispose();
     showLeftPanel.dispose();
     showRightPanel.dispose();
     showBottomPanel.dispose();

@@ -7,8 +7,9 @@ import 'search_overlay_widget.dart';
 
 class SearchCommandPalette extends StatefulWidget {
   final SearchRegistry? searchRegistry;
+  final ValueNotifier<bool>? focusNotifier;
 
-  const SearchCommandPalette({super.key, this.searchRegistry});
+  const SearchCommandPalette({super.key, this.searchRegistry, this.focusNotifier});
 
   @override
   State<SearchCommandPalette> createState() => _SearchCommandPaletteState();
@@ -51,6 +52,7 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
 
   void _onFocusChange() {
     setState(() {});
+    widget.focusNotifier?.value = _focusNode.hasFocus;
     if (_focusNode.hasFocus) {
       _showOverlay();
       _doSearch();

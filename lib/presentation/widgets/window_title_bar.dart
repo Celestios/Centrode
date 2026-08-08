@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -65,8 +66,21 @@ class SimpleWindowTitleBar extends StatelessWidget {
   }
 }
 
-class WorkspaceWindowTitleBar extends StatelessWidget {
+class WorkspaceWindowTitleBar extends StatefulWidget {
   const WorkspaceWindowTitleBar({super.key});
+
+  @override
+  State<WorkspaceWindowTitleBar> createState() => _WorkspaceWindowTitleBarState();
+}
+
+class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
+  final _searchFocusNotifier = ValueNotifier<bool>(false);
+
+  @override
+  void dispose() {
+    _searchFocusNotifier.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,11 +97,11 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
     final menuButtonStyle = ButtonStyle(
       minimumSize: WidgetStateProperty.all(Size.zero),
       padding: WidgetStateProperty.all(
-        const EdgeInsets.only(left: 12, right: 12, top: 10, bottom: 14),
+        const EdgeInsets.only(left: 10, right: 10, top: 8, bottom: 12),
       ),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       shape: WidgetStateProperty.all(
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
 
@@ -108,18 +122,18 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
             children: [
               // Logo & Standard Menu Options
               Container(
-                padding: const EdgeInsets.only(left: 12, right: 8),
+                padding: const EdgeInsets.only(left: 8, right: 4),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextButton(
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                          horizontal: 6,
+                          vertical: 3,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                       onPressed: () {
@@ -164,157 +178,10 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    SizedBox(
-                      height: 32,
-                      child: Theme(
-                        data: theme.copyWith(
-                          hoverColor: theme.colorScheme.primary.withValues(
-                            alpha: 0.1,
-                          ),
-                        ),
-                        child: MenuBar(
-                          style: MenuStyle(
-                            backgroundColor: WidgetStateProperty.all(
-                              Colors.transparent,
-                            ),
-                            elevation: WidgetStateProperty.all(0),
-                            padding: WidgetStateProperty.all(EdgeInsets.zero),
-                          ),
-                          children: [
-                            SubmenuButton(
-                              style: menuButtonStyle,
-                              menuChildren: [
-                                MenuItemButton(
-                                  onPressed: () {
-                                    session?.commandProcessor?.flushSync();
-                                  },
-
-                                  leadingIcon: const Icon(
-                                    Icons.save_outlined,
-                                    size: 16,
-                                  ),
-                                  child: const Text('Force Sync Save'),
-                                ),
-                              ],
-                              child: const Text(
-                                'File',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            ),
-                            SubmenuButton(
-                              style: menuButtonStyle,
-                              menuChildren: [
-                                MenuItemButton(
-                                  onPressed: () {
-                                    session.showLeftPanel.value =
-                                        !session.showLeftPanel.value;
-                                  },
-                                  leadingIcon: const Icon(
-                                    Icons.menu_open_rounded,
-                                    size: 16,
-                                  ),
-                                  child: const Text('Toggle Left Sidebar'),
-                                ),
-                                MenuItemButton(
-                                  onPressed: () {
-                                    session.showRightPanel.value =
-                                        !session.showRightPanel.value;
-                                  },
-                                  leadingIcon: const Icon(
-                                    Icons.chrome_reader_mode_outlined,
-                                    size: 16,
-                                  ),
-                                  child: const Text('Toggle Right Inspector'),
-                                ),
-                                MenuItemButton(
-                                  onPressed: () {
-                                    session.showBottomPanel.value =
-                                        !session.showBottomPanel.value;
-                                  },
-                                  leadingIcon: const Icon(
-                                    Icons.call_to_action_outlined,
-                                    size: 16,
-                                  ),
-                                  child: const Text('Toggle Status Bar'),
-                                ),
-                              ],
-                              child: const Text(
-                                'View',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            ),
-                            SubmenuButton(
-                              style: menuButtonStyle,
-                              menuChildren: [
-                                MenuItemButton(
-                                  onPressed: () async {
-                                    final isMaximized = await windowManager
-                                        .isMaximized();
-                                    if (isMaximized) {
-                                      await windowManager.unmaximize();
-                                    } else {
-                                      await windowManager.maximize();
-                                    }
-                                  },
-                                  leadingIcon: const Icon(
-                                    Icons.crop_square_rounded,
-                                    size: 16,
-                                  ),
-                                  child: const Text('Toggle Maximize'),
-                                ),
-                                MenuItemButton(
-                                  onPressed: () async {
-                                    await windowManager.minimize();
-                                  },
-                                  leadingIcon: const Icon(
-                                    Icons.minimize_rounded,
-                                    size: 16,
-                                  ),
-                                  child: const Text('Minimize Window'),
-                                ),
-                              ],
-                              child: const Text(
-                                'Window',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            ),
-                            SubmenuButton(
-                              style: menuButtonStyle,
-                              menuChildren: [
-                                MenuItemButton(
-                                  onPressed: () {
-                                    showAboutDialog(
-                                      context: context,
-                                      applicationName: 'Centrode',
-                                      applicationVersion: '1.0.0',
-                                      applicationIcon: Icon(
-                                        Icons.hub_outlined,
-                                        color: theme.colorScheme.primary,
-                                        size: 36,
-                                      ),
-                                      children: const [
-                                        Text(
-                                          'Centrode is a fast Labeled Property Graph Editor designed in Flutter, powered by SurrealDB and Rust.',
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                  leadingIcon: const Icon(
-                                    Icons.info_outline,
-                                    size: 16,
-                                  ),
-                                  child: const Text('About Centrode'),
-                                ),
-                              ],
-                              child: const Text(
-                                'Help',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    const SizedBox(width: 6),
+                    _HoverExpandableMenuBar(
+                      session: session,
+                      menuButtonStyle: menuButtonStyle,
                     ),
                   ],
                 ),
@@ -402,10 +269,29 @@ class WorkspaceWindowTitleBar extends StatelessWidget {
               ),
             ],
           ),
-          const IgnorePointer(
-            ignoring:
-                false, // Ensures click events target the search palette hit-test area
-            child: SearchCommandPalette(),
+          Center(
+            child: IgnorePointer(
+              ignoring: false,
+              child: SearchCommandPalette(focusNotifier: _searchFocusNotifier),
+            ),
+          ),
+          ValueListenableBuilder<bool>(
+            valueListenable: _searchFocusNotifier,
+            builder: (context, isFocused, _) {
+              final offset = isFocused ? -262.0 : -172.0;
+              return Positioned(
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Transform.translate(
+                    offset: Offset(offset, 0),
+                    child: _WindowUndoRedoButtons(session: session),
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -558,6 +444,150 @@ class _WindowControlButtonsState extends State<WindowControlButtons>
   }
 }
 
+class _HistoryBadgeButton extends StatefulWidget {
+  final IconData icon;
+  final bool isEnabled;
+  final int count;
+  final String tooltip;
+  final VoidCallback? onTap;
+  final Color textColor;
+
+  const _HistoryBadgeButton({
+    required this.icon,
+    required this.isEnabled,
+    required this.count,
+    required this.tooltip,
+    required this.onTap,
+    required this.textColor,
+  });
+
+  @override
+  State<_HistoryBadgeButton> createState() => _HistoryBadgeButtonState();
+}
+
+class _HistoryBadgeButtonState extends State<_HistoryBadgeButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Tooltip(
+      message: widget.tooltip,
+      child: MouseRegion(
+        onEnter: widget.isEnabled ? (_) => setState(() => _isHovered = true) : null,
+        onExit: widget.isEnabled ? (_) => setState(() => _isHovered = false) : null,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(6),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(6),
+              gradient: widget.isEnabled && _isHovered
+                  ? LinearGradient(
+                      colors: [
+                        theme.colorScheme.primary.withValues(alpha: 0.18),
+                        theme.colorScheme.primary.withValues(alpha: 0.08),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              border: widget.isEnabled && _isHovered
+                  ? Border.all(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                      width: 1.0,
+                    )
+                  : Border.all(color: Colors.transparent),
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AnimatedScale(
+                  scale: widget.isEnabled && _isHovered ? 1.08 : 1.0,
+                  duration: const Duration(milliseconds: 150),
+                  child: Icon(
+                    widget.icon,
+                    size: 18,
+                    color: !widget.isEnabled
+                        ? widget.textColor.withValues(alpha: 0.25)
+                        : (_isHovered
+                            ? theme.colorScheme.primary
+                            : widget.textColor.withValues(alpha: 0.85)),
+                  ),
+                ),
+                if (widget.count > 0)
+                  Positioned(
+                    top: -6,
+                    right: -6,
+                    child: IgnorePointer(
+                      child: AnimatedScale(
+                        scale: widget.count > 0 ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOutBack,
+                        child: AnimatedOpacity(
+                          opacity: widget.count > 0 ? 1.0 : 0.0,
+                          duration: const Duration(milliseconds: 150),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withValues(alpha: 0.8),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: theme.colorScheme.onPrimary.withValues(alpha: 0.4),
+                                width: 0.8,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.15),
+                                  blurRadius: 2,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 12,
+                              minHeight: 12,
+                            ),
+                            child: Center(
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 200),
+                                transitionBuilder: (Widget child, Animation<double> animation) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: ScaleTransition(
+                                      scale: animation,
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: Text(
+                                  '${widget.count}',
+                                  key: ValueKey<int>(widget.count),
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.colorScheme.onPrimary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _HomePolygonPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -578,4 +608,309 @@ class _HomePolygonPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_HomePolygonPainter oldDelegate) => false;
+}
+
+class _HoverExpandableMenuBar extends StatefulWidget {
+  final TabSession? session;
+  final ButtonStyle menuButtonStyle;
+
+  const _HoverExpandableMenuBar({
+    required this.session,
+    required this.menuButtonStyle,
+  });
+
+  @override
+  State<_HoverExpandableMenuBar> createState() =>
+      _HoverExpandableMenuBarState();
+}
+
+class _HoverExpandableMenuBarState extends State<_HoverExpandableMenuBar> {
+  bool _isExpanded = false;
+  Timer? _closeTimer;
+
+  void _openMenu() {
+    _closeTimer?.cancel();
+    if (!_isExpanded) {
+      setState(() => _isExpanded = true);
+    }
+  }
+
+  void _scheduleCloseMenu() {
+    _closeTimer = Timer(const Duration(milliseconds: 300), () {
+      if (_isExpanded) {
+        setState(() => _isExpanded = false);
+      }
+    });
+  }
+
+  void _closeMenu() {
+    _closeTimer?.cancel();
+    if (_isExpanded) {
+      setState(() => _isExpanded = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _closeTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final session = widget.session;
+
+    return TapRegion(
+      groupId: 'menu_bar_group',
+      onTapOutside: (_) => _closeMenu(),
+      child: MouseRegion(
+        onEnter: (_) => _openMenu(),
+        onExit: (_) => _scheduleCloseMenu(),
+        child: AnimatedCrossFade(
+          duration: const Duration(milliseconds: 200),
+          crossFadeState: _isExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+            firstChild: Container(
+              padding: const EdgeInsets.all(4),
+              child: Icon(
+                Icons.menu_rounded,
+                size: 18,
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+              ),
+            ),
+            secondChild: SizedBox(
+                height: 32,
+                child: Theme(
+                  data: theme.copyWith(
+                    hoverColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  ),
+                  child: MenuBar(
+                    style: MenuStyle(
+                      backgroundColor: WidgetStateProperty.all(
+                        Colors.transparent,
+                      ),
+                      elevation: WidgetStateProperty.all(0),
+                      padding: WidgetStateProperty.all(EdgeInsets.zero),
+                    ),
+                    children: [
+                      SubmenuButton(
+                        style: widget.menuButtonStyle,
+                        menuChildren: [
+                          MenuItemButton(
+                            onPressed: () {
+                              session?.commandProcessor?.flushSync();
+                            },
+                            leadingIcon: const Icon(
+                              Icons.save_outlined,
+                              size: 16,
+                            ),
+                            child: const Text('Force Sync Save'),
+                          ),
+                        ],
+                        child: const Text('File', style: TextStyle(fontSize: 12)),
+                      ),
+                      SubmenuButton(
+                        style: widget.menuButtonStyle,
+                        menuChildren: [
+                          MenuItemButton(
+                            onPressed: () {
+                              if (session != null) {
+                                session.showLeftPanel.value =
+                                    !session.showLeftPanel.value;
+                              }
+                            },
+                            leadingIcon: const Icon(
+                              Icons.menu_open_rounded,
+                              size: 16,
+                            ),
+                            child: const Text('Toggle Left Sidebar'),
+                          ),
+                          MenuItemButton(
+                            onPressed: () {
+                              if (session != null) {
+                                session.showRightPanel.value =
+                                    !session.showRightPanel.value;
+                              }
+                            },
+                            leadingIcon: const Icon(
+                              Icons.chrome_reader_mode_outlined,
+                              size: 16,
+                            ),
+                            child: const Text('Toggle Right Inspector'),
+                          ),
+                          MenuItemButton(
+                            onPressed: () {
+                              if (session != null) {
+                                session.showBottomPanel.value =
+                                    !session.showBottomPanel.value;
+                              }
+                            },
+                            leadingIcon: const Icon(
+                              Icons.call_to_action_outlined,
+                              size: 16,
+                            ),
+                            child: const Text('Toggle Status Bar'),
+                          ),
+                        ],
+                        child: const Text('View', style: TextStyle(fontSize: 12)),
+                      ),
+                      SubmenuButton(
+                        style: widget.menuButtonStyle,
+                        menuChildren: [
+                          MenuItemButton(
+                            onPressed: () async {
+                              final isMaximized =
+                                  await windowManager.isMaximized();
+                              if (isMaximized) {
+                                await windowManager.unmaximize();
+                              } else {
+                                await windowManager.maximize();
+                              }
+                            },
+                            leadingIcon: const Icon(
+                              Icons.crop_square_rounded,
+                              size: 16,
+                            ),
+                            child: const Text('Toggle Maximize'),
+                          ),
+                          MenuItemButton(
+                            onPressed: () async {
+                              await windowManager.minimize();
+                            },
+                            leadingIcon: const Icon(
+                              Icons.minimize_rounded,
+                              size: 16,
+                            ),
+                            child: const Text('Minimize Window'),
+                          ),
+                        ],
+                        child: const Text(
+                          'Window',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                      SubmenuButton(
+                        style: widget.menuButtonStyle,
+                        menuChildren: [
+                          MenuItemButton(
+                            onPressed: () {
+                              showAboutDialog(
+                                context: context,
+                                applicationName: 'Centrode',
+                                applicationVersion: '1.0.0',
+                                applicationIcon: Icon(
+                                  Icons.hub_outlined,
+                                  color: theme.colorScheme.primary,
+                                  size: 36,
+                                ),
+                                children: const [
+                                  Text(
+                                    'Centrode is a fast Labeled Property Graph Editor designed in Flutter, powered by SurrealDB and Rust.',
+                                  ),
+                                ],
+                              );
+                            },
+                            leadingIcon: const Icon(
+                              Icons.info_outline,
+                              size: 16,
+                            ),
+                            child: const Text('About Centrode'),
+                          ),
+                        ],
+                        child: const Text('Help', style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+    );
+  }
+}
+
+class _WindowUndoRedoButtons extends StatelessWidget {
+  final TabSession? session;
+
+  const _WindowUndoRedoButtons({required this.session});
+
+  @override
+  Widget build(BuildContext context) {
+    final sessionObj = session;
+    if (sessionObj == null) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final textColor =
+        theme.textTheme.bodyMedium?.color ?? theme.colorScheme.onSurface;
+
+    return ListenableBuilder(
+      listenable: sessionObj,
+      builder: (context, _) {
+        final canUndo = sessionObj.canUndo;
+        final canRedo = sessionObj.canRedo;
+        final undoCount = sessionObj.undoCount;
+        final redoCount = sessionObj.redoCount;
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: theme.dividerColor.withValues(alpha: 0.15),
+              width: 0.8,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _HistoryBadgeButton(
+                icon: Icons.undo_rounded,
+                isEnabled: canUndo,
+                count: undoCount,
+                tooltip: canUndo
+                    ? 'Undo ($undoCount actions remaining)'
+                    : 'Undo (No actions available)',
+                onTap: canUndo ? () => sessionObj.undo() : null,
+                textColor: textColor,
+              ),
+              const SizedBox(width: 4),
+              HoverScaleButton(
+                onTap: () {},
+                tooltip: 'Version Control\n$undoCount undo(s), $redoCount redo(s) available',
+                borderRadius: BorderRadius.circular(6),
+                hoverScale: 1.05,
+                pressScale: 0.95,
+                builder: (context, isHovered, _) => Container(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(
+                    Icons.history_rounded,
+                    size: 18,
+                    color: (canUndo || canRedo)
+                        ? (isHovered
+                            ? theme.colorScheme.primary
+                            : textColor.withValues(alpha: 0.85))
+                        : textColor.withValues(alpha: 0.25),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              _HistoryBadgeButton(
+                icon: Icons.redo_rounded,
+                isEnabled: canRedo,
+                count: redoCount,
+                tooltip: canRedo
+                    ? 'Redo ($redoCount actions remaining)'
+                    : 'Redo (No actions available)',
+                onTap: canRedo ? () => sessionObj.redo() : null,
+                textColor: textColor,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }

@@ -24,7 +24,7 @@ class LogManager {
   final List<LogPayload> _activeBuffer = [];
   Timer? _batchTimer;
   Isolate? _isolate;
-  late SendPort _isolateSendPort;
+  SendPort? _isolateSendPort;
   ReceivePort? _isolateReceivePort;
   bool _initialized = false;
   static const Duration _deltaT = Duration(milliseconds: 500);
@@ -83,7 +83,8 @@ class LogManager {
     }
 
     String logPath;
-    if (!kReleaseMode) {
+    if (!kReleaseMode &&
+        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       logPath = p.join(Directory.current.path, 'centrode.log');
     } else {
       if (Platform.isWindows) {
@@ -204,14 +205,14 @@ class LogManager {
   }
 
   void _flushBuffer() {
-    if (_activeBuffer.isEmpty) return;
+    if (_activeBuffer.isEmpty || _isolateSendPort == null) return;
 
     final chunk = List<LogPayload>.from(_activeBuffer);
     _activeBuffer.clear();
     chunk.sort();
 
     final payloadData = chunk.map((l) => l.toMap()).toList();
-    _isolateSendPort.send(payloadData);
+    _isolateSendPort?.send(payloadData);
   }
 
   Future<void> dispose() async {

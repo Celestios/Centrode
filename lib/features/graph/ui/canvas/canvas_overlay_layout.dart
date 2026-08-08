@@ -42,7 +42,7 @@ class CanvasOverlayLayout extends StatelessWidget {
       children: [
         Positioned(
           top: 52.0,
-          left: 16.0,
+          left: 12.0,
           right: 16.0,
           child: RepaintBoundary(
             child: Row(
@@ -85,6 +85,33 @@ class CanvasOverlayLayout extends StatelessWidget {
           ),
         ),
 
+        // Outside-click dismiss backdrop for open left sidebar panel
+        ValueListenableBuilder<bool>(
+          valueListenable: session.showLeftPanel,
+          builder: (context, leftVisible, _) {
+            return ValueListenableBuilder<LeftPanelType>(
+              valueListenable: renderState.activeLeftPanelNotifier,
+              builder: (context, activeLeftPanel, _) {
+                final isOpen = leftVisible && activeLeftPanel != LeftPanelType.none;
+                if (!isOpen) return const SizedBox.shrink();
+                return Positioned.fill(
+                  child: Listener(
+                    behavior: HitTestBehavior.translucent,
+                    onPointerDown: (event) {
+                      final dx = event.localPosition.dx;
+                      final dy = event.localPosition.dy;
+                      // If tap is outside left sidebar drawer (width 64) and open panel (width 280, left 76 -> 356)
+                      if (dx > 360.0 || dy < 100.0) {
+                        renderState.activeLeftPanelNotifier.value = LeftPanelType.none;
+                      }
+                    },
+                  ),
+                );
+              },
+            );
+          },
+        ),
+
         ValueListenableBuilder<bool>(
           valueListenable: session.showLeftPanel,
           builder: (context, leftVisible, _) {
@@ -101,7 +128,8 @@ class CanvasOverlayLayout extends StatelessWidget {
                   child: AnimatedOpacity(
                     duration: const Duration(milliseconds: 200),
                     opacity: (leftVisible && isOpen) ? 1.0 : 0.0,
-                    child: ClipRect(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16.0),
                       child: UnconstrainedBox(
                         alignment: Alignment.topLeft,
                         clipBehavior: Clip.hardEdge,

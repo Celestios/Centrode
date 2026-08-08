@@ -7,7 +7,8 @@ class AppPaths {
   static String? _cachedDevRoot;
 
   static Future<String> get _appDataRoot async {
-    if (!kReleaseMode) {
+    if (!kReleaseMode &&
+        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       return _getDevRoot();
     }
     final support = await getApplicationSupportDirectory();

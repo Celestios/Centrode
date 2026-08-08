@@ -24,6 +24,8 @@ class MovementNotifier extends ChangeNotifier with TraceableNotifier {
 
 enum InspectorTab { appearance, data }
 
+enum InspectorEntityType { node, relation }
+
 /// Thin coordinator that owns the data subscription and wires three focused sub-controllers:
 /// [EditorState], [SelectionState], and [DragState].
 class NodeRenderState extends ChangeNotifier
@@ -44,6 +46,10 @@ class NodeRenderState extends ChangeNotifier
   final ValueNotifier<InspectorTab> activeInspectorTabNotifier = ValueNotifier(
     InspectorTab.appearance,
   );
+
+  /// Tracks the currently active inspector entity type.
+  final ValueNotifier<InspectorEntityType> activeInspectorEntityTypeNotifier =
+      ValueNotifier(InspectorEntityType.node);
 
   /// ID of the node whose metadata is currently hovered on canvas.
   final ValueNotifier<RawUuid?> hoveredNodeMetadataNotifier = ValueNotifier(
@@ -408,6 +414,7 @@ class NodeRenderState extends ChangeNotifier
     relationDataNotifier.dispose();
     activeLeftPanelNotifier.dispose();
     activeInspectorTabNotifier.dispose();
+    activeInspectorEntityTypeNotifier.dispose();
     hoveredNodeMetadataNotifier.dispose();
     hoveredNodeNotifier.dispose();
     hoveredPortNotifier.dispose();

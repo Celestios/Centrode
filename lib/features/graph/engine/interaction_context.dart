@@ -24,10 +24,10 @@ abstract interface class ViewportCapability {
   /// Returns the current set of visible node IDs for O(V) hit testing.
   Set<RawUuid> getVisibleNodeIds();
 
-  /// Gets the current active tool mode string ('select', 'pan', 'connect', 'optimize', 'draw').
+  /// Gets the current active tool mode string ('select', 'pan', 'optimize', 'draw').
   String get toolMode;
 
-  /// Sets the current active tool mode string ('select', 'pan', 'connect', 'optimize', 'draw').
+  /// Sets the current active tool mode string ('select', 'pan', 'optimize', 'draw').
   void setToolMode(String mode);
 
   /// Gets the current OptArea rectangle if set, or null.
