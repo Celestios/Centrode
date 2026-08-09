@@ -18,6 +18,9 @@ class OptAreaResizing extends CanvasInteractionState {
   });
 
   @override
+  bool get allowsAutoPan => true;
+
+  @override
   MouseCursor get cursor {
     switch (edge) {
       case OptAreaResizeEdge.left:

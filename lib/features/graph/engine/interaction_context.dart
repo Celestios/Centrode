@@ -16,8 +16,13 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 /// controller's lifecycle methods, enabling the GoF State Pattern where
 /// state objects can interact with the context without direct coupling
 /// to the controller implementation.
+import '../presentation/workspace_tabs_controller.dart';
+
 /// Interface segregating viewport capability from the rest of the context.
 abstract interface class ViewportCapability {
+  /// Gets the bound session if available.
+  TabSession? get boundSession;
+
   /// Gets the current scale factor of the canvas viewport.
   double get currentScale;
 
@@ -32,6 +37,15 @@ abstract interface class ViewportCapability {
 
   /// Gets the current OptArea rectangle if set, or null.
   Rect? get optArea;
+
+  /// Gets the current viewport size in logical screen pixels.
+  Size get viewportSize;
+
+  /// Translates the camera viewport matrix by a screen delta.
+  void panViewport(Offset deltaScreen);
+
+  /// Converts a screen coordinate to canvas coordinates based on the active matrix.
+  Offset screenToCanvas(Offset screenPos);
 }
 
 /// Interface segregating selection and toolbar actions.

@@ -25,6 +25,7 @@ part 'states/marquee_state.dart';
 part 'states/relation_tip_drag_state.dart';
 part 'states/opt_area_draw_state.dart';
 part 'states/opt_area_resize_state.dart';
+part 'states/auto_pan_manager.dart';
 part 'states/snap_utils.dart';
 
 final Logger _snapLog = Logger('GridSnapping');
@@ -52,6 +53,9 @@ sealed class CanvasInteractionState {
 
   /// The mouse cursor associated with this state.
   MouseCursor get cursor => SystemMouseCursors.basic;
+
+  /// Whether camera auto-panning is active when dragging near viewport edges.
+  bool get allowsAutoPan => false;
 
   /// Handles pointer down events. Returns the next state after processing.
   /// Default implementation returns `this` (no state change).

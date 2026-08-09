@@ -74,6 +74,17 @@ class CanvasInteractionEnvironment implements InteractionContext {
   }
 
   @override
+  Size get viewportSize => _viewportController.viewportSize;
+
+  @override
+  void panViewport(Offset deltaScreen) =>
+      _viewportController.panViewport(deltaScreen);
+
+  @override
+  Offset screenToCanvas(Offset screenPos) =>
+      _viewportController.screenToCanvas(screenPos);
+
+  @override
   Map<RawUuid, NodeViewState> get nodeViewStates => _renderState.viewStates;
 
   @override
@@ -376,6 +387,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
       }
     }
   }
+
+  @override
+  TabSession? get boundSession => _boundSession;
 
   @override
   Rect? get optArea => _queryController.optAreaNotifier.value;

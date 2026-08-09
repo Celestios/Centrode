@@ -155,6 +155,35 @@ class ViewportController {
     recalculateElasticMargins();
   }
 
+  /// Gets the current logical viewport size.
+  Size get viewportSize => _currentViewportSize;
+
+  /// Converts a screen position to canvas coordinates based on the current transform matrix.
+  Offset screenToCanvas(Offset screenPos) {
+    final transform = transformController.value;
+    if (transform.determinant() == 0.0) return screenPos;
+    return MatrixUtils.transformPoint(Matrix4.inverted(transform), screenPos);
+  }
+
+  /// Translates the camera viewport matrix by a screen delta.
+  void panViewport(Offset deltaScreen) {
+    if (_currentViewportSize == Size.zero || deltaScreen == Offset.zero) return;
+    final currentMatrix = transformController.value;
+    final double currentScale = currentMatrix.getMaxScaleOnAxis();
+    final translation = currentMatrix.getTranslation();
+
+    transformController.value = Matrix4.identity()
+      ..translateByDouble(
+        translation.x + deltaScreen.dx,
+        translation.y + deltaScreen.dy,
+        0,
+        1,
+      )
+      ..scaleByDouble(currentScale, currentScale, currentScale, 1);
+
+    recalculateElasticMargins();
+  }
+
   void _handleTransform() {
     _recalculate();
   }

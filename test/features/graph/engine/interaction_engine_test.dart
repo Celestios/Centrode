@@ -88,6 +88,10 @@ void main() {
       mockContext = MockInteractionContext();
       when(() => mockContext.toolMode).thenReturn('select');
       when(() => mockContext.optArea).thenReturn(null);
+      when(() => mockContext.viewportSize).thenReturn(const Size(1000, 800));
+      when(() => mockContext.panViewport(any())).thenReturn(null);
+      when(() => mockContext.screenToCanvas(any()))
+          .thenAnswer((i) => i.positionalArguments.first as Offset);
       final mockRelationEngine = MockRelationEngineState();
       when(
         () => mockRelationEngine.cache,

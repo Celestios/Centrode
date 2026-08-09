@@ -341,6 +341,7 @@ class HitTestResolver {
     InteractionContext ctx,
   ) {
     final cache = ctx.relationEngine.cache;
+    final labelMode = ctx.boundSession?.relationLabelModeNotifier.value ?? 'auto';
 
     for (final rel in ctx.getRelations()) {
       final fromVs = ctx.nodeViewStates[rel.fromNodeId];
@@ -350,13 +351,22 @@ class HitTestResolver {
       final cached = cache[rel.id];
       if (cached == null) continue;
 
+      final isSelected = ctx.getSelectedEntities().contains(rel.id);
+      final isLabelVisible = switch (labelMode) {
+        'never' => false,
+        'always' => true,
+        'auto' => isSelected,
+        _ => isSelected,
+      };
+
       final labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
 
-      if (Rect.fromCenter(
-        center: labelPos,
-        width: AppConfig.interaction.relationLabelHitArea.width,
-        height: AppConfig.interaction.relationLabelHitArea.height,
-      ).contains(pCanvas)) {
+      if (isLabelVisible &&
+          Rect.fromCenter(
+            center: labelPos,
+            width: AppConfig.interaction.relationLabelHitArea.width,
+            height: AppConfig.interaction.relationLabelHitArea.height,
+          ).contains(pCanvas)) {
         return PointerHitResult(
           type: HitTestType.relationLabel,
           hitEntityId: rel.id,

@@ -13,6 +13,7 @@ import '../painters/relation_painter.dart';
 import '../painters/relation_painter_dto.dart';
 import '../text/canvas_text_editor.dart';
 import 'package:centrode/shared/widgets/unbounded_stack.dart';
+import '../../../presentation/workspace_tabs_controller.dart';
 import '../../../presentation/view_state.dart';
 import '../../../presentation/strategies/relation_style_strategy.dart';
 import '../../../presentation/relation_utils.dart';
@@ -27,6 +28,8 @@ class RelationLayer extends StatelessWidget {
     final queryController = context.read<GraphDataQueryController>();
     final uiController = context.read<NodeRenderState>();
     final interactionController = context.read<InteractionController>();
+    final tabsController = context.watch<WorkspaceTabsController>();
+    final session = tabsController.activeSession;
     final theme = Theme.of(context);
 
     return Positioned.fill(
@@ -38,6 +41,7 @@ class RelationLayer extends StatelessWidget {
           uiController.editorState,
           interactionController.state,
           queryController.relationEngine.cacheNotifier,
+          session.relationLabelModeNotifier,
         ]),
         builder: (context, _) {
           final interactionState = interactionController.state.value;
@@ -109,6 +113,7 @@ class RelationLayer extends StatelessWidget {
             selectedEntities: uiController.selectedEntities,
             relationEngine: queryController.relationEngine,
             interactionState: interactionState,
+            labelMode: session.relationLabelModeNotifier.value,
             theme: theme,
           );
 
@@ -139,6 +144,7 @@ class RelationLayer extends StatelessWidget {
     required Set<RawUuid> selectedEntities,
     required CanvasInteractionState? interactionState,
     required RelationEngineState? relationEngine,
+    required String labelMode,
     required ThemeData theme,
   }) {
     final List<RelationPaintDto> dtos = [];
@@ -157,6 +163,12 @@ class RelationLayer extends StatelessWidget {
 
       final resolved = RelationStyleStrategy.resolveStyle(rel);
       final isSelected = selectedEntities.contains(rel.id);
+      final showLabel = switch (labelMode) {
+        'never' => false,
+        'always' => true,
+        'auto' => isSelected,
+        _ => isSelected,
+      };
 
       final color = _resolveColor(
         tipDrag: tipDrag,
@@ -213,6 +225,7 @@ class RelationLayer extends StatelessWidget {
             toVs: to,
             resolved: resolved,
             isSelected: isSelected,
+            showLabel: showLabel,
             color: color,
             strokeWidth: strokeWidth,
           ),
@@ -231,6 +244,7 @@ class RelationLayer extends StatelessWidget {
               toVs: to,
               resolved: resolved,
               isSelected: isSelected,
+              showLabel: showLabel,
               color: color,
               strokeWidth: strokeWidth,
             ),
@@ -280,6 +294,7 @@ class RelationLayer extends StatelessWidget {
     required NodeViewState toVs,
     required RelationStyle resolved,
     required bool isSelected,
+    required bool showLabel,
     required Color color,
     required double strokeWidth,
   }) {
@@ -381,7 +396,7 @@ class RelationLayer extends StatelessWidget {
       startHandlePos: startHandlePos,
       endHandlePos: endHandlePos,
       isDragging: isDraggingThisTip,
-      verb: rel.verb,
+      verb: showLabel ? rel.verb : '',
       labelPos: labelPos,
       widths: cached.bodyWidths,
       isVariableWidth: cached.bodyType != rust_config.BodyType.uniform,
@@ -397,6 +412,7 @@ class RelationLayer extends StatelessWidget {
     required NodeViewState toVs,
     required RelationStyle resolved,
     required bool isSelected,
+    required bool showLabel,
     required Color color,
     required double strokeWidth,
   }) {
@@ -432,7 +448,7 @@ class RelationLayer extends StatelessWidget {
       startHandlePos: startHandlePos,
       endHandlePos: endHandlePos,
       isDragging: true,
-      verb: rel.verb,
+      verb: showLabel ? rel.verb : '',
       labelPos: labelPos,
       widths: cached.bodyWidths,
       isVariableWidth: cached.bodyType != rust_config.BodyType.uniform,

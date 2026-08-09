@@ -10,6 +10,9 @@ class OptAreaDrawing extends CanvasInteractionState {
   const OptAreaDrawing(this.startPos, this.currentPos);
 
   @override
+  bool get allowsAutoPan => true;
+
+  @override
   CanvasInteractionState handlePointerMove(
     PointerMoveEvent e,
     Offset pCanvas,

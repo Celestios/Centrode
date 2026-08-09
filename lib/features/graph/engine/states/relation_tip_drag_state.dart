@@ -25,6 +25,9 @@ class RelationTipDragging extends CanvasInteractionState {
   @override
   MouseCursor get cursor => SystemMouseCursors.grab;
 
+  @override
+  bool get allowsAutoPan => true;
+
   const RelationTipDragging({
     required this.relationId,
     required this.isStartTip,

@@ -13,6 +13,9 @@ class MarqueeSelecting extends CanvasInteractionState {
   const MarqueeSelecting(this.startPos, this.currentPos);
 
   @override
+  bool get allowsAutoPan => true;
+
+  @override
   CanvasInteractionState handlePointerMove(
     PointerMoveEvent e,
     Offset pCanvas,

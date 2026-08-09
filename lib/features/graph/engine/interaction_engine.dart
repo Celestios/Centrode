@@ -54,6 +54,9 @@ class InteractionController {
   /// The registered gesture interceptors.
   final List<GestureInterceptor> _interceptors = [];
 
+  PointerMoveEvent? _lastPointerMoveEvent;
+  final AutoPanManager _autoPanManager = AutoPanManager();
+
   void registerInterceptor(GestureInterceptor interceptor) {
     if (!_interceptors.contains(interceptor)) {
       _interceptors.add(interceptor);
@@ -104,6 +107,9 @@ class InteractionController {
       _log.fine(
         'FSM Transition: ${state.value.runtimeType} -> ${newState.runtimeType}',
       );
+      if (!newState.allowsAutoPan) {
+        _autoPanManager.stop();
+      }
     }
     state.value = newState;
   }
@@ -153,6 +159,7 @@ class InteractionController {
         isDoubleTap,
       );
       if (disposition == InterceptorDisposition.consumed) {
+        _autoPanManager.stop();
         return;
       }
     }
@@ -176,22 +183,43 @@ class InteractionController {
   /// Handles pointer move events with polymorphic dispatch.
   /// Delegates to the current state's handlePointerMove method.
   void handlePointerMove(PointerMoveEvent e) {
+    _lastPointerMoveEvent = e;
     final pCanvas = _screenToCanvas(e.localPosition);
 
     // Run interceptors first
     for (final interceptor in List<GestureInterceptor>.from(_interceptors)) {
       final disposition = interceptor.onPointerMove(e, pCanvas, environment);
       if (disposition == InterceptorDisposition.consumed) {
+        _autoPanManager.stop();
         return;
       }
     }
 
     _transitionTo(state.value.handlePointerMove(e, pCanvas, environment));
+
+    if (state.value.allowsAutoPan) {
+      _autoPanManager.update(e.localPosition, environment, (newPCanvas) {
+        if (_lastPointerMoveEvent != null && state.value.allowsAutoPan) {
+          _transitionTo(
+            state.value.handlePointerMove(
+              _lastPointerMoveEvent!,
+              newPCanvas,
+              environment,
+            ),
+          );
+        }
+      });
+    } else {
+      _autoPanManager.stop();
+    }
   }
 
   /// Handles pointer up events with polymorphic dispatch.
   /// Delegates to the current state's handlePointerUp method.
   void handlePointerUp(PointerUpEvent e) {
+    _autoPanManager.stop();
+    _lastPointerMoveEvent = null;
+
     // Run interceptors first
     for (final interceptor in List<GestureInterceptor>.from(_interceptors)) {
       final disposition = interceptor.onPointerUp(e, environment);
@@ -209,6 +237,9 @@ class InteractionController {
   /// Handles pointer cancel events with polymorphic dispatch.
   /// Delegates to the current state's handlePointerCancel method.
   void handlePointerCancel(PointerCancelEvent e) {
+    _autoPanManager.stop();
+    _lastPointerMoveEvent = null;
+
     _log.warning('Pointer event cancelled by OS. Resetting FSM to Idle.');
     // Run interceptors first
     for (final interceptor in List<GestureInterceptor>.from(_interceptors)) {
@@ -245,6 +276,7 @@ class InteractionController {
 
   /// Disposes the state notifier.
   void dispose() {
+    _autoPanManager.stop();
     state.removeListener(_onStateChanged);
     panScaleEnabled.dispose();
     cursor.dispose();

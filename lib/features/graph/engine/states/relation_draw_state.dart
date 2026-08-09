@@ -18,6 +18,9 @@ class RelationDrawing extends CanvasInteractionState {
   }) : initialCursorPosition = initialCursorPosition ?? currentCursorPosition;
 
   @override
+  bool get allowsAutoPan => true;
+
+  @override
   CanvasInteractionState handlePointerDown(
     PointerDownEvent e,
     Offset pCanvas,

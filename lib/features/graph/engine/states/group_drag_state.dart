@@ -24,6 +24,9 @@ class GroupDragging extends CanvasInteractionState {
   }) : nodeIds = nodeIds.toList();
 
   @override
+  bool get allowsAutoPan => true;
+
+  @override
   CanvasInteractionState handlePointerMove(
     PointerMoveEvent e,
     Offset pCanvas,

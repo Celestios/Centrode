@@ -33,6 +33,10 @@ void main() {
 
       when(() => mockCtx.nodeViewStates).thenReturn({nodeId: viewState});
       when(() => mockCtx.currentScale).thenReturn(1.0);
+      when(() => mockCtx.viewportSize).thenReturn(const Size(1000, 800));
+      when(() => mockCtx.panViewport(any())).thenReturn(null);
+      when(() => mockCtx.screenToCanvas(any()))
+          .thenAnswer((i) => i.positionalArguments.first as Offset);
       when(() => mockCtx.setNodeDragging(nodeId, any())).thenReturn(null);
       when(() => mockCtx.onNodesDrag(any())).thenReturn(null);
       when(() => mockCtx.onNodeMove(any(), any())).thenReturn(null);
@@ -131,6 +135,10 @@ void main() {
         () => mockCtx.nodeViewStates,
       ).thenReturn({anchorId: anchorVs, otherId: otherVs});
       when(() => mockCtx.currentScale).thenReturn(1.0);
+      when(() => mockCtx.viewportSize).thenReturn(const Size(1000, 800));
+      when(() => mockCtx.panViewport(any())).thenReturn(null);
+      when(() => mockCtx.screenToCanvas(any()))
+          .thenAnswer((i) => i.positionalArguments.first as Offset);
       when(() => mockCtx.setNodeDragging(any(), any())).thenReturn(null);
       when(() => mockCtx.onNodesDrag(any())).thenReturn(null);
       when(() => mockCtx.onNodeMove(any(), any())).thenReturn(null);
@@ -175,6 +183,54 @@ void main() {
 
       expect(anchorVs.positionNotifier.value, const Offset(120.0, 120.0));
       expect(otherVs.positionNotifier.value, const Offset(240.0, 120.0));
+    });
+  });
+
+  group('AutoPanManager camera follow calculations', () {
+    const viewportSize = Size(1000, 800);
+
+    test('returns zero delta for pointer in central canvas region', () {
+      final delta = AutoPanManager.calculatePanDelta(
+        const Offset(500, 400),
+        viewportSize,
+      );
+      expect(delta, Offset.zero);
+    });
+
+    test('calculates correct pan delta for right edge threshold', () {
+      final delta = AutoPanManager.calculatePanDelta(
+        const Offset(980, 400),
+        viewportSize,
+      );
+      expect(delta.dx, lessThan(0));
+      expect(delta.dy, equals(0));
+    });
+
+    test('calculates correct pan delta for left edge threshold', () {
+      final delta = AutoPanManager.calculatePanDelta(
+        const Offset(20, 400),
+        viewportSize,
+      );
+      expect(delta.dx, greaterThan(0));
+      expect(delta.dy, equals(0));
+    });
+
+    test('calculates correct pan delta for bottom edge threshold', () {
+      final delta = AutoPanManager.calculatePanDelta(
+        const Offset(500, 780),
+        viewportSize,
+      );
+      expect(delta.dx, equals(0));
+      expect(delta.dy, lessThan(0));
+    });
+
+    test('calculates correct pan delta for top edge threshold', () {
+      final delta = AutoPanManager.calculatePanDelta(
+        const Offset(500, 20),
+        viewportSize,
+      );
+      expect(delta.dx, equals(0));
+      expect(delta.dy, greaterThan(0));
     });
   });
 }

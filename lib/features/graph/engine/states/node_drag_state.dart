@@ -17,6 +17,9 @@ class NodeDragging extends CanvasInteractionState {
   NodeDragging(this.nodeId, this.grabOffset);
 
   @override
+  bool get allowsAutoPan => true;
+
+  @override
   CanvasInteractionState handlePointerMove(
     PointerMoveEvent e,
     Offset pCanvas,
