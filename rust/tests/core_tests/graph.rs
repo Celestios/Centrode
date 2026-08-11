@@ -9,6 +9,7 @@ use centrode_core::domain::nodes::{
 };
 use centrode_core::domain::relations::{IRelation, IRelationFields};
 use centrode_core::domain::snapshot::GraphSnapshot;
+use centrode_core::domain::styles::RelationDirection;
 use centrode_core::domain::traits::TableKind;
 
 async fn assert_significance_eventually(
@@ -182,7 +183,7 @@ async fn test_graph_snapshot() {
             resolved_style: None,
             layout: None,
             resolved_layout: None,
-            directionless: false,
+            direction: RelationDirection::default(),
             layer: "default".to_string(),
             created_at: 0,
             updated_at: 0,
@@ -319,7 +320,7 @@ async fn test_significance_calculation() {
             resolved_style: None,
             layout: None,
             resolved_layout: None,
-            directionless: false,
+            direction: RelationDirection::default(),
             layer: "default".to_string(),
             created_at: 0,
             updated_at: 0,

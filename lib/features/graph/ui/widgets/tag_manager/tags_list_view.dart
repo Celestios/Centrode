@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import '../../../models/graph_node.dart';
 import '../../../store/graph_data_query_controller.dart';
 import '../../../store/command_queue_processor.dart';
@@ -41,6 +42,7 @@ class _TagsListViewState extends State<TagsListView> {
 
   final FocusNode _createFocusNode = FocusNode();
   final FocusNode _renameFocusNode = FocusNode();
+  final GlobalKey _newColorDotKey = GlobalKey();
 
   String _searchQuery = '';
   TagSortOption _sortOption = TagSortOption.usageDesc;
@@ -413,20 +415,23 @@ class _TagsListViewState extends State<TagsListView> {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  GestureDetector(
-                    onTapDown: (details) {
-                      _showNewColorPicker(context, details.globalPosition);
+                  CentrodeButton(
+                    onTap: () {
+                      final RenderBox? renderBox = _newColorDotKey.currentContext?.findRenderObject() as RenderBox?;
+                      if (renderBox != null) {
+                        _showNewColorPicker(context, renderBox.localToGlobal(Offset(renderBox.size.width / 2, renderBox.size.height / 2)));
+                      }
                     },
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: Container(
-                        width: 18,
-                        height: 18,
-                        decoration: BoxDecoration(
-                          color: Color(_newTagColor),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white30),
-                        ),
+                    enableHover: false,
+                    borderRadius: BorderRadius.circular(9),
+                    child: Container(
+                      key: _newColorDotKey,
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: Color(_newTagColor),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white30),
                       ),
                     ),
                   ),
@@ -573,40 +578,26 @@ class _TagsListViewState extends State<TagsListView> {
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.close_rounded,
-                                      size: 14,
-                                    ),
+                                  CentrodeIconButton(
+                                    icon: Icons.close_rounded,
                                     onPressed: () {
                                       setState(() {
                                         _editingTagKey = null;
                                         _validationError = null;
                                       });
                                     },
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(
-                                      minWidth: 24,
-                                      minHeight: 24,
-                                      maxWidth: 24,
-                                      maxHeight: 24,
-                                    ),
+                                    iconSize: 14,
+                                    buttonSize: 24,
+                                    enableHover: false,
                                   ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.check_rounded,
-                                      size: 14,
-                                      color: Colors.greenAccent,
-                                    ),
+                                  CentrodeIconButton(
+                                    icon: Icons.check_rounded,
                                     onPressed: () =>
                                         _submitRename(tag, controller, allTags),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(
-                                      minWidth: 24,
-                                      minHeight: 24,
-                                      maxWidth: 24,
-                                      maxHeight: 24,
-                                    ),
+                                    iconSize: 14,
+                                    buttonSize: 24,
+                                    enableHover: false,
+                                    iconColor: Colors.greenAccent,
                                   ),
                                 ],
                               )
@@ -614,27 +605,16 @@ class _TagsListViewState extends State<TagsListView> {
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.edit_rounded,
-                                      size: 14,
-                                    ),
+                                  CentrodeIconButton(
+                                    icon: Icons.edit_rounded,
                                     onPressed: () => _startEditing(tag),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(
-                                      minWidth: 24,
-                                      minHeight: 24,
-                                      maxWidth: 24,
-                                      maxHeight: 24,
-                                    ),
+                                    iconSize: 14,
+                                    buttonSize: 24,
+                                    enableHover: false,
                                     tooltip: 'Rename tag',
                                   ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.delete_outline_rounded,
-                                      size: 14,
-                                      color: Colors.redAccent,
-                                    ),
+                                  CentrodeIconButton(
+                                    icon: Icons.delete_outline_rounded,
                                     onPressed: () async {
                                       final confirm = await showDeleteTagDialog(
                                         context,
@@ -646,13 +626,10 @@ class _TagsListViewState extends State<TagsListView> {
                                         );
                                       }
                                     },
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(
-                                      minWidth: 24,
-                                      minHeight: 24,
-                                      maxWidth: 24,
-                                      maxHeight: 24,
-                                    ),
+                                    iconSize: 14,
+                                    buttonSize: 24,
+                                    enableHover: false,
+                                    iconColor: Colors.redAccent,
                                     tooltip: 'Delete tag globally',
                                   ),
                                 ],

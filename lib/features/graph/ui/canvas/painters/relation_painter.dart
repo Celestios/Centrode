@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'relation_painter_dto.dart';
-import '../../../engine/config.dart';
+import '../../../../../presentation/theme/app_theme_manager.dart';
 
 class RelationPainter extends CustomPainter {
   final List<RelationPaintDto> paintDtos;
@@ -170,7 +170,7 @@ class RelationPainter extends CustomPainter {
 
   void _drawSelectionHandles(Canvas canvas, Offset start, Offset end) {
     final handlePaint = Paint()
-      ..color = AppConfig.visuals.selectionAccent
+      ..color = AppThemeManager.instance.currentTheme.canvasAccentColor
       ..style = PaintingStyle.fill;
     final borderPaint = Paint()
       ..color = Colors.white

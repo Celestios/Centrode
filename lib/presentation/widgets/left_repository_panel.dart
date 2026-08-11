@@ -17,7 +17,7 @@ class LeftRepositoryPanel extends StatelessWidget {
     return GlassPanel(
       padding: EdgeInsets.zero,
       blur: 12.0,
-      borderRadius: 16.0,
+      borderRadius: 12.0,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

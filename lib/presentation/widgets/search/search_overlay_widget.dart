@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/color_utils.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
 import 'package:centrode/features/graph/models/graph_node.dart';
 import 'search_registry.dart';
@@ -127,11 +128,10 @@ class SearchOverlayWidget extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
-                                  child: Container(
-                                    height: 1,
-                                    color: theme.dividerColor.withValues(
-                                      alpha: 0.15,
-                                    ),
+                                  child: GlassDivider(
+                                    orientation: Axis.horizontal,
+                                    useGradient: false,
+                                    alpha: 0.15,
                                   ),
                                 ),
                               ],
@@ -152,8 +152,9 @@ class SearchOverlayWidget extends StatelessWidget {
                             theme,
                           );
 
-                          return InkWell(
+                          return CentrodeButton(
                             onTap: () => onSelected(item),
+                            enableHover: false,
                             child: Container(
                               padding: const EdgeInsets.only(
                                 left: 28,
@@ -250,8 +251,9 @@ class SearchOverlayWidget extends StatelessWidget {
                           );
                         }
 
-                        return InkWell(
+                        return CentrodeButton(
                           onTap: () => onSelected(item),
+                          enableHover: false,
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 14,

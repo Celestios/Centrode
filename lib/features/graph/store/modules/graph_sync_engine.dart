@@ -217,8 +217,8 @@ class GraphSyncEngine {
         existing.style = patch.field0;
       } else if (patch is RelationPatch_Layout) {
         existing.layout = patch.field0;
-      } else if (patch is RelationPatch_Directionless) {
-        existing.directionless = patch.field0;
+      } else if (patch is RelationPatch_Direction) {
+        existing.direction = patch.field0;
       }
     }
 

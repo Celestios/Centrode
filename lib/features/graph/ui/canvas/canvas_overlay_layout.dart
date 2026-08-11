@@ -19,6 +19,7 @@ import 'package:centrode/features/graph/ui/widgets/tag_manager/global_tags_manag
 import 'package:centrode/features/graph/ui/widgets/template_manager/global_templates_manager_panel.dart';
 import 'package:centrode/features/graph/ui/widgets/drawing_manager/global_drawing_panel.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'package:centrode/presentation/widgets/search/search_command_palette.dart';
 import 'package:centrode/presentation/theme/app_theme_manager.dart';
 import 'package:centrode/presentation/theme/app_theme.dart';
@@ -83,18 +84,14 @@ class CanvasOverlayLayout extends StatelessWidget {
               child: Row(
                 children: [
                   // Left Circular Home Button
-                  GlassPanel(
-                    borderRadius: 20,
-                    width: 40,
-                    height: 40,
-                    padding: EdgeInsets.zero,
-                    child: IconButton(
-                      icon: Icon(Icons.home_rounded, color: primaryColor, size: 20),
-                      tooltip: 'Back to Workspace Hub',
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
+                  CentrodeIconButton(
+                    icon: Icons.home_rounded,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    iconSize: 20,
+                    iconColor: primaryColor,
+                    enableHover: false,
                   ),
                   const SizedBox(width: 8),
                   // Middle Search Bar
@@ -244,7 +241,7 @@ class CanvasOverlayLayout extends StatelessWidget {
                       duration: const Duration(milliseconds: 200),
                       opacity: (leftVisible && isOpen) ? 1.0 : 0.0,
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16.0),
+                        borderRadius: BorderRadius.circular(12.0),
                         child: UnconstrainedBox(
                           alignment: Alignment.topLeft,
                           clipBehavior: Clip.hardEdge,
@@ -280,11 +277,11 @@ class CanvasOverlayLayout extends StatelessWidget {
             ),
           ),
 
-        // Right Property Panel (Sticking to Right Edge)
+        // Right Property Panel (Handle right edge aligned with minimap)
         Positioned(
           top: isAndroid ? (statusBarHeight + 104.0) : 112.0,
           bottom: isAndroid ? (bottomPadding + 68.0) : 224.0,
-          right: 0,
+          right: 12,
           child: ValueListenableBuilder<bool>(
             valueListenable: session.showRightPanel,
             builder: (context, visible, _) {

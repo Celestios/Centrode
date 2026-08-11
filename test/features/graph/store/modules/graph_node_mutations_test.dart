@@ -5,10 +5,8 @@ import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
 import 'package:centrode/features/graph/store/command_queue_processor.dart';
 import 'package:centrode/features/graph/store/graph_api.dart';
-import 'package:centrode/features/graph/presentation/theme_manager.dart';
 import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
 import 'package:centrode/src/rust/domain/base_models.dart' as frb;
-import 'package:centrode/presentation/theme/graph_theme.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockGraphApi extends Mock implements GraphApi {}
@@ -128,7 +126,7 @@ void main() {
         const Offset(0, 0),
       );
 
-      controller.nodeMutations.updateNodeWidth(id, 350.0);
+      controller.nodeMutations.updateNodeWidth(id, 0.0, 350.0);
 
       final node = queryController.nodeLookup[id]!;
       expect(node.size.width, equals(350.0));

@@ -5,7 +5,7 @@ use centrode_core::domain::id::TypedRecordId;
 use centrode_core::domain::nodes::{INode, Nodes};
 use centrode_core::domain::patches::{EntityPatch, NodePatch, RelationPatch, SymmetricEntityPatch};
 use centrode_core::domain::relations::{IRelation, IRelationFields};
-use centrode_core::domain::styles::{NodeStyle, PortSide, RelationLayout, RelationStyle};
+use centrode_core::domain::styles::{NodeStyle, PortSide, RelationDirection, RelationLayout, RelationStyle};
 use centrode_core::domain::traits::TableKind;
 use centrode_core::persistence::history::HistoryManager;
 use surrealdb::types::SurrealValue;
@@ -230,7 +230,7 @@ async fn test_relation_patching() {
             resolved_style: None,
             layout: None,
             resolved_layout: None,
-            directionless: false,
+            direction: RelationDirection::default(),
             layer: "default".to_string(),
             created_at: 0,
             updated_at: 0,
@@ -272,7 +272,7 @@ async fn test_relation_patching() {
             control_point_1: None,
             control_point_2: None,
         })),
-        RelationPatch::Directionless(true),
+        RelationPatch::Direction(RelationDirection::Undirected),
     ]);
 
     repo.patch_entity(record_id.clone(), &patch)
@@ -302,7 +302,7 @@ async fn test_relation_patching() {
         fetched.fields.layout.as_ref().unwrap().to_side,
         Some(PortSide::Left)
     );
-    assert_eq!(fetched.fields.directionless, true);
+    assert_eq!(fetched.fields.direction, RelationDirection::Undirected);
 }
 
 #[tokio::test]
@@ -347,7 +347,7 @@ async fn test_create_and_delete_entity_patches() {
             resolved_style: None,
             layout: None,
             resolved_layout: None,
-            directionless: false,
+            direction: RelationDirection::default(),
             layer: "default".to_string(),
             created_at: 0,
             updated_at: 0,

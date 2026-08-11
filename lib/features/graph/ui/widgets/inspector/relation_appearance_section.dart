@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 /// Reusable top-level outer shell container for inspector property sections (Stateless & always expanded).
 class GlassSectionShell extends StatelessWidget {
@@ -106,9 +107,10 @@ class _SubBlockShellState extends State<SubBlockShell> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          InkWell(
+          CentrodeButton(
             onTap: () => setState(() => _isExpanded = !_isExpanded),
             borderRadius: BorderRadius.circular(8),
+            enableHover: false,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
               child: Row(

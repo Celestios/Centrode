@@ -145,7 +145,7 @@ class GraphRelationMutations {
       toNodeId: toNodeId ?? relation.toNodeId,
       toNodeTable: toNode?.tableName ?? relation.toNodeTable,
       layout: newLayout,
-    );
+    )..normalize();
 
     // OPTIMISTIC UPDATE
     controller.store.relationLookup[id] = updatedRelation;

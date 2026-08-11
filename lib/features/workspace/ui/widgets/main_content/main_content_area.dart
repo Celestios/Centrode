@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'maps_section.dart';
 import 'analytics_box.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 class MainContentArea extends StatelessWidget {
   const MainContentArea({super.key});
@@ -12,6 +13,11 @@ class MainContentArea extends StatelessWidget {
     final theme = Theme.of(context);
     final isAndroid = !kIsWeb && Platform.isAndroid;
     final statusBarHeight = isAndroid ? MediaQuery.of(context).padding.top : 0.0;
+    final isDark = theme.brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : theme.colorScheme.onSurface;
+    final subtitleColor = isDark
+        ? Colors.white.withValues(alpha: 0.5)
+        : theme.colorScheme.onSurface.withValues(alpha: 0.5);
 
     final content = Container(
       color: theme.scaffoldBackgroundColor,
@@ -43,27 +49,29 @@ class MainContentArea extends StatelessWidget {
                     left: 8,
                     top: 8,
                     bottom: 8,
-                    child: IconButton(
-                      icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 22),
-                      tooltip: 'Open Navigation Drawer',
+                    child: CentrodeIconButton(
+                      icon: Icons.menu_rounded,
                       onPressed: () {
                         Scaffold.of(context).openDrawer();
                       },
+                      iconSize: 22,
+                      iconColor: titleColor,
+                      enableHover: false,
                     ),
                   ),
                 Center(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.home_rounded, color: Colors.white, size: 16),
+                      Icon(Icons.home_rounded, color: titleColor, size: 16),
                       const SizedBox(width: 4),
                       RichText(
                         text: TextSpan(
                           children: [
-                            const TextSpan(
+                            TextSpan(
                               text: 'CENTRODE',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: titleColor,
                                 fontWeight: FontWeight.w800,
                                 fontSize: 12,
                                 letterSpacing: 1.5,
@@ -72,7 +80,7 @@ class MainContentArea extends StatelessWidget {
                             TextSpan(
                               text: '  Workspace Hub',
                               style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.5),
+                                color: subtitleColor,
                                 fontWeight: FontWeight.w400,
                                 fontSize: 12,
                                 letterSpacing: 0.5,

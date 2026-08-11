@@ -17,7 +17,6 @@ import '../presentation/node_render_state.dart';
 import '../presentation/viewport_state.dart';
 import '../presentation/workspace_tabs_controller.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
-import 'package:centrode/src/rust/domain/base_models.dart' hide Size;
 import 'package:centrode/src/rust/layout_engine/config.dart';
 import 'package:centrode/src/rust/layout_engine/types.dart';
 import '../models/commands/patch_helpers.dart';

@@ -162,7 +162,6 @@ class RelationDrawing extends CanvasInteractionState {
                   );
               break;
             case PortSide.auto:
-            default:
               targetPos = sourcePos + Offset(sourceSize.width + cardinalX, 0);
               break;
           }

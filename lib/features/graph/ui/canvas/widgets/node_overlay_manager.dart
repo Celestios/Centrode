@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/presentation/theme/app_theme_manager.dart';
 import '../../../../../src/rust/domain/contents.dart';
 import '../../../presentation/view_state.dart';
 import '../text/canvas_text_editor.dart';
@@ -25,6 +26,8 @@ class NodeOverlayManager {
     final pos = viewState.positionNotifier.value;
     final size = viewState.sizeNotifier.value;
 
+    final canvasAccent = AppThemeManager.instance.currentTheme.canvasAccentColor;
+
     final entry = OverlayEntry(
       builder: (context) => Positioned(
         left: pos.dx - 2,
@@ -36,12 +39,12 @@ class NodeOverlayManager {
             constraints: const BoxConstraints(minHeight: 40),
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: const Color(0xFF2196F3).withValues(alpha: 0.1),
+              color: canvasAccent.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: const Color(0xFF2196F3), width: 2),
+              border: Border.all(color: canvasAccent, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0x602196F3),
+                  color: canvasAccent.withValues(alpha: 0.38),
                   blurRadius: 16,
                   spreadRadius: 4,
                 ),

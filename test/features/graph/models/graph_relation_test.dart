@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:centrode/features/graph/models/graph_relation.dart';
+import 'package:centrode/src/rust/domain/styles.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
 void main() {
@@ -16,7 +17,7 @@ void main() {
       expect(relation.fromNodeId, RawUuid.fromString('node-1'));
       expect(relation.toNodeId, RawUuid.fromString('node-2'));
       expect(relation.verb, 'default');
-      expect(relation.directionless, isFalse);
+      expect(relation.direction, RelationDirection.forward);
       expect(relation.layer, 'default');
     });
 
@@ -30,12 +31,12 @@ void main() {
         verb: 'relates_to',
       );
 
-      final copied = relation.copyWith(verb: 'depends_on', directionless: true);
+      final copied = relation.copyWith(verb: 'depends_on', direction: RelationDirection.undirected);
 
       expect(copied.id, RawUuid.fromString('rel-1'));
       expect(copied.fromNodeId, RawUuid.fromString('n1'));
       expect(copied.verb, 'depends_on');
-      expect(copied.directionless, isTrue);
+      expect(copied.direction, RelationDirection.undirected);
     });
 
     test('InfoUiRelation toRust generates valid FFI object', () {
@@ -49,7 +50,7 @@ void main() {
         toNodeId: n2Id,
         toNodeTable: 'TaskNode',
         verb: 'blocks',
-        directionless: false,
+        direction: RelationDirection.forward,
       );
 
       final rustObj = relation.toRust();
@@ -57,7 +58,7 @@ void main() {
       expect(rustObj.in_.key.uuid, n1Id.toUuidString());
       expect(rustObj.out.key.uuid, n2Id.toUuidString());
       expect(rustObj.fields.verb, 'blocks');
-      expect(rustObj.fields.directionless, isFalse);
+      expect(rustObj.fields.direction, RelationDirection.forward);
     });
   });
 }

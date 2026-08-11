@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 class SectionHeader extends StatelessWidget {
   final String title;
@@ -51,85 +52,35 @@ class SectionHeader extends StatelessWidget {
                       ),
                       const SizedBox(width: 10),
                       if (onSelectAll != null) ...[
-                        InkWell(
+                        _ActionPill(
+                          label: 'Select all',
                           onTap: onSelectAll,
-                          borderRadius: BorderRadius.circular(4),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
-                              ),
-                            ),
-                            child: Text(
-                              'Select all',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontSize: 11,
-                                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
+                          backgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                          borderColor: theme.colorScheme.onSurface.withValues(alpha: 0.2),
+                          textColor: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
                         ),
                         const SizedBox(width: 6),
                       ],
-                      InkWell(
+                      _ActionPill(
+                        label: 'Cancel',
                         onTap: onCancel,
-                        borderRadius: BorderRadius.circular(4),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(
-                              color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: Text(
-                            'Cancel',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontSize: 11,
-                              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
+                        backgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                        borderColor: theme.colorScheme.onSurface.withValues(alpha: 0.2),
+                        textColor: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
                       ),
                       const SizedBox(width: 6),
-                      InkWell(
+                      _ActionPill(
+                        label: 'Delete',
                         onTap: onDelete,
-                        borderRadius: BorderRadius.circular(4),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.error.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(
-                              color: theme.colorScheme.error.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.delete_outline,
-                                size: 13,
-                                color: theme.colorScheme.error,
-                              ),
-                              const SizedBox(width: 3),
-                              Text(
-                                'Delete',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontSize: 11,
-                                  color: theme.colorScheme.error,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
+                        backgroundColor: theme.colorScheme.error.withValues(alpha: 0.15),
+                        borderColor: theme.colorScheme.error.withValues(alpha: 0.3),
+                        textColor: theme.colorScheme.error,
+                        icon: Icon(
+                          Icons.delete_outline,
+                          size: 13,
+                          color: theme.colorScheme.error,
                         ),
+                        fontWeight: FontWeight.w600,
                       ),
                     ],
                   ),
@@ -142,6 +93,68 @@ class SectionHeader extends StatelessWidget {
             color: theme.dividerColor.withValues(alpha: 0.2),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ActionPill extends StatelessWidget {
+  final String label;
+  final VoidCallback? onTap;
+  final Color backgroundColor;
+  final Color borderColor;
+  final Color? textColor;
+  final Widget? icon;
+  final FontWeight? fontWeight;
+
+  const _ActionPill({
+    required this.label,
+    this.onTap,
+    required this.backgroundColor,
+    required this.borderColor,
+    this.textColor,
+    this.icon,
+    this.fontWeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return CentrodeButton(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      enableHover: false,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: borderColor),
+        ),
+        child: icon != null
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  icon!,
+                  const SizedBox(width: 3),
+                  Text(
+                    label,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontSize: 11,
+                      color: textColor,
+                      fontWeight: fontWeight ?? FontWeight.w500,
+                    ),
+                  ),
+                ],
+              )
+            : Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontSize: 11,
+                  color: textColor,
+                  fontWeight: fontWeight ?? FontWeight.w500,
+                ),
+              ),
       ),
     );
   }

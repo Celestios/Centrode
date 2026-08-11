@@ -4,6 +4,7 @@ use centrode_core::domain::contents::Content;
 use centrode_core::domain::id::TypedRecordId;
 use centrode_core::domain::nodes::{INode, Nodes, TaskNode, TaskState};
 use centrode_core::domain::relations::{IRelation, IRelationFields};
+use centrode_core::domain::styles::RelationDirection;
 use centrode_core::domain::tags::{TagEdge};
 use centrode_core::domain::traits::TableKind;
 
@@ -202,7 +203,7 @@ async fn test_irelation_crud() {
             resolved_style: None,
             layout: None,
             resolved_layout: None,
-            directionless: false,
+            direction: RelationDirection::default(),
             layer: "default".to_string(),
             created_at: 0,
             updated_at: 0,
@@ -298,7 +299,7 @@ async fn test_unique_constraints() {
             resolved_style: None,
             layout: None,
             resolved_layout: None,
-            directionless: false,
+            direction: RelationDirection::default(),
             layer: "default".to_string(),
             created_at: 0,
             updated_at: 0,
@@ -417,7 +418,7 @@ async fn test_relation_rerouting_and_deletion() {
             resolved_style: None,
             layout: None,
             resolved_layout: None,
-            directionless: false,
+            direction: RelationDirection::default(),
             layer: "default".to_string(),
             created_at: 0,
             updated_at: 0,
@@ -426,7 +427,23 @@ async fn test_relation_rerouting_and_deletion() {
 
     repo.create_relation(rel).await.unwrap();
 
-    repo.reroute_relation(rel_id, n1_id, n3_id)
+    let updated = IRelation {
+        key: rel_id,
+        in_: n1_id,
+        out: n3_id,
+        fields: IRelationFields {
+            verb: "connects".to_string(),
+            style: None,
+            resolved_style: None,
+            layout: None,
+            resolved_layout: None,
+            direction: RelationDirection::default(),
+            layer: "default".to_string(),
+            created_at: 0,
+            updated_at: 0,
+        },
+    };
+    repo.reroute_relation(rel_id, updated)
         .await
         .unwrap();
 

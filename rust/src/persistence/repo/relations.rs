@@ -60,17 +60,12 @@ impl Repository {
     pub async fn reroute_relation(
         &self,
         rel_id: TypedRecordId,
-        from: TypedRecordId,
-        to: TypedRecordId,
+        updated: IRelation,
     ) -> Result<()> {
         let existing = self.get_relation(rel_id).await?;
 
         let old_in_id = existing.in_;
         let old_out_id = existing.out;
-
-        let mut updated = existing;
-        updated.in_ = from;
-        updated.out = to;
 
         let _: Option<Value> = self.db.delete(rel_id.into_record()).await?;
 

@@ -3,16 +3,27 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
 import 'package:centrode/presentation/widgets/hover_scale_button.dart';
 
-typedef SegmentItem<T> = ({
-  IconData icon,
-  String label,
-  T mode,
-  String? tooltip,
-  String? accentBadge,
-});
+const _labelModes = ['auto', 'always', 'never'];
+const _labelIcons = {
+  'auto': Icons.auto_mode_rounded,
+  'always': Icons.visibility_rounded,
+  'never': Icons.visibility_off_rounded,
+};
+const _labelTitles = {
+  'auto': 'Auto',
+  'always': 'Always',
+  'never': 'Never',
+};
+const _labelDisplayTitles = {
+  'auto': 'Auto Display',
+  'always': 'Always Show',
+  'never': 'Never Show',
+};
+
 
 class CanvasToolRibbon extends StatefulWidget {
   const CanvasToolRibbon({super.key});
@@ -51,16 +62,13 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
       (icon: Icons.style_rounded, label: 'Flashcards', mode: 'flashcard_view', tooltip: 'Spaced Repetition Flashcards', accentBadge: null),
     ];
 
+    final ribbonPreset = GlassPresets.ribbon(context);
+
     return GlassPanel(
-      blur: 16,
-      borderRadius: 20,
+      borderRadius: ribbonPreset.borderRadius!,
+      blur: ribbonPreset.blur!,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      shadow: BoxShadow(
-        color: Colors.black.withValues(alpha: 0.22),
-        blurRadius: 16,
-        spreadRadius: -2,
-        offset: const Offset(0, 6),
-      ),
+      shadow: ribbonPreset.shadow,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
@@ -68,25 +76,21 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
           children: [
             // Compact Toggle Button on the left (Desktop only)
             if (!isAndroid) ...[
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                icon: Icon(
-                  effectiveCompact
-                      ? Icons.chevron_right_rounded
-                      : Icons.chevron_left_rounded,
-                  color: textColor.withValues(alpha: 0.7),
-                  size: 20,
-                ),
-                tooltip: effectiveCompact ? 'Expand ribbon' : 'Compact ribbon',
+              CentrodeIconButton(
+                icon: effectiveCompact
+                    ? Icons.chevron_right_rounded
+                    : Icons.chevron_left_rounded,
                 onPressed: () {
                   setState(() {
                     _isCompact = !_isCompact;
                   });
                 },
+                tooltip: effectiveCompact ? 'Expand ribbon' : 'Compact ribbon',
+                iconSize: 20,
+                compact: true,
               ),
               const SizedBox(width: 2),
-              const _GlassDivider(),
+              GlassDivider(useGradient: true),
               const SizedBox(width: 2),
             ],
 
@@ -94,30 +98,30 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
             ValueListenableBuilder<String>(
               valueListenable: session.toolModeNotifier,
               builder: (context, currentMode, _) {
-                return _RibbonCapsule(
-                  label: effectiveCompact ? null : 'TOOLS',
-                  child: GlassSlidingSegmentedControl<String>(
-                    items: tools,
-                    currentMode: currentMode,
-                    isCompact: effectiveCompact,
-                    onSelected: (newMode) => session.setToolMode(newMode),
-                  ),
-                );
+                  return RibbonCapsule(
+                    label: effectiveCompact ? null : 'TOOLS',
+                    child: CentrodeSegmentedControl<String>(
+                      items: tools,
+                      currentMode: currentMode,
+                      isCompact: effectiveCompact,
+                      onSelected: (newMode) => session.setToolMode(newMode),
+                    ),
+                  );
               },
             ),
 
             if (!isAndroid) ...[
               const SizedBox(width: 2),
-              const _GlassDivider(),
+              GlassDivider(useGradient: true),
               const SizedBox(width: 2),
 
               // Track 2: VIEWS (Canvas, Graph, Tasks, Flashcards)
               ValueListenableBuilder<String>(
                 valueListenable: session.currentViewNotifier,
                 builder: (context, currentView, _) {
-                  return _RibbonCapsule(
+                  return RibbonCapsule(
                     label: effectiveCompact ? null : 'VIEWS',
-                    child: GlassSlidingSegmentedControl<String>(
+                    child: CentrodeSegmentedControl<String>(
                       items: views,
                       currentMode: currentView,
                       isCompact: effectiveCompact,
@@ -128,32 +132,21 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
               ),
 
               const SizedBox(width: 2),
-              const _GlassDivider(),
+              GlassDivider(useGradient: true),
               const SizedBox(width: 2),
 
               // Track 3: Relation Label Display Mode
               ValueListenableBuilder<String>(
                 valueListenable: session.relationLabelModeNotifier,
                 builder: (context, mode, _) {
-                  final labelIcons = {
-                    'auto': Icons.auto_mode_rounded,
-                    'always': Icons.visibility_rounded,
-                    'never': Icons.visibility_off_rounded,
-                  };
-                  final labelTitles = {
-                    'auto': 'Auto',
-                    'always': 'Always',
-                    'never': 'Never',
-                  };
-                  return _RibbonCapsule(
+                  return RibbonCapsule(
                     label: effectiveCompact ? null : 'LABELS',
                     child: HoverScaleButton(
                       onTap: () {
-                        const modes = ['auto', 'always', 'never'];
-                        final nextIndex = (modes.indexOf(mode) + 1) % modes.length;
-                        session.relationLabelModeNotifier.value = modes[nextIndex];
+                        final nextIndex = (_labelModes.indexOf(mode) + 1) % _labelModes.length;
+                        session.relationLabelModeNotifier.value = _labelModes[nextIndex];
                       },
-                      tooltip: 'Relation Label Display: ${labelTitles[mode]} (Click to cycle)',
+                      tooltip: 'Relation Label Display: ${_labelTitles[mode]} (Click to cycle)',
                       borderRadius: BorderRadius.circular(10),
                       builder: (context, isHovered, isPressed) {
                         return AnimatedContainer(
@@ -191,7 +184,7 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                labelIcons[mode] ?? Icons.label_outlined,
+                                _labelIcons[mode] ?? Icons.label_outlined,
                                 size: 16,
                                 color: mode != 'auto'
                                     ? textColor
@@ -200,7 +193,7 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                               if (!effectiveCompact) ...[
                                 const SizedBox(width: 5),
                                 Text(
-                                  labelTitles[mode] ?? mode,
+                                  _labelTitles[mode] ?? mode,
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: mode != 'auto' ? FontWeight.bold : FontWeight.w500,
@@ -235,7 +228,6 @@ class ExtraRibbonMenuWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final tabsController = Provider.of<WorkspaceTabsController>(context);
     final activeSession = session ?? tabsController.activeSession;
-    if (activeSession == null) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
@@ -249,10 +241,12 @@ class ExtraRibbonMenuWidget extends StatelessWidget {
       (icon: Icons.style_rounded, label: 'Flashcards', mode: 'flashcard_view', tooltip: 'Spaced Repetition Flashcards', accentBadge: null),
     ];
 
+    final iconButtonPreset = GlassPresets.iconButton(context);
+
     return GlassPanel(
-      borderRadius: 14,
-      width: 40,
-      height: 40,
+      borderRadius: iconButtonPreset.borderRadius!,
+      width: iconButtonPreset.width,
+      height: iconButtonPreset.height,
       padding: EdgeInsets.zero,
       child: PopupMenuButton<String>(
         padding: EdgeInsets.zero,
@@ -324,300 +318,19 @@ class ExtraRibbonMenuWidget extends StatelessWidget {
                 ),
               ),
             ),
-            PopupMenuItem<String>(
-              value: 'label_auto',
-              child: Row(
-                children: [
-                  Icon(Icons.auto_mode_rounded, size: 16, color: currentLabelMode == 'auto' ? primaryColor : textColor),
-                  const SizedBox(width: 8),
-                  Text('Auto Display', style: TextStyle(fontSize: 12, color: currentLabelMode == 'auto' ? primaryColor : textColor)),
-                ],
+            for (final mode in _labelModes)
+              PopupMenuItem<String>(
+                value: 'label_$mode',
+                child: Row(
+                  children: [
+                    Icon(_labelIcons[mode]!, size: 16, color: currentLabelMode == mode ? primaryColor : textColor),
+                    const SizedBox(width: 8),
+                    Text(_labelDisplayTitles[mode]!, style: TextStyle(fontSize: 12, color: currentLabelMode == mode ? primaryColor : textColor)),
+                  ],
+                ),
               ),
-            ),
-            PopupMenuItem<String>(
-              value: 'label_always',
-              child: Row(
-                children: [
-                  Icon(Icons.visibility_rounded, size: 16, color: currentLabelMode == 'always' ? primaryColor : textColor),
-                  const SizedBox(width: 8),
-                  Text('Always Show', style: TextStyle(fontSize: 12, color: currentLabelMode == 'always' ? primaryColor : textColor)),
-                ],
-              ),
-            ),
-            PopupMenuItem<String>(
-              value: 'label_never',
-              child: Row(
-                children: [
-                  Icon(Icons.visibility_off_rounded, size: 16, color: currentLabelMode == 'never' ? primaryColor : textColor),
-                  const SizedBox(width: 8),
-                  Text('Never Show', style: TextStyle(fontSize: 12, color: currentLabelMode == 'never' ? primaryColor : textColor)),
-                ],
-              ),
-            ),
           ];
         },
-      ),
-    );
-  }
-}
-
-class GlassSlidingSegmentedControl<T> extends StatefulWidget {
-  final List<SegmentItem<T>> items;
-  final T currentMode;
-  final ValueChanged<T> onSelected;
-  final bool isCompact;
-
-  const GlassSlidingSegmentedControl({
-    super.key,
-    required this.items,
-    required this.currentMode,
-    required this.onSelected,
-    required this.isCompact,
-  });
-
-  @override
-  State<GlassSlidingSegmentedControl<T>> createState() => _GlassSlidingSegmentedControlState<T>();
-}
-
-class _GlassSlidingSegmentedControlState<T> extends State<GlassSlidingSegmentedControl<T>> {
-  bool _isPressed = false;
-
-  void _handlePointerPosition(Offset localPosition, double totalWidth) {
-    if (totalWidth <= 0 || widget.items.isEmpty) return;
-    final itemWidth = totalWidth / widget.items.length;
-    final targetIndex = (localPosition.dx / itemWidth).floor().clamp(0, widget.items.length - 1);
-    final targetMode = widget.items[targetIndex].mode;
-    if (targetMode != widget.currentMode) {
-      widget.onSelected(targetMode);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
-    final onSurface = theme.colorScheme.onSurface;
-    final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
-
-    final activeIndex = widget.items.indexWhere((item) => item.mode == widget.currentMode);
-    final safeIndex = activeIndex >= 0 ? activeIndex : 0;
-    final itemWidth = widget.isCompact ? 34.0 : 88.0;
-
-    return Listener(
-      onPointerDown: (event) {
-        setState(() => _isPressed = true);
-        final RenderBox box = context.findRenderObject() as RenderBox;
-        final local = box.globalToLocal(event.position);
-        _handlePointerPosition(local, box.size.width);
-      },
-      onPointerMove: (event) {
-        final RenderBox box = context.findRenderObject() as RenderBox;
-        final local = box.globalToLocal(event.position);
-        _handlePointerPosition(local, box.size.width);
-      },
-      onPointerUp: (_) {
-        setState(() => _isPressed = false);
-      },
-      onPointerCancel: (_) {
-        setState(() => _isPressed = false);
-      },
-      child: Container(
-        padding: const EdgeInsets.all(2),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: theme.dividerColor.withValues(alpha: 0.08),
-            width: 0.8,
-          ),
-        ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // Sliding Glass Thumb Indicator
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOutCubic,
-              left: safeIndex * itemWidth,
-              top: 0,
-              bottom: 0,
-              width: itemWidth,
-              child: AnimatedScale(
-                scale: _isPressed ? 1.14 : 1.0,
-                duration: const Duration(milliseconds: 150),
-                curve: Curves.easeOutBack,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    gradient: LinearGradient(
-                      colors: [
-                        primaryColor.withValues(alpha: _isPressed ? 0.50 : 0.35),
-                        primaryColor.withValues(alpha: _isPressed ? 0.28 : 0.16),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    border: Border.all(
-                      color: primaryColor.withValues(alpha: _isPressed ? 0.85 : 0.55),
-                      width: 1.2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: primaryColor.withValues(alpha: _isPressed ? 0.45 : 0.25),
-                        blurRadius: _isPressed ? 16 : 10,
-                        spreadRadius: _isPressed ? 1 : -1,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Row of Segments
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (int i = 0; i < widget.items.length; i++) ...[
-                  SizedBox(
-                    width: itemWidth,
-                    height: 28,
-                    child: Tooltip(
-                      message: widget.items[i].tooltip ?? widget.items[i].label,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            widget.items[i].icon,
-                            size: 16,
-                            color: i == safeIndex
-                                ? textColor
-                                : textColor.withValues(alpha: 0.75),
-                          ),
-                          if (!widget.isCompact) ...[
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                widget.items[i].label,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: i == safeIndex ? FontWeight.bold : FontWeight.w500,
-                                  color: i == safeIndex
-                                      ? textColor
-                                      : textColor.withValues(alpha: 0.75),
-                                ),
-                              ),
-                            ),
-                          ],
-                          if (!widget.isCompact && widget.items[i].accentBadge != null) ...[
-                            const SizedBox(width: 3),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: primaryColor,
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              child: Text(
-                                widget.items[i].accentBadge!,
-                                style: const TextStyle(
-                                  fontSize: 7,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RibbonCapsule extends StatelessWidget {
-  final Widget child;
-  final String? label;
-
-  const _RibbonCapsule({
-    required this.child,
-    this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: theme.dividerColor.withValues(alpha: 0.08),
-          width: 0.8,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (label != null) ...[
-            Padding(
-              padding: const EdgeInsets.only(left: 3, right: 3),
-              child: RotatedBox(
-                quarterTurns: 3,
-                child: Text(
-                  label!,
-                  style: TextStyle(
-                    fontSize: 8,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.0,
-                    color: theme.colorScheme.primary.withValues(alpha: 0.85),
-                  ),
-                ),
-              ),
-            ),
-            Container(
-              width: 1,
-              height: 18,
-              margin: const EdgeInsets.only(right: 4),
-              color: theme.dividerColor.withValues(alpha: 0.15),
-            ),
-          ],
-          child,
-        ],
-      ),
-    );
-  }
-}
-
-class _GlassDivider extends StatelessWidget {
-  const _GlassDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 3),
-      width: 1.2,
-      height: 26,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            theme.dividerColor.withValues(alpha: 0.0),
-            theme.dividerColor.withValues(alpha: 0.35),
-            theme.dividerColor.withValues(alpha: 0.0),
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
       ),
     );
   }

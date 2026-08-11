@@ -6,6 +6,7 @@ import 'package:centrode/features/graph/presentation/view_state.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../../../engine/base_interaction_state.dart';
 import '../../../engine/config.dart';
+import '../../../../../presentation/theme/app_theme_manager.dart';
 
 class PortLayer extends StatefulWidget {
   final Map<RawUuid, NodeViewState> nodeViewStates;
@@ -140,6 +141,9 @@ class _PortLayerState extends State<PortLayer> {
         ? widget.hoveredPortNotifier.value
         : null;
 
+    final canvasAccent = AppThemeManager.instance.currentTheme.canvasAccentColor;
+    final hoverAccent = AppThemeManager.instance.currentTheme.hoverAccentColor;
+
     return IgnorePointer(
       child: CustomPaint(
         painter: PortPainter(
@@ -147,6 +151,8 @@ class _PortLayerState extends State<PortLayer> {
           scale: vs.currentScale,
           snappedTargetPort: snappedTarget,
           hoveredPort: hoveredPort,
+          selectionColor: canvasAccent,
+          hoverColor: hoverAccent,
         ),
         size: Size.infinite,
       ),
@@ -159,12 +165,16 @@ class PortPainter extends CustomPainter {
   final double scale;
   final Port? snappedTargetPort;
   final Port? hoveredPort;
+  final Color selectionColor;
+  final Color hoverColor;
 
   PortPainter({
     required this.ports,
     this.scale = 1.0,
     this.snappedTargetPort,
     this.hoveredPort,
+    required this.selectionColor,
+    required this.hoverColor,
   });
 
   double get _portRadius => AppConfig.port.drawRadius * scale;
@@ -172,18 +182,13 @@ class PortPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final hoverColor = AppConfig.visuals.hoverAccent;
-    final selectColor = AppConfig.visuals.selectionAccent;
-
     for (final port in ports) {
       final isSnapped = snappedTargetPort != null && port == snappedTargetPort;
       final isHovered =
           !isSnapped && hoveredPort != null && port == hoveredPort;
 
       final paint = Paint()
-        ..color = isSnapped || isHovered
-            ? selectColor.withValues(alpha: 0.9)
-            : hoverColor.withValues(alpha: 0.6)
+        ..color = isSnapped || isHovered ? selectionColor : hoverColor
         ..style = PaintingStyle.fill;
 
       final radius = isSnapped || isHovered ? _hoveredPortRadius : _portRadius;
@@ -215,6 +220,8 @@ class PortPainter extends CustomPainter {
     return ports != oldDelegate.ports ||
         scale != oldDelegate.scale ||
         snappedTargetPort != oldDelegate.snappedTargetPort ||
-        hoveredPort != oldDelegate.hoveredPort;
+        hoveredPort != oldDelegate.hoveredPort ||
+        selectionColor != oldDelegate.selectionColor ||
+        hoverColor != oldDelegate.hoverColor;
   }
 }

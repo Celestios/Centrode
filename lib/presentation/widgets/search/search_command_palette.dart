@@ -275,63 +275,69 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                   : theme.colorScheme.onSurface.withValues(alpha: 0.06),
               shadow: hasFocus
                   ? BoxShadow(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.2),
-                      blurRadius: 8,
+                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                      blurRadius: 10,
                       spreadRadius: 1,
                     )
                   : null,
+              border: hasFocus
+                  ? Border.all(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.4),
+                      width: 1.0,
+                    )
+                  : null,
               child: Row(
-                children: [
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.search_rounded,
-                    size: 14,
-                    color: hasFocus
-                        ? theme.colorScheme.primary
-                        : theme.iconTheme.color?.withValues(alpha: 0.4),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      focusNode: _focusNode,
-                      style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
-                      decoration: InputDecoration(
-                        hintText: "Search ('>' cmd, '#' tag, '?' db)...",
-                        hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.hintColor.withValues(alpha: 0.7),
-                          fontSize: 12,
-                        ),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
+                  children: [
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.search_rounded,
+                      size: 14,
+                      color: hasFocus
+                          ? theme.colorScheme.primary
+                          : theme.iconTheme.color?.withValues(alpha: 0.4),
                     ),
-                  ),
-                  if (hasFocus)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      margin: const EdgeInsets.only(right: 6),
-                      decoration: BoxDecoration(
-                        color: theme.dividerColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'Ctrl P',
-                        style: TextStyle(
-                          fontSize: 8,
-                          color: theme.hintColor,
-                          fontWeight: FontWeight.bold,
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        focusNode: _focusNode,
+                        style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
+                        decoration: InputDecoration(
+                          hintText: "Search ('>' cmd, '#' tag, '?' db)...",
+                          hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.hintColor.withValues(alpha: 0.7),
+                            fontSize: 12,
+                          ),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                     ),
-                ],
+                    if (hasFocus)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        margin: const EdgeInsets.only(right: 6),
+                        decoration: BoxDecoration(
+                          color: theme.dividerColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Ctrl P',
+                          style: TextStyle(
+                            fontSize: 8,
+                            color: theme.hintColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
         ),
       ),
     );

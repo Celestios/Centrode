@@ -19,6 +19,7 @@ pub struct ThemeFields {
     pub primary_color: u32,
     pub secondary_color: u32,
     pub accent_color: u32,
+    pub canvas_accent_color: u32,
     pub scaffold_background_color: u32,
     pub card_color: u32,
     pub divider_color: u32,

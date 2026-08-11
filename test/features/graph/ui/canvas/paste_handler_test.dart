@@ -9,6 +9,7 @@ import 'package:centrode/src/rust/domain/snapshot.dart';
 import 'package:centrode/src/rust/domain/base_models.dart';
 import 'package:centrode/src/rust/domain/patches.dart';
 import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
+import 'package:centrode/src/rust/domain/styles.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockGraphApi extends Mock implements GraphApi {}
@@ -48,7 +49,7 @@ void main() {
         fields: IRelationFields(
           verb: 'link',
           layer: 'default',
-          directionless: false,
+          direction: RelationDirection.forward,
           createdAt: 0,
           updatedAt: 0,
         ),

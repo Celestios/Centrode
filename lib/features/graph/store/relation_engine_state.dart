@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
-import 'package:centrode/shared/logging.dart';
 import 'graph_api.dart';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
 import 'package:centrode/src/rust/relation_engine/config.dart';
@@ -11,8 +10,6 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'invalidation_tracker.dart';
 
 class RelationEngineState {
-  final Logger _log = Logger('RelationEngineState');
-
   final GraphApi _api;
   final InvalidationTracker _tracker = InvalidationTracker();
   RelationEngineConfig _config = const RelationEngineConfig(

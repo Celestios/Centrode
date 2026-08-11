@@ -1858,15 +1858,15 @@ extension RelationPatchPatterns on RelationPatch {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( RelationPatch_Verb value)?  verb,TResult Function( RelationPatch_Endpoints value)?  endpoints,TResult Function( RelationPatch_Style value)?  style,TResult Function( RelationPatch_Layout value)?  layout,TResult Function( RelationPatch_Directionless value)?  directionless,TResult Function( RelationPatch_RoutingMode value)?  routingMode,TResult Function( RelationPatch_PortSides value)?  portSides,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( RelationPatch_Verb value)?  verb,TResult Function( RelationPatch_Endpoints value)?  endpoints,TResult Function( RelationPatch_Style value)?  style,TResult Function( RelationPatch_Layout value)?  layout,TResult Function( RelationPatch_Direction value)?  direction,TResult Function( RelationPatch_RoutingMode value)?  routingMode,TResult Function( RelationPatch_PortSides value)?  portSides,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case RelationPatch_Verb() when verb != null:
 return verb(_that);case RelationPatch_Endpoints() when endpoints != null:
 return endpoints(_that);case RelationPatch_Style() when style != null:
 return style(_that);case RelationPatch_Layout() when layout != null:
-return layout(_that);case RelationPatch_Directionless() when directionless != null:
-return directionless(_that);case RelationPatch_RoutingMode() when routingMode != null:
+return layout(_that);case RelationPatch_Direction() when direction != null:
+return direction(_that);case RelationPatch_RoutingMode() when routingMode != null:
 return routingMode(_that);case RelationPatch_PortSides() when portSides != null:
 return portSides(_that);case _:
   return orElse();
@@ -1886,15 +1886,15 @@ return portSides(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( RelationPatch_Verb value)  verb,required TResult Function( RelationPatch_Endpoints value)  endpoints,required TResult Function( RelationPatch_Style value)  style,required TResult Function( RelationPatch_Layout value)  layout,required TResult Function( RelationPatch_Directionless value)  directionless,required TResult Function( RelationPatch_RoutingMode value)  routingMode,required TResult Function( RelationPatch_PortSides value)  portSides,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( RelationPatch_Verb value)  verb,required TResult Function( RelationPatch_Endpoints value)  endpoints,required TResult Function( RelationPatch_Style value)  style,required TResult Function( RelationPatch_Layout value)  layout,required TResult Function( RelationPatch_Direction value)  direction,required TResult Function( RelationPatch_RoutingMode value)  routingMode,required TResult Function( RelationPatch_PortSides value)  portSides,}){
 final _that = this;
 switch (_that) {
 case RelationPatch_Verb():
 return verb(_that);case RelationPatch_Endpoints():
 return endpoints(_that);case RelationPatch_Style():
 return style(_that);case RelationPatch_Layout():
-return layout(_that);case RelationPatch_Directionless():
-return directionless(_that);case RelationPatch_RoutingMode():
+return layout(_that);case RelationPatch_Direction():
+return direction(_that);case RelationPatch_RoutingMode():
 return routingMode(_that);case RelationPatch_PortSides():
 return portSides(_that);}
 }
@@ -1910,15 +1910,15 @@ return portSides(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( RelationPatch_Verb value)?  verb,TResult? Function( RelationPatch_Endpoints value)?  endpoints,TResult? Function( RelationPatch_Style value)?  style,TResult? Function( RelationPatch_Layout value)?  layout,TResult? Function( RelationPatch_Directionless value)?  directionless,TResult? Function( RelationPatch_RoutingMode value)?  routingMode,TResult? Function( RelationPatch_PortSides value)?  portSides,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( RelationPatch_Verb value)?  verb,TResult? Function( RelationPatch_Endpoints value)?  endpoints,TResult? Function( RelationPatch_Style value)?  style,TResult? Function( RelationPatch_Layout value)?  layout,TResult? Function( RelationPatch_Direction value)?  direction,TResult? Function( RelationPatch_RoutingMode value)?  routingMode,TResult? Function( RelationPatch_PortSides value)?  portSides,}){
 final _that = this;
 switch (_that) {
 case RelationPatch_Verb() when verb != null:
 return verb(_that);case RelationPatch_Endpoints() when endpoints != null:
 return endpoints(_that);case RelationPatch_Style() when style != null:
 return style(_that);case RelationPatch_Layout() when layout != null:
-return layout(_that);case RelationPatch_Directionless() when directionless != null:
-return directionless(_that);case RelationPatch_RoutingMode() when routingMode != null:
+return layout(_that);case RelationPatch_Direction() when direction != null:
+return direction(_that);case RelationPatch_RoutingMode() when routingMode != null:
 return routingMode(_that);case RelationPatch_PortSides() when portSides != null:
 return portSides(_that);case _:
   return null;
@@ -1937,14 +1937,14 @@ return portSides(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String field0)?  verb,TResult Function( TypedRecordId field0,  TypedRecordId field1)?  endpoints,TResult Function( RelationStyle? field0)?  style,TResult Function( RelationLayout? field0)?  layout,TResult Function( bool field0)?  directionless,TResult Function( RoutingMode field0)?  routingMode,TResult Function( PortSide? field0,  PortSide? field1)?  portSides,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String field0)?  verb,TResult Function( TypedRecordId field0,  TypedRecordId field1)?  endpoints,TResult Function( RelationStyle? field0)?  style,TResult Function( RelationLayout? field0)?  layout,TResult Function( RelationDirection field0)?  direction,TResult Function( RoutingMode field0)?  routingMode,TResult Function( PortSide? field0,  PortSide? field1)?  portSides,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case RelationPatch_Verb() when verb != null:
 return verb(_that.field0);case RelationPatch_Endpoints() when endpoints != null:
 return endpoints(_that.field0,_that.field1);case RelationPatch_Style() when style != null:
 return style(_that.field0);case RelationPatch_Layout() when layout != null:
-return layout(_that.field0);case RelationPatch_Directionless() when directionless != null:
-return directionless(_that.field0);case RelationPatch_RoutingMode() when routingMode != null:
+return layout(_that.field0);case RelationPatch_Direction() when direction != null:
+return direction(_that.field0);case RelationPatch_RoutingMode() when routingMode != null:
 return routingMode(_that.field0);case RelationPatch_PortSides() when portSides != null:
 return portSides(_that.field0,_that.field1);case _:
   return orElse();
@@ -1964,14 +1964,14 @@ return portSides(_that.field0,_that.field1);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String field0)  verb,required TResult Function( TypedRecordId field0,  TypedRecordId field1)  endpoints,required TResult Function( RelationStyle? field0)  style,required TResult Function( RelationLayout? field0)  layout,required TResult Function( bool field0)  directionless,required TResult Function( RoutingMode field0)  routingMode,required TResult Function( PortSide? field0,  PortSide? field1)  portSides,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String field0)  verb,required TResult Function( TypedRecordId field0,  TypedRecordId field1)  endpoints,required TResult Function( RelationStyle? field0)  style,required TResult Function( RelationLayout? field0)  layout,required TResult Function( RelationDirection field0)  direction,required TResult Function( RoutingMode field0)  routingMode,required TResult Function( PortSide? field0,  PortSide? field1)  portSides,}) {final _that = this;
 switch (_that) {
 case RelationPatch_Verb():
 return verb(_that.field0);case RelationPatch_Endpoints():
 return endpoints(_that.field0,_that.field1);case RelationPatch_Style():
 return style(_that.field0);case RelationPatch_Layout():
-return layout(_that.field0);case RelationPatch_Directionless():
-return directionless(_that.field0);case RelationPatch_RoutingMode():
+return layout(_that.field0);case RelationPatch_Direction():
+return direction(_that.field0);case RelationPatch_RoutingMode():
 return routingMode(_that.field0);case RelationPatch_PortSides():
 return portSides(_that.field0,_that.field1);}
 }
@@ -1987,14 +1987,14 @@ return portSides(_that.field0,_that.field1);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String field0)?  verb,TResult? Function( TypedRecordId field0,  TypedRecordId field1)?  endpoints,TResult? Function( RelationStyle? field0)?  style,TResult? Function( RelationLayout? field0)?  layout,TResult? Function( bool field0)?  directionless,TResult? Function( RoutingMode field0)?  routingMode,TResult? Function( PortSide? field0,  PortSide? field1)?  portSides,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String field0)?  verb,TResult? Function( TypedRecordId field0,  TypedRecordId field1)?  endpoints,TResult? Function( RelationStyle? field0)?  style,TResult? Function( RelationLayout? field0)?  layout,TResult? Function( RelationDirection field0)?  direction,TResult? Function( RoutingMode field0)?  routingMode,TResult? Function( PortSide? field0,  PortSide? field1)?  portSides,}) {final _that = this;
 switch (_that) {
 case RelationPatch_Verb() when verb != null:
 return verb(_that.field0);case RelationPatch_Endpoints() when endpoints != null:
 return endpoints(_that.field0,_that.field1);case RelationPatch_Style() when style != null:
 return style(_that.field0);case RelationPatch_Layout() when layout != null:
-return layout(_that.field0);case RelationPatch_Directionless() when directionless != null:
-return directionless(_that.field0);case RelationPatch_RoutingMode() when routingMode != null:
+return layout(_that.field0);case RelationPatch_Direction() when direction != null:
+return direction(_that.field0);case RelationPatch_RoutingMode() when routingMode != null:
 return routingMode(_that.field0);case RelationPatch_PortSides() when portSides != null:
 return portSides(_that.field0,_that.field1);case _:
   return null;
@@ -2297,23 +2297,23 @@ $RelationLayoutCopyWith<$Res>? get field0 {
 /// @nodoc
 
 
-class RelationPatch_Directionless extends RelationPatch {
-  const RelationPatch_Directionless(this.field0): super._();
+class RelationPatch_Direction extends RelationPatch {
+  const RelationPatch_Direction(this.field0): super._();
   
 
-@override final  bool field0;
+@override final  RelationDirection field0;
 
 /// Create a copy of RelationPatch
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$RelationPatch_DirectionlessCopyWith<RelationPatch_Directionless> get copyWith => _$RelationPatch_DirectionlessCopyWithImpl<RelationPatch_Directionless>(this, _$identity);
+$RelationPatch_DirectionCopyWith<RelationPatch_Direction> get copyWith => _$RelationPatch_DirectionCopyWithImpl<RelationPatch_Direction>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RelationPatch_Directionless&&(identical(other.field0, field0) || other.field0 == field0));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RelationPatch_Direction&&(identical(other.field0, field0) || other.field0 == field0));
 }
 
 
@@ -2322,18 +2322,18 @@ int get hashCode => Object.hash(runtimeType,field0);
 
 @override
 String toString() {
-  return 'RelationPatch.directionless(field0: $field0)';
+  return 'RelationPatch.direction(field0: $field0)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $RelationPatch_DirectionlessCopyWith<$Res> implements $RelationPatchCopyWith<$Res> {
-  factory $RelationPatch_DirectionlessCopyWith(RelationPatch_Directionless value, $Res Function(RelationPatch_Directionless) _then) = _$RelationPatch_DirectionlessCopyWithImpl;
+abstract mixin class $RelationPatch_DirectionCopyWith<$Res> implements $RelationPatchCopyWith<$Res> {
+  factory $RelationPatch_DirectionCopyWith(RelationPatch_Direction value, $Res Function(RelationPatch_Direction) _then) = _$RelationPatch_DirectionCopyWithImpl;
 @useResult
 $Res call({
- bool field0
+ RelationDirection field0
 });
 
 
@@ -2341,19 +2341,19 @@ $Res call({
 
 }
 /// @nodoc
-class _$RelationPatch_DirectionlessCopyWithImpl<$Res>
-    implements $RelationPatch_DirectionlessCopyWith<$Res> {
-  _$RelationPatch_DirectionlessCopyWithImpl(this._self, this._then);
+class _$RelationPatch_DirectionCopyWithImpl<$Res>
+    implements $RelationPatch_DirectionCopyWith<$Res> {
+  _$RelationPatch_DirectionCopyWithImpl(this._self, this._then);
 
-  final RelationPatch_Directionless _self;
-  final $Res Function(RelationPatch_Directionless) _then;
+  final RelationPatch_Direction _self;
+  final $Res Function(RelationPatch_Direction) _then;
 
 /// Create a copy of RelationPatch
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
-  return _then(RelationPatch_Directionless(
+  return _then(RelationPatch_Direction(
 null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
-as bool,
+as RelationDirection,
   ));
 }
 

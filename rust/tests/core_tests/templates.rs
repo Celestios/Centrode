@@ -4,6 +4,7 @@ use centrode_core::domain::contents::Content;
 use centrode_core::domain::id::TypedRecordId;
 use centrode_core::domain::nodes::{INode, Nodes, TaskNode, TaskState};
 use centrode_core::domain::relations::{IRelation, IRelationFields};
+use centrode_core::domain::styles::RelationDirection;
 use centrode_core::domain::tags::{Tag, TagEdge, TagFields};
 use centrode_core::domain::traits::TableKind;
 
@@ -85,7 +86,7 @@ async fn test_templates_save_and_instantiate() {
             resolved_style: None,
             layout: None,
             resolved_layout: None,
-            directionless: false,
+            direction: RelationDirection::default(),
             layer: "default".to_string(),
             created_at: 0,
             updated_at: 0,

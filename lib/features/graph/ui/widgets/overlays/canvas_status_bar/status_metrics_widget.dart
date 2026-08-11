@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import '../../../../store/graph_data_query_controller.dart';
 
 // -----------------------------------------------------------------------------
@@ -17,8 +18,11 @@ class StatusMetricsWidget extends StatelessWidget {
     final onSurface = theme.colorScheme.onSurface;
     final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
 
+    final preset = GlassPresets.toolbar(context);
     return GlassPanel(
-      borderRadius: 10,
+      borderRadius: preset.borderRadius ?? 10,
+      color: preset.color,
+      shadow: preset.shadow,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       child: Row(
         mainAxisSize: MainAxisSize.min,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../engine/config.dart';
 import 'node_visual_constants.dart';
+import '../../../../../presentation/theme/app_theme_manager.dart';
 
 class HighlightFrame extends StatelessWidget {
   final Widget child;
@@ -29,6 +29,9 @@ class HighlightFrame extends StatelessWidget {
     final bool isHighlighted = isSelected || isEditing || isHovered;
     if (!isHighlighted) return child;
 
+    final canvasAccent = AppThemeManager.instance.currentTheme.canvasAccentColor;
+    final hoverAccent = AppThemeManager.instance.currentTheme.hoverAccentColor;
+
     final double stroke;
     final Color color;
 
@@ -37,10 +40,10 @@ class HighlightFrame extends StatelessWidget {
       color = Color(NodeVisualConstants.editingBorderColor);
     } else if (isSelected) {
       stroke = 1.0 * scale;
-      color = AppConfig.visuals.selectionAccent;
+      color = canvasAccent;
     } else {
       stroke = 0.5 * scale;
-      color = AppConfig.visuals.hoverAccent;
+      color = hoverAccent;
     }
 
     final double gap = 1.5 * scale;

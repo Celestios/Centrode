@@ -56,6 +56,8 @@ enum PortSide {
   bottomRight,
 }
 
+enum RelationDirection { forward, backward, undirected }
+
 @freezed
 sealed class RelationLayout with _$RelationLayout {
   const factory RelationLayout({

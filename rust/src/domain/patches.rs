@@ -3,7 +3,7 @@ use crate::domain::contents::Content;
 use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::{BrushType, IsNode, MediaType, Nodes, ShapeType, TaskState};
 use crate::domain::relations::IRelation;
-use crate::domain::styles::{NodeStyle, PortSide, RelationLayout, RelationStyle};
+use crate::domain::styles::{NodeStyle, PortSide, RelationDirection, RelationLayout, RelationStyle};
 use crate::relation_engine::config::RoutingMode;
 use flutter_rust_bridge::frb;
 use surrealdb::types::{SurrealValue, Value};
@@ -191,7 +191,7 @@ pub enum RelationPatch {
     Endpoints(TypedRecordId, TypedRecordId),
     Style(Option<RelationStyle>),
     Layout(Option<RelationLayout>),
-    Directionless(bool),
+    Direction(RelationDirection),
     RoutingMode(RoutingMode),
     PortSides(Option<PortSide>, Option<PortSide>),
 }

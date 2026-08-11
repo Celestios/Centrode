@@ -77,7 +77,7 @@ class _HoverScaleButtonState extends State<HoverScaleButton> {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: widget.borderRadius ?? BorderRadius.circular(10),
+            borderRadius: widget.borderRadius,
             onTap: enabled ? widget.onTap : null,
             onHighlightChanged: enabled
                 ? (highlighted) => setState(() => _isPressed = highlighted)

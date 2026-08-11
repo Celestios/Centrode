@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
 import 'package:centrode/shared/utils/name_generator.dart';
 
@@ -84,20 +85,15 @@ class _TabItem extends StatelessWidget {
       pressScale: 0.96,
       borderRadius: BorderRadius.circular(10),
       builder: (context, isHovered, isPressed) {
+        final preset = GlassPresets.tab(context, isActive: isActive);
         return GlassPanel(
-          borderRadius: 10,
+          borderRadius: preset.borderRadius ?? 10,
           color: isActive
-              ? theme.cardColor.withValues(alpha: 0.72)
+              ? preset.color
               : (isHovered
                     ? theme.cardColor.withValues(alpha: 0.60)
-                    : theme.cardColor.withValues(alpha: 0.45)),
-          shadow: isActive
-              ? BoxShadow(
-                  color: primaryColor.withValues(alpha: 0.08),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                )
-              : null,
+                    : preset.color),
+          shadow: preset.shadow,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Row(
@@ -123,17 +119,17 @@ class _TabItem extends StatelessWidget {
                 ),
                 if (canClose) ...[
                   const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: onClose,
-                    child: Icon(
-                      Icons.close_rounded,
-                      color: isActive
-                          ? activeColor.withValues(alpha: 0.6)
-                          : (isHovered
-                                ? primaryColor.withValues(alpha: 0.6)
-                                : inactiveColor.withValues(alpha: 0.6)),
-                      size: 14,
-                    ),
+                  CentrodeIconButton(
+                    icon: Icons.close_rounded,
+                    onPressed: onClose,
+                    iconSize: 14,
+                    buttonSize: 20,
+                    iconColor: isActive
+                        ? activeColor.withValues(alpha: 0.6)
+                        : (isHovered
+                              ? primaryColor.withValues(alpha: 0.6)
+                              : inactiveColor.withValues(alpha: 0.6)),
+                    enableHover: false,
                   ),
                 ],
               ],
@@ -168,18 +164,19 @@ class _AddTabButton extends StatelessWidget {
       pressScale: 0.95,
       borderRadius: BorderRadius.circular(10),
       builder: (context, isHovered, isPressed) {
+        final preset = GlassPresets.tab(context, isActive: false);
         return GlassPanel(
-          borderRadius: 10,
+          borderRadius: preset.borderRadius ?? 10,
           color: isHovered
               ? theme.cardColor.withValues(alpha: 0.68)
-              : theme.cardColor.withValues(alpha: 0.45),
+              : preset.color,
           shadow: isHovered
               ? BoxShadow(
                   color: primaryColor.withValues(alpha: 0.08),
                   blurRadius: 4,
                   offset: const Offset(0, 1),
                 )
-              : null,
+              : preset.shadow,
           child: Padding(
             padding: const EdgeInsets.all(7),
             child: Icon(

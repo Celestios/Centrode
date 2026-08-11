@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../presentation/node_render_state.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import '../inspector/relation_appearance_section.dart';
 import 'inspector/data_tab.dart';
 
@@ -76,37 +77,35 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
       duration: Duration(milliseconds: _isDragging ? 0 : 250),
       curve: Curves.easeInOut,
       width: totalWidth,
-      child: ClipRect(
-        child: OverflowBox(
-          alignment: Alignment.bottomLeft,
-          minWidth: contentWidth,
-          maxWidth: contentWidth,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              SizedBox(
-                width: _handleWidth,
-                height: _handleHeight,
-                child: _buildHandle(
-                  primaryColor,
-                  selectedEntities.isNotEmpty,
-                  nodeCount,
-                  relationCount,
-                ),
+      child: OverflowBox(
+        alignment: Alignment.bottomLeft,
+        minWidth: contentWidth,
+        maxWidth: contentWidth,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            SizedBox(
+              width: _handleWidth,
+              height: _handleHeight,
+              child: _buildHandle(
+                primaryColor,
+                selectedEntities.isNotEmpty,
+                nodeCount,
+                relationCount,
               ),
-              const SizedBox(width: _gapWidth),
-              SizedBox(
-                width: _panelWidth,
-                child: _buildContentPanel(
-                  context,
-                  renderState,
-                  selectedEntities,
-                  nodeCount,
-                  relationCount,
-                ),
+            ),
+            const SizedBox(width: _gapWidth),
+            SizedBox(
+              width: _panelWidth,
+              child: _buildContentPanel(
+                context,
+                renderState,
+                selectedEntities,
+                nodeCount,
+                relationCount,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -137,7 +136,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
           shadow: BoxShadow(
             color: Colors.black.withValues(alpha: 0.25),
             blurRadius: 8,
-            offset: const Offset(-2, 2),
+            offset: const Offset(0, 2),
           ),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
@@ -269,7 +268,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
         shadow: BoxShadow(
           color: Colors.black.withValues(alpha: 0.25),
           blurRadius: 12,
-          offset: const Offset(-3, 3),
+          offset: const Offset(0, 3),
         ),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -640,8 +639,9 @@ class _GlassTabButton extends StatelessWidget {
     final theme = Theme.of(context);
     final textColor = theme.textTheme.bodyMedium?.color ?? theme.colorScheme.onSurface;
 
-    return GestureDetector(
+    return CentrodeButton(
       onTap: onTap,
+      enableHover: false,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         height: 30,

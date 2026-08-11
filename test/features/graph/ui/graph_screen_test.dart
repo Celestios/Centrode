@@ -8,7 +8,6 @@ import 'package:centrode/features/graph/presentation/theme_manager.dart';
 import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
 import 'package:centrode/features/graph/store/command_queue_processor.dart';
 import 'package:centrode/features/graph/presentation/node_render_state.dart';
-import 'package:centrode/features/graph/presentation/editor_state.dart';
 import 'package:centrode/features/graph/models/left_panel_type.dart';
 import 'package:centrode/presentation/theme/graph_theme.dart';
 

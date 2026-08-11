@@ -22,6 +22,7 @@ class AppTheme {
   final Color primaryColor;
   final Color secondaryColor;
   final Color accentColor;
+  final Color canvasAccentColor;
   final Color scaffoldBackgroundColor;
   final Color cardColor;
   final Color dividerColor;
@@ -47,11 +48,20 @@ class AppTheme {
   final bool useMaterial3;
   final Brightness brightness;
 
+  Color get hoverAccentColor =>
+      HSLColor.fromColor(canvasAccentColor)
+          .withLightness(
+            (HSLColor.fromColor(canvasAccentColor).lightness + 0.15)
+                .clamp(0.0, 1.0),
+          )
+          .toColor();
+
   const AppTheme({
     // palette
     this.primaryColor = const Color(0xFF1976D2),
     this.secondaryColor = const Color(0xFF47A2FF),
     this.accentColor = const Color(0xFFFF4081),
+    this.canvasAccentColor = const Color(0xFF2196F3),
     this.scaffoldBackgroundColor = const Color(0xFFF5F5F5),
     this.cardColor = Colors.white,
     this.dividerColor = const Color(0xFFBDBDBD),
@@ -138,6 +148,7 @@ class AppTheme {
       'primaryColor': primaryColor.toARGB32(),
       'secondaryColor': secondaryColor.toARGB32(),
       'accentColor': accentColor.toARGB32(),
+      'canvasAccentColor': canvasAccentColor.toARGB32(),
       'scaffoldBackgroundColor': scaffoldBackgroundColor.toARGB32(),
       'cardColor': cardColor.toARGB32(),
       'dividerColor': dividerColor.toARGB32(),
@@ -223,6 +234,10 @@ class AppTheme {
       accentColor: parseColor(
         map['accentColor'],
         fallback: const Color(0xFFFF4081),
+      ),
+      canvasAccentColor: parseColor(
+        map['canvasAccentColor'],
+        fallback: const Color(0xFF2196F3),
       ),
       scaffoldBackgroundColor: parseColor(
         map['scaffoldBackgroundColor'],

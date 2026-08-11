@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
-import 'package:centrode/presentation/widgets/hover_scale_button.dart';
+import 'package:centrode/shared/elements/centrode_icon_button.dart';
+import 'package:centrode/shared/elements/glass_divider.dart';
 
 class VerticalTextFormatToolbar extends StatelessWidget {
   final VoidCallback onToggleBold;
@@ -76,164 +77,202 @@ class VerticalTextFormatToolbar extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (dragHandle != null) dragHandle!,
-                if (dragHandle != null) _buildHorizontalDivider(theme),
+                if (dragHandle != null) GlassDivider(orientation: Axis.horizontal, width: 20, height: 1, margin: const EdgeInsets.symmetric(vertical: 2)),
 
-                _buildButton(
-                  Icons.format_bold_rounded,
-                  'Bold',
-                  onToggleBold,
-                  textColor,
-                  primaryColor,
+                CentrodeIconButton(
+                  icon: Icons.format_bold_rounded,
+                  tooltip: 'Bold',
+                  onPressed: onToggleBold,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
                 ),
-                _buildButton(
-                  Icons.format_italic_rounded,
-                  'Italic',
-                  onToggleItalic,
-                  textColor,
-                  primaryColor,
+                CentrodeIconButton(
+                  icon: Icons.format_italic_rounded,
+                  tooltip: 'Italic',
+                  onPressed: onToggleItalic,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
                 ),
-                _buildButton(
-                  Icons.format_underlined_rounded,
-                  'Underline',
-                  onToggleUnderline,
-                  textColor,
-                  primaryColor,
-                ),
-
-                _buildHorizontalDivider(theme),
-
-                _buildButton(
-                  Icons.looks_one_rounded,
-                  'H1',
-                  onToggleHeader1,
-                  textColor,
-                  primaryColor,
-                ),
-                _buildButton(
-                  Icons.looks_two_rounded,
-                  'H2',
-                  onToggleHeader2,
-                  textColor,
-                  primaryColor,
-                ),
-                _buildButton(
-                  Icons.looks_3_rounded,
-                  'H3',
-                  onToggleHeader3,
-                  textColor,
-                  primaryColor,
+                CentrodeIconButton(
+                  icon: Icons.format_underlined_rounded,
+                  tooltip: 'Underline',
+                  onPressed: onToggleUnderline,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
                 ),
 
-                _buildHorizontalDivider(theme),
+                GlassDivider(orientation: Axis.horizontal, width: 20, height: 1, margin: const EdgeInsets.symmetric(vertical: 2)),
 
-                _buildButton(
-                  Icons.format_list_bulleted_rounded,
-                  'Bullet List',
-                  onToggleBulletList,
-                  textColor,
-                  primaryColor,
+                CentrodeIconButton(
+                  icon: Icons.looks_one_rounded,
+                  tooltip: 'H1',
+                  onPressed: onToggleHeader1,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
                 ),
-                _buildButton(
-                  Icons.format_list_numbered_rounded,
-                  'Numbered List',
-                  onToggleOrderedList,
-                  textColor,
-                  primaryColor,
+                CentrodeIconButton(
+                  icon: Icons.looks_two_rounded,
+                  tooltip: 'H2',
+                  onPressed: onToggleHeader2,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
                 ),
-                _buildButton(
-                  Icons.format_quote_rounded,
-                  'Blockquote',
-                  onToggleBlockquote,
-                  textColor,
-                  primaryColor,
+                CentrodeIconButton(
+                  icon: Icons.looks_3_rounded,
+                  tooltip: 'H3',
+                  onPressed: onToggleHeader3,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
+                ),
+
+                GlassDivider(orientation: Axis.horizontal, width: 20, height: 1, margin: const EdgeInsets.symmetric(vertical: 2)),
+
+                CentrodeIconButton(
+                  icon: Icons.format_list_bulleted_rounded,
+                  tooltip: 'Bullet List',
+                  onPressed: onToggleBulletList,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
+                ),
+                CentrodeIconButton(
+                  icon: Icons.format_list_numbered_rounded,
+                  tooltip: 'Numbered List',
+                  onPressed: onToggleOrderedList,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
+                ),
+                CentrodeIconButton(
+                  icon: Icons.format_quote_rounded,
+                  tooltip: 'Blockquote',
+                  onPressed: onToggleBlockquote,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
                 ),
               ],
             ),
-            _buildVerticalDivider(theme),
+            GlassDivider(orientation: Axis.vertical, height: double.infinity, margin: const EdgeInsets.symmetric(horizontal: 2)),
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildButton(
-                  Icons.text_fields_rounded,
-                  'Normal Text',
-                  onClearBlockFormat,
-                  textColor,
-                  primaryColor,
+                CentrodeIconButton(
+                  icon: Icons.text_fields_rounded,
+                  tooltip: 'Normal Text',
+                  onPressed: onClearBlockFormat,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
                 ),
-                _buildButton(
-                  Icons.insert_link_rounded,
-                  'Insert Link',
-                  onAddHyperlink,
-                  textColor,
-                  primaryColor,
-                ),
-
-                _buildHorizontalDivider(theme),
-
-                _buildButton(
-                  Icons.code_rounded,
-                  'Code Block',
-                  onToggleCodeBlock,
-                  textColor,
-                  primaryColor,
+                CentrodeIconButton(
+                  icon: Icons.insert_link_rounded,
+                  tooltip: 'Insert Link',
+                  onPressed: onAddHyperlink,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
                 ),
 
-                _buildHorizontalDivider(theme),
+                GlassDivider(orientation: Axis.horizontal, width: 20, height: 1, margin: const EdgeInsets.symmetric(vertical: 2)),
 
-                _buildButton(
-                  Icons.font_download_rounded,
-                  'Font Family',
-                  () => _showFontPicker(context, textColor),
-                  textColor,
-                  primaryColor,
-                ),
-                _buildButton(
-                  Icons.palette_outlined,
-                  'Text Color',
-                  onCycleTextColor,
-                  textColor,
-                  primaryColor,
-                ),
-                _buildButton(
-                  Icons.highlight_rounded,
-                  'Highlight',
-                  onToggleHighlight,
-                  textColor,
-                  primaryColor,
-                ),
-                _buildButton(
-                  Icons.color_lens_outlined,
-                  'Highlight Color',
-                  onCycleHighlightColor,
-                  textColor,
-                  primaryColor,
+                CentrodeIconButton(
+                  icon: Icons.code_rounded,
+                  tooltip: 'Code Block',
+                  onPressed: onToggleCodeBlock,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
                 ),
 
-                _buildHorizontalDivider(theme),
+                GlassDivider(orientation: Axis.horizontal, width: 20, height: 1, margin: const EdgeInsets.symmetric(vertical: 2)),
 
-                _buildButton(
-                  Icons.add_circle_outline_rounded,
-                  'Font Size +',
-                  onIncreaseFontSize,
-                  textColor,
-                  primaryColor,
+                CentrodeIconButton(
+                  icon: Icons.font_download_rounded,
+                  tooltip: 'Font Family',
+                  onPressed: () => _showFontPicker(context, textColor),
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
                 ),
-                _buildButton(
-                  Icons.remove_circle_outline_rounded,
-                  'Font Size -',
-                  onDecreaseFontSize,
-                  textColor,
-                  primaryColor,
+                CentrodeIconButton(
+                  icon: Icons.palette_outlined,
+                  tooltip: 'Text Color',
+                  onPressed: onCycleTextColor,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
+                ),
+                CentrodeIconButton(
+                  icon: Icons.highlight_rounded,
+                  tooltip: 'Highlight',
+                  onPressed: onToggleHighlight,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
+                ),
+                CentrodeIconButton(
+                  icon: Icons.color_lens_outlined,
+                  tooltip: 'Highlight Color',
+                  onPressed: onCycleHighlightColor,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
                 ),
 
-                _buildHorizontalDivider(theme),
+                GlassDivider(orientation: Axis.horizontal, width: 20, height: 1, margin: const EdgeInsets.symmetric(vertical: 2)),
 
-                _buildButton(
-                  _getAlignIcon(currentTextAlign),
-                  'Text Align',
-                  onCycleTextAlign,
-                  textColor,
-                  primaryColor,
+                CentrodeIconButton(
+                  icon: Icons.add_circle_outline_rounded,
+                  tooltip: 'Font Size +',
+                  onPressed: onIncreaseFontSize,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
+                ),
+                CentrodeIconButton(
+                  icon: Icons.remove_circle_outline_rounded,
+                  tooltip: 'Font Size -',
+                  onPressed: onDecreaseFontSize,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
+                ),
+
+                GlassDivider(orientation: Axis.horizontal, width: 20, height: 1, margin: const EdgeInsets.symmetric(vertical: 2)),
+
+                CentrodeIconButton(
+                  icon: _getAlignIcon(currentTextAlign),
+                  tooltip: 'Text Align',
+                  onPressed: onCycleTextAlign,
+                  iconSize: 18,
+                  buttonSize: 28,
+                  iconColor: textColor.withValues(alpha: 0.75),
+                  hoverColor: primaryColor,
                 ),
               ],
             ),
@@ -317,84 +356,4 @@ class VerticalTextFormatToolbar extends StatelessWidget {
     overlay.insert(entry);
   }
 
-  Widget _buildHorizontalDivider(ThemeData theme) {
-    return Container(
-      width: 20,
-      height: 1,
-      margin: const EdgeInsets.symmetric(vertical: 2),
-      color: theme.dividerColor.withValues(alpha: 0.3),
-    );
-  }
-
-  Widget _buildVerticalDivider(ThemeData theme) {
-    return Container(
-      width: 1,
-      height: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 2),
-      color: theme.dividerColor.withValues(alpha: 0.3),
-    );
-  }
-
-  Widget _buildButton(
-    IconData icon,
-    String tooltip,
-    VoidCallback onPressed,
-    Color textColor,
-    Color hoverColor,
-  ) {
-    return HoverScaleButton(
-      onTap: onPressed,
-      hoverScale: 1.08,
-      pressScale: 0.94,
-      tooltip: tooltip,
-      borderRadius: BorderRadius.circular(6),
-      builder: (context, isHovered, isPressed) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 1),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 100),
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              gradient: isHovered
-                  ? LinearGradient(
-                      colors: [
-                        hoverColor.withValues(alpha: 0.18),
-                        hoverColor.withValues(alpha: 0.05),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                  : null,
-              border: isHovered
-                  ? Border.all(
-                      color: hoverColor.withValues(alpha: 0.3),
-                      width: 1.0,
-                    )
-                  : Border.all(color: Colors.transparent),
-              boxShadow: isHovered
-                  ? [
-                      BoxShadow(
-                        color: hoverColor.withValues(alpha: 0.08),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      ),
-                    ]
-                  : [],
-            ),
-            child: Center(
-              child: Icon(
-                icon,
-                color: isHovered
-                    ? hoverColor
-                    : textColor.withValues(alpha: 0.75),
-                size: 16,
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 }

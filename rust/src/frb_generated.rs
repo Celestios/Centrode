@@ -4035,7 +4035,8 @@ impl SseDecode for crate::domain::relations::IRelationFields {
             <Option<crate::domain::styles::RelationLayout>>::sse_decode(deserializer);
         let mut var_resolvedLayout =
             <Option<crate::domain::styles::RelationLayout>>::sse_decode(deserializer);
-        let mut var_directionless = <bool>::sse_decode(deserializer);
+        let mut var_direction =
+            <crate::domain::styles::RelationDirection>::sse_decode(deserializer);
         let mut var_layer = <String>::sse_decode(deserializer);
         let mut var_createdAt = <i64>::sse_decode(deserializer);
         let mut var_updatedAt = <i64>::sse_decode(deserializer);
@@ -4045,7 +4046,7 @@ impl SseDecode for crate::domain::relations::IRelationFields {
             resolved_style: var_resolvedStyle,
             layout: var_layout,
             resolved_layout: var_resolvedLayout,
-            directionless: var_directionless,
+            direction: var_direction,
             layer: var_layer,
             created_at: var_createdAt,
             updated_at: var_updatedAt,
@@ -5204,6 +5205,19 @@ impl SseDecode for crate::relation_engine::geometry::Rect {
     }
 }
 
+impl SseDecode for crate::domain::styles::RelationDirection {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::domain::styles::RelationDirection::Forward,
+            1 => crate::domain::styles::RelationDirection::Backward,
+            2 => crate::domain::styles::RelationDirection::Undirected,
+            _ => unreachable!("Invalid variant for RelationDirection: {}", inner),
+        };
+    }
+}
+
 impl SseDecode for crate::relation_engine::config::RelationEngineConfig {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5277,8 +5291,9 @@ impl SseDecode for crate::domain::patches::RelationPatch {
                 return crate::domain::patches::RelationPatch::Layout(var_field0);
             }
             4 => {
-                let mut var_field0 = <bool>::sse_decode(deserializer);
-                return crate::domain::patches::RelationPatch::Directionless(var_field0);
+                let mut var_field0 =
+                    <crate::domain::styles::RelationDirection>::sse_decode(deserializer);
+                return crate::domain::patches::RelationPatch::Direction(var_field0);
             }
             5 => {
                 let mut var_field0 =
@@ -5684,6 +5699,7 @@ impl SseDecode for crate::domain::theme::ThemeFields {
         let mut var_primaryColor = <u32>::sse_decode(deserializer);
         let mut var_secondaryColor = <u32>::sse_decode(deserializer);
         let mut var_accentColor = <u32>::sse_decode(deserializer);
+        let mut var_canvasAccentColor = <u32>::sse_decode(deserializer);
         let mut var_scaffoldBackgroundColor = <u32>::sse_decode(deserializer);
         let mut var_cardColor = <u32>::sse_decode(deserializer);
         let mut var_dividerColor = <u32>::sse_decode(deserializer);
@@ -5706,6 +5722,7 @@ impl SseDecode for crate::domain::theme::ThemeFields {
             primary_color: var_primaryColor,
             secondary_color: var_secondaryColor,
             accent_color: var_accentColor,
+            canvas_accent_color: var_canvasAccentColor,
             scaffold_background_color: var_scaffoldBackgroundColor,
             card_color: var_cardColor,
             divider_color: var_dividerColor,
@@ -6897,7 +6914,7 @@ impl flutter_rust_bridge::IntoDart for crate::domain::relations::IRelationFields
             self.resolved_style.into_into_dart().into_dart(),
             self.layout.into_into_dart().into_dart(),
             self.resolved_layout.into_into_dart().into_dart(),
-            self.directionless.into_into_dart().into_dart(),
+            self.direction.into_into_dart().into_dart(),
             self.layer.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
@@ -7535,6 +7552,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::relation_engine::geometry::Rect>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::domain::styles::RelationDirection {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Forward => 0.into_dart(),
+            Self::Backward => 1.into_dart(),
+            Self::Undirected => 2.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::domain::styles::RelationDirection
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::styles::RelationDirection>
+    for crate::domain::styles::RelationDirection
+{
+    fn into_into_dart(self) -> crate::domain::styles::RelationDirection {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::relation_engine::config::RelationEngineConfig {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -7604,7 +7643,7 @@ impl flutter_rust_bridge::IntoDart for crate::domain::patches::RelationPatch {
             crate::domain::patches::RelationPatch::Layout(field0) => {
                 [3.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::domain::patches::RelationPatch::Directionless(field0) => {
+            crate::domain::patches::RelationPatch::Direction(field0) => {
                 [4.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
             crate::domain::patches::RelationPatch::RoutingMode(field0) => {
@@ -8094,6 +8133,7 @@ impl flutter_rust_bridge::IntoDart for crate::domain::theme::ThemeFields {
             self.primary_color.into_into_dart().into_dart(),
             self.secondary_color.into_into_dart().into_dart(),
             self.accent_color.into_into_dart().into_dart(),
+            self.canvas_accent_color.into_into_dart().into_dart(),
             self.scaffold_background_color.into_into_dart().into_dart(),
             self.card_color.into_into_dart().into_dart(),
             self.divider_color.into_into_dart().into_dart(),
@@ -8794,7 +8834,7 @@ impl SseEncode for crate::domain::relations::IRelationFields {
             self.resolved_layout,
             serializer,
         );
-        <bool>::sse_encode(self.directionless, serializer);
+        <crate::domain::styles::RelationDirection>::sse_encode(self.direction, serializer);
         <String>::sse_encode(self.layer, serializer);
         <i64>::sse_encode(self.created_at, serializer);
         <i64>::sse_encode(self.updated_at, serializer);
@@ -9744,6 +9784,23 @@ impl SseEncode for crate::relation_engine::geometry::Rect {
     }
 }
 
+impl SseEncode for crate::domain::styles::RelationDirection {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::domain::styles::RelationDirection::Forward => 0,
+                crate::domain::styles::RelationDirection::Backward => 1,
+                crate::domain::styles::RelationDirection::Undirected => 2,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for crate::relation_engine::config::RelationEngineConfig {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -9790,9 +9847,9 @@ impl SseEncode for crate::domain::patches::RelationPatch {
                 <i32>::sse_encode(3, serializer);
                 <Option<crate::domain::styles::RelationLayout>>::sse_encode(field0, serializer);
             }
-            crate::domain::patches::RelationPatch::Directionless(field0) => {
+            crate::domain::patches::RelationPatch::Direction(field0) => {
                 <i32>::sse_encode(4, serializer);
-                <bool>::sse_encode(field0, serializer);
+                <crate::domain::styles::RelationDirection>::sse_encode(field0, serializer);
             }
             crate::domain::patches::RelationPatch::RoutingMode(field0) => {
                 <i32>::sse_encode(5, serializer);
@@ -10120,6 +10177,7 @@ impl SseEncode for crate::domain::theme::ThemeFields {
         <u32>::sse_encode(self.primary_color, serializer);
         <u32>::sse_encode(self.secondary_color, serializer);
         <u32>::sse_encode(self.accent_color, serializer);
+        <u32>::sse_encode(self.canvas_accent_color, serializer);
         <u32>::sse_encode(self.scaffold_background_color, serializer);
         <u32>::sse_encode(self.card_color, serializer);
         <u32>::sse_encode(self.divider_color, serializer);

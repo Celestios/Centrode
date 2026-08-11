@@ -58,7 +58,7 @@ Future<void> main() async {
     log.info('Loaded themes: ${themes.keys.join(', ')}');
   }
   AppThemeManager.instance.themeNotifier = ValueNotifier(initialTheme);
-
+  
 
   runApp(MyApp(allThemes: themes));
 }

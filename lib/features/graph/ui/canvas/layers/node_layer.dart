@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
+import '../../../../../presentation/theme/app_theme_manager.dart';
 import '../../../store/graph_data_query.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../presentation/viewport_state.dart';
@@ -281,6 +282,12 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
 
   @override
   Widget build(BuildContext context) {
+    final canvasAccent = AppThemeManager.instance.currentTheme.canvasAccentColor;
+    final hoverAccent = AppThemeManager.instance.currentTheme.hoverAccentColor;
+    _painter!
+      ..selectionColor = canvasAccent
+      ..hoverColor = hoverAccent;
+
     return ValueListenableBuilder<int>(
       valueListenable: _repaintTrigger,
       builder: (context, _, __) {
@@ -300,6 +307,8 @@ class _CanvasNodesPainter extends CustomPainter {
   final Set<RawUuid> dirtyNodeIds;
   final Set<RawUuid> positionOnlyNodeIds;
   RawUuid? _hoveredNodeId;
+  Color selectionColor = AppThemeManager.instance.currentTheme.canvasAccentColor;
+  Color hoverColor = const Color(0xFF64B5F6);
 
   final Map<RawUuid, ui.Picture> _nodeCache = {};
   ui.Picture? _cachedPicture;
@@ -498,9 +507,9 @@ class _CanvasNodesPainter extends CustomPainter {
       if (entry.isEditing) {
         highlightColor = Color(NodeVisualConstants.editingBorderColor);
       } else if (entry.isSelected) {
-        highlightColor = AppConfig.visuals.selectionAccent;
+        highlightColor = selectionColor;
       } else {
-        highlightColor = AppConfig.visuals.hoverAccent;
+        highlightColor = hoverColor;
       }
 
       _borderPaint
@@ -562,9 +571,9 @@ class _CanvasNodesPainter extends CustomPainter {
       if (isEditing) {
         highlightColor = Color(NodeVisualConstants.editingBorderColor);
       } else if (isSelected) {
-        highlightColor = AppConfig.visuals.selectionAccent;
+        highlightColor = selectionColor;
       } else {
-        highlightColor = AppConfig.visuals.hoverAccent;
+        highlightColor = hoverColor;
       }
       _paintDrawingOutline(
         canvas,
@@ -680,8 +689,9 @@ class _CanvasNodesPainter extends CustomPainter {
       final lineCount = tp.computeLineMetrics().length;
       final effectiveLines = lineCount > 0 ? lineCount : 1;
 
-      if (maxLines != null && totalLinesPainted + effectiveLines > maxLines)
+      if (maxLines != null && totalLinesPainted + effectiveLines > maxLines) {
         break;
+      }
 
       painters.add(tp);
       totalTextHeight += tp.height;

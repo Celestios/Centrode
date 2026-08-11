@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/elements/centrode_icon_button.dart';
+import 'package:centrode/shared/utils/date_utils.dart';
 import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
 import '../../../../engine/config.dart';
@@ -95,12 +97,6 @@ class _DataTabState extends State<DataTab> {
     _commentFocusNode.requestFocus();
   }
 
-  String _formatTimestamp(int timestampMs) {
-    final dt = DateTime.fromMillisecondsSinceEpoch(timestampMs).toLocal();
-    String pad(int n) => n.toString().padLeft(2, '0');
-    return '${dt.year}-${pad(dt.month)}-${pad(dt.day)} ${pad(dt.hour)}:${pad(dt.minute)}';
-  }
-
   Widget _buildCenteredPlaceholder(ThemeData theme, String text) {
     return Center(
       child: Padding(
@@ -119,34 +115,11 @@ class _DataTabState extends State<DataTab> {
   }
 
   Widget _buildAddTagTriggerButton(ThemeData theme, Color primaryAccent) {
-    return GestureDetector(
-      onTap: _startAddingTag,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-        decoration: BoxDecoration(
-          color: primaryAccent.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: primaryAccent.withValues(alpha: 0.35),
-            width: 0.8,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.add_rounded, size: 12, color: primaryAccent),
-            const SizedBox(width: 4),
-            Text(
-              'Add Tag',
-              style: TextStyle(
-                fontSize: 9.5,
-                fontWeight: FontWeight.w700,
-                color: primaryAccent,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return CentrodeIconButton(
+      icon: Icons.add_rounded,
+      onPressed: _startAddingTag,
+      iconSize: 18,
+      enableHover: false,
     );
   }
 
@@ -195,40 +168,20 @@ class _DataTabState extends State<DataTab> {
                 ),
               ),
               const SizedBox(width: 4),
-              GestureDetector(
-                onTap: _cancelAddingTag,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Icon(
-                    Icons.close_rounded,
-                    size: 12,
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-                  ),
-                ),
+              CentrodeIconButton(
+                icon: Icons.close_rounded,
+                onPressed: _cancelAddingTag,
+                iconSize: 14,
+                buttonSize: 24,
+                enableHover: false,
               ),
               const SizedBox(width: 4),
-              GestureDetector(
-                onTap: () => _addTag(node),
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: primaryAccent.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: primaryAccent.withValues(alpha: 0.5),
-                      width: 0.8,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.check_rounded,
-                    size: 12,
-                    color: primaryAccent,
-                  ),
-                ),
+              CentrodeIconButton(
+                icon: Icons.check_rounded,
+                onPressed: () => _addTag(node),
+                iconSize: 14,
+                buttonSize: 24,
+                enableHover: false,
               ),
             ],
           ),
@@ -286,24 +239,11 @@ class _DataTabState extends State<DataTab> {
                   ),
                 ),
               ),
-              GestureDetector(
-                onTap: _randomizePalette,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.08),
-                      width: 0.6,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.shuffle_rounded,
-                    size: 12,
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-                  ),
-                ),
+              CentrodeIconButton(
+                icon: Icons.shuffle_rounded,
+                onPressed: _randomizePalette,
+                iconSize: 16,
+                enableHover: false,
               ),
             ],
           ),
@@ -385,17 +325,15 @@ class _DataTabState extends State<DataTab> {
                               ),
                             ),
                             const SizedBox(width: 4),
-                            GestureDetector(
-                              onTap: () => widget.renderState.removeTagFromNode(
+                            CentrodeIconButton(
+                              icon: Icons.close_rounded,
+                              onPressed: () => widget.renderState.removeTagFromNode(
                                 node.id,
                                 tag.key.key.uuid,
                               ),
-                              child: Icon(
-                                Icons.close_rounded,
-                                size: 11,
-                                color: theme.textTheme.bodyMedium?.color
-                                    ?.withValues(alpha: 0.5),
-                              ),
+                              iconSize: 14,
+                              buttonSize: 24,
+                              enableHover: false,
                             ),
                           ],
                         ),
@@ -458,24 +396,11 @@ class _DataTabState extends State<DataTab> {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: () => _addComment(node),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: primaryAccent.withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: primaryAccent.withValues(alpha: 0.5),
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.send_rounded,
-                        size: 12,
-                        color: primaryAccent,
-                      ),
-                    ),
+                  CentrodeIconButton(
+                    icon: Icons.send_rounded,
+                    onPressed: () => _addComment(node),
+                    iconSize: 16,
+                    enableHover: false,
                   ),
                 ],
               ),
@@ -502,7 +427,7 @@ class _DataTabState extends State<DataTab> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                _formatTimestamp(comment.createdAt.toInt()),
+                                formatTimestampShort(comment.createdAt.toInt()),
                                 style: TextStyle(
                                   fontSize: 8.5,
                                   fontWeight: FontWeight.w600,
@@ -510,16 +435,12 @@ class _DataTabState extends State<DataTab> {
                                       ?.withValues(alpha: 0.4),
                                 ),
                               ),
-                              GestureDetector(
-                                onTap: () => widget.renderState
+                              CentrodeIconButton(
+                                icon: Icons.delete_outline_rounded,
+                                onPressed: () => widget.renderState
                                     .removeCommentFromNode(node.id, comment),
-                                child: Icon(
-                                  Icons.delete_outline_rounded,
-                                  size: 11,
-                                  color: theme.colorScheme.error.withValues(
-                                    alpha: 0.7,
-                                  ),
-                                ),
+                                iconSize: 16,
+                                enableHover: false,
                               ),
                             ],
                           ),

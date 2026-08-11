@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:window_manager/window_manager.dart';
 import 'widgets/left_panel/left_panel.dart';
 import 'widgets/main_content/main_content_area.dart';
-import 'widgets/window_controls.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 class WorkspaceHubScreen extends StatelessWidget {
   const WorkspaceHubScreen({super.key});
@@ -14,8 +14,11 @@ class WorkspaceHubScreen extends StatelessWidget {
     final isDesktop = !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
     final isAndroid = !kIsWeb && Platform.isAndroid;
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: isDark ? Colors.black : theme.scaffoldBackgroundColor,
       drawer: isAndroid ? const Drawer(child: SafeArea(child: LeftPanel())) : null,
       body: Stack(
         children: [
@@ -30,7 +33,12 @@ class WorkspaceHubScreen extends StatelessWidget {
               height: 48,
               child: DragToMoveArea(child: SizedBox.expand()),
             ),
-          if (isDesktop) const PositionedWindowControls(),
+          if (isDesktop)
+            const Positioned(
+              top: 8,
+              right: 0,
+              child: WindowControlButtons(),
+            ),
         ],
       ),
     );

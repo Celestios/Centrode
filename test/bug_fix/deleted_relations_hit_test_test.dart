@@ -1,5 +1,3 @@
-import 'dart:ui';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
@@ -12,8 +10,6 @@ import 'package:centrode/features/graph/engine/hit_test_resolver.dart';
 import 'package:centrode/features/graph/engine/interaction_facade.dart';
 import 'package:centrode/features/graph/store/graph_api.dart';
 import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
-import 'package:centrode/src/rust/domain/relations.dart';
-import 'package:centrode/src/rust/domain/nodes.dart';
 import 'package:centrode/src/rust/domain/base_models.dart' as frb;
 
 class MockGraphApi extends Mock implements GraphApi {}

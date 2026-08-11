@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/features/graph/engine/config.dart';
-import 'package:centrode/presentation/widgets/hover_scale_button.dart';
 import 'package:centrode/src/rust/domain/styles.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 class VerticalContextToolbar extends StatelessWidget {
   final VoidCallback onDelete;
@@ -94,16 +94,17 @@ class VerticalContextToolbar extends StatelessWidget {
               left: positionOnRight ? 0 : null,
               right: positionOnRight ? null : 0,
               width: 40,
-              child: GlassPanel(
-                borderRadius: 10,
-                blur: 12,
-                color: theme.cardColor.withValues(alpha: 0.9),
-                shadow: BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-                child: const SizedBox.shrink(),
+              child: Builder(
+                builder: (context) {
+                  final preset = GlassPresets.toolbar(context);
+                  return GlassPanel(
+                    borderRadius: preset.borderRadius ?? 10,
+                    color: preset.color,
+                    blur: preset.blur ?? 12,
+                    shadow: preset.shadow,
+                    child: const SizedBox.shrink(),
+                  );
+                },
               ),
             ),
             // Interactive Column (non-positioned, determines the height, aligned to side)
@@ -119,27 +120,36 @@ class VerticalContextToolbar extends StatelessWidget {
                   if (dragHandle != null) dragHandle!,
 
                   if (!isRelationOnly && isMulti) ...[
-                    _buildQuickButton(
+                    CentrodeIconButton(
                       icon: Icons.link_rounded,
-                      tooltip: 'Draw Connection',
                       onPressed: onDrawConnection ?? () {},
-                      color: primaryColor,
+                      tooltip: 'Draw Connection',
+                      iconSize: 20,
+                      buttonSize: 32,
+                      enableHover: false,
+                      iconColor: primaryColor,
                     ),
                   ],
 
                   if (onCopy != null)
-                    _buildQuickButton(
+                    CentrodeIconButton(
                       icon: Icons.copy_rounded,
-                      tooltip: 'Copy',
                       onPressed: onCopy!,
-                      color: primaryColor,
+                      tooltip: 'Copy',
+                      iconSize: 20,
+                      buttonSize: 32,
+                      enableHover: false,
+                      iconColor: primaryColor,
                     ),
 
-                  _buildQuickButton(
+                  CentrodeIconButton(
                     icon: Icons.delete_outline_rounded,
-                    tooltip: 'Delete',
                     onPressed: onDelete,
-                    color: Colors.red.shade400,
+                    tooltip: 'Delete',
+                    iconSize: 20,
+                    buttonSize: 32,
+                    enableHover: false,
+                    iconColor: Colors.red.shade400,
                   ),
 
                   // Divider between Quick Actions and Group Buttons
@@ -148,10 +158,12 @@ class VerticalContextToolbar extends StatelessWidget {
                       vertical: 1,
                       horizontal: 4,
                     ),
-                    child: Container(
+                    child: GlassDivider(
+                      orientation: Axis.horizontal,
                       width: 24,
                       height: 1,
-                      color: theme.dividerColor.withValues(alpha: 0.3),
+                      useGradient: false,
+                      alpha: 0.3,
                     ),
                   ),
 
@@ -500,46 +512,7 @@ class VerticalContextToolbar extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickButton({
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback onPressed,
-    required Color color,
-  }) {
-    return Tooltip(
-      message: tooltip,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 0),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(6),
-            onTap: onPressed,
-            child: Container(
-              width: 32,
-              height: 32,
-              alignment: Alignment.center,
-              child: Icon(icon, color: color, size: 20),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
-class SubmenuButtonData {
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onPressed;
-  final Color? color;
-
-  SubmenuButtonData({
-    required this.icon,
-    required this.tooltip,
-    required this.onPressed,
-    this.color,
-  });
 }
 
 class VerticalToolbarGroupButton extends StatefulWidget {
@@ -587,106 +560,67 @@ class _VerticalToolbarGroupButtonState
           children: widget.positionOnRight
               ? [
                   // Trigger Button (First when on right)
-                  _buildTriggerButton(textColor, primaryColor),
+                  CentrodeIconButton(
+                    icon: widget.triggerIcon,
+                    onPressed: () {},
+                    tooltip: widget.triggerTooltip,
+                    iconSize: widget.iconSize,
+                    buttonSize: 32,
+                    enableHover: true,
+                    hoverColor: primaryColor,
+                  ),
 
                   // Submenu - Expanded to the right
                   if (_isHovered)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: GlassPanel(
-                        borderRadius: 8,
-                        blur: 10,
-                        color: theme.cardColor.withValues(alpha: 0.92),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 2,
-                        ),
-                        shadow: BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.12),
-                          blurRadius: 8,
-                          offset: const Offset(2, 2),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: widget.submenuButtons
-                              .map(
-                                (btn) => _buildSubmenuButton(
-                                  btn,
-                                  textColor,
-                                  primaryColor,
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ),
-                    ),
+                    _buildSubmenuPanel(isRight: true, textColor: textColor, primaryColor: primaryColor),
                 ]
               : [
                   // Submenu - Expanded to the left
                   if (_isHovered)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: GlassPanel(
-                        borderRadius: 8,
-                        blur: 10,
-                        color: theme.cardColor.withValues(alpha: 0.92),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 2,
-                        ),
-                        shadow: BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.12),
-                          blurRadius: 8,
-                          offset: const Offset(-2, 2),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: widget.submenuButtons
-                              .map(
-                                (btn) => _buildSubmenuButton(
-                                  btn,
-                                  textColor,
-                                  primaryColor,
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ),
-                    ),
+                    _buildSubmenuPanel(isRight: false, textColor: textColor, primaryColor: primaryColor),
 
                   // Trigger Button (Last when on left)
-                  _buildTriggerButton(textColor, primaryColor),
+                  CentrodeIconButton(
+                    icon: widget.triggerIcon,
+                    onPressed: () {},
+                    tooltip: widget.triggerTooltip,
+                    iconSize: widget.iconSize,
+                    buttonSize: 32,
+                    enableHover: true,
+                    hoverColor: primaryColor,
+                  ),
                 ],
         ),
       ),
     );
   }
 
-  Widget _buildTriggerButton(Color textColor, Color primaryColor) {
+
+
+  Widget _buildSubmenuPanel({
+    required bool isRight,
+    required Color textColor,
+    required Color primaryColor,
+  }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 0),
-      child: Tooltip(
-        message: widget.triggerTooltip,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: _isHovered
-                ? primaryColor.withValues(alpha: 0.1)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Center(
-            child: Icon(
-              widget.triggerIcon,
-              color: _isHovered
-                  ? primaryColor
-                  : textColor.withValues(alpha: 0.75),
-              size: widget.iconSize,
+      padding: EdgeInsets.only(left: isRight ? 8 : 0, right: isRight ? 0 : 8),
+      child: Builder(
+        builder: (context) {
+          final preset = GlassPresets.submenu(context, isRight: isRight);
+          return GlassPanel(
+            borderRadius: preset.borderRadius ?? 8,
+            color: preset.color,
+            blur: preset.blur ?? 10,
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            shadow: preset.shadow,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: widget.submenuButtons
+                  .map((btn) => _buildSubmenuButton(btn, textColor, primaryColor))
+                  .toList(),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -696,11 +630,13 @@ class _VerticalToolbarGroupButtonState
     Color defaultColor,
     Color hoverColor,
   ) {
-    return HoverIconButton(
+    return CentrodeIconButton(
       icon: btn.icon,
       tooltip: btn.tooltip,
       onPressed: btn.onPressed,
-      defaultColor: btn.color ?? defaultColor.withValues(alpha: 0.75),
+      iconSize: 18,
+      buttonSize: 28,
+      iconColor: btn.color ?? defaultColor.withValues(alpha: 0.75),
       hoverColor: btn.color != null
           ? btn.color!.withValues(alpha: 0.8)
           : hoverColor,
@@ -708,75 +644,3 @@ class _VerticalToolbarGroupButtonState
   }
 }
 
-class HoverIconButton extends StatelessWidget {
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onPressed;
-  final Color defaultColor;
-  final Color hoverColor;
-
-  const HoverIconButton({
-    super.key,
-    required this.icon,
-    required this.tooltip,
-    required this.onPressed,
-    required this.defaultColor,
-    required this.hoverColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return HoverScaleButton(
-      onTap: onPressed,
-      hoverScale: 1.08,
-      pressScale: 0.94,
-      tooltip: tooltip,
-      borderRadius: BorderRadius.circular(6),
-      builder: (context, isHovered, isPressed) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 100),
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              gradient: isHovered
-                  ? LinearGradient(
-                      colors: [
-                        hoverColor.withValues(alpha: 0.18),
-                        hoverColor.withValues(alpha: 0.05),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                  : null,
-              border: isHovered
-                  ? Border.all(
-                      color: hoverColor.withValues(alpha: 0.3),
-                      width: 1.0,
-                    )
-                  : Border.all(color: Colors.transparent),
-              boxShadow: isHovered
-                  ? [
-                      BoxShadow(
-                        color: hoverColor.withValues(alpha: 0.08),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      ),
-                    ]
-                  : [],
-            ),
-            child: Center(
-              child: Icon(
-                icon,
-                color: isHovered ? hoverColor : defaultColor,
-                size: 18,
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}

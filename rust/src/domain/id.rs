@@ -87,6 +87,18 @@ impl std::fmt::Display for TypedRecordId {
     }
 }
 
+impl Ord for TypedRecordId {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.to_bytes().cmp(&other.to_bytes())
+    }
+}
+
+impl PartialOrd for TypedRecordId {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 impl SurrealValue for TypedRecordId {
     fn kind_of() -> surrealdb::types::Kind {
         surrealdb::types::Kind::Record(vec![])

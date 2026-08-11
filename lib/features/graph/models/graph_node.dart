@@ -81,33 +81,28 @@ sealed class UiNode {
 
   static UiNode? copy(UiNode? node) => _$uiNodeCopy(node);
 
-  UiNode? cloneWithId(RawUuid newId) {
-    if (this is InfoUiNode) return (this as InfoUiNode).copyWith(id: newId);
-    if (this is TaskUiNode) return (this as TaskUiNode).copyWith(id: newId);
-    if (this is CommentUiNode)
-      return (this as CommentUiNode).copyWith(id: newId);
-    if (this is DrawingUiNode)
-      return (this as DrawingUiNode).copyWith(id: newId);
-    if (this is FrameUiNode) return (this as FrameUiNode).copyWith(id: newId);
-    if (this is InterUiNode) return (this as InterUiNode).copyWith(id: newId);
-    if (this is MediaUiNode) return (this as MediaUiNode).copyWith(id: newId);
-    if (this is ShapeUiNode) return (this as ShapeUiNode).copyWith(id: newId);
-    return null;
-  }
+  UiNode? cloneWithId(RawUuid newId) => switch (this) {
+    InfoUiNode() => (this as InfoUiNode).copyWith(id: newId),
+    TaskUiNode() => (this as TaskUiNode).copyWith(id: newId),
+    CommentUiNode() => (this as CommentUiNode).copyWith(id: newId),
+    DrawingUiNode() => (this as DrawingUiNode).copyWith(id: newId),
+    FrameUiNode() => (this as FrameUiNode).copyWith(id: newId),
+    InterUiNode() => (this as InterUiNode).copyWith(id: newId),
+    MediaUiNode() => (this as MediaUiNode).copyWith(id: newId),
+    ShapeUiNode() => (this as ShapeUiNode).copyWith(id: newId),
+  };
 
   // ──────────────────── layout engine ─────────────────────────────────────
-  Color get defaultPreviewColor {
-    final self = this;
-    if (self is InfoUiNode) return const Color(0xFF90CAF9);
-    if (self is TaskUiNode) return const Color(0xFFA5D6A7);
-    if (self is CommentUiNode) return const Color(0xFFB0BEC5);
-    if (self is DrawingUiNode) return const Color(0xFFCE93D8);
-    if (self is ShapeUiNode) return const Color(0xFFFFCC80);
-    if (self is FrameUiNode) return const Color(0xFFBCAAA4);
-    if (self is MediaUiNode) return const Color(0xFF80CBC4);
-    if (self is InterUiNode) return const Color(0xFFFFF59D);
-    return const Color(0xFF90CAF9);
-  }
+  Color get defaultPreviewColor => switch (this) {
+    InfoUiNode() => const Color(0xFF90CAF9),
+    TaskUiNode() => const Color(0xFFA5D6A7),
+    CommentUiNode() => const Color(0xFFB0BEC5),
+    DrawingUiNode() => const Color(0xFFCE93D8),
+    ShapeUiNode() => const Color(0xFFFFCC80),
+    FrameUiNode() => const Color(0xFFBCAAA4),
+    MediaUiNode() => const Color(0xFF80CBC4),
+    InterUiNode() => const Color(0xFFFFF59D),
+  };
 
   Size get previewSize {
     final self = this;

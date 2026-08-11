@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:centrode/shared/elements/elements.dart';
+import 'package:centrode/shared/utils/date_utils.dart';
 import '../../../store/command_queue_processor.dart';
 import '../../../presentation/viewport_state.dart';
 import '../../../models/models.dart';
@@ -38,12 +40,6 @@ class _TemplatesListViewState extends State<TemplatesListView> {
     super.dispose();
   }
 
-  String _formatTimestamp(int timestampMs) {
-    if (timestampMs <= 0) return 'Unknown';
-    final dt = DateTime.fromMillisecondsSinceEpoch(timestampMs).toLocal();
-    String pad(int n) => n.toString().padLeft(2, '0');
-    return '${dt.year}-${pad(dt.month)}-${pad(dt.day)} ${pad(dt.hour)}:${pad(dt.minute)}';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -235,11 +231,8 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 // Instantiate template at viewport center
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.add_circle_outline_rounded,
-                                    size: 16,
-                                  ),
+                                CentrodeIconButton(
+                                  icon: Icons.add_circle_outline_rounded,
                                   onPressed: () async {
                                     final viewportController = context
                                         .read<ViewportController>();
@@ -254,23 +247,15 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                           visibleCenter,
                                         );
                                   },
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(
-                                    minWidth: 24,
-                                    minHeight: 24,
-                                    maxWidth: 24,
-                                    maxHeight: 24,
-                                  ),
+                                  iconSize: 16,
+                                  buttonSize: 24,
+                                  enableHover: false,
                                   tooltip: 'Place at Center',
                                 ),
                                 const SizedBox(width: 4),
                                 // Delete template button
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.delete_outline_rounded,
-                                    size: 16,
-                                    color: Colors.redAccent,
-                                  ),
+                                CentrodeIconButton(
+                                  icon: Icons.delete_outline_rounded,
                                   onPressed: () async {
                                     final confirm =
                                         await showDeleteTemplateDialog(
@@ -284,20 +269,19 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                           );
                                     }
                                   },
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(
-                                    minWidth: 24,
-                                    minHeight: 24,
-                                    maxWidth: 24,
-                                    maxHeight: 24,
-                                  ),
+                                  iconSize: 16,
+                                  buttonSize: 24,
+                                  enableHover: false,
+                                  iconColor: Colors.redAccent,
                                   tooltip: 'Delete Template',
                                 ),
                               ],
                             )
                           else
                             Text(
-                              _formatTimestamp(template.createdAt.toInt()),
+                              template.createdAt <= 0
+                                  ? 'Unknown'
+                                  : formatTimestampShort(template.createdAt.toInt()),
                               style: TextStyle(
                                 fontSize: 8,
                                 color: theme.colorScheme.onSurface.withValues(

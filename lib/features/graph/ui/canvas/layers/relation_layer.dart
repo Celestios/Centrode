@@ -4,6 +4,7 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'package:centrode/src/rust/relation_engine/config.dart' as rust_config;
 import 'package:centrode/src/rust/relation_engine/computed.dart';
 import 'package:centrode/src/rust/relation_engine/geometry.dart';
+import '../../../../../presentation/theme/app_theme_manager.dart';
 import '../../../engine/config.dart';
 import '../../../store/graph_data_query_controller.dart';
 import '../../../presentation/node_render_state.dart';
@@ -80,7 +81,7 @@ class RelationLayer extends StatelessWidget {
                     color: AppConfig.relation.editorBgColor,
                     borderRadius: BorderRadius.circular(4),
                     border: Border.all(
-                      color: AppConfig.visuals.selectionAccent,
+                      color: AppThemeManager.instance.currentTheme.canvasAccentColor,
                       width: 1.5,
                     ),
                     boxShadow: [
@@ -268,7 +269,7 @@ class RelationLayer extends StatelessWidget {
           : Colors.blueAccent;
     }
     if (isSelected) {
-      return AppConfig.visuals.selectionAccent;
+      return AppThemeManager.instance.currentTheme.canvasAccentColor;
     }
     return Color(resolved.strokeColor);
   }

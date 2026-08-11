@@ -1,7 +1,7 @@
 use crate::domain::id::TypedRecordId;
 use crate::domain::patches::EntityPatch;
 use crate::domain::relations::IRelation;
-use crate::domain::styles::PortSide;
+use crate::domain::styles::{PortSide, RelationDirection};
 use crate::relation_engine::computed::ComputedRelation;
 use crate::relation_engine::config::RelationEngineConfig;
 use crate::relation_engine::config::RoutingMode;
@@ -10,7 +10,60 @@ use crate::services::graph_service::GraphService;
 use tracing::{debug, error, info};
 
 impl GraphService {
-    pub async fn create_relation(&self, input: IRelation) -> anyhow::Result<()> {
+    async fn ensure_node_cache_populated(&self) {
+        let mut is_empty = false;
+        if let Ok(engine) = self.relation_engine.lock() {
+            is_empty = engine.state.nodes.is_empty();
+        }
+        if is_empty {
+            self.rebuild_node_cache().await;
+        }
+    }
+
+    fn normalize_relation(rel: &mut IRelation) {
+        let start = rel.fields.style.as_ref().and_then(|s| s.start_shape);
+        let end = rel.fields.style.as_ref().and_then(|s| s.end_shape);
+
+        rel.fields.direction = if start == end {
+            RelationDirection::Undirected
+        } else {
+            RelationDirection::Forward
+        };
+
+        if rel.in_ > rel.out {
+            std::mem::swap(&mut rel.in_, &mut rel.out);
+            if rel.fields.direction == RelationDirection::Forward {
+                rel.fields.direction = RelationDirection::Backward;
+            } else if rel.fields.direction == RelationDirection::Backward {
+                rel.fields.direction = RelationDirection::Forward;
+            }
+
+            if let Some(layout) = rel.fields.layout.as_mut() {
+                std::mem::swap(&mut layout.from_side, &mut layout.to_side);
+                std::mem::swap(&mut layout.control_point_1, &mut layout.control_point_2);
+            }
+            if let Some(resolved_layout) = rel.fields.resolved_layout.as_mut() {
+                std::mem::swap(&mut resolved_layout.from_side, &mut resolved_layout.to_side);
+                std::mem::swap(
+                    &mut resolved_layout.control_point_1,
+                    &mut resolved_layout.control_point_2,
+                );
+            }
+
+            if let Some(style) = rel.fields.style.as_mut() {
+                std::mem::swap(&mut style.start_shape, &mut style.end_shape);
+            }
+            if let Some(resolved_style) = rel.fields.resolved_style.as_mut() {
+                std::mem::swap(
+                    &mut resolved_style.start_shape,
+                    &mut resolved_style.end_shape,
+                );
+            }
+        }
+    }
+
+    pub async fn create_relation(&self, mut input: IRelation) -> anyhow::Result<()> {
+        Self::normalize_relation(&mut input);
         debug!(
             "FFI: create_relation called: {} -> {}",
             input.in_, input.out
@@ -65,15 +118,24 @@ impl GraphService {
     pub async fn reroute_relation(
         &self,
         record: TypedRecordId,
-        from: TypedRecordId,
-        to: TypedRecordId,
+        mut from: TypedRecordId,
+        mut to: TypedRecordId,
     ) -> anyhow::Result<()> {
+        if from > to {
+            std::mem::swap(&mut from, &mut to);
+        }
         debug!("Rerouting relation {} to: {} -> {}", record, from, to);
+
+        let mut existing = self.repo.get_relation(record).await?;
+        existing.in_ = from;
+        existing.out = to;
+        Self::normalize_relation(&mut existing);
+
         let id = record.to_string();
-        match self.repo.reroute_relation(record, from, to).await {
-            Ok(rerouted_id) => {
+        match self.repo.reroute_relation(record, existing).await {
+            Ok(()) => {
                 info!("Relation {} rerouted successfully", id);
-                Ok(rerouted_id)
+                Ok(())
             }
             Err(e) => {
                 error!("Failed to reroute relation {}: {}", id, e);
@@ -87,13 +149,7 @@ impl GraphService {
         config: RelationEngineConfig,
         relation_ids: Option<Vec<TypedRecordId>>,
     ) -> anyhow::Result<Vec<ComputedRelation>> {
-        let mut is_empty = false;
-        if let Ok(engine) = self.relation_engine.lock() {
-            is_empty = engine.state.nodes.is_empty();
-        }
-        if is_empty {
-            self.rebuild_node_cache().await;
-        }
+        self.ensure_node_cache_populated().await;
 
         let nodes: Vec<InputNode> = self
             .relation_engine
@@ -134,13 +190,7 @@ impl GraphService {
         override_end_x: Option<f64>,
         override_end_y: Option<f64>,
     ) -> anyhow::Result<ComputedRelation> {
-        let mut is_empty = false;
-        if let Ok(engine) = self.relation_engine.lock() {
-            is_empty = engine.state.nodes.is_empty();
-        }
-        if is_empty {
-            self.rebuild_node_cache().await;
-        }
+        self.ensure_node_cache_populated().await;
 
         let mut nodes = self
             .relation_engine

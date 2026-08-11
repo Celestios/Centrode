@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:centrode/features/graph/presentation/workspace_tabs_controller.dart';
 import 'package:centrode/presentation/widgets/left_repository_panel.dart';
 import 'package:centrode/shared/widgets/color_palette/color_palette.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 class GlobalDrawingPanel extends StatelessWidget {
   const GlobalDrawingPanel({super.key});
@@ -49,9 +50,10 @@ class GlobalDrawingPanel extends StatelessWidget {
                     final isActive = activeType == t.type;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 6.0),
-                      child: InkWell(
+                      child: CentrodeButton(
                         onTap: () => session.setBrushType(t.type),
                         borderRadius: BorderRadius.circular(8),
+                        enableHover: false,
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 150),
                           padding: const EdgeInsets.symmetric(
@@ -169,8 +171,9 @@ class GlobalDrawingPanel extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: thicknesses.map((t) {
                     final isActive = activeThickness == t;
-                    return GestureDetector(
+                    return CentrodeButton(
                       onTap: () => session.setBrushThickness(t),
+                      enableHover: false,
                       child: Column(
                         children: [
                           AnimatedContainer(

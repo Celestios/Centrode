@@ -3,14 +3,13 @@ import 'package:mocktail/mocktail.dart';
 import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
 import 'package:centrode/features/graph/store/command_queue_processor.dart';
-import 'package:centrode/features/graph/presentation/theme_manager.dart';
 import 'package:centrode/features/graph/store/graph_api.dart';
 import 'package:centrode/features/graph/models/commands/graph_command_context.dart';
 import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
 import 'package:centrode/src/rust/domain/base_models.dart';
 import 'package:centrode/src/rust/domain/snapshot.dart';
 import 'package:centrode/src/rust/domain/patches.dart';
-import 'package:centrode/presentation/theme/graph_theme.dart';
+import 'package:centrode/src/rust/domain/styles.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockGraphApi extends Mock implements GraphApi {}
@@ -54,7 +53,7 @@ void main() {
         fields: IRelationFields(
           verb: 'link',
           layer: 'default',
-          directionless: false,
+          direction: RelationDirection.forward,
           createdAt: 0,
           updatedAt: 0,
         ),
@@ -281,24 +280,30 @@ void main() {
     );
 
     test('updateNodeStyle updates node style and notifies subscribers', () async {
-      final node = controller.createNode(UiNodes.info, const Offset(0, 0));
+      final nodeId = controller.createNode(UiNodes.info, const Offset(0, 0));
       const newStyle = NodeStyle(
-        fillColor: 0xFF123456,
+        bgColor: 0xFF123456,
         strokeColor: 0xFF654321,
-        strokeWidth: 2.0,
+        strokeWidth: 2,
         shape: 'rectangle',
         fontFamily: 'Inter',
         fontSize: 14,
+        width: 200,
+        height: 60,
         textColor: 0xFFFFFFFF,
+        borderRadius: 8,
+        padding: 8,
         shadowColor: 0,
         shadowBlur: 0,
+        shadowSpread: 0,
         shadowOffsetX: 0,
         shadowOffsetY: 0,
+        strategyType: 'default',
       );
 
-      controller.updateNodeStyle(node.id, newStyle);
+      controller.propertyMutations.updateNodeStyle(nodeId, newStyle);
 
-      final updatedNode = queryController.nodeLookup[node.id]!;
+      final updatedNode = queryController.nodeLookup[nodeId]!;
       expect(updatedNode.style, equals(newStyle));
     });
   });

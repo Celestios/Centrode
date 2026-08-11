@@ -157,8 +157,8 @@ impl Repository {
                 };
                 ("UPDATE $id SET layout = $val", val)
             }
-            RelationPatch::Directionless(val) => {
-                ("UPDATE $id SET directionless = $val", Value::Bool(*val))
+            RelationPatch::Direction(val) => {
+                ("UPDATE $id SET direction = $val", val.clone().into_value())
             }
             RelationPatch::RoutingMode(mode) => (
                 "UPDATE $id SET layout.routing_mode = $val",

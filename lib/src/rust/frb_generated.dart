@@ -3389,7 +3389,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       resolvedStyle: dco_decode_opt_box_autoadd_relation_style(arr[2]),
       layout: dco_decode_opt_box_autoadd_relation_layout(arr[3]),
       resolvedLayout: dco_decode_opt_box_autoadd_relation_layout(arr[4]),
-      directionless: dco_decode_bool(arr[5]),
+      direction: dco_decode_relation_direction(arr[5]),
       layer: dco_decode_String(arr[6]),
       createdAt: dco_decode_i_64(arr[7]),
       updatedAt: dco_decode_i_64(arr[8]),
@@ -4083,6 +4083,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  RelationDirection dco_decode_relation_direction(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return RelationDirection.values[raw as int];
+  }
+
+  @protected
   RelationEngineConfig dco_decode_relation_engine_config(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -4135,7 +4141,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           dco_decode_opt_box_autoadd_relation_layout(raw[1]),
         );
       case 4:
-        return RelationPatch_Directionless(dco_decode_bool(raw[1]));
+        return RelationPatch_Direction(dco_decode_relation_direction(raw[1]));
       case 5:
         return RelationPatch_RoutingMode(
           dco_decode_box_autoadd_routing_mode(raw[1]),
@@ -4404,29 +4410,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ThemeFields dco_decode_theme_fields(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 20)
-      throw Exception('unexpected arr length: expect 20 but see ${arr.length}');
+    if (arr.length != 21)
+      throw Exception('unexpected arr length: expect 21 but see ${arr.length}');
     return ThemeFields(
       name: dco_decode_String(arr[0]),
       primaryColor: dco_decode_u_32(arr[1]),
       secondaryColor: dco_decode_u_32(arr[2]),
       accentColor: dco_decode_u_32(arr[3]),
-      scaffoldBackgroundColor: dco_decode_u_32(arr[4]),
-      cardColor: dco_decode_u_32(arr[5]),
-      dividerColor: dco_decode_u_32(arr[6]),
-      textColor: dco_decode_u_32(arr[7]),
-      fontFamily: dco_decode_String(arr[8]),
-      bodyFontSize: dco_decode_f_64(arr[9]),
-      bodyFontWeight: dco_decode_font_weight(arr[10]),
-      bodyTextColor: dco_decode_u_32(arr[11]),
-      borderRadius: dco_decode_f_64(arr[12]),
-      appBarBackgroundColor: dco_decode_u_32(arr[13]),
-      appBarForegroundColor: dco_decode_u_32(arr[14]),
-      appBarElevation: dco_decode_f_64(arr[15]),
-      appBarTitleFontSize: dco_decode_f_64(arr[16]),
-      appBarTitleFontWeight: dco_decode_font_weight(arr[17]),
-      useMaterial3: dco_decode_bool(arr[18]),
-      brightness: dco_decode_theme_brightness(arr[19]),
+      canvasAccentColor: dco_decode_u_32(arr[4]),
+      scaffoldBackgroundColor: dco_decode_u_32(arr[5]),
+      cardColor: dco_decode_u_32(arr[6]),
+      dividerColor: dco_decode_u_32(arr[7]),
+      textColor: dco_decode_u_32(arr[8]),
+      fontFamily: dco_decode_String(arr[9]),
+      bodyFontSize: dco_decode_f_64(arr[10]),
+      bodyFontWeight: dco_decode_font_weight(arr[11]),
+      bodyTextColor: dco_decode_u_32(arr[12]),
+      borderRadius: dco_decode_f_64(arr[13]),
+      appBarBackgroundColor: dco_decode_u_32(arr[14]),
+      appBarForegroundColor: dco_decode_u_32(arr[15]),
+      appBarElevation: dco_decode_f_64(arr[16]),
+      appBarTitleFontSize: dco_decode_f_64(arr[17]),
+      appBarTitleFontWeight: dco_decode_font_weight(arr[18]),
+      useMaterial3: dco_decode_bool(arr[19]),
+      brightness: dco_decode_theme_brightness(arr[20]),
     );
   }
 
@@ -5504,7 +5511,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_resolvedLayout = sse_decode_opt_box_autoadd_relation_layout(
       deserializer,
     );
-    var var_directionless = sse_decode_bool(deserializer);
+    var var_direction = sse_decode_relation_direction(deserializer);
     var var_layer = sse_decode_String(deserializer);
     var var_createdAt = sse_decode_i_64(deserializer);
     var var_updatedAt = sse_decode_i_64(deserializer);
@@ -5514,7 +5521,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       resolvedStyle: var_resolvedStyle,
       layout: var_layout,
       resolvedLayout: var_resolvedLayout,
-      directionless: var_directionless,
+      direction: var_direction,
       layer: var_layer,
       createdAt: var_createdAt,
       updatedAt: var_updatedAt,
@@ -6532,6 +6539,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  RelationDirection sse_decode_relation_direction(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return RelationDirection.values[inner];
+  }
+
+  @protected
   RelationEngineConfig sse_decode_relation_engine_config(
     SseDeserializer deserializer,
   ) {
@@ -6601,8 +6617,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         );
         return RelationPatch_Layout(var_field0);
       case 4:
-        var var_field0 = sse_decode_bool(deserializer);
-        return RelationPatch_Directionless(var_field0);
+        var var_field0 = sse_decode_relation_direction(deserializer);
+        return RelationPatch_Direction(var_field0);
       case 5:
         var var_field0 = sse_decode_box_autoadd_routing_mode(deserializer);
         return RelationPatch_RoutingMode(var_field0);
@@ -6926,6 +6942,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_primaryColor = sse_decode_u_32(deserializer);
     var var_secondaryColor = sse_decode_u_32(deserializer);
     var var_accentColor = sse_decode_u_32(deserializer);
+    var var_canvasAccentColor = sse_decode_u_32(deserializer);
     var var_scaffoldBackgroundColor = sse_decode_u_32(deserializer);
     var var_cardColor = sse_decode_u_32(deserializer);
     var var_dividerColor = sse_decode_u_32(deserializer);
@@ -6947,6 +6964,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       primaryColor: var_primaryColor,
       secondaryColor: var_secondaryColor,
       accentColor: var_accentColor,
+      canvasAccentColor: var_canvasAccentColor,
       scaffoldBackgroundColor: var_scaffoldBackgroundColor,
       cardColor: var_cardColor,
       dividerColor: var_dividerColor,
@@ -7954,7 +7972,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_box_autoadd_relation_style(self.resolvedStyle, serializer);
     sse_encode_opt_box_autoadd_relation_layout(self.layout, serializer);
     sse_encode_opt_box_autoadd_relation_layout(self.resolvedLayout, serializer);
-    sse_encode_bool(self.directionless, serializer);
+    sse_encode_relation_direction(self.direction, serializer);
     sse_encode_String(self.layer, serializer);
     sse_encode_i_64(self.createdAt, serializer);
     sse_encode_i_64(self.updatedAt, serializer);
@@ -8833,6 +8851,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_relation_direction(
+    RelationDirection self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
   void sse_encode_relation_engine_config(
     RelationEngineConfig self,
     SseSerializer serializer,
@@ -8878,9 +8905,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       case RelationPatch_Layout(field0: final field0):
         sse_encode_i_32(3, serializer);
         sse_encode_opt_box_autoadd_relation_layout(field0, serializer);
-      case RelationPatch_Directionless(field0: final field0):
+      case RelationPatch_Direction(field0: final field0):
         sse_encode_i_32(4, serializer);
-        sse_encode_bool(field0, serializer);
+        sse_encode_relation_direction(field0, serializer);
       case RelationPatch_RoutingMode(field0: final field0):
         sse_encode_i_32(5, serializer);
         sse_encode_box_autoadd_routing_mode(field0, serializer);
@@ -9104,6 +9131,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_u_32(self.primaryColor, serializer);
     sse_encode_u_32(self.secondaryColor, serializer);
     sse_encode_u_32(self.accentColor, serializer);
+    sse_encode_u_32(self.canvasAccentColor, serializer);
     sse_encode_u_32(self.scaffoldBackgroundColor, serializer);
     sse_encode_u_32(self.cardColor, serializer);
     sse_encode_u_32(self.dividerColor, serializer);

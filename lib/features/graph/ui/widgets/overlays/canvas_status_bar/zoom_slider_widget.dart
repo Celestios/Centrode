@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../presentation/viewport_state.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 // -----------------------------------------------------------------------------
 // BOTTOM RIGHT: Zoom slider & percentage indicator
@@ -29,18 +30,16 @@ class ZoomSliderWidget extends StatelessWidget {
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              IconButton(
-                icon: Icon(
-                  Icons.zoom_out,
-                  color: textColor.withValues(alpha: 0.7),
-                  size: 14,
-                ),
+              CentrodeIconButton(
+                icon: Icons.zoom_out,
                 onPressed: () => _updateZoom(
                   viewportController,
                   (scale - 0.1).clamp(0.2, 3.0),
                 ),
-                constraints: const BoxConstraints(),
-                padding: EdgeInsets.zero,
+                iconSize: 14,
+                compact: true,
+                enableHover: false,
+                iconColor: textColor.withValues(alpha: 0.7),
               ),
               SizedBox(
                 width: 80,
@@ -68,52 +67,47 @@ class ZoomSliderWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              IconButton(
-                icon: Icon(
-                  Icons.zoom_in,
-                  color: textColor.withValues(alpha: 0.7),
-                  size: 14,
-                ),
+              CentrodeIconButton(
+                icon: Icons.zoom_in,
                 onPressed: () => _updateZoom(
                   viewportController,
                   (scale + 0.1).clamp(0.2, 3.0),
                 ),
-                constraints: const BoxConstraints(),
-                padding: EdgeInsets.zero,
+                iconSize: 14,
+                compact: true,
+                enableHover: false,
+                iconColor: textColor.withValues(alpha: 0.7),
               ),
               const SizedBox(width: 4),
-              Tooltip(
-                message: 'Reset zoom to 100%',
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(4),
-                  onTap: () => _updateZoom(viewportController, 1.0),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 2,
-                    ),
-                    child: Text(
-                      '$percent%',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: primaryColor,
-                      ),
+              CentrodeButton(
+                onTap: () => _updateZoom(viewportController, 1.0),
+                tooltip: 'Reset zoom to 100%',
+                borderRadius: BorderRadius.circular(4),
+                enableHover: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
+                  child: Text(
+                    '$percent%',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: primaryColor,
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: 2),
-              IconButton(
-                icon: Icon(
-                  Icons.center_focus_strong,
-                  color: textColor.withValues(alpha: 0.7),
-                  size: 14,
-                ),
-                tooltip: 'Reset zoom to 100%',
+              CentrodeIconButton(
+                icon: Icons.center_focus_strong,
                 onPressed: () => _updateZoom(viewportController, 1.0),
-                constraints: const BoxConstraints(),
-                padding: EdgeInsets.zero,
+                tooltip: 'Reset zoom to 100%',
+                iconSize: 14,
+                compact: true,
+                enableHover: false,
+                iconColor: textColor.withValues(alpha: 0.7),
               ),
             ],
           );

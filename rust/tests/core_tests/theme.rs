@@ -11,6 +11,7 @@ async fn test_theme_crud_and_active_theme() {
         primary_color: 0x112233,
         secondary_color: 0x445566,
         accent_color: 0x778899,
+        canvas_accent_color: 0x2196F3,
         scaffold_background_color: 0x000000,
         card_color: 0x222222,
         divider_color: 0x333333,

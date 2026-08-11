@@ -6,12 +6,12 @@ import 'package:centrode/features/graph/engine/hit_test_resolver.dart';
 import 'package:centrode/features/graph/engine/interaction_context.dart';
 import 'package:centrode/features/graph/store/relation_engine_state.dart';
 import 'package:centrode/features/graph/models/models.dart';
-import 'package:centrode/features/graph/presentation/node_render_state.dart';
 import 'package:centrode/features/graph/presentation/view_state.dart';
 import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
 import 'package:centrode/src/rust/relation_engine/geometry.dart' as rust_geom;
 import 'package:centrode/src/rust/relation_engine/config.dart';
+import 'package:centrode/src/rust/domain/styles.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter/material.dart';
 
@@ -37,7 +37,7 @@ void main() {
       fromNodeTable: 'nodes',
       toNodeTable: 'nodes',
       verb: 'connects_to',
-      directionless: false,
+      direction: RelationDirection.forward,
       layer: 'default',
     );
 

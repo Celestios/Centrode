@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'quick_actions_section.dart';
 import 'panel_footer_section.dart';
 
@@ -7,34 +8,25 @@ class LeftPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      width: 200,
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.only(
-          topRight: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-        border: Border(
-          right: BorderSide(
-            color: theme.dividerColor.withValues(alpha: 0.2),
-          ),
-        ),
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        topRight: Radius.circular(24),
+        bottomRight: Radius.circular(24),
       ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topRight: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-        child: Material(
-          color: theme.cardColor,
-          child: Column(
-            children: [
-              const Expanded(child: QuickActionsSection()),
-              const PanelFooterSection(),
-            ],
-          ),
+      child: GlassPanel(
+        width: 200,
+        borderRadius: 16.0,
+        enableBackdrop: false,
+        color: isDark
+            ? const Color(0xFF141418).withValues(alpha: 0.65)
+            : const Color(0xFFE8E8E8).withValues(alpha: 0.85),
+        child: const Column(
+          children: [
+            Expanded(child: QuickActionsSection()),
+            PanelFooterSection(),
+          ],
         ),
       ),
     );

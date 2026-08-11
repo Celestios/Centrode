@@ -16,7 +16,7 @@ sealed class UiRelation {
   String toNodeTable;
   String verb;
   String layer;
-  bool directionless;
+  RelationDirection direction;
   RelationStyle? style;
   RelationStyle? resolvedStyle;
   RelationLayout? layout;
@@ -31,7 +31,7 @@ sealed class UiRelation {
     required this.toNodeId,
     required this.toNodeTable,
     String? verb,
-    bool? directionless,
+    RelationDirection? direction,
     this.style,
     this.resolvedStyle,
     this.layout,
@@ -41,10 +41,79 @@ sealed class UiRelation {
     int? updatedAt,
   }) : id = id ?? RawUuid.v4(),
        verb = verb ?? "default",
-       directionless = directionless ?? false,
+       direction = direction ?? RelationDirection.forward,
        layer = layer ?? "default",
        createdAt = createdAt ?? DateTime.now().millisecondsSinceEpoch,
-       updatedAt = updatedAt ?? DateTime.now().millisecondsSinceEpoch;
+       updatedAt = updatedAt ?? DateTime.now().millisecondsSinceEpoch {
+    normalize();
+  }
+
+  /// Normalizes endpoint ordering (from <= to) and swaps sides/shapes accordingly.
+  UiRelation normalize() {
+    final startShape = style?.startShape ?? resolvedStyle?.startShape;
+    final endShape = style?.endShape ?? resolvedStyle?.endShape;
+
+    final targetDirection = (startShape == endShape)
+        ? RelationDirection.undirected
+        : RelationDirection.forward;
+
+    final fromKey = '${fromNodeTable.toLowerCase()}:${fromNodeId.toUuidString()}';
+    final toKey = '${toNodeTable.toLowerCase()}:${toNodeId.toUuidString()}';
+
+    if (fromKey.compareTo(toKey) <= 0) {
+      if (direction != targetDirection && direction != RelationDirection.backward) {
+        direction = targetDirection;
+      }
+      return this;
+    }
+
+    final oldFromId = fromNodeId;
+    final oldFromTable = fromNodeTable;
+    fromNodeId = toNodeId;
+    fromNodeTable = toNodeTable;
+    toNodeId = oldFromId;
+    toNodeTable = oldFromTable;
+
+    if (direction == RelationDirection.forward) {
+      direction = RelationDirection.backward;
+    } else if (direction == RelationDirection.backward) {
+      direction = RelationDirection.forward;
+    } else {
+      direction = targetDirection;
+    }
+
+    if (layout != null) {
+      layout = layout!.copyWith(
+        fromSide: layout!.toSide,
+        toSide: layout!.fromSide,
+        controlPoint1: layout!.controlPoint2,
+        controlPoint2: layout!.controlPoint1,
+      );
+    }
+    if (resolvedLayout != null) {
+      resolvedLayout = resolvedLayout!.copyWith(
+        fromSide: resolvedLayout!.toSide,
+        toSide: resolvedLayout!.fromSide,
+        controlPoint1: resolvedLayout!.controlPoint2,
+        controlPoint2: resolvedLayout!.controlPoint1,
+      );
+    }
+
+    if (style != null) {
+      style = style!.copyWith(
+        startShape: style!.endShape,
+        endShape: style!.startShape,
+      );
+    }
+    if (resolvedStyle != null) {
+      resolvedStyle = resolvedStyle!.copyWith(
+        startShape: resolvedStyle!.endShape,
+        endShape: resolvedStyle!.startShape,
+      );
+    }
+
+    return this;
+  }
 
   /// Converts to the Rust FFI representation.
   IRelation toRust();
@@ -56,7 +125,7 @@ sealed class UiRelation {
 
   static UiRelation? copy(UiRelation? rel) {
     if (rel == null) return null;
-    if (rel is InfoUiRelation) return rel.copyWith();
+    if (rel is InfoUiRelation) return rel.copyWith()..normalize();
     throw ArgumentError('Unsupported relation type: ${rel.runtimeType}');
   }
 }
@@ -72,7 +141,7 @@ class InfoUiRelation extends UiRelation {
     required super.toNodeId,
     required super.toNodeTable,
     super.verb,
-    super.directionless,
+    super.direction,
     super.style,
     super.resolvedStyle,
     super.layout,
@@ -91,7 +160,7 @@ class InfoUiRelation extends UiRelation {
     String? toNodeTable,
     String? verb,
     String? layer,
-    bool? directionless,
+    RelationDirection? direction,
     RelationStyle? style,
     RelationStyle? resolvedStyle,
     RelationLayout? layout,
@@ -107,7 +176,7 @@ class InfoUiRelation extends UiRelation {
       toNodeTable: toNodeTable ?? this.toNodeTable,
       verb: verb ?? this.verb,
       layer: layer ?? this.layer,
-      directionless: directionless ?? this.directionless,
+      direction: direction ?? this.direction,
       style: style ?? this.style,
       resolvedStyle: resolvedStyle ?? this.resolvedStyle,
       layout: layout ?? this.layout,
@@ -144,7 +213,7 @@ class InfoUiRelation extends UiRelation {
         resolvedStyle: resolvedStyle,
         layout: layout,
         resolvedLayout: resolvedLayout,
-        directionless: directionless,
+        direction: direction,
         layer: layer,
         createdAt: createdAt,
         updatedAt: updatedAt,
@@ -161,7 +230,7 @@ class InfoUiRelation extends UiRelation {
       toNodeId: RawUuid.fromString(relation.out.key.uuid),
       toNodeTable: relation.out.table.name,
       verb: relation.fields.verb,
-      directionless: relation.fields.directionless,
+      direction: relation.fields.direction,
       style: relation.fields.style,
       resolvedStyle: relation.fields.resolvedStyle,
       layout: relation.fields.layout,

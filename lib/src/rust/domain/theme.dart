@@ -29,6 +29,7 @@ class ThemeFields {
   final int primaryColor;
   final int secondaryColor;
   final int accentColor;
+  final int canvasAccentColor;
   final int scaffoldBackgroundColor;
   final int cardColor;
   final int dividerColor;
@@ -51,6 +52,7 @@ class ThemeFields {
     required this.primaryColor,
     required this.secondaryColor,
     required this.accentColor,
+    required this.canvasAccentColor,
     required this.scaffoldBackgroundColor,
     required this.cardColor,
     required this.dividerColor,
@@ -75,6 +77,7 @@ class ThemeFields {
       primaryColor.hashCode ^
       secondaryColor.hashCode ^
       accentColor.hashCode ^
+      canvasAccentColor.hashCode ^
       scaffoldBackgroundColor.hashCode ^
       cardColor.hashCode ^
       dividerColor.hashCode ^
@@ -101,6 +104,7 @@ class ThemeFields {
           primaryColor == other.primaryColor &&
           secondaryColor == other.secondaryColor &&
           accentColor == other.accentColor &&
+          canvasAccentColor == other.canvasAccentColor &&
           scaffoldBackgroundColor == other.scaffoldBackgroundColor &&
           cardColor == other.cardColor &&
           dividerColor == other.dividerColor &&

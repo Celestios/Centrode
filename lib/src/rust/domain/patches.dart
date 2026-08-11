@@ -116,8 +116,8 @@ sealed class RelationPatch with _$RelationPatch {
       RelationPatch_Style;
   const factory RelationPatch.layout([RelationLayout? field0]) =
       RelationPatch_Layout;
-  const factory RelationPatch.directionless(bool field0) =
-      RelationPatch_Directionless;
+  const factory RelationPatch.direction(RelationDirection field0) =
+      RelationPatch_Direction;
   const factory RelationPatch.routingMode(RoutingMode field0) =
       RelationPatch_RoutingMode;
   const factory RelationPatch.portSides([PortSide? field0, PortSide? field1]) =

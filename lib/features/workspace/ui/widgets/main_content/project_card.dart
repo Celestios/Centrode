@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:centrode/shared/elements/elements.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+
 class ProjectCard extends StatefulWidget {
   final String name;
   final String lastOpened;
@@ -63,40 +66,28 @@ class _ProjectCardState extends State<ProjectCard> {
       child: MouseRegion(
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
+        child: GlassPanel(
+          borderRadius: 12.0,
+          enableBackdrop: false,
           color: _isHovered || widget.isSelected
-              ? theme.cardColor.withValues(alpha: 0.9)
-              : theme.cardColor,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: widget.isSelected
-                ? theme.colorScheme.primary
-                : (_isHovered
-                    ? theme.colorScheme.primary.withValues(alpha: 0.4)
-                    : theme.dividerColor.withValues(alpha: 0.2)),
-            width: widget.isSelected ? 1.5 : 1.0,
-          ),
-          boxShadow: _isHovered || widget.isSelected
-              ? [
-                  BoxShadow(
-                    color: theme.shadowColor.withValues(alpha: 0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : [],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+              ? theme.colorScheme.primary.withValues(alpha: 0.12)
+              : theme.cardColor.withValues(alpha: 0.65),
+          shadow: _isHovered || widget.isSelected
+              ? BoxShadow(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                )
+              : null,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             Expanded(
               flex: 4,
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: InkWell(
+                    child: CentrodeButton(
                       onTap: () {
                         if (widget.isSelectionMode) {
                           widget.onSelectionChanged?.call(!widget.isSelected);
@@ -104,6 +95,7 @@ class _ProjectCardState extends State<ProjectCard> {
                           widget.onTap?.call();
                         }
                       },
+                      enableHover: false,
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(8),
                       ),
@@ -129,33 +121,31 @@ class _ProjectCardState extends State<ProjectCard> {
                     Positioned(
                       top: 8,
                       right: 8,
-                      child: InkWell(
-                        onTap: () {
-                          widget.onSelectionChanged?.call(!widget.isSelected);
-                        },
-                        borderRadius: BorderRadius.circular(4),
-                        child: Container(
-                          width: 22,
-                          height: 22,
-                          decoration: BoxDecoration(
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: widget.isSelected
+                              ? theme.colorScheme.primary
+                              : theme.cardColor.withValues(alpha: 0.85),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
                             color: widget.isSelected
                                 ? theme.colorScheme.primary
-                                : theme.cardColor.withValues(alpha: 0.85),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(
-                              color: widget.isSelected
-                                  ? theme.colorScheme.primary
-                                  : theme.dividerColor.withValues(alpha: 0.8),
-                              width: 1.5,
-                            ),
+                                : theme.dividerColor.withValues(alpha: 0.8),
+                            width: 1.5,
                           ),
-                          child: widget.isSelected
-                              ? const Icon(
-                                  Icons.check,
-                                  size: 15,
-                                  color: Colors.white,
-                                )
-                              : null,
+                        ),
+                        child: CentrodeIconButton(
+                          onPressed: () {
+                            widget.onSelectionChanged?.call(!widget.isSelected);
+                          },
+                          enableHover: false,
+                          borderRadius: BorderRadius.circular(4),
+                          iconSize: 15,
+                          buttonSize: 22,
+                          icon: Icons.check,
+                          iconColor: widget.isSelected ? Colors.white : Colors.transparent,
                         ),
                       ),
                     ),

@@ -12,17 +12,9 @@ class EmptySectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
+    return SizedBox(
       width: 180,
       height: 140,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: theme.dividerColor.withValues(alpha: 0.4),
-          width: 1.5,
-          strokeAlign: BorderSide.strokeAlignInside,
-        ),
-      ),
       child: CustomPaint(
         painter: _DashedBorderPainter(
           color: theme.dividerColor.withValues(alpha: 0.4),

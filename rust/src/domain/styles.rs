@@ -15,6 +15,15 @@ pub enum EndpointShape {
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, SurrealDbEnum)]
+pub enum RelationDirection {
+    #[default]
+    Forward = 0,
+    Backward = 1,
+    Undirected = 2,
+}
+
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, SurrealDbEnum)]
 pub enum PortSide {
     #[default]
     Auto = 0,

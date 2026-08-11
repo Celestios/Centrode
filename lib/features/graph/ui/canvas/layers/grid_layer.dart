@@ -137,7 +137,7 @@ class _GridLayerState extends State<GridLayer>
             : Colors.black.withValues(alpha: 0.22))
         : (isDark
             ? Colors.white.withValues(alpha: 0.08)
-            : Colors.black.withValues(alpha: 0.06));
+            : Colors.black.withValues(alpha: 0.12));
 
     if (isAndroid) {
       return RepaintBoundary(
@@ -155,7 +155,7 @@ class _GridLayerState extends State<GridLayer>
 
     final Color glowColor = isDark
         ? Colors.white.withValues(alpha: 0.65)
-        : const Color(0xFF1E1E1E).withValues(alpha: 0.85);
+        : const Color(0xFF1E1E1E).withValues(alpha: 0.65);
 
     return Stack(
       children: [

@@ -384,7 +384,7 @@ DEFINE FIELD OVERWRITE resolved_layout.control_point_2.y ON TABLE IRelation TYPE
 DEFINE FIELD OVERWRITE in ON TABLE IRelation TYPE record<INode | TaskNode | InterNode | CommentNode | DrawingNode | ShapeNode | FrameNode | MediaNode>;
 DEFINE FIELD OVERWRITE out ON TABLE IRelation TYPE record<INode | TaskNode | InterNode | CommentNode | DrawingNode | ShapeNode | FrameNode | MediaNode>;
 DEFINE FIELD OVERWRITE verb ON TABLE IRelation TYPE string;
-DEFINE FIELD OVERWRITE directionless ON TABLE IRelation TYPE bool;
+DEFINE FIELD OVERWRITE direction ON TABLE IRelation TYPE int;
 DEFINE FIELD OVERWRITE layer ON TABLE IRelation TYPE string;
 DEFINE FIELD OVERWRITE created_at ON TABLE IRelation TYPE int;
 DEFINE FIELD OVERWRITE updated_at ON TABLE IRelation COMPUTED time::millis(time::now());
@@ -417,6 +417,7 @@ DEFINE FIELD OVERWRITE name ON TABLE MapTheme TYPE string;
 DEFINE FIELD OVERWRITE primary_color ON TABLE MapTheme TYPE int;
 DEFINE FIELD OVERWRITE secondary_color ON TABLE MapTheme TYPE int;
 DEFINE FIELD OVERWRITE accent_color ON TABLE MapTheme TYPE int;
+DEFINE FIELD OVERWRITE canvas_accent_color ON TABLE MapTheme TYPE int;
 DEFINE FIELD OVERWRITE scaffold_background_color ON TABLE MapTheme TYPE int;
 DEFINE FIELD OVERWRITE card_color ON TABLE MapTheme TYPE int;
 DEFINE FIELD OVERWRITE divider_color ON TABLE MapTheme TYPE int;

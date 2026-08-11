@@ -79,10 +79,10 @@ class _Node {
   final double metadataSphereRadius = 5.0;
   final double metadataSphereStrokeWidth = 1.5;
   final double metadataSphereHitboxRadius = 12.0;
-  final Offset metadataPreviewOffset = const Offset(0, -12);
-  final double metadataPreviewWidth = 220.0;
-  final double metadataPreviewBorderRadius = 8.0;
-  final double metadataPreviewBlur = 8.0;
+  final Offset metadataPreviewOffset = const Offset(0, -34);
+  final double metadataPreviewWidth = 140.0;
+  final double metadataPreviewBorderRadius = 10.0;
+  final double metadataPreviewBlur = 10.0;
   final List<int> defaultTagColors = const [
     0xFF5C6BC0,
     0xFF26A69A,
@@ -105,8 +105,6 @@ class _Toolbar {
 class _Visuals {
   const _Visuals();
 
-  final Color hoverAccent = const Color(0xFF90CAF9);
-  final Color selectionAccent = const Color(0xFF42A5F5);
   final String defaultFont = 'Inter';
   final String defaultShape = 'rectangle';
   final List<String> availableFonts = const [
@@ -130,8 +128,8 @@ class _Port {
   const _Port();
 
   final double edgeOffset = 8.0;
-  final double hitRadius = 16.0;
-  final double drawRadius = 3.0;
+  final double hitRadius = 20.0;
+  final double drawRadius = 4.0;
 }
 
 class _Relation {

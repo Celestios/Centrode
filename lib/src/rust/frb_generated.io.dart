@@ -612,6 +612,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Rect dco_decode_rect(dynamic raw);
 
   @protected
+  RelationDirection dco_decode_relation_direction(dynamic raw);
+
+  @protected
   RelationEngineConfig dco_decode_relation_engine_config(dynamic raw);
 
   @protected
@@ -1317,6 +1320,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Rect sse_decode_rect(SseDeserializer deserializer);
+
+  @protected
+  RelationDirection sse_decode_relation_direction(SseDeserializer deserializer);
 
   @protected
   RelationEngineConfig sse_decode_relation_engine_config(
@@ -2183,6 +2189,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_rect(Rect self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_relation_direction(
+    RelationDirection self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_relation_engine_config(

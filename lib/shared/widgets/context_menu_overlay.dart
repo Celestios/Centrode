@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 class ContextMenuItem {
   final String label;
@@ -77,8 +78,9 @@ class _ContextMenuItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return CentrodeButton(
       onTap: onTap,
+      enableHover: false,
       borderRadius: BorderRadius.circular(4),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

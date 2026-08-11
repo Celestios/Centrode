@@ -13,7 +13,7 @@ class IRelationFields {
   final RelationStyle? resolvedStyle;
   final RelationLayout? layout;
   final RelationLayout? resolvedLayout;
-  final bool directionless;
+  final RelationDirection direction;
   final String layer;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
@@ -24,7 +24,7 @@ class IRelationFields {
     this.resolvedStyle,
     this.layout,
     this.resolvedLayout,
-    required this.directionless,
+    required this.direction,
     required this.layer,
     required this.createdAt,
     required this.updatedAt,
@@ -37,7 +37,7 @@ class IRelationFields {
       resolvedStyle.hashCode ^
       layout.hashCode ^
       resolvedLayout.hashCode ^
-      directionless.hashCode ^
+      direction.hashCode ^
       layer.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode;
@@ -52,7 +52,7 @@ class IRelationFields {
           resolvedStyle == other.resolvedStyle &&
           layout == other.layout &&
           resolvedLayout == other.resolvedLayout &&
-          directionless == other.directionless &&
+          direction == other.direction &&
           layer == other.layer &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt;

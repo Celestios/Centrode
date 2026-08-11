@@ -1,12 +1,9 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:centrode/shared/logging.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../../../../src/rust/layout_engine/types.dart';
 import 'package:centrode/src/rust/domain/styles.dart';
 import 'graph_store.dart';
-
-final Logger _interpolatorLog = Logger('LayoutTickInterpolator');
 
 /// Module responsible for smoothing incoming layout tick steps from Rust.
 ///

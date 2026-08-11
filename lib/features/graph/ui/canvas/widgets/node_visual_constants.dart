@@ -1,4 +1,5 @@
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
+import 'package:centrode/presentation/theme/app_theme_manager.dart';
 
 class NodeVisualConstants {
   NodeVisualConstants._();
@@ -21,10 +22,12 @@ class NodeVisualConstants {
 
   static const double editingStrokeWidth = 3.0;
   static const double editingShadowBlur = 16.0;
-  static const int editingShadowColor = 0x602196F3;
+  static int get editingShadowColor =>
+      AppThemeManager.instance.currentTheme.canvasAccentColor.withValues(alpha: 0.38).toARGB32();
   static const double selectedShadowBlur = 8.0;
   static const int selectedShadowColor = 0x4442A5F5;
-  static const int editingBorderColor = 0xFF2196F3;
+  static int get editingBorderColor =>
+      AppThemeManager.instance.currentTheme.canvasAccentColor.toARGB32();
   static const int selectedBorderColor = 0xFF42A5F5;
   static const double handleWidth = 5.0;
   static const double handleTopOffset = 24.0;

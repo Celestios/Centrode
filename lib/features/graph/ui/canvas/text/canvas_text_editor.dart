@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/logging.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/presentation/theme/app_theme_manager.dart';
 
 import '../../../presentation/node_render_state.dart';
 import '../../../models/models.dart';
@@ -343,63 +344,68 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
               }
               return KeyEventResult.ignored;
             },
-            child: Container(
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.black.withValues(alpha: 0.3)
-                    : Colors.white.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(
-                  color: const Color(0xFF2196F3).withValues(alpha: 0.6),
-                  width: 1.5,
-                ),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-              child: Theme(
-                data: Theme.of(context).copyWith(
-                  textSelectionTheme: const TextSelectionThemeData(
-                    selectionColor: Color(0x602196F3),
-                    selectionHandleColor: Color(0xFF2196F3),
-                    cursorColor: Color(0xFF2196F3),
+            child: Builder(
+              builder: (context) {
+                final canvasAccent = AppThemeManager.instance.currentTheme.canvasAccentColor;
+                return Container(
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.black.withValues(alpha: 0.3)
+                        : Colors.white.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: canvasAccent.withValues(alpha: 0.6),
+                      width: 1.5,
+                    ),
                   ),
-                ),
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: Listener(
-                    onPointerDown: (event) {
-                      if (event.kind == PointerDeviceKind.mouse &&
-                          event.buttons == kSecondaryMouseButton) {
-                        _lastSecondaryTapDownPosition = event.position;
-                        _showCustomContextMenu();
-                      }
-                    },
-                    child: _gestureBuilder.buildGestureDetector(
-                      behavior: HitTestBehavior.translucent,
-                      child: EditableText(
-                        key: _gestureDelegate.editableTextKey,
-                        controller: _controller,
-                        focusNode: _focusNode,
-                        maxLines: widget.maxLines,
-                        minLines: widget.maxLines == null ? 1 : null,
-                        expands: false,
-                        textAlign: textAlign,
-                        textDirection: TextDirection.ltr,
-                        autofocus: true,
-                        cursorColor: const Color(0xFF2196F3),
-                        backgroundCursorColor: Colors.grey,
-                        selectionColor: const Color(0x602196F3),
-                        style: widget.textStyle,
-                        strutStyle: StrutStyle.disabled,
-                        selectionControls: _selectionControls,
-                        showSelectionHandles: false,
-                        magnifierConfiguration:
-                            TextMagnifierConfiguration.disabled,
-                        onTapOutside: (event) {},
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                  child: Theme(
+                    data: Theme.of(context).copyWith(
+                      textSelectionTheme: TextSelectionThemeData(
+                        selectionColor: canvasAccent.withValues(alpha: 0.38),
+                        selectionHandleColor: canvasAccent,
+                        cursorColor: canvasAccent,
+                      ),
+                    ),
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: Listener(
+                        onPointerDown: (event) {
+                          if (event.kind == PointerDeviceKind.mouse &&
+                              event.buttons == kSecondaryMouseButton) {
+                            _lastSecondaryTapDownPosition = event.position;
+                            _showCustomContextMenu();
+                          }
+                        },
+                        child: _gestureBuilder.buildGestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          child: EditableText(
+                            key: _gestureDelegate.editableTextKey,
+                            controller: _controller,
+                            focusNode: _focusNode,
+                            maxLines: widget.maxLines,
+                            minLines: widget.maxLines == null ? 1 : null,
+                            expands: false,
+                            textAlign: textAlign,
+                            textDirection: TextDirection.ltr,
+                            autofocus: true,
+                            cursorColor: canvasAccent,
+                            backgroundCursorColor: Colors.grey,
+                            selectionColor: canvasAccent.withValues(alpha: 0.38),
+                            style: widget.textStyle,
+                            strutStyle: StrutStyle.disabled,
+                            selectionControls: _selectionControls,
+                            showSelectionHandles: false,
+                            magnifierConfiguration:
+                                TextMagnifierConfiguration.disabled,
+                            onTapOutside: (event) {},
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
         );

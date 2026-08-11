@@ -8,7 +8,6 @@ import '../../../store/relation_engine_state.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../engine/base_interaction_state.dart';
 import '../../../engine/interaction_engine.dart';
-import '../../../engine/interaction_context.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
 import '../widgets/metadata_preview_overlay.dart';
@@ -91,14 +90,20 @@ class OverlayLayer extends StatelessWidget {
                   rect.top + AppConfig.node.metadataSphereOffsetFromTop,
                 );
 
+                // Scale the vertical floating clearance offset proportionally with node height
+                final scaledOffsetY = (AppConfig.node.metadataPreviewOffset.dy * (rect.height / 80.0)).clamp(-72.0, -24.0);
+
                 return Positioned(
                   left:
                       sphereCenter.dx + AppConfig.node.metadataPreviewOffset.dx,
                   top:
-                      sphereCenter.dy + AppConfig.node.metadataPreviewOffset.dy,
+                      sphereCenter.dy + scaledOffsetY,
                   child: FractionalTranslation(
                     translation: const Offset(-0.5, -1.0),
-                    child: MetadataPreviewOverlay(node: node),
+                    child: MetadataPreviewOverlay(
+                      node: node,
+                      nodeWidth: rect.width,
+                    ),
                   ),
                 );
               },
