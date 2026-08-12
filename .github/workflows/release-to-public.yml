@@ -5,6 +5,12 @@ on:
     tags:
       - "v*"
 
+# Cancel any older run for the same tag if a new one starts — avoids paying
+# for duplicate runners if a tag gets re-pushed.
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: true
+
 env:
   CARGO_NET_OFFLINE: false
 
@@ -126,11 +132,13 @@ jobs:
             centrode-windows-x64-installer.exe
           retention-days: 1
 
-  build-android-arm64:
-    name: Build Android APK (arm64)
+  build-android:
+    name: Build Android APKs (arm64 + x64)
     needs: setup
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    # Was two 90-min jobs on two runners; one job building both ABIs via
+    # --split-per-abi uses roughly half the runner-minutes for the same output.
+    timeout-minutes: 60
 
     steps:
       - name: Checkout Private Source Code
@@ -144,16 +152,26 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Install Rust Toolchain & Android Target
+      - name: Install Rust Toolchain & Android Targets
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          targets: aarch64-linux-android
+          targets: aarch64-linux-android,x86_64-linux-android
 
       - name: Cache Rust Dependencies
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: "rust -> target"
+
+      - name: Cache Gradle Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Install Flutter SDK
         uses: subosito/flutter-action@v2
@@ -174,72 +192,88 @@ jobs:
       - name: Install Project Dependencies
         run: flutter pub get
 
-      - name: Build Android APK (arm64)
-        run: flutter build apk --release --target-platform android-arm64
+      - name: Add Swap Space
+        # Cheap insurance against the exit-code-143 kill: gives Gradle/R8
+        # headroom to spike without the OOM killer stepping in, without
+        # having to move to a bigger (paid) runner.
+        shell: bash
+        run: |
+          sudo fallocate -l 4G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
 
-      - name: Upload Android APK (arm64)
+      - name: Configure Gradle for CI
+        # Caps the JVM heap explicitly instead of letting Gradle guess based
+        # on total machine RAM (the usual cause of the 143 kill), and turns
+        # off the "rich" console so logs show real task-by-task progress
+        # instead of one opaque redrawing progress line.
+        shell: bash
+        run: |
+          GRADLE_PROPS="android/gradle.properties"
+          touch "$GRADLE_PROPS"
+          sed -i \
+            -e '/^org\.gradle\.jvmargs/d' \
+            -e '/^org\.gradle\.parallel/d' \
+            -e '/^org\.gradle\.workers\.max/d' \
+            -e '/^org\.gradle\.daemon/d' \
+            -e '/^org\.gradle\.console/d' \
+            -e '/^kotlin\.daemon\.jvm\.options/d' \
+            "$GRADLE_PROPS"
+          cat >> "$GRADLE_PROPS" <<'EOF'
+          org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError
+          org.gradle.daemon=false
+          org.gradle.parallel=false
+          org.gradle.workers.max=1
+          org.gradle.console=plain
+          kotlin.daemon.jvm.options=-Xmx1024m
+          EOF
+          echo "----- Final android/gradle.properties -----"
+          cat "$GRADLE_PROPS"
+
+      - name: Build Android APKs (arm64 + x64, split per ABI)
+        shell: bash
+        run: |
+          # Background memory sampler: if this ever gets killed again, the
+          # uploaded log below shows exactly what RAM looked like leading
+          # up to it, instead of a bare exit-143 with no context.
+          ( while true; do
+              echo "[$(date +%T)] $(free -h | awk 'NR==2{print "mem_used="$3", mem_free="$4}')"
+              sleep 30
+            done ) > memory-usage.log &
+          MONITOR_PID=$!
+
+          echo "::group::flutter build apk --release --split-per-abi (verbose)"
+          set +e
+          flutter build apk --release \
+            --target-platform android-arm64,android-x64 \
+            --split-per-abi \
+            -v
+          BUILD_EXIT=$?
+          set -e
+          echo "::endgroup::"
+
+          kill "$MONITOR_PID" 2>/dev/null || true
+          echo "----- memory-usage.log -----"
+          cat memory-usage.log
+          exit $BUILD_EXIT
+
+      - name: Upload Memory Usage Log
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk-arm64
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: android-build-memory-log
+          path: memory-usage.log
           retention-days: 1
 
-  build-android-x64:
-    name: Build Android APK (x64)
-    needs: setup
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-
-    steps:
-      - name: Checkout Private Source Code
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Setup Java Development Kit (JDK 17)
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Install Rust Toolchain & Android Target
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: stable
-          targets: x86_64-linux-android
-
-      - name: Cache Rust Dependencies
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "rust -> target"
-
-      - name: Install Flutter SDK
-        uses: subosito/flutter-action@v2
-        with:
-          channel: "stable"
-          cache: true
-
-      - name: Restore Pub Cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ env.PUB_CACHE }}
-            .dart_tool
-          key: ${{ runner.os }}-pub-${{ hashFiles('pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-
-
-      - name: Install Project Dependencies
-        run: flutter pub get
-
-      - name: Build Android APK (x64)
-        run: flutter build apk --release --target-platform android-x64
-
-      - name: Upload Android APK (x64)
+      - name: Upload Android APKs
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk-x64
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: android-release-apks
+          path: |
+            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+            build/app/outputs/flutter-apk/app-x86_64-release.apk
           retention-days: 1
 
   build-android-aab:
@@ -328,20 +362,15 @@ jobs:
 
   publish-android:
     name: Publish Android Artifacts
-    needs: [build-android-arm64, build-android-x64]
+    needs: build-android
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-      - name: Download Android APK (arm64)
+      - name: Download Android APKs
         uses: actions/download-artifact@v4
         with:
-          name: android-apk-arm64
-
-      - name: Download Android APK (x64)
-        uses: actions/download-artifact@v4
-        with:
-          name: android-apk-x64
+          name: android-release-apks
 
       - name: Publish Android Artifacts to Public GitHub Release
         uses: softprops/action-gh-release@v2
@@ -353,4 +382,5 @@ jobs:
           draft: false
           prerelease: true
           files: |
-            app-release.apk
+            app-arm64-v8a-release.apk
+            app-x86_64-release.apk

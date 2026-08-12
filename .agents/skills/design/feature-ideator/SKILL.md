@@ -25,9 +25,9 @@ Develop distinct concept proposals. Each concept must cover:
 - **Problem & Value**: Why this adds immediate value.
 - **Aesthetic & Motion Plan**: HSL palettes, glassmorphism parameters, spring properties, and interaction behaviors.
 - **Architectural Footprint**:
-  - `[Tier 1: Canvas UI]`: Custom paints, layout updates, interactive nodes.
-  - `[Tier 2: Interaction]`: Gesture bindings, Command patterns, FFI events.
-  - `[Tier 3: Domain/Store]`: SurrealDB schema additions, Rust core data structures.
+  - `[Tier 1: Presentation & Interface]`: Custom paints, layout updates, interactive nodes. LOWEST tier.
+  - `[Tier 2: Interaction & Controllers]`: Gesture bindings, Command patterns, FFI events.
+  - `[Tier 3: Core Domain & Storage]`: SurrealDB schema additions, Rust core data structures. HIGHEST tier.
 
 ### 3. Verification & Cautions
 

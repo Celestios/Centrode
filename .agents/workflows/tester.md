@@ -15,8 +15,8 @@ This workflow guides the design, implementation, and execution of unit, widget, 
 
 ### Step 2: Enforce Coding Standards
 - Based on the language of the component:
-  - For Dart/Flutter tests: View and activate the [dart-coding](.agents/skills/dart-coding/SKILL.md) skill.
-  - For Rust backend tests: View and activate the [rust-coding](.agents/skills/rust-coding/SKILL.md) skill.
+  - For Dart/Flutter tests: View and activate the [dart-coding](.agents/skills/coding/dart-coding/SKILL.md) skill.
+  - For Rust backend tests: View and activate the [rust-coding](.agents/skills/coding/rust-coding/SKILL.md) skill.
 
 ### Step 3: Mocking & Setup Design
 - Design mock dependencies and test data.

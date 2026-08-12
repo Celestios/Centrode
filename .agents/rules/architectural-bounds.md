@@ -5,12 +5,11 @@ description: Rules enforcing strict 3-tier layering, concern isolation, and cros
 
 ## Architectural Bounds
 
-This project enforces strict decoupling and layer boundaries across UI, interaction, and database tiers.
+Full tier definitions, responsibilities, folder mappings, and boundary enforcement rules are in [abstraction-levels.md](.agents/plugins/code-health/rules/abstraction-levels.md).
 
-Rules:
-- **3-Tier Isolation**:
-  - **Tier 1 (UI Canvas)**: Rendering, drawing, canvas paints, toolbar overlays, and view presentation.
-  - **Tier 2 (Presentation & Interaction)**: View controllers, gesture interceptors, FSM state machines, and FFI event dispatching.
-  - **Tier 3 (Domain & Persistence)**: SurrealDB database schemas, Rust core structs, file format models, FFI bridge serialization.
-- **Import Restrictions**: Lower tiers must NEVER import or depend on higher tiers (Tier 3 cannot depend on Tier 1/2; Tier 2 cannot depend on Tier 1).
-- **Mutation Boundaries**: UI widgets (Tier 1) are strictly forbidden from performing inline database writes or queries. They must emit commands or events to Tier 2 coordinators.
+Quick reference:
+- **Tier 1 (Presentation & Interface)**: `lib/features/graph/ui/` — rendering and layout only
+- **Tier 2 (Interaction & Controllers)**: `lib/features/graph/presentation/`, `lib/features/graph/engine/` — transient state and coordination
+- **Tier 3 (Core Domain & Storage)**: `lib/features/graph/store/`, `lib/features/graph/models/`, `rust/src/domain/`, `rust/src/persistence/` — business logic and persistence
+
+Tier 3 MUST NEVER import Tier 1 or Tier 2. Tier 2 MUST NOT import Tier 1. UI widgets (Tier 1) must never make direct database queries or writes; they must emit events or commands to Tier 2 coordinators.

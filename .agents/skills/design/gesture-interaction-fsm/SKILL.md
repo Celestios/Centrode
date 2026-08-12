@@ -11,4 +11,4 @@ Use this skill when designing or implementing user input gesture handlers, point
 
 - **FSM State Transitions**: Ensure canvas states (e.g. idle, panning, zoom, drag node, link port) follow structured, predictable state transitions.
 - **Event Bubbling**: Adhere to the event bubbling hierarchy rules, allowing canvas interceptors to consume events before they propagate to lower states.
-- **Gesture Recognizers**: Design touch, pointer, and keyboard listeners to integrate cleanly into Tier 2 (Interaction/Presentation Controllers).
+- **Gesture Recognizers**: Design touch, pointer, and keyboard listeners to integrate cleanly into Tier 2 (Interaction & Controllers).

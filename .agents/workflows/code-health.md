@@ -19,7 +19,7 @@ It leverages arch-mcp for fast metadata queries, layer/tier enforcement, and dep
 5. **Context-Aware Auditing**: When auditing pending files, do not inspect changes in complete isolation. The audit must be fully informed by the surrounding context of the modified/added lines, including the enclosing class, parent classes, annotations, imports, and sister methods.
 6. **Context-Specific Rule Loading**: Enforce targeted rules based on the codebase language:
    - For `/rust` components, enforce [rust-style-guide.md](.agents/plugins/rust-core-plugin/rules/rust-style-guide.md).
-   - For `/lib` (Flutter/Dart) components, enforce [abstraction-levels.md](.agents/plugins/code-health/rules/abstraction-levels.md), [no-cross-layer-mutation.md](.agents/plugins/code-health/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](.agents/plugins/code-health/rules/symmetry-invariants.md).
+   - For `/lib` (Flutter/Dart) components, enforce [abstraction-levels.md](.agents/plugins/code-health/rules/abstraction-levels.md) (includes cross-layer mutation boundaries) and the [symmetrical-design](.agents/skills/design/symmetrical-design/SKILL.md) skill.
 7. **Actionable Output**: Every finding must include a severity level, the principle violated, clickable file links with line ranges, and a concrete remediation suggestion.
 
 ---
@@ -144,16 +144,16 @@ For each file in the Audit Queue, gather its context from the arch-mcp database:
 - Use `compile_context` on high-risk files to assess blast radius.
 - Use `query` if you suspect a transitive layer leak.
 - Load the language-specific coding standards to audit against:
-  - For Dart files, view and load [dart-coding](.agents/skills/dart-coding/SKILL.md) skill rules.
-  - For Rust files, view and load [rust-coding](.agents/skills/rust-coding/SKILL.md) skill rules.
-- Read rule files: [abstraction-levels.md](.agents/plugins/code-health/rules/abstraction-levels.md), [no-cross-layer-mutation.md](.agents/plugins/code-health/rules/no-cross-layer-mutation.md), and [symmetry-invariants.md](.agents/plugins/code-health/rules/symmetry-invariants.md).
+   - For Dart files, view and load [dart-coding](.agents/skills/coding/dart-coding/SKILL.md) skill rules.
+   - For Rust files, view and load [rust-coding](.agents/skills/coding/rust-coding/SKILL.md) skill rules.
+- Read rule files: [abstraction-levels.md](.agents/plugins/code-health/rules/abstraction-levels.md) (includes cross-layer mutation boundaries) and the [symmetrical-design](.agents/skills/design/symmetrical-design/SKILL.md) skill.
 
 
 ### Step 7: Multi-Agent Deep Audit (Delegated Verification)
 
 Batch the Audit Queue into groups of 3–5 files (grouped by feature area or tier when possible). For each batch, spawn a subagent with the audit checklist from [code-audit-checklist.md](.agents/plugins/code-health/rules/code-audit-checklist.md).
 
-The checklist defines the 8 evaluation dimensions, rules to enforce, dead code verification protocol, and the required finding format (including confidence ratings).
+The checklist defines the 8 evaluation dimensions, rules to enforce, dead code verification protocol, and the required finding format (including confidence ratings). The tension-specific worked examples live in [design-tensions-reference.md](.agents/plugins/code-health/rules/design-tensions-reference.md).
 
 ### Step 8: Synthesize & Report
 
@@ -220,8 +220,8 @@ While CLI tools and cache queries are excellent for metadata-level discovery, th
 The project enforces a strict **3-Tier Hierarchy**. Full tier definitions, responsibilities, and dependency rules are in [abstraction-levels.md](.agents/plugins/code-health/rules/abstraction-levels.md). The authoritative source for layer assignments is `.arch/config.json`.
 
 Quick reference:
-- **Tier 1 (Canvas UI)**: `lib/features/graph/ui` — rendering and layout only
-- **Tier 2 (Presentation & FSM)**: `lib/features/graph/presentation`, `lib/features/graph/engine` — transient state and coordination
-- **Tier 3 (Domain / Store)**: `lib/features/graph/store`, `lib/features/graph/models` — business logic and persistence
+- **Tier 1 (Presentation & Interface)**: `lib/features/graph/ui` — rendering and layout only. LOWEST tier.
+- **Tier 2 (Interaction & Controllers)**: `lib/features/graph/presentation`, `lib/features/graph/engine` — transient state and coordination
+- **Tier 3 (Core Domain & Storage)**: `lib/features/graph/store`, `lib/features/graph/models` — business logic and persistence. HIGHEST tier.
 
 Tier 3 MUST NEVER import Tier 1 or Tier 2. Tier 2 MUST NOT import Tier 1. See [abstraction-levels.md](.agents/plugins/code-health/rules/abstraction-levels.md) for full enforcement rules.

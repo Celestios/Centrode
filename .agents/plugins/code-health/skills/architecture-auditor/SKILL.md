@@ -17,8 +17,8 @@ Before performing any manual code inspection, **always** query arch-mcp first to
 When auditing code for architectural compliance, you MUST use the `view_file` tool to read the target file's source code and perform these explicit semantic checks:
 
 1. **Import Scanning**: Inspect the import block of the target file.
-   - If a presentation/UI file imports database drivers or backend logic, it is a VIOLATION.
-   - If a business/domain file imports rendering/painting libraries (e.g., UI framework specific imports), it is a VIOLATION.
+   - If a higher-tier file (Tier 3, Tier 2) imports a lower-tier component, it is a VIOLATION. (Tier 3 must never import Tier 1/2; Tier 2 must never import Tier 1.)
+   - If a business/domain file (Tier 3) imports rendering/painting libraries (e.g., UI framework specific imports), it is a VIOLATION.
    - Cross-reference imports against the cached `tier` field: Higher-tier components must NEVER import lower-tier components.
 
 2. **Constructor Injection Auditing**:
@@ -40,6 +40,6 @@ When auditing code for architectural compliance, you MUST use the `view_file` to
 
 ## Verification Protocol
 
-Before modifying a file, output an architectural tag indicating its abstraction level (e.g., `[Tier 1: View/Bridge]`, `[Tier 2: Processor]`, `[Tier 3: Domain]`).
+Before modifying a file, output an architectural tag indicating its abstraction level (e.g., `[Tier 1: Presentation & Interface]`, `[Tier 2: Interaction & Controllers]`, `[Tier 3: Core Domain & Storage]`).
 
 If you detect violations, you MUST NOT proceed with feature work until the leak is refactored into the correct layer or the user explicitly overrides the constraint.

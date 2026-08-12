@@ -13,9 +13,9 @@ Use this skill when designing technical layouts, database schemas, command patte
 
 Detail all components and files to be created or modified, tagging each with its architectural tier:
 
-- `[Tier 1: Canvas UI]` - Presentation widgets, paints, overlays.
-- `[Tier 2: Interaction/Presentation]` - Controllers, command handlers, gesture engines.
-- `[Tier 3: Domain/Store]` - Rust domain structs, SurrealQL schema models, persistence modules.
+- `[Tier 1: Presentation & Interface]` - Presentation widgets, paints, overlays. LOWEST tier.
+- `[Tier 2: Interaction & Controllers]` - Controllers, command handlers, gesture engines.
+- `[Tier 3: Core Domain & Storage]` - Rust domain structs, SurrealQL schema models, persistence modules. HIGHEST tier.
 
 ### 2. Design Symmetry Check
 
@@ -30,5 +30,5 @@ Verify that the proposed architecture aligns with existing workspace patterns:
 Draft the event propagation flow:
 
 - Detail how inputs or UI gestures propagate from Tier 1 to Tier 2.
-- Define FFI calls, bridge models, and serialization methods to Tier 3.
+- Define FFI calls, bridge models, and serialization methods to Tier 3 (highest tier, domain layer).
 - Map out the exact database schema additions or mutations and specify SurrealQL query transactions.

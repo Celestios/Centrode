@@ -52,11 +52,11 @@ The output format for the /code-health workflow. All audit reports must follow t
 | `parse_v1()` | lib/features/graph/store/parser.dart | Low | 0 | Yes | Graph may miss dynamic calls |
 
 ## Deep Audit Findings
-| File | Principle | Severity | Confidence | Finding | What Would Confirm |
-|------|-----------|----------|------------|---------|-------------------|
-| [file link] | SRP | 🔴 Critical | High | ... | N/A |
-| [file link] | DRY | 🟡 Warning | Medium | ... | Read sibling files for duplication |
-| [file link] | OCP | 🔵 Info | Low | ... | Run `query` on pattern |
+| File | Principle | Tension | Severity | Confidence | Finding | What Would Confirm |
+|------|-----------|---------|----------|------------|---------|-------------------|
+| [file link] | SRP | SRP vs Cohesion | 🔴 Critical | High | ... | N/A |
+| [file link] | DRY | DRY vs SRP | 🟡 Warning | Medium | ... | Read sibling files for duplication |
+| [file link] | OCP | OCP vs KISS | 🔵 Info | Low | ... | Run `query` on pattern |
 
 ## Recommended Actions
 [Prioritized list of refactoring tasks, grouped by phase: Immediate / This Sprint / This Quarter]

@@ -25,7 +25,7 @@ This skill must be activated and followed strictly whenever writing or modifying
 ### 3. Error Handling & Standard Logging
 - Do NOT build custom error fallbacks. Let errors bubble up using `anyhow::Result` or standard anyhow mapping.
 - Do NOT add migrations.
-- Use standard logging macros (`log::info`, `log::warn`, `log::error`) for all traces. Do not print using `println!` in production code.
+- Use standard logging macros (`tracing::info`, `tracing::debug`, `tracing::warn`, `tracing::error`) for all traces. Do not print using `println!` in production code.
 
 ### 4. Layer Boundary Compliance
 - Rust core must remain entirely decoupled from Dart UI/presentation details. It is a pure domain store and engine layer.

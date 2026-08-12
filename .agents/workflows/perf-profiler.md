@@ -10,14 +10,14 @@ This workflow is used when profiling, diagnosing, and optimizing performance bot
 
 ### Step 1: Bottleneck Profiling
 - Identify the performance target:
-  - **Tier 1 (UI Canvas)**: Frame rates, repaint counts, lag on panning/zooming.
+  - **Tier 1 (Presentation & Interface)**: Frame rates, repaint counts, lag on panning/zooming. LOWEST tier.
   - **FFI Boundary**: Payload serialization sizes, bridge round-trip times.
-  - **Tier 3 (Database)**: SurrealQL execution times, transaction blocking, index matching.
+  - **Tier 3 (Core Domain & Storage)**: SurrealQL execution times, transaction blocking, index matching. HIGHEST tier.
 
 ### Step 2: Load Style and Performance Rules
 - Based on the area of optimization:
-  - For Dart/Flutter optimizations: View and activate the [dart-coding](.agents/skills/dart-coding/SKILL.md) skill.
-  - For Rust/Database optimizations: View and activate the [rust-coding](.agents/skills/rust-coding/SKILL.md) skill.
+  - For Dart/Flutter optimizations: View and activate the [dart-coding](.agents/skills/coding/dart-coding/SKILL.md) skill.
+  - For Rust/Database optimizations: View and activate the [rust-coding](.agents/skills/coding/rust-coding/SKILL.md) skill.
 
 ### Step 3: Performance Auditing
 - Verify common performance hotspots:

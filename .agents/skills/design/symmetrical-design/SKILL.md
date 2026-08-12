@@ -55,6 +55,14 @@ Symmetrical design is the absolute architectural law of the workspace. It extend
 - **Rule**: A controller must not communicate with Subsystem A through a high-level facade interface while reaching deep into the internal collections and fields of Subsystem B to achieve a coordinated task.
 - **Remediation**: Re-encapsulate or expose the internals of the uneven subsystems so that the controller interfaces with both at the same structural depth. If Subsystem A uses a facade pattern, Subsystem B must implement a symmetrical facade pattern, masking its low-level internals to the same degree.
 
+### 10. Essential vs. Coincidental Symmetry
+- **Principle**: Distinguish between **Essential Symmetry** (entities sharing a fundamental, unchanging operational nature) and **Coincidental Symmetry** (entities looking identical by chance but changing for different reasons).
+- **Rule**: When dealing with Essential Symmetry, if you modify or refactor one member of a symmetric group, you MUST synchronously update all other members to preserve the abstraction layer and prevent architectural rot. Do NOT force symmetry upon Coincidental Symmetry — do not tightly couple distinct domains just because they share a temporary coincidence of syntax.
+
+### 11. Meta-Level Behavioral Symmetry
+- **Principle**: When distinct domains (like Layout and Styling) converge under a unified architectural pattern (like the Strategy Pattern), any new additions to those domains MUST strictly follow that identical blueprint.
+- **Rule**: If two subsystems share a behavioral pattern, all new components added to either subsystem must conform to the same structural template, registration lifecycle, and interface contract.
+
 ---
 
 ## Structural Symmetry Cases
