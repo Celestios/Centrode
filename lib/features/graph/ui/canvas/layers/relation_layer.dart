@@ -301,17 +301,41 @@ class RelationLayer extends StatelessWidget {
   }) {
     final bool isDraggingThisTip = tipDrag != null && dragPos != null;
 
-    final startPoint = Offset(cached.startPoint.x, cached.startPoint.y);
-    final endPoint = Offset(cached.endPoint.x, cached.endPoint.y);
+    final rawStart = Offset(cached.startPoint.x, cached.startPoint.y);
+    final rawEnd = Offset(cached.endPoint.x, cached.endPoint.y);
 
     final fromSide = rel.resolvedLayout?.fromSide ?? rel.layout?.fromSide;
     final toSide = rel.resolvedLayout?.toSide ?? rel.layout?.toSide;
     final liveStart = fromSide != null
         ? fromVs.getPortPosition(fromSide)
-        : fromVs.getClosestPort(endPoint).position;
+        : fromVs.getClosestPort(rawEnd).position;
     final liveEnd = toSide != null
         ? toVs.getPortPosition(toSide)
-        : toVs.getClosestPort(startPoint).position;
+        : toVs.getClosestPort(rawStart).position;
+
+    final bool isReversedCache =
+        (rawStart - liveEnd).distance < (rawStart - liveStart).distance &&
+        (rawEnd - liveStart).distance < (rawEnd - liveEnd).distance;
+
+    final startPoint = isReversedCache ? rawEnd : rawStart;
+    final endPoint = isReversedCache ? rawStart : rawEnd;
+
+    final List<Point> cachedPathPoints = isReversedCache
+        ? cached.pathPoints.reversed.toList()
+        : cached.pathPoints;
+    final List<Point> cachedStartShape = isReversedCache
+        ? cached.endShapePath
+        : cached.startShapePath;
+    final List<Point> cachedEndShape = isReversedCache
+        ? cached.startShapePath
+        : cached.endShapePath;
+    final Point cachedStartHandle = isReversedCache
+        ? cached.endHandlePos
+        : cached.startHandlePos;
+    final Point cachedEndHandle = isReversedCache
+        ? cached.startHandlePos
+        : cached.endHandlePos;
+
     final bool isCacheStale =
         (startPoint - liveStart).distance > 0.5 ||
         (endPoint - liveEnd).distance > 0.5;
@@ -343,12 +367,12 @@ class RelationLayer extends StatelessWidget {
         targetEnd: transformEnd,
       );
 
-      bodyPoints = transform(cached.pathPoints);
-      startShapeVertices = cached.startShapePath.isNotEmpty
-          ? transform(cached.startShapePath)
+      bodyPoints = transform(cachedPathPoints);
+      startShapeVertices = cachedStartShape.isNotEmpty
+          ? transform(cachedStartShape)
           : const [];
-      endShapeVertices = cached.endShapePath.isNotEmpty
-          ? transform(cached.endShapePath)
+      endShapeVertices = cachedEndShape.isNotEmpty
+          ? transform(cachedEndShape)
           : const [];
 
       final labelTransformed = transform([
@@ -358,25 +382,29 @@ class RelationLayer extends StatelessWidget {
           ? labelTransformed.first
           : Offset.lerp(transformStart, transformEnd, 0.5)!;
 
+      final handlesTransformed = transform([
+        Point(x: cachedStartHandle.x, y: cachedStartHandle.y),
+        Point(x: cachedEndHandle.x, y: cachedEndHandle.y),
+      ]);
       startHandlePos = isDraggingThisTip
           ? transformStart
-          : Offset(cached.startHandlePos.x, cached.startHandlePos.y);
+          : (handlesTransformed.isNotEmpty ? handlesTransformed.first : transformStart);
       endHandlePos = isDraggingThisTip
           ? transformEnd
-          : Offset(cached.endHandlePos.x, cached.endHandlePos.y);
+          : (handlesTransformed.length > 1 ? handlesTransformed.last : transformEnd);
       startPointResult = transformStart;
       endPointResult = transformEnd;
     } else {
-      bodyPoints = cached.pathPoints.map((p) => Offset(p.x, p.y)).toList();
-      startShapeVertices = cached.startShapePath.isNotEmpty
-          ? cached.startShapePath.map((p) => Offset(p.x, p.y)).toList()
+      bodyPoints = cachedPathPoints.map((p) => Offset(p.x, p.y)).toList();
+      startShapeVertices = cachedStartShape.isNotEmpty
+          ? cachedStartShape.map((p) => Offset(p.x, p.y)).toList()
           : const [];
-      endShapeVertices = cached.endShapePath.isNotEmpty
-          ? cached.endShapePath.map((p) => Offset(p.x, p.y)).toList()
+      endShapeVertices = cachedEndShape.isNotEmpty
+          ? cachedEndShape.map((p) => Offset(p.x, p.y)).toList()
           : const [];
       labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
-      startHandlePos = Offset(cached.startHandlePos.x, cached.startHandlePos.y);
-      endHandlePos = Offset(cached.endHandlePos.x, cached.endHandlePos.y);
+      startHandlePos = Offset(cachedStartHandle.x, cachedStartHandle.y);
+      endHandlePos = Offset(cachedEndHandle.x, cachedEndHandle.y);
       startPointResult = startPoint;
       endPointResult = endPoint;
     }

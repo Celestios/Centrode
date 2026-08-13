@@ -129,9 +129,8 @@ class CanvasInteractionEnvironment implements InteractionContext {
     PortSide? toSide,
     String? verb,
   }) {
-    debugPrint(
-      '[InteractionFacade] onRelationCreate from=$from to=$to fromSide=$fromSide toSide=$toSide',
-    );
+    final fromNode = _queryController.nodeLookup[from];
+    final toNode = _queryController.nodeLookup[to];
     _commandProcessor.createRelation(
       from,
       to,
@@ -139,8 +138,6 @@ class CanvasInteractionEnvironment implements InteractionContext {
       toSide: toSide,
       verb: verb,
     );
-    final fromNode = _queryController.nodeLookup[from];
-    final toNode = _queryController.nodeLookup[to];
     _triggerOptAreaLayoutIfActive(fromNode?.position ?? toNode?.position);
   }
 
@@ -201,8 +198,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
     // 1. Create the node via data layer
     final id = _commandProcessor.createNode(UiNodes.info, position);
 
-    // 2. Open Data Inspector and activate edit mode
-    openDataInspector(id);
+    // 2. Activate edit mode (which also opens Data Inspector)
     onEnterEditMode(id);
 
     // 3. Trigger OptArea layout optimization if inside bounds

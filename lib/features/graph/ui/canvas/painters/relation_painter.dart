@@ -185,10 +185,16 @@ class RelationPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant RelationPainter oldDelegate) {
-    if (oldDelegate.theme != theme) return true;
-    if (oldDelegate.paintDtos.length != paintDtos.length) return true;
+    if (oldDelegate.theme != theme) {
+      return true;
+    }
+    if (oldDelegate.paintDtos.length != paintDtos.length) {
+      return true;
+    }
     for (int i = 0; i < paintDtos.length; i++) {
-      if (oldDelegate.paintDtos[i] != paintDtos[i]) return true;
+      if (oldDelegate.paintDtos[i] != paintDtos[i]) {
+        return true;
+      }
     }
     return false;
   }

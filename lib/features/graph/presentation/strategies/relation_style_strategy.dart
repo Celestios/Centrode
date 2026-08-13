@@ -21,11 +21,14 @@ abstract class RelationStyleStrategy {
     if (theme != null) {
       return const DefaultRelationStyleStrategy().resolve(relation, theme);
     }
-    return fallbackStyle();
+    return fallbackStyle(direction: relation.direction);
   }
 
   /// Centralized aesthetic fallback config used across the store and painter.
-  static RelationStyle fallbackStyle() {
+  static RelationStyle fallbackStyle({
+    RelationDirection direction = RelationDirection.forward,
+  }) {
+    final isBackward = direction == RelationDirection.backward;
     return RelationStyle(
       bgColor: Colors.transparent.toARGB32(),
       strokeColor: Colors.black.toARGB32(),
@@ -37,8 +40,8 @@ abstract class RelationStyleStrategy {
       height: 0,
       arrowType: 'filled_triangle',
       arrowSize: 10,
-      startShape: EndpointShape.none,
-      endShape: EndpointShape.arrow,
+      startShape: isBackward ? EndpointShape.arrow : EndpointShape.none,
+      endShape: isBackward ? EndpointShape.none : EndpointShape.arrow,
       // --- Advanced Style Properties ---
       textColor: Colors.black.toARGB32(),
       shadowColor: const Color(0x1F000000).toARGB32(),
@@ -58,7 +61,7 @@ class DefaultRelationStyleStrategy extends RelationStyleStrategy {
   @override
   RelationStyle resolve(UiRelation relation, GraphTheme theme) {
     if (relation.style != null) return relation.style!;
-    return RelationStyleStrategy.fallbackStyle().copyWith(
+    return RelationStyleStrategy.fallbackStyle(direction: relation.direction).copyWith(
       strokeColor: theme.primaryColor.withValues(alpha: 0.5).toARGB32(),
       fontFamily: theme.fontFamily,
       textColor: theme.bodyTextColor.toARGB32(),

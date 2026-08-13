@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:uuid/uuid.dart';
 import 'package:centrode/src/rust/domain/types.dart';
@@ -53,15 +54,20 @@ sealed class UiRelation {
     final startShape = style?.startShape ?? resolvedStyle?.startShape;
     final endShape = style?.endShape ?? resolvedStyle?.endShape;
 
-    final targetDirection = (startShape == endShape)
+    final targetDirection = (startShape == endShape && startShape != null)
         ? RelationDirection.undirected
         : RelationDirection.forward;
 
     final fromKey = '${fromNodeTable.toLowerCase()}:${fromNodeId.toUuidString()}';
     final toKey = '${toNodeTable.toLowerCase()}:${toNodeId.toUuidString()}';
 
+    final fromSide = layout?.fromSide ?? resolvedLayout?.fromSide;
+    final toSide = layout?.toSide ?? resolvedLayout?.toSide;
+
     if (fromKey.compareTo(toKey) <= 0) {
-      if (direction != targetDirection && direction != RelationDirection.backward) {
+      if (direction != targetDirection &&
+          direction != RelationDirection.backward &&
+          direction != RelationDirection.undirected) {
         direction = targetDirection;
       }
       return this;
@@ -78,6 +84,8 @@ sealed class UiRelation {
       direction = RelationDirection.backward;
     } else if (direction == RelationDirection.backward) {
       direction = RelationDirection.forward;
+    } else if (direction == RelationDirection.undirected) {
+      direction = RelationDirection.undirected;
     } else {
       direction = targetDirection;
     }

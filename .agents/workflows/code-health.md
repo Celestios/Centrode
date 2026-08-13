@@ -6,7 +6,7 @@ description: Multi-agent deep audit of the entire codebase for SOLID principles,
 
 This workflow transforms the agent into a **Principal Code Health Auditor**. It performs a comprehensive, multi-agent analysis of the entire codebase across multiple software engineering dimensions — not just SRP, but the full spectrum of SOLID principles, DRY compliance, design pattern fitness, complexity hotspots, and naming/test coverage assertions.
 
-It leverages arch-mcp for fast metadata queries, layer/tier enforcement, and dependency analysis, and the [architecture-auditor](.agents/plugins/code-health/skills/architecture-auditor/SKILL.md) / [symmetry-checker](.agents/plugins/code-health/skills/symmetry-checker/SKILL.md) skills for deep structural reasoning.
+It leverages arch-mcp for fast metadata queries, layer/tier enforcement, and dependency analysis, and the [dimension-auditor](.agents/plugins/code-health/skills/dimension-auditor/SKILL.md), [architecture-auditor](.agents/plugins/code-health/skills/architecture-auditor/SKILL.md), and [symmetry-checker](.agents/plugins/code-health/skills/symmetry-checker/SKILL.md) skills for deep structural reasoning.
 
 ---
 
@@ -15,12 +15,12 @@ It leverages arch-mcp for fast metadata queries, layer/tier enforcement, and dep
 1. **Audit-First Discovery**: Always start with `audit()` to scan for layer/tier violations. Use `index` to query the arch-mcp database and identify files for the audit queue.
 2. **Deep Semantic AI Scanning**: The CLI cache tools are only for indexing and filtering. You and your subagents **MUST** use the `view_file` tool to read the complete source code of every file in the audit queue. The audit is a semantic, cognitive code review, not a metrics check.
 3. **Multi-Dimensional Analysis**: Each file must be evaluated across all applicable dimensions using the AI-Powered Code Scanning Guidelines defined in this workflow.
-4. **Multi-Agent Delegation**: Batch files into groups of 3–5 and spawn a subagent per group to audit them in parallel. Instruct them explicitly to use their file reading tools and perform cognitive analysis on the code.
+4. **Dynamic Subagent Allocation**: Group files in scope (`N_total`) by feature area/relevance without small remainder batches (< 8 files). Spawn 2, 3, or 4 dimension-clustered subagents per batch as defined in the [dimension-auditor](.agents/plugins/code-health/skills/dimension-auditor/SKILL.md) skill.
 5. **Context-Aware Auditing**: When auditing pending files, do not inspect changes in complete isolation. The audit must be fully informed by the surrounding context of the modified/added lines, including the enclosing class, parent classes, annotations, imports, and sister methods.
 6. **Context-Specific Rule Loading**: Enforce targeted rules based on the codebase language:
    - For `/rust` components, enforce [rust-style-guide.md](.agents/plugins/rust-core-plugin/rules/rust-style-guide.md).
    - For `/lib` (Flutter/Dart) components, enforce [abstraction-levels.md](.agents/plugins/code-health/rules/abstraction-levels.md) (includes cross-layer mutation boundaries) and the [symmetrical-design](.agents/skills/design/symmetrical-design/SKILL.md) skill.
-7. **Actionable Output**: Every finding must include a severity level, the principle violated, clickable file links with line ranges, and a concrete remediation suggestion.
+7. **Actionable Output**: Every finding must include a severity level, the principle violated, clickable file links, and a concise violation description. Do NOT propose remediation fixes during the audit phase.
 
 ---
 
@@ -151,9 +151,14 @@ For each file in the Audit Queue, gather its context from the arch-mcp database:
 
 ### Step 7: Multi-Agent Deep Audit (Delegated Verification)
 
-Batch the Audit Queue into groups of 3–5 files (grouped by feature area or tier when possible). For each batch, spawn a subagent with the audit checklist from [code-audit-checklist.md](.agents/plugins/code-health/rules/code-audit-checklist.md).
-
-The checklist defines the 8 evaluation dimensions, rules to enforce, dead code verification protocol, and the required finding format (including confidence ratings). The tension-specific worked examples live in [design-tensions-reference.md](.agents/plugins/code-health/rules/design-tensions-reference.md).
+Apply the dynamic batching and subagent allocation rules from the [dimension-auditor](.agents/plugins/code-health/skills/dimension-auditor/SKILL.md) skill:
+1. **Group Files Intelligently**: Group files in scope (`N_total`) by feature/directory relevance, avoiding small remainder batches (< 8 files) by absorbing remainder files across batches.
+2. **Determine Subagents per Batch**: Spawn 2, 3, or 4 subagents per batch based on file count (`F_batch`):
+   - `1 <= F_batch <= 8` $\implies$ 2 Subagents
+   - `9 <= F_batch <= 15` $\implies$ 3 Subagents
+   - `F_batch >= 16` $\implies$ 4 Subagents
+3. **Construct Custom Subagent Prompts**: Populate the subagent prompt template from `dimension-auditor`, adding custom Master Agent context and domain notes for each batch.
+4. **Audit Rules**: Subagents evaluate dimensions in contrast using `view_file` and output ultra-compact JSON arrays without proposing remediation fixes.
 
 ### Step 8: Synthesize & Report
 
@@ -164,7 +169,7 @@ Compile all subagent results into a single **Code Health Report** using the temp
 For each audited file, update its status in the graph to reflect the audit result.
 
 > [!IMPORTANT]
-> A file is compliant and can be marked as `COMPLIANT` ONLY if it has been thoroughly analyzed by a separate cognitive/auditor agent (such as the `architecture-auditor` or `symmetry-checker` subagent) for various architectural principles. Do NOT mark changed files as `COMPLIANT` without a proper multi-agent audit as described in Step 6.
+> A file is compliant and can be marked as `COMPLIANT` ONLY if it has been thoroughly analyzed by a separate cognitive/auditor agent (such as the `dimension-auditor`, `architecture-auditor`, or `symmetry-checker` subagent) for various architectural principles. Do NOT mark changed files as `COMPLIANT` without a proper multi-agent audit as described in Step 7.
 
 - **If Compliant across all dimensions**:
   ```powershell

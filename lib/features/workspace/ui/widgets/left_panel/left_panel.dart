@@ -22,11 +22,14 @@ class LeftPanel extends StatelessWidget {
         color: isDark
             ? const Color(0xFF141418).withValues(alpha: 0.65)
             : const Color(0xFFE8E8E8).withValues(alpha: 0.85),
-        child: const Column(
-          children: [
-            Expanded(child: QuickActionsSection()),
-            PanelFooterSection(),
-          ],
+        child: Material(
+          color: Colors.transparent,
+          child: const Column(
+            children: [
+              Expanded(child: QuickActionsSection()),
+              PanelFooterSection(),
+            ],
+          ),
         ),
       ),
     );

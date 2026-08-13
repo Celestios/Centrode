@@ -59,13 +59,16 @@ impl Repository {
     pub async fn calculate_global_bounds(&self) -> Result<BoundingBox> {
         let sql = format!(
             "
-            LET $xs = (SELECT VALUE position.x FROM {0}, {1}, {2} WHERE position.x != NONE);
-            LET $ys = (SELECT VALUE position.y FROM {0}, {1}, {2} WHERE position.y != NONE);
+            LET $nodes = (SELECT position.x AS x, position.y AS y, (size.width || 80.0) AS w, (size.height || 40.0) AS h FROM {0}, {1}, {2} WHERE position.x != NONE);
+            LET $xs = (SELECT VALUE x FROM $nodes);
+            LET $max_xs = (SELECT VALUE (x + w) FROM $nodes);
+            LET $ys = (SELECT VALUE y FROM $nodes);
+            LET $max_ys = (SELECT VALUE (y + h) FROM $nodes);
             RETURN {{
                 min_x: <float> math::min($xs),
-                max_x: <float> math::max($xs),
+                max_x: <float> math::max($max_xs),
                 min_y: <float> math::min($ys),
-                max_y: <float> math::max($ys)
+                max_y: <float> math::max($max_ys)
             }};
             ",
             INode::LABEL,
@@ -74,10 +77,10 @@ impl Repository {
         );
 
         let mut res = self.db.query(sql).await?;
-        let min_x: Option<f64> = res.take((2, "min_x"))?;
-        let max_x: Option<f64> = res.take((2, "max_x"))?;
-        let min_y: Option<f64> = res.take((2, "min_y"))?;
-        let max_y: Option<f64> = res.take((2, "max_y"))?;
+        let min_x: Option<f64> = res.take((5, "min_x"))?;
+        let max_x: Option<f64> = res.take((5, "max_x"))?;
+        let min_y: Option<f64> = res.take((5, "min_y"))?;
+        let max_y: Option<f64> = res.take((5, "max_y"))?;
 
         if let (Some(mx), Some(mxx), Some(my), Some(mxy)) = (min_x, max_x, min_y, max_y) {
             if mx.is_finite() && mxx.is_finite() && my.is_finite() && mxy.is_finite() {

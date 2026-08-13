@@ -221,6 +221,7 @@ Future<void> _createTreeNodes(
 
     dataController.store.relationLookup[relation.id] = relation;
     dataController.styleUpdater?.updateStyleForRelation(relation.id);
+    relation.normalize();
 
     try {
       await dataController.syncEngine.api.createRelation(

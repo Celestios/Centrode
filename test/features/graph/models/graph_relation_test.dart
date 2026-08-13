@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:centrode/features/graph/models/graph_relation.dart';
+import 'package:centrode/features/graph/presentation/strategies/relation_style_strategy.dart';
 import 'package:centrode/src/rust/domain/styles.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
@@ -59,6 +60,24 @@ void main() {
       expect(rustObj.out.key.uuid, n2Id.toUuidString());
       expect(rustObj.fields.verb, 'blocks');
       expect(rustObj.fields.direction, RelationDirection.forward);
+    });
+
+    test('RelationStyleStrategy respects relation direction for backward relation', () {
+      final relation = InfoUiRelation(
+        fromNodeId: RawUuid.fromString('cf4c2f37-460d-4795-b69a-e6c6d01c1f0c'),
+        fromNodeTable: 'INode',
+        toNodeId: RawUuid.fromString('5216cdb1-e970-4c15-bdfc-8406b8b85f39'),
+        toNodeTable: 'INode',
+      );
+
+      // Normalization swaps from and to because cf4c... > 5216...
+      expect(relation.direction, RelationDirection.backward);
+      expect(relation.fromNodeId, RawUuid.fromString('5216cdb1-e970-4c15-bdfc-8406b8b85f39'));
+      expect(relation.toNodeId, RawUuid.fromString('cf4c2f37-460d-4795-b69a-e6c6d01c1f0c'));
+
+      final style = RelationStyleStrategy.fallbackStyle(direction: relation.direction);
+      expect(style.startShape, EndpointShape.arrow);
+      expect(style.endShape, EndpointShape.none);
     });
   });
 }

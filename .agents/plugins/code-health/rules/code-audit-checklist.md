@@ -82,5 +82,5 @@ For each finding, report:
   - *Medium*: structural similarity detected but not fully verified
   - *Low*: heuristic or graph-based detection only
 - **Line range** if applicable
-- **Concrete remediation suggestion**
+- **Concise violation description** (report broken contract; do NOT propose remediation fixes during audit phase)
 - **What would confirm this** (for Medium/Low confidence): the additional check needed to upgrade confidence

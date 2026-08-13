@@ -32,13 +32,18 @@ class MarqueeSelecting extends CanvasInteractionState {
   ) {
     final marqueeRect = Rect.fromPoints(startPos, currentPos);
 
+    // If no meaningful drag distance occurred, cleanly return to idle without querying
+    if (marqueeRect.width.abs() < 2.0 && marqueeRect.height.abs() < 2.0) {
+      return const CanvasIdle();
+    }
+
     _marqueeLog.finer(
       'Marquee Release: Evaluating bounds $marqueeRect against spatial index.',
     );
 
     var nodeIdsToCheck = ctx.getVisibleNodeIds();
 
-    if (nodeIdsToCheck.isEmpty) {
+    if (nodeIdsToCheck.isEmpty && ctx.nodeViewStates.isNotEmpty) {
       _marqueeLog.warning(
         'Marquee T=0 Fallback: Spatial index empty, querying all ${ctx.nodeViewStates.length} ViewStates.',
       );

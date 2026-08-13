@@ -89,4 +89,13 @@ impl Repository {
         }
         Ok(connected_relations)
     }
+
+    pub async fn get_all_relations(&self) -> Result<Vec<IRelation>> {
+        let relations_raw: Vec<Value> = self.db.select(IRelation::LABEL).await?;
+        let relations: Vec<IRelation> = relations_raw
+            .into_iter()
+            .filter_map(|val| IRelation::from_value(val).ok())
+            .collect();
+        Ok(relations)
+    }
 }

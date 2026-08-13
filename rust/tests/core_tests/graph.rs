@@ -386,7 +386,7 @@ async fn test_calculate_global_bounds() {
 
     let bounds = repo.calculate_global_bounds().await.unwrap();
     assert_eq!(bounds.min_x, -100.0);
-    assert_eq!(bounds.max_x, 300.0);
+    assert_eq!(bounds.max_x, 310.0);
     assert_eq!(bounds.min_y, -200.0);
-    assert_eq!(bounds.max_y, 50.0);
+    assert_eq!(bounds.max_y, 60.0);
 }

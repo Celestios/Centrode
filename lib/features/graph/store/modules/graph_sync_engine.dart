@@ -71,8 +71,9 @@ class GraphSyncEngine {
       _syncLog.info(
         'Initiating Graph Hydration: Connecting FFI Stream and fetching snapshot.',
       );
-      // Connect to the asynchronous event bus from Rust
-      _graphStreamSub ??= api.createGraphStream().listen(_handleGraphEvent);
+      // Connect to the asynchronous event bus from Rust, ensuring previous subscription is cancelled
+      await _graphStreamSub?.cancel();
+      _graphStreamSub = api.createGraphStream().listen(_handleGraphEvent);
 
       final snapshot = await api.getGraphSnapshot();
       _lastLoadedMetadata = snapshot.metadata;
@@ -381,6 +382,7 @@ class GraphSyncEngine {
     _interpolator.cancel();
     processor.flushSync();
     _graphStreamSub?.cancel();
+    _graphStreamSub = null;
   }
 
   void _hydrateNode(UiNode node) {

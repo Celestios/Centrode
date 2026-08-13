@@ -134,16 +134,6 @@ class CanvasIdle extends CanvasInteractionState {
       return this;
     }
 
-    if (e.buttons == kPrimaryMouseButton &&
-        hitEntityId == null &&
-        !isDoubleTap) {
-      if (ctx.toolMode == 'optimize') {
-        ctx.onSetOptArea(null);
-        return OptAreaDrawing(pCanvas, pCanvas);
-      }
-      return MarqueeSelecting(pCanvas, pCanvas);
-    }
-
     if (isDoubleTap) {
       if (hitEntityId == null) {
         final effectiveGridSize = calculateEffectiveGridSize(ctx.currentScale);
@@ -153,6 +143,14 @@ class CanvasIdle extends CanvasInteractionState {
         ctx.onEnterEditMode(hitEntityId);
       }
       return this;
+    }
+
+    if (e.buttons == kPrimaryMouseButton && hitEntityId == null) {
+      if (ctx.toolMode == 'optimize') {
+        ctx.onSetOptArea(null);
+        return OptAreaDrawing(pCanvas, pCanvas);
+      }
+      return MarqueeSelecting(pCanvas, pCanvas);
     }
 
     return this;

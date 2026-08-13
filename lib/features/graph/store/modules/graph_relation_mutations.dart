@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:centrode/shared/logging.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import '../../models/commands.dart';
@@ -59,6 +60,7 @@ class GraphRelationMutations {
     // OPTIMISTIC INSERTION (T=0.0ms)
     controller.store.relationLookup[relation.id] = relation;
     controller.styleUpdater?.updateStyleForRelation(relation.id);
+    relation.normalize();
 
     final cmd = CreateRelationCommand(
       targetId: relation.id,
