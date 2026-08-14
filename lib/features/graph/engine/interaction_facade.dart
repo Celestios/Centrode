@@ -64,6 +64,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
        contentHandler = contentHandler ?? const DefaultContentActionHandler();
 
   @override
+  ViewportScope get activeScope => _viewportController.activeScopeNotifier.value;
+
+  @override
   String get toolMode => _boundSession?.toolModeNotifier.value ?? 'select';
 
   @override

@@ -20,6 +20,7 @@ import '../../../presentation/strategies/relation_style_strategy.dart';
 import '../../../presentation/relation_utils.dart';
 import '../../../store/relation_engine_state.dart';
 import '../../../engine/base_interaction_state.dart';
+import '../../../presentation/viewport_state.dart';
 
 class RelationLayer extends StatelessWidget {
   const RelationLayer({super.key});
@@ -29,6 +30,7 @@ class RelationLayer extends StatelessWidget {
     final queryController = context.read<GraphDataQueryController>();
     final uiController = context.read<NodeRenderState>();
     final interactionController = context.read<InteractionController>();
+    final viewport = context.read<ViewportController>();
     final tabsController = context.watch<WorkspaceTabsController>();
     final session = tabsController.activeSession;
     final theme = Theme.of(context);
@@ -43,6 +45,7 @@ class RelationLayer extends StatelessWidget {
           interactionController.state,
           queryController.relationEngine.cacheNotifier,
           session.relationLabelModeNotifier,
+          viewport.activeScopeNotifier,
         ]),
         builder: (context, _) {
           final interactionState = interactionController.state.value;
@@ -108,8 +111,22 @@ class RelationLayer extends StatelessWidget {
             }
           }
 
+          final activeScope = viewport.activeScopeNotifier.value;
+          final scopeRelations = queryController.relations.where((r) {
+            final fromNode = queryController.nodeLookup[r.fromNodeId];
+            final toNode = queryController.nodeLookup[r.toNodeId];
+            if (fromNode == null || toNode == null) return false;
+            if (activeScope is ContainerViewportScope) {
+              return fromNode.parentContainerId == activeScope.containerId &&
+                     toNode.parentContainerId == activeScope.containerId;
+            } else {
+              return fromNode.parentContainerId == null &&
+                     toNode.parentContainerId == null;
+            }
+          }).toList();
+
           final paintDtos = _buildPaintDtos(
-            relations: queryController.relations.toList(),
+            relations: scopeRelations,
             nodeViewStates: uiController.viewStates,
             selectedEntities: uiController.selectedEntities,
             relationEngine: queryController.relationEngine,

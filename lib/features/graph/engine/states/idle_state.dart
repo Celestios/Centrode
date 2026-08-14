@@ -254,15 +254,22 @@ class CanvasIdle extends CanvasInteractionState {
 
     // Check candidates in reverse z-order for proper hit priority
     final zOrder = ctx.zOrder;
+    final activeScope = ctx.activeScope;
     for (int i = zOrder.length - 1; i >= 0; i--) {
       final nodeId = zOrder[i];
       if (!candidateIds.contains(nodeId)) continue;
 
-      final vs = ctx.nodeViewStates[nodeId];
-      if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
-
       final node = ctx.getNode(nodeId);
       if (node == null) continue;
+
+      if (activeScope is ContainerViewportScope) {
+        if (node.parentContainerId != activeScope.containerId) continue;
+      } else {
+        if (node.parentContainerId != null) continue;
+      }
+
+      final vs = ctx.nodeViewStates[nodeId];
+      if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
 
       if (node is! DrawingUiNode &&
           (vs.rightResizeHitbox.contains(pCanvas) ||

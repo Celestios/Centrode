@@ -130,7 +130,7 @@ class NodeRenderState extends ChangeNotifier
         if (node != null) {
           final vs = viewStates[id];
           if (vs != null) {
-            final Size newSize = update.payload as Size;
+            final Size newSize = (update.payload as Size?) ?? node.size;
             if (vs.sizeNotifier.value != newSize) {
               vs.dragWidthNotifier.value = null;
               vs.onSizeChanged(node);
@@ -330,6 +330,9 @@ class NodeRenderState extends ChangeNotifier
   SpatialHashGrid get spatialGrid => _dataQuery.spatialGrid;
 
   @override
+  HierarchicalSpatialIndex get spatialIndex => _dataQuery.spatialIndex;
+
+  @override
   Map<RawUuid, UiNode> get nodeLookup => _dataQuery.nodeLookup;
 
   @override
@@ -349,6 +352,10 @@ class NodeRenderState extends ChangeNotifier
 
   @override
   Stream<GraphEntityUpdate> get onEntityUpdate => _dataQuery.onEntityUpdate;
+
+  void convertNodeToContainer(RawUuid id) {
+    _dataCommand.convertNodeToContainer(id);
+  }
 
   void updateRelationsLayout(List<RawUuid> ids, {String? strategyType}) {
     _dataCommand.updateRelationsLayout(ids, strategyType: strategyType);

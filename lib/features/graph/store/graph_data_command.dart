@@ -19,6 +19,7 @@ abstract interface class GraphDataCommand {
     dynamic originalTextOrContent,
   });
   void updateEntityTextLive(RawUuid id, dynamic newTextOrContent);
+  void convertNodeToContainer(RawUuid id);
   Future<void> createTag(Tag tag);
   Future<void> updateTag(Tag tag);
   Future<void> deleteTag(String tagKey);

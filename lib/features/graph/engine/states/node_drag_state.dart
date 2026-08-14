@@ -61,6 +61,7 @@ class NodeDragging extends CanvasInteractionState {
   ) {
     _snapTimer?.cancel();
     final vs = ctx.nodeViewStates[nodeId];
+    final node = ctx.getNode(nodeId);
     ctx.setNodeDragging(nodeId, false);
     if (vs != null && _hasMoved) {
       final effectiveGridSize = calculateEffectiveGridSize(ctx.currentScale);
@@ -69,7 +70,11 @@ class NodeDragging extends CanvasInteractionState {
       _nodeDragLog.info(
         'Drag Commit: ID=$nodeId, Final Position=$snappedPos',
       );
+
       ctx.onNodeMove(nodeId, snappedPos);
+      if (node != null) {
+        vs.positionNotifier.value = node.position;
+      }
     }
     return const CanvasIdle();
   }

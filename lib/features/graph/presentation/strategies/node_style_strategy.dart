@@ -77,6 +77,14 @@ abstract class NodeStyleStrategy {
         borderRadius: 0.0,
         strategyType: 'drawing',
       );
+    } else if (node is ContainerUiNode) {
+      base = fallbackStyle(node.size.width, node.size.height).copyWith(
+        bgColor: 0x1A2196F3,
+        strokeColor: 0xFF64B5F6,
+        strokeWidth: 2,
+        borderRadius: 12.0,
+        textColor: 0xFFFFFFFF,
+      );
     } else {
       base = fallbackStyle();
     }
@@ -90,6 +98,21 @@ class DefaultNodeStyleStrategy implements NodeStyleStrategy {
   @override
   NodeStyle computeStyle(UiNode node, GraphTheme theme) {
     if (node.style != null) return node.style!;
+
+    if (node is ContainerUiNode) {
+      return NodeStyleStrategy.fallbackStyle(
+        node.size.width,
+        node.size.height,
+        theme.bodyFontSize,
+      ).copyWith(
+        bgColor: 0x1A2196F3,
+        strokeColor: 0xFF64B5F6,
+        strokeWidth: 2,
+        fontFamily: theme.fontFamily,
+        textColor: 0xFFFFFFFF,
+        borderRadius: 12.0,
+      );
+    }
 
     final int bgColor = _computeBaseColor(node, theme);
     return NodeStyleStrategy.fallbackStyle(
@@ -109,6 +132,7 @@ class DefaultNodeStyleStrategy implements NodeStyleStrategy {
     return switch (node) {
       TaskUiNode() => 0xFF34D399,
       DrawingUiNode() => 0x00000000,
+      ContainerUiNode() => 0x1A2196F3,
       InfoUiNode() => theme.primaryColor.toARGB32(),
       _ => theme.primaryColor.toARGB32(),
     };

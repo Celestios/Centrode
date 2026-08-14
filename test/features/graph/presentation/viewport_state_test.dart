@@ -11,6 +11,8 @@ class MockGraphDataQuery extends Mock implements GraphDataQuery {}
 
 class MockSpatialHashGrid extends Mock implements SpatialHashGrid {}
 
+class MockHierarchicalSpatialIndex extends Mock implements HierarchicalSpatialIndex {}
+
 void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -21,24 +23,31 @@ void main() {
     late ViewportController controller;
     late MockGraphDataQuery mockQuery;
     late MockSpatialHashGrid mockSpatial;
+    late MockHierarchicalSpatialIndex mockSpatialIndex;
     late ValueNotifier<BoundingBox> mockBoundsNotifier;
     late Stream<GraphEntityUpdate> mockEntityUpdates;
 
     setUp(() {
       mockQuery = MockGraphDataQuery();
       mockSpatial = MockSpatialHashGrid();
+      mockSpatialIndex = MockHierarchicalSpatialIndex();
       mockBoundsNotifier = ValueNotifier(
         BoundingBox(minX: 0, minY: 0, maxX: 100, maxY: 100),
       );
       mockEntityUpdates = const Stream.empty();
 
       when(() => mockQuery.spatialGrid).thenReturn(mockSpatial);
+      when(() => mockQuery.spatialIndex).thenReturn(mockSpatialIndex);
+      when(() => mockQuery.nodeLookup).thenReturn({});
       when(
         () => mockQuery.canvasBounds,
       ).thenAnswer((_) => mockBoundsNotifier.value);
       when(() => mockQuery.onEntityUpdate).thenAnswer((_) => mockEntityUpdates);
       when(
         () => mockSpatial.queryRect(any()),
+      ).thenReturn(<RawUuid>{RawUuid.fromString('node-1')});
+      when(
+        () => mockSpatialIndex.queryViewport(any(), any(), any()),
       ).thenReturn(<RawUuid>{RawUuid.fromString('node-1')});
 
       controller = ViewportController(mockQuery);

@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:centrode/features/graph/models/port.dart';
+import 'package:centrode/features/graph/models/graph_node.dart';
+import 'package:centrode/features/graph/store/graph_data_query.dart';
 import 'package:centrode/features/graph/presentation/drag_state.dart';
 import 'package:centrode/features/graph/presentation/view_state.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
@@ -120,6 +123,17 @@ class _PortLayerState extends State<PortLayer> {
 
     final vs = widget.nodeViewStates[nodeId];
     if (vs == null) return const SizedBox.shrink();
+
+    GraphDataQuery? query;
+    try {
+      query = Provider.of<GraphDataQuery>(context, listen: false);
+    } catch (_) {}
+    if (query != null) {
+      final node = query.nodeLookup[nodeId];
+      if (node is ContainerUiNode && !node.isClosed) {
+        return const SizedBox.shrink();
+      }
+    }
 
     if (widget.dragState.isNodeDragging(nodeId)) {
       return const SizedBox.shrink();

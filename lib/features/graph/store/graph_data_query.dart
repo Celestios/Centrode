@@ -44,6 +44,7 @@ abstract interface class GraphDataQuery {
   bool get isLoading;
   String? get errorMessage;
   SpatialHashGrid get spatialGrid;
+  HierarchicalSpatialIndex get spatialIndex;
   Map<RawUuid, UiNode> get nodeLookup;
   Map<RawUuid, UiRelation> get relationLookup;
   Iterable<UiRelation> get relations;

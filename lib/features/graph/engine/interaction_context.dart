@@ -17,9 +17,13 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 /// state objects can interact with the context without direct coupling
 /// to the controller implementation.
 import '../presentation/workspace_tabs_controller.dart';
+import '../presentation/viewport_state.dart';
 
 /// Interface segregating viewport capability from the rest of the context.
 abstract interface class ViewportCapability {
+  /// Gets the active viewport hierarchy scope.
+  ViewportScope get activeScope;
+
   /// Gets the bound session if available.
   TabSession? get boundSession;
 

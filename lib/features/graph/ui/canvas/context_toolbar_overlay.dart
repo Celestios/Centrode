@@ -137,7 +137,8 @@ class ContextToolbarOverlay extends StatelessWidget {
               vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width,
               vs.sizeNotifier.value.height,
             );
-            anchorCanvas = vs.positionNotifier.value;
+            final node = queryController.nodeLookup[editedId];
+            anchorCanvas = node?.getAbsoluteWorldPosition(queryController.nodeLookup) ?? vs.positionNotifier.value;
             entityWidth = size.width;
           } else {
             UiRelation? rel;
@@ -403,13 +404,16 @@ class ContextToolbarOverlay extends StatelessWidget {
             vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width,
             vs.sizeNotifier.value.height,
           );
+          final singleId = singleNodeId;
+          final node = singleId != null ? queryController.nodeLookup[singleId] : null;
+          final worldPos = node?.getAbsoluteWorldPosition(queryController.nodeLookup) ?? vs.positionNotifier.value;
           final tl = MatrixUtils.transformPoint(
             matrix,
-            vs.positionNotifier.value,
+            worldPos,
           );
           final br = MatrixUtils.transformPoint(
             matrix,
-            vs.positionNotifier.value + Offset(s.width, s.height),
+            worldPos + Offset(s.width, s.height),
           );
           final nodeScreenRect = Rect.fromPoints(tl, br);
           final screenRect = Rect.fromLTWH(0, 0, screenWidth, screenHeight);

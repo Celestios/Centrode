@@ -9,6 +9,8 @@ import 'interaction_context.dart';
 import 'base_interaction_state.dart';
 import 'z_order_utils.dart';
 
+import '../presentation/viewport_state.dart';
+
 enum HitTestType {
   none,
   rightClick,
@@ -72,7 +74,17 @@ class HitTestResolver {
     InteractionContext ctx,
     bool isDoubleTap,
   ) {
-    final nodeIds = resolveZOrderToNodeIds(ctx.zOrder, ctx.nodeViewStates);
+    final activeScope = ctx.activeScope;
+    final allNodeIds = resolveZOrderToNodeIds(ctx.zOrder, ctx.nodeViewStates);
+    final nodeIds = allNodeIds.where((id) {
+      final node = ctx.getNode(id);
+      if (node == null) return false;
+      if (activeScope is ContainerViewportScope) {
+        return node.parentContainerId == activeScope.containerId;
+      } else {
+        return node.parentContainerId == null;
+      }
+    }).toList();
 
     final selectedEntities = ctx.getSelectedEntities();
     _hitTestLog.fine(
@@ -248,6 +260,8 @@ class HitTestResolver {
   }
 
 
+
+
   PointerHitResult? _resolvePorts(
     Offset pCanvas,
     InteractionContext ctx,
@@ -255,16 +269,19 @@ class HitTestResolver {
   ) {
     final hoveredId = ctx.hoveredNodeId;
     if (hoveredId != null) {
-      final vs = ctx.nodeViewStates[hoveredId];
-      if (vs != null && vs.sizeNotifier.value != Size.zero) {
-        for (final port in vs.ports.allPorts) {
-          if ((pCanvas - port.position).distance <
-              AppConfig.port.hitRadius * vs.currentScale) {
-            return PointerHitResult(
-              type: HitTestType.port,
-              hitNodeId: hoveredId,
-              hitPort: port,
-            );
+      final node = ctx.getNode(hoveredId);
+      if (node is! ContainerUiNode || node.isClosed) {
+        final vs = ctx.nodeViewStates[hoveredId];
+        if (vs != null && vs.sizeNotifier.value != Size.zero && node != null) {
+          for (final port in vs.ports.allPorts) {
+            if ((pCanvas - port.position).distance <
+                AppConfig.port.hitRadius * vs.currentScale) {
+              return PointerHitResult(
+                type: HitTestType.port,
+                hitNodeId: hoveredId,
+                hitPort: port,
+              );
+            }
           }
         }
       }
@@ -272,8 +289,11 @@ class HitTestResolver {
     }
 
     for (final nodeId in nodeIds) {
+      final node = ctx.getNode(nodeId);
+      if (node is ContainerUiNode && !node.isClosed) continue;
+
       final vs = ctx.nodeViewStates[nodeId];
-      if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
+      if (vs == null || vs.sizeNotifier.value == Size.zero || node == null) continue;
 
       for (final port in vs.ports.allPorts) {
         if ((pCanvas - port.position).distance <
@@ -300,36 +320,15 @@ class HitTestResolver {
 
       final node = ctx.getNode(nodeId);
       if (node == null) continue;
-      if (vs.lineCount > AppConfig.node.collapsedLineLimit &&
-          vs.getExpandToggleHitbox(node).contains(pCanvas)) {
-        return PointerHitResult(
-          type: HitTestType.expandToggle,
-          hitNodeId: nodeId,
-        );
-      }
+      if (node is ContainerUiNode && !node.isClosed) continue;
 
-      if (node is! DrawingUiNode) {
-        if (vs.rightResizeHitbox.contains(pCanvas)) {
-          return PointerHitResult(
-            type: HitTestType.resizeRight,
-            hitNodeId: nodeId,
-            draggedEdge: ResizeEdge.right,
-          );
-        } else if (vs.leftResizeHitbox.contains(pCanvas)) {
-          return PointerHitResult(
-            type: HitTestType.resizeLeft,
-            hitNodeId: nodeId,
-            draggedEdge: ResizeEdge.left,
-          );
-        }
-      }
+      final nodeWorldRect = vs.positionNotifier.value & vs.sizeNotifier.value;
 
       if (node is DrawingUiNode) {
-        final nodePos = vs.positionNotifier.value;
-        if (_isPointNearDrawing(pCanvas, node, nodePos)) {
+        if (_isPointNearDrawing(pCanvas, node, vs.positionNotifier.value)) {
           return PointerHitResult(type: HitTestType.body, hitNodeId: nodeId);
         }
-      } else if (vs.rect.contains(pCanvas)) {
+      } else if (nodeWorldRect.contains(pCanvas)) {
         return PointerHitResult(type: HitTestType.body, hitNodeId: nodeId);
       }
     }
@@ -342,8 +341,24 @@ class HitTestResolver {
   ) {
     final cache = ctx.relationEngine.cache;
     final labelMode = ctx.boundSession?.relationLabelModeNotifier.value ?? 'auto';
+    final activeScope = ctx.activeScope;
 
     for (final rel in ctx.getRelations()) {
+      final fromNode = ctx.getNode(rel.fromNodeId);
+      final toNode = ctx.getNode(rel.toNodeId);
+      if (fromNode == null || toNode == null) continue;
+
+      if (activeScope is ContainerViewportScope) {
+        if (fromNode.parentContainerId != activeScope.containerId ||
+            toNode.parentContainerId != activeScope.containerId) {
+          continue;
+        }
+      } else {
+        if (fromNode.parentContainerId != null || toNode.parentContainerId != null) {
+          continue;
+        }
+      }
+
       final fromVs = ctx.nodeViewStates[rel.fromNodeId];
       final toVs = ctx.nodeViewStates[rel.toNodeId];
       if (fromVs == null || toVs == null) continue;

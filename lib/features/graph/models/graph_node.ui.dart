@@ -9,7 +9,17 @@
 
 part of 'graph_node.dart';
 
-enum UiNodes { comment, drawing, frame, info, inter, media, shape, task }
+enum UiNodes {
+  comment,
+  container,
+  drawing,
+  frame,
+  info,
+  inter,
+  media,
+  shape,
+  task,
+}
 
 class CommentUiNode extends UiNode {
   @override
@@ -18,6 +28,7 @@ class CommentUiNode extends UiNode {
   CommentUiNode({
     required super.position,
     super.id,
+    super.parentContainerId,
     super.layer,
     super.createdAt,
     super.updatedAt,
@@ -46,6 +57,12 @@ class CommentUiNode extends UiNode {
           table: TableKind.commentNode,
           key: UuidValue.fromString(id.toUuidString()),
         ),
+        parentContainerId: parentContainerId != null
+            ? TypedRecordId(
+                table: TableKind.containerNode,
+                key: UuidValue.fromString(parentContainerId!.toUuidString()),
+              )
+            : null,
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -62,6 +79,9 @@ class CommentUiNode extends UiNode {
   factory CommentUiNode.fromRust(CommentNode node) {
     return CommentUiNode(
       id: RawUuid.fromString(node.id.key.uuid),
+      parentContainerId: node.parentContainerId != null
+          ? RawUuid.fromString(node.parentContainerId!.key.uuid)
+          : null,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -73,6 +93,7 @@ class CommentUiNode extends UiNode {
 
   CommentUiNode copyWith({
     RawUuid? id,
+    RawUuid? parentContainerId,
     int? createdAt,
     int? updatedAt,
     String? layer,
@@ -92,6 +113,7 @@ class CommentUiNode extends UiNode {
   }) {
     return CommentUiNode(
       id: id ?? this.id,
+      parentContainerId: parentContainerId ?? this.parentContainerId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       layer: layer ?? this.layer,
@@ -112,6 +134,167 @@ class CommentUiNode extends UiNode {
   }
 }
 
+class ContainerUiNode extends UiNode {
+  String title;
+  bool isClosed;
+  int childCount;
+  List<Tag> tags;
+  List<Comment> comments;
+
+  ContainerUiNode({
+    required super.position,
+    super.id,
+    super.parentContainerId,
+    super.layer,
+    super.createdAt,
+    super.updatedAt,
+    super.size,
+    super.content,
+    super.style,
+    super.resolvedStyle,
+    super.layout,
+    super.resolvedLayout,
+    super.lineCount,
+    super.initialExpandable,
+    super.isExpanded,
+    super.locked,
+    super.significance,
+    required this.title,
+    required this.isClosed,
+    required this.childCount,
+    this.tags = const [],
+    this.comments = const [],
+  });
+
+  @override
+  String get tableName => 'ContainerNode';
+
+  @override
+  Nodes toRust() {
+    return Nodes.containerNode(
+      ContainerNode(
+        id: TypedRecordId(
+          table: TableKind.containerNode,
+          key: UuidValue.fromString(id.toUuidString()),
+        ),
+        parentContainerId: parentContainerId != null
+            ? TypedRecordId(
+                table: TableKind.containerNode,
+                key: UuidValue.fromString(parentContainerId!.toUuidString()),
+              )
+            : null,
+        position: frb.Coordinates(
+          x: position.dx.round(),
+          y: position.dy.round(),
+        ),
+        layer: layer,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+        style: style,
+        resolvedStyle: resolvedStyle,
+        layout: layout,
+        resolvedLayout: resolvedLayout,
+        size: frb.Size(width: size.width.round(), height: size.height.round()),
+        locked: locked,
+        significance: significance,
+        title: title,
+        isClosed: isClosed,
+        childCount: childCount,
+        tags: tags.map((tag) => TagEdge.hydrated(tag)).toList(),
+        comments: comments,
+      ),
+    );
+  }
+
+  factory ContainerUiNode.fromRust(ContainerNode node) {
+    return ContainerUiNode(
+      id: RawUuid.fromString(node.id.key.uuid),
+      parentContainerId: node.parentContainerId != null
+          ? RawUuid.fromString(node.parentContainerId!.key.uuid)
+          : null,
+      createdAt: node.createdAt,
+      updatedAt: node.updatedAt,
+      layer: node.layer,
+      position: Offset(node.position.x.toDouble(), node.position.y.toDouble()),
+      style: node.style,
+      resolvedStyle: node.resolvedStyle,
+      layout: node.layout,
+      resolvedLayout: node.resolvedLayout,
+      size: Size(node.size.width.toDouble(), node.size.height.toDouble()),
+      locked: node.locked,
+      significance: node.significance,
+      title: node.title,
+      isClosed: node.isClosed,
+      childCount: node.childCount,
+      tags: node.tags.map((edge) {
+        return edge.when(
+          hydrated: (tag) => tag,
+          pointer: (record) => Tag(
+            key: record,
+            fields: TagFields(
+              name: record.key.uuid,
+              color: 0xFF78909C,
+              createdAt: DateTime.now().millisecondsSinceEpoch,
+              updatedAt: DateTime.now().millisecondsSinceEpoch,
+            ),
+          ),
+        );
+      }).toList(),
+      comments: node.comments,
+    );
+  }
+
+  ContainerUiNode copyWith({
+    RawUuid? id,
+    RawUuid? parentContainerId,
+    int? createdAt,
+    int? updatedAt,
+    String? layer,
+    Offset? position,
+    Size? size,
+    Content? content,
+    NodeStyle? style,
+    NodeStyle? resolvedStyle,
+    NodeLayout? layout,
+    NodeLayout? resolvedLayout,
+    int? lineCount,
+    bool? expandable,
+    bool? isExpanded,
+    bool? locked,
+    int? significance,
+    String? title,
+    bool? isClosed,
+    int? childCount,
+    List<Tag>? tags,
+    List<Comment>? comments,
+  }) {
+    return ContainerUiNode(
+      id: id ?? this.id,
+      parentContainerId: parentContainerId ?? this.parentContainerId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      layer: layer ?? this.layer,
+      position: position ?? this.position,
+      size: size ?? this.size,
+      content: content ?? this.content,
+      style: style ?? this.style,
+      resolvedStyle: resolvedStyle ?? this.resolvedStyle,
+      layout: layout ?? this.layout,
+      resolvedLayout: resolvedLayout ?? this.resolvedLayout,
+      lineCount: lineCount ?? this.lineCount,
+      initialExpandable: expandable ?? this.expandable,
+      isExpanded: isExpanded ?? this.isExpanded,
+      locked: locked ?? this.locked,
+      significance: significance ?? this.significance,
+      title: title ?? this.title,
+      isClosed: isClosed ?? this.isClosed,
+      childCount: childCount ?? this.childCount,
+      tags: tags ?? this.tags,
+      comments: comments ?? this.comments,
+    );
+  }
+}
+
 class DrawingUiNode extends UiNode {
   List<String> paths;
   BrushType brushType;
@@ -121,6 +304,7 @@ class DrawingUiNode extends UiNode {
   DrawingUiNode({
     required super.position,
     super.id,
+    super.parentContainerId,
     super.layer,
     super.createdAt,
     super.updatedAt,
@@ -152,6 +336,12 @@ class DrawingUiNode extends UiNode {
           table: TableKind.drawingNode,
           key: UuidValue.fromString(id.toUuidString()),
         ),
+        parentContainerId: parentContainerId != null
+            ? TypedRecordId(
+                table: TableKind.containerNode,
+                key: UuidValue.fromString(parentContainerId!.toUuidString()),
+              )
+            : null,
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -172,6 +362,9 @@ class DrawingUiNode extends UiNode {
   factory DrawingUiNode.fromRust(DrawingNode node) {
     return DrawingUiNode(
       id: RawUuid.fromString(node.id.key.uuid),
+      parentContainerId: node.parentContainerId != null
+          ? RawUuid.fromString(node.parentContainerId!.key.uuid)
+          : null,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -187,6 +380,7 @@ class DrawingUiNode extends UiNode {
 
   DrawingUiNode copyWith({
     RawUuid? id,
+    RawUuid? parentContainerId,
     int? createdAt,
     int? updatedAt,
     String? layer,
@@ -209,6 +403,7 @@ class DrawingUiNode extends UiNode {
   }) {
     return DrawingUiNode(
       id: id ?? this.id,
+      parentContainerId: parentContainerId ?? this.parentContainerId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       layer: layer ?? this.layer,
@@ -238,6 +433,7 @@ class FrameUiNode extends UiNode {
   FrameUiNode({
     required super.position,
     super.id,
+    super.parentContainerId,
     super.layer,
     super.createdAt,
     super.updatedAt,
@@ -266,6 +462,12 @@ class FrameUiNode extends UiNode {
           table: TableKind.frameNode,
           key: UuidValue.fromString(id.toUuidString()),
         ),
+        parentContainerId: parentContainerId != null
+            ? TypedRecordId(
+                table: TableKind.containerNode,
+                key: UuidValue.fromString(parentContainerId!.toUuidString()),
+              )
+            : null,
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -283,6 +485,9 @@ class FrameUiNode extends UiNode {
   factory FrameUiNode.fromRust(FrameNode node) {
     return FrameUiNode(
       id: RawUuid.fromString(node.id.key.uuid),
+      parentContainerId: node.parentContainerId != null
+          ? RawUuid.fromString(node.parentContainerId!.key.uuid)
+          : null,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -295,6 +500,7 @@ class FrameUiNode extends UiNode {
 
   FrameUiNode copyWith({
     RawUuid? id,
+    RawUuid? parentContainerId,
     int? createdAt,
     int? updatedAt,
     String? layer,
@@ -314,6 +520,7 @@ class FrameUiNode extends UiNode {
   }) {
     return FrameUiNode(
       id: id ?? this.id,
+      parentContainerId: parentContainerId ?? this.parentContainerId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       layer: layer ?? this.layer,
@@ -343,6 +550,7 @@ class InfoUiNode extends UiNode {
   InfoUiNode({
     required super.position,
     super.id,
+    super.parentContainerId,
     super.layer,
     super.createdAt,
     super.updatedAt,
@@ -374,6 +582,12 @@ class InfoUiNode extends UiNode {
           table: TableKind.iNode,
           key: UuidValue.fromString(id.toUuidString()),
         ),
+        parentContainerId: parentContainerId != null
+            ? TypedRecordId(
+                table: TableKind.containerNode,
+                key: UuidValue.fromString(parentContainerId!.toUuidString()),
+              )
+            : null,
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -403,6 +617,9 @@ class InfoUiNode extends UiNode {
   factory InfoUiNode.fromRust(INode node) {
     return InfoUiNode(
       id: RawUuid.fromString(node.id.key.uuid),
+      parentContainerId: node.parentContainerId != null
+          ? RawUuid.fromString(node.parentContainerId!.key.uuid)
+          : null,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -440,6 +657,7 @@ class InfoUiNode extends UiNode {
 
   InfoUiNode copyWith({
     RawUuid? id,
+    RawUuid? parentContainerId,
     int? createdAt,
     int? updatedAt,
     String? layer,
@@ -462,6 +680,7 @@ class InfoUiNode extends UiNode {
   }) {
     return InfoUiNode(
       id: id ?? this.id,
+      parentContainerId: parentContainerId ?? this.parentContainerId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       layer: layer ?? this.layer,
@@ -493,6 +712,7 @@ class InterUiNode extends UiNode {
   InterUiNode({
     required super.position,
     super.id,
+    super.parentContainerId,
     super.layer,
     super.createdAt,
     super.updatedAt,
@@ -523,6 +743,12 @@ class InterUiNode extends UiNode {
           table: TableKind.interNode,
           key: UuidValue.fromString(id.toUuidString()),
         ),
+        parentContainerId: parentContainerId != null
+            ? TypedRecordId(
+                table: TableKind.containerNode,
+                key: UuidValue.fromString(parentContainerId!.toUuidString()),
+              )
+            : null,
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -540,6 +766,9 @@ class InterUiNode extends UiNode {
   factory InterUiNode.fromRust(InterNode node) {
     return InterUiNode(
       id: RawUuid.fromString(node.id.key.uuid),
+      parentContainerId: node.parentContainerId != null
+          ? RawUuid.fromString(node.parentContainerId!.key.uuid)
+          : null,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -552,6 +781,7 @@ class InterUiNode extends UiNode {
 
   InterUiNode copyWith({
     RawUuid? id,
+    RawUuid? parentContainerId,
     int? createdAt,
     int? updatedAt,
     String? layer,
@@ -573,6 +803,7 @@ class InterUiNode extends UiNode {
   }) {
     return InterUiNode(
       id: id ?? this.id,
+      parentContainerId: parentContainerId ?? this.parentContainerId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       layer: layer ?? this.layer,
@@ -602,6 +833,7 @@ class MediaUiNode extends UiNode {
   MediaUiNode({
     required super.position,
     super.id,
+    super.parentContainerId,
     super.layer,
     super.createdAt,
     super.updatedAt,
@@ -631,6 +863,12 @@ class MediaUiNode extends UiNode {
           table: TableKind.mediaNode,
           key: UuidValue.fromString(id.toUuidString()),
         ),
+        parentContainerId: parentContainerId != null
+            ? TypedRecordId(
+                table: TableKind.containerNode,
+                key: UuidValue.fromString(parentContainerId!.toUuidString()),
+              )
+            : null,
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -648,6 +886,9 @@ class MediaUiNode extends UiNode {
   factory MediaUiNode.fromRust(MediaNode node) {
     return MediaUiNode(
       id: RawUuid.fromString(node.id.key.uuid),
+      parentContainerId: node.parentContainerId != null
+          ? RawUuid.fromString(node.parentContainerId!.key.uuid)
+          : null,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -660,6 +901,7 @@ class MediaUiNode extends UiNode {
 
   MediaUiNode copyWith({
     RawUuid? id,
+    RawUuid? parentContainerId,
     int? createdAt,
     int? updatedAt,
     String? layer,
@@ -680,6 +922,7 @@ class MediaUiNode extends UiNode {
   }) {
     return MediaUiNode(
       id: id ?? this.id,
+      parentContainerId: parentContainerId ?? this.parentContainerId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       layer: layer ?? this.layer,
@@ -707,6 +950,7 @@ class ShapeUiNode extends UiNode {
   ShapeUiNode({
     required super.position,
     super.id,
+    super.parentContainerId,
     super.layer,
     super.createdAt,
     super.updatedAt,
@@ -735,6 +979,12 @@ class ShapeUiNode extends UiNode {
           table: TableKind.shapeNode,
           key: UuidValue.fromString(id.toUuidString()),
         ),
+        parentContainerId: parentContainerId != null
+            ? TypedRecordId(
+                table: TableKind.containerNode,
+                key: UuidValue.fromString(parentContainerId!.toUuidString()),
+              )
+            : null,
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -752,6 +1002,9 @@ class ShapeUiNode extends UiNode {
   factory ShapeUiNode.fromRust(ShapeNode node) {
     return ShapeUiNode(
       id: RawUuid.fromString(node.id.key.uuid),
+      parentContainerId: node.parentContainerId != null
+          ? RawUuid.fromString(node.parentContainerId!.key.uuid)
+          : null,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -764,6 +1017,7 @@ class ShapeUiNode extends UiNode {
 
   ShapeUiNode copyWith({
     RawUuid? id,
+    RawUuid? parentContainerId,
     int? createdAt,
     int? updatedAt,
     String? layer,
@@ -783,6 +1037,7 @@ class ShapeUiNode extends UiNode {
   }) {
     return ShapeUiNode(
       id: id ?? this.id,
+      parentContainerId: parentContainerId ?? this.parentContainerId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       layer: layer ?? this.layer,
@@ -810,6 +1065,7 @@ class TaskUiNode extends UiNode {
   TaskUiNode({
     required super.position,
     super.id,
+    super.parentContainerId,
     super.layer,
     super.createdAt,
     super.updatedAt,
@@ -839,6 +1095,12 @@ class TaskUiNode extends UiNode {
           table: TableKind.taskNode,
           key: UuidValue.fromString(id.toUuidString()),
         ),
+        parentContainerId: parentContainerId != null
+            ? TypedRecordId(
+                table: TableKind.containerNode,
+                key: UuidValue.fromString(parentContainerId!.toUuidString()),
+              )
+            : null,
         position: frb.Coordinates(
           x: position.dx.round(),
           y: position.dy.round(),
@@ -864,6 +1126,9 @@ class TaskUiNode extends UiNode {
   factory TaskUiNode.fromRust(TaskNode node) {
     return TaskUiNode(
       id: RawUuid.fromString(node.id.key.uuid),
+      parentContainerId: node.parentContainerId != null
+          ? RawUuid.fromString(node.parentContainerId!.key.uuid)
+          : null,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
       layer: node.layer,
@@ -884,6 +1149,7 @@ class TaskUiNode extends UiNode {
 
   TaskUiNode copyWith({
     RawUuid? id,
+    RawUuid? parentContainerId,
     int? createdAt,
     int? updatedAt,
     String? layer,
@@ -904,6 +1170,7 @@ class TaskUiNode extends UiNode {
   }) {
     return TaskUiNode(
       id: id ?? this.id,
+      parentContainerId: parentContainerId ?? this.parentContainerId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       layer: layer ?? this.layer,
@@ -929,6 +1196,9 @@ UiNode _$uiNodeFromRust(Object rustNode) {
   if (rustNode is CommentNode) {
     return CommentUiNode.fromRust(rustNode);
   }
+  if (rustNode is ContainerNode) {
+    return ContainerUiNode.fromRust(rustNode);
+  }
   if (rustNode is DrawingNode) {
     return DrawingUiNode.fromRust(rustNode);
   }
@@ -952,6 +1222,9 @@ UiNode _$uiNodeFromRust(Object rustNode) {
   }
   if (rustNode is Nodes_CommentNode) {
     return CommentUiNode.fromRust(rustNode.field0);
+  }
+  if (rustNode is Nodes_ContainerNode) {
+    return ContainerUiNode.fromRust(rustNode.field0);
   }
   if (rustNode is Nodes_DrawingNode) {
     return DrawingUiNode.fromRust(rustNode.field0);
@@ -982,6 +1255,9 @@ UiNode? _$uiNodeCopy(UiNode? node) {
     return null;
   }
   if (node is CommentUiNode) {
+    return node.copyWith();
+  }
+  if (node is ContainerUiNode) {
     return node.copyWith();
   }
   if (node is DrawingUiNode) {

@@ -131,7 +131,20 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
     final cache = _dataQuery.relationEngine.cache;
     for (final id in selectedIds) {
       final vs = viewStates[id];
-      if (vs != null) {
+      final node = _dataQuery.nodeLookup[id];
+      if (vs != null && node != null) {
+        final worldPos = node.getAbsoluteWorldPosition(_dataQuery.nodeLookup);
+        final rect = Rect.fromLTWH(
+          worldPos.dx,
+          worldPos.dy,
+          vs.sizeNotifier.value.width,
+          vs.sizeNotifier.value.height,
+        );
+        if (rect.left < minX) minX = rect.left;
+        if (rect.top < minY) minY = rect.top;
+        if (rect.right > maxX) maxX = rect.right;
+        if (rect.bottom > maxY) maxY = rect.bottom;
+      } else if (vs != null) {
         final rect = vs.rect;
         if (rect.left < minX) minX = rect.left;
         if (rect.top < minY) minY = rect.top;
@@ -161,6 +174,10 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
 
   Offset? _calculateSingleSelectAnchor(RawUuid id) {
     final vs = viewStates[id];
+    final node = _dataQuery.nodeLookup[id];
+    if (vs != null && node != null) {
+      return node.getAbsoluteWorldPosition(_dataQuery.nodeLookup);
+    }
     if (vs != null) return vs.positionNotifier.value;
 
     final rel = _dataQuery.relationLookup[id];

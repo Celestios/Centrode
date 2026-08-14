@@ -111,6 +111,10 @@ class GroupDragging extends CanvasInteractionState {
         final snappedPos = _snapToGrid(vs.positionNotifier.value, effectiveGridSize);
         vs.positionNotifier.value = snappedPos;
         ctx.onNodeMove(id, snappedPos);
+        final node = ctx.getNode(id);
+        if (node != null) {
+          vs.positionNotifier.value = node.position;
+        }
       }
     }
     return const CanvasIdle();

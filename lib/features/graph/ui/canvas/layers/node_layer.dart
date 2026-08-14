@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +17,7 @@ import '../widgets/highlight_frame.dart';
 import '../painters/drawing_node_painter.dart';
 import '../../../presentation/strategies/node_text_span_builder.dart';
 import '../../../presentation/strategies/node_style_strategy.dart';
+import '../../../presentation/strategies/node_layout_strategy.dart';
 import 'package:centrode/shared/widgets/unbounded_stack.dart';
 
 class NodeRenderEntry {
@@ -42,10 +44,27 @@ class NodeLayer extends StatelessWidget {
     final viewport = context.read<ViewportController>();
 
     return ListenableBuilder(
-      listenable: Listenable.merge([uiState, viewport.visibleNodeIds]),
+      listenable: Listenable.merge([
+        uiState,
+        viewport.visibleNodeIds,
+        viewport.viewportStateNotifier,
+        viewport.activeScopeNotifier,
+      ]),
       builder: (context, _) {
+        final activeScope = viewport.activeScopeNotifier.value;
         final visibleIds = viewport.visibleNodeIds.value;
-        final renderStack = uiState.zOrder.where(visibleIds.contains).toList();
+        final cameraScale = viewport.viewportStateNotifier.value.scale;
+
+        final renderStack = uiState.zOrder.where((id) {
+          if (!visibleIds.contains(id)) return false;
+          final node = query.nodeLookup[id];
+          if (node == null) return false;
+          if (activeScope is ContainerViewportScope) {
+            return node.parentContainerId == activeScope.containerId;
+          } else {
+            return node.parentContainerId == null;
+          }
+        }).toList();
 
         final entries = <NodeRenderEntry>[];
         NodeRenderEntry? editingEntry;
@@ -72,10 +91,46 @@ class NodeLayer extends StatelessWidget {
         return UnboundedStack(
           clipBehavior: Clip.none,
           children: [
+            if (activeScope is ContainerViewportScope)
+              Builder(
+                builder: (context) {
+                  final container = query.nodeLookup[activeScope.containerId] as ContainerUiNode?;
+                  final vs = uiState.viewStates[activeScope.containerId];
+                  final effectiveOuterSize = (vs != null && vs.sizeNotifier.value.width > 0 && vs.sizeNotifier.value.height > 0)
+                      ? Size(vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width, vs.sizeNotifier.value.height)
+                      : (activeScope.outerSize.width > 0 && activeScope.outerSize.height > 0)
+                          ? activeScope.outerSize
+                          : (container != null)
+                              ? const DefaultNodeLayoutStrategy().calculateSize(container).size
+                              : const Size(300.0, 180.0);
+                  final aspectRatio = effectiveOuterSize.height / (effectiveOuterSize.width > 0 ? effectiveOuterSize.width : 1.0);
+                  final internalSize = Size(1600.0, 1600.0 * aspectRatio);
+                  return Positioned(
+                    left: 0,
+                    top: 0,
+                    width: internalSize.width,
+                    height: internalSize.height,
+                    child: IgnorePointer(
+                      child: RepaintBoundary(
+                        child: CustomPaint(
+                          size: internalSize,
+                          painter: _ContainerBoundaryPainter(
+                            container: container,
+                            effectiveSize: effectiveOuterSize,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
             RepaintBoundary(
               child: _CanvasNodesHost(
                 entries: entries,
                 hoveredNodeNotifier: uiState.hoveredNodeNotifier,
+                cameraScale: cameraScale,
+                activeScope: activeScope,
+                nodeLookup: query.nodeLookup,
               ),
             ),
             if (editingEntry != null)
@@ -153,10 +208,16 @@ class NodeLayer extends StatelessWidget {
 class _CanvasNodesHost extends StatefulWidget {
   final List<NodeRenderEntry> entries;
   final ValueNotifier<RawUuid?> hoveredNodeNotifier;
+  final double cameraScale;
+  final ViewportScope activeScope;
+  final Map<RawUuid, UiNode> nodeLookup;
 
   const _CanvasNodesHost({
     required this.entries,
     required this.hoveredNodeNotifier,
+    required this.cameraScale,
+    required this.activeScope,
+    required this.nodeLookup,
   });
 
   @override
@@ -189,6 +250,9 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
       entries: widget.entries,
       dirtyNodeIds: _dirtyNodeIds,
       positionOnlyNodeIds: _positionOnlyNodeIds,
+      cameraScale: widget.cameraScale,
+      activeScope: widget.activeScope,
+      nodeLookup: widget.nodeLookup,
     );
     _repaintTrigger.value++;
   }
@@ -216,6 +280,9 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
       entries: widget.entries,
       dirtyNodeIds: _dirtyNodeIds,
       positionOnlyNodeIds: _positionOnlyNodeIds,
+      cameraScale: widget.cameraScale,
+      activeScope: widget.activeScope,
+      nodeLookup: widget.nodeLookup,
     );
   }
 
@@ -234,68 +301,47 @@ class _CanvasNodesHostState extends State<_CanvasNodesHost> {
         _repaintTrigger.value++;
       }
 
-      entry.viewState.positionNotifier.addListener(markPosition);
-      entry.viewState.sizeNotifier.addListener(markDirty);
-      entry.viewState.dragWidthNotifier.addListener(markDirty);
-      entry.viewState.isExpandedNotifier.addListener(markDirty);
-      entry.viewState.lineCountNotifier.addListener(markDirty);
-      entry.viewState.styleNotifier.addListener(markDirty);
-      _positionListeners[id] = markPosition;
+      final vs = entry.viewState;
+      vs.positionNotifier.addListener(markPosition);
+      vs.sizeNotifier.addListener(markDirty);
+      vs.dragWidthNotifier.addListener(markDirty);
+      vs.isExpandedNotifier.addListener(markDirty);
+      vs.lineCountNotifier.addListener(markDirty);
+      vs.styleNotifier.addListener(markDirty);
+
       _listeners[id] = markDirty;
+      _positionListeners[id] = markPosition;
     }
-    widget.hoveredNodeNotifier.addListener(_onHoverChanged);
   }
 
   void _unsubscribeAll() {
     for (final entry in widget.entries) {
-      final posListener = _positionListeners.remove(entry.node.id);
-      if (posListener != null) {
-        entry.viewState.positionNotifier.removeListener(posListener);
+      final id = entry.node.id;
+      final vs = entry.viewState;
+      final markDirty = _listeners.remove(id);
+      final markPos = _positionListeners.remove(id);
+      if (markDirty != null) {
+        vs.sizeNotifier.removeListener(markDirty);
+        vs.dragWidthNotifier.removeListener(markDirty);
+        vs.isExpandedNotifier.removeListener(markDirty);
+        vs.lineCountNotifier.removeListener(markDirty);
+        vs.styleNotifier.removeListener(markDirty);
       }
-      final listener = _listeners.remove(entry.node.id);
-      if (listener != null) {
-        entry.viewState.sizeNotifier.removeListener(listener);
-        entry.viewState.dragWidthNotifier.removeListener(listener);
-        entry.viewState.isExpandedNotifier.removeListener(listener);
-        entry.viewState.lineCountNotifier.removeListener(listener);
-        entry.viewState.styleNotifier.removeListener(listener);
+      if (markPos != null) {
+        vs.positionNotifier.removeListener(markPos);
       }
     }
-    widget.hoveredNodeNotifier.removeListener(_onHoverChanged);
-  }
-
-
-  void _onHoverChanged() {
-    if (_disposed) return;
-    final oldHovered = _painter!._hoveredNodeId;
-    final newHovered = widget.hoveredNodeNotifier.value;
-
-    if (oldHovered == newHovered) return;
-
-    _painter!._hoveredNodeId = newHovered;
-
-    if (oldHovered != null) _dirtyNodeIds.add(oldHovered);
-    if (newHovered != null) _dirtyNodeIds.add(newHovered);
-
-    if (_dirtyNodeIds.isNotEmpty) _repaintTrigger.value++;
   }
 
   @override
   Widget build(BuildContext context) {
-    final canvasAccent = AppThemeManager.instance.currentTheme.canvasAccentColor;
-    final hoverAccent = AppThemeManager.instance.currentTheme.hoverAccentColor;
-    _painter!
-      ..selectionColor = canvasAccent
-      ..hoverColor = hoverAccent;
-
-    return ValueListenableBuilder<int>(
-      valueListenable: _repaintTrigger,
-      builder: (context, _, __) {
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final size = Size(constraints.maxWidth, constraints.maxHeight);
-            return CustomPaint(size: size, painter: _painter);
-          },
+    return ValueListenableBuilder<RawUuid?>(
+      valueListenable: widget.hoveredNodeNotifier,
+      builder: (context, hoveredId, _) {
+        _painter?._hoveredNodeId = hoveredId;
+        return CustomPaint(
+          painter: _painter,
+          size: Size.infinite,
         );
       },
     );
@@ -306,6 +352,9 @@ class _CanvasNodesPainter extends CustomPainter {
   List<NodeRenderEntry> entries;
   final Set<RawUuid> dirtyNodeIds;
   final Set<RawUuid> positionOnlyNodeIds;
+  final double cameraScale;
+  final ViewportScope activeScope;
+  final Map<RawUuid, UiNode> nodeLookup;
   RawUuid? _hoveredNodeId;
   Color selectionColor = AppThemeManager.instance.currentTheme.canvasAccentColor;
   Color hoverColor = const Color(0xFF64B5F6);
@@ -326,6 +375,9 @@ class _CanvasNodesPainter extends CustomPainter {
     required this.entries,
     required this.dirtyNodeIds,
     required this.positionOnlyNodeIds,
+    this.cameraScale = 1.0,
+    this.activeScope = const RootViewportScope(),
+    required this.nodeLookup,
   });
 
   @override
@@ -353,10 +405,13 @@ class _CanvasNodesPainter extends CustomPainter {
       }
     }
 
+    Offset resolveWorldPos(NodeRenderEntry entry) =>
+        entry.viewState.positionNotifier.value;
+
     // Case 2: Only positions changed — draw cached pictures at new positions
     if (!hasDirty) {
       for (final entry in entries) {
-        final pos = entry.viewState.positionNotifier.value;
+        final pos = resolveWorldPos(entry);
         canvas.save();
         canvas.translate(pos.dx, pos.dy);
         canvas.drawPicture(_nodeCache[entry.node.id]!);
@@ -377,7 +432,7 @@ class _CanvasNodesPainter extends CustomPainter {
     }
 
     for (final entry in entries) {
-      final pos = entry.viewState.positionNotifier.value;
+      final pos = resolveWorldPos(entry);
       canvas.save();
       canvas.translate(pos.dx, pos.dy);
       canvas.drawPicture(_nodeCache[entry.node.id]!);
@@ -390,10 +445,13 @@ class _CanvasNodesPainter extends CustomPainter {
   }
 
   void _updateCachedPicture(Set<RawUuid> activeIds) {
+    Offset resolveWorldPos(NodeRenderEntry entry) =>
+        entry.viewState.positionNotifier.value;
+
     final recorder = ui.PictureRecorder();
     final recordCanvas = Canvas(recorder);
     for (final entry in entries) {
-      final pos = entry.viewState.positionNotifier.value;
+      final pos = resolveWorldPos(entry);
       recordCanvas.save();
       recordCanvas.translate(pos.dx, pos.dy);
       recordCanvas.drawPicture(_nodeCache[entry.node.id]!);
@@ -430,13 +488,14 @@ class _CanvasNodesPainter extends CustomPainter {
     final resolvedStyle = node.resolvedStyle;
     if (resolvedStyle == null) return;
 
+    final isContainer = node is ContainerUiNode;
     final rawSize = vs.sizeNotifier.value;
     final w = vs.dragWidthNotifier.value ?? rawSize.width;
     final h = rawSize.height;
     // Record at origin — canvas is translated to node position during compositing
     final rect = Rect.fromLTWH(0, 0, w, h);
 
-    final double scale = NodeVisualConstants.fontScale(resolvedStyle.fontSize);
+    final double fontScale = NodeVisualConstants.fontScale(resolvedStyle.fontSize);
     final bool isHovered = entry.node.id == _hoveredNodeId;
     final bool isHighlighted = entry.isSelected || entry.isEditing || isHovered;
     final double stroke =
@@ -445,62 +504,88 @@ class _CanvasNodesPainter extends CustomPainter {
             : entry.isSelected
             ? 1.0
             : 0.5) *
-        scale;
-    final double gap = 1.5 * scale;
+        fontScale;
+    final double gap = 1.5 * fontScale;
+    final screenWidth = w * cameraScale;
+    final isStage2ApproachContainer = isContainer && node.isClosed && screenWidth >= 80.0;
 
-    final rrect = _buildRRect(rect, resolvedStyle, 0.0, scale);
+    final rrect = _buildRRect(rect, resolvedStyle, 0.0, fontScale);
 
-    if (node is! DrawingUiNode) {
-      if (entry.isEditing) {
-        _shadowPaint.color = Color(NodeVisualConstants.editingShadowColor);
-        _shadowPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 16 * scale);
-      } else if (entry.isSelected) {
-        _shadowPaint.color = Color(NodeVisualConstants.selectedShadowColor);
-        _shadowPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 8 * scale);
-      } else {
-        _shadowPaint.color = Color(resolvedStyle.shadowColor);
-        _shadowPaint.maskFilter = MaskFilter.blur(
-          BlurStyle.normal,
-          resolvedStyle.shadowBlur,
-        );
-      }
-
-      final double shadowOffsetX = resolvedStyle.shadowOffsetX;
-      final double shadowOffsetY = resolvedStyle.shadowOffsetY;
-      final shadowOffset = Offset(shadowOffsetX, shadowOffsetY);
-
-      if (shadowOffset != Offset.zero) {
-        final shadowRRect = _buildRRect(
-          rect.shift(shadowOffset),
-          resolvedStyle,
-          0.0,
-          scale,
-        );
-        canvas.drawRRect(shadowRRect, _shadowPaint);
-      } else {
-        canvas.drawRRect(rrect, _shadowPaint);
-      }
-
-      _bgPaint.color = Color(resolvedStyle.bgColor);
-      canvas.drawRRect(rrect, _bgPaint);
+    Color? containerBaseColor;
+    Color? containerBorderColor;
+    Color? containerBgColor;
+    if (isContainer) {
+      containerBaseColor = _getContainerBaseColor(node, resolvedStyle);
+      final hsl = HSLColor.fromColor(containerBaseColor);
+      containerBorderColor = hsl
+          .withSaturation((hsl.saturation * 1.35).clamp(0.0, 1.0))
+          .withLightness(hsl.lightness.clamp(0.4, 0.75))
+          .toColor()
+          .withValues(alpha: 0.85);
+      containerBgColor = hsl
+          .withSaturation((hsl.saturation * 1.1).clamp(0.0, 1.0))
+          .toColor()
+          .withValues(alpha: 0.08);
     }
 
     if (node is! DrawingUiNode) {
-      _borderPaint
-        ..color = Color(resolvedStyle.strokeColor)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = resolvedStyle.strokeWidth.toDouble();
-      canvas.drawRRect(rrect, _borderPaint);
+      if (!isContainer || node.isClosed) {
+        if (entry.isEditing) {
+          _shadowPaint.color = Color(NodeVisualConstants.editingShadowColor);
+          _shadowPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 16 * fontScale);
+        } else if (entry.isSelected) {
+          _shadowPaint.color = Color(NodeVisualConstants.selectedShadowColor);
+          _shadowPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 8 * fontScale);
+        } else {
+          _shadowPaint.color = Color(resolvedStyle.shadowColor);
+          _shadowPaint.maskFilter = MaskFilter.blur(
+            BlurStyle.normal,
+            resolvedStyle.shadowBlur,
+          );
+        }
+
+        final double shadowOffsetX = resolvedStyle.shadowOffsetX;
+        final double shadowOffsetY = resolvedStyle.shadowOffsetY;
+        final shadowOffset = Offset(shadowOffsetX, shadowOffsetY);
+
+        if (shadowOffset != Offset.zero) {
+          final shadowRRect = _buildRRect(
+            rect.shift(shadowOffset),
+            resolvedStyle,
+            0.0,
+            fontScale,
+          );
+          canvas.drawRRect(shadowRRect, _shadowPaint);
+        } else {
+          canvas.drawRRect(rrect, _shadowPaint);
+        }
+
+        if (isStage2ApproachContainer) {
+          final double t = ((screenWidth - 80.0) / (180.0 - 80.0)).clamp(0.0, 1.0);
+          _bgPaint.color = Color(resolvedStyle.bgColor).withValues(alpha: 1.0 - (0.7 * t));
+        } else {
+          _bgPaint.color = Color(resolvedStyle.bgColor);
+        }
+        canvas.drawRRect(rrect, _bgPaint);
+
+        _borderPaint
+          ..color = Color(resolvedStyle.strokeColor)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = resolvedStyle.strokeWidth.toDouble();
+        canvas.drawRRect(rrect, _borderPaint);
+      }
     }
 
-    if (isHighlighted && node is! DrawingUiNode) {
+    final isInteractableNode = !(node is ContainerUiNode && !node.isClosed);
+
+    if (isHighlighted && node is! DrawingUiNode && isInteractableNode) {
       final double inflateAmount = gap + stroke / 2;
       final highlightRect = rect.inflate(inflateAmount);
       final highlightRRect = _buildRRect(
         highlightRect,
         resolvedStyle,
         inflateAmount,
-        scale,
+        fontScale,
       );
 
       final Color highlightColor;
@@ -531,13 +616,61 @@ class _CanvasNodesPainter extends CustomPainter {
         isSelected: entry.isSelected,
         isHovered: isHovered,
       );
+    } else if (node is ContainerUiNode) {
+      final aspectRatio = h / (w > 0 ? w : 1.0);
+      final internalW = 1600.0;
+      final internalH = 1600.0 * aspectRatio;
+      final sx = w / internalW;
+      final sy = h / internalH;
+      final internalRect = Rect.fromLTWH(0, 0, internalW, internalH);
+      final internalRRect = RRect.fromRectAndRadius(internalRect, const Radius.circular(16.0));
+
+      if (node.isClosed) {
+        if (screenWidth < 80.0) {
+          // Stage 1: Centered title in closed card
+          _paintContainerTitleCentered(canvas, rect, node.title, resolvedStyle, 1.0, fontScale);
+        } else {
+          // Stage 2: Approach Zone (Title fades out, internal dashed border + tag fade in transformed to node bounds)
+          final double t = ((screenWidth - 80.0) / (180.0 - 80.0)).clamp(0.0, 1.0);
+          _paintContainerTitleCentered(canvas, rect, node.title, resolvedStyle, 1.0 - t, fontScale);
+
+          canvas.save();
+          canvas.scale(sx, sy);
+          if (containerBgColor != null) {
+            _bgPaint.color = containerBgColor.withValues(alpha: containerBgColor.a * t);
+            canvas.drawRRect(internalRRect, _bgPaint);
+          }
+          _borderPaint
+            ..color = (containerBorderColor ?? const Color(0xFF64B5F6)).withValues(alpha: 0.85 * t)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = math.max(resolvedStyle.strokeWidth.toDouble(), 2.0);
+          _drawDashedRRect(canvas, internalRRect, _borderPaint, 16.0, 10.0);
+          _paintContainerTopLeftTag(canvas, internalRect, 1.0, containerBaseColor ?? const Color(0xFF64B5F6), opacity: t);
+          canvas.restore();
+        }
+      } else {
+        // Stage 3: Open Container — dashed border + background + top-left tag in internal coordinates, transformed to node bounds
+        canvas.save();
+        canvas.scale(sx, sy);
+        if (containerBgColor != null) {
+          _bgPaint.color = containerBgColor;
+          canvas.drawRRect(internalRRect, _bgPaint);
+        }
+        _borderPaint
+          ..color = containerBorderColor ?? const Color(0xFF64B5F6).withValues(alpha: 0.85)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(resolvedStyle.strokeWidth.toDouble(), 2.0);
+        _drawDashedRRect(canvas, internalRRect, _borderPaint, 16.0, 10.0);
+        _paintContainerTopLeftTag(canvas, internalRect, 1.0, containerBaseColor ?? const Color(0xFF64B5F6), opacity: 1.0);
+        canvas.restore();
+      }
     } else {
       _paintText(canvas, entry, rect, resolvedStyle);
-      _paintMetadataSphere(canvas, node, rect, scale);
-      _paintExpandToggle(canvas, entry, rect, resolvedStyle, scale);
+      _paintMetadataSphere(canvas, node, rect, fontScale);
+      _paintExpandToggle(canvas, entry, rect, resolvedStyle, fontScale);
     }
 
-    if (node is! DrawingUiNode) {
+    if (node is! DrawingUiNode && isInteractableNode) {
       final hasMetadataSphere =
           node is InfoUiNode &&
           (node.tags.isNotEmpty || node.comments.isNotEmpty);
@@ -546,7 +679,7 @@ class _CanvasNodesPainter extends CustomPainter {
         node.id,
         rect,
         resolvedStyle,
-        scale,
+        fontScale,
         hasMetadataSphere,
       );
     }
@@ -896,10 +1029,251 @@ class _CanvasNodesPainter extends CustomPainter {
     tp.dispose();
   }
 
+  void _drawDashedRRect(Canvas canvas, RRect rrect, Paint paint, [double dashWidth = 12.0, double dashSpace = 8.0]) {
+    final path = Path()..addRRect(rrect);
+
+    for (final metric in path.computeMetrics()) {
+      double distance = 0.0;
+      while (distance < metric.length) {
+        final double len = math.min(dashWidth, metric.length - distance);
+        canvas.drawPath(metric.extractPath(distance, distance + len), paint);
+        distance += dashWidth + dashSpace;
+      }
+    }
+  }
+
+  void _paintContainerTitleCentered(
+    Canvas canvas,
+    Rect rect,
+    String title,
+    NodeStyle style,
+    double opacity,
+    double scale,
+  ) {
+    if (opacity <= 0.0) return;
+    final tp = TextPainter(
+      text: TextSpan(
+        text: title.toUpperCase(),
+        style: TextStyle(
+          fontSize: (style.fontSize * 0.85).clamp(10.0, 14.0),
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.8,
+          color: Color(style.textColor).withValues(alpha: opacity),
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: rect.width - 16 * scale);
+
+    tp.paint(
+      canvas,
+      Offset(
+        rect.left + (rect.width - tp.width) / 2,
+        rect.top + (rect.height - tp.height) / 2,
+      ),
+    );
+    tp.dispose();
+  }
+
+  Color _getContainerBaseColor(ContainerUiNode node, NodeStyle resolvedStyle) {
+    if (resolvedStyle.strokeColor != 0 && resolvedStyle.strokeColor != 0xFF000000) {
+      return Color(resolvedStyle.strokeColor);
+    }
+    if (resolvedStyle.bgColor != 0 && resolvedStyle.bgColor != 0x00000000) {
+      return Color(resolvedStyle.bgColor).withValues(alpha: 1.0);
+    }
+    return const Color(0xFF64B5F6);
+  }
+
+  void _paintContainerTopLeftTag(Canvas canvas, Rect rect, double scale, Color containerColor, {double opacity = 1.0}) {
+    if (opacity <= 0.0) return;
+    final hsl = HSLColor.fromColor(containerColor);
+    final badgeTextColor = hsl
+        .withSaturation((hsl.saturation * 1.2).clamp(0.0, 1.0))
+        .withLightness((hsl.lightness + 0.3).clamp(0.0, 0.95))
+        .toColor()
+        .withValues(alpha: opacity);
+    final badgeBgColor = hsl
+        .withSaturation((hsl.saturation * 0.8).clamp(0.0, 1.0))
+        .withLightness(0.12)
+        .toColor()
+        .withValues(alpha: 0.85 * opacity);
+
+    final tagSpan = TextSpan(
+      text: ' CONTAINER ',
+      style: TextStyle(
+        color: badgeTextColor,
+        fontSize: (10.0 * scale).clamp(9.0, 13.0),
+        fontWeight: FontWeight.bold,
+        letterSpacing: 1.0,
+      ),
+    );
+    final tp = TextPainter(text: tagSpan, textDirection: TextDirection.ltr)..layout();
+
+    final borderWidth = 2.0 * scale;
+    final tagBg = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        rect.left + 12 * scale - borderWidth / 2,
+        rect.top + 12 * scale - borderWidth / 2,
+        tp.width + 12 * scale,
+        tp.height + 6 * scale,
+      ),
+      Radius.circular(4.0 * scale),
+    );
+    canvas.drawRRect(tagBg, Paint()..color = badgeBgColor);
+    canvas.drawRRect(
+      tagBg,
+      Paint()
+        ..color = containerColor.withValues(alpha: 0.6 * opacity)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0,
+    );
+    tp.paint(canvas, Offset(rect.left + 18 * scale - borderWidth / 2, rect.top + 15 * scale - borderWidth / 2));
+    tp.dispose();
+  }
+
+
+
   @override
   bool shouldRepaint(covariant _CanvasNodesPainter oldDelegate) {
     return dirtyNodeIds.isNotEmpty ||
         positionOnlyNodeIds.isNotEmpty ||
+        cameraScale != oldDelegate.cameraScale ||
         _entriesGeneration != _cachedGeneration;
   }
 }
+
+class _ContainerBoundaryPainter extends CustomPainter {
+  final ContainerUiNode? container;
+  final Size effectiveSize;
+
+  _ContainerBoundaryPainter({
+    required this.container,
+    required this.effectiveSize,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final aspectRatio = effectiveSize.width > 0
+        ? effectiveSize.height / effectiveSize.width
+        : (1200.0 / 1600.0);
+    final internalSize = Size(1600.0, 1600.0 * aspectRatio);
+    final rect = Rect.fromLTWH(0, 0, internalSize.width, internalSize.height);
+    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(16.0));
+
+    final baseColor = container != null && container!.resolvedStyle != null
+        ? _getContainerBaseColor(container!, container!.resolvedStyle!)
+        : const Color(0xFF64B5F6);
+
+    final hsl = HSLColor.fromColor(baseColor);
+    final borderColor = hsl
+        .withSaturation((hsl.saturation * 1.35).clamp(0.0, 1.0))
+        .withLightness(hsl.lightness.clamp(0.4, 0.75))
+        .toColor()
+        .withValues(alpha: 0.85);
+    final bgColor = hsl
+        .withSaturation((hsl.saturation * 1.1).clamp(0.0, 1.0))
+        .toColor()
+        .withValues(alpha: 0.08);
+
+    // Background tint
+    canvas.drawRRect(rrect, Paint()..color = bgColor..style = PaintingStyle.fill);
+
+    // Dashed border (crisp 2px)
+    final borderPaint = Paint()
+      ..color = borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+    _drawDashedRRect(canvas, rrect, borderPaint, 16.0, 10.0);
+
+    // Top-left tag
+    _paintContainerTopLeftTag(canvas, rect, 1.0, baseColor, opacity: 1.0);
+  }
+
+  static Color _getContainerBaseColor(ContainerUiNode node, NodeStyle resolvedStyle) {
+    if (resolvedStyle.strokeColor != 0 && resolvedStyle.strokeColor != 0xFF000000) {
+      return Color(resolvedStyle.strokeColor);
+    }
+    if (resolvedStyle.bgColor != 0 && resolvedStyle.bgColor != 0x00000000) {
+      return Color(resolvedStyle.bgColor).withValues(alpha: 1.0);
+    }
+    return const Color(0xFF64B5F6);
+  }
+
+  static void _drawDashedRRect(
+    Canvas canvas,
+    RRect rrect,
+    Paint paint,
+    double dashWidth,
+    double dashSpace,
+  ) {
+    final path = Path()..addRRect(rrect);
+    final metrics = path.computeMetrics();
+    for (final metric in metrics) {
+      double distance = 0.0;
+      while (distance < metric.length) {
+        final length = math.min(dashWidth, metric.length - distance);
+        canvas.drawPath(metric.extractPath(distance, distance + length), paint);
+        distance += dashWidth + dashSpace;
+      }
+    }
+  }
+
+  static void _paintContainerTopLeftTag(
+    Canvas canvas,
+    Rect rect,
+    double scale,
+    Color containerColor, {
+    double opacity = 1.0,
+  }) {
+    if (opacity <= 0.0) return;
+    final hsl = HSLColor.fromColor(containerColor);
+    final badgeTextColor = hsl
+        .withSaturation((hsl.saturation * 1.2).clamp(0.0, 1.0))
+        .withLightness((hsl.lightness + 0.3).clamp(0.0, 0.95))
+        .toColor()
+        .withValues(alpha: opacity);
+    final badgeBgColor = hsl
+        .withSaturation((hsl.saturation * 0.8).clamp(0.0, 1.0))
+        .withLightness(0.12)
+        .toColor()
+        .withValues(alpha: 0.85 * opacity);
+
+    final tagSpan = TextSpan(
+      text: ' CONTAINER ',
+      style: TextStyle(
+        color: badgeTextColor,
+        fontSize: (10.0 * scale).clamp(9.0, 13.0),
+        fontWeight: FontWeight.bold,
+        letterSpacing: 1.0,
+      ),
+    );
+    final tp = TextPainter(text: tagSpan, textDirection: TextDirection.ltr)..layout();
+
+    final borderWidth = 2.0 * scale;
+    final tagBg = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        rect.left + 12 * scale - borderWidth / 2,
+        rect.top + 12 * scale - borderWidth / 2,
+        tp.width + 12 * scale,
+        tp.height + 6 * scale,
+      ),
+      Radius.circular(4.0 * scale),
+    );
+    canvas.drawRRect(tagBg, Paint()..color = badgeBgColor);
+    canvas.drawRRect(
+      tagBg,
+      Paint()
+        ..color = containerColor.withValues(alpha: 0.6 * opacity)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0,
+    );
+    tp.paint(canvas, Offset(rect.left + 18 * scale - borderWidth / 2, rect.top + 15 * scale - borderWidth / 2));
+    tp.dispose();
+  }
+
+  @override
+  bool shouldRepaint(covariant _ContainerBoundaryPainter oldDelegate) {
+    return oldDelegate.container != container;
+  }
+}
+

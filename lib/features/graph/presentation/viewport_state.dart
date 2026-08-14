@@ -8,6 +8,8 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../engine/config.dart';
 import '../../../src/rust/domain/base_models.dart' show BoundingBox;
 import '../store/graph_data_query.dart';
+import '../models/graph_node.dart';
+import 'strategies/node_layout_strategy.dart';
 
 class ViewportStateGrid {
   final Rect visibleRect;
@@ -31,6 +33,47 @@ extension RectExtension on Rect {
       bottom >= other.bottom;
 }
 
+/// Sealed base class representing an active viewport coordinate scope.
+sealed class ViewportScope {
+  final ViewportScope? parentScope;
+  final RawUuid? scopeId;
+  const ViewportScope({this.parentScope, this.scopeId});
+
+  int get depth => parentScope == null ? 0 : parentScope!.depth + 1;
+}
+
+/// Root canvas interaction mode.
+class RootViewportScope extends ViewportScope {
+  const RootViewportScope() : super(parentScope: null, scopeId: null);
+}
+
+/// Focused container interaction mode.
+class ContainerViewportScope extends ViewportScope {
+  final RawUuid containerId;
+  final Offset containerPositionInParent;
+  final Size outerSize;
+  final Matrix4 savedParentTransform;
+  final double containerInitScale;
+
+  ContainerViewportScope({
+    required ViewportScope parentScope,
+    required this.containerId,
+    required this.containerPositionInParent,
+    required this.outerSize,
+    required this.savedParentTransform,
+    required this.containerInitScale,
+  }) : super(parentScope: parentScope, scopeId: containerId);
+
+  /// Dynamic min scale for this scope allowing zoom-out past exit threshold.
+  double get minScale => (containerInitScale * 0.2).clamp(0.05, 1.0);
+
+  /// Dynamic max scale for this scope allowing nested zooming.
+  double get maxScale => math.max(containerInitScale * 10.0, 50.0);
+
+  /// Zoom-out exit threshold in container space.
+  double get exitScale => containerInitScale * 0.65;
+}
+
 /// Sole arbiter of coordinate transformations, hysteresis overscan buffering,
 /// viewport boundary math, and visible node culling.
 class ViewportController {
@@ -38,6 +81,16 @@ class ViewportController {
   final GraphDataQuery _dataController;
   final TransformationController transformController =
       TransformationController();
+
+  /// Tracks the active hierarchy scope (Root vs Container level).
+  final ValueNotifier<ViewportScope> activeScopeNotifier =
+      ValueNotifier(const RootViewportScope());
+
+  /// When true, a scope transition is currently animating (interaction and zooming are disabled/decoupled).
+  final ValueNotifier<bool> isTransitioningNotifier = ValueNotifier(false);
+
+  /// When true, auto-zoom transitions are suppressed (e.g. during active drag or drawing gestures).
+  bool isGestureSuppressed = false;
 
   Rect _overscanBuffer = Rect.zero;
   Size _currentViewportSize = Size.zero;
@@ -145,12 +198,19 @@ class ViewportController {
       ..scaleByDouble(currentScale, currentScale, currentScale, 1);
   }
 
-  /// Updates the zoom scale while preserving the current camera translation.
+  /// Updates the zoom scale while keeping the current viewport center fixed.
   void updateScale(double newScale) {
-    final currentMatrix = transformController.value;
-    final translation = currentMatrix.getTranslation();
+    if (_currentViewportSize == Size.zero) return;
+
+    final canvasCenter = screenToCanvas(
+      Offset(_currentViewportSize.width / 2, _currentViewportSize.height / 2),
+    );
+
+    final dx = (_currentViewportSize.width / 2) - (canvasCenter.dx * newScale);
+    final dy = (_currentViewportSize.height / 2) - (canvasCenter.dy * newScale);
+
     transformController.value = Matrix4.identity()
-      ..translateByDouble(translation.x, translation.y, 0, 1)
+      ..translateByDouble(dx, dy, 0, 1)
       ..scaleByDouble(newScale, newScale, newScale, 1);
     recalculateElasticMargins();
   }
@@ -184,6 +244,15 @@ class ViewportController {
     recalculateElasticMargins();
   }
 
+  TickerProvider? vsync;
+  Offset? _lastMouseScreenPos;
+  int _lastTransitionTimestamp = 0;
+  void Function(RawUuid id, Offset newPosition, Size newSize, bool isClosed)? onContainerOpenStateChanged;
+
+  void updateMouseScreenPos(Offset? screenPos) {
+    _lastMouseScreenPos = screenPos;
+  }
+
   void _handleTransform() {
     _recalculate();
   }
@@ -208,6 +277,159 @@ class ViewportController {
         viewport.width * AppConfig.canvas.overscanRatio,
       );
       updateVisibleSet(inflatedBuffer);
+    }
+
+    checkContainerZoomTransition(_lastMouseScreenPos);
+  }
+
+  /// Gets the current minimum scale floor for the active scope.
+  double get currentMinScale {
+    final scope = activeScopeNotifier.value;
+    if (scope is ContainerViewportScope) {
+      return scope.minScale;
+    }
+    return AppConfig.canvas.minScale;
+  }
+
+  /// Gets the current maximum scale ceiling for the active scope.
+  double get currentMaxScale {
+    final scope = activeScopeNotifier.value;
+    if (scope is ContainerViewportScope) {
+      return scope.maxScale;
+    }
+    return AppConfig.canvas.maxScale;
+  }
+
+  /// Checks whether a container crossed the transition threshold during zoom-in or zoom-out and triggers the state toggle.
+  void checkContainerZoomTransition(Offset? mouseScreenPos) {
+    if (_currentViewportSize == Size.zero) return;
+    if (isGestureSuppressed) return;
+    if (_viewportAnimationController != null && _viewportAnimationController!.isAnimating) return;
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (now - _lastTransitionTimestamp < 800) return;
+
+    final scale = transformController.value.getMaxScaleOnAxis();
+    final cursorScreen = mouseScreenPos ?? Offset(_currentViewportSize.width / 2, _currentViewportSize.height / 2);
+    final cursorCanvas = screenToCanvas(cursorScreen);
+
+    for (final node in _dataController.nodeLookup.values) {
+      if (node is! ContainerUiNode) continue;
+
+      final worldPos = node.getAbsoluteWorldPosition(_dataController.nodeLookup);
+
+      // 1. ZOOM IN: Closed container scaled past 180px threshold -> Optical fly-in takeover
+      if (node.isClosed) {
+        final nodeSize = const DefaultNodeLayoutStrategy().calculateSize(node).size;
+        final containerRect = Rect.fromLTWH(worldPos.dx, worldPos.dy, nodeSize.width, nodeSize.height);
+        final screenWidth = nodeSize.width * scale;
+
+        if (screenWidth >= 180.0 && containerRect.inflate(60.0).contains(cursorCanvas)) {
+          _lastTransitionTimestamp = DateTime.now().millisecondsSinceEpoch;
+          final currentScope = activeScopeNotifier.value;
+          final savedTransform = transformController.value.clone();
+
+          final nodeCenter = worldPos + Offset(nodeSize.width / 2.0, nodeSize.height / 2.0);
+
+          const margin = 80.0;
+          final availW = _currentViewportSize.width - 2 * margin;
+          final availH = _currentViewportSize.height - 2 * margin;
+          final targetScale = math.min(availW / nodeSize.width, availH / nodeSize.height).clamp(scale, 50.0);
+          final targetDx = (_currentViewportSize.width / 2.0) - (nodeCenter.dx * targetScale);
+          final targetDy = (_currentViewportSize.height / 2.0) - (nodeCenter.dy * targetScale);
+          final targetMatrix = Matrix4.identity()
+            ..translateByDouble(targetDx, targetDy, 0, 1)
+            ..scaleByDouble(targetScale, targetScale, targetScale, 1);
+
+          final aspectRatio = nodeSize.height / (nodeSize.width > 0 ? nodeSize.width : 1.0);
+          final internalW = 1600.0;
+          final internalH = 1600.0 * aspectRatio;
+          final containerInitScale = math.min(availW / internalW, availH / internalH).clamp(0.2, 5.0);
+          final newScope = ContainerViewportScope(
+            parentScope: currentScope,
+            containerId: node.id,
+            containerPositionInParent: node.position,
+            outerSize: nodeSize,
+            savedParentTransform: savedTransform,
+            containerInitScale: containerInitScale,
+          );
+
+          void applyOpenState() {
+            node.isClosed = false;
+            activeScopeNotifier.value = newScope;
+            final containerDx = (_currentViewportSize.width / 2.0) - ((internalW / 2.0) * containerInitScale);
+            final containerDy = (_currentViewportSize.height / 2.0) - ((internalH / 2.0) * containerInitScale);
+            transformController.value = Matrix4.identity()
+              ..translateByDouble(containerDx, containerDy, 0, 1)
+              ..scaleByDouble(containerInitScale, containerInitScale, containerInitScale, 1);
+            onContainerOpenStateChanged?.call(node.id, node.position, node.size, false);
+            _lastTransitionTimestamp = DateTime.now().millisecondsSinceEpoch;
+          }
+
+          if (vsync != null) {
+            animateViewportTo(
+              targetMatrix,
+              vsync!,
+              duration: const Duration(milliseconds: 700),
+              onComplete: applyOpenState,
+            );
+          } else {
+            applyOpenState();
+          }
+          break;
+        }
+      }
+      // 2. ZOOM OUT: Inside container, zoomed out past exit threshold -> Optical fly-out takeover
+      else if (!node.isClosed) {
+        final currentScope = activeScopeNotifier.value;
+        if (currentScope is! ContainerViewportScope || currentScope.containerId != node.id) continue;
+
+        final exitScale = currentScope.exitScale;
+        final nodeSize = (currentScope.outerSize.width > 0 && currentScope.outerSize.height > 0)
+            ? currentScope.outerSize
+            : const DefaultNodeLayoutStrategy().calculateSize(node).size;
+        final aspectRatio = nodeSize.height / (nodeSize.width > 0 ? nodeSize.width : 1.0);
+        final internalW = 1600.0;
+        final internalH = 1600.0 * aspectRatio;
+        final containerRect = Rect.fromLTWH(0, 0, internalW, internalH);
+
+        if (scale <= exitScale && containerRect.inflate(200.0).contains(cursorCanvas)) {
+          _lastTransitionTimestamp = DateTime.now().millisecondsSinceEpoch;
+          final Matrix4 parentTransform = currentScope.savedParentTransform;
+
+          node.isClosed = true;
+          activeScopeNotifier.value = currentScope.parentScope ?? const RootViewportScope();
+
+          const margin = 80.0;
+          final availW = _currentViewportSize.width - 2 * margin;
+          final availH = _currentViewportSize.height - 2 * margin;
+          final targetScale = math.min(availW / nodeSize.width, availH / nodeSize.height).clamp(1.0, 50.0);
+          final nodeCenter = node.position + Offset(nodeSize.width / 2.0, nodeSize.height / 2.0);
+          final targetDx = (_currentViewportSize.width / 2.0) - (nodeCenter.dx * targetScale);
+          final targetDy = (_currentViewportSize.height / 2.0) - (nodeCenter.dy * targetScale);
+          final zoomedInRootMatrix = Matrix4.identity()
+            ..translateByDouble(targetDx, targetDy, 0, 1)
+            ..scaleByDouble(targetScale, targetScale, targetScale, 1);
+
+          transformController.value = zoomedInRootMatrix;
+
+          if (vsync != null) {
+            animateViewportTo(
+              parentTransform,
+              vsync!,
+              duration: const Duration(milliseconds: 700),
+              onComplete: () {
+                onContainerOpenStateChanged?.call(node.id, node.position, node.size, true);
+                _lastTransitionTimestamp = DateTime.now().millisecondsSinceEpoch;
+              },
+            );
+          } else {
+            transformController.value = parentTransform;
+            onContainerOpenStateChanged?.call(node.id, node.position, node.size, true);
+          }
+          break;
+        }
+      }
     }
   }
 
@@ -272,11 +494,16 @@ class ViewportController {
     Future(() {
       if (_isDisposed) return;
       if (_overscanBuffer != currentOverscan) return;
-      final newVisible = _dataController.spatialGrid.queryRect(currentOverscan);
+      final scale = transformController.value.getMaxScaleOnAxis();
+      final newVisible = _dataController.spatialIndex.queryViewport(
+        currentOverscan,
+        scale,
+        _dataController.nodeLookup,
+      );
       if (_isDisposed) return;
       if (_overscanBuffer == currentOverscan) {
-        _log.finest(
-          'updateVisibleSet: Spatial index returned ${newVisible.length} visible nodes.',
+        _log.fine(
+          'updateVisibleSet: scale=$scale, Spatial index returned ${newVisible.length} visible nodes.',
         );
         if (!setEquals(visibleNodeIds.value, newVisible)) {
           visibleNodeIds.value = newVisible;
@@ -310,16 +537,18 @@ class ViewportController {
   void animateViewportTo(
     Matrix4 targetMatrix,
     TickerProvider vsync, {
-    Duration duration = const Duration(milliseconds: 600),
+    Duration duration = const Duration(milliseconds: 350),
+    VoidCallback? onComplete,
   }) {
     _viewportAnimationController?.stop();
     _viewportAnimationController?.dispose();
 
-    final startMatrix = transformController.value;
-    final startTranslation = startMatrix.getTranslation();
-    final targetTranslation = targetMatrix.getTranslation();
-    final startScale = startMatrix.getMaxScaleOnAxis();
+    isTransitioningNotifier.value = true;
+
+    final startScale = transformController.value.getMaxScaleOnAxis();
     final targetScale = targetMatrix.getMaxScaleOnAxis();
+    final startTranslation = transformController.value.getTranslation();
+    final targetTranslation = targetMatrix.getTranslation();
 
     _viewportAnimationController = AnimationController(
       vsync: vsync,
@@ -327,19 +556,21 @@ class ViewportController {
     );
 
     _viewportAnimationController!.addListener(() {
-      final t = _viewportAnimationController!.value;
+      final t = Curves.easeInOutCubic.transform(_viewportAnimationController!.value);
+      final interpScale = startScale + (targetScale - startScale) * t;
       final interpTranslation = Offset.lerp(
         Offset(startTranslation.x, startTranslation.y),
         Offset(targetTranslation.x, targetTranslation.y),
         t,
       )!;
-      final interpScale = startScale + (targetScale - startScale) * t;
 
       transformController.value = Matrix4.identity()
         ..translateByDouble(interpTranslation.dx, interpTranslation.dy, 0, 1)
         ..scaleByDouble(interpScale, interpScale, interpScale, 1);
 
-      if (t == 1.0) {
+      if (_viewportAnimationController!.value == 1.0) {
+        onComplete?.call();
+        isTransitioningNotifier.value = false;
         recalculateElasticMargins();
         final controllerToDispose = _viewportAnimationController;
         Future.microtask(() {
@@ -376,6 +607,8 @@ class ViewportController {
     _updateSubscription?.cancel();
     transformController.dispose();
     viewportStateNotifier.dispose();
+    activeScopeNotifier.dispose();
+    isTransitioningNotifier.dispose();
     visibleNodeIds.dispose();
     elasticMargins.dispose();
   }

@@ -39,6 +39,31 @@ class GraphDataQueryController implements GraphDataQuery {
       _entityUpdateController.stream;
 
   void publishUpdate(GraphEntityUpdate update) {
+    if (update.id != null) {
+      final node = store.nodeLookup[update.id!];
+      if (node != null) {
+        if (update.type == GraphUpdateType.size && update.payload is Size) {
+          node.size = update.payload as Size;
+          spatial.spatialIndex.updateNode(
+            node.id,
+            node.parentContainerId,
+            node.position,
+            node.position,
+            node.size,
+          );
+        } else if (update.type == GraphUpdateType.position && update.payload is Offset) {
+          final newPos = update.payload as Offset;
+          spatial.spatialIndex.updateNode(
+            node.id,
+            node.parentContainerId,
+            node.position,
+            newPos,
+            node.size,
+          );
+          node.position = newPos;
+        }
+      }
+    }
     _entityUpdateController.add(update);
   }
 
@@ -50,6 +75,9 @@ class GraphDataQueryController implements GraphDataQuery {
 
   @override
   SpatialHashGrid get spatialGrid => spatial.spatialGrid;
+
+  @override
+  HierarchicalSpatialIndex get spatialIndex => spatial.spatialIndex;
 
   @override
   Map<RawUuid, UiNode> get nodeLookup => store.nodeLookup;

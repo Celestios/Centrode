@@ -7,7 +7,8 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 /// Encapsulates viewport culling and reactive geometry.
 class GraphSpatial {
   final Logger _log = Logger('GraphSpatial');
-  final SpatialHashGrid spatialGrid = SpatialHashGrid();
+  final HierarchicalSpatialIndex spatialIndex = HierarchicalSpatialIndex();
+  SpatialHashGrid get spatialGrid => spatialIndex.rootGrid;
   final Map<RawUuid, Offset> _lastConfirmedPositions = {};
 
   void saveConfirmedPosition(RawUuid id, Offset pos) {
@@ -26,9 +27,9 @@ class GraphSpatial {
   /// Triggered during bulk load or major graph resets.
   void reindexAll(Map<RawUuid, UiNode> nodes) {
     _log.info('reindexAll: reindexing ${nodes.length} nodes');
-    spatialGrid.clear();
+    spatialIndex.clear();
     for (final node in nodes.values) {
-      spatialGrid.insert(node.id, node.position);
+      spatialIndex.insertNode(node.id, node.parentContainerId, node.position, node.size);
     }
   }
 

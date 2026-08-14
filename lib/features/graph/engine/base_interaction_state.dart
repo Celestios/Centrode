@@ -13,6 +13,7 @@ import '../presentation/strategies/node_layout_strategy.dart';
 import 'interaction_context.dart';
 import 'hit_test_resolver.dart';
 import 'z_order_utils.dart';
+import '../presentation/viewport_state.dart';
 import 'package:centrode/src/rust/relation_engine/geometry.dart' as rust_geo;
 
 part 'states/idle_state.dart';

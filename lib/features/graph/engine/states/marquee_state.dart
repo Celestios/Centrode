@@ -50,9 +50,19 @@ class MarqueeSelecting extends CanvasInteractionState {
       nodeIdsToCheck = ctx.nodeViewStates.keys.toSet();
     }
 
+    final activeScope = ctx.activeScope;
     final Set<RawUuid> hits = {};
 
     for (final id in nodeIdsToCheck) {
+      final node = ctx.getNode(id);
+      if (node == null) continue;
+
+      if (activeScope is ContainerViewportScope) {
+        if (node.parentContainerId != activeScope.containerId) continue;
+      } else {
+        if (node.parentContainerId != null) continue;
+      }
+
       final vs = ctx.nodeViewStates[id];
       if (vs != null && vs.rect.overlaps(marqueeRect)) {
         hits.add(id);
@@ -61,6 +71,23 @@ class MarqueeSelecting extends CanvasInteractionState {
 
     final cache = ctx.relationEngine.cache;
     for (final entry in cache.entries) {
+      final rel = ctx.getRelation(entry.key);
+      if (rel == null) continue;
+      final fromNode = ctx.getNode(rel.fromNodeId);
+      final toNode = ctx.getNode(rel.toNodeId);
+      if (fromNode == null || toNode == null) continue;
+
+      if (activeScope is ContainerViewportScope) {
+        if (fromNode.parentContainerId != activeScope.containerId ||
+            toNode.parentContainerId != activeScope.containerId) {
+          continue;
+        }
+      } else {
+        if (fromNode.parentContainerId != null || toNode.parentContainerId != null) {
+          continue;
+        }
+      }
+
       final computed = entry.value;
       final bbox = Rect.fromLTWH(
         computed.bbox.x,

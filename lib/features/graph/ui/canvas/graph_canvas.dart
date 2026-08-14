@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/logging.dart';
 import '../../engine/config.dart';
+import '../../store/graph_data_query.dart';
 import '../../store/graph_data_query_controller.dart';
 import '../../store/command_queue_processor.dart';
 import '../../presentation/node_render_state.dart';
@@ -58,6 +59,7 @@ class _GraphCanvasState extends State<GraphCanvas>
       // ~60fps
       _lastMousePosMs = now;
       _mousePositionNotifier.value = localPosition;
+      _viewportController?.updateMouseScreenPos(localPosition);
     }
   }
 
@@ -77,6 +79,24 @@ class _GraphCanvasState extends State<GraphCanvas>
     final renderState = context.read<NodeRenderState>();
 
     final vpController = ViewportController(queryController);
+    vpController.vsync = this;
+    vpController.onContainerOpenStateChanged = (id, newPosition, newSize, isClosed) {
+      final node = queryController.nodeLookup[id];
+      if (node is ContainerUiNode) {
+        node.isClosed = isClosed;
+      }
+      queryController.publishUpdate(
+        GraphEntityUpdate(
+          id: id,
+          tableName: 'node',
+          type: GraphUpdateType.expansion,
+          payload: isClosed,
+        ),
+      );
+    };
+    renderState.dragState.addListener(() {
+      vpController.isGestureSuppressed = renderState.dragState.draggingNodes.isNotEmpty;
+    });
     _viewportController = vpController;
 
     final tabsController = context.read<WorkspaceTabsController>();
@@ -343,12 +363,14 @@ class _GraphCanvasState extends State<GraphCanvas>
                                 valueListenable:
                                     interactionController.panScaleEnabled,
                                 builder: (context, panScaleEnabled, child) {
-                                  return ValueListenableBuilder<String>(
-                                    valueListenable: session.toolModeNotifier,
-                                    builder: (context, currentMode, _) {
+                                  return ValueListenableBuilder<bool>(
+                                    valueListenable:
+                                        viewportController.isTransitioningNotifier,
+                                    builder: (context, isTransitioning, _) {
                                       final viewerPanEnabled =
                                           panScaleEnabled &&
-                                          renderState.activeEditId == null;
+                                          renderState.activeEditId == null &&
+                                          !isTransitioning;
                                       return GestureDetector(
                                         behavior: HitTestBehavior.deferToChild,
                                         onTap: renderState.activeEditId != null
@@ -372,8 +394,10 @@ class _GraphCanvasState extends State<GraphCanvas>
                                           constrained: true,
                                           clipBehavior: Clip.none,
                                           boundaryMargin: elasticMargins,
-                                          minScale: AppConfig.canvas.minScale,
-                                          maxScale: AppConfig.canvas.maxScale,
+                                          minScale:
+                                              viewportController.currentMinScale,
+                                          maxScale:
+                                              viewportController.currentMaxScale,
                                           scaleFactor:
                                               AppConfig.canvas.scaleFactor,
                                           panEnabled: viewerPanEnabled,

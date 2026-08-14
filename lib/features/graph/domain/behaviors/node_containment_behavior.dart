@@ -49,7 +49,8 @@ class ContainerContainment implements NodeContainmentBehavior {
     );
     final childCenter =
         childPosition + Offset(childSize.width / 2, childSize.height / 2);
-    return parentRect.contains(childCenter);
+    final isInside = parentRect.contains(childCenter);
+    return isInside;
   }
 }
 

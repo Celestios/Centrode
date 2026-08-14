@@ -7,6 +7,8 @@ import '../../models/models.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
+import '../../presentation/strategies/node_style_strategy.dart';
+import '../../domain/behaviors/node_containment_behavior.dart';
 
 /// Node mutation operations for the graph.
 class GraphNodeMutations {
@@ -51,9 +53,6 @@ class GraphNodeMutations {
     }
     RawUuid id = node.id;
     controller.store.nodeLookup[id] = node;
-    controller.spatial.spatialGrid.insert(id, position);
-    controller.spatial.saveConfirmedPosition(id, position);
-
     // Resolve the node style immediately so it doesn't render with a transparent/stale fallback style
     controller.styleUpdater?.updateStyleForNode(id);
 
@@ -62,12 +61,43 @@ class GraphNodeMutations {
     node.size = result.size;
     node.lineCount = result.lineCount;
 
+    // Check if created inside an open container
+    final nodeWorldCenter = position + Offset(node.size.width / 2, node.size.height / 2);
+    ContainerUiNode? targetContainer;
+    for (final candidate in controller.store.nodeLookup.values) {
+      if (candidate.id == id || candidate is! ContainerUiNode) continue;
+      if (candidate.isClosed) continue;
+
+      final cWorldPos = candidate.getAbsoluteWorldPosition(controller.store.nodeLookup);
+      final cRect = Rect.fromLTWH(cWorldPos.dx, cWorldPos.dy, candidate.size.width, candidate.size.height);
+
+      if (cRect.contains(nodeWorldCenter)) {
+        targetContainer = candidate;
+        break;
+      }
+    }
+
+    final Offset finalPos;
+    if (targetContainer != null) {
+      final cWorldPos = targetContainer.getAbsoluteWorldPosition(controller.store.nodeLookup);
+      finalPos = position - cWorldPos;
+      node.parentContainerId = targetContainer.id;
+      node.position = finalPos;
+      targetContainer.childCount++;
+      controller.spatial.spatialIndex.insertNode(id, targetContainer.id, finalPos, node.size);
+    } else {
+      finalPos = position;
+      controller.spatial.spatialIndex.insertNode(id, null, position, node.size);
+    }
+
+    controller.spatial.saveConfirmedPosition(id, finalPos);
+
     controller.syncEngine.api.updateNodeCachePositions(
       positions: [
         (
           parseTypedRecordId(node.tableName, id),
-          position.dx,
-          position.dy,
+          finalPos.dx,
+          finalPos.dy,
           node.size.width,
           node.size.height,
         ),
@@ -113,7 +143,13 @@ class GraphNodeMutations {
 
     // OPTIMISTIC TEARDOWN
     controller.store.nodeLookup.remove(id);
-    controller.spatial.spatialGrid.remove(id, node.position);
+    controller.spatial.spatialIndex.removeNode(id, node.parentContainerId, node.position);
+    if (node.parentContainerId != null) {
+      final parentContainer = controller.store.nodeLookup[node.parentContainerId];
+      if (parentContainer is ContainerUiNode && parentContainer.childCount > 0) {
+        parentContainer.childCount--;
+      }
+    }
     controller.spatial.clearConfirmedPosition(id);
 
     final connectedRelations = controller.store.relationLookup.values
@@ -136,20 +172,83 @@ class GraphNodeMutations {
   }
 
   /// Updates node position with write-behind debouncing via CommandProcessor.
-  /// Tracks the last confirmed DB position to prevent "Superseded Rollback Traps".
+  /// Updates node position with container auto-adoption and spatial index migration.
   void updateNodePosition(RawUuid id, Offset newPosition) {
     final node = controller.store.nodeLookup[id];
     if (node == null) return;
-    if (node.position == newPosition) return;
+
+    final oldPosition = node.position;
+    final oldParentId = node.parentContainerId;
 
     // Track the LAST confirmed position if this is a new sequence of moves
     final confirmedPos =
         controller.spatial.getConfirmedPosition(id) ?? node.position;
     controller.spatial.saveConfirmedPosition(id, confirmedPos);
 
-    final oldPosition = node.position;
-    controller.spatial.spatialGrid.update(id, node.position, newPosition);
-    node.position = newPosition;
+    // Determine target container (auto-adoption)
+    // newPosition is in canvas world coordinates
+    final nodeWorldCenter = newPosition + Offset(node.size.width / 2, node.size.height / 2);
+    ContainerUiNode? targetContainer;
+
+    for (final candidate in controller.store.nodeLookup.values) {
+      if (candidate.id == id || candidate is! ContainerUiNode) continue;
+      if (isAncestorOf(candidate, node, controller.store.nodeLookup)) continue;
+
+      final cWorldPos = candidate.getAbsoluteWorldPosition(controller.store.nodeLookup);
+      final cRect = Rect.fromLTWH(cWorldPos.dx, cWorldPos.dy, candidate.size.width, candidate.size.height);
+
+      if (cRect.contains(nodeWorldCenter)) {
+        targetContainer = candidate;
+        break;
+      }
+    }
+
+    final RawUuid? targetParentId = targetContainer?.id;
+    final Offset targetPos;
+    if (targetContainer != null) {
+      final cWorldPos = targetContainer.getAbsoluteWorldPosition(controller.store.nodeLookup);
+      targetPos = newPosition - cWorldPos;
+    } else {
+      targetPos = newPosition;
+    }
+
+    if (oldParentId != targetParentId) {
+      // Migrate spatial index
+      controller.spatial.spatialIndex.migrateNodeSpatialGrid(
+        id,
+        oldParentId,
+        targetParentId,
+        oldPosition,
+        targetPos,
+        node.size,
+      );
+
+      // Adjust child counts
+      if (oldParentId != null) {
+        final oldParent = controller.store.nodeLookup[oldParentId];
+        if (oldParent is ContainerUiNode && oldParent.childCount > 0) {
+          oldParent.childCount--;
+        }
+      }
+      if (targetParentId != null) {
+        final newParent = controller.store.nodeLookup[targetParentId];
+        if (newParent is ContainerUiNode) {
+          newParent.childCount++;
+        }
+      }
+
+      node.parentContainerId = targetParentId;
+      node.position = targetPos;
+    } else {
+      if (node.position == targetPos) return;
+
+      if (targetParentId == null) {
+        controller.spatial.spatialGrid.update(id, node.position, targetPos, node.size);
+      } else {
+        controller.spatial.spatialIndex.updateNode(id, targetParentId, node.position, targetPos, node.size);
+      }
+      node.position = targetPos;
+    }
 
     final cmd = PatchNodeCommand(
       targetId: id,
@@ -157,7 +256,7 @@ class GraphNodeMutations {
       api: controller.syncEngine.api,
       controller: controller,
       oldPosition: oldPosition,
-      newPosition: newPosition,
+      newPosition: targetPos,
     );
 
     // Write immediately — no debounce
@@ -167,7 +266,7 @@ class GraphNodeMutations {
         id: id,
         tableName: node.tableName,
         type: GraphUpdateType.position,
-        payload: newPosition,
+        payload: targetPos,
       ),
     );
   }
@@ -190,10 +289,11 @@ class GraphNodeMutations {
     );
 
     node.position = newPosition;
+    node.size = Size(newWidth, node.size.height);
 
     // Use centralized NodeStyleStrategy to dynamically resolve node's populated style,
     // and save manual target width in style config to lock manual mode.
-    final resolvedStyle = controller.resolveNodeStyle(node);
+    final resolvedStyle = node.resolvedStyle ?? NodeStyleStrategy.resolveStyle(node);
     node.style = (node.style ?? resolvedStyle).copyWith(
       width: newWidth.round(),
     );
@@ -204,7 +304,7 @@ class GraphNodeMutations {
     node.size = result.size;
     node.lineCount = result.lineCount;
 
-    controller.spatial.spatialGrid.update(id, oldPosition, newPosition);
+    controller.spatial.spatialGrid.update(id, oldPosition, newPosition, node.size);
 
     final cmd = PatchNodeCommand(
       targetId: id,
@@ -287,4 +387,105 @@ class GraphNodeMutations {
       ),
     );
   }
+
+  /// Converts an existing node (e.g. INode) to a ContainerUiNode.
+  void convertNodeToContainer(RawUuid id) {
+    final oldNode = controller.store.nodeLookup[id];
+    if (oldNode == null || oldNode is ContainerUiNode) return;
+
+    _nodeLog.info('Converting node $id (${oldNode.tableName}) to ContainerUiNode');
+
+    final title = oldNode.content.toPlainText().trim();
+    final containerTitle = title.isNotEmpty ? title : 'Container';
+
+    final containerNode = ContainerUiNode(
+      id: oldNode.id,
+      position: oldNode.position,
+      size: const Size(100.0, 80.0),
+      layer: oldNode.layer,
+      parentContainerId: oldNode.parentContainerId,
+      title: containerTitle,
+      isClosed: true,
+      childCount: 0,
+      tags: oldNode is InfoUiNode ? oldNode.tags : const [],
+      comments: oldNode is InfoUiNode ? oldNode.comments : const [],
+      style: oldNode.style ?? NodeStyleStrategy.resolveStyle(oldNode),
+      resolvedStyle: oldNode.resolvedStyle ?? NodeStyleStrategy.resolveStyle(oldNode),
+      locked: oldNode.locked,
+      significance: oldNode.significance,
+    );
+
+    // 1. Delete old node from DB
+    final deleteCmd = DeleteNodeCommand(
+      targetId: id,
+      api: controller.syncEngine.api,
+      tableName: oldNode.tableName,
+      node: oldNode,
+      controller: controller,
+    );
+    controller.syncEngine.processor.queueCommand(deleteCmd, immediate: true);
+
+    // 2. Insert new ContainerUiNode into store
+    controller.store.nodeLookup[id] = containerNode;
+
+    // 3. Adopt candidate nodes on canvas that fall within this container's bounds
+    final containerRect = Rect.fromLTWH(
+      containerNode.position.dx,
+      containerNode.position.dy,
+      containerNode.size.width,
+      containerNode.size.height,
+    );
+    int adoptedCount = 0;
+    for (final otherNode in controller.store.nodeLookup.values.toList()) {
+      if (otherNode.id == id || otherNode.parentContainerId != null) continue;
+      final otherCenter = otherNode.position + Offset(otherNode.size.width / 2, otherNode.size.height / 2);
+      if (containerRect.contains(otherCenter)) {
+        final oldWorldPos = otherNode.position;
+        final localPos = oldWorldPos - containerNode.position;
+
+        otherNode.parentContainerId = id;
+        otherNode.position = localPos;
+
+        controller.spatial.spatialIndex.migrateNodeSpatialGrid(otherNode.id, null, id, oldWorldPos, localPos, otherNode.size);
+
+        adoptedCount++;
+      }
+    }
+    containerNode.childCount = adoptedCount;
+
+    controller.spatial.spatialIndex.insertNode(id, containerNode.parentContainerId, containerNode.position, containerNode.size);
+
+    // Resolve style immediately for new container
+    controller.styleUpdater?.updateStyleForNode(id);
+
+    final createCmd = CreateNodeCommand(
+      targetId: id,
+      api: controller.syncEngine.api,
+      node: containerNode,
+      controller: controller,
+    );
+    controller.syncEngine.processor.queueCommand(createCmd, immediate: true);
+
+    controller.syncEngine.api.updateNodeCachePositions(
+      positions: [
+        (
+          parseTypedRecordId(containerNode.tableName, id),
+          containerNode.position.dx,
+          containerNode.position.dy,
+          containerNode.size.width,
+          containerNode.size.height,
+        ),
+      ],
+    );
+
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: containerNode.tableName,
+        type: GraphUpdateType.nodeAdded,
+      ),
+    );
+    controller.triggerUpdate();
+  }
 }
+

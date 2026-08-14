@@ -216,6 +216,26 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   @override
   Future<void> deleteNode(RawUuid id) => nodeMutations.deleteNode(id);
 
+  @override
+  void convertNodeToContainer(RawUuid id) {
+    nodeMutations.convertNodeToContainer(id);
+    final node = store.nodeLookup[id];
+    if (node != null) {
+      syncEngine.api.updateNodeCachePositions(
+        positions: [
+          (
+            parseTypedRecordId(node.tableName, id),
+            node.position.dx,
+            node.position.dy,
+            node.size.width,
+            node.size.height,
+          ),
+        ],
+      );
+    }
+    relationEngine.onNodeMoved(id);
+  }
+
   void updateNodePosition(RawUuid id, Offset newPosition) {
     nodeMutations.updateNodePosition(id, newPosition);
     final node = store.nodeLookup[id];

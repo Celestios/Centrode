@@ -27,6 +27,7 @@ sealed class UiNode {
   bool locked;
   bool isExpanded;
   int significance;
+  RawUuid? parentContainerId;
   NodeStyle? resolvedStyle;
   Offset position;
 
@@ -50,6 +51,7 @@ sealed class UiNode {
   // ──────────────────── normal constructor ────────────────────────────────
   UiNode({
     RawUuid? id,
+    this.parentContainerId,
     int? createdAt,
     int? updatedAt,
     bool? locked,
@@ -79,6 +81,26 @@ sealed class UiNode {
     }
   }
 
+  /// Pure live iterative world position calculation with max depth safety (32).
+  /// Sidesteps subtree cache invalidation loops; depth <= 32 is strictly O(1).
+  Offset getAbsoluteWorldPosition(Map<RawUuid, UiNode> nodeLookup) {
+    Offset currentPos = position;
+    RawUuid? currentParentId = parentContainerId;
+    int depth = 0;
+    final visited = <RawUuid>{};
+
+    while (currentParentId != null && depth < 32) {
+      if (!visited.add(currentParentId)) break; // Cycle guard
+      final parent = nodeLookup[currentParentId];
+      if (parent == null) break;
+      currentPos += parent.position;
+      currentParentId = parent.parentContainerId;
+      depth++;
+    }
+
+    return currentPos;
+  }
+
   static UiNode? copy(UiNode? node) => _$uiNodeCopy(node);
 
   UiNode? cloneWithId(RawUuid newId) => switch (this) {
@@ -87,6 +109,7 @@ sealed class UiNode {
     CommentUiNode() => (this as CommentUiNode).copyWith(id: newId),
     DrawingUiNode() => (this as DrawingUiNode).copyWith(id: newId),
     FrameUiNode() => (this as FrameUiNode).copyWith(id: newId),
+    ContainerUiNode() => (this as ContainerUiNode).copyWith(id: newId),
     InterUiNode() => (this as InterUiNode).copyWith(id: newId),
     MediaUiNode() => (this as MediaUiNode).copyWith(id: newId),
     ShapeUiNode() => (this as ShapeUiNode).copyWith(id: newId),
@@ -100,6 +123,7 @@ sealed class UiNode {
     DrawingUiNode() => const Color(0xFFCE93D8),
     ShapeUiNode() => const Color(0xFFFFCC80),
     FrameUiNode() => const Color(0xFFBCAAA4),
+    ContainerUiNode() => const Color(0xFF64B5F6),
     MediaUiNode() => const Color(0xFF80CBC4),
     InterUiNode() => const Color(0xFFFFF59D),
   };
@@ -131,3 +155,4 @@ extension DrawingUiNodeExtension on DrawingUiNode {
     }).toList();
   }
 }
+
