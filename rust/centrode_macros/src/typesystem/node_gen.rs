@@ -18,6 +18,8 @@ pub fn generate_nodes(entities: &[EntityDef]) -> TokenStream {
     // IsNode match arms
     let mut id_arms = Vec::new();
     let mut set_id_arms = Vec::new();
+    let mut parent_container_id_arms = Vec::new();
+    let mut set_parent_container_id_arms = Vec::new();
     let mut pos_arms = Vec::new();
     let mut pos_mut_arms = Vec::new();
     let mut layer_arms = Vec::new();
@@ -44,6 +46,10 @@ pub fn generate_nodes(entities: &[EntityDef]) -> TokenStream {
             .fields
             .iter()
             .any(|f| f.ident.as_ref().map_or(false, |i| i == "id"));
+        let has_parent_container_id = entity
+            .fields
+            .iter()
+            .any(|f| f.ident.as_ref().map_or(false, |i| i == "parent_container_id"));
         let has_pos = entity
             .fields
             .iter()
@@ -64,6 +70,9 @@ pub fn generate_nodes(entities: &[EntityDef]) -> TokenStream {
         let mut injected_fields = Vec::new();
         if !has_id {
             injected_fields.push(quote! { pub id: crate::domain::id::TypedRecordId });
+        }
+        if !has_parent_container_id {
+            injected_fields.push(quote! { pub parent_container_id: Option<crate::domain::id::TypedRecordId> });
         }
         if !has_pos {
             injected_fields.push(quote! { pub position: crate::domain::base_models::Coordinates });
@@ -92,7 +101,7 @@ pub fn generate_nodes(entities: &[EntityDef]) -> TokenStream {
 
             if let Some(field_name) = &field.ident {
                 let fname_str = field_name.to_string();
-                if ["id", "position", "layer", "created_at", "updated_at"]
+                if ["id", "parent_container_id", "position", "layer", "created_at", "updated_at"]
                     .contains(&fname_str.as_str())
                 {
                     continue;
@@ -156,6 +165,12 @@ pub fn generate_nodes(entities: &[EntityDef]) -> TokenStream {
                 fn set_id(&mut self, id: crate::domain::id::TypedRecordId) {
                     self.id = id;
                 }
+                fn parent_container_id(&self) -> Option<&crate::domain::id::TypedRecordId> {
+                    self.parent_container_id.as_ref()
+                }
+                fn set_parent_container_id(&mut self, val: Option<crate::domain::id::TypedRecordId>) {
+                    self.parent_container_id = val;
+                }
                 fn position(&self) -> &crate::domain::base_models::Coordinates {
                     &self.position
                 }
@@ -196,6 +211,14 @@ pub fn generate_nodes(entities: &[EntityDef]) -> TokenStream {
                     lines.push(crate::domain::schema::generate_updated_at(table));
                     lines.extend(crate::domain::nodes::generate_field_schema_lines(
                         table,
+                        "parent_container_id",
+                        None,
+                        None,
+                        < Option<crate::domain::id::TypedRecordId> as crate::domain::nodes::SurqlSchemaField >::field_type(),
+                        < Option<crate::domain::id::TypedRecordId> as crate::domain::nodes::SurqlSchemaField >::sub_field_paths(),
+                    ));
+                    lines.extend(crate::domain::nodes::generate_field_schema_lines(
+                        table,
                         "position",
                         None,
                         None,
@@ -223,6 +246,8 @@ pub fn generate_nodes(entities: &[EntityDef]) -> TokenStream {
 
         id_arms.push(quote! { Self::#name(n) => n.id() });
         set_id_arms.push(quote! { Self::#name(n) => n.set_id(id) });
+        parent_container_id_arms.push(quote! { Self::#name(n) => n.parent_container_id() });
+        set_parent_container_id_arms.push(quote! { Self::#name(n) => n.set_parent_container_id(val) });
         pos_arms.push(quote! { Self::#name(n) => n.position() });
         pos_mut_arms.push(quote! { Self::#name(n) => n.position_mut() });
         layer_arms.push(quote! { Self::#name(n) => n.layer() });
@@ -273,6 +298,18 @@ pub fn generate_nodes(entities: &[EntityDef]) -> TokenStream {
             fn set_id(&mut self, id: crate::domain::id::TypedRecordId) {
                 match self {
                     #(#set_id_arms,)*
+                }
+            }
+
+            fn parent_container_id(&self) -> Option<&crate::domain::id::TypedRecordId> {
+                match self {
+                    #(#parent_container_id_arms,)*
+                }
+            }
+
+            fn set_parent_container_id(&mut self, val: Option<crate::domain::id::TypedRecordId>) {
+                match self {
+                    #(#set_parent_container_id_arms,)*
                 }
             }
 

@@ -178,6 +178,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CommentNode dco_decode_box_autoadd_comment_node(dynamic raw);
 
   @protected
+  ContainerNode dco_decode_box_autoadd_container_node(dynamic raw);
+
+  @protected
   Content dco_decode_box_autoadd_content(dynamic raw);
 
   @protected
@@ -309,6 +312,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ComputedRelation dco_decode_computed_relation(dynamic raw);
+
+  @protected
+  ContainerNode dco_decode_container_node(dynamic raw);
 
   @protected
   Content dco_decode_content(dynamic raw);
@@ -572,6 +578,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Tag? dco_decode_opt_box_autoadd_tag(dynamic raw);
 
   @protected
+  TypedRecordId? dco_decode_opt_box_autoadd_typed_record_id(dynamic raw);
+
+  @protected
   int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
 
   @protected
@@ -822,6 +831,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CommentNode sse_decode_box_autoadd_comment_node(SseDeserializer deserializer);
 
   @protected
+  ContainerNode sse_decode_box_autoadd_container_node(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   Content sse_decode_box_autoadd_content(SseDeserializer deserializer);
 
   @protected
@@ -971,6 +985,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ComputedRelation sse_decode_computed_relation(SseDeserializer deserializer);
+
+  @protected
+  ContainerNode sse_decode_container_node(SseDeserializer deserializer);
 
   @protected
   Content sse_decode_content(SseDeserializer deserializer);
@@ -1274,6 +1291,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Tag? sse_decode_opt_box_autoadd_tag(SseDeserializer deserializer);
 
   @protected
+  TypedRecordId? sse_decode_opt_box_autoadd_typed_record_id(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
 
   @protected
@@ -1562,6 +1584,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_container_node(
+    ContainerNode self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_content(Content self, SseSerializer serializer);
 
   @protected
@@ -1779,6 +1807,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     ComputedRelation self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_container_node(ContainerNode self, SseSerializer serializer);
 
   @protected
   void sse_encode_content(Content self, SseSerializer serializer);
@@ -2134,6 +2165,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_opt_box_autoadd_tag(Tag? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_typed_record_id(
+    TypedRecordId? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);

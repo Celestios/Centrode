@@ -61,6 +61,7 @@ async fn test_graph_snapshot() {
     // Create initial nodes
     let inode = INode {
         id: inode_id,
+        parent_container_id: None,
         content: Content::from_plain_text("Snapshot Node"),
         style: None,
         resolved_style: None,
@@ -122,6 +123,7 @@ async fn test_graph_snapshot() {
     // Overwrite snapshot atomically with all entity types
     let new_inodes = vec![INode {
         id: new_inode_id,
+        parent_container_id: None,
         content: inode.content.clone(),
         style: inode.style.clone(),
         resolved_style: inode.resolved_style.clone(),
@@ -144,6 +146,7 @@ async fn test_graph_snapshot() {
     }];
     let new_tasks = vec![TaskNode {
         id: new_task_id,
+        parent_container_id: None,
         content: Content::from_plain_text("Snapshot Task Node"),
         due_date: None,
         state: TaskState::Todo,
@@ -165,6 +168,7 @@ async fn test_graph_snapshot() {
     }];
     let new_inters = vec![InterNode {
         id: new_inter_id,
+        parent_container_id: None,
         verb: "connects".to_string(),
         position: Coordinates { x: 300, y: 300 },
         layer: "default".to_string(),
@@ -263,6 +267,7 @@ async fn test_significance_calculation() {
 
     let center_node = INode {
         id: center_id,
+        parent_container_id: None,
         content: Content::from_plain_text("Center"),
         style: None,
         resolved_style: None,
@@ -286,6 +291,7 @@ async fn test_significance_calculation() {
 
     let node1 = INode {
         id: n1_id,
+        parent_container_id: None,
         content: Content::from_plain_text("Neighbor 1"),
         style: None,
         resolved_style: None,
@@ -341,6 +347,7 @@ async fn test_calculate_global_bounds() {
 
     let inode = INode {
         id: TypedRecordId::new_v4(TableKind::INode),
+        parent_container_id: None,
         content: Content::from_plain_text("N1"),
         style: None,
         resolved_style: None,
@@ -364,6 +371,7 @@ async fn test_calculate_global_bounds() {
 
     let tasknode = TaskNode {
         id: TypedRecordId::new_v4(TableKind::TaskNode),
+        parent_container_id: None,
         content: Content::from_plain_text("N2"),
         due_date: None,
         state: TaskState::Todo,

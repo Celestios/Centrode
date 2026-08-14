@@ -90,6 +90,7 @@ class DefaultNodeLayoutStrategy implements NodeLayoutStrategy {
 
   static double _computeMinWidth(UiNode node) => switch (node) {
     CommentUiNode() => 200.0,
+    ContainerUiNode() => 300.0,
     DrawingUiNode() => 100.0,
     FrameUiNode() => 400.0,
     InfoUiNode() => 250.0,
@@ -113,7 +114,12 @@ class DefaultNodeLayoutStrategy implements NodeLayoutStrategy {
 }) {
   final content = node.content;
   if (content.text.isEmpty) {
-    return (size: node.size, lineCount: node.lineCount);
+    final manualWidth = overrideWidth ??
+        (node.style != null && node.style!.width > 0
+            ? node.style!.width.toDouble()
+            : null);
+    final width = manualWidth ?? node.size.width;
+    return (size: Size(width, node.size.height), lineCount: node.lineCount);
   }
 
   final resolvedStyle = style ?? NodeStyleStrategy.fallbackStyle();

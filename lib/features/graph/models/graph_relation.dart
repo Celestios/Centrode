@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:uuid/uuid.dart';
 import 'package:centrode/src/rust/domain/types.dart';
@@ -9,45 +8,44 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 // ---------------------------------------------------------------------------
 // Abstract base class
 // ---------------------------------------------------------------------------
-sealed class UiRelation {
-  final RawUuid id;
+abstract class UiRelation {
+  RawUuid id;
+  String verb;
+  String layer;
   RawUuid fromNodeId;
   String fromNodeTable;
   RawUuid toNodeId;
   String toNodeTable;
-  String verb;
-  String layer;
   RelationDirection direction;
+  final int createdAt;
+  int updatedAt;
+
   RelationStyle? style;
   RelationStyle? resolvedStyle;
   RelationLayout? layout;
   RelationLayout? resolvedLayout;
-  final int createdAt;
-  int updatedAt;
 
   UiRelation({
     RawUuid? id,
+    String? verb,
+    String? layer,
     required this.fromNodeId,
     required this.fromNodeTable,
     required this.toNodeId,
     required this.toNodeTable,
-    String? verb,
     RelationDirection? direction,
+    int? createdAt,
+    int? updatedAt,
     this.style,
     this.resolvedStyle,
     this.layout,
     this.resolvedLayout,
-    String? layer,
-    int? createdAt,
-    int? updatedAt,
   }) : id = id ?? RawUuid.v4(),
-       verb = verb ?? "default",
+       verb = verb ?? 'relates to',
+       layer = layer ?? 'default',
        direction = direction ?? RelationDirection.forward,
-       layer = layer ?? "default",
        createdAt = createdAt ?? DateTime.now().millisecondsSinceEpoch,
-       updatedAt = updatedAt ?? DateTime.now().millisecondsSinceEpoch {
-    normalize();
-  }
+       updatedAt = updatedAt ?? DateTime.now().millisecondsSinceEpoch;
 
   /// Normalizes endpoint ordering (from <= to) and swaps sides/shapes accordingly.
   UiRelation normalize() {
@@ -60,9 +58,6 @@ sealed class UiRelation {
 
     final fromKey = '${fromNodeTable.toLowerCase()}:${fromNodeId.toUuidString()}';
     final toKey = '${toNodeTable.toLowerCase()}:${toNodeId.toUuidString()}';
-
-    final fromSide = layout?.fromSide ?? resolvedLayout?.fromSide;
-    final toSide = layout?.toSide ?? resolvedLayout?.toSide;
 
     if (fromKey.compareTo(toKey) <= 0) {
       if (direction != targetDirection &&

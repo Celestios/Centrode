@@ -20,6 +20,7 @@ async fn test_targeted_patch_and_history() {
     // 1. Create a node
     let inode = INode {
         id: inode_id,
+        parent_container_id: None,
         content: Content::from_plain_text("Patch test node"),
         style: None,
         resolved_style: None,
@@ -173,6 +174,7 @@ async fn test_relation_patching() {
 
     let n1 = INode {
         id: in_id,
+        parent_container_id: None,
         content: Content::from_plain_text("N1"),
         style: None,
         resolved_style: None,
@@ -195,6 +197,7 @@ async fn test_relation_patching() {
     };
     let n2 = INode {
         id: out_id,
+        parent_container_id: None,
         content: Content::from_plain_text("N2"),
         style: None,
         resolved_style: None,
@@ -314,6 +317,7 @@ async fn test_create_and_delete_entity_patches() {
 
     let n1 = INode {
         id: in_id,
+        parent_container_id: None,
         content: Content::from_plain_text("A"),
         style: None,
         resolved_style: None,

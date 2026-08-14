@@ -11,8 +11,11 @@ import 'package:centrode/src/rust/domain/base_models.dart';
 import 'package:centrode/src/rust/domain/snapshot.dart';
 import 'package:centrode/src/rust/domain/patches.dart';
 import 'package:centrode/presentation/theme/graph_theme.dart';
-import 'package:centrode/src/rust/domain/styles.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/src/rust/relation_engine/computed.dart';
+import 'package:centrode/src/rust/relation_engine/geometry.dart' as rust_geom;
+import 'package:centrode/src/rust/relation_engine/config.dart';
+import 'dart:typed_data';
 
 class MockGraphApi extends Mock implements GraphApi {}
 
@@ -26,9 +29,12 @@ class MockStyleUpdater extends Mock implements GraphStyleUpdater {}
 
 class FakeSymmetricEntityPatch extends Fake implements SymmetricEntityPatch {}
 
+class FakeRelationEngineConfig extends Fake implements RelationEngineConfig {}
+
 void main() {
   setUpAll(() {
     registerFallbackValue(FakeSymmetricEntityPatch());
+    registerFallbackValue(FakeRelationEngineConfig());
     registerFallbackValue(
       parseTypedRecordId('INode', RawUuid.fromString('dummy')),
     );
@@ -111,6 +117,63 @@ void main() {
       when(
         () => mockApi.createGraphStream(),
       ).thenAnswer((_) => const Stream.empty());
+      when(
+        () => mockApi.computeSingleRelation(
+          config: any(named: 'config'),
+          edgeId: any(named: 'edgeId'),
+          fromNodeId: any(named: 'fromNodeId'),
+          toNodeId: any(named: 'toNodeId'),
+          fromSide: any(named: 'fromSide'),
+          toSide: any(named: 'toSide'),
+          routingMode: any(named: 'routingMode'),
+          overrideStartX: any(named: 'overrideStartX'),
+          overrideStartY: any(named: 'overrideStartY'),
+          overrideEndX: any(named: 'overrideEndX'),
+          overrideEndY: any(named: 'overrideEndY'),
+        ),
+      ).thenAnswer(
+        (invocation) async => ComputedRelation(
+          id: (invocation.namedArguments[#edgeId] as TypedRecordId?) ??
+              parseTypedRecordId('IRelation', RawUuid.fromString('dummy')),
+          startPoint: const rust_geom.Point(x: 0, y: 0),
+          endPoint: const rust_geom.Point(x: 0, y: 0),
+          startHandlePos: const rust_geom.Point(x: 0, y: 0),
+          endHandlePos: const rust_geom.Point(x: 0, y: 0),
+          labelPosition: const rust_geom.Point(x: 0, y: 0),
+          pathPoints: const [],
+          startShapePath: const [],
+          endShapePath: const [],
+          startShapeFilled: false,
+          endShapeFilled: false,
+          bodyType: BodyType.uniform,
+          bodyWidths: Float64List(0),
+          pathType: PathType.straight,
+          startTangent: const rust_geom.Point(x: 0, y: 0),
+          endTangent: const rust_geom.Point(x: 0, y: 0),
+          startEndpoint: EndpointShape.none,
+          endEndpoint: EndpointShape.none,
+          startDirection: 0.0,
+          endDirection: 0.0,
+          labelAnchor: LabelAnchor.center,
+          bbox: const rust_geom.Rect(x: 0, y: 0, width: 0, height: 0),
+          startArrowCenter: const rust_geom.Point(x: 0, y: 0),
+          endArrowCenter: const rust_geom.Point(x: 0, y: 0),
+          startMargin: 0.0,
+          endMargin: 0.0,
+          dependsOnNodes: const [],
+          controlPoints: const [],
+          knots: Float64List(0),
+          nudgeColors: const [],
+          hitTestPoints: const [],
+          composeActive: false,
+        ),
+      );
+      when(
+        () => mockApi.computeRelations(
+          config: any(named: 'config'),
+          relationIds: any(named: 'relationIds'),
+        ),
+      ).thenAnswer((_) async => []);
       when(() => mockApi.getGraphSnapshot()).thenAnswer(
         (_) async => GraphSnapshot(
           nodes: [],

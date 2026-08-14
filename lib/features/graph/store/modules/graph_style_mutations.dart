@@ -4,6 +4,7 @@ import '../../models/commands/patch_helpers.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
+import '../../presentation/strategies/node_style_strategy.dart';
 
 /// Style mutation operations for the graph.
 class GraphStyleMutations {
@@ -31,7 +32,7 @@ class GraphStyleMutations {
       final node = controller.store.nodeLookup[id];
       if (node == null) continue;
 
-      final oldStyle = node.style ?? controller.resolveNodeStyle(node);
+      final oldStyle = node.style ?? node.resolvedStyle ?? NodeStyleStrategy.resolveStyle(node);
       final oldSize = node.size;
       final newStyle = updateFn(oldStyle);
 

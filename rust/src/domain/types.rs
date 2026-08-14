@@ -106,6 +106,26 @@ define_domain_types! {
     }
 
     #[category(node)]
+    #[table(label = "ContainerNode", fetch = ["tags"])]
+    pub struct ContainerNode {
+        pub title: String,
+        pub style: Option<NodeStyle>,
+        pub resolved_style: Option<NodeStyle>,
+        pub layout: Option<NodeLayout>,
+        pub resolved_layout: Option<NodeLayout>,
+        pub size: Size,
+        pub is_closed: bool,
+        #[surql_default = "0"]
+        pub child_count: u32,
+        pub locked: bool,
+        #[surql_type = "array<record<Tag>>"]
+        pub tags: Vec<TagEdge>,
+        pub comments: Vec<Comment>,
+        #[surql_default = "0"]
+        pub significance: u8,
+    }
+
+    #[category(node)]
     pub struct MediaNode {
         pub source_url: String,
         pub media_type: MediaType,

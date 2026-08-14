@@ -2,7 +2,7 @@ use crate::domain::base_models::Coordinates;
 use crate::domain::id::TypedRecordId;
 pub use crate::domain::schema::{generate_field_schema_lines, SurqlSchema, SurqlSchemaField};
 pub use crate::domain::types::{
-    CommentNode, DrawingNode, FrameNode, INode, InterNode, MediaNode, Nodes, ShapeNode, TaskNode,
+    CommentNode, ContainerNode, DrawingNode, FrameNode, INode, InterNode, MediaNode, Nodes, ShapeNode, TaskNode,
 };
 use centrode_macros::SurrealDbEnum;
 use surrealdb::types::Value;
@@ -50,6 +50,9 @@ pub trait IsNode {
     fn id(&self) -> &TypedRecordId;
     fn set_id(&mut self, id: TypedRecordId);
 
+    fn parent_container_id(&self) -> Option<&TypedRecordId>;
+    fn set_parent_container_id(&mut self, val: Option<TypedRecordId>);
+
     fn position(&self) -> &Coordinates;
     fn position_mut(&mut self) -> &mut Coordinates;
 
@@ -77,6 +80,7 @@ impl Nodes {
             Nodes::ShapeNode(n) => (n.size.width as f64, n.size.height as f64),
             Nodes::FrameNode(n) => (n.size.width as f64, n.size.height as f64),
             Nodes::MediaNode(n) => (n.size.width as f64, n.size.height as f64),
+            Nodes::ContainerNode(n) => (n.size.width as f64, n.size.height as f64),
             Nodes::InterNode(_) => (0.0, 0.0),
         }
     }

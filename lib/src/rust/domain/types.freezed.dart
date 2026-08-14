@@ -55,7 +55,7 @@ extension NodesPatterns on Nodes {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( Nodes_INode value)?  iNode,TResult Function( Nodes_TaskNode value)?  taskNode,TResult Function( Nodes_InterNode value)?  interNode,TResult Function( Nodes_CommentNode value)?  commentNode,TResult Function( Nodes_DrawingNode value)?  drawingNode,TResult Function( Nodes_ShapeNode value)?  shapeNode,TResult Function( Nodes_FrameNode value)?  frameNode,TResult Function( Nodes_MediaNode value)?  mediaNode,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( Nodes_INode value)?  iNode,TResult Function( Nodes_TaskNode value)?  taskNode,TResult Function( Nodes_InterNode value)?  interNode,TResult Function( Nodes_CommentNode value)?  commentNode,TResult Function( Nodes_DrawingNode value)?  drawingNode,TResult Function( Nodes_ShapeNode value)?  shapeNode,TResult Function( Nodes_FrameNode value)?  frameNode,TResult Function( Nodes_ContainerNode value)?  containerNode,TResult Function( Nodes_MediaNode value)?  mediaNode,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case Nodes_INode() when iNode != null:
@@ -65,7 +65,8 @@ return interNode(_that);case Nodes_CommentNode() when commentNode != null:
 return commentNode(_that);case Nodes_DrawingNode() when drawingNode != null:
 return drawingNode(_that);case Nodes_ShapeNode() when shapeNode != null:
 return shapeNode(_that);case Nodes_FrameNode() when frameNode != null:
-return frameNode(_that);case Nodes_MediaNode() when mediaNode != null:
+return frameNode(_that);case Nodes_ContainerNode() when containerNode != null:
+return containerNode(_that);case Nodes_MediaNode() when mediaNode != null:
 return mediaNode(_that);case _:
   return orElse();
 
@@ -84,7 +85,7 @@ return mediaNode(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( Nodes_INode value)  iNode,required TResult Function( Nodes_TaskNode value)  taskNode,required TResult Function( Nodes_InterNode value)  interNode,required TResult Function( Nodes_CommentNode value)  commentNode,required TResult Function( Nodes_DrawingNode value)  drawingNode,required TResult Function( Nodes_ShapeNode value)  shapeNode,required TResult Function( Nodes_FrameNode value)  frameNode,required TResult Function( Nodes_MediaNode value)  mediaNode,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( Nodes_INode value)  iNode,required TResult Function( Nodes_TaskNode value)  taskNode,required TResult Function( Nodes_InterNode value)  interNode,required TResult Function( Nodes_CommentNode value)  commentNode,required TResult Function( Nodes_DrawingNode value)  drawingNode,required TResult Function( Nodes_ShapeNode value)  shapeNode,required TResult Function( Nodes_FrameNode value)  frameNode,required TResult Function( Nodes_ContainerNode value)  containerNode,required TResult Function( Nodes_MediaNode value)  mediaNode,}){
 final _that = this;
 switch (_that) {
 case Nodes_INode():
@@ -94,7 +95,8 @@ return interNode(_that);case Nodes_CommentNode():
 return commentNode(_that);case Nodes_DrawingNode():
 return drawingNode(_that);case Nodes_ShapeNode():
 return shapeNode(_that);case Nodes_FrameNode():
-return frameNode(_that);case Nodes_MediaNode():
+return frameNode(_that);case Nodes_ContainerNode():
+return containerNode(_that);case Nodes_MediaNode():
 return mediaNode(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -109,7 +111,7 @@ return mediaNode(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( Nodes_INode value)?  iNode,TResult? Function( Nodes_TaskNode value)?  taskNode,TResult? Function( Nodes_InterNode value)?  interNode,TResult? Function( Nodes_CommentNode value)?  commentNode,TResult? Function( Nodes_DrawingNode value)?  drawingNode,TResult? Function( Nodes_ShapeNode value)?  shapeNode,TResult? Function( Nodes_FrameNode value)?  frameNode,TResult? Function( Nodes_MediaNode value)?  mediaNode,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( Nodes_INode value)?  iNode,TResult? Function( Nodes_TaskNode value)?  taskNode,TResult? Function( Nodes_InterNode value)?  interNode,TResult? Function( Nodes_CommentNode value)?  commentNode,TResult? Function( Nodes_DrawingNode value)?  drawingNode,TResult? Function( Nodes_ShapeNode value)?  shapeNode,TResult? Function( Nodes_FrameNode value)?  frameNode,TResult? Function( Nodes_ContainerNode value)?  containerNode,TResult? Function( Nodes_MediaNode value)?  mediaNode,}){
 final _that = this;
 switch (_that) {
 case Nodes_INode() when iNode != null:
@@ -119,7 +121,8 @@ return interNode(_that);case Nodes_CommentNode() when commentNode != null:
 return commentNode(_that);case Nodes_DrawingNode() when drawingNode != null:
 return drawingNode(_that);case Nodes_ShapeNode() when shapeNode != null:
 return shapeNode(_that);case Nodes_FrameNode() when frameNode != null:
-return frameNode(_that);case Nodes_MediaNode() when mediaNode != null:
+return frameNode(_that);case Nodes_ContainerNode() when containerNode != null:
+return containerNode(_that);case Nodes_MediaNode() when mediaNode != null:
 return mediaNode(_that);case _:
   return null;
 
@@ -137,7 +140,7 @@ return mediaNode(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( INode field0)?  iNode,TResult Function( TaskNode field0)?  taskNode,TResult Function( InterNode field0)?  interNode,TResult Function( CommentNode field0)?  commentNode,TResult Function( DrawingNode field0)?  drawingNode,TResult Function( ShapeNode field0)?  shapeNode,TResult Function( FrameNode field0)?  frameNode,TResult Function( MediaNode field0)?  mediaNode,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( INode field0)?  iNode,TResult Function( TaskNode field0)?  taskNode,TResult Function( InterNode field0)?  interNode,TResult Function( CommentNode field0)?  commentNode,TResult Function( DrawingNode field0)?  drawingNode,TResult Function( ShapeNode field0)?  shapeNode,TResult Function( FrameNode field0)?  frameNode,TResult Function( ContainerNode field0)?  containerNode,TResult Function( MediaNode field0)?  mediaNode,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case Nodes_INode() when iNode != null:
 return iNode(_that.field0);case Nodes_TaskNode() when taskNode != null:
@@ -146,7 +149,8 @@ return interNode(_that.field0);case Nodes_CommentNode() when commentNode != null
 return commentNode(_that.field0);case Nodes_DrawingNode() when drawingNode != null:
 return drawingNode(_that.field0);case Nodes_ShapeNode() when shapeNode != null:
 return shapeNode(_that.field0);case Nodes_FrameNode() when frameNode != null:
-return frameNode(_that.field0);case Nodes_MediaNode() when mediaNode != null:
+return frameNode(_that.field0);case Nodes_ContainerNode() when containerNode != null:
+return containerNode(_that.field0);case Nodes_MediaNode() when mediaNode != null:
 return mediaNode(_that.field0);case _:
   return orElse();
 
@@ -165,7 +169,7 @@ return mediaNode(_that.field0);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( INode field0)  iNode,required TResult Function( TaskNode field0)  taskNode,required TResult Function( InterNode field0)  interNode,required TResult Function( CommentNode field0)  commentNode,required TResult Function( DrawingNode field0)  drawingNode,required TResult Function( ShapeNode field0)  shapeNode,required TResult Function( FrameNode field0)  frameNode,required TResult Function( MediaNode field0)  mediaNode,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( INode field0)  iNode,required TResult Function( TaskNode field0)  taskNode,required TResult Function( InterNode field0)  interNode,required TResult Function( CommentNode field0)  commentNode,required TResult Function( DrawingNode field0)  drawingNode,required TResult Function( ShapeNode field0)  shapeNode,required TResult Function( FrameNode field0)  frameNode,required TResult Function( ContainerNode field0)  containerNode,required TResult Function( MediaNode field0)  mediaNode,}) {final _that = this;
 switch (_that) {
 case Nodes_INode():
 return iNode(_that.field0);case Nodes_TaskNode():
@@ -174,7 +178,8 @@ return interNode(_that.field0);case Nodes_CommentNode():
 return commentNode(_that.field0);case Nodes_DrawingNode():
 return drawingNode(_that.field0);case Nodes_ShapeNode():
 return shapeNode(_that.field0);case Nodes_FrameNode():
-return frameNode(_that.field0);case Nodes_MediaNode():
+return frameNode(_that.field0);case Nodes_ContainerNode():
+return containerNode(_that.field0);case Nodes_MediaNode():
 return mediaNode(_that.field0);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -189,7 +194,7 @@ return mediaNode(_that.field0);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( INode field0)?  iNode,TResult? Function( TaskNode field0)?  taskNode,TResult? Function( InterNode field0)?  interNode,TResult? Function( CommentNode field0)?  commentNode,TResult? Function( DrawingNode field0)?  drawingNode,TResult? Function( ShapeNode field0)?  shapeNode,TResult? Function( FrameNode field0)?  frameNode,TResult? Function( MediaNode field0)?  mediaNode,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( INode field0)?  iNode,TResult? Function( TaskNode field0)?  taskNode,TResult? Function( InterNode field0)?  interNode,TResult? Function( CommentNode field0)?  commentNode,TResult? Function( DrawingNode field0)?  drawingNode,TResult? Function( ShapeNode field0)?  shapeNode,TResult? Function( FrameNode field0)?  frameNode,TResult? Function( ContainerNode field0)?  containerNode,TResult? Function( MediaNode field0)?  mediaNode,}) {final _that = this;
 switch (_that) {
 case Nodes_INode() when iNode != null:
 return iNode(_that.field0);case Nodes_TaskNode() when taskNode != null:
@@ -198,7 +203,8 @@ return interNode(_that.field0);case Nodes_CommentNode() when commentNode != null
 return commentNode(_that.field0);case Nodes_DrawingNode() when drawingNode != null:
 return drawingNode(_that.field0);case Nodes_ShapeNode() when shapeNode != null:
 return shapeNode(_that.field0);case Nodes_FrameNode() when frameNode != null:
-return frameNode(_that.field0);case Nodes_MediaNode() when mediaNode != null:
+return frameNode(_that.field0);case Nodes_ContainerNode() when containerNode != null:
+return containerNode(_that.field0);case Nodes_MediaNode() when mediaNode != null:
 return mediaNode(_that.field0);case _:
   return null;
 
@@ -663,6 +669,72 @@ class _$Nodes_FrameNodeCopyWithImpl<$Res>
   return _then(Nodes_FrameNode(
 null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
 as FrameNode,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class Nodes_ContainerNode extends Nodes {
+  const Nodes_ContainerNode(this.field0): super._();
+  
+
+@override final  ContainerNode field0;
+
+/// Create a copy of Nodes
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$Nodes_ContainerNodeCopyWith<Nodes_ContainerNode> get copyWith => _$Nodes_ContainerNodeCopyWithImpl<Nodes_ContainerNode>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Nodes_ContainerNode&&(identical(other.field0, field0) || other.field0 == field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0);
+
+@override
+String toString() {
+  return 'Nodes.containerNode(field0: $field0)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $Nodes_ContainerNodeCopyWith<$Res> implements $NodesCopyWith<$Res> {
+  factory $Nodes_ContainerNodeCopyWith(Nodes_ContainerNode value, $Res Function(Nodes_ContainerNode) _then) = _$Nodes_ContainerNodeCopyWithImpl;
+@useResult
+$Res call({
+ ContainerNode field0
+});
+
+
+
+
+}
+/// @nodoc
+class _$Nodes_ContainerNodeCopyWithImpl<$Res>
+    implements $Nodes_ContainerNodeCopyWith<$Res> {
+  _$Nodes_ContainerNodeCopyWithImpl(this._self, this._then);
+
+  final Nodes_ContainerNode _self;
+  final $Res Function(Nodes_ContainerNode) _then;
+
+/// Create a copy of Nodes
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(Nodes_ContainerNode(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as ContainerNode,
   ));
 }
 

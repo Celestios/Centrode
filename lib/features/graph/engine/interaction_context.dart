@@ -26,6 +26,9 @@ abstract interface class ViewportCapability {
   /// Gets the current scale factor of the canvas viewport.
   double get currentScale;
 
+  /// Updates the zoom scale while preserving the current camera translation.
+  void updateScale(double newScale);
+
   /// Returns the current set of visible node IDs for O(V) hit testing.
   Set<RawUuid> getVisibleNodeIds();
 

@@ -11,7 +11,6 @@ import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
 import 'package:centrode/src/rust/relation_engine/geometry.dart' as rust_geom;
 import 'package:centrode/src/rust/relation_engine/config.dart';
-import 'package:centrode/src/rust/domain/styles.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter/material.dart';
 

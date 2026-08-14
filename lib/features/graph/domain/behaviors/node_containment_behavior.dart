@@ -1,7 +1,8 @@
 import 'dart:ui';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'package:centrode/features/graph/models/graph_node.dart';
 
-/// Determines child node containment for composite nodes (frames).
+/// Determines child node containment for composite nodes (frames and containers).
 abstract class NodeContainmentBehavior {
   bool containsChild(UiNode parent, Offset childPosition, Size childSize);
 }
@@ -32,4 +33,40 @@ class FrameContainment implements NodeContainmentBehavior {
         childPosition + Offset(childSize.width / 2, childSize.height / 2);
     return parentRect.contains(childCenter);
   }
+}
+
+/// Container nodes contain children whose center falls within their local bounding box.
+class ContainerContainment implements NodeContainmentBehavior {
+  const ContainerContainment();
+
+  @override
+  bool containsChild(UiNode parent, Offset childPosition, Size childSize) {
+    final parentRect = Rect.fromLTWH(
+      0.0,
+      0.0,
+      parent.size.width,
+      parent.size.height,
+    );
+    final childCenter =
+        childPosition + Offset(childSize.width / 2, childSize.height / 2);
+    return parentRect.contains(childCenter);
+  }
+}
+
+/// Cycle protection check to ensure candidateAncestor is not an ancestor/parent of candidateDescendant.
+bool isAncestorOf(UiNode candidateAncestor, UiNode candidateDescendant, Map<RawUuid, UiNode> nodeLookup) {
+  RawUuid? currentParentId = candidateDescendant.parentContainerId;
+  int depth = 0;
+  final visited = <RawUuid>{};
+
+  while (currentParentId != null && depth < 32) {
+    if (!visited.add(currentParentId)) return true; // Cycle detected
+    if (currentParentId == candidateAncestor.id) return true;
+
+    final parent = nodeLookup[currentParentId];
+    if (parent == null) break;
+    currentParentId = parent.parentContainerId;
+    depth++;
+  }
+  return false;
 }

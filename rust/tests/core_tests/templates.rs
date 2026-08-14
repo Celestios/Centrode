@@ -28,6 +28,7 @@ async fn test_templates_save_and_instantiate() {
     let node1_id = TypedRecordId::new_v4(TableKind::INode);
     let node1 = INode {
         id: node1_id,
+        parent_container_id: None,
         content: Content::from_plain_text("Node 1 in template"),
         style: None,
         resolved_style: None,
@@ -56,6 +57,7 @@ async fn test_templates_save_and_instantiate() {
     let node2_id = TypedRecordId::new_v4(TableKind::TaskNode);
     let node2 = TaskNode {
         id: node2_id,
+        parent_container_id: None,
         content: Content::from_plain_text("Node 2 in template"),
         due_date: None,
         state: TaskState::Todo,

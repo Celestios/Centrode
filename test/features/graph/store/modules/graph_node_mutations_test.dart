@@ -144,6 +144,22 @@ void main() {
       final toggled = queryController.nodeLookup[id]!;
       expect(toggled.isExpanded, equals(!initial));
     });
+
+    test('convertNodeToContainer converts INode to ContainerUiNode', () async {
+      final id = controller.nodeMutations.createNode(
+        UiNodes.info,
+        const Offset(100, 200),
+      );
+
+      expect(queryController.nodeLookup[id] is InfoUiNode, isTrue);
+
+      controller.convertNodeToContainer(id);
+
+      final convertedNode = queryController.nodeLookup[id];
+      expect(convertedNode is ContainerUiNode, isTrue);
+      expect(convertedNode!.position, const Offset(100, 200));
+      expect((convertedNode as ContainerUiNode).title, 'topic');
+    });
   });
 }
 

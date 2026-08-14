@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:flutter/foundation.dart';
 import 'package:centrode/shared/logging.dart';
 import '../models/models.dart';
 import '../models/port.dart';
@@ -279,6 +278,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
   @override
   double get currentScale => _getScale();
+
+  @override
+  void updateScale(double newScale) => _viewportController.updateScale(newScale);
 
   @override
   void updateNodeStyle(

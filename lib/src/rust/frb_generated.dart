@@ -2744,6 +2744,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ContainerNode dco_decode_box_autoadd_container_node(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_container_node(raw);
+  }
+
+  @protected
   Content dco_decode_box_autoadd_content(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_content(raw);
@@ -3009,16 +3015,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   CommentNode dco_decode_comment_node(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 7)
-      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    if (arr.length != 8)
+      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
     return CommentNode(
       id: dco_decode_typed_record_id(arr[0]),
-      position: dco_decode_coordinates(arr[1]),
-      layer: dco_decode_String(arr[2]),
-      createdAt: dco_decode_i_64(arr[3]),
-      updatedAt: dco_decode_i_64(arr[4]),
-      text: dco_decode_String(arr[5]),
-      size: dco_decode_size(arr[6]),
+      parentContainerId: dco_decode_opt_box_autoadd_typed_record_id(arr[1]),
+      position: dco_decode_coordinates(arr[2]),
+      layer: dco_decode_String(arr[3]),
+      createdAt: dco_decode_i_64(arr[4]),
+      updatedAt: dco_decode_i_64(arr[5]),
+      text: dco_decode_String(arr[6]),
+      size: dco_decode_size(arr[7]),
     );
   }
 
@@ -3063,6 +3070,34 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       endShapeFilled: dco_decode_bool(arr[31]),
       startHandlePos: dco_decode_point(arr[32]),
       endHandlePos: dco_decode_point(arr[33]),
+    );
+  }
+
+  @protected
+  ContainerNode dco_decode_container_node(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 18)
+      throw Exception('unexpected arr length: expect 18 but see ${arr.length}');
+    return ContainerNode(
+      id: dco_decode_typed_record_id(arr[0]),
+      parentContainerId: dco_decode_opt_box_autoadd_typed_record_id(arr[1]),
+      position: dco_decode_coordinates(arr[2]),
+      layer: dco_decode_String(arr[3]),
+      createdAt: dco_decode_i_64(arr[4]),
+      updatedAt: dco_decode_i_64(arr[5]),
+      title: dco_decode_String(arr[6]),
+      style: dco_decode_opt_box_autoadd_node_style(arr[7]),
+      resolvedStyle: dco_decode_opt_box_autoadd_node_style(arr[8]),
+      layout: dco_decode_opt_box_autoadd_node_layout(arr[9]),
+      resolvedLayout: dco_decode_opt_box_autoadd_node_layout(arr[10]),
+      size: dco_decode_size(arr[11]),
+      isClosed: dco_decode_bool(arr[12]),
+      childCount: dco_decode_u_32(arr[13]),
+      locked: dco_decode_bool(arr[14]),
+      tags: dco_decode_list_tag_edge(arr[15]),
+      comments: dco_decode_list_comment(arr[16]),
+      significance: dco_decode_u_8(arr[17]),
     );
   }
 
@@ -3133,20 +3168,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   DrawingNode dco_decode_drawing_node(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 11)
-      throw Exception('unexpected arr length: expect 11 but see ${arr.length}');
+    if (arr.length != 12)
+      throw Exception('unexpected arr length: expect 12 but see ${arr.length}');
     return DrawingNode(
       id: dco_decode_typed_record_id(arr[0]),
-      position: dco_decode_coordinates(arr[1]),
-      layer: dco_decode_String(arr[2]),
-      createdAt: dco_decode_i_64(arr[3]),
-      updatedAt: dco_decode_i_64(arr[4]),
-      paths: dco_decode_list_String(arr[5]),
-      brushType: dco_decode_brush_type(arr[6]),
-      brushThickness: dco_decode_f_64(arr[7]),
-      brushColor: dco_decode_String(arr[8]),
-      size: dco_decode_size(arr[9]),
-      locked: dco_decode_bool(arr[10]),
+      parentContainerId: dco_decode_opt_box_autoadd_typed_record_id(arr[1]),
+      position: dco_decode_coordinates(arr[2]),
+      layer: dco_decode_String(arr[3]),
+      createdAt: dco_decode_i_64(arr[4]),
+      updatedAt: dco_decode_i_64(arr[5]),
+      paths: dco_decode_list_String(arr[6]),
+      brushType: dco_decode_brush_type(arr[7]),
+      brushThickness: dco_decode_f_64(arr[8]),
+      brushColor: dco_decode_String(arr[9]),
+      size: dco_decode_size(arr[10]),
+      locked: dco_decode_bool(arr[11]),
     );
   }
 
@@ -3244,17 +3280,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   FrameNode dco_decode_frame_node(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 8)
-      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
     return FrameNode(
       id: dco_decode_typed_record_id(arr[0]),
-      position: dco_decode_coordinates(arr[1]),
-      layer: dco_decode_String(arr[2]),
-      createdAt: dco_decode_i_64(arr[3]),
-      updatedAt: dco_decode_i_64(arr[4]),
-      title: dco_decode_String(arr[5]),
-      style: dco_decode_opt_box_autoadd_node_style(arr[6]),
-      size: dco_decode_size(arr[7]),
+      parentContainerId: dco_decode_opt_box_autoadd_typed_record_id(arr[1]),
+      position: dco_decode_coordinates(arr[2]),
+      layer: dco_decode_String(arr[3]),
+      createdAt: dco_decode_i_64(arr[4]),
+      updatedAt: dco_decode_i_64(arr[5]),
+      title: dco_decode_String(arr[6]),
+      style: dco_decode_opt_box_autoadd_node_style(arr[7]),
+      size: dco_decode_size(arr[8]),
     );
   }
 
@@ -3337,29 +3374,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   INode dco_decode_i_node(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 20)
-      throw Exception('unexpected arr length: expect 20 but see ${arr.length}');
+    if (arr.length != 21)
+      throw Exception('unexpected arr length: expect 21 but see ${arr.length}');
     return INode(
       id: dco_decode_typed_record_id(arr[0]),
-      position: dco_decode_coordinates(arr[1]),
-      layer: dco_decode_String(arr[2]),
-      createdAt: dco_decode_i_64(arr[3]),
-      updatedAt: dco_decode_i_64(arr[4]),
-      content: dco_decode_content(arr[5]),
-      style: dco_decode_opt_box_autoadd_node_style(arr[6]),
-      resolvedStyle: dco_decode_opt_box_autoadd_node_style(arr[7]),
-      layout: dco_decode_opt_box_autoadd_node_layout(arr[8]),
-      resolvedLayout: dco_decode_opt_box_autoadd_node_layout(arr[9]),
-      size: dco_decode_size(arr[10]),
-      lineCount: dco_decode_i_32(arr[11]),
-      expandable: dco_decode_bool(arr[12]),
-      isExpanded: dco_decode_bool(arr[13]),
-      locked: dco_decode_bool(arr[14]),
-      tags: dco_decode_list_tag_edge(arr[15]),
-      aliases: dco_decode_list_String(arr[16]),
-      comments: dco_decode_list_comment(arr[17]),
-      attachment: dco_decode_opt_String(arr[18]),
-      significance: dco_decode_u_8(arr[19]),
+      parentContainerId: dco_decode_opt_box_autoadd_typed_record_id(arr[1]),
+      position: dco_decode_coordinates(arr[2]),
+      layer: dco_decode_String(arr[3]),
+      createdAt: dco_decode_i_64(arr[4]),
+      updatedAt: dco_decode_i_64(arr[5]),
+      content: dco_decode_content(arr[6]),
+      style: dco_decode_opt_box_autoadd_node_style(arr[7]),
+      resolvedStyle: dco_decode_opt_box_autoadd_node_style(arr[8]),
+      layout: dco_decode_opt_box_autoadd_node_layout(arr[9]),
+      resolvedLayout: dco_decode_opt_box_autoadd_node_layout(arr[10]),
+      size: dco_decode_size(arr[11]),
+      lineCount: dco_decode_i_32(arr[12]),
+      expandable: dco_decode_bool(arr[13]),
+      isExpanded: dco_decode_bool(arr[14]),
+      locked: dco_decode_bool(arr[15]),
+      tags: dco_decode_list_tag_edge(arr[16]),
+      aliases: dco_decode_list_String(arr[17]),
+      comments: dco_decode_list_comment(arr[18]),
+      attachment: dco_decode_opt_String(arr[19]),
+      significance: dco_decode_u_8(arr[20]),
     );
   }
 
@@ -3419,17 +3457,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   InterNode dco_decode_inter_node(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 8)
-      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
     return InterNode(
       id: dco_decode_typed_record_id(arr[0]),
-      position: dco_decode_coordinates(arr[1]),
-      layer: dco_decode_String(arr[2]),
-      createdAt: dco_decode_i_64(arr[3]),
-      updatedAt: dco_decode_i_64(arr[4]),
-      style: dco_decode_opt_String(arr[5]),
-      verb: dco_decode_String(arr[6]),
-      behavioralFeatures: dco_decode_opt_String(arr[7]),
+      parentContainerId: dco_decode_opt_box_autoadd_typed_record_id(arr[1]),
+      position: dco_decode_coordinates(arr[2]),
+      layer: dco_decode_String(arr[3]),
+      createdAt: dco_decode_i_64(arr[4]),
+      updatedAt: dco_decode_i_64(arr[5]),
+      style: dco_decode_opt_String(arr[6]),
+      verb: dco_decode_String(arr[7]),
+      behavioralFeatures: dco_decode_opt_String(arr[8]),
     );
   }
 
@@ -3691,17 +3730,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   MediaNode dco_decode_media_node(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 8)
-      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
     return MediaNode(
       id: dco_decode_typed_record_id(arr[0]),
-      position: dco_decode_coordinates(arr[1]),
-      layer: dco_decode_String(arr[2]),
-      createdAt: dco_decode_i_64(arr[3]),
-      updatedAt: dco_decode_i_64(arr[4]),
-      sourceUrl: dco_decode_String(arr[5]),
-      mediaType: dco_decode_media_type(arr[6]),
-      size: dco_decode_size(arr[7]),
+      parentContainerId: dco_decode_opt_box_autoadd_typed_record_id(arr[1]),
+      position: dco_decode_coordinates(arr[2]),
+      layer: dco_decode_String(arr[3]),
+      createdAt: dco_decode_i_64(arr[4]),
+      updatedAt: dco_decode_i_64(arr[5]),
+      sourceUrl: dco_decode_String(arr[6]),
+      mediaType: dco_decode_media_type(arr[7]),
+      size: dco_decode_size(arr[8]),
     );
   }
 
@@ -3803,6 +3843,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       case 6:
         return Nodes_FrameNode(dco_decode_box_autoadd_frame_node(raw[1]));
       case 7:
+        return Nodes_ContainerNode(
+          dco_decode_box_autoadd_container_node(raw[1]),
+        );
+      case 8:
         return Nodes_MediaNode(dco_decode_box_autoadd_media_node(raw[1]));
       default:
         throw Exception("unreachable");
@@ -3953,6 +3997,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Tag? dco_decode_opt_box_autoadd_tag(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_tag(raw);
+  }
+
+  @protected
+  TypedRecordId? dco_decode_opt_box_autoadd_typed_record_id(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_typed_record_id(raw);
   }
 
   @protected
@@ -4235,17 +4285,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ShapeNode dco_decode_shape_node(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 8)
-      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
     return ShapeNode(
       id: dco_decode_typed_record_id(arr[0]),
-      position: dco_decode_coordinates(arr[1]),
-      layer: dco_decode_String(arr[2]),
-      createdAt: dco_decode_i_64(arr[3]),
-      updatedAt: dco_decode_i_64(arr[4]),
-      shapeType: dco_decode_shape_type(arr[5]),
-      style: dco_decode_opt_box_autoadd_node_style(arr[6]),
-      size: dco_decode_size(arr[7]),
+      parentContainerId: dco_decode_opt_box_autoadd_typed_record_id(arr[1]),
+      position: dco_decode_coordinates(arr[2]),
+      layer: dco_decode_String(arr[3]),
+      createdAt: dco_decode_i_64(arr[4]),
+      updatedAt: dco_decode_i_64(arr[5]),
+      shapeType: dco_decode_shape_type(arr[6]),
+      style: dco_decode_opt_box_autoadd_node_style(arr[7]),
+      size: dco_decode_size(arr[8]),
     );
   }
 
@@ -4344,25 +4395,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskNode dco_decode_task_node(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 16)
-      throw Exception('unexpected arr length: expect 16 but see ${arr.length}');
+    if (arr.length != 17)
+      throw Exception('unexpected arr length: expect 17 but see ${arr.length}');
     return TaskNode(
       id: dco_decode_typed_record_id(arr[0]),
-      position: dco_decode_coordinates(arr[1]),
-      layer: dco_decode_String(arr[2]),
-      createdAt: dco_decode_i_64(arr[3]),
-      updatedAt: dco_decode_i_64(arr[4]),
-      content: dco_decode_content(arr[5]),
-      dueDate: dco_decode_opt_box_autoadd_i_64(arr[6]),
-      state: dco_decode_task_state(arr[7]),
-      size: dco_decode_size(arr[8]),
-      expandable: dco_decode_bool(arr[9]),
-      isExpanded: dco_decode_bool(arr[10]),
-      style: dco_decode_opt_box_autoadd_node_style(arr[11]),
-      resolvedStyle: dco_decode_opt_box_autoadd_node_style(arr[12]),
-      layout: dco_decode_opt_box_autoadd_node_layout(arr[13]),
-      resolvedLayout: dco_decode_opt_box_autoadd_node_layout(arr[14]),
-      significance: dco_decode_u_8(arr[15]),
+      parentContainerId: dco_decode_opt_box_autoadd_typed_record_id(arr[1]),
+      position: dco_decode_coordinates(arr[2]),
+      layer: dco_decode_String(arr[3]),
+      createdAt: dco_decode_i_64(arr[4]),
+      updatedAt: dco_decode_i_64(arr[5]),
+      content: dco_decode_content(arr[6]),
+      dueDate: dco_decode_opt_box_autoadd_i_64(arr[7]),
+      state: dco_decode_task_state(arr[8]),
+      size: dco_decode_size(arr[9]),
+      expandable: dco_decode_bool(arr[10]),
+      isExpanded: dco_decode_bool(arr[11]),
+      style: dco_decode_opt_box_autoadd_node_style(arr[12]),
+      resolvedStyle: dco_decode_opt_box_autoadd_node_style(arr[13]),
+      layout: dco_decode_opt_box_autoadd_node_layout(arr[14]),
+      resolvedLayout: dco_decode_opt_box_autoadd_node_layout(arr[15]),
+      significance: dco_decode_u_8(arr[16]),
     );
   }
 
@@ -4768,6 +4820,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ContainerNode sse_decode_box_autoadd_container_node(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_container_node(deserializer));
+  }
+
+  @protected
   Content sse_decode_box_autoadd_content(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_content(deserializer));
@@ -5051,6 +5111,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   CommentNode sse_decode_comment_node(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_typed_record_id(deserializer);
+    var var_parentContainerId = sse_decode_opt_box_autoadd_typed_record_id(
+      deserializer,
+    );
     var var_position = sse_decode_coordinates(deserializer);
     var var_layer = sse_decode_String(deserializer);
     var var_createdAt = sse_decode_i_64(deserializer);
@@ -5059,6 +5122,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_size = sse_decode_size(deserializer);
     return CommentNode(
       id: var_id,
+      parentContainerId: var_parentContainerId,
       position: var_position,
       layer: var_layer,
       createdAt: var_createdAt,
@@ -5144,6 +5208,53 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ContainerNode sse_decode_container_node(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_typed_record_id(deserializer);
+    var var_parentContainerId = sse_decode_opt_box_autoadd_typed_record_id(
+      deserializer,
+    );
+    var var_position = sse_decode_coordinates(deserializer);
+    var var_layer = sse_decode_String(deserializer);
+    var var_createdAt = sse_decode_i_64(deserializer);
+    var var_updatedAt = sse_decode_i_64(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_style = sse_decode_opt_box_autoadd_node_style(deserializer);
+    var var_resolvedStyle = sse_decode_opt_box_autoadd_node_style(deserializer);
+    var var_layout = sse_decode_opt_box_autoadd_node_layout(deserializer);
+    var var_resolvedLayout = sse_decode_opt_box_autoadd_node_layout(
+      deserializer,
+    );
+    var var_size = sse_decode_size(deserializer);
+    var var_isClosed = sse_decode_bool(deserializer);
+    var var_childCount = sse_decode_u_32(deserializer);
+    var var_locked = sse_decode_bool(deserializer);
+    var var_tags = sse_decode_list_tag_edge(deserializer);
+    var var_comments = sse_decode_list_comment(deserializer);
+    var var_significance = sse_decode_u_8(deserializer);
+    return ContainerNode(
+      id: var_id,
+      parentContainerId: var_parentContainerId,
+      position: var_position,
+      layer: var_layer,
+      createdAt: var_createdAt,
+      updatedAt: var_updatedAt,
+      title: var_title,
+      style: var_style,
+      resolvedStyle: var_resolvedStyle,
+      layout: var_layout,
+      resolvedLayout: var_resolvedLayout,
+      size: var_size,
+      isClosed: var_isClosed,
+      childCount: var_childCount,
+      locked: var_locked,
+      tags: var_tags,
+      comments: var_comments,
+      significance: var_significance,
+    );
+  }
+
+  @protected
   Content sse_decode_content(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_text = sse_decode_String(deserializer);
@@ -5208,6 +5319,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   DrawingNode sse_decode_drawing_node(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_typed_record_id(deserializer);
+    var var_parentContainerId = sse_decode_opt_box_autoadd_typed_record_id(
+      deserializer,
+    );
     var var_position = sse_decode_coordinates(deserializer);
     var var_layer = sse_decode_String(deserializer);
     var var_createdAt = sse_decode_i_64(deserializer);
@@ -5220,6 +5334,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_locked = sse_decode_bool(deserializer);
     return DrawingNode(
       id: var_id,
+      parentContainerId: var_parentContainerId,
       position: var_position,
       layer: var_layer,
       createdAt: var_createdAt,
@@ -5338,6 +5453,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   FrameNode sse_decode_frame_node(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_typed_record_id(deserializer);
+    var var_parentContainerId = sse_decode_opt_box_autoadd_typed_record_id(
+      deserializer,
+    );
     var var_position = sse_decode_coordinates(deserializer);
     var var_layer = sse_decode_String(deserializer);
     var var_createdAt = sse_decode_i_64(deserializer);
@@ -5347,6 +5465,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_size = sse_decode_size(deserializer);
     return FrameNode(
       id: var_id,
+      parentContainerId: var_parentContainerId,
       position: var_position,
       layer: var_layer,
       createdAt: var_createdAt,
@@ -5439,6 +5558,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   INode sse_decode_i_node(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_typed_record_id(deserializer);
+    var var_parentContainerId = sse_decode_opt_box_autoadd_typed_record_id(
+      deserializer,
+    );
     var var_position = sse_decode_coordinates(deserializer);
     var var_layer = sse_decode_String(deserializer);
     var var_createdAt = sse_decode_i_64(deserializer);
@@ -5462,6 +5584,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_significance = sse_decode_u_8(deserializer);
     return INode(
       id: var_id,
+      parentContainerId: var_parentContainerId,
       position: var_position,
       layer: var_layer,
       createdAt: var_createdAt,
@@ -5552,6 +5675,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   InterNode sse_decode_inter_node(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_typed_record_id(deserializer);
+    var var_parentContainerId = sse_decode_opt_box_autoadd_typed_record_id(
+      deserializer,
+    );
     var var_position = sse_decode_coordinates(deserializer);
     var var_layer = sse_decode_String(deserializer);
     var var_createdAt = sse_decode_i_64(deserializer);
@@ -5561,6 +5687,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_behavioralFeatures = sse_decode_opt_String(deserializer);
     return InterNode(
       id: var_id,
+      parentContainerId: var_parentContainerId,
       position: var_position,
       layer: var_layer,
       createdAt: var_createdAt,
@@ -5970,6 +6097,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   MediaNode sse_decode_media_node(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_typed_record_id(deserializer);
+    var var_parentContainerId = sse_decode_opt_box_autoadd_typed_record_id(
+      deserializer,
+    );
     var var_position = sse_decode_coordinates(deserializer);
     var var_layer = sse_decode_String(deserializer);
     var var_createdAt = sse_decode_i_64(deserializer);
@@ -5979,6 +6109,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_size = sse_decode_size(deserializer);
     return MediaNode(
       id: var_id,
+      parentContainerId: var_parentContainerId,
       position: var_position,
       layer: var_layer,
       createdAt: var_createdAt,
@@ -6125,6 +6256,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         var var_field0 = sse_decode_box_autoadd_frame_node(deserializer);
         return Nodes_FrameNode(var_field0);
       case 7:
+        var var_field0 = sse_decode_box_autoadd_container_node(deserializer);
+        return Nodes_ContainerNode(var_field0);
+      case 8:
         var var_field0 = sse_decode_box_autoadd_media_node(deserializer);
         return Nodes_MediaNode(var_field0);
       default:
@@ -6398,6 +6532,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_tag(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  TypedRecordId? sse_decode_opt_box_autoadd_typed_record_id(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_typed_record_id(deserializer));
     } else {
       return null;
     }
@@ -6740,6 +6887,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ShapeNode sse_decode_shape_node(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_typed_record_id(deserializer);
+    var var_parentContainerId = sse_decode_opt_box_autoadd_typed_record_id(
+      deserializer,
+    );
     var var_position = sse_decode_coordinates(deserializer);
     var var_layer = sse_decode_String(deserializer);
     var var_createdAt = sse_decode_i_64(deserializer);
@@ -6749,6 +6899,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_size = sse_decode_size(deserializer);
     return ShapeNode(
       id: var_id,
+      parentContainerId: var_parentContainerId,
       position: var_position,
       layer: var_layer,
       createdAt: var_createdAt,
@@ -6857,6 +7008,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskNode sse_decode_task_node(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_typed_record_id(deserializer);
+    var var_parentContainerId = sse_decode_opt_box_autoadd_typed_record_id(
+      deserializer,
+    );
     var var_position = sse_decode_coordinates(deserializer);
     var var_layer = sse_decode_String(deserializer);
     var var_createdAt = sse_decode_i_64(deserializer);
@@ -6876,6 +7030,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_significance = sse_decode_u_8(deserializer);
     return TaskNode(
       id: var_id,
+      parentContainerId: var_parentContainerId,
       position: var_position,
       layer: var_layer,
       createdAt: var_createdAt,
@@ -7326,6 +7481,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_container_node(
+    ContainerNode self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_container_node(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_content(Content self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_content(self, serializer);
@@ -7664,6 +7828,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_comment_node(CommentNode self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_typed_record_id(self.id, serializer);
+    sse_encode_opt_box_autoadd_typed_record_id(
+      self.parentContainerId,
+      serializer,
+    );
     sse_encode_coordinates(self.position, serializer);
     sse_encode_String(self.layer, serializer);
     sse_encode_i_64(self.createdAt, serializer);
@@ -7712,6 +7880,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self.endShapeFilled, serializer);
     sse_encode_point(self.startHandlePos, serializer);
     sse_encode_point(self.endHandlePos, serializer);
+  }
+
+  @protected
+  void sse_encode_container_node(ContainerNode self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_typed_record_id(self.id, serializer);
+    sse_encode_opt_box_autoadd_typed_record_id(
+      self.parentContainerId,
+      serializer,
+    );
+    sse_encode_coordinates(self.position, serializer);
+    sse_encode_String(self.layer, serializer);
+    sse_encode_i_64(self.createdAt, serializer);
+    sse_encode_i_64(self.updatedAt, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_opt_box_autoadd_node_style(self.style, serializer);
+    sse_encode_opt_box_autoadd_node_style(self.resolvedStyle, serializer);
+    sse_encode_opt_box_autoadd_node_layout(self.layout, serializer);
+    sse_encode_opt_box_autoadd_node_layout(self.resolvedLayout, serializer);
+    sse_encode_size(self.size, serializer);
+    sse_encode_bool(self.isClosed, serializer);
+    sse_encode_u_32(self.childCount, serializer);
+    sse_encode_bool(self.locked, serializer);
+    sse_encode_list_tag_edge(self.tags, serializer);
+    sse_encode_list_comment(self.comments, serializer);
+    sse_encode_u_8(self.significance, serializer);
   }
 
   @protected
@@ -7765,6 +7959,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_drawing_node(DrawingNode self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_typed_record_id(self.id, serializer);
+    sse_encode_opt_box_autoadd_typed_record_id(
+      self.parentContainerId,
+      serializer,
+    );
     sse_encode_coordinates(self.position, serializer);
     sse_encode_String(self.layer, serializer);
     sse_encode_i_64(self.createdAt, serializer);
@@ -7857,6 +8055,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_frame_node(FrameNode self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_typed_record_id(self.id, serializer);
+    sse_encode_opt_box_autoadd_typed_record_id(
+      self.parentContainerId,
+      serializer,
+    );
     sse_encode_coordinates(self.position, serializer);
     sse_encode_String(self.layer, serializer);
     sse_encode_i_64(self.createdAt, serializer);
@@ -7931,6 +8133,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_i_node(INode self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_typed_record_id(self.id, serializer);
+    sse_encode_opt_box_autoadd_typed_record_id(
+      self.parentContainerId,
+      serializer,
+    );
     sse_encode_coordinates(self.position, serializer);
     sse_encode_String(self.layer, serializer);
     sse_encode_i_64(self.createdAt, serializer);
@@ -7996,6 +8202,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_inter_node(InterNode self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_typed_record_id(self.id, serializer);
+    sse_encode_opt_box_autoadd_typed_record_id(
+      self.parentContainerId,
+      serializer,
+    );
     sse_encode_coordinates(self.position, serializer);
     sse_encode_String(self.layer, serializer);
     sse_encode_i_64(self.createdAt, serializer);
@@ -8335,6 +8545,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_media_node(MediaNode self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_typed_record_id(self.id, serializer);
+    sse_encode_opt_box_autoadd_typed_record_id(
+      self.parentContainerId,
+      serializer,
+    );
     sse_encode_coordinates(self.position, serializer);
     sse_encode_String(self.layer, serializer);
     sse_encode_i_64(self.createdAt, serializer);
@@ -8452,8 +8666,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       case Nodes_FrameNode(field0: final field0):
         sse_encode_i_32(6, serializer);
         sse_encode_box_autoadd_frame_node(field0, serializer);
-      case Nodes_MediaNode(field0: final field0):
+      case Nodes_ContainerNode(field0: final field0):
         sse_encode_i_32(7, serializer);
+        sse_encode_box_autoadd_container_node(field0, serializer);
+      case Nodes_MediaNode(field0: final field0):
+        sse_encode_i_32(8, serializer);
         sse_encode_box_autoadd_media_node(field0, serializer);
     }
   }
@@ -8726,6 +8943,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_typed_record_id(
+    TypedRecordId? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_typed_record_id(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -8989,6 +9219,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_shape_node(ShapeNode self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_typed_record_id(self.id, serializer);
+    sse_encode_opt_box_autoadd_typed_record_id(
+      self.parentContainerId,
+      serializer,
+    );
     sse_encode_coordinates(self.position, serializer);
     sse_encode_String(self.layer, serializer);
     sse_encode_i_64(self.createdAt, serializer);
@@ -9074,6 +9308,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_task_node(TaskNode self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_typed_record_id(self.id, serializer);
+    sse_encode_opt_box_autoadd_typed_record_id(
+      self.parentContainerId,
+      serializer,
+    );
     sse_encode_coordinates(self.position, serializer);
     sse_encode_String(self.layer, serializer);
     sse_encode_i_64(self.createdAt, serializer);

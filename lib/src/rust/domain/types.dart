@@ -19,6 +19,7 @@ part 'types.freezed.dart';
 
 class CommentNode {
   final TypedRecordId id;
+  final TypedRecordId? parentContainerId;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
@@ -28,6 +29,7 @@ class CommentNode {
 
   const CommentNode({
     required this.id,
+    this.parentContainerId,
     required this.position,
     required this.layer,
     required this.createdAt,
@@ -39,6 +41,7 @@ class CommentNode {
   @override
   int get hashCode =>
       id.hashCode ^
+      parentContainerId.hashCode ^
       position.hashCode ^
       layer.hashCode ^
       createdAt.hashCode ^
@@ -52,6 +55,7 @@ class CommentNode {
       other is CommentNode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          parentContainerId == other.parentContainerId &&
           position == other.position &&
           layer == other.layer &&
           createdAt == other.createdAt &&
@@ -60,8 +64,96 @@ class CommentNode {
           size == other.size;
 }
 
+class ContainerNode {
+  final TypedRecordId id;
+  final TypedRecordId? parentContainerId;
+  final Coordinates position;
+  final String layer;
+  final PlatformInt64 createdAt;
+  final PlatformInt64 updatedAt;
+  final String title;
+  final NodeStyle? style;
+  final NodeStyle? resolvedStyle;
+  final NodeLayout? layout;
+  final NodeLayout? resolvedLayout;
+  final Size size;
+  final bool isClosed;
+  final int childCount;
+  final bool locked;
+  final List<TagEdge> tags;
+  final List<Comment> comments;
+  final int significance;
+
+  const ContainerNode({
+    required this.id,
+    this.parentContainerId,
+    required this.position,
+    required this.layer,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.title,
+    this.style,
+    this.resolvedStyle,
+    this.layout,
+    this.resolvedLayout,
+    required this.size,
+    required this.isClosed,
+    required this.childCount,
+    required this.locked,
+    required this.tags,
+    required this.comments,
+    required this.significance,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      parentContainerId.hashCode ^
+      position.hashCode ^
+      layer.hashCode ^
+      createdAt.hashCode ^
+      updatedAt.hashCode ^
+      title.hashCode ^
+      style.hashCode ^
+      resolvedStyle.hashCode ^
+      layout.hashCode ^
+      resolvedLayout.hashCode ^
+      size.hashCode ^
+      isClosed.hashCode ^
+      childCount.hashCode ^
+      locked.hashCode ^
+      tags.hashCode ^
+      comments.hashCode ^
+      significance.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ContainerNode &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          parentContainerId == other.parentContainerId &&
+          position == other.position &&
+          layer == other.layer &&
+          createdAt == other.createdAt &&
+          updatedAt == other.updatedAt &&
+          title == other.title &&
+          style == other.style &&
+          resolvedStyle == other.resolvedStyle &&
+          layout == other.layout &&
+          resolvedLayout == other.resolvedLayout &&
+          size == other.size &&
+          isClosed == other.isClosed &&
+          childCount == other.childCount &&
+          locked == other.locked &&
+          tags == other.tags &&
+          comments == other.comments &&
+          significance == other.significance;
+}
+
 class DrawingNode {
   final TypedRecordId id;
+  final TypedRecordId? parentContainerId;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
@@ -75,6 +167,7 @@ class DrawingNode {
 
   const DrawingNode({
     required this.id,
+    this.parentContainerId,
     required this.position,
     required this.layer,
     required this.createdAt,
@@ -90,6 +183,7 @@ class DrawingNode {
   @override
   int get hashCode =>
       id.hashCode ^
+      parentContainerId.hashCode ^
       position.hashCode ^
       layer.hashCode ^
       createdAt.hashCode ^
@@ -107,6 +201,7 @@ class DrawingNode {
       other is DrawingNode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          parentContainerId == other.parentContainerId &&
           position == other.position &&
           layer == other.layer &&
           createdAt == other.createdAt &&
@@ -121,6 +216,7 @@ class DrawingNode {
 
 class FrameNode {
   final TypedRecordId id;
+  final TypedRecordId? parentContainerId;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
@@ -131,6 +227,7 @@ class FrameNode {
 
   const FrameNode({
     required this.id,
+    this.parentContainerId,
     required this.position,
     required this.layer,
     required this.createdAt,
@@ -143,6 +240,7 @@ class FrameNode {
   @override
   int get hashCode =>
       id.hashCode ^
+      parentContainerId.hashCode ^
       position.hashCode ^
       layer.hashCode ^
       createdAt.hashCode ^
@@ -157,6 +255,7 @@ class FrameNode {
       other is FrameNode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          parentContainerId == other.parentContainerId &&
           position == other.position &&
           layer == other.layer &&
           createdAt == other.createdAt &&
@@ -168,6 +267,7 @@ class FrameNode {
 
 class INode {
   final TypedRecordId id;
+  final TypedRecordId? parentContainerId;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
@@ -190,6 +290,7 @@ class INode {
 
   const INode({
     required this.id,
+    this.parentContainerId,
     required this.position,
     required this.layer,
     required this.createdAt,
@@ -214,6 +315,7 @@ class INode {
   @override
   int get hashCode =>
       id.hashCode ^
+      parentContainerId.hashCode ^
       position.hashCode ^
       layer.hashCode ^
       createdAt.hashCode ^
@@ -240,6 +342,7 @@ class INode {
       other is INode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          parentContainerId == other.parentContainerId &&
           position == other.position &&
           layer == other.layer &&
           createdAt == other.createdAt &&
@@ -291,6 +394,7 @@ class IRelation {
 
 class InterNode {
   final TypedRecordId id;
+  final TypedRecordId? parentContainerId;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
@@ -301,6 +405,7 @@ class InterNode {
 
   const InterNode({
     required this.id,
+    this.parentContainerId,
     required this.position,
     required this.layer,
     required this.createdAt,
@@ -313,6 +418,7 @@ class InterNode {
   @override
   int get hashCode =>
       id.hashCode ^
+      parentContainerId.hashCode ^
       position.hashCode ^
       layer.hashCode ^
       createdAt.hashCode ^
@@ -327,6 +433,7 @@ class InterNode {
       other is InterNode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          parentContainerId == other.parentContainerId &&
           position == other.position &&
           layer == other.layer &&
           createdAt == other.createdAt &&
@@ -391,6 +498,7 @@ class MapTheme {
 
 class MediaNode {
   final TypedRecordId id;
+  final TypedRecordId? parentContainerId;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
@@ -401,6 +509,7 @@ class MediaNode {
 
   const MediaNode({
     required this.id,
+    this.parentContainerId,
     required this.position,
     required this.layer,
     required this.createdAt,
@@ -413,6 +522,7 @@ class MediaNode {
   @override
   int get hashCode =>
       id.hashCode ^
+      parentContainerId.hashCode ^
       position.hashCode ^
       layer.hashCode ^
       createdAt.hashCode ^
@@ -427,6 +537,7 @@ class MediaNode {
       other is MediaNode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          parentContainerId == other.parentContainerId &&
           position == other.position &&
           layer == other.layer &&
           createdAt == other.createdAt &&
@@ -447,11 +558,13 @@ sealed class Nodes with _$Nodes {
   const factory Nodes.drawingNode(DrawingNode field0) = Nodes_DrawingNode;
   const factory Nodes.shapeNode(ShapeNode field0) = Nodes_ShapeNode;
   const factory Nodes.frameNode(FrameNode field0) = Nodes_FrameNode;
+  const factory Nodes.containerNode(ContainerNode field0) = Nodes_ContainerNode;
   const factory Nodes.mediaNode(MediaNode field0) = Nodes_MediaNode;
 }
 
 class ShapeNode {
   final TypedRecordId id;
+  final TypedRecordId? parentContainerId;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
@@ -462,6 +575,7 @@ class ShapeNode {
 
   const ShapeNode({
     required this.id,
+    this.parentContainerId,
     required this.position,
     required this.layer,
     required this.createdAt,
@@ -474,6 +588,7 @@ class ShapeNode {
   @override
   int get hashCode =>
       id.hashCode ^
+      parentContainerId.hashCode ^
       position.hashCode ^
       layer.hashCode ^
       createdAt.hashCode ^
@@ -488,6 +603,7 @@ class ShapeNode {
       other is ShapeNode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          parentContainerId == other.parentContainerId &&
           position == other.position &&
           layer == other.layer &&
           createdAt == other.createdAt &&
@@ -505,6 +621,7 @@ enum TableKind {
   drawingNode,
   shapeNode,
   frameNode,
+  containerNode,
   mediaNode,
   iRelation,
   tag,
@@ -534,6 +651,7 @@ class Tag {
 
 class TaskNode {
   final TypedRecordId id;
+  final TypedRecordId? parentContainerId;
   final Coordinates position;
   final String layer;
   final PlatformInt64 createdAt;
@@ -552,6 +670,7 @@ class TaskNode {
 
   const TaskNode({
     required this.id,
+    this.parentContainerId,
     required this.position,
     required this.layer,
     required this.createdAt,
@@ -572,6 +691,7 @@ class TaskNode {
   @override
   int get hashCode =>
       id.hashCode ^
+      parentContainerId.hashCode ^
       position.hashCode ^
       layer.hashCode ^
       createdAt.hashCode ^
@@ -594,6 +714,7 @@ class TaskNode {
       other is TaskNode &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          parentContainerId == other.parentContainerId &&
           position == other.position &&
           layer == other.layer &&
           createdAt == other.createdAt &&

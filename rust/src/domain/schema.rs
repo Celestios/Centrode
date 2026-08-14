@@ -119,6 +119,11 @@ impl SurqlSchemaField for f64 {
     fn sub_field_paths() -> Vec<(String, String)> { vec![] }
 }
 
+impl SurqlSchemaField for crate::domain::id::TypedRecordId {
+    fn field_type() -> String { "record".to_string() }
+    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
+}
+
 impl SurqlSchemaField for f32 {
     fn field_type() -> String { "float".to_string() }
     fn sub_field_paths() -> Vec<(String, String)> { vec![] }

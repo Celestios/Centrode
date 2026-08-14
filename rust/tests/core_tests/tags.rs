@@ -49,6 +49,7 @@ async fn test_tags_crud_and_patching() {
     // 4. Create an INode
     let inode = INode {
         id: inode_id,
+        parent_container_id: None,
         content: Content::from_plain_text("Tag test node"),
         style: None,
         resolved_style: None,
@@ -139,6 +140,7 @@ async fn test_tags_crud_and_patching() {
     let inode2_id = TypedRecordId::new_v4(TableKind::INode);
     let inode2 = INode {
         id: inode2_id,
+        parent_container_id: None,
         content: Content::from_plain_text("Node to be tagged"),
         style: None,
         resolved_style: None,

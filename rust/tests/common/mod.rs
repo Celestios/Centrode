@@ -38,6 +38,7 @@ pub async fn setup_test_repo() -> Repository {
 pub fn make_inode(id: TypedRecordId, text: &str, x: i32, y: i32) -> INode {
     INode {
         id,
+        parent_container_id: None,
         content: Content::from_plain_text(text),
         style: None,
         resolved_style: None,

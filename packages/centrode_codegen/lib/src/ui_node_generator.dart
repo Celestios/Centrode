@@ -58,6 +58,7 @@ class UiNodeGenerator extends Generator {
       // Group fields into common (inherited from UiNode) and subclass-specific
       final commonFieldNames = {
         'id',
+        'parentContainerId',
         'position',
         'layer',
         'createdAt',
@@ -173,6 +174,9 @@ class UiNodeGenerator extends Generator {
         "        id: TypedRecordId(table: TableKind.${_getVariantName(ffiClassName)}, key: UuidValue.fromString(id.toUuidString())),",
       );
       buffer.writeln(
+        "        parentContainerId: parentContainerId != null ? TypedRecordId(table: TableKind.containerNode, key: UuidValue.fromString(parentContainerId!.toUuidString())) : null,",
+      );
+      buffer.writeln(
         "        position: frb.Coordinates(x: position.dx.round(), y: position.dy.round()),",
       );
       buffer.writeln("        layer: layer,");
@@ -185,6 +189,7 @@ class UiNodeGenerator extends Generator {
         if (fieldName.isEmpty ||
             [
               'id',
+              'parentContainerId',
               'position',
               'layer',
               'createdAt',
@@ -218,6 +223,7 @@ class UiNodeGenerator extends Generator {
       buffer.writeln("  factory $uiClassName.fromRust($ffiClassName node) {");
       buffer.writeln("    return $uiClassName(");
       buffer.writeln("      id: RawUuid.fromString(node.id.key.uuid),");
+      buffer.writeln("      parentContainerId: node.parentContainerId != null ? RawUuid.fromString(node.parentContainerId!.key.uuid) : null,");
       buffer.writeln("      createdAt: node.createdAt,");
       buffer.writeln("      updatedAt: node.updatedAt,");
       buffer.writeln("      layer: node.layer,");
@@ -231,6 +237,7 @@ class UiNodeGenerator extends Generator {
         if (fieldName.isEmpty ||
             [
               'id',
+              'parentContainerId',
               'position',
               'layer',
               'createdAt',
@@ -265,6 +272,7 @@ class UiNodeGenerator extends Generator {
       // copyWith() method
       buffer.writeln("  $uiClassName copyWith({");
       buffer.writeln("    RawUuid? id,");
+      buffer.writeln("    RawUuid? parentContainerId,");
       buffer.writeln("    int? createdAt,");
       buffer.writeln("    int? updatedAt,");
       buffer.writeln("    String? layer,");
@@ -303,6 +311,7 @@ class UiNodeGenerator extends Generator {
       buffer.writeln("  }) {");
       buffer.writeln("    return $uiClassName(");
       buffer.writeln("      id: id ?? this.id,");
+      buffer.writeln("      parentContainerId: parentContainerId ?? this.parentContainerId,");
       buffer.writeln("      createdAt: createdAt ?? this.createdAt,");
       buffer.writeln("      updatedAt: updatedAt ?? this.updatedAt,");
       buffer.writeln("      layer: layer ?? this.layer,");

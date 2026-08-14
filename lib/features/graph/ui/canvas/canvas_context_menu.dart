@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
 import 'package:centrode/features/graph/store/command_queue_processor.dart';
 import 'package:centrode/features/graph/presentation/node_render_state.dart';
@@ -89,6 +90,36 @@ class CanvasContextMenu {
             }
           },
         ),
+        if (renderState.selectedEntities.isNotEmpty) ...[
+          ContextMenuItem(
+            label: 'Convert to Container',
+            onTap: () {
+              final selectedIds = renderState.selectedEntities.toList();
+              for (final id in selectedIds) {
+                commandProcessor.convertNodeToContainer(id);
+              }
+            },
+          ),
+          if (renderState.selectedEntities.length == 1 &&
+              queryController.nodeLookup[renderState.selectedEntities.first] is ContainerUiNode)
+            ContextMenuItem(
+              label: 'Zoom into Container',
+              onTap: () {
+                final selectedId = renderState.selectedEntities.first;
+                final node = queryController.nodeLookup[selectedId] as ContainerUiNode;
+                final targetScale = ((viewportController.viewportSize.width * 0.8) / node.size.width).clamp(0.2, 5.0);
+                final nodeCenter = node.position + Offset(node.size.width / 2, node.size.height / 2);
+                final dx = (viewportController.viewportSize.width / 2) - (nodeCenter.dx * targetScale);
+                final dy = (viewportController.viewportSize.height / 2) - (nodeCenter.dy * targetScale);
+
+                final targetMatrix = Matrix4.identity()
+                  ..translateByDouble(dx, dy, 0, 1)
+                  ..scaleByDouble(targetScale, targetScale, targetScale, 1);
+
+                viewportController.transformController.value = targetMatrix;
+              },
+            ),
+        ],
       ],
     );
   }

@@ -16,6 +16,7 @@ async fn test_inode_crud() {
 
     let inode = INode {
         id: inode_id,
+        parent_container_id: None,
         content: Content::from_plain_text("Test INode Content"),
         style: None,
         resolved_style: None,
@@ -111,6 +112,7 @@ async fn test_task_node_crud() {
 
     let task_node = TaskNode {
         id: task_id,
+        parent_container_id: None,
         content: Content::from_plain_text("Buy groceries"),
         due_date: Some(1700000000),
         state: TaskState::Todo,
@@ -261,6 +263,7 @@ async fn test_unique_constraints() {
 
     let inode = INode {
         id: inode_id,
+        parent_container_id: None,
         content: Content::from_plain_text("INode 1"),
         style: None,
         resolved_style: None,
@@ -328,6 +331,7 @@ async fn test_relation_rerouting_and_deletion() {
 
     let node1 = INode {
         id: n1_id,
+        parent_container_id: None,
         content: Content::from_plain_text("Node 1"),
         style: None,
         resolved_style: None,
@@ -353,6 +357,7 @@ async fn test_relation_rerouting_and_deletion() {
     };
     let node2 = INode {
         id: n2_id,
+        parent_container_id: None,
         content: Content::from_plain_text("Node 2"),
         style: None,
         resolved_style: None,
@@ -378,6 +383,7 @@ async fn test_relation_rerouting_and_deletion() {
     };
     let node3 = INode {
         id: n3_id,
+        parent_container_id: None,
         content: Content::from_plain_text("Node 3"),
         style: None,
         resolved_style: None,
