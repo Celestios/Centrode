@@ -15,12 +15,13 @@ class ToolbarDragging extends CanvasInteractionState {
   CanvasInteractionState handlePointerMove(
     PointerMoveEvent e,
     Offset pCanvas,
-    SelectionCapability ctx,
+    InteractionContext ctx,
   ) {
+    final c = ctx as SelectionCapability;
     _toolbarDragLog.fine('handlePointerMove entityId=$entityId');
-    final selected = ctx.getSelectedEntities();
+    final selected = c.getSelectedEntities();
     if (selected.isEmpty) return const CanvasIdle();
-    final anchor = ctx.calculateToolbarAnchor(selected);
+    final anchor = c.calculateToolbarAnchor(selected);
     if (anchor == null) return const CanvasIdle();
 
     // Calculate new absolute position of the toolbar
@@ -29,7 +30,23 @@ class ToolbarDragging extends CanvasInteractionState {
     // Calculate new relative offset from the entity's anchor position
     final newRelativeOffset = newAbsolutePos - anchor;
 
-    ctx.setToolbarOffset(newRelativeOffset);
+    c.setToolbarOffset(newRelativeOffset);
     return this;
+  }
+
+  @override
+  CanvasInteractionState handlePointerUp(
+    PointerUpEvent e,
+    InteractionContext ctx,
+  ) {
+    return const CanvasIdle();
+  }
+
+  @override
+  CanvasInteractionState handlePointerCancel(
+    PointerCancelEvent e,
+    InteractionContext ctx,
+  ) {
+    return const CanvasIdle();
   }
 }

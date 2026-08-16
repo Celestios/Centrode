@@ -3,7 +3,6 @@ import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/logging.dart';
 import '../../engine/config.dart';
-import '../../store/graph_data_query.dart';
 import '../../store/graph_data_query_controller.dart';
 import '../../store/command_queue_processor.dart';
 import '../../presentation/node_render_state.dart';
@@ -81,18 +80,9 @@ class _GraphCanvasState extends State<GraphCanvas>
     final vpController = ViewportController(queryController);
     vpController.vsync = this;
     vpController.onContainerOpenStateChanged = (id, newPosition, newSize, isClosed) {
-      final node = queryController.nodeLookup[id];
-      if (node is ContainerUiNode) {
-        node.isClosed = isClosed;
-      }
-      queryController.publishUpdate(
-        GraphEntityUpdate(
-          id: id,
-          tableName: 'node',
-          type: GraphUpdateType.expansion,
-          payload: isClosed,
-        ),
-      );
+      renderState.hoveredNodeNotifier.value = null;
+      renderState.hoveredPortNotifier.value = null;
+      commandProcessor.nodeMutations.setContainerClosed(id, isClosed);
     };
     renderState.dragState.addListener(() {
       vpController.isGestureSuppressed = renderState.dragState.draggingNodes.isNotEmpty;
@@ -196,7 +186,7 @@ class _GraphCanvasState extends State<GraphCanvas>
 
   @override
   Widget build(BuildContext context) {
-    final renderState = context.watch<NodeRenderState>();
+    final renderState = context.read<NodeRenderState>();
     final commandProcessor = context.read<CommandQueueProcessor>();
     final queryController = context.read<GraphDataQueryController>();
     final interactionController = _interactionController;
@@ -439,6 +429,8 @@ class _GraphCanvasState extends State<GraphCanvas>
                                         interactionState:
                                             interactionController.state,
                                         dragState: renderState.dragState,
+                                        queryController: queryController,
+                                        viewportController: viewportController,
                                       ),
                                     ),
                                     if (_drawingInterceptor != null)

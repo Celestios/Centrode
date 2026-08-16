@@ -16,6 +16,7 @@ class NodeViewState implements VolatileNodeState {
   final ValueNotifier<Size> sizeNotifier;
   final ValueNotifier<bool> isExpandedNotifier;
   final ValueNotifier<double?> dragWidthNotifier = ValueNotifier(null);
+  final ValueNotifier<double> visualScaleNotifier = ValueNotifier(1.0);
   final ValueNotifier<int> lineCountNotifier = ValueNotifier(0);
   final ValueNotifier<int> styleNotifier = ValueNotifier(0);
   NodePorts? _cachedPorts;
@@ -24,16 +25,7 @@ class NodeViewState implements VolatileNodeState {
 
   final Logger _log = Logger('NodeViewState');
 
-  static final _defaultLayoutStrategy = DefaultNodeLayoutStrategy();
-
-  static ({Size size, int lineCount}) Function(UiNode, {bool isEditing})
-  _sizeComputer = _defaultLayoutStrategy.calculateSize;
-
-  static void setSizeComputer(
-    ({Size size, int lineCount}) Function(UiNode, {bool isEditing}) computer,
-  ) {
-    _sizeComputer = computer;
-  }
+  final NodeLayoutStrategy _layoutStrategy;
 
   // Cached geometry — invalidated when position/size/dragWidth change
   Rect? _cachedRect;
@@ -41,8 +33,9 @@ class NodeViewState implements VolatileNodeState {
   Rect? _cachedLeftResizeHitbox;
   Rect? _cachedExpandToggleHitbox;
 
-  NodeViewState(UiNode node)
+  NodeViewState(UiNode node, {NodeLayoutStrategy layoutStrategy = const DefaultNodeLayoutStrategy()})
     : nodeId = node.id,
+      _layoutStrategy = layoutStrategy,
       positionNotifier = ValueNotifier<Offset>(node.position),
       sizeNotifier = ValueNotifier<Size>(node.size),
       isExpandedNotifier = ValueNotifier<bool>(node.isExpanded),
@@ -74,7 +67,7 @@ class NodeViewState implements VolatileNodeState {
   }
 
   ({Size size, int lineCount}) computeSizeWithStrategy(UiNode node, {bool isEditing = false}) {
-    final result = _sizeComputer(node, isEditing: isEditing);
+    final result = _layoutStrategy.calculateSize(node, isEditing: isEditing);
     return (size: result.size, lineCount: result.lineCount);
   }
 
@@ -329,6 +322,7 @@ class NodeViewState implements VolatileNodeState {
     sizeNotifier.dispose();
     isExpandedNotifier.dispose();
     dragWidthNotifier.dispose();
+    visualScaleNotifier.dispose();
     lineCountNotifier.dispose();
     styleNotifier.dispose();
   }

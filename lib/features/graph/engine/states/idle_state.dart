@@ -241,20 +241,21 @@ class CanvasIdle extends CanvasInteractionState {
           : CanvasIdle(cursor: targetCursor);
     }
 
-    // Use spatial grid to find candidate nodes near the cursor (O(K) not O(N))
-    final candidateIds = ctx.spatialGrid.queryPoint(pCanvas);
+    final activeScope = ctx.activeScope;
+    Set<RawUuid> candidateIds;
+    if (activeScope is ContainerViewportScope) {
+      final containerGrid = ctx.spatialIndex.getContainerGrid(activeScope.containerId);
+      candidateIds = containerGrid?.queryPoint(pCanvas) ?? {};
+    } else {
+      candidateIds = ctx.spatialGrid.queryPoint(pCanvas);
+    }
+
     if (candidateIds.isEmpty) {
-      ctx.setHoveredNode(null);
-      ctx.setHoveredNodeMetadata(null);
-      ctx.setHoveredPort(null);
-      return cursor == SystemMouseCursors.basic
-          ? this
-          : const CanvasIdle(cursor: SystemMouseCursors.basic);
+      candidateIds = ctx.nodeViewStates.keys.toSet();
     }
 
     // Check candidates in reverse z-order for proper hit priority
     final zOrder = ctx.zOrder;
-    final activeScope = ctx.activeScope;
     for (int i = zOrder.length - 1; i >= 0; i--) {
       final nodeId = zOrder[i];
       if (!candidateIds.contains(nodeId)) continue;
@@ -301,6 +302,12 @@ class CanvasIdle extends CanvasInteractionState {
 
       // Show ports when hovering anywhere on the node (including port offset zone)
       if (vs.rect.inflate(12.0 * vs.currentScale).contains(pCanvas)) {
+        if (node is ContainerUiNode) {
+          final screenWidth = (vs.sizeNotifier.value.width > 0 ? vs.sizeNotifier.value.width : node.size.width) * vs.currentScale;
+          if (!node.isClosed || screenWidth >= 180.0) {
+            continue;
+          }
+        }
         ctx.setHoveredNode(nodeId);
         ctx.setHoveredNodeMetadata(null);
 

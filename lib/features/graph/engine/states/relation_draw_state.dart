@@ -7,6 +7,8 @@ class RelationDrawing extends CanvasInteractionState {
   final RawUuid? snappedTargetNodeId;
   final Port? sourcePort;
   final Port? snappedTargetPort;
+  final Timer? hoverHoldTimer;
+  final RawUuid? hoveredContainerId;
 
   const RelationDrawing(
     this.sourceNodeIds,
@@ -15,6 +17,8 @@ class RelationDrawing extends CanvasInteractionState {
     this.snappedTargetNodeId,
     this.sourcePort,
     this.snappedTargetPort,
+    this.hoverHoldTimer,
+    this.hoveredContainerId,
   }) : initialCursorPosition = initialCursorPosition ?? currentCursorPosition;
 
   @override
@@ -24,7 +28,7 @@ class RelationDrawing extends CanvasInteractionState {
   CanvasInteractionState handlePointerDown(
     PointerDownEvent e,
     Offset pCanvas,
-    GeometryCapability ctx,
+    InteractionContext ctx,
     bool isDoubleTap,
   ) {
     return this;
@@ -34,22 +38,23 @@ class RelationDrawing extends CanvasInteractionState {
   CanvasInteractionState handlePointerMove(
     PointerMoveEvent e,
     Offset pCanvas,
-    GeometryCapability ctx,
+    InteractionContext ctx,
   ) {
+    final c = ctx as GeometryCapability;
     final prevSnappedId = snappedTargetNodeId;
-    final snap = findNearestSnap(pCanvas, ctx, sourceNodeIds);
+    final snap = findNearestSnap(pCanvas, c, sourceNodeIds);
     final snappedId = snap.snappedNodeId;
     final snappedPort = snap.snappedPort;
     final hoveredNodeId = snap.hoveredNodeId;
 
     if (snappedId != null) {
       if (snappedId != prevSnappedId || snappedPort != snappedTargetPort) {
-        final targetVs = ctx.nodeViewStates[snappedId];
+        final targetVs = c.nodeViewStates[snappedId];
         if (targetVs != null) {
-          final targetNode = ctx.getNode(snappedId);
+          final targetNode = c.getNode(snappedId);
           final overridePos = snappedPort?.position ?? targetVs.rect.center;
           for (final sourceId in sourceNodeIds) {
-            ctx.onRelationSnapPreview(
+            c.onRelationSnapPreview(
               relationId: sourceId,
               isStartTip: false,
               targetNodeId: snappedId,
@@ -63,12 +68,46 @@ class RelationDrawing extends CanvasInteractionState {
       }
     } else if (snappedId == null && prevSnappedId != null) {
       for (final sourceId in sourceNodeIds) {
-        ctx.onRelationSnapPreviewClear(sourceId);
+        c.onRelationSnapPreviewClear(sourceId);
       }
     }
 
-    ctx.setHoveredNode(hoveredNodeId);
-    ctx.onNodeDragUpdate();
+    Timer? nextHoverHoldTimer = hoverHoldTimer;
+    RawUuid? nextHoveredContainerId = hoveredContainerId;
+
+    final activeScope = c.activeScope;
+    if (activeScope is RootViewportScope) {
+      ContainerUiNode? hoveredContainer;
+      for (final candidateId in c.nodeViewStates.keys) {
+        if (sourceNodeIds.contains(candidateId)) continue;
+        final candNode = c.getNode(candidateId);
+        if (candNode is! ContainerUiNode) continue;
+        if (candNode.parentContainerId != null) continue;
+        final candVs = c.nodeViewStates[candidateId];
+        if (candVs != null && candVs.rect.contains(pCanvas)) {
+          hoveredContainer = candNode;
+          break;
+        }
+      }
+
+      if (hoveredContainer != null) {
+        if (hoveredContainer.id != hoveredContainerId) {
+          nextHoveredContainerId = hoveredContainer.id;
+          nextHoverHoldTimer?.cancel();
+          final targetContainer = hoveredContainer;
+          nextHoverHoldTimer = Timer(const Duration(milliseconds: 750), () {
+            c.openContainer(targetContainer, animate: true);
+          });
+        }
+      } else {
+        nextHoverHoldTimer?.cancel();
+        nextHoverHoldTimer = null;
+        nextHoveredContainerId = null;
+      }
+    }
+
+    c.setHoveredNode(hoveredNodeId);
+    c.onNodeDragUpdate();
     return RelationDrawing(
       sourceNodeIds,
       pCanvas,
@@ -76,18 +115,22 @@ class RelationDrawing extends CanvasInteractionState {
       snappedTargetNodeId: snappedId,
       sourcePort: sourcePort,
       snappedTargetPort: snappedPort,
+      hoverHoldTimer: nextHoverHoldTimer,
+      hoveredContainerId: nextHoveredContainerId,
     );
   }
 
   @override
   CanvasInteractionState handlePointerUp(
     PointerUpEvent e,
-    GeometryCapability ctx,
+    InteractionContext ctx,
   ) {
+    hoverHoldTimer?.cancel();
+    final c = ctx as GeometryCapability;
     if (snappedTargetNodeId != null) {
       for (final sourceId in sourceNodeIds) {
-        ctx.onRelationSnapPreviewClear(sourceId);
-        ctx.onRelationCreate(
+        c.onRelationSnapPreviewClear(sourceId);
+        c.onRelationCreate(
           sourceId,
           snappedTargetNodeId!,
           fromSide: sourcePort?.side,
@@ -96,10 +139,10 @@ class RelationDrawing extends CanvasInteractionState {
       }
     } else if (sourceNodeIds.isNotEmpty) {
       for (final sourceId in sourceNodeIds) {
-        ctx.onRelationSnapPreviewClear(sourceId);
+        c.onRelationSnapPreviewClear(sourceId);
 
-        final sourceVs = ctx.nodeViewStates[sourceId];
-        final sourceNode = ctx.getNode(sourceId);
+        final sourceVs = c.nodeViewStates[sourceId];
+        final sourceNode = c.getNode(sourceId);
         final sourcePos = sourceNode?.position ??
             (sourceVs != null ? sourceVs.positionNotifier.value : Offset.zero);
         final sourceSize =
@@ -169,16 +212,38 @@ class RelationDrawing extends CanvasInteractionState {
           targetPos = currentCursorPosition;
         }
 
-        final double scale =
-            ctx is ViewportCapability ? (ctx as ViewportCapability).currentScale : 1.0;
+        final double scale = c.currentScale;
         final effectiveGridSize = calculateEffectiveGridSize(scale);
         final snappedPos = _snapToGrid(targetPos, effectiveGridSize);
 
-        final newNodeId = ctx.onCreateNode(snappedPos);
-        ctx.onRelationCreate(
+        final PortSide? targetSide;
+        if (isTap && sourcePort != null) {
+          targetSide = switch (sourcePort!.side) {
+            PortSide.right => PortSide.left,
+            PortSide.left => PortSide.right,
+            PortSide.bottom => PortSide.top,
+            PortSide.top => PortSide.bottom,
+            PortSide.topRight => PortSide.bottomLeft,
+            PortSide.topLeft => PortSide.bottomRight,
+            PortSide.bottomRight => PortSide.topLeft,
+            PortSide.bottomLeft => PortSide.topRight,
+            PortSide.auto => PortSide.left,
+          };
+        } else {
+          final delta = snappedPos - sourcePos;
+          if (delta.dx.abs() > delta.dy.abs()) {
+            targetSide = delta.dx >= 0 ? PortSide.left : PortSide.right;
+          } else {
+            targetSide = delta.dy >= 0 ? PortSide.top : PortSide.bottom;
+          }
+        }
+
+        final newNodeId = c.onCreateNode(snappedPos);
+        c.onRelationCreate(
           sourceId,
           newNodeId,
           fromSide: sourcePort?.side,
+          toSide: targetSide,
         );
       }
     }
@@ -189,22 +254,23 @@ class RelationDrawing extends CanvasInteractionState {
   CanvasInteractionState handlePointerHover(
     PointerHoverEvent e,
     Offset pCanvas,
-    GeometryCapability ctx,
+    InteractionContext ctx,
   ) {
+    final c = ctx as GeometryCapability;
     final prevSnappedId = snappedTargetNodeId;
-    final snap = findNearestSnap(pCanvas, ctx, sourceNodeIds);
+    final snap = findNearestSnap(pCanvas, c, sourceNodeIds);
     final snappedId = snap.snappedNodeId;
     final snappedPort = snap.snappedPort;
     final hoveredNodeId = snap.hoveredNodeId;
 
     if (snappedId != null) {
       if (snappedId != prevSnappedId || snappedPort != snappedTargetPort) {
-        final targetVs = ctx.nodeViewStates[snappedId];
+        final targetVs = c.nodeViewStates[snappedId];
         if (targetVs != null) {
-          final targetNode = ctx.getNode(snappedId);
+          final targetNode = c.getNode(snappedId);
           final overridePos = snappedPort?.position ?? targetVs.rect.center;
           for (final sourceId in sourceNodeIds) {
-            ctx.onRelationSnapPreview(
+            c.onRelationSnapPreview(
               relationId: sourceId,
               isStartTip: false,
               targetNodeId: snappedId,
@@ -218,13 +284,13 @@ class RelationDrawing extends CanvasInteractionState {
       }
     } else if (snappedId == null && prevSnappedId != null) {
       for (final sourceId in sourceNodeIds) {
-        ctx.onRelationSnapPreviewClear(sourceId);
+        c.onRelationSnapPreviewClear(sourceId);
       }
     }
 
-    ctx.setHoveredNode(hoveredNodeId);
+    c.setHoveredNode(hoveredNodeId);
 
-    ctx.onNodeDragUpdate();
+    c.onNodeDragUpdate();
     return RelationDrawing(
       sourceNodeIds,
       pCanvas,
@@ -238,15 +304,16 @@ class RelationDrawing extends CanvasInteractionState {
   @override
   CanvasInteractionState handlePointerCancel(
     PointerCancelEvent e,
-    GeometryCapability ctx,
+    InteractionContext ctx,
   ) {
+    final c = ctx as GeometryCapability;
     if (snappedTargetNodeId != null) {
       for (final sourceId in sourceNodeIds) {
-        ctx.onRelationSnapPreviewClear(sourceId);
+        c.onRelationSnapPreviewClear(sourceId);
       }
     }
-    ctx.setHoveredNode(null);
-    ctx.onNodeDragUpdate();
+    c.setHoveredNode(null);
+    c.onNodeDragUpdate();
     return const CanvasIdle();
   }
 }

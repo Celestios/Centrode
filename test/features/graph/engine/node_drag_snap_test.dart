@@ -8,7 +8,7 @@ import 'package:centrode/features/graph/presentation/view_state.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockGeometryAndViewportCapability extends Mock
-    implements GeometryAndViewportCapability {}
+    implements GeometryAndViewportCapability, InteractionContext {}
 
 void main() {
   setUpAll(() {

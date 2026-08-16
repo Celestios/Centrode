@@ -129,6 +129,7 @@ class HierarchicalSpatialIndex {
   final Map<RawUuid, SpatialHashGrid> _containerGrids = {};
 
   SpatialHashGrid get rootGrid => _rootGrid;
+  SpatialHashGrid? getContainerGrid(RawUuid containerId) => _containerGrids[containerId];
 
   void insertNode(RawUuid nodeId, RawUuid? parentContainerId, Offset position, [Size size = Size.zero]) {
     if (parentContainerId == null) {
@@ -162,8 +163,21 @@ class HierarchicalSpatialIndex {
     insertNode(nodeId, newParentId, newLocalPos, size);
   }
 
-  Set<RawUuid> queryViewport(Rect rootViewportRect, double cameraScale, Map<RawUuid, UiNode> nodes) {
+  Set<RawUuid> queryViewport(
+    Rect rootViewportRect,
+    double cameraScale,
+    Map<RawUuid, UiNode> nodes, [
+    RawUuid? activeContainerId,
+  ]) {
     final Set<RawUuid> visibleNodeIds = {};
+
+    if (activeContainerId != null) {
+      final grid = _containerGrids[activeContainerId];
+      if (grid != null) {
+        visibleNodeIds.addAll(grid.queryRect(rootViewportRect));
+      }
+      return visibleNodeIds;
+    }
 
     final candidates = _rootGrid.queryRect(rootViewportRect);
 

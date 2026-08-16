@@ -27,6 +27,7 @@ async fn assert_significance_eventually(
             let sig = match node {
                 Nodes::INode(n) => n.significance,
                 Nodes::TaskNode(t) => t.significance,
+                Nodes::ContainerNode(c) => c.significance,
                 _ => 0,
             };
             if sig == expected {
@@ -43,6 +44,7 @@ async fn assert_significance_eventually(
     let sig = match node {
         Nodes::INode(n) => n.significance,
         Nodes::TaskNode(t) => t.significance,
+        Nodes::ContainerNode(c) => c.significance,
         _ => 0,
     };
     assert_eq!(
@@ -256,6 +258,77 @@ async fn test_graph_snapshot() {
         .await
         .expect("Query failed");
     assert!(old_inode.is_none());
+}
+
+#[tokio::test]
+async fn test_container_node_snapshot() {
+    let repo = setup_test_repo().await;
+
+    let container_id = TypedRecordId::new_v4(TableKind::ContainerNode);
+    let container = crate::common::make_container_node(container_id, "Snapshot Container", 50, 50);
+
+    // Create ContainerNode
+    repo.create_node(Nodes::ContainerNode(container.clone()))
+        .await
+        .expect("Failed to create ContainerNode for snapshot test");
+
+    // Verify snapshot includes ContainerNode
+    let snapshot = repo
+        .get_graph_snapshot()
+        .await
+        .expect("Failed to fetch graph snapshot");
+    let containers: Vec<centrode_core::domain::nodes::ContainerNode> = snapshot.nodes.iter().filter_map(|n| match n {
+        Nodes::ContainerNode(c) => Some(c.clone()),
+        _ => None,
+    }).collect();
+    assert_eq!(containers.len(), 1);
+    assert_eq!(containers[0].id, container_id);
+    assert_eq!(containers[0].title, "Snapshot Container");
+
+    // Overwrite snapshot with ContainerNode
+    let new_container_id = TypedRecordId::new_v4(TableKind::ContainerNode);
+    let new_container = crate::common::make_container_node(new_container_id, "New Container", 100, 100);
+    let new_nodes = vec![Nodes::ContainerNode(new_container)];
+    let new_snapshot = GraphSnapshot {
+        nodes: new_nodes,
+        relations: vec![],
+        metadata: centrode_core::domain::base_models::MapData {
+            map_name: "Container Test Map".to_string(),
+            viewport_state: centrode_core::domain::base_models::ViewportState {
+                x_offset: 0.0,
+                y_offset: 0.0,
+                zoom_level: 1.0,
+                active_view: "canvas".to_string(),
+            },
+            active_theme_id: None,
+            display_mode: centrode_core::domain::base_models::DisplayMode::Importance,
+            opt_area: None,
+        },
+    };
+
+    repo.set_graph_snapshot(new_snapshot)
+        .await
+        .expect("Failed to set graph snapshot with ContainerNode");
+
+    // Verify overwritten snapshot
+    let restored_snapshot = repo
+        .get_graph_snapshot()
+        .await
+        .expect("Failed to fetch restored snapshot");
+    let restored_containers: Vec<centrode_core::domain::nodes::ContainerNode> = restored_snapshot.nodes.iter().filter_map(|n| match n {
+        Nodes::ContainerNode(c) => Some(c.clone()),
+        _ => None,
+    }).collect();
+    assert_eq!(restored_containers.len(), 1);
+    assert_eq!(restored_containers[0].id, new_container_id);
+    assert_eq!(restored_containers[0].title, "New Container");
+
+    // Ensure old ContainerNode was deleted
+    let old_container = repo
+        .get_node(container_id)
+        .await
+        .expect("Query failed");
+    assert!(old_container.is_none());
 }
 
 #[tokio::test]

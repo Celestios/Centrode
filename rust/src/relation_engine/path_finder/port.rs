@@ -161,7 +161,7 @@ pub fn resolve_ports_full(
     };
 
     let (end_side, end_pos) = match &edge.to_side {
-        Some(PortSide::Auto) | None => closest_port_to(to_node, from_center),
+        Some(PortSide::Auto) | None => closest_port_to(to_node, start_pos),
         Some(side) => (side.clone(), port_position(to_node, Some(side)).0),
     };
 

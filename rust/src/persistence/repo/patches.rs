@@ -135,12 +135,17 @@ impl Repository {
                 Value::String(verb.clone()),
             ),
             RelationPatch::Endpoints(in_id, out_id) => {
-                self.db
-                    .query("UPDATE $id SET in = $in_val, out = $out_val")
-                    .bind(("id", id))
-                    .bind(("in_val", in_id.into_value()))
-                    .bind(("out_val", out_id.into_value()))
-                    .await?;
+                let typed_id = TypedRecordId::from_value(Value::RecordId(id.clone()))?;
+                let existing = self.get_relation(typed_id).await?;
+                let old_in_id = existing.in_.clone();
+                let old_out_id = existing.out.clone();
+                let mut updated = existing;
+                updated.in_ = in_id.clone();
+                updated.out = out_id.clone();
+                let _: Option<Value> = self.db.delete(id).await?;
+                self.create_relation(updated).await?;
+                self.trigger_significance_update(&old_in_id).await?;
+                self.trigger_significance_update(&old_out_id).await?;
                 return Ok(());
             }
             RelationPatch::Style(style) => {

@@ -406,3 +406,84 @@ async fn test_create_and_delete_entity_patches() {
         .unwrap()
         .is_none());
 }
+
+#[tokio::test]
+async fn test_container_node_patch() {
+    let repo = setup_test_repo().await;
+
+    let container_id = TypedRecordId::new_v4(TableKind::ContainerNode);
+    let container = crate::common::make_container_node(container_id, "Patch Container", 10, 20);
+
+    // Create ContainerNode
+    repo.create_node(Nodes::ContainerNode(container))
+        .await
+        .expect("Failed to create ContainerNode for patch test");
+
+    let record_id = container_id.to_record_id();
+
+    // Patch position
+    let forward_patch = EntityPatch::Node(vec![
+        NodePatch::Position(Coordinates { x: 100, y: 200 }),
+    ]);
+    repo.patch_entity(record_id.clone(), &forward_patch)
+        .await
+        .unwrap();
+
+    let fetched = repo.get_node(container_id).await.unwrap().unwrap();
+    if let Nodes::ContainerNode(ref c) = fetched {
+        assert_eq!(c.position.x, 100);
+        assert_eq!(c.position.y, 200);
+    } else {
+        panic!("Incorrect node type");
+    }
+
+    // Patch title
+    let patch2 = EntityPatch::Node(vec![
+        NodePatch::Title("Patched Container".to_string()),
+    ]);
+    repo.patch_entity(record_id.clone(), &patch2)
+        .await
+        .unwrap();
+
+    let fetched = repo.get_node(container_id).await.unwrap().unwrap();
+    if let Nodes::ContainerNode(ref c) = fetched {
+        assert_eq!(c.title, "Patched Container");
+    } else {
+        panic!("Incorrect node type");
+    }
+
+    // Patch significance
+    let patch3 = EntityPatch::Node(vec![
+        NodePatch::Significance(42),
+    ]);
+    repo.patch_entity(record_id.clone(), &patch3)
+        .await
+        .unwrap();
+
+    let fetched = repo.get_node(container_id).await.unwrap().unwrap();
+    if let Nodes::ContainerNode(ref c) = fetched {
+        assert_eq!(c.significance, 42);
+    } else {
+        panic!("Incorrect node type");
+    }
+
+    // Reverse patch
+    let reverse_patch = EntityPatch::Node(vec![
+        NodePatch::Position(Coordinates { x: 10, y: 20 }),
+        NodePatch::Title("Patch Container".to_string()),
+        NodePatch::Significance(0),
+    ]);
+    repo.patch_entity(record_id.clone(), &reverse_patch)
+        .await
+        .unwrap();
+
+    let fetched = repo.get_node(container_id).await.unwrap().unwrap();
+    if let Nodes::ContainerNode(ref c) = fetched {
+        assert_eq!(c.position.x, 10);
+        assert_eq!(c.position.y, 20);
+        assert_eq!(c.title, "Patch Container");
+        assert_eq!(c.significance, 0);
+    } else {
+        panic!("Incorrect node type");
+    }
+}

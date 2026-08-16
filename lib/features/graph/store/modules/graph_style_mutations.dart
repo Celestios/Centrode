@@ -4,7 +4,7 @@ import '../../models/commands/patch_helpers.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
-import '../../presentation/strategies/node_style_strategy.dart';
+import '../../models/node_style_resolver.dart';
 
 /// Style mutation operations for the graph.
 class GraphStyleMutations {
@@ -32,7 +32,7 @@ class GraphStyleMutations {
       final node = controller.store.nodeLookup[id];
       if (node == null) continue;
 
-      final oldStyle = node.style ?? node.resolvedStyle ?? NodeStyleStrategy.resolveStyle(node);
+      final oldStyle = node.style ?? node.resolvedStyle ?? resolveStyle(node);
       final oldSize = node.size;
       final newStyle = updateFn(oldStyle);
 
@@ -110,12 +110,9 @@ class GraphStyleMutations {
     final oldRelation = UiRelation.copy(relation);
     if (oldRelation == null) return;
 
-    final updatedRelation = (relation as InfoUiRelation).copyWith(
-      style: newStyle,
-    );
-    updatedRelation.resolvedStyle = null;
+    relation.style = newStyle;
+    relation.resolvedStyle = null;
 
-    controller.store.relationLookup[id] = updatedRelation;
     controller.styleUpdater?.updateStyleForRelation(id);
     controller.relationEngine.onRelationStyleUpdated(id);
 
@@ -124,7 +121,7 @@ class GraphStyleMutations {
       tableName: 'IRelation',
       api: controller.syncEngine.api,
       oldLayout: oldRelation.layout,
-      newLayout: updatedRelation.layout,
+      newLayout: relation.layout,
       oldStyle: oldRelation.style,
       newStyle: newStyle,
       oldRelation: oldRelation,
@@ -137,7 +134,7 @@ class GraphStyleMutations {
         id: id,
         tableName: 'IRelation',
         type: GraphUpdateType.style,
-        payload: updatedRelation.style,
+        payload: relation.style,
       ),
     );
 

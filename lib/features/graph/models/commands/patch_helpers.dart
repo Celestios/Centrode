@@ -55,8 +55,14 @@ buildRelationLayoutPatches(
   RelationLayout? oldLayout,
   RelationLayout? newLayout,
   RelationStyle? oldStyle,
-  RelationStyle? newStyle,
-) {
+  RelationStyle? newStyle, {
+  RawUuid? oldFromId,
+  RawUuid? newFromId,
+  RawUuid? oldToId,
+  RawUuid? newToId,
+  String? fromNodeTable,
+  String? toNodeTable,
+}) {
   final List<RelationPatch> forwardPatches = [];
   final List<RelationPatch> reversePatches = [];
 
@@ -68,6 +74,28 @@ buildRelationLayoutPatches(
   if (newStyle != null || oldStyle != null) {
     forwardPatches.add(RelationPatch.style(newStyle));
     reversePatches.add(RelationPatch.style(oldStyle));
+  }
+
+  if (newFromId != null &&
+      newToId != null &&
+      oldFromId != null &&
+      oldToId != null) {
+    if (newFromId != oldFromId || newToId != oldToId) {
+      final fromTable = fromNodeTable ?? 'INode';
+      final toTable = toNodeTable ?? 'INode';
+      forwardPatches.add(
+        RelationPatch.endpoints(
+          parseTypedRecordId(fromTable, newFromId),
+          parseTypedRecordId(toTable, newToId),
+        ),
+      );
+      reversePatches.add(
+        RelationPatch.endpoints(
+          parseTypedRecordId(fromTable, oldFromId),
+          parseTypedRecordId(toTable, oldToId),
+        ),
+      );
+    }
   }
 
   return (forwardPatches, reversePatches);

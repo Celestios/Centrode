@@ -7,8 +7,7 @@ import '../../models/models.dart';
 import '../command_queue_processor.dart';
 import '../graph_data_query.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
-import '../../presentation/strategies/node_style_strategy.dart';
-import '../../domain/behaviors/node_containment_behavior.dart';
+import '../../models/node_style_resolver.dart';
 
 /// Node mutation operations for the graph.
 class GraphNodeMutations {
@@ -21,6 +20,7 @@ class GraphNodeMutations {
   RawUuid createNode(
     UiNodes type,
     Offset position, {
+    RawUuid? parentContainerId,
     List<String>? paths,
     String? brushType,
     double? brushThickness,
@@ -32,14 +32,22 @@ class GraphNodeMutations {
     UiNode node;
     switch (type) {
       case UiNodes.info:
-        node = InfoUiNode(position: position, content: content);
+        node = InfoUiNode(
+          position: position,
+          content: content,
+          parentContainerId: parentContainerId,
+        );
         break;
       case UiNodes.task:
-        node = TaskUiNode(position: position);
+        node = TaskUiNode(
+          position: position,
+          parentContainerId: parentContainerId,
+        );
         break;
       case UiNodes.drawing:
         node = DrawingUiNode(
           position: position,
+          parentContainerId: parentContainerId,
           paths: paths ?? const [],
           brushType: brushType is BrushType
               ? (brushType as BrushType)
@@ -61,33 +69,44 @@ class GraphNodeMutations {
     node.size = result.size;
     node.lineCount = result.lineCount;
 
-    // Check if created inside an open container
-    final nodeWorldCenter = position + Offset(node.size.width / 2, node.size.height / 2);
-    ContainerUiNode? targetContainer;
-    for (final candidate in controller.store.nodeLookup.values) {
-      if (candidate.id == id || candidate is! ContainerUiNode) continue;
-      if (candidate.isClosed) continue;
-
-      final cWorldPos = candidate.getAbsoluteWorldPosition(controller.store.nodeLookup);
-      final cRect = Rect.fromLTWH(cWorldPos.dx, cWorldPos.dy, candidate.size.width, candidate.size.height);
-
-      if (cRect.contains(nodeWorldCenter)) {
-        targetContainer = candidate;
-        break;
-      }
-    }
-
     final Offset finalPos;
-    if (targetContainer != null) {
-      final cWorldPos = targetContainer.getAbsoluteWorldPosition(controller.store.nodeLookup);
-      finalPos = position - cWorldPos;
-      node.parentContainerId = targetContainer.id;
-      node.position = finalPos;
-      targetContainer.childCount++;
-      controller.spatial.spatialIndex.insertNode(id, targetContainer.id, finalPos, node.size);
-    } else {
+    if (parentContainerId != null) {
+      final container = controller.store.nodeLookup[parentContainerId];
+      if (container is ContainerUiNode) {
+        container.childCount++;
+      }
       finalPos = position;
-      controller.spatial.spatialIndex.insertNode(id, null, position, node.size);
+      node.parentContainerId = parentContainerId;
+      node.position = finalPos;
+      controller.spatial.spatialIndex.insertNode(id, parentContainerId, finalPos, node.size);
+    } else {
+      // Check if created inside an open container
+      final nodeWorldCenter = position + Offset(node.size.width / 2, node.size.height / 2);
+      ContainerUiNode? targetContainer;
+      for (final candidate in controller.store.nodeLookup.values) {
+        if (candidate.id == id || candidate is! ContainerUiNode) continue;
+        if (candidate.isClosed) continue;
+
+        final cWorldPos = candidate.getAbsoluteWorldPosition(controller.store.nodeLookup);
+        final cRect = Rect.fromLTWH(cWorldPos.dx, cWorldPos.dy, candidate.size.width, candidate.size.height);
+
+        if (cRect.contains(nodeWorldCenter)) {
+          targetContainer = candidate;
+          break;
+        }
+      }
+
+      if (targetContainer != null) {
+        final cWorldPos = targetContainer.getAbsoluteWorldPosition(controller.store.nodeLookup);
+        finalPos = position - cWorldPos;
+        node.parentContainerId = targetContainer.id;
+        node.position = finalPos;
+        targetContainer.childCount++;
+        controller.spatial.spatialIndex.insertNode(id, targetContainer.id, finalPos, node.size);
+      } else {
+        finalPos = position;
+        controller.spatial.spatialIndex.insertNode(id, null, position, node.size);
+      }
     }
 
     controller.spatial.saveConfirmedPosition(id, finalPos);
@@ -185,70 +204,15 @@ class GraphNodeMutations {
         controller.spatial.getConfirmedPosition(id) ?? node.position;
     controller.spatial.saveConfirmedPosition(id, confirmedPos);
 
-    // Determine target container (auto-adoption)
-    // newPosition is in canvas world coordinates
-    final nodeWorldCenter = newPosition + Offset(node.size.width / 2, node.size.height / 2);
-    ContainerUiNode? targetContainer;
+    final targetPos = newPosition;
+    if (node.position == targetPos) return;
 
-    for (final candidate in controller.store.nodeLookup.values) {
-      if (candidate.id == id || candidate is! ContainerUiNode) continue;
-      if (isAncestorOf(candidate, node, controller.store.nodeLookup)) continue;
-
-      final cWorldPos = candidate.getAbsoluteWorldPosition(controller.store.nodeLookup);
-      final cRect = Rect.fromLTWH(cWorldPos.dx, cWorldPos.dy, candidate.size.width, candidate.size.height);
-
-      if (cRect.contains(nodeWorldCenter)) {
-        targetContainer = candidate;
-        break;
-      }
-    }
-
-    final RawUuid? targetParentId = targetContainer?.id;
-    final Offset targetPos;
-    if (targetContainer != null) {
-      final cWorldPos = targetContainer.getAbsoluteWorldPosition(controller.store.nodeLookup);
-      targetPos = newPosition - cWorldPos;
+    if (oldParentId == null) {
+      controller.spatial.spatialGrid.update(id, node.position, targetPos, node.size);
     } else {
-      targetPos = newPosition;
+      controller.spatial.spatialIndex.updateNode(id, oldParentId, node.position, targetPos, node.size);
     }
-
-    if (oldParentId != targetParentId) {
-      // Migrate spatial index
-      controller.spatial.spatialIndex.migrateNodeSpatialGrid(
-        id,
-        oldParentId,
-        targetParentId,
-        oldPosition,
-        targetPos,
-        node.size,
-      );
-
-      // Adjust child counts
-      if (oldParentId != null) {
-        final oldParent = controller.store.nodeLookup[oldParentId];
-        if (oldParent is ContainerUiNode && oldParent.childCount > 0) {
-          oldParent.childCount--;
-        }
-      }
-      if (targetParentId != null) {
-        final newParent = controller.store.nodeLookup[targetParentId];
-        if (newParent is ContainerUiNode) {
-          newParent.childCount++;
-        }
-      }
-
-      node.parentContainerId = targetParentId;
-      node.position = targetPos;
-    } else {
-      if (node.position == targetPos) return;
-
-      if (targetParentId == null) {
-        controller.spatial.spatialGrid.update(id, node.position, targetPos, node.size);
-      } else {
-        controller.spatial.spatialIndex.updateNode(id, targetParentId, node.position, targetPos, node.size);
-      }
-      node.position = targetPos;
-    }
+    node.position = targetPos;
 
     final cmd = PatchNodeCommand(
       targetId: id,
@@ -260,6 +224,59 @@ class GraphNodeMutations {
     );
 
     // Write immediately — no debounce
+    controller.syncEngine.processor.queueCommand(cmd, immediate: true);
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.position,
+        payload: targetPos,
+      ),
+    );
+  }
+
+  /// Programmatically migrates a node to a different parent container scope.
+  void reparentNode(RawUuid id, RawUuid? targetParentId, Offset targetPos) {
+    final node = controller.store.nodeLookup[id];
+    if (node == null) return;
+
+    final oldParentId = node.parentContainerId;
+    final oldPosition = node.position;
+    if (oldParentId == targetParentId && node.position == targetPos) return;
+
+    controller.spatial.spatialIndex.migrateNodeSpatialGrid(
+      id,
+      oldParentId,
+      targetParentId,
+      oldPosition,
+      targetPos,
+      node.size,
+    );
+
+    if (oldParentId != null) {
+      final oldParent = controller.store.nodeLookup[oldParentId];
+      if (oldParent is ContainerUiNode && oldParent.childCount > 0) {
+        oldParent.childCount--;
+      }
+    }
+    if (targetParentId != null) {
+      final newParent = controller.store.nodeLookup[targetParentId];
+      if (newParent is ContainerUiNode) {
+        newParent.childCount++;
+      }
+    }
+
+    node.parentContainerId = targetParentId;
+    node.position = targetPos;
+
+    final cmd = PatchNodeCommand(
+      targetId: id,
+      tableName: node.tableName,
+      api: controller.syncEngine.api,
+      controller: controller,
+      oldPosition: oldPosition,
+      newPosition: targetPos,
+    );
     controller.syncEngine.processor.queueCommand(cmd, immediate: true);
     controller.publishUpdate(
       GraphEntityUpdate(
@@ -293,7 +310,7 @@ class GraphNodeMutations {
 
     // Use centralized NodeStyleStrategy to dynamically resolve node's populated style,
     // and save manual target width in style config to lock manual mode.
-    final resolvedStyle = node.resolvedStyle ?? NodeStyleStrategy.resolveStyle(node);
+    final resolvedStyle = node.resolvedStyle ?? resolveStyle(node);
     node.style = (node.style ?? resolvedStyle).copyWith(
       width: newWidth.round(),
     );
@@ -388,6 +405,22 @@ class GraphNodeMutations {
     );
   }
 
+  /// Updates the closed state of a ContainerUiNode and publishes the update event.
+  void setContainerClosed(RawUuid id, bool isClosed) {
+    final node = controller.store.nodeLookup[id];
+    if (node is! ContainerUiNode) return;
+    if (node.isClosed == isClosed) return;
+    node.isClosed = isClosed;
+    controller.publishUpdate(
+      GraphEntityUpdate(
+        id: id,
+        tableName: node.tableName,
+        type: GraphUpdateType.expansion,
+        payload: isClosed,
+      ),
+    );
+  }
+
   /// Converts an existing node (e.g. INode) to a ContainerUiNode.
   void convertNodeToContainer(RawUuid id) {
     final oldNode = controller.store.nodeLookup[id];
@@ -409,8 +442,8 @@ class GraphNodeMutations {
       childCount: 0,
       tags: oldNode is InfoUiNode ? oldNode.tags : const [],
       comments: oldNode is InfoUiNode ? oldNode.comments : const [],
-      style: oldNode.style ?? NodeStyleStrategy.resolveStyle(oldNode),
-      resolvedStyle: oldNode.resolvedStyle ?? NodeStyleStrategy.resolveStyle(oldNode),
+      style: oldNode.style ?? resolveStyle(oldNode),
+      resolvedStyle: oldNode.resolvedStyle ?? resolveStyle(oldNode),
       locked: oldNode.locked,
       significance: oldNode.significance,
     );

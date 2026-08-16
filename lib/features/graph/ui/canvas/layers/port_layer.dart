@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:centrode/features/graph/models/port.dart';
-import 'package:centrode/features/graph/models/graph_node.dart';
+import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/features/graph/store/graph_data_query.dart';
 import 'package:centrode/features/graph/presentation/drag_state.dart';
 import 'package:centrode/features/graph/presentation/view_state.dart';
@@ -10,6 +9,7 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../../../engine/base_interaction_state.dart';
 import '../../../engine/config.dart';
 import '../../../../../presentation/theme/app_theme_manager.dart';
+import '../../../presentation/viewport_state.dart';
 
 class PortLayer extends StatefulWidget {
   final Map<RawUuid, NodeViewState> nodeViewStates;
@@ -17,6 +17,8 @@ class PortLayer extends StatefulWidget {
   final ValueNotifier<Port?> hoveredPortNotifier;
   final ValueNotifier<CanvasInteractionState> interactionState;
   final DragState dragState;
+  final GraphDataQuery? queryController;
+  final ViewportController? viewportController;
 
   const PortLayer({
     super.key,
@@ -25,6 +27,8 @@ class PortLayer extends StatefulWidget {
     required this.hoveredPortNotifier,
     required this.interactionState,
     required this.dragState,
+    this.queryController,
+    this.viewportController,
   });
 
   @override
@@ -42,6 +46,8 @@ class _PortLayerState extends State<PortLayer> {
     widget.hoveredPortNotifier.addListener(_onPortHoverChanged);
     widget.interactionState.addListener(_onInteractionChanged);
     widget.dragState.addListener(_onDragStateChanged);
+    widget.viewportController?.activeScopeNotifier.addListener(_onScopeChanged);
+    _activeNodeId = widget.hoveredNodeNotifier.value;
   }
 
   @override
@@ -50,6 +56,7 @@ class _PortLayerState extends State<PortLayer> {
     if (oldWidget.hoveredNodeNotifier != widget.hoveredNodeNotifier) {
       oldWidget.hoveredNodeNotifier.removeListener(_onHoverChanged);
       widget.hoveredNodeNotifier.addListener(_onHoverChanged);
+      _activeNodeId = widget.hoveredNodeNotifier.value;
     }
     if (oldWidget.hoveredPortNotifier != widget.hoveredPortNotifier) {
       oldWidget.hoveredPortNotifier.removeListener(_onPortHoverChanged);
@@ -63,6 +70,10 @@ class _PortLayerState extends State<PortLayer> {
       oldWidget.dragState.removeListener(_onDragStateChanged);
       widget.dragState.addListener(_onDragStateChanged);
     }
+    if (oldWidget.viewportController != widget.viewportController) {
+      oldWidget.viewportController?.activeScopeNotifier.removeListener(_onScopeChanged);
+      widget.viewportController?.activeScopeNotifier.addListener(_onScopeChanged);
+    }
   }
 
   @override
@@ -72,7 +83,15 @@ class _PortLayerState extends State<PortLayer> {
     widget.hoveredPortNotifier.removeListener(_onPortHoverChanged);
     widget.interactionState.removeListener(_onInteractionChanged);
     widget.dragState.removeListener(_onDragStateChanged);
+    widget.viewportController?.activeScopeNotifier.removeListener(_onScopeChanged);
     super.dispose();
+  }
+
+  void _onScopeChanged() {
+    _hideTimer?.cancel();
+    _hideTimer = null;
+    _activeNodeId = null;
+    if (mounted) setState(() {});
   }
 
   void _onInteractionChanged() {
@@ -81,9 +100,12 @@ class _PortLayerState extends State<PortLayer> {
       _hideTimer?.cancel();
       _hideTimer = null;
     }
-    final hoveredId = widget.hoveredNodeNotifier.value;
-    if (hoveredId != _activeNodeId) {
-      setState(() => _activeNodeId = hoveredId);
+    final snappedId = interaction is RelationTipDragging
+        ? interaction.snappedTargetNodeId
+        : (interaction is RelationDrawing ? interaction.snappedTargetNodeId : null);
+    final targetId = widget.hoveredNodeNotifier.value ?? snappedId;
+    if (targetId != _activeNodeId) {
+      setState(() => _activeNodeId = targetId);
     } else {
       setState(() {});
     }
@@ -118,20 +140,33 @@ class _PortLayerState extends State<PortLayer> {
 
   @override
   Widget build(BuildContext context) {
-    final nodeId = _activeNodeId;
-    if (nodeId == null) return const SizedBox.shrink();
+    final interaction = widget.interactionState.value;
+    final drawing = interaction is RelationDrawing ? interaction : null;
+    final tipDrag = interaction is RelationTipDragging ? interaction : null;
+
+    final RawUuid? activeId = (tipDrag?.snappedTargetNodeId) ??
+        (drawing?.snappedTargetNodeId) ??
+        widget.hoveredNodeNotifier.value ??
+        _activeNodeId;
+
+    if (activeId == null) return const SizedBox.shrink();
+    final nodeId = activeId;
 
     final vs = widget.nodeViewStates[nodeId];
     if (vs == null) return const SizedBox.shrink();
 
-    GraphDataQuery? query;
-    try {
-      query = Provider.of<GraphDataQuery>(context, listen: false);
-    } catch (_) {}
-    if (query != null) {
-      final node = query.nodeLookup[nodeId];
-      if (node is ContainerUiNode && !node.isClosed) {
+    final node = widget.queryController?.nodeLookup[nodeId];
+    if (node != null) {
+      final activeScope = widget.viewportController?.activeScopeNotifier.value ?? const RootViewportScope();
+      if (!widget.queryController!.isNodeInScope(nodeId, activeScope)) {
         return const SizedBox.shrink();
+      }
+      if (activeScope is RootViewportScope && node is ContainerUiNode) {
+        final isTransitioning = widget.viewportController?.isTransitioningNotifier.value ?? false;
+        final screenWidth = (vs.sizeNotifier.value.width > 0 ? vs.sizeNotifier.value.width : node.size.width) * vs.currentScale;
+        if (!node.isClosed || isTransitioning || screenWidth >= 180.0) {
+          return const SizedBox.shrink();
+        }
       }
     }
 
@@ -139,18 +174,26 @@ class _PortLayerState extends State<PortLayer> {
       return const SizedBox.shrink();
     }
 
-    final interaction = widget.interactionState.value;
-    final drawing = interaction is RelationDrawing ? interaction : null;
-    final tipDrag = interaction is RelationTipDragging ? interaction : null;
-
     if (drawing != null && drawing.sourceNodeIds.contains(nodeId)) {
       return const SizedBox.shrink();
+    }
+
+    if (tipDrag != null) {
+      final rel = widget.queryController?.relationLookup[tipDrag.relationId];
+      final oppositeId = tipDrag.isStartTip ? rel?.toNodeId : rel?.fromNodeId;
+      if (oppositeId != null && nodeId == oppositeId) {
+        return const SizedBox.shrink();
+      }
     }
 
     final ports = vs.ports.allPorts;
     if (ports.isEmpty) return const SizedBox.shrink();
 
-    final snappedTarget = drawing?.snappedTargetPort ?? tipDrag?.snappedPort;
+    final snappedTarget = (drawing != null && drawing.snappedTargetNodeId == nodeId)
+        ? drawing.snappedTargetPort
+        : (tipDrag != null && tipDrag.snappedTargetNodeId == nodeId)
+            ? tipDrag.snappedPort
+            : null;
     final hoveredPort = interaction is CanvasIdle
         ? widget.hoveredPortNotifier.value
         : null;
@@ -196,24 +239,24 @@ class PortPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final fillPaint = Paint()..style = PaintingStyle.fill;
+    final plusPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
     for (final port in ports) {
       final isSnapped = snappedTargetPort != null && port == snappedTargetPort;
       final isHovered =
           !isSnapped && hoveredPort != null && port == hoveredPort;
 
-      final paint = Paint()
-        ..color = isSnapped || isHovered ? selectionColor : hoverColor
-        ..style = PaintingStyle.fill;
+      fillPaint.color = isSnapped || isHovered ? selectionColor : hoverColor;
 
       final radius = isSnapped || isHovered ? _hoveredPortRadius : _portRadius;
 
-      canvas.drawCircle(port.position, radius, paint);
+      canvas.drawCircle(port.position, radius, fillPaint);
 
-      final plusPaint = Paint()
-        ..color = Colors.white
-        ..strokeWidth = (isHovered || isSnapped ? 2.0 : 1.5) * scale
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round;
+      plusPaint.strokeWidth = (isHovered || isSnapped ? 2.0 : 1.5) * scale;
 
       final armLength = radius * 0.5;
       canvas.drawLine(

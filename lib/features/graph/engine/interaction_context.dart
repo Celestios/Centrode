@@ -17,7 +17,6 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 /// state objects can interact with the context without direct coupling
 /// to the controller implementation.
 import '../presentation/workspace_tabs_controller.dart';
-import '../presentation/viewport_state.dart';
 
 /// Interface segregating viewport capability from the rest of the context.
 abstract interface class ViewportCapability {
@@ -53,6 +52,22 @@ abstract interface class ViewportCapability {
 
   /// Converts a screen coordinate to canvas coordinates based on the active matrix.
   Offset screenToCanvas(Offset screenPos);
+
+  /// Programmatically opens/zooms into a container node.
+  void openContainer(
+    ContainerUiNode node, {
+    bool animate = true,
+    void Function(double)? onProgress,
+    VoidCallback? onComplete,
+  });
+
+  /// Programmatically transitions the active scope out of a container node back to its parent scope.
+  void closeContainer(
+    ContainerUiNode node, {
+    bool animate = true,
+    void Function(double)? onProgress,
+    VoidCallback? onComplete,
+  });
 }
 
 /// Interface segregating selection and toolbar actions.
@@ -91,6 +106,7 @@ abstract interface class QueryCapability {
   RelationEngineState get relationEngine;
   List<RawUuid> get zOrder;
   SpatialHashGrid get spatialGrid;
+  HierarchicalSpatialIndex get spatialIndex;
   Iterable<UiRelation> getRelations();
   UiRelation? getRelation(RawUuid id);
   UiNode? getNode(RawUuid id);
@@ -100,6 +116,8 @@ abstract interface class QueryCapability {
 /// Write/mutation interface for structural layout, node/relation edits.
 abstract interface class MutationCapability {
   void onNodeMove(RawUuid id, Offset pos);
+
+  void reparentNode(RawUuid id, RawUuid? targetParentId, Offset targetPos);
 
   void onRelationCreate(
     RawUuid from,
@@ -174,7 +192,7 @@ abstract interface class MutationCapability {
 }
 
 abstract interface class GeometryCapability
-    implements MutationCapability, QueryCapability {}
+    implements MutationCapability, QueryCapability, ViewportCapability {}
 
 /// Composite interface for capabilities that need both geometry and viewport access.
 abstract interface class GeometryAndViewportCapability

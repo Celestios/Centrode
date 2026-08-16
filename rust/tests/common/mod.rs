@@ -2,9 +2,9 @@ use centrode_core::domain::base_models::{Coordinates, Size};
 use centrode_core::domain::contents::Content;
 use centrode_core::domain::id::TypedRecordId;
 use centrode_core::domain::nodes::INode;
+use centrode_core::domain::nodes::ContainerNode;
 use centrode_core::domain::relations::IRelationFields;
 use centrode_core::domain::styles::RelationDirection;
-use centrode_core::domain::traits::TableKind;
 use centrode_core::persistence::repo::Repository;
 use centrode_core::persistence::schema::Schema;
 use surrealdb::engine::local::Mem;
@@ -58,6 +58,32 @@ pub fn make_inode(id: TypedRecordId, text: &str, x: i32, y: i32) -> INode {
         aliases: vec![],
         comments: vec![],
         attachment: None,
+        significance: 0,
+        created_at: 0,
+        updated_at: 0,
+    }
+}
+
+pub fn make_container_node(id: TypedRecordId, title: &str, x: i32, y: i32) -> ContainerNode {
+    ContainerNode {
+        id,
+        parent_container_id: None,
+        title: title.to_string(),
+        style: None,
+        resolved_style: None,
+        layout: None,
+        resolved_layout: None,
+        layer: "default".to_string(),
+        position: Coordinates { x, y },
+        size: Size {
+            width: 200,
+            height: 150,
+        },
+        is_closed: true,
+        child_count: 0,
+        locked: false,
+        tags: vec![],
+        comments: vec![],
         significance: 0,
         created_at: 0,
         updated_at: 0,

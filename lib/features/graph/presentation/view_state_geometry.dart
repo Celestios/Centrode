@@ -43,15 +43,15 @@ abstract class NodeHitboxCalculator {
     final style =
         node.resolvedStyle ?? node.style ?? NodeStyleStrategy.fallbackStyle();
     final fontScale = style.fontSize / 14.0;
-    final toggleSpace = NodeStyleStrategy.expandToggleSpace(
+    final toggleSpace = expandToggleSpace(
       isExpanded,
       fontScale,
     );
-    final taskBadgeHeight = node is TaskUiNode
-        ? NodeStyleStrategy.taskBadgeHeight(fontScale)
+    final badgeHeight = node is TaskUiNode
+        ? taskBadgeHeight(fontScale)
         : 0.0;
 
-    final bottomOffset = style.padding + taskBadgeHeight;
+    final bottomOffset = style.padding + badgeHeight;
     final rectBottom = position.dy + size.height;
     return Rect.fromLTRB(
       position.dx,

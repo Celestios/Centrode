@@ -16,7 +16,6 @@ import '../presentation/node_render_state.dart';
 import '../presentation/viewport_state.dart';
 import '../presentation/workspace_tabs_controller.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
-import 'package:centrode/src/rust/layout_engine/config.dart';
 import 'package:centrode/src/rust/layout_engine/types.dart';
 import '../models/commands/patch_helpers.dart';
 
@@ -86,6 +85,34 @@ class CanvasInteractionEnvironment implements InteractionContext {
       _viewportController.screenToCanvas(screenPos);
 
   @override
+  void openContainer(
+    ContainerUiNode node, {
+    bool animate = true,
+    void Function(double)? onProgress,
+    VoidCallback? onComplete,
+  }) =>
+      _viewportController.openContainer(
+        node,
+        animate: animate,
+        onProgress: onProgress,
+        onComplete: onComplete,
+      );
+
+  @override
+  void closeContainer(
+    ContainerUiNode node, {
+    bool animate = true,
+    void Function(double)? onProgress,
+    VoidCallback? onComplete,
+  }) =>
+      _viewportController.closeContainer(
+        node,
+        animate: animate,
+        onProgress: onProgress,
+        onComplete: onComplete,
+      );
+
+  @override
   Map<RawUuid, NodeViewState> get nodeViewStates => _renderState.viewStates;
 
   @override
@@ -96,6 +123,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
 
   @override
   SpatialHashGrid get spatialGrid => _queryController.spatialGrid;
+
+  @override
+  HierarchicalSpatialIndex get spatialIndex => _queryController.spatialIndex;
 
   @override
   Iterable<UiRelation> getRelations() => _queryController.relations;
@@ -121,6 +151,13 @@ class CanvasInteractionEnvironment implements InteractionContext {
     _log.fine('onNodeMove id=$id');
     _commandProcessor.updateNodePosition(id, pos);
     _triggerOptAreaLayoutIfActive(pos);
+  }
+
+  @override
+  void reparentNode(RawUuid id, RawUuid? targetParentId, Offset targetPos) {
+    _log.fine('reparentNode id=$id targetParentId=$targetParentId');
+    _commandProcessor.reparentNode(id, targetParentId, targetPos);
+    _triggerOptAreaLayoutIfActive(targetPos);
   }
 
   @override
@@ -197,8 +234,16 @@ class CanvasInteractionEnvironment implements InteractionContext {
   @override
   RawUuid onCreateNode(Offset position) {
     _log.info('onCreateNode pos=(${position.dx}, ${position.dy})');
+    final activeScope = _viewportController.activeScopeNotifier.value;
+    final parentContainerId =
+        activeScope is ContainerViewportScope ? activeScope.containerId : null;
+
     // 1. Create the node via data layer
-    final id = _commandProcessor.createNode(UiNodes.info, position);
+    final id = _commandProcessor.createNode(
+      UiNodes.info,
+      position,
+      parentContainerId: parentContainerId,
+    );
 
     // 2. Activate edit mode (which also opens Data Inspector)
     onEnterEditMode(id);
@@ -334,9 +379,14 @@ class CanvasInteractionEnvironment implements InteractionContext {
     _log.info(
       'onCreateDrawingNode pos=(${position.dx}, ${position.dy}) type=$brushType',
     );
+    final activeScope = _viewportController.activeScopeNotifier.value;
+    final parentContainerId =
+        activeScope is ContainerViewportScope ? activeScope.containerId : null;
+
     _commandProcessor.createNode(
       UiNodes.drawing,
       position,
+      parentContainerId: parentContainerId,
       paths: paths,
       brushType: brushType,
       brushThickness: brushThickness,
@@ -415,32 +465,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
       );
     }).toList();
 
-    _commandProcessor.api.triggerLayoutOptimization(
-      config: const LayoutConfig(
-        force: ForceConfig(
-          repulsionConstant: 8000.0,
-          springConstant: 0.06,
-          idealLinkDistance: 220.0,
-          collisionStrength: 1.2,
-          baseMargin: 35.0,
-          marginScale: 0.2,
-          wallStrength: 1.2,
-          wallPadding: 20.0,
-          damping: 0.35,
-          alphaDecay: 0.006,
-          alphaMin: 0.001,
-          relationStretchFactor: 0.5,
-          nodeEdgeRepulsion: 1500.0,
-          densityDispersionStrength: 300.0,
-        ),
-        convergence: ConvergenceCriteria(
-          maxIterations: 600,
-          energyThreshold: 0.005,
-          displacementThreshold: 0.2,
-          oscillationWindow: 10,
-        ),
-        batchSize: 1,
-      ),
+    _commandProcessor.triggerLayoutOptimization(
       livePositions: livePatches,
     );
   }
@@ -458,7 +483,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
     _log.info('Setting OptArea: $boundingBox (commitToBackend: $commitToBackend)');
     _queryController.optAreaNotifier.value = bounds;
     if (commitToBackend) {
-      await _commandProcessor.api.setOptArea(bounds: boundingBox);
+      await _commandProcessor.setOptArea(bounds: boundingBox);
       if (boundingBox != null) {
         _triggerOptAreaLayoutIfActive();
       }

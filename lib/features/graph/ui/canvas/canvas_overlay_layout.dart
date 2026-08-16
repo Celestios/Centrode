@@ -338,14 +338,21 @@ class CanvasOverlayLayout extends StatelessWidget {
             ),
           ),
 
-        if (renderState.selectedEntities.isNotEmpty)
-          ContextToolbarOverlay(
-            renderState: renderState,
-            queryController: queryController,
-            interactionContext: interactionController.environment,
-            viewportController: viewportController,
-            interactionController: interactionController,
-          ),
+        ListenableBuilder(
+          listenable: renderState.selectionState,
+          builder: (context, _) {
+            if (renderState.selectedEntities.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            return ContextToolbarOverlay(
+              renderState: renderState,
+              queryController: queryController,
+              interactionContext: interactionController.environment,
+              viewportController: viewportController,
+              interactionController: interactionController,
+            );
+          },
+        ),
       ],
     );
   }

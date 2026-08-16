@@ -28,8 +28,8 @@ class GraphDataQueryController implements GraphDataQuery {
   @override
   String? get errorMessage => _errorMessage;
 
-  set isLoading(bool val) => _isLoading = val;
-  set errorMessage(String? val) => _errorMessage = val;
+  void setLoading(bool val) => _isLoading = val;
+  void setError(String? val) => _errorMessage = val;
 
   final StreamController<GraphEntityUpdate> _entityUpdateController =
       StreamController<GraphEntityUpdate>.broadcast();
@@ -108,6 +108,7 @@ class GraphDataQueryController implements GraphDataQuery {
     relationEngine = RelationEngineState(
       api: api,
       nodeLookupGetter: () => nodeLookup,
+      relationLookupGetter: () => relationLookup,
     );
   }
 
@@ -152,6 +153,43 @@ class GraphDataQueryController implements GraphDataQuery {
     _entityUpdateController.close();
     relationEngine.dispose();
     optAreaNotifier.dispose();
+  }
+
+  @override
+  List<UiNode> nodesInScope(ViewportScope scope) {
+    if (scope is RootViewportScope) {
+      return store.nodeLookup.values.where((n) => n.parentContainerId == null).toList();
+    }
+    final containerId = (scope as ContainerViewportScope).containerId;
+    return store.nodeLookup.values.where((n) => n.parentContainerId == containerId).toList();
+  }
+
+  @override
+  List<UiRelation> relationsInScope(ViewportScope scope) {
+    if (scope is RootViewportScope) {
+      return store.relations.where((r) {
+        final fromNode = store.nodeLookup[r.fromNodeId];
+        final toNode = store.nodeLookup[r.toNodeId];
+        if (fromNode == null || toNode == null) return false;
+        return fromNode.parentContainerId == null && toNode.parentContainerId == null;
+      }).toList();
+    }
+    final containerId = (scope as ContainerViewportScope).containerId;
+    return store.relations.where((r) {
+      final fromNode = store.nodeLookup[r.fromNodeId];
+      final toNode = store.nodeLookup[r.toNodeId];
+      if (fromNode == null || toNode == null) return false;
+      return fromNode.parentContainerId == containerId &&
+             toNode.parentContainerId == containerId;
+    }).toList();
+  }
+
+  @override
+  bool isNodeInScope(RawUuid nodeId, ViewportScope scope) {
+    final node = store.nodeLookup[nodeId];
+    if (node == null) return false;
+    if (scope is RootViewportScope) return node.parentContainerId == null;
+    return node.parentContainerId == (scope as ContainerViewportScope).containerId;
   }
 }
 

@@ -353,6 +353,15 @@ class NodeRenderState extends ChangeNotifier
   @override
   Stream<GraphEntityUpdate> get onEntityUpdate => _dataQuery.onEntityUpdate;
 
+  @override
+  List<UiNode> nodesInScope(ViewportScope scope) => _dataQuery.nodesInScope(scope);
+
+  @override
+  List<UiRelation> relationsInScope(ViewportScope scope) => _dataQuery.relationsInScope(scope);
+
+  @override
+  bool isNodeInScope(RawUuid nodeId, ViewportScope scope) => _dataQuery.isNodeInScope(nodeId, scope);
+
   void convertNodeToContainer(RawUuid id) {
     _dataCommand.convertNodeToContainer(id);
   }

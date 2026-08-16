@@ -30,23 +30,24 @@ class GroupDragging extends CanvasInteractionState {
   CanvasInteractionState handlePointerMove(
     PointerMoveEvent e,
     Offset pCanvas,
-    GeometryAndViewportCapability ctx,
+    InteractionContext ctx,
   ) {
+    final c = ctx as GeometryAndViewportCapability;
     _hasMoved = true;
-    final anchorVs = ctx.nodeViewStates[anchorNodeId];
+    final anchorVs = c.nodeViewStates[anchorNodeId];
     if (anchorVs == null) {
       _snapTimer?.cancel();
       _groupDragLog.severe(
         'Dangling Pointer: Dragging group anchor $anchorNodeId but ViewState is null. Resetting to Idle.',
       );
       for (final id in nodeIds) {
-        ctx.setNodeDragging(id, false);
+        c.setNodeDragging(id, false);
       }
       return const CanvasIdle();
     }
 
     for (final id in nodeIds) {
-      ctx.setNodeDragging(id, true);
+      c.setNodeDragging(id, true);
     }
 
     final rawAnchorPos = pCanvas - grabOffset;
@@ -60,7 +61,7 @@ class GroupDragging extends CanvasInteractionState {
     }
 
     final rawDelta = rawAnchorPos - originalAnchorPos;
-    final effectiveGridSize = calculateEffectiveGridSize(ctx.currentScale);
+    final effectiveGridSize = calculateEffectiveGridSize(c.currentScale);
     final snappedAnchorPos = _snapToGrid(rawAnchorPos, effectiveGridSize);
     final snappedDelta = snappedAnchorPos - originalAnchorPos;
 
@@ -68,7 +69,7 @@ class GroupDragging extends CanvasInteractionState {
 
     // Continuous visual movement
     for (final id in nodeIds) {
-      final vs = ctx.nodeViewStates[id];
+      final vs = c.nodeViewStates[id];
       final originalPos = originalPositions[id];
       if (vs != null && originalPos != null) {
         vs.positionNotifier.value = originalPos + rawDelta;
@@ -76,21 +77,25 @@ class GroupDragging extends CanvasInteractionState {
       }
     }
 
-    ctx.onNodesDrag(dragUpdates);
+    c.onNodesDrag(dragUpdates);
 
     // Delayed snap when mouse pauses
     _snapTimer?.cancel();
     _snapTimer = Timer(const Duration(milliseconds: 150), () {
+      final List<(RawUuid, Offset)> snappedUpdates = [];
       for (final id in nodeIds) {
-        final vs = ctx.nodeViewStates[id];
+        final vs = c.nodeViewStates[id];
         final originalPos = originalPositions[id];
         if (vs != null && originalPos != null) {
-          vs.positionNotifier.value = _snapToGrid(
+          final snappedPos = _snapToGrid(
             originalPos + snappedDelta,
             effectiveGridSize,
           );
+          vs.positionNotifier.value = snappedPos;
+          snappedUpdates.add((id, snappedPos));
         }
       }
+      c.onNodesDrag(snappedUpdates);
     });
 
     return this;
@@ -99,22 +104,19 @@ class GroupDragging extends CanvasInteractionState {
   @override
   CanvasInteractionState handlePointerUp(
     PointerUpEvent e,
-    GeometryAndViewportCapability ctx,
+    InteractionContext ctx,
   ) {
+    final c = ctx as GeometryAndViewportCapability;
     _snapTimer?.cancel();
     _groupDragLog.info('Group Drag Commit for ${nodeIds.length} nodes');
-    final effectiveGridSize = calculateEffectiveGridSize(ctx.currentScale);
+    final effectiveGridSize = calculateEffectiveGridSize(c.currentScale);
     for (final id in nodeIds) {
-      ctx.setNodeDragging(id, false);
-      final vs = ctx.nodeViewStates[id];
+      c.setNodeDragging(id, false);
+      final vs = c.nodeViewStates[id];
       if (vs != null && _hasMoved) {
         final snappedPos = _snapToGrid(vs.positionNotifier.value, effectiveGridSize);
         vs.positionNotifier.value = snappedPos;
-        ctx.onNodeMove(id, snappedPos);
-        final node = ctx.getNode(id);
-        if (node != null) {
-          vs.positionNotifier.value = node.position;
-        }
+        c.onNodeMove(id, snappedPos);
       }
     }
     return const CanvasIdle();
@@ -123,11 +125,12 @@ class GroupDragging extends CanvasInteractionState {
   @override
   CanvasInteractionState handlePointerCancel(
     PointerCancelEvent e,
-    GeometryAndViewportCapability ctx,
+    InteractionContext ctx,
   ) {
+    final c = ctx as GeometryAndViewportCapability;
     _snapTimer?.cancel();
     for (final id in nodeIds) {
-      ctx.setNodeDragging(id, false);
+      c.setNodeDragging(id, false);
     }
     return const CanvasIdle();
   }

@@ -48,17 +48,21 @@ class RelationEngineState {
   final ValueNotifier<int> cacheNotifier = ValueNotifier<int>(0);
 
   final Map<RawUuid, ComputedRelation> previewCache = {};
+  final Map<RawUuid, int> _previewTokens = {};
 
   Map<RawUuid, ComputedRelation> get cache => _tracker.cache;
   InvalidationTracker get tracker => _tracker;
 
   final Map<RawUuid, UiNode> Function()? _nodeLookupGetter;
+  final Map<RawUuid, UiRelation> Function()? _relationLookupGetter;
 
   RelationEngineState({
     required GraphApi api,
     Map<RawUuid, UiNode> Function()? nodeLookupGetter,
+    Map<RawUuid, UiRelation> Function()? relationLookupGetter,
   })  : _api = api,
-        _nodeLookupGetter = nodeLookupGetter;
+        _nodeLookupGetter = nodeLookupGetter,
+        _relationLookupGetter = relationLookupGetter;
 
   void updateConfig(RelationEngineConfig config) {
     _config = config;
@@ -69,6 +73,14 @@ class RelationEngineState {
 
   void onNodeMoved(RawUuid nodeId) {
     _tracker.onNodeMoved(nodeId);
+    if (_relationLookupGetter != null) {
+      final relations = _relationLookupGetter!();
+      for (final rel in relations.values) {
+        if (rel.fromNodeId == nodeId || rel.toNodeId == nodeId) {
+          _tracker.markIdsDirty([rel.id]);
+        }
+      }
+    }
     _scheduleRecompute();
   }
 
@@ -103,7 +115,7 @@ class RelationEngineState {
       case 'straight':
         return const RoutingMode.polyline();
       default:
-        return const RoutingMode.bezier();
+        throw ArgumentError('Unsupported routing mode: $strategyType');
     }
   }
 
@@ -112,9 +124,11 @@ class RelationEngineState {
     UiNode? fromNode,
     UiNode? toNode,
   }) async {
-    final from = fromNode ?? _nodeLookupGetter?.call()[relation.fromNodeId];
-
-      final to = toNode ?? _nodeLookupGetter?.call()[relation.toNodeId];
+    final lookup = _nodeLookupGetter?.call();
+    final from = (lookup != null ? lookup[relation.fromNodeId] : null) ??
+        (fromNode?.id == relation.fromNodeId ? fromNode : null);
+    final to = (lookup != null ? lookup[relation.toNodeId] : null) ??
+        (toNode?.id == relation.toNodeId ? toNode : null);
 
       final computed = await _api.computeSingleRelation(
         config: _config,
@@ -147,24 +161,30 @@ class RelationEngineState {
     Offset? overrideStart,
     Offset? overrideEnd,
   }) async {
-      final computed = await _api.computeSingleRelation(
-        config: _config,
-        edgeId: parseTypedRecordId('IRelation', previewId),
-        fromNodeId: parseTypedRecordId(fromNodeTable, fromNodeId),
-        toNodeId: parseTypedRecordId(toNodeTable, toNodeId),
-        fromSide: fromSide,
-        toSide: toSide,
-        routingMode: const RoutingMode.bezier(),
-        overrideStartX: overrideStart?.dx,
-        overrideStartY: overrideStart?.dy,
-        overrideEndX: overrideEnd?.dx,
-        overrideEndY: overrideEnd?.dy,
-      );
-      previewCache[previewId] = computed;
-      _bumpCacheNotifier();
+    final token = (_previewTokens[previewId] ?? 0) + 1;
+    _previewTokens[previewId] = token;
+
+    final computed = await _api.computeSingleRelation(
+      config: _config,
+      edgeId: parseTypedRecordId('IRelation', previewId),
+      fromNodeId: parseTypedRecordId(fromNodeTable, fromNodeId),
+      toNodeId: parseTypedRecordId(toNodeTable, toNodeId),
+      fromSide: fromSide,
+      toSide: toSide,
+      routingMode: const RoutingMode.bezier(),
+      overrideStartX: overrideStart?.dx,
+      overrideStartY: overrideStart?.dy,
+      overrideEndX: overrideEnd?.dx,
+      overrideEndY: overrideEnd?.dy,
+    );
+
+    if (_previewTokens[previewId] != token) return;
+    previewCache[previewId] = computed;
+    _bumpCacheNotifier();
   }
 
   void clearRelationPreview(RawUuid previewId) {
+    _previewTokens.remove(previewId);
     previewCache.remove(previewId);
     _bumpCacheNotifier();
   }
@@ -240,6 +260,7 @@ class RelationEngineState {
     _cacheNotifierDebounce?.cancel();
     _tracker.clear();
     previewCache.clear();
+    _previewTokens.clear();
     cacheNotifier.dispose();
   }
 }

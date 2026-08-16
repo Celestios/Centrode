@@ -56,65 +56,10 @@ abstract class UiRelation {
         ? RelationDirection.undirected
         : RelationDirection.forward;
 
-    final fromKey = '${fromNodeTable.toLowerCase()}:${fromNodeId.toUuidString()}';
-    final toKey = '${toNodeTable.toLowerCase()}:${toNodeId.toUuidString()}';
-
-    if (fromKey.compareTo(toKey) <= 0) {
-      if (direction != targetDirection &&
-          direction != RelationDirection.backward &&
-          direction != RelationDirection.undirected) {
-        direction = targetDirection;
-      }
-      return this;
-    }
-
-    final oldFromId = fromNodeId;
-    final oldFromTable = fromNodeTable;
-    fromNodeId = toNodeId;
-    fromNodeTable = toNodeTable;
-    toNodeId = oldFromId;
-    toNodeTable = oldFromTable;
-
-    if (direction == RelationDirection.forward) {
-      direction = RelationDirection.backward;
-    } else if (direction == RelationDirection.backward) {
-      direction = RelationDirection.forward;
-    } else if (direction == RelationDirection.undirected) {
-      direction = RelationDirection.undirected;
-    } else {
+    if (direction != RelationDirection.backward &&
+        direction != RelationDirection.undirected) {
       direction = targetDirection;
     }
-
-    if (layout != null) {
-      layout = layout!.copyWith(
-        fromSide: layout!.toSide,
-        toSide: layout!.fromSide,
-        controlPoint1: layout!.controlPoint2,
-        controlPoint2: layout!.controlPoint1,
-      );
-    }
-    if (resolvedLayout != null) {
-      resolvedLayout = resolvedLayout!.copyWith(
-        fromSide: resolvedLayout!.toSide,
-        toSide: resolvedLayout!.fromSide,
-        controlPoint1: resolvedLayout!.controlPoint2,
-        controlPoint2: resolvedLayout!.controlPoint1,
-      );
-    }
-
-    if (style != null) {
-      style = style!.copyWith(
-        startShape: style!.endShape,
-        endShape: style!.startShape,
-      );
-    }
-    if (resolvedStyle != null) {
-      resolvedStyle = resolvedStyle!.copyWith(
-        startShape: resolvedStyle!.endShape,
-        endShape: resolvedStyle!.startShape,
-      );
-    }
-
     return this;
   }
 
@@ -126,10 +71,12 @@ abstract class UiRelation {
     return InfoUiRelation.fromRust(relation);
   }
 
+  /// Creates a deep copy of this relation.
+  UiRelation clone();
+
   static UiRelation? copy(UiRelation? rel) {
     if (rel == null) return null;
-    if (rel is InfoUiRelation) return rel.copyWith()..normalize();
-    throw ArgumentError('Unsupported relation type: ${rel.runtimeType}');
+    return rel.clone()..normalize();
   }
 }
 
@@ -155,6 +102,9 @@ class InfoUiRelation extends UiRelation {
   });
 
   /// Creates a shallow copy with optional field overrides.
+  @override
+  InfoUiRelation clone() => copyWith();
+
   InfoUiRelation copyWith({
     RawUuid? id,
     RawUuid? fromNodeId,
@@ -199,14 +149,12 @@ class InfoUiRelation extends UiRelation {
       in_: TypedRecordId(
         table: TableKind.values.firstWhere(
           (t) => t.name.toLowerCase() == fromNodeTable.toLowerCase(),
-          orElse: () => TableKind.iNode,
         ),
         key: UuidValue.fromString(fromNodeId.toUuidString()),
       ),
       out: TypedRecordId(
         table: TableKind.values.firstWhere(
           (t) => t.name.toLowerCase() == toNodeTable.toLowerCase(),
-          orElse: () => TableKind.iNode,
         ),
         key: UuidValue.fromString(toNodeId.toUuidString()),
       ),

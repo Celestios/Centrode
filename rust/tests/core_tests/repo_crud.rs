@@ -7,6 +7,7 @@ use centrode_core::domain::relations::{IRelation, IRelationFields};
 use centrode_core::domain::styles::RelationDirection;
 use centrode_core::domain::tags::{TagEdge};
 use centrode_core::domain::traits::TableKind;
+use crate::common::make_container_node;
 
 #[tokio::test]
 async fn test_inode_crud() {
@@ -460,4 +461,76 @@ async fn test_relation_rerouting_and_deletion() {
 
     assert_eq!(fetched.in_, n1_id);
     assert_eq!(fetched.out, n3_id);
+}
+
+#[tokio::test]
+async fn test_container_node_crud() {
+    let repo = setup_test_repo().await;
+
+    let container_id = TypedRecordId::new_v4(TableKind::ContainerNode);
+    let container = make_container_node(container_id, "Test Container", 100, 200);
+
+    // Create
+    repo.create_node(Nodes::ContainerNode(container.clone()))
+        .await
+        .expect("Failed to create ContainerNode");
+
+    // Read
+    let fetched = repo
+        .get_node(container_id)
+        .await
+        .expect("Failed to get ContainerNode")
+        .expect("ContainerNode not found");
+
+    if let Nodes::ContainerNode(fetched_container) = fetched {
+        assert_eq!(fetched_container.id, container_id);
+        assert_eq!(fetched_container.title, "Test Container");
+        assert_eq!(fetched_container.position.x, 100);
+        assert_eq!(fetched_container.position.y, 200);
+        assert_eq!(fetched_container.size.width, 200);
+        assert_eq!(fetched_container.size.height, 150);
+        assert!(fetched_container.is_closed);
+        assert_eq!(fetched_container.child_count, 0);
+    } else {
+        panic!("Fetched wrong node variant");
+    }
+
+    // Update
+    let mut updated_container = container.clone();
+    updated_container.title = "Updated Container".to_string();
+    updated_container.position = Coordinates { x: 300, y: 400 };
+    updated_container.is_closed = false;
+    updated_container.child_count = 5;
+
+    repo.update_node(Nodes::ContainerNode(updated_container))
+        .await
+        .expect("Failed to update ContainerNode");
+
+    let fetched_updated = repo
+        .get_node(container_id)
+        .await
+        .expect("Failed to get updated ContainerNode")
+        .expect("ContainerNode not found");
+
+    if let Nodes::ContainerNode(fetched_container) = fetched_updated {
+        assert_eq!(fetched_container.title, "Updated Container");
+        assert_eq!(fetched_container.position.x, 300);
+        assert_eq!(fetched_container.position.y, 400);
+        assert!(!fetched_container.is_closed);
+        assert_eq!(fetched_container.child_count, 5);
+    } else {
+        panic!("Fetched wrong node variant");
+    }
+
+    // Delete
+    repo.delete_node(container_id)
+        .await
+        .expect("Failed to delete ContainerNode");
+
+    let fetched_deleted = repo
+        .get_node(container_id)
+        .await
+        .expect("Failed to fetch deleted ContainerNode");
+
+    assert!(fetched_deleted.is_none(), "ContainerNode should be deleted");
 }

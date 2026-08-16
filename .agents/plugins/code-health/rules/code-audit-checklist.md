@@ -32,7 +32,7 @@ Each dimension sits inside a real trade-off between two legitimate principles (e
 
 5. **DRY (Don't Repeat Yourself)**: Is there structural or algorithmic duplication across sibling files? Use arch-mcp's `query` tool to cross-reference but read the code to verify.
    - *Tension:* DRY vs. SRP and DRY vs. Cohesion — a shared multi-purpose helper fixes duplication but merges unrelated responsibilities; extracting shared logic into `shared/` fixes duplication but can strand feature-specific rules or import a second SRP violation into the new helper.
-   - *Watch for:* near-identical CRUD functions (`save`/`delete`/`get`) with divergent parameter formats or error handling; or a "generic" helper that grew an internal `match`/`switch` to cover cases that used to be separate functions.
+   - *Watch for:* near-identical CRUD functions (`save`/`delete`/`get`) with divergent parameter formats or error handling; or a "generic" helper that grew an internal `match`/`switch` to cover cases that used to be separate functions; or the same conceptual decision (e.g., "filter nodes by scope") applied across N files — even if each instance looks syntactically different.
    - *Symmetry check:* Conceptual Mapping Symmetry (constrained DRY) — sibling functions/modules should share structure (signatures, error handling, transaction scope) without merging implementation. Confirm via arch-mcp `query` for duplicate method names across directories before recommending an extraction.
 
 6. **Pattern Fitness**: Does the actual class structure match its designated design pattern? Check if strategies/commands are clean.

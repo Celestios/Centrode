@@ -20,6 +20,10 @@ class UpdateRelationLayoutCommand extends GraphCommand {
   final RelationLayout? newLayout;
   final RelationStyle? oldStyle;
   final RelationStyle? newStyle;
+  final RawUuid? newFromId;
+  final RawUuid? newToId;
+  final String? fromNodeTable;
+  final String? toNodeTable;
   final UiRelation oldRelation;
   final GraphCommandContext controller;
 
@@ -31,6 +35,10 @@ class UpdateRelationLayoutCommand extends GraphCommand {
     this.newLayout,
     this.oldStyle,
     this.newStyle,
+    this.newFromId,
+    this.newToId,
+    this.fromNodeTable,
+    this.toNodeTable,
     required this.oldRelation,
     required this.controller,
   });
@@ -46,6 +54,12 @@ class UpdateRelationLayoutCommand extends GraphCommand {
       newLayout,
       oldStyle,
       newStyle,
+      oldFromId: oldRelation.fromNodeId,
+      newFromId: newFromId ?? oldRelation.fromNodeId,
+      oldToId: oldRelation.toNodeId,
+      newToId: newToId ?? oldRelation.toNodeId,
+      fromNodeTable: fromNodeTable ?? oldRelation.fromNodeTable,
+      toNodeTable: toNodeTable ?? oldRelation.toNodeTable,
     );
 
     if (forwardPatches.isNotEmpty) {
@@ -55,6 +69,7 @@ class UpdateRelationLayoutCommand extends GraphCommand {
         reverse: EntityPatch.relation(reversePatches),
       );
       await api.applyEntityMutation(mutation: patch);
+      controller.relationEngine.onRelationLayoutUpdated(targetId);
     }
   }
 
@@ -62,6 +77,7 @@ class UpdateRelationLayoutCommand extends GraphCommand {
   void undo() {
     _log.info('undo UpdateRelationLayout key=$targetId');
     controller.store.relationLookup[targetId] = oldRelation;
+    controller.relationEngine.onRelationLayoutUpdated(targetId);
     controller.styleUpdater?.updateStyleForRelation(targetId);
     controller.publishUpdate(
       GraphEntityUpdate(

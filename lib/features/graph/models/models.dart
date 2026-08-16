@@ -17,3 +17,4 @@ export 'package:centrode/src/rust/domain/theme.dart' hide FontWeight;
 export 'content_builder.dart';
 export 'package:centrode/src/rust/domain/contents.dart';
 export 'left_panel_type.dart';
+export 'viewport_scope.dart';

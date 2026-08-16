@@ -239,8 +239,8 @@ impl GraphService {
             if let Some(e) = edges.iter_mut().find(|e| e.id == edge_id) {
                 *e = InputEdge {
                     id: edge_id.clone(),
-                    from_node_id: e.from_node_id.clone(),
-                    to_node_id: e.to_node_id.clone(),
+                    from_node_id,
+                    to_node_id,
                     from_side: from_side.or(e.from_side.clone()),
                     to_side: to_side.or(e.to_side.clone()),
                     routing_mode: routing_mode.or(e.routing_mode.clone()),

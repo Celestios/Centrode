@@ -60,23 +60,48 @@ class AutoPanManager {
   }) {
     _lastScreenPos = screenPos;
 
+    final initialDelta = calculatePanDelta(screenPos, ctx.viewportSize);
+    final bool needsAutoPan = initialDelta != Offset.zero ||
+        (isNearContainerPerimeter && ctx.currentScale > 0.15);
+
+    if (!needsAutoPan) {
+      stop();
+      return;
+    }
+
     if (_timer == null || !_timer!.isActive) {
       _autoPanLog.finest('Starting auto-pan timer for drag at $screenPos');
       _lastTickTime = DateTime.now();
       _timer = Timer.periodic(const Duration(milliseconds: 16), (_) {
         final now = DateTime.now();
-        final dt = (_lastTickTime != null ? now.difference(_lastTickTime!).inMicroseconds : 16000) / 1000000.0;
+        final dt = (_lastTickTime != null
+                ? now.difference(_lastTickTime!).inMicroseconds
+                : 16000) /
+            1000000.0;
         _lastTickTime = now;
 
-        if (_lastScreenPos == null) return;
-        final currentPanDelta = calculatePanDelta(_lastScreenPos!, ctx.viewportSize, dt);
+        if (_lastScreenPos == null) {
+          stop();
+          return;
+        }
+        final currentPanDelta =
+            calculatePanDelta(_lastScreenPos!, ctx.viewportSize, dt);
+        final bool isPanning = currentPanDelta != Offset.zero;
+        final bool isZooming =
+            isNearContainerPerimeter && ctx.currentScale > 0.15;
 
-        if (currentPanDelta != Offset.zero) {
+        if (!isPanning && !isZooming) {
+          stop();
+          return;
+        }
+
+        if (isPanning) {
           ctx.panViewport(currentPanDelta);
         }
 
-        if (isNearContainerPerimeter && ctx.currentScale > 0.15) {
-          final newScale = ctx.currentScale * (1.0 - (zoomSpeedPerSecond * dt));
+        if (isZooming) {
+          final newScale =
+              ctx.currentScale * (1.0 - (zoomSpeedPerSecond * dt));
           ctx.updateScale(newScale);
         }
 

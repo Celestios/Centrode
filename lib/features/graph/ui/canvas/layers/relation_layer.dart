@@ -17,6 +17,7 @@ import 'package:centrode/shared/widgets/unbounded_stack.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
 import '../../../presentation/view_state.dart';
 import '../../../presentation/strategies/relation_style_strategy.dart';
+import '../../../presentation/strategies/node_layout_strategy.dart';
 import '../../../presentation/relation_utils.dart';
 import '../../../store/relation_engine_state.dart';
 import '../../../engine/base_interaction_state.dart';
@@ -112,18 +113,7 @@ class RelationLayer extends StatelessWidget {
           }
 
           final activeScope = viewport.activeScopeNotifier.value;
-          final scopeRelations = queryController.relations.where((r) {
-            final fromNode = queryController.nodeLookup[r.fromNodeId];
-            final toNode = queryController.nodeLookup[r.toNodeId];
-            if (fromNode == null || toNode == null) return false;
-            if (activeScope is ContainerViewportScope) {
-              return fromNode.parentContainerId == activeScope.containerId &&
-                     toNode.parentContainerId == activeScope.containerId;
-            } else {
-              return fromNode.parentContainerId == null &&
-                     toNode.parentContainerId == null;
-            }
-          }).toList();
+          final scopeRelations = queryController.relationsInScope(activeScope);
 
           final paintDtos = _buildPaintDtos(
             relations: scopeRelations,
@@ -135,9 +125,58 @@ class RelationLayer extends StatelessWidget {
             theme: theme,
           );
 
+          List<RelationPaintDto> outsidePaintDtos = const [];
+          double outsideScaleX = 1.0;
+          double outsideScaleY = 1.0;
+          Offset outsideOriginOffset = Offset.zero;
+
+          if (activeScope is ContainerViewportScope) {
+            final parentContainer = queryController.nodeLookup[activeScope.containerId] as ContainerUiNode?;
+            final containerVs = uiController.viewStates[activeScope.containerId];
+            final effectiveOuterSize = (containerVs != null && containerVs.sizeNotifier.value.width > 0 && containerVs.sizeNotifier.value.height > 0)
+                ? Size(containerVs.dragWidthNotifier.value ?? containerVs.sizeNotifier.value.width, containerVs.sizeNotifier.value.height)
+                : (activeScope.outerSize.width > 0 && activeScope.outerSize.height > 0)
+                    ? activeScope.outerSize
+                    : (parentContainer != null)
+                        ? const DefaultNodeLayoutStrategy().calculateSize(parentContainer).size
+                        : const Size(300.0, 180.0);
+            outsideOriginOffset = containerVs?.positionNotifier.value ?? parentContainer?.position ?? activeScope.containerPositionInParent;
+            final aspectRatio = effectiveOuterSize.height / (effectiveOuterSize.width > 0 ? effectiveOuterSize.width : 1.0);
+            final internalW = 1600.0;
+            final internalH = 1600.0 * aspectRatio;
+            outsideScaleX = internalW / (effectiveOuterSize.width > 0 ? effectiveOuterSize.width : 1.0);
+            outsideScaleY = internalH / (effectiveOuterSize.height > 0 ? effectiveOuterSize.height : 1.0);
+
+            final parentScope = activeScope.parentScope ?? const RootViewportScope();
+            final outsideRelations = queryController.relationsInScope(parentScope);
+            outsidePaintDtos = _buildPaintDtos(
+              relations: outsideRelations,
+              nodeViewStates: uiController.viewStates,
+              selectedEntities: uiController.selectedEntities,
+              relationEngine: queryController.relationEngine,
+              interactionState: interactionState,
+              labelMode: session.relationLabelModeNotifier.value,
+              theme: theme,
+            );
+          }
+
           return UnboundedStack(
             clipBehavior: Clip.none,
             children: [
+              if (outsidePaintDtos.isNotEmpty)
+                Positioned.fill(
+                  child: RepaintBoundary(
+                    child: CustomPaint(
+                      painter: _TransformedRelationPainter(
+                        paintDtos: outsidePaintDtos,
+                        theme: theme,
+                        scaleX: outsideScaleX,
+                        scaleY: outsideScaleY,
+                        originOffset: outsideOriginOffset,
+                      ),
+                    ),
+                  ),
+                ),
               Positioned.fill(
                 child: RepaintBoundary(
                   child: CustomPaint(
@@ -318,46 +357,36 @@ class RelationLayer extends StatelessWidget {
   }) {
     final bool isDraggingThisTip = tipDrag != null && dragPos != null;
 
-    final rawStart = Offset(cached.startPoint.x, cached.startPoint.y);
-    final rawEnd = Offset(cached.endPoint.x, cached.endPoint.y);
+    final startPoint = Offset(cached.startPoint.x, cached.startPoint.y);
+    final endPoint = Offset(cached.endPoint.x, cached.endPoint.y);
 
-    final fromSide = rel.resolvedLayout?.fromSide ?? rel.layout?.fromSide;
-    final toSide = rel.resolvedLayout?.toSide ?? rel.layout?.toSide;
+    final fromSide = (rel.resolvedLayout?.fromSide != null &&
+            rel.resolvedLayout!.fromSide != PortSide.auto)
+        ? rel.resolvedLayout!.fromSide
+        : (rel.layout?.fromSide != null &&
+                rel.layout!.fromSide != PortSide.auto)
+            ? rel.layout!.fromSide
+            : null;
+
+    final toSide = (rel.resolvedLayout?.toSide != null &&
+            rel.resolvedLayout!.toSide != PortSide.auto)
+        ? rel.resolvedLayout!.toSide
+        : (rel.layout?.toSide != null && rel.layout!.toSide != PortSide.auto)
+            ? rel.layout!.toSide
+            : null;
+
     final liveStart = fromSide != null
         ? fromVs.getPortPosition(fromSide)
-        : fromVs.getClosestPort(rawEnd).position;
+        : fromVs.getClosestPort(startPoint).position;
+
     final liveEnd = toSide != null
         ? toVs.getPortPosition(toSide)
-        : toVs.getClosestPort(rawStart).position;
+        : toVs.getClosestPort(endPoint).position;
 
-    final bool isReversedCache =
-        (rawStart - liveEnd).distance < (rawStart - liveStart).distance &&
-        (rawEnd - liveStart).distance < (rawEnd - liveEnd).distance;
-
-    final startPoint = isReversedCache ? rawEnd : rawStart;
-    final endPoint = isReversedCache ? rawStart : rawEnd;
-
-    final List<Point> cachedPathPoints = isReversedCache
-        ? cached.pathPoints.reversed.toList()
-        : cached.pathPoints;
-    final List<Point> cachedStartShape = isReversedCache
-        ? cached.endShapePath
-        : cached.startShapePath;
-    final List<Point> cachedEndShape = isReversedCache
-        ? cached.startShapePath
-        : cached.endShapePath;
-    final Point cachedStartHandle = isReversedCache
-        ? cached.endHandlePos
-        : cached.startHandlePos;
-    final Point cachedEndHandle = isReversedCache
-        ? cached.startHandlePos
-        : cached.endHandlePos;
-
-    final bool isCacheStale =
-        (startPoint - liveStart).distance > 0.5 ||
-        (endPoint - liveEnd).distance > 0.5;
-    final bool needsTransform =
-        isDraggingThisTip || isNodeDragging || isCacheStale;
+    final bool needsTransform = isDraggingThisTip ||
+        isNodeDragging ||
+        (liveStart - startPoint).distance > 0.5 ||
+        (liveEnd - endPoint).distance > 0.5;
 
     final List<Offset> bodyPoints;
     final List<Offset> startShapeVertices;
@@ -384,12 +413,12 @@ class RelationLayer extends StatelessWidget {
         targetEnd: transformEnd,
       );
 
-      bodyPoints = transform(cachedPathPoints);
-      startShapeVertices = cachedStartShape.isNotEmpty
-          ? transform(cachedStartShape)
+      bodyPoints = transform(cached.pathPoints);
+      startShapeVertices = cached.startShapePath.isNotEmpty
+          ? transform(cached.startShapePath)
           : const [];
-      endShapeVertices = cachedEndShape.isNotEmpty
-          ? transform(cachedEndShape)
+      endShapeVertices = cached.endShapePath.isNotEmpty
+          ? transform(cached.endShapePath)
           : const [];
 
       final labelTransformed = transform([
@@ -400,8 +429,8 @@ class RelationLayer extends StatelessWidget {
           : Offset.lerp(transformStart, transformEnd, 0.5)!;
 
       final handlesTransformed = transform([
-        Point(x: cachedStartHandle.x, y: cachedStartHandle.y),
-        Point(x: cachedEndHandle.x, y: cachedEndHandle.y),
+        Point(x: cached.startHandlePos.x, y: cached.startHandlePos.y),
+        Point(x: cached.endHandlePos.x, y: cached.endHandlePos.y),
       ]);
       startHandlePos = isDraggingThisTip
           ? transformStart
@@ -412,16 +441,16 @@ class RelationLayer extends StatelessWidget {
       startPointResult = transformStart;
       endPointResult = transformEnd;
     } else {
-      bodyPoints = cachedPathPoints.map((p) => Offset(p.x, p.y)).toList();
-      startShapeVertices = cachedStartShape.isNotEmpty
-          ? cachedStartShape.map((p) => Offset(p.x, p.y)).toList()
+      bodyPoints = cached.pathPoints.map((p) => Offset(p.x, p.y)).toList();
+      startShapeVertices = cached.startShapePath.isNotEmpty
+          ? cached.startShapePath.map((p) => Offset(p.x, p.y)).toList()
           : const [];
-      endShapeVertices = cachedEndShape.isNotEmpty
-          ? cachedEndShape.map((p) => Offset(p.x, p.y)).toList()
+      endShapeVertices = cached.endShapePath.isNotEmpty
+          ? cached.endShapePath.map((p) => Offset(p.x, p.y)).toList()
           : const [];
       labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
-      startHandlePos = Offset(cachedStartHandle.x, cachedStartHandle.y);
-      endHandlePos = Offset(cachedEndHandle.x, cachedEndHandle.y);
+      startHandlePos = Offset(cached.startHandlePos.x, cached.startHandlePos.y);
+      endHandlePos = Offset(cached.endHandlePos.x, cached.endHandlePos.y);
       startPointResult = startPoint;
       endPointResult = endPoint;
     }
@@ -537,4 +566,40 @@ Offset _intersectSegmentBox(Rect rect, Offset pStart, Offset pEnd) {
 
   final clampedT = tBoundary.clamp(0.0, 1.0);
   return pStart + (dir * clampedT);
+}
+
+class _TransformedRelationPainter extends CustomPainter {
+  final List<RelationPaintDto> paintDtos;
+  final ThemeData theme;
+  final double scaleX;
+  final double scaleY;
+  final Offset originOffset;
+
+  _TransformedRelationPainter({
+    required this.paintDtos,
+    required this.theme,
+    required this.scaleX,
+    required this.scaleY,
+    required this.originOffset,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (paintDtos.isEmpty) return;
+    canvas.save();
+    canvas.scale(scaleX, scaleY);
+    canvas.translate(-originOffset.dx, -originOffset.dy);
+    final painter = RelationPainter(paintDtos: paintDtos, theme: theme);
+    painter.paint(canvas, size);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _TransformedRelationPainter oldDelegate) {
+    return oldDelegate.paintDtos != paintDtos ||
+        oldDelegate.scaleX != scaleX ||
+        oldDelegate.scaleY != scaleY ||
+        oldDelegate.originOffset != originOffset ||
+        oldDelegate.theme != theme;
+  }
 }

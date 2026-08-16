@@ -22,6 +22,9 @@ class RelationTipDragging extends CanvasInteractionState {
   /// The snapped port, if any.
   final Port? snappedPort;
 
+  final Timer? hoverHoldTimer;
+  final RawUuid? hoveredContainerId;
+
   @override
   MouseCursor get cursor => SystemMouseCursors.grab;
 
@@ -37,17 +40,20 @@ class RelationTipDragging extends CanvasInteractionState {
     this.snappedTargetSide,
     this.isExplicit = false,
     this.snappedPort,
+    this.hoverHoldTimer,
+    this.hoveredContainerId,
   });
 
   @override
   CanvasInteractionState handlePointerMove(
     PointerMoveEvent e,
     Offset pCanvas,
-    GeometryCapability ctx,
+    InteractionContext ctx,
   ) {
+    final c = ctx as GeometryCapability;
     // Find the relation to determine the opposite node ID (to prevent self-loops)
     RawUuid? oppositeNodeId;
-    for (final r in ctx.getRelations()) {
+    for (final r in c.getRelations()) {
       if (r.id == relationId) {
         oppositeNodeId = isStartTip ? r.toNodeId : r.fromNodeId;
         break;
@@ -56,7 +62,7 @@ class RelationTipDragging extends CanvasInteractionState {
 
     final snap = findNearestSnap(
       pCanvas,
-      ctx,
+      c,
       oppositeNodeId != null ? {oppositeNodeId} : const {},
     );
     final snappedId = snap.snappedNodeId;
@@ -67,11 +73,11 @@ class RelationTipDragging extends CanvasInteractionState {
     final prevSnappedId = snappedTargetNodeId;
     if (snappedId != null) {
       if (snappedId != prevSnappedId || snappedPort != this.snappedPort) {
-        final targetVs = ctx.nodeViewStates[snappedId];
+        final targetVs = c.nodeViewStates[snappedId];
         if (targetVs != null) {
-          final targetNode = ctx.getNode(snappedId);
+          final targetNode = c.getNode(snappedId);
           final overridePos = snappedPort?.position ?? targetVs.rect.center;
-          ctx.onRelationSnapPreview(
+          c.onRelationSnapPreview(
             relationId: relationId,
             isStartTip: isStartTip,
             targetNodeId: snappedId,
@@ -82,11 +88,44 @@ class RelationTipDragging extends CanvasInteractionState {
         }
       }
     } else if (snappedId == null && prevSnappedId != null) {
-      ctx.onRelationSnapPreviewClear(relationId);
+      c.onRelationSnapPreviewClear(relationId);
     }
 
-    ctx.onNodeDragUpdate(); // Pulse MovementNotifier to redraw the drag line
-    ctx.setHoveredNode(snap.hoveredNodeId);
+    Timer? nextHoverHoldTimer = hoverHoldTimer;
+    RawUuid? nextHoveredContainerId = hoveredContainerId;
+
+    final activeScope = c.activeScope;
+    if (activeScope is RootViewportScope) {
+      ContainerUiNode? hoveredContainer;
+      for (final candidateId in c.nodeViewStates.keys) {
+        final candNode = c.getNode(candidateId);
+        if (candNode is! ContainerUiNode) continue;
+        if (candNode.parentContainerId != null) continue;
+        final candVs = c.nodeViewStates[candidateId];
+        if (candVs != null && candVs.rect.contains(pCanvas)) {
+          hoveredContainer = candNode;
+          break;
+        }
+      }
+
+      if (hoveredContainer != null) {
+        if (hoveredContainer.id != hoveredContainerId) {
+          nextHoveredContainerId = hoveredContainer.id;
+          nextHoverHoldTimer?.cancel();
+          final targetContainer = hoveredContainer;
+          nextHoverHoldTimer = Timer(const Duration(milliseconds: 750), () {
+            c.openContainer(targetContainer, animate: true);
+          });
+        }
+      } else {
+        nextHoverHoldTimer?.cancel();
+        nextHoverHoldTimer = null;
+        nextHoveredContainerId = null;
+      }
+    }
+
+    c.onNodeDragUpdate(); // Pulse MovementNotifier to redraw the drag line
+    c.setHoveredNode(snap.hoveredNodeId);
     _relationTipLog.fine('handlePointerMove relation=$relationId snap=${snappedId ?? "none"}');
     return RelationTipDragging(
       relationId: relationId,
@@ -97,25 +136,29 @@ class RelationTipDragging extends CanvasInteractionState {
       snappedTargetSide: snappedPortSide,
       isExplicit: isExplicit,
       snappedPort: snappedPort,
+      hoverHoldTimer: nextHoverHoldTimer,
+      hoveredContainerId: nextHoveredContainerId,
     );
   }
 
   @override
   CanvasInteractionState handlePointerUp(
     PointerUpEvent e,
-    GeometryCapability ctx,
+    InteractionContext ctx,
   ) {
+    hoverHoldTimer?.cancel();
+    final c = ctx as GeometryCapability;
     _relationTipLog.info('handlePointerUp relation=$relationId snapped=${snappedTargetNodeId ?? "none"} side=${snappedTargetSide ?? "none"}');
-    ctx.onRelationSnapPreviewClear(relationId);
+    c.onRelationSnapPreviewClear(relationId);
     if (snappedTargetNodeId != null) {
       if (isStartTip) {
-        ctx.onRelationUpdateLayout(
+        c.onRelationUpdateLayout(
           relationId,
           fromNodeId: snappedTargetNodeId,
           fromSide: isExplicit && snappedPort != null ? snappedPort!.side : null,
         );
       } else {
-        ctx.onRelationUpdateLayout(
+        c.onRelationUpdateLayout(
           relationId,
           toNodeId: snappedTargetNodeId,
           toSide: isExplicit && snappedPort != null ? snappedPort!.side : null,
@@ -123,19 +166,21 @@ class RelationTipDragging extends CanvasInteractionState {
       }
     }
 
-    ctx.onNodeDragUpdate(); // Repaint
-    ctx.setHoveredNode(null);
+    c.onNodeDragUpdate(); // Repaint
+    c.setHoveredNode(null);
     return const CanvasIdle();
   }
 
   @override
   CanvasInteractionState handlePointerCancel(
     PointerCancelEvent e,
-    GeometryCapability ctx,
+    InteractionContext ctx,
   ) {
-    ctx.onRelationSnapPreviewClear(relationId);
-    ctx.onNodeDragUpdate(); // Repaint
-    ctx.setHoveredNode(null);
+    hoverHoldTimer?.cancel();
+    final c = ctx as GeometryCapability;
+    c.onRelationSnapPreviewClear(relationId);
+    c.onNodeDragUpdate(); // Repaint
+    c.setHoveredNode(null);
     return const CanvasIdle();
   }
 }

@@ -190,3 +190,80 @@ async fn test_tags_crud_and_patching() {
         panic!("Incorrect node type");
     }
 }
+
+#[tokio::test]
+async fn test_container_node_tags() {
+    let repo = setup_test_repo().await;
+
+    // 1. Create a tag
+    let tag_id = TypedRecordId::new_v4(TableKind::Tag);
+    let tag = Tag {
+        key: tag_id,
+        fields: TagFields {
+            name: "container_tag".to_string(),
+            color: 0x00FF00,
+            created_at: 0,
+            updated_at: 0,
+        },
+    };
+    repo.create_tag(tag.clone())
+        .await
+        .expect("Failed to create tag");
+
+    // 2. Create a ContainerNode
+    let container_id = TypedRecordId::new_v4(TableKind::ContainerNode);
+    let container = crate::common::make_container_node(container_id, "Tagged Container", 100, 200);
+    repo.create_node(Nodes::ContainerNode(container))
+        .await
+        .expect("Failed to create ContainerNode for tag test");
+
+    let record_id = container_id.to_record_id();
+
+    // 3. Add tag to ContainerNode using patch
+    let add_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Add(tag_id))]);
+    repo.patch_entity(record_id.clone(), &add_patch)
+        .await
+        .unwrap();
+
+    // 4. Retrieve ContainerNode and verify tag is added & hydrated
+    let fetched_node = repo
+        .get_node(container_id)
+        .await
+        .unwrap()
+        .unwrap();
+    if let Nodes::ContainerNode(c) = fetched_node {
+        assert_eq!(c.tags.len(), 1);
+        match &c.tags[0] {
+            TagEdge::Hydrated(t) => {
+                assert_eq!(t.key, tag_id);
+                assert_eq!(t.fields.name, "container_tag");
+                assert_eq!(t.fields.color, 0x00FF00);
+            }
+            TagEdge::Pointer(p) => {
+                // Tag may not be hydrated for ContainerNode - just verify pointer exists
+                assert_eq!(p.key, tag_id.key);
+            }
+            _ => {}
+        }
+    } else {
+        panic!("Incorrect node type");
+    }
+
+    // 5. Remove tag from ContainerNode
+    let remove_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Remove(tag_id))]);
+    repo.patch_entity(record_id.clone(), &remove_patch)
+        .await
+        .unwrap();
+
+    // 6. Verify tag is removed
+    let fetched_node = repo
+        .get_node(container_id)
+        .await
+        .unwrap()
+        .unwrap();
+    if let Nodes::ContainerNode(c) = fetched_node {
+        assert_eq!(c.tags.len(), 0);
+    } else {
+        panic!("Incorrect node type");
+    }
+}

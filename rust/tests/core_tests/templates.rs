@@ -170,3 +170,61 @@ async fn test_templates_save_and_instantiate() {
     let templates_after_delete = repo.list_templates().await.unwrap();
     assert_eq!(templates_after_delete.len(), 0);
 }
+
+#[tokio::test]
+async fn test_container_node_template() {
+    let repo = setup_test_repo().await;
+
+    // 1. Create a ContainerNode
+    let container_id = TypedRecordId::new_v4(TableKind::ContainerNode);
+    let container = crate::common::make_container_node(container_id, "Template Container", 100, 200);
+    repo.create_node(Nodes::ContainerNode(container.clone()))
+        .await
+        .expect("Failed to create ContainerNode for template test");
+
+    // 2. Save ContainerNode as template
+    let saved_template = repo
+        .save_template(
+            "Container Template".to_string(),
+            vec![Nodes::ContainerNode(container)],
+            vec![],
+        )
+        .await
+        .expect("Failed to save ContainerNode as template");
+
+    let template_key = saved_template.key.clone();
+    let template_key_uuid = template_key.key.to_string();
+
+    // 3. Verify template was created
+    let templates = repo.list_templates().await.unwrap();
+    assert_eq!(templates.len(), 1);
+    assert_eq!(templates[0].key, template_key);
+
+    // 4. Apply template to instantiate
+    let (new_nodes, _new_relations) = repo
+        .apply_template(
+            template_key_uuid.clone(),
+            500.0,
+            600.0,
+        )
+        .await
+        .expect("Failed to apply ContainerNode template");
+
+    // 5. Verify new ContainerNode was created
+    assert_eq!(new_nodes.len(), 1);
+    let new_container = match &new_nodes[0] {
+        Nodes::ContainerNode(c) => c,
+        _ => panic!("Expected ContainerNode"),
+    };
+    assert_ne!(new_container.id, container_id);
+    assert_eq!(new_container.title, "Template Container");
+    assert_eq!(new_container.position.x, 500);
+    assert_eq!(new_container.position.y, 600);
+
+    // 6. Delete template
+    repo.delete_template(template_key_uuid)
+        .await
+        .expect("Failed to delete template");
+    let templates_after_delete = repo.list_templates().await.unwrap();
+    assert_eq!(templates_after_delete.len(), 0);
+}

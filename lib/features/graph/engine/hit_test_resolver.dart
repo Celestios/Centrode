@@ -8,8 +8,8 @@ import '../models/port.dart';
 import 'interaction_context.dart';
 import 'base_interaction_state.dart';
 import 'z_order_utils.dart';
-
-import '../presentation/viewport_state.dart';
+import '../presentation/view_state.dart';
+import '../presentation/strategies/node_layout_strategy.dart';
 
 enum HitTestType {
   none,
@@ -91,23 +91,51 @@ class HitTestResolver {
       'resolve pCanvas=(${pCanvas.dx}, ${pCanvas.dy}) selected=${selectedEntities.length}',
     );
 
-    final result =
+    var result =
         _resolveOptAreaClose(pCanvas, ctx) ??
         _resolveOptAreaResize(pCanvas, ctx) ??
         _resolveRelationTips(pCanvas, ctx, selectedEntities) ??
         _resolveMetadataSphere(pCanvas, ctx, nodeIds) ??
         _resolvePorts(pCanvas, ctx, nodeIds) ??
         _resolveNodeHits(pCanvas, ctx, nodeIds) ??
-        _resolveRelationLabel(pCanvas, ctx) ??
-        const PointerHitResult(type: HitTestType.none);
+        _resolveRelationLabel(pCanvas, ctx);
 
-    if (result.type != HitTestType.none) {
+    if (result == null && activeScope is ContainerViewportScope) {
+      final scope = activeScope;
+      final parentContainer = ctx.getNode(scope.containerId) as ContainerUiNode?;
+      final containerPos = parentContainer?.position ?? scope.containerPositionInParent;
+      final effectiveOuterSize = (scope.outerSize.width > 0 && scope.outerSize.height > 0)
+          ? scope.outerSize
+          : (parentContainer != null
+              ? const DefaultNodeLayoutStrategy().calculateSize(parentContainer).size
+              : const Size(300.0, 180.0));
+      final aspectRatio = effectiveOuterSize.height / (effectiveOuterSize.width > 0 ? effectiveOuterSize.width : 1.0);
+      final sx = 1600.0 / (effectiveOuterSize.width > 0 ? effectiveOuterSize.width : 1.0);
+      final sy = (1600.0 * aspectRatio) / (effectiveOuterSize.height > 0 ? effectiveOuterSize.height : 1.0);
+
+      final pParent = Offset((pCanvas.dx / sx) + containerPos.dx, (pCanvas.dy / sy) + containerPos.dy);
+      final parentContainerId = scope.parentScope is ContainerViewportScope
+          ? (scope.parentScope as ContainerViewportScope).containerId
+          : null;
+      final outsideNodeIds = allNodeIds.where((id) {
+        final node = ctx.getNode(id);
+        if (node == null || node.id == scope.containerId) return false;
+        return node.parentContainerId == parentContainerId;
+      }).toList();
+
+      result = _resolvePorts(pParent, ctx, outsideNodeIds) ??
+          _resolveNodeHits(pParent, ctx, outsideNodeIds);
+    }
+
+    final finalResult = result ?? const PointerHitResult(type: HitTestType.none);
+
+    if (finalResult.type != HitTestType.none) {
       _hitTestLog.fine(
-        'resolve hit: ${result.type} entity=${result.hitNodeId ?? result.hitEntityId ?? result.relationId}',
+        'resolve hit: ${finalResult.type} entity=${finalResult.hitNodeId ?? finalResult.hitEntityId ?? finalResult.relationId}',
       );
     }
 
-    return result;
+    return finalResult;
   }
 
   PointerHitResult? _resolveOptAreaClose(
@@ -178,20 +206,68 @@ class HitTestResolver {
 
     for (final id in selectedEntities) {
       final rel = ctx.getRelation(id);
+      NodeViewState? fromVs;
+      NodeViewState? toVs;
       if (rel != null) {
-        final fromVs = ctx.nodeViewStates[rel.fromNodeId];
-        final toVs = ctx.nodeViewStates[rel.toNodeId];
+        fromVs = ctx.nodeViewStates[rel.fromNodeId];
+        toVs = ctx.nodeViewStates[rel.toNodeId];
         if (fromVs == null || toVs == null) continue;
       }
 
       final cached = cache[id];
       if (cached == null || cached.pathPoints.isEmpty) continue;
 
-      final startHandle = Offset(
+      Offset startHandle = Offset(
         cached.startHandlePos.x,
         cached.startHandlePos.y,
       );
-      final endHandle = Offset(cached.endHandlePos.x, cached.endHandlePos.y);
+      Offset endHandle = Offset(cached.endHandlePos.x, cached.endHandlePos.y);
+
+      if (rel != null && fromVs != null && toVs != null) {
+        final startPoint = Offset(cached.startPoint.x, cached.startPoint.y);
+        final endPoint = Offset(cached.endPoint.x, cached.endPoint.y);
+
+        final fromSide = (rel.resolvedLayout?.fromSide != null &&
+                rel.resolvedLayout!.fromSide != PortSide.auto)
+            ? rel.resolvedLayout!.fromSide
+            : (rel.layout?.fromSide != null &&
+                    rel.layout!.fromSide != PortSide.auto)
+                ? rel.layout!.fromSide
+                : null;
+
+        final toSide = (rel.resolvedLayout?.toSide != null &&
+                rel.resolvedLayout!.toSide != PortSide.auto)
+            ? rel.resolvedLayout!.toSide
+            : (rel.layout?.toSide != null &&
+                    rel.layout!.toSide != PortSide.auto)
+                ? rel.layout!.toSide
+                : null;
+
+        final liveStart = fromSide != null
+            ? fromVs.getPortPosition(fromSide)
+            : fromVs.getClosestPort(startPoint).position;
+
+        final liveEnd = toSide != null
+            ? toVs.getPortPosition(toSide)
+            : toVs.getClosestPort(endPoint).position;
+
+        if ((liveStart - startPoint).distance > 0.5 ||
+            (liveEnd - endPoint).distance > 0.5) {
+          final handlesTransformed = transformPathPoints(
+            points: [startHandle, endHandle],
+            sourceStart: startPoint,
+            sourceEnd: endPoint,
+            targetStart: liveStart,
+            targetEnd: liveEnd,
+          );
+          if (handlesTransformed.isNotEmpty) {
+            startHandle = handlesTransformed.first;
+            endHandle = handlesTransformed.length > 1
+                ? handlesTransformed.last
+                : liveEnd;
+          }
+        }
+      }
 
       if ((pCanvas - startHandle).distance <
           AppConfig.interaction.relationTipHitDistance) {

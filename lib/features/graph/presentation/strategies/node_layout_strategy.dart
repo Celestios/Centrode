@@ -205,10 +205,10 @@ class DefaultNodeLayoutStrategy implements NodeLayoutStrategy {
   double extraHeight = 0.0;
   final fontScale = fontSize / 14.0;
   if (node is TaskUiNode) {
-    extraHeight += NodeStyleStrategy.taskBadgeHeight(fontScale);
+    extraHeight += taskBadgeHeight(fontScale);
   }
   if (lineCount > AppConfig.node.collapsedLineLimit) {
-    extraHeight += NodeStyleStrategy.expandToggleSpace(
+    extraHeight += expandToggleSpace(
       node.isExpanded,
       fontScale,
     );

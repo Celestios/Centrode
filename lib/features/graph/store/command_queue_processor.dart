@@ -16,6 +16,8 @@ import 'modules/graph_template_mutations.dart';
 import 'command_processor.dart';
 import '../models/commands/graph_command_context.dart';
 import '../models/commands/patch_helpers.dart';
+import 'package:centrode/src/rust/layout_engine/config.dart';
+import 'package:centrode/src/rust/layout_engine/types.dart';
 import 'graph_api.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
@@ -126,20 +128,16 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
 
   void _handleError(String msg) {
     _log.severe('Sub-service error intercepted: $msg');
-    queryController.errorMessage = msg;
+    queryController.setError(msg);
     triggerUpdate();
   }
 
   void Function(String) get onError => _handleError;
 
   Future<void> updateHistoryStatus() async {
-    try {
-      _undoCount = await syncEngine.api.undoCount();
-      _redoCount = await syncEngine.api.redoCount();
-      triggerUpdate();
-    } catch (e) {
-      _log.warning('Failed to update history status: $e');
-    }
+    _undoCount = await syncEngine.api.undoCount();
+    _redoCount = await syncEngine.api.redoCount();
+    triggerUpdate();
   }
 
   ViewportState? getSavedViewportState() {
@@ -152,7 +150,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
 
   @override
   Future<void> loadGraph() async {
-    queryController.isLoading = true;
+    queryController.setLoading(true);
     triggerUpdate();
     final stopwatch = Stopwatch()..start();
     _log.info('loadGraph: Initiating FFI request to load graph state.');
@@ -175,7 +173,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
       );
       rethrow;
     } finally {
-      queryController.isLoading = false;
+      queryController.setLoading(false);
       triggerUpdate();
     }
   }
@@ -196,6 +194,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   RawUuid createNode(
     UiNodes type,
     Offset position, {
+    RawUuid? parentContainerId,
     List<String>? paths,
     String? brushType,
     double? brushThickness,
@@ -205,6 +204,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   }) => nodeMutations.createNode(
     type,
     position,
+    parentContainerId: parentContainerId,
     paths: paths,
     brushType: brushType,
     brushThickness: brushThickness,
@@ -219,20 +219,6 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   @override
   void convertNodeToContainer(RawUuid id) {
     nodeMutations.convertNodeToContainer(id);
-    final node = store.nodeLookup[id];
-    if (node != null) {
-      syncEngine.api.updateNodeCachePositions(
-        positions: [
-          (
-            parseTypedRecordId(node.tableName, id),
-            node.position.dx,
-            node.position.dy,
-            node.size.width,
-            node.size.height,
-          ),
-        ],
-      );
-    }
     relationEngine.onNodeMoved(id);
   }
 
@@ -246,6 +232,25 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
             parseTypedRecordId(node.tableName, id),
             newPosition.dx,
             newPosition.dy,
+            node.size.width,
+            node.size.height,
+          ),
+        ],
+      );
+    }
+    relationEngine.onNodeMoved(id);
+  }
+
+  void reparentNode(RawUuid id, RawUuid? targetParentId, Offset targetPos) {
+    nodeMutations.reparentNode(id, targetParentId, targetPos);
+    final node = store.nodeLookup[id];
+    if (node != null) {
+      syncEngine.api.updateNodeCachePositions(
+        positions: [
+          (
+            parseTypedRecordId(node.tableName, id),
+            targetPos.dx,
+            targetPos.dy,
             node.size.width,
             node.size.height,
           ),
@@ -454,6 +459,44 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
 
   @override
   Future<void> deleteTag(String tagKey) => propertyMutations.deleteTag(tagKey);
+
+  Future<void> triggerLayoutOptimization({
+    LayoutConfig config = const LayoutConfig(
+      force: ForceConfig(
+        repulsionConstant: 8000.0,
+        springConstant: 0.06,
+        idealLinkDistance: 220.0,
+        collisionStrength: 1.2,
+        baseMargin: 35.0,
+        marginScale: 0.2,
+        wallStrength: 1.2,
+        wallPadding: 20.0,
+        damping: 0.35,
+        alphaDecay: 0.006,
+        alphaMin: 0.001,
+        relationStretchFactor: 0.5,
+        nodeEdgeRepulsion: 1500.0,
+        densityDispersionStrength: 300.0,
+      ),
+      convergence: ConvergenceCriteria(
+        maxIterations: 600,
+        energyThreshold: 0.005,
+        displacementThreshold: 0.2,
+        oscillationWindow: 10,
+      ),
+      batchSize: 1,
+    ),
+    required List<LayoutPatch> livePositions,
+  }) async {
+    await syncEngine.api.triggerLayoutOptimization(
+      config: config,
+      livePositions: livePositions,
+    );
+  }
+
+  Future<void> setOptArea({BoundingBox? bounds}) async {
+    await syncEngine.api.setOptArea(bounds: bounds);
+  }
 
   void dispose() {
     syncEngine.dispose();

@@ -146,6 +146,7 @@ class GraphRelationMutations {
       toNodeId: toNodeId ?? relation.toNodeId,
       toNodeTable: toNode?.tableName ?? relation.toNodeTable,
       layout: newLayout,
+      resolvedLayout: newLayout,
     )..normalize();
 
     // OPTIMISTIC UPDATE
@@ -160,6 +161,10 @@ class GraphRelationMutations {
       newLayout: updatedRelation.layout,
       oldStyle: oldRelation.style,
       newStyle: updatedRelation.style,
+      newFromId: fromNodeId,
+      newToId: toNodeId,
+      fromNodeTable: fromNode?.tableName,
+      toNodeTable: toNode?.tableName,
       oldRelation: oldRelation,
       controller: controller,
     );

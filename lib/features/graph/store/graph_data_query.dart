@@ -52,4 +52,8 @@ abstract interface class GraphDataQuery {
   RelationEngineState get relationEngine;
   ValueNotifier<Rect?> get optAreaNotifier;
   Stream<GraphEntityUpdate> get onEntityUpdate;
+
+  List<UiNode> nodesInScope(ViewportScope scope);
+  List<UiRelation> relationsInScope(ViewportScope scope);
+  bool isNodeInScope(RawUuid nodeId, ViewportScope scope);
 }
