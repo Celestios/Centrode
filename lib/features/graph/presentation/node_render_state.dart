@@ -324,6 +324,9 @@ class NodeRenderState extends ChangeNotifier
   bool get isLoading => _dataQuery.isLoading;
 
   @override
+  ValueNotifier<bool> get isLoadingNotifier => _dataQuery.isLoadingNotifier;
+
+  @override
   String? get errorMessage => _dataQuery.errorMessage;
 
   @override

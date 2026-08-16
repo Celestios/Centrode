@@ -98,4 +98,6 @@
 | [Snap Relation Recompute](../artifacts/snap_relation_recompute/design_relation_snap_recompute.md) | Dynamic port snapping & live relation routing during drags |
 | [Graph Notifier & Listener Optimization](../artifacts/graph_notifier_listener_optimization/design_summary.md) | Repaint boundary and memory tuning |
 | [Workspace Hub Architecture](../artifacts/workspace_hub/design_workspace_hub.md) | Project and map management hub design |
+| [Logical Gates & Data Flows](../artifacts/logical_data_flows/design_logical_data_flows.md) | Reactive dataflow engine, transfer functions, and visual gates architecture |
 | [Code Health Reports](../artifacts/code_health_reports/code_health_audit.md) | Subsystem SOLID and architecture audit logs |
+

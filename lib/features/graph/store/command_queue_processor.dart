@@ -122,6 +122,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
 
   int _undoCount = 0;
   int _redoCount = 0;
+  bool _graphLoadInProgress = false;
 
   int get undoCount => _undoCount;
   int get redoCount => _redoCount;
@@ -153,19 +154,28 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
 
   @override
   Future<void> loadGraph() async {
+    if (_graphLoadInProgress) {
+      _log.info('loadGraph: Already in progress, skipping.');
+      return;
+    }
+    _graphLoadInProgress = true;
     queryController.setLoading(true);
     triggerUpdate();
     _log.info('loadGraph: Initiating FFI request to load graph state.');
 
-    await syncEngine.loadGraph();
-    await updateHistoryStatus();
+    try {
+      await syncEngine.loadGraph();
+      await updateHistoryStatus();
 
-    relationEngine.onInitialLoad(relations: store.relations);
-    unawaited(relationEngine.recomputeDirty());
+      relationEngine.onInitialLoad(relations: store.relations);
+      unawaited(relationEngine.recomputeDirty());
 
-    _log.info('loadGraph: Completed successfully.');
-    queryController.setLoading(false);
-    triggerUpdate();
+      _log.info('loadGraph: Completed successfully.');
+    } finally {
+      queryController.setLoading(false);
+      triggerUpdate();
+      _graphLoadInProgress = false;
+    }
   }
 
   void flushSync() => syncEngine.flushSync();

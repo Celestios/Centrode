@@ -24,28 +24,33 @@ class StatusMetricsWidget extends StatelessWidget {
       color: preset.color,
       shadow: preset.shadow,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (queryController.isLoading) ...[
-            SizedBox(
-              width: 10,
-              height: 10,
-              child: CircularProgressIndicator(
-                strokeWidth: 1.5,
-                color: primaryColor,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: queryController.isLoadingNotifier,
+        builder: (context, isLoading, _) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isLoading) ...[
+                SizedBox(
+                  width: 10,
+                  height: 10,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.5,
+                    color: primaryColor,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Text(
+                'Nodes: ${queryController.nodeLookup.length}  |  Relations: ${queryController.relationLookup.length}',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: textColor.withValues(alpha: 0.7),
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-          ],
-          Text(
-            'Nodes: ${queryController.nodeLookup.length}  |  Relations: ${queryController.relationLookup.length}',
-            style: TextStyle(
-              fontSize: 11,
-              color: textColor.withValues(alpha: 0.7),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }

@@ -18,6 +18,7 @@ class ContextMenuOverlay {
     required BuildContext context,
     required Offset position,
     required List<ContextMenuItem> items,
+    VoidCallback? onDismissed,
   }) {
     final visibleItems = items.where((item) => item.visible).toList();
     if (visibleItems.isEmpty) return null;
@@ -30,6 +31,7 @@ class ContextMenuOverlay {
         removed = true;
         entry!.remove();
         entry = null;
+        onDismissed?.call();
       }
     }
 

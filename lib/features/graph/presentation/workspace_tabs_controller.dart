@@ -118,7 +118,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
   final ValueNotifier<bool> showLeftPanel = ValueNotifier(true);
   final ValueNotifier<bool> showRightPanel = ValueNotifier(true);
   final ValueNotifier<bool> showBottomPanel = ValueNotifier(true);
-  bool isInitialized = false;
+  final ValueNotifier<bool> isInitialized = ValueNotifier<bool>(false);
   VoidCallback? _themeListener;
   final DeferredGraphApi _deferredApi = DeferredGraphApi();
 
@@ -209,7 +209,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     styleManager?.updateAllStyles(qc.store.nodes, qc.store.relations);
 
     await processor.loadGraph();
-    isInitialized = true;
+    isInitialized.value = true;
     _log.info('TabSession initialized successfully');
     notifyListeners();
   }
@@ -268,6 +268,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     showLeftPanel.dispose();
     showRightPanel.dispose();
     showBottomPanel.dispose();
+    isInitialized.dispose();
     _viewportController = null;
     _deferredApi.dispose();
     super.dispose();

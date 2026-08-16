@@ -42,6 +42,7 @@ class GraphEntityUpdate {
 /// to physically prevent accidental state mutations.
 abstract interface class GraphDataQuery {
   bool get isLoading;
+  ValueNotifier<bool> get isLoadingNotifier;
   String? get errorMessage;
   SpatialHashGrid get spatialGrid;
   HierarchicalSpatialIndex get spatialIndex;

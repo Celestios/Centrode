@@ -49,7 +49,6 @@ class InstantiateTemplateCommand extends GraphCommand {
 
   @override
   void onSuccess() {
-    _log.info('onSuccess InstantiateTemplate key=$targetId, reloading graph');
-    controller.loadGraph();
+    _log.info('onSuccess InstantiateTemplate key=$targetId');
   }
 }

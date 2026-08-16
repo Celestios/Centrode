@@ -48,7 +48,7 @@ void main() {
     when(() => mockSession.id).thenReturn('test-session');
     when(() => mockSession.storagePath).thenReturn('');
     when(() => mockSession.name).thenReturn('Test Map');
-    when(() => mockSession.isInitialized).thenReturn(true);
+    when(() => mockSession.isInitialized).thenReturn(ValueNotifier<bool>(true));
     when(() => mockSession.themeController).thenReturn(mockTheme);
     when(() => mockSession.queryController).thenReturn(mockQuery);
     when(() => mockSession.commandProcessor).thenReturn(mockCommand);

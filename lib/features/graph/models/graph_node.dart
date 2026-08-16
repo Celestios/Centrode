@@ -103,6 +103,30 @@ sealed class UiNode {
     return currentPos;
   }
 
+  /// World position using an overridden local position instead of [position].
+  /// Used during drag where the live visual position in [positionNotifier]
+  /// must be substituted for the stale data-store [position].
+  Offset getWorldPositionWithOverride(
+    Map<RawUuid, UiNode> nodeLookup,
+    Offset localPosition,
+  ) {
+    Offset currentPos = localPosition;
+    RawUuid? currentParentId = parentContainerId;
+    int depth = 0;
+    final visited = <RawUuid>{};
+
+    while (currentParentId != null && depth < 32) {
+      if (!visited.add(currentParentId)) break;
+      final parent = nodeLookup[currentParentId];
+      if (parent == null) break;
+      currentPos += parent.position;
+      currentParentId = parent.parentContainerId;
+      depth++;
+    }
+
+    return currentPos;
+  }
+
   static UiNode? copy(UiNode? node) => _$uiNodeCopy(node);
 
   UiNode? cloneWithId(RawUuid newId) => switch (this) {

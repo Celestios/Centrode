@@ -41,6 +41,7 @@ class _GraphCanvasState extends State<GraphCanvas>
   DrawingGestureInterceptor? _drawingInterceptor;
   final Logger _log = Logger('GraphCanvas');
   TabSession? _boundSession;
+  GraphDataQueryController? _queryController;
 
   bool _hasInitialFramed = false;
   bool _viewportRestoreAttempted = false;
@@ -115,6 +116,7 @@ class _GraphCanvasState extends State<GraphCanvas>
       },
     );
 
+    _queryController = queryController;
     _interactionController = InteractionController(
       transformController: vpController.transformController,
       environment: environment,
@@ -127,6 +129,8 @@ class _GraphCanvasState extends State<GraphCanvas>
     _interactionController!.registerInterceptor(_drawingInterceptor!);
 
     _onDataControllerChanged();
+
+    queryController.isLoadingNotifier.addListener(_onDataControllerChanged);
 
     setState(() {});
   }
@@ -163,6 +167,7 @@ class _GraphCanvasState extends State<GraphCanvas>
   void dispose() {
     CanvasContextMenu.dismiss();
     _boundSession?.toolModeNotifier.removeListener(_onToolModeChanged);
+    _queryController?.isLoadingNotifier.removeListener(_onDataControllerChanged);
     if (_boundSession?.viewportController == _viewportController) {
       _boundSession?.viewportController = null;
     }
@@ -261,14 +266,19 @@ class _GraphCanvasState extends State<GraphCanvas>
                             },
                             child: child,
                           ),
-                          if (!session.isInitialized)
-                            const Positioned.fill(
-                              child: IgnorePointer(
-                                child: Center(
-                                  child: CircularProgressIndicator(),
+                          ValueListenableBuilder<bool>(
+                            valueListenable: session.isInitialized,
+                            builder: (context, initialized, _) {
+                              if (initialized) return const SizedBox.shrink();
+                              return const Positioned.fill(
+                                child: IgnorePointer(
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
                                 ),
-                              ),
-                            ),
+                              );
+                            },
+                          ),
                         ],
                       );
                     },

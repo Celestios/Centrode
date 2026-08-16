@@ -133,7 +133,10 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
       final vs = viewStates[id];
       final node = _dataQuery.nodeLookup[id];
       if (vs != null && node != null) {
-        final worldPos = node.getAbsoluteWorldPosition(_dataQuery.nodeLookup);
+        final worldPos = node.getWorldPositionWithOverride(
+          _dataQuery.nodeLookup,
+          vs.positionNotifier.value,
+        );
         final rect = Rect.fromLTWH(
           worldPos.dx,
           worldPos.dy,
@@ -176,7 +179,10 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
     final vs = viewStates[id];
     final node = _dataQuery.nodeLookup[id];
     if (vs != null && node != null) {
-      return node.getAbsoluteWorldPosition(_dataQuery.nodeLookup);
+      return node.getWorldPositionWithOverride(
+        _dataQuery.nodeLookup,
+        vs.positionNotifier.value,
+      );
     }
     if (vs != null) return vs.positionNotifier.value;
 

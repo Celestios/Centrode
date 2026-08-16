@@ -31,6 +31,7 @@ class CanvasContextMenu {
     _entry = ContextMenuOverlay.show(
       context: context,
       position: position,
+      onDismissed: () => _entry = null,
       items: [
         ContextMenuItem(
           label: 'Copy',

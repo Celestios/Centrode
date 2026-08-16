@@ -19,16 +19,19 @@ class GraphDataQueryController implements GraphDataQuery {
   @override
   final ValueNotifier<Rect?> optAreaNotifier = ValueNotifier<Rect?>(null);
 
-  bool _isLoading = false;
+  final ValueNotifier<bool> _isLoadingNotifier = ValueNotifier<bool>(false);
   String? _errorMessage;
 
   @override
-  bool get isLoading => _isLoading;
+  bool get isLoading => _isLoadingNotifier.value;
+
+  @override
+  ValueNotifier<bool> get isLoadingNotifier => _isLoadingNotifier;
 
   @override
   String? get errorMessage => _errorMessage;
 
-  void setLoading(bool val) => _isLoading = val;
+  void setLoading(bool val) => _isLoadingNotifier.value = val;
   void setError(String? val) => _errorMessage = val;
 
   final StreamController<GraphEntityUpdate> _entityUpdateController =

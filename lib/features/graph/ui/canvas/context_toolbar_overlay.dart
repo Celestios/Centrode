@@ -192,7 +192,7 @@ class ContextToolbarOverlay extends StatelessWidget {
           }
 
           final double maxX1 = math.max(leftThreshold, rightThreshold - toolbarWidth);
-          final double maxY1 = math.max(topThreshold, screenHeight - toolbarHeight - 12.0);
+          final double maxY1 = math.max(topThreshold, screenHeight - toolbarHeight * 0.7);
 
           double toolbarLeft = useRight ? rightX : leftX;
           toolbarLeft = toolbarLeft
@@ -385,7 +385,7 @@ class ContextToolbarOverlay extends StatelessWidget {
         }
 
         final double maxX2 = math.max(leftThreshold, rightThreshold - toolbarWidth);
-        final double maxY2 = math.max(topThreshold, screenHeight - toolbarHeight - 12.0);
+        final double maxY2 = math.max(topThreshold, screenHeight - toolbarHeight * 0.7);
 
         double toolbarLeft = useRight ? rightX : leftX;
 
