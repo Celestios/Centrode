@@ -51,6 +51,7 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
       (icon: Icons.near_me_outlined, label: 'Select', mode: 'select', tooltip: 'Select Tool (Single or Marquee)', accentBadge: null),
       if (isAndroid)
         (icon: Icons.pan_tool_outlined, label: 'Pan', mode: 'pan', tooltip: 'Pan Canvas (No accidental selections)', accentBadge: null),
+      (icon: Icons.crop_square_rounded, label: 'Frame', mode: 'frame', tooltip: 'Frame Tool (Draw Grouping Box)', accentBadge: null),
       (icon: Icons.draw_rounded, label: 'Draw', mode: 'draw', tooltip: 'Freehand Drawing', accentBadge: null),
       (icon: Icons.auto_fix_high_outlined, label: 'Optimize', mode: 'optimize', tooltip: 'Optimize Graph', accentBadge: null),
     ];

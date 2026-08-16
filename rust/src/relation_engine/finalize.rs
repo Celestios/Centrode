@@ -276,8 +276,12 @@ pub fn finalize_relation(
     );
     if !skip_line_snapping && (edge.from_side.is_none() || edge.to_side.is_none()) {
         if let (Some(start_node), Some(end_node)) = (
-            node_map.get(&edge.from_node_id),
-            node_map.get(&edge.to_node_id),
+            node_map.get(&edge.from_node_id).or_else(|| {
+                node_map.values().find(|n| n.id.key == edge.from_node_id.key)
+            }),
+            node_map.get(&edge.to_node_id).or_else(|| {
+                node_map.values().find(|n| n.id.key == edge.to_node_id.key)
+            }),
         ) {
             let start_bbox = start_node.bounding_box();
             let end_bbox = end_node.bounding_box();
@@ -309,8 +313,12 @@ pub fn finalize_relation(
     }
 
     // 2. Endpoint Shapes & Sizes
-    let start_node = node_map.get(&edge.from_node_id);
-    let end_node = node_map.get(&edge.to_node_id);
+    let start_node = node_map.get(&edge.from_node_id).or_else(|| {
+        node_map.values().find(|n| n.id.key == edge.from_node_id.key)
+    });
+    let end_node = node_map.get(&edge.to_node_id).or_else(|| {
+        node_map.values().find(|n| n.id.key == edge.to_node_id.key)
+    });
 
     let start_shape = edge
         .style

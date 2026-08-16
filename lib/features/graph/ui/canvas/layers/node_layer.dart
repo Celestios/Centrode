@@ -10,6 +10,7 @@ import '../node_widget.dart';
 import '../widgets/draw_node_widget.dart';
 import '../widgets/highlight_frame.dart';
 import '../widgets/node_visual_constants.dart';
+import '../text/canvas_text_editor.dart';
 import '../widgets/canvas_nodes_host.dart';
 import '../painters/node_render_entry.dart';
 import '../painters/container_boundary_painter.dart';
@@ -158,6 +159,64 @@ class NodeLayer extends StatelessWidget {
                           NodeVisualConstants.fontScale(fontSize);
                       final isHovered =
                           uiState.hoveredNodeNotifier.value == entry.node.id;
+
+                      if (entry.node is FrameUiNode) {
+                        final frameNode = entry.node as FrameUiNode;
+                        return Positioned(
+                          key: ValueKey('edit_${entry.node.id}'),
+                          left: pos.dx + (size.width / 2),
+                          top: pos.dy - 32.0 * scale,
+                          child: FractionalTranslation(
+                            translation: const Offset(-0.5, 0.0),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 10 * scale,
+                                vertical: 4 * scale,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Color(resolvedStyle?.bgColor != 0 && resolvedStyle?.bgColor != 0x00000000
+                                    ? resolvedStyle!.bgColor
+                                    : 0xFFFFFFFF),
+                                borderRadius: BorderRadius.circular(6.0 * scale),
+                                border: Border.all(
+                                  color: Color(resolvedStyle?.strokeColor != 0
+                                      ? resolvedStyle!.strokeColor
+                                      : 0xFF00E5FF),
+                                  width: 1.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(NodeVisualConstants.editingShadowColor),
+                                    blurRadius: 12 * scale,
+                                    spreadRadius: 2 * scale,
+                                  ),
+                                ],
+                              ),
+                              child: IntrinsicWidth(
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minWidth: 80 * scale,
+                                    maxWidth: 320 * scale,
+                                  ),
+                                  child: CanvasTextEditor(
+                                    entityId: frameNode.id,
+                                    content: frameNode.content,
+                                    maxLines: 1,
+                                    textStyle: TextStyle(
+                                      fontSize: fontSize * scale,
+                                      color: Color(resolvedStyle?.textColor != 0
+                                          ? resolvedStyle!.textColor
+                                          : 0xFF000000),
+                                      fontWeight: FontWeight.w600,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
 
                       final Widget editWidget;
                       if (entry.node is DrawingUiNode) {

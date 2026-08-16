@@ -97,6 +97,8 @@ class HitTestResolver {
         _resolveRelationTips(pCanvas, ctx, selectedEntities) ??
         _resolveMetadataSphere(pCanvas, ctx, nodeIds) ??
         _resolvePorts(pCanvas, ctx, nodeIds) ??
+        _resolveExpandToggle(pCanvas, ctx, nodeIds) ??
+        _resolveResizeHandles(pCanvas, ctx, nodeIds) ??
         _resolveNodeHits(pCanvas, ctx, nodeIds) ??
         _resolveRelationLabel(pCanvas, ctx);
 
@@ -385,18 +387,76 @@ class HitTestResolver {
     return null;
   }
 
-  PointerHitResult? _resolveNodeHits(
+  PointerHitResult? _resolveExpandToggle(
     Offset pCanvas,
     InteractionContext ctx,
     List<RawUuid> nodeIds,
   ) {
     for (final nodeId in nodeIds) {
+      final node = ctx.getNode(nodeId);
+      if (node == null || node is DrawingUiNode || node is ContainerUiNode || node is FrameUiNode) continue;
+
       final vs = ctx.nodeViewStates[nodeId];
       if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
 
+      if (vs.lineCount > AppConfig.node.collapsedLineLimit &&
+          vs.getExpandToggleHitbox(node).contains(pCanvas)) {
+        return PointerHitResult(
+          type: HitTestType.expandToggle,
+          hitNodeId: nodeId,
+        );
+      }
+    }
+    return null;
+  }
+
+  PointerHitResult? _resolveResizeHandles(
+    Offset pCanvas,
+    InteractionContext ctx,
+    List<RawUuid> nodeIds,
+  ) {
+    for (final nodeId in nodeIds) {
       final node = ctx.getNode(nodeId);
-      if (node == null) continue;
+      if (node == null || node is DrawingUiNode || node is ContainerUiNode || node is FrameUiNode) continue;
+
+      final vs = ctx.nodeViewStates[nodeId];
+      if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
+
+      if (vs.rightResizeHitbox.contains(pCanvas)) {
+        return PointerHitResult(
+          type: HitTestType.resizeRight,
+          hitNodeId: nodeId,
+          draggedEdge: ResizeEdge.right,
+          initialLeft: vs.positionNotifier.value.dx,
+          initialWidth: vs.sizeNotifier.value.width,
+        );
+      }
+      if (vs.leftResizeHitbox.contains(pCanvas)) {
+        return PointerHitResult(
+          type: HitTestType.resizeLeft,
+          hitNodeId: nodeId,
+          draggedEdge: ResizeEdge.left,
+          initialLeft: vs.positionNotifier.value.dx,
+          initialWidth: vs.sizeNotifier.value.width,
+        );
+      }
+    }
+    return null;
+  }
+
+  PointerHitResult? _resolveNodeHits(
+    Offset pCanvas,
+    InteractionContext ctx,
+    List<RawUuid> nodeIds,
+  ) {
+    // 1. Pass 1: Hit-test non-frame nodes first so inner nodes take priority over enclosing frames
+    for (final nodeId in nodeIds) {
+      final node = ctx.getNode(nodeId);
+      if (node == null || node is FrameUiNode) continue;
       if (node is ContainerUiNode && !node.isClosed) continue;
+
+      final vs = ctx.nodeViewStates[nodeId];
+      if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
 
       final nodeWorldRect = vs.positionNotifier.value & vs.sizeNotifier.value;
 
@@ -408,6 +468,28 @@ class HitTestResolver {
         return PointerHitResult(type: HitTestType.body, hitNodeId: nodeId);
       }
     }
+
+    // 2. Pass 2: Hit-test FrameUiNodes (tested only if no inner/standard node was hit)
+    for (final nodeId in nodeIds) {
+      final node = ctx.getNode(nodeId);
+      if (node is! FrameUiNode) continue;
+
+      final vs = ctx.nodeViewStates[nodeId];
+      if (vs == null || vs.sizeNotifier.value == Size.zero) continue;
+
+      final nodeWorldRect = vs.positionNotifier.value & vs.sizeNotifier.value;
+      final headerRect = Rect.fromLTWH(
+        nodeWorldRect.center.dx - 120,
+        nodeWorldRect.top - 36,
+        240,
+        40,
+      );
+
+      if (nodeWorldRect.contains(pCanvas) || headerRect.contains(pCanvas)) {
+        return PointerHitResult(type: HitTestType.body, hitNodeId: nodeId);
+      }
+    }
+
     return null;
   }
 

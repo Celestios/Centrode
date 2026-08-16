@@ -153,9 +153,7 @@ class CopyBuffer extends ChangeNotifier with TraceableNotifier {
       controller.styleUpdater?.updateStyleForRelation(newRel.id);
       newRel.normalize();
 
-      try {
-        await controller.syncEngine.api.createRelation(input: newRel.toRust());
-      } catch (_) {}
+      await controller.syncEngine.api.createRelation(input: newRel.toRust());
     }
 
     controller.triggerUpdate();

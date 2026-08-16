@@ -143,8 +143,12 @@ pub fn resolve_ports_full(
     start_ext: f64,
     end_ext: f64,
 ) -> Option<ResolvedPorts> {
-    let from_node = node_map.get(&edge.from_node_id)?;
-    let to_node = node_map.get(&edge.to_node_id)?;
+    let from_node = node_map.get(&edge.from_node_id).or_else(|| {
+        node_map.values().find(|n| n.id.key == edge.from_node_id.key)
+    })?;
+    let to_node = node_map.get(&edge.to_node_id).or_else(|| {
+        node_map.values().find(|n| n.id.key == edge.to_node_id.key)
+    })?;
 
     let from_center = Point::new(
         from_node.x + from_node.width / 2.0,

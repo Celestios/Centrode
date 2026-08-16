@@ -150,6 +150,9 @@ class CanvasIdle extends CanvasInteractionState {
         ctx.onSetOptArea(null);
         return OptAreaDrawing(pCanvas, pCanvas);
       }
+      if (ctx.toolMode == 'frame') {
+        return FrameDrawing(pCanvas, pCanvas);
+      }
       return MarqueeSelecting(pCanvas, pCanvas);
     }
 
@@ -193,17 +196,59 @@ class CanvasIdle extends CanvasInteractionState {
     Set<RawUuid> selectedEntities,
   ) {
     final hitNodeId = result.hitNodeId!;
-    final nodeIdsInSelection = selectedEntities
-        .where((id) => ctx.nodeViewStates.containsKey(id))
-        .toList();
-    if (nodeIdsInSelection.length > 1 &&
-        nodeIdsInSelection.contains(hitNodeId)) {
+    final hitNode = ctx.getNode(hitNodeId);
+
+    final Set<RawUuid> nodesToDrag = {};
+    if (selectedEntities.contains(hitNodeId)) {
+      nodesToDrag.addAll(
+        selectedEntities.where((id) => ctx.nodeViewStates.containsKey(id)),
+      );
+    } else {
+      nodesToDrag.add(hitNodeId);
+    }
+
+    // If dragging a node belonging to a group, include all group members
+    if (hitNode?.groupId != null) {
+      for (final entry in ctx.nodeViewStates.entries) {
+        final otherNode = ctx.getNode(entry.key);
+        if (otherNode != null && otherNode.groupId == hitNode!.groupId) {
+          nodesToDrag.add(entry.key);
+        }
+      }
+    }
+
+    // If dragging a FrameUiNode, include all nodes whose center is inside the frame bounds
+    if (hitNode is FrameUiNode) {
+      final frameVs = ctx.nodeViewStates[hitNodeId];
+      if (frameVs != null) {
+        final frameRect = frameVs.rect;
+        for (final entry in ctx.nodeViewStates.entries) {
+          final otherId = entry.key;
+          if (otherId == hitNodeId) continue;
+          final otherNode = ctx.getNode(otherId);
+          if (otherNode == null || otherNode.parentContainerId != hitNode.parentContainerId) continue;
+
+          final otherVs = entry.value;
+          final otherCenter = otherVs.positionNotifier.value +
+              Offset(
+                (otherVs.sizeNotifier.value.width > 0 ? otherVs.sizeNotifier.value.width : otherNode.size.width) / 2,
+                (otherVs.sizeNotifier.value.height > 0 ? otherVs.sizeNotifier.value.height : otherNode.size.height) / 2,
+              );
+          if (frameRect.contains(otherCenter)) {
+            nodesToDrag.add(otherId);
+          }
+        }
+      }
+    }
+
+    if (nodesToDrag.length > 1) {
       final originalPositions = {
-        for (final id in nodeIdsInSelection)
-          id: ctx.nodeViewStates[id]!.positionNotifier.value,
+        for (final id in nodesToDrag)
+          if (ctx.nodeViewStates.containsKey(id))
+            id: ctx.nodeViewStates[id]!.positionNotifier.value,
       };
       return GroupDragging(
-        nodeIds: nodeIdsInSelection,
+        nodeIds: nodesToDrag,
         anchorNodeId: hitNodeId,
         grabOffset:
             pCanvas - ctx.nodeViewStates[hitNodeId]!.positionNotifier.value,
@@ -254,12 +299,18 @@ class CanvasIdle extends CanvasInteractionState {
       candidateIds = ctx.nodeViewStates.keys.toSet();
     }
 
-    // Check candidates in reverse z-order for proper hit priority
+    // Check candidates in reverse z-order, prioritizing non-frame nodes over enclosing frames
     final zOrder = ctx.zOrder;
-    for (int i = zOrder.length - 1; i >= 0; i--) {
-      final nodeId = zOrder[i];
-      if (!candidateIds.contains(nodeId)) continue;
+    final orderedCandidateIds = [
+      for (int i = zOrder.length - 1; i >= 0; i--)
+        if (candidateIds.contains(zOrder[i]) && ctx.getNode(zOrder[i]) is! FrameUiNode)
+          zOrder[i],
+      for (int i = zOrder.length - 1; i >= 0; i--)
+        if (candidateIds.contains(zOrder[i]) && ctx.getNode(zOrder[i]) is FrameUiNode)
+          zOrder[i],
+    ];
 
+    for (final nodeId in orderedCandidateIds) {
       final node = ctx.getNode(nodeId);
       if (node == null) continue;
 

@@ -83,6 +83,7 @@ class _GraphCanvasState extends State<GraphCanvas>
       renderState.hoveredNodeNotifier.value = null;
       renderState.hoveredPortNotifier.value = null;
       commandProcessor.nodeMutations.setContainerClosed(id, isClosed);
+      queryController.relationEngine.onNodeMoved(id);
     };
     renderState.dragState.addListener(() {
       vpController.isGestureSuppressed = renderState.dragState.draggingNodes.isNotEmpty;

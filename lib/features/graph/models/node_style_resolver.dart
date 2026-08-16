@@ -5,6 +5,11 @@ const double _referenceFontSize = 14.0;
 const String defaultNodeFont = 'Inter';
 const String defaultNodeShape = 'rectangle';
 
+const int containerBgColor = 0x1A2196F3;
+const int containerStrokeColor = 0xFF64B5F6;
+const int frameBgColor = 0x14BCAAA4;
+const int frameStrokeColor = 0xFFBCAAA4;
+
 double expandToggleSpace(bool isExpanded, double fontScale) =>
     (isExpanded ? 24.0 : 18.0) * fontScale;
 
@@ -70,10 +75,18 @@ NodeStyle resolveStyle(UiNode node) {
       ),
     ContainerUiNode(:final size) =>
       fallbackStyle(size.width, size.height).copyWith(
-        bgColor: 0x1A2196F3,
-        strokeColor: 0xFF64B5F6,
+        bgColor: containerBgColor,
+        strokeColor: containerStrokeColor,
         strokeWidth: 2,
         borderRadius: 12.0,
+        textColor: 0xFFFFFFFF,
+      ),
+    FrameUiNode(:final size) =>
+      fallbackStyle(size.width, size.height).copyWith(
+        bgColor: frameBgColor,
+        strokeColor: frameStrokeColor,
+        strokeWidth: 2,
+        borderRadius: 8.0,
         textColor: 0xFFFFFFFF,
       ),
     _ => fallbackStyle(),

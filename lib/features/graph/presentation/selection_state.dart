@@ -21,7 +21,30 @@ class SelectionState extends ChangeNotifier with TraceableNotifier {
 
   SelectionState(this._dataQuery, this._dataCommand);
 
-  /// Selects a single entity on the canvas.
+  Set<RawUuid> _expandGroups(Iterable<RawUuid> ids) {
+    final result = <RawUuid>{};
+    final groupIdsToInclude = <RawUuid>{};
+
+    for (final id in ids) {
+      result.add(id);
+      final node = _dataQuery.nodeLookup[id];
+      if (node != null && node.groupId != null) {
+        groupIdsToInclude.add(node.groupId!);
+      }
+    }
+
+    if (groupIdsToInclude.isNotEmpty) {
+      for (final entry in _dataQuery.nodeLookup.entries) {
+        if (entry.value.groupId != null && groupIdsToInclude.contains(entry.value.groupId)) {
+          result.add(entry.key);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /// Selects a single entity on the canvas (expanding to group members if grouped).
   void selectEntity(RawUuid? id) {
     if (id == null) {
       if (selectedEntities.isEmpty) return;
@@ -32,22 +55,22 @@ class SelectionState extends ChangeNotifier with TraceableNotifier {
         _log.warning('Attempted to select non-existent entity: $id');
         return;
       }
-      if (selectedEntities.length == 1 && selectedEntities.first == id) return;
-      selectedEntities = {id};
+      final expanded = _expandGroups([id]);
+      if (selectedEntities.length == expanded.length && selectedEntities.containsAll(expanded)) return;
+      selectedEntities = expanded;
     }
     _log.finer('Selection updated: $selectedEntities');
     notifyListeners();
   }
 
-  /// Selects multiple entities simultaneously (e.g., marquee selection).
+  /// Selects multiple entities simultaneously (expanding to group members if grouped).
   void selectEntities(Iterable<RawUuid> ids) {
-    selectedEntities = ids
-        .where(
-          (id) =>
-              _dataQuery.nodeLookup.containsKey(id) ||
-              _dataQuery.relationLookup.containsKey(id),
-        )
-        .toSet();
+    final validIds = ids.where(
+      (id) =>
+          _dataQuery.nodeLookup.containsKey(id) ||
+          _dataQuery.relationLookup.containsKey(id),
+    );
+    selectedEntities = _expandGroups(validIds);
     _log.finer(
       'Marquee selection updated: ${selectedEntities.length} entities',
     );

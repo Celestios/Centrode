@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +12,7 @@ import '../../../engine/interaction_engine.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
 import '../widgets/metadata_preview_overlay.dart';
+import '../utils/dashed_box_paint_utils.dart';
 import 'package:centrode/shared/widgets/unbounded_stack.dart';
 
 class OverlayLayer extends StatelessWidget {
@@ -67,6 +69,14 @@ class OverlayLayer extends StatelessWidget {
               Positioned.fill(
                 child: CustomPaint(
                   painter: _OptAreaPainter(state: interactionState),
+                ),
+              ),
+
+            // 7. Frame Drawing Live Box Layer
+            if (interactionState is FrameDrawing)
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _FrameDrawingPainter(state: interactionState),
                 ),
               ),
 
@@ -173,10 +183,7 @@ class _TempRelationPainter extends CustomPainter {
           final endPos =
               targetPort?.position ??
               targetVs.getPortPosition(targetVs.getClosestPort(startPos).side);
-          final path = Path()
-            ..moveTo(startPos.dx, startPos.dy)
-            ..lineTo(endPos.dx, endPos.dy);
-          canvas.drawPath(path, strokePaint);
+          canvas.drawLine(startPos, endPos, strokePaint);
         }
       } else {
         final startPos =
@@ -184,13 +191,7 @@ class _TempRelationPainter extends CustomPainter {
             sourceVs.getPortPosition(
               sourceVs.getClosestPort(state.currentCursorPosition).side,
             );
-        final path = Path()
-          ..moveTo(startPos.dx, startPos.dy)
-          ..lineTo(
-            state.currentCursorPosition.dx,
-            state.currentCursorPosition.dy,
-          );
-        canvas.drawPath(path, strokePaint);
+        canvas.drawLine(startPos, state.currentCursorPosition, strokePaint);
         canvas.drawCircle(
           state.currentCursorPosition,
           cursorRadius,
@@ -322,37 +323,16 @@ class _PersistentOptAreaPainter extends CustomPainter {
     );
 
     // OPT AREA Text Badge at top-left
-    final textSpan = TextSpan(
-      text: ' OPT AREA ',
-      style: TextStyle(
-        color: Colors.amber.shade200,
-        fontSize: 10,
-        fontWeight: FontWeight.bold,
-        letterSpacing: 0.8,
-      ),
+    DashedBoxPaintUtils.paintTopLeftBadge(
+      canvas,
+      rect,
+      1.0,
+      text: 'OPT AREA',
+      textColor: Colors.amber.shade200,
+      badgeBgColor: Colors.amber.shade900.withValues(alpha: 0.75),
+      borderColor: Colors.amber.withValues(alpha: 0.4),
+      offset: const Offset(4.0, 4.0),
     );
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    final badgeRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        rect.left + 4,
-        rect.top + 4,
-        textPainter.width + 8,
-        textPainter.height + 4,
-      ),
-      const Radius.circular(4),
-    );
-
-    canvas.drawRRect(
-      badgeRect,
-      Paint()
-        ..color = Colors.amber.shade900.withValues(alpha: 0.75)
-        ..style = PaintingStyle.fill,
-    );
-    textPainter.paint(canvas, Offset(rect.left + 8, rect.top + 6));
 
     // Close Cross Icon at top-right inside (same amber edge color, no background)
     final closePaint = Paint()
@@ -434,5 +414,39 @@ class _PersistentOptAreaPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _PersistentOptAreaPainter oldDelegate) {
     return oldDelegate.rect != rect;
+  }
+}
+
+class _FrameDrawingPainter extends CustomPainter {
+  final FrameDrawing state;
+
+  _FrameDrawingPainter({required this.state});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rawRect = Rect.fromPoints(state.startPos, state.currentPos);
+    final rect = Rect.fromLTRB(
+      math.min(rawRect.left, rawRect.right),
+      math.min(rawRect.top, rawRect.bottom),
+      math.max(rawRect.left, rawRect.right),
+      math.max(rawRect.top, rawRect.bottom),
+    );
+
+    DashedBoxPaintUtils.paintDashedBox(
+      canvas,
+      rect,
+      baseColor: const Color(0xFFBCAAA4),
+      borderRadius: 8.0,
+      strokeWidth: 1.5,
+      dashWidth: 14.0,
+      dashSpace: 8.0,
+      badgeText: 'FRAME',
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _FrameDrawingPainter oldDelegate) {
+    return oldDelegate.state.startPos != state.startPos ||
+        oldDelegate.state.currentPos != state.currentPos;
   }
 }

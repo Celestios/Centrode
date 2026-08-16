@@ -77,7 +77,7 @@ class DefaultNodeLayoutStrategy implements NodeLayoutStrategy {
     bool isEditing = false,
     double? overrideWidth,
   }) {
-    if (node is DrawingUiNode) {
+    if (node is DrawingUiNode || node is FrameUiNode) {
       return (size: node.size, lineCount: 0);
     }
     return _calculateDefaultLayout(

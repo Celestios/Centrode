@@ -1,6 +1,7 @@
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:centrode/features/graph/models/graph_node.dart';
+import 'package:centrode/features/graph/models/port.dart';
 import 'package:centrode/src/rust/domain/base_models.dart' hide Size;
 import 'package:centrode/features/graph/presentation/view_state.dart';
 import 'package:centrode/features/graph/engine/config.dart';
@@ -95,5 +96,30 @@ void main() {
     expect(closest.startPos, const Offset(200.0, 150.0));
     expect(closest.endSide.name, 'left');
     expect(closest.endPos, const Offset(300.0, 150.0));
+  });
+
+  test('NodeViewState scales currentScale and ports for FrameUiNode based on size', () {
+    final frameNode = FrameUiNode(
+      id: RawUuid.fromString('test-frame-1'),
+      title: 'Test Frame',
+      position: const Offset(0.0, 0.0),
+      size: const Size(400.0, 300.0),
+    );
+
+    final vs = NodeViewState(frameNode);
+    expect(vs.currentScale, 1.0);
+
+    // Initial base size ports check
+    final initialPorts = vs.ports;
+    final initialTopPort = initialPorts.getPortBySide(PortSide.top)!;
+    expect(initialTopPort.position.dy, -AppConfig.port.edgeOffset * 1.0);
+
+    // Scale frame to 2x (800x600)
+    vs.sizeNotifier.value = const Size(800.0, 600.0);
+    expect(vs.currentScale, 2.0);
+
+    final scaledPorts = vs.ports;
+    final scaledTopPort = scaledPorts.getPortBySide(PortSide.top)!;
+    expect(scaledTopPort.position.dy, -AppConfig.port.edgeOffset * 2.0);
   });
 }

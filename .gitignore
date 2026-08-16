@@ -38,7 +38,7 @@ docs/compose/
 /.arch/
 maps/
 data/
-/docs/
+/docs/artifacts
 
 # === Symbols and Obfuscation ===
 app.*.map.json

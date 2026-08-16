@@ -41,19 +41,27 @@ class GraphTextMutations {
 
     Size? preEditSize;
     if (node != null) {
-      final oldContentBackup = node.content;
-      node.content = oldContent;
-      preEditSize = controller.calculateNodeSize(node).size;
-      node.content = oldContentBackup;
+      if (node is FrameUiNode) {
+        preEditSize = node.size;
+      } else {
+        final oldContentBackup = node.content;
+        node.content = oldContent;
+        preEditSize = controller.calculateNodeSize(node).size;
+        node.content = oldContentBackup;
+      }
     } else {
       preEditSize = node?.size;
     }
 
     if (node != null) {
       node.content = newContent;
-      final result = controller.calculateNodeSize(node);
-      node.size = result.size;
-      node.lineCount = result.lineCount;
+      if (node is FrameUiNode) {
+        node.title = newContent.text;
+      } else {
+        final result = controller.calculateNodeSize(node);
+        node.size = result.size;
+        node.lineCount = result.lineCount;
+      }
     } else if (rel != null) {
       rel.verb = newContent.text;
     }

@@ -152,6 +152,8 @@ abstract interface class MutationCapability {
 
   RawUuid onCreateNode(Offset position);
 
+  RawUuid onCreateFrame(Offset position, Size size, {RawUuid? parentContainerId});
+
   void updateNodeWidth(RawUuid id, double leftEdge, double rightEdge);
 
   void toggleNodeExpansion(RawUuid id);

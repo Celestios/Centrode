@@ -155,30 +155,17 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   Future<void> loadGraph() async {
     queryController.setLoading(true);
     triggerUpdate();
-    final stopwatch = Stopwatch()..start();
     _log.info('loadGraph: Initiating FFI request to load graph state.');
 
-    try {
-      await syncEngine.loadGraph();
-      await updateHistoryStatus();
+    await syncEngine.loadGraph();
+    await updateHistoryStatus();
 
-      relationEngine.onInitialLoad(relations: store.relations);
-      unawaited(relationEngine.recomputeDirty());
+    relationEngine.onInitialLoad(relations: store.relations);
+    unawaited(relationEngine.recomputeDirty());
 
-      stopwatch.stop();
-      _log.info(
-        'loadGraph: Completed successfully in ${stopwatch.elapsedMilliseconds}ms.',
-      );
-    } catch (e) {
-      stopwatch.stop();
-      _log.severe(
-        'loadGraph: Failed after ${stopwatch.elapsedMilliseconds}ms: $e',
-      );
-      rethrow;
-    } finally {
-      queryController.setLoading(false);
-      triggerUpdate();
-    }
+    _log.info('loadGraph: Completed successfully.');
+    queryController.setLoading(false);
+    triggerUpdate();
   }
 
   void flushSync() => syncEngine.flushSync();
@@ -194,6 +181,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     await updateHistoryStatus();
   }
 
+  @override
   RawUuid createNode(
     UiNodes type,
     Offset position, {
@@ -223,6 +211,23 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   void convertNodeToContainer(RawUuid id) {
     nodeMutations.convertNodeToContainer(id);
     relationEngine.onNodeMoved(id);
+  }
+
+  @override
+  RawUuid createFrameFromSelection(Iterable<RawUuid> nodeIds, {Offset? defaultPosition}) {
+    final frameId = nodeMutations.createFrameFromSelection(nodeIds, defaultPosition: defaultPosition);
+    relationEngine.onNodeMoved(frameId);
+    return frameId;
+  }
+
+  @override
+  RawUuid? groupNodes(Iterable<RawUuid> nodeIds) {
+    return nodeMutations.groupNodes(nodeIds);
+  }
+
+  @override
+  void ungroupNodes(Iterable<RawUuid> nodeIds) {
+    nodeMutations.ungroupNodes(nodeIds);
   }
 
   void updateNodePosition(RawUuid id, Offset newPosition) {

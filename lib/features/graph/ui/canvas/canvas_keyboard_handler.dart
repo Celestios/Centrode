@@ -49,7 +49,38 @@ class _CanvasKeyboardHandlerState extends State<CanvasKeyboardHandler> {
       _handlePaste(commandProcessor, renderState);
       return KeyEventResult.handled;
     }
+    if (event.logicalKey == LogicalKeyboardKey.keyG &&
+        HardwareKeyboard.instance.isControlPressed) {
+      if (HardwareKeyboard.instance.isShiftPressed) {
+        _handleUngroup(commandProcessor, renderState);
+      } else {
+        _handleGroup(commandProcessor, renderState);
+      }
+      return KeyEventResult.handled;
+    }
     return KeyEventResult.ignored;
+  }
+
+  void _handleGroup(
+    CommandQueueProcessor commandProcessor,
+    NodeRenderState renderState,
+  ) {
+    final selectedIds = renderState.selectedEntities.toList();
+    if (selectedIds.length < 2) return;
+    final groupId = commandProcessor.groupNodes(selectedIds);
+    if (groupId != null) {
+      renderState.selectEntities(selectedIds);
+    }
+  }
+
+  void _handleUngroup(
+    CommandQueueProcessor commandProcessor,
+    NodeRenderState renderState,
+  ) {
+    final selectedIds = renderState.selectedEntities.toList();
+    if (selectedIds.isEmpty) return;
+    commandProcessor.ungroupNodes(selectedIds);
+    renderState.selectEntities(selectedIds);
   }
 
   void _handleCopy(

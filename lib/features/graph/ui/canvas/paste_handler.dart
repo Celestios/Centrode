@@ -223,13 +223,9 @@ Future<void> _createTreeNodes(
     dataController.styleUpdater?.updateStyleForRelation(relation.id);
     relation.normalize();
 
-    try {
-      await dataController.syncEngine.api.createRelation(
-        input: relation.toRust(),
-      );
-    } catch (e) {
-      _log.warning('Failed to persist relation to Rust: $e');
-    }
+    await dataController.syncEngine.api.createRelation(
+      input: relation.toRust(),
+    );
   }
 
   dataController.triggerUpdate();

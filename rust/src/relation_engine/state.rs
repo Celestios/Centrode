@@ -125,7 +125,7 @@ impl CanvasState {
 
         let mut to_invalidate = Vec::new();
         for (rel_id, rel) in &self.relations {
-            let is_endpoint = rel.depends_on_nodes.contains(&node.id);
+            let is_endpoint = rel.depends_on_nodes.iter().any(|id| id.key == node.id.key);
             let intersects_old = old_node
                 .as_ref()
                 .map(|o| o.bounding_box().expand(margin).overlaps(rel.bbox))
@@ -150,7 +150,7 @@ impl CanvasState {
 
         let mut to_invalidate = Vec::new();
         for (rel_id, rel) in &self.relations {
-            if rel.depends_on_nodes.iter().any(|id| id == node_id) {
+            if rel.depends_on_nodes.iter().any(|id| id.key == node_id.key) {
                 to_invalidate.push(rel_id.clone());
             }
         }

@@ -281,19 +281,29 @@ pub fn compute_single_relation(
     obstacles: &[InputNode],
     config: &RelationEngineConfig,
 ) -> ComputedRelation {
-    let Some(from_node) = node_map.get(&edge.from_node_id) else {
-        return ComputedRelation::new_basic(
-            edge.id.clone(),
-            vec![Point::new(0.0, 0.0), Point::new(0.0, 0.0)],
-            PathType::Straight,
-        );
+    let from_node = match node_map.get(&edge.from_node_id).or_else(|| {
+        node_map.values().find(|n| n.id.key == edge.from_node_id.key)
+    }) {
+        Some(n) => n,
+        None => {
+            return ComputedRelation::new_basic(
+                edge.id.clone(),
+                vec![Point::new(0.0, 0.0), Point::new(0.0, 0.0)],
+                PathType::Straight,
+            );
+        }
     };
-    let Some(to_node) = node_map.get(&edge.to_node_id) else {
-        return ComputedRelation::new_basic(
-            edge.id.clone(),
-            vec![Point::new(0.0, 0.0), Point::new(0.0, 0.0)],
-            PathType::Straight,
-        );
+    let to_node = match node_map.get(&edge.to_node_id).or_else(|| {
+        node_map.values().find(|n| n.id.key == edge.to_node_id.key)
+    }) {
+        Some(n) => n,
+        None => {
+            return ComputedRelation::new_basic(
+                edge.id.clone(),
+                vec![Point::new(0.0, 0.0), Point::new(0.0, 0.0)],
+                PathType::Straight,
+            );
+        }
     };
 
     let mode = edge

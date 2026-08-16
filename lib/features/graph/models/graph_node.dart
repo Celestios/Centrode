@@ -28,6 +28,7 @@ sealed class UiNode {
   bool isExpanded;
   int significance;
   RawUuid? parentContainerId;
+  RawUuid? groupId;
   NodeStyle? resolvedStyle;
   Offset position;
 
@@ -52,6 +53,7 @@ sealed class UiNode {
   UiNode({
     RawUuid? id,
     this.parentContainerId,
+    this.groupId,
     int? createdAt,
     int? updatedAt,
     bool? locked,

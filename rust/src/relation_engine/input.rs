@@ -7,7 +7,12 @@ pub use crate::relation_engine::types::{InputEdge, InputNode};
 impl InputNode {
     pub fn from_domain(node: &Nodes) -> Option<Self> {
         let is_obstacle = match node {
-            Nodes::INode(_) | Nodes::TaskNode(_) => true,
+            Nodes::INode(_)
+            | Nodes::TaskNode(_)
+            | Nodes::ContainerNode(_)
+            | Nodes::ShapeNode(_)
+            | Nodes::CommentNode(_)
+            | Nodes::MediaNode(_) => true,
             _ => false,
         };
         let id = node.id().clone();

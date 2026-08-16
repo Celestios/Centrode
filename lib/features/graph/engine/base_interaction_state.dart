@@ -2,6 +2,7 @@
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/logging.dart';
@@ -25,6 +26,7 @@ part 'states/marquee_state.dart';
 part 'states/relation_tip_drag_state.dart';
 part 'states/opt_area_draw_state.dart';
 part 'states/opt_area_resize_state.dart';
+part 'states/frame_draw_state.dart';
 part 'states/auto_pan_manager.dart';
 part 'states/snap_utils.dart';
 

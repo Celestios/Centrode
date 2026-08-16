@@ -254,6 +254,24 @@ class CanvasInteractionEnvironment implements InteractionContext {
   }
 
   @override
+  RawUuid onCreateFrame(Offset position, Size size, {RawUuid? parentContainerId}) {
+    _log.info('onCreateFrame pos=(${position.dx}, ${position.dy}), size=$size');
+    final activeScope = _viewportController.activeScopeNotifier.value;
+    final effectiveParentContainerId = parentContainerId ??
+        (activeScope is ContainerViewportScope ? activeScope.containerId : null);
+
+    final id = _commandProcessor.createNode(
+      UiNodes.frame,
+      position,
+      size: size,
+      parentContainerId: effectiveParentContainerId,
+    );
+
+    _renderState.selectEntities([id]);
+    return id;
+  }
+
+  @override
   void updateNodeWidth(RawUuid id, double leftEdge, double rightEdge) {
     _commandProcessor.updateNodeWidth(id, leftEdge, rightEdge);
   }

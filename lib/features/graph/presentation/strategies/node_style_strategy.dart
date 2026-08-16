@@ -44,12 +44,27 @@ class DefaultNodeStyleStrategy implements NodeStyleStrategy {
         node.size.height,
         theme.bodyFontSize,
       ).copyWith(
-        bgColor: 0x1A2196F3,
-        strokeColor: 0xFF64B5F6,
+        bgColor: resolver.containerBgColor,
+        strokeColor: resolver.containerStrokeColor,
         strokeWidth: 2,
         fontFamily: theme.fontFamily,
         textColor: 0xFFFFFFFF,
         borderRadius: 12.0,
+      );
+    }
+
+    if (node is FrameUiNode) {
+      return NodeStyleStrategy.fallbackStyle(
+        node.size.width,
+        node.size.height,
+        theme.bodyFontSize,
+      ).copyWith(
+        bgColor: resolver.frameBgColor,
+        strokeColor: resolver.frameStrokeColor,
+        strokeWidth: 2,
+        fontFamily: theme.fontFamily,
+        textColor: 0xFFFFFFFF,
+        borderRadius: 8.0,
       );
     }
 
@@ -71,7 +86,8 @@ class DefaultNodeStyleStrategy implements NodeStyleStrategy {
     return switch (node) {
       TaskUiNode() => 0xFF34D399,
       DrawingUiNode() => 0x00000000,
-      ContainerUiNode() => 0x1A2196F3,
+      ContainerUiNode() => resolver.containerBgColor,
+      FrameUiNode() => resolver.frameStrokeColor,
       InfoUiNode() => theme.primaryColor.toARGB32(),
       _ => theme.primaryColor.toARGB32(),
     };

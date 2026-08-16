@@ -56,6 +56,14 @@ class GraphNodeMutations {
           brushColor: brushColor ?? '#00E5FF',
         );
         break;
+      case UiNodes.frame:
+        node = FrameUiNode(
+          position: position,
+          parentContainerId: parentContainerId,
+          size: size ?? const Size(400.0, 300.0),
+          title: 'title',
+        );
+        break;
       default:
         throw ArgumentError('Unsupported or unhandled node type: $type');
     }
@@ -66,7 +74,7 @@ class GraphNodeMutations {
 
     // Compute the correct initial size and lineCount using the centralized layout strategy helper
     final result = controller.calculateNodeSize(node);
-    node.size = result.size;
+    node.size = size ?? result.size;
     node.lineCount = result.lineCount;
 
     final Offset finalPos;
@@ -419,6 +427,7 @@ class GraphNodeMutations {
         payload: isClosed,
       ),
     );
+    controller.relationEngine.onNodeMoved(id);
   }
 
   /// Converts an existing node (e.g. INode) to a ContainerUiNode.
@@ -511,6 +520,17 @@ class GraphNodeMutations {
       ],
     );
 
+    for (final rel in controller.store.relations) {
+      if (rel.fromNodeId == id) {
+        rel.fromNodeTable = containerNode.tableName;
+      }
+      if (rel.toNodeId == id) {
+        rel.toNodeTable = containerNode.tableName;
+      }
+    }
+
+    controller.relationEngine.onNodeMoved(id);
+
     controller.publishUpdate(
       GraphEntityUpdate(
         id: id,
@@ -518,6 +538,92 @@ class GraphNodeMutations {
         type: GraphUpdateType.nodeAdded,
       ),
     );
+    controller.triggerUpdate();
+  }
+
+  /// Creates a FrameUiNode enclosing the specified nodes with margin, or at a default position.
+  RawUuid createFrameFromSelection(Iterable<RawUuid> nodeIds, {Offset? defaultPosition}) {
+    final targetNodes = nodeIds
+        .map((id) => controller.store.nodeLookup[id])
+        .whereType<UiNode>()
+        .toList();
+
+    if (targetNodes.isEmpty) {
+      return createNode(
+        UiNodes.frame,
+        defaultPosition ?? Offset.zero,
+        size: const Size(400.0, 300.0),
+      );
+    }
+
+    final parentScopeContainerId = targetNodes.first.parentContainerId;
+    final scopedNodes = targetNodes
+        .where((n) => n.parentContainerId == parentScopeContainerId)
+        .toList();
+
+    double minX = scopedNodes.first.position.dx;
+    double minY = scopedNodes.first.position.dy;
+    double maxX = scopedNodes.first.position.dx + scopedNodes.first.size.width;
+    double maxY = scopedNodes.first.position.dy + scopedNodes.first.size.height;
+
+    for (final n in scopedNodes.skip(1)) {
+      if (n.position.dx < minX) minX = n.position.dx;
+      if (n.position.dy < minY) minY = n.position.dy;
+      final r = n.position.dx + n.size.width;
+      final b = n.position.dy + n.size.height;
+      if (r > maxX) maxX = r;
+      if (b > maxY) maxY = b;
+    }
+
+    const margin = 28.0;
+    final framePos = Offset(minX - margin, minY - margin - 20.0);
+    final frameSize = Size((maxX - minX) + margin * 2, (maxY - minY) + margin * 2 + 20.0);
+
+    return createNode(
+      UiNodes.frame,
+      framePos,
+      parentContainerId: parentScopeContainerId,
+      size: frameSize,
+    );
+  }
+
+  /// Groups the specified nodes under a single logical groupId.
+  RawUuid? groupNodes(Iterable<RawUuid> nodeIds) {
+    final validNodes = nodeIds
+        .map((id) => controller.store.nodeLookup[id])
+        .whereType<UiNode>()
+        .toList();
+    if (validNodes.length < 2) return null;
+
+    final newGroupId = RawUuid.v4();
+    for (final node in validNodes) {
+      node.groupId = newGroupId;
+    }
+
+    controller.triggerUpdate();
+    return newGroupId;
+  }
+
+  /// Ungroups the specified nodes (or all nodes sharing their group IDs).
+  void ungroupNodes(Iterable<RawUuid> nodeIds) {
+    final targetNodes = nodeIds
+        .map((id) => controller.store.nodeLookup[id])
+        .whereType<UiNode>()
+        .toList();
+
+    final groupIdsToClear = targetNodes
+        .map((n) => n.groupId)
+        .whereType<RawUuid>()
+        .toSet();
+
+    if (groupIdsToClear.isEmpty) return;
+
+    for (final node in controller.store.nodeLookup.values) {
+      if (node.groupId != null && groupIdsToClear.contains(node.groupId)) {
+        node.groupId = null;
+      }
+    }
+
     controller.triggerUpdate();
   }
 }

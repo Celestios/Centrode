@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
@@ -90,6 +91,18 @@ class NodeViewState implements VolatileNodeState {
   double get currentScale {
     final node = _currentNode;
     if (node == null) return 1.0;
+    if (node is FrameUiNode) {
+      final size = sizeNotifier.value;
+      if (size.width > 0 && size.height > 0) {
+        final fontScale =
+            (node.resolvedStyle?.fontSize ?? node.style?.fontSize ?? 14.0) /
+            14.0;
+        final sizeScale = math.sqrt(
+          (size.width * size.height) / (400.0 * 300.0),
+        );
+        return sizeScale * fontScale;
+      }
+    }
     final style = node.resolvedStyle ?? node.style;
     if (style == null) return 1.0;
     return style.fontSize / 14.0;

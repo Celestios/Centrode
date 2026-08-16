@@ -13,9 +13,7 @@ class CanvasContextMenu {
   static OverlayEntry? _entry;
 
   static void dismiss() {
-    try {
-      _entry?.remove();
-    } catch (_) {}
+    _entry?.remove();
     _entry = null;
   }
 
@@ -91,6 +89,35 @@ class CanvasContextMenu {
           },
         ),
         if (renderState.selectedEntities.isNotEmpty) ...[
+          if (renderState.selectedEntities.length > 1)
+            ContextMenuItem(
+              label: 'Group (Ctrl+G)',
+              onTap: () {
+                final selectedIds = renderState.selectedEntities.toList();
+                commandProcessor.groupNodes(selectedIds);
+                renderState.selectEntities(selectedIds);
+              },
+            ),
+          if (renderState.selectedEntities.any((id) {
+            final node = queryController.nodeLookup[id];
+            return node != null && node.groupId != null;
+          }))
+            ContextMenuItem(
+              label: 'Ungroup (Ctrl+Shift+G)',
+              onTap: () {
+                final selectedIds = renderState.selectedEntities.toList();
+                commandProcessor.ungroupNodes(selectedIds);
+                renderState.selectEntities(selectedIds);
+              },
+            ),
+          ContextMenuItem(
+            label: 'Group in Frame',
+            onTap: () {
+              final selectedIds = renderState.selectedEntities.toList();
+              final frameId = commandProcessor.createFrameFromSelection(selectedIds);
+              renderState.selectEntities([frameId]);
+            },
+          ),
           ContextMenuItem(
             label: 'Convert to Container',
             onTap: () {
@@ -119,6 +146,46 @@ class CanvasContextMenu {
                 viewportController.transformController.value = targetMatrix;
               },
             ),
+        ] else ...[
+          ContextMenuItem(
+            label: 'New Node',
+            onTap: () {
+              final transform = viewportController.transformController.value;
+              final canvasPos = transform.determinant() == 0.0
+                  ? Offset.zero
+                  : MatrixUtils.transformPoint(
+                      Matrix4.inverted(transform),
+                      position,
+                    );
+              final activeScope = viewportController.activeScopeNotifier.value;
+              final parentId = activeScope is ContainerViewportScope
+                  ? activeScope.containerId
+                  : null;
+              final newId = commandProcessor.createNode(
+                UiNodes.info,
+                canvasPos,
+                parentContainerId: parentId,
+              );
+              renderState.selectEntities([newId]);
+            },
+          ),
+          ContextMenuItem(
+            label: 'New Frame',
+            onTap: () {
+              final transform = viewportController.transformController.value;
+              final canvasPos = transform.determinant() == 0.0
+                  ? Offset.zero
+                  : MatrixUtils.transformPoint(
+                      Matrix4.inverted(transform),
+                      position,
+                    );
+              final frameId = commandProcessor.createFrameFromSelection(
+                const [],
+                defaultPosition: canvasPos,
+              );
+              renderState.selectEntities([frameId]);
+            },
+          ),
         ],
       ],
     );

@@ -12,6 +12,7 @@ import 'nodes/shape_node_renderer.dart';
 import 'nodes/node_selection_renderer.dart';
 import 'nodes/text_node_renderer.dart';
 import 'nodes/container_node_renderer.dart';
+import 'nodes/frame_node_renderer.dart';
 
 class CanvasNodesPainter extends CustomPainter {
   List<NodeRenderEntry> entries;
@@ -294,6 +295,15 @@ class CanvasNodesPainter extends CustomPainter {
         nodeLookup: nodeLookup,
         relations: relations,
         relationEngine: relationEngine,
+      );
+    } else if (node is FrameUiNode) {
+      FrameNodeRenderer.paintFrameCard(
+        canvas: canvas,
+        node: node,
+        resolvedStyle: resolvedStyle,
+        rect: rect,
+        fontScale: fontScale,
+        isEditing: entry.isEditing,
       );
     } else {
       TextNodeRenderer.paintText(canvas, entry, rect, resolvedStyle);
