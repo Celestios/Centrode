@@ -1,0 +1,1708 @@
+# =============================================================================
+# Centrode — Full GUI Specification
+# =============================================================================
+# Comprehensive documentation of all GUI components, styles, behaviors,
+# and theme system for the Centrode canvas-based knowledge graph application.
+# Generated: 2026-08-09
+# =============================================================================
+
+metadata:
+  app_name: Centrode
+  type: "Flutter + Rust bilingual app"
+  description: "Canvas-based knowledge graph with SurrealDB backend via Flutter Rust Bridge"
+  version: "1.0.0"
+
+# =============================================================================
+# SECTION 1: THEME SYSTEM
+# =============================================================================
+
+theme:
+
+  colors:
+    core:
+      primary: "{ hex: \"#1976D2\", argb: \"0xFF1976D2\", description: \"Material Blue 700\" }"
+      secondary: "{ hex: \"#47A2FF\", argb: \"0xFF47A2FF\", description: \"Lighter blue accent\" }"
+      accent: "{ hex: \"#FF4081\", argb: \"0xFFFF4081\", description: \"Material Pink A200\" }"
+      scaffold_background: "{ hex: \"#F5F5F5\", argb: \"0xFFF5F5F5\" }"
+      card: "{ hex: \"#FFFFFF\", argb: \"0xFFFFFFFF\" }"
+      divider: "{ hex: \"#BDBDBD\", argb: \"0xFFBDBDBD\" }"
+      text: "{ hex: \"#212121\", argb: \"0xFF212121\" }"
+      body_text: "{ hex: \"#212121\", argb: \"0xFF212121\" }"
+
+    interaction:
+      hover_accent: "{ hex: \"#90CAF9\", argb: \"0xFF90CAF9\", description: \"Light blue hover overlay\" }"
+      selection_accent: "{ hex: \"#42A5F5\", argb: \"0xFF42A5F5\", description: \"Blue selection ring\" }"
+      editing_accent: "{ hex: \"#2196F3\", argb: \"0xFF2196F3\", description: \"Material Blue 500\" }"
+
+    node_states:
+      editing_shadow: "{ argb: \"0x602196F3\", description: \"37% alpha Material Blue 500\" }"
+      editing_border: "{ hex: \"#2196F3\" }"
+      selected_shadow: "{ argb: \"0x4442A5F5\", description: \"27% alpha Material Blue 400\" }"
+      selected_border: "{ hex: \"#42A5F5\" }"
+      handle: "{ argb: \"0x03000000\", description: \"1% alpha black\" }"
+      expand_toggle: "{ hex: \"#2196F5\" }"
+      hover_overlay_alpha:   0.05
+
+    metadata_sphere:
+      tags_and_comments: "{ hex: \"#EC407A\", argb: \"0xFFEC407A\" }"
+      tags_only: "{ hex: \"#5C6BC0\", argb: \"0xFF5C6BC0\" }"
+      comments_only: "{ hex: \"#26A69A\", argb: \"0xFF26A69A\" }"
+
+    tag_defaults:
+      - { hex: "#5C6BC0", name: "Indigo" }
+      - { hex: "#26A69A", name: "Teal" }
+      - { hex: "#EC407A", name: "Pink" }
+      - { hex: "#FFA726", name: "Orange" }
+      - { hex: "#78909C", name: "Blue Grey" }
+
+    palette_presets:
+      - { hex: "#818CF8", name: "Indigo" }
+      - { hex: "#34D399", name: "Mint" }
+      - { hex: "#FBBF24", name: "Amber" }
+      - { hex: "#C084FC", name: "Lavender" }
+      - { hex: "#F472B6", name: "Rose" }
+      - { hex: "#FB923C", name: "Orange" }
+      - { hex: "#94A3B8", name: "Slate" }
+      - { hex: "#E2E8F0", name: "Off-White" }
+      - { hex: "#EC407A", name: "Pink" }
+      - { hex: "#7E57C2", name: "Deep Purple" }
+      - { hex: "#42A5F5", name: "Blue" }
+      - { hex: "#26A69A", name: "Teal" }
+
+    text_colors:
+      - { hex: "#000000", name: "Black" }
+      - { hex: "#FFFFFF", name: "White" }
+      - { hex: "#0D47A1", name: "Dark Blue" }
+      - { hex: "#1B5E20", name: "Dark Green" }
+      - { hex: "#880E4F", name: "Dark Pink" }
+      - { hex: "#E65100", name: "Dark Orange" }
+      - { hex: "#263238", name: "Dark Slate" }
+
+    contrast_text:
+      - { bg: "#818CF8", text: "#312E81" }
+      - { bg: "#34D399", text: "#064E3B" }
+      - { bg: "#FBBF24", text: "#78350F" }
+      - { bg: "#C084FC", text: "#581C87" }
+      - { bg: "#F472B6", text: "#831843" }
+      - { bg: "#FB923C", text: "#7C2D12" }
+      - { bg: "#94A3B8", text: "#0F172A" }
+      - { bg: "#E2E8F0", text: "#1E293B" }
+      - { dark_bg: true, text: "#FFFFFF" }
+      - { dark_bg: false, text: "#000000" }
+
+  typography:
+    families:
+      default: "Roboto"
+      canvas_default: "Inter"
+      available: ["System", "Inter", "Roboto", "Consolas"]
+      code: "Consolas"
+
+    reference_font_size: "{ value: 14.0, unit: \"dp\" }"
+
+    scale:
+      body:
+        default_size: 14.0
+        forest_size: 15.0
+        weight_default: "w400"
+        weight_forest: "w500"
+
+      node:
+        default: 14.0
+        min: 10.0
+        max: 40.0
+        relation_label: 10.0
+        badge: 10.0
+
+      heading_levels:
+        level_1: "{ size_factor: 1.4, weight: \"bold\" }"
+        level_2: "{ size_factor: 1.25, weight: \"bold\" }"
+        level_3: "{ size_factor: 1.15, weight: \"bold\" }"
+
+      metadata_preview:
+        section_label: "{ size: 10.0, weight: \"w800\", letterSpacing: 1.2 }"
+        tag_label: "{ size: 11.0, weight: \"bold\" }"
+        comment_text: "{ size: 11.0, height: 1.3 }"
+        timestamp: "{ size: 9.0 }"
+
+      window_title_bar:
+        app_name: "{ size: 12.0, weight: \"w800\", letterSpacing: 1.5 }"
+        subtitle: "{ size: 12.0, weight: \"w400\", letterSpacing: 0.5 }"
+        badge_count: "{ size: 8.0, weight: \"bold\" }"
+
+  spacing:
+    node:
+      padding_base: 8.0
+      editing_buffer_width: 45.0
+      default_width: 80.0
+      min_width: 60.0
+      max_width: 640.0
+      default_size: "{ width: 100, height: 80 }"
+      handle_visual_width: 5.0
+      handle_top_offset: 24.0
+      expand_toggle_bottom_offset: 20.0
+
+    port:
+      edge_offset: 8.0
+      hit_radius: 16.0
+      draw_radius: 3.0
+
+    relation:
+      stroke_width: 3.0
+      selected_stroke_width: 4.0
+      label_font_size: 10.0
+      editor_min_width: 100.0
+
+    toolbar:
+      single_width: 90.0
+      multi_width: 105.0
+      height: 32.0
+
+    canvas:
+      boundary_margin: 2000.0
+      min_scale: 0.2
+      max_scale: 3.0
+
+    grid:
+      base_size: 20.0
+      dot_radius: 1.5
+
+    panels:
+      left_panel_width: 280.0
+      right_panel:
+        default_width: 280.0
+        min_width: 200.0
+        max_width: 500.0
+      sidebar:
+        expanded_width: 220.0
+        collapsed_width: 52.0
+
+    glass_panel:
+      default_border_radius: 16.0
+      border_width: 0.75
+
+  animations:
+    durations:
+      theme_transition: 400
+      short: 100
+      standard: 150
+      medium: 200
+      panel: 250
+      badge_pop: 200
+      search_debounce: 150
+      search_expand: 250
+      port_hide: 100
+      glass_capture_throttle: 33
+      grid_frame_throttle: 33
+      glass_warmup_delays: [100, 400, 1000, 2500]
+
+    curves:
+      theme_transition: "easeInOut"
+      panel_slide: "easeInOut"
+      badge_pop: "easeOutBack"
+      search_expand: "fastOutSlowIn"
+      canvas_pan: "decelerate"
+
+    hover_scale:
+      hover: 1.05
+      press: 0.95
+
+  effects:
+    shadows:
+      node_default:
+        color: "{ alpha: 0.20 }"
+        blur: 4.0
+        offset: "{ x: 2.0, y: 2.0 }"
+
+      node_editing:
+        color: "{ alpha: 0.37, tint: \"#2196F3\" }"
+        blur: 16.0
+        spread: 4.0
+
+      node_selected:
+        color: "{ alpha: 0.27, tint: \"#42A5F5\" }"
+        blur: 8.0
+
+      metadata_preview:
+        color: "black26"
+        blur: 12.0
+        offset: "{ x: 0, y: 4 }"
+
+      glass_performance:
+        inner_highlight: "{ color: white, alpha: 0.18, offset: { x: 1.2, y: 1.2 }, blur: 2.0, style: \"inner\" }"
+        inner_shadow: "{ color: black, alpha: 0.10, offset: { x: -1.2, y: -1.2 }, blur: 2.0, style: \"inner\" }"
+
+    glassmorphism:
+      shader_asset: "shaders/liquid_glass.frag"
+      max_concurrent_rects: 4
+      settings:
+        blend_px: 14.0
+        refract_strength: 0.08
+        distort_falloff_px: 45.0
+        blur_radius_px: 7.0
+        spec_angle: 4.0
+        spec_strength: 2.0
+        spec_power: 100.0
+        lightband_strength: 0.9
+        bridge_reach_factor: 2.0
+        bridge_thickness_factor: 1.0
+        aa_px: 1.5
+
+    borders:
+      radii:
+        default: 8.0
+        glass_panel: 16.0
+        sidebar: 16.0
+        tag_chip: 4.0
+        history_badge: 10.0
+
+      widths:
+        node_stroke: 1.0
+        node_stroke_editing: 3.0
+        glass_panel_border: 0.75
+        relation_stroke: 3.0
+        relation_stroke_selected: 4.0
+
+  theme_modes:
+    light:
+      brightness: "light"
+      primary: "#1976D2"
+      scaffold_background: "#F5F5F5"
+      card: "#FFFFFF"
+      text: "#212121"
+
+    dark:
+      brightness: "dark"
+      primary: "#9E7AFF"
+      scaffold_background: "#000000"
+      card: "#16161A"
+      text: "#FFFFFF"
+
+    forest:
+      brightness: "light"
+      primary: "#2E7D32"
+      scaffold_background: "#F1F8E9"
+      card: "#FFFFFF"
+      text: "#1B5E20"
+
+# =============================================================================
+# SECTION 2: CANVAS & GRAPH UI COMPONENTS
+# =============================================================================
+
+canvas_graph_components:
+
+  - name: GraphScreen
+    path: lib/features/graph/ui/graph_screen.dart
+    description: "Top-level screen hosting the graph canvas. Manages workspace tab sessions, theme transitions, and scaffold."
+    layout:
+      type: Scaffold
+      body: Stack
+      children:
+        - IndexedStack: per-session ActiveSessionWidgets
+        - Positioned.fill: WorkspaceWindowTitleBar
+    behaviors:
+      - Tab switching via WorkspaceTabsController
+      - Theme transitions with AnimatedTheme (400ms easeInOut)
+      - Auto-redirect on all tabs closed
+
+  - name: ActiveSessionWidget
+    path: lib/features/graph/ui/graph_screen.dart
+    description: "Per-tab session container. Initializes providers and renders GraphCanvas after async init."
+    layout:
+      type: FutureBuilder
+      content: MultiProvider wrapping GraphCanvas
+
+  - name: GraphCanvas
+    path: lib/features/graph/ui/canvas/graph_canvas.dart
+    description: "Main infinite canvas widget. Manages viewport, interaction engine, drawing interceptor, gesture handling."
+    layout:
+      type: GlassStage > CanvasInteractiveViewer
+      stack_layers:
+        - GridLayer: dot grid background
+        - RelationLayer: connection lines
+        - NodeLayer: all graph nodes
+        - OverlayLayer: marquee, opt-area, temp relations, metadata preview
+        - PortLayer: connection port indicators
+        - ActiveDrawingPainter: transient freehand strokes
+    styles:
+      glass:
+        refract_strength: 0.16
+        bridge_reach_factor: 2.0
+        bridge_thickness_factor: 0.4
+      cursor: dynamic from InteractionController
+    behaviors:
+      - "Pan & scale (minScale: 0.2, maxScale: 3.0)"
+      - Right-click context menu
+      - Template drag-and-drop
+      - "Mouse position tracking at ~60fps"
+      - "Right-click drag detection (5px threshold)"
+      - Viewport restore from saved state
+      - Elastic margins recalculation
+
+  - name: CanvasOverlayLayout
+    path: lib/features/graph/ui/canvas/canvas_overlay_layout.dart
+    description: "Positioned overlay system for UI chrome (ribbon, tabs, panels, status bar) on top of canvas."
+    layout:
+      type: Stack
+      positions:
+        desktop_header: "{ top: 52px, left: 12px, right: 16px }"
+        left_panel_icon_rail: "{ top: 112px, left: 12px, width: 52px }"
+        left_panel_content: "{ top: 112px, left: 76px, width: 280px }"
+        right_property_panel: "{ top: 112px, right: 12px, bottom: 224px }"
+        bottom_status_bar: "{ bottom: 12px, left: 12px, right: 12px }"
+    behaviors:
+      - Left panel dismiss on outside tap
+      - Panel visibility toggled by ValueNotifiers
+
+  - name: NodeWidget
+    path: lib/features/graph/ui/canvas/node_widget.dart
+    description: "Passive presentational node widget with background, border, shadow, handles, metadata sphere, expand toggle, task badge."
+    layout:
+      type: Stack
+      children:
+        - Container: main node body
+        - Positioned(right): right resize handle
+        - Positioned(left): left resize handle
+        - Positioned: metadata sphere (conditional)
+    styles:
+      node_body:
+        background: resolvedStyle.bgColor
+        border_radius: resolvedStyle.borderRadius
+        border: resolvedStyle.strokeColor, resolvedStyle.strokeWidth
+      shadows:
+        editing: "{ color: 0x602196F3, blur: 16, spread: 4 }"
+        selected: "{ color: 0x4442A5F5, blur: 8, spread: 2 }"
+      metadata_sphere:
+        radius: 5px * scale
+        colors:
+          tags_and_comments: 0xFFEC407A
+          tags_only: 0xFF5C6BC0
+          comments_only: 0xFF26A69A
+    behaviors:
+      - Shows expand/collapse toggle when lineCount > 3
+      - TaskUiNode shows task state badge
+
+  - name: HighlightFrame
+    path: lib/features/graph/ui/canvas/widgets/highlight_frame.dart
+    description: "Decorative border frame wrapping a node when hovered, selected, or being edited."
+    styles:
+      gap: 1.5px * scale
+      editing: "{ stroke: 1.0, color: 0xFF2196F3 }"
+      selected: "{ stroke: 1.0, color: 0xFF42A5F5 }"
+      hovered: "{ stroke: 0.5, color: 0xFF90CAF9 }"
+
+  - name: GridLayer
+    path: lib/features/graph/ui/canvas/layers/grid_layer.dart
+    description: "Infinite dot grid background with mouse-following glow effect."
+    styles:
+      base_grid_size: 20px
+      dot_radius: 1.5px
+      dot_color:
+        desktop_dark: "{ alpha: 0.08 }"
+        desktop_light: "{ alpha: 0.06 }"
+      glow_color:
+        dark: "{ alpha: 0.65 }"
+        light: "{ alpha: 0.85 }"
+    behaviors:
+      - Mouse glow effect follows cursor with spring-like easing
+      - Glow fades in at 6.0 * dt, fades out at 4.0 * dt
+      - Velocity-based elliptical stretching
+      - Android: static grid only (no glow)
+
+  - name: NodeLayer
+    path: lib/features/graph/ui/canvas/layers/node_layer.dart
+    description: "Renders all visible nodes using high-performance CustomPainter with Picture caching."
+    behaviors:
+      - Z-order rendering (back to front)
+      - Viewport culling via visibleNodeIds
+      - Three-tier repaint optimization (replay/translate/record)
+      - Per-node dirty tracking
+
+  - name: RelationLayer
+    path: lib/features/graph/ui/canvas/layers/relation_layer.dart
+    description: "Renders all relation edges with path caching, live transform, selection highlighting, inline label editing."
+    styles:
+      default_stroke_width: 3.0
+      selected_stroke_width: 4.0
+      label_font_size: 10px
+      label_background: scaffoldBackgroundColor
+    behaviors:
+      - Path transform during node drag
+      - Tip drag with snap-to-port
+      - Stroke patterns: solid, dashed (8px dash, 6px gap), dotted (2px dash, 4px gap)
+      - Endpoint shapes: arrow, openArrow, circle, diamond, square, none
+      - Selection handles: 6px border circle + 5px fill circle
+      - Label visibility modes: auto, always, never
+
+  - name: OverlayLayer
+    path: lib/features/graph/ui/canvas/layers/overlay_layer.dart
+    description: "Renders transient overlays: temp relation line, marquee selection, opt-area, metadata preview."
+    styles:
+      marquee: "{ fill: blueAccent 0.2, border: blueAccent, strokeWidth: 1.5 }"
+      opt_area: "{ fill: amberAccent 0.15, border: amberAccent, strokeWidth: 2.0 }"
+      temp_relation: "{ snapped: green, unsnapped: blueAccent }"
+
+  - name: PortLayer
+    path: lib/features/graph/ui/canvas/layers/port_layer.dart
+    description: "Renders connection port indicators on hovered nodes."
+    styles:
+      port_radius: 3px * scale
+      normal_color: hoverAccent 0.6
+      active_color: selectionAccent 0.9
+    behaviors:
+      - Shows ports only on hovered node
+      - 100ms hide delay after hover leaves
+      - Ports hidden during node drag
+
+  - name: CanvasTextEditor
+    path: lib/features/graph/ui/canvas/text/canvas_text_editor.dart
+    description: "Inline rich text editor for node content with markdown formatting."
+    styles:
+      cursor_color: 0xFF2196F3
+      selection_color: 0x602196F3
+      border: "{ color: 0xFF2196F3, alpha: 0.6, width: 1.5 }"
+    behaviors:
+      - Enter submits, Escape aborts
+      - Tab inserts 4 spaces
+      - Ctrl+C/V for clipboard
+      - Auto-focuses and selects all on mount
+
+  - name: MetadataPreviewOverlay
+    path: lib/features/graph/ui/canvas/widgets/metadata_preview_overlay.dart
+    description: "Glassmorphic card showing tags and latest comment for a hovered node."
+    styles:
+      background: "{ color: 0xFF1E1E2E, alpha: 0.85 }"
+      blur: sigma 8.0
+      border_radius: 8px
+      width: 220px
+      padding: 12px
+
+  - name: ContextToolbarOverlay
+    path: lib/features/graph/ui/canvas/context_toolbar_overlay.dart
+    description: "Floating toolbar near selected entities for editing operations."
+    styles:
+      selection_toolbar: "{ width: 520px, height: 360px }"
+      text_format_toolbar: "{ width: 76px, height: 430px }"
+    behaviors:
+      - Smart positioning (tries left, falls back to right)
+      - Clamps to screen boundaries
+      - Draggable via dragHandle
+
+# =============================================================================
+# SECTION 3: TOOLBAR & OVERLAY COMPONENTS
+# =============================================================================
+
+toolbar_components:
+
+  - name: CanvasToolRibbon
+    path: lib/features/graph/ui/widgets/overlays/canvas_tool_ribbon.dart
+    description: "Top toolbar ribbon wrapping tool/view segmented controls and label mode toggle in GlassPanel."
+    layout:
+      type: "GlassPanel(blur: 16, borderRadius: 20, padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6))"
+      shadow: "{ color: \"Colors.black.withValues(alpha: 0.22)\", blur: 16, spread: -2, offset: \"Offset(0, 6)\" }"
+      child: "SingleChildScrollView(scrollDirection: horizontal) > Row"
+      tracks: [compact_toggle, tools, views, label_mode]
+      track_separator: "GlassDivider (width: 1.2, height: 26)"
+      track_wrapper: RibbonCapsule
+    behaviors:
+      - Compact/expand toggle (desktop only, chevron_right/left icon)
+      - Android: compact always, includes Pan tool
+
+  - name: VerticalContextToolbar
+    path: lib/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart
+    description: "Vertical floating toolbar for node/relation editing. Background GlassPanel bar + interactive column of quick buttons and group buttons."
+    layout:
+      container: "GlassGroup > SizedBox(width: 520) > Stack"
+      background_bar:
+        type: GlassPanel
+        width: 40
+        borderRadius: 10
+        blur: 12
+        color: "theme.cardColor.withValues(alpha: 0.9)"
+        shadow: "{ color: \"Colors.black.withValues(alpha: 0.15)\", blur: 10, offset: Offset(0, 4) }"
+      interactive_column:
+        padding: "{ vertical: 1, horizontal: 4 }"
+        crossAxisAlignment: end (or start if positionOnRight)
+    quick_button:
+      implementation: "Material(color: transparent) > InkWell(borderRadius: 6) > Container(32x32)"
+      icon_size: 20
+      icon_color: passed as param (primaryColor or Colors.red.shade400)
+      inkwell_border_radius: "BorderRadius.circular(6)"
+    group_button:
+      trigger:
+        type: AnimatedContainer(150ms)
+        size: 32x32
+        borderRadius: 6
+        background_hovered: "primaryColor.withValues(alpha: 0.1)"
+        background_default: transparent
+        icon_size: 20
+        icon_color_hovered: primaryColor
+        icon_color_default: "textColor.withValues(alpha: 0.75)"
+      submenu:
+        type: GlassPanel
+        borderRadius: 8
+        blur: 10
+        color: "theme.cardColor.withValues(alpha: 0.92)"
+        padding: "{ horizontal: 4, vertical: 2 }"
+        shadow_right: "{ color: \"Colors.black.withValues(alpha: 0.12)\", blur: 8, offset: Offset(2, 2) }"
+        shadow_left: "{ color: \"Colors.black.withValues(alpha: 0.12)\", blur: 8, offset: Offset(-2, 2) }"
+        gap_from_trigger: 8
+      submenu_button:
+        type: "HoverScaleButton(hoverScale: 1.08, pressScale: 0.94, borderRadius: 6)"
+        size: 28x28
+        icon_size: 18
+        padding: "{ horizontal: 2 }"
+        background_hovered:
+          gradient: "[hoverColor 0.18, hoverColor 0.05] top-left to bottom-right"
+          border: "{ color: hoverColor 0.3, width: 1.0 }"
+          shadow: "{ color: hoverColor 0.08, blur: 4, offset: (0, 1) }"
+        icon_color_default: "textColor.withValues(alpha: 0.75)"
+        icon_color_hovered: hoverColor
+    divider:
+      width: 24
+      height: 1
+      color: "dividerColor.withValues(alpha: 0.3)"
+
+  - name: VerticalTextFormatToolbar
+    path: lib/features/graph/ui/widgets/overlays/vertical_text_format_toolbar.dart
+    description: "Two-column vertical toolbar for text formatting during node editing."
+    styles:
+      glass_panel:
+        blur: 12
+        border_radius: 10
+        background: "cardColor.withValues(alpha: 0.9)"
+        shadow: "{ color: \"Colors.black.withValues(alpha: 0.15)\", blur: 10, offset: Offset(0, 4) }"
+      button:
+        size: 28x28
+        icon_size: 16
+        hover_style:
+          gradient: [hoverColor 0.18, hoverColor 0.05]
+          border: "{ color: hoverColor 0.3, width: 1.0 }"
+          shadow: "{ color: hoverColor 0.08, blur: 4, offset: (0, 1) }"
+      dividers:
+        horizontal: "{ width: 20, height: 1, margin_vertical: 2, color: \"dividerColor.withValues(alpha: 0.3)\" }"
+        vertical: "{ width: 1, height: infinity, margin_horizontal: 2, color: \"dividerColor.withValues(alpha: 0.3)\" }"
+
+  - name: LeftRepositoryDrawer
+    path: lib/features/graph/ui/widgets/overlays/left_repository_drawer.dart
+    description: "Vertical icon rail for accessing tags, templates, and drawing panels. GlassPanel with icon tiles."
+    styles:
+      glass_panel:
+        borderRadius: 16.0
+        blur: 12.0
+        color: "theme.cardColor.withValues(alpha: 0.9)"
+        shadow: "{ color: \"Colors.black.withValues(alpha: 0.15)\", blur: 10, offset: Offset(3, 3) }"
+      icon_tile:
+        implementation: "HoverScaleButton(hoverScale: 1.08, pressScale: 0.94, borderRadius: tileBorderRadius)"
+        padding: "{ vertical: 14, horizontal: 14 }"
+        animation: AnimatedContainer(150ms)
+        background_hovered:
+          gradient: "[\"primaryColor.withValues(alpha: 0.18)\", \"primaryColor.withValues(alpha: 0.05)\"] top-left to bottom-right"
+          border: "{ color: \"primaryColor.withValues(alpha: 0.3)\", width: 1.0 }"
+        icon_color_hovered: primaryColor
+        icon_color_default: "primaryColor.withValues(alpha: 0.7)"
+        icon_animation: AnimatedSwitcher(200ms, ScaleTransition + FadeTransition)
+      divider:
+        height: 1
+        color: "dividerColor.withValues(alpha: 0.3)"
+        indent: 8
+        endIndent: 8
+      top_tile_border_radius: "BorderRadius.vertical(top: Radius.circular(16))"
+      bottom_tile_border_radius: "BorderRadius.vertical(bottom: Radius.circular(16))"
+
+  - name: RightPropertyPanel
+    path: lib/features/graph/ui/widgets/overlays/right_property_panel.dart
+    description: "Right-side inspector panel with collapsible handle, context status badge, tab switcher."
+    styles:
+      handle:
+        width: 42px
+        height: 160px
+        border_radius: 12
+        blur: 12
+      content_panel:
+        width: "280px (default), min: 200, max: 500"
+        border_radius: 16
+      tab_bar:
+        height: 30
+        active: "{ background: primaryColor 0.25, border_radius: 8 }"
+    animations:
+      container: "{ duration: 250ms, curve: easeInOut }"
+    behaviors:
+      - Drag to resize panel width
+      - Velocity-based auto-expand/collapse
+      - Click handle to toggle
+
+  - name: CollapsibleSidebar
+    path: lib/features/graph/ui/widgets/overlays/collapsible_sidebar.dart
+    description: "Reusable collapsible sidebar container with header and glass panel."
+    styles:
+      glass_panel:
+        border_radius: 16
+        blur: 12 (visible), 0 (hidden)
+      header:
+        height: 32
+        title: "{ fontSize: 12, fontWeight: w800, letterSpacing: 1.1 }"
+    animations:
+      width: "{ duration: 250ms, curve: easeInOut }"
+
+# =============================================================================
+# SECTION 4: STATUS BAR COMPONENTS
+# =============================================================================
+
+status_bar_components:
+
+  - name: CanvasStatusBar
+    path: lib/features/graph/ui/widgets/overlays/canvas_status_bar/canvas_status_bar.dart
+    description: "Bottom status bar with manual guide, graph metrics, zoom slider, and minimap."
+    layout:
+      type: Row (spaceBetween)
+      left: GraphManualWidget
+      center: StatusMetricsWidget
+      right: ZoomSliderWidget + ViewportMiniMapWidget
+    responsive:
+      minWidth >= 700: show minimap
+      minWidth >= 500: show metrics
+      minWidth >= 300: show manual
+
+  - name: ZoomSliderWidget
+    path: lib/features/graph/ui/widgets/overlays/canvas_status_bar/zoom_slider_widget.dart
+    description: "Zoom control with minus/plus buttons, slider, percentage label, and reset button."
+    styles:
+      slider:
+        track_height: 2
+        thumb_radius: 5
+        active_track: primaryColor
+      icon_size: 14
+      percent_label: "{ fontSize: 10, fontWeight: bold }"
+    behaviors:
+      - Zoom range: 0.2 to 3.0
+      - Step: 0.1 per click
+      - Percentage label clickable to reset to 100%
+
+  - name: ViewportMiniMapWidget
+    path: lib/features/graph/ui/widgets/overlays/canvas_status_bar/viewport_mini_map_widget.dart
+    description: "200x200 minimap showing overview of all nodes with viewport rectangle."
+    styles:
+      viewport_fill: primaryColor 0.08
+      viewport_border: "{ color: primaryColor 0.5, strokeWidth: 1.0 }"
+    behaviors:
+      - Click/drag to navigate
+      - Snapshot-based rendering
+      - Ticker-based viewport tracking (~60fps)
+
+  - name: StatusMetricsWidget
+    path: lib/features/graph/ui/widgets/overlays/canvas_status_bar/status_metrics_widget.dart
+    description: "Center status bar showing node and relation counts."
+    styles:
+      text: "{ fontSize: 11, alpha: 0.7 }"
+
+# =============================================================================
+# SECTION 5: INSPECTOR COMPONENTS
+# =============================================================================
+
+inspector_components:
+
+  - name: AppearanceTab
+    path: lib/features/graph/ui/widgets/overlays/inspector/appearance_tab.dart
+    description: "Inspector tab for editing node/relation visual appearance."
+    styles:
+      section_header: "{ fontSize: 10, fontWeight: bold }"
+      slider_theme: "{ track_height: 2, thumb_radius: 6 }"
+    behaviors:
+      - Shape toggle: rectangle / circle
+      - Color palette: UniversalColorPalette
+      - Sliders for font size (10-40), border radius (0-24), stroke width (0-6)
+      - Relation routing: straight, bezier, orthogonal, snake, bspline, octilinear
+
+  - name: DataTab
+    path: lib/features/graph/ui/widgets/overlays/inspector/data_tab.dart
+    description: "Inspector tab for editing node metadata: tags and comments."
+    styles:
+      tag_chip:
+        padding: "{ horizontal: 8, vertical: 4 }"
+        background: tagColor 0.18
+        border_radius: 8
+        border: "{ color: tagColor 0.45, width: 0.8 }"
+      comment_card:
+        padding: 8
+        background: black 0.15
+        border_radius: 8
+
+  - name: GlassSectionShell
+    path: lib/features/graph/ui/widgets/inspector/relation_appearance_section.dart
+    description: "Reusable top-level section container for inspector property groups."
+    styles:
+      background: black 0.18
+      border_radius: 12
+      border: "{ color: accentColor 0.22, width: 0.8 }"
+      header: "{ padding: { horizontal: 10, vertical: 8 }, fontSize: 10, fontWeight: w700 }"
+
+  - name: SubBlockShell
+    path: lib/features/graph/ui/widgets/inspector/relation_appearance_section.dart
+    description: "Collapsible sub-block within a section shell."
+    styles:
+      background: black 0.12
+      border_radius: 8
+      header: "{ fontSize: 9.0, fontWeight: w800 }"
+
+  - name: VisualShapeSelector
+    path: lib/features/graph/ui/widgets/inspector/relation_appearance_section.dart
+    description: "Grid of visual preview tiles for shape/routing/cap selection."
+    styles:
+      item:
+        padding: "{ horizontal: 8, vertical: 6 }"
+        border_radius: 8
+        selected: "{ background: activeColor 0.22, border: activeColor 0.7 }"
+        unselected: "{ background: black 0.12, border: white 0.08 }"
+        icon_size: 13
+
+  - name: SegmentedGlassSwitcher
+    path: lib/features/graph/ui/widgets/inspector/relation_appearance_section.dart
+    description: "Glass-style segmented mode switcher."
+    styles:
+      container: "{ background: black 0.25, border_radius: 8 }"
+      selected: "{ background: activeColor 0.28, border_radius: 6 }"
+      segment_height: 26
+
+  - name: InlinePropertyRow
+    path: lib/features/graph/ui/widgets/inspector/relation_appearance_section.dart
+    description: "Inline row with label, color swatch, micro slider, and value readout."
+    styles:
+      label_width: 75
+      label_font_size: 9.5
+      color_swatch: 14x14 circle
+      slider: "{ track_height: 2, thumb_radius: 5 }"
+
+# =============================================================================
+# SECTION 6: SHARED WIDGETS
+# =============================================================================
+
+shared_widgets:
+
+  - name: CanvasInteractiveViewer
+    path: lib/shared/widgets/canvas_interactive_viewer.dart
+    description: "Forked InteractiveViewer with trackpad focal-point fix. Enables pan and zoom."
+    styles:
+      default_scale: "{ min: 0.8, max: 2.5 }"
+      scale_factor: 200.0
+    behaviors:
+      gestures:
+        - scale_start: Records reference focal point
+        - scale_update: Applies matrix transforms with boundary clamping
+        - scale_end: Friction-based inertia animation
+        - pointer_signal: Mouse wheel zoom
+        - pointer_pan_zoom: Trackpad PanZoom interception
+        - secondary_pan: Right-click drag panning
+      inertial_animation:
+        curve: "decelerate"
+        friction_coefficient: 0.0000135
+
+  - name: ContextMenuOverlay
+    path: lib/shared/widgets/context_menu_overlay.dart
+    description: "Static utility showing context menu at screen position using Overlay."
+    styles:
+      material: "{ elevation: 4, border_radius: 4 }"
+      item_padding: "{ horizontal: 16, vertical: 8 }"
+
+  - name: UnboundedStack
+    path: lib/shared/widgets/unbounded_stack.dart
+    description: "Stack that doesn't clip hit tests to bounds. Essential for pannable canvas."
+    behaviors:
+      hit_testing: Overrides hitTest() to remove bounds check
+
+  - name: UniversalColorPalette
+    path: lib/shared/widgets/color_palette/color_palette.dart
+    description: "Multi-mode color picker: compactPresets, radial, and advanced modes."
+    modes:
+      compactPresets:
+        type: Wrap
+        swatch_size: 28x28
+        shape: circle
+      radial:
+        glass_panel: "{ width: 176, blur: 16, border_radius: 16 }"
+        color_ring: "{ width: 130, height: 130, radius: 48 }"
+      advanced:
+        sections: presets, harmonies, hue_slider, transparency_slider, quick_shuffle
+    styles:
+      presets: 12 curated colors
+      slider_thumb: "{ color: white, radius: 7, elevation: 2 }"
+    behaviors:
+      - Tap swatches to select color
+      - Drag hue/transparency sliders
+      - Dropdown for harmony type
+      - Shuffle button for random colors
+
+  - name: GlassPanel
+    path: lib/shared/widgets/glass_panel/glass_panel.dart
+    description: "Core glassmorphic panel with BackdropFilter blur or liquid-glass shader."
+    parameters:
+      borderRadius: 16.0 (default)
+      blur: 10.0 (default)
+      color: cardColor at alpha 0.85
+      onTap: VoidCallback?
+    styles:
+      performance_mode:
+        gradient: "[color 0.18, color 0.08] top-left to bottom-right"
+        border: "{ color: primary 0.225, width: 0.75 }"
+        inner_shadows:
+          highlight: "{ white, 0.18, offset: (1.2, 1.2), blur: 2.0, style: inner }"
+          shadow: "{ black, 0.10, offset: (-1.2, -1.2), blur: 2.0, style: inner }"
+      quality_mode:
+        fragment_shader: "liquid_glass.frag"
+        refraction: true
+        specular_highlights: true
+
+  - name: GlassStage
+    path: lib/shared/widgets/glass_panel/src/glass_stage.dart
+    description: "Captures background at 25% scale for glass panel backdrop sampling."
+    styles:
+      downsample_scale: 0.25
+      capture_throttle: 33ms
+      warmup_delays: "[100, 400, 1000, 2500]ms"
+
+  - name: GlassGroup
+    path: lib/shared/widgets/glass_panel/src/glass_group.dart
+    description: "Scope for bridge blending between descendant glass panels."
+    styles:
+      max_rects: 4
+    behaviors:
+      - Loads liquid_glass.frag shader
+      - Route animation sync
+      - Scroll position sync
+
+  - name: GlassSettings
+    path: lib/shared/widgets/glass_panel/src/glass_settings.dart
+    description: "Immutable configuration for liquid-glass shader effect."
+    defaults:
+      blend_px: 14.0
+      refract_strength: 0.08
+      distort_falloff_px: 45.0
+      blur_radius_px: 7.0
+      spec_angle: 4.0
+      spec_strength: 2.0
+      lightband_strength: 0.9
+      bridge_reach_factor: 2.0
+      aa_px: 1.5
+
+  - name: ColorUtils
+    path: lib/shared/utils/color_utils.dart
+    description: "Utility for color luminance and contrast calculations."
+    methods:
+      isDark: Returns true if luminance < 0.5
+      getContrastTextColor: Returns high-contrast text color for background
+      getContrastStrokeColor: Returns contrast stroke color for background
+
+  - name: ColorHarmonyGenerator
+    path: lib/shared/utils/color_harmony_generator.dart
+    description: "Generates color harmony palettes from base color."
+    methods:
+      generateMonochromatic: 5 colors, same hue, varying saturation/value
+      generateAnalogous: 5 colors, hue shifted ±30°
+      generateComplementary: 4 colors, base + 180° complement
+      generateTriadic: 3 colors, base + 120° + 240°
+
+# =============================================================================
+# SECTION 7: PRESENTATION WIDGETS
+# =============================================================================
+
+presentation_widgets:
+
+  # ---------------------------------------------------------------------------
+  # Base Interactive Wrapper
+  # ---------------------------------------------------------------------------
+  - name: HoverScaleButton
+    path: lib/presentation/widgets/hover_scale_button.dart
+    description: "Base interactive wrapper used by all buttons. Encapsulates hover detection via MouseRegion, animated scaling via AnimatedScale, tap feedback via Material+InkWell, optional tooltip."
+    internal_structure:
+      wrapping: "MouseRegion > AnimatedScale > Material(color: transparent) > InkWell"
+      tooltip: optional, wraps outermost
+    parameters:
+      hoverScale: "{ type: double, default: 1.05 }"
+      pressScale: "{ type: double, default: 0.95 }"
+      duration: "{ type: Duration, default: 100ms }"
+      borderRadius: "{ type: BorderRadius, default: \"BorderRadius.circular(10)\" }"
+      isEnabled: "{ type: bool, default: true }"
+      tooltip: "{ type: String?, default: null }"
+    styles:
+      material_color: transparent
+      inkwell_border_radius: "inherited from borderRadius param, default 10"
+    states:
+      idle:
+        scale: 1.0
+      hovered:
+        scale: "hoverScale (default 1.05)"
+        requires: [isEnabled, onTap]
+      pressed:
+        scale: "pressScale (default 0.95)"
+        requires: [isEnabled, onTap]
+      disabled:
+        scale: 1.0
+        inkwell_tap: null (disabled)
+    animations:
+      scale: "{ duration: \"inherited (default 100ms)\", curve: default }"
+
+  # ---------------------------------------------------------------------------
+  # Window Control Buttons
+  # ---------------------------------------------------------------------------
+  - name: WindowControlButtons
+    path: lib/presentation/widgets/window_title_bar.dart
+    description: "Row of three window control buttons (minimize, maximize/restore, close). Each uses HoverScaleButton with hoverScale=1.0, pressScale=1.0 (no scale effect). Tracks window maximize state via WindowListener."
+    layout:
+      type: "Padding(padding: EdgeInsets.only(right: 8)) > Row(mainAxisSize: min)"
+      children: [minimize, SizedBox(4), maximize, SizedBox(4), close]
+    button_implementation:
+      uses: HoverScaleButton
+      hoverScale: 1.0
+      pressScale: 1.0
+      borderRadius: "BorderRadius.circular(8)"
+      builder_returns: AnimatedContainer
+    styles:
+      button_dimensions:
+        width: 32
+        height: 32
+        borderRadius: 8
+      icon:
+        size: 16
+        color_default: "theme.iconTheme.color?.withValues(alpha: 0.8)"
+        color_close_hovered: Colors.white
+      background:
+        dark_mode:
+          default: "Colors.white.withValues(alpha: 0.08)"
+          hovered_normal: "Colors.white.withValues(alpha: 0.16)"
+          hovered_close: "Colors.red.withValues(alpha: 0.85)"
+        light_mode:
+          default: "Colors.black.withValues(alpha: 0.06)"
+          hovered_normal: "Colors.black.withValues(alpha: 0.12)"
+          hovered_close: "Colors.red.withValues(alpha: 0.85)"
+    animations:
+      background_transition:
+        type: AnimatedContainer
+        duration: 150ms
+        property: decoration (color interpolation)
+    behaviors:
+      minimize: windowManager.minimize()
+      maximizeToggle: windowManager.maximize() / windowManager.unmaximize()
+      close: windowManager.close()
+      state_tracking: WindowListener for onWindowMaximize / onWindowUnmaximize
+
+  # ---------------------------------------------------------------------------
+  # Menu Bar (hover-expandable)
+  # ---------------------------------------------------------------------------
+  - name: HoverExpandableMenuBar
+    path: lib/presentation/widgets/window_title_bar.dart
+    description: "Menu bar that starts as hamburger icon (menu_rounded, size 18, alpha 0.7) and expands into full MenuBar on mouse hover. Collapses after 300ms delay on mouse exit. Uses AnimatedCrossFade 200ms for expand/collapse transition."
+    layout:
+      collapsed: "Container(padding: 4) > Icon(menu_rounded, size: 18, color: bodyMedium.color alpha 0.7)"
+      expanded: "SizedBox(height: 32) > Theme > MenuBar > SubmenuButton[]"
+    menu_bar_style:
+      backgroundColor: Colors.transparent
+      elevation: 0
+      padding: EdgeInsets.zero
+      hover_color_override: "theme.colorScheme.primary.withValues(alpha: 0.1)"
+    submenu_button_style:
+      minimumSize: Size.zero
+      padding: "EdgeInsets.only(left: 10, right: 10, top: 8, bottom: 12)"
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap
+      shape: "R RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))"
+    menu_items:
+      - label: "File"
+        children:
+          - { label: "Force Sync Save", icon: "save_outlined(size: 16)" }
+      - label: "View"
+        children:
+          - { label: "Toggle Left Sidebar", icon: "menu_open_rounded(size: 16)" }
+          - { label: "Toggle Right Inspector", icon: "chrome_reader_mode_outlined(size: 16)" }
+          - { label: "Toggle Status Bar", icon: "call_to_action_outlined(size: 16)" }
+      - label: "Window"
+        children:
+          - { label: "Toggle Maximize", icon: "crop_square_rounded(size: 16)" }
+          - { label: "Minimize Window", icon: "minimize_rounded(size: 16)" }
+      - label: "Help"
+        children:
+          - { label: "About Centrode", icon: "info_outline(size: 16)" }
+    animations:
+      expand_collapse:
+        type: AnimatedCrossFade
+        duration: 200ms
+        crossFadeState: showFirst (collapsed) / showSecond (expanded)
+    behaviors:
+      open_trigger: MouseRegion.onEnter
+      close_delayed: MouseRegion.onExit -> 300ms Timer -> setState close
+      close_immediate: TapRegion.onTapOutside
+      lifecycle: dispose() cancels _closeTimer
+
+  # ---------------------------------------------------------------------------
+  # Panel Toggle IconButton (in title bar)
+  # ---------------------------------------------------------------------------
+  - name: PanelToggleButton
+    path: lib/presentation/widgets/window_title_bar.dart
+    description: "IconButton used for toggling left/right/bottom panels in the workspace title bar."
+    styles:
+      icon_size: 18
+      splash_radius: 18
+      padding: "EdgeInsets.all(6)"
+      constraints: BoxConstraints() (zero min)
+      icon_color_active: "theme.colorScheme.primary"
+      icon_color_inactive: "theme.hintColor.withValues(alpha: 0.6)"
+    behaviors:
+      - ValueListenableBuilder binding to session.showLeftPanel / showRightPanel / showBottomPanel
+      - Toggle ValueNotifier value on tap
+
+  # ---------------------------------------------------------------------------
+  # Logo / Home Button
+  # ---------------------------------------------------------------------------
+  - name: LogoHomeButton
+    path: lib/presentation/widgets/window_title_bar.dart
+    description: "TextButton with home polygon icon and CENTRODE text, both masked by a gradient ShaderMask."
+    styles:
+      padding: "{ horizontal: 6, vertical: 3 }"
+      shape: "RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))"
+      shader_gradient:
+        colors: "[\"theme.colorScheme.primary\", \"primary.withValues(alpha: 0.7)\"]"
+        direction: linear
+      polygon:
+        size: "Size(18, 20)"
+        fill: Colors.white (masked by shader)
+        path: "top-right -> left at 45% height -> inner left at 35% width -> bottom -> close"
+      text:
+        content: "CENTRODE"
+        fontWeight: FontWeight.w900
+        fontSize: 18
+        color: Colors.white (masked by shader)
+    behaviors:
+      onTap: Navigator.of(context).pop()
+
+  # ---------------------------------------------------------------------------
+  # History Badge Button (undo/redo)
+  # ---------------------------------------------------------------------------
+  - name: HistoryBadgeButton
+    path: lib/presentation/widgets/window_title_bar.dart
+    description: "Icon button with numeric badge overlay for undo/redo history counts. Uses Tooltip > MouseRegion > InkWell > AnimatedContainer > Stack."
+    layout:
+      type: "Tooltip > MouseRegion > InkWell(borderRadius: 6) > AnimatedContainer > Stack"
+      stack_children:
+        - AnimatedScale > Icon
+        - "Positioned(top: -6, right: -6): Badge (conditional on count > 0)"
+    styles:
+      icon:
+        size: 18
+        color_disabled: "textColor.withValues(alpha: 0.25)"
+        color_enabled_default: "textColor.withValues(alpha: 0.85)"
+        color_enabled_hovered: "theme.colorScheme.primary"
+      hover_background:
+        gradient:
+          colors: "[\"primary.withValues(alpha: 0.18)\", \"primary.withValues(alpha: 0.08)\"]"
+          begin: Alignment.topLeft
+          end: Alignment.bottomRight
+        border: "{ color: \"primary.withValues(alpha: 0.3)\", width: 1.0 }"
+        border_radius: 6
+      badge:
+        padding: "{ horizontal: 4, vertical: 1 }"
+        borderRadius: 10
+        background: "theme.colorScheme.primary.withValues(alpha: 0.8)"
+        border: "{ color: \"onPrimary.withValues(alpha: 0.4)\", width: 0.8 }"
+        constraints: "{ minWidth: 12, minHeight: 12 }"
+        text: "{ fontSize: 8, fontWeight: bold, color: onPrimary }"
+        shadow: "{ color: black 0.15, blurRadius: 2, offset: (0, 1) }"
+    animations:
+      icon_scale:
+        type: AnimatedScale
+        hovered: 1.08
+        normal: 1.0
+        duration: 150ms
+      badge_appear:
+        type: AnimatedScale
+        visible: "1.0 / hidden: 0.0"
+        duration: 200ms
+        curve: easeOutBack
+      badge_opacity:
+        type: AnimatedOpacity
+        visible: "1.0 / hidden: 0.0"
+        duration: 150ms
+      badge_text:
+        type: AnimatedSwitcher
+        duration: 200ms
+        transition: FadeTransition + ScaleTransition composite
+
+  # ---------------------------------------------------------------------------
+  # Undo/Redo Container
+  # ---------------------------------------------------------------------------
+  - name: UndoRedoButtons
+    path: lib/presentation/widgets/window_title_bar.dart
+    description: "Composite widget wrapping HistoryBadgeButtons with undo/redo counts. Supports horizontal (Row) and vertical (Column) layout modes."
+    styles:
+      horizontal_mode:
+        padding: "{ horizontal: 4, vertical: 2 }"
+        background: "Colors.black.withValues(alpha: 0.12)"
+        borderRadius: 10
+        border: "{ color: \"dividerColor.withValues(alpha: 0.15)\", width: 0.8 }"
+        children_spacing: 4
+      vertical_mode:
+        padding: "{ horizontal: 3, vertical: 6 }"
+        background: "Colors.black.withValues(alpha: 0.25)"
+        borderRadius: 12
+        border: "{ color: \"dividerColor.withValues(alpha: 0.2)\", width: 0.8 }"
+        children_spacing: 6
+      history_icon:
+        size: 18
+        padding: 4
+        hoverScale: 1.05
+        pressScale: 0.95
+        borderRadius: 6
+
+  # ---------------------------------------------------------------------------
+  # Segmented Control (tool/view selector)
+  # ---------------------------------------------------------------------------
+  - name: GlassSlidingSegmentedControl
+    path: lib/features/graph/ui/widgets/overlays/canvas_tool_ribbon.dart
+    description: "Segmented control with animated sliding glass thumb. Uses Listener for pointer drag across segments."
+    layout:
+      type: "Listener > Container(padding: 2) > Stack"
+      item_width: "{ compact: 34, expanded: 88 }"
+      item_height: 28
+    styles:
+      container:
+        background: "Colors.black.withValues(alpha: 0.15)"
+        borderRadius: 12
+        border: "{ color: \"dividerColor.withValues(alpha: 0.08)\", width: 0.8 }"
+        padding: 2
+      thumb:
+        borderRadius: 10
+        gradient:
+          normal:
+            colors: "[\"primaryColor.withValues(alpha: 0.35)\", \"primaryColor.withValues(alpha: 0.16)\"]"
+            begin: Alignment.topLeft
+            end: Alignment.bottomRight
+          pressed:
+            colors: "[\"primaryColor.withValues(alpha: 0.50)\", \"primaryColor.withValues(alpha: 0.28)\"]"
+        border:
+          normal: "{ color: \"primaryColor.withValues(alpha: 0.55)\", width: 1.2 }"
+          pressed: "{ color: \"primaryColor.withValues(alpha: 0.85)\", width: 1.2 }"
+        shadow:
+          normal: "{ color: \"primaryColor.withValues(alpha: 0.25)\", blur: 10, spread: -1, offset: (0, 2) }"
+          pressed: "{ color: \"primaryColor.withValues(alpha: 0.45)\", blur: 16, spread: 1, offset: (0, 2) }"
+      icon_size: 16
+      label_font_size: 11
+      label_active_weight: bold
+      label_inactive_weight: w500
+      label_inactive_alpha: 0.75
+      accent_badge:
+        padding: "{ horizontal: 3, vertical: 1 }"
+        background: primaryColor
+        borderRadius: 5
+        text: "{ fontSize: 7, fontWeight: w900, color: black }"
+    animations:
+      thumb_slide:
+        type: AnimatedPositioned
+        duration: 200ms
+        curve: easeOutCubic
+      thumb_scale:
+        type: AnimatedScale
+        pressed: 1.14
+        normal: 1.0
+        duration: 150ms
+        curve: easeOutBack
+    behaviors:
+      - Pointer drag across segments switches selection
+      - Press state affects thumb size, gradient intensity, border alpha, shadow intensity
+
+  # ---------------------------------------------------------------------------
+  # Ribbon Capsule (track container)
+  # ---------------------------------------------------------------------------
+  - name: RibbonCapsule
+    path: lib/features/graph/ui/widgets/overlays/canvas_tool_ribbon.dart
+    description: "Container wrapping a group of segmented control items. Shows vertical rotated label when expanded."
+    styles:
+      padding: "{ horizontal: 4, vertical: 3 }"
+      background: "Colors.black.withValues(alpha: 0.12)"
+      borderRadius: 14
+      border: "{ color: \"dividerColor.withValues(alpha: 0.08)\", width: 0.8 }"
+      label:
+        rotation: "90 degrees (quarterTurns: 3)"
+        fontSize: 8
+        fontWeight: w900
+        letterSpacing: 1.0
+        color: "primaryColor.withValues(alpha: 0.85)"
+        padding: "{ left: 3, right: 3 }"
+      divider:
+        width: 1
+        height: 18
+        margin_right: 4
+        color: "dividerColor.withValues(alpha: 0.15)"
+
+  # ---------------------------------------------------------------------------
+  # Glass Divider (ribbon separator)
+  # ---------------------------------------------------------------------------
+  - name: GlassDivider
+    path: lib/features/graph/ui/widgets/overlays/canvas_tool_ribbon.dart
+    description: "Vertical gradient divider between ribbon tracks."
+    styles:
+      width: 1.2
+      height: 26
+      margin: "{ horizontal: 3 }"
+      gradient:
+        direction: top to bottom
+        colors:
+          - "dividerColor.withValues(alpha: 0.0)"
+          - "dividerColor.withValues(alpha: 0.35)"
+          - "dividerColor.withValues(alpha: 0.0)"
+
+  # ---------------------------------------------------------------------------
+  # Canvas Tab Bar
+  # ---------------------------------------------------------------------------
+  - name: CanvasTabBar
+    path: lib/features/graph/ui/widgets/overlays/canvas_tab_bar.dart
+    description: "Horizontal tab bar for switching workspace maps. Each tab is a GlassPanel inside HoverScaleButton."
+    layout:
+      type: GlassGroup > Row
+      children: [Flexible(SingleChildScrollView > Row of _TabItems), SizedBox(4), _AddTabButton]
+    tab_item:
+      uses: "HoverScaleButton(hoverScale: 1.04, pressScale: 0.96, borderRadius: 10)"
+      glass_panel:
+        borderRadius: 10
+        color:
+          active: "theme.cardColor.withValues(alpha: 0.72)"
+          inactive: "theme.cardColor.withValues(alpha: 0.45)"
+          hovered: "theme.cardColor.withValues(alpha: 0.60)"
+        shadow:
+          active: "{ color: \"primaryColor.withValues(alpha: 0.08)\", blur: 8, offset: (0, 2) }"
+          inactive: null
+      content:
+        padding: "{ horizontal: 12, vertical: 6 }"
+        icon: "{ size: 14, icon: insert_drive_file_outlined }"
+        text: "{ fontSize: 12 }"
+        close_icon: "{ size: 14, icon: close_rounded }"
+      icon_colors:
+        active_icon: onSurface
+        inactive_icon: "onSurface.withValues(alpha: 0.6)"
+        hovered_icon: primaryColor
+      text_colors:
+        active: onSurface
+        inactive: "onSurface.withValues(alpha: 0.6)"
+        hovered: primaryColor
+      text_weight:
+        active: w600
+        inactive: normal
+    add_button:
+      uses: "HoverScaleButton(hoverScale: 1.05, pressScale: 0.95, borderRadius: 10)"
+      glass_panel:
+        borderRadius: 10
+        color:
+          default: "theme.cardColor.withValues(alpha: 0.45)"
+          hovered: "theme.cardColor.withValues(alpha: 0.68)"
+        shadow:
+          hovered: "{ color: \"primaryColor.withValues(alpha: 0.08)\", blur: 4, offset: (0, 1) }"
+      icon: "{ size: 14, icon: add_rounded }"
+      icon_colors:
+        hovered: primaryColor
+        default: "onSurface.withValues(alpha: 0.7)"
+      padding: 7
+
+  # ---------------------------------------------------------------------------
+  # Context Menu
+  # ---------------------------------------------------------------------------
+  - name: ContextMenuOverlay
+    path: lib/shared/widgets/context_menu_overlay.dart
+    description: "Static utility that shows a context menu at screen position using OverlayEntry. Menu items in Material with elevation."
+    layout:
+      type: OverlayEntry > GestureDetector(translucent) > Stack
+      positioning: "Positioned(left: position.dx, top: position.dy)"
+      menu: "Material > Column(mainAxisSize: min) > _ContextMenuItemWidget[]"
+      background: SizedBox.expand() for dismiss tap
+    styles:
+      material:
+        elevation: 4
+        borderRadius: "BorderRadius.circular(4)"
+      item_widget:
+        padding: "{ horizontal: 16, vertical: 8 }"
+        inkwell_border_radius: "BorderRadius.circular(4)"
+        text_style: default theme text style
+    behaviors:
+      dismiss: tap outside (GestureDetector.onTap)
+      item_tap: executes item.onTap, then dismisses
+      visibility: only items with visible=true shown
+
+  # ---------------------------------------------------------------------------
+  # Left Repository Panel
+  # ---------------------------------------------------------------------------
+  - name: LeftRepositoryPanel
+    path: lib/presentation/widgets/left_repository_panel.dart
+    description: "Fixed left-side panel container wrapping content in GlassPanel with bold uppercase title header."
+    layout:
+      type: "GlassPanel(padding: EdgeInsets.zero, blur: 12.0, borderRadius: 16.0) > Column"
+      children:
+        - "Padding(left: 16, top: 16, bottom: 8) > Text(title)"
+        - Flexible > child
+    styles:
+      title:
+        fontWeight: bold
+        letterSpacing: 1.2
+        fontSize: 13
+        color: "theme.colorScheme.onSurface"
+
+  # ---------------------------------------------------------------------------
+  # Simple Window Title Bar
+  # ---------------------------------------------------------------------------
+  - name: SimpleWindowTitleBar
+    path: lib/presentation/widgets/window_title_bar.dart
+    description: "Minimal custom window title bar for non-workspace screens. Desktop only."
+    styles:
+      height: 38
+      background: "theme.colorScheme.surface"
+      brand_name: "{ fontSize: 12, fontWeight: w800, letterSpacing: 1.5, color: bodyMedium.color }"
+      subtitle: "{ text: \"  Workspace Hub\", fontSize: 12, fontWeight: w400, letterSpacing: 0.5, color: bodySmall.color }"
+    behaviors:
+      - Entire bar is DragToMoveArea
+      - WindowControlButtons positioned right
+
+  # ---------------------------------------------------------------------------
+  # Workspace Title Bar
+  # ---------------------------------------------------------------------------
+  - name: WorkspaceWindowTitleBar
+    path: lib/presentation/widgets/window_title_bar.dart
+    description: "Full-featured workspace title bar. GlassPanel with borderRadius 0, blur 16, cardColor alpha 0.65."
+    styles:
+      glass_panel:
+        borderRadius: 0
+        blur: 16.0
+        color: "theme.cardColor.withValues(alpha: 0.65)"
+        height: 40
+        shadow: "{ color: \"dividerColor.withValues(alpha: 0.2)\", blur: 0, offset: (0, 1) }"
+      vertical_divider:
+        width: 1
+        height: 20
+        color: "dividerColor.withValues(alpha: 0.2)"
+    behaviors:
+      - SearchCommandPalette centered
+      - UndoRedoButtons translate offset based on search focus (-172 vs -262)
+
+  # ---------------------------------------------------------------------------
+  # Search Command Palette
+  # ---------------------------------------------------------------------------
+  - name: SearchCommandPalette
+    path: lib/presentation/widgets/search/search_command_palette.dart
+    description: "Command palette with animated width expansion, glass styling, overlay dropdown, keyboard navigation."
+    styles:
+      collapsed_width: 240.0
+      expanded_width: 420.0
+      height: 28
+      glass_collapsed:
+        borderRadius: 8
+        blur: 10.0
+        color: "onSurface.withValues(alpha: 0.06)"
+        shadow: null
+      glass_expanded:
+        borderRadius: 8
+        blur: 10.0
+        color: "theme.cardColor.withValues(alpha: 0.85)"
+        shadow: "{ color: \"primary.withValues(alpha: 0.2)\", blur: 8, spread: 1 }"
+      search_icon:
+        size: 14
+        color_focused: primary
+        color_unfocused: "iconTheme.color.withValues(alpha: 0.4)"
+      text_field:
+        style: "{ fontSize: 12 }"
+        hint: "Search ('>' cmd, '#' tag, '?' db)..."
+        hint_style: "{ color: \"hintColor.withValues(alpha: 0.7)\", fontSize: 12 }"
+        border: InputBorder.none
+    animations:
+      width:
+        duration: 250ms
+        curve_focused: fastOutSlowIn
+        curve_unfocused: easeOutCubic
+    behaviors:
+      - Debounced search 150ms
+      - Keyboard: arrow_down/up, enter, escape
+      - Overlay show/hide on focus
+
+  # ---------------------------------------------------------------------------
+  # Search Overlay
+  # ---------------------------------------------------------------------------
+  - name: SearchOverlayWidget
+    path: lib/presentation/widgets/search/search_overlay_widget.dart
+    description: "Dropdown overlay showing search results. Standard items, relation headers with verb badges, relation items with from->verb->to previews."
+    styles:
+      glass:
+        borderRadius: 12
+        blur: 12
+        color: "cardColor.withValues(alpha: 0.92)"
+        shadow: "{ color: black 0.18, blur: 16, offset: (0, 4) }"
+      result_item:
+        padding: "{ horizontal: 14, vertical: 8 }"
+        icon_size: 18
+        icon_color_default: "iconTheme.color.withValues(alpha: 0.7)"
+        icon_color_selected: primary
+        selected_background: "primary.withValues(alpha: 0.15)"
+      relation_header:
+        padding: "{ left: 14, right: 14, top: 14, bottom: 8 }"
+        verb_badge:
+          padding: "{ horizontal: 8, vertical: 3 }"
+          borderRadius: 6
+          background: "verbColor.withValues(alpha: 0.1)"
+          border: "{ color: \"verbColor.withValues(alpha: 0.4)\", width: 1 }"
+      relation_item:
+        padding: "{ left: 28, right: 14, top: 8, bottom: 8 }"
+        icon_size: 14
+
+  # ---------------------------------------------------------------------------
+  # Searchable Sorted List Header
+  # ---------------------------------------------------------------------------
+  - name: SearchableSortedListHeader
+    path: lib/presentation/widgets/search/searchable_sort_list_header.dart
+    description: "Generic header for searchable, sortable lists with search field and sort PopupMenuButton."
+    styles:
+      search_field:
+        height: 32
+        fontSize: 12
+        fillColor: "Colors.black.withValues(alpha: 0.15)"
+        borderRadius: 8
+        border: "OutlineInputBorder(borderRadius: 8, borderSide: none)"
+        prefix_icon: "{ size: 14, color: \"onSurface.withValues(alpha: 0.5)\" }"
+      sort_button:
+        icon_size: 16
+        icon_color: "onSurface.withValues(alpha: 0.6)"
+      sort_menu:
+        borderRadius: 8
+        elevation: 6
+        color: "cardColor.withValues(alpha: 0.95)"
+        border: "{ color: \"dividerColor.withValues(alpha: 0.15)\", width: 1 }"
+        animation: noAnimation
+
+# =============================================================================
+# SECTION 8: WORKSPACE UI COMPONENTS
+# =============================================================================
+
+workspace_components:
+
+  - name: WorkspaceHubScreen
+    path: lib/features/workspace/ui/workspace_hub_screen.dart
+    description: "Root screen for workspace hub with left panel, main content, drag-to-move title bar, window controls."
+    styles:
+      scaffoldBackgroundColor: "#000000"
+    layout:
+      desktop: Row [LeftPanel(200px) + MainContentArea]
+      android: Full-width content with drawer
+    behaviors:
+      - Platform detection for layout
+      - Drag-to-move area on desktop
+
+  - name: LiquidGlassDemo
+    path: lib/features/workspace/ui/liquid_glass_test_screen.dart
+    description: "Interactive demo for liquid glass shader with draggable panels and control sliders."
+    styles:
+      glassPanels:
+        - { name: "Amber Glass", width: 250, height: 80, borderRadius: 40, color: amber 100 }
+        - { name: "Green ECO", width: 100, height: 100, borderRadius: 50, color: lightGreen 200 }
+        - { name: "Tall Icons", width: 80, height: 120, borderRadius: 20 }
+        - { name: "Dark Circle", width: 60, height: 60, borderRadius: 30, color: black 150 }
+    behaviors:
+      - Drag panels within constraints
+      - Slider controls for shader parameters
+
+  - name: LeftPanel
+    path: lib/features/workspace/ui/widgets/left_panel/left_panel.dart
+    description: "Fixed-width left sidebar with rounded right corners and Material background."
+    styles:
+      width: 200
+      borderRadius: "{ topRight: 16, bottomRight: 16 }"
+      borderRight: dividerColor 0.2
+
+  - name: MainContentArea
+    path: lib/features/workspace/ui/widgets/main_content/main_content_area.dart
+    description: "Main content area with title bar, scrollable MapsSection, and AnalyticsBox."
+    styles:
+      title_bar: "{ height: 48 }"
+      brand_text: "\"CENTRODE\" { fontSize: 12, fontWeight: w800, letterSpacing: 1.5 }"
+
+  - name: QuickActionsSection
+    path: lib/features/workspace/ui/widgets/left_panel/quick_actions_section.dart
+    description: "Left panel with Return to Map, Open/Import tiles, and New Map button."
+    styles:
+      return_button:
+        padding: "{ vertical: 10, horizontal: 12 }"
+        borderRadius: 10
+        enabledHover: primaryColor 0.18
+      new_map_button: "{ size: 48x48, borderRadius: 8 }"
+
+  - name: SectionHeader
+    path: lib/features/workspace/ui/widgets/shared/section_header.dart
+    description: "Section header with uppercase title and optional selection toolbar."
+    styles:
+      title: "{ fontWeight: w600, letterSpacing: 1.5 }"
+      action_button: "{ padding: { horizontal: 8, vertical: 2 }, borderRadius: 4 }"
+
+  - name: HorizontalScrollRow
+    path: lib/features/workspace/ui/widgets/shared/horizontal_scroll_row.dart
+    description: "Horizontal scrolling row of equally-sized cards."
+    styles:
+      rowHeight: 160
+      itemWidth: 180
+      itemSpacing: 12
+
+  - name: WindowControlButtons (workspace)
+    path: lib/features/workspace/ui/widgets/window_controls.dart
+    description: "Window control buttons with hover state animation."
+    styles:
+      button: "{ width: 32, height: 32, borderRadius: 8 }"
+      defaultBackground: white 0.08
+      hoveredBackground: white 0.16
+      closeHoveredBackground: red 0.85
+
+# =============================================================================
+# SECTION 9: DRAWING & TAG COMPONENTS
+# =============================================================================
+
+drawing_tag_components:
+
+  - name: GlobalDrawingPanel
+    path: lib/features/graph/ui/widgets/drawing_manager/global_drawing_panel.dart
+    description: "Left panel for brush settings: type selection, color palette, and thickness picker."
+    styles:
+      brush_type_item:
+        padding: "{ horizontal: 12, vertical: 8 }"
+        border_radius: 8
+        active_background: primary 0.15
+        icon_size: 16
+      thickness_option: "{ container: 20x20 circle }"
+    brush_types:
+      - pen (edit_rounded)
+      - highlighter (highlight_rounded)
+      - line (linear_scale_rounded)
+    thicknesses: [2.0, 4.0, 8.0, 12.0, 16.0]
+    color_presets:
+      - 0xFF00E5FF (cyan)
+      - 0xFFD500F9 (purple)
+      - 0xFFFF6D00 (orange)
+      - 0xFFFFD600 (yellow)
+      - 0xFFFFFFFF (white)
+      - 0xFF818CF8 (indigo)
+      - 0xFF34D399 (green)
+      - 0xFFFBBF24 (amber)
+
+  - name: GlobalTagsManagerPanel
+    path: lib/features/graph/ui/widgets/tag_manager/global_tags_manager_panel.dart
+    description: "Left panel wrapper for global tags management."
+    layout:
+      type: "LeftRepositoryPanel(title: \"GLOBAL TAGS\")"
+
+  - name: GlobalTemplatesManagerPanel
+    path: lib/features/graph/ui/widgets/template_manager/global_templates_manager_panel.dart
+    description: "Left panel wrapper for global templates management."
+    layout:
+      type: "LeftRepositoryPanel(title: \"TEMPLATES\")"
+
+  - name: TagColorPickerPanel
+    path: lib/features/graph/ui/widgets/tag_manager/tag_color_picker_panel.dart
+    description: "Radial color picker for tag colors."
+    layout:
+      type: "UniversalColorPalette(mode: radial, showAlpha: false)"
+
+  - name: TemplatePreviewPainter
+    path: lib/features/graph/ui/widgets/template_manager/template_preview_painter.dart
+    description: "CustomPainter rendering mini preview of template nodes and relations."
+    styles:
+      scale: min(targetScale, 0.4)
+      relation_line: "{ color: white 0.3, strokeWidth: 1.2 }"
+      node_border: "{ color: white 0.2, strokeWidth: 0.6 }"
+
+# =============================================================================
+# SECTION 10: CONFIGURATION CONSTANTS
+# =============================================================================
+
+app_config:
+  grid:
+    base_size: 20.0
+    dot_radius: 1.5
+
+  canvas:
+    boundary_margin: 2000.0
+    min_scale: 0.2
+    max_scale: 3.0
+    scale_factor: 1000.0
+
+  interaction:
+    double_tap_ms: 300
+    snap_distance: 40.0
+    resize_edge_width: 15.0
+    relation_tip_hit_distance: 24.0
+
+  node:
+    default_width: 80.0
+    min_width: 60.0
+    max_width: 640.0
+    collapsed_line_limit: 3
+    default_size: "{ width: 100, height: 80 }"
+    default_font_size: 14.0
+    metadata_preview_width: 220.0
+    metadata_preview_blur: 8.0
+
+  port:
+    edge_offset: 8.0
+    hit_radius: 16.0
+    draw_radius: 3.0
+
+  relation:
+    stroke_width: 3.0
+    selected_stroke_width: 4.0
+    label_font_size: 10.0
+
+  visuals:
+    hover_accent: 0xFF90CAF9
+    selection_accent: 0xFF42A5F5
+    default_font: "Inter"
+    default_shape: "rectangle"
+    available_fonts: ["System", "Inter", "Roboto", "Consolas"]
+
+  liquid_glass:
+    refract_strength: 0.16
+    bridge_reach_factor: 2.0
+    bridge_thickness_factor: 0.4
+    use_local_coordinates: true
+
+# =============================================================================
+# SECTION 11: GLOBAL STYLES SUMMARY
+# =============================================================================
+
+global_styles:
+
+  glassmorphism_system:
+    description: "All panels use GlassPanel with BackdropFilter blur, gradient overlay, dual inner shadows"
+    default_blur: 10.0
+    default_border_radius: 16.0
+    default_color: cardColor at alpha 0.85
+    gradient: "[color 0.18, color 0.08] top-left to bottom-right"
+    inner_highlight: white 0.18, offset (1.2, 1.2)
+    inner_shadow: black 0.10, offset (-1.2, -1.2)
+    border: primary at alpha 0.225, width 0.75
+
+  animation_durations:
+    micro_interaction: 100ms
+    hover_scale: 100ms
+    container_transition: 150ms
+    menu_expand: 200ms
+    width_expand: 250ms
+    badge_appear: 200ms
+    theme_transition: 400ms
+    search_debounce: 150ms
+
+  typography_scale:
+    window_title_brand: 18px w900
+    window_title_subtitle: 12px w400
+    panel_title: "13px w700 ls:1.2"
+    menu_label: 12px
+    body: 14px w400
+    search_input: 12px
+    badge_count: 8px w700
+    node_preview: 10px w600
+
+  spacing_system:
+    panel_title_padding: "{ left: 16, top: 16, bottom: 8 }"
+    button_padding_standard: 6 all
+    section_gap_xs: 4
+    section_gap_sm: 6
+    section_gap_md: 8
+    section_gap_lg: 12
+
+  responsive:
+    strategy: "none — uses MediaQuery dynamically"
+    canvas_scale: "{ min: 0.2, max: 3.0 }"
+    panel_velocity_threshold: 300 dp/s

@@ -1,0 +1,113 @@
+# Domain Types
+
+> Last verified: 2026-08-16
+> Tier: 3 (Domain)
+
+---
+
+## Overview
+
+The domain module defines all core data types shared between Dart and Rust via FRB bindings.
+
+---
+
+## Node Types
+
+All node types are variants of the `Nodes` enum (`domain/nodes.rs`):
+
+```rust
+pub enum Nodes {
+    INode(INode),
+    TaskNode(TaskNode),
+    CommentNode(CommentNode),
+    DrawingNode(DrawingNode),
+    ShapeNode(ShapeNode),
+    FrameNode(FrameNode),
+    ContainerNode(ContainerNode),
+    MediaNode(MediaNode),
+    InterNode(InterNode),
+}
+```
+
+Each implements the `IsNode` trait:
+```rust
+pub trait IsNode {
+    fn id(&self) -> &TypedRecordId;
+    fn position(&self) -> &Coordinates;
+    fn layer(&self) -> &str;
+    fn table_name(&self) -> &'static str;
+    fn serialize_node(self) -> Value;
+    // ... setters for mutable fields
+}
+```
+
+### Node Enums
+
+| Enum | Values |
+|------|--------|
+| `TaskState` | `Todo`, `InProgress`, `Done`, `Blocked`, `Cancelled` |
+| `ShapeType` | `Rectangle`, `Circle`, `Diamond`, `Triangle`, `Star`, `Pill` |
+| `BrushType` | `Pencil`, `Highlighter`, `Eraser`, `Calligraphy` |
+| `MediaType` | `Image`, `Video`, `Audio`, `Pdf` |
+
+---
+
+## Relations
+
+`IRelation` (`domain/relations.rs`) represents connections between nodes:
+- `from` / `to`: `TypedRecordId` references
+- `style`: `RelationStyle`
+- `layout`: `RelationLayout`
+
+---
+
+## Patches
+
+`SymmetricEntityPatch` (`domain/patches.rs`) is the undo/redo primitive:
+- Stores before/after state for each field change
+- Same patch format applies forward (undo) and backward (redo)
+- Stored in the `History` table in SurrealDB
+
+---
+
+## Styles
+
+### NodeStyle (`domain/styles.rs`)
+
+Visual properties for nodes:
+- `bg_color`, `stroke_color`, `text_color` (ARGB int)
+- `stroke_width`, `border_radius`, `padding` (float)
+- `font_family` (string), `font_size` (float)
+- `shape` (string — node shape type)
+- `width`, `height` (int)
+- Shadow properties: `shadow_color`, `shadow_blur`, `shadow_spread`, `shadow_offset_x/y`
+- `strategy_type` (string — rendering strategy)
+
+### RelationStyle
+
+Visual properties for relations:
+- `stroke_color`, `stroke_width`
+- `endpoint_shape` (arrow, diamond, etc.)
+- `stroke_dash` (dashed line pattern)
+
+### PortSide
+
+Enum for connection port positions: `Top`, `Right`, `Bottom`, `Left`.
+
+---
+
+## Other Types
+
+| Type | File | Description |
+|------|------|-------------|
+| `TypedRecordId` | `id.rs` | SurrealDB record ID with table prefix |
+| `Coordinates` | `base_models.rs` | x/y position |
+| `BoundingBox` | `base_models.rs` | Bounding rectangle |
+| `ViewportState` | `base_models.rs` | Pan/zoom state |
+| `Content` | `contents.rs` | Rich text (markdown blocks) |
+| `Tag` | `tags.rs` | Tag definition (key, color, name) |
+| `Template` | `templates.rs` | Node group template |
+| `MapTheme` | `theme.rs` | Map-specific theme |
+| `GraphSnapshot` | `snapshot.rs` | Full graph export |
+| `HistoryRecord` | `persistence/history.rs` | Undo/redo record |
+| `ComputedRelation` | `relation_engine/computed.rs` | Computed relation geometry |
