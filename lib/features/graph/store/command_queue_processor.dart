@@ -13,6 +13,7 @@ import 'modules/graph_node_mutations.dart';
 import 'modules/graph_relation_mutations.dart';
 import 'modules/graph_property_mutations.dart';
 import 'modules/graph_template_mutations.dart';
+import 'modules/graph_area_mutations.dart';
 import 'command_processor.dart';
 import '../models/commands/graph_command_context.dart';
 import '../models/commands/patch_helpers.dart';
@@ -32,6 +33,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   late final GraphRelationMutations relationMutations;
   late final GraphPropertyMutations propertyMutations;
   late final GraphTemplateMutations templateMutations;
+  late final GraphAreaMutations areaMutations;
   late final CommandProcessor processor;
 
   // Sizing & styling delegates
@@ -62,6 +64,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     relationMutations = GraphRelationMutations(this);
     propertyMutations = GraphPropertyMutations(this);
     templateMutations = GraphTemplateMutations(this);
+    areaMutations = GraphAreaMutations(this);
   }
 
   // ===========================================================================
@@ -487,16 +490,13 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
       batchSize: 1,
     ),
     required List<LayoutPatch> livePositions,
-  }) async {
-    await syncEngine.api.triggerLayoutOptimization(
-      config: config,
-      livePositions: livePositions,
-    );
-  }
+  }) => areaMutations.triggerLayoutOptimization(
+    config: config,
+    livePositions: livePositions,
+  );
 
-  Future<void> setOptArea({BoundingBox? bounds}) async {
-    await syncEngine.api.setOptArea(bounds: bounds);
-  }
+  Future<void> setOptArea({BoundingBox? bounds}) =>
+      areaMutations.setOptArea(bounds: bounds);
 
   void dispose() {
     syncEngine.dispose();

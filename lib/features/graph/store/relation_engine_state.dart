@@ -74,7 +74,7 @@ class RelationEngineState {
   void onNodeMoved(RawUuid nodeId) {
     _tracker.onNodeMoved(nodeId);
     if (_relationLookupGetter != null) {
-      final relations = _relationLookupGetter!();
+      final relations = _relationLookupGetter();
       for (final rel in relations.values) {
         if (rel.fromNodeId == nodeId || rel.toNodeId == nodeId) {
           _tracker.markIdsDirty([rel.id]);
