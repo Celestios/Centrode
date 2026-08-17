@@ -6,6 +6,53 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+class Attachment {
+  final String id;
+  final String hash;
+  final String name;
+  final String mimeType;
+  final PlatformInt64 byteSize;
+  final int? width;
+  final int? height;
+  final int? durationMs;
+
+  const Attachment({
+    required this.id,
+    required this.hash,
+    required this.name,
+    required this.mimeType,
+    required this.byteSize,
+    this.width,
+    this.height,
+    this.durationMs,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      hash.hashCode ^
+      name.hashCode ^
+      mimeType.hashCode ^
+      byteSize.hashCode ^
+      width.hashCode ^
+      height.hashCode ^
+      durationMs.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Attachment &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          hash == other.hash &&
+          name == other.name &&
+          mimeType == other.mimeType &&
+          byteSize == other.byteSize &&
+          width == other.width &&
+          height == other.height &&
+          durationMs == other.durationMs;
+}
+
 class BoundingBox {
   final double minX;
   final double minY;

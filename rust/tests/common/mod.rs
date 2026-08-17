@@ -57,7 +57,7 @@ pub fn make_inode(id: TypedRecordId, text: &str, x: i32, y: i32) -> INode {
         tags: vec![],
         aliases: vec![],
         comments: vec![],
-        attachment: None,
+        attachments: vec![],
         significance: 0,
         created_at: 0,
         updated_at: 0,

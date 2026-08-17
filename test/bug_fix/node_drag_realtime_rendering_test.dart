@@ -43,6 +43,7 @@ void main() {
           tags: const [],
           aliases: const [],
           comments: const [],
+          attachments: const [],
           significance: 0,
           createdAt: 0,
           updatedAt: 0,

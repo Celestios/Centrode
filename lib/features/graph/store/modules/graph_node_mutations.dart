@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:centrode/shared/logging.dart';
-import 'package:centrode/src/rust/domain/nodes.dart';
 import '../../models/commands/patch_helpers.dart';
 import '../../models/models.dart';
 import '../command_queue_processor.dart';
@@ -27,6 +26,8 @@ class GraphNodeMutations {
     String? brushColor,
     Size? size,
     Content? content,
+    Attachment? attachment,
+    MediaType? mediaType,
   }) {
     _nodeLog.fine("Creating node...");
     UiNode node;
@@ -62,6 +63,22 @@ class GraphNodeMutations {
           parentContainerId: parentContainerId,
           size: size ?? const Size(400.0, 300.0),
           title: 'title',
+        );
+        break;
+      case UiNodes.media:
+        node = MediaUiNode(
+          position: position,
+          parentContainerId: parentContainerId,
+          size: size ?? const Size(260.0, 180.0),
+          attachment: attachment ??
+              Attachment(
+                id: RawUuid.v4().toUuidString(),
+                hash: 'sample_media_hash',
+                name: 'sample_media.png',
+                mimeType: 'image/png',
+                byteSize: 1024 * 720,
+              ),
+          mediaType: mediaType ?? MediaType.image,
         );
         break;
       default:

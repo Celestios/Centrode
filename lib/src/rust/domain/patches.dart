@@ -98,7 +98,9 @@ sealed class NodePatch with _$NodePatch {
   const factory NodePatch.shapeType(ShapeType field0) = NodePatch_ShapeType;
   const factory NodePatch.brushType(BrushType field0) = NodePatch_BrushType;
   const factory NodePatch.mediaType(MediaType field0) = NodePatch_MediaType;
-  const factory NodePatch.sourceUrl([String? field0]) = NodePatch_SourceUrl;
+  const factory NodePatch.attachment(Attachment field0) = NodePatch_Attachment;
+  const factory NodePatch.attachments(List<Attachment> field0) =
+      NodePatch_Attachments;
   const factory NodePatch.title(String field0) = NodePatch_Title;
   const factory NodePatch.verb(String field0) = NodePatch_Verb;
 }

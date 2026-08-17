@@ -32,6 +32,18 @@ pub struct Comment {
 }
 
 #[derive(Debug, Clone, SurrealValue, PartialEq, Eq, SurqlSchemaField)]
+pub struct Attachment {
+    pub id: String,
+    pub hash: String,
+    pub name: String,
+    pub mime_type: String,
+    pub byte_size: i64,
+    pub width: Option<u32>,
+    pub height: Option<u32>,
+    pub duration_ms: Option<u32>,
+}
+
+#[derive(Debug, Clone, SurrealValue, PartialEq, Eq, SurqlSchemaField)]
 pub struct Coordinates {
     pub x: i32,
     pub y: i32,

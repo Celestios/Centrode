@@ -8,6 +8,7 @@ import '../../../models/models.dart';
 import '../../../presentation/strategies/node_layout_strategy.dart';
 import '../node_widget.dart';
 import '../widgets/draw_node_widget.dart';
+import '../widgets/media_node_widget.dart';
 import '../widgets/highlight_frame.dart';
 import '../widgets/node_visual_constants.dart';
 import '../text/canvas_text_editor.dart';
@@ -48,7 +49,6 @@ class NodeLayer extends StatelessWidget {
         }).toList();
 
         final entries = <NodeRenderEntry>[];
-        NodeRenderEntry? editingEntry;
 
         for (final id in renderStack) {
           final node = query.nodeLookup[id];
@@ -64,9 +64,6 @@ class NodeLayer extends StatelessWidget {
             isEditing: isEditing,
           );
 
-          if (isEditing) {
-            editingEntry = entry;
-          }
           entries.add(entry);
         }
 
@@ -130,15 +127,20 @@ class NodeLayer extends StatelessWidget {
                 relationEngine: query.relationEngine,
               ),
             ),
-            if (editingEntry != null)
+            for (final entry in entries.where((e) =>
+                e.isEditing ||
+                e.node is MediaUiNode ||
+                (e.node is InfoUiNode && (e.node as InfoUiNode).attachments.isNotEmpty) ||
+                (e.node is TaskUiNode && (e.node as TaskUiNode).attachments.isNotEmpty)))
               Builder(
+                key: ValueKey('widget_host_${entry.node.id}'),
                 builder: (context) {
-                  final entry = editingEntry!;
                   return ListenableBuilder(
                     listenable: Listenable.merge([
                       entry.viewState.positionNotifier,
                       entry.viewState.sizeNotifier,
                       entry.viewState.dragWidthNotifier,
+                      entry.viewState.isExpandedNotifier,
                       uiState.hoveredNodeNotifier,
                     ]),
                     builder: (context, _) {
@@ -218,17 +220,31 @@ class NodeLayer extends StatelessWidget {
                         );
                       }
 
-                      final Widget editWidget;
+                      final Widget nodeWidget;
                       if (entry.node is DrawingUiNode) {
-                        editWidget = DrawNodeWidget(
+                        nodeWidget = DrawNodeWidget(
                           node: entry.node as DrawingUiNode,
                           viewState: entry.viewState,
                           isSelected: entry.isSelected,
-                          isEditing: true,
+                          isEditing: entry.isEditing,
+                        );
+                      } else if (entry.node is MediaUiNode) {
+                        nodeWidget = HighlightFrame(
+                          isEditing: false,
+                          isSelected: entry.isSelected,
+                          isHovered: isHovered,
+                          borderRadius: 4.0,
+                          shape: 'rectangle',
+                          size: size,
+                          scale: scale,
+                          child: MediaNodeWidget(
+                            node: entry.node as MediaUiNode,
+                            isSelected: entry.isSelected,
+                          ),
                         );
                       } else {
-                        editWidget = HighlightFrame(
-                          isEditing: true,
+                        nodeWidget = HighlightFrame(
+                          isEditing: entry.isEditing,
                           isSelected: entry.isSelected,
                           isHovered: isHovered,
                           borderRadius: borderRadius,
@@ -239,16 +255,16 @@ class NodeLayer extends StatelessWidget {
                             viewState: entry.viewState,
                             node: entry.node,
                             isSelected: entry.isSelected,
-                            isEditing: true,
+                            isEditing: entry.isEditing,
                           ),
                         );
                       }
 
                       return Positioned(
-                        key: ValueKey('edit_${entry.node.id}'),
+                        key: ValueKey('active_node_${entry.node.id}'),
                         left: pos.dx,
                         top: pos.dy,
-                        child: editWidget,
+                        child: nodeWidget,
                       );
                     },
                   );

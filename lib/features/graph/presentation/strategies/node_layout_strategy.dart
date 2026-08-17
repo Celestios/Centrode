@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:centrode/features/graph/engine/config.dart';
 import 'package:centrode/features/graph/models/graph_node.dart';
+import 'package:centrode/src/rust/domain/base_models.dart' hide Size;
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:centrode/src/rust/domain/contents.dart';
 import 'node_style_strategy.dart';
@@ -202,6 +203,10 @@ class DefaultNodeLayoutStrategy implements NodeLayoutStrategy {
     textHeight = tp.height;
   }
 
+  final attachments = node is InfoUiNode
+      ? node.attachments
+      : (node is TaskUiNode ? node.attachments : const <Attachment>[]);
+
   double extraHeight = 0.0;
   final fontScale = fontSize / 14.0;
   if (node is TaskUiNode) {
@@ -214,10 +219,42 @@ class DefaultNodeLayoutStrategy implements NodeLayoutStrategy {
     );
   }
 
-  final totalHeight = textHeight + 2 * resolvedStyle.padding + extraHeight;
+  final imageAttachment = attachments.where((a) => a.mimeType.startsWith('image/')).firstOrNull;
+  final hasOther = attachments.any((a) => !a.mimeType.startsWith('image/'));
+  double effectiveTargetWidth = targetWidth;
+
+  if (imageAttachment != null) {
+    if (imageAttachment.width != null && imageAttachment.height != null && imageAttachment.width! > 0) {
+      final double naturalW = imageAttachment.width!.toDouble();
+      final double naturalH = imageAttachment.height!.toDouble();
+      effectiveTargetWidth = overrideWidth ?? naturalW.clamp(200.0, 360.0);
+      final double aspect = naturalW / naturalH;
+      final double imgH = (effectiveTargetWidth / aspect).clamp(100.0 * fontScale, 400.0 * fontScale);
+      extraHeight += imgH;
+    } else {
+      effectiveTargetWidth = overrideWidth ?? targetWidth.clamp(240.0, 360.0);
+      extraHeight += 140.0 * fontScale;
+    }
+  } else if (attachments.isNotEmpty) {
+    effectiveTargetWidth = overrideWidth ?? targetWidth.clamp(140.0, AppConfig.node.scaledMaxWidth(fontSize));
+  }
+
+  final int otherCount = attachments.where((a) => !a.mimeType.startsWith('image/')).length;
+  if (otherCount > 0) {
+    extraHeight += (24.0 * fontScale * otherCount);
+  }
+
+  final double effectivePadding = imageAttachment != null
+      ? (6.0 * fontScale)
+      : (hasOther ? (6.0 * fontScale) : (2 * resolvedStyle.padding));
+  final double effectiveTextHeight = imageAttachment != null
+      ? (content.text.isEmpty ? (22.0 * fontScale) : textHeight.clamp(20.0 * fontScale, 70.0 * fontScale))
+      : textHeight;
+
+  final totalHeight = effectiveTextHeight + effectivePadding + extraHeight;
 
   final gridSize = AppConfig.grid.baseSize;
-  final snappedWidth = (targetWidth / gridSize).ceil() * gridSize;
+  final snappedWidth = (effectiveTargetWidth / gridSize).ceil() * gridSize;
   final snappedHeight = (totalHeight / gridSize).ceil() * gridSize;
 
   return (size: Size(snappedWidth, snappedHeight), lineCount: lineCount);

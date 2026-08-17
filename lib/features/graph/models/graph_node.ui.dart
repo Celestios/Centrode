@@ -545,7 +545,7 @@ class InfoUiNode extends UiNode {
   List<Tag> tags;
   List<String> aliases;
   List<Comment> comments;
-  String? attachment;
+  List<Attachment> attachments;
 
   InfoUiNode({
     required super.position,
@@ -568,7 +568,7 @@ class InfoUiNode extends UiNode {
     this.tags = const [],
     this.aliases = const [],
     this.comments = const [],
-    this.attachment,
+    this.attachments = const [],
   });
 
   @override
@@ -609,7 +609,7 @@ class InfoUiNode extends UiNode {
         tags: tags.map((tag) => TagEdge.hydrated(tag)).toList(),
         aliases: aliases,
         comments: comments,
-        attachment: attachment,
+        attachments: attachments,
       ),
     );
   }
@@ -651,7 +651,7 @@ class InfoUiNode extends UiNode {
       }).toList(),
       aliases: node.aliases,
       comments: node.comments,
-      attachment: node.attachment,
+      attachments: node.attachments,
     );
   }
 
@@ -676,7 +676,7 @@ class InfoUiNode extends UiNode {
     List<Tag>? tags,
     List<String>? aliases,
     List<Comment>? comments,
-    String? attachment,
+    List<Attachment>? attachments,
   }) {
     return InfoUiNode(
       id: id ?? this.id,
@@ -699,7 +699,7 @@ class InfoUiNode extends UiNode {
       tags: tags ?? this.tags,
       aliases: aliases ?? this.aliases,
       comments: comments ?? this.comments,
-      attachment: attachment ?? this.attachment,
+      attachments: attachments ?? this.attachments,
     );
   }
 }
@@ -827,7 +827,7 @@ class InterUiNode extends UiNode {
 }
 
 class MediaUiNode extends UiNode {
-  String sourceUrl;
+  Attachment attachment;
   MediaType mediaType;
 
   MediaUiNode({
@@ -848,7 +848,7 @@ class MediaUiNode extends UiNode {
     super.isExpanded,
     super.locked,
     super.significance,
-    required this.sourceUrl,
+    required this.attachment,
     required this.mediaType,
   });
 
@@ -877,7 +877,7 @@ class MediaUiNode extends UiNode {
         createdAt: createdAt,
         updatedAt: updatedAt,
         size: frb.Size(width: size.width.round(), height: size.height.round()),
-        sourceUrl: sourceUrl,
+        attachment: attachment,
         mediaType: mediaType,
       ),
     );
@@ -894,7 +894,7 @@ class MediaUiNode extends UiNode {
       layer: node.layer,
       position: Offset(node.position.x.toDouble(), node.position.y.toDouble()),
       size: Size(node.size.width.toDouble(), node.size.height.toDouble()),
-      sourceUrl: node.sourceUrl,
+      attachment: node.attachment,
       mediaType: node.mediaType,
     );
   }
@@ -917,7 +917,7 @@ class MediaUiNode extends UiNode {
     bool? isExpanded,
     bool? locked,
     int? significance,
-    String? sourceUrl,
+    Attachment? attachment,
     MediaType? mediaType,
   }) {
     return MediaUiNode(
@@ -938,7 +938,7 @@ class MediaUiNode extends UiNode {
       isExpanded: isExpanded ?? this.isExpanded,
       locked: locked ?? this.locked,
       significance: significance ?? this.significance,
-      sourceUrl: sourceUrl ?? this.sourceUrl,
+      attachment: attachment ?? this.attachment,
       mediaType: mediaType ?? this.mediaType,
     );
   }
@@ -1061,6 +1061,7 @@ class ShapeUiNode extends UiNode {
 class TaskUiNode extends UiNode {
   int? dueDate;
   TaskState state;
+  List<Attachment> attachments;
 
   TaskUiNode({
     required super.position,
@@ -1082,6 +1083,7 @@ class TaskUiNode extends UiNode {
     super.significance,
     this.dueDate,
     this.state = TaskState.todo,
+    this.attachments = const [],
   });
 
   @override
@@ -1119,6 +1121,7 @@ class TaskUiNode extends UiNode {
         significance: significance,
         dueDate: dueDate,
         state: state,
+        attachments: attachments,
       ),
     );
   }
@@ -1144,6 +1147,7 @@ class TaskUiNode extends UiNode {
       significance: node.significance,
       dueDate: node.dueDate,
       state: node.state,
+      attachments: node.attachments,
     );
   }
 
@@ -1167,6 +1171,7 @@ class TaskUiNode extends UiNode {
     int? significance,
     int? dueDate,
     TaskState? state,
+    List<Attachment>? attachments,
   }) {
     return TaskUiNode(
       id: id ?? this.id,
@@ -1188,6 +1193,7 @@ class TaskUiNode extends UiNode {
       significance: significance ?? this.significance,
       dueDate: dueDate ?? this.dueDate,
       state: state ?? this.state,
+      attachments: attachments ?? this.attachments,
     );
   }
 }

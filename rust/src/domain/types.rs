@@ -13,7 +13,7 @@
 //!   the sum-type union enums and trait implementations. Do not manually create wrapper 
 //!   modules for individual entities or variants.
 
-use crate::domain::base_models::{BoundingBox, Comment, DisplayMode, Size, ViewportState};
+use crate::domain::base_models::{Attachment, BoundingBox, Comment, DisplayMode, Size, ViewportState};
 use crate::domain::contents::Content;
 use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::{BrushType, MediaType, ShapeType, TaskState};
@@ -47,7 +47,7 @@ define_domain_types! {
         #[surql_type = "array<string>"]
         pub aliases: Vec<String>,
         pub comments: Vec<Comment>,
-        pub attachment: Option<String>,
+        pub attachments: Vec<Attachment>,
         #[surql_default = "0"]
         pub significance: u8,
     }
@@ -64,6 +64,7 @@ define_domain_types! {
         pub resolved_style: Option<NodeStyle>,
         pub layout: Option<NodeLayout>,
         pub resolved_layout: Option<NodeLayout>,
+        pub attachments: Vec<Attachment>,
         #[surql_default = "0"]
         pub significance: u8,
     }
@@ -127,7 +128,7 @@ define_domain_types! {
 
     #[category(node)]
     pub struct MediaNode {
-        pub source_url: String,
+        pub attachment: Attachment,
         pub media_type: MediaType,
         pub size: Size,
     }

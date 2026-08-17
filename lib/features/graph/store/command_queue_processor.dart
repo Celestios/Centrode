@@ -202,6 +202,8 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     String? brushColor,
     Size? size,
     Content? content,
+    Attachment? attachment,
+    MediaType? mediaType,
   }) => nodeMutations.createNode(
     type,
     position,
@@ -212,6 +214,8 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     brushColor: brushColor,
     size: size,
     content: content,
+    attachment: attachment,
+    mediaType: mediaType,
   );
 
   @override

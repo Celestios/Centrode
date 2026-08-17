@@ -212,7 +212,7 @@ class CanvasNodesPainter extends CustomPainter {
           .withValues(alpha: 0.08);
     }
 
-    if (node is! DrawingUiNode) {
+    if (node is! DrawingUiNode && node is! MediaUiNode) {
       if (!isContainer || node.isClosed) {
         selectionRenderer.paintShadow(
           canvas,
@@ -306,15 +306,21 @@ class CanvasNodesPainter extends CustomPainter {
         isEditing: entry.isEditing,
       );
     } else {
-      TextNodeRenderer.paintText(canvas, entry, rect, resolvedStyle);
-      TextNodeRenderer.paintMetadataSphere(canvas, node, rect, fontScale);
-      TextNodeRenderer.paintExpandToggle(
-        canvas,
-        entry,
-        rect,
-        resolvedStyle,
-        fontScale,
-      );
+      final hasAttachments = (node is InfoUiNode && node.attachments.isNotEmpty) ||
+          (node is TaskUiNode && node.attachments.isNotEmpty) ||
+          node is MediaUiNode;
+
+      if (!entry.isEditing && !hasAttachments) {
+        TextNodeRenderer.paintText(canvas, entry, rect, resolvedStyle);
+        TextNodeRenderer.paintMetadataSphere(canvas, node, rect, fontScale);
+        TextNodeRenderer.paintExpandToggle(
+          canvas,
+          entry,
+          rect,
+          resolvedStyle,
+          fontScale,
+        );
+      }
     }
 
     if (node is! DrawingUiNode && isInteractableNode) {

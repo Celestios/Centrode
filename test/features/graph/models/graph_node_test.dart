@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:centrode/features/graph/models/graph_node.dart';
 import 'package:centrode/src/rust/domain/types.dart';
 import 'package:centrode/src/rust/domain/nodes.dart';
+import 'package:centrode/src/rust/domain/base_models.dart' hide Size;
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
 void main() {
@@ -111,6 +112,80 @@ void main() {
       expect(asTaskNode.state, TaskState.inProgress);
       expect(asTaskNode.position.x, 50);
       expect(asTaskNode.position.y, 60);
+    });
+
+    test('MediaUiNode creates and maps to Rust correctly', () {
+      final id = RawUuid.fromString('media-ffi-1');
+      final attachment = Attachment(
+        id: 'att-1',
+        hash: 'hash123',
+        name: 'sample.png',
+        mimeType: 'image/png',
+        byteSize: 2048,
+      );
+      final node = MediaUiNode(
+        id: id,
+        position: const Offset(80, 90),
+        size: const Size(200, 150),
+        attachment: attachment,
+        mediaType: MediaType.image,
+      );
+
+      expect(node.tableName, 'MediaNode');
+      expect(node.attachment.name, 'sample.png');
+      expect(node.mediaType, MediaType.image);
+
+      final rustObj = node.toRust();
+      expect(rustObj, isA<Nodes>());
+
+      final asMediaNode = rustObj.maybeMap(
+        mediaNode: (m) => m.field0,
+        orElse: () => null,
+      );
+
+      expect(asMediaNode, isNotNull);
+      expect(asMediaNode!.id.key.uuid, id.toUuidString());
+      expect(asMediaNode.attachment.name, 'sample.png');
+      expect(asMediaNode.attachment.hash, 'hash123');
+      expect(asMediaNode.attachment.mimeType, 'image/png');
+      expect(asMediaNode.attachment.byteSize, 2048);
+    });
+
+    test('InfoUiNode supports multi-attachments', () {
+      final attachment1 = Attachment(
+        id: 'att-1',
+        hash: 'hash1',
+        name: 'document.pdf',
+        mimeType: 'application/pdf',
+        byteSize: 1024 * 50,
+      );
+      final attachment2 = Attachment(
+        id: 'att-2',
+        hash: 'hash2',
+        name: 'sound.mp3',
+        mimeType: 'audio/mp3',
+        byteSize: 1024 * 100,
+      );
+
+      final node = InfoUiNode(
+        position: const Offset(0, 0),
+        attachments: [attachment1, attachment2],
+      );
+
+      expect(node.attachments.length, 2);
+      expect(node.attachments[0].name, 'document.pdf');
+      expect(node.attachments[1].name, 'sound.mp3');
+
+      final rustObj = node.toRust();
+      final asINode = rustObj.maybeMap(
+        iNode: (i) => i.field0,
+        orElse: () => null,
+      );
+
+      expect(asINode, isNotNull);
+      expect(asINode!.attachments.length, 2);
+      expect(asINode.attachments[0].name, 'document.pdf');
+      expect(asINode.attachments[1].name, 'sound.mp3');
     });
   });
 }

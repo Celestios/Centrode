@@ -285,7 +285,7 @@ class INode {
   final List<TagEdge> tags;
   final List<String> aliases;
   final List<Comment> comments;
-  final String? attachment;
+  final List<Attachment> attachments;
   final int significance;
 
   const INode({
@@ -308,7 +308,7 @@ class INode {
     required this.tags,
     required this.aliases,
     required this.comments,
-    this.attachment,
+    required this.attachments,
     required this.significance,
   });
 
@@ -333,7 +333,7 @@ class INode {
       tags.hashCode ^
       aliases.hashCode ^
       comments.hashCode ^
-      attachment.hashCode ^
+      attachments.hashCode ^
       significance.hashCode;
 
   @override
@@ -360,7 +360,7 @@ class INode {
           tags == other.tags &&
           aliases == other.aliases &&
           comments == other.comments &&
-          attachment == other.attachment &&
+          attachments == other.attachments &&
           significance == other.significance;
 }
 
@@ -503,7 +503,7 @@ class MediaNode {
   final String layer;
   final PlatformInt64 createdAt;
   final PlatformInt64 updatedAt;
-  final String sourceUrl;
+  final Attachment attachment;
   final MediaType mediaType;
   final Size size;
 
@@ -514,7 +514,7 @@ class MediaNode {
     required this.layer,
     required this.createdAt,
     required this.updatedAt,
-    required this.sourceUrl,
+    required this.attachment,
     required this.mediaType,
     required this.size,
   });
@@ -527,7 +527,7 @@ class MediaNode {
       layer.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode ^
-      sourceUrl.hashCode ^
+      attachment.hashCode ^
       mediaType.hashCode ^
       size.hashCode;
 
@@ -542,7 +542,7 @@ class MediaNode {
           layer == other.layer &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt &&
-          sourceUrl == other.sourceUrl &&
+          attachment == other.attachment &&
           mediaType == other.mediaType &&
           size == other.size;
 }
@@ -666,6 +666,7 @@ class TaskNode {
   final NodeStyle? resolvedStyle;
   final NodeLayout? layout;
   final NodeLayout? resolvedLayout;
+  final List<Attachment> attachments;
   final int significance;
 
   const TaskNode({
@@ -685,6 +686,7 @@ class TaskNode {
     this.resolvedStyle,
     this.layout,
     this.resolvedLayout,
+    required this.attachments,
     required this.significance,
   });
 
@@ -706,6 +708,7 @@ class TaskNode {
       resolvedStyle.hashCode ^
       layout.hashCode ^
       resolvedLayout.hashCode ^
+      attachments.hashCode ^
       significance.hashCode;
 
   @override
@@ -729,6 +732,7 @@ class TaskNode {
           resolvedStyle == other.resolvedStyle &&
           layout == other.layout &&
           resolvedLayout == other.resolvedLayout &&
+          attachments == other.attachments &&
           significance == other.significance;
 }
 

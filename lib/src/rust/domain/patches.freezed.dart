@@ -681,7 +681,7 @@ extension NodePatchPatterns on NodePatch {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( NodePatch_Position value)?  position,TResult Function( NodePatch_Size value)?  size,TResult Function( NodePatch_Content value)?  content,TResult Function( NodePatch_IsExpanded value)?  isExpanded,TResult Function( NodePatch_Style value)?  style,TResult Function( NodePatch_TagOp value)?  tagOp,TResult Function( NodePatch_Significance value)?  significance,TResult Function( NodePatch_TaskState value)?  taskState,TResult Function( NodePatch_ShapeType value)?  shapeType,TResult Function( NodePatch_BrushType value)?  brushType,TResult Function( NodePatch_MediaType value)?  mediaType,TResult Function( NodePatch_SourceUrl value)?  sourceUrl,TResult Function( NodePatch_Title value)?  title,TResult Function( NodePatch_Verb value)?  verb,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( NodePatch_Position value)?  position,TResult Function( NodePatch_Size value)?  size,TResult Function( NodePatch_Content value)?  content,TResult Function( NodePatch_IsExpanded value)?  isExpanded,TResult Function( NodePatch_Style value)?  style,TResult Function( NodePatch_TagOp value)?  tagOp,TResult Function( NodePatch_Significance value)?  significance,TResult Function( NodePatch_TaskState value)?  taskState,TResult Function( NodePatch_ShapeType value)?  shapeType,TResult Function( NodePatch_BrushType value)?  brushType,TResult Function( NodePatch_MediaType value)?  mediaType,TResult Function( NodePatch_Attachment value)?  attachment,TResult Function( NodePatch_Attachments value)?  attachments,TResult Function( NodePatch_Title value)?  title,TResult Function( NodePatch_Verb value)?  verb,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case NodePatch_Position() when position != null:
@@ -695,8 +695,9 @@ return significance(_that);case NodePatch_TaskState() when taskState != null:
 return taskState(_that);case NodePatch_ShapeType() when shapeType != null:
 return shapeType(_that);case NodePatch_BrushType() when brushType != null:
 return brushType(_that);case NodePatch_MediaType() when mediaType != null:
-return mediaType(_that);case NodePatch_SourceUrl() when sourceUrl != null:
-return sourceUrl(_that);case NodePatch_Title() when title != null:
+return mediaType(_that);case NodePatch_Attachment() when attachment != null:
+return attachment(_that);case NodePatch_Attachments() when attachments != null:
+return attachments(_that);case NodePatch_Title() when title != null:
 return title(_that);case NodePatch_Verb() when verb != null:
 return verb(_that);case _:
   return orElse();
@@ -716,7 +717,7 @@ return verb(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( NodePatch_Position value)  position,required TResult Function( NodePatch_Size value)  size,required TResult Function( NodePatch_Content value)  content,required TResult Function( NodePatch_IsExpanded value)  isExpanded,required TResult Function( NodePatch_Style value)  style,required TResult Function( NodePatch_TagOp value)  tagOp,required TResult Function( NodePatch_Significance value)  significance,required TResult Function( NodePatch_TaskState value)  taskState,required TResult Function( NodePatch_ShapeType value)  shapeType,required TResult Function( NodePatch_BrushType value)  brushType,required TResult Function( NodePatch_MediaType value)  mediaType,required TResult Function( NodePatch_SourceUrl value)  sourceUrl,required TResult Function( NodePatch_Title value)  title,required TResult Function( NodePatch_Verb value)  verb,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( NodePatch_Position value)  position,required TResult Function( NodePatch_Size value)  size,required TResult Function( NodePatch_Content value)  content,required TResult Function( NodePatch_IsExpanded value)  isExpanded,required TResult Function( NodePatch_Style value)  style,required TResult Function( NodePatch_TagOp value)  tagOp,required TResult Function( NodePatch_Significance value)  significance,required TResult Function( NodePatch_TaskState value)  taskState,required TResult Function( NodePatch_ShapeType value)  shapeType,required TResult Function( NodePatch_BrushType value)  brushType,required TResult Function( NodePatch_MediaType value)  mediaType,required TResult Function( NodePatch_Attachment value)  attachment,required TResult Function( NodePatch_Attachments value)  attachments,required TResult Function( NodePatch_Title value)  title,required TResult Function( NodePatch_Verb value)  verb,}){
 final _that = this;
 switch (_that) {
 case NodePatch_Position():
@@ -730,8 +731,9 @@ return significance(_that);case NodePatch_TaskState():
 return taskState(_that);case NodePatch_ShapeType():
 return shapeType(_that);case NodePatch_BrushType():
 return brushType(_that);case NodePatch_MediaType():
-return mediaType(_that);case NodePatch_SourceUrl():
-return sourceUrl(_that);case NodePatch_Title():
+return mediaType(_that);case NodePatch_Attachment():
+return attachment(_that);case NodePatch_Attachments():
+return attachments(_that);case NodePatch_Title():
 return title(_that);case NodePatch_Verb():
 return verb(_that);}
 }
@@ -747,7 +749,7 @@ return verb(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( NodePatch_Position value)?  position,TResult? Function( NodePatch_Size value)?  size,TResult? Function( NodePatch_Content value)?  content,TResult? Function( NodePatch_IsExpanded value)?  isExpanded,TResult? Function( NodePatch_Style value)?  style,TResult? Function( NodePatch_TagOp value)?  tagOp,TResult? Function( NodePatch_Significance value)?  significance,TResult? Function( NodePatch_TaskState value)?  taskState,TResult? Function( NodePatch_ShapeType value)?  shapeType,TResult? Function( NodePatch_BrushType value)?  brushType,TResult? Function( NodePatch_MediaType value)?  mediaType,TResult? Function( NodePatch_SourceUrl value)?  sourceUrl,TResult? Function( NodePatch_Title value)?  title,TResult? Function( NodePatch_Verb value)?  verb,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( NodePatch_Position value)?  position,TResult? Function( NodePatch_Size value)?  size,TResult? Function( NodePatch_Content value)?  content,TResult? Function( NodePatch_IsExpanded value)?  isExpanded,TResult? Function( NodePatch_Style value)?  style,TResult? Function( NodePatch_TagOp value)?  tagOp,TResult? Function( NodePatch_Significance value)?  significance,TResult? Function( NodePatch_TaskState value)?  taskState,TResult? Function( NodePatch_ShapeType value)?  shapeType,TResult? Function( NodePatch_BrushType value)?  brushType,TResult? Function( NodePatch_MediaType value)?  mediaType,TResult? Function( NodePatch_Attachment value)?  attachment,TResult? Function( NodePatch_Attachments value)?  attachments,TResult? Function( NodePatch_Title value)?  title,TResult? Function( NodePatch_Verb value)?  verb,}){
 final _that = this;
 switch (_that) {
 case NodePatch_Position() when position != null:
@@ -761,8 +763,9 @@ return significance(_that);case NodePatch_TaskState() when taskState != null:
 return taskState(_that);case NodePatch_ShapeType() when shapeType != null:
 return shapeType(_that);case NodePatch_BrushType() when brushType != null:
 return brushType(_that);case NodePatch_MediaType() when mediaType != null:
-return mediaType(_that);case NodePatch_SourceUrl() when sourceUrl != null:
-return sourceUrl(_that);case NodePatch_Title() when title != null:
+return mediaType(_that);case NodePatch_Attachment() when attachment != null:
+return attachment(_that);case NodePatch_Attachments() when attachments != null:
+return attachments(_that);case NodePatch_Title() when title != null:
 return title(_that);case NodePatch_Verb() when verb != null:
 return verb(_that);case _:
   return null;
@@ -781,7 +784,7 @@ return verb(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Coordinates field0)?  position,TResult Function( Size field0)?  size,TResult Function( Content field0)?  content,TResult Function( bool field0)?  isExpanded,TResult Function( NodeStyle? field0)?  style,TResult Function( TagOperation field0)?  tagOp,TResult Function( int field0)?  significance,TResult Function( TaskState field0)?  taskState,TResult Function( ShapeType field0)?  shapeType,TResult Function( BrushType field0)?  brushType,TResult Function( MediaType field0)?  mediaType,TResult Function( String? field0)?  sourceUrl,TResult Function( String field0)?  title,TResult Function( String field0)?  verb,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Coordinates field0)?  position,TResult Function( Size field0)?  size,TResult Function( Content field0)?  content,TResult Function( bool field0)?  isExpanded,TResult Function( NodeStyle? field0)?  style,TResult Function( TagOperation field0)?  tagOp,TResult Function( int field0)?  significance,TResult Function( TaskState field0)?  taskState,TResult Function( ShapeType field0)?  shapeType,TResult Function( BrushType field0)?  brushType,TResult Function( MediaType field0)?  mediaType,TResult Function( Attachment field0)?  attachment,TResult Function( List<Attachment> field0)?  attachments,TResult Function( String field0)?  title,TResult Function( String field0)?  verb,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case NodePatch_Position() when position != null:
 return position(_that.field0);case NodePatch_Size() when size != null:
@@ -794,8 +797,9 @@ return significance(_that.field0);case NodePatch_TaskState() when taskState != n
 return taskState(_that.field0);case NodePatch_ShapeType() when shapeType != null:
 return shapeType(_that.field0);case NodePatch_BrushType() when brushType != null:
 return brushType(_that.field0);case NodePatch_MediaType() when mediaType != null:
-return mediaType(_that.field0);case NodePatch_SourceUrl() when sourceUrl != null:
-return sourceUrl(_that.field0);case NodePatch_Title() when title != null:
+return mediaType(_that.field0);case NodePatch_Attachment() when attachment != null:
+return attachment(_that.field0);case NodePatch_Attachments() when attachments != null:
+return attachments(_that.field0);case NodePatch_Title() when title != null:
 return title(_that.field0);case NodePatch_Verb() when verb != null:
 return verb(_that.field0);case _:
   return orElse();
@@ -815,7 +819,7 @@ return verb(_that.field0);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Coordinates field0)  position,required TResult Function( Size field0)  size,required TResult Function( Content field0)  content,required TResult Function( bool field0)  isExpanded,required TResult Function( NodeStyle? field0)  style,required TResult Function( TagOperation field0)  tagOp,required TResult Function( int field0)  significance,required TResult Function( TaskState field0)  taskState,required TResult Function( ShapeType field0)  shapeType,required TResult Function( BrushType field0)  brushType,required TResult Function( MediaType field0)  mediaType,required TResult Function( String? field0)  sourceUrl,required TResult Function( String field0)  title,required TResult Function( String field0)  verb,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Coordinates field0)  position,required TResult Function( Size field0)  size,required TResult Function( Content field0)  content,required TResult Function( bool field0)  isExpanded,required TResult Function( NodeStyle? field0)  style,required TResult Function( TagOperation field0)  tagOp,required TResult Function( int field0)  significance,required TResult Function( TaskState field0)  taskState,required TResult Function( ShapeType field0)  shapeType,required TResult Function( BrushType field0)  brushType,required TResult Function( MediaType field0)  mediaType,required TResult Function( Attachment field0)  attachment,required TResult Function( List<Attachment> field0)  attachments,required TResult Function( String field0)  title,required TResult Function( String field0)  verb,}) {final _that = this;
 switch (_that) {
 case NodePatch_Position():
 return position(_that.field0);case NodePatch_Size():
@@ -828,8 +832,9 @@ return significance(_that.field0);case NodePatch_TaskState():
 return taskState(_that.field0);case NodePatch_ShapeType():
 return shapeType(_that.field0);case NodePatch_BrushType():
 return brushType(_that.field0);case NodePatch_MediaType():
-return mediaType(_that.field0);case NodePatch_SourceUrl():
-return sourceUrl(_that.field0);case NodePatch_Title():
+return mediaType(_that.field0);case NodePatch_Attachment():
+return attachment(_that.field0);case NodePatch_Attachments():
+return attachments(_that.field0);case NodePatch_Title():
 return title(_that.field0);case NodePatch_Verb():
 return verb(_that.field0);}
 }
@@ -845,7 +850,7 @@ return verb(_that.field0);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Coordinates field0)?  position,TResult? Function( Size field0)?  size,TResult? Function( Content field0)?  content,TResult? Function( bool field0)?  isExpanded,TResult? Function( NodeStyle? field0)?  style,TResult? Function( TagOperation field0)?  tagOp,TResult? Function( int field0)?  significance,TResult? Function( TaskState field0)?  taskState,TResult? Function( ShapeType field0)?  shapeType,TResult? Function( BrushType field0)?  brushType,TResult? Function( MediaType field0)?  mediaType,TResult? Function( String? field0)?  sourceUrl,TResult? Function( String field0)?  title,TResult? Function( String field0)?  verb,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Coordinates field0)?  position,TResult? Function( Size field0)?  size,TResult? Function( Content field0)?  content,TResult? Function( bool field0)?  isExpanded,TResult? Function( NodeStyle? field0)?  style,TResult? Function( TagOperation field0)?  tagOp,TResult? Function( int field0)?  significance,TResult? Function( TaskState field0)?  taskState,TResult? Function( ShapeType field0)?  shapeType,TResult? Function( BrushType field0)?  brushType,TResult? Function( MediaType field0)?  mediaType,TResult? Function( Attachment field0)?  attachment,TResult? Function( List<Attachment> field0)?  attachments,TResult? Function( String field0)?  title,TResult? Function( String field0)?  verb,}) {final _that = this;
 switch (_that) {
 case NodePatch_Position() when position != null:
 return position(_that.field0);case NodePatch_Size() when size != null:
@@ -858,8 +863,9 @@ return significance(_that.field0);case NodePatch_TaskState() when taskState != n
 return taskState(_that.field0);case NodePatch_ShapeType() when shapeType != null:
 return shapeType(_that.field0);case NodePatch_BrushType() when brushType != null:
 return brushType(_that.field0);case NodePatch_MediaType() when mediaType != null:
-return mediaType(_that.field0);case NodePatch_SourceUrl() when sourceUrl != null:
-return sourceUrl(_that.field0);case NodePatch_Title() when title != null:
+return mediaType(_that.field0);case NodePatch_Attachment() when attachment != null:
+return attachment(_that.field0);case NodePatch_Attachments() when attachments != null:
+return attachments(_that.field0);case NodePatch_Title() when title != null:
 return title(_that.field0);case NodePatch_Verb() when verb != null:
 return verb(_that.field0);case _:
   return null;
@@ -1619,23 +1625,23 @@ as MediaType,
 /// @nodoc
 
 
-class NodePatch_SourceUrl extends NodePatch {
-  const NodePatch_SourceUrl([this.field0]): super._();
+class NodePatch_Attachment extends NodePatch {
+  const NodePatch_Attachment(this.field0): super._();
   
 
-@override final  String? field0;
+@override final  Attachment field0;
 
 /// Create a copy of NodePatch
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$NodePatch_SourceUrlCopyWith<NodePatch_SourceUrl> get copyWith => _$NodePatch_SourceUrlCopyWithImpl<NodePatch_SourceUrl>(this, _$identity);
+$NodePatch_AttachmentCopyWith<NodePatch_Attachment> get copyWith => _$NodePatch_AttachmentCopyWithImpl<NodePatch_Attachment>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NodePatch_SourceUrl&&(identical(other.field0, field0) || other.field0 == field0));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NodePatch_Attachment&&(identical(other.field0, field0) || other.field0 == field0));
 }
 
 
@@ -1644,18 +1650,18 @@ int get hashCode => Object.hash(runtimeType,field0);
 
 @override
 String toString() {
-  return 'NodePatch.sourceUrl(field0: $field0)';
+  return 'NodePatch.attachment(field0: $field0)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $NodePatch_SourceUrlCopyWith<$Res> implements $NodePatchCopyWith<$Res> {
-  factory $NodePatch_SourceUrlCopyWith(NodePatch_SourceUrl value, $Res Function(NodePatch_SourceUrl) _then) = _$NodePatch_SourceUrlCopyWithImpl;
+abstract mixin class $NodePatch_AttachmentCopyWith<$Res> implements $NodePatchCopyWith<$Res> {
+  factory $NodePatch_AttachmentCopyWith(NodePatch_Attachment value, $Res Function(NodePatch_Attachment) _then) = _$NodePatch_AttachmentCopyWithImpl;
 @useResult
 $Res call({
- String? field0
+ Attachment field0
 });
 
 
@@ -1663,19 +1669,91 @@ $Res call({
 
 }
 /// @nodoc
-class _$NodePatch_SourceUrlCopyWithImpl<$Res>
-    implements $NodePatch_SourceUrlCopyWith<$Res> {
-  _$NodePatch_SourceUrlCopyWithImpl(this._self, this._then);
+class _$NodePatch_AttachmentCopyWithImpl<$Res>
+    implements $NodePatch_AttachmentCopyWith<$Res> {
+  _$NodePatch_AttachmentCopyWithImpl(this._self, this._then);
 
-  final NodePatch_SourceUrl _self;
-  final $Res Function(NodePatch_SourceUrl) _then;
+  final NodePatch_Attachment _self;
+  final $Res Function(NodePatch_Attachment) _then;
 
 /// Create a copy of NodePatch
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? field0 = freezed,}) {
-  return _then(NodePatch_SourceUrl(
-freezed == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
-as String?,
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(NodePatch_Attachment(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as Attachment,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class NodePatch_Attachments extends NodePatch {
+  const NodePatch_Attachments(final  List<Attachment> field0): _field0 = field0,super._();
+  
+
+ final  List<Attachment> _field0;
+@override List<Attachment> get field0 {
+  if (_field0 is EqualUnmodifiableListView) return _field0;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_field0);
+}
+
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NodePatch_AttachmentsCopyWith<NodePatch_Attachments> get copyWith => _$NodePatch_AttachmentsCopyWithImpl<NodePatch_Attachments>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NodePatch_Attachments&&const DeepCollectionEquality().equals(other._field0, _field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_field0));
+
+@override
+String toString() {
+  return 'NodePatch.attachments(field0: $field0)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $NodePatch_AttachmentsCopyWith<$Res> implements $NodePatchCopyWith<$Res> {
+  factory $NodePatch_AttachmentsCopyWith(NodePatch_Attachments value, $Res Function(NodePatch_Attachments) _then) = _$NodePatch_AttachmentsCopyWithImpl;
+@useResult
+$Res call({
+ List<Attachment> field0
+});
+
+
+
+
+}
+/// @nodoc
+class _$NodePatch_AttachmentsCopyWithImpl<$Res>
+    implements $NodePatch_AttachmentsCopyWith<$Res> {
+  _$NodePatch_AttachmentsCopyWithImpl(this._self, this._then);
+
+  final NodePatch_Attachments _self;
+  final $Res Function(NodePatch_Attachments) _then;
+
+/// Create a copy of NodePatch
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(NodePatch_Attachments(
+null == field0 ? _self._field0 : field0 // ignore: cast_nullable_to_non_nullable
+as List<Attachment>,
   ));
 }
 

@@ -2,7 +2,7 @@ use crate::bridge::stream::{GraphDelta, GraphEvent};
 pub use crate::domain::base_models::BoundingBox;
 pub use crate::domain::base_models::ViewportState;
 pub use crate::domain::id::TypedRecordId;
-pub use crate::domain::nodes::Nodes;
+pub use crate::domain::nodes::{Attachment, Nodes};
 pub use crate::domain::patches::SymmetricEntityPatch;
 pub use crate::domain::relations::IRelation;
 pub use crate::domain::snapshot::GraphSnapshot;
@@ -286,6 +286,27 @@ impl AppHandle {
         self.service
             .load_map_from_file(file_path, attachment_dir)
             .await
+    }
+
+    pub fn ingest_asset(
+        &self,
+        asset_dir: String,
+        file_name: String,
+        file_bytes: Vec<u8>,
+        mime_type: String,
+    ) -> anyhow::Result<Attachment> {
+        crate::services::asset_vault::AssetVault::ingest_bytes(&asset_dir, &file_name, &file_bytes, &mime_type)
+    }
+
+    pub fn get_asset_absolute_path(
+        &self,
+        asset_dir: String,
+        hash: String,
+        extension: String,
+    ) -> String {
+        crate::services::asset_vault::AssetVault::resolve_path(&asset_dir, &hash, &extension)
+            .to_string_lossy()
+            .to_string()
     }
 
     // Layout Engine FFI Endpoints

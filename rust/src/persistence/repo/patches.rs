@@ -103,13 +103,14 @@ impl Repository {
                 "UPDATE $id SET media_type = $val",
                 Value::String(media.to_surreal_str().to_string()),
             ),
-            NodePatch::SourceUrl(url) => {
-                let val = match url {
-                    Some(u) => Value::String(u.clone()),
-                    None => Value::None,
-                };
-                ("UPDATE $id SET source_url = $val", val)
-            }
+            NodePatch::Attachment(att) => (
+                "UPDATE $id SET attachment = $val",
+                att.clone().into_value(),
+            ),
+            NodePatch::Attachments(atts) => (
+                "UPDATE $id SET attachments = $val",
+                atts.clone().into_value(),
+            ),
             NodePatch::Title(title) => (
                 "UPDATE $id SET title = $val",
                 Value::String(title.clone()),

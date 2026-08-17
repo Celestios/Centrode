@@ -15,6 +15,8 @@ abstract interface class GraphDataCommand {
     String? brushColor,
     Size? size,
     Content? content,
+    Attachment? attachment,
+    MediaType? mediaType,
   });
   void updateRelationsLayout(List<RawUuid> ids, {String? strategyType});
   void updateNodesStyle(

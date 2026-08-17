@@ -57,6 +57,17 @@ abstract class GraphApi {
     required double targetX,
     required double targetY,
   });
+  Future<Attachment> ingestAsset({
+    required String assetDir,
+    required String fileName,
+    required List<int> fileBytes,
+    required String mimeType,
+  });
+  Future<String> getAssetAbsolutePath({
+    required String assetDir,
+    required String hash,
+    required String extension,
+  });
   Future<void> loadMapFromFile({
     required String filePath,
     required String attachmentDir,
@@ -225,6 +236,30 @@ class RustAppHandleWrapper implements GraphApi {
     required double targetX,
     required double targetY,
   }) => _api.instantiateTemplate(key: key, targetX: targetX, targetY: targetY);
+
+  @override
+  Future<Attachment> ingestAsset({
+    required String assetDir,
+    required String fileName,
+    required List<int> fileBytes,
+    required String mimeType,
+  }) => _api.ingestAsset(
+    assetDir: assetDir,
+    fileName: fileName,
+    fileBytes: fileBytes,
+    mimeType: mimeType,
+  );
+
+  @override
+  Future<String> getAssetAbsolutePath({
+    required String assetDir,
+    required String hash,
+    required String extension,
+  }) => _api.getAssetAbsolutePath(
+    assetDir: assetDir,
+    hash: hash,
+    extension_: extension,
+  );
 
   @override
   Future<void> loadMapFromFile({
@@ -526,6 +561,35 @@ class DeferredGraphApi implements GraphApi {
     required double targetY,
   }) async {
     await _handle?.instantiateTemplate(key: key, targetX: targetX, targetY: targetY);
+  }
+
+  @override
+  Future<Attachment> ingestAsset({
+    required String assetDir,
+    required String fileName,
+    required List<int> fileBytes,
+    required String mimeType,
+  }) async {
+    return await _handle!.ingestAsset(
+      assetDir: assetDir,
+      fileName: fileName,
+      fileBytes: fileBytes,
+      mimeType: mimeType,
+    );
+  }
+
+  @override
+  Future<String> getAssetAbsolutePath({
+    required String assetDir,
+    required String hash,
+    required String extension,
+  }) async {
+    if (_handle == null) return '';
+    return _handle!.getAssetAbsolutePath(
+      assetDir: assetDir,
+      hash: hash,
+      extension: extension,
+    );
   }
 
   @override

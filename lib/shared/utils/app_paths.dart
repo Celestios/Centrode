@@ -19,6 +19,15 @@ class AppPaths {
     return p.join(await _appDataRoot, 'maps');
   }
 
+  static Future<String> get attachmentsDirectory async {
+    final dir = p.join(await mapsDirectory, 'attachments');
+    final d = Directory(dir);
+    if (!d.existsSync()) {
+      d.createSync(recursive: true);
+    }
+    return dir;
+  }
+
   static Future<String> get dataDirectory async {
     return p.join(await _appDataRoot, 'data');
   }

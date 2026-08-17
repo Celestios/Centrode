@@ -1,7 +1,7 @@
 use crate::domain::base_models::{Coordinates, Size};
 use crate::domain::contents::Content;
 use crate::domain::id::TypedRecordId;
-use crate::domain::nodes::{BrushType, IsNode, MediaType, Nodes, ShapeType, TaskState};
+use crate::domain::nodes::{Attachment, BrushType, IsNode, MediaType, Nodes, ShapeType, TaskState};
 use crate::domain::relations::IRelation;
 use crate::domain::styles::{NodeStyle, PortSide, RelationDirection, RelationLayout, RelationStyle};
 use crate::relation_engine::config::RoutingMode;
@@ -45,7 +45,8 @@ pub enum NodePatch {
     ShapeType(ShapeType),
     BrushType(BrushType),
     MediaType(MediaType),
-    SourceUrl(Option<String>),
+    Attachment(Attachment),
+    Attachments(Vec<Attachment>),
     Title(String),
     Verb(String),
 }
@@ -98,12 +99,11 @@ impl SurrealValue for NodePatch {
             NodePatch::MediaType(v) => {
                 map.insert("MediaType".to_string(), v.into_value());
             }
-            NodePatch::SourceUrl(v) => {
-                let val = match v {
-                    Some(u) => Value::String(u),
-                    None => Value::None,
-                };
-                map.insert("SourceUrl".to_string(), val);
+            NodePatch::Attachment(v) => {
+                map.insert("Attachment".to_string(), v.into_value());
+            }
+            NodePatch::Attachments(v) => {
+                map.insert("Attachments".to_string(), v.into_value());
             }
             NodePatch::Title(v) => {
                 map.insert("Title".to_string(), Value::String(v));
@@ -156,11 +156,11 @@ impl SurrealValue for NodePatch {
                 if let Some(v) = map.get("MediaType") {
                     return Ok(NodePatch::MediaType(MediaType::from_value(v.clone())?));
                 }
-                if let Some(v) = map.get("SourceUrl") {
-                    if matches!(v, Value::None | Value::Null) {
-                        return Ok(NodePatch::SourceUrl(None));
-                    }
-                    return Ok(NodePatch::SourceUrl(Some(String::from_value(v.clone())?)));
+                if let Some(v) = map.get("Attachment") {
+                    return Ok(NodePatch::Attachment(Attachment::from_value(v.clone())?));
+                }
+                if let Some(v) = map.get("Attachments") {
+                    return Ok(NodePatch::Attachments(Vec::<Attachment>::from_value(v.clone())?));
                 }
                 if let Some(v) = map.get("Title") {
                     return Ok(NodePatch::Title(String::from_value(v.clone())?));

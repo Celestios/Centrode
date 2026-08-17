@@ -106,6 +106,12 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<List<MapTheme>> getAllThemes();
 
+  Future<String> getAssetAbsolutePath({
+    required String assetDir,
+    required String hash,
+    required String extension_,
+  });
+
   Future<GraphSnapshot> getGraphSnapshot();
 
   Future<Nodes?> getNode({required TypedRecordId id});
@@ -115,6 +121,13 @@ abstract class AppHandle implements RustOpaqueInterface {
   Future<Tag?> getTag({required String key});
 
   Future<MapTheme?> getTheme({required String key});
+
+  Future<Attachment> ingestAsset({
+    required String assetDir,
+    required String fileName,
+    required List<int> fileBytes,
+    required String mimeType,
+  });
 
   Future<void> instantiateTemplate({
     required String key,
