@@ -1,7 +1,5 @@
 # GUI Specification Summary
 
-> Last verified: 2026-08-16
-
 Highlights from the full GUI specification (`gui_specification.yaml`, 1700+ lines).
 
 ---

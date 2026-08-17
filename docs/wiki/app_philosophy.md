@@ -545,4 +545,4 @@ Centrode is not fundamentally a notes app, a task manager, or a mind mapper. It 
 > ### **Centrode**
 > **The Central Hub for Your Life.**
 >
-> *Stop collecting information. Start connecting it.*
+> *Stop collecting information. Start connecting it.*

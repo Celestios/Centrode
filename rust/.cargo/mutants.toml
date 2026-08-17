@@ -1,0 +1,23 @@
+# rust/.cargo/mutants.toml
+# Diff-scoped, high-speed mutation testing configuration
+
+test_tool = "cargo"
+
+exclude_globs = [
+    "src/frb_generated.rs",
+    "src/persistence/schema.rs",
+    "src/telemetry.rs",
+    "src/bridge/api.rs",
+    "tests/**",
+    "scripts/**",
+]
+
+examine_globs = [
+    "src/domain/**",
+    "src/persistence/**",
+    "src/relation_engine/**",
+    "src/layout_engine/**",
+]
+
+# Timeout multiplier for async SurrealDB operations
+timeout_multiplier = 2.0

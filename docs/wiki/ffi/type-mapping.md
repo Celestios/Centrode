@@ -1,7 +1,5 @@
 # Type Mapping
 
-> Last verified: 2026-08-16
-
 Dart ↔ Rust type correspondence across the FFI boundary.
 
 ---

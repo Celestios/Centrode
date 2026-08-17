@@ -1,7 +1,5 @@
 # FFI Overview
 
-> Last verified: 2026-08-16
-
 ---
 
 ## Flutter Rust Bridge (FRB v2)

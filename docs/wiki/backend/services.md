@@ -1,8 +1,5 @@
 # Services
 
-> Last verified: 2026-08-16
-> Tier: 3 (Domain)
-
 ---
 
 ## Overview
@@ -18,6 +15,7 @@ The services layer provides high-level APIs that orchestrate lower-level modules
 ```
 services/
 ├── graph_service.rs          # Root — GraphService struct & dispatch
+├── asset_vault.rs            # Content-addressable asset storage (SHA-256 CAS)
 └── graph_service/            # Domain operation submodules
     ├── node.rs               # Node CRUD & cache management
     ├── relation.rs           # Relation CRUD, routing & boundaries
@@ -60,6 +58,11 @@ services/
 - Search: `query_search()`
 - Snapshot: `get_graph_snapshot()`
 - File I/O: `save_map_to_file()`, `load_map_from_file()`
+
+### Asset Vault (`asset_vault.rs`)
+- `compute_hash(bytes)` — SHA-256 hex digest
+- `ingest_bytes(asset_dir, file_name, bytes, mime_type)` — CAS write, returns `Attachment`
+- `resolve_path(asset_dir, hash, ext)` — resolve hash to absolute file path
 
 ---
 

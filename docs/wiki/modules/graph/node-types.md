@@ -1,8 +1,5 @@
 # Node Types
 
-> Last verified: 2026-08-16
-> Tier: 3 (Domain)
-
 ---
 
 ## UiNode Sealed Class
@@ -30,6 +27,7 @@ All node types extend the `UiNode` sealed class. The sealed modifier enables exh
 | `significance` | `int` | Visual significance level |
 | `createdAt` | `int` | Creation timestamp (millis) |
 | `updatedAt` | `int` | Last update timestamp (millis) |
+| `attachments` | `List<Attachment>` | File attachments (InfoNode, TaskNode only) |
 
 ---
 
@@ -42,6 +40,7 @@ Rich content node — the primary note-taking node. Supports markdown, tags, ali
 - **Rust**: `INode` in `rust/src/domain/nodes.rs`
 - **Table**: `INode` in SurrealDB
 - **Default color**: `#90CAF9` (light blue)
+- **Attachments**: `Vec<Attachment>` — multi-file, content-addressable via `AssetVault`
 
 ### TaskNode (`TaskUiNode`)
 
@@ -50,6 +49,7 @@ Actionable item with state tracking. Has `TaskState` enum: `Todo`, `InProgress`,
 - **Rust**: `TaskNode`
 - **Table**: `TaskNode`
 - **Default color**: `#A5D6A7` (green)
+- **Attachments**: `Vec<Attachment>` — multi-file support
 
 ### FrameNode (`FrameUiNode`)
 
@@ -106,11 +106,12 @@ Geometric primitive. Has `ShapeType` enum: `Rectangle`, `Circle`, `Diamond`, `Tr
 
 ### MediaNode (`MediaUiNode`)
 
-Embeds external media (image, video, audio, PDF). Has `MediaType` enum.
+Embeds external media (image, video, audio, PDF). Has `MediaType` enum: `Image`, `Video`, `Audio`, `Pdf`.
 
 - **Rust**: `MediaNode`
 - **Table**: `MediaNode`
 - **Default color**: `#80CBC4` (teal)
+- **Attachment**: singular `Attachment` (not a vector)
 
 ---
 

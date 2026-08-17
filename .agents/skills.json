@@ -1,6 +1,7 @@
 {
   "entries": [
     { "path": "skills/coding" },
-    { "path": "skills/design" }
+    { "path": "skills/design" },
+    { "path": "skills/documentation" }
   ]
 }

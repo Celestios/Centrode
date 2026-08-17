@@ -1,7 +1,5 @@
 # Code Generation
 
-> Last verified: 2026-08-16
-
 Centrode uses three code generation systems. Understanding when and how to run each is critical.
 
 ---

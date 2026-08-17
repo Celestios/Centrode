@@ -1,8 +1,5 @@
 # Canvas & Rendering
 
-> Last verified: 2026-08-16
-> Tier: 1 (Presentation)
-
 ---
 
 ## Canvas Widget
@@ -44,8 +41,32 @@ Nodes are rendered by type-specific painters:
 | `FrameNodeRenderer` | `painters/nodes/frame_node_renderer.dart` | Frame boundaries |
 | `ContainerNodeRenderer` | `painters/nodes/container_node_renderer.dart` | Container groups |
 | `NodeSelectionRenderer` | `painters/nodes/node_selection_renderer.dart` | Selection highlights |
+| `ContainerBoundaryPainter` | `painters/container_boundary_painter.dart` | Container boundary lines |
 
 The `NodeRenderEntry` (`painters/node_render_entry.dart`) orchestrates which renderer to use based on node type and state.
+
+---
+
+## Canvas Widgets
+
+| Widget | File | Responsibility |
+|--------|------|----------------|
+| `CanvasNodesHost` | `widgets/canvas_nodes_host.dart` | Hosts all node widgets on canvas |
+| `AttachmentShelfWidget` | `widgets/attachment_shelf_widget.dart` | Renders file attachment chips below a node |
+| `MediaNodeWidget` | `widgets/media_node_widget.dart` | Embeds media content (image, video, audio, PDF) |
+| `NodeRichText` | `widgets/node_rich_text.dart` | Rich text rendering for node content |
+| `DrawNodeWidget` | `widgets/draw_node_widget.dart` | Freehand drawing widget |
+| `HighlightFrame` | `widgets/highlight_frame.dart` | Selection highlight frame |
+
+---
+
+## Canvas Utilities
+
+| Utility | File | Responsibility |
+|---------|------|----------------|
+| `ContainerPaintUtils` | `utils/container_paint_utils.dart` | Container boundary painting helpers |
+| `DashedBoxPaintUtils` | `utils/dashed_box_paint_utils.dart` | Dashed rectangle rendering (frames) |
+| `PerimeterDockCalculator` | `utils/perimeter_dock_calculator.dart` | Computes port dock positions on node perimeters |
 
 ---
 

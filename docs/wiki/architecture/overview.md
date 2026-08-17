@@ -1,7 +1,5 @@
 # Architecture Overview
 
-> Last verified: 2026-08-16
-
 Centrode is a bilingual Flutter + Rust application: a canvas-based visual knowledge graph with SurrealDB backend via Flutter Rust Bridge (FRB v2).
 
 ---
@@ -42,7 +40,7 @@ graph TD
 | **Persistence** | `rust/src/persistence/` | SurrealDB connection, CRUD, history, schema |
 | **Relation Engine** | `rust/src/relation_engine/` | Routing algorithms, path finding, composition |
 | **Layout Engine** | `rust/src/layout_engine/` | Force-directed graph layout, physics forces |
-| **Services** | `rust/src/services/` | High-level graph service layer |
+| **Services** | `rust/src/services/` | High-level graph service layer, asset vault |
 | **Format** | `rust/src/format/` | `.cent` zip package format |
 | **Telemetry** | `rust/src/telemetry.rs` | Tracing subscriber bridged to Flutter |
 
@@ -86,6 +84,7 @@ On the Rust side, `init_core()` (called via FRB init) sets up the `tracing` tele
 - **Undo/Redo**: Symmetric entity patches stored in SurrealDB `History` table, applied via `apply_history_record_patch`
 - **Dynamic Snap & Routing**: Dynamic port alignment, snap guidelines, and live relation rerouting during dragging
 - **Bounded Layout Optimization (OptArea)**: Sub-graph physics layout constrained to user-defined rectangular optimization regions
+- **File Attachments**: Content-addressable asset vault (SHA-256 CAS), multi-attachment support on InfoNode/TaskNode, singular on MediaNode
 - **Streaming**: Rust broadcasts `GraphEvent` to Flutter via FRB `StreamSink`, enabling real-time UI updates
 - **Telemetry**: Rust `tracing` → `TelemetryLayer` → FFI stream → Dart `LogManager`
 - **Themes**: JSON files in `assets/themes/` → `AppTheme` objects → `AppThemeManager` → `ValueListenableBuilder`

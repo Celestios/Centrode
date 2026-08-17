@@ -1,7 +1,5 @@
 # Backend Overview
 
-> Last verified: 2026-08-16
-
 The Rust backend (`centrode_core` crate) provides the core business logic, persistence, and computation engines.
 
 ---

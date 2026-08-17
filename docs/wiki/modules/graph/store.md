@@ -1,8 +1,5 @@
 # Store & Sync
 
-> Last verified: 2026-08-16
-> Tier: 3 (Domain & Storage)
-
 ---
 
 ## Overview
@@ -63,6 +60,7 @@ Key methods:
 - `saveMapToFile()`, `loadMapFromFile()`
 - `createTag()`, `updateTag()`, `deleteTag()`
 - `saveTemplateFromSelection()`, `instantiateTemplate()`
+- `ingestAsset()`, `getAssetAbsolutePath()` — file attachment I/O
 
 ---
 

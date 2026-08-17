@@ -1,8 +1,5 @@
 # Layout Engine
 
-> Last verified: 2026-08-16
-> Tier: 3 (Domain)
-
 ---
 
 ## Overview

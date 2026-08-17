@@ -1,7 +1,5 @@
 # Development Setup
 
-> Last verified: 2026-08-16
-
 ---
 
 ## Prerequisites

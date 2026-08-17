@@ -1,7 +1,5 @@
 # Adding a Command
 
-> Last verified: 2026-08-16
-
 Step-by-step guide to adding a new graph mutation command.
 
 ---

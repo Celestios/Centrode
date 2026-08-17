@@ -12,52 +12,13 @@ import 'package:centrode/features/graph/store/graph_api.dart';
 import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
 import 'package:centrode/src/rust/domain/base_models.dart' as frb;
 
-class MockGraphApi extends Mock implements GraphApi {}
-class FakeIRelation extends Fake implements IRelation {}
+import 'package:centrode/features/graph/store/in_memory_graph_api.dart';
 
 void main() {
-  setUpAll(() {
-    registerFallbackValue(FakeIRelation());
-    registerFallbackValue(
-      parseTypedRecordId('INode', RawUuid.fromString('dummy')),
-    );
-    registerFallbackValue(
-      parseTypedRecordId('IRelation', RawUuid.fromString('dummy')),
-    );
-    registerFallbackValue(
-      Nodes.iNode(
-        INode(
-          id: parseTypedRecordId('INode', RawUuid.fromString('dummy')),
-          content: ContentFactory.empty(),
-          layer: 'default',
-          position: const frb.Coordinates(x: 0, y: 0),
-          size: const frb.Size(width: 10, height: 10),
-          expandable: false,
-          isExpanded: false,
-          locked: false,
-          tags: const [],
-          aliases: const [],
-          comments: const [],
-          attachments: const [],
-          significance: 0,
-          createdAt: 0,
-          updatedAt: 0,
-          lineCount: 1,
-        ),
-      ),
-    );
-  });
-
   test('Deleting a node optimistic teardown purges connected relations and prevents ghost hit testing', () async {
-    final mockApi = MockGraphApi();
-    when(() => mockApi.createNode(input: any(named: 'input'))).thenAnswer((_) async {});
-    when(() => mockApi.createRelation(input: any(named: 'input'))).thenAnswer((_) async {});
-    when(() => mockApi.deleteNodeEntry(id: any(named: 'id'))).thenAnswer((_) async {});
-    when(() => mockApi.deleteRelation(id: any(named: 'id'))).thenAnswer((_) async {});
-    when(() => mockApi.updateNodeCachePositions(positions: any(named: 'positions'))).thenAnswer((_) async {});
-
-    final queryController = GraphDataQueryController(mockApi);
-    final processor = CommandQueueProcessor(mockApi, queryController);
+    final api = InMemoryGraphApi();
+    final queryController = GraphDataQueryController(api);
+    final processor = CommandQueueProcessor(api, queryController);
     final renderState = NodeRenderState(queryController, processor);
     final viewportController = ViewportController(queryController);
 

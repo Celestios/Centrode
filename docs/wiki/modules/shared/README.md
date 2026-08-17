@@ -1,8 +1,5 @@
 # Shared Module
 
-> Last verified: 2026-08-16
-> Tier: 1 (Presentation)
-
 ---
 
 ## Overview

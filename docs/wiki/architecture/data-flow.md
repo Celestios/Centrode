@@ -1,7 +1,5 @@
 # Data Flow
 
-> Last verified: 2026-08-16
-
 This document traces how data flows from user input through the Flutter frontend, across the FFI bridge, into the Rust backend, and back.
 
 ---

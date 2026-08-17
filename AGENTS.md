@@ -106,6 +106,7 @@ Route to exactly **ONE** of these workflows. Read the corresponding `.agents/wor
 | 7 | `/tester` | Testing & Coverage — mocks, unit/widget/integration/Cargo tests, coverage | `.agents/workflows/tester.md` |
 | 8 | `/perf-profiler` | Performance & Tuning — canvas rendering frames, repaint boundaries, gesture latency, DB query tuning | `.agents/workflows/perf-profiler.md` |
 | 9 | `/documenter` | Documentation — API specs, system docs, README, architecture logs | `.agents/workflows/documenter.md` |
+| 10 | `/test-health` | Test Quality Auditing — assertion rigor, mock fidelity, FSM invariants, timing determinism, mutation resistance | `.agents/workflows/test-health.md` |
 
 ### Loading a workflow
 
@@ -134,6 +135,16 @@ read_file(.agents/rules/git-file-operations.md)
 ### Project Context
 
 To gather context about the project in any task case, check the project's wiki in `docs/wiki/`.
+
+### Wiki Editing Rules
+
+When editing any file under `docs/wiki/`:
+
+1. **Load the wiki consistency skill first**: `read_file(D:/Projects/Open/flutter/code/centrode/.agents/skills/documentation/wiki-consistency/SKILL.md)`
+2. **Run the consistency checker before and after changes**: `dart scripts/check_wiki_consistency.dart`
+3. **New pages must be added to INDEX.md** in the correct section
+4. **Cross-reference key concepts** — link to the canonical wiki page on first mention
+5. **Factual claims must match across files** — the checker validates this automatically
 
 ### Action Items
 

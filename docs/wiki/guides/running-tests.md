@@ -1,7 +1,5 @@
 # Running Tests
 
-> Last verified: 2026-08-16
-
 ---
 
 ## Dart Unit & Widget Tests

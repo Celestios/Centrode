@@ -1,40 +1,64 @@
 ---
-description: Guided workflow to design mocks, write unit/widget/integration/Cargo tests, and increase code coverage.
+description: Guided workflow to design behavioral specifications, write hermetic contract/FSM tests, run mutation testing, and enforce agentic quality gates.
 ---
 
 # Workflow: /tester
 
-This workflow guides the design, implementation, and execution of unit, widget, integration, and backend tests in the Centrode workspace.
+This workflow guides the design, authoring, and verification of unit, contract, FSM, and backend tests across the bilingual Centrode workspace (Dart/Flutter + Rust/SurrealDB).
+
+---
+
+## Testing Principles & Constraints
+
+1. **CSIV Topology & Boundary Enforcement:** The Test Spec Agent must never modify production source code (`lib/`, `rust/src/`). It authors tests based strictly on behavioral specifications and public API contracts.
+2. **Anti-Mocking by Default:** NEVER create raw mock objects (e.g. `MockGraphApi`, `MockInteractionContext`). Use:
+   - `InMemoryGraphApi` (`lib/features/graph/store/in_memory_graph_api.dart`) for graph storage/streaming.
+   - `FakeInteractionContext` & `GestureTestHarness` (`test/helpers/gesture_test_harness.dart`) for canvas gesture tests.
+   - `Surreal::new::<Mem>(())` for Rust backend persistence.
+3. **No Wall-Clock Delays:** Never use `Future.delayed()` or `sleep()`. Use `fakeAsync` or `GestureTestHarness.advanceTime()`.
+4. **Non-Vacuous Assertions:** Every test must contain meaningful state or property assertions. `expect(true, isTrue)` and unawaited `expectLater` are strictly forbidden.
+
+---
 
 ## Execution Steps
 
-### Step 1: Target Analysis & Test Scope
-- Locate the source components that require testing.
-- Determine the scope: unit testing (state logic, FFI parsing), widget testing (UI canvas behaviors), integration testing (canvas gestures to DB), or Rust unit/integration tests.
-- Identify existing sibling tests to maintain structural and styling symmetry.
+### Step 1: Target Contract Analysis & Specification
+- Identify the target subsystem (Domain logic, Graph FSM, Persistence, FFI Bridge, Layout Engine).
+- Formulate behavioral invariants, boundary cases, and contract properties (Arrange-Act-Assert).
 
-### Step 2: Enforce Coding Standards
-- Based on the language of the component:
-  - For Dart/Flutter tests: View and activate the [dart-coding](.agents/skills/coding/dart-coding/SKILL.md) skill.
-  - For Rust backend tests: View and activate the [rust-coding](.agents/skills/coding/rust-coding/SKILL.md) skill.
+### Step 2: Language & Architectural Skills
+- For Dart/Flutter tests: View and activate [.agents/rules/test-architecture.md](.agents/rules/test-architecture.md) and [.agents/skills/coding/dart-coding/SKILL.md](.agents/skills/coding/dart-coding/SKILL.md).
+- For Rust backend tests: View and activate [.agents/skills/coding/rust-coding/SKILL.md](.agents/skills/coding/rust-coding/SKILL.md).
 
-### Step 3: Mocking & Setup Design
-- Design mock dependencies and test data.
-- Ensure that Rust persistence tests use an isolated in-memory DB configuration (`Surreal::new::<Mem>(())`).
-- Avoid introducing flaky timers or dynamic external network requests.
+### Step 3: Test Harness & Double Selection
+- **Persistence / Store:** Use `InMemoryGraphApi` or run `graph_api_contract_suite.dart`.
+- **Canvas / Gestures:** Use `GestureTestHarness` to step through discrete pointer events with virtual timestamps.
+- **FFI Boundary:** Design round-trip serialization tests against `proptest` generators or golden JSON vectors.
+- **Rust Backend:** Use `TestContext` with in-memory SurrealDB (`Surreal::new::<Mem>(())`).
 
 ### Step 4: Implement Test Suites
-- Write the tests, following the naming and file location conventions:
-  - Dart unit/widget: `test/features/<feature_name>/`
-  - Dart integration: `integration_test/`
-  - Rust tests: either inline `#[cfg(test)]` modules or inside `rust/tests/`.
-- Ensure all test classes and mocks compile cleanly.
+Write hermetic tests in the canonical directories:
+- Dart unit/contract/widget: `test/features/<feature>/`, `test/shared/contract_suites/`, `test/bug_fix/`
+- Dart integration: `integration_test/`
+- Rust backend: `rust/tests/` or inline `#[cfg(test)]` modules
 
-### Step 5: Verification & Run Approval
-- Do NOT run test commands automatically. Ask the user if they would like you to execute the tests:
-  - Dart: `flutter test`
-  - Rust: `cd rust && cargo test`
-- If the user approves, run the tests and address any failures. If they decline, proceed.
+### Step 5: Autonomous Verification & Quality Gates
+Execute automated validation scripts:
+1. **AST Smell Gate:**
+   ```bash
+   dart run scripts/quality/dart_test_smell_visitor.dart
+   ```
+2. **Runtime Red Gate (for new feature/bug stubs):**
+   ```bash
+   dart run scripts/quality/tdd_red_gate_validator.dart <test_file_path>
+   ```
+3. **Test Suite Execution:**
+   - Dart: `flutter test <test_file_path>`
+   - Rust: `cd rust && cargo test`
+4. **Diff-Scoped Mutation Gate:**
+   ```bash
+   cd rust && cargo mutants --in-diff "git diff origin/main...HEAD"
+   ```
 
 ### Step 6: Presentation
-- Summarize the written test scenarios, assertions, and mocked paths.
+- Summarize tested contract invariants, state transitions, and mutation survival results.

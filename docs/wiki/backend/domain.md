@@ -1,8 +1,5 @@
 # Domain Types
 
-> Last verified: 2026-08-16
-> Tier: 3 (Domain)
-
 ---
 
 ## Overview
@@ -104,6 +101,8 @@ Enum for connection port positions: `Top`, `Right`, `Bottom`, `Left`.
 | `Coordinates` | `base_models.rs` | x/y position |
 | `BoundingBox` | `base_models.rs` | Bounding rectangle |
 | `ViewportState` | `base_models.rs` | Pan/zoom state |
+| `Attachment` | `base_models.rs` | File attachment — id, hash, name, mime_type, byte_size, width, height, duration_ms |
+| `Comment` | `base_models.rs` | Comment on a node |
 | `Content` | `contents.rs` | Rich text (markdown blocks) |
 | `Tag` | `tags.rs` | Tag definition (key, color, name) |
 | `Template` | `templates.rs` | Node group template |

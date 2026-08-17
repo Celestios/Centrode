@@ -1,8 +1,5 @@
 # Persistence
 
-> Last verified: 2026-08-16
-> Tier: 3 (Domain & Storage)
-
 ---
 
 ## Overview
@@ -28,15 +25,15 @@ The persistence layer manages SurrealDB — an embedded document database. No se
 
 | Table | Type | Description |
 |-------|------|-------------|
-| `INode` | SCHEMAFULL | Info nodes |
-| `TaskNode` | SCHEMAFULL | Task nodes |
+| `INode` | SCHEMAFULL | Info nodes (with `attachments` array) |
+| `TaskNode` | SCHEMAFULL | Task nodes (with `attachments` array) |
 | `InterNode` | SCHEMAFULL | Relation intersection nodes |
 | `CommentNode` | SCHEMAFULL | Comment nodes |
 | `DrawingNode` | SCHEMAFULL | Drawing nodes |
 | `ShapeNode` | SCHEMAFULL | Shape nodes |
 | `FrameNode` | SCHEMAFULL | Frame nodes |
-| `ContainerNode` | SCHEMAFULL | Container nodes |
-| `MediaNode` | SCHEMAFULL | Media nodes |
+| `ContainerNode` | SCHEMAFULL | Container nodes (with `child_count`, `locked`) |
+| `MediaNode` | SCHEMAFULL | Media nodes (with singular `attachment`) |
 | `IRelation` | RELATION | Connections between nodes |
 | `Tag` | SCHEMAFULL | Tag definitions |
 | `MapTheme` | SCHEMAFULL | Map themes |

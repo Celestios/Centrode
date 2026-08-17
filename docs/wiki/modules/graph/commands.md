@@ -1,8 +1,5 @@
 # Commands
 
-> Last verified: 2026-08-16
-> Tier: 2 (Interaction & Controllers)
-
 ---
 
 ## Command Pattern

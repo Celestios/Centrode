@@ -1,7 +1,5 @@
 # FFI API Surface
 
-> Last verified: 2026-08-16
-
 All methods on `AppHandle` (`rust/src/bridge/api.rs`) that are callable from Dart via FRB.
 
 ---
@@ -116,6 +114,15 @@ All methods on `AppHandle` (`rust/src/bridge/api.rs`) that are callable from Dar
 | `save_map_to_file` | `(file_path, attachment_dir) -> Result<()>` | Export .cent file |
 | `load_map_from_file` | `(file_path, attachment_dir) -> Result<()>` | Import .cent file |
 | `update_viewport_state` | `(state: ViewportState) -> Result<()>` | Save viewport state |
+
+---
+
+## Asset Vault
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `ingest_asset` | `(asset_dir, file_name, file_bytes, mime_type) -> Result<Attachment>` | Ingest file into CAS, return attachment metadata |
+| `get_asset_absolute_path` | `(asset_dir, hash, extension) -> Result<String>` | Resolve asset hash to absolute file path |
 
 ---
 

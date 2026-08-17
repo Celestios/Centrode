@@ -1,7 +1,5 @@
 # Adding a Node Type
 
-> Last verified: 2026-08-16
-
 Step-by-step guide to adding a new node type to Centrode.
 
 ---

@@ -1,7 +1,5 @@
 # Tier System
 
-> Last verified: 2026-08-16
-
 Centrode enforces a strict 3-tier layering architecture. Lower tiers must never import from higher tiers.
 
 ---
