@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'package:centrode/features/graph/models/models.dart';
-import 'package:centrode/src/rust/domain/nodes.dart';
 import 'package:centrode/features/graph/models/node_style_resolver.dart';
 
 void main() {

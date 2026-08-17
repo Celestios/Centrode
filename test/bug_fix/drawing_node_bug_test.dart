@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:centrode/features/graph/models/models.dart';
-import 'package:centrode/src/rust/domain/nodes.dart';
 import 'package:centrode/features/graph/presentation/style_manager.dart';
 import 'package:centrode/features/graph/store/modules/graph_store.dart';
 import 'package:centrode/presentation/theme/graph_theme.dart';

@@ -9,6 +9,7 @@ export 'package:centrode/src/rust/domain/types.dart';
 export 'package:centrode/src/rust/domain/enums.dart'
     hide BrushType, MediaType, ShapeType, TaskState, EndpointShape;
 export 'package:centrode/src/rust/domain/id.dart';
+export 'package:centrode/src/rust/domain/nodes.dart';
 export 'package:centrode/src/rust/domain/styles.dart';
 export 'package:centrode/src/rust/domain/tags.dart';
 export 'package:centrode/src/rust/domain/base_models.dart' hide Size;

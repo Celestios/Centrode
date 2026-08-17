@@ -139,6 +139,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   UuidValue dco_decode_Uuid(dynamic raw);
 
   @protected
+  Attachment dco_decode_attachment(dynamic raw);
+
+  @protected
   Axis dco_decode_axis(dynamic raw);
 
   @protected
@@ -164,6 +167,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
     dynamic raw,
   );
+
+  @protected
+  Attachment dco_decode_box_autoadd_attachment(dynamic raw);
 
   @protected
   BlockAttrs dco_decode_box_autoadd_block_attrs(dynamic raw);
@@ -407,6 +413,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
+  List<Attachment> dco_decode_list_attachment(dynamic raw);
+
+  @protected
   List<Comment> dco_decode_list_comment(dynamic raw);
 
   @protected
@@ -441,6 +450,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Float64List dco_decode_list_prim_f_64_strict(dynamic raw);
+
+  @protected
+  List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
@@ -792,6 +804,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   UuidValue sse_decode_Uuid(SseDeserializer deserializer);
 
   @protected
+  Attachment sse_decode_attachment(SseDeserializer deserializer);
+
+  @protected
   Axis sse_decode_axis(SseDeserializer deserializer);
 
   @protected
@@ -817,6 +832,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
     SseDeserializer deserializer,
   );
+
+  @protected
+  Attachment sse_decode_box_autoadd_attachment(SseDeserializer deserializer);
 
   @protected
   BlockAttrs sse_decode_box_autoadd_block_attrs(SseDeserializer deserializer);
@@ -1082,6 +1100,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
+  List<Attachment> sse_decode_list_attachment(SseDeserializer deserializer);
+
+  @protected
   List<Comment> sse_decode_list_comment(SseDeserializer deserializer);
 
   @protected
@@ -1122,6 +1143,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Float64List sse_decode_list_prim_f_64_strict(SseDeserializer deserializer);
+
+  @protected
+  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -1535,6 +1559,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_Uuid(UuidValue self, SseSerializer serializer);
 
   @protected
+  void sse_encode_attachment(Attachment self, SseSerializer serializer);
+
+  @protected
   void sse_encode_axis(Axis self, SseSerializer serializer);
 
   @protected
@@ -1559,6 +1586,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void
   sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord(
     HistoryRecord self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_attachment(
+    Attachment self,
     SseSerializer serializer,
   );
 
@@ -1914,6 +1947,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_attachment(
+    List<Attachment> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_comment(List<Comment> self, SseSerializer serializer);
 
   @protected
@@ -1972,6 +2011,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     Float64List self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
