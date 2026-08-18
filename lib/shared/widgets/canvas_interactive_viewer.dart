@@ -10,7 +10,10 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show clampDouble, visibleForTesting;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/physics.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:centrode/features/graph/engine/config.dart';
+import 'package:centrode/shared/widgets/canvas_camera_physics.dart';
 import 'package:vector_math/vector_math_64.dart' show Matrix4, Quad, Vector3;
 
 // Examples can assume:
@@ -44,6 +47,7 @@ typedef InteractiveViewerWidgetBuilder =
 /// size of the area that should be interactive.
 ///
 /// See also:
+///
 ///   * The [Flutter Gallery's transformations demo](https://github.com/flutter/gallery/blob/main/lib/demos/reference/transformations_demo.dart),
 ///     which includes the use of CentrodeInteractiveViewer.
 ///   * The [flutter-go demo](https://github.com/justinmc/flutter-go), which includes robust positioning of an CentrodeInteractiveViewer child
@@ -64,6 +68,7 @@ class CanvasInteractiveViewer extends StatefulWidget {
     this.clipBehavior = Clip.hardEdge,
     this.panAxis = PanAxis.free,
     this.boundaryMargin = EdgeInsets.zero,
+    this.contentBounds,
     this.constrained = true,
     // These default scale values were eyeballed as reasonable limits for common
     // use cases.
@@ -79,6 +84,7 @@ class CanvasInteractiveViewer extends StatefulWidget {
     this.transformationController,
     this.alignment,
     this.trackpadScrollCausesScale = false,
+    this.onElasticOverscroll,
     required Widget this.child,
   }) : assert(minScale > 0),
        assert(interactionEndFrictionCoefficient > 0),
@@ -110,6 +116,7 @@ class CanvasInteractiveViewer extends StatefulWidget {
     this.clipBehavior = Clip.hardEdge,
     this.panAxis = PanAxis.free,
     this.boundaryMargin = EdgeInsets.zero,
+    this.contentBounds,
     // These default scale values were eyeballed as reasonable limits for common
     // use cases.
     this.maxScale = 2.5,
@@ -124,6 +131,7 @@ class CanvasInteractiveViewer extends StatefulWidget {
     this.transformationController,
     this.alignment,
     this.trackpadScrollCausesScale = false,
+    this.onElasticOverscroll,
     required InteractiveViewerWidgetBuilder this.builder,
   }) : assert(minScale > 0),
        assert(interactionEndFrictionCoefficient > 0),
@@ -143,6 +151,9 @@ class CanvasInteractiveViewer extends StatefulWidget {
        ),
        constrained = false,
        child = null;
+
+  /// Optional explicit content boundary rectangle in world space.
+  final Rect? contentBounds;
 
   /// The alignment of the child's origin, relative to the size of the box.
   final Alignment? alignment;
@@ -382,6 +393,11 @@ class CanvasInteractiveViewer extends StatefulWidget {
   ///  * [TextEditingController] for an example of another similar pattern.
   final TransformationController? transformationController;
 
+  /// Called when elastic overscroll changes during panning past boundaries.
+  /// The Offset represents the screen-space overshoot (x, y).
+  /// Called with Offset.zero when overscroll returns to zero.
+  final ValueChanged<Offset>? onElasticOverscroll;
+
   // Used as the coefficient of friction in the inertial translation animation.
   // This value was eyeballed to give a feel similar to Google Photos.
   static const double _kDrag = 0.0000135;
@@ -529,14 +545,128 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
   PointerDeviceKind? _lastPointerKind;
   int _lastPointerButtons = 0;
   bool _isSecondaryPanning = false;
+  Offset? _gestureStartCameraBase;
+  Offset? _gestureStartFocalPoint;
   late VelocityTracker _velocityTracker;
-  // TODO(justinmc): Add rotateEnabled parameter to the widget and remove this
-  // hardcoded value when the rotation feature is implemented.
-  // https://github.com/flutter/flutter/issues/57698
   final bool _rotateEnabled = false;
 
-  // The _boundaryRect is calculated by adding the boundaryMargin to the size of
-  // the child.
+  Offset _currentOverscroll = Offset.zero;
+  Offset _baseTranslation = Offset.zero;
+  Offset _elasticOffset = Offset.zero;
+   Offset? _gestureStartTranslation;
+   late final DampedSpring _spring = DampedSpring();
+  Ticker? _springTicker;
+  Duration _lastSpringTick = Duration.zero;
+
+  void _updatePan(Offset deltaScreen) {
+    final Size viewportSize = _viewport.size;
+    if (viewportSize == Size.zero || _gestureStartTranslation == null) return;
+
+    final double zoom = _transformer.value.getMaxScaleOnAxis();
+    final Rect bounds = _contentBounds;
+
+    final Offset desiredTranslation = _gestureStartTranslation! + deltaScreen;
+
+    final double maxTx = -bounds.left * zoom;
+    final double minTx = viewportSize.width - bounds.right * zoom;
+    final double maxTy = -bounds.top * zoom;
+    final double minTy = viewportSize.height - bounds.bottom * zoom;
+
+    final double lowX = math.min(minTx, maxTx);
+    final double highX = math.max(minTx, maxTx);
+    final double lowY = math.min(minTy, maxTy);
+    final double highY = math.max(minTy, maxTy);
+
+    final double clampedTx = desiredTranslation.dx.clamp(lowX, highX);
+    final double clampedTy = desiredTranslation.dy.clamp(lowY, highY);
+
+    final double overflowX = desiredTranslation.dx - clampedTx;
+    final double overflowY = desiredTranslation.dy - clampedTy;
+
+    final double resistance = AppConfig.canvas.elasticResistance;
+    final Offset elasticScreen = Offset(
+      CanvasCameraPhysics.rubberBand(overflowX, resistance),
+      CanvasCameraPhysics.rubberBand(overflowY, resistance),
+    );
+
+    _baseTranslation = Offset(clampedTx, clampedTy);
+    _elasticOffset = elasticScreen;
+
+    final Offset actualTranslation = _baseTranslation + _elasticOffset;
+
+    _transformer.value = _transformer.value.clone()
+      ..setTranslation(Vector3(actualTranslation.dx, actualTranslation.dy, 0.0));
+
+    _updateOverscroll(elasticScreen);
+  }
+
+  void _startSpring() {
+    _stopSpring();
+    _spring.reset(_elasticOffset);
+    _lastSpringTick = Duration.zero;
+    _springTicker?.start();
+  }
+
+  void _stopSpring() {
+    if (_springTicker?.isActive ?? false) {
+      _springTicker?.stop();
+    }
+  }
+
+  void _onSpringTick(Duration elapsed) {
+    if (_lastSpringTick == Duration.zero) {
+      _lastSpringTick = elapsed;
+      return;
+    }
+    final double dt = ((elapsed - _lastSpringTick).inMicroseconds / 1000000.0)
+        .clamp(0.001, 0.032);
+    _lastSpringTick = elapsed;
+
+    _spring.update(dt);
+    _elasticOffset = _spring.position;
+
+    final Offset actualTranslation = _baseTranslation + _elasticOffset;
+
+    _transformer.value = _transformer.value.clone()
+      ..setTranslation(Vector3(actualTranslation.dx, actualTranslation.dy, 0.0));
+
+    _updateOverscroll(_elasticOffset);
+
+    if (_spring.settled) {
+      _stopSpring();
+      _elasticOffset = Offset.zero;
+      _updateOverscroll(Offset.zero);
+      _transformer.value = _transformer.value.clone()
+        ..setTranslation(Vector3(_baseTranslation.dx, _baseTranslation.dy, 0.0));
+    }
+  }
+
+  /// The effective content boundary in child-local space.
+  ///
+  /// When [CanvasInteractiveViewer.contentBounds] is provided (the canonical
+  /// world-space padded rect), it is transformed to child-local coordinates by
+  /// scaling with the inverse of the current zoom. This ensures the boundary
+  /// check in [_matrixTranslate] and the min-scale calculation in [_matrixScale]
+  /// are correct at every zoom level.
+  ///
+  /// Falls back to the legacy margin-inflated child rect when contentBounds is
+  /// not provided.
+  Rect get _contentBounds {
+    if (widget.contentBounds != null) {
+      final double zoom = _transformer.value.getMaxScaleOnAxis();
+      if (zoom > 0) {
+        final Rect scaled = Rect.fromLTRB(
+          widget.contentBounds!.left / zoom,
+          widget.contentBounds!.top / zoom,
+          widget.contentBounds!.right / zoom,
+          widget.contentBounds!.bottom / zoom,
+        );
+        return scaled;
+      }
+    }
+    return _boundaryRect;
+  }
+
   Rect get _boundaryRect {
     assert(_childKey.currentContext != null);
     assert(!widget.boundaryMargin.left.isNaN);
@@ -554,8 +684,6 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
       !boundaryRect.isEmpty,
       "CentrodeInteractiveViewer's child must have nonzero dimensions.",
     );
-    // Boundaries that are partially infinite are not allowed because Matrix4's
-    // rotation and translation methods don't handle infinites well.
     assert(
       boundaryRect.isFinite ||
           (boundaryRect.left.isInfinite &&
@@ -604,7 +732,7 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
 
     // If the boundaries are infinite, then no need to check if the translation
     // fits within them.
-    if (_boundaryRect.isInfinite) {
+    if (_contentBounds.isInfinite) {
       return nextMatrix;
     }
 
@@ -613,7 +741,7 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
     // limits translation. With this approach, all points that are visible with
     // no rotation are visible after rotation.
     final Quad boundariesAabbQuad = _getAxisAlignedBoundingBoxWithRotation(
-      _boundaryRect,
+      _contentBounds,
       _currentRotation,
     );
 
@@ -623,65 +751,26 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
       nextViewport,
     );
     if (offendingDistance == Offset.zero) {
+      _updateOverscroll(Offset.zero);
       return nextMatrix;
     }
 
-    // Desired translation goes out of bounds, so translate to the nearest
-    // in-bounds point instead.
     final Offset nextTotalTranslation = _getMatrixTranslation(nextMatrix);
     final double currentScale = matrix.getMaxScaleOnAxis();
-    final Offset correctedTotalTranslation = Offset(
+
+    final Offset inBoundsTranslation = Offset(
       nextTotalTranslation.dx - offendingDistance.dx * currentScale,
       nextTotalTranslation.dy - offendingDistance.dy * currentScale,
     );
-    // TODO(justinmc): This needs some work to handle rotation properly. The
-    // idea is that the boundaries are axis aligned (boundariesAabbQuad), but
-    // calculating the translation to put the viewport inside that Quad is more
-    // complicated than this when rotated.
-    // https://github.com/flutter/flutter/issues/57698
-    final Matrix4 correctedMatrix = matrix.clone()
+
+    return matrix.clone()
       ..setTranslation(
         Vector3(
-          correctedTotalTranslation.dx,
-          correctedTotalTranslation.dy,
+          inBoundsTranslation.dx,
+          inBoundsTranslation.dy,
           0.0,
         ),
       );
-
-    // Double check that the corrected translation fits.
-    final Quad correctedViewport = _transformViewport(
-      correctedMatrix,
-      _viewport,
-    );
-    final Offset offendingCorrectedDistance = _exceedsBy(
-      boundariesAabbQuad,
-      correctedViewport,
-    );
-    if (offendingCorrectedDistance == Offset.zero) {
-      return correctedMatrix;
-    }
-
-    // If the corrected translation doesn't fit in either direction, don't allow
-    // any translation at all. This happens when the viewport is larger than the
-    // entire boundary.
-    if (offendingCorrectedDistance.dx != 0.0 &&
-        offendingCorrectedDistance.dy != 0.0) {
-      return matrix.clone();
-    }
-
-    // Otherwise, allow translation in only the direction that fits. This
-    // happens when the viewport is larger than the boundary in one direction.
-    final Offset unidirectionalCorrectedTotalTranslation = Offset(
-      offendingCorrectedDistance.dx == 0.0 ? correctedTotalTranslation.dx : 0.0,
-      offendingCorrectedDistance.dy == 0.0 ? correctedTotalTranslation.dy : 0.0,
-    );
-    return matrix.clone()..setTranslation(
-      Vector3(
-        unidirectionalCorrectedTotalTranslation.dx,
-        unidirectionalCorrectedTotalTranslation.dy,
-        0.0,
-      ),
-    );
   }
 
   // Return a new matrix representing the given matrix after applying the given
@@ -700,8 +789,8 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
       // Ensure that the scale cannot make the child so big that it can't fit
       // inside the boundaries (in either direction).
       math.max(
-        _viewport.width / _boundaryRect.width,
-        _viewport.height / _boundaryRect.height,
+        _viewport.width / _contentBounds.width,
+        _viewport.height / _contentBounds.height,
       ),
     );
     final double clampedTotalScale = clampDouble(
@@ -759,10 +848,10 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
   }
 
   // Handle the start of a gesture. All of pan, scale, and rotate are handled
-  // with GestureDetector's scale gesture.
   void _onScaleStart(ScaleStartDetails details) {
     widget.onInteractionStart?.call(details);
 
+    _stopSpring();
     if (_controller.isAnimating) {
       _controller.stop();
       _controller.reset();
@@ -782,21 +871,19 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
     final Offset focalPoint = _trackpadFocalPoint ?? details.localFocalPoint;
     _referenceFocalPoint = _transformer.toScene(focalPoint);
     _rotationStart = _currentRotation;
+
+    final Vector3 translationVector = _transformer.value.getTranslation();
+    _baseTranslation = Offset(translationVector.x, translationVector.y) - _elasticOffset;
+    _gestureStartTranslation = _baseTranslation;
+    _gestureStartFocalPoint = focalPoint;
   }
 
-  // Handle an update to an ongoing gesture. All of pan, scale, and rotate are
-  // handled with GestureDetector's scale gesture.
   void _onScaleUpdate(ScaleUpdateDetails details) {
     final double scale = _transformer.value.getMaxScaleOnAxis();
     final Offset focalPoint = _trackpadFocalPoint ?? details.localFocalPoint;
     _scaleAnimationFocalPoint = focalPoint;
-    final Offset focalPointScene = _transformer.toScene(focalPoint);
 
     if (_gestureType == _GestureType.pan) {
-      // When a gesture first starts, it sometimes has no change in scale and
-      // rotation despite being a two-finger gesture. Here the gesture is
-      // allowed to be reinterpreted as its correct type after originally
-      // being marked as a pan.
       _gestureType = _getGestureType(details);
     } else {
       _gestureType ??= _getGestureType(details);
@@ -809,28 +896,16 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
     switch (_gestureType!) {
       case _GestureType.scale:
         assert(_scaleStart != null);
-        // details.scale gives us the amount to change the scale as of the
-        // start of this gesture, so calculate the amount to scale as of the
-        // previous call to _onScaleUpdate.
         final double desiredScale = _scaleStart! * details.scale;
         final double scaleChange = desiredScale / scale;
         _transformer.value = _matrixScale(_transformer.value, scaleChange);
 
-        // While scaling, translate such that the user's two fingers stay on
-        // the same places in the scene. That means that the focal point of
-        // the scale should be on the same place in the scene before and after
-        // the scale.
         final Offset focalPointSceneScaled = _transformer.toScene(focalPoint);
         _transformer.value = _matrixTranslate(
           _transformer.value,
           focalPointSceneScaled - _referenceFocalPoint!,
         );
 
-        // details.localFocalPoint should now be at the same location as the
-        // original _referenceFocalPoint point. If it's not, that's because
-        // the translate came in contact with a boundary. In that case, update
-        // _referenceFocalPoint so subsequent updates happen in relation to
-        // the new effective focal point.
         final Offset focalPointSceneCheck = _transformer.toScene(focalPoint);
         if (_round(_referenceFocalPoint!) != _round(focalPointSceneCheck)) {
           _referenceFocalPoint = focalPointSceneCheck;
@@ -850,35 +925,25 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
         _currentRotation = desiredRotation;
 
       case _GestureType.pan:
-        assert(_referenceFocalPoint != null);
-        // details may have a change in scale here when scaleEnabled is false.
-        // In an effort to keep the behavior similar whether or not scaleEnabled
-        // is true, these gestures are thrown away.
         if (details.scale != 1.0) {
           widget.onInteractionUpdate?.call(details);
           return;
         }
-        _currentAxis ??= _getPanAxis(_referenceFocalPoint!, focalPointScene);
-        // Translate so that the same point in the scene is underneath the
-        // focal point before and after the movement.
-        final Offset translationChange =
-            focalPointScene - _referenceFocalPoint!;
-        _transformer.value = _matrixTranslate(
-          _transformer.value,
-          translationChange,
-        );
-        _referenceFocalPoint = _transformer.toScene(focalPoint);
+        if (_gestureStartFocalPoint != null) {
+          final Offset delta = focalPoint - _gestureStartFocalPoint!;
+          _updatePan(delta);
+        }
     }
     widget.onInteractionUpdate?.call(details);
   }
 
-  // Handle the end of a gesture of _GestureType. All of pan, scale, and rotate
-  // are handled with GestureDetector's scale gesture.
   void _onScaleEnd(ScaleEndDetails details) {
     widget.onInteractionEnd?.call(details);
     _scaleStart = null;
     _rotationStart = null;
     _referenceFocalPoint = null;
+    _gestureStartFocalPoint = null;
+    _gestureStartTranslation = null;
 
     _animation?.removeListener(_handleInertiaAnimation);
     _scaleAnimation?.removeListener(_handleScaleAnimation);
@@ -892,7 +957,11 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
 
     switch (_gestureType) {
       case _GestureType.pan:
-        _applyFrictionInertia(details.velocity.pixelsPerSecond);
+        if (_elasticOffset != Offset.zero) {
+          _startSpring();
+        } else {
+          _applyFrictionInertia(details.velocity.pixelsPerSecond);
+        }
       case _GestureType.scale:
         if (details.scaleVelocity.abs() < 0.1) {
           _currentAxis = null;
@@ -926,6 +995,13 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
         _scaleController.forward();
       case _GestureType.rotate || null:
         break;
+    }
+  }
+
+  void _updateOverscroll(Offset overscroll) {
+    if (_currentOverscroll != overscroll) {
+      _currentOverscroll = overscroll;
+      widget.onElasticOverscroll?.call(overscroll);
     }
   }
 
@@ -1117,6 +1193,7 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
     super.initState();
     _controller = AnimationController(vsync: this);
     _scaleController = AnimationController(vsync: this);
+    _springTicker = createTicker(_onSpringTick);
     _velocityTracker = VelocityTracker.withKind(PointerDeviceKind.mouse);
 
     _transformer.addListener(_handleTransformation);
@@ -1141,6 +1218,7 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
 
   @override
   void dispose() {
+    _springTicker?.dispose();
     _controller.dispose();
     _scaleController.dispose();
     _transformer.removeListener(_handleTransformation);
@@ -1198,12 +1276,18 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
           _isSecondaryPanning = true;
           _velocityTracker.addPosition(event.timeStamp, event.position);
 
+          _stopSpring();
           if (_controller.isAnimating) {
             _controller.stop();
             _controller.reset();
             _animation?.removeListener(_handleInertiaAnimation);
             _animation = null;
           }
+
+          final Vector3 translationVector = _transformer.value.getTranslation();
+          _baseTranslation = Offset(translationVector.x, translationVector.y) - _elasticOffset;
+          _gestureStartTranslation = _baseTranslation;
+          _gestureStartFocalPoint = event.localPosition;
           _referenceFocalPoint = _transformer.toScene(event.localPosition);
         }
       },
@@ -1211,17 +1295,9 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
         if (_isSecondaryPanning) {
           _velocityTracker.addPosition(event.timeStamp, event.position);
 
-          if (_referenceFocalPoint != null) {
-            final Offset focalPointScene = _transformer.toScene(
-              event.localPosition,
-            );
-            final Offset translationChange =
-                focalPointScene - _referenceFocalPoint!;
-            _transformer.value = _matrixTranslate(
-              _transformer.value,
-              translationChange,
-            );
-            _referenceFocalPoint = _transformer.toScene(event.localPosition);
+          if (_gestureStartFocalPoint != null) {
+            final Offset delta = event.localPosition - _gestureStartFocalPoint!;
+            _updatePan(delta);
           }
         }
       },
@@ -1230,10 +1306,16 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
         _lastPointerButtons = event.buttons;
         if (_isSecondaryPanning) {
           _isSecondaryPanning = false;
+          _gestureStartFocalPoint = null;
+          _gestureStartTranslation = null;
           _referenceFocalPoint = null;
 
-          final Velocity velocity = _velocityTracker.getVelocity();
-          _applyFrictionInertia(velocity.pixelsPerSecond);
+          if (_elasticOffset != Offset.zero) {
+            _startSpring();
+          } else {
+            final Velocity velocity = _velocityTracker.getVelocity();
+            _applyFrictionInertia(velocity.pixelsPerSecond);
+          }
         }
       },
       onPointerCancel: (PointerCancelEvent event) {
@@ -1241,7 +1323,12 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
         _lastPointerButtons = event.buttons;
         if (_isSecondaryPanning) {
           _isSecondaryPanning = false;
+          _gestureStartFocalPoint = null;
+          _gestureStartTranslation = null;
           _referenceFocalPoint = null;
+          if (_elasticOffset != Offset.zero) {
+            _startSpring();
+          }
         }
       },
       onPointerPanZoomStart: (PointerPanZoomStartEvent event) {
@@ -1421,15 +1508,4 @@ Offset _alignAxis(Offset offset, Axis axis) {
     Axis.horizontal => Offset(offset.dx, 0.0),
     Axis.vertical => Offset(0.0, offset.dy),
   };
-}
-
-// Given two points, return the axis where the distance between the points is
-// greatest. If they are equal, return null.
-Axis? _getPanAxis(Offset point1, Offset point2) {
-  if (point1 == point2) {
-    return null;
-  }
-  final double x = point2.dx - point1.dx;
-  final double y = point2.dy - point1.dy;
-  return x.abs() > y.abs() ? Axis.horizontal : Axis.vertical;
 }

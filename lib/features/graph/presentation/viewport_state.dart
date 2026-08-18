@@ -504,52 +504,34 @@ class ViewportController {
     );
   }
 
-  /// Calculates and updates the elastic margins boundaries.
-  /// Decoupled from the high-frequency transform controller tick to prevent
-  /// layout rebuild jitter during active panning/scaling.
-  void recalculateElasticMargins() {
-    if (_currentViewportSize == Size.zero) return;
-
-    final viewport = _calculateCanvasViewport();
-    if (viewport == Rect.zero) return;
-
-    // Scale-Aware Geometric Decoupling & Elastic Margin calculation.
+  Rect get contentBounds {
     final bounds = _dataController.canvasBounds;
     final padding = AppConfig.canvas.boundaryMargin;
     final initialPadding = AppConfig.canvas.initialBoundaryMargin;
+    final effectivePadding = math.max(padding, initialPadding);
 
-    // 1. Calculate boundaries based on graph node coordinates
-    final nodeLeftBound = -bounds.minX.toDouble() + padding;
-    final nodeTopBound = -bounds.minY.toDouble() + padding;
-    final nodeRightBound = bounds.maxX.toDouble() + padding;
-    final nodeBottomBound = bounds.maxY.toDouble() + padding;
+    final minX = bounds.minX.toDouble() - effectivePadding;
+    final minY = bounds.minY.toDouble() - effectivePadding;
+    final maxX = bounds.maxX.toDouble() + effectivePadding;
+    final maxY = bounds.maxY.toDouble() + effectivePadding;
+    return Rect.fromLTRB(minX, minY, maxX, maxY);
+  }
 
-    // 2. Adjust boundaries to guarantee they enclose the current camera viewport
-    // to prevent sudden snap backs when the nodes boundary shrinks.
-    final leftBound = math.max(
-      math.max(initialPadding, nodeLeftBound),
-      viewport != Rect.zero ? -viewport.left : 0.0,
-    );
-    final topBound = math.max(
-      math.max(initialPadding, nodeTopBound),
-      viewport != Rect.zero ? -viewport.top : 0.0,
-    );
-    final rightBound = math.max(
-      math.max(initialPadding, nodeRightBound),
-      viewport != Rect.zero ? viewport.right - _currentViewportSize.width : 0.0,
-    );
-    final bottomBound = math.max(
-      math.max(initialPadding, nodeBottomBound),
-      viewport != Rect.zero
-          ? viewport.bottom - _currentViewportSize.height
-          : 0.0,
-    );
+  /// Calculates and updates the elastic margins boundaries.
+  /// Derives directly from [contentBounds] so that the EdgeInsets fed into
+  /// [CanvasInteractiveViewer.boundaryMargin] and the world-space
+  /// [contentBounds] rect always agree — eliminating the two-rectangle bug
+  /// where different gesture paths clamped against different boundaries.
+  void recalculateElasticMargins() {
+    if (_currentViewportSize == Size.zero) return;
+
+    final cb = contentBounds;
 
     final calculatedMargins = EdgeInsets.fromLTRB(
-      leftBound,
-      topBound,
-      rightBound,
-      bottomBound,
+      -cb.left,
+      -cb.top,
+      cb.right - _currentViewportSize.width,
+      cb.bottom - _currentViewportSize.height,
     );
 
     if (elasticMargins.value != calculatedMargins) {

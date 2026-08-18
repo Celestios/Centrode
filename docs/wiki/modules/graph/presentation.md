@@ -12,7 +12,7 @@ The presentation layer manages view state, style resolution, viewport transforms
 
 | File | Role |
 |------|------|
-| `presentation/editor_state.dart` | Editor state — active tool, mode |
+| `presentation/editor_state.dart` | Editor state — active tool, mode, toolbar half tracking |
 | `presentation/view_state.dart` | View state — zoom, pan, selection |
 | `presentation/viewport_state.dart` | Viewport transform state |
 | `presentation/selection_state.dart` | Selection management |
@@ -64,6 +64,8 @@ The viewport manages pan/zoom transforms:
 - Persists viewport state to Rust (per-map)
 - Restores viewport on map load
 - Supports viewport animations (zoom-to-fit, etc.)
+- `contentBounds` provides canonical padded rect for elastic boundary checks
+- `recalculateElasticMargins` derives EdgeInsets from `contentBounds`
 
 ---
 

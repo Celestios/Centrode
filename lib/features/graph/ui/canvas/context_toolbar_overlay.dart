@@ -112,7 +112,6 @@ class ContextToolbarOverlay extends StatelessWidget {
         final matrix = viewportController.transformController.value;
         final scale = matrix.getMaxScaleOnAxis();
 
-        // Dynamically retrieve panel layout thresholds
         final tabsController = context.watch<WorkspaceTabsController>();
         final session = tabsController.activeSession;
         final leftVisible = session.showLeftPanel.value;
@@ -121,9 +120,9 @@ class ContextToolbarOverlay extends StatelessWidget {
         final double leftThreshold = activeLeftPanel != LeftPanelType.none
             ? 356.0
             : (leftVisible ? 76.0 : 12.0);
-        final double rightThreshold = MediaQuery.of(context).size.width - 12.0;
-        final double topThreshold = 112.0; // Clear the ribbon area
-        const double margin = 12.0; // Margin gap in canvas space
+        final double rightThreshold = screenWidth - 12.0;
+        final double topThreshold = 112.0;
+        const double margin = 12.0;
 
         if (isEditing) {
           final RawUuid editedId = renderState.activeEditId!;
@@ -164,43 +163,40 @@ class ContextToolbarOverlay extends StatelessWidget {
             }
           }
 
-          final offset = offsetNotifier.value;
-          final defaultOffset = isMulti
-              ? AppConfig.toolbar.multiOffset
-              : AppConfig.toolbar.singleOffset;
-          final dragDelta = offset - defaultOffset;
-          final nodeLeftCanvas = anchorCanvas + dragDelta;
+          const double toolbarWidth = 76;
+          const double toolbarHeight = 430;
+
+          final anchorScreen = MatrixUtils.transformPoint(matrix, anchorCanvas);
+          final bool isNodeOnRightHalf = anchorScreen.dx > (screenWidth / 2);
+
+          if (offsetNotifier.value == AppConfig.toolbar.singleOffset) {
+            offsetNotifier.value = isNodeOnRightHalf
+                ? const Offset(-toolbarWidth - margin, 0)
+                : Offset(entityWidth + margin, 0);
+          }
+
+          final bool? lastNodeHalf = renderState.lastNodeOnRightHalf;
+          if (lastNodeHalf != null && lastNodeHalf != isNodeOnRightHalf) {
+            if (isNodeOnRightHalf && offsetNotifier.value.dx >= 0) {
+              final mirroredDx = entityWidth - toolbarWidth - offsetNotifier.value.dx;
+              offsetNotifier.value = Offset(mirroredDx, offsetNotifier.value.dy);
+            } else if (!isNodeOnRightHalf && offsetNotifier.value.dx < 0) {
+              final mirroredDx = entityWidth - toolbarWidth - offsetNotifier.value.dx;
+              offsetNotifier.value = Offset(mirroredDx, offsetNotifier.value.dy);
+            }
+          }
+          renderState.lastNodeOnRightHalf = isNodeOnRightHalf;
 
           final screenPosition = MatrixUtils.transformPoint(
             matrix,
-            nodeLeftCanvas,
+            anchorCanvas + offsetNotifier.value,
           );
 
-          const double toolbarWidth = 76;
-          const double toolbarHeight = 430; // Two-column layout
+          final double maxX = math.max(leftThreshold, rightThreshold - toolbarWidth);
+          final double maxY = math.max(topThreshold, screenHeight - toolbarHeight * 0.7);
 
-          // Try left placement first
-          final double leftX =
-              screenPosition.dx - toolbarWidth - (margin * scale);
-          // Try right placement
-          final double rightX =
-              screenPosition.dx + (entityWidth * scale) + (margin * scale);
-
-          bool useRight = false;
-          if (leftX < leftThreshold) {
-            useRight = true;
-          }
-
-          final double maxX1 = math.max(leftThreshold, rightThreshold - toolbarWidth);
-          final double maxY1 = math.max(topThreshold, screenHeight - toolbarHeight * 0.7);
-
-          double toolbarLeft = useRight ? rightX : leftX;
-          toolbarLeft = toolbarLeft
-              .clamp(leftThreshold, maxX1)
-              .toDouble();
-          double toolbarTop = screenPosition.dy
-              .clamp(topThreshold, maxY1)
-              .toDouble();
+          final double toolbarLeft = screenPosition.dx.clamp(leftThreshold, maxX).toDouble();
+          final double toolbarTop = screenPosition.dy.clamp(topThreshold, maxY).toDouble();
 
           return Positioned(
             left: toolbarLeft,
@@ -300,7 +296,8 @@ class ContextToolbarOverlay extends StatelessWidget {
                         controller: controller,
                         autofocus: true,
                         decoration: const InputDecoration(
-                          hintText: 'Enter URL (e.g., https://example.com)',
+                          hintText: 'https://example.com',
+                          border: OutlineInputBorder(),
                         ),
                       ),
                       actions: [
@@ -338,24 +335,53 @@ class ContextToolbarOverlay extends StatelessWidget {
               Offset.zero;
         }
 
-        final offset = offsetNotifier.value;
+        const double visualToolbarWidth = 48;
+        const double toolbarStackWidth = 520;
+        const double toolbarHeight = 360;
 
-        // Calculate the base node position in canvas space including user's drag delta
+        final double nodeWidth = selectedViewStates.isNotEmpty
+            ? (selectedViewStates.first.dragWidthNotifier.value ??
+                  selectedViewStates.first.sizeNotifier.value.width)
+            : 150.0;
+
+        final anchorScreen = MatrixUtils.transformPoint(matrix, anchor);
+        final bool isNodeOnRightHalf = anchorScreen.dx > (screenWidth / 2);
+
         final defaultOffset = isMulti
             ? AppConfig.toolbar.multiOffset
             : AppConfig.toolbar.singleOffset;
-        final dragDelta = offset - defaultOffset;
-        final nodeLeftCanvas = anchor + dragDelta;
 
-        final nodeLeftScreen = MatrixUtils.transformPoint(
-          matrix,
-          nodeLeftCanvas,
-        ).dx;
+        if (offsetNotifier.value == defaultOffset) {
+          offsetNotifier.value = isNodeOnRightHalf
+              ? const Offset(-visualToolbarWidth - margin, 0)
+              : Offset(nodeWidth + margin, 0);
+        }
 
-        final nodeTopScreen = MatrixUtils.transformPoint(
+        final bool? lastNodeHalf = renderState.lastNodeOnRightHalf;
+        if (lastNodeHalf != null && lastNodeHalf != isNodeOnRightHalf) {
+          if (isNodeOnRightHalf && offsetNotifier.value.dx >= 0) {
+            final mirroredDx = nodeWidth - visualToolbarWidth - offsetNotifier.value.dx;
+            offsetNotifier.value = Offset(mirroredDx, offsetNotifier.value.dy);
+          } else if (!isNodeOnRightHalf && offsetNotifier.value.dx < 0) {
+            final mirroredDx = nodeWidth - visualToolbarWidth - offsetNotifier.value.dx;
+            offsetNotifier.value = Offset(mirroredDx, offsetNotifier.value.dy);
+          }
+        }
+        renderState.lastNodeOnRightHalf = isNodeOnRightHalf;
+
+        final screenPosition = MatrixUtils.transformPoint(
           matrix,
-          nodeLeftCanvas,
-        ).dy;
+          anchor + offsetNotifier.value,
+        );
+
+        final bool useRight = offsetNotifier.value.dx >= 0;
+
+        final double leftX = screenPosition.dx + visualToolbarWidth - toolbarStackWidth;
+        final double rightX = screenPosition.dx;
+
+        final double toolbarLeft = useRight ? rightX : leftX;
+        final double maxY = math.max(topThreshold, screenHeight - toolbarHeight * 0.7);
+        final double toolbarTop = screenPosition.dy.clamp(topThreshold, maxY).toDouble();
 
         final nodeIds = renderState.selectedEntities
             .where((id) => queryController.nodeLookup.containsKey(id))
@@ -365,39 +391,6 @@ class ContextToolbarOverlay extends StatelessWidget {
             ? nodeIds.first
             : null;
 
-        const double toolbarWidth = 520;
-        const double toolbarHeight = 360;
-
-        final double nodeWidth = selectedViewStates.isNotEmpty
-            ? (selectedViewStates.first.dragWidthNotifier.value ??
-                  selectedViewStates.first.sizeNotifier.value.width)
-            : 150.0;
-
-        // Try left placement first
-        final double leftX = nodeLeftScreen - toolbarWidth - (margin * scale);
-        // Try right placement
-        final double rightX =
-            nodeLeftScreen + (nodeWidth * scale) + (margin * scale);
-
-        bool useRight = false;
-        if (leftX < leftThreshold) {
-          useRight = true;
-        }
-
-        final double maxX2 = math.max(leftThreshold, rightThreshold - toolbarWidth);
-        final double maxY2 = math.max(topThreshold, screenHeight - toolbarHeight * 0.7);
-
-        double toolbarLeft = useRight ? rightX : leftX;
-
-        // Clamp X and Y coordinates to keep the toolbar fully visible on screen
-        toolbarLeft = toolbarLeft
-            .clamp(leftThreshold, maxX2)
-            .toDouble();
-        double toolbarTop = nodeTopScreen
-            .clamp(topThreshold, maxY2)
-            .toDouble();
-
-        // If the selected node itself is completely off-screen, hide the toolbar
         if (selectedViewStates.isNotEmpty) {
           final vs = selectedViewStates.first;
           final s = Size(

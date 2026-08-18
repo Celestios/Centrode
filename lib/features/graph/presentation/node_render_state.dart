@@ -237,6 +237,8 @@ class NodeRenderState extends ChangeNotifier
       editorState.activeTextSelectionNotifier;
   ValueNotifier<TextAlign> get currentTextAlignNotifier =>
       editorState.currentTextAlignNotifier;
+  bool? get lastNodeOnRightHalf => editorState.lastNodeOnRightHalf;
+  set lastNodeOnRightHalf(bool? value) => editorState.lastNodeOnRightHalf = value;
 
   void Function(dynamic formatType, {String? url})? get applyFormatCallback =>
       editorState.applyFormatCallback;

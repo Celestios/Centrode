@@ -49,6 +49,9 @@ class _GraphCanvasState extends State<GraphCanvas>
   final ValueNotifier<Offset?> _mousePositionNotifier = ValueNotifier<Offset?>(
     null,
   );
+  final ValueNotifier<Offset> _elasticOverscrollNotifier = ValueNotifier(
+    Offset.zero,
+  );
   int _lastMousePosMs = 0;
   Offset? _rightClickDownScreenPos;
   bool _isRightClickDrag = false;
@@ -178,6 +181,7 @@ class _GraphCanvasState extends State<GraphCanvas>
     _drawingInterceptor?.dispose();
     _interactionController?.dispose();
     _mousePositionNotifier.dispose();
+    _elasticOverscrollNotifier.dispose();
     super.dispose();
   }
 
@@ -395,6 +399,8 @@ class _GraphCanvasState extends State<GraphCanvas>
                                           constrained: true,
                                           clipBehavior: Clip.none,
                                           boundaryMargin: elasticMargins,
+                                          contentBounds:
+                                              viewportController.contentBounds,
                                           minScale:
                                               viewportController.currentMinScale,
                                           maxScale:
@@ -403,9 +409,9 @@ class _GraphCanvasState extends State<GraphCanvas>
                                               AppConfig.canvas.scaleFactor,
                                           panEnabled: viewerPanEnabled,
                                           scaleEnabled: viewerPanEnabled,
-                                          onInteractionEnd: (details) {
-                                            viewportController
-                                                .recalculateElasticMargins();
+                                          onElasticOverscroll: (overscroll) {
+                                            _elasticOverscrollNotifier.value =
+                                                overscroll;
                                           },
                                           child: child!,
                                         ),
@@ -424,6 +430,8 @@ class _GraphCanvasState extends State<GraphCanvas>
                                           viewportState: state,
                                           mousePositionNotifier:
                                               _mousePositionNotifier,
+                                          elasticOverscrollNotifier:
+                                              _elasticOverscrollNotifier,
                                         );
                                       },
                                     ),

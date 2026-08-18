@@ -22,7 +22,7 @@ The interaction engine is a finite state machine (FSM) that processes raw `Point
 | `engine/drawing_interceptor.dart` | Drawing-specific gesture interception |
 | `engine/volatile_node_state.dart` | Transient node state during interactions |
 | `engine/z_order_utils.dart` | Z-order sorting for hit testing |
-| `engine/config.dart` | Engine configuration constants |
+| `engine/config.dart` | Engine configuration constants (includes elastic/spring params) |
 
 ---
 

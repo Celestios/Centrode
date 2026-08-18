@@ -26,12 +26,15 @@ class _Grid {
 class _Canvas {
   const _Canvas();
 
-  final double boundaryMargin = 2000.0;
-  final double initialBoundaryMargin = 800.0;
+  final double boundaryMargin = 600.0;
+  final double initialBoundaryMargin = 600.0;
   final double minScale = 0.2;
   final double maxScale = 3.0;
   final double scaleFactor = 1000.0;
   final double overscanRatio = 0.25;
+  final double elasticResistance = 90.0;
+  final double springStiffness = 300.0;
+  final double springDamping = 34.0;
 }
 
 class _Interaction {

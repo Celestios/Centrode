@@ -7,7 +7,7 @@
 `lib/features/graph/ui/canvas/graph_canvas.dart`
 
 `GraphCanvas` is the root widget for the infinite canvas. It:
-- Wraps content in a `CanvasInteractiveViewer` (custom `InteractiveViewer`) for pan/zoom
+- Wraps content in a `CanvasInteractiveViewer` (custom `InteractiveViewer`) for pan/zoom with elastic boundary spring-back
 - Hosts the `InteractionController` FSM for gesture processing
 - Manages viewport restoration from persistence
 - Coordinates tab sessions for multi-map support
@@ -20,7 +20,7 @@ The canvas uses a layered painting approach via `UnboundedStack`:
 
 | Layer | File | Responsibility |
 |-------|------|----------------|
-| Grid | `layers/grid_layer.dart` | Background grid rendering |
+| Grid | `layers/grid_layer.dart` | Background grid rendering (reacts to elastic overscroll) |
 | Relations | `layers/relation_layer.dart` | Connection routing and rendering |
 | Nodes | `layers/node_layer.dart` | Node widget placement |
 | Ports | `layers/port_layer.dart` | Connection port highlights |

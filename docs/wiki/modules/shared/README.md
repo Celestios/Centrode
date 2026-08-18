@@ -42,7 +42,8 @@ lib/shared/
 │   ├── name_generator.dart            # Random name generation
 │   └── recent_maps_store.dart         # Recent maps persistence
 └── widgets/
-    ├── canvas_interactive_viewer.dart  # Custom InteractiveViewer
+    ├── canvas_camera_physics.dart       # Rubber-band & spring math
+    ├── canvas_interactive_viewer.dart  # Custom InteractiveViewer with elastic bounds
     ├── context_menu_overlay.dart       # Context menu system
     ├── unbounded_stack.dart            # Stack without bounds
     ├── color_palette/
@@ -77,9 +78,11 @@ See [Glass Panel documentation](glass-panel.md) for details.
 ### Canvas Interactive Viewer
 
 `CanvasInteractiveViewer` extends Flutter's `InteractiveViewer` with:
-- Custom pan/zoom constraints
+- Custom pan/zoom constraints with elastic boundary spring-back
+- Rubber-band overscroll feedback via `CanvasCameraPhysics`
 - Mouse wheel zoom
 - Canvas-space coordinate transforms
+- `onElasticOverscroll` callback for visual layer reactions
 
 ### Elements
 

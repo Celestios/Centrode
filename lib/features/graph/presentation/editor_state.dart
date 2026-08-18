@@ -41,6 +41,7 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
   final ValueNotifier<TextAlign> currentTextAlignNotifier = ValueNotifier(
     TextAlign.center,
   );
+  bool? lastNodeOnRightHalf;
 
   /// Decoupled callbacks for text formatting in the UI layer.
   void Function(dynamic formatType, {String? url})? applyFormatCallback;

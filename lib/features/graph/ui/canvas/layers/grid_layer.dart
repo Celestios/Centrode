@@ -11,11 +11,13 @@ import 'package:centrode/shared/utils/color_utils.dart';
 class GridLayer extends StatefulWidget {
   final ViewportStateGrid viewportState;
   final ValueNotifier<Offset?> mousePositionNotifier;
+  final ValueNotifier<Offset>? elasticOverscrollNotifier;
 
   const GridLayer({
     super.key,
     required this.viewportState,
     required this.mousePositionNotifier,
+    this.elasticOverscrollNotifier,
   });
 
   @override
@@ -25,6 +27,7 @@ class GridLayer extends StatefulWidget {
 class _GridLayerState extends State<GridLayer>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<_GlowData?> _glowNotifier = ValueNotifier(null);
+  final ValueNotifier<Offset> _overscrollNotifier = ValueNotifier(Offset.zero);
   Ticker? _ticker;
   Duration _lastFrameTime = Duration.zero;
 
@@ -37,6 +40,7 @@ class _GridLayerState extends State<GridLayer>
     super.initState();
     _ticker = createTicker(_onTick);
     widget.mousePositionNotifier.addListener(_onMouseMoved);
+    widget.elasticOverscrollNotifier?.addListener(_onOverscrollChanged);
   }
 
   @override
@@ -46,14 +50,26 @@ class _GridLayerState extends State<GridLayer>
       oldWidget.mousePositionNotifier.removeListener(_onMouseMoved);
       widget.mousePositionNotifier.addListener(_onMouseMoved);
     }
+    if (oldWidget.elasticOverscrollNotifier !=
+        widget.elasticOverscrollNotifier) {
+      oldWidget.elasticOverscrollNotifier?.removeListener(_onOverscrollChanged);
+      widget.elasticOverscrollNotifier?.addListener(_onOverscrollChanged);
+    }
   }
 
   @override
   void dispose() {
     widget.mousePositionNotifier.removeListener(_onMouseMoved);
+    widget.elasticOverscrollNotifier?.removeListener(_onOverscrollChanged);
     _ticker?.dispose();
     _glowNotifier.dispose();
+    _overscrollNotifier.dispose();
     super.dispose();
+  }
+
+  void _onOverscrollChanged() {
+    _overscrollNotifier.value =
+        widget.elasticOverscrollNotifier?.value ?? Offset.zero;
   }
 
   void _onMouseMoved() {
@@ -148,6 +164,8 @@ class _GridLayerState extends State<GridLayer>
             scale: widget.viewportState.scale,
             backgroundColor: backgroundColor,
             dotColor: dotColor,
+            overscroll:
+                widget.elasticOverscrollNotifier?.value ?? Offset.zero,
           ),
         ),
       );
@@ -160,14 +178,20 @@ class _GridLayerState extends State<GridLayer>
     return Stack(
       children: [
         RepaintBoundary(
-          child: CustomPaint(
-            size: widget.viewportState.viewportSize,
-            painter: _StaticGridPainter(
-              visibleRect: widget.viewportState.visibleRect,
-              scale: widget.viewportState.scale,
-              backgroundColor: backgroundColor,
-              dotColor: dotColor,
-            ),
+          child: ValueListenableBuilder<Offset>(
+            valueListenable: _overscrollNotifier,
+            builder: (context, overscroll, _) {
+              return CustomPaint(
+                size: widget.viewportState.viewportSize,
+                painter: _StaticGridPainter(
+                  visibleRect: widget.viewportState.visibleRect,
+                  scale: widget.viewportState.scale,
+                  backgroundColor: backgroundColor,
+                  dotColor: dotColor,
+                  overscroll: overscroll,
+                ),
+              );
+            },
           ),
         ),
         RepaintBoundary(
@@ -217,6 +241,7 @@ class _StaticGridPainter extends CustomPainter {
   final double scale;
   final Color backgroundColor;
   final Color dotColor;
+  final Offset overscroll;
 
   final List<Offset> _pointsBuffer = [];
 
@@ -225,6 +250,7 @@ class _StaticGridPainter extends CustomPainter {
     required this.scale,
     required this.backgroundColor,
     required this.dotColor,
+    this.overscroll = Offset.zero,
   });
 
   @override
@@ -266,7 +292,8 @@ class _StaticGridPainter extends CustomPainter {
     return oldDelegate.visibleRect != visibleRect ||
         oldDelegate.scale != scale ||
         oldDelegate.backgroundColor != backgroundColor ||
-        oldDelegate.dotColor != dotColor;
+        oldDelegate.dotColor != dotColor ||
+        oldDelegate.overscroll != overscroll;
   }
 }
 
