@@ -29,6 +29,7 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
   bool _listenerRegistered = false;
 
   NodeRenderState? _cachedRenderState;
+  ChangeNotifier? _boundaryNotifier;
   late final Paint _viewportFill = Paint()..style = PaintingStyle.fill;
   late final Paint _viewportBorder = Paint()
     ..style = PaintingStyle.stroke
@@ -44,6 +45,8 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
       if (!mounted) return;
       _cachedRenderState = context.read<NodeRenderState>();
       _cachedRenderState!.addListener(_onGraphChanged);
+      _boundaryNotifier = _cachedRenderState!.boundaryNotifier;
+      _boundaryNotifier!.addListener(_onBoundaryChanged);
       _listenerRegistered = true;
     });
   }
@@ -53,10 +56,12 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
     WidgetsBinding.instance.removeObserver(this);
     _viewportTicker?.dispose();
     _snapshot?.dispose();
-    if (_listenerRegistered && _cachedRenderState != null) {
-      _cachedRenderState!.removeListener(_onGraphChanged);
+    if (_listenerRegistered) {
+      _cachedRenderState?.removeListener(_onGraphChanged);
+      _boundaryNotifier?.removeListener(_onBoundaryChanged);
     }
     _cachedRenderState = null;
+    _boundaryNotifier = null;
     super.dispose();
   }
 
@@ -87,6 +92,10 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
       _snapshot = null;
     });
     _scheduleCapture();
+  }
+
+  void _onBoundaryChanged() {
+    setState(() {});
   }
 
   void _scheduleCapture() {

@@ -562,16 +562,34 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
     final Size viewportSize = _viewport.size;
     if (viewportSize == Size.zero || _gestureStartTranslation == null) return;
 
-    final double zoom = _transformer.value.getMaxScaleOnAxis();
-    final Rect bounds = _contentBounds;
-
     final Offset desiredTranslation = _gestureStartTranslation! + deltaScreen;
+    final Rect bounds = widget.contentBounds ?? _contentBounds;
 
+    if (bounds.isInfinite) {
+      _baseTranslation = desiredTranslation;
+      _elasticOffset = Offset.zero;
+      _transformer.value = _transformer.value.clone()
+        ..setTranslation(Vector3(desiredTranslation.dx, desiredTranslation.dy, 0.0));
+      _updateOverscroll(Offset.zero);
+      return;
+    }
+
+    final double zoom = _transformer.value.getMaxScaleOnAxis();
     final double maxTx = -bounds.left * zoom;
     final double minTx = viewportSize.width - bounds.right * zoom;
     final double maxTy = -bounds.top * zoom;
     final double minTy = viewportSize.height - bounds.bottom * zoom;
+    _applyPanClamp(desiredTranslation, viewportSize, maxTx, minTx, maxTy, minTy);
+  }
 
+  void _applyPanClamp(
+    Offset desiredTranslation,
+    Size viewportSize,
+    double maxTx,
+    double minTx,
+    double maxTy,
+    double minTy,
+  ) {
     final double lowX = math.min(minTx, maxTx);
     final double highX = math.max(minTx, maxTx);
     final double lowY = math.min(minTy, maxTy);
@@ -641,28 +659,10 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
     }
   }
 
-  /// The effective content boundary in child-local space.
-  ///
-  /// When [CanvasInteractiveViewer.contentBounds] is provided (the canonical
-  /// world-space padded rect), it is transformed to child-local coordinates by
-  /// scaling with the inverse of the current zoom. This ensures the boundary
-  /// check in [_matrixTranslate] and the min-scale calculation in [_matrixScale]
-  /// are correct at every zoom level.
-  ///
-  /// Falls back to the legacy margin-inflated child rect when contentBounds is
-  /// not provided.
+  /// The effective content boundary in scene space.
   Rect get _contentBounds {
     if (widget.contentBounds != null) {
-      final double zoom = _transformer.value.getMaxScaleOnAxis();
-      if (zoom > 0) {
-        final Rect scaled = Rect.fromLTRB(
-          widget.contentBounds!.left / zoom,
-          widget.contentBounds!.top / zoom,
-          widget.contentBounds!.right / zoom,
-          widget.contentBounds!.bottom / zoom,
-        );
-        return scaled;
-      }
+      return widget.contentBounds!;
     }
     return _boundaryRect;
   }
@@ -726,51 +726,33 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
     final Matrix4 nextMatrix = matrix.clone()
       ..translateByDouble(alignedTranslation.dx, alignedTranslation.dy, 0, 1);
 
-    // Transform the viewport to determine where its four corners will be after
-    // the child has been transformed.
-    final Quad nextViewport = _transformViewport(nextMatrix, _viewport);
-
-    // If the boundaries are infinite, then no need to check if the translation
-    // fits within them.
-    if (_contentBounds.isInfinite) {
+    final Rect bounds = widget.contentBounds ?? _contentBounds;
+    if (bounds.isInfinite) {
       return nextMatrix;
     }
 
-    // Expand the boundaries with rotation. This prevents the problem where a
-    // mismatch in orientation between the viewport and boundaries effectively
-    // limits translation. With this approach, all points that are visible with
-    // no rotation are visible after rotation.
-    final Quad boundariesAabbQuad = _getAxisAlignedBoundingBoxWithRotation(
-      _contentBounds,
-      _currentRotation,
-    );
-
-    // If the given translation fits completely within the boundaries, allow it.
-    final Offset offendingDistance = _exceedsBy(
-      boundariesAabbQuad,
-      nextViewport,
-    );
-    if (offendingDistance == Offset.zero) {
-      _updateOverscroll(Offset.zero);
+    final double zoom = nextMatrix.getMaxScaleOnAxis();
+    final Size viewportSize = _viewport.size;
+    if (viewportSize == Size.zero) {
       return nextMatrix;
     }
 
-    final Offset nextTotalTranslation = _getMatrixTranslation(nextMatrix);
-    final double currentScale = matrix.getMaxScaleOnAxis();
+    final double maxTx = -bounds.left * zoom;
+    final double minTx = viewportSize.width - bounds.right * zoom;
+    final double maxTy = -bounds.top * zoom;
+    final double minTy = viewportSize.height - bounds.bottom * zoom;
 
-    final Offset inBoundsTranslation = Offset(
-      nextTotalTranslation.dx - offendingDistance.dx * currentScale,
-      nextTotalTranslation.dy - offendingDistance.dy * currentScale,
-    );
+    final double lowX = math.min(minTx, maxTx);
+    final double highX = math.max(minTx, maxTx);
+    final double lowY = math.min(minTy, maxTy);
+    final double highY = math.max(minTy, maxTy);
 
-    return matrix.clone()
-      ..setTranslation(
-        Vector3(
-          inBoundsTranslation.dx,
-          inBoundsTranslation.dy,
-          0.0,
-        ),
-      );
+    final Vector3 nextT = nextMatrix.getTranslation();
+    final double clampedTx = nextT.x.clamp(lowX, highX);
+    final double clampedTy = nextT.y.clamp(lowY, highY);
+
+    return nextMatrix.clone()
+      ..setTranslation(Vector3(clampedTx, clampedTy, 0.0));
   }
 
   // Return a new matrix representing the given matrix after applying the given
@@ -781,18 +763,8 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
     }
     assert(scale != 0.0);
 
-    // Don't allow a scale that results in an overall scale beyond min/max
-    // scale.
     final double currentScale = _transformer.value.getMaxScaleOnAxis();
-    final double totalScale = math.max(
-      currentScale * scale,
-      // Ensure that the scale cannot make the child so big that it can't fit
-      // inside the boundaries (in either direction).
-      math.max(
-        _viewport.width / _contentBounds.width,
-        _viewport.height / _contentBounds.height,
-      ),
-    );
+    final double totalScale = currentScale * scale;
     final double clampedTotalScale = clampDouble(
       totalScale,
       widget.minScale,

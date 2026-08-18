@@ -71,6 +71,9 @@ class NodeRenderState extends ChangeNotifier
   /// Notification trigger for relation data changes (add/delete/reorder).
   final ChangeNotifier relationDataNotifier = ChangeNotifier();
 
+  /// Notification trigger for canvas boundary updates (minimap coordinate remap).
+  final ChangeNotifier boundaryNotifier = ChangeNotifier();
+
   /// Focused sub-controllers.
   late final EditorState editorState;
   late final SelectionState selectionState;
@@ -168,6 +171,7 @@ class NodeRenderState extends ChangeNotifier
         _syncAtomicUIState();
         break;
       case GraphUpdateType.boundary:
+        boundaryNotifier.notifyListeners();
         break;
     }
   }

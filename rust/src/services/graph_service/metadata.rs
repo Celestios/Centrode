@@ -132,7 +132,9 @@ impl GraphService {
     }
 
     pub async fn get_graph_snapshot(&self) -> anyhow::Result<GraphSnapshot> {
-        self.repo.get_graph_snapshot().await
+        let snapshot = self.repo.get_graph_snapshot().await?;
+        self.broadcast_boundaries().await;
+        Ok(snapshot)
     }
 
     pub async fn save_map_to_file(

@@ -92,10 +92,10 @@ class GraphDataQueryController implements GraphDataQuery {
   Iterable<UiRelation> get relations => store.relations;
 
   BoundingBox _canvasBounds = const BoundingBox(
-    minX: 0,
-    minY: 0,
-    maxX: 1000,
-    maxY: 1000,
+    minX: -500,
+    minY: -500,
+    maxX: 500,
+    maxY: 500,
   );
 
   @override
