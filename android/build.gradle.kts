@@ -1,17 +1,18 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.20")
-    }
-}
-
 allprojects {
     repositories {
         google()
+        maven { url = uri("https://maven.aliyun.com/repository/google") }
         mavenCentral()
+    }
+
+    repositories.all {
+        if (this is MavenArtifactRepository) {
+            if (url.toString().contains("download.flutter.io")) {
+                content {
+                    includeGroupByRegex("io\\.flutter.*")
+                }
+            }
+        }
     }
 }
 

@@ -133,12 +133,22 @@ jobs:
           retention-days: 1
 
   build-android:
-    name: Build Android APKs (arm64 + x64)
+    name: Build Android APK (${{ matrix.name }})
     needs: setup
     runs-on: ubuntu-latest
-    # Was two 90-min jobs on two runners; one job building both ABIs via
-    # --split-per-abi uses roughly half the runner-minutes for the same output.
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: android-arm64
+            target_rust: aarch64-linux-android
+            abi: arm64-v8a
+            name: arm64
+          - target: android-x64
+            target_rust: x86_64-linux-android
+            abi: x86_64
+            name: x64
 
     steps:
       - name: Checkout Private Source Code
@@ -152,16 +162,17 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Install Rust Toolchain & Android Targets
+      - name: Install Rust Toolchain & Android Target
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          targets: aarch64-linux-android,x86_64-linux-android
+          targets: ${{ matrix.target_rust }}
 
       - name: Cache Rust Dependencies
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: "rust -> target"
+          key: ${{ runner.os }}-rust-${{ matrix.target_rust }}-${{ hashFiles('rust/Cargo.lock') }}
 
       - name: Cache Gradle Dependencies
         uses: actions/cache@v4
@@ -169,8 +180,9 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ matrix.name }}-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: |
+            ${{ runner.os }}-gradle-${{ matrix.name }}-
             ${{ runner.os }}-gradle-
 
       - name: Install Flutter SDK
@@ -192,23 +204,19 @@ jobs:
       - name: Install Project Dependencies
         run: flutter pub get
 
-      - name: Add Swap Space
-        # Cheap insurance against the exit-code-143 kill: gives Gradle/R8
-        # headroom to spike without the OOM killer stepping in, without
-        # having to move to a bigger (paid) runner.
+      - name: Add 8GB Swap Space
         shell: bash
         run: |
-          sudo fallocate -l 4G /swapfile
+          echo "=== Configuring 8GB swap file ==="
+          sudo swapoff -a || true
+          sudo fallocate -l 8G /swapfile
           sudo chmod 600 /swapfile
           sudo mkswap /swapfile
           sudo swapon /swapfile
+          echo "=== Memory & Swap Configuration ==="
           free -h
 
-      - name: Configure Gradle for CI
-        # Caps the JVM heap explicitly instead of letting Gradle guess based
-        # on total machine RAM (the usual cause of the 143 kill), and turns
-        # off the "rich" console so logs show real task-by-task progress
-        # instead of one opaque redrawing progress line.
+      - name: Configure Gradle & Rust Environment
         shell: bash
         run: |
           GRADLE_PROPS="android/gradle.properties"
@@ -219,61 +227,78 @@ jobs:
             -e '/^org\.gradle\.workers\.max/d' \
             -e '/^org\.gradle\.daemon/d' \
             -e '/^org\.gradle\.console/d' \
+            -e '/^org\.gradle\.vfs\.watch/d' \
             -e '/^kotlin\.daemon\.jvm\.options/d' \
             "$GRADLE_PROPS"
           cat >> "$GRADLE_PROPS" <<'EOF'
-          org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError
+          org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError
           org.gradle.daemon=false
           org.gradle.parallel=false
           org.gradle.workers.max=1
           org.gradle.console=plain
-          kotlin.daemon.jvm.options=-Xmx1024m
+          org.gradle.vfs.watch=false
+          kotlin.daemon.jvm.options=-Xmx512m
           EOF
           echo "----- Final android/gradle.properties -----"
           cat "$GRADLE_PROPS"
 
-      - name: Build Android APKs (arm64 + x64, split per ABI)
+      - name: Build Android APK (${{ matrix.name }})
         shell: bash
+        env:
+          CARGOKIT_VERBOSE: "1"
+          CARGO_BUILD_JOBS: "2"
+          CARGO_INCREMENTAL: "0"
+          RUST_BACKTRACE: "1"
         run: |
-          # Background memory sampler: if this ever gets killed again, the
-          # uploaded log below shows exactly what RAM looked like leading
-          # up to it, instead of a bare exit-143 with no context.
+          echo "=== Starting background memory & resource monitor ==="
           ( while true; do
-              echo "[$(date +%T)] $(free -h | awk 'NR==2{print "mem_used="$3", mem_free="$4}')"
-              sleep 30
-            done ) > memory-usage.log &
+              echo "[$(date +%T)] $(free -h | awk 'NR==2{print "RAM: used="$3" free="$4} NR==3{print "Swap: used="$3" free="$4}')"
+              sleep 15
+            done ) > memory-usage-${{ matrix.name }}.log &
           MONITOR_PID=$!
 
-          echo "::group::flutter build apk --release --split-per-abi (verbose)"
+          echo "=== Building APK for target platform: ${{ matrix.target }} (ABI: ${{ matrix.abi }}) ==="
           set +e
           flutter build apk --release \
-            --target-platform android-arm64,android-x64 \
-            --split-per-abi \
+            --target-platform ${{ matrix.target }} \
             -v
           BUILD_EXIT=$?
           set -e
-          echo "::endgroup::"
 
           kill "$MONITOR_PID" 2>/dev/null || true
-          echo "----- memory-usage.log -----"
-          cat memory-usage.log
-          exit $BUILD_EXIT
+          echo "=== Memory Usage Summary (last 30 intervals) ==="
+          tail -n 30 memory-usage-${{ matrix.name }}.log || true
+
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "::error::Flutter APK build failed with exit code $BUILD_EXIT"
+            exit $BUILD_EXIT
+          fi
+
+          echo "=== Locating and naming output APK ==="
+          if [ -f "build/app/outputs/flutter-apk/app-${{ matrix.abi }}-release.apk" ]; then
+            cp "build/app/outputs/flutter-apk/app-${{ matrix.abi }}-release.apk" "app-${{ matrix.abi }}-release.apk"
+          elif [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
+            cp "build/app/outputs/flutter-apk/app-release.apk" "app-${{ matrix.abi }}-release.apk"
+          else
+            echo "Listing build output directory:"
+            ls -la build/app/outputs/flutter-apk/ || true
+            exit 1
+          fi
+          ls -lh "app-${{ matrix.abi }}-release.apk"
 
       - name: Upload Memory Usage Log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: android-build-memory-log
-          path: memory-usage.log
+          name: android-build-memory-log-${{ matrix.name }}
+          path: memory-usage-${{ matrix.name }}.log
           retention-days: 1
 
-      - name: Upload Android APKs
+      - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
-          name: android-release-apks
-          path: |
-            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-            build/app/outputs/flutter-apk/app-x86_64-release.apk
+          name: android-release-apk-${{ matrix.name }}
+          path: app-${{ matrix.abi }}-release.apk
           retention-days: 1
 
   build-android-aab:
@@ -370,7 +395,8 @@ jobs:
       - name: Download Android APKs
         uses: actions/download-artifact@v4
         with:
-          name: android-release-apks
+          pattern: android-release-apk-*
+          merge-multiple: true
 
       - name: Publish Android Artifacts to Public GitHub Release
         uses: softprops/action-gh-release@v2
