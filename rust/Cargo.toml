@@ -1,6 +1,6 @@
 [package]
 name = "centrode_core"
-version = "0.6.0"
+version = "0.7.0"
 edition = "2021"
 description = "Core logic and persistence layer for Centrode, exposed via FFI."
 authors = ["Celestios <shahin.id5638@gmail.com>"]
