@@ -1,4 +1,4 @@
-use crate::domain::traits::TableKind;
+use crate::traits::TableKind;
 use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
 use uuid::Uuid;
 

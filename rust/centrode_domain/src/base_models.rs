@@ -1,6 +1,6 @@
-use crate::domain::id::TypedRecordId;
-use crate::domain::traits::TableKind;
-pub use crate::domain::types::MapData;
+use crate::id::TypedRecordId;
+use crate::traits::TableKind;
+pub use crate::types::MapData;
 use centrode_macros::{SurqlSchemaField, SurrealDbEnum};
 use surrealdb::types::{RecordId, SurrealValue, Value};
 use uuid::Uuid;

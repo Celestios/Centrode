@@ -1,5 +1,5 @@
-use crate::domain::styles::{RelationDirection, RelationLayout, RelationStyle};
-pub use crate::domain::types::IRelation;
+use crate::styles::{RelationDirection, RelationLayout, RelationStyle};
+pub use crate::types::IRelation;
 use surrealdb::types::SurrealValue;
 
 #[derive(Debug, Clone, SurrealValue)]

@@ -13,14 +13,14 @@
 //!   the sum-type union enums and trait implementations. Do not manually create wrapper 
 //!   modules for individual entities or variants.
 
-use crate::domain::base_models::{Attachment, BoundingBox, Comment, DisplayMode, Size, ViewportState};
-use crate::domain::contents::Content;
-use crate::domain::id::TypedRecordId;
-use crate::domain::nodes::{BrushType, MediaType, ShapeType, TaskState};
-use crate::domain::relations::IRelationFields;
-use crate::domain::styles::{NodeLayout, NodeStyle};
-use crate::domain::tags::{TagEdge, TagFields};
-use crate::domain::theme::ThemeFields;
+use crate::base_models::{Attachment, BoundingBox, Comment, DisplayMode, Size, ViewportState};
+use crate::contents::Content;
+use crate::id::TypedRecordId;
+use crate::nodes::{BrushType, MediaType, ShapeType, TaskState};
+use crate::relations::IRelationFields;
+use crate::styles::{NodeLayout, NodeStyle};
+use crate::tags::{TagEdge, TagFields};
+use crate::theme::ThemeFields;
 use centrode_macros::define_domain_types;
 use surrealdb::types::SurrealValue;
 

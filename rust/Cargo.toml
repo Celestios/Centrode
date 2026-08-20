@@ -1,92 +1,20 @@
-[package]
-name = "centrode_core"
-version = "0.7.0"
-edition = "2021"
-description = "Core logic and persistence layer for Centrode, exposed via FFI."
-authors = ["Celestios <shahin.id5638@gmail.com>"]
+[workspace]
+members = [
+    "centrode_macros",
+    "centrode_domain",
+    "centrode_core",
+    "centrode_daemon",
+]
+resolver = "2"
 
-
-[lib]
-crate-type = ["rlib", "cdylib", "staticlib"] # 'cdylib' for Android/Desktop dynamic loading, 'staticlib' for iOS, 'rlib' for tests and dependencies
-
-[[bin]]
-name = "generate-schema"
-path = "scripts/generate_schema.rs"
-
-# [profile.dev]
-# opt-level = 0
-# debug = 1              # Changed from 'true' (2) to 1. Still get line numbers for stack traces, but DLL is ~40% smaller.
-# split-debuginfo = "unpacked"  # 'unpacked' is faster on Windows than 'packed'
-# debug-assertions = true
-# incremental = true
-# codegen-units = 256    # Parallelize the build across all HP G10 cores
-# lto = "off"
-# 
-# # Dependencies that need to be fast - CRITICAL: Keep dependencies fast so your UI doesn't lag
-# [profile.dev.package."*"]
-# opt-level = 3          # Dependencies compiled once at full speed; incremental builds (your code) remain fast at level 0
-
-[profile.dev]
-opt-level = 0
-lto = "off"
-debug = 0              # No debug info for fastest compilation and smallest DLL
-split-debuginfo = "off"
-debug-assertions = true
-incremental = true
-codegen-units = 512    # Parallelize build to the maximum
-
-[profile.release]
-opt-level = 3        # Maximum aggressive speed optimization
-lto = true           # Enable Link-Time Optimization across crates
-codegen-units = 1    # Reduce parallel compilation blocks to maximize LTO optimizations
-panic = "abort"      # Remove panic unwinding overhead (reduces binary size significantly)
-strip = true         # Strip symbols and debug info automatically (Rust 1.59+)
-
-[dependencies]
-# --- Core Runtime ---
-tokio = { version = "1.40", features = ["rt", "macros", "sync", "time"] }
-anyhow = "1.0"          # Simplified error handling for Bridge functions
-thiserror = "1.0"       # For typed domain errors
-centrode_macros = { path = "centrode_macros" }
-
-# --- The Bridge ---
-flutter_rust_bridge = { version = "=2.11.1", features = ["uuid"] } 
-
-# --- Database ---
-surrealdb = { version = "3.0", features = ["kv-surrealkv", "kv-mem"] }
-
-# --- Serialization ---
+[workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-rmp-serde = "1.1"
-bincode = "1.3"  # Binary serialization for FFI efficiency
+surrealdb = { version = "3.0", features = ["kv-surrealkv", "kv-mem"] }
 uuid = { version = "1.10", features = ["v4", "serde"] }
-
-# --- Utilities ---
 chrono = { version = "0.4", features = ["serde"] }
-directories = "5.0"
-zip = "0.6"
-walkdir = "2.4"
-sha2 = "0.10"
-
-# --- Parallel ---
-rayon = "1.10"
-
-# --- Logging ---
+anyhow = "1.0"
+tokio = { version = "1.40", features = ["rt", "macros", "sync", "time"] }
 tracing = { version = "0.1", features = ["release_max_level_info"] }
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tokio-stream = { version = "0.1", features = ["sync"] }
-futures = "0.3"
-
-[dev-dependencies]
-rand = "0.10.2"
-resvg = "0.47.0"
-tempfile = "3"
-tiny-skia = "0.12.0"
-usvg = "0.47.0"
-
-# [features]
-# frb = []
-
-[lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
+centrode_macros = { path = "centrode_macros" }
+centrode_domain = { path = "centrode_domain" }
+centrode_daemon = { path = "centrode_daemon" }

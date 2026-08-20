@@ -2,22 +2,7 @@ use crate::domain::styles::EndpointShape;
 use crate::relation_engine::geometry;
 use surrealdb::types::SurrealValue;
 
-#[derive(Clone, Debug, PartialEq, SurrealValue)]
-#[non_exhaustive]
-pub enum RoutingMode {
-    Polyline,
-    BSpline,
-    Orthogonal,
-    Octilinear,
-    Bezier {
-        control_point_1: Option<geometry::Point>,
-        control_point_2: Option<geometry::Point>,
-    },
-    SineWave {
-        control_point_1: Option<geometry::Point>,
-        control_point_2: Option<geometry::Point>,
-    },
-}
+pub use crate::domain::routing::{Point, RoutingMode};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct RoutingConfig {

@@ -1,8 +1,8 @@
-use crate::domain::base_models::Coordinates;
-use crate::domain::id::TypedRecordId;
-pub use crate::domain::schema::{generate_field_schema_lines, SurqlSchema, SurqlSchemaField};
-pub use crate::domain::base_models::Attachment;
-pub use crate::domain::types::{
+use crate::base_models::Coordinates;
+use crate::id::TypedRecordId;
+pub use crate::schema::{generate_field_schema_lines, SurqlSchema, SurqlSchemaField};
+pub use crate::base_models::Attachment;
+pub use crate::types::{
     CommentNode, ContainerNode, DrawingNode, FrameNode, INode, InterNode, MediaNode, Nodes, ShapeNode, TaskNode,
 };
 use centrode_macros::SurrealDbEnum;

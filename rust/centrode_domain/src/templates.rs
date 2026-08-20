@@ -1,8 +1,8 @@
-use crate::domain::id::TypedRecordId;
-use crate::domain::nodes::{IsNode, Nodes};
-use crate::domain::relations::IRelation;
-use crate::domain::traits::TableKind;
-pub use crate::domain::types::Template;
+use crate::id::TypedRecordId;
+use crate::nodes::{IsNode, Nodes};
+use crate::relations::IRelation;
+use crate::traits::TableKind;
+pub use crate::types::Template;
 
 impl Template {
     pub fn from_selection(

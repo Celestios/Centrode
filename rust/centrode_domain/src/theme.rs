@@ -1,4 +1,4 @@
-pub use crate::domain::types::MapTheme;
+pub use crate::types::MapTheme;
 use centrode_macros::SurrealDbEnum;
 use surrealdb::types::SurrealValue;
 

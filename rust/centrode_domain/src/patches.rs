@@ -1,15 +1,14 @@
-use crate::domain::base_models::{Coordinates, Size};
-use crate::domain::contents::Content;
-use crate::domain::id::TypedRecordId;
-use crate::domain::nodes::{Attachment, BrushType, IsNode, MediaType, Nodes, ShapeType, TaskState};
-use crate::domain::relations::IRelation;
-use crate::domain::styles::{NodeStyle, PortSide, RelationDirection, RelationLayout, RelationStyle};
-use crate::relation_engine::config::RoutingMode;
-use flutter_rust_bridge::frb;
+use crate::base_models::{Coordinates, Size};
+use crate::contents::Content;
+use crate::id::TypedRecordId;
+use crate::nodes::{Attachment, BrushType, IsNode, MediaType, Nodes, ShapeType, TaskState};
+use crate::relations::IRelation;
+use crate::routing::RoutingMode;
+use crate::styles::{NodeStyle, PortSide, RelationDirection, RelationLayout, RelationStyle};
 use surrealdb::types::{SurrealValue, Value};
 
 /// Atomic composite mutation set representing forward or inverse cascade deltas
-#[frb]
+
 #[derive(Debug, Clone, Default)]
 pub struct GraphDelta {
     /// Patch existing nodes (undo/redo cascades)
@@ -24,14 +23,14 @@ pub struct GraphDelta {
     pub relation_deletions: Vec<TypedRecordId>,
 }
 
-#[frb]
+
 #[derive(Debug, Clone, SurrealValue)]
 pub enum TagOperation {
     Add(TypedRecordId),
     Remove(TypedRecordId),
 }
 
-#[frb]
+
 #[derive(Debug, Clone)]
 pub enum NodePatch {
     Position(Coordinates),
@@ -184,7 +183,7 @@ impl SurrealValue for NodePatch {
     }
 }
 
-#[frb]
+
 #[derive(Debug, Clone, SurrealValue)]
 pub enum RelationPatch {
     Verb(String),
@@ -196,7 +195,7 @@ pub enum RelationPatch {
     PortSides(Option<PortSide>, Option<PortSide>),
 }
 
-#[frb]
+
 #[derive(Debug, Clone, SurrealValue)]
 pub enum EntityPatch {
     Node(Vec<NodePatch>),
@@ -207,7 +206,7 @@ pub enum EntityPatch {
     DeleteRelation(IRelation),
 }
 
-#[frb]
+
 #[derive(Debug, Clone, SurrealValue)]
 pub struct SymmetricEntityPatch {
     pub id: TypedRecordId,

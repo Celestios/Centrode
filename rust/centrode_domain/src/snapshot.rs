@@ -1,6 +1,6 @@
-use crate::domain::base_models::MapData;
-use crate::domain::nodes::Nodes;
-use crate::domain::relations::IRelation;
+use crate::base_models::MapData;
+use crate::nodes::Nodes;
+use crate::relations::IRelation;
 use centrode_macros::SurrealDbEnum;
 
 #[repr(u8)]
