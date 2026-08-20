@@ -81,7 +81,7 @@ impl<'a> HistoryManager<'a> {
         let mut response = self
             .db
             .query(
-                "SELECT id, action_type, payload, status, created_at FROM History WHERE status = $status ORDER BY created_at DESC LIMIT 1",
+                "SELECT id, action_type, payload, status, created_at FROM History WHERE status = $status ORDER BY created_at DESC, id DESC LIMIT 1",
             )
             .bind(("status", HistoryStatus::Applied.into_value()))
             .await?;
@@ -102,11 +102,11 @@ impl<'a> HistoryManager<'a> {
     }
 
     pub async fn redo(&self) -> Result<Option<HistoryRecord>> {
-        // Get the latest "undone" event (LIFO for redo)
+        // Get the oldest "undone" event (LIFO forward order for redo)
         let mut response = self
             .db
             .query(
-                "SELECT id, action_type, payload, status, created_at FROM History WHERE status = $status ORDER BY created_at DESC LIMIT 1",
+                "SELECT id, action_type, payload, status, created_at FROM History WHERE status = $status ORDER BY created_at ASC, id ASC LIMIT 1",
             )
             .bind(("status", HistoryStatus::Undone.into_value()))
             .await?;

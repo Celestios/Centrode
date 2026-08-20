@@ -319,7 +319,14 @@ class GraphSyncEngine {
       final rawId = RawUuid.fromString(patch.id.key.uuid);
       final newPos = Offset(patch.x, patch.y);
       updates.add((rawId, newPos));
-      controller.nodeMutations.updateNodePosition(rawId, newPos);
+      final node = controller.store.nodeLookup[rawId];
+      if (node != null) {
+        node.position = newPos;
+        controller.spatial.saveConfirmedPosition(rawId, newPos);
+      }
+    }
+    if (updates.isNotEmpty) {
+      controller.updateNodePositionsVolatile(updates);
     }
   }
 
@@ -328,11 +335,12 @@ class GraphSyncEngine {
       final relId = RawUuid.fromString(patch.relationId.key.uuid);
       final rel = controller.store.relationLookup[relId];
       if (rel != null) {
-        controller.relationMutations.updateRelationLayout(
-          relId,
+        final oldLayout = rel.layout;
+        rel.layout = (oldLayout ?? const RelationLayout(strategyType: 'bezier')).copyWith(
           fromSide: patch.fromSide,
           toSide: patch.toSide,
         );
+        controller.relationEngine.onRelationLayoutUpdated(relId);
       }
     }
   }

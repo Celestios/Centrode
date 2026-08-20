@@ -171,32 +171,43 @@ class CanvasOverlayLayout extends StatelessWidget {
 
         // Left Side Panel (Desktop only for Phase 1)
         if (!isAndroid) ...[
-          Positioned(
-            top: 112.0,
-            left: 12,
-            width: 52,
-            child: ValueListenableBuilder<bool>(
-              valueListenable: session.showLeftPanel,
-              builder: (context, leftVisible, _) {
-                if (!leftVisible) return const SizedBox.shrink();
-                return ValueListenableBuilder<LeftPanelType>(
-                  valueListenable: renderState.activeLeftPanelNotifier,
-                  builder: (context, activeLeftPanel, _) {
-                    return LeftRepositoryDrawer(
-                      activePanel: activeLeftPanel,
-                      onPanelChanged: (panel) {
-                        renderState.activeLeftPanelNotifier.value = panel;
-                        if (panel == LeftPanelType.draw) {
-                          session.setToolMode('draw');
-                        } else {
-                          session.setToolMode('select');
-                        }
+          ValueListenableBuilder<bool>(
+            valueListenable: session.showLeftPanel,
+            builder: (context, leftVisible, _) {
+              return AnimatedPositioned(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                top: 112.0,
+                left: leftVisible ? 12.0 : -64.0,
+                width: 52,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 250),
+                  curve: leftVisible
+                      ? const Interval(0.0, 0.4, curve: Curves.easeOut)
+                      : const Interval(0.7, 1.0, curve: Curves.easeIn),
+                  opacity: leftVisible ? 1.0 : 0.0,
+                  child: IgnorePointer(
+                    ignoring: !leftVisible,
+                    child: ValueListenableBuilder<LeftPanelType>(
+                      valueListenable: renderState.activeLeftPanelNotifier,
+                      builder: (context, activeLeftPanel, _) {
+                        return LeftRepositoryDrawer(
+                          activePanel: activeLeftPanel,
+                          onPanelChanged: (panel) {
+                            renderState.activeLeftPanelNotifier.value = panel;
+                            if (panel == LeftPanelType.draw) {
+                              session.setToolMode('draw');
+                            } else {
+                              session.setToolMode('select');
+                            }
+                          },
+                        );
                       },
-                    );
-                  },
-                );
-              },
-            ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
 
           ValueListenableBuilder<bool>(
@@ -230,35 +241,10 @@ class CanvasOverlayLayout extends StatelessWidget {
               return ValueListenableBuilder<LeftPanelType>(
                 valueListenable: renderState.activeLeftPanelNotifier,
                 builder: (context, activeLeftPanel, _) {
-                  final isOpen = activeLeftPanel != LeftPanelType.none;
-                  return AnimatedPositioned(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeInOut,
-                    top: 112.0,
-                    left: leftVisible ? 76.0 : -300.0,
-                    width: (leftVisible && isOpen) ? 280.0 : 0.0,
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 200),
-                      opacity: (leftVisible && isOpen) ? 1.0 : 0.0,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12.0),
-                        child: UnconstrainedBox(
-                          alignment: Alignment.topLeft,
-                          clipBehavior: Clip.hardEdge,
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minWidth: 280.0,
-                              maxWidth: 280.0,
-                              minHeight: 180,
-                              maxHeight: (constraints.maxHeight - 112 - 86)
-                                  .clamp(180, 10000)
-                                  .toDouble(),
-                            ),
-                            child: _buildLeftPanelContent(activeLeftPanel),
-                          ),
-                        ),
-                      ),
-                    ),
+                  return _AnimatedLeftPanel(
+                    isLeftVisible: leftVisible,
+                    activePanel: activeLeftPanel,
+                    constraints: constraints,
                   );
                 },
               );
@@ -356,9 +342,117 @@ class CanvasOverlayLayout extends StatelessWidget {
       ],
     );
   }
+}
 
-  Widget _buildLeftPanelContent(LeftPanelType activePanel) {
-    switch (activePanel) {
+class _AnimatedLeftPanel extends StatefulWidget {
+  final bool isLeftVisible;
+  final LeftPanelType activePanel;
+  final BoxConstraints constraints;
+
+  const _AnimatedLeftPanel({
+    required this.isLeftVisible,
+    required this.activePanel,
+    required this.constraints,
+  });
+
+  @override
+  State<_AnimatedLeftPanel> createState() => _AnimatedLeftPanelState();
+}
+
+class _AnimatedLeftPanelState extends State<_AnimatedLeftPanel> {
+  LeftPanelType _displayedPanel = LeftPanelType.none;
+  double _measuredHeight = 240.0;
+  final GlobalKey _contentKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.activePanel != LeftPanelType.none) {
+      _displayedPanel = widget.activePanel;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _AnimatedLeftPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.activePanel != LeftPanelType.none) {
+      _displayedPanel = widget.activePanel;
+    }
+  }
+
+  void _checkHeight() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final ctx = _contentKey.currentContext;
+      if (ctx != null) {
+        final renderBox = ctx.findRenderObject() as RenderBox?;
+        if (renderBox != null && renderBox.hasSize) {
+          final h = renderBox.size.height;
+          if (h > 0 && (_measuredHeight - h).abs() > 4) {
+            setState(() {
+              _measuredHeight = h;
+            });
+          }
+        }
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isOpen = widget.isLeftVisible && widget.activePanel != LeftPanelType.none;
+    final double targetWidth = 280.0;
+    final double maxPanelHeight = (widget.constraints.maxHeight - 112 - 86)
+        .clamp(140, 10000)
+        .toDouble();
+    final double targetHeight = _measuredHeight.clamp(140.0, maxPanelHeight);
+
+    if (isOpen) {
+      _checkHeight();
+    }
+
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
+      top: 112.0,
+      left: 76.0,
+      width: isOpen ? targetWidth : 0.0,
+      height: isOpen ? targetHeight : 0.0,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 250),
+        curve: isOpen
+            ? const Interval(0.0, 0.4, curve: Curves.easeOut)
+            : const Interval(0.7, 1.0, curve: Curves.easeIn),
+        opacity: isOpen ? 1.0 : 0.0,
+        child: IgnorePointer(
+          ignoring: !isOpen,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12.0),
+            child: OverflowBox(
+              alignment: Alignment.topLeft,
+              minWidth: targetWidth,
+              maxWidth: targetWidth,
+              minHeight: 0.0,
+              maxHeight: maxPanelHeight,
+              child: ConstrainedBox(
+                key: _contentKey,
+                constraints: BoxConstraints(
+                  minWidth: targetWidth,
+                  maxWidth: targetWidth,
+                  minHeight: 0.0,
+                  maxHeight: maxPanelHeight,
+                ),
+                child: _buildContent(_displayedPanel),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(LeftPanelType panel) {
+    switch (panel) {
       case LeftPanelType.tags:
         return const GlobalTagsManagerPanel();
       case LeftPanelType.templates:

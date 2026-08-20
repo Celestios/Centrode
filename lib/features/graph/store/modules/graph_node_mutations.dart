@@ -200,7 +200,15 @@ class GraphNodeMutations {
         .where((r) => r.fromNodeId == id || r.toNodeId == id)
         .toList();
     for (final rel in connectedRelations) {
-      controller.relationMutations.deleteRelation(rel.id);
+      controller.store.relationLookup.remove(rel.id);
+      controller.relationEngine.onRelationDeleted(rel.id);
+      controller.publishUpdate(
+        GraphEntityUpdate(
+          id: rel.id,
+          tableName: 'IRelation',
+          type: GraphUpdateType.relationDeleted,
+        ),
+      );
     }
 
     // Queue command with immediate execution

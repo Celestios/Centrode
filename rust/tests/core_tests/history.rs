@@ -137,3 +137,51 @@ async fn test_history_manager() {
     let undone_count = undone_count_vec.first().copied().unwrap_or(0);
     assert_eq!(undone_count, 0);
 }
+
+#[tokio::test]
+async fn test_history_lifo_undo_redo_sequence() {
+    let repo = setup_test_repo().await;
+    let history = HistoryManager::new(repo.db(), 10);
+
+    let _: Vec<surrealdb::types::Value> = repo
+        .db()
+        .query("DELETE History")
+        .await
+        .unwrap()
+        .take(0)
+        .unwrap();
+
+    // Push A at t=1000, B at t=2000, C at t=3000
+    history
+        .push_event_with_time("event", TestPayload { key: "A".to_string() }.into_value(), 1000)
+        .await
+        .unwrap();
+    history
+        .push_event_with_time("event", TestPayload { key: "B".to_string() }.into_value(), 2000)
+        .await
+        .unwrap();
+    history
+        .push_event_with_time("event", TestPayload { key: "C".to_string() }.into_value(), 3000)
+        .await
+        .unwrap();
+
+    // Undo C
+    let u1 = history.undo().await.unwrap().unwrap();
+    assert_eq!(TestPayload::from_value(u1.payload).unwrap().key, "C");
+
+    // Undo B
+    let u2 = history.undo().await.unwrap().unwrap();
+    assert_eq!(TestPayload::from_value(u2.payload).unwrap().key, "B");
+
+    // Redo should restore B first (the last one undone)
+    let r1 = history.redo().await.unwrap().unwrap();
+    assert_eq!(TestPayload::from_value(r1.payload).unwrap().key, "B");
+
+    // Redo should restore C second
+    let r2 = history.redo().await.unwrap().unwrap();
+    assert_eq!(TestPayload::from_value(r2.payload).unwrap().key, "C");
+
+    // No more redos
+    let r3 = history.redo().await.unwrap();
+    assert!(r3.is_none());
+}

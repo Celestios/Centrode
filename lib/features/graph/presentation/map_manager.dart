@@ -73,19 +73,19 @@ class MapManager extends ChangeNotifier {
     }
   }
 
-  void closeTab(int index) {
-    _tabsController?.closeTab(index);
+  void closeTab(int index, {bool saveState = true}) {
+    _tabsController?.closeTab(index, saveState: saveState);
   }
 
-  Future<void> closeByPath(String storagePath) async {
+  Future<void> closeByPath(String storagePath, {bool saveState = true}) async {
     if (_tabsController == null) return;
     final canonicalTarget = p.canonicalize(storagePath);
     final index = _tabsController!.tabs.indexWhere(
       (t) => p.canonicalize(t.storagePath) == canonicalTarget,
     );
     if (index >= 0) {
-      _log.info('closeByPath closing tab $index for $storagePath');
-      await _tabsController!.closeTab(index);
+      _log.info('closeByPath closing tab $index for $storagePath saveState=$saveState');
+      await _tabsController!.closeTab(index, saveState: saveState);
     }
   }
 

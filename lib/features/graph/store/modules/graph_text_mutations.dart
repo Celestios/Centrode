@@ -157,6 +157,9 @@ class GraphTextMutations {
   }
 
   bool _contentEquals(Content a, Content b) {
+    if (a.toPlainText().trim().isEmpty && b.toPlainText().trim().isEmpty) {
+      return true;
+    }
     if (a.text != b.text) return false;
     if (a.blocks.length != b.blocks.length) return false;
     for (int i = 0; i < a.blocks.length; i++) {

@@ -31,6 +31,7 @@ class CanvasTextEditor extends StatefulWidget {
 }
 
 class _CanvasTextEditorState extends State<CanvasTextEditor> {
+  late final Content _initialContent;
   late final ContentTextEditingController _controller;
   late final FocusNode _focusNode;
   late final MarkdownTextSelectionControls _selectionControls;
@@ -56,6 +57,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   @override
   void initState() {
     super.initState();
+    _initialContent = widget.content;
     _controller = ContentTextEditingController();
     _controller.loadFromContent(widget.content);
     _lastValue = _controller.value;
@@ -132,12 +134,13 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     _renderState.commitActiveEditCallback = null;
 
     if (!_isCommitted && !_isAborted) {
+      _isCommitted = true;
       _log.info('Committing final edit on dispose for: ${widget.entityId}');
       try {
         _renderState.commitEntityText(
           widget.entityId,
           _controller.buildContent(),
-          originalTextOrContent: widget.content,
+          originalTextOrContent: _initialContent,
         );
       } catch (e) {
         _log.severe('Failed to commit text on dispose: $e');
@@ -222,12 +225,12 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     if (_isCommitted) return;
     _isCommitted = true;
     _log.info('Committing internal edit for: ${widget.entityId}');
-    _renderState.cancelActiveEdit();
     _renderState.commitEntityText(
       widget.entityId,
       _controller.buildContent(),
-      originalTextOrContent: widget.content,
+      originalTextOrContent: _initialContent,
     );
+    _renderState.cancelActiveEdit();
   }
 
   void _insertTab() {

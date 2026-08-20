@@ -83,7 +83,10 @@ class MapSectionState extends State<MapSection> {
     if (confirmed == true) {
       final newSelection = Set<String>.from(widget.selectedPaths);
       for (final map in mapsToDelete) {
-        await MapManager.instance.closeByPath(map.path);
+        await MapManager.instance.closeByPath(map.path, saveState: false);
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      for (final map in mapsToDelete) {
         await AppPaths.deleteMapStorage(map.path);
         await RecentMapsStore.remove(map.path);
         newSelection.remove(map.path);
@@ -168,7 +171,8 @@ class MapSectionState extends State<MapSection> {
                     if (newName == map.name) return;
                     final parent = p.dirname(map.path);
                     final newPath = p.join(parent, '$newName.db');
-                    await MapManager.instance.closeByPath(map.path);
+                    await MapManager.instance.closeByPath(map.path, saveState: true);
+                    await Future<void>.delayed(const Duration(milliseconds: 50));
                     await AppPaths.renameMapStorage(map.path, newPath);
                     await RecentMapsStore.rename(map.path, newPath);
                     if (!mounted) return;

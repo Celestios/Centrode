@@ -8,6 +8,7 @@ import 'package:centrode/shared/utils/app_paths.dart';
 import '../../../src/rust/bridge/api.dart';
 import '../../../src/rust/domain/base_models.dart' show ViewportState;
 import '../store/graph_data_query_controller.dart';
+import '../store/graph_data_query.dart';
 import '../store/command_queue_processor.dart';
 import '../store/graph_api.dart';
 import 'theme_manager.dart';
@@ -120,6 +121,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
   final ValueNotifier<bool> showBottomPanel = ValueNotifier(true);
   final ValueNotifier<bool> isInitialized = ValueNotifier<bool>(false);
   VoidCallback? _themeListener;
+  StreamSubscription<GraphEntityUpdate>? _querySub;
   final DeferredGraphApi _deferredApi = DeferredGraphApi();
 
   Future<void>? _initFuture;
@@ -152,6 +154,10 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
       qc.triggerUpdate();
     };
     tc.addListener(_themeListener!);
+
+    _querySub = qc.onEntityUpdate.listen((_) {
+      notifyListeners();
+    });
   }
 
   Future<void> initialize(ThemeData globalTheme) {
@@ -252,6 +258,8 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
       themeController?.removeListener(_themeListener!);
       _themeListener = null;
     }
+    _querySub?.cancel();
+    _querySub = null;
     themeController?.dispose();
     queryController?.dispose();
     commandProcessor?.dispose();
@@ -322,8 +330,8 @@ class WorkspaceTabsController extends ChangeNotifier with TraceableNotifier {
     }
   }
 
-  Future<void> closeTab(int index) async {
-    _log.info('closeTab index=$index');
+  Future<void> closeTab(int index, {bool saveState = true}) async {
+    _log.info('closeTab index=$index saveState=$saveState');
     if (_tabs.isEmpty || index < 0 || index >= _tabs.length) return;
 
     final closedSession = _tabs.removeAt(index);
@@ -336,7 +344,9 @@ class WorkspaceTabsController extends ChangeNotifier with TraceableNotifier {
     }
     notifyListeners();
 
-    await closedSession.saveViewportState();
+    if (saveState) {
+      await closedSession.saveViewportState();
+    }
     await closedSession.close();
     closedSession.dispose();
   }

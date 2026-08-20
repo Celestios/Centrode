@@ -15,10 +15,21 @@ class LeftRepositoryDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GlassPanel(
       padding: const EdgeInsets.all(3.0),
       borderRadius: 16.0,
       blur: 8.0,
+      color: theme.cardColor.withValues(alpha: 0.90),
+      border: Border.all(
+        color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
+        width: 1.0,
+      ),
+      shadow: BoxShadow(
+        color: Colors.black.withValues(alpha: 0.16),
+        blurRadius: 10,
+        offset: const Offset(0, 3),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
