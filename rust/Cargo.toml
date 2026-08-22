@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "centrode_macros",
-    "centrode_domain",
     "centrode_core",
     "centrode_daemon",
 ]
@@ -16,6 +15,5 @@ anyhow = "1.0"
 tokio = { version = "1.40", features = ["rt", "macros", "sync", "time"] }
 tracing = { version = "0.1", features = ["release_max_level_info"] }
 centrode_macros = { path = "centrode_macros" }
-centrode_domain = { path = "centrode_domain" }
 centrode_daemon = { path = "centrode_daemon" }
 flutter_rust_bridge = { version = "=2.11.1", default-features = false }

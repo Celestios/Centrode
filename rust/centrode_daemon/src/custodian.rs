@@ -63,6 +63,20 @@ impl CustodianManager {
         Ok(adjacent)
     }
 
+    fn release_worker_lock(worker_slot: &std::sync::Mutex<Option<DaemonWorker>>) -> Result<()> {
+        let mut lock = worker_slot
+            .lock()
+            .map_err(|_| anyhow::anyhow!("Daemon worker mutex poisoned"))?;
+        if let Some(dw) = lock.take() {
+            let rt = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .context("Failed to build Tokio runtime for lock release")?;
+            rt.block_on(dw.flush_and_release())?;
+        }
+        Ok(())
+    }
+
     /// Serves the IPC loop with automatic baton yielding and app launch.
     pub fn run_loop(&self, worker: DaemonWorker) -> Result<()> {
         let pipe = IpcServer::new(ipc::IPC_PIPE_NAME);
@@ -98,18 +112,23 @@ impl CustodianManager {
                             "CustodianManager: OpenMap received, yielding to app: {}",
                             map_id
                         );
-                        if let Ok(mut lock) = worker_slot.lock() {
-                            if let Some(dw) = lock.take() {
-                                let rt = tokio::runtime::Builder::new_current_thread()
-                                    .enable_all()
-                                    .build();
-                                if let Ok(runtime) = rt {
-                                    let _ = runtime.block_on(dw.flush_and_release());
-                                }
-                            }
+                        if let Err(e) = Self::release_worker_lock(&worker_slot) {
+                            tracing::error!("CustodianManager: Failed to release storage lock: {}", e);
+                            return IpcResponse {
+                                success: false,
+                                active_state: "daemon".into(),
+                                message: Some(format!("Failed to release storage lock: {e}")),
+                            };
                         }
                         let manager = CustodianManager::new(storage_path.clone());
-                        let _ = manager.launch_application(Some(&map_id));
+                        if let Err(e) = manager.launch_application(Some(&map_id)) {
+                            tracing::error!("CustodianManager: Failed to launch application: {}", e);
+                            return IpcResponse {
+                                success: false,
+                                active_state: "daemon".into(),
+                                message: Some(format!("Failed to launch application: {e}")),
+                            };
+                        }
                         running.store(false, Ordering::SeqCst);
                         IpcResponse {
                             success: true,
@@ -122,15 +141,13 @@ impl CustodianManager {
                             "CustodianManager: YieldBaton received for {}",
                             target_process
                         );
-                        if let Ok(mut lock) = worker_slot.lock() {
-                            if let Some(dw) = lock.take() {
-                                let rt = tokio::runtime::Builder::new_current_thread()
-                                    .enable_all()
-                                    .build();
-                                if let Ok(runtime) = rt {
-                                    let _ = runtime.block_on(dw.flush_and_release());
-                                }
-                            }
+                        if let Err(e) = Self::release_worker_lock(&worker_slot) {
+                            tracing::error!("CustodianManager: Failed to release storage lock: {}", e);
+                            return IpcResponse {
+                                success: false,
+                                active_state: "daemon".into(),
+                                message: Some(format!("Failed to release storage lock: {e}")),
+                            };
                         }
                         running.store(false, Ordering::SeqCst);
                         IpcResponse {

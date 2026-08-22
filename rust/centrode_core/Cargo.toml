@@ -31,7 +31,6 @@ strip = true
 [dependencies]
 # --- Workspace crates ---
 centrode_macros.workspace = true
-centrode_domain.workspace = true
 centrode_daemon.workspace = true
 
 # --- Core Runtime ---

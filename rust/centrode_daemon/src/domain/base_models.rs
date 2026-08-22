@@ -2,6 +2,7 @@ use crate::id::TypedRecordId;
 use crate::traits::TableKind;
 pub use crate::types::MapData;
 use centrode_macros::{SurqlSchemaField, SurrealDbEnum};
+use serde::{Deserialize, Serialize};
 use surrealdb::types::{RecordId, SurrealValue, Value};
 use uuid::Uuid;
 
@@ -129,6 +130,16 @@ impl BoundingBox {
             max_y: max_y.into(),
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct MapDescriptor {
+    pub id: String,
+    pub name: String,
+    pub storage_path: String,
+    pub created_at_ms: i64,
+    pub modified_at_ms: i64,
+    pub accessed_at_ms: i64,
 }
 
 impl Default for BoundingBox {

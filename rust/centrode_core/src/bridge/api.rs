@@ -44,18 +44,35 @@ pub async fn shutdown_core_engine() -> anyhow::Result<()> {
 
 /// Signals any running standalone daemon to yield the database baton before the app initializes.
 /// Returns true if a daemon was running and yielded, false if no daemon was active.
-pub async fn yield_daemon_if_running() -> bool {
+pub async fn yield_daemon_if_running() -> anyhow::Result<bool> {
     let client = centrode_daemon::ipc::IpcClient::new(centrode_daemon::ipc::IPC_PIPE_NAME);
     let msg = centrode_daemon::ipc::IpcMessage::YieldBaton {
         target_process: "app".to_string(),
     };
     match client.connect_and_send::<_, centrode_daemon::ipc::IpcResponse>(&msg) {
         Ok(resp) => {
+            if !resp.success {
+                anyhow::bail!(
+                    "Daemon failed to yield database baton: {}",
+                    resp.message.unwrap_or_else(|| "unknown error".into())
+                );
+            }
             tracing::info!("Daemon yielded baton: {:?}", resp);
             tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
-            true
+            Ok(true)
         }
-        Err(_) => false,
+        Err(e) => {
+            let err_str = e.to_string();
+            let is_not_running = err_str.contains("os error 2")
+                || err_str.contains("The system cannot find the file specified")
+                || err_str.contains("No such file")
+                || err_str.contains("Connection refused");
+            if is_not_running {
+                Ok(false)
+            } else {
+                Err(e)
+            }
+        }
     }
 }
 

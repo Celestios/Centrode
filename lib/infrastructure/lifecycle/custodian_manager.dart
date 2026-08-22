@@ -27,15 +27,11 @@ class CustodianLifecycleCoordinator with WindowListener {
   /// Called on app startup to request any running standalone daemon to yield the database lock.
   Future<void> onAppStartup() async {
     _log.info('Checking if standalone daemon is holding storage lock...');
-    try {
-      final yielded = await yieldDaemonIfRunning();
-      if (yielded) {
-        _log.info('Standalone daemon yielded database baton successfully.');
-      } else {
-        _log.info('No active standalone daemon detected. Proceeding normally.');
-      }
-    } catch (e) {
-      _log.warning('Error while checking standalone daemon baton: $e');
+    final yielded = await yieldDaemonIfRunning();
+    if (yielded) {
+      _log.info('Standalone daemon yielded database baton successfully.');
+    } else {
+      _log.info('No active standalone daemon detected. Proceeding normally.');
     }
   }
 
@@ -45,25 +41,21 @@ class CustodianLifecycleCoordinator with WindowListener {
     _isShuttingDown = true;
     _log.info('onWindowClose intercepted. Starting graceful teardown...');
 
-    try {
-      // 1. Flush and close all open tabs
-      await MapManager.instance.flushAndCloseAll();
+    // 1. Flush and close all open tabs
+    await MapManager.instance.flushAndCloseAll();
 
-      // 2. Release SurrealKV engine lock
-      _log.info('Releasing SurrealKV root engine locks...');
-      await shutdownCoreEngine();
-      _log.info('SurrealKV locks released successfully.');
+    // 2. Release SurrealKV engine lock
+    _log.info('Releasing SurrealKV root engine locks...');
+    await shutdownCoreEngine();
+    _log.info('SurrealKV locks released successfully.');
 
-      // 3. Spawn detached standalone daemon if enabled
-      if (enableDaemonSpawn) {
-        await _spawnDetachedDaemon();
-      }
-    } catch (e, stack) {
-      _log.severe('Error during graceful window close teardown: $e', stack);
-    } finally {
-      _log.info('Destroying window and exiting process.');
-      await windowManager.destroy();
+    // 3. Spawn detached standalone daemon if enabled
+    if (enableDaemonSpawn) {
+      await _spawnDetachedDaemon();
     }
+
+    _log.info('Destroying window and exiting process.');
+    await windowManager.destroy();
   }
 
   Future<void> _spawnDetachedDaemon() async {

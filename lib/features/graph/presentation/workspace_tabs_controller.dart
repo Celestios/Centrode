@@ -241,11 +241,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     _debounceTimer?.cancel();
     final h = handle;
     if (h != null) {
-      try {
-        await h.close();
-      } catch (e) {
-        _log.warning('Error closing handle for session $name: $e');
-      }
+      await h.close();
     }
   }
 
@@ -258,11 +254,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     }
     final cp = commandProcessor;
     if (cp != null) {
-      try {
-        await cp.flush();
-      } catch (e) {
-        _log.warning('Error flushing command processor for $name: $e');
-      }
+      await cp.flush();
     }
     await close();
   }
@@ -362,10 +354,7 @@ class WorkspaceTabsController extends ChangeNotifier with TraceableNotifier {
     }
     notifyListeners();
 
-    if (saveState) {
-      await closedSession.saveViewportState();
-    }
-    await closedSession.close();
+    await closedSession.flushAndClose(saveState: saveState);
     closedSession.dispose();
   }
 

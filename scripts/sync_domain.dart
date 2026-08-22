@@ -1,37 +1,40 @@
 import 'dart:io';
 
 void main() {
-  final domainSrcDir = Directory('rust/centrode_domain/src');
   final coreDomainDir = Directory('rust/centrode_core/src/domain');
   final coreDomainFile = File('rust/centrode_core/src/domain.rs');
+  final daemonDomainDir = Directory('rust/centrode_daemon/src/domain');
+  final daemonDomainFile = File('rust/centrode_daemon/src/domain.rs');
 
-  if (!domainSrcDir.existsSync()) {
-    stderr.writeln('Error: ${domainSrcDir.path} does not exist.');
+  if (!coreDomainDir.existsSync()) {
+    stderr.writeln('Error: ${coreDomainDir.path} does not exist.');
     exit(1);
   }
 
-  if (coreDomainDir.existsSync()) {
-    coreDomainDir.deleteSync(recursive: true);
+  if (daemonDomainDir.existsSync()) {
+    daemonDomainDir.deleteSync(recursive: true);
   }
-  coreDomainDir.createSync(recursive: true);
+  daemonDomainDir.createSync(recursive: true);
 
-  final domainLibFile = File('rust/centrode_domain/src/lib.rs');
-  if (domainLibFile.existsSync()) {
-    final content = domainLibFile.readAsStringSync();
-    coreDomainFile.writeAsStringSync(content);
-    print('Synced domain.rs from centrode_domain/src/lib.rs');
+  if (coreDomainFile.existsSync()) {
+    final content = coreDomainFile.readAsStringSync();
+    daemonDomainFile.writeAsStringSync(content);
+    print('Synced domain.rs to centrode_daemon/src/domain.rs');
   }
 
   int count = 0;
-  for (final entity in domainSrcDir.listSync(recursive: true)) {
-    if (entity is File && entity.path.endsWith('.rs') && !entity.path.endsWith('lib.rs')) {
-      final relativePath = entity.path.substring(domainSrcDir.path.length + 1);
-      final destFile = File('${coreDomainDir.path}/$relativePath');
+  for (final entity in coreDomainDir.listSync(recursive: true)) {
+    if (entity is File && entity.path.endsWith('.rs')) {
+      final relativePath = entity.path.substring(coreDomainDir.path.length + 1);
+      final destFile = File('${daemonDomainDir.path}/$relativePath');
       destFile.parent.createSync(recursive: true);
       destFile.writeAsBytesSync(entity.readAsBytesSync());
       count++;
     }
   }
 
-  print('Successfully synced $count domain source files from centrode_domain to centrode_core/src/domain.');
+  print(
+    'Successfully synced $count domain source files from centrode_core to centrode_daemon/src/domain.',
+  );
 }
+

@@ -3446,11 +3446,9 @@ fn wire__crate__bridge__api__yield_daemon_if_running_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, ()>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
-                        let output_ok = Result::<_, ()>::Ok(
-                            crate::bridge::api::yield_daemon_if_running().await,
-                        )?;
+                        let output_ok = crate::bridge::api::yield_daemon_if_running().await?;
                         Ok(output_ok)
                     })()
                     .await,
