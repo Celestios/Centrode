@@ -18,3 +18,4 @@ tracing = { version = "0.1", features = ["release_max_level_info"] }
 centrode_macros = { path = "centrode_macros" }
 centrode_domain = { path = "centrode_domain" }
 centrode_daemon = { path = "centrode_daemon" }
+flutter_rust_bridge = { version = "=2.11.1", default-features = false }

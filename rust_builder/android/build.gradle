@@ -49,6 +49,6 @@ android {
 
 apply from: "../cargokit/gradle/plugin.gradle"
 cargokit {
-    manifestDir = "../../rust"
+    manifestDir = "../../rust/centrode_core"
     libname = "centrode_core"
 }

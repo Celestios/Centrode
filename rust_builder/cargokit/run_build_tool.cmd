@@ -5,13 +5,29 @@ setlocal ENABLEDELAYEDEXPANSION
 
 SET BASEDIR=%~dp0
 
+if "%CARGOKIT_TOOL_TEMP_DIR%"=="" (
+    set CARGOKIT_TOOL_TEMP_DIR=%TEMP%\cargokit_tool_temp
+)
 if not exist "%CARGOKIT_TOOL_TEMP_DIR%" (
     mkdir "%CARGOKIT_TOOL_TEMP_DIR%"
 )
 cd /D "%CARGOKIT_TOOL_TEMP_DIR%"
 
 SET BUILD_TOOL_PKG_DIR=%BASEDIR%build_tool
-SET DART=%FLUTTER_ROOT%\bin\cache\dart-sdk\bin\dart
+if "%FLUTTER_ROOT%"=="" (
+    for /f "delims=" %%F in ('where flutter 2^>nul') do (
+        if "!FLUTTER_ROOT!"=="" (
+            for %%P in ("%%~dpF..") do set "FLUTTER_ROOT=%%~fP"
+        )
+    )
+)
+
+SET DART=%FLUTTER_ROOT%\bin\cache\dart-sdk\bin\dart.exe
+if not exist "%DART%" (
+    for /f "delims=" %%D in ('where dart.exe 2^>nul') do (
+        set "DART=%%D"
+    )
+)
 
 set BUILD_TOOL_PKG_DIR_POSIX=%BUILD_TOOL_PKG_DIR:\=/%
 
@@ -77,7 +93,10 @@ REM There is no CUR_PACKAGE_INFO it was renamed in previous step to %PREV_PACKAG
 REM which means  we need to do pub get and precompile
 if not exist "%PRECOMPILED%" (
     echo Running pub get in "%cd%"
-    "%DART%" pub get --no-precompile
+    if exist "%BUILD_TOOL_PKG_DIR%\pubspec.lock" (
+        copy /Y "%BUILD_TOOL_PKG_DIR%\pubspec.lock" . > nul
+    )
+    "%DART%" pub get --offline --no-precompile
     "%DART%" compile kernel bin/build_tool_runner.dart
 )
 
@@ -85,7 +104,10 @@ if not exist "%PRECOMPILED%" (
 
 REM 253 means invalid snapshot version.
 If %ERRORLEVEL% equ 253 (
-    "%DART%" pub get --no-precompile
+    if exist "%BUILD_TOOL_PKG_DIR%\pubspec.lock" (
+        copy /Y "%BUILD_TOOL_PKG_DIR%\pubspec.lock" . > nul
+    )
+    "%DART%" pub get --offline --no-precompile
     "%DART%" compile kernel bin/build_tool_runner.dart
     "%DART%" "%PRECOMPILED%" %*
 )
