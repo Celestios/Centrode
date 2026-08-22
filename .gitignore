@@ -29,6 +29,7 @@
 # === Rust / Cargo / FFI ===
 /rust/Cargo.lock
 /rust/target/
+/rust/centrode_core/target
 
 # === Project Specific & Data ===
 /.Archive

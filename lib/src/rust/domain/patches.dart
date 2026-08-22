@@ -4,8 +4,6 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
-import '../relation_engine/config.dart';
-import '../relation_engine/geometry.dart';
 import 'base_models.dart';
 import 'contents.dart';
 import 'id.dart';
@@ -14,6 +12,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 import 'package:uuid/uuid.dart';
 import 'relations.dart';
+import 'routing.dart';
 import 'styles.dart';
 import 'tags.dart';
 import 'types.dart';

@@ -1,10 +1,11 @@
 use crate::domain::id::TypedRecordId;
-use crate::domain::styles::EndpointShape;
 use crate::relation_engine::config;
+use crate::relation_engine::endpoint_shapes::EndpointShape;
 use crate::relation_engine::geometry::{Point, Rect};
+use flutter_rust_bridge::frb;
 
+#[frb(non_opaque)]
 #[derive(Clone, Debug, PartialEq)]
-#[non_exhaustive]
 pub enum PathType {
     Straight,
     BSpline,
@@ -13,14 +14,15 @@ pub enum PathType {
     SineWave,
 }
 
+#[frb(non_opaque)]
 #[derive(Clone, Debug, PartialEq)]
-#[non_exhaustive]
 pub enum LabelAnchor {
     Center,
     Left,
     Right,
 }
 
+#[frb(non_opaque)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ComputedRelation {
     pub id: TypedRecordId,

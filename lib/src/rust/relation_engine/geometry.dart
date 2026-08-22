@@ -6,24 +6,6 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-class Point {
-  final double x;
-  final double y;
-
-  const Point({required this.x, required this.y});
-
-  @override
-  int get hashCode => x.hashCode ^ y.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Point &&
-          runtimeType == other.runtimeType &&
-          x == other.x &&
-          y == other.y;
-}
-
 class Rect {
   final double x;
   final double y;

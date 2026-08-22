@@ -1,9 +1,11 @@
-use crate::domain::styles::EndpointShape;
-use crate::relation_engine::geometry;
+use flutter_rust_bridge::frb;
 use surrealdb::types::SurrealValue;
 
-pub use crate::domain::routing::{Point, RoutingMode};
+pub use crate::domain::routing::RoutingMode;
+pub use crate::domain::styles::EndpointShape;
+pub use crate::relation_engine::geometry::{Point, Rect};
 
+#[frb(non_opaque)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct RoutingConfig {
     pub routing_mode: RoutingMode,
@@ -93,11 +95,13 @@ impl RoutingConfig {
     }
 }
 
+#[frb(non_opaque)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct StraightConfig {
     pub num_samples: usize,
 }
 
+#[frb(non_opaque)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct BezierConfig {
     pub num_samples: usize,
@@ -107,6 +111,7 @@ pub struct BezierConfig {
     pub end_offset_y: f64,
 }
 
+#[frb(non_opaque)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct NudgingConfig {
     pub enabled: bool,
@@ -133,14 +138,15 @@ impl NudgingConfig {
     }
 }
 
+#[frb(non_opaque)]
 #[derive(Clone, Debug, PartialEq)]
-#[non_exhaustive]
 pub enum BundlingMode {
     Proximity,
     SharedEndpoint,
     None,
 }
 
+#[frb(non_opaque)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct BundlingConfig {
     pub mode: BundlingMode,
@@ -156,8 +162,8 @@ impl Default for BundlingConfig {
     }
 }
 
+#[frb(non_opaque)]
 #[derive(Clone, Debug, PartialEq)]
-#[non_exhaustive]
 pub enum BodyType {
     Uniform,
     Taper,
@@ -165,6 +171,7 @@ pub enum BodyType {
     Bundled,
 }
 
+#[frb(non_opaque)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct BodyConfig {
     pub default_type: BodyType,
@@ -186,6 +193,7 @@ impl Default for BodyConfig {
     }
 }
 
+#[frb(non_opaque)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct EndpointConfig {
     pub default_start_shape: EndpointShape,
@@ -205,6 +213,7 @@ impl Default for EndpointConfig {
     }
 }
 
+#[frb(non_opaque)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct RelationEngineConfig {
     pub routing: RoutingConfig,
