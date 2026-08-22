@@ -32,7 +32,7 @@ pub struct LayoutEdge {
     pub to_side: Option<PortSide>,
 }
 
-#[frb]
+#[frb(non_opaque)]
 #[derive(Clone, Debug)]
 pub struct LayoutPatch {
     pub id: TypedRecordId,
@@ -40,7 +40,7 @@ pub struct LayoutPatch {
     pub y: f64,
 }
 
-#[frb]
+#[frb(non_opaque)]
 #[derive(Clone, Debug)]
 pub struct PortPatch {
     pub relation_id: TypedRecordId,
@@ -56,7 +56,7 @@ pub struct AnchorSpring {
     pub decay_rate: f64,
 }
 
-#[frb]
+#[frb(non_opaque)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Axis {
     Horizontal,
@@ -69,7 +69,7 @@ pub struct AlignmentConstraint {
     pub axis: Axis,
 }
 
-#[frb]
+#[frb(non_opaque)]
 #[derive(Clone, Debug)]
 pub struct LayoutTickResult {
     pub position_patches: Vec<LayoutPatch>,

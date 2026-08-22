@@ -5,7 +5,7 @@ use crate::relation_engine::path_finder::steer::{AStarContext, Steer};
 use crate::relation_engine::shaper::core::{Shaper, ShaperContext};
 
 /// Marker struct representing a routing mode that does not perform A* pathfinding.
-pub struct NoSteer;
+pub struct NoSteer {}
 
 impl Steer for NoSteer {
     fn neighbors(&self) -> Vec<(i32, i32, f64)> {

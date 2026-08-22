@@ -14,6 +14,7 @@ import 'domain/id.dart';
 import 'domain/nodes.dart';
 import 'domain/patches.dart';
 import 'domain/relations.dart';
+import 'domain/routing.dart';
 import 'domain/snapshot.dart';
 import 'domain/styles.dart';
 import 'domain/tags.dart';

@@ -4,6 +4,7 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../domain/id.dart';
+import '../domain/routing.dart';
 import '../domain/styles.dart';
 import '../domain/types.dart';
 import '../frb_generated.dart';

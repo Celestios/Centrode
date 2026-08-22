@@ -13,6 +13,7 @@ import 'domain/id.dart';
 import 'domain/nodes.dart';
 import 'domain/patches.dart';
 import 'domain/relations.dart';
+import 'domain/routing.dart';
 import 'domain/snapshot.dart';
 import 'domain/styles.dart';
 import 'domain/tags.dart';
@@ -85,12 +86,12 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => 1089927793;
+  int get rustContentHash => 942456308;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
         stem: 'centrode_core',
-        ioDirectory: 'rust/target/release/',
+        ioDirectory: 'rust/centrode_core/target/release/',
         webPrefix: 'pkg/',
       );
 }
@@ -374,7 +375,15 @@ abstract class RustLibApi extends BaseApi {
 
   Stream<LogState> crateBridgeApiCreateLogStream();
 
+  Future<void> crateBridgeApiDeleteMapStorage({required String mapId});
+
+  Future<void> crateBridgeApiInitCoreEngine({required String storagePath});
+
   Future<void> crateBridgeApiSetupLogger();
+
+  Future<void> crateBridgeApiShutdownCoreEngine();
+
+  Future<bool> crateBridgeApiYieldDaemonIfRunning();
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_AppHandle;
@@ -2554,6 +2563,65 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "create_log_stream", argNames: ["sink"]);
 
   @override
+  Future<void> crateBridgeApiDeleteMapStorage({required String mapId}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(mapId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 56,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiDeleteMapStorageConstMeta,
+        argValues: [mapId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiDeleteMapStorageConstMeta =>
+      const TaskConstMeta(debugName: "delete_map_storage", argNames: ["mapId"]);
+
+  @override
+  Future<void> crateBridgeApiInitCoreEngine({required String storagePath}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(storagePath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 57,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiInitCoreEngineConstMeta,
+        argValues: [storagePath],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiInitCoreEngineConstMeta =>
+      const TaskConstMeta(
+        debugName: "init_core_engine",
+        argNames: ["storagePath"],
+      );
+
+  @override
   Future<void> crateBridgeApiSetupLogger() {
     return handler.executeNormal(
       NormalTask(
@@ -2562,7 +2630,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 56,
+            funcId: 58,
             port: port_,
           );
         },
@@ -2579,6 +2647,60 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   TaskConstMeta get kCrateBridgeApiSetupLoggerConstMeta =>
       const TaskConstMeta(debugName: "setup_logger", argNames: []);
+
+  @override
+  Future<void> crateBridgeApiShutdownCoreEngine() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 59,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiShutdownCoreEngineConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiShutdownCoreEngineConstMeta =>
+      const TaskConstMeta(debugName: "shutdown_core_engine", argNames: []);
+
+  @override
+  Future<bool> crateBridgeApiYieldDaemonIfRunning() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 60,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_bool,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateBridgeApiYieldDaemonIfRunningConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiYieldDaemonIfRunningConstMeta =>
+      const TaskConstMeta(debugName: "yield_daemon_if_running", argNames: []);
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_AppHandle => wire

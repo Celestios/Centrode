@@ -40,7 +40,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1089927793;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 942456308;
 
 // Section: executor
 
@@ -622,9 +622,7 @@ fn wire__crate__bridge__api__AppHandle_compute_single_relation_impl(
             let api_to_side =
                 <Option<crate::domain::styles::PortSide>>::sse_decode(&mut deserializer);
             let api_routing_mode =
-                <Option<crate::relation_engine::config::RoutingMode>>::sse_decode(
-                    &mut deserializer,
-                );
+                <Option<crate::domain::routing::RoutingMode>>::sse_decode(&mut deserializer);
             let api_override_start_x = <Option<f64>>::sse_decode(&mut deserializer);
             let api_override_start_y = <Option<f64>>::sse_decode(&mut deserializer);
             let api_override_end_x = <Option<f64>>::sse_decode(&mut deserializer);
@@ -3281,6 +3279,79 @@ fn wire__crate__bridge__api__create_log_stream_impl(
         },
     )
 }
+fn wire__crate__bridge__api__delete_map_storage_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "delete_map_storage",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_map_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let output_ok = crate::bridge::api::delete_map_storage(api_map_id).await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__bridge__api__init_core_engine_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "init_core_engine",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_storage_path = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let output_ok =
+                            crate::bridge::api::init_core_engine(api_storage_path).await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__bridge__api__setup_logger_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -3308,6 +3379,78 @@ fn wire__crate__bridge__api__setup_logger_impl(
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::bridge::api::setup_logger().await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__bridge__api__shutdown_core_engine_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "shutdown_core_engine",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let output_ok = crate::bridge::api::shutdown_core_engine().await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__bridge__api__yield_daemon_if_running_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "yield_daemon_if_running",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::bridge::api::yield_daemon_if_running().await,
+                        )?;
                         Ok(output_ok)
                     })()
                     .await,
@@ -3660,14 +3803,11 @@ impl SseDecode for crate::relation_engine::computed::ComputedRelation {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_id = <crate::domain::id::TypedRecordId>::sse_decode(deserializer);
-        let mut var_pathPoints =
-            <Vec<crate::relation_engine::geometry::Point>>::sse_decode(deserializer);
+        let mut var_pathPoints = <Vec<crate::domain::routing::Point>>::sse_decode(deserializer);
         let mut var_pathType =
             <crate::relation_engine::computed::PathType>::sse_decode(deserializer);
-        let mut var_startTangent =
-            <crate::relation_engine::geometry::Point>::sse_decode(deserializer);
-        let mut var_endTangent =
-            <crate::relation_engine::geometry::Point>::sse_decode(deserializer);
+        let mut var_startTangent = <crate::domain::routing::Point>::sse_decode(deserializer);
+        let mut var_endTangent = <crate::domain::routing::Point>::sse_decode(deserializer);
         let mut var_bodyWidths = <Vec<f64>>::sse_decode(deserializer);
         let mut var_bodyType = <crate::relation_engine::config::BodyType>::sse_decode(deserializer);
         let mut var_startEndpoint =
@@ -3675,41 +3815,31 @@ impl SseDecode for crate::relation_engine::computed::ComputedRelation {
         let mut var_endEndpoint = <crate::domain::styles::EndpointShape>::sse_decode(deserializer);
         let mut var_startDirection = <f64>::sse_decode(deserializer);
         let mut var_endDirection = <f64>::sse_decode(deserializer);
-        let mut var_labelPosition =
-            <crate::relation_engine::geometry::Point>::sse_decode(deserializer);
+        let mut var_labelPosition = <crate::domain::routing::Point>::sse_decode(deserializer);
         let mut var_labelAnchor =
             <crate::relation_engine::computed::LabelAnchor>::sse_decode(deserializer);
         let mut var_bbox = <crate::relation_engine::geometry::Rect>::sse_decode(deserializer);
-        let mut var_startPoint =
-            <crate::relation_engine::geometry::Point>::sse_decode(deserializer);
-        let mut var_endPoint = <crate::relation_engine::geometry::Point>::sse_decode(deserializer);
-        let mut var_startArrowCenter =
-            <crate::relation_engine::geometry::Point>::sse_decode(deserializer);
-        let mut var_endArrowCenter =
-            <crate::relation_engine::geometry::Point>::sse_decode(deserializer);
+        let mut var_startPoint = <crate::domain::routing::Point>::sse_decode(deserializer);
+        let mut var_endPoint = <crate::domain::routing::Point>::sse_decode(deserializer);
+        let mut var_startArrowCenter = <crate::domain::routing::Point>::sse_decode(deserializer);
+        let mut var_endArrowCenter = <crate::domain::routing::Point>::sse_decode(deserializer);
         let mut var_startMargin = <f64>::sse_decode(deserializer);
         let mut var_endMargin = <f64>::sse_decode(deserializer);
         let mut var_dependsOnNodes =
             <Vec<crate::domain::id::TypedRecordId>>::sse_decode(deserializer);
         let mut var_bundleId = <Option<String>>::sse_decode(deserializer);
         let mut var_bundleOffset = <Option<f64>>::sse_decode(deserializer);
-        let mut var_controlPoints =
-            <Vec<crate::relation_engine::geometry::Point>>::sse_decode(deserializer);
+        let mut var_controlPoints = <Vec<crate::domain::routing::Point>>::sse_decode(deserializer);
         let mut var_knots = <Vec<f64>>::sse_decode(deserializer);
         let mut var_nudgeColors = <Vec<String>>::sse_decode(deserializer);
-        let mut var_hitTestPoints =
-            <Vec<crate::relation_engine::geometry::Point>>::sse_decode(deserializer);
+        let mut var_hitTestPoints = <Vec<crate::domain::routing::Point>>::sse_decode(deserializer);
         let mut var_composeActive = <bool>::sse_decode(deserializer);
-        let mut var_startShapePath =
-            <Vec<crate::relation_engine::geometry::Point>>::sse_decode(deserializer);
-        let mut var_endShapePath =
-            <Vec<crate::relation_engine::geometry::Point>>::sse_decode(deserializer);
+        let mut var_startShapePath = <Vec<crate::domain::routing::Point>>::sse_decode(deserializer);
+        let mut var_endShapePath = <Vec<crate::domain::routing::Point>>::sse_decode(deserializer);
         let mut var_startShapeFilled = <bool>::sse_decode(deserializer);
         let mut var_endShapeFilled = <bool>::sse_decode(deserializer);
-        let mut var_startHandlePos =
-            <crate::relation_engine::geometry::Point>::sse_decode(deserializer);
-        let mut var_endHandlePos =
-            <crate::relation_engine::geometry::Point>::sse_decode(deserializer);
+        let mut var_startHandlePos = <crate::domain::routing::Point>::sse_decode(deserializer);
+        let mut var_endHandlePos = <crate::domain::routing::Point>::sse_decode(deserializer);
         return crate::relation_engine::computed::ComputedRelation {
             id: var_id,
             path_points: var_pathPoints,
@@ -4520,15 +4650,13 @@ impl SseDecode for Vec<crate::domain::types::Nodes> {
     }
 }
 
-impl SseDecode for Vec<crate::relation_engine::geometry::Point> {
+impl SseDecode for Vec<crate::domain::routing::Point> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut len_ = <i32>::sse_decode(deserializer);
         let mut ans_ = vec![];
         for idx_ in 0..len_ {
-            ans_.push(<crate::relation_engine::geometry::Point>::sse_decode(
-                deserializer,
-            ));
+            ans_.push(<crate::domain::routing::Point>::sse_decode(deserializer));
         }
         return ans_;
     }
@@ -5196,13 +5324,11 @@ impl SseDecode for Option<crate::domain::types::Nodes> {
     }
 }
 
-impl SseDecode for Option<crate::relation_engine::geometry::Point> {
+impl SseDecode for Option<crate::domain::routing::Point> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
-            return Some(<crate::relation_engine::geometry::Point>::sse_decode(
-                deserializer,
-            ));
+            return Some(<crate::domain::routing::Point>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -5246,11 +5372,11 @@ impl SseDecode for Option<crate::domain::styles::RelationStyle> {
     }
 }
 
-impl SseDecode for Option<crate::relation_engine::config::RoutingMode> {
+impl SseDecode for Option<crate::domain::routing::RoutingMode> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
-            return Some(<crate::relation_engine::config::RoutingMode>::sse_decode(
+            return Some(<crate::domain::routing::RoutingMode>::sse_decode(
                 deserializer,
             ));
         } else {
@@ -5344,12 +5470,12 @@ impl SseDecode for crate::relation_engine::computed::PathType {
     }
 }
 
-impl SseDecode for crate::relation_engine::geometry::Point {
+impl SseDecode for crate::domain::routing::Point {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_x = <f64>::sse_decode(deserializer);
         let mut var_y = <f64>::sse_decode(deserializer);
-        return crate::relation_engine::geometry::Point { x: var_x, y: var_y };
+        return crate::domain::routing::Point { x: var_x, y: var_y };
     }
 }
 
@@ -5543,7 +5669,7 @@ impl SseDecode for crate::domain::patches::RelationPatch {
             }
             5 => {
                 let mut var_field0 =
-                    <crate::relation_engine::config::RoutingMode>::sse_decode(deserializer);
+                    <crate::domain::routing::RoutingMode>::sse_decode(deserializer);
                 return crate::domain::patches::RelationPatch::RoutingMode(var_field0);
             }
             6 => {
@@ -5613,8 +5739,7 @@ impl SseDecode for crate::domain::styles::RelationStyle {
 impl SseDecode for crate::relation_engine::config::RoutingConfig {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_routingMode =
-            <crate::relation_engine::config::RoutingMode>::sse_decode(deserializer);
+        let mut var_routingMode = <crate::domain::routing::RoutingMode>::sse_decode(deserializer);
         let mut var_obstacleMargin = <f64>::sse_decode(deserializer);
         let mut var_cornerRadius = <f64>::sse_decode(deserializer);
         let mut var_projectionFactor = <f64>::sse_decode(deserializer);
@@ -5635,39 +5760,39 @@ impl SseDecode for crate::relation_engine::config::RoutingConfig {
     }
 }
 
-impl SseDecode for crate::relation_engine::config::RoutingMode {
+impl SseDecode for crate::domain::routing::RoutingMode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut tag_ = <i32>::sse_decode(deserializer);
         match tag_ {
             0 => {
-                return crate::relation_engine::config::RoutingMode::Polyline;
+                return crate::domain::routing::RoutingMode::Polyline;
             }
             1 => {
-                return crate::relation_engine::config::RoutingMode::BSpline;
+                return crate::domain::routing::RoutingMode::BSpline;
             }
             2 => {
-                return crate::relation_engine::config::RoutingMode::Orthogonal;
+                return crate::domain::routing::RoutingMode::Orthogonal;
             }
             3 => {
-                return crate::relation_engine::config::RoutingMode::Octilinear;
+                return crate::domain::routing::RoutingMode::Octilinear;
             }
             4 => {
                 let mut var_controlPoint1 =
-                    <Option<crate::relation_engine::geometry::Point>>::sse_decode(deserializer);
+                    <Option<crate::domain::routing::Point>>::sse_decode(deserializer);
                 let mut var_controlPoint2 =
-                    <Option<crate::relation_engine::geometry::Point>>::sse_decode(deserializer);
-                return crate::relation_engine::config::RoutingMode::Bezier {
+                    <Option<crate::domain::routing::Point>>::sse_decode(deserializer);
+                return crate::domain::routing::RoutingMode::Bezier {
                     control_point_1: var_controlPoint1,
                     control_point_2: var_controlPoint2,
                 };
             }
             5 => {
                 let mut var_controlPoint1 =
-                    <Option<crate::relation_engine::geometry::Point>>::sse_decode(deserializer);
+                    <Option<crate::domain::routing::Point>>::sse_decode(deserializer);
                 let mut var_controlPoint2 =
-                    <Option<crate::relation_engine::geometry::Point>>::sse_decode(deserializer);
-                return crate::relation_engine::config::RoutingMode::SineWave {
+                    <Option<crate::domain::routing::Point>>::sse_decode(deserializer);
+                return crate::domain::routing::RoutingMode::SineWave {
                     control_point_1: var_controlPoint1,
                     control_point_2: var_controlPoint2,
                 };
@@ -6298,7 +6423,18 @@ fn pde_ffi_dispatcher_primary_impl(
             data_len,
         ),
         55 => wire__crate__bridge__api__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
-        56 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
+        56 => wire__crate__bridge__api__delete_map_storage_impl(port, ptr, rust_vec_len, data_len),
+        57 => wire__crate__bridge__api__init_core_engine_impl(port, ptr, rust_vec_len, data_len),
+        58 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
+        59 => {
+            wire__crate__bridge__api__shutdown_core_engine_impl(port, ptr, rust_vec_len, data_len)
+        }
+        60 => wire__crate__bridge__api__yield_daemon_if_running_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
         _ => unreachable!(),
     }
 }
@@ -7799,7 +7935,7 @@ impl flutter_rust_bridge::IntoIntoDart<crate::relation_engine::computed::PathTyp
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::relation_engine::geometry::Point {
+impl flutter_rust_bridge::IntoDart for crate::domain::routing::Point {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.x.into_into_dart().into_dart(),
@@ -7808,14 +7944,11 @@ impl flutter_rust_bridge::IntoDart for crate::relation_engine::geometry::Point {
         .into_dart()
     }
 }
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::relation_engine::geometry::Point
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::domain::routing::Point {}
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::routing::Point>
+    for crate::domain::routing::Point
 {
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::relation_engine::geometry::Point>
-    for crate::relation_engine::geometry::Point
-{
-    fn into_into_dart(self) -> crate::relation_engine::geometry::Point {
+    fn into_into_dart(self) -> crate::domain::routing::Point {
         self
     }
 }
@@ -8080,14 +8213,14 @@ impl flutter_rust_bridge::IntoIntoDart<crate::relation_engine::config::RoutingCo
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::relation_engine::config::RoutingMode {
+impl flutter_rust_bridge::IntoDart for crate::domain::routing::RoutingMode {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
-            crate::relation_engine::config::RoutingMode::Polyline => [0.into_dart()].into_dart(),
-            crate::relation_engine::config::RoutingMode::BSpline => [1.into_dart()].into_dart(),
-            crate::relation_engine::config::RoutingMode::Orthogonal => [2.into_dart()].into_dart(),
-            crate::relation_engine::config::RoutingMode::Octilinear => [3.into_dart()].into_dart(),
-            crate::relation_engine::config::RoutingMode::Bezier {
+            crate::domain::routing::RoutingMode::Polyline => [0.into_dart()].into_dart(),
+            crate::domain::routing::RoutingMode::BSpline => [1.into_dart()].into_dart(),
+            crate::domain::routing::RoutingMode::Orthogonal => [2.into_dart()].into_dart(),
+            crate::domain::routing::RoutingMode::Octilinear => [3.into_dart()].into_dart(),
+            crate::domain::routing::RoutingMode::Bezier {
                 control_point_1,
                 control_point_2,
             } => [
@@ -8096,7 +8229,7 @@ impl flutter_rust_bridge::IntoDart for crate::relation_engine::config::RoutingMo
                 control_point_2.into_into_dart().into_dart(),
             ]
             .into_dart(),
-            crate::relation_engine::config::RoutingMode::SineWave {
+            crate::domain::routing::RoutingMode::SineWave {
                 control_point_1,
                 control_point_2,
             } => [
@@ -8112,13 +8245,13 @@ impl flutter_rust_bridge::IntoDart for crate::relation_engine::config::RoutingMo
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::relation_engine::config::RoutingMode
+    for crate::domain::routing::RoutingMode
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<crate::relation_engine::config::RoutingMode>
-    for crate::relation_engine::config::RoutingMode
+impl flutter_rust_bridge::IntoIntoDart<crate::domain::routing::RoutingMode>
+    for crate::domain::routing::RoutingMode
 {
-    fn into_into_dart(self) -> crate::relation_engine::config::RoutingMode {
+    fn into_into_dart(self) -> crate::domain::routing::RoutingMode {
         self
     }
 }
@@ -8843,45 +8976,39 @@ impl SseEncode for crate::relation_engine::computed::ComputedRelation {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <crate::domain::id::TypedRecordId>::sse_encode(self.id, serializer);
-        <Vec<crate::relation_engine::geometry::Point>>::sse_encode(self.path_points, serializer);
+        <Vec<crate::domain::routing::Point>>::sse_encode(self.path_points, serializer);
         <crate::relation_engine::computed::PathType>::sse_encode(self.path_type, serializer);
-        <crate::relation_engine::geometry::Point>::sse_encode(self.start_tangent, serializer);
-        <crate::relation_engine::geometry::Point>::sse_encode(self.end_tangent, serializer);
+        <crate::domain::routing::Point>::sse_encode(self.start_tangent, serializer);
+        <crate::domain::routing::Point>::sse_encode(self.end_tangent, serializer);
         <Vec<f64>>::sse_encode(self.body_widths, serializer);
         <crate::relation_engine::config::BodyType>::sse_encode(self.body_type, serializer);
         <crate::domain::styles::EndpointShape>::sse_encode(self.start_endpoint, serializer);
         <crate::domain::styles::EndpointShape>::sse_encode(self.end_endpoint, serializer);
         <f64>::sse_encode(self.start_direction, serializer);
         <f64>::sse_encode(self.end_direction, serializer);
-        <crate::relation_engine::geometry::Point>::sse_encode(self.label_position, serializer);
+        <crate::domain::routing::Point>::sse_encode(self.label_position, serializer);
         <crate::relation_engine::computed::LabelAnchor>::sse_encode(self.label_anchor, serializer);
         <crate::relation_engine::geometry::Rect>::sse_encode(self.bbox, serializer);
-        <crate::relation_engine::geometry::Point>::sse_encode(self.start_point, serializer);
-        <crate::relation_engine::geometry::Point>::sse_encode(self.end_point, serializer);
-        <crate::relation_engine::geometry::Point>::sse_encode(self.start_arrow_center, serializer);
-        <crate::relation_engine::geometry::Point>::sse_encode(self.end_arrow_center, serializer);
+        <crate::domain::routing::Point>::sse_encode(self.start_point, serializer);
+        <crate::domain::routing::Point>::sse_encode(self.end_point, serializer);
+        <crate::domain::routing::Point>::sse_encode(self.start_arrow_center, serializer);
+        <crate::domain::routing::Point>::sse_encode(self.end_arrow_center, serializer);
         <f64>::sse_encode(self.start_margin, serializer);
         <f64>::sse_encode(self.end_margin, serializer);
         <Vec<crate::domain::id::TypedRecordId>>::sse_encode(self.depends_on_nodes, serializer);
         <Option<String>>::sse_encode(self.bundle_id, serializer);
         <Option<f64>>::sse_encode(self.bundle_offset, serializer);
-        <Vec<crate::relation_engine::geometry::Point>>::sse_encode(self.control_points, serializer);
+        <Vec<crate::domain::routing::Point>>::sse_encode(self.control_points, serializer);
         <Vec<f64>>::sse_encode(self.knots, serializer);
         <Vec<String>>::sse_encode(self.nudge_colors, serializer);
-        <Vec<crate::relation_engine::geometry::Point>>::sse_encode(
-            self.hit_test_points,
-            serializer,
-        );
+        <Vec<crate::domain::routing::Point>>::sse_encode(self.hit_test_points, serializer);
         <bool>::sse_encode(self.compose_active, serializer);
-        <Vec<crate::relation_engine::geometry::Point>>::sse_encode(
-            self.start_shape_path,
-            serializer,
-        );
-        <Vec<crate::relation_engine::geometry::Point>>::sse_encode(self.end_shape_path, serializer);
+        <Vec<crate::domain::routing::Point>>::sse_encode(self.start_shape_path, serializer);
+        <Vec<crate::domain::routing::Point>>::sse_encode(self.end_shape_path, serializer);
         <bool>::sse_encode(self.start_shape_filled, serializer);
         <bool>::sse_encode(self.end_shape_filled, serializer);
-        <crate::relation_engine::geometry::Point>::sse_encode(self.start_handle_pos, serializer);
-        <crate::relation_engine::geometry::Point>::sse_encode(self.end_handle_pos, serializer);
+        <crate::domain::routing::Point>::sse_encode(self.start_handle_pos, serializer);
+        <crate::domain::routing::Point>::sse_encode(self.end_handle_pos, serializer);
     }
 }
 
@@ -9448,12 +9575,12 @@ impl SseEncode for Vec<crate::domain::types::Nodes> {
     }
 }
 
-impl SseEncode for Vec<crate::relation_engine::geometry::Point> {
+impl SseEncode for Vec<crate::domain::routing::Point> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
-            <crate::relation_engine::geometry::Point>::sse_encode(item, serializer);
+            <crate::domain::routing::Point>::sse_encode(item, serializer);
         }
     }
 }
@@ -9998,12 +10125,12 @@ impl SseEncode for Option<crate::domain::types::Nodes> {
     }
 }
 
-impl SseEncode for Option<crate::relation_engine::geometry::Point> {
+impl SseEncode for Option<crate::domain::routing::Point> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
-            <crate::relation_engine::geometry::Point>::sse_encode(value, serializer);
+            <crate::domain::routing::Point>::sse_encode(value, serializer);
         }
     }
 }
@@ -10038,12 +10165,12 @@ impl SseEncode for Option<crate::domain::styles::RelationStyle> {
     }
 }
 
-impl SseEncode for Option<crate::relation_engine::config::RoutingMode> {
+impl SseEncode for Option<crate::domain::routing::RoutingMode> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
-            <crate::relation_engine::config::RoutingMode>::sse_encode(value, serializer);
+            <crate::domain::routing::RoutingMode>::sse_encode(value, serializer);
         }
     }
 }
@@ -10127,7 +10254,7 @@ impl SseEncode for crate::relation_engine::computed::PathType {
     }
 }
 
-impl SseEncode for crate::relation_engine::geometry::Point {
+impl SseEncode for crate::domain::routing::Point {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <f64>::sse_encode(self.x, serializer);
@@ -10291,7 +10418,7 @@ impl SseEncode for crate::domain::patches::RelationPatch {
             }
             crate::domain::patches::RelationPatch::RoutingMode(field0) => {
                 <i32>::sse_encode(5, serializer);
-                <crate::relation_engine::config::RoutingMode>::sse_encode(field0, serializer);
+                <crate::domain::routing::RoutingMode>::sse_encode(field0, serializer);
             }
             crate::domain::patches::RelationPatch::PortSides(field0, field1) => {
                 <i32>::sse_encode(6, serializer);
@@ -10334,7 +10461,7 @@ impl SseEncode for crate::domain::styles::RelationStyle {
 impl SseEncode for crate::relation_engine::config::RoutingConfig {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <crate::relation_engine::config::RoutingMode>::sse_encode(self.routing_mode, serializer);
+        <crate::domain::routing::RoutingMode>::sse_encode(self.routing_mode, serializer);
         <f64>::sse_encode(self.obstacle_margin, serializer);
         <f64>::sse_encode(self.corner_radius, serializer);
         <f64>::sse_encode(self.projection_factor, serializer);
@@ -10345,49 +10472,37 @@ impl SseEncode for crate::relation_engine::config::RoutingConfig {
     }
 }
 
-impl SseEncode for crate::relation_engine::config::RoutingMode {
+impl SseEncode for crate::domain::routing::RoutingMode {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         match self {
-            crate::relation_engine::config::RoutingMode::Polyline => {
+            crate::domain::routing::RoutingMode::Polyline => {
                 <i32>::sse_encode(0, serializer);
             }
-            crate::relation_engine::config::RoutingMode::BSpline => {
+            crate::domain::routing::RoutingMode::BSpline => {
                 <i32>::sse_encode(1, serializer);
             }
-            crate::relation_engine::config::RoutingMode::Orthogonal => {
+            crate::domain::routing::RoutingMode::Orthogonal => {
                 <i32>::sse_encode(2, serializer);
             }
-            crate::relation_engine::config::RoutingMode::Octilinear => {
+            crate::domain::routing::RoutingMode::Octilinear => {
                 <i32>::sse_encode(3, serializer);
             }
-            crate::relation_engine::config::RoutingMode::Bezier {
+            crate::domain::routing::RoutingMode::Bezier {
                 control_point_1,
                 control_point_2,
             } => {
                 <i32>::sse_encode(4, serializer);
-                <Option<crate::relation_engine::geometry::Point>>::sse_encode(
-                    control_point_1,
-                    serializer,
-                );
-                <Option<crate::relation_engine::geometry::Point>>::sse_encode(
-                    control_point_2,
-                    serializer,
-                );
+                <Option<crate::domain::routing::Point>>::sse_encode(control_point_1, serializer);
+                <Option<crate::domain::routing::Point>>::sse_encode(control_point_2, serializer);
             }
-            crate::relation_engine::config::RoutingMode::SineWave {
+            crate::domain::routing::RoutingMode::SineWave {
                 control_point_1,
                 control_point_2,
             } => {
                 <i32>::sse_encode(5, serializer);
-                <Option<crate::relation_engine::geometry::Point>>::sse_encode(
-                    control_point_1,
-                    serializer,
-                );
-                <Option<crate::relation_engine::geometry::Point>>::sse_encode(
-                    control_point_2,
-                    serializer,
-                );
+                <Option<crate::domain::routing::Point>>::sse_encode(control_point_1, serializer);
+                <Option<crate::domain::routing::Point>>::sse_encode(control_point_2, serializer);
             }
             _ => {
                 unimplemented!("");

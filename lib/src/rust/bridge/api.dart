@@ -9,6 +9,7 @@ import '../domain/id.dart';
 import '../domain/nodes.dart';
 import '../domain/patches.dart';
 import '../domain/relations.dart';
+import '../domain/routing.dart';
 import '../domain/snapshot.dart';
 import '../domain/styles.dart';
 import '../domain/tags.dart';
@@ -26,6 +27,23 @@ import '../telemetry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:uuid/uuid.dart';
 import 'stream.dart';
+
+/// Initializes the root unified SurrealKV storage engine.
+Future<void> initCoreEngine({required String storagePath}) =>
+    RustLib.instance.api.crateBridgeApiInitCoreEngine(storagePath: storagePath);
+
+/// Shuts down the root storage engine, releasing OS file locks.
+Future<void> shutdownCoreEngine() =>
+    RustLib.instance.api.crateBridgeApiShutdownCoreEngine();
+
+/// Signals any running standalone daemon to yield the database baton before the app initializes.
+/// Returns true if a daemon was running and yielded, false if no daemon was active.
+Future<bool> yieldDaemonIfRunning() =>
+    RustLib.instance.api.crateBridgeApiYieldDaemonIfRunning();
+
+/// Removes a map's database from the unified storage engine.
+Future<void> deleteMapStorage({required String mapId}) =>
+    RustLib.instance.api.crateBridgeApiDeleteMapStorage(mapId: mapId);
 
 Future<void> setupLogger() => RustLib.instance.api.crateBridgeApiSetupLogger();
 

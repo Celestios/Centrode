@@ -3,12 +3,10 @@
 
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
+import '../domain/routing.dart';
 import '../domain/styles.dart';
 import '../frb_generated.dart';
-import 'geometry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
-import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
-part 'config.freezed.dart';
 
 class BodyConfig {
   final BodyType defaultType;
@@ -215,22 +213,4 @@ class RoutingConfig {
           clampMax == other.clampMax &&
           extensionMin == other.extensionMin &&
           extensionScale == other.extensionScale;
-}
-
-@freezed
-sealed class RoutingMode with _$RoutingMode {
-  const RoutingMode._();
-
-  const factory RoutingMode.polyline() = RoutingMode_Polyline;
-  const factory RoutingMode.bSpline() = RoutingMode_BSpline;
-  const factory RoutingMode.orthogonal() = RoutingMode_Orthogonal;
-  const factory RoutingMode.octilinear() = RoutingMode_Octilinear;
-  const factory RoutingMode.bezier({
-    Point? controlPoint1,
-    Point? controlPoint2,
-  }) = RoutingMode_Bezier;
-  const factory RoutingMode.sineWave({
-    Point? controlPoint1,
-    Point? controlPoint2,
-  }) = RoutingMode_SineWave;
 }
