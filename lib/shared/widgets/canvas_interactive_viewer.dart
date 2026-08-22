@@ -545,7 +545,6 @@ class _CanvasInteractiveViewerState extends State<CanvasInteractiveViewer>
   PointerDeviceKind? _lastPointerKind;
   int _lastPointerButtons = 0;
   bool _isSecondaryPanning = false;
-  Offset? _gestureStartCameraBase;
   Offset? _gestureStartFocalPoint;
   late VelocityTracker _velocityTracker;
   final bool _rotateEnabled = false;
@@ -1389,11 +1388,6 @@ double _getFinalTime(
   return math.log(effectivelyMotionless / velocity) / math.log(drag / 100);
 }
 
-// Return the translation from the given Matrix4 as an Offset.
-Offset _getMatrixTranslation(Matrix4 matrix) {
-  final Vector3 nextTranslation = matrix.getTranslation();
-  return Offset(nextTranslation.x, nextTranslation.y);
-}
 
 // Transform the four corners of the viewport by the inverse of the given
 // matrix. This gives the viewport after the child has been transformed by the
@@ -1417,55 +1411,7 @@ Quad _transformViewport(Matrix4 matrix, Rect viewport) {
   );
 }
 
-// Find the axis aligned bounding box for the rect rotated about its center by
-// the given amount.
-Quad _getAxisAlignedBoundingBoxWithRotation(Rect rect, double rotation) {
-  final Matrix4 rotationMatrix = Matrix4.identity()
-    ..translateByDouble(rect.size.width / 2, rect.size.height / 2, 0, 1)
-    ..rotateZ(rotation)
-    ..translateByDouble(-rect.size.width / 2, -rect.size.height / 2, 0, 1);
-  final Quad boundariesRotated = Quad.points(
-    rotationMatrix.transform3(Vector3(rect.left, rect.top, 0.0)),
-    rotationMatrix.transform3(Vector3(rect.right, rect.top, 0.0)),
-    rotationMatrix.transform3(Vector3(rect.right, rect.bottom, 0.0)),
-    rotationMatrix.transform3(Vector3(rect.left, rect.bottom, 0.0)),
-  );
-  return CanvasInteractiveViewer.getAxisAlignedBoundingBox(boundariesRotated);
-}
-
-// Return the amount that viewport lies outside of boundary. If the viewport
-// is completely contained within the boundary (inclusively), then returns
-// Offset.zero.
-Offset _exceedsBy(Quad boundary, Quad viewport) {
-  final List<Vector3> viewportPoints = <Vector3>[
-    viewport.point0,
-    viewport.point1,
-    viewport.point2,
-    viewport.point3,
-  ];
-  Offset largestExcess = Offset.zero;
-  for (final Vector3 point in viewportPoints) {
-    final Vector3 pointInside = CanvasInteractiveViewer.getNearestPointInside(
-      point,
-      boundary,
-    );
-    final Offset excess = Offset(
-      pointInside.x - point.x,
-      pointInside.y - point.y,
-    );
-    if (excess.dx.abs() > largestExcess.dx.abs()) {
-      largestExcess = Offset(excess.dx, largestExcess.dy);
-    }
-    if (excess.dy.abs() > largestExcess.dy.abs()) {
-      largestExcess = Offset(largestExcess.dx, excess.dy);
-    }
-  }
-
-  return _round(largestExcess);
-}
-
-// Round the output values. This works around a precision problem where
-// values that should have been zero were given as within 10^-10 of zero.
+// Round the output values to prevent precision jitter.
 Offset _round(Offset offset) {
   return Offset(
     double.parse(offset.dx.toStringAsFixed(9)),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'package:centrode/src/rust/relation_engine/config.dart' as rust_config;
 import 'package:centrode/src/rust/relation_engine/computed.dart';
-import 'package:centrode/src/rust/relation_engine/geometry.dart' hide Rect;
+import 'package:centrode/src/rust/domain/routing.dart';
 import '../../../../../presentation/theme/app_theme_manager.dart';
 import '../../../engine/config.dart';
 import '../../../models/models.dart';

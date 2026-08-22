@@ -44,6 +44,8 @@ class AppPaths {
     return p.join(await mapsDirectory, '$name.db');
   }
 
+  static Future<String> getDevRoot() => _getDevRoot();
+
   static Future<String> _getDevRoot() async {
     if (_cachedDevRoot != null) return _cachedDevRoot!;
 

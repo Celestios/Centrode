@@ -104,8 +104,18 @@ class LayoutTickInterpolator {
           if (rel != null) {
             final baseLayout = rel.resolvedLayout ?? rel.layout;
             rel.resolvedLayout = baseLayout != null
-                ? baseLayout.copyWith(fromSide: patch.fromSide, toSide: patch.toSide)
-                : RelationLayout(fromSide: patch.fromSide, toSide: patch.toSide, strategyType: 'default');
+                ? RelationLayout(
+                    fromSide: patch.fromSide,
+                    toSide: patch.toSide,
+                    strategyType: baseLayout.strategyType,
+                    controlPoint1: baseLayout.controlPoint1,
+                    controlPoint2: baseLayout.controlPoint2,
+                  )
+                : RelationLayout(
+                    fromSide: patch.fromSide,
+                    toSide: patch.toSide,
+                    strategyType: 'default',
+                  );
           }
         }
 
@@ -124,8 +134,18 @@ class LayoutTickInterpolator {
               if (rel != null) {
                 final baseLayout = rel.resolvedLayout ?? rel.layout;
                 rel.resolvedLayout = baseLayout != null
-                    ? baseLayout.copyWith(fromSide: patch.fromSide, toSide: patch.toSide)
-                    : RelationLayout(fromSide: patch.fromSide, toSide: patch.toSide, strategyType: 'default');
+                    ? RelationLayout(
+                        fromSide: patch.fromSide,
+                        toSide: patch.toSide,
+                        strategyType: baseLayout.strategyType,
+                        controlPoint1: baseLayout.controlPoint1,
+                        controlPoint2: baseLayout.controlPoint2,
+                      )
+                    : RelationLayout(
+                        fromSide: patch.fromSide,
+                        toSide: patch.toSide,
+                        strategyType: 'default',
+                      );
               }
             }
           }

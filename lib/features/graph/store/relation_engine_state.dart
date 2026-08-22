@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'graph_api.dart';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
 import 'package:centrode/src/rust/relation_engine/config.dart';
+import 'package:centrode/src/rust/domain/routing.dart';
 import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
@@ -12,7 +13,7 @@ import 'invalidation_tracker.dart';
 class RelationEngineState {
   final GraphApi _api;
   final InvalidationTracker _tracker = InvalidationTracker();
-  RelationEngineConfig _config = const RelationEngineConfig(
+  RelationEngineConfig _config = RelationEngineConfig(
     routing: RoutingConfig(
       routingMode: RoutingMode.bezier(),
       obstacleMargin: 45.0,
@@ -23,18 +24,18 @@ class RelationEngineState {
       extensionMin: 8.0,
       extensionScale: 0.1,
     ),
-    nudging: NudgingConfig(enabled: true, distance: 4.0, decayFactor: 0.9),
-    bundling: BundlingConfig(mode: BundlingMode.none, threshold: 50.0),
+    nudging: const NudgingConfig(enabled: true, distance: 4.0, decayFactor: 0.9),
+    bundling: const BundlingConfig(mode: BundlingMode.none, threshold: 50.0),
     crossingMinimization: true,
     incrementalMode: true,
-    body: BodyConfig(
+    body: const BodyConfig(
       defaultType: BodyType.uniform,
       taperStartWidth: 2.0,
       taperEndWidth: 2.0,
       widthModulateAmplitude: 1.5,
       widthModulateFrequency: 3.0,
     ),
-    endpoint: EndpointConfig(
+    endpoint: const EndpointConfig(
       defaultStartShape: EndpointShape.none,
       defaultEndShape: EndpointShape.arrow,
       arrowSize: 10.0,
@@ -95,25 +96,25 @@ class RelationEngineState {
   }
 
   RoutingMode _mapStrategyToRoutingMode(String? strategyType) {
-    if (strategyType == null) return const RoutingMode.bezier();
+    if (strategyType == null) return RoutingMode.bezier();
     switch (strategyType.toLowerCase()) {
       case 'bezier':
-        return const RoutingMode.bezier();
+        return RoutingMode.bezier();
       case 'sinewave':
       case 'sine_wave':
       case 'wave':
       case 'snake':
-        return const RoutingMode.sineWave();
+        return RoutingMode.sineWave();
       case 'orthogonal':
-        return const RoutingMode.orthogonal();
+        return RoutingMode.orthogonal();
       case 'bspline':
       case 'b_spline':
-        return const RoutingMode.bSpline();
+        return RoutingMode.bSpline();
       case 'octilinear':
-        return const RoutingMode.octilinear();
+        return RoutingMode.octilinear();
       case 'polyline':
       case 'straight':
-        return const RoutingMode.polyline();
+        return RoutingMode.polyline();
       default:
         throw ArgumentError('Unsupported routing mode: $strategyType');
     }
@@ -171,7 +172,7 @@ class RelationEngineState {
       toNodeId: parseTypedRecordId(toNodeTable, toNodeId),
       fromSide: fromSide,
       toSide: toSide,
-      routingMode: const RoutingMode.bezier(),
+      routingMode: RoutingMode.bezier(),
       overrideStartX: overrideStart?.dx,
       overrideStartY: overrideStart?.dy,
       overrideEndX: overrideEnd?.dx,

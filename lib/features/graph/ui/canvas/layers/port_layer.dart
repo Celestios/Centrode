@@ -144,9 +144,9 @@ class _PortLayerState extends State<PortLayer> {
     final drawing = interaction is RelationDrawing ? interaction : null;
     final tipDrag = interaction is RelationTipDragging ? interaction : null;
 
-    final RawUuid? activeId = (tipDrag?.snappedTargetNodeId) ??
+    final RawUuid? activeId = widget.hoveredNodeNotifier.value ??
+        (tipDrag?.snappedTargetNodeId) ??
         (drawing?.snappedTargetNodeId) ??
-        widget.hoveredNodeNotifier.value ??
         _activeNodeId;
 
     if (activeId == null) return const SizedBox.shrink();

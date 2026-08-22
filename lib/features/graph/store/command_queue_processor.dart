@@ -130,6 +130,10 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   bool get canUndo => _undoCount > 0;
   bool get canRedo => _redoCount > 0;
 
+  Future<void> flush() async {
+    await processor.flush();
+  }
+
   void _handleError(String msg) {
     _log.severe('Sub-service error intercepted: $msg');
     queryController.setError(msg);
@@ -179,7 +183,6 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   }
 
   void flushSync() => syncEngine.flushSync();
-  Future<void> flush() => syncEngine.flush();
 
   Future<void> undo() async {
     await syncEngine.undo();
@@ -518,6 +521,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
       areaMutations.setOptArea(bounds: bounds);
 
   void dispose() {
+    processor.dispose();
     syncEngine.dispose();
   }
 }

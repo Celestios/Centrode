@@ -15,6 +15,7 @@ import 'package:centrode/src/rust/persistence/history.dart';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
 import 'package:centrode/src/rust/relation_engine/config.dart';
 import 'package:centrode/src/rust/relation_engine/geometry.dart' as rust_geom;
+import 'package:centrode/src/rust/domain/routing.dart';
 import 'package:uuid/uuid.dart';
 
 /// A production-grade, stateful in-memory implementation of [GraphApi].
@@ -393,21 +394,21 @@ class InMemoryGraphApi implements GraphApi {
       id: edgeId,
       pathPoints: const [],
       pathType: PathType.straight,
-      startTangent: const rust_geom.Point(x: 0, y: 0),
-      endTangent: const rust_geom.Point(x: 0, y: 0),
+      startTangent: const Point(x: 0, y: 0),
+      endTangent: const Point(x: 0, y: 0),
       bodyWidths: Float64List(0),
       bodyType: BodyType.uniform,
       startEndpoint: EndpointShape.none,
       endEndpoint: EndpointShape.none,
       startDirection: 0.0,
       endDirection: 0.0,
-      labelPosition: const rust_geom.Point(x: 0, y: 0),
+      labelPosition: const Point(x: 0, y: 0),
       labelAnchor: LabelAnchor.center,
       bbox: const rust_geom.Rect(x: 0, y: 0, width: 0, height: 0),
-      startPoint: const rust_geom.Point(x: 0, y: 0),
-      endPoint: const rust_geom.Point(x: 0, y: 0),
-      startArrowCenter: const rust_geom.Point(x: 0, y: 0),
-      endArrowCenter: const rust_geom.Point(x: 0, y: 0),
+      startPoint: const Point(x: 0, y: 0),
+      endPoint: const Point(x: 0, y: 0),
+      startArrowCenter: const Point(x: 0, y: 0),
+      endArrowCenter: const Point(x: 0, y: 0),
       startMargin: 0.0,
       endMargin: 0.0,
       dependsOnNodes: const [],
@@ -420,8 +421,8 @@ class InMemoryGraphApi implements GraphApi {
       endShapePath: const [],
       startShapeFilled: false,
       endShapeFilled: false,
-      startHandlePos: const rust_geom.Point(x: 0, y: 0),
-      endHandlePos: const rust_geom.Point(x: 0, y: 0),
+      startHandlePos: const Point(x: 0, y: 0),
+      endHandlePos: const Point(x: 0, y: 0),
     );
   }
 

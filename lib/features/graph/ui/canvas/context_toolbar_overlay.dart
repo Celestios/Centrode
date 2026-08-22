@@ -110,7 +110,6 @@ class ContextToolbarOverlay extends StatelessWidget {
         final double screenHeight = MediaQuery.of(context).size.height;
 
         final matrix = viewportController.transformController.value;
-        final scale = matrix.getMaxScaleOnAxis();
 
         final tabsController = context.watch<WorkspaceTabsController>();
         final session = tabsController.activeSession;

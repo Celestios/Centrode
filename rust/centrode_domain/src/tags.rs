@@ -5,7 +5,6 @@ use centrode_macros::SurqlSchemaField;
 use surrealdb::types::{SurrealValue, Value};
 
 #[derive(Debug, Clone)]
-#[non_exhaustive]
 pub enum TagEdge {
     Hydrated(Tag),
     Pointer(TypedRecordId),

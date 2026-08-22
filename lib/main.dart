@@ -10,9 +10,11 @@ import 'package:window_manager/window_manager.dart';
 import 'infrastructure/telemetry/log_manager.dart';
 import 'features/workspace/ui/workspace_hub_screen.dart';
 import 'presentation/theme/app_theme.dart'; // from previous step
-import 'presentation/theme/theme_repository.dart'; // from previous step
 import 'presentation/theme/app_theme_manager.dart';
+import 'presentation/theme/theme_repository.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'infrastructure/lifecycle/custodian_manager.dart';
+import 'src/rust/bridge/api.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,6 +47,14 @@ Future<void> main() async {
 
   final log = Logger('BootSequence');
   log.info('Rust FFI loaded. Centrode core ready.');
+
+  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    CustodianLifecycleCoordinator.instance.init();
+    await CustodianLifecycleCoordinator.instance.onAppStartup();
+  }
+
+  final coreDbDir = await AppPaths.mapsDirectory;
+  await initCoreEngine(storagePath: coreDbDir);
 
   final themes = await ThemeLoader.loadBundledThemes();
   final AppTheme initialTheme;

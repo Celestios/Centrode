@@ -14,6 +14,8 @@ class MapManager extends ChangeNotifier {
   WorkspaceTabsController? _tabsController;
   VoidCallback? _onAllTabsClosed;
 
+  WorkspaceTabsController? get activeTabsController => _tabsController;
+
   WorkspaceTabsController get tabsController {
     assert(_tabsController != null, 'No maps are open');
     return _tabsController!;
@@ -21,6 +23,14 @@ class MapManager extends ChangeNotifier {
 
   bool get hasOpenMaps =>
       _tabsController != null && _tabsController!.tabs.isNotEmpty;
+
+  Future<void> flushAndCloseAll() async {
+    _log.info('flushAndCloseAll via MapManager');
+    final controller = _tabsController;
+    if (controller != null) {
+      await controller.flushAndCloseAll();
+    }
+  }
 
   bool isPathOpen(String storagePath) {
     if (_tabsController == null) return false;

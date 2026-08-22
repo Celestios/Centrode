@@ -42,6 +42,7 @@ class GraphDataQueryController implements GraphDataQuery {
       _entityUpdateController.stream;
 
   void publishUpdate(GraphEntityUpdate update) {
+    if (_entityUpdateController.isClosed) return;
     if (update.id != null) {
       final node = store.nodeLookup[update.id!];
       if (node != null) {
@@ -67,10 +68,13 @@ class GraphDataQueryController implements GraphDataQuery {
         }
       }
     }
-    _entityUpdateController.add(update);
+    if (!_entityUpdateController.isClosed) {
+      _entityUpdateController.add(update);
+    }
   }
 
   void triggerUpdate() {
+    if (_entityUpdateController.isClosed) return;
     publishUpdate(
       GraphEntityUpdate(tableName: '', type: GraphUpdateType.reset),
     );

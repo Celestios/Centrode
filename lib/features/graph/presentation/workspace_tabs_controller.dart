@@ -236,7 +236,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
   }
 
 
-  Future<void> close() async {
+    Future<void> close() async {
     _log.info('Closing TabSession name=$name path=$storagePath');
     _debounceTimer?.cancel();
     final h = handle;
@@ -247,6 +247,24 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
         _log.warning('Error closing handle for session $name: $e');
       }
     }
+  }
+
+  /// Flushes pending mutations, saves viewport state, and closes the handle.
+  Future<void> flushAndClose({bool saveState = true}) async {
+    _log.info('flushAndClose TabSession name=$name path=$storagePath');
+    _debounceTimer?.cancel();
+    if (saveState) {
+      await saveViewportState();
+    }
+    final cp = commandProcessor;
+    if (cp != null) {
+      try {
+        await cp.flush();
+      } catch (e) {
+        _log.warning('Error flushing command processor for $name: $e');
+      }
+    }
+    await close();
   }
 
   @override
@@ -349,6 +367,22 @@ class WorkspaceTabsController extends ChangeNotifier with TraceableNotifier {
     }
     await closedSession.close();
     closedSession.dispose();
+  }
+
+  /// Concurrently flushes mutations, saves viewports, and cleanly closes all open tabs.
+  Future<void> flushAndCloseAll() async {
+    _log.info('flushAndCloseAll tabs count=${_tabs.length}');
+    final sessionsToClose = List<TabSession>.from(_tabs);
+    _tabs.clear();
+    _activeIndex = 0;
+    notifyListeners();
+
+    await Future.wait(
+      sessionsToClose.map((session) async {
+        await session.flushAndClose();
+        session.dispose();
+      }),
+    );
   }
 
   @override

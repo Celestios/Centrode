@@ -13,6 +13,7 @@ import 'package:centrode/src/rust/persistence/history.dart';
 import 'package:centrode/src/rust/domain/snapshot.dart';
 import 'package:centrode/src/rust/bridge/stream.dart';
 import 'package:centrode/src/rust/domain/theme.dart';
+import 'package:centrode/src/rust/domain/routing.dart';
 
 /// Decoupled interface for the Rust FFI surface.
 abstract class GraphApi {
@@ -126,17 +127,29 @@ abstract class GraphApi {
 /// Concrete FFI-backed implementation of [GraphApi] wrapping [AppHandle].
 class RustAppHandleWrapper implements GraphApi {
   final AppHandle _api;
+  bool _isDisposed = false;
 
   RustAppHandleWrapper(this._api);
 
-  @override
-  Future<void> applyEntityMutation({required SymmetricEntityPatch mutation}) =>
-      _api.applyEntityMutation(mutation: mutation);
+  bool get isDisposed => _isDisposed;
 
   @override
-  Future<void> close() => _api.close();
+  Future<void> applyEntityMutation({required SymmetricEntityPatch mutation}) {
+    if (_isDisposed) return Future.value();
+    return _api.applyEntityMutation(mutation: mutation);
+  }
 
-  void dispose() => _api.dispose();
+  @override
+  Future<void> close() {
+    if (_isDisposed) return Future.value();
+    return _api.close();
+  }
+
+  void dispose() {
+    if (_isDisposed) return;
+    _isDisposed = true;
+    _api.dispose();
+  }
 
   @override
   Future<List<ComputedRelation>> computeRelations({
@@ -392,10 +405,11 @@ class DeferredGraphApi implements GraphApi {
 
   void dispose() {
     final h = _handle;
+    _handle = null;
     if (h is RustAppHandleWrapper) {
       h.dispose();
     } else {
-      _handle?.close();
+      h?.close();
     }
   }
 

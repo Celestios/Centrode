@@ -165,4 +165,8 @@ class CommandProcessor {
       }
     }
   }
+
+  void dispose() {
+    flushSync();
+  }
 }
