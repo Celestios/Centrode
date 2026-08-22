@@ -16,7 +16,7 @@ class GateEvaluation {
 
   @override
   String toString() =>
-      '=== TDD RED GATE EVALUATION ===\nStatus: $status\nResult: ${isLegitimateRed ? "PASSED (Valid Red)" : "BLOCKED"}\nMessage: $message\n${errorDetails.isNotEmpty ? "Details:\n  " + errorDetails.join("\n  ") : ""}';
+      '=== TDD RED GATE EVALUATION ===\nStatus: $status\nResult: ${isLegitimateRed ? "PASSED (Valid Red)" : "BLOCKED"}\nMessage: $message\n${errorDetails.isNotEmpty ? "Details:\n  ${errorDetails.join('\n  ')}" : ""}';
 }
 
 class TddRedGateValidator {

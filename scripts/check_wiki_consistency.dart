@@ -781,9 +781,7 @@ class WikiFixer {
         return '| [$name]($page) | TODO |';
       }).join('\n');
 
-      content = content.substring(0, insertPos) +
-          '\n$rows\n' +
-          content.substring(insertPos);
+      content = '${content.substring(0, insertPos)}\n$rows\n${content.substring(insertPos)}';
 
       print('  Added ${entry.value.length} page(s) under $header');
     }
