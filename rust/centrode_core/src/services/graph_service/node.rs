@@ -1,4 +1,4 @@
-use crate::bridge::stream::{self, GraphEvent};
+use crate::bridge::stream::GraphEvent;
 use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::IsNode;
 use crate::domain::nodes::Nodes;
@@ -121,7 +121,7 @@ impl GraphService {
         match self.repo.calculate_global_bounds().await {
             Ok(bounds) => {
                 info!("FFI: Broadcasting bounds: {:?}", bounds);
-                stream::publish_event(GraphEvent::BoundaryUpdated(bounds));
+                self.publish_event(GraphEvent::BoundaryUpdated(bounds));
             }
             Err(e) => {
                 error!("FFI: Failed to calculate global bounds: {}", e);

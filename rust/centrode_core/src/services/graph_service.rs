@@ -1,17 +1,15 @@
-use crate::bridge::stream::{self, GraphEvent};
+use crate::bridge::stream::GraphEvent;
 use crate::frb_generated::StreamSink;
 use crate::layout_engine::config::LayoutConfig;
 use crate::layout_engine::engine::LayoutEngine;
-use crate::persistence::db::Database;
+use crate::persistence::db::{Database, EngineManager};
 use crate::persistence::repo::Repository;
 use crate::relation_engine::config::RelationEngineConfig;
-use directories::ProjectDirs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 pub use std::sync::Mutex;
+use tokio::sync::broadcast;
 use tokio::task::JoinHandle;
 use tokio_stream::StreamExt;
-
-
 
 pub use crate::domain::styles::{NodeLayout, NodeStyle, RelationLayout, RelationStyle};
 pub use crate::relation_engine::engine::RelationEngine;
@@ -26,22 +24,35 @@ pub struct GraphService {
     pub repo: Repository,
     pub relation_engine: std::sync::Arc<Mutex<RelationEngine>>,
     pub layout_engine: std::sync::Arc<Mutex<LayoutEngine>>,
+    pub event_tx: broadcast::Sender<GraphEvent>,
     tasks: Mutex<Vec<JoinHandle<()>>>,
     pub layout_task: Mutex<Option<JoinHandle<()>>>,
 }
 
 impl GraphService {
     pub async fn new(storage_path: String, name: String) -> anyhow::Result<Self> {
-        let path = if storage_path.is_empty() {
-            ProjectDirs::from("com", "centrode", "centrode")
-                .map(|pd| pd.data_local_dir().join("data.db"))
-                .unwrap_or_else(|| PathBuf::from("centrode.db"))
+        let db = if EngineManager::is_initialized() {
+            let map_id = Path::new(&storage_path)
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or(&storage_path);
+            EngineManager::open_map_db(map_id, &name).await?
         } else {
-            PathBuf::from(&storage_path)
+            let path = if storage_path.is_empty() {
+                directories::ProjectDirs::from("com", "centrode", "centrode")
+                    .map(|pd| pd.data_local_dir().join("data.db"))
+                    .unwrap_or_else(|| PathBuf::from("centrode.db"))
+            } else {
+                PathBuf::from(&storage_path)
+            };
+            Database::connect(path.to_str().unwrap_or(&storage_path), name, None, None).await?
         };
 
-        let db =
-            Database::connect(path.to_str().unwrap_or(&storage_path), name, None, None).await?;
+        Ok(Self::with_repository(Repository::new(db)))
+    }
+
+    pub async fn open(map_id: &str, name: &str) -> anyhow::Result<Self> {
+        let db = EngineManager::open_map_db(map_id, name).await?;
         Ok(Self::with_repository(Repository::new(db)))
     }
 
@@ -52,18 +63,25 @@ impl GraphService {
         let layout_engine = std::sync::Arc::new(Mutex::new(LayoutEngine::new(
             LayoutConfig::default(),
         )));
+        let (event_tx, _) = broadcast::channel(1024);
         Self {
             repo,
             relation_engine,
             layout_engine,
+            event_tx,
             tasks: Mutex::new(Vec::new()),
             layout_task: Mutex::new(None),
         }
     }
 
+    #[inline]
+    pub fn publish_event(&self, event: GraphEvent) {
+        let _ = self.event_tx.send(event);
+    }
+
     pub async fn create_graph_stream(&self, sink: StreamSink<GraphEvent>) -> anyhow::Result<()> {
         tracing::debug!("FFI: create_graph_stream called");
-        let receiver = stream::subscribe_to_graph();
+        let receiver = self.event_tx.subscribe();
 
         let task = tokio::spawn(async move {
             let stream = tokio_stream::wrappers::BroadcastStream::new(receiver);
@@ -139,4 +157,3 @@ impl Drop for GraphService {
         }
     }
 }
-

@@ -2,7 +2,7 @@ use crate::domain::id::TypedRecordId;
 use crate::domain::patches::EntityPatch;
 use crate::domain::relations::IRelation;
 use crate::domain::snapshot::GraphSnapshot;
-use crate::domain::styles::{PortSide, RelationDirection};
+use crate::domain::styles::PortSide;
 use crate::relation_engine::computed::ComputedRelation;
 use crate::relation_engine::config::RelationEngineConfig;
 use crate::relation_engine::config::RoutingMode;

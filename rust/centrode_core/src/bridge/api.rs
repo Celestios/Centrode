@@ -1,30 +1,68 @@
-use crate::bridge::stream::{GraphDelta, GraphEvent};
+pub use crate::bridge::stream::{GraphDelta, GraphEvent};
 pub use crate::domain::base_models::BoundingBox;
 pub use crate::domain::base_models::ViewportState;
 pub use crate::domain::id::TypedRecordId;
 pub use crate::domain::nodes::{Attachment, Nodes};
-pub use crate::domain::patches::SymmetricEntityPatch;
+pub use crate::domain::patches::{
+    EntityPatch, NodePatch, RelationPatch, SymmetricEntityPatch, TagOperation,
+};
 pub use crate::domain::relations::IRelation;
 pub use crate::domain::snapshot::GraphSnapshot;
-pub use crate::domain::styles::PortSide;
 pub use crate::domain::tags::Tag;
 pub use crate::domain::templates::Template;
 pub use crate::domain::theme::{MapTheme, ThemeFields};
 pub use crate::domain::types::{Auxiliary, DomainEntity, Relations};
 pub use crate::frb_generated::StreamSink;
 pub use crate::layout_engine::config::LayoutConfig;
-pub use crate::layout_engine::types::{Axis, LayoutPatch};
+pub use crate::layout_engine::types::{Axis, LayoutPatch, LayoutTickResult, PortPatch};
 pub use crate::persistence::history::HistoryRecord;
 pub use crate::persistence::repo::Repository;
-pub use crate::relation_engine::computed::ComputedRelation;
-pub use crate::relation_engine::config::{RelationEngineConfig, RoutingMode};
+pub use crate::relation_engine::computed::{ComputedRelation, LabelAnchor, PathType};
+pub use crate::relation_engine::config::{BodyType, RelationEngineConfig, RoutingMode};
+pub use crate::relation_engine::geometry::{Point, Rect};
 pub use crate::telemetry::{connect_log_stream, init_telemetry, subscribe_to_logs, LogState};
 pub use std::sync::Arc;
 pub use tokio_stream::StreamExt;
 
-pub use crate::domain::styles::{NodeLayout, NodeStyle, RelationLayout, RelationStyle};
+pub use crate::domain::styles::{
+    EndpointShape, NodeLayout, NodeStyle, PortSide, RelationDirection, RelationLayout,
+    RelationStyle,
+};
+pub use crate::persistence::db::EngineManager;
 pub use crate::relation_engine::engine::RelationEngine;
 pub use crate::services::graph_service::GraphService;
+
+/// Initializes the root unified SurrealKV storage engine.
+pub async fn init_core_engine(storage_path: String) -> anyhow::Result<()> {
+    EngineManager::init(&storage_path).await
+}
+
+/// Shuts down the root storage engine, releasing OS file locks.
+pub async fn shutdown_core_engine() -> anyhow::Result<()> {
+    EngineManager::shutdown().await
+}
+
+/// Signals any running standalone daemon to yield the database baton before the app initializes.
+/// Returns true if a daemon was running and yielded, false if no daemon was active.
+pub async fn yield_daemon_if_running() -> bool {
+    let client = centrode_daemon::ipc::IpcClient::new(centrode_daemon::ipc::IPC_PIPE_NAME);
+    let msg = centrode_daemon::ipc::IpcMessage::YieldBaton {
+        target_process: "app".to_string(),
+    };
+    match client.connect_and_send::<_, centrode_daemon::ipc::IpcResponse>(&msg) {
+        Ok(resp) => {
+            tracing::info!("Daemon yielded baton: {:?}", resp);
+            tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
+            true
+        }
+        Err(_) => false,
+    }
+}
+
+/// Removes a map's database from the unified storage engine.
+pub async fn delete_map_storage(map_id: String) -> anyhow::Result<()> {
+    EngineManager::delete_map_db(&map_id).await
+}
 
 pub struct AppHandle {
     pub service: Arc<GraphService>,

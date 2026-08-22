@@ -1,4 +1,4 @@
-use crate::bridge::stream::{self, GraphEvent};
+use crate::bridge::stream::GraphEvent;
 use crate::domain::patches::{GraphDelta, SymmetricEntityPatch};
 use crate::persistence::history::HistoryRecord;
 use crate::services::graph_service::GraphService;
@@ -11,7 +11,7 @@ impl GraphService {
         if let Some(ref rec) = record {
             let delta = self.apply_history_record_patch(rec, false).await?;
             if let Some(delta) = delta {
-                stream::publish_event(GraphEvent::BatchUpdated(delta));
+                self.publish_event(GraphEvent::BatchUpdated(delta));
             }
         }
         self.rebuild_node_cache().await;
@@ -24,7 +24,7 @@ impl GraphService {
         if let Some(ref rec) = record {
             let delta = self.apply_history_record_patch(rec, true).await?;
             if let Some(delta) = delta {
-                stream::publish_event(GraphEvent::BatchUpdated(delta));
+                self.publish_event(GraphEvent::BatchUpdated(delta));
             }
         }
         self.rebuild_node_cache().await;

@@ -1,4 +1,4 @@
-use crate::bridge::stream::{self, GraphEvent};
+use crate::bridge::stream::GraphEvent;
 use crate::domain::base_models::BoundingBox;
 use crate::domain::id::TypedRecordId;
 use crate::domain::styles::PortSide;
@@ -77,6 +77,7 @@ impl GraphService {
         let snapshot = self.repo.get_graph_snapshot().await?;
         let engine_arc = self.layout_engine.clone();
         let rel_engine_arc = self.relation_engine.clone();
+        let event_tx = self.event_tx.clone();
 
         if let Ok(mut engine) = engine_arc.lock() {
             engine.config = config;
@@ -124,7 +125,7 @@ impl GraphService {
                 };
 
                 let converged = result.converged;
-                stream::publish_event(GraphEvent::LayoutTick(result));
+                let _ = event_tx.send(GraphEvent::LayoutTick(result));
 
                 if converged {
                     break;
