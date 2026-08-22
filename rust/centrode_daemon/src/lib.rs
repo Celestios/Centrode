@@ -1,5 +1,8 @@
+pub mod custodian;
 pub mod ipc;
 pub mod tray;
+
+pub use custodian::*;
 
 use anyhow::{Context, Result};
 use std::path::PathBuf;
@@ -87,9 +90,10 @@ pub fn handle_ipc_message(msg: ipc::IpcMessage, active_state: &str) -> ipc::IpcR
             cent_file_path,
         } => {
             tracing::info!(
-                "IPC: OpenMap request for map_id={}, name={:?}",
+                "IPC: OpenMap request for map_id={}, name={:?}, cent_file={:?}",
                 map_id,
-                map_name
+                map_name,
+                cent_file_path,
             );
             ipc::IpcResponse {
                 success: true,

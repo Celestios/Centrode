@@ -1,7 +1,6 @@
 use anyhow::{Context, Result};
 use serde::{de::DeserializeOwned, Serialize};
 use std::io::{Read, Write};
-use std::marker::PhantomData;
 
 pub const IPC_PIPE_NAME: &str = r"\\.\pipe\centrode-custodian-ipc";
 
@@ -69,10 +68,15 @@ impl IpcClient {
     pub fn connect_and_send<M: Serialize, R: DeserializeOwned>(&self, msg: &M) -> Result<R> {
         #[cfg(target_os = "windows")]
         {
-            use interprocess::local_socket::Listener;
-            let listener = Listener::bind(self.pipe_name.as_str())
+            use interprocess::local_socket::prelude::*;
+            use interprocess::local_socket::{GenericNamespaced, ToNsName};
+            let name = self
+                .pipe_name
+                .as_str()
+                .to_ns_name::<GenericNamespaced>()
+                .context("IPC: invalid pipe name")?;
+            let mut stream = LocalSocketStream::connect(name)
                 .context("IPC: failed to connect to pipe")?;
-            let mut stream = listener.accept().context("IPC: failed to accept")?;
             send_message(&mut stream, msg)?;
             recv_message(&mut stream)
         }
@@ -111,14 +115,22 @@ impl IpcServer {
         }
     }
 
-    fn accept_one<F>(&self, handler: &F) -> Result<()>
+    pub fn accept_one<F>(&self, handler: &F) -> Result<()>
     where
         F: Fn(IpcMessage) -> IpcResponse,
     {
         #[cfg(target_os = "windows")]
         {
-            use interprocess::local_socket::Listener;
-            let listener = Listener::bind(self.pipe_name.as_str())
+            use interprocess::local_socket::prelude::*;
+            use interprocess::local_socket::{GenericNamespaced, ListenerOptions, ToNsName};
+            let name = self
+                .pipe_name
+                .as_str()
+                .to_ns_name::<GenericNamespaced>()
+                .context("IPC: invalid pipe name")?;
+            let listener = ListenerOptions::new()
+                .name(name)
+                .create_sync()
                 .context("IPC: failed to bind named pipe")?;
             let mut stream = listener.accept().context("IPC: failed to accept")?;
             let msg: IpcMessage = recv_message(&mut stream)?;

@@ -1,4 +1,4 @@
-use centrode_daemon::{default_storage_path, handle_ipc_message, ipc, DaemonWorker};
+use centrode_daemon::{default_storage_path, handle_ipc_message, ipc, tray, DaemonWorker};
 use std::path::PathBuf;
 
 #[tokio::main]
@@ -26,20 +26,11 @@ async fn main() {
         }
     };
 
-    let pipe = ipc::IpcServer::new(ipc::IPC_PIPE_NAME);
-
-    tracing::info!("Daemon: listening on IPC pipe {}", ipc::IPC_PIPE_NAME);
-    tracing::info!("Daemon: idle loop running (0% CPU, awaiting IPC)");
-
     let _ = tray::init_tray();
 
-    let storage_path = worker.storage_path().clone();
+    let custodian = centrode_daemon::CustodianManager::new(worker.storage_path().clone());
 
-    let handler = |msg: ipc::IpcMessage| -> ipc::IpcResponse {
-        handle_ipc_message(msg, "daemon")
-    };
-
-    if let Err(e) = pipe.serve(handler) {
-        tracing::error!("Daemon: IPC server error: {}", e);
+    if let Err(e) = custodian.run_loop(worker) {
+        tracing::error!("Daemon: custodian loop error: {}", e);
     }
 }
