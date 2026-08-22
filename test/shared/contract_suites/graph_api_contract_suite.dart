@@ -5,10 +5,6 @@ import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
 import 'package:centrode/features/graph/store/graph_api.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'package:centrode/src/rust/domain/base_models.dart' as frb;
-import 'package:centrode/src/rust/domain/id.dart';
-import 'package:centrode/src/rust/domain/nodes.dart';
-import 'package:centrode/src/rust/domain/relations.dart';
-import 'package:centrode/src/rust/domain/types.dart';
 
 Nodes createSampleNode(String idStr, {int x = 0, int y = 0}) {
   return Nodes.iNode(

@@ -13,6 +13,7 @@ import 'package:centrode/src/rust/domain/patches.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
 import 'package:centrode/src/rust/relation_engine/geometry.dart' as rust_geom;
+import 'package:centrode/src/rust/domain/routing.dart';
 import 'package:centrode/src/rust/relation_engine/config.dart';
 
 class MockGraphApi extends Mock implements GraphApi {}
@@ -111,11 +112,11 @@ void main() {
       ).thenAnswer(
         (_) async => ComputedRelation(
           id: parseTypedRecordId('IRelation', RawUuid.fromString('dummy')),
-          startPoint: const rust_geom.Point(x: 0, y: 0),
-          endPoint: const rust_geom.Point(x: 0, y: 0),
-          startHandlePos: const rust_geom.Point(x: 0, y: 0),
-          endHandlePos: const rust_geom.Point(x: 0, y: 0),
-          labelPosition: const rust_geom.Point(x: 0, y: 0),
+          startPoint: const Point(x: 0, y: 0),
+          endPoint: const Point(x: 0, y: 0),
+          startHandlePos: const Point(x: 0, y: 0),
+          endHandlePos: const Point(x: 0, y: 0),
+          labelPosition: const Point(x: 0, y: 0),
           pathPoints: const [],
           startShapePath: const [],
           endShapePath: const [],
@@ -124,16 +125,16 @@ void main() {
           bodyType: BodyType.uniform,
           bodyWidths: Float64List(0),
           pathType: PathType.straight,
-          startTangent: const rust_geom.Point(x: 0, y: 0),
-          endTangent: const rust_geom.Point(x: 0, y: 0),
+          startTangent: const Point(x: 0, y: 0),
+          endTangent: const Point(x: 0, y: 0),
           startEndpoint: EndpointShape.none,
           endEndpoint: EndpointShape.none,
           startDirection: 0.0,
           endDirection: 0.0,
           labelAnchor: LabelAnchor.center,
           bbox: const rust_geom.Rect(x: 0, y: 0, width: 0, height: 0),
-          startArrowCenter: const rust_geom.Point(x: 0, y: 0),
-          endArrowCenter: const rust_geom.Point(x: 0, y: 0),
+          startArrowCenter: const Point(x: 0, y: 0),
+          endArrowCenter: const Point(x: 0, y: 0),
           startMargin: 0.0,
           endMargin: 0.0,
           dependsOnNodes: const [],
@@ -166,6 +167,8 @@ void main() {
           ),
         ),
       );
+      when(() => mockApi.undoCount()).thenAnswer((_) async => 0);
+      when(() => mockApi.redoCount()).thenAnswer((_) async => 0);
 
       queryController = GraphDataQueryController(mockApi);
       controller = CommandQueueProcessor(mockApi, queryController);

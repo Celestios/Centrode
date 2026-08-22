@@ -5,6 +5,7 @@ import 'package:centrode/features/graph/engine/base_interaction_state.dart';
 import 'package:centrode/features/graph/engine/interaction_context.dart';
 import 'package:centrode/features/graph/engine/interaction_engine.dart';
 import 'package:centrode/features/graph/store/relation_engine_state.dart';
+import 'package:centrode/features/graph/models/viewport_scope.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockInteractionContext extends Mock implements InteractionContext {}
@@ -44,6 +45,7 @@ void main() {
       when(() => mockEnv.onRelationCreate(any(), any(), fromSide: any(named: 'fromSide'), toSide: any(named: 'toSide'), verb: any(named: 'verb'))).thenReturn(null);
       when(() => mockEnv.onRelationSnapPreviewClear(any())).thenReturn(null);
       when(() => mockEnv.relationEngine).thenReturn(mockEngine);
+      when(() => mockEnv.activeScope).thenReturn(const RootViewportScope());
       when(() => mockEngine.cache).thenReturn({});
 
       controller = InteractionController(

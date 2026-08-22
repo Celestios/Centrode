@@ -10,6 +10,7 @@ import 'package:centrode/features/graph/presentation/view_state.dart';
 import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
 import 'package:centrode/src/rust/relation_engine/geometry.dart' as rust_geom;
+import 'package:centrode/src/rust/domain/routing.dart';
 import 'package:centrode/src/rust/relation_engine/config.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter/material.dart';
@@ -42,29 +43,29 @@ void main() {
 
     final mockComputed = ComputedRelation(
       id: parseTypedRecordId('IRelation', relId),
-      pathPoints: const [rust_geom.Point(x: 100, y: 100), rust_geom.Point(x: 300, y: 100)],
+      pathPoints: const [Point(x: 100, y: 100), Point(x: 300, y: 100)],
       pathType: PathType.straight,
-      startTangent: const rust_geom.Point(x: 1, y: 0),
-      endTangent: const rust_geom.Point(x: 1, y: 0),
+      startTangent: const Point(x: 1, y: 0),
+      endTangent: const Point(x: 1, y: 0),
       bodyWidths: Float64List(0),
       bodyType: BodyType.uniform,
       startEndpoint: EndpointShape.none,
       endEndpoint: EndpointShape.none,
       startDirection: 0.0,
       endDirection: 0.0,
-      labelPosition: const rust_geom.Point(x: 200, y: 100),
+      labelPosition: const Point(x: 200, y: 100),
       labelAnchor: LabelAnchor.center,
-      hitTestPoints: const [rust_geom.Point(x: 100, y: 100), rust_geom.Point(x: 300, y: 100)],
+      hitTestPoints: const [Point(x: 100, y: 100), Point(x: 300, y: 100)],
       dependsOnNodes: const [],
       bbox: const rust_geom.Rect(x: 100, y: 100, width: 200, height: 0),
       startMargin: 0.0,
       endMargin: 0.0,
-      startArrowCenter: const rust_geom.Point(x: 100, y: 100),
-      endArrowCenter: const rust_geom.Point(x: 300, y: 100),
-      startPoint: const rust_geom.Point(x: 100, y: 100),
-      endPoint: const rust_geom.Point(x: 300, y: 100),
-      startHandlePos: const rust_geom.Point(x: 100, y: 100),
-      endHandlePos: const rust_geom.Point(x: 300, y: 100),
+      startArrowCenter: const Point(x: 100, y: 100),
+      endArrowCenter: const Point(x: 300, y: 100),
+      startPoint: const Point(x: 100, y: 100),
+      endPoint: const Point(x: 300, y: 100),
+      startHandlePos: const Point(x: 100, y: 100),
+      endHandlePos: const Point(x: 300, y: 100),
       controlPoints: const [],
       knots: Float64List(0),
       nudgeColors: const [],
@@ -98,6 +99,7 @@ void main() {
       final toVs = NodeViewState(toNode);
 
       when(() => mockCtx.boundSession).thenReturn(session);
+      when(() => mockCtx.activeScope).thenReturn(const RootViewportScope());
       when(() => mockCtx.relationEngine).thenReturn(mockEngine);
       when(() => mockEngine.cache).thenReturn({relId: mockComputed});
       when(() => mockCtx.getRelations()).thenReturn([testRel]);

@@ -59,6 +59,8 @@ void main() {
       when(
         () => mockApi.updateNodeCachePositions(positions: any(named: 'positions')),
       ).thenAnswer((_) async {});
+      when(() => mockApi.undoCount()).thenAnswer((_) async => 0);
+      when(() => mockApi.redoCount()).thenAnswer((_) async => 0);
 
       queryController = GraphDataQueryController(mockApi);
       controller = CommandQueueProcessor(mockApi, queryController);

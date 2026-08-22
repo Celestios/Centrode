@@ -112,6 +112,7 @@ void main() {
         () => mockRelationEngine.cache,
       ).thenReturn(<RawUuid, ComputedRelation>{});
       when(() => mockEnv.relationEngine).thenReturn(mockRelationEngine);
+      when(() => mockEnv.activeScope).thenReturn(const RootViewportScope());
       when(() => mockEnv.onSelectEntity(any())).thenAnswer((_) {});
     });
 
@@ -216,6 +217,7 @@ void main() {
         () => mockRelationEngine.cache,
       ).thenReturn(<RawUuid, ComputedRelation>{});
       when(() => mockEnv.relationEngine).thenReturn(mockRelationEngine);
+      when(() => mockEnv.activeScope).thenReturn(const RootViewportScope());
       when(() => mockEnv.onSelectEntity(any())).thenAnswer((_) {});
 
       when(() => mockSession.toolModeNotifier).thenReturn(toolModeNotifier);

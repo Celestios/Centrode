@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:centrode/features/graph/engine/interaction_context.dart';
 import 'package:centrode/features/graph/engine/interaction_engine.dart';
 import 'package:centrode/features/graph/models/models.dart';
-import 'package:centrode/features/graph/models/port.dart';
 import 'package:centrode/features/graph/presentation/view_state.dart';
 import 'package:centrode/features/graph/presentation/workspace_tabs_controller.dart';
 import 'package:centrode/features/graph/store/in_memory_graph_api.dart';

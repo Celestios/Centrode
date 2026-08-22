@@ -13,6 +13,7 @@ import 'package:centrode/features/graph/store/relation_engine_state.dart';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
 import 'package:centrode/src/rust/relation_engine/config.dart';
 import 'package:centrode/src/rust/relation_engine/geometry.dart' as rust_geom;
+import 'package:centrode/src/rust/domain/routing.dart';
 import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
@@ -25,41 +26,41 @@ class MockRelationEngineState extends Mock implements RelationEngineState {}
 
 ComputedRelation createTestComputedRelation(
   RawUuid idStr,
-  List<rust_geom.Point> pathPoints,
+  List<Point> pathPoints,
 ) {
   return ComputedRelation(
     id: parseTypedRecordId('IRelation', idStr),
     pathPoints: pathPoints,
     pathType: PathType.straight,
-    startTangent: const rust_geom.Point(x: 0, y: 0),
-    endTangent: const rust_geom.Point(x: 0, y: 0),
+    startTangent: const Point(x: 0, y: 0),
+    endTangent: const Point(x: 0, y: 0),
     bodyWidths: Float64List(0),
     bodyType: BodyType.uniform,
     startEndpoint: EndpointShape.none,
     endEndpoint: EndpointShape.none,
     startDirection: 0.0,
     endDirection: 0.0,
-    labelPosition: const rust_geom.Point(x: 0, y: 0),
+    labelPosition: const Point(x: 0, y: 0),
     labelAnchor: LabelAnchor.center,
     hitTestPoints: pathPoints,
     dependsOnNodes: const [],
     bbox: const rust_geom.Rect(x: 0, y: 0, width: 0, height: 0),
     startMargin: 0.0,
     endMargin: 0.0,
-    startArrowCenter: const rust_geom.Point(x: 0, y: 0),
-    endArrowCenter: const rust_geom.Point(x: 0, y: 0),
+    startArrowCenter: const Point(x: 0, y: 0),
+    endArrowCenter: const Point(x: 0, y: 0),
     startPoint: pathPoints.isNotEmpty
         ? pathPoints.first
-        : const rust_geom.Point(x: 0, y: 0),
+        : const Point(x: 0, y: 0),
     endPoint: pathPoints.isNotEmpty
         ? pathPoints.last
-        : const rust_geom.Point(x: 0, y: 0),
+        : const Point(x: 0, y: 0),
     startHandlePos: pathPoints.isNotEmpty
-        ? rust_geom.Point(x: pathPoints.first.x + 16, y: pathPoints.first.y)
-        : const rust_geom.Point(x: 0, y: 0),
+        ? Point(x: pathPoints.first.x + 16, y: pathPoints.first.y)
+        : const Point(x: 0, y: 0),
     endHandlePos: pathPoints.length >= 2
-        ? rust_geom.Point(x: pathPoints.last.x - 16, y: pathPoints.last.y)
-        : const rust_geom.Point(x: 0, y: 0),
+        ? Point(x: pathPoints.last.x - 16, y: pathPoints.last.y)
+        : const Point(x: 0, y: 0),
     controlPoints: const [],
     knots: Float64List(0),
     nudgeColors: const [],
@@ -97,6 +98,7 @@ void main() {
         () => mockRelationEngine.cache,
       ).thenReturn(<RawUuid, ComputedRelation>{});
       when(() => mockContext.relationEngine).thenReturn(mockRelationEngine);
+      when(() => mockContext.activeScope).thenReturn(const RootViewportScope());
 
       controller = InteractionController(
         transformController: mockTransform,
@@ -198,8 +200,8 @@ void main() {
           RawUuid.fromString('rel-1'): createTestComputedRelation(
             RawUuid.fromString('rel-1'),
             [
-              const rust_geom.Point(x: 100, y: 30),
-              const rust_geom.Point(x: 300, y: 30),
+              const Point(x: 100, y: 30),
+              const Point(x: 300, y: 30),
             ],
           ),
         });
@@ -267,8 +269,8 @@ void main() {
           RawUuid.fromString('rel-1'): createTestComputedRelation(
             RawUuid.fromString('rel-1'),
             [
-              const rust_geom.Point(x: 100, y: 30),
-              const rust_geom.Point(x: 300, y: 30),
+              const Point(x: 100, y: 30),
+              const Point(x: 300, y: 30),
             ],
           ),
         });
@@ -306,7 +308,7 @@ void main() {
       when(() => mockContext.currentScale).thenReturn(1.0);
       when(() => mockContext.onRelationSnapPreviewClear(sourceId)).thenReturn(null);
       when(() => mockContext.onCreateNode(any())).thenReturn(newId);
-      when(() => mockContext.onRelationCreate(sourceId, newId, fromSide: PortSide.right)).thenReturn(null);
+      when(() => mockContext.onRelationCreate(sourceId, newId, fromSide: PortSide.right, toSide: any(named: 'toSide'))).thenReturn(null);
 
       final state = RelationDrawing(
         {sourceId},
@@ -321,7 +323,7 @@ void main() {
 
       expect(nextState, isA<CanvasIdle>());
       verify(() => mockContext.onCreateNode(any())).called(1);
-      verify(() => mockContext.onRelationCreate(sourceId, newId, fromSide: PortSide.right)).called(1);
+      verify(() => mockContext.onRelationCreate(sourceId, newId, fromSide: PortSide.right, toSide: any(named: 'toSide'))).called(1);
     });
   });
 }
