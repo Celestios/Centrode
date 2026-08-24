@@ -9,10 +9,10 @@ pub fn update_schema_file(schema_path: &Path, generated_block: &str, in_constrai
 
     let start_idx = content
         .find(begin_marker)
-        .expect("Could not find BEGIN GENERATED NODE FIELDS marker in schema.surql");
+        .expect("Could not find BEGIN GENERATED NODE FIELDS marker in map_schema.surql");
     let end_idx = content
         .find(end_marker)
-        .expect("Could not find END GENERATED NODE FIELDS marker in schema.surql");
+        .expect("Could not find END GENERATED NODE FIELDS marker in map_schema.surql");
 
     let mut new_content = String::new();
     new_content.push_str(&content[..start_idx]);

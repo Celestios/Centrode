@@ -1,4 +1,4 @@
-use crate::schema::SurqlSchemaField;
+use crate::domain::schema::SurqlSchemaField;
 use centrode_macros::SurrealDbEnum;
 use surrealdb::types::SurrealValue;
 

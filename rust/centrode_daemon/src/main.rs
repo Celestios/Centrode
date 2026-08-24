@@ -1,4 +1,4 @@
-use centrode_daemon::{default_storage_path, handle_ipc_message, ipc, tray, DaemonWorker};
+use centrode_daemon::{default_storage_path, tray, DaemonWorker};
 use std::path::PathBuf;
 
 #[tokio::main]

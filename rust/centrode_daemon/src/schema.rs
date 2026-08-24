@@ -6,13 +6,13 @@ use surrealdb::Surreal;
 pub struct Schema;
 impl Schema {
     pub async fn init(db: &Surreal<Db>) -> Result<()> {
-        let surql = include_str!("schema.surql");
-        tracing::info!("Applying schema from schema.surql...");
+        let surql = include_str!("map_schema.surql");
+        tracing::info!("Applying schema from map_schema.surql...");
         db.query(surql).await.map_err(|e| {
             tracing::error!("Schema initialization failed: {}", e);
             anyhow::anyhow!("Schema initialization failed: {}", e)
         })?;
-        tracing::info!("Schema file applied successfully.");
+        tracing::info!("Map schema file applied successfully.");
 
         Ok(())
     }

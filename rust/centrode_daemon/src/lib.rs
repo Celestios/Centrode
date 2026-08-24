@@ -1,17 +1,26 @@
 pub mod custodian;
+pub mod domain;
+pub mod engine;
 pub mod ipc;
+pub mod models;
+pub mod schema;
+pub mod schema_gen;
+pub mod services;
 pub mod tray;
 
 pub use custodian::*;
+pub use domain::*;
+pub use engine::EngineManager;
+pub use models::MapDescriptor;
+pub use schema::{Schema, Seeder};
+pub use services::DaemonService;
 
 use anyhow::{Context, Result};
 use std::path::PathBuf;
-use surrealdb::engine::local::{Db, SurrealKv};
-use surrealdb::Surreal;
 
 pub struct DaemonWorker {
-    db: Surreal<Db>,
     storage_path: PathBuf,
+    service: DaemonService,
 }
 
 impl DaemonWorker {
@@ -20,30 +29,70 @@ impl DaemonWorker {
             .to_str()
             .context("storage path is not valid UTF-8")?;
 
-        tracing::info!("Daemon: acquiring SurrealKV lock at {}", path_str);
+        tracing::info!("Daemon: acquiring SurrealKV lock via EngineManager at {}", path_str);
+        EngineManager::init(path_str).await?;
 
-        let db = Surreal::new::<SurrealKv>(path_str)
-            .await
-            .context("Daemon: failed to open SurrealKV")?;
+        let service = DaemonService::new().await?;
 
-        db.use_ns("centrode").use_db("system").await?;
-
-        tracing::info!("Daemon: SurrealKV lock acquired");
+        tracing::info!("Daemon: SurrealKV lock acquired and DaemonService initialized");
 
         Ok(Self {
-            db,
             storage_path,
+            service,
         })
     }
 
-    pub async fn flush_and_release(mut self) -> Result<()> {
-        tracing::info!("Daemon: flushing pending writes...");
+    pub fn service(&self) -> &DaemonService {
+        &self.service
+    }
 
-        // SurrealDB auto-flushes on drop for kv-surrealkv.
-        // Dropping the db releases the OS file lock.
-        drop(self.db);
-        self.db = Surreal::new::<SurrealKv>("mem://").await?;
+    pub async fn list_maps(&self) -> Result<Vec<MapDescriptor>> {
+        self.service.list_maps().await
+    }
 
+    pub async fn get_recent_maps(&self, limit: usize) -> Result<Vec<MapDescriptor>> {
+        self.service.get_recent_maps(limit).await
+    }
+
+    pub async fn create_map(&self, name: &str) -> Result<MapDescriptor> {
+        self.service.create_map(name).await
+    }
+
+    pub async fn delete_map(&self, map_id: &str) -> Result<()> {
+        self.service.delete_map(map_id).await
+    }
+
+    pub async fn rename_map(&self, map_id: &str, new_name: &str) -> Result<MapDescriptor> {
+        self.service.rename_map(map_id, new_name).await
+    }
+
+    pub async fn duplicate_map(&self, map_id: &str, new_name: &str) -> Result<MapDescriptor> {
+        self.service.duplicate_map(map_id, new_name).await
+    }
+
+    pub async fn touch_map(&self, map_id: &str) -> Result<()> {
+        self.service.touch_map(map_id).await
+    }
+
+    pub async fn get_map(&self, map_id: &str) -> Result<MapDescriptor> {
+        self.service.get_map(map_id).await
+    }
+
+    pub async fn get_setting(&self, key: &str) -> Result<Option<String>> {
+        self.service.get_setting(key).await
+    }
+
+    pub async fn set_setting(&self, key: &str, value: &str) -> Result<()> {
+        self.service.set_setting(key, value).await
+    }
+
+    pub async fn delete_setting(&self, key: &str) -> Result<()> {
+        self.service.delete_setting(key).await
+    }
+
+    pub async fn flush_and_release(self) -> Result<()> {
+        tracing::info!("Daemon: shutting down EngineManager and releasing lock...");
+        EngineManager::shutdown().await?;
         tracing::info!("Daemon: SurrealKV lock released");
         Ok(())
     }

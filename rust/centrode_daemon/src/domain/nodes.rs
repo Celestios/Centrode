@@ -1,6 +1,6 @@
 use crate::base_models::Coordinates;
 use crate::id::TypedRecordId;
-pub use crate::schema::{generate_field_schema_lines, SurqlSchema, SurqlSchemaField};
+pub use crate::domain::schema::{generate_field_schema_lines, SurqlSchema, SurqlSchemaField};
 pub use crate::base_models::Attachment;
 pub use crate::types::{
     CommentNode, ContainerNode, DrawingNode, FrameNode, INode, InterNode, MediaNode, Nodes, ShapeNode, TaskNode,

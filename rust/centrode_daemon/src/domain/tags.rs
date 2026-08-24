@@ -1,5 +1,5 @@
 use crate::id::TypedRecordId;
-use crate::schema::SurqlSchemaField;
+use crate::domain::schema::SurqlSchemaField;
 pub use crate::types::Tag;
 use centrode_macros::SurqlSchemaField;
 use surrealdb::types::{SurrealValue, Value};
