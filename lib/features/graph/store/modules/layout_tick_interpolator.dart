@@ -98,26 +98,7 @@ class LayoutTickInterpolator {
       if (currentSubStep >= effectiveSubSteps) {
         timer.cancel();
 
-        for (final patch in currentTick.portPatches) {
-          final relId = RawUuid.fromString(patch.relationId.key.uuid);
-          final rel = store.relationLookup[relId];
-          if (rel != null) {
-            final baseLayout = rel.resolvedLayout ?? rel.layout;
-            rel.resolvedLayout = baseLayout != null
-                ? RelationLayout(
-                    fromSide: patch.fromSide,
-                    toSide: patch.toSide,
-                    strategyType: baseLayout.strategyType,
-                    controlPoint1: baseLayout.controlPoint1,
-                    controlPoint2: baseLayout.controlPoint2,
-                  )
-                : RelationLayout(
-                    fromSide: patch.fromSide,
-                    toSide: patch.toSide,
-                    strategyType: 'default',
-                  );
-          }
-        }
+        _applyPortPatches(store, currentTick.portPatches);
 
         if (currentTick.converged) {
           for (final remainingTick in _tickQueue) {
@@ -128,26 +109,7 @@ class LayoutTickInterpolator {
                 node.position = Offset(patch.x, patch.y);
               }
             }
-            for (final patch in remainingTick.portPatches) {
-              final relId = RawUuid.fromString(patch.relationId.key.uuid);
-              final rel = store.relationLookup[relId];
-              if (rel != null) {
-                final baseLayout = rel.resolvedLayout ?? rel.layout;
-                rel.resolvedLayout = baseLayout != null
-                    ? RelationLayout(
-                        fromSide: patch.fromSide,
-                        toSide: patch.toSide,
-                        strategyType: baseLayout.strategyType,
-                        controlPoint1: baseLayout.controlPoint1,
-                        controlPoint2: baseLayout.controlPoint2,
-                      )
-                    : RelationLayout(
-                        fromSide: patch.fromSide,
-                        toSide: patch.toSide,
-                        strategyType: 'default',
-                      );
-              }
-            }
+            _applyPortPatches(store, remainingTick.portPatches);
           }
           _tickQueue.clear();
           _isInterpolating = false;
@@ -161,6 +123,23 @@ class LayoutTickInterpolator {
         }
       }
     });
+  }
+
+  void _applyPortPatches(GraphStore store, List<PortPatch> patches) {
+    for (final patch in patches) {
+      final relId = RawUuid.fromString(patch.relationId.key.uuid);
+      final rel = store.relationLookup[relId];
+      if (rel != null) {
+        final baseLayout = rel.resolvedLayout ?? rel.layout;
+        rel.resolvedLayout = RelationLayout(
+          fromSide: patch.fromSide,
+          toSide: patch.toSide,
+          strategyType: baseLayout?.strategyType ?? 'default',
+          controlPoint1: baseLayout?.controlPoint1,
+          controlPoint2: baseLayout?.controlPoint2,
+        );
+      }
+    }
   }
 
   /// Cancels any active interpolation loop and clears the tick queue.

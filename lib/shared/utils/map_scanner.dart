@@ -1,9 +1,8 @@
-import 'dart:io';
-import 'package:path/path.dart' as p;
-import 'app_paths.dart';
-import 'recent_maps_store.dart';
+import 'package:centrode/infrastructure/lifecycle/daemon_gateway.dart';
+import 'package:centrode/src/rust/domain/base_models.dart';
 
 class MapInfo {
+  final String id;
   final String name;
   final String path;
   final DateTime createdAt;
@@ -11,53 +10,50 @@ class MapInfo {
   final DateTime lastAccessed;
 
   const MapInfo({
+    required this.id,
     required this.name,
     required this.path,
     required this.createdAt,
     required this.lastModified,
     required this.lastAccessed,
   });
+
+  factory MapInfo.fromDescriptor(MapDescriptor descriptor) {
+    return MapInfo(
+      id: descriptor.id,
+      name: descriptor.name,
+      path: descriptor.storagePath,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        descriptor.createdAtMs.toInt(),
+      ),
+      lastModified: DateTime.fromMillisecondsSinceEpoch(
+        descriptor.modifiedAtMs.toInt(),
+      ),
+      lastAccessed: DateTime.fromMillisecondsSinceEpoch(
+        descriptor.accessedAtMs.toInt(),
+      ),
+    );
+  }
 }
 
 class MapScanner {
   static Future<List<MapInfo>> scanMaps() async {
-    final mapsDir = await AppPaths.mapsDirectory;
-    final directory = Directory(mapsDir);
-    final accessTimes = await RecentMapsStore.getAll();
-
-    if (!directory.existsSync()) {
+    if (!DaemonGateway.instance.isInitialized) {
       return [];
     }
-
-    final maps = <MapInfo>[];
-    final entities = await directory.list().toList();
-
-    for (final entity in entities) {
-      if (entity.path.endsWith('.db')) {
-        final stat = await entity.stat();
-        final name = p.basenameWithoutExtension(entity.path);
-        maps.add(MapInfo(
-          name: name,
-          path: entity.path,
-          createdAt: stat.changed,
-          lastModified: stat.modified,
-          lastAccessed: accessTimes[entity.path] ?? stat.modified,
-        ));
-      }
-    }
-
-    return maps;
+    final descriptors = await DaemonGateway.instance.listMaps();
+    return descriptors.map(MapInfo.fromDescriptor).toList();
   }
 
-  static Future<List<MapInfo>> getRecentMaps() async {
-    final maps = await scanMaps();
-    maps.sort((a, b) => b.lastAccessed.compareTo(a.lastAccessed));
-    return maps;
+  static Future<List<MapInfo>> getRecentMaps({int limit = 50}) async {
+    if (!DaemonGateway.instance.isInitialized) {
+      return [];
+    }
+    final descriptors = await DaemonGateway.instance.getRecentMaps(limit: limit);
+    return descriptors.map(MapInfo.fromDescriptor).toList();
   }
 
   static Future<List<MapInfo>> getProjectMaps() async {
-    final maps = await scanMaps();
-    maps.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    return maps;
+    return scanMaps();
   }
 }

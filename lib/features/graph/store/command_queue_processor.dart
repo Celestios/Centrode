@@ -247,18 +247,23 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     nodeMutations.ungroupNodes(nodeIds);
   }
 
-  void updateNodePosition(RawUuid id, Offset newPosition) {
-    nodeMutations.updateNodePosition(id, newPosition);
+  void _syncNodeCache(
+    RawUuid id, [
+    Offset? positionOverride,
+    Size? sizeOverride,
+  ]) {
     final node = store.nodeLookup[id];
     if (node != null) {
+      final pos = positionOverride ?? node.position;
+      final size = sizeOverride ?? node.size;
       syncEngine.api.updateNodeCachePositions(
         positions: [
           (
             parseTypedRecordId(node.tableName, id),
-            newPosition.dx,
-            newPosition.dy,
-            node.size.width,
-            node.size.height,
+            pos.dx,
+            pos.dy,
+            size.width,
+            size.height,
           ),
         ],
       );
@@ -266,23 +271,14 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     relationEngine.onNodeMoved(id);
   }
 
+  void updateNodePosition(RawUuid id, Offset newPosition) {
+    nodeMutations.updateNodePosition(id, newPosition);
+    _syncNodeCache(id, newPosition);
+  }
+
   void reparentNode(RawUuid id, RawUuid? targetParentId, Offset targetPos) {
     nodeMutations.reparentNode(id, targetParentId, targetPos);
-    final node = store.nodeLookup[id];
-    if (node != null) {
-      syncEngine.api.updateNodeCachePositions(
-        positions: [
-          (
-            parseTypedRecordId(node.tableName, id),
-            targetPos.dx,
-            targetPos.dy,
-            node.size.width,
-            node.size.height,
-          ),
-        ],
-      );
-    }
-    relationEngine.onNodeMoved(id);
+    _syncNodeCache(id, targetPos);
   }
 
   void updateNodePositionsVolatile(List<(RawUuid, Offset)> updates) {
@@ -311,40 +307,12 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
 
   void updateNodeWidth(RawUuid id, double leftEdge, double rightEdge) {
     nodeMutations.updateNodeWidth(id, leftEdge, rightEdge);
-    final node = store.nodeLookup[id];
-    if (node != null) {
-      syncEngine.api.updateNodeCachePositions(
-        positions: [
-          (
-            parseTypedRecordId(node.tableName, id),
-            node.position.dx,
-            node.position.dy,
-            node.size.width,
-            node.size.height,
-          ),
-        ],
-      );
-    }
-    relationEngine.onNodeMoved(id);
+    _syncNodeCache(id);
   }
 
   void toggleNodeExpansion(RawUuid id) {
     nodeMutations.toggleNodeExpansion(id);
-    final node = store.nodeLookup[id];
-    if (node != null) {
-      syncEngine.api.updateNodeCachePositions(
-        positions: [
-          (
-            parseTypedRecordId(node.tableName, id),
-            node.position.dx,
-            node.position.dy,
-            node.size.width,
-            node.size.height,
-          ),
-        ],
-      );
-    }
-    relationEngine.onNodeMoved(id);
+    _syncNodeCache(id);
   }
 
   void createRelation(

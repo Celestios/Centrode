@@ -27,11 +27,11 @@ import 'layout_engine/config.dart';
 import 'layout_engine/types.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_web.dart';
 import 'package:uuid/uuid.dart';
-import 'persistence/history.dart';
-import 'persistence/repo.dart';
 import 'relation_engine/computed.dart';
 import 'relation_engine/config.dart';
 import 'relation_engine/geometry.dart';
+import 'repo.dart';
+import 'repo/history.dart';
 import 'telemetry.dart';
 
 abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
@@ -47,8 +47,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle;
 
   CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_ArcDaemonServicePtr => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService;
+
+  CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_ArcGraphServicePtr => wire
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService;
+
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_DaemonHandlePtr => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle;
 
   CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_HistoryRecordPtr => wire
@@ -68,8 +76,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ArcDaemonService
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    dynamic raw,
+  );
+
+  @protected
   ArcGraphService
   dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
+    dynamic raw,
+  );
+
+  @protected
+  DaemonHandle
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
     dynamic raw,
   );
 
@@ -92,8 +112,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  DaemonHandle
+  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    dynamic raw,
+  );
+
+  @protected
   AppHandle
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    dynamic raw,
+  );
+
+  @protected
+  DaemonHandle
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
     dynamic raw,
   );
 
@@ -110,8 +142,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ArcDaemonService
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    dynamic raw,
+  );
+
+  @protected
   ArcGraphService
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
+    dynamic raw,
+  );
+
+  @protected
+  DaemonHandle
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
     dynamic raw,
   );
 
@@ -435,6 +479,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<LayoutPatch> dco_decode_list_layout_patch(dynamic raw);
 
   @protected
+  List<MapDescriptor> dco_decode_list_map_descriptor(dynamic raw);
+
+  @protected
   List<MapTheme> dco_decode_list_map_theme(dynamic raw);
 
   @protected
@@ -493,6 +540,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MapData dco_decode_map_data(dynamic raw);
+
+  @protected
+  MapDescriptor dco_decode_map_descriptor(dynamic raw);
 
   @protected
   MapTheme dco_decode_map_theme(dynamic raw);
@@ -729,8 +779,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ArcDaemonService
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ArcGraphService
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  DaemonHandle
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
     SseDeserializer deserializer,
   );
 
@@ -753,8 +815,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  DaemonHandle
+  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   AppHandle
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  DaemonHandle
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
     SseDeserializer deserializer,
   );
 
@@ -771,8 +845,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ArcDaemonService
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ArcGraphService
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  DaemonHandle
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
     SseDeserializer deserializer,
   );
 
@@ -1128,6 +1214,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<LayoutPatch> sse_decode_list_layout_patch(SseDeserializer deserializer);
 
   @protected
+  List<MapDescriptor> sse_decode_list_map_descriptor(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<MapTheme> sse_decode_list_map_theme(SseDeserializer deserializer);
 
   @protected
@@ -1196,6 +1287,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MapData sse_decode_map_data(SseDeserializer deserializer);
+
+  @protected
+  MapDescriptor sse_decode_map_descriptor(SseDeserializer deserializer);
 
   @protected
   MapTheme sse_decode_map_theme(SseDeserializer deserializer);
@@ -1473,8 +1567,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    ArcDaemonService self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
     ArcGraphService self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    DaemonHandle self,
     SseSerializer serializer,
   );
 
@@ -1501,8 +1609,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    DaemonHandle self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
     AppHandle self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    DaemonHandle self,
     SseSerializer serializer,
   );
 
@@ -1522,8 +1644,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    ArcDaemonService self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
     ArcGraphService self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    DaemonHandle self,
     SseSerializer serializer,
   );
 
@@ -1987,6 +2123,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_map_descriptor(
+    List<MapDescriptor> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_map_theme(List<MapTheme> self, SseSerializer serializer);
 
   @protected
@@ -2069,6 +2211,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_map_data(MapData self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_map_descriptor(MapDescriptor self, SseSerializer serializer);
 
   @protected
   void sse_encode_map_theme(MapTheme self, SseSerializer serializer);
@@ -2394,6 +2539,22 @@ class RustLibWire implements BaseWire {
       );
 
   void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    int ptr,
+  ) => wasmModule
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+        ptr,
+      );
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    int ptr,
+  ) => wasmModule
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+        ptr,
+      );
+
+  void
   rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
     int ptr,
   ) => wasmModule
@@ -2406,6 +2567,22 @@ class RustLibWire implements BaseWire {
     int ptr,
   ) => wasmModule
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
+        ptr,
+      );
+
+  void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    int ptr,
+  ) => wasmModule
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+        ptr,
+      );
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    int ptr,
+  ) => wasmModule
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
         ptr,
       );
 
@@ -2459,12 +2636,32 @@ extension type RustLibWasmModule._(JSObject _) implements JSObject {
   );
 
   external void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    int ptr,
+  );
+
+  external void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    int ptr,
+  );
+
+  external void
   rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
     int ptr,
   );
 
   external void
   rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
+    int ptr,
+  );
+
+  external void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    int ptr,
+  );
+
+  external void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
     int ptr,
   );
 

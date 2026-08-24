@@ -119,6 +119,45 @@ class Coordinates {
 
 enum DisplayMode { importance, leveling }
 
+class MapDescriptor {
+  final String id;
+  final String name;
+  final String storagePath;
+  final PlatformInt64 createdAtMs;
+  final PlatformInt64 modifiedAtMs;
+  final PlatformInt64 accessedAtMs;
+
+  const MapDescriptor({
+    required this.id,
+    required this.name,
+    required this.storagePath,
+    required this.createdAtMs,
+    required this.modifiedAtMs,
+    required this.accessedAtMs,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      name.hashCode ^
+      storagePath.hashCode ^
+      createdAtMs.hashCode ^
+      modifiedAtMs.hashCode ^
+      accessedAtMs.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MapDescriptor &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          storagePath == other.storagePath &&
+          createdAtMs == other.createdAtMs &&
+          modifiedAtMs == other.modifiedAtMs &&
+          accessedAtMs == other.accessedAtMs;
+}
+
 class Size {
   final int width;
   final int height;

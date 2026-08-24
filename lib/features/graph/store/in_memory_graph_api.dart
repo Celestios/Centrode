@@ -11,7 +11,7 @@ import 'package:centrode/src/rust/domain/theme.dart';
 import 'package:centrode/src/rust/domain/types.dart';
 import 'package:centrode/src/rust/layout_engine/config.dart';
 import 'package:centrode/src/rust/layout_engine/types.dart';
-import 'package:centrode/src/rust/persistence/history.dart';
+import 'package:centrode/src/rust/repo/history.dart';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
 import 'package:centrode/src/rust/relation_engine/config.dart';
 import 'package:centrode/src/rust/relation_engine/geometry.dart' as rust_geom;

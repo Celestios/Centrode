@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 import 'package:centrode/shared/utils/name_generator.dart';
 import 'package:centrode/features/graph/ui/graph_screen.dart';
 import 'package:centrode/features/graph/presentation/map_manager.dart';
+import 'package:centrode/infrastructure/lifecycle/daemon_gateway.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/presentation/widgets/hover_scale_button.dart';
 
@@ -159,12 +160,19 @@ class _NewMapButton extends StatelessWidget {
       ),
       child: IconButton(
         icon: Icon(Icons.add, color: theme.colorScheme.primary),
-        onPressed: () {
+        onPressed: () async {
           final name = NameGenerator.generate();
-          MapManager.instance.openMap('maps/$name.db', name);
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const GraphScreen()));
+          final descriptor = await DaemonGateway.instance.createMap(name);
+          MapManager.instance.openMap(
+            descriptor.storagePath,
+            descriptor.name,
+            mapId: descriptor.id,
+          );
+          if (context.mounted) {
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const GraphScreen()));
+          }
         },
       ),
     );

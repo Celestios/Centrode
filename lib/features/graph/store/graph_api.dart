@@ -9,7 +9,7 @@ import 'package:centrode/src/rust/relation_engine/config.dart';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:centrode/src/rust/domain/base_models.dart' hide Size;
-import 'package:centrode/src/rust/persistence/history.dart';
+import 'package:centrode/src/rust/repo/history.dart';
 import 'package:centrode/src/rust/domain/snapshot.dart';
 import 'package:centrode/src/rust/bridge/stream.dart';
 import 'package:centrode/src/rust/domain/theme.dart';

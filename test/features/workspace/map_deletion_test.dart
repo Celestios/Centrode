@@ -11,12 +11,12 @@ void main() {
     late Directory tempDir;
 
     setUp(() async {
-      MapManager.instance.closeAll();
+      await MapManager.instance.flushAndCloseAll();
       tempDir = await Directory.systemTemp.createTemp('centrode_map_test_');
     });
 
     tearDown(() async {
-      MapManager.instance.closeAll();
+      await MapManager.instance.flushAndCloseAll();
       if (tempDir.existsSync()) {
         await tempDir.delete(recursive: true);
       }

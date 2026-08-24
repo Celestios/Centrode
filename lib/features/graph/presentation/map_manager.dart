@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:centrode/shared/logging.dart';
 import 'package:centrode/shared/utils/app_paths.dart';
-import 'package:centrode/shared/utils/recent_maps_store.dart';
+import 'package:centrode/infrastructure/lifecycle/daemon_gateway.dart';
 import 'workspace_tabs_controller.dart';
 
 class MapManager extends ChangeNotifier {
@@ -40,9 +40,12 @@ class MapManager extends ChangeNotifier {
     );
   }
 
-  bool openMap(String storagePath, String name) {
-    _log.info('openMap name=$name path=$storagePath');
-    RecentMapsStore.touch(storagePath);
+  bool openMap(String storagePath, String name, {String? mapId}) {
+    _log.info('openMap name=$name path=$storagePath id=$mapId');
+    final id = mapId ?? p.basenameWithoutExtension(storagePath);
+    if (DaemonGateway.instance.isInitialized) {
+      DaemonGateway.instance.touchMap(id);
+    }
 
     if (_tabsController != null) {
       final canonicalTarget = p.canonicalize(storagePath);
@@ -103,7 +106,10 @@ class MapManager extends ChangeNotifier {
     _log.info('openCentFile name=$name centPath=$centFilePath');
 
     final storagePath = await AppPaths.resolveMapPath(name);
-    RecentMapsStore.touch(storagePath);
+    final id = p.basenameWithoutExtension(storagePath);
+    if (DaemonGateway.instance.isInitialized) {
+      DaemonGateway.instance.touchMap(id);
+    }
 
     if (_tabsController != null) {
       final canonicalTarget = p.canonicalize(storagePath);

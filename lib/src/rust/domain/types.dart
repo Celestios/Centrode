@@ -629,6 +629,8 @@ enum TableKind {
   mapData,
   history,
   template,
+  mapRegistry,
+  systemSetting,
 }
 
 class Tag {

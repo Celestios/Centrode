@@ -18,15 +18,17 @@ import '../domain/types.dart';
 import '../frb_generated.dart';
 import '../layout_engine/config.dart';
 import '../layout_engine/types.dart';
-import '../persistence/history.dart';
-import '../persistence/repo.dart';
 import '../relation_engine/computed.dart';
 import '../relation_engine/config.dart';
 import '../relation_engine/geometry.dart';
+import '../repo.dart';
+import '../repo/history.dart';
 import '../telemetry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:uuid/uuid.dart';
 import 'stream.dart';
+
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`
 
 /// Initializes the root unified SurrealKV storage engine.
 Future<void> initCoreEngine({required String storagePath}) =>
@@ -230,5 +232,51 @@ abstract class AppHandle implements RustOpaqueInterface {
       RustLib.instance.api.crateBridgeApiAppHandleWithRepository(repo: repo);
 }
 
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < DaemonService >>>
+abstract class ArcDaemonService implements RustOpaqueInterface {}
+
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < GraphService >>>
 abstract class ArcGraphService implements RustOpaqueInterface {}
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<DaemonHandle>>
+abstract class DaemonHandle implements RustOpaqueInterface {
+  ArcDaemonService get service;
+
+  set service(ArcDaemonService service);
+
+  Future<MapDescriptor> createMap({required String name});
+
+  Future<void> deleteMap({required String mapId});
+
+  Future<void> deleteSetting({required String key});
+
+  Future<MapDescriptor> duplicateMap({
+    required String mapId,
+    required String newName,
+  });
+
+  Future<MapDescriptor> getMap({required String mapId});
+
+  Future<List<MapDescriptor>> getRecentMaps({required BigInt limit});
+
+  Future<String?> getSetting({required String key});
+
+  Future<List<MapDescriptor>> listMaps();
+
+  // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
+  static Future<DaemonHandle> newInstance({required String storagePath}) =>
+      RustLib.instance.api.crateBridgeApiDaemonHandleNew(
+        storagePath: storagePath,
+      );
+
+  Future<MapDescriptor> renameMap({
+    required String mapId,
+    required String newName,
+  });
+
+  Future<void> setSetting({required String key, required String value});
+
+  Future<void> shutdown();
+
+  Future<void> touchMap({required String mapId});
+}

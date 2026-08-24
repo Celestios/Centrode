@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
-import 'package:centrode/features/graph/presentation/map_manager.dart';
+import 'package:centrode/infrastructure/lifecycle/daemon_gateway.dart';
 import 'package:centrode/shared/logging.dart';
 import 'package:centrode/shared/utils/app_paths.dart';
 import 'package:centrode/src/rust/bridge/api.dart';
 import 'package:window_manager/window_manager.dart';
+
+typedef ShutdownCallback = Future<void> Function();
 
 class CustodianLifecycleCoordinator with WindowListener {
   static final CustodianLifecycleCoordinator instance =
@@ -17,6 +19,9 @@ class CustodianLifecycleCoordinator with WindowListener {
   /// Controls whether closing the window automatically launches the detached standalone daemon.
   /// Set to true for testing; can be toggled to false or gated on !kDebugMode later.
   bool enableDaemonSpawn = true;
+
+  /// Optional presentation layer teardown callback (e.g. MapManager flush).
+  ShutdownCallback? onBeforeShutdown;
 
   void init() {
     _log.info('Initializing CustodianLifecycleCoordinator');
@@ -41,12 +46,14 @@ class CustodianLifecycleCoordinator with WindowListener {
     _isShuttingDown = true;
     _log.info('onWindowClose intercepted. Starting graceful teardown...');
 
-    // 1. Flush and close all open tabs
-    await MapManager.instance.flushAndCloseAll();
+    // 1. Flush and close presentation tabs if registered
+    if (onBeforeShutdown != null) {
+      await onBeforeShutdown!();
+    }
 
     // 2. Release SurrealKV engine lock
-    _log.info('Releasing SurrealKV root engine locks...');
-    await shutdownCoreEngine();
+    _log.info('Releasing SurrealKV root engine locks via DaemonGateway...');
+    await DaemonGateway.instance.shutdown();
     _log.info('SurrealKV locks released successfully.');
 
     // 3. Spawn detached standalone daemon if enabled

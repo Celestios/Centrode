@@ -7,6 +7,7 @@ import 'package:centrode/shared/elements/elements.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
 import 'package:centrode/shared/utils/name_generator.dart';
 import 'package:centrode/shared/utils/map_scanner.dart';
+import 'package:centrode/infrastructure/lifecycle/daemon_gateway.dart';
 import 'package:centrode/features/graph/presentation/map_manager.dart';
 import 'package:centrode/presentation/widgets/hover_scale_button.dart';
 
@@ -24,8 +25,7 @@ class CanvasTabBar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Flexible(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+            child: _FadingTabScrollView(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: List.generate(tabs.length, (index) {
@@ -356,17 +356,26 @@ class _AddTabButtonState extends State<_AddTabButton> {
     super.dispose();
   }
 
-  void _createMap() {
+  void _createMap() async {
     final name = _searchQuery.isNotEmpty
         ? _searchQuery
         : NameGenerator.generate();
-    final path = 'maps/$name.db';
-    widget.tabsController.addTab(path, name);
+    if (DaemonGateway.instance.isInitialized) {
+      final descriptor = await DaemonGateway.instance.createMap(name);
+      MapManager.instance.openMap(
+        descriptor.storagePath,
+        descriptor.name,
+        mapId: descriptor.id,
+      );
+    } else {
+      final path = 'maps/$name.db';
+      MapManager.instance.openMap(path, name);
+    }
     _close();
   }
 
   void _openMap(MapInfo map) {
-    MapManager.instance.openMap(map.path, map.name);
+    MapManager.instance.openMap(map.path, map.name, mapId: map.id);
     _close();
   }
 
@@ -538,9 +547,19 @@ class _AddTabButtonState extends State<_AddTabButton> {
         onEnter: (_) => _open(),
         onExit: (_) => _scheduleClose(),
           child: GestureDetector(
-            onTap: () {
+            onTap: () async {
               final name = NameGenerator.generate();
-              widget.tabsController.addTab('maps/$name.db', name);
+              if (DaemonGateway.instance.isInitialized) {
+                final descriptor = await DaemonGateway.instance.createMap(name);
+                MapManager.instance.openMap(
+                  descriptor.storagePath,
+                  descriptor.name,
+                  mapId: descriptor.id,
+                );
+              } else {
+                final path = 'maps/$name.db';
+                MapManager.instance.openMap(path, name);
+              }
             },
             child: _overlayEntry == null
                 ? Container(
@@ -653,3 +672,110 @@ class _RecentMapTile extends StatelessWidget {
     );
   }
 }
+
+class _FadingTabScrollView extends StatefulWidget {
+  final Widget child;
+
+  const _FadingTabScrollView({required this.child});
+
+  @override
+  State<_FadingTabScrollView> createState() => _FadingTabScrollViewState();
+}
+
+class _FadingTabScrollViewState extends State<_FadingTabScrollView> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _scrollController.hasClients) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _FadingTabScrollView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _scrollController.hasClients) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    double leftFade = 0.0;
+    double rightFade = 0.0;
+
+    if (_scrollController.hasClients && _scrollController.position.maxScrollExtent > 0) {
+      final offset = _scrollController.offset;
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      const fadeExtent = 24.0;
+
+      leftFade = (offset / fadeExtent).clamp(0.0, 1.0);
+      rightFade = ((maxScroll - offset) / fadeExtent).clamp(0.0, 1.0);
+    }
+
+    final scrollView = SingleChildScrollView(
+      controller: _scrollController,
+      scrollDirection: Axis.horizontal,
+      child: widget.child,
+    );
+
+    if (leftFade == 0.0 && rightFade == 0.0) {
+      return scrollView;
+    }
+
+    return ShaderMask(
+      shaderCallback: (Rect bounds) {
+        if (bounds.width <= 0) {
+          return const LinearGradient(colors: [Colors.black, Colors.black]).createShader(bounds);
+        }
+
+        const fadeWidth = 24.0;
+        final leftStop = (fadeWidth / bounds.width).clamp(0.0, 0.3);
+        final rightStop = 1.0 - (fadeWidth / bounds.width).clamp(0.0, 0.3);
+
+        final leftAlpha = (1.0 - leftFade).clamp(0.0, 1.0);
+        final rightAlpha = (1.0 - rightFade).clamp(0.0, 1.0);
+
+        return LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [
+            Color.fromRGBO(0, 0, 0, leftAlpha),
+            Colors.black,
+            Colors.black,
+            Color.fromRGBO(0, 0, 0, rightAlpha),
+          ],
+          stops: [
+            0.0,
+            leftStop,
+            rightStop,
+            1.0,
+          ],
+        ).createShader(bounds);
+      },
+      blendMode: BlendMode.dstIn,
+      child: scrollView,
+    );
+  }
+}
+

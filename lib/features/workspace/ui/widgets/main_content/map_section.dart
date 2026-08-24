@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:centrode/features/graph/ui/graph_screen.dart';
 import 'package:centrode/features/graph/presentation/map_manager.dart';
+import 'package:centrode/infrastructure/lifecycle/daemon_gateway.dart';
 import 'package:centrode/shared/utils/map_scanner.dart';
-import 'package:centrode/shared/utils/app_paths.dart';
-import 'package:centrode/shared/utils/recent_maps_store.dart';
-import 'package:path/path.dart' as p;
 import '../shared/section_header.dart';
 import '../shared/horizontal_scroll_row.dart';
 import 'project_card.dart';
@@ -85,10 +83,8 @@ class MapSectionState extends State<MapSection> {
       for (final map in mapsToDelete) {
         await MapManager.instance.closeByPath(map.path, saveState: false);
       }
-      await Future<void>.delayed(const Duration(milliseconds: 100));
       for (final map in mapsToDelete) {
-        await AppPaths.deleteMapStorage(map.path);
-        await RecentMapsStore.remove(map.path);
+        await DaemonGateway.instance.deleteMap(map.id);
         newSelection.remove(map.path);
       }
       if (!mounted) return;
@@ -159,7 +155,7 @@ class MapSectionState extends State<MapSection> {
                     widget.onSelectionChanged(newSelection);
                   },
                   onTap: () {
-                    MapManager.instance.openMap(map.path, map.name);
+                    MapManager.instance.openMap(map.path, map.name, mapId: map.id);
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const GraphScreen(),
@@ -169,17 +165,13 @@ class MapSectionState extends State<MapSection> {
                   onDelete: () => _deleteMaps([map]),
                   onRename: (newName) async {
                     if (newName == map.name) return;
-                    final parent = p.dirname(map.path);
-                    final newPath = p.join(parent, '$newName.db');
                     await MapManager.instance.closeByPath(map.path, saveState: true);
-                    await Future<void>.delayed(const Duration(milliseconds: 50));
-                    await AppPaths.renameMapStorage(map.path, newPath);
-                    await RecentMapsStore.rename(map.path, newPath);
+                    final updated = await DaemonGateway.instance.renameMap(map.id, newName);
                     if (!mounted) return;
                     if (widget.selectedPaths.contains(map.path)) {
                       final newSelection = Set<String>.from(widget.selectedPaths)
                         ..remove(map.path)
-                        ..add(newPath);
+                        ..add(updated.storagePath);
                       widget.onSelectionChanged(newSelection);
                     }
                     widget.onMapsChanged?.call();

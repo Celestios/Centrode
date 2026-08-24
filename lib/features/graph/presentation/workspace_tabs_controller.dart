@@ -190,14 +190,9 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     _deferredApi.attach(wrapper);
 
     if (centFilePath != null) {
-      final attachmentDir = p.join(
-        directory.path,
-        'attachments',
+      final attachmentDir = await AppPaths.attachmentsDirectoryForMap(
         p.basenameWithoutExtension(centFilePath!),
       );
-      if (!Directory(attachmentDir).existsSync()) {
-        Directory(attachmentDir).createSync(recursive: true);
-      }
       await wrapper.loadMapFromFile(
         filePath: centFilePath!,
         attachmentDir: attachmentDir,

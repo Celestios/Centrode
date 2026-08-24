@@ -28,16 +28,17 @@ class AppPaths {
     return dir;
   }
 
+  static Future<String> attachmentsDirectoryForMap(String mapIdOrName) async {
+    final dir = p.join(await mapsDirectory, 'attachments', mapIdOrName);
+    final d = Directory(dir);
+    if (!d.existsSync()) {
+      d.createSync(recursive: true);
+    }
+    return dir;
+  }
+
   static Future<String> get dataDirectory async {
     return p.join(await _appDataRoot, 'data');
-  }
-
-  static Future<String> get settingsFile async {
-    return p.join(await dataDirectory, 'settings.json');
-  }
-
-  static Future<String> get recentMapsFile async {
-    return p.join(await dataDirectory, 'recent.json');
   }
 
   static Future<String> resolveMapPath(String name) async {
@@ -49,52 +50,33 @@ class AppPaths {
   static Future<String> _getDevRoot() async {
     if (_cachedDevRoot != null) return _cachedDevRoot!;
 
-    // 1. Try walking up from Directory.current.path
-    var dir = Directory.current.path;
-    for (var i = 0; i < 10; i++) {
-      final pubspec = File(p.join(dir, 'pubspec.yaml'));
-      if (pubspec.existsSync()) {
-        final content = pubspec.readAsStringSync();
-        if (content.contains('name: centrode')) {
-          _cachedDevRoot = dir;
-          return dir;
-        }
-      }
-      final parent = p.dirname(dir);
-      if (parent == dir) break;
-      dir = parent;
-    }
+    final root = _findCentrodeRoot(Directory.current.path) ??
+        _findCentrodeRoot(p.dirname(Platform.resolvedExecutable));
 
-    // 2. Try walking up from Platform.resolvedExecutable
-    dir = p.dirname(Platform.resolvedExecutable);
-    for (var i = 0; i < 10; i++) {
-      final pubspec = File(p.join(dir, 'pubspec.yaml'));
-      if (pubspec.existsSync()) {
-        final content = pubspec.readAsStringSync();
-        if (content.contains('name: centrode')) {
-          _cachedDevRoot = dir;
-          return dir;
-        }
-      }
-      final parent = p.dirname(dir);
-      if (parent == dir) break;
-      dir = parent;
-    }
-
-    // 3. Fallback: walk up from Directory.current checking for any pubspec.yaml
-    dir = Directory.current.path;
-    for (var i = 0; i < 10; i++) {
-      if (File(p.join(dir, 'pubspec.yaml')).existsSync()) {
-        _cachedDevRoot = dir;
-        return dir;
-      }
-      final parent = p.dirname(dir);
-      if (parent == dir) break;
-      dir = parent;
+    if (root != null) {
+      _cachedDevRoot = root;
+      return root;
     }
 
     _cachedDevRoot = Directory.current.path;
     return _cachedDevRoot!;
+  }
+
+  static String? _findCentrodeRoot(String startPath) {
+    var dir = startPath;
+    for (var i = 0; i < 10; i++) {
+      final pubspec = File(p.join(dir, 'pubspec.yaml'));
+      if (pubspec.existsSync()) {
+        final content = pubspec.readAsStringSync();
+        if (content.contains('name: centrode')) {
+          return dir;
+        }
+      }
+      final parent = p.dirname(dir);
+      if (parent == dir) break;
+      dir = parent;
+    }
+    return null;
   }
 
   static Future<void> deleteMapStorage(String rawPath) async {

@@ -26,11 +26,11 @@ import 'layout_engine/config.dart';
 import 'layout_engine/types.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:uuid/uuid.dart';
-import 'persistence/history.dart';
-import 'persistence/repo.dart';
 import 'relation_engine/computed.dart';
 import 'relation_engine/config.dart';
 import 'relation_engine/geometry.dart';
+import 'repo.dart';
+import 'repo/history.dart';
 import 'telemetry.dart';
 
 /// Main entrypoint of the Rust API
@@ -86,7 +86,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => 942456308;
+  int get rustContentHash => 2027863219;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -373,6 +373,78 @@ abstract class RustLibApi extends BaseApi {
     required Repository repo,
   });
 
+  ArcDaemonService crateBridgeApiDaemonHandleAutoAccessorGetService({
+    required DaemonHandle that,
+  });
+
+  void crateBridgeApiDaemonHandleAutoAccessorSetService({
+    required DaemonHandle that,
+    required ArcDaemonService service,
+  });
+
+  Future<MapDescriptor> crateBridgeApiDaemonHandleCreateMap({
+    required DaemonHandle that,
+    required String name,
+  });
+
+  Future<void> crateBridgeApiDaemonHandleDeleteMap({
+    required DaemonHandle that,
+    required String mapId,
+  });
+
+  Future<void> crateBridgeApiDaemonHandleDeleteSetting({
+    required DaemonHandle that,
+    required String key,
+  });
+
+  Future<MapDescriptor> crateBridgeApiDaemonHandleDuplicateMap({
+    required DaemonHandle that,
+    required String mapId,
+    required String newName,
+  });
+
+  Future<MapDescriptor> crateBridgeApiDaemonHandleGetMap({
+    required DaemonHandle that,
+    required String mapId,
+  });
+
+  Future<List<MapDescriptor>> crateBridgeApiDaemonHandleGetRecentMaps({
+    required DaemonHandle that,
+    required BigInt limit,
+  });
+
+  Future<String?> crateBridgeApiDaemonHandleGetSetting({
+    required DaemonHandle that,
+    required String key,
+  });
+
+  Future<List<MapDescriptor>> crateBridgeApiDaemonHandleListMaps({
+    required DaemonHandle that,
+  });
+
+  Future<DaemonHandle> crateBridgeApiDaemonHandleNew({
+    required String storagePath,
+  });
+
+  Future<MapDescriptor> crateBridgeApiDaemonHandleRenameMap({
+    required DaemonHandle that,
+    required String mapId,
+    required String newName,
+  });
+
+  Future<void> crateBridgeApiDaemonHandleSetSetting({
+    required DaemonHandle that,
+    required String key,
+    required String value,
+  });
+
+  Future<void> crateBridgeApiDaemonHandleShutdown({required DaemonHandle that});
+
+  Future<void> crateBridgeApiDaemonHandleTouchMap({
+    required DaemonHandle that,
+    required String mapId,
+  });
+
   Stream<LogState> crateBridgeApiCreateLogStream();
 
   Future<void> crateBridgeApiDeleteMapStorage({required String mapId});
@@ -394,6 +466,15 @@ abstract class RustLibApi extends BaseApi {
   CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_AppHandlePtr;
 
   RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_ArcDaemonService;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_ArcDaemonService;
+
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_ArcDaemonServicePtr;
+
+  RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_ArcGraphService;
 
   RustArcDecrementStrongCountFnType
@@ -401,6 +482,14 @@ abstract class RustLibApi extends BaseApi {
 
   CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_ArcGraphServicePtr;
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_DaemonHandle;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_DaemonHandle;
+
+  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_DaemonHandlePtr;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_HistoryRecord;
@@ -2531,6 +2620,568 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  ArcDaemonService crateBridgeApiDaemonHandleAutoAccessorGetService({
+    required DaemonHandle that,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+            that,
+            serializer,
+          );
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 55)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateBridgeApiDaemonHandleAutoAccessorGetServiceConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateBridgeApiDaemonHandleAutoAccessorGetServiceConstMeta =>
+      const TaskConstMeta(
+        debugName: "DaemonHandle_auto_accessor_get_service",
+        argNames: ["that"],
+      );
+
+  @override
+  void crateBridgeApiDaemonHandleAutoAccessorSetService({
+    required DaemonHandle that,
+    required ArcDaemonService service,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+            that,
+            serializer,
+          );
+          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+            service,
+            serializer,
+          );
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 56)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateBridgeApiDaemonHandleAutoAccessorSetServiceConstMeta,
+        argValues: [that, service],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateBridgeApiDaemonHandleAutoAccessorSetServiceConstMeta =>
+      const TaskConstMeta(
+        debugName: "DaemonHandle_auto_accessor_set_service",
+        argNames: ["that", "service"],
+      );
+
+  @override
+  Future<MapDescriptor> crateBridgeApiDaemonHandleCreateMap({
+    required DaemonHandle that,
+    required String name,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+            that,
+            serializer,
+          );
+          sse_encode_String(name, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 57,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_map_descriptor,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiDaemonHandleCreateMapConstMeta,
+        argValues: [that, name],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiDaemonHandleCreateMapConstMeta =>
+      const TaskConstMeta(
+        debugName: "DaemonHandle_create_map",
+        argNames: ["that", "name"],
+      );
+
+  @override
+  Future<void> crateBridgeApiDaemonHandleDeleteMap({
+    required DaemonHandle that,
+    required String mapId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+            that,
+            serializer,
+          );
+          sse_encode_String(mapId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 58,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiDaemonHandleDeleteMapConstMeta,
+        argValues: [that, mapId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiDaemonHandleDeleteMapConstMeta =>
+      const TaskConstMeta(
+        debugName: "DaemonHandle_delete_map",
+        argNames: ["that", "mapId"],
+      );
+
+  @override
+  Future<void> crateBridgeApiDaemonHandleDeleteSetting({
+    required DaemonHandle that,
+    required String key,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+            that,
+            serializer,
+          );
+          sse_encode_String(key, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 59,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiDaemonHandleDeleteSettingConstMeta,
+        argValues: [that, key],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiDaemonHandleDeleteSettingConstMeta =>
+      const TaskConstMeta(
+        debugName: "DaemonHandle_delete_setting",
+        argNames: ["that", "key"],
+      );
+
+  @override
+  Future<MapDescriptor> crateBridgeApiDaemonHandleDuplicateMap({
+    required DaemonHandle that,
+    required String mapId,
+    required String newName,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+            that,
+            serializer,
+          );
+          sse_encode_String(mapId, serializer);
+          sse_encode_String(newName, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 60,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_map_descriptor,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiDaemonHandleDuplicateMapConstMeta,
+        argValues: [that, mapId, newName],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiDaemonHandleDuplicateMapConstMeta =>
+      const TaskConstMeta(
+        debugName: "DaemonHandle_duplicate_map",
+        argNames: ["that", "mapId", "newName"],
+      );
+
+  @override
+  Future<MapDescriptor> crateBridgeApiDaemonHandleGetMap({
+    required DaemonHandle that,
+    required String mapId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+            that,
+            serializer,
+          );
+          sse_encode_String(mapId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 61,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_map_descriptor,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiDaemonHandleGetMapConstMeta,
+        argValues: [that, mapId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiDaemonHandleGetMapConstMeta =>
+      const TaskConstMeta(
+        debugName: "DaemonHandle_get_map",
+        argNames: ["that", "mapId"],
+      );
+
+  @override
+  Future<List<MapDescriptor>> crateBridgeApiDaemonHandleGetRecentMaps({
+    required DaemonHandle that,
+    required BigInt limit,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+            that,
+            serializer,
+          );
+          sse_encode_usize(limit, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 62,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_map_descriptor,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiDaemonHandleGetRecentMapsConstMeta,
+        argValues: [that, limit],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiDaemonHandleGetRecentMapsConstMeta =>
+      const TaskConstMeta(
+        debugName: "DaemonHandle_get_recent_maps",
+        argNames: ["that", "limit"],
+      );
+
+  @override
+  Future<String?> crateBridgeApiDaemonHandleGetSetting({
+    required DaemonHandle that,
+    required String key,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+            that,
+            serializer,
+          );
+          sse_encode_String(key, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 63,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_opt_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiDaemonHandleGetSettingConstMeta,
+        argValues: [that, key],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiDaemonHandleGetSettingConstMeta =>
+      const TaskConstMeta(
+        debugName: "DaemonHandle_get_setting",
+        argNames: ["that", "key"],
+      );
+
+  @override
+  Future<List<MapDescriptor>> crateBridgeApiDaemonHandleListMaps({
+    required DaemonHandle that,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+            that,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 64,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_map_descriptor,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiDaemonHandleListMapsConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiDaemonHandleListMapsConstMeta =>
+      const TaskConstMeta(
+        debugName: "DaemonHandle_list_maps",
+        argNames: ["that"],
+      );
+
+  @override
+  Future<DaemonHandle> crateBridgeApiDaemonHandleNew({
+    required String storagePath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(storagePath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 65,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiDaemonHandleNewConstMeta,
+        argValues: [storagePath],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiDaemonHandleNewConstMeta =>
+      const TaskConstMeta(
+        debugName: "DaemonHandle_new",
+        argNames: ["storagePath"],
+      );
+
+  @override
+  Future<MapDescriptor> crateBridgeApiDaemonHandleRenameMap({
+    required DaemonHandle that,
+    required String mapId,
+    required String newName,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+            that,
+            serializer,
+          );
+          sse_encode_String(mapId, serializer);
+          sse_encode_String(newName, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 66,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_map_descriptor,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiDaemonHandleRenameMapConstMeta,
+        argValues: [that, mapId, newName],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiDaemonHandleRenameMapConstMeta =>
+      const TaskConstMeta(
+        debugName: "DaemonHandle_rename_map",
+        argNames: ["that", "mapId", "newName"],
+      );
+
+  @override
+  Future<void> crateBridgeApiDaemonHandleSetSetting({
+    required DaemonHandle that,
+    required String key,
+    required String value,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+            that,
+            serializer,
+          );
+          sse_encode_String(key, serializer);
+          sse_encode_String(value, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 67,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiDaemonHandleSetSettingConstMeta,
+        argValues: [that, key, value],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiDaemonHandleSetSettingConstMeta =>
+      const TaskConstMeta(
+        debugName: "DaemonHandle_set_setting",
+        argNames: ["that", "key", "value"],
+      );
+
+  @override
+  Future<void> crateBridgeApiDaemonHandleShutdown({
+    required DaemonHandle that,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+            that,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 68,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiDaemonHandleShutdownConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiDaemonHandleShutdownConstMeta =>
+      const TaskConstMeta(
+        debugName: "DaemonHandle_shutdown",
+        argNames: ["that"],
+      );
+
+  @override
+  Future<void> crateBridgeApiDaemonHandleTouchMap({
+    required DaemonHandle that,
+    required String mapId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+            that,
+            serializer,
+          );
+          sse_encode_String(mapId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 69,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateBridgeApiDaemonHandleTouchMapConstMeta,
+        argValues: [that, mapId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateBridgeApiDaemonHandleTouchMapConstMeta =>
+      const TaskConstMeta(
+        debugName: "DaemonHandle_touch_map",
+        argNames: ["that", "mapId"],
+      );
+
+  @override
   Stream<LogState> crateBridgeApiCreateLogStream() {
     final sink = RustStreamSink<LogState>();
     unawaited(
@@ -2542,7 +3193,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 55,
+              funcId: 70,
               port: port_,
             );
           },
@@ -2572,7 +3223,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 56,
+            funcId: 71,
             port: port_,
           );
         },
@@ -2600,7 +3251,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 57,
+            funcId: 72,
             port: port_,
           );
         },
@@ -2630,7 +3281,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 58,
+            funcId: 73,
             port: port_,
           );
         },
@@ -2657,7 +3308,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 59,
+            funcId: 74,
             port: port_,
           );
         },
@@ -2684,7 +3335,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 60,
+            funcId: 75,
             port: port_,
           );
         },
@@ -2711,12 +3362,28 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle;
 
   RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_ArcDaemonService => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_ArcDaemonService => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService;
+
+  RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_ArcGraphService => wire
       .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService;
 
   RustArcDecrementStrongCountFnType
   get rust_arc_decrement_strong_count_ArcGraphService => wire
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService;
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_DaemonHandle => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_DaemonHandle => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_HistoryRecord => wire
@@ -2750,12 +3417,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ArcDaemonService
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return ArcDaemonServiceImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
   ArcGraphService
   dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return ArcGraphServiceImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  DaemonHandle
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return DaemonHandleImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -2786,12 +3471,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  DaemonHandle
+  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return DaemonHandleImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
   AppHandle
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return AppHandleImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  DaemonHandle
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return DaemonHandleImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -2813,12 +3516,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ArcDaemonService
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return ArcDaemonServiceImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
   ArcGraphService
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return ArcGraphServiceImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  DaemonHandle
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return DaemonHandleImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -3815,6 +4536,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<MapDescriptor> dco_decode_list_map_descriptor(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_map_descriptor).toList();
+  }
+
+  @protected
   List<MapTheme> dco_decode_list_map_theme(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_map_theme).toList();
@@ -3951,6 +4678,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       activeThemeId: dco_decode_opt_String(arr[2]),
       displayMode: dco_decode_display_mode(arr[3]),
       optArea: dco_decode_opt_box_autoadd_bounding_box(arr[4]),
+    );
+  }
+
+  @protected
+  MapDescriptor dco_decode_map_descriptor(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return MapDescriptor(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      storagePath: dco_decode_String(arr[2]),
+      createdAtMs: dco_decode_i_64(arr[3]),
+      modifiedAtMs: dco_decode_i_64(arr[4]),
+      accessedAtMs: dco_decode_i_64(arr[5]),
     );
   }
 
@@ -4821,12 +5564,36 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ArcDaemonService
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return ArcDaemonServiceImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
   ArcGraphService
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return ArcGraphServiceImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  DaemonHandle
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return DaemonHandleImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -4869,12 +5636,36 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  DaemonHandle
+  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return DaemonHandleImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
   AppHandle
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return AppHandleImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  DaemonHandle
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return DaemonHandleImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -4905,12 +5696,36 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ArcDaemonService
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return ArcDaemonServiceImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
   ArcGraphService
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return ArcGraphServiceImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  DaemonHandle
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return DaemonHandleImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -6138,6 +6953,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<MapDescriptor> sse_decode_list_map_descriptor(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <MapDescriptor>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_map_descriptor(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<MapTheme> sse_decode_list_map_theme(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -6372,6 +7201,25 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       activeThemeId: var_activeThemeId,
       displayMode: var_displayMode,
       optArea: var_optArea,
+    );
+  }
+
+  @protected
+  MapDescriptor sse_decode_map_descriptor(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_storagePath = sse_decode_String(deserializer);
+    var var_createdAtMs = sse_decode_i_64(deserializer);
+    var var_modifiedAtMs = sse_decode_i_64(deserializer);
+    var var_accessedAtMs = sse_decode_i_64(deserializer);
+    return MapDescriptor(
+      id: var_id,
+      name: var_name,
+      storagePath: var_storagePath,
+      createdAtMs: var_createdAtMs,
+      modifiedAtMs: var_modifiedAtMs,
+      accessedAtMs: var_accessedAtMs,
     );
   }
 
@@ -7524,6 +8372,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    ArcDaemonService self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as ArcDaemonServiceImpl).frbInternalSseEncode(move: true),
+      serializer,
+    );
+  }
+
+  @protected
+  void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
     ArcGraphService self,
     SseSerializer serializer,
@@ -7531,6 +8392,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as ArcGraphServiceImpl).frbInternalSseEncode(move: true),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    DaemonHandle self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as DaemonHandleImpl).frbInternalSseEncode(move: true),
       serializer,
     );
   }
@@ -7576,6 +8450,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    DaemonHandle self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as DaemonHandleImpl).frbInternalSseEncode(move: false),
+      serializer,
+    );
+  }
+
+  @protected
+  void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppHandle(
     AppHandle self,
     SseSerializer serializer,
@@ -7583,6 +8470,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as AppHandleImpl).frbInternalSseEncode(move: false),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    DaemonHandle self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as DaemonHandleImpl).frbInternalSseEncode(move: false),
       serializer,
     );
   }
@@ -7615,6 +8515,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcDaemonService(
+    ArcDaemonService self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as ArcDaemonServiceImpl).frbInternalSseEncode(move: null),
+      serializer,
+    );
+  }
+
+  @protected
+  void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcGraphService(
     ArcGraphService self,
     SseSerializer serializer,
@@ -7622,6 +8535,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as ArcGraphServiceImpl).frbInternalSseEncode(move: null),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDaemonHandle(
+    DaemonHandle self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as DaemonHandleImpl).frbInternalSseEncode(move: null),
       serializer,
     );
   }
@@ -8678,6 +9604,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_map_descriptor(
+    List<MapDescriptor> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_map_descriptor(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_map_theme(
     List<MapTheme> self,
     SseSerializer serializer,
@@ -8879,6 +9817,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_String(self.activeThemeId, serializer);
     sse_encode_display_mode(self.displayMode, serializer);
     sse_encode_opt_box_autoadd_bounding_box(self.optArea, serializer);
+  }
+
+  @protected
+  void sse_encode_map_descriptor(MapDescriptor self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_String(self.storagePath, serializer);
+    sse_encode_i_64(self.createdAtMs, serializer);
+    sse_encode_i_64(self.modifiedAtMs, serializer);
+    sse_encode_i_64(self.accessedAtMs, serializer);
   }
 
   @protected
@@ -10123,6 +11072,30 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
 }
 
 @sealed
+class ArcDaemonServiceImpl extends RustOpaque implements ArcDaemonService {
+  // Not to be used by end users
+  ArcDaemonServiceImpl.frbInternalDcoDecode(List<dynamic> wire)
+    : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  ArcDaemonServiceImpl.frbInternalSseDecode(
+    BigInt ptr,
+    int externalSizeOnNative,
+  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        RustLib.instance.api.rust_arc_increment_strong_count_ArcDaemonService,
+    rustArcDecrementStrongCount:
+        RustLib.instance.api.rust_arc_decrement_strong_count_ArcDaemonService,
+    rustArcDecrementStrongCountPtr: RustLib
+        .instance
+        .api
+        .rust_arc_decrement_strong_count_ArcDaemonServicePtr,
+  );
+}
+
+@sealed
 class ArcGraphServiceImpl extends RustOpaque implements ArcGraphService {
   // Not to be used by end users
   ArcGraphServiceImpl.frbInternalDcoDecode(List<dynamic> wire)
@@ -10140,6 +11113,91 @@ class ArcGraphServiceImpl extends RustOpaque implements ArcGraphService {
     rustArcDecrementStrongCountPtr:
         RustLib.instance.api.rust_arc_decrement_strong_count_ArcGraphServicePtr,
   );
+}
+
+@sealed
+class DaemonHandleImpl extends RustOpaque implements DaemonHandle {
+  // Not to be used by end users
+  DaemonHandleImpl.frbInternalDcoDecode(List<dynamic> wire)
+    : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  DaemonHandleImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
+    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        RustLib.instance.api.rust_arc_increment_strong_count_DaemonHandle,
+    rustArcDecrementStrongCount:
+        RustLib.instance.api.rust_arc_decrement_strong_count_DaemonHandle,
+    rustArcDecrementStrongCountPtr:
+        RustLib.instance.api.rust_arc_decrement_strong_count_DaemonHandlePtr,
+  );
+
+  ArcDaemonService get service => RustLib.instance.api
+      .crateBridgeApiDaemonHandleAutoAccessorGetService(that: this);
+
+  set service(ArcDaemonService service) =>
+      RustLib.instance.api.crateBridgeApiDaemonHandleAutoAccessorSetService(
+        that: this,
+        service: service,
+      );
+
+  Future<MapDescriptor> createMap({required String name}) => RustLib
+      .instance
+      .api
+      .crateBridgeApiDaemonHandleCreateMap(that: this, name: name);
+
+  Future<void> deleteMap({required String mapId}) => RustLib.instance.api
+      .crateBridgeApiDaemonHandleDeleteMap(that: this, mapId: mapId);
+
+  Future<void> deleteSetting({required String key}) => RustLib.instance.api
+      .crateBridgeApiDaemonHandleDeleteSetting(that: this, key: key);
+
+  Future<MapDescriptor> duplicateMap({
+    required String mapId,
+    required String newName,
+  }) => RustLib.instance.api.crateBridgeApiDaemonHandleDuplicateMap(
+    that: this,
+    mapId: mapId,
+    newName: newName,
+  );
+
+  Future<MapDescriptor> getMap({required String mapId}) => RustLib.instance.api
+      .crateBridgeApiDaemonHandleGetMap(that: this, mapId: mapId);
+
+  Future<List<MapDescriptor>> getRecentMaps({required BigInt limit}) => RustLib
+      .instance
+      .api
+      .crateBridgeApiDaemonHandleGetRecentMaps(that: this, limit: limit);
+
+  Future<String?> getSetting({required String key}) => RustLib.instance.api
+      .crateBridgeApiDaemonHandleGetSetting(that: this, key: key);
+
+  Future<List<MapDescriptor>> listMaps() =>
+      RustLib.instance.api.crateBridgeApiDaemonHandleListMaps(that: this);
+
+  Future<MapDescriptor> renameMap({
+    required String mapId,
+    required String newName,
+  }) => RustLib.instance.api.crateBridgeApiDaemonHandleRenameMap(
+    that: this,
+    mapId: mapId,
+    newName: newName,
+  );
+
+  Future<void> setSetting({required String key, required String value}) =>
+      RustLib.instance.api.crateBridgeApiDaemonHandleSetSetting(
+        that: this,
+        key: key,
+        value: value,
+      );
+
+  Future<void> shutdown() =>
+      RustLib.instance.api.crateBridgeApiDaemonHandleShutdown(that: this);
+
+  Future<void> touchMap({required String mapId}) => RustLib.instance.api
+      .crateBridgeApiDaemonHandleTouchMap(that: this, mapId: mapId);
 }
 
 @sealed

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:ui';
 import 'package:centrode/shared/logging.dart';
 import '../models/models.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
@@ -14,7 +13,7 @@ class CommandProcessor {
   final Map<String, GraphCommand> _pendingCommands = {};
   final ListQueue<GraphCommand> _executionQueue = ListQueue();
   final Function(String) onError;
-  final VoidCallback? onQueueDrained;
+  final void Function()? onQueueDrained;
 
   CommandProcessor({required this.onError, this.onQueueDrained});
 

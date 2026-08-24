@@ -14,7 +14,8 @@ import 'presentation/theme/app_theme_manager.dart';
 import 'presentation/theme/theme_repository.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'infrastructure/lifecycle/custodian_manager.dart';
-import 'src/rust/bridge/api.dart';
+import 'infrastructure/lifecycle/daemon_gateway.dart';
+import 'features/graph/presentation/map_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +35,7 @@ Future<void> main() async {
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.hidden,
     );
-    windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
       await windowManager.focus();
     });
@@ -50,11 +51,13 @@ Future<void> main() async {
 
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
     CustodianLifecycleCoordinator.instance.init();
+    CustodianLifecycleCoordinator.instance.onBeforeShutdown =
+        () => MapManager.instance.flushAndCloseAll();
     await CustodianLifecycleCoordinator.instance.onAppStartup();
   }
 
   final coreDbDir = await AppPaths.mapsDirectory;
-  await initCoreEngine(storagePath: coreDbDir);
+  await DaemonGateway.instance.init(coreDbDir);
 
   final themes = await ThemeLoader.loadBundledThemes();
   final AppTheme initialTheme;

@@ -179,23 +179,15 @@ class RelationPaintDtoBuilder {
     final startPoint = Offset(cached.startPoint.x, cached.startPoint.y);
     final endPoint = Offset(cached.endPoint.x, cached.endPoint.y);
 
-    final fromSide =
-        (rel.resolvedLayout?.fromSide != null &&
-            rel.resolvedLayout!.fromSide != PortSide.auto)
-        ? rel.resolvedLayout!.fromSide
-        : (rel.layout?.fromSide != null &&
-                rel.layout!.fromSide != PortSide.auto)
-            ? rel.layout!.fromSide
-            : null;
+    final fromSide = _resolvePortSide(
+      rel.resolvedLayout?.fromSide,
+      rel.layout?.fromSide,
+    );
 
-    final toSide =
-        (rel.resolvedLayout?.toSide != null &&
-            rel.resolvedLayout!.toSide != PortSide.auto)
-        ? rel.resolvedLayout!.toSide
-        : (rel.layout?.toSide != null &&
-                rel.layout!.toSide != PortSide.auto)
-            ? rel.layout!.toSide
-            : null;
+    final toSide = _resolvePortSide(
+      rel.resolvedLayout?.toSide,
+      rel.layout?.toSide,
+    );
 
     final liveStart = fromSide != null
         ? fromVs.getPortPosition(fromSide)
@@ -355,5 +347,11 @@ class RelationPaintDtoBuilder {
       widths: cached.bodyWidths,
       isVariableWidth: cached.bodyType != rust_config.BodyType.uniform,
     );
+  }
+
+  static PortSide? _resolvePortSide(PortSide? resolved, PortSide? base) {
+    if (resolved != null && resolved != PortSide.auto) return resolved;
+    if (base != null && base != PortSide.auto) return base;
+    return null;
   }
 }
