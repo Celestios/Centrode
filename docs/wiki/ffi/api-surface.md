@@ -1,6 +1,6 @@
 # FFI API Surface
 
-All methods on `AppHandle` (`rust/src/bridge/api.rs`) that are callable from Dart via FRB.
+All methods on `AppHandle` (`rust/centrode_core/src/bridge/api.rs`) that are callable from Dart via FRB.
 
 ---
 

@@ -48,7 +48,7 @@ flutter_rust_bridge_codegen generate
 
 | File | Location | Contents |
 |------|----------|----------|
-| `frb_generated.rs` | `rust/src/` | Rust-side FFI bindings |
+| `frb_generated.rs` | `rust/centrode_core/src/` | Rust-side FFI bindings |
 | `frb_generated.dart` | `lib/src/rust/` | Dart-side FFI bindings |
 | `frb_generated.io.dart` | `lib/src/rust/` | IO platform bindings |
 | `frb_generated.web.dart` | `lib/src/rust/` | Web platform bindings |
@@ -57,19 +57,19 @@ flutter_rust_bridge_codegen generate
 
 | File | Rust Source |
 |------|-------------|
-| `nodes.dart` | `rust/src/domain/nodes.rs` |
-| `relations.dart` | `rust/src/domain/relations.rs` |
-| `patches.dart` | `rust/src/domain/patches.rs` |
-| `styles.dart` | `rust/src/domain/styles.rs` |
-| `tags.dart` | `rust/src/domain/tags.rs` |
-| `types.dart` | `rust/src/domain/types.rs` |
-| `id.dart` | `rust/src/domain/id.rs` |
-| `base_models.dart` | `rust/src/domain/base_models.rs` |
-| `contents.dart` | `rust/src/domain/contents.rs` |
-| `enums.dart` | `rust/src/domain/enums.rs` |
-| `snapshot.dart` | `rust/src/domain/snapshot.rs` |
-| `theme.dart` | `rust/src/domain/theme.rs` |
-| `traits.dart` | `rust/src/domain/traits.rs` |
+| `nodes.dart` | `rust/centrode_core/src/domain/nodes.rs` |
+| `relations.dart` | `rust/centrode_core/src/domain/relations.rs` |
+| `patches.dart` | `rust/centrode_core/src/domain/patches.rs` |
+| `styles.dart` | `rust/centrode_core/src/domain/styles.rs` |
+| `tags.dart` | `rust/centrode_core/src/domain/tags.rs` |
+| `types.dart` | `rust/centrode_core/src/domain/types.rs` |
+| `id.dart` | `rust/centrode_core/src/domain/id.rs` |
+| `base_models.dart` | `rust/centrode_core/src/domain/base_models.rs` |
+| `contents.dart` | `rust/centrode_core/src/domain/contents.rs` |
+| `routing.dart` | `rust/centrode_core/src/domain/routing.rs` |
+| `snapshot.dart` | `rust/centrode_core/src/domain/snapshot.rs` |
+| `theme.dart` | `rust/centrode_core/src/domain/theme.rs` |
+| `traits.dart` | `rust/centrode_core/src/domain/traits.rs` |
 
 **When to regenerate**:
 - After modifying any Rust type exposed via `bridge/api.rs`
@@ -85,14 +85,14 @@ flutter_rust_bridge_codegen generate
 cd rust && cargo test schema_gen  # or equivalent schema gen command
 ```
 
-**Generated file**: `rust/src/persistence/schema.surql`
+**Generated file**: `rust/centrode_daemon/src/map_schema.surql`
 
-**Source**: Domain structs in `rust/src/domain/` — the schema is derived from Rust type definitions via `rust/src/persistence/schema_gen/`.
+**Source**: Domain structs in `rust/centrode_core/src/domain/` — the schema is derived from Rust type definitions via `rust/centrode_daemon/src/schema_gen/`.
 
 **When to regenerate**:
 - After adding/removing fields on domain structs (`INode`, `TaskNode`, `IRelation`, etc.)
 - After adding new domain types that need persistence
-- Never edit `schema.surql` directly — it will be overwritten
+- Never edit `map_schema.surql` directly — it will be overwritten
 
 ---
 

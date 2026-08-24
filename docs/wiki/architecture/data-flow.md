@@ -101,8 +101,8 @@ Each mutation creates a `SymmetricEntityPatch` stored in the `History` table. Un
 | Dart UI | `UiNode` (sealed class) | `lib/features/graph/models/graph_node.dart` |
 | Dart Command | `GraphCommand` (abstract) | `lib/features/graph/models/commands/base.dart` |
 | Dart API | `GraphApi` (abstract) | `lib/features/graph/store/graph_api.dart` |
-| FFI Boundary | `AppHandle` | `rust/src/bridge/api.rs` |
-| Rust Service | `GraphService` | `rust/src/services/graph_service.rs` |
-| Rust Domain | `Nodes` (enum) | `rust/src/domain/nodes.rs` |
-| Rust Persistence | `Repository` | `rust/src/persistence/repo.rs` |
-| Rust Stream | `GraphEvent` | `rust/src/bridge/stream.rs` |
+| FFI Boundary | `AppHandle` | `rust/centrode_core/src/bridge/api.rs` |
+| Rust Service | `GraphService` | `rust/centrode_core/src/services/graph_service.rs` |
+| Rust Domain | `Nodes` (enum) | `rust/centrode_core/src/domain/nodes.rs` |
+| Rust Persistence | `Repository` | `rust/centrode_core/src/repo.rs` |
+| Rust Stream | `GraphEvent` | `rust/centrode_core/src/bridge/stream.rs` |

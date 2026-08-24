@@ -14,9 +14,9 @@ flutter_rust_bridge_codegen generate
 **Config**: `flutter_rust_bridge.yaml`
 
 **What it does**:
-- Reads Rust API surface (`rust/src/bridge/api.rs`)
+- Reads Rust API surface (`rust/centrode_core/src/bridge/api.rs`)
 - Generates Dart bindings (`lib/src/rust/`)
-- Generates Rust-side FRB glue (`rust/src/frb_generated.rs`)
+- Generates Rust-side FRB glue (`rust/centrode_core/src/frb_generated.rs`)
 
 **When to run**:
 - After modifying any Rust type exposed via FFI
@@ -55,12 +55,12 @@ Or dedicated schema gen command if available.
 
 **What it does**:
 - Reads Rust domain structs
-- Generates `rust/src/persistence/schema.surql` (SurrealDB schema)
+- Generates `rust/centrode_daemon/src/map_schema.surql` (SurrealDB schema)
 
 **When to run**:
 - After adding/removing fields on domain structs
 - After adding new node/relation types
-- Never edit `schema.surql` directly
+- Never edit `map_schema.surql` directly
 
 ---
 
@@ -82,9 +82,9 @@ After model changes, run generators in this order:
 | `*.freezed.dart` | freezed | Yes — edit `@freezed` class |
 | `*.g.dart` | json_serializable | Yes — edit `@JsonSerializable` class |
 | `graph_node.ui.dart` | centrode_codegen | Yes — edit `UiNode` sealed class |
-| `rust/src/frb_generated.rs` | FRB | No — generated from `bridge/api.rs` |
+| `rust/centrode_core/src/frb_generated.rs` | FRB | No — generated from `bridge/api.rs` |
 | `lib/src/rust/**/*.dart` | FRB | No — generated from Rust types |
-| `rust/src/persistence/schema.surql` | schema_gen | No — generated from Rust structs |
+| `rust/centrode_daemon/src/map_schema.surql` | schema_gen | No — generated from Rust structs |
 
 ---
 

@@ -19,7 +19,7 @@ Dart ↔ Rust type correspondence across the FFI boundary.
 
 ## Domain Types
 
-| Dart (`lib/src/rust/domain/`) | Rust (`rust/src/domain/`) | Notes |
+| Dart (`lib/src/rust/domain/`) | Rust (`rust/centrode_core/src/domain/`) | Notes |
 |------|------|-------|
 | `TypedRecordId` | `TypedRecordId` | SurrealDB record ID |
 | `RawUuid` | — (Dart-only) | UUID v4 wrapper |

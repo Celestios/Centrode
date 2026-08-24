@@ -29,7 +29,7 @@ graph BT
 **Rules**:
 - Must NOT make direct database queries or writes
 - Must emit events or commands to Tier 2 coordinators
-- Must NOT import from `store/`, `models/commands/`, `domain/`, or `rust/src/`
+- Must NOT import from `store/`, `models/commands/`, `domain/`, or `rust/`
 
 ### Tier 2 — Interaction & Controllers
 
@@ -58,11 +58,12 @@ graph BT
 | `lib/features/graph/store/` | GraphApi interface, query controller, command processors, spatial index |
 | `lib/features/graph/store/modules/` | 12 store mutation modules and `GraphSyncEngine` |
 | `lib/features/graph/models/` | UiNode types, relation models, DTOs |
-| `rust/src/domain/` | Core Rust types: nodes, relations, patches, styles |
-| `rust/src/persistence/` | SurrealDB connection, CRUD, history, schema |
-| `rust/src/relation_engine/` | Routing algorithms, path finding |
-| `rust/src/layout_engine/` | Force-directed layout, physics |
-| `rust/src/services/` | High-level graph service |
+| `rust/centrode_core/src/domain/` | Core Rust types: nodes, relations, patches, styles |
+| `rust/centrode_core/src/repo/` | SurrealDB queries, CRUD, history |
+| `rust/centrode_daemon/src/` | Standalone daemon, SurrealKV engine, schema |
+| `rust/centrode_core/src/relation_engine/` | Routing algorithms, path finding |
+| `rust/centrode_core/src/layout_engine/` | Force-directed layout, physics |
+| `rust/centrode_core/src/services/` | High-level graph service |
 
 **Rules**:
 - Must NEVER import from Tier 1 or Tier 2

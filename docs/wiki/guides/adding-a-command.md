@@ -6,7 +6,7 @@ Step-by-step guide to adding a new graph mutation command.
 
 ## 1. Create Command File
 
-**File**: `lib/features/graph/models/commands/my_command.dart`
+**File**: `lib/features/graph/models/commands/<my_command>.dart`
 
 ```dart
 import 'package:centrode/shared/domain/raw_uuid.dart';

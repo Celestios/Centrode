@@ -39,8 +39,7 @@ lib/shared/
 │   ├── date_utils.dart                # Date formatting
 │   ├── geometry.dart                  # Geometric calculations
 │   ├── map_scanner.dart               # Maps directory scanner
-│   ├── name_generator.dart            # Random name generation
-│   └── recent_maps_store.dart         # Recent maps persistence
+│   └── name_generator.dart            # Random name generation
 └── widgets/
     ├── canvas_camera_physics.dart       # Rubber-band & spring math
     ├── canvas_interactive_viewer.dart  # Custom InteractiveViewer with elastic bounds

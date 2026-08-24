@@ -63,7 +63,7 @@ rust/src/
 
 ## Crate Root
 
-`rust/src/lib.rs` declares all modules and exposes `init_core()`:
+`rust/centrode_core/src/lib.rs` declares all modules and exposes `init_core()`:
 
 ```rust
 pub fn init_core() {

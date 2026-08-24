@@ -6,7 +6,7 @@ Step-by-step guide to adding a new node type to Centrode.
 
 ## 1. Rust Domain Type
 
-**File**: `rust/src/domain/nodes.rs`
+**File**: `rust/centrode_core/src/domain/nodes.rs`
 
 Add a new struct implementing `IsNode`:
 
@@ -24,7 +24,7 @@ pub struct MyNewNode {
 impl IsNode for MyNewNode { ... }
 ```
 
-**File**: `rust/src/domain/types.rs`
+**File**: `rust/centrode_core/src/domain/types.rs`
 
 Add variant to `Nodes` enum:
 
@@ -39,7 +39,7 @@ pub enum Nodes {
 
 ## 2. SurrealDB Schema
 
-**Auto-generated** — do not edit `schema.surql` directly.
+**Auto-generated** — do not edit `map_schema.surql` directly.
 
 After adding the Rust type, the schema generator will create the table definition. Run:
 
@@ -47,13 +47,13 @@ After adding the Rust type, the schema generator will create the table definitio
 cd rust && cargo test
 ```
 
-Verify `rust/src/persistence/schema.surql` contains your new table.
+Verify `rust/centrode_daemon/src/map_schema.surql` contains your new table.
 
 ---
 
 ## 3. Repository CRUD
 
-**File**: `rust/src/persistence/repo/nodes.rs`
+**File**: `rust/centrode_core/src/repo/nodes.rs`
 
 Add CRUD operations for your new node type. Follow the pattern of existing node types.
 
@@ -61,7 +61,7 @@ Add CRUD operations for your new node type. Follow the pattern of existing node 
 
 ## 4. FFI Endpoints
 
-**File**: `rust/src/bridge/api.rs`
+**File**: `rust/centrode_core/src/bridge/api.rs`
 
 If the new node needs special FFI methods, add them to `AppHandle`. Otherwise, existing generic methods (`create_node`, `update_node`, etc.) work via the `Nodes` enum.
 
@@ -132,6 +132,6 @@ Color get defaultPreviewColor => switch (this) {
 
 ## 10. Testing
 
-- Add Rust tests in `rust/src/domain/` for the new type
+- Add Rust tests in `rust/centrode_core/tests/` for the new type
 - Add Dart tests in `test/features/graph/models/` for UiNode behavior
 - Run full test suite: `flutter test && cd rust && cargo test`

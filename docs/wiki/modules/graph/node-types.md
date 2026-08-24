@@ -37,7 +37,7 @@ All node types extend the `UiNode` sealed class. The sealed modifier enables exh
 
 Rich content node — the primary note-taking node. Supports markdown, tags, aliases, comments, and file attachments.
 
-- **Rust**: `INode` in `rust/src/domain/nodes.rs`
+- **Rust**: `INode` in `rust/centrode_core/src/domain/nodes.rs`
 - **Table**: `INode` in SurrealDB
 - **Default color**: `#90CAF9` (light blue)
 - **Attachments**: `Vec<Attachment>` — multi-file, content-addressable via `AssetVault`

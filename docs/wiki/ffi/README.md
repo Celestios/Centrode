@@ -31,8 +31,8 @@ GraphApi (abstract)
 
 | File | Side | Role |
 |------|------|------|
-| `rust/src/bridge/api.rs` | Rust | FFI API surface — `AppHandle` + all endpoints |
-| `rust/src/bridge/stream.rs` | Rust | `GraphEvent`, `GraphDelta` stream types |
+| `rust/centrode_core/src/bridge/api.rs` | Rust | FFI API surface — `AppHandle` + all endpoints |
+| `rust/centrode_core/src/bridge/stream.rs` | Rust | `GraphEvent`, `GraphDelta` stream types |
 | `lib/src/rust/bridge/api.dart` | Dart | Auto-generated Dart bindings for FFI |
 | `lib/src/rust/bridge/stream.dart` | Dart | Auto-generated stream types |
 | `lib/features/graph/store/graph_api.dart` | Dart | `GraphApi` abstract interface |
@@ -81,5 +81,5 @@ Rust → Dart communication uses FRB's `StreamSink`:
 ## Configuration
 
 `flutter_rust_bridge.yaml` controls codegen:
-- Input: `rust/src/bridge/api.rs`
-- Output: `lib/src/rust/` (Dart bindings), `rust/src/frb_generated.rs` (Rust side)
+- Input: `rust/centrode_core/src/bridge/api.rs`
+- Output: `lib/src/rust/` (Dart bindings), `rust/centrode_core/src/frb_generated.rs` (Rust side)

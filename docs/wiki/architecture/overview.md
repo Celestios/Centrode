@@ -31,18 +31,19 @@ graph TD
 | **Presentation** | `lib/presentation/` | Theme system, shared presentation widgets |
 | **Shared** | `lib/shared/` | Common widgets, glass panel, utilities |
 
-### Rust Backend (`rust/src/`)
+### Rust Workspace (`rust/`)
 
 | Module | Path | Responsibility |
 |--------|------|----------------|
-| **Bridge** | `rust/src/bridge/` | FFI endpoints exposed to Flutter |
-| **Domain** | `rust/src/domain/` | Core types: nodes, relations, patches, styles |
-| **Persistence** | `rust/src/persistence/` | SurrealDB connection, CRUD, history, schema |
-| **Relation Engine** | `rust/src/relation_engine/` | Routing algorithms, path finding, composition |
-| **Layout Engine** | `rust/src/layout_engine/` | Force-directed graph layout, physics forces |
-| **Services** | `rust/src/services/` | High-level graph service layer, asset vault |
-| **Format** | `rust/src/format/` | `.cent` zip package format |
-| **Telemetry** | `rust/src/telemetry.rs` | Tracing subscriber bridged to Flutter |
+| **Core Bridge** | `rust/centrode_core/src/bridge/` | FFI endpoints exposed to Flutter |
+| **Core Domain** | `rust/centrode_core/src/domain/` | Core types: nodes, relations, patches, styles |
+| **Core Repo** | `rust/centrode_core/src/repo/` | SurrealDB connection, CRUD, history queries |
+| **Relation Engine** | `rust/centrode_core/src/relation_engine/` | Routing algorithms, path finding, composition |
+| **Layout Engine** | `rust/centrode_core/src/layout_engine/` | Force-directed graph layout, physics forces |
+| **Services** | `rust/centrode_core/src/services/` | High-level graph service layer, asset vault |
+| **Format** | `rust/centrode_core/src/format/` | `.cent` zip package format |
+| **Telemetry** | `rust/centrode_core/src/telemetry.rs` | Tracing subscriber bridged to Flutter |
+| **Daemon** | `rust/centrode_daemon/` | Standalone tray, hotkeys, Custodian IPC, schema |
 
 ---
 
@@ -71,10 +72,10 @@ On the Rust side, `init_core()` (called via FRB init) sets up the `tracing` tele
 | `lib/features/graph/ui/canvas/graph_canvas.dart` | Infinite canvas — core interaction + rendering |
 | `lib/features/graph/store/graph_api.dart` | Store API — data access facade |
 | `lib/features/graph/store/modules/graph_sync_engine.dart` | Sync engine — Rust FFI sync bridge |
-| `rust/src/bridge/api.rs` | FFI API surface — all endpoints callable from Flutter |
-| `rust/src/persistence/repo.rs` | Repository — SurrealDB CRUD layer |
-| `rust/src/relation_engine/engine.rs` | Relation engine — routing + geometry |
-| `rust/src/layout_engine/engine.rs` | Layout engine — force-directed graph layout & OptArea physics |
+| `rust/centrode_core/src/bridge/api.rs` | FFI API surface — all endpoints callable from Flutter |
+| `rust/centrode_core/src/repo.rs` | Repository — SurrealDB CRUD layer |
+| `rust/centrode_core/src/relation_engine.rs` | Relation engine — routing + geometry |
+| `rust/centrode_core/src/layout_engine.rs` | Layout engine — force-directed graph layout & OptArea physics |
 
 ---
 

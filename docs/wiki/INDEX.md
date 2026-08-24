@@ -8,7 +8,7 @@
 
 - [Architecture Overview](architecture/overview.md) — system diagram, data flow, module map
 - [Development Setup](guides/setup.md) — prerequisites, build, run
-- [App Philosophy](app_philosophy.md) — product vision, philosophy, and core mechanics
+- [Centrode](app_philosophy.md) — product vision, philosophy, and core mechanics
 
 ---
 
@@ -37,11 +37,11 @@
 | [Workspace Module](modules/workspace/README.md) | Workspace hub, map/project management |
 | [Shared Module](modules/shared/README.md) | Shared widgets, glass panel, common elements |
 | [Glass Panel](modules/shared/glass-panel.md) | Glassmorphic rendering, GLSL shader integration |
-| [Infrastructure](modules/infrastructure/README.md) | Telemetry, logging, error handling |
+| [Infrastructure Module](modules/infrastructure/README.md) | Telemetry, logging, error handling |
 
 ---
 
-## Rust Backend (`rust/src/`)
+## Rust Backend (`rust/`)
 
 | Document | Description |
 |----------|-------------|
@@ -51,7 +51,7 @@
 | [Relation Engine](backend/relation-engine.md) | Routing algorithms, path finders, composers, endpoint shapes |
 | [Layout Engine](backend/layout-engine.md) | Force-directed layout, physics forces, OptArea, Verlet integration |
 | [Services](backend/services.md) | Graph service layer, high-level API |
-| [Format](backend/format.md) | `.cent` zip format, MessagePack serialization |
+| [Format (.cent Package)](backend/format.md) | `.cent` zip format, MessagePack serialization |
 
 ---
 
@@ -60,7 +60,7 @@
 | Document | Description |
 |----------|-------------|
 | [FFI Overview](ffi/README.md) | Flutter Rust Bridge setup, AppHandle, stream bridge |
-| [API Surface](ffi/api-surface.md) | All FFI endpoints with signatures and types |
+| [FFI API Surface](ffi/api-surface.md) | All FFI endpoints with signatures and types |
 | [Type Mapping](ffi/type-mapping.md) | Dart ↔ Rust type correspondence table |
 
 ---
@@ -83,7 +83,7 @@
 |----------|-------------|
 | [Theme System](design/themes.md) | JSON theme format, AppTheme, color palette, theming |
 | [Shaders](design/shaders.md) | GLSL liquid glass shader breakdown |
-| [GUI Spec Summary](design/gui-spec-summary.md) | Highlights from gui_specification.yaml |
+| [GUI Specification Summary](design/gui-spec-summary.md) | Highlights from gui_specification.yaml |
 
 ---
 
@@ -91,7 +91,7 @@
 
 | Document | Description |
 |----------|-------------|
-| [App Philosophy](app_philosophy.md) | Product vision, problem statement, design principles |
+| [Centrode](app_philosophy.md) | Product vision, problem statement, design principles |
 | [GUI Specification](gui_specification.yaml) | Full GUI spec (YAML, 1700+ lines) |
 | [Container Nodes & Infinite Zoom](../artifacts/Container%20Nodes%20&%20True%20Continuous%20Infinite%20Zoom/architecture_context_memory_ports_notifiers.md) | Deep-dive design artifact on nested infinite zoom mechanics |
 | [OptArea & Layout Engine](../artifacts/optarea_&_layout_engine/design_layout_engine.md) | Architecture report on bounded sub-graph physics optimization |
