@@ -1,8 +1,7 @@
 use crate::bridge::stream::GraphEvent;
 use crate::domain::id::TypedRecordId;
-use crate::domain::nodes::IsNode;
-use crate::domain::nodes::Nodes;
-use crate::domain::patches::{EntityPatch, SymmetricEntityPatch};
+use crate::domain::nodes::{IsNode, Nodes};
+use crate::domain::patches::{EntityPatch, NodePatch, SymmetricEntityPatch};
 use crate::relation_engine::config::RelationEngineConfig;
 use crate::relation_engine::input::InputNode;
 use crate::services::graph_service::GraphService;
@@ -42,8 +41,8 @@ impl GraphService {
             self.repo
                 .record_patch_history(
                     id,
-                    EntityPatch::CreateNode(input.clone(), vec![]),
-                    EntityPatch::CreateNode(old, vec![]),
+                    EntityPatch::Node(vec![NodePatch::Position(input.position().clone())]),
+                    EntityPatch::Node(vec![NodePatch::Position(old.position().clone())]),
                 )
                 .await?;
         } else {

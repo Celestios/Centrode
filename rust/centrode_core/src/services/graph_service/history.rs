@@ -1,6 +1,6 @@
 use crate::bridge::stream::GraphEvent;
 use crate::domain::patches::{GraphDelta, SymmetricEntityPatch};
-use crate::persistence::history::HistoryRecord;
+use crate::repo::history::HistoryRecord;
 use crate::services::graph_service::GraphService;
 use surrealdb::types::SurrealValue;
 

@@ -2,9 +2,9 @@ use crate::bridge::stream::GraphEvent;
 use crate::frb_generated::StreamSink;
 use crate::layout_engine::config::LayoutConfig;
 use crate::layout_engine::engine::LayoutEngine;
-use crate::persistence::db::{Database, EngineManager};
-use crate::persistence::repo::Repository;
+use crate::repo::Repository;
 use crate::relation_engine::config::RelationEngineConfig;
+use centrode_daemon::EngineManager;
 use std::path::{Path, PathBuf};
 pub use std::sync::Mutex;
 use tokio::sync::broadcast;
@@ -45,7 +45,7 @@ impl GraphService {
             } else {
                 PathBuf::from(&storage_path)
             };
-            Database::connect(path.to_str().unwrap_or(&storage_path), name, None, None).await?
+            EngineManager::connect(path.to_str().unwrap_or(&storage_path), name, None, None).await?
         };
 
         Ok(Self::with_repository(Repository::new(db)))

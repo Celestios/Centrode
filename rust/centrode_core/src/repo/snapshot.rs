@@ -2,7 +2,7 @@ use crate::domain::base_models::MapData;
 use crate::domain::nodes::{IsNode, Nodes};
 use crate::domain::relations::IRelation;
 use crate::domain::snapshot::GraphSnapshot;
-use crate::persistence::repo::Repository;
+use crate::repo::Repository;
 
 use anyhow::Result;
 use surrealdb::types::{SurrealValue, Value};

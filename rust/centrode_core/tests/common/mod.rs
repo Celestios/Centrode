@@ -5,8 +5,8 @@ use centrode_core::domain::nodes::INode;
 use centrode_core::domain::nodes::ContainerNode;
 use centrode_core::domain::relations::IRelationFields;
 use centrode_core::domain::styles::RelationDirection;
-use centrode_core::persistence::repo::Repository;
-use centrode_core::persistence::schema::Schema;
+use centrode_core::repo::Repository;
+use centrode_daemon::schema::{Schema, Seeder};
 use surrealdb::engine::local::Mem;
 use surrealdb::Surreal;
 
@@ -27,7 +27,6 @@ pub async fn setup_test_repo() -> Repository {
         .await
         .expect("Failed to initialize DB schema in tests");
 
-    use centrode_core::persistence::schema::Seeder;
     Seeder::seed_default_data(&db, "Test Map".to_string())
         .await
         .expect("Failed to seed default data in tests");

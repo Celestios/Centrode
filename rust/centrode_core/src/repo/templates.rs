@@ -5,7 +5,7 @@ use crate::domain::nodes::{IsNode, Nodes};
 use crate::domain::relations::IRelation;
 use crate::domain::templates::Template;
 use crate::domain::traits::TableKind;
-use crate::persistence::repo::Repository;
+use crate::repo::Repository;
 
 use anyhow::Result;
 use surrealdb::types::{RecordIdKey, SurrealValue, Value};

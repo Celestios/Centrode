@@ -4,7 +4,7 @@ use crate::domain::patches::{
     EntityPatch, NodePatch, RelationPatch, TagOperation,
 };
 use crate::domain::traits::SurrealDbEnum;
-use crate::persistence::repo::Repository;
+use crate::repo::Repository;
 
 use anyhow::Result;
 use surrealdb::types::{RecordId, SurrealValue, Value};

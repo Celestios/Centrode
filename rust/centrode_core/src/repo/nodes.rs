@@ -1,7 +1,7 @@
 use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::{IsNode, Nodes};
 use crate::domain::tags::TagEdge;
-use crate::persistence::repo::Repository;
+use crate::repo::Repository;
 
 use anyhow::Result;
 use surrealdb::types::Value;

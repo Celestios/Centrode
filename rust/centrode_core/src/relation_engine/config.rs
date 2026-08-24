@@ -1,5 +1,4 @@
 use flutter_rust_bridge::frb;
-use surrealdb::types::SurrealValue;
 
 pub use crate::domain::routing::RoutingMode;
 pub use crate::domain::styles::EndpointShape;

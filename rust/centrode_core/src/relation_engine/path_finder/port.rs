@@ -150,10 +150,6 @@ pub fn resolve_ports_full(
         node_map.values().find(|n| n.id.key == edge.to_node_id.key)
     })?;
 
-    let from_center = Point::new(
-        from_node.x + from_node.width / 2.0,
-        from_node.y + from_node.height / 2.0,
-    );
     let to_center = Point::new(
         to_node.x + to_node.width / 2.0,
         to_node.y + to_node.height / 2.0,

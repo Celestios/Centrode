@@ -1,6 +1,10 @@
-use anyhow::Result;
+use crate::domain::id::TypedRecordId;
+use crate::domain::patches::{EntityPatch, SymmetricEntityPatch};
 use crate::domain::snapshot::HistoryStatus;
 use crate::domain::traits::TableKind;
+use crate::repo::Repository;
+
+use anyhow::Result;
 use surrealdb::engine::local::Db;
 use surrealdb::types::{RecordId, SurrealValue, Value};
 use surrealdb::Surreal;
@@ -29,7 +33,6 @@ impl<'a> HistoryManager<'a> {
     }
 
     pub async fn push_event_with_time(&self, action_type: &str, payload: Value, timestamp: i64) -> Result<()> {
-        // Clear the "undone" redo stack when a new action is performed
         self.db
             .query("DELETE History WHERE status = $status")
             .bind(("status", HistoryStatus::Undone.into_value()))
@@ -43,10 +46,8 @@ impl<'a> HistoryManager<'a> {
             created_at: timestamp,
         };
 
-        // Insert into DB (deserialize result as generic Value to bypass strict struct mapping)
         let _: Option<Value> = self.db.create(TableKind::History.table_name()).content(record).await?;
 
-        // Enforce threshold (clean up old records)
         let mut count_response = self
             .db
             .query("SELECT VALUE count() FROM History WHERE status = $status GROUP ALL")
@@ -77,7 +78,6 @@ impl<'a> HistoryManager<'a> {
     }
 
     pub async fn undo(&self) -> Result<Option<HistoryRecord>> {
-        // Get the latest "applied" event
         let mut response = self
             .db
             .query(
@@ -90,7 +90,6 @@ impl<'a> HistoryManager<'a> {
         let Some(mut rec) = record else { return Ok(None); };
         let Some(ref record_id) = rec.id else { return Ok(Some(rec)); };
 
-        // Mark it as "undone"
         self.db
             .query("UPDATE $id SET status = $status")
             .bind(("id", record_id.clone()))
@@ -102,7 +101,6 @@ impl<'a> HistoryManager<'a> {
     }
 
     pub async fn redo(&self) -> Result<Option<HistoryRecord>> {
-        // Get the oldest "undone" event (LIFO forward order for redo)
         let mut response = self
             .db
             .query(
@@ -115,7 +113,6 @@ impl<'a> HistoryManager<'a> {
         let Some(mut rec) = record else { return Ok(None); };
         let Some(ref record_id) = rec.id else { return Ok(Some(rec)); };
 
-        // Mark it as "applied"
         self.db
             .query("UPDATE $id SET status = $status")
             .bind(("id", record_id.clone()))
@@ -124,5 +121,55 @@ impl<'a> HistoryManager<'a> {
 
         rec.status = HistoryStatus::Applied;
         Ok(Some(rec))
+    }
+}
+
+impl Repository {
+    pub async fn record_patch_history(
+        &self,
+        id: TypedRecordId,
+        forward: EntityPatch,
+        reverse: EntityPatch,
+    ) -> Result<()> {
+        let history_manager = HistoryManager::new(&self.db, 100);
+        let history_payload = SymmetricEntityPatch {
+            id,
+            forward,
+            reverse,
+        };
+        history_manager
+            .push_event("entity_patch", history_payload.into_value())
+            .await?;
+        Ok(())
+    }
+
+    pub async fn undo_count(&self) -> Result<u32> {
+        let mut response = self
+            .db
+            .query("SELECT VALUE count() FROM History WHERE status = $status GROUP ALL")
+            .bind(("status", HistoryStatus::Applied.into_value()))
+            .await?;
+        let count: Vec<i64> = response.take(0)?;
+        Ok(count.first().copied().unwrap_or(0) as u32)
+    }
+
+    pub async fn redo_count(&self) -> Result<u32> {
+        let mut response = self
+            .db
+            .query("SELECT VALUE count() FROM History WHERE status = $status GROUP ALL")
+            .bind(("status", HistoryStatus::Undone.into_value()))
+            .await?;
+        let count: Vec<i64> = response.take(0)?;
+        Ok(count.first().copied().unwrap_or(0) as u32)
+    }
+
+    pub async fn undo_event(&self) -> Result<Option<HistoryRecord>> {
+        let history_manager = HistoryManager::new(&self.db, 100);
+        history_manager.undo().await
+    }
+
+    pub async fn redo_event(&self) -> Result<Option<HistoryRecord>> {
+        let history_manager = HistoryManager::new(&self.db, 100);
+        history_manager.redo().await
     }
 }

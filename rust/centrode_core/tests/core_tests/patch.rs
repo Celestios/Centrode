@@ -7,7 +7,7 @@ use centrode_core::domain::patches::{EntityPatch, NodePatch, RelationPatch, Symm
 use centrode_core::domain::relations::{IRelation, IRelationFields};
 use centrode_core::domain::styles::{NodeStyle, PortSide, RelationDirection, RelationLayout, RelationStyle};
 use centrode_core::domain::traits::TableKind;
-use centrode_core::persistence::history::HistoryManager;
+use centrode_core::repo::history::HistoryManager;
 use surrealdb::types::SurrealValue;
 
 #[tokio::test]

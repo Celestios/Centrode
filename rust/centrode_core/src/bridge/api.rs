@@ -15,8 +15,8 @@ pub use crate::domain::types::{Auxiliary, DomainEntity, Relations};
 pub use crate::frb_generated::StreamSink;
 pub use crate::layout_engine::config::LayoutConfig;
 pub use crate::layout_engine::types::{Axis, LayoutPatch, LayoutTickResult, PortPatch};
-pub use crate::persistence::history::HistoryRecord;
-pub use crate::persistence::repo::Repository;
+pub use crate::repo::history::HistoryRecord;
+pub use crate::repo::Repository;
 pub use crate::relation_engine::computed::{ComputedRelation, LabelAnchor, PathType};
 pub use crate::relation_engine::config::{BodyType, RelationEngineConfig, RoutingMode};
 pub use crate::relation_engine::geometry::{Point, Rect};
@@ -28,9 +28,89 @@ pub use crate::domain::styles::{
     EndpointShape, NodeLayout, NodeStyle, PortSide, RelationDirection, RelationLayout,
     RelationStyle,
 };
-pub use crate::persistence::db::EngineManager;
+pub use crate::domain::base_models::MapDescriptor;
 pub use crate::relation_engine::engine::RelationEngine;
 pub use crate::services::graph_service::GraphService;
+pub use centrode_daemon::{DaemonService, EngineManager};
+
+pub struct DaemonHandle {
+    pub service: Arc<DaemonService>,
+}
+
+impl From<centrode_daemon::domain::base_models::MapDescriptor> for MapDescriptor {
+    fn from(d: centrode_daemon::domain::base_models::MapDescriptor) -> Self {
+        Self {
+            id: d.id,
+            name: d.name,
+            storage_path: d.storage_path,
+            created_at_ms: d.created_at_ms,
+            modified_at_ms: d.modified_at_ms,
+            accessed_at_ms: d.accessed_at_ms,
+        }
+    }
+}
+
+impl DaemonHandle {
+    pub async fn new(storage_path: String) -> anyhow::Result<Self> {
+        EngineManager::init(&storage_path).await?;
+        let service = Arc::new(DaemonService::new().await?);
+        Ok(Self { service })
+    }
+
+    pub async fn list_maps(&self) -> anyhow::Result<Vec<MapDescriptor>> {
+        let maps = self.service.list_maps().await?;
+        Ok(maps.into_iter().map(Into::into).collect())
+    }
+
+    pub async fn get_recent_maps(&self, limit: usize) -> anyhow::Result<Vec<MapDescriptor>> {
+        let maps = self.service.get_recent_maps(limit).await?;
+        Ok(maps.into_iter().map(Into::into).collect())
+    }
+
+    pub async fn create_map(&self, name: String) -> anyhow::Result<MapDescriptor> {
+        let map = self.service.create_map(&name).await?;
+        Ok(map.into())
+    }
+
+    pub async fn delete_map(&self, map_id: String) -> anyhow::Result<()> {
+        self.service.delete_map(&map_id).await
+    }
+
+    pub async fn rename_map(&self, map_id: String, new_name: String) -> anyhow::Result<MapDescriptor> {
+        let map = self.service.rename_map(&map_id, &new_name).await?;
+        Ok(map.into())
+    }
+
+    pub async fn duplicate_map(&self, map_id: String, new_name: String) -> anyhow::Result<MapDescriptor> {
+        let map = self.service.duplicate_map(&map_id, &new_name).await?;
+        Ok(map.into())
+    }
+
+    pub async fn touch_map(&self, map_id: String) -> anyhow::Result<()> {
+        self.service.touch_map(&map_id).await
+    }
+
+    pub async fn get_map(&self, map_id: String) -> anyhow::Result<MapDescriptor> {
+        let map = self.service.get_map(&map_id).await?;
+        Ok(map.into())
+    }
+
+    pub async fn get_setting(&self, key: String) -> anyhow::Result<Option<String>> {
+        self.service.get_setting(&key).await
+    }
+
+    pub async fn set_setting(&self, key: String, value: String) -> anyhow::Result<()> {
+        self.service.set_setting(&key, &value).await
+    }
+
+    pub async fn delete_setting(&self, key: String) -> anyhow::Result<()> {
+        self.service.delete_setting(&key).await
+    }
+
+    pub async fn shutdown(&self) -> anyhow::Result<()> {
+        EngineManager::shutdown().await
+    }
+}
 
 /// Initializes the root unified SurrealKV storage engine.
 pub async fn init_core_engine(storage_path: String) -> anyhow::Result<()> {
@@ -62,12 +142,19 @@ pub async fn yield_daemon_if_running() -> anyhow::Result<bool> {
             Ok(true)
         }
         Err(e) => {
-            let err_str = e.to_string();
-            let is_not_running = err_str.contains("os error 2")
-                || err_str.contains("The system cannot find the file specified")
-                || err_str.contains("No such file")
-                || err_str.contains("Connection refused");
+            let full_err = format!("{:#}", e);
+            let is_not_running = full_err.contains("IPC: failed to connect")
+                || full_err.contains("os error 2")
+                || full_err.contains("The system cannot find the file specified")
+                || full_err.contains("No such file")
+                || full_err.contains("Connection refused")
+                || full_err.contains("failed to fill whole buffer")
+                || full_err.contains("Broken pipe")
+                || full_err.contains("pipe has been ended")
+                || full_err.contains("os error 109")
+                || full_err.contains("os error 232");
             if is_not_running {
+                tracing::info!("No active standalone daemon detected (pipe probe: {}).", full_err);
                 Ok(false)
             } else {
                 Err(e)

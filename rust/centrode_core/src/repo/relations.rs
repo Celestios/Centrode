@@ -1,6 +1,6 @@
 use crate::domain::id::TypedRecordId;
 use crate::domain::relations::{IRelation, IRelationFields};
-use crate::persistence::repo::Repository;
+use crate::repo::Repository;
 
 use anyhow::Result;
 use surrealdb::types::{SurrealValue, Value};

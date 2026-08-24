@@ -178,6 +178,20 @@ define_domain_types! {
         pub nodes: Vec<Nodes>,
         pub relations: Vec<IRelation>,
     }
+
+    #[category(auxiliary)]
+    pub struct MapRegistry {
+        pub name: String,
+        pub storage_path: String,
+        pub created_at_ms: i64,
+        pub modified_at_ms: i64,
+        pub accessed_at_ms: i64,
+    }
+
+    #[category(auxiliary)]
+    pub struct SystemSetting {
+        pub value: String,
+    }
 }
 
 impl Tag {

@@ -2,7 +2,7 @@ use crate::domain::base_models::Record;
 use crate::domain::id::TypedRecordId;
 use crate::domain::tags::{Tag, TagFields};
 use crate::domain::traits::TableKind;
-use crate::persistence::repo::Repository;
+use crate::repo::Repository;
 
 use anyhow::Result;
 use surrealdb::types::{SurrealValue, Value};

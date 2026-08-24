@@ -13,7 +13,7 @@ use centrode_core::domain::styles::RelationDirection;
 use centrode_core::domain::traits::TableKind;
 
 async fn assert_significance_eventually(
-    repo: &centrode_core::persistence::repo::Repository,
+    repo: &centrode_core::repo::Repository,
     table: &str,
     key: &str,
     expected: u8,

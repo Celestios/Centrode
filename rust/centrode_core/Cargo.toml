@@ -12,22 +12,6 @@ crate-type = ["rlib", "cdylib", "staticlib"]
 name = "generate-schema"
 path = "scripts/generate_schema.rs"
 
-[profile.dev]
-opt-level = 0
-lto = "off"
-debug = 0
-split-debuginfo = "off"
-debug-assertions = true
-incremental = true
-codegen-units = 512
-
-[profile.release]
-opt-level = 3
-lto = true
-codegen-units = 1
-panic = "abort"
-strip = true
-
 [dependencies]
 # --- Workspace crates ---
 centrode_macros.workspace = true
@@ -74,5 +58,5 @@ tempfile = "3"
 tiny-skia = "0.12.0"
 usvg = "0.47.0"
 
-[lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
+[lints]
+workspace = true

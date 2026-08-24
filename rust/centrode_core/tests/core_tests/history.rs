@@ -1,5 +1,5 @@
 use crate::common::setup_test_repo;
-use centrode_core::persistence::history::HistoryManager;
+use centrode_core::repo::history::HistoryManager;
 use surrealdb::types::SurrealValue;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, SurrealValue)]

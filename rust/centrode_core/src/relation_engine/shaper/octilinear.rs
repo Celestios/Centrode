@@ -33,8 +33,7 @@ impl Shaper for OctilinearShaper {
         let oct_path = octilinearize_path(prepped_path);
         let simplified = simplify_octilinear_path(&oct_path, context.cell_size);
 
-        // Constants matching default OctilinearConfig
-        let corner_radius = 12.0;
+        let corner_radius = self.config.corner_radius;
 
         let path_points = if corner_radius > 0.0 {
             smooth_path_corners(&simplified, corner_radius)

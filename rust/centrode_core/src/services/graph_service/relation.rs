@@ -1,5 +1,5 @@
 use crate::domain::id::TypedRecordId;
-use crate::domain::patches::EntityPatch;
+use crate::domain::patches::{EntityPatch, RelationPatch};
 use crate::domain::relations::IRelation;
 use crate::domain::snapshot::GraphSnapshot;
 use crate::domain::styles::PortSide;
@@ -9,6 +9,35 @@ use crate::relation_engine::config::RoutingMode;
 use crate::relation_engine::input::{InputEdge, InputNode};
 use crate::services::graph_service::GraphService;
 use tracing::{debug, error, info};
+
+fn apply_node_override(
+    nodes: &mut Vec<InputNode>,
+    id: &TypedRecordId,
+    x: Option<f64>,
+    y: Option<f64>,
+) {
+    if let (Some(x), Some(y)) = (x, y) {
+        if let Some(n) = nodes.iter_mut().find(|n| &n.id == id) {
+            n.x = x;
+            n.y = y;
+            if n.width <= 0.0 {
+                n.width = 160.0;
+            }
+            if n.height <= 0.0 {
+                n.height = 80.0;
+            }
+        } else {
+            nodes.push(InputNode {
+                id: id.clone(),
+                x,
+                y,
+                width: 160.0,
+                height: 80.0,
+                is_obstacle: true,
+            });
+        }
+    }
+}
 
 impl GraphService {
     async fn ensure_node_cache_populated(&self) -> Option<GraphSnapshot> {
@@ -90,21 +119,20 @@ impl GraphService {
     ) -> anyhow::Result<()> {
         debug!("Rerouting relation {} to: {} -> {}", record, from, to);
 
-        let mut existing = self.repo.get_relation(record).await?;
-        existing.in_ = from;
-        existing.out = to;
+        let old = self.repo.get_relation(record).await?;
+        let mut existing = old.clone();
+        existing.in_ = from.clone();
+        existing.out = to.clone();
 
-        let id = record.to_string();
-        match self.repo.reroute_relation(record, existing).await {
-            Ok(()) => {
-                info!("Relation {} rerouted successfully", id);
-                Ok(())
-            }
-            Err(e) => {
-                error!("Failed to reroute relation {}: {}", id, e);
-                Err(e)
-            }
-        }
+        self.repo.reroute_relation(record, existing).await?;
+        self.repo
+            .record_patch_history(
+                record,
+                EntityPatch::Relation(vec![RelationPatch::Endpoints(from, to)]),
+                EntityPatch::Relation(vec![RelationPatch::Endpoints(old.in_, old.out)]),
+            )
+            .await?;
+        Ok(())
     }
 
     pub async fn compute_relations(
@@ -128,19 +156,18 @@ impl GraphService {
             Some(snapshot) => snapshot.relations,
             None => self.repo.get_all_relations().await?,
         };
-
         let edges: Vec<InputEdge> = relations
             .iter()
             .map(InputEdge::from_domain)
             .collect();
 
-        let mut engine = match self.relation_engine.lock() {
-            Ok(e) => e,
-            Err(_) => return Err(anyhow::anyhow!("Failed to lock relation engine")),
-        };
+        let mut engine = self
+            .relation_engine
+            .lock()
+            .map_err(|_| anyhow::anyhow!("Failed to lock relation engine"))?;
 
-        let result = engine.compute_relations_stateful(&nodes, &edges, &config, relation_ids.as_deref());
-        Ok(result)
+        let results = engine.compute_relations_stateful(&nodes, &edges, &config, relation_ids.as_deref());
+        Ok(results)
     }
 
     pub async fn compute_single_relation(
@@ -169,49 +196,8 @@ impl GraphService {
             .cloned()
             .collect::<Vec<InputNode>>();
 
-        if let (Some(sx), Some(sy)) = (override_start_x, override_start_y) {
-            if let Some(n) = nodes.iter_mut().find(|n| n.id == from_node_id) {
-                n.x = sx;
-                n.y = sy;
-                if n.width <= 0.0 {
-                    n.width = 160.0;
-                }
-                if n.height <= 0.0 {
-                    n.height = 80.0;
-                }
-            } else {
-                nodes.push(InputNode {
-                    id: from_node_id.clone(),
-                    x: sx,
-                    y: sy,
-                    width: 160.0,
-                    height: 80.0,
-                    is_obstacle: true,
-                });
-            }
-        }
-
-        if let (Some(ex), Some(ey)) = (override_end_x, override_end_y) {
-            if let Some(n) = nodes.iter_mut().find(|n| n.id == to_node_id) {
-                n.x = ex;
-                n.y = ey;
-                if n.width <= 0.0 {
-                    n.width = 160.0;
-                }
-                if n.height <= 0.0 {
-                    n.height = 80.0;
-                }
-            } else {
-                nodes.push(InputNode {
-                    id: to_node_id.clone(),
-                    x: ex,
-                    y: ey,
-                    width: 160.0,
-                    height: 80.0,
-                    is_obstacle: true,
-                });
-            }
-        }
+        apply_node_override(&mut nodes, &from_node_id, override_start_x, override_start_y);
+        apply_node_override(&mut nodes, &to_node_id, override_end_x, override_end_y);
 
         let edge = InputEdge {
             id: edge_id.clone(),
