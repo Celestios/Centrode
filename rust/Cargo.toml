@@ -17,3 +17,22 @@ tracing = { version = "0.1", features = ["release_max_level_info"] }
 centrode_macros = { path = "centrode_macros" }
 centrode_daemon = { path = "centrode_daemon" }
 flutter_rust_bridge = { version = "=2.11.1", default-features = false }
+
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
+
+[profile.dev]
+opt-level = 0
+lto = "off"
+debug = 0
+split-debuginfo = "off"
+debug-assertions = true
+incremental = true
+codegen-units = 512
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

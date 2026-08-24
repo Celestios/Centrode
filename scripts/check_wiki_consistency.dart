@@ -159,6 +159,16 @@ void main(List<String> arguments) {
   final jsonOutput = arguments.contains('--json');
   final fixMode = arguments.contains('--fix');
   final checkOnly = arguments.contains('--check');
+  final syncIndexMode =
+      arguments.contains('--sync-index') || arguments.contains('--generate-index');
+
+  if (syncIndexMode) {
+    print('=== Smart Index Synchronization ===\n');
+    final generator = SmartIndexGenerator();
+    generator.syncIndex();
+    print('\nINDEX.md synchronized successfully with smart page synopses.');
+    return;
+  }
 
   final checker = WikiConsistencyChecker();
   final result = checker.run();
@@ -189,6 +199,7 @@ class ConsistencyResult {
   final List<DescriptionDrift> descriptionDrifts;
   final List<MissingAnchor> missingAnchors;
   final List<ConceptGap> conceptGaps;
+  final List<CodebaseRotIssue> codebaseRotIssues;
   final int filesScanned;
   final int linksChecked;
 
@@ -200,6 +211,7 @@ class ConsistencyResult {
     required this.descriptionDrifts,
     required this.missingAnchors,
     required this.conceptGaps,
+    required this.codebaseRotIssues,
     required this.filesScanned,
     required this.linksChecked,
   });
@@ -210,7 +222,8 @@ class ConsistencyResult {
       factConflicts.isNotEmpty ||
       descriptionDrifts.isNotEmpty ||
       missingAnchors.isNotEmpty ||
-      conceptGaps.isNotEmpty;
+      conceptGaps.isNotEmpty ||
+      codebaseRotIssues.isNotEmpty;
 
   int get issueCount => brokenLinks.length +
       orphanPages.length +
@@ -218,7 +231,8 @@ class ConsistencyResult {
       factConflicts.length +
       descriptionDrifts.length +
       missingAnchors.length +
-      conceptGaps.length;
+      conceptGaps.length +
+      codebaseRotIssues.length;
 
   Map<String, dynamic> toJson() => {
         'hasIssues': hasIssues,
@@ -232,6 +246,7 @@ class ConsistencyResult {
         'descriptionDrifts': descriptionDrifts.map((e) => e.toJson()).toList(),
         'missingAnchors': missingAnchors.map((e) => e.toJson()).toList(),
         'conceptGaps': conceptGaps.map((e) => e.toJson()).toList(),
+        'codebaseRotIssues': codebaseRotIssues.map((e) => e.toJson()).toList(),
       };
 
   void printReport() {
@@ -260,6 +275,10 @@ class ConsistencyResult {
     _printSection('Concept Gaps', conceptGaps.map((e) =>
         '  ${e.file}: "${e.concept}" not linked to its definition in ${e.definitionFile}').toList(),
         emptyMsg: 'All concept references linked');
+
+    _printSection('Codebase Path References', codebaseRotIssues.map((e) =>
+        '  ${e.wikiFile}:${e.line} → "${e.referencedPath}" (${e.reason})').toList(),
+        emptyMsg: 'All referenced codebase files and directories exist');
 
     print('=== Summary ===');
     print('  Files: $filesScanned | Links: $linksChecked | Issues: $issueCount');
@@ -338,6 +357,27 @@ class ConceptGap {
   Map<String, dynamic> toJson() => {'file': file, 'concept': concept, 'definitionFile': definitionFile};
 }
 
+class CodebaseRotIssue {
+  final String wikiFile;
+  final String referencedPath;
+  final int line;
+  final String reason;
+
+  CodebaseRotIssue({
+    required this.wikiFile,
+    required this.referencedPath,
+    required this.line,
+    required this.reason,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'wikiFile': wikiFile,
+    'referencedPath': referencedPath,
+    'line': line,
+    'reason': reason,
+  };
+}
+
 // ─── Link Extraction ─────────────────────────────────────────────────────────
 
 class MarkdownLink {
@@ -366,8 +406,9 @@ List<MarkdownLink> extractLinks(String content, String sourcePath) {
 String resolveTarget(String sourcePath, String target) {
   // Handle heading-only links (same file)
   if (target.startsWith('#')) return sourcePath;
+  final decodedTarget = Uri.decodeComponent(target);
   final sourceDir = p.dirname(sourcePath);
-  return p.canonicalize(p.join(sourceDir, target.split('#').first));
+  return p.canonicalize(p.join(sourceDir, decodedTarget.split('#').first));
 }
 
 // ─── Concept Registry ────────────────────────────────────────────────────────
@@ -489,6 +530,7 @@ class WikiConsistencyChecker {
     final descriptionDrifts = _checkDrifts();
     final missingAnchors = _checkAnchors(linksByFile, fileContents);
     final conceptGaps = _checkConceptGaps(fileContents, linkedFiles);
+    final codebaseRotIssues = _checkCodebasePaths(fileContents);
 
     return ConsistencyResult(
       brokenLinks: brokenLinks,
@@ -498,6 +540,7 @@ class WikiConsistencyChecker {
       descriptionDrifts: descriptionDrifts,
       missingAnchors: missingAnchors,
       conceptGaps: conceptGaps,
+      codebaseRotIssues: codebaseRotIssues,
       filesScanned: mdFiles.length,
       linksChecked: linksByFile.values.fold(0, (s, l) => s + l.length),
     );
@@ -533,14 +576,18 @@ class WikiConsistencyChecker {
     return orphans;
   }
 
-  Set<String> _getIndexTargets() {
+  Set<String> _getIndexTargets({List<IndexIssue>? issues}) {
     final indexFile = File(p.join(wikiDir, 'INDEX.md'));
     if (!indexFile.existsSync()) return {};
     final content = indexFile.readAsStringSync();
     final targets = <String>{};
     for (final link in extractLinks(content, indexFile.path)) {
       if (link.isExternal) continue;
-      targets.add(normPath(resolveTarget(indexFile.path, link.target)));
+      final resolved = resolveTarget(indexFile.path, link.target);
+      if (issues != null && !File(resolved).existsSync()) {
+        issues.add(IndexIssue('Broken link: ${link.target}'));
+      }
+      targets.add(normPath(resolved));
     }
     return targets;
   }
@@ -553,17 +600,7 @@ class WikiConsistencyChecker {
       return issues;
     }
 
-    final content = indexFile.readAsStringSync();
-    final links = extractLinks(content, indexFile.path);
-    final targets = <String>{};
-    for (final link in links) {
-      if (link.isExternal) continue;
-      final resolved = resolveTarget(indexFile.path, link.target);
-      if (!File(resolved).existsSync()) {
-        issues.add(IndexIssue('Broken link: ${link.target}'));
-      }
-      targets.add(normPath(resolved));
-    }
+    final targets = _getIndexTargets(issues: issues);
 
     for (final file in allFiles) {
       final short = normPath(p.relative(file, from: normPath(p.canonicalize(wikiDir))));
@@ -634,6 +671,7 @@ class WikiConsistencyChecker {
     for (final link in extractLinks(content, indexFile.path)) {
       if (link.isExternal) continue;
       final resolved = resolveTarget(indexFile.path, link.target);
+      if (!p.isWithin(p.canonicalize(wikiDir), resolved)) continue;
       final file = File(resolved);
       if (!file.existsSync()) continue;
 
@@ -711,6 +749,210 @@ class WikiConsistencyChecker {
     }
     return gaps;
   }
+
+  List<CodebaseRotIssue> _checkCodebasePaths(Map<String, String> fileContents) {
+    final issues = <CodebaseRotIssue>[];
+    final pathRegex = RegExp(
+      r'`((?:lib|rust|packages|scripts|assets|integration_test|test|docs)/[^`\s*#?]+)`',
+    );
+
+    for (final entry in fileContents.entries) {
+      final wikiFile = entry.key;
+      final lines = entry.value.split('\n');
+
+      for (var lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+        final line = lines[lineIdx];
+        if (line.trim().startsWith('```')) continue;
+
+        for (final match in pathRegex.allMatches(line)) {
+          var rawPath = match.group(1)!;
+
+          // Strip line number or anchor suffixes
+          rawPath = rawPath.replaceAll(RegExp(r'[:#]L?\d+.*$'), '').trim();
+
+          // Strip trailing punctuation
+          while (rawPath.endsWith('.') || rawPath.endsWith(',') || rawPath.endsWith(';')) {
+            rawPath = rawPath.substring(0, rawPath.length - 1);
+          }
+
+          // Skip generic path wildcards / patterns
+          if (rawPath.contains('*') || rawPath.contains('<') || rawPath.contains('{')) {
+            continue;
+          }
+
+          final normalized = normPath(p.normalize(rawPath));
+          if (!File(normalized).existsSync() && !Directory(normalized).existsSync()) {
+            issues.add(CodebaseRotIssue(
+              wikiFile: wikiFile,
+              referencedPath: rawPath,
+              line: lineIdx + 1,
+              reason: 'Referenced codebase path not found',
+            ));
+          }
+        }
+      }
+    }
+    return issues;
+  }
+}
+
+// ─── Smart Index Generator ───────────────────────────────────────────────────
+
+class PageMetadata {
+  final String title;
+  final String description;
+
+  PageMetadata({required this.title, required this.description});
+}
+
+class SmartIndexGenerator {
+  static PageMetadata extractMetadata(File file) {
+    if (!file.existsSync()) {
+      final base = p
+          .basenameWithoutExtension(file.path)
+          .replaceAll('-', ' ')
+          .split(' ')
+          .map((w) => w.isNotEmpty ? w[0].toUpperCase() + w.substring(1) : '')
+          .join(' ');
+      return PageMetadata(title: base, description: '');
+    }
+
+    final content = file.readAsStringSync();
+    final lines = content.split('\n');
+
+    String title = '';
+    String description = '';
+
+    for (var i = 0; i < lines.length; i++) {
+      final line = lines[i].trim();
+      if (title.isEmpty && line.startsWith('# ')) {
+        title = line.substring(2).trim();
+        continue;
+      }
+
+      if (title.isNotEmpty && description.isEmpty) {
+        if (line.isEmpty ||
+            line.startsWith('>') ||
+            line.startsWith('---') ||
+            line.startsWith('#') ||
+            line.startsWith('```') ||
+            line.startsWith('|') ||
+            line.startsWith('- ')) {
+          continue;
+        }
+
+        var para = line;
+        var j = i + 1;
+        while (j < lines.length &&
+            lines[j].trim().isNotEmpty &&
+            !lines[j].trim().startsWith('#') &&
+            !lines[j].trim().startsWith('```') &&
+            !lines[j].trim().startsWith('|') &&
+            !lines[j].trim().startsWith('---')) {
+          para += ' ${lines[j].trim()}';
+          j++;
+        }
+
+        para = para
+            .replaceAll(RegExp(r'\[([^\]]+)\]\([^\)]+\)'), r'$1')
+            .replaceAll(RegExp(r'[*_`#]'), '')
+            .replaceAll(RegExp(r'\s+'), ' ')
+            .trim();
+
+        if (para.length > 120) {
+          final cutoff = para.lastIndexOf(' ', 117);
+          para = '${cutoff != -1 ? para.substring(0, cutoff) : para.substring(0, 117)}...';
+        }
+        description = para;
+        break;
+      }
+    }
+
+    if (title.isEmpty) {
+      title = p
+          .basenameWithoutExtension(file.path)
+          .replaceAll('-', ' ')
+          .split(' ')
+          .map((w) => w.isNotEmpty ? w[0].toUpperCase() + w.substring(1) : '')
+          .join(' ');
+    }
+
+    return PageMetadata(title: title, description: description);
+  }
+
+  void syncIndex() {
+    final indexFile = File(p.join(wikiDir, 'INDEX.md'));
+    if (!indexFile.existsSync()) {
+      print('Error: INDEX.md not found at ${indexFile.path}');
+      return;
+    }
+
+    var content = indexFile.readAsStringSync();
+    final allWikiFiles = Directory(wikiDir)
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.md'))
+        .map((f) => normPath(f.path))
+        .toList();
+
+    final wikiCanonical = normPath(p.canonicalize(wikiDir));
+
+    // Map files to sections
+    final sectionHeaders = {
+      'architecture': '## Architecture',
+      'modules': '## Flutter Modules (`lib/`)',
+      'backend': '## Rust Backend (`rust/src/`)',
+      'ffi': '## FFI Bridge',
+      'guides': '## Developer Guides',
+      'design': '## Design & Specs',
+    };
+
+    int updatedCount = 0;
+    int addedCount = 0;
+
+    for (final filePath in allWikiFiles) {
+      final short = normPath(p.relative(filePath, from: wikiCanonical));
+      if (short.toLowerCase() == 'index.md') continue;
+
+      final meta = extractMetadata(File(filePath));
+      final linkPattern = RegExp(r'\[([^\]]+)\]\(' + RegExp.escape(short) + r'\)');
+
+      if (linkPattern.hasMatch(content)) {
+        // Check for title drift
+        final match = linkPattern.firstMatch(content)!;
+        final currentTitle = match.group(1)!;
+        if (currentTitle != meta.title && meta.title.isNotEmpty) {
+          content = content.replaceAll(
+            '[$currentTitle]($short)',
+            '[${meta.title}]($short)',
+          );
+          print('  Updated title for $short: "$currentTitle" → "${meta.title}"');
+          updatedCount++;
+        }
+      } else {
+        // Missing from index! Find appropriate section
+        final parts = short.split('/');
+        final sectionKey = parts.length > 1 ? parts[0] : '';
+        final header = sectionHeaders[sectionKey];
+
+        if (header != null && content.contains(header)) {
+          final sectionStart = content.indexOf(header);
+          final nextSection = content.indexOf('\n## ', sectionStart + header.length);
+          final insertPos = nextSection != -1 ? nextSection : content.length;
+
+          final desc = meta.description.isNotEmpty ? meta.description : 'Module documentation';
+          final newRow = '| [${meta.title}]($short) | $desc |\n';
+
+          content = '${content.substring(0, insertPos)}$newRow${content.substring(insertPos)}';
+          print('  Added $short under $header with synopsis: "$desc"');
+          addedCount++;
+        }
+      }
+    }
+
+    indexFile.writeAsStringSync(content);
+    print('  Summary: $addedCount added, $updatedCount updated.');
+  }
 }
 
 // ─── Auto-Fixer ──────────────────────────────────────────────────────────────
@@ -722,86 +964,12 @@ class WikiFixer {
   void fix() {
     print('\n=== Auto-fix ===\n');
 
-    if (result.indexIssues.any((e) => e.message.startsWith('Missing from INDEX:'))) {
-      _fixMissingIndexEntries();
-    }
-
-    if (result.descriptionDrifts.isNotEmpty) {
-      _fixDescriptionDrifts();
-    }
+    final indexGenerator = SmartIndexGenerator();
+    indexGenerator.syncIndex();
 
     if (result.conceptGaps.isNotEmpty) {
       _fixConceptGaps();
     }
-  }
-
-  void _fixMissingIndexEntries() {
-    final indexFile = File(p.join(wikiDir, 'INDEX.md'));
-    var content = indexFile.readAsStringSync();
-
-    final missing = result.indexIssues
-        .where((e) => e.message.startsWith('Missing from INDEX:'))
-        .map((e) => e.message.replaceFirst('Missing from INDEX: ', ''))
-        .toList();
-
-    if (missing.isEmpty) return;
-
-    // Group by directory
-    final byDir = <String, List<String>>{};
-    for (final page in missing) {
-      final parts = page.split('/');
-      final dir = parts.length > 1 ? parts[0] : '';
-      byDir.putIfAbsent(dir, () => []).add(page);
-    }
-
-    final sectionMap = {
-      '': '## Quick Start',
-      'architecture': '## Architecture',
-      'backend': '## Rust Backend (`rust/src/`)',
-      'design': '## Design & Specs',
-      'ffi': '## FFI Bridge',
-      'guides': '## Developer Guides',
-      'modules': '## Flutter Modules (`lib/`)',
-    };
-
-    for (final entry in byDir.entries) {
-      final header = sectionMap[entry.key];
-      if (header == null || !content.contains(header)) continue;
-
-      final sectionStart = content.indexOf(header);
-      final nextSection = content.indexOf('\n## ', sectionStart + header.length);
-      final insertPos = nextSection != -1 ? nextSection : content.length;
-
-      final rows = entry.value.map((page) {
-        final name = p.basenameWithoutExtension(page)
-            .replaceAll('-', ' ')
-            .split(' ')
-            .map((w) => w[0].toUpperCase() + w.substring(1))
-            .join(' ');
-        return '| [$name]($page) | TODO |';
-      }).join('\n');
-
-      content = '${content.substring(0, insertPos)}\n$rows\n${content.substring(insertPos)}';
-
-      print('  Added ${entry.value.length} page(s) under $header');
-    }
-
-    indexFile.writeAsStringSync(content);
-  }
-
-  void _fixDescriptionDrifts() {
-    final indexFile = File(p.join(wikiDir, 'INDEX.md'));
-    var content = indexFile.readAsStringSync();
-
-    for (final drift in result.descriptionDrifts) {
-      // Update the link text in INDEX.md to match the actual heading
-      final oldLink = '[${drift.indexDesc}](${drift.target})';
-      final newLink = '[${drift.actualHeading}](${drift.target})';
-      content = content.replaceAll(oldLink, newLink);
-      print('  Updated: "${drift.indexDesc}" → "${drift.actualHeading}"');
-    }
-
-    indexFile.writeAsStringSync(content);
   }
 
   void _fixConceptGaps() {

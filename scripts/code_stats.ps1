@@ -63,16 +63,36 @@ function Print-Section {
 }
 
 # ──────────────────────────────────────────────────────────────
-# Rust source files
+# Rust source files — new architecture: cargo workspace crates
+# under rust/<crate>/src (centrode_core, centrode_daemon,
+# centrode_macros, ...)
 # ──────────────────────────────────────────────────────────────
-$rustGenerated = @("rust/src/frb_generated.rs")
+$rustCrateDirs = Get-ChildItem -Path "$root\rust" -Directory -ErrorAction SilentlyContinue |
+    Where-Object { Test-Path (Join-Path $_.FullName "src") }
 
-$rustTestFiles = Get-ChildItem -Path "$root\rust\tests" -Filter "*.rs" -Recurse -File -ErrorAction SilentlyContinue
-$rustMacroFiles = Get-ChildItem -Path "$root\rust\centrode_macros\src" -Filter "*.rs" -Recurse -File -ErrorAction SilentlyContinue
-$rustScriptFiles = Get-ChildItem -Path "$root\rust\scripts" -Filter "*.rs" -Recurse -File -ErrorAction SilentlyContinue
+$rustSrcFiles = @()
+$rustGenFiles = @()
+$rustMacroFiles = @()
+$rustScriptFiles = @()
+$rustTestFiles = @()
 
-$rustSrcFiles = Get-ChildItem -Path "$root\rust\src" -Filter "*.rs" -Recurse -File -ErrorAction SilentlyContinue |
-    Where-Object { $rustGenerated -notcontains $_.FullName.Replace("$root\", "").Replace("\", "/") }
+foreach ($crate in $rustCrateDirs) {
+    $srcRoot = Join-Path $crate.FullName "src"
+    $srcFiles = Get-ChildItem -Path $srcRoot -Filter "*.rs" -Recurse -File -ErrorAction SilentlyContinue
+    foreach ($f in $srcFiles) {
+        if ($f.Name -eq "frb_generated.rs") { $rustGenFiles += $f }
+        elseif ($crate.Name -eq "centrode_macros") { $rustMacroFiles += $f }
+        else { $rustSrcFiles += $f }
+    }
+    $scriptDir = Join-Path $crate.FullName "scripts"
+    if (Test-Path $scriptDir) { $rustScriptFiles += Get-ChildItem -Path $scriptDir -Filter "*.rs" -Recurse -File -ErrorAction SilentlyContinue }
+    $testDir = Join-Path $crate.FullName "tests"
+    if (Test-Path $testDir) { $rustTestFiles += Get-ChildItem -Path $testDir -Filter "*.rs" -Recurse -File -ErrorAction SilentlyContinue }
+}
+$rustRootTestDir = Join-Path $root "rust\tests"
+if (Test-Path $rustRootTestDir) { $rustTestFiles += Get-ChildItem -Path $rustRootTestDir -Filter "*.rs" -Recurse -File -ErrorAction SilentlyContinue }
+$rustRootScriptDir = Join-Path $root "rust\scripts"
+if (Test-Path $rustRootScriptDir) { $rustScriptFiles += Get-ChildItem -Path $rustRootScriptDir -Filter "*.rs" -Recurse -File -ErrorAction SilentlyContinue }
 
 $rustManualStats = @{ total = 0; code = 0; blank = 0; comment = 0; files = 0 }
 $rustGenStats    = @{ total = 0; code = 0; blank = 0; comment = 0; files = 0 }
@@ -81,7 +101,7 @@ $rustMacroStats  = @{ total = 0; code = 0; blank = 0; comment = 0; files = 0 }
 $rustScriptStats = @{ total = 0; code = 0; blank = 0; comment = 0; files = 0 }
 
 foreach ($f in $rustSrcFiles) { $rustManualStats = Merge-Stats $rustManualStats (Count-Lines $f.FullName) }
-foreach ($f in $rustGenerated) { $rustGenStats = Merge-Stats $rustGenStats (Count-Lines (Join-Path $root $f)) }
+foreach ($f in $rustGenFiles) { $rustGenStats = Merge-Stats $rustGenStats (Count-Lines $f.FullName) }
 foreach ($f in $rustTestFiles) { $rustTestStats = Merge-Stats $rustTestStats (Count-Lines $f.FullName) }
 foreach ($f in $rustMacroFiles) { $rustMacroStats = Merge-Stats $rustMacroStats (Count-Lines $f.FullName) }
 foreach ($f in $rustScriptFiles) { $rustScriptStats = Merge-Stats $rustScriptStats (Count-Lines $f.FullName) }
@@ -133,13 +153,13 @@ $surqlFiles = Get-ChildItem -Path "$root\rust\src" -Filter "*.surql" -Recurse -F
 $surqlStats = @{ total = 0; code = 0; blank = 0; comment = 0; files = 0 }
 foreach ($f in $surqlFiles) { $surqlStats = Merge-Stats $surqlStats (Count-Lines $f.FullName) }
 
-# ── Module breakdowns ──
+# ── Per-crate breakdown (new architecture) ──
 $rustModules = @{}
-$rustSrcFiles | ForEach-Object {
-    $rel = $_.FullName.Replace("$root\rust\src\", "")
-    $mod = if ($rel -notmatch '\\') { "(root)" } else { $rel.Split('\')[0] }
-    if (-not $rustModules.ContainsKey($mod)) { $rustModules[$mod] = @{ total = 0; code = 0; blank = 0; comment = 0; files = 0 } }
-    $rustModules[$mod] = Merge-Stats $rustModules[$mod] (Count-Lines $_.FullName)
+$rustSrcFiles + $rustMacroFiles | ForEach-Object {
+    $rel = $_.FullName.Replace("$root\rust\", "")
+    $crate = $rel.Split('\')[0]
+    if (-not $rustModules.ContainsKey($crate)) { $rustModules[$crate] = @{ total = 0; code = 0; blank = 0; comment = 0; files = 0 } }
+    $rustModules[$crate] = Merge-Stats $rustModules[$crate] (Count-Lines $_.FullName)
 }
 
 $dartAreas = @{}
@@ -163,7 +183,7 @@ if ($Json) {
             macros    = $rustMacroStats
             scripts   = $rustScriptStats
             total     = $rustTotalStats
-            modules   = @{}
+            crates    = @{}
         }
         dart   = @{
             lib_manual    = $dartLibManualStats
@@ -177,7 +197,7 @@ if ($Json) {
         surql  = $surqlStats
         grand  = @{ total = $grandTotal; manual = $grandManual }
     }
-    foreach ($kv in $rustModules.GetEnumerator()) { $output.rust.modules[$kv.Key] = $kv.Value }
+    foreach ($kv in $rustModules.GetEnumerator()) { $output.rust.crates[$kv.Key] = $kv.Value }
     foreach ($kv in $dartAreas.GetEnumerator()) { $output.dart.areas[$kv.Key] = $kv.Value }
     $output | ConvertTo-Json -Depth 5
     return
@@ -192,7 +212,7 @@ Write-Host "  CENTRODE CODEBASE STATISTICS" -ForegroundColor Yellow
 Write-Host ("#" * 70) -ForegroundColor Yellow
 
 Print-Section "RUST SIDE" "Magenta"
-Print-Row "  Manual (src/)" $rustManualStats
+Print-Row "  Manual (crate src/)" $rustManualStats
 Print-Row "  Generated (frb)" $rustGenStats
 Print-Row "  Tests" $rustTestStats
 Print-Row "  Proc Macros" $rustMacroStats
@@ -202,7 +222,7 @@ Print-Row "  RUST TOTAL" $rustTotalStats
 
 if ($Detailed) {
     Write-Host ""
-    Write-Host "  Rust modules (manual only):" -ForegroundColor DarkGray
+    Write-Host "  Rust crates (manual only):" -ForegroundColor DarkGray
     foreach ($mod in ($rustModules.GetEnumerator() | Sort-Object { $_.Value.code } -Descending)) {
         Print-Row "    $($mod.Key)" $mod.Value 4 $rustManualStats
     }

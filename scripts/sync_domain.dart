@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:io';
 
 void main() {
@@ -19,7 +21,7 @@ void main() {
   if (coreDomainFile.existsSync()) {
     final content = coreDomainFile.readAsStringSync();
     daemonDomainFile.writeAsStringSync(content);
-    print('Synced domain.rs to centrode_daemon/src/domain.rs');
+    print('Synced domain.rs from centrode_core to centrode_daemon');
   }
 
   int count = 0;
@@ -33,8 +35,5 @@ void main() {
     }
   }
 
-  print(
-    'Successfully synced $count domain source files from centrode_core to centrode_daemon/src/domain.',
-  );
+  print('Successfully synced $count domain source files from centrode_core to centrode_daemon/src/domain.');
 }
-

@@ -13,6 +13,7 @@ pub enum CategoryKind {
 #[derive(Debug, Clone)]
 pub struct TableAttr {
     pub label: Option<String>,
+    #[allow(dead_code)]
     pub fetch_fields: Vec<String>,
     pub no_key: bool,
 }
