@@ -5,7 +5,6 @@ import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
 import 'package:centrode/features/graph/store/modules/graph_store.dart';
 import 'package:centrode/features/graph/store/modules/layout_tick_interpolator.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
-import 'package:centrode/src/rust/domain/styles.dart';
 import 'package:centrode/src/rust/layout_engine/types.dart';
 
 void main() {

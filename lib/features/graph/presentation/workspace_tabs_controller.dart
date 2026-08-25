@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:centrode/shared/logging.dart';
 import 'package:centrode/shared/traceable_notifier.dart';
 import 'package:path/path.dart' as p;
@@ -27,6 +28,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
   final String name;
   final String? centFilePath;
   GraphApi? handle;
+  GraphApi? get api => handle;
   ThemeController? themeController;
   GraphDataQueryController? queryController;
   CommandQueueProcessor? commandProcessor;
@@ -213,6 +215,24 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     isInitialized.value = true;
     _log.info('TabSession initialized successfully');
     notifyListeners();
+
+    // Initialize native Candle embedding engine in background
+    unawaited(() async {
+      try {
+        final modelBytes = await rootBundle.load('assets/models/multilingual_5lang/model.safetensors');
+        final tokBytes = await rootBundle.load('assets/models/multilingual_5lang/tokenizer.json');
+        final cfgBytes = await rootBundle.load('assets/models/multilingual_5lang/config.json');
+
+        await wrapper.initEmbedderModel(
+          weightsBytes: modelBytes.buffer.asUint8List(),
+          tokenizerBytes: tokBytes.buffer.asUint8List(),
+          configBytes: cfgBytes.buffer.asUint8List(),
+        );
+        _log.info('Native Candle 5-language multilingual embedder initialized');
+      } catch (e) {
+        _log.warning('Candle embedder asset load failed, using deterministic subword fallback: $e');
+      }
+    }());
   }
 
   bool get canUndo => commandProcessor?.canUndo ?? false;

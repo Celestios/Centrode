@@ -192,6 +192,20 @@ define_domain_types! {
     pub struct SystemSetting {
         pub value: String,
     }
+
+    #[category(auxiliary)]
+    pub struct CustomWord {
+        pub word: String,
+        pub word_type: String,
+        pub added_at: i64,
+    }
+
+    #[category(auxiliary)]
+    pub struct VectorEmbedding {
+        pub text_payload: String,
+        pub vector: Vec<f32>,
+        pub created_at: i64,
+    }
 }
 
 impl Tag {

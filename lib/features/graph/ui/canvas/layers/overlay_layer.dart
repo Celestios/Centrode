@@ -12,6 +12,7 @@ import '../../../engine/interaction_engine.dart';
 import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
 import '../widgets/metadata_preview_overlay.dart';
+import '../widgets/relation_label_morph_editor.dart';
 import '../utils/dashed_box_paint_utils.dart';
 import 'package:centrode/shared/widgets/unbounded_stack.dart';
 
@@ -115,6 +116,40 @@ class OverlayLayer extends StatelessWidget {
                       nodeWidth: rect.width,
                     ),
                   ),
+                );
+              },
+            ),
+
+            // 7. Active Relation Label Morph Editor (renders on top of all nodes)
+            ListenableBuilder(
+              listenable: renderState,
+              builder: (context, _) {
+                final activeEditId = renderState.activeEditId;
+                if (activeEditId == null) return const SizedBox.shrink();
+
+                final editedRel = dataController.relations
+                    .where((r) => r.id == activeEditId)
+                    .firstOrNull;
+                if (editedRel == null) return const SizedBox.shrink();
+
+                final cached =
+                    dataController.relationEngine.cache[editedRel.id];
+                if (cached == null) return const SizedBox.shrink();
+
+                final labelPos = Offset(
+                  cached.labelPosition.x,
+                  cached.labelPosition.y,
+                );
+
+                return RelationLabelMorphEditor(
+                  relation: editedRel,
+                  labelCenter: labelPos,
+                  queryController: dataController,
+                  uiController: renderState,
+                  interactionContext: interactionController.environment,
+                  onCommit: (verb) {
+                    renderState.commitEntityText(editedRel.id, verb);
+                  },
                 );
               },
             ),

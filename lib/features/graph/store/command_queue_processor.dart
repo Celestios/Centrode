@@ -315,7 +315,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     _syncNodeCache(id);
   }
 
-  void createRelation(
+  UiRelation? createRelation(
     RawUuid fromId,
     RawUuid toId, {
     PortSide? fromSide,
@@ -360,6 +360,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
         toNode: toNode,
       );
     }
+    return relation;
   }
 
   @override

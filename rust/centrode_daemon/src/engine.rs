@@ -51,6 +51,7 @@ impl EngineManager {
     pub async fn system_db() -> Result<Surreal<Db>> {
         let db = Self::root_db().await?;
         db.use_ns("centrode").use_db("system").await?;
+        crate::schema::Seeder::seed_system_data(&db).await?;
         Ok(db)
     }
 

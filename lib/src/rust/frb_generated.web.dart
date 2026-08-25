@@ -383,6 +383,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Coordinates dco_decode_coordinates(dynamic raw);
 
   @protected
+  CustomWord dco_decode_custom_word(dynamic raw);
+
+  @protected
   DisplayMode dco_decode_display_mode(dynamic raw);
 
   @protected
@@ -396,6 +399,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   EntityPatch dco_decode_entity_patch(dynamic raw);
+
+  @protected
+  double dco_decode_f_32(dynamic raw);
 
   @protected
   double dco_decode_f_64(dynamic raw);
@@ -470,6 +476,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<ContentBlock> dco_decode_list_content_block(dynamic raw);
 
   @protected
+  List<CustomWord> dco_decode_list_custom_word(dynamic raw);
+
+  @protected
   List<IRelation> dco_decode_list_i_relation(dynamic raw);
 
   @protected
@@ -497,6 +506,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<PortPatch> dco_decode_list_port_patch(dynamic raw);
 
   @protected
+  Float32List dco_decode_list_prim_f_32_strict(dynamic raw);
+
+  @protected
   Float64List dco_decode_list_prim_f_64_strict(dynamic raw);
 
   @protected
@@ -504,6 +516,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  List<(String, RelationStyle)> dco_decode_list_record_string_relation_style(
+    dynamic raw,
+  );
 
   @protected
   List<(TypedRecordId, double, double, double, double)>
@@ -650,6 +667,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? dco_decode_opt_box_autoadd_u_8(dynamic raw);
 
   @protected
+  Uint8List? dco_decode_opt_list_prim_u_8_strict(dynamic raw);
+
+  @protected
   List<TextMark>? dco_decode_opt_list_text_mark(dynamic raw);
 
   @protected
@@ -669,6 +689,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   (double, double) dco_decode_record_f_64_f_64(dynamic raw);
+
+  @protected
+  (String, RelationStyle) dco_decode_record_string_relation_style(dynamic raw);
 
   @protected
   (TypedRecordId, double, double, double, double)
@@ -1112,6 +1135,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Coordinates sse_decode_coordinates(SseDeserializer deserializer);
 
   @protected
+  CustomWord sse_decode_custom_word(SseDeserializer deserializer);
+
+  @protected
   DisplayMode sse_decode_display_mode(SseDeserializer deserializer);
 
   @protected
@@ -1125,6 +1151,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   EntityPatch sse_decode_entity_patch(SseDeserializer deserializer);
+
+  @protected
+  double sse_decode_f_32(SseDeserializer deserializer);
 
   @protected
   double sse_decode_f_64(SseDeserializer deserializer);
@@ -1203,6 +1232,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<CustomWord> sse_decode_list_custom_word(SseDeserializer deserializer);
+
+  @protected
   List<IRelation> sse_decode_list_i_relation(SseDeserializer deserializer);
 
   @protected
@@ -1234,6 +1266,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<PortPatch> sse_decode_list_port_patch(SseDeserializer deserializer);
 
   @protected
+  Float32List sse_decode_list_prim_f_32_strict(SseDeserializer deserializer);
+
+  @protected
   Float64List sse_decode_list_prim_f_64_strict(SseDeserializer deserializer);
 
   @protected
@@ -1241,6 +1276,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  List<(String, RelationStyle)> sse_decode_list_record_string_relation_style(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<(TypedRecordId, double, double, double, double)>
@@ -1421,6 +1461,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer);
 
   @protected
+  Uint8List? sse_decode_opt_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
   List<TextMark>? sse_decode_opt_list_text_mark(SseDeserializer deserializer);
 
   @protected
@@ -1442,6 +1485,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   (double, double) sse_decode_record_f_64_f_64(SseDeserializer deserializer);
+
+  @protected
+  (String, RelationStyle) sse_decode_record_string_relation_style(
+    SseDeserializer deserializer,
+  );
 
   @protected
   (TypedRecordId, double, double, double, double)
@@ -2000,6 +2048,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_coordinates(Coordinates self, SseSerializer serializer);
 
   @protected
+  void sse_encode_custom_word(CustomWord self, SseSerializer serializer);
+
+  @protected
   void sse_encode_display_mode(DisplayMode self, SseSerializer serializer);
 
   @protected
@@ -2016,6 +2067,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_entity_patch(EntityPatch self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_f_32(double self, SseSerializer serializer);
 
   @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
@@ -2105,6 +2159,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_custom_word(
+    List<CustomWord> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_i_relation(
     List<IRelation> self,
     SseSerializer serializer,
@@ -2150,6 +2210,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_prim_f_32_strict(
+    Float32List self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_f_64_strict(
     Float64List self,
     SseSerializer serializer,
@@ -2161,6 +2227,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_record_string_relation_style(
+    List<(String, RelationStyle)> self,
     SseSerializer serializer,
   );
 
@@ -2367,6 +2439,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_list_prim_u_8_strict(
+    Uint8List? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_list_text_mark(
     List<TextMark>? self,
     SseSerializer serializer,
@@ -2393,6 +2471,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_record_f_64_f_64(
     (double, double) self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_record_string_relation_style(
+    (String, RelationStyle) self,
     SseSerializer serializer,
   );
 

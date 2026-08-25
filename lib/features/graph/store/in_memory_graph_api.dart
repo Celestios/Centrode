@@ -510,6 +510,33 @@ class InMemoryGraphApi implements GraphApi {
   }) async {}
 
   @override
+  Future<RelationStyle?> getRelationSpec({required String verb}) async {
+    return null;
+  }
+
+  @override
+  Future<List<(String, RelationStyle)>> listRelationSpecs() async {
+    return const [];
+  }
+
+  @override
+  Future<List<String>> searchSimilarLabels({required String query, required BigInt limit}) async {
+    return const [];
+  }
+
+  @override
+  Future<Float32List> embedText({required String text}) async {
+    return Float32List(0);
+  }
+
+  @override
+  Future<void> initEmbedderModel({
+    required Uint8List weightsBytes,
+    required Uint8List tokenizerBytes,
+    Uint8List? configBytes,
+  }) async {}
+
+  @override
   Future<void> close() async {
     await _eventController.close();
   }

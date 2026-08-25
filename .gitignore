@@ -62,3 +62,7 @@ migrate_working_dir/
 # === Other ===
 notes.txt
 .hermes/
+
+# === Machine Learning Models & Temp ===
+assets/models/
+scratch/

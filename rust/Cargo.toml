@@ -17,6 +17,10 @@ tracing = { version = "0.1", features = ["release_max_level_info"] }
 centrode_macros = { path = "centrode_macros" }
 centrode_daemon = { path = "centrode_daemon" }
 flutter_rust_bridge = { version = "=2.11.1", default-features = false }
+candle-core = { version = "0.8", default-features = false }
+candle-nn = { version = "0.8", default-features = false }
+candle-transformers = { version = "0.8", default-features = false }
+tokenizers = { version = "0.21", default-features = false, features = ["onig"] }
 
 [workspace.lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

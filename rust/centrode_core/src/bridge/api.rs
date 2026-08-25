@@ -11,7 +11,9 @@ pub use crate::domain::snapshot::GraphSnapshot;
 pub use crate::domain::tags::Tag;
 pub use crate::domain::templates::Template;
 pub use crate::domain::theme::{MapTheme, ThemeFields};
-pub use crate::domain::types::{Auxiliary, DomainEntity, Relations};
+pub use crate::domain::types::{
+    Auxiliary, CustomWord, DomainEntity, Relations, VectorEmbedding,
+};
 pub use crate::frb_generated::StreamSink;
 pub use crate::layout_engine::config::LayoutConfig;
 pub use crate::layout_engine::types::{Axis, LayoutPatch, LayoutTickResult, PortPatch};
@@ -494,6 +496,55 @@ impl AppHandle {
         strength: f64,
     ) -> anyhow::Result<()> {
         self.service.add_anchor_spring(node_id, x, y, strength).await
+    }
+
+    // ========================================================================
+    // Dictionaries & Vector Embeddings FFI Endpoints
+    // ========================================================================
+
+    pub async fn get_relation_spec(&self, verb: String) -> anyhow::Result<Option<RelationStyle>> {
+        self.service.repo.get_relation_spec(&verb).await
+    }
+
+    pub async fn list_relation_specs(&self) -> anyhow::Result<Vec<(String, RelationStyle)>> {
+        self.service.repo.list_relation_specs().await
+    }
+
+    pub async fn add_custom_word(&self, word: String, word_type: String) -> anyhow::Result<()> {
+        self.service.repo.add_custom_word(&word, &word_type).await
+    }
+
+    pub async fn list_custom_words(&self) -> anyhow::Result<Vec<CustomWord>> {
+        self.service.repo.list_custom_words().await
+    }
+
+    pub async fn remove_custom_word(&self, word: String) -> anyhow::Result<()> {
+        self.service.repo.remove_custom_word(&word).await
+    }
+
+    pub async fn store_embedding(&self, text_payload: String) -> anyhow::Result<()> {
+        self.service.repo.store_embedding(&text_payload).await
+    }
+
+    pub async fn search_similar_labels(&self, query: String, limit: usize) -> anyhow::Result<Vec<String>> {
+        self.service.repo.search_similar_labels(&query, limit).await
+    }
+
+    pub fn embed_text(&self, text: String) -> Vec<f32> {
+        crate::services::embedding_service::EmbeddingService::embed_text(&text)
+    }
+
+    pub fn init_embedder_model(
+        &self,
+        weights_bytes: Vec<u8>,
+        tokenizer_bytes: Vec<u8>,
+        config_bytes: Option<Vec<u8>>,
+    ) -> anyhow::Result<()> {
+        crate::services::embedding_service::EmbeddingService::init_model(
+            &weights_bytes,
+            &tokenizer_bytes,
+            config_bytes.as_deref(),
+        )
     }
 }
 

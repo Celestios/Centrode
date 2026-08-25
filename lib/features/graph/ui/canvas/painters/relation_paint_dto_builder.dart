@@ -18,6 +18,7 @@ class RelationPaintDtoBuilder {
     required List<UiRelation> relations,
     required Map<RawUuid, NodeViewState> nodeViewStates,
     required Set<RawUuid> selectedEntities,
+    RawUuid? activeEditId,
     required CanvasInteractionState? interactionState,
     required RelationEngineState? relationEngine,
     required String labelMode,
@@ -39,12 +40,14 @@ class RelationPaintDtoBuilder {
 
       final resolved = RelationStyleStrategy.resolveStyle(rel);
       final isSelected = selectedEntities.contains(rel.id);
-      final showLabel = switch (labelMode) {
-        'never' => false,
-        'always' => true,
-        'auto' => isSelected,
-        _ => isSelected,
-      };
+      final showLabel = (activeEditId == rel.id)
+          ? false
+          : switch (labelMode) {
+              'never' => false,
+              'always' => true,
+              'auto' => isSelected,
+              _ => isSelected,
+            };
 
       final color = resolveColor(
         tipDrag: tipDrag,

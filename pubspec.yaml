@@ -86,6 +86,7 @@ flutter:
   assets:
     - assets/themes/
     - assets/bg.png
+    - assets/models/multilingual_5lang/
 
   shaders:
     - shaders/liquid_glass.frag

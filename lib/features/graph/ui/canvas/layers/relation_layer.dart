@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/widgets/unbounded_stack.dart';
-import '../../../../../presentation/theme/app_theme_manager.dart';
-import '../../../engine/config.dart';
 import '../../../store/graph_data_query_controller.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../engine/interaction_engine.dart';
@@ -14,7 +12,6 @@ import '../painters/relation_painter.dart';
 import '../painters/relation_painter_dto.dart';
 import '../painters/relation_paint_dto_builder.dart';
 import '../painters/transformed_relation_painter.dart';
-import '../text/canvas_text_editor.dart';
 
 class RelationLayer extends StatelessWidget {
   const RelationLayer({super.key});
@@ -45,66 +42,6 @@ class RelationLayer extends StatelessWidget {
           final interactionState = interactionController.state.value;
 
           final activeEditId = uiController.activeEditId;
-          final editedRel = activeEditId != null
-              ? queryController.relations
-                    .where((r) => r.id == activeEditId)
-                    .firstOrNull
-              : null;
-
-          Widget? editorWidget;
-
-          if (editedRel != null) {
-            final cached = queryController.relationEngine.cache[editedRel.id];
-            if (cached != null) {
-              final labelPos = Offset(
-                cached.labelPosition.x,
-                cached.labelPosition.y,
-              );
-              final width = AppConfig.relation.editorMinWidth;
-              final position =
-                  labelPos -
-                  Offset(width / 2, AppConfig.relation.editorVerticalOffset);
-
-              editorWidget = Positioned(
-                left: position.dx,
-                top: position.dy,
-                child: Container(
-                  width: AppConfig.relation.editorMinWidth,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppConfig.relation.editorBgColor,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(
-                      color: AppThemeManager.instance.currentTheme.canvasAccentColor,
-                      width: 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: CanvasTextEditor(
-                    entityId: editedRel.id,
-                    content: ContentFactory.fromText(editedRel.verb),
-                    maxLines: 1,
-                    textStyle: TextStyle(
-                      fontSize: AppConfig.editor.fontSizeRelation,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w500,
-                      height: 1.2,
-                    ),
-                  ),
-                ),
-              );
-            }
-          }
-
           final activeScope = viewport.activeScopeNotifier.value;
           final scopeRelations = queryController.relationsInScope(activeScope);
 
@@ -112,6 +49,7 @@ class RelationLayer extends StatelessWidget {
             relations: scopeRelations,
             nodeViewStates: uiController.viewStates,
             selectedEntities: uiController.selectedEntities,
+            activeEditId: activeEditId,
             relationEngine: queryController.relationEngine,
             interactionState: interactionState,
             labelMode: session.relationLabelModeNotifier.value,
@@ -194,7 +132,6 @@ class RelationLayer extends StatelessWidget {
                   ),
                 ),
               ),
-              if (editorWidget != null) editorWidget,
             ],
           );
         },

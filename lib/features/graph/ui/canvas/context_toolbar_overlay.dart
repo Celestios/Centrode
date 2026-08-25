@@ -125,42 +125,19 @@ class ContextToolbarOverlay extends StatelessWidget {
 
         if (isEditing) {
           final RawUuid editedId = renderState.activeEditId!;
-
           final vs = renderState.viewStates[editedId];
-          final Offset anchorCanvas;
-          final double entityWidth;
 
-          if (vs != null) {
-            final size = Size(
-              vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width,
-              vs.sizeNotifier.value.height,
-            );
-            final node = queryController.nodeLookup[editedId];
-            anchorCanvas = node?.getAbsoluteWorldPosition(queryController.nodeLookup) ?? vs.positionNotifier.value;
-            entityWidth = size.width;
-          } else {
-            UiRelation? rel;
-            try {
-              rel = queryController.relations.firstWhere(
-                (r) => r.id == editedId,
-              );
-            } catch (_) {}
-
-            if (rel != null) {
-              final cached = queryController.relationEngine.cache[editedId];
-              if (cached != null) {
-                anchorCanvas = Offset(
-                  cached.labelPosition.x,
-                  cached.labelPosition.y,
-                );
-                entityWidth = 0;
-              } else {
-                return const SizedBox.shrink();
-              }
-            } else {
-              return const SizedBox.shrink();
-            }
+          if (vs == null) {
+            return const SizedBox.shrink();
           }
+
+          final size = Size(
+            vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width,
+            vs.sizeNotifier.value.height,
+          );
+          final node = queryController.nodeLookup[editedId];
+          final anchorCanvas = node?.getAbsoluteWorldPosition(queryController.nodeLookup) ?? vs.positionNotifier.value;
+          final double entityWidth = size.width;
 
           const double toolbarWidth = 76;
           const double toolbarHeight = 430;

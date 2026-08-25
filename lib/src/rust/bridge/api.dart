@@ -61,6 +61,8 @@ abstract class AppHandle implements RustOpaqueInterface {
     required double strength,
   });
 
+  Future<void> addCustomWord({required String word, required String wordType});
+
   Future<void> applyEntityMutation({required SymmetricEntityPatch mutation});
 
   Future<GraphDelta?> applyHistoryRecordPatch({
@@ -118,6 +120,8 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<void> deleteTemplate({required String key});
 
+  Future<Float32List> embedText({required String text});
+
   Future<String?> getActiveThemeId();
 
   Future<List<Tag>> getAllTags();
@@ -138,6 +142,8 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<BoundingBox?> getOptArea();
 
+  Future<RelationStyle?> getRelationSpec({required String verb});
+
   Future<Tag?> getTag({required String key});
 
   Future<MapTheme?> getTheme({required String key});
@@ -149,11 +155,21 @@ abstract class AppHandle implements RustOpaqueInterface {
     required String mimeType,
   });
 
+  Future<void> initEmbedderModel({
+    required List<int> weightsBytes,
+    required List<int> tokenizerBytes,
+    Uint8List? configBytes,
+  });
+
   Future<void> instantiateTemplate({
     required String key,
     required double targetX,
     required double targetY,
   });
+
+  Future<List<CustomWord>> listCustomWords();
+
+  Future<List<(String, RelationStyle)>> listRelationSpecs();
 
   Future<void> loadMapFromFile({
     required String filePath,
@@ -177,6 +193,8 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<int> redoCount();
 
+  Future<void> removeCustomWord({required String word});
+
   Future<void> rerouteRelation({
     required TypedRecordId record,
     required TypedRecordId from,
@@ -194,6 +212,11 @@ abstract class AppHandle implements RustOpaqueInterface {
     required List<TypedRecordId> relationKeys,
   });
 
+  Future<List<String>> searchSimilarLabels({
+    required String query,
+    required BigInt limit,
+  });
+
   Future<void> setActiveTheme({required String themeKey});
 
   Future<void> setActiveThemeId({required String themeId});
@@ -204,6 +227,8 @@ abstract class AppHandle implements RustOpaqueInterface {
   });
 
   Future<void> setOptArea({BoundingBox? bounds});
+
+  Future<void> storeEmbedding({required String textPayload});
 
   Future<void> triggerLayoutOptimization({
     required LayoutConfig config,

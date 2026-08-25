@@ -151,6 +151,34 @@ class ContainerNode {
           significance == other.significance;
 }
 
+class CustomWord {
+  final TypedRecordId key;
+  final String word;
+  final String wordType;
+  final PlatformInt64 addedAt;
+
+  const CustomWord({
+    required this.key,
+    required this.word,
+    required this.wordType,
+    required this.addedAt,
+  });
+
+  @override
+  int get hashCode =>
+      key.hashCode ^ word.hashCode ^ wordType.hashCode ^ addedAt.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CustomWord &&
+          runtimeType == other.runtimeType &&
+          key == other.key &&
+          word == other.word &&
+          wordType == other.wordType &&
+          addedAt == other.addedAt;
+}
+
 class DrawingNode {
   final TypedRecordId id;
   final TypedRecordId? parentContainerId;
@@ -631,6 +659,8 @@ enum TableKind {
   template,
   mapRegistry,
   systemSetting,
+  customWord,
+  vectorEmbedding,
 }
 
 class Tag {

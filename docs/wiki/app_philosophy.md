@@ -202,6 +202,32 @@ Relationships connect nodes and explicitly describe how they relate. Relationshi
 
 This graph model is substantially more expressive than a conventional rigid folder hierarchy.
 
+### 5.3 Soft Forced Ontology & Dictionaries
+
+In an unconstrained graph, flexibility can devolve into semantic fragmentation—users create duplicate concepts under slightly different labels (`start` vs `beginning`, `depends_on` vs `requires`).
+
+Centrode resolves this through a **Soft Forced Ontology**:
+
+```mermaid
+graph TD
+    UserTyping["User Types: 'start'"] --> Engine["Ontology & Vector Engine"]
+    Engine --> Dict["Controlled Dictionaries"]
+    Engine --> Embeddings["384-dim Vector Similarity"]
+    
+    Dict --> Suggest["Inline Suggestions"]
+    Embeddings --> Suggest
+    
+    Suggest -->|User selects canonical| Canonical["Reuse Canonical Concept / Format"]
+    Suggest -->|User types new word| Custom["Auto-Register Candidate Custom Word"]
+```
+
+1. **Non-Blocking ("Soft") Guidance**: Capture remains fast and unhindered. The user is never blocked by rigid schema modals.
+2. **Controlled Dictionaries & Visual Sync**:
+   * **Relation Predicate Dictionary**: Selecting relation verbs (e.g. `contradicts`) automatically formats edge geometry and endpoint shapes (e.g. inward-pointing arrows).
+   * **Custom Vocabulary**: Unrecognized domain terms and acronyms are implicitly tracked and validated during map spelling audits.
+3. **Pure Graph Compound Classes**: "Class properties" are not hidden key-value forms; attributes are themselves **nodes connected via relations** (e.g. `[Book] --(written_by)--> [Person]`).
+4. **Vector Space Intelligence**: Continuous 384-dimensional vector embeddings run locally in pure Rust, enabling semantic similarity matching without manual synonym lists.
+
 ---
 
 ## 6. Mind-Map Interface

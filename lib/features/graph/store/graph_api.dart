@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:centrode/src/rust/bridge/api.dart';
 import 'package:centrode/src/rust/domain/types.dart';
 import 'package:centrode/src/rust/domain/id.dart';
@@ -116,6 +117,15 @@ abstract class GraphApi {
     required List<TypedRecordId> nodeIds,
     required Axis axis,
   });
+  Future<RelationStyle?> getRelationSpec({required String verb});
+  Future<List<(String, RelationStyle)>> listRelationSpecs();
+  Future<List<String>> searchSimilarLabels({required String query, required BigInt limit});
+  Future<Float32List> embedText({required String text});
+  Future<void> initEmbedderModel({
+    required Uint8List weightsBytes,
+    required Uint8List tokenizerBytes,
+    Uint8List? configBytes,
+  });
   Future<void> addAnchorSpring({
     required TypedRecordId nodeId,
     required double x,
@@ -132,6 +142,44 @@ class RustAppHandleWrapper implements GraphApi {
   RustAppHandleWrapper(this._api);
 
   bool get isDisposed => _isDisposed;
+
+  @override
+  Future<RelationStyle?> getRelationSpec({required String verb}) {
+    if (_isDisposed) return Future.value(null);
+    return _api.getRelationSpec(verb: verb);
+  }
+
+  @override
+  Future<List<(String, RelationStyle)>> listRelationSpecs() {
+    if (_isDisposed) return Future.value(const []);
+    return _api.listRelationSpecs();
+  }
+
+  @override
+  Future<List<String>> searchSimilarLabels({required String query, required BigInt limit}) {
+    if (_isDisposed) return Future.value(const []);
+    return _api.searchSimilarLabels(query: query, limit: limit);
+  }
+
+  @override
+  Future<Float32List> embedText({required String text}) {
+    if (_isDisposed) return Future.value(Float32List(0));
+    return _api.embedText(text: text);
+  }
+
+  @override
+  Future<void> initEmbedderModel({
+    required Uint8List weightsBytes,
+    required Uint8List tokenizerBytes,
+    Uint8List? configBytes,
+  }) {
+    if (_isDisposed) return Future.value();
+    return _api.initEmbedderModel(
+      weightsBytes: weightsBytes,
+      tokenizerBytes: tokenizerBytes,
+      configBytes: configBytes,
+    );
+  }
 
   @override
   Future<void> applyEntityMutation({required SymmetricEntityPatch mutation}) {
@@ -748,6 +796,39 @@ class DeferredGraphApi implements GraphApi {
     required Axis axis,
   }) async {
     await _handle?.setAlignmentConstraint(nodeIds: nodeIds, axis: axis);
+  }
+
+  @override
+  Future<RelationStyle?> getRelationSpec({required String verb}) async {
+    return await _handle?.getRelationSpec(verb: verb);
+  }
+
+  @override
+  Future<List<(String, RelationStyle)>> listRelationSpecs() async {
+    return await _handle?.listRelationSpecs() ?? const [];
+  }
+
+  @override
+  Future<List<String>> searchSimilarLabels({required String query, required BigInt limit}) async {
+    return await _handle?.searchSimilarLabels(query: query, limit: limit) ?? const [];
+  }
+
+  @override
+  Future<Float32List> embedText({required String text}) async {
+    return await _handle?.embedText(text: text) ?? Float32List(0);
+  }
+
+  @override
+  Future<void> initEmbedderModel({
+    required Uint8List weightsBytes,
+    required Uint8List tokenizerBytes,
+    Uint8List? configBytes,
+  }) async {
+    await _handle?.initEmbedderModel(
+      weightsBytes: weightsBytes,
+      tokenizerBytes: tokenizerBytes,
+      configBytes: configBytes,
+    );
   }
 
   @override

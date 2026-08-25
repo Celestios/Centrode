@@ -170,7 +170,7 @@ class CanvasInteractionEnvironment implements InteractionContext {
   }) {
     final fromNode = _queryController.nodeLookup[from];
     final toNode = _queryController.nodeLookup[to];
-    _commandProcessor.createRelation(
+    final rel = _commandProcessor.createRelation(
       from,
       to,
       fromSide: fromSide,
@@ -178,6 +178,9 @@ class CanvasInteractionEnvironment implements InteractionContext {
       verb: verb,
     );
     _triggerOptAreaLayoutIfActive(fromNode?.position ?? toNode?.position);
+    if (rel != null) {
+      _renderState.enterEditMode(rel.id);
+    }
   }
 
   @override
