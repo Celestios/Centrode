@@ -262,7 +262,7 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<void> updateViewportState({required ViewportState state});
 
-  static Future<AppHandle> withRepository({required Repository repo}) =>
+  static Future<AppHandle> withRepository({required Repositories repo}) =>
       RustLib.instance.api.crateBridgeApiAppHandleWithRepository(repo: repo);
 }
 

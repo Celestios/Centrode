@@ -14,6 +14,3 @@ pub mod theme;
 pub mod traits;
 pub mod types;
 
-pub mod domain {
-    pub use crate::*;
-}

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:centrode/src/rust/domain/theme.dart';
+import 'package:centrode/src/rust/domain/types.dart';
 
 abstract interface class ThemeApi {
   Future<void> createTheme({required String key, required ThemeFields fields});

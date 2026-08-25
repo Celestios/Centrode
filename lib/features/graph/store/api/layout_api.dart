@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:centrode/src/rust/domain/base_models.dart' hide Size;
 import 'package:centrode/src/rust/domain/id.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:centrode/src/rust/layout_engine/config.dart';
@@ -9,6 +10,8 @@ abstract interface class LayoutApi {
     required LayoutConfig config,
     List<LayoutPatch> livePositions = const [],
   });
+  Future<BoundingBox?> getOptArea();
+  Future<void> setOptArea({BoundingBox? bounds});
   Future<(double, double)> computeAutoPlacement({
     required TypedRecordId sourceId,
     required PortSide portSide,

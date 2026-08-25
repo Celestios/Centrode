@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'package:centrode/src/rust/domain/id.dart';
-import 'package:centrode/src/rust/domain/relations.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
+import 'package:centrode/src/rust/domain/types.dart';
+import 'package:centrode/src/rust/domain/patches.dart';
+import 'package:centrode/src/rust/domain/routing.dart';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
 import 'package:centrode/src/rust/relation_engine/config.dart';
 
 abstract interface class RelationApi {
+  Future<void> applyEntityMutation({required SymmetricEntityPatch mutation});
   Future<void> createRelation({required IRelation input});
   Future<void> updateRelation({required IRelation input});
   Future<void> deleteRelation({required TypedRecordId id});

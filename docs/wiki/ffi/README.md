@@ -53,7 +53,7 @@ pub struct AppHandle {
 Created via:
 ```rust
 AppHandle::new(storage_path, name)  // Opens/creates a map
-AppHandle::with_repository(repo)    // Wraps existing repository
+AppHandle::with_repository(repo)    // Wraps existing repositories
 ```
 
 ---

@@ -15,29 +15,38 @@ class DaemonGateway implements MapStorageGateway {
     return _handle!;
   }
 
+  @override
   bool get isInitialized => _handle != null;
 
   Future<void> init(String storagePath) async {
     _handle = await DaemonHandle.newInstance(storagePath: storagePath);
   }
 
+  @override
   Future<List<MapDescriptor>> listMaps() => handle.listMaps();
 
+  @override
   Future<List<MapDescriptor>> getRecentMaps({int limit = 50}) =>
       handle.getRecentMaps(limit: BigInt.from(limit));
 
+  @override
   Future<MapDescriptor> createMap(String name) => handle.createMap(name: name);
 
+  @override
   Future<void> deleteMap(String mapId) => handle.deleteMap(mapId: mapId);
 
+  @override
   Future<MapDescriptor> renameMap(String mapId, String newName) =>
       handle.renameMap(mapId: mapId, newName: newName);
 
+  @override
   Future<MapDescriptor> duplicateMap(String mapId, String newName) =>
       handle.duplicateMap(mapId: mapId, newName: newName);
 
+  @override
   Future<void> touchMap(String mapId) => handle.touchMap(mapId: mapId);
 
+  @override
   Future<MapDescriptor> getMap(String mapId) => handle.getMap(mapId: mapId);
 
   Future<String?> getSetting(String key) => handle.getSetting(key: key);

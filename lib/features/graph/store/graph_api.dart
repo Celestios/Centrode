@@ -5,14 +5,12 @@ import 'package:centrode/src/rust/bridge/api.dart';
 import 'package:centrode/src/rust/bridge/stream.dart';
 import 'package:centrode/src/rust/domain/base_models.dart' hide Size;
 import 'package:centrode/src/rust/domain/id.dart';
-import 'package:centrode/src/rust/domain/nodes.dart';
 import 'package:centrode/src/rust/domain/patches.dart';
-import 'package:centrode/src/rust/domain/relations.dart';
 import 'package:centrode/src/rust/domain/snapshot.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
-import 'package:centrode/src/rust/domain/tags.dart';
 import 'package:centrode/src/rust/domain/theme.dart';
 import 'package:centrode/src/rust/domain/types.dart';
+import 'package:centrode/src/rust/domain/routing.dart';
 import 'package:centrode/src/rust/layout_engine/config.dart';
 import 'package:centrode/src/rust/layout_engine/types.dart';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
@@ -259,7 +257,7 @@ class RustGraphApi implements GraphApi {
       _api.getAssetAbsolutePath(
         assetDir: assetDir,
         hash: hash,
-        extension: extension,
+        extension_: extension,
       );
 
   @override

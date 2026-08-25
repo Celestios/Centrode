@@ -44,7 +44,7 @@ impl Shaper for OctilinearShaper {
         let mut computed = ComputedRelation::new_basic(
             TypedRecordId::nil(TableKind::IRelation),
             path_points,
-            PathType::Octilinear,
+            PathType::Orthogonal,
         );
         computed.control_points = simplified;
         computed

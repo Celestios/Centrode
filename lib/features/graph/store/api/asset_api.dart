@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:centrode/src/rust/domain/types.dart';
+import 'package:centrode/src/rust/domain/base_models.dart';
 
 abstract interface class AssetApi {
   Future<Attachment> ingestAsset({

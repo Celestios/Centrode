@@ -1,8 +1,7 @@
 import 'package:centrode/shared/logging.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
-import '../../models/commands.dart';
 import '../../models/graph_relation.dart';
-import '../../models/commands/graph_command_context.dart';
+import '../command_queue_processor.dart';
 import '../modules/graph_relation_mutations.dart';
 import '../api/relation_api.dart';
 import '../command_processor.dart';
@@ -11,7 +10,7 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 /// Command handler managing relation mutations, layouts, and engine cache notification.
 class RelationCommandHandler {
   final Logger _log = Logger('RelationCommandHandler');
-  final GraphCommandContext context;
+  final CommandQueueProcessor context;
   final RelationApi api;
   final CommandProcessor processor;
   late final GraphRelationMutations mutations;

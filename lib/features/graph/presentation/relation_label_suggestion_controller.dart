@@ -6,7 +6,6 @@ import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/features/graph/store/graph_data_query.dart';
 import 'package:centrode/features/graph/store/graph_api.dart';
 import 'package:centrode/features/graph/engine/interaction_context.dart';
-import 'package:centrode/src/rust/domain/base_models.dart' show RelationSpec;
 
 class RelationSuggestionState {
   final String language;

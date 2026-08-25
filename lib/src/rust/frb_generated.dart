@@ -429,7 +429,7 @@ abstract class RustLibApi extends BaseApi {
   });
 
   Future<AppHandle> crateBridgeApiAppHandleWithRepository({
-    required Repository repo,
+    required Repositories repo,
   });
 
   ArcDaemonService crateBridgeApiDaemonHandleAutoAccessorGetService({
@@ -560,12 +560,12 @@ abstract class RustLibApi extends BaseApi {
   get rust_arc_decrement_strong_count_HistoryRecordPtr;
 
   RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_Repository;
+  get rust_arc_increment_strong_count_Repositories;
 
   RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_Repository;
+  get rust_arc_decrement_strong_count_Repositories;
 
-  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_RepositoryPtr;
+  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_RepositoriesPtr;
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -3070,13 +3070,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<AppHandle> crateBridgeApiAppHandleWithRepository({
-    required Repository repo,
+    required Repositories repo,
   }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositories(
             repo,
             serializer,
           );
@@ -3880,12 +3880,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHistoryRecord;
 
   RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_Repository => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository;
+  get rust_arc_increment_strong_count_Repositories => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositories;
 
   RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_Repository => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository;
+  get rust_arc_decrement_strong_count_Repositories => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositories;
 
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw) {
@@ -3939,12 +3939,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  Repository
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+  Repositories
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositories(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return RepositoryImpl.frbInternalDcoDecode(raw as List<dynamic>);
+    return RepositoriesImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -4038,12 +4038,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  Repository
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+  Repositories
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositories(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return RepositoryImpl.frbInternalDcoDecode(raw as List<dynamic>);
+    return RepositoriesImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -6157,12 +6157,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  Repository
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+  Repositories
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositories(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return RepositoryImpl.frbInternalSseDecode(
+    return RepositoriesImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -6289,12 +6289,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  Repository
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
+  Repositories
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositories(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return RepositoryImpl.frbInternalSseDecode(
+    return RepositoriesImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -9046,13 +9046,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    Repository self,
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositories(
+    Repositories self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
-      (self as RepositoryImpl).frbInternalSseEncode(move: true),
+      (self as RepositoriesImpl).frbInternalSseEncode(move: true),
       serializer,
     );
   }
@@ -9189,13 +9189,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepository(
-    Repository self,
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRepositories(
+    Repositories self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
-      (self as RepositoryImpl).frbInternalSseEncode(move: null),
+      (self as RepositoriesImpl).frbInternalSseEncode(move: null),
       serializer,
     );
   }
@@ -11987,21 +11987,21 @@ class HistoryRecordImpl extends RustOpaque implements HistoryRecord {
 }
 
 @sealed
-class RepositoryImpl extends RustOpaque implements Repository {
+class RepositoriesImpl extends RustOpaque implements Repositories {
   // Not to be used by end users
-  RepositoryImpl.frbInternalDcoDecode(List<dynamic> wire)
+  RepositoriesImpl.frbInternalDcoDecode(List<dynamic> wire)
     : super.frbInternalDcoDecode(wire, _kStaticData);
 
   // Not to be used by end users
-  RepositoryImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
+  RepositoriesImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
     : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
 
   static final _kStaticData = RustArcStaticData(
     rustArcIncrementStrongCount:
-        RustLib.instance.api.rust_arc_increment_strong_count_Repository,
+        RustLib.instance.api.rust_arc_increment_strong_count_Repositories,
     rustArcDecrementStrongCount:
-        RustLib.instance.api.rust_arc_decrement_strong_count_Repository,
+        RustLib.instance.api.rust_arc_decrement_strong_count_Repositories,
     rustArcDecrementStrongCountPtr:
-        RustLib.instance.api.rust_arc_decrement_strong_count_RepositoryPtr,
+        RustLib.instance.api.rust_arc_decrement_strong_count_RepositoriesPtr,
   );
 }

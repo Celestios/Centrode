@@ -111,7 +111,7 @@ class OverlayLayer extends StatelessWidget {
                   top: rect.bottom + 8,
                   child: MetadataPreviewOverlay(
                     node: node,
-                    anchorRect: rect,
+                    nodeWidth: rect.width,
                   ),
                 );
               },
@@ -119,30 +119,40 @@ class OverlayLayer extends StatelessWidget {
 
             // 7. Morphing Relation Label Inline Editor Overlay
             ListenableBuilder(
-              listenable: renderState.activeEditIdNotifier,
+              listenable: renderState.editorState,
               builder: (context, _) {
-                final activeEditId = renderState.activeEditId;
+                final activeEditId = renderState.editorState.activeEditId;
                 if (activeEditId == null) return const SizedBox.shrink();
 
                 final relation = dataController.relationLookup[activeEditId];
                 if (relation == null) return const SizedBox.shrink();
 
+                final interactionContext =
+                    context.read<InteractionController>().environment;
                 final tabsController = context.read<WorkspaceTabsController>();
                 final activeSession = tabsController.activeSession;
-                if (activeSession == null) return const SizedBox.shrink();
 
-                final suggestionController =
-                    RelationLabelSuggestionController(
-                      activeSession.mlApi,
-                      dataController,
-                    );
+                final cached = dataController.relationEngine.cache[activeEditId];
+                final labelCenter = cached != null
+                    ? Offset(cached.labelPosition.x, cached.labelPosition.y)
+                    : Offset.zero;
+
+                final suggestionController = RelationLabelSuggestionController(
+                  api: activeSession.mlApi,
+                  queryController: dataController,
+                  relation: relation,
+                );
 
                 return RelationLabelMorphEditor(
                   relation: relation,
-                  renderState: renderState,
-                  queryController: dataController,
+                  labelCenter: labelCenter,
                   suggestionController: suggestionController,
-                  onClose: () => renderState.exitEditMode(),
+                  uiController: renderState,
+                  interactionContext: interactionContext,
+                  onCommit: (verb) {
+                    activeSession.commandProcessor?.commitEntityText(activeEditId, verb);
+                    renderState.editorState.cancelActiveEdit();
+                  },
                 );
               },
             ),

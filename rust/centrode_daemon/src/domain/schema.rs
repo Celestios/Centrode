@@ -74,7 +74,7 @@ impl_surql_primitive!(u32, "int");
 impl_surql_primitive!(bool, "bool");
 impl_surql_primitive!(f64, "float");
 impl_surql_primitive!(f32, "float");
-impl_surql_primitive!(crate::domain::id::TypedRecordId, "record");
+impl_surql_primitive!(crate::id::TypedRecordId, "record");
 
 impl<T: SurqlSchemaField> SurqlSchemaField for Option<T> {
     fn field_type() -> String {

@@ -28,7 +28,7 @@ impl Point {
 
     pub fn normalize(self) -> Self {
         let len = self.length();
-        if len == 0.0 {
+        if len < f64::EPSILON {
             Self::new(0.0, 0.0)
         } else {
             Self::new(self.x / len, self.y / len)

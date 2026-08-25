@@ -160,7 +160,7 @@ class InMemoryGraphApi implements GraphApi {
           nodeUpserts: const [],
           nodeCreations: const [],
           nodeDeletions: const [],
-          relationUpserts: [input],
+          relationUpserts: [(input.key, const <RelationPatch>[])],
           relationCreations: const [],
           relationDeletions: const [],
         ),

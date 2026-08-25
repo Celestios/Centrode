@@ -1,5 +1,5 @@
 import '../../models/models.dart';
-import '../../models/commands/graph_command_context.dart';
+import '../command_queue_processor.dart';
 import '../modules/graph_text_mutations.dart';
 import '../modules/graph_style_mutations.dart';
 import '../modules/graph_tag_mutations.dart';
@@ -8,7 +8,7 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 
 /// Command handler managing entity properties: styles, tags, comments, and text content.
 class PropertyCommandHandler {
-  final GraphCommandContext context;
+  final CommandQueueProcessor context;
   late final GraphTextMutations text;
   late final GraphStyleMutations style;
   late final GraphTagMutations tags;

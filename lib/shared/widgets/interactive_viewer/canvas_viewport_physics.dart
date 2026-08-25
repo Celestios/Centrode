@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'package:flutter/physics.dart';
 import 'package:centrode/shared/widgets/canvas_camera_physics.dart';
 
 /// Physics calculations for canvas deceleration, springs, and friction.

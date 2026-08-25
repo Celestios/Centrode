@@ -89,8 +89,6 @@ impl CustodianManager {
         );
 
         while running.load(Ordering::SeqCst) {
-            let storage_path = self.storage_path.clone();
-
             let handler = |msg: IpcMessage| -> IpcResponse {
                 match msg {
                     IpcMessage::Ping => IpcResponse {

@@ -14,8 +14,8 @@ crate-type = ["rlib"]
 
 [dependencies]
 centrode_macros.workspace = true
-flutter_rust_bridge.workspace = true
 tokio.workspace = true
+
 anyhow.workspace = true
 tracing.workspace = true
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

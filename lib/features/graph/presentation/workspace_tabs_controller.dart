@@ -227,7 +227,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
         final tokBytes = await rootBundle.load('assets/models/multilingual_5lang/tokenizer.json');
         final cfgBytes = await rootBundle.load('assets/models/multilingual_5lang/config.json');
 
-        await wrapper.initEmbedderModel(
+        await handle?.initEmbedderModel(
           weightsBytes: modelBytes.buffer.asUint8List(),
           tokenizerBytes: tokBytes.buffer.asUint8List(),
           configBytes: cfgBytes.buffer.asUint8List(),

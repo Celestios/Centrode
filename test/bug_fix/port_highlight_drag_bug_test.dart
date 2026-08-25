@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 import 'package:centrode/features/graph/engine/base_interaction_state.dart';
+import 'package:centrode/features/graph/engine/interaction_engine.dart';
+import 'package:centrode/features/graph/engine/interaction_facade.dart';
 import 'package:centrode/features/graph/models/graph_node.dart';
 import 'package:centrode/features/graph/models/port.dart';
-import 'package:centrode/features/graph/presentation/drag_state.dart';
+import 'package:centrode/features/graph/presentation/node_render_state.dart';
+import 'package:centrode/features/graph/presentation/viewport_state.dart';
 import 'package:centrode/features/graph/presentation/view_state.dart';
+import 'package:centrode/features/graph/store/graph_data_query.dart';
+import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
+import 'package:centrode/features/graph/store/command_queue_processor.dart';
+import 'package:centrode/features/graph/store/in_memory_graph_api.dart';
 import 'package:centrode/features/graph/ui/canvas/layers/port_layer.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
@@ -29,40 +37,59 @@ void main() {
       final vs1 = NodeViewState(node1);
       final vs2 = NodeViewState(node2);
 
-      final Map<RawUuid, NodeViewState> nodeViewStates = {
-        nodeId1: vs1,
-        nodeId2: vs2,
-      };
-
-      final hoveredNodeNotifier = ValueNotifier<RawUuid?>(null);
-      final hoveredPortNotifier = ValueNotifier<Port?>(
-        const Port(
-          side: PortSide.top,
-          type: PortType.middle,
-          index: 0,
-          position: Offset(50, 0),
-          edgePosition: Offset(50, 0),
-        ),
+      final api = InMemoryGraphApi();
+      final queryController = GraphDataQueryController(api);
+      final processor = CommandQueueProcessor(api, queryController);
+      final renderState = NodeRenderState(queryController, processor);
+      final viewportController = ViewportController(queryController);
+      final transformController = TransformationController();
+      final interactionEnv = CanvasInteractionEnvironment(
+        queryController: queryController,
+        commandProcessor: processor,
+        renderState: renderState,
+        viewportController: viewportController,
+        getScale: () => 1.0,
+      );
+      final interactionController = InteractionController(
+        transformController: transformController,
+        environment: interactionEnv,
       );
 
-      final interactionState = ValueNotifier<CanvasInteractionState>(
-        RelationDrawing({nodeId1}, const Offset(50, 0)),
-      );
+      queryController.store.nodeLookup[nodeId1] = node1;
+      queryController.store.nodeLookup[nodeId2] = node2;
+      renderState.viewStates[nodeId1] = vs1;
+      renderState.viewStates[nodeId2] = vs2;
 
-      final dragState = DragState();
+      interactionController.state.value =
+          RelationDrawing({nodeId1}, const Offset(50, 0));
+
+      const port = Port(
+        side: PortSide.top,
+        type: PortType.middle,
+        index: 0,
+        position: Offset(50, 0),
+        edgePosition: Offset(50, 0),
+      );
+      renderState.hoveredPortNotifier.value = port;
 
       await tester.pumpWidget(
-        PortLayer(
-          nodeViewStates: nodeViewStates,
-          hoveredNodeNotifier: hoveredNodeNotifier,
-          hoveredPortNotifier: hoveredPortNotifier,
-          interactionState: interactionState,
-          dragState: dragState,
+        MultiProvider(
+          providers: [
+            Provider<GraphDataQuery>.value(value: queryController),
+            ChangeNotifierProvider<NodeRenderState>.value(value: renderState),
+            Provider<ViewportController>.value(value: viewportController),
+            Provider<InteractionController>.value(value: interactionController),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(
+              body: PortLayer(),
+            ),
+          ),
         ),
       );
 
       // Hover over node 2
-      hoveredNodeNotifier.value = nodeId2;
+      renderState.hoveredNodeNotifier.value = nodeId2;
       await tester.pump();
 
       // Verify CustomPaint with PortPainter is built with hoveredPort: null during RelationDrawing
@@ -77,13 +104,13 @@ void main() {
       expect(painter.hoveredPort, isNull);
 
       // When returning to CanvasIdle, hoveredPort should be restored
-      interactionState.value = const CanvasIdle();
+      interactionController.state.value = const CanvasIdle();
       await tester.pump();
 
       final CustomPaint updatedCustomPaint = tester.widget(customPaintFinder);
       final PortPainter updatedPainter =
           updatedCustomPaint.painter as PortPainter;
-      expect(updatedPainter.hoveredPort, equals(hoveredPortNotifier.value));
+      expect(updatedPainter.hoveredPort, equals(port));
     },
   );
 }

@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart' show clampDouble, visibleForTesting;
+import 'package:flutter/foundation.dart' show clampDouble;
 import 'package:flutter/painting.dart';
 import 'package:vector_math/vector_math_64.dart' show Matrix4, Quad, Vector3;
 
@@ -8,7 +8,6 @@ class CanvasGeometryUtils {
   CanvasGeometryUtils._();
 
   /// Returns the closest point to the given point on the given line segment.
-  @visibleForTesting
   static Vector3 getNearestPointOnLine(Vector3 point, Vector3 l1, Vector3 l2) {
     final double lengthSquared =
         math.pow(l2.x - l1.x, 2.0).toDouble() +
@@ -29,7 +28,6 @@ class CanvasGeometryUtils {
   }
 
   /// Given a quad, return its axis aligned bounding box.
-  @visibleForTesting
   static Quad getAxisAlignedBoundingBox(Quad quad) {
     final double minX = math.min(
       quad.point0.x,
@@ -56,7 +54,6 @@ class CanvasGeometryUtils {
   }
 
   /// Returns true iff the point is inside the rectangle given by the Quad, inclusively.
-  @visibleForTesting
   static bool pointIsInside(Vector3 point, Quad quad) {
     final Vector3 aM = point - quad.point0;
     final Vector3 aB = quad.point1 - quad.point0;
@@ -71,7 +68,6 @@ class CanvasGeometryUtils {
   }
 
   /// Get the point inside (inclusively) the given Quad that is nearest to the given Vector3.
-  @visibleForTesting
   static Vector3 getNearestPointInside(Vector3 point, Quad quad) {
     if (pointIsInside(point, quad)) {
       return point;

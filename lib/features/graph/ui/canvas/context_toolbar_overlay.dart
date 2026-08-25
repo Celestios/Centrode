@@ -204,7 +204,7 @@ class ContextToolbarOverlay extends StatelessWidget {
 
     if (offsetNotifier.value == AppConfig.toolbar.singleOffset) {
       offsetNotifier.value = isNodeOnRightHalf
-          ? const Offset(-toolbarWidth - margin, 0)
+          ? Offset(-toolbarWidth - margin, 0)
           : Offset(entityWidth + margin, 0);
     }
 
@@ -386,7 +386,7 @@ class ContextToolbarOverlay extends StatelessWidget {
 
     if (offsetNotifier.value == defaultOffset) {
       offsetNotifier.value = isNodeOnRightHalf
-          ? const Offset(-visualToolbarWidth - margin, 0)
+          ? Offset(-visualToolbarWidth - margin, 0)
           : Offset(nodeWidth + margin, 0);
     }
 

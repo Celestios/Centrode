@@ -13,11 +13,8 @@ class MapManager extends ChangeNotifier {
 
   final Logger _log = Logger('MapManager');
   WorkspaceTabsController? _tabsController;
-  MapStorageGateway? _storageGateway;
+  MapStorageGateway? storageGateway;
   VoidCallback? _onAllTabsClosed;
-
-  MapStorageGateway? get storageGateway => _storageGateway;
-  set storageGateway(MapStorageGateway? gateway) => _storageGateway = gateway;
 
   WorkspaceTabsController? get activeTabsController => _tabsController;
 
@@ -51,8 +48,8 @@ class MapManager extends ChangeNotifier {
         : NameGenerator.generate();
     _log.info('createAndOpenMap name=$finalName');
 
-    if (_storageGateway?.isInitialized == true) {
-      final descriptor = await _storageGateway!.createMap(finalName);
+    if (storageGateway?.isInitialized == true) {
+      final descriptor = await storageGateway!.createMap(finalName);
       openMap(
         descriptor.storagePath,
         descriptor.name,
@@ -67,8 +64,8 @@ class MapManager extends ChangeNotifier {
   bool openMap(String storagePath, String name, {String? mapId}) {
     _log.info('openMap name=$name path=$storagePath id=$mapId');
     final id = mapId ?? p.basenameWithoutExtension(storagePath);
-    if (_storageGateway?.isInitialized == true) {
-      _storageGateway!.touchMap(id);
+    if (storageGateway?.isInitialized == true) {
+      storageGateway!.touchMap(id);
     }
 
     if (_tabsController != null) {
@@ -131,8 +128,8 @@ class MapManager extends ChangeNotifier {
 
     final storagePath = await AppPaths.resolveMapPath(name);
     final id = p.basenameWithoutExtension(storagePath);
-    if (_storageGateway?.isInitialized == true) {
-      _storageGateway!.touchMap(id);
+    if (storageGateway?.isInitialized == true) {
+      storageGateway!.touchMap(id);
     }
 
     if (_tabsController != null) {

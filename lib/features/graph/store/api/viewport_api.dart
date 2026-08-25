@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:centrode/src/rust/bridge/stream.dart';
 import 'package:centrode/src/rust/domain/base_models.dart' hide Size;
-import 'package:centrode/src/rust/domain/nodes.dart';
+import 'package:centrode/src/rust/domain/types.dart';
 import 'package:centrode/src/rust/domain/snapshot.dart';
 
 abstract interface class ViewportApi {

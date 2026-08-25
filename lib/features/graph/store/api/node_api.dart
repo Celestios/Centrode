@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:centrode/src/rust/domain/id.dart';
-import 'package:centrode/src/rust/domain/nodes.dart';
 import 'package:centrode/src/rust/domain/patches.dart';
+import 'package:centrode/src/rust/domain/types.dart';
 
 abstract interface class NodeApi {
   Future<void> createNode({required Nodes input});

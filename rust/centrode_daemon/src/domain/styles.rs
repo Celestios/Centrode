@@ -155,9 +155,7 @@ pub enum PortType {
     Edge = 2,
 }
 
-use flutter_rust_bridge::frb;
 
-#[frb(dart_metadata=("freezed"))]
 #[derive(Debug, Clone, PartialEq, SurrealValue, SurqlSchemaField)]
 pub struct NodeStyle {
     pub bg_color: u32,
@@ -180,7 +178,6 @@ pub struct NodeStyle {
     pub strategy_type: String,
 }
 
-#[frb(dart_metadata=("freezed"))]
 #[derive(Debug, Clone, PartialEq, SurrealValue, SurqlSchemaField)]
 pub struct RelationStyle {
     pub bg_color: u32,
@@ -206,14 +203,12 @@ pub struct RelationStyle {
     pub body_strategy: String,
 }
 
-#[frb(dart_metadata=("freezed"))]
 #[derive(Debug, Clone, PartialEq, SurrealValue, SurqlSchemaField)]
 pub struct ControlPoint {
     pub x: f64,
     pub y: f64,
 }
 
-#[frb(dart_metadata=("freezed"))]
 #[derive(Debug, Clone, PartialEq, SurrealValue, SurqlSchemaField)]
 pub struct RelationLayout {
     pub from_side: Option<PortSide>,
@@ -223,7 +218,6 @@ pub struct RelationLayout {
     pub control_point_2: Option<ControlPoint>,
 }
 
-#[frb(dart_metadata=("freezed"))]
 #[derive(Debug, Clone, PartialEq, SurrealValue, SurqlSchemaField)]
 pub struct NodeLayout {
     pub strategy_type: String,

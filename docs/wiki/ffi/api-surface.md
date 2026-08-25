@@ -9,7 +9,7 @@ All methods on `AppHandle` (`rust/centrode_core/src/bridge/api.rs`) that are cal
 | Method | Signature | Description |
 |--------|-----------|-------------|
 | `new` | `(storage_path: String, name: String) -> Result<Self>` | Create/open a map |
-| `with_repository` | `(repo: Repository) -> Self` | Wrap existing repo |
+| `with_repository` | `(repo: Repositories) -> Self` | Wrap existing repo |
 | `close` | `() -> Result<()>` | Close the map |
 | `create_graph_stream` | `(sink: StreamSink<GraphEvent>) -> Result<()>` | Subscribe to graph events |
 

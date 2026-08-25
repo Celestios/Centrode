@@ -41,18 +41,6 @@ pub struct DaemonHandle {
     pub service: Arc<DaemonService>,
 }
 
-impl From<centrode_daemon::domain::base_models::MapDescriptor> for MapDescriptor {
-    fn from(d: centrode_daemon::domain::base_models::MapDescriptor) -> Self {
-        Self {
-            id: d.id,
-            name: d.name,
-            storage_path: d.storage_path,
-            created_at_ms: d.created_at_ms,
-            modified_at_ms: d.modified_at_ms,
-            accessed_at_ms: d.accessed_at_ms,
-        }
-    }
-}
 
 impl DaemonHandle {
     pub async fn new(storage_path: String) -> anyhow::Result<Self> {

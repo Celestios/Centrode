@@ -1,7 +1,7 @@
 import 'dart:ui' show Offset;
 import 'package:centrode/shared/logging.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
-import 'package:centrode/src/rust/domain/templates.dart';
+import 'package:centrode/src/rust/domain/types.dart';
 import 'package:centrode/src/rust/domain/id.dart';
 import '../../models/commands/patch_helpers.dart';
 import '../../models/commands/save_template.dart';

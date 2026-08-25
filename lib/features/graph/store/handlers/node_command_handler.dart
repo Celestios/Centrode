@@ -1,20 +1,15 @@
 import 'dart:ui';
-import 'package:centrode/shared/logging.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
-import 'package:centrode/src/rust/domain/id.dart';
-import 'package:centrode/src/rust/domain/nodes.dart';
-import 'package:centrode/src/rust/domain/contents.dart';
 import '../../models/models.dart';
-import '../../models/commands/graph_command_context.dart';
 import '../../models/commands/patch_helpers.dart';
+import '../command_queue_processor.dart';
 import '../modules/graph_node_mutations.dart';
 import '../api/node_api.dart';
 import '../command_processor.dart';
 
 /// Command handler managing node creation, movement, deletion, and cache synchronization.
 class NodeCommandHandler {
-  final Logger _log = Logger('NodeCommandHandler');
-  final GraphCommandContext context;
+  final CommandQueueProcessor context;
   final NodeApi api;
   final CommandProcessor processor;
   late final GraphNodeMutations mutations;
