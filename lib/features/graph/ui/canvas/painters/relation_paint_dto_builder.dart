@@ -14,6 +14,9 @@ import '../../../engine/base_interaction_state.dart';
 import 'relation_painter_dto.dart';
 
 class RelationPaintDtoBuilder {
+  static Offset _toOffset(Point p) => Offset(p.x, p.y);
+  static List<Offset> _toOffsets(List<Point> pts) => pts.map(_toOffset).toList();
+
   static List<RelationPaintDto> buildPaintDtos({
     required List<UiRelation> relations,
     required Map<RawUuid, NodeViewState> nodeViewStates,
@@ -32,8 +35,7 @@ class RelationPaintDtoBuilder {
 
       if (from == null || to == null) continue;
 
-      final tipDrag =
-          (interactionState is RelationTipDragging &&
+      final tipDrag = (interactionState is RelationTipDragging &&
               interactionState.relationId == rel.id)
           ? interactionState
           : null;
@@ -61,23 +63,9 @@ class RelationPaintDtoBuilder {
         resolved: resolved,
       );
 
-      final Offset? dragPos;
-      if (tipDrag != null) {
-        if (tipDrag.snappedTargetNodeId != null &&
-            tipDrag.snappedTargetSide != null) {
-          final targetVs = nodeViewStates[tipDrag.snappedTargetNodeId!];
-          dragPos = targetVs != null
-              ? targetVs.getPortPosition(tipDrag.snappedTargetSide!)
-              : tipDrag.currentCursorPosition;
-        } else {
-          dragPos = tipDrag.currentCursorPosition;
-        }
-      } else {
-        dragPos = null;
-      }
+      final Offset? dragPos = _calculateDragPosition(tipDrag, nodeViewStates);
 
-      final bool isNodeDragging =
-          (interactionState is NodeDragging &&
+      final bool isNodeDragging = (interactionState is NodeDragging &&
               (interactionState.nodeId == rel.fromNodeId ||
                   interactionState.nodeId == rel.toNodeId)) ||
           (interactionState is GroupDragging &&
@@ -88,8 +76,7 @@ class RelationPaintDtoBuilder {
                   interactionState.nodeId == rel.toNodeId));
 
       final previewCached = relationEngine?.previewCache[rel.id];
-      final usePreview =
-          tipDrag != null &&
+      final usePreview = tipDrag != null &&
           tipDrag.snappedTargetNodeId != null &&
           previewCached != null;
 
@@ -133,6 +120,21 @@ class RelationPaintDtoBuilder {
     }
 
     return dtos;
+  }
+
+  static Offset? _calculateDragPosition(
+    RelationTipDragging? tipDrag,
+    Map<RawUuid, NodeViewState> nodeViewStates,
+  ) {
+    if (tipDrag == null) return null;
+    if (tipDrag.snappedTargetNodeId != null &&
+        tipDrag.snappedTargetSide != null) {
+      final targetVs = nodeViewStates[tipDrag.snappedTargetNodeId!];
+      return targetVs != null
+          ? targetVs.getPortPosition(tipDrag.snappedTargetSide!)
+          : tipDrag.currentCursorPosition;
+    }
+    return tipDrag.currentCursorPosition;
   }
 
   static Color resolveColor({
@@ -179,8 +181,8 @@ class RelationPaintDtoBuilder {
   }) {
     final bool isDraggingThisTip = tipDrag != null && dragPos != null;
 
-    final startPoint = Offset(cached.startPoint.x, cached.startPoint.y);
-    final endPoint = Offset(cached.endPoint.x, cached.endPoint.y);
+    final startPoint = _toOffset(cached.startPoint);
+    final endPoint = _toOffset(cached.endPoint);
 
     final fromSide = _resolvePortSide(
       rel.resolvedLayout?.fromSide,
@@ -200,8 +202,7 @@ class RelationPaintDtoBuilder {
         ? toVs.getPortPosition(toSide)
         : toVs.getClosestPort(endPoint).position;
 
-    final bool needsTransform =
-        isDraggingThisTip ||
+    final bool needsTransform = isDraggingThisTip ||
         isNodeDragging ||
         (liveStart - startPoint).distance > 0.5 ||
         (liveEnd - endPoint).distance > 0.5;
@@ -224,12 +225,12 @@ class RelationPaintDtoBuilder {
           : liveEnd;
 
       List<Offset> transform(List<Point> pts) => transformPathPoints(
-        points: pts.map((p) => Offset(p.x, p.y)).toList(),
-        sourceStart: startPoint,
-        sourceEnd: endPoint,
-        targetStart: transformStart,
-        targetEnd: transformEnd,
-      );
+            points: _toOffsets(pts),
+            sourceStart: startPoint,
+            sourceEnd: endPoint,
+            targetStart: transformStart,
+            targetEnd: transformEnd,
+          );
 
       bodyPoints = transform(cached.pathPoints);
       startShapeVertices = cached.startShapePath.isNotEmpty
@@ -239,16 +240,14 @@ class RelationPaintDtoBuilder {
           ? transform(cached.endShapePath)
           : const [];
 
-      final labelTransformed = transform([
-        Point(x: cached.labelPosition.x, y: cached.labelPosition.y),
-      ]);
+      final labelTransformed = transform([cached.labelPosition]);
       labelPos = labelTransformed.isNotEmpty
           ? labelTransformed.first
           : Offset.lerp(transformStart, transformEnd, 0.5)!;
 
       final handlesTransformed = transform([
-        Point(x: cached.startHandlePos.x, y: cached.startHandlePos.y),
-        Point(x: cached.endHandlePos.x, y: cached.endHandlePos.y),
+        cached.startHandlePos,
+        cached.endHandlePos,
       ]);
       startHandlePos = isDraggingThisTip
           ? transformStart
@@ -263,16 +262,16 @@ class RelationPaintDtoBuilder {
       startPointResult = transformStart;
       endPointResult = transformEnd;
     } else {
-      bodyPoints = cached.pathPoints.map((p) => Offset(p.x, p.y)).toList();
+      bodyPoints = _toOffsets(cached.pathPoints);
       startShapeVertices = cached.startShapePath.isNotEmpty
-          ? cached.startShapePath.map((p) => Offset(p.x, p.y)).toList()
+          ? _toOffsets(cached.startShapePath)
           : const [];
       endShapeVertices = cached.endShapePath.isNotEmpty
-          ? cached.endShapePath.map((p) => Offset(p.x, p.y)).toList()
+          ? _toOffsets(cached.endShapePath)
           : const [];
-      labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
-      startHandlePos = Offset(cached.startHandlePos.x, cached.startHandlePos.y);
-      endHandlePos = Offset(cached.endHandlePos.x, cached.endHandlePos.y);
+      labelPos = _toOffset(cached.labelPosition);
+      startHandlePos = _toOffset(cached.startHandlePos);
+      endHandlePos = _toOffset(cached.endHandlePos);
       startPointResult = startPoint;
       endPointResult = endPoint;
     }
@@ -313,21 +312,18 @@ class RelationPaintDtoBuilder {
     required Color color,
     required double strokeWidth,
   }) {
-    final bodyPoints = cached.pathPoints.map((p) => Offset(p.x, p.y)).toList();
+    final bodyPoints = _toOffsets(cached.pathPoints);
     final startShapeVertices = cached.startShapePath.isNotEmpty
-        ? cached.startShapePath.map((p) => Offset(p.x, p.y)).toList()
+        ? _toOffsets(cached.startShapePath)
         : const <Offset>[];
     final endShapeVertices = cached.endShapePath.isNotEmpty
-        ? cached.endShapePath.map((p) => Offset(p.x, p.y)).toList()
+        ? _toOffsets(cached.endShapePath)
         : const <Offset>[];
-    final labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
-    final startHandlePos = Offset(
-      cached.startHandlePos.x,
-      cached.startHandlePos.y,
-    );
-    final endHandlePos = Offset(cached.endHandlePos.x, cached.endHandlePos.y);
-    final startPoint = Offset(cached.startPoint.x, cached.startPoint.y);
-    final endPoint = Offset(cached.endPoint.x, cached.endPoint.y);
+    final labelPos = _toOffset(cached.labelPosition);
+    final startHandlePos = _toOffset(cached.startHandlePos);
+    final endHandlePos = _toOffset(cached.endHandlePos);
+    final startPoint = _toOffset(cached.startPoint);
+    final endPoint = _toOffset(cached.endPoint);
 
     return RelationPaintDto(
       id: rel.id,

@@ -107,10 +107,50 @@ impl IpcServer {
     where
         F: Fn(IpcMessage) -> IpcResponse,
     {
-        loop {
-            let response = self.accept_one(&handler);
-            if let Err(e) = response {
-                tracing::warn!("IPC: connection error: {}", e);
+        #[cfg(target_os = "windows")]
+        {
+            use interprocess::local_socket::prelude::*;
+            use interprocess::local_socket::{GenericNamespaced, ListenerOptions, ToNsName};
+            let name = self
+                .pipe_name
+                .as_str()
+                .to_ns_name::<GenericNamespaced>()
+                .context("IPC: invalid pipe name")?;
+            let listener = ListenerOptions::new()
+                .name(name)
+                .create_sync()
+                .context("IPC: failed to bind named pipe")?;
+            loop {
+                match listener.accept() {
+                    Ok(mut stream) => {
+                        if let Ok(msg) = recv_message(&mut stream) {
+                            let resp = handler(msg);
+                            let _ = send_message(&mut stream, &resp);
+                        }
+                    }
+                    Err(e) => {
+                        tracing::warn!("IPC: connection error: {}", e);
+                    }
+                }
+            }
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            use std::os::unix::net::UnixListener;
+            let listener =
+                UnixListener::bind(self.pipe_name.as_str()).context("IPC: failed to bind UDS")?;
+            loop {
+                match listener.accept() {
+                    Ok((mut stream, _)) => {
+                        if let Ok(msg) = recv_message(&mut stream) {
+                            let resp = handler(msg);
+                            let _ = send_message(&mut stream, &resp);
+                        }
+                    }
+                    Err(e) => {
+                        tracing::warn!("IPC: connection error: {}", e);
+                    }
+                }
             }
         }
     }

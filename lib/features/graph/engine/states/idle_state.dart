@@ -23,7 +23,8 @@ class CanvasIdle extends CanvasInteractionState {
     InteractionContext ctx,
     bool isDoubleTap,
   ) {
-    if (e.buttons == kSecondaryMouseButton || ctx.toolMode == 'pan') {
+    final mode = CanvasToolMode.fromString(ctx.toolMode);
+    if (e.buttons == kSecondaryMouseButton || mode.isPan) {
       _canvasIdleLog.fine('Pan mode or Right-click detected: Preserving idle for panning');
       return this;
     }
@@ -146,11 +147,11 @@ class CanvasIdle extends CanvasInteractionState {
     }
 
     if (e.buttons == kPrimaryMouseButton && hitEntityId == null) {
-      if (ctx.toolMode == 'optimize') {
+      if (mode.isOptimize) {
         ctx.onSetOptArea(null);
         return OptAreaDrawing(pCanvas, pCanvas);
       }
-      if (ctx.toolMode == 'frame') {
+      if (mode.isFrame) {
         return FrameDrawing(pCanvas, pCanvas);
       }
       return MarqueeSelecting(pCanvas, pCanvas);

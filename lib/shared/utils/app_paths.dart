@@ -4,6 +4,12 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 class AppPaths {
+  static const String mapsDirName = 'maps';
+  static const String dataDirName = 'data';
+  static const String attachmentsDirName = 'attachments';
+  static const int maxIoRetries = 10;
+  static const Duration ioRetryDelay = Duration(milliseconds: 20);
+
   static String? _cachedDevRoot;
 
   static Future<String> get _appDataRoot async {
@@ -16,11 +22,11 @@ class AppPaths {
   }
 
   static Future<String> get mapsDirectory async {
-    return p.join(await _appDataRoot, 'maps');
+    return p.join(await _appDataRoot, mapsDirName);
   }
 
   static Future<String> get attachmentsDirectory async {
-    final dir = p.join(await mapsDirectory, 'attachments');
+    final dir = p.join(await mapsDirectory, attachmentsDirName);
     final d = Directory(dir);
     if (!d.existsSync()) {
       d.createSync(recursive: true);
@@ -29,7 +35,7 @@ class AppPaths {
   }
 
   static Future<String> attachmentsDirectoryForMap(String mapIdOrName) async {
-    final dir = p.join(await mapsDirectory, 'attachments', mapIdOrName);
+    final dir = p.join(await mapsDirectory, attachmentsDirName, mapIdOrName);
     final d = Directory(dir);
     if (!d.existsSync()) {
       d.createSync(recursive: true);
@@ -38,7 +44,7 @@ class AppPaths {
   }
 
   static Future<String> get dataDirectory async {
-    return p.join(await _appDataRoot, 'data');
+    return p.join(await _appDataRoot, dataDirName);
   }
 
   static Future<String> resolveMapPath(String name) async {
@@ -64,7 +70,7 @@ class AppPaths {
 
   static String? _findCentrodeRoot(String startPath) {
     var dir = startPath;
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < maxIoRetries; i++) {
       final pubspec = File(p.join(dir, 'pubspec.yaml'));
       if (pubspec.existsSync()) {
         final content = pubspec.readAsStringSync();
@@ -81,7 +87,7 @@ class AppPaths {
 
   static Future<void> deleteMapStorage(String rawPath) async {
     final path = p.canonicalize(rawPath);
-    for (var attempt = 0; attempt < 10; attempt++) {
+    for (var attempt = 0; attempt < maxIoRetries; attempt++) {
       try {
         if (Directory(path).existsSync()) {
           await Directory(path).delete(recursive: true);
@@ -90,8 +96,8 @@ class AppPaths {
         }
         return;
       } catch (e) {
-        if (attempt == 9) rethrow;
-        await Future<void>.delayed(const Duration(milliseconds: 20));
+        if (attempt == maxIoRetries - 1) rethrow;
+        await Future<void>.delayed(ioRetryDelay);
       }
     }
   }
@@ -106,7 +112,7 @@ class AppPaths {
       return;
     }
 
-    for (var attempt = 0; attempt < 10; attempt++) {
+    for (var attempt = 0; attempt < maxIoRetries; attempt++) {
       try {
         if (Directory(oldPath).existsSync()) {
           await Directory(oldPath).rename(newPath);
@@ -115,8 +121,7 @@ class AppPaths {
         }
         return;
       } catch (e) {
-        if (attempt == 9) {
-          // If direct atomic rename failed due to OS file locks on Windows, fall back to recursive copy + delete
+        if (attempt == maxIoRetries - 1) {
           if (Directory(oldPath).existsSync()) {
             await _copyDirectory(Directory(oldPath), Directory(newPath));
             await deleteMapStorage(oldPath);
@@ -128,7 +133,7 @@ class AppPaths {
           }
           rethrow;
         }
-        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await Future<void>.delayed(ioRetryDelay);
       }
     }
   }

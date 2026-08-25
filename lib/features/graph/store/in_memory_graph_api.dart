@@ -160,8 +160,8 @@ class InMemoryGraphApi implements GraphApi {
           nodeUpserts: const [],
           nodeCreations: const [],
           nodeDeletions: const [],
-          relationUpserts: const [],
-          relationCreations: [input],
+          relationUpserts: [input],
+          relationCreations: const [],
           relationDeletions: const [],
         ),
       ),
@@ -390,28 +390,45 @@ class InMemoryGraphApi implements GraphApi {
     double? overrideEndX,
     double? overrideEndY,
   }) async {
+    final start = Point(
+      x: overrideStartX ?? 0.0,
+      y: overrideStartY ?? 0.0,
+    );
+    final end = Point(
+      x: overrideEndX ?? 100.0,
+      y: overrideEndY ?? 100.0,
+    );
+    final mid = Point(
+      x: (start.x + end.x) / 2.0,
+      y: (start.y + end.y) / 2.0,
+    );
+    final minX = start.x < end.x ? start.x : end.x;
+    final minY = start.y < end.y ? start.y : end.y;
+    final width = (end.x - start.x).abs();
+    final height = (end.y - start.y).abs();
+
     return ComputedRelation(
       id: edgeId,
-      pathPoints: const [],
+      pathPoints: [start, end],
       pathType: PathType.straight,
-      startTangent: const Point(x: 0, y: 0),
-      endTangent: const Point(x: 0, y: 0),
-      bodyWidths: Float64List(0),
+      startTangent: const Point(x: 1, y: 0),
+      endTangent: const Point(x: 1, y: 0),
+      bodyWidths: Float64List.fromList([1.5, 1.5]),
       bodyType: BodyType.uniform,
       startEndpoint: EndpointShape.none,
-      endEndpoint: EndpointShape.none,
+      endEndpoint: EndpointShape.arrow,
       startDirection: 0.0,
       endDirection: 0.0,
-      labelPosition: const Point(x: 0, y: 0),
+      labelPosition: mid,
       labelAnchor: LabelAnchor.center,
-      bbox: const rust_geom.Rect(x: 0, y: 0, width: 0, height: 0),
-      startPoint: const Point(x: 0, y: 0),
-      endPoint: const Point(x: 0, y: 0),
-      startArrowCenter: const Point(x: 0, y: 0),
-      endArrowCenter: const Point(x: 0, y: 0),
+      bbox: rust_geom.Rect(x: minX, y: minY, width: width, height: height),
+      startPoint: start,
+      endPoint: end,
+      startArrowCenter: start,
+      endArrowCenter: end,
       startMargin: 0.0,
       endMargin: 0.0,
-      dependsOnNodes: const [],
+      dependsOnNodes: [fromNodeId, toNodeId],
       controlPoints: const [],
       knots: Float64List(0),
       nudgeColors: const [],

@@ -88,7 +88,7 @@ impl RelationRepository for SurrealRelationRepository {
         let old_in_id = existing.in_;
         let old_out_id = existing.out;
 
-        let _: Option<Value> = self.db.delete(rel_id.into_record()).await?;
+        let _: Option<Value> = self.db.delete(rel_id.to_record_id()).await?;
 
         self.create_relation(updated).await?;
 

@@ -76,7 +76,7 @@ impl DaemonService {
 
     pub async fn delete_map(&self, map_id: &str) -> Result<()> {
         if EngineManager::is_initialized() {
-            let _ = EngineManager::delete_map_db(map_id).await;
+            EngineManager::delete_map_db(map_id).await?;
         }
         let rid = RecordId::new(TableKind::MapRegistry.table_name(), RecordIdKey::String(map_id.to_string()));
         self.db
@@ -99,8 +99,31 @@ impl DaemonService {
         self.get_map(map_id).await
     }
 
-    pub async fn duplicate_map(&self, _map_id: &str, new_name: &str) -> Result<MapDescriptor> {
-        self.create_map(new_name).await
+    pub async fn duplicate_map(&self, map_id: &str, new_name: &str) -> Result<MapDescriptor> {
+        let new_map = self.create_map(new_name).await?;
+        if EngineManager::is_initialized() {
+            let src_db = EngineManager::map_db(map_id).await?;
+            let dst_db = EngineManager::open_map_db(&new_map.id, new_name).await?;
+            let mut src_nodes = src_db.query("SELECT * FROM INode;").await?;
+            let nodes: Vec<Value> = src_nodes.take(0)?;
+            for node in nodes {
+                if let Value::Object(obj) = node {
+                    if let Some(id) = obj.get("id") {
+                        dst_db.query("CREATE $id CONTENT $data;").bind(("id", id.clone())).bind(("data", Value::Object(obj))).await?;
+                    }
+                }
+            }
+            let mut src_relations = src_db.query("SELECT * FROM IRelation;").await?;
+            let relations: Vec<Value> = src_relations.take(0)?;
+            for rel in relations {
+                if let Value::Object(obj) = rel {
+                    if let Some(id) = obj.get("id") {
+                        dst_db.query("CREATE $id CONTENT $data;").bind(("id", id.clone())).bind(("data", Value::Object(obj))).await?;
+                    }
+                }
+            }
+        }
+        Ok(new_map)
     }
 
     pub async fn touch_map(&self, map_id: &str) -> Result<()> {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:centrode/shared/logging.dart';
 import 'gesture_interceptor.dart';
 import 'interaction_context.dart';
+import 'canvas_tool_mode.dart';
 import '../presentation/workspace_tabs_controller.dart';
 import '../presentation/viewport_state.dart';
 
@@ -24,6 +25,9 @@ class DrawingGestureInterceptor extends GestureInterceptor {
     required this.viewportController,
   });
 
+  bool get isDrawingActive =>
+      CanvasToolMode.fromString(session.toolModeNotifier.value).isDraw;
+
   Offset _getLocalCanvasCoords(Offset localPosition) {
     final transform = viewportController.transformController.value;
     if (transform.determinant() == 0.0) return localPosition;
@@ -38,8 +42,7 @@ class DrawingGestureInterceptor extends GestureInterceptor {
     InteractionContext ctx,
     bool isDoubleTap,
   ) {
-    if (session.toolModeNotifier.value == 'draw' &&
-        e.buttons == kPrimaryMouseButton) {
+    if (isDrawingActive && e.buttons == kPrimaryMouseButton) {
       _log.fine('onPointerDown: drawing started');
       activeStroke.value = [_getLocalCanvasCoords(e.localPosition)];
       return InterceptorDisposition.consumed;
@@ -53,8 +56,7 @@ class DrawingGestureInterceptor extends GestureInterceptor {
     Offset pCanvas,
     InteractionContext ctx,
   ) {
-    if (session.toolModeNotifier.value == 'draw' &&
-        activeStroke.value.isNotEmpty) {
+    if (isDrawingActive && activeStroke.value.isNotEmpty) {
       final currentPoint = _getLocalCanvasCoords(e.localPosition);
       final type = session.brushTypeNotifier.value;
       final currentList = List<Offset>.from(activeStroke.value);
@@ -74,8 +76,7 @@ class DrawingGestureInterceptor extends GestureInterceptor {
 
   @override
   InterceptorDisposition onPointerUp(PointerUpEvent e, InteractionContext ctx) {
-    if (session.toolModeNotifier.value == 'draw' &&
-        activeStroke.value.isNotEmpty) {
+    if (isDrawingActive && activeStroke.value.isNotEmpty) {
       _endDrawing(ctx);
       return InterceptorDisposition.consumed;
     }
@@ -87,8 +88,7 @@ class DrawingGestureInterceptor extends GestureInterceptor {
     PointerCancelEvent e,
     InteractionContext ctx,
   ) {
-    if (session.toolModeNotifier.value == 'draw' &&
-        activeStroke.value.isNotEmpty) {
+    if (isDrawingActive && activeStroke.value.isNotEmpty) {
       _cancelDrawing();
       return InterceptorDisposition.consumed;
     }

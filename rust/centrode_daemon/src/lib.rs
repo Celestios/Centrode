@@ -46,50 +46,6 @@ impl DaemonWorker {
         &self.service
     }
 
-    pub async fn list_maps(&self) -> Result<Vec<MapDescriptor>> {
-        self.service.list_maps().await
-    }
-
-    pub async fn get_recent_maps(&self, limit: usize) -> Result<Vec<MapDescriptor>> {
-        self.service.get_recent_maps(limit).await
-    }
-
-    pub async fn create_map(&self, name: &str) -> Result<MapDescriptor> {
-        self.service.create_map(name).await
-    }
-
-    pub async fn delete_map(&self, map_id: &str) -> Result<()> {
-        self.service.delete_map(map_id).await
-    }
-
-    pub async fn rename_map(&self, map_id: &str, new_name: &str) -> Result<MapDescriptor> {
-        self.service.rename_map(map_id, new_name).await
-    }
-
-    pub async fn duplicate_map(&self, map_id: &str, new_name: &str) -> Result<MapDescriptor> {
-        self.service.duplicate_map(map_id, new_name).await
-    }
-
-    pub async fn touch_map(&self, map_id: &str) -> Result<()> {
-        self.service.touch_map(map_id).await
-    }
-
-    pub async fn get_map(&self, map_id: &str) -> Result<MapDescriptor> {
-        self.service.get_map(map_id).await
-    }
-
-    pub async fn get_setting(&self, key: &str) -> Result<Option<String>> {
-        self.service.get_setting(key).await
-    }
-
-    pub async fn set_setting(&self, key: &str, value: &str) -> Result<()> {
-        self.service.set_setting(key, value).await
-    }
-
-    pub async fn delete_setting(&self, key: &str) -> Result<()> {
-        self.service.delete_setting(key).await
-    }
-
     pub async fn flush_and_release(self) -> Result<()> {
         tracing::info!("Daemon: shutting down EngineManager and releasing lock...");
         EngineManager::shutdown().await?;

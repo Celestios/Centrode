@@ -131,8 +131,8 @@ impl SnapshotRepository for SurrealSnapshotRepository {
             let mut res = tx
                 .query("RELATE $from -> $record -> $out CONTENT $data")
                 .bind(("record", record))
-                .bind(("from", in_id.into_record()))
-                .bind(("out", out_id.into_record()))
+                .bind(("from", in_id.to_record_id()))
+                .bind(("out", out_id.to_record_id()))
                 .bind(("data", relation))
                 .await?;
             let _: Option<Value> = res.take(0)?;

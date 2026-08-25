@@ -120,8 +120,7 @@ impl CustodianManager {
                                 message: Some(format!("Failed to release storage lock: {e}")),
                             };
                         }
-                        let manager = CustodianManager::new(storage_path.clone());
-                        if let Err(e) = manager.launch_application(Some(&map_id)) {
+                        if let Err(e) = self.launch_application(Some(&map_id)) {
                             tracing::error!("CustodianManager: Failed to launch application: {}", e);
                             return IpcResponse {
                                 success: false,

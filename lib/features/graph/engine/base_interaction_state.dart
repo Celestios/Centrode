@@ -14,6 +14,7 @@ import '../presentation/strategies/node_layout_strategy.dart';
 import 'interaction_context.dart';
 import 'hit_test_resolver.dart';
 import 'z_order_utils.dart';
+import 'canvas_tool_mode.dart';
 import 'package:centrode/src/rust/domain/routing.dart' as rust_geo;
 
 part 'states/idle_state.dart';

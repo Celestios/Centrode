@@ -63,7 +63,7 @@ impl LayoutRepository for SurrealLayoutRepository {
         );
 
         self.db.query(sql)
-            .bind(("center", center_node_id.into_record()))
+            .bind(("center", center_node_id.to_record_id()))
             .await?;
 
         tracing::info!(

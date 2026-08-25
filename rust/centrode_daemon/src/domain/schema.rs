@@ -57,35 +57,24 @@ pub fn generate_updated_at(table: &str) -> String {
     )
 }
 
-impl SurqlSchemaField for String {
-    fn field_type() -> String { "string".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
+macro_rules! impl_surql_primitive {
+    ($typ:ty, $name:expr) => {
+        impl SurqlSchemaField for $typ {
+            fn field_type() -> String { $name.to_string() }
+            fn sub_field_paths() -> Vec<(String, String)> { vec![] }
+        }
+    };
 }
 
-impl SurqlSchemaField for i64 {
-    fn field_type() -> String { "int".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
-}
-
-impl SurqlSchemaField for i32 {
-    fn field_type() -> String { "int".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
-}
-
-impl SurqlSchemaField for u8 {
-    fn field_type() -> String { "int".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
-}
-
-impl SurqlSchemaField for u32 {
-    fn field_type() -> String { "int".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
-}
-
-impl SurqlSchemaField for bool {
-    fn field_type() -> String { "bool".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
-}
+impl_surql_primitive!(String, "string");
+impl_surql_primitive!(i64, "int");
+impl_surql_primitive!(i32, "int");
+impl_surql_primitive!(u8, "int");
+impl_surql_primitive!(u32, "int");
+impl_surql_primitive!(bool, "bool");
+impl_surql_primitive!(f64, "float");
+impl_surql_primitive!(f32, "float");
+impl_surql_primitive!(crate::domain::id::TypedRecordId, "record");
 
 impl<T: SurqlSchemaField> SurqlSchemaField for Option<T> {
     fn field_type() -> String {
@@ -112,19 +101,4 @@ impl<T: SurqlSchemaField> SurqlSchemaField for Vec<T> {
             paths
         }
     }
-}
-
-impl SurqlSchemaField for f64 {
-    fn field_type() -> String { "float".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
-}
-
-impl SurqlSchemaField for crate::id::TypedRecordId {
-    fn field_type() -> String { "record".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
-}
-
-impl SurqlSchemaField for f32 {
-    fn field_type() -> String { "float".to_string() }
-    fn sub_field_paths() -> Vec<(String, String)> { vec![] }
 }

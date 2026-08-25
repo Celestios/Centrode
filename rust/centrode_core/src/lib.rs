@@ -10,12 +10,6 @@ pub mod relation_engine;
 pub mod repo;
 pub mod persistence {
     pub use crate::repo::*;
-    pub mod repo {
-        pub use crate::repo::*;
-    }
-    pub mod history {
-        pub use crate::repo::history::*;
-    }
 }
 pub mod services;
 pub mod telemetry;

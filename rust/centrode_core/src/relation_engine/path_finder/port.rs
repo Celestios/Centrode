@@ -117,13 +117,13 @@ pub fn closest_port_to(node: &InputNode, target: Point) -> (PortSide, Point) {
     ];
     let mut best_side = PortSide::Top;
     let mut best_pos = port_position(node, Some(&PortSide::Top)).0;
-    let mut min_dist_sq = best_pos.distance_to(target);
+    let mut min_dist = best_pos.distance_to(target);
 
     for side in &sides {
         let pos = port_position(node, Some(side)).0;
         let d = pos.distance_to(target);
-        if d < min_dist_sq {
-            min_dist_sq = d;
+        if d < min_dist {
+            min_dist = d;
             best_side = side.clone();
             best_pos = pos;
         }
@@ -144,10 +144,10 @@ pub fn resolve_ports_full(
     end_ext: f64,
 ) -> Option<ResolvedPorts> {
     let from_node = node_map.get(&edge.from_node_id).or_else(|| {
-        node_map.values().find(|n| n.id.key == edge.from_node_id.key)
+        node_map.values().find(|n| n.id == edge.from_node_id || (n.id.key == edge.from_node_id.key && n.id.table == edge.from_node_id.table))
     })?;
     let to_node = node_map.get(&edge.to_node_id).or_else(|| {
-        node_map.values().find(|n| n.id.key == edge.to_node_id.key)
+        node_map.values().find(|n| n.id == edge.to_node_id || (n.id.key == edge.to_node_id.key && n.id.table == edge.to_node_id.table))
     })?;
 
     let to_center = Point::new(

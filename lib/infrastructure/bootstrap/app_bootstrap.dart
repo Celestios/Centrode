@@ -31,6 +31,8 @@ class AppContext {
 class AppBootstrap {
   static final Logger _log = Logger('AppBootstrap');
 
+  static const Size defaultWindowSize = Size(1280, 720);
+
   /// Executes the complete multi-phase boot sequence.
   static Future<AppContext> initialize() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -52,7 +54,7 @@ class AppBootstrap {
     if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       await windowManager.ensureInitialized();
       const windowOptions = WindowOptions(
-        size: Size(1280, 720),
+        size: defaultWindowSize,
         center: true,
         backgroundColor: Colors.transparent,
         skipTaskbar: false,

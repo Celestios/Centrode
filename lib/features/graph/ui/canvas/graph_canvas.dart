@@ -438,20 +438,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                                     RelationLayer(),
                                     const NodeLayer(),
                                     const OverlayLayer(),
-                                    Positioned.fill(
-                                      child: PortLayer(
-                                        nodeViewStates: renderState.viewStates,
-                                        hoveredNodeNotifier:
-                                            renderState.hoveredNodeNotifier,
-                                        hoveredPortNotifier:
-                                            renderState.hoveredPortNotifier,
-                                        interactionState:
-                                            interactionController.state,
-                                        dragState: renderState.dragState,
-                                        queryController: queryController,
-                                        viewportController: viewportController,
-                                      ),
-                                    ),
+                                    const PortLayer(),
                                     if (_drawingInterceptor != null)
                                       ValueListenableBuilder<List<Offset>>(
                                         valueListenable:

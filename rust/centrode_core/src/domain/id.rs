@@ -34,10 +34,6 @@ impl TypedRecordId {
         RecordId::new(self.table.table_name(), RecordIdKey::Uuid(self.key.into()))
     }
 
-    #[inline]
-    pub fn into_record(&self) -> RecordId {
-        self.to_record_id()
-    }
 
     /// Zero-allocation 17-byte binary pack: [1-byte TableKind, 16-byte UUID key]
     #[inline]

@@ -17,6 +17,18 @@ import 'text/content_text_editing_controller.dart';
 import 'package:centrode/features/graph/presentation/workspace_tabs_controller.dart';
 import 'package:centrode/shared/copy_buffer.dart';
 
+class ContextToolbarConstants {
+  static const double panelExpandedWidth = 356.0;
+  static const double panelCollapsedWidth = 76.0;
+  static const double defaultMargin = 12.0;
+  static const double topThreshold = 112.0;
+  static const double textToolbarWidth = 76.0;
+  static const double textToolbarHeight = 430.0;
+  static const double visualToolbarWidth = 48.0;
+  static const double toolbarStackWidth = 520.0;
+  static const double toolbarHeight = 360.0;
+}
+
 class ContextToolbarOverlay extends StatelessWidget {
   final NodeRenderState renderState;
   final GraphDataQueryController queryController;
@@ -108,7 +120,6 @@ class ContextToolbarOverlay extends StatelessWidget {
 
         final double screenWidth = MediaQuery.of(context).size.width;
         final double screenHeight = MediaQuery.of(context).size.height;
-
         final matrix = viewportController.transformController.value;
 
         final tabsController = context.watch<WorkspaceTabsController>();
@@ -117,418 +128,463 @@ class ContextToolbarOverlay extends StatelessWidget {
         final activeLeftPanel = renderState.activeLeftPanelNotifier.value;
 
         final double leftThreshold = activeLeftPanel != LeftPanelType.none
-            ? 356.0
-            : (leftVisible ? 76.0 : 12.0);
-        final double rightThreshold = screenWidth - 12.0;
-        final double topThreshold = 112.0;
-        const double margin = 12.0;
+            ? ContextToolbarConstants.panelExpandedWidth
+            : (leftVisible
+                ? ContextToolbarConstants.panelCollapsedWidth
+                : ContextToolbarConstants.defaultMargin);
+        final double rightThreshold =
+            screenWidth - ContextToolbarConstants.defaultMargin;
+        const double topThreshold = ContextToolbarConstants.topThreshold;
+        const double margin = ContextToolbarConstants.defaultMargin;
 
         if (isEditing) {
-          final RawUuid editedId = renderState.activeEditId!;
-          final vs = renderState.viewStates[editedId];
-
-          if (vs == null) {
-            return const SizedBox.shrink();
-          }
-
-          final size = Size(
-            vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width,
-            vs.sizeNotifier.value.height,
-          );
-          final node = queryController.nodeLookup[editedId];
-          final anchorCanvas = node?.getAbsoluteWorldPosition(queryController.nodeLookup) ?? vs.positionNotifier.value;
-          final double entityWidth = size.width;
-
-          const double toolbarWidth = 76;
-          const double toolbarHeight = 430;
-
-          final anchorScreen = MatrixUtils.transformPoint(matrix, anchorCanvas);
-          final bool isNodeOnRightHalf = anchorScreen.dx > (screenWidth / 2);
-
-          if (offsetNotifier.value == AppConfig.toolbar.singleOffset) {
-            offsetNotifier.value = isNodeOnRightHalf
-                ? const Offset(-toolbarWidth - margin, 0)
-                : Offset(entityWidth + margin, 0);
-          }
-
-          final bool? lastNodeHalf = renderState.lastNodeOnRightHalf;
-          if (lastNodeHalf != null && lastNodeHalf != isNodeOnRightHalf) {
-            if (isNodeOnRightHalf && offsetNotifier.value.dx >= 0) {
-              final mirroredDx = entityWidth - toolbarWidth - offsetNotifier.value.dx;
-              offsetNotifier.value = Offset(mirroredDx, offsetNotifier.value.dy);
-            } else if (!isNodeOnRightHalf && offsetNotifier.value.dx < 0) {
-              final mirroredDx = entityWidth - toolbarWidth - offsetNotifier.value.dx;
-              offsetNotifier.value = Offset(mirroredDx, offsetNotifier.value.dy);
-            }
-          }
-          renderState.lastNodeOnRightHalf = isNodeOnRightHalf;
-
-          final screenPosition = MatrixUtils.transformPoint(
-            matrix,
-            anchorCanvas + offsetNotifier.value,
-          );
-
-          final double maxX = math.max(leftThreshold, rightThreshold - toolbarWidth);
-          final double maxY = math.max(topThreshold, screenHeight - toolbarHeight * 0.7);
-
-          final double toolbarLeft = screenPosition.dx.clamp(leftThreshold, maxX).toDouble();
-          final double toolbarTop = screenPosition.dy.clamp(topThreshold, maxY).toDouble();
-
-          return Positioned(
-            left: toolbarLeft,
-            top: toolbarTop,
-            child: VerticalTextFormatToolbar(
-              onToggleBold: () {
-                renderState.applyFormatCallback?.call(TextFormatType.bold);
-              },
-              onToggleItalic: () {
-                renderState.applyFormatCallback?.call(TextFormatType.italic);
-              },
-              onToggleUnderline: () {
-                renderState.applyFormatCallback?.call(TextFormatType.underline);
-              },
-              onToggleHeader1: () {
-                renderState.toggleHeadingCallback?.call(
-                  TextFormatType.heading1,
-                );
-              },
-              onToggleHeader2: () {
-                renderState.toggleHeadingCallback?.call(
-                  TextFormatType.heading2,
-                );
-              },
-              onToggleHeader3: () {
-                renderState.toggleHeadingCallback?.call(
-                  TextFormatType.heading3,
-                );
-              },
-              onToggleBlockquote: () {
-                renderState.toggleHeadingCallback?.call(
-                  TextFormatType.blockquote,
-                );
-              },
-              onToggleCodeBlock: () {
-                renderState.toggleHeadingCallback?.call(
-                  TextFormatType.codeBlock,
-                );
-              },
-              onToggleBulletList: () {
-                renderState.toggleHeadingCallback?.call(
-                  TextFormatType.bulletList,
-                );
-              },
-              onToggleOrderedList: () {
-                renderState.toggleHeadingCallback?.call(
-                  TextFormatType.orderedList,
-                );
-              },
-              onClearBlockFormat: () {
-                renderState.clearBlockFormatCallback?.call();
-              },
-              onSelectFontFamily: (fontFamily) {
-                renderState.setFontFamilyCallback?.call(fontFamily);
-              },
-              onCycleTextColor: () {
-                renderState.cycleTextColorCallback?.call();
-              },
-              onToggleHighlight: () {
-                renderState.toggleHighlightCallback?.call();
-              },
-              onCycleHighlightColor: () {
-                renderState.cycleHighlightColorCallback?.call();
-              },
-              onCycleTextAlign: () {
-                renderState.cycleTextAlignCallback?.call();
-              },
-              currentTextAlign: renderState.currentTextAlignNotifier.value,
-              onIncreaseFontSize: () {
-                interactionController.updateNodeStyle(editedId, (style) {
-                  return style.copyWith(
-                    fontSize: (style.fontSize + 2.0).clamp(
-                      AppConfig.node.minFontSize,
-                      AppConfig.node.maxFontSize,
-                    ),
-                  );
-                });
-              },
-              onDecreaseFontSize: () {
-                interactionController.updateNodeStyle(editedId, (style) {
-                  return style.copyWith(
-                    fontSize: (style.fontSize - 2.0).clamp(
-                      AppConfig.node.minFontSize,
-                      AppConfig.node.maxFontSize,
-                    ),
-                  );
-                });
-              },
-              onAddHyperlink: () async {
-                final url = await showDialog<String>(
-                  context: context,
-                  builder: (context) {
-                    final controller = TextEditingController(text: 'https://');
-                    return AlertDialog(
-                      title: const Text('Insert Hyperlink'),
-                      content: TextField(
-                        controller: controller,
-                        autofocus: true,
-                        decoration: const InputDecoration(
-                          hintText: 'https://example.com',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () =>
-                              Navigator.pop(context, controller.text),
-                          child: const Text('Insert'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-                if (url != null && url.isNotEmpty) {
-                  renderState.applyFormatCallback?.call(
-                    TextFormatType.link,
-                    url: url,
-                  );
-                }
-              },
-              dragHandle: _buildDragHandle(matrix, offsetNotifier),
-            ),
+          return _buildTextFormattingToolbar(
+            context,
+            matrix: matrix,
+            offsetNotifier: offsetNotifier,
+            screenWidth: screenWidth,
+            screenHeight: screenHeight,
+            leftThreshold: leftThreshold,
+            rightThreshold: rightThreshold,
+            topThreshold: topThreshold,
+            margin: margin,
           );
         }
 
-        Offset anchor = Offset.zero;
-        if (selectedViewStates.isNotEmpty || selectedRelations.isNotEmpty) {
-          anchor =
-              renderState.calculateToolbarAnchor(
-                renderState.selectedEntities,
-              ) ??
-              Offset.zero;
-        }
-
-        const double visualToolbarWidth = 48;
-        const double toolbarStackWidth = 520;
-        const double toolbarHeight = 360;
-
-        final double nodeWidth = selectedViewStates.isNotEmpty
-            ? (selectedViewStates.first.dragWidthNotifier.value ??
-                  selectedViewStates.first.sizeNotifier.value.width)
-            : 150.0;
-
-        final anchorScreen = MatrixUtils.transformPoint(matrix, anchor);
-        final bool isNodeOnRightHalf = anchorScreen.dx > (screenWidth / 2);
-
-        final defaultOffset = isMulti
-            ? AppConfig.toolbar.multiOffset
-            : AppConfig.toolbar.singleOffset;
-
-        if (offsetNotifier.value == defaultOffset) {
-          offsetNotifier.value = isNodeOnRightHalf
-              ? const Offset(-visualToolbarWidth - margin, 0)
-              : Offset(nodeWidth + margin, 0);
-        }
-
-        final bool? lastNodeHalf = renderState.lastNodeOnRightHalf;
-        if (lastNodeHalf != null && lastNodeHalf != isNodeOnRightHalf) {
-          if (isNodeOnRightHalf && offsetNotifier.value.dx >= 0) {
-            final mirroredDx = nodeWidth - visualToolbarWidth - offsetNotifier.value.dx;
-            offsetNotifier.value = Offset(mirroredDx, offsetNotifier.value.dy);
-          } else if (!isNodeOnRightHalf && offsetNotifier.value.dx < 0) {
-            final mirroredDx = nodeWidth - visualToolbarWidth - offsetNotifier.value.dx;
-            offsetNotifier.value = Offset(mirroredDx, offsetNotifier.value.dy);
-          }
-        }
-        renderState.lastNodeOnRightHalf = isNodeOnRightHalf;
-
-        final screenPosition = MatrixUtils.transformPoint(
-          matrix,
-          anchor + offsetNotifier.value,
-        );
-
-        final bool useRight = offsetNotifier.value.dx >= 0;
-
-        final double leftX = screenPosition.dx + visualToolbarWidth - toolbarStackWidth;
-        final double rightX = screenPosition.dx;
-
-        final double toolbarLeft = useRight ? rightX : leftX;
-        final double maxY = math.max(topThreshold, screenHeight - toolbarHeight * 0.7);
-        final double toolbarTop = screenPosition.dy.clamp(topThreshold, maxY).toDouble();
-
-        final nodeIds = renderState.selectedEntities
-            .where((id) => queryController.nodeLookup.containsKey(id))
-            .toList();
-        final canSaveTemplate = nodeIds.isNotEmpty;
-        final RawUuid? singleNodeId = (!isMulti && nodeIds.length == 1)
-            ? nodeIds.first
-            : null;
-
-        if (selectedViewStates.isNotEmpty) {
-          final vs = selectedViewStates.first;
-          final s = Size(
-            vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width,
-            vs.sizeNotifier.value.height,
-          );
-          final singleId = singleNodeId;
-          final node = singleId != null ? queryController.nodeLookup[singleId] : null;
-          final worldPos = node?.getAbsoluteWorldPosition(queryController.nodeLookup) ?? vs.positionNotifier.value;
-          final tl = MatrixUtils.transformPoint(
-            matrix,
-            worldPos,
-          );
-          final br = MatrixUtils.transformPoint(
-            matrix,
-            worldPos + Offset(s.width, s.height),
-          );
-          final nodeScreenRect = Rect.fromPoints(tl, br);
-          final screenRect = Rect.fromLTWH(0, 0, screenWidth, screenHeight);
-          if (!screenRect.overlaps(nodeScreenRect)) {
-            return const SizedBox.shrink();
-          }
-        }
-
-        return Positioned(
-          left: toolbarLeft,
-          top: toolbarTop,
-          child: VerticalContextToolbar(
-            positionOnRight: useRight,
-            onDelete: renderState.deleteSelectedEntities,
-            onCopy: () {
-              final copyBuffer = context.read<CopyBuffer>();
-              final nodeIds = renderState.selectedEntities
-                  .where((id) => queryController.nodeLookup.containsKey(id))
-                  .toList();
-              if (nodeIds.isNotEmpty) {
-                copyBuffer.copy(nodeIds, queryController);
-              }
-            },
-            isMulti: isMulti,
-            isRelationOnly: isRelationOnly,
-            canSaveTemplate: canSaveTemplate,
-            singleNodeId: singleNodeId,
-            onRelationLayoutChanged: (layoutType) {
-              for (final rel in selectedRelations) {
-                interactionContext.onRelationUpdateLayout(
-                  rel.id,
-                  strategyType: layoutType,
-                );
-              }
-            },
-            onRelationStrokePatternChanged: (pattern) {
-              for (final rel in selectedRelations) {
-                final currentStyle =
-                    rel.style ?? RelationStyleStrategy.resolveStyle(rel);
-                interactionContext.onRelationUpdateStyle(
-                  rel.id,
-                  currentStyle.copyWith(strokePattern: pattern),
-                );
-              }
-            },
-            onRelationBodyStrategyChanged: (bodyStrategy) {
-              for (final rel in selectedRelations) {
-                final currentStyle =
-                    rel.style ?? RelationStyleStrategy.resolveStyle(rel);
-                interactionContext.onRelationUpdateStyle(
-                  rel.id,
-                  currentStyle.copyWith(bodyStrategy: bodyStrategy),
-                );
-              }
-            },
-            onStartShapeChanged: (shape) {
-              for (final rel in selectedRelations) {
-                final currentStyle =
-                    rel.style ?? RelationStyleStrategy.resolveStyle(rel);
-                interactionContext.onRelationUpdateStyle(
-                  rel.id,
-                  currentStyle.copyWith(startShape: shape),
-                );
-              }
-            },
-            onEndShapeChanged: (shape) {
-              for (final rel in selectedRelations) {
-                final currentStyle =
-                    rel.style ?? RelationStyleStrategy.resolveStyle(rel);
-                interactionContext.onRelationUpdateStyle(
-                  rel.id,
-                  currentStyle.copyWith(endShape: shape),
-                );
-              }
-            },
-            onDrawConnection: () {
-              final nodeIds = renderState.selectedEntities
-                  .where((id) => queryController.nodeLookup.containsKey(id))
-                  .toList();
-              if (nodeIds.isNotEmpty) {
-                final vs = renderState.viewStates[nodeIds.first];
-                final initialPos = vs != null ? vs.rect.center : Offset.zero;
-                interactionController.startRelationDrawing(
-                  nodeIds.toSet(),
-                  initialPos,
-                );
-              }
-            },
-            onDecreaseFontSize: () {
-              if (singleNodeId != null) {
-                interactionController.updateNodeStyle(singleNodeId, (style) {
-                  return style.copyWith(
-                    fontSize: (style.fontSize - 2.0).clamp(
-                      AppConfig.node.minFontSize,
-                      AppConfig.node.maxFontSize,
-                    ),
-                  );
-                });
-              }
-            },
-            onIncreaseFontSize: () {
-              if (singleNodeId != null) {
-                interactionController.updateNodeStyle(singleNodeId, (style) {
-                  return style.copyWith(
-                    fontSize: (style.fontSize + 2.0).clamp(
-                      AppConfig.node.minFontSize,
-                      AppConfig.node.maxFontSize,
-                    ),
-                  );
-                });
-              }
-            },
-            onToggleFontFamily: () {
-              if (singleNodeId != null) {
-                interactionController.updateNodeStyle(singleNodeId, (style) {
-                  final nextFont = style.fontFamily == 'Roboto'
-                      ? 'Inter'
-                      : 'Roboto';
-                  return style.copyWith(fontFamily: nextFont);
-                });
-              }
-            },
-            onCycleTextColor: () {
-              if (singleNodeId != null) {
-                final textColors = AppConfig.visuals.textColors;
-                interactionController.updateNodeStyle(singleNodeId, (style) {
-                  final index = textColors.indexOf(style.textColor);
-                  final nextColor = textColors[(index + 1) % textColors.length];
-                  return style.copyWith(textColor: nextColor);
-                });
-              }
-            },
-            onShapeChanged: (shape) {
-              if (singleNodeId != null) {
-                interactionController.updateNodeStyle(singleNodeId, (style) {
-                  return style.copyWith(shape: shape);
-                });
-              }
-            },
-            onSaveTemplate: () {
-              interactionController.environment.onSaveTemplate();
-            },
-            dragHandle: _buildDragHandle(matrix, offsetNotifier),
-          ),
+        return _buildContextToolbar(
+          context,
+          matrix: matrix,
+          offsetNotifier: offsetNotifier,
+          selectedViewStates: selectedViewStates,
+          selectedRelations: selectedRelations,
+          isMulti: isMulti,
+          isRelationOnly: isRelationOnly,
+          screenWidth: screenWidth,
+          screenHeight: screenHeight,
+          leftThreshold: leftThreshold,
+          topThreshold: topThreshold,
+          margin: margin,
         );
       },
+    );
+  }
+
+  Widget _buildTextFormattingToolbar(
+    BuildContext context, {
+    required Matrix4 matrix,
+    required ValueNotifier<Offset> offsetNotifier,
+    required double screenWidth,
+    required double screenHeight,
+    required double leftThreshold,
+    required double rightThreshold,
+    required double topThreshold,
+    required double margin,
+  }) {
+    final RawUuid editedId = renderState.activeEditId!;
+    final vs = renderState.viewStates[editedId];
+
+    if (vs == null) {
+      return const SizedBox.shrink();
+    }
+
+    final size = Size(
+      vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width,
+      vs.sizeNotifier.value.height,
+    );
+    final node = queryController.nodeLookup[editedId];
+    final anchorCanvas = node?.getAbsoluteWorldPosition(queryController.nodeLookup) ??
+        vs.positionNotifier.value;
+    final double entityWidth = size.width;
+
+    const double toolbarWidth = ContextToolbarConstants.textToolbarWidth;
+    const double toolbarHeight = ContextToolbarConstants.textToolbarHeight;
+
+    final anchorScreen = MatrixUtils.transformPoint(matrix, anchorCanvas);
+    final bool isNodeOnRightHalf = anchorScreen.dx > (screenWidth / 2);
+
+    if (offsetNotifier.value == AppConfig.toolbar.singleOffset) {
+      offsetNotifier.value = isNodeOnRightHalf
+          ? const Offset(-toolbarWidth - margin, 0)
+          : Offset(entityWidth + margin, 0);
+    }
+
+    final bool? lastNodeHalf = renderState.lastNodeOnRightHalf;
+    if (lastNodeHalf != null && lastNodeHalf != isNodeOnRightHalf) {
+      if (isNodeOnRightHalf && offsetNotifier.value.dx >= 0) {
+        final mirroredDx = entityWidth - toolbarWidth - offsetNotifier.value.dx;
+        offsetNotifier.value = Offset(mirroredDx, offsetNotifier.value.dy);
+      } else if (!isNodeOnRightHalf && offsetNotifier.value.dx < 0) {
+        final mirroredDx = entityWidth - toolbarWidth - offsetNotifier.value.dx;
+        offsetNotifier.value = Offset(mirroredDx, offsetNotifier.value.dy);
+      }
+    }
+    renderState.lastNodeOnRightHalf = isNodeOnRightHalf;
+
+    final screenPosition = MatrixUtils.transformPoint(
+      matrix,
+      anchorCanvas + offsetNotifier.value,
+    );
+
+    final double maxX = math.max(leftThreshold, rightThreshold - toolbarWidth);
+    final double maxY =
+        math.max(topThreshold, screenHeight - toolbarHeight * 0.7);
+
+    final double toolbarLeft =
+        screenPosition.dx.clamp(leftThreshold, maxX).toDouble();
+    final double toolbarTop =
+        screenPosition.dy.clamp(topThreshold, maxY).toDouble();
+
+    return Positioned(
+      left: toolbarLeft,
+      top: toolbarTop,
+      child: VerticalTextFormatToolbar(
+        onToggleBold: () {
+          renderState.applyFormatCallback?.call(TextFormatType.bold);
+        },
+        onToggleItalic: () {
+          renderState.applyFormatCallback?.call(TextFormatType.italic);
+        },
+        onToggleUnderline: () {
+          renderState.applyFormatCallback?.call(TextFormatType.underline);
+        },
+        onToggleHeader1: () {
+          renderState.toggleHeadingCallback?.call(TextFormatType.heading1);
+        },
+        onToggleHeader2: () {
+          renderState.toggleHeadingCallback?.call(TextFormatType.heading2);
+        },
+        onToggleHeader3: () {
+          renderState.toggleHeadingCallback?.call(TextFormatType.heading3);
+        },
+        onToggleBlockquote: () {
+          renderState.toggleHeadingCallback?.call(TextFormatType.blockquote);
+        },
+        onToggleCodeBlock: () {
+          renderState.toggleHeadingCallback?.call(TextFormatType.codeBlock);
+        },
+        onToggleBulletList: () {
+          renderState.toggleHeadingCallback?.call(TextFormatType.bulletList);
+        },
+        onToggleOrderedList: () {
+          renderState.toggleHeadingCallback?.call(TextFormatType.orderedList);
+        },
+        onClearBlockFormat: () {
+          renderState.clearBlockFormatCallback?.call();
+        },
+        onSelectFontFamily: (fontFamily) {
+          renderState.setFontFamilyCallback?.call(fontFamily);
+        },
+        onCycleTextColor: () {
+          renderState.cycleTextColorCallback?.call();
+        },
+        onToggleHighlight: () {
+          renderState.toggleHighlightCallback?.call();
+        },
+        onCycleHighlightColor: () {
+          renderState.cycleHighlightColorCallback?.call();
+        },
+        onCycleTextAlign: () {
+          renderState.cycleTextAlignCallback?.call();
+        },
+        currentTextAlign: renderState.currentTextAlignNotifier.value,
+        onIncreaseFontSize: () {
+          interactionController.updateNodeStyle(editedId, (style) {
+            return style.copyWith(
+              fontSize: (style.fontSize + 2.0).clamp(
+                AppConfig.node.minFontSize,
+                AppConfig.node.maxFontSize,
+              ),
+            );
+          });
+        },
+        onDecreaseFontSize: () {
+          interactionController.updateNodeStyle(editedId, (style) {
+            return style.copyWith(
+              fontSize: (style.fontSize - 2.0).clamp(
+                AppConfig.node.minFontSize,
+                AppConfig.node.maxFontSize,
+              ),
+            );
+          });
+        },
+        onAddHyperlink: () async {
+          final url = await showDialog<String>(
+            context: context,
+            builder: (context) {
+              final controller = TextEditingController(text: 'https://');
+              return AlertDialog(
+                title: const Text('Insert Hyperlink'),
+                content: TextField(
+                  controller: controller,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    hintText: 'https://example.com',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, controller.text),
+                    child: const Text('Insert'),
+                  ),
+                ],
+              );
+            },
+          );
+          if (url != null && url.isNotEmpty) {
+            renderState.applyFormatCallback?.call(
+              TextFormatType.link,
+              url: url,
+            );
+          }
+        },
+        dragHandle: _buildDragHandle(matrix, offsetNotifier),
+      ),
+    );
+  }
+
+  Widget _buildContextToolbar(
+    BuildContext context, {
+    required Matrix4 matrix,
+    required ValueNotifier<Offset> offsetNotifier,
+    required List<NodeViewState> selectedViewStates,
+    required List<UiRelation> selectedRelations,
+    required bool isMulti,
+    required bool isRelationOnly,
+    required double screenWidth,
+    required double screenHeight,
+    required double leftThreshold,
+    required double topThreshold,
+    required double margin,
+  }) {
+    Offset anchor = Offset.zero;
+    if (selectedViewStates.isNotEmpty || selectedRelations.isNotEmpty) {
+      anchor =
+          renderState.calculateToolbarAnchor(renderState.selectedEntities) ??
+          Offset.zero;
+    }
+
+    const double visualToolbarWidth = ContextToolbarConstants.visualToolbarWidth;
+    const double toolbarStackWidth = ContextToolbarConstants.toolbarStackWidth;
+    const double toolbarHeight = ContextToolbarConstants.toolbarHeight;
+
+    final double nodeWidth = selectedViewStates.isNotEmpty
+        ? (selectedViewStates.first.dragWidthNotifier.value ??
+              selectedViewStates.first.sizeNotifier.value.width)
+        : 150.0;
+
+    final anchorScreen = MatrixUtils.transformPoint(matrix, anchor);
+    final bool isNodeOnRightHalf = anchorScreen.dx > (screenWidth / 2);
+
+    final defaultOffset = isMulti
+        ? AppConfig.toolbar.multiOffset
+        : AppConfig.toolbar.singleOffset;
+
+    if (offsetNotifier.value == defaultOffset) {
+      offsetNotifier.value = isNodeOnRightHalf
+          ? const Offset(-visualToolbarWidth - margin, 0)
+          : Offset(nodeWidth + margin, 0);
+    }
+
+    final bool? lastNodeHalf = renderState.lastNodeOnRightHalf;
+    if (lastNodeHalf != null && lastNodeHalf != isNodeOnRightHalf) {
+      if (isNodeOnRightHalf && offsetNotifier.value.dx >= 0) {
+        final mirroredDx = nodeWidth - visualToolbarWidth - offsetNotifier.value.dx;
+        offsetNotifier.value = Offset(mirroredDx, offsetNotifier.value.dy);
+      } else if (!isNodeOnRightHalf && offsetNotifier.value.dx < 0) {
+        final mirroredDx = nodeWidth - visualToolbarWidth - offsetNotifier.value.dx;
+        offsetNotifier.value = Offset(mirroredDx, offsetNotifier.value.dy);
+      }
+    }
+    renderState.lastNodeOnRightHalf = isNodeOnRightHalf;
+
+    final screenPosition = MatrixUtils.transformPoint(
+      matrix,
+      anchor + offsetNotifier.value,
+    );
+
+    final bool useRight = offsetNotifier.value.dx >= 0;
+
+    final double leftX =
+        screenPosition.dx + visualToolbarWidth - toolbarStackWidth;
+    final double rightX = screenPosition.dx;
+
+    final double toolbarLeft = useRight ? rightX : leftX;
+    final double maxY =
+        math.max(topThreshold, screenHeight - toolbarHeight * 0.7);
+    final double toolbarTop =
+        screenPosition.dy.clamp(topThreshold, maxY).toDouble();
+
+    final nodeIds = renderState.selectedEntities
+        .where((id) => queryController.nodeLookup.containsKey(id))
+        .toList();
+    final canSaveTemplate = nodeIds.isNotEmpty;
+    final RawUuid? singleNodeId =
+        (!isMulti && nodeIds.length == 1) ? nodeIds.first : null;
+
+    if (selectedViewStates.isNotEmpty) {
+      final vs = selectedViewStates.first;
+      final s = Size(
+        vs.dragWidthNotifier.value ?? vs.sizeNotifier.value.width,
+        vs.sizeNotifier.value.height,
+      );
+      final singleId = singleNodeId;
+      final node =
+          singleId != null ? queryController.nodeLookup[singleId] : null;
+      final worldPos =
+          node?.getAbsoluteWorldPosition(queryController.nodeLookup) ??
+          vs.positionNotifier.value;
+      final tl = MatrixUtils.transformPoint(matrix, worldPos);
+      final br = MatrixUtils.transformPoint(
+        matrix,
+        worldPos + Offset(s.width, s.height),
+      );
+      final nodeScreenRect = Rect.fromPoints(tl, br);
+      final screenRect = Rect.fromLTWH(0, 0, screenWidth, screenHeight);
+      if (!screenRect.overlaps(nodeScreenRect)) {
+        return const SizedBox.shrink();
+      }
+    }
+
+    return Positioned(
+      left: toolbarLeft,
+      top: toolbarTop,
+      child: VerticalContextToolbar(
+        positionOnRight: useRight,
+        onDelete: renderState.deleteSelectedEntities,
+        onCopy: () {
+          final copyBuffer = context.read<CopyBuffer>();
+          final nodeIds = renderState.selectedEntities
+              .where((id) => queryController.nodeLookup.containsKey(id))
+              .toList();
+          if (nodeIds.isNotEmpty) {
+            copyBuffer.copy(nodeIds, queryController);
+          }
+        },
+        isMulti: isMulti,
+        isRelationOnly: isRelationOnly,
+        canSaveTemplate: canSaveTemplate,
+        singleNodeId: singleNodeId,
+        onRelationLayoutChanged: (layoutType) {
+          for (final rel in selectedRelations) {
+            interactionContext.onRelationUpdateLayout(
+              rel.id,
+              strategyType: layoutType,
+            );
+          }
+        },
+        onRelationStrokePatternChanged: (pattern) {
+          for (final rel in selectedRelations) {
+            final currentStyle =
+                rel.style ?? RelationStyleStrategy.resolveStyle(rel);
+            interactionContext.onRelationUpdateStyle(
+              rel.id,
+              currentStyle.copyWith(strokePattern: pattern),
+            );
+          }
+        },
+        onRelationBodyStrategyChanged: (bodyStrategy) {
+          for (final rel in selectedRelations) {
+            final currentStyle =
+                rel.style ?? RelationStyleStrategy.resolveStyle(rel);
+            interactionContext.onRelationUpdateStyle(
+              rel.id,
+              currentStyle.copyWith(bodyStrategy: bodyStrategy),
+            );
+          }
+        },
+        onStartShapeChanged: (shape) {
+          for (final rel in selectedRelations) {
+            final currentStyle =
+                rel.style ?? RelationStyleStrategy.resolveStyle(rel);
+            interactionContext.onRelationUpdateStyle(
+              rel.id,
+              currentStyle.copyWith(startShape: shape),
+            );
+          }
+        },
+        onEndShapeChanged: (shape) {
+          for (final rel in selectedRelations) {
+            final currentStyle =
+                rel.style ?? RelationStyleStrategy.resolveStyle(rel);
+            interactionContext.onRelationUpdateStyle(
+              rel.id,
+              currentStyle.copyWith(endShape: shape),
+            );
+          }
+        },
+        onDrawConnection: () {
+          final nodeIds = renderState.selectedEntities
+              .where((id) => queryController.nodeLookup.containsKey(id))
+              .toList();
+          if (nodeIds.isNotEmpty) {
+            final vs = renderState.viewStates[nodeIds.first];
+            final initialPos = vs != null ? vs.rect.center : Offset.zero;
+            interactionController.startRelationDrawing(
+              nodeIds.toSet(),
+              initialPos,
+            );
+          }
+        },
+        onDecreaseFontSize: () {
+          if (singleNodeId != null) {
+            interactionController.updateNodeStyle(singleNodeId, (style) {
+              return style.copyWith(
+                fontSize: (style.fontSize - 2.0).clamp(
+                  AppConfig.node.minFontSize,
+                  AppConfig.node.maxFontSize,
+                ),
+              );
+            });
+          }
+        },
+        onIncreaseFontSize: () {
+          if (singleNodeId != null) {
+            interactionController.updateNodeStyle(singleNodeId, (style) {
+              return style.copyWith(
+                fontSize: (style.fontSize + 2.0).clamp(
+                  AppConfig.node.minFontSize,
+                  AppConfig.node.maxFontSize,
+                ),
+              );
+            });
+          }
+        },
+        onToggleFontFamily: () {
+          if (singleNodeId != null) {
+            interactionController.updateNodeStyle(singleNodeId, (style) {
+              final nextFont =
+                  style.fontFamily == 'Roboto' ? 'Inter' : 'Roboto';
+              return style.copyWith(fontFamily: nextFont);
+            });
+          }
+        },
+        onCycleTextColor: () {
+          if (singleNodeId != null) {
+            final textColors = AppConfig.visuals.textColors;
+            interactionController.updateNodeStyle(singleNodeId, (style) {
+              final index = textColors.indexOf(style.textColor);
+              final nextColor = textColors[(index + 1) % textColors.length];
+              return style.copyWith(textColor: nextColor);
+            });
+          }
+        },
+        onShapeChanged: (shape) {
+          if (singleNodeId != null) {
+            interactionController.updateNodeStyle(singleNodeId, (style) {
+              return style.copyWith(shape: shape);
+            });
+          }
+        },
+        onSaveTemplate: () {
+          interactionController.environment.onSaveTemplate();
+        },
+        dragHandle: _buildDragHandle(matrix, offsetNotifier),
+      ),
     );
   }
 }
