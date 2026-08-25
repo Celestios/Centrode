@@ -91,6 +91,7 @@ impl Default for MapData {
             active_theme_id: None,
             display_mode: DisplayMode::default(),
             opt_area: None,
+            language: None,
         }
     }
 }

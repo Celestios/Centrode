@@ -120,6 +120,8 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<void> deleteTemplate({required String key});
 
+  Future<String> detectMapLanguage({required List<String> nodeTexts});
+
   Future<Float32List> embedText({required String text});
 
   Future<String?> getActiveThemeId();
@@ -184,6 +186,13 @@ abstract class AppHandle implements RustOpaqueInterface {
     storagePath: storagePath,
     name: name,
   );
+
+  Future<List<String>> predictRelationLabels({
+    required String sourceText,
+    required String targetText,
+    String? language,
+    required BigInt limit,
+  });
 
   Future<List<Nodes>> querySearch({required String query});
 

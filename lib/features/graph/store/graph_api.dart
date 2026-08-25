@@ -120,6 +120,13 @@ abstract class GraphApi {
   Future<RelationStyle?> getRelationSpec({required String verb});
   Future<List<(String, RelationStyle)>> listRelationSpecs();
   Future<List<String>> searchSimilarLabels({required String query, required BigInt limit});
+  Future<List<String>> predictRelationLabels({
+    required String sourceText,
+    required String targetText,
+    String? language,
+    required BigInt limit,
+  });
+  Future<String> detectMapLanguage({required List<String> nodeTexts});
   Future<Float32List> embedText({required String text});
   Future<void> initEmbedderModel({
     required Uint8List weightsBytes,
@@ -159,6 +166,28 @@ class RustAppHandleWrapper implements GraphApi {
   Future<List<String>> searchSimilarLabels({required String query, required BigInt limit}) {
     if (_isDisposed) return Future.value(const []);
     return _api.searchSimilarLabels(query: query, limit: limit);
+  }
+
+  @override
+  Future<List<String>> predictRelationLabels({
+    required String sourceText,
+    required String targetText,
+    String? language,
+    required BigInt limit,
+  }) {
+    if (_isDisposed) return Future.value(const []);
+    return _api.predictRelationLabels(
+      sourceText: sourceText,
+      targetText: targetText,
+      language: language,
+      limit: limit,
+    );
+  }
+
+  @override
+  Future<String> detectMapLanguage({required List<String> nodeTexts}) {
+    if (_isDisposed) return Future.value('en');
+    return _api.detectMapLanguage(nodeTexts: nodeTexts);
   }
 
   @override
@@ -811,6 +840,26 @@ class DeferredGraphApi implements GraphApi {
   @override
   Future<List<String>> searchSimilarLabels({required String query, required BigInt limit}) async {
     return await _handle?.searchSimilarLabels(query: query, limit: limit) ?? const [];
+  }
+
+  @override
+  Future<List<String>> predictRelationLabels({
+    required String sourceText,
+    required String targetText,
+    String? language,
+    required BigInt limit,
+  }) async {
+    return await _handle?.predictRelationLabels(
+      sourceText: sourceText,
+      targetText: targetText,
+      language: language,
+      limit: limit,
+    ) ?? const [];
+  }
+
+  @override
+  Future<String> detectMapLanguage({required List<String> nodeTexts}) async {
+    return await _handle?.detectMapLanguage(nodeTexts: nodeTexts) ?? 'en';
   }
 
   @override

@@ -220,4 +220,104 @@ impl Repository {
 
         Ok(scored.into_iter().map(|(text, _)| text).collect())
     }
+
+    /// Detects the dominant language across the graph's node texts ("en", "fa", "es", "ar", "zh").
+    pub fn detect_map_language(node_texts: &[String]) -> String {
+        let mut fa_ar_count = 0;
+        let mut fa_specific_count = 0;
+        let mut zh_count = 0;
+        let mut es_count = 0;
+        let mut en_count = 0;
+
+        for text in node_texts {
+            for ch in text.chars() {
+                let cp = ch as u32;
+                if (0x0600..=0x06FF).contains(&cp) || (0xFB50..=0xFEFF).contains(&cp) {
+                    fa_ar_count += 1;
+                    if matches!(ch, 'گ' | 'چ' | 'پ' | 'ژ' | 'ی' | 'ک') {
+                        fa_specific_count += 1;
+                    }
+                } else if (0x4E00..=0x9FFF).contains(&cp) || (0x3400..=0x4DBF).contains(&cp) {
+                    zh_count += 1;
+                } else if matches!(ch, 'á' | 'é' | 'í' | 'ó' | 'ú' | 'ñ' | '¿' | '¡' | 'Á' | 'É' | 'Í' | 'Ó' | 'Ú' | 'Ñ') {
+                    es_count += 2;
+                } else if ch.is_ascii_alphabetic() {
+                    en_count += 1;
+                }
+            }
+        }
+
+        if fa_ar_count > zh_count && fa_ar_count > es_count && fa_ar_count > en_count {
+            if fa_specific_count > 0 {
+                "fa".to_string()
+            } else {
+                "ar".to_string()
+            }
+        } else if zh_count > fa_ar_count && zh_count > es_count && zh_count > en_count {
+            "zh".to_string()
+        } else if es_count > 0 && es_count >= (en_count / 3) {
+            "es".to_string()
+        } else {
+            "en".to_string()
+        }
+    }
+
+    /// Predicts contextual relation predicate labels connecting Source Node and Target Node.
+    pub async fn predict_relation_labels(
+        &self,
+        source_text: &str,
+        target_text: &str,
+        language: Option<String>,
+        limit: usize,
+    ) -> Result<Vec<String>> {
+        let src = source_text.trim();
+        let tgt = target_text.trim();
+
+        if src.is_empty() && tgt.is_empty() {
+            return Ok(vec![]);
+        }
+
+        let lang = language.as_deref().unwrap_or("en");
+
+        // Canonical relation vocabulary according to target language
+        let candidates: &[&str] = match lang {
+            "fa" => &[
+                "علت", "منجر_به", "وابسته_به", "نیاز_به", "مخالف", "رد_می‌کند",
+                "پشتیبانی_می‌کند", "بخشی_از", "متعلق_به", "مانع", "مرتبط_با", "اثرگذار_بر"
+            ],
+            "es" => &[
+                "causa", "produce", "depende_de", "requiere", "contradice", "opone",
+                "apoya", "respalda", "parte_de", "pertenece_a", "bloquea", "relacionado_con"
+            ],
+            "ar" => &[
+                "سبب", "يؤدي_إلى", "يعتمد_على", "يتطلب", "يعارض", "يناقض",
+                "يدعم", "يساند", "جزء_من", "ينتمي_إلى", "يمنع", "مرتبط_بـ"
+            ],
+            "zh" => &[
+                "导致", "引起", "依赖", "需要", "反对", "矛盾",
+                "支持", "部分", "属于", "阻止", "相关", "影响"
+            ],
+            _ => &[
+                "causes", "leads_to", "depends_on", "requires", "contradicts", "opposes",
+                "supports", "reinforces", "part_of", "belongs_to", "blocks", "prevents",
+                "related_to", "influences"
+            ],
+        };
+
+        let context_prompt = format!("{} -> {}", src, tgt);
+        let context_vec = EmbeddingService::embed_text(&context_prompt);
+
+        let mut scored: Vec<(String, f32)> = Vec::new();
+        for &cand in candidates {
+            let cand_vec = EmbeddingService::embed_text(cand);
+            let score = EmbeddingService::cosine_similarity(&context_vec, &cand_vec);
+            scored.push((cand.to_string(), score));
+        }
+
+        // Sort descending by semantic similarity to contextual connection
+        scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        scored.truncate(limit);
+
+        Ok(scored.into_iter().map(|(text, _)| text).collect())
+    }
 }

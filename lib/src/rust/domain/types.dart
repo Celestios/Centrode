@@ -477,6 +477,7 @@ class MapData {
   final String? activeThemeId;
   final DisplayMode displayMode;
   final BoundingBox? optArea;
+  final String? language;
 
   const MapData({
     required this.mapName,
@@ -484,6 +485,7 @@ class MapData {
     this.activeThemeId,
     required this.displayMode,
     this.optArea,
+    this.language,
   });
 
   @override
@@ -492,7 +494,8 @@ class MapData {
       viewportState.hashCode ^
       activeThemeId.hashCode ^
       displayMode.hashCode ^
-      optArea.hashCode;
+      optArea.hashCode ^
+      language.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -503,7 +506,8 @@ class MapData {
           viewportState == other.viewportState &&
           activeThemeId == other.activeThemeId &&
           displayMode == other.displayMode &&
-          optArea == other.optArea;
+          optArea == other.optArea &&
+          language == other.language;
 }
 
 class MapTheme {

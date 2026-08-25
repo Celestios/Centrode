@@ -525,6 +525,21 @@ class InMemoryGraphApi implements GraphApi {
   }
 
   @override
+  Future<List<String>> predictRelationLabels({
+    required String sourceText,
+    required String targetText,
+    String? language,
+    required BigInt limit,
+  }) async {
+    return const [];
+  }
+
+  @override
+  Future<String> detectMapLanguage({required List<String> nodeTexts}) async {
+    return 'en';
+  }
+
+  @override
   Future<Float32List> embedText({required String text}) async {
     return Float32List(0);
   }

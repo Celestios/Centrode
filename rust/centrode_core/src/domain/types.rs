@@ -162,6 +162,7 @@ define_domain_types! {
         pub active_theme_id: Option<String>,
         pub display_mode: DisplayMode,
         pub opt_area: Option<BoundingBox>,
+        pub language: Option<String>,
     }
 
     #[category(auxiliary)]

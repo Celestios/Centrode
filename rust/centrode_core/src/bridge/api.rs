@@ -530,6 +530,23 @@ impl AppHandle {
         self.service.repo.search_similar_labels(&query, limit).await
     }
 
+    pub async fn predict_relation_labels(
+        &self,
+        source_text: String,
+        target_text: String,
+        language: Option<String>,
+        limit: usize,
+    ) -> anyhow::Result<Vec<String>> {
+        self.service
+            .repo
+            .predict_relation_labels(&source_text, &target_text, language, limit)
+            .await
+    }
+
+    pub fn detect_map_language(&self, node_texts: Vec<String>) -> String {
+        crate::repo::Repository::detect_map_language(&node_texts)
+    }
+
     pub fn embed_text(&self, text: String) -> Vec<f32> {
         crate::services::embedding_service::EmbeddingService::embed_text(&text)
     }
