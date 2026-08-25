@@ -4,16 +4,18 @@ use crate::domain::nodes::{IsNode, Nodes};
 use crate::domain::patches::{EntityPatch, NodePatch, SymmetricEntityPatch};
 use crate::relation_engine::config::RelationEngineConfig;
 use crate::relation_engine::input::InputNode;
+use crate::repo::traits::{HistoryRepository, LayoutRepository, NodeRepository, RelationRepository};
 use crate::services::graph_service::GraphService;
 use tracing::{debug, error, info};
 
 impl GraphService {
     pub async fn create_node(&self, input: Nodes) -> anyhow::Result<()> {
         debug!("FFI: create_node called with input: {:?}", input);
-        self.repo.create_node(input.clone()).await?;
+        self.repo.nodes.create_node(input.clone()).await?;
 
         let id = *input.id();
         self.repo
+            .history
             .record_patch_history(
                 id,
                 EntityPatch::CreateNode(input.clone(), vec![]),
@@ -27,18 +29,19 @@ impl GraphService {
 
     pub async fn get_node(&self, id: TypedRecordId) -> anyhow::Result<Option<Nodes>> {
         debug!("Fetching node: {:?}", id);
-        self.repo.get_node(id).await
+        self.repo.nodes.get_node(id).await
     }
 
     pub async fn update_node(&self, input: Nodes) -> anyhow::Result<()> {
         let id = *input.id();
-        if let Some(old) = self.repo.get_node(id).await? {
-            self.repo.update_node(input.clone()).await.map_err(|e| {
+        if let Some(old) = self.repo.nodes.get_node(id).await? {
+            self.repo.nodes.update_node(input.clone()).await.map_err(|e| {
                 error!("FFI: Repository failed to update node {}", e);
                 e
             })?;
 
             self.repo
+                .history
                 .record_patch_history(
                     id,
                     EntityPatch::Node(vec![NodePatch::Position(input.position().clone())]),
@@ -46,7 +49,7 @@ impl GraphService {
                 )
                 .await?;
         } else {
-            self.repo.update_node(input).await.map_err(|e| {
+            self.repo.nodes.update_node(input).await.map_err(|e| {
                 error!("FFI: Repository failed to update node {}", e);
                 e
             })?;
@@ -60,6 +63,7 @@ impl GraphService {
     ) -> anyhow::Result<()> {
         if self
             .repo
+            .nodes
             .apply_patch_check_position(&mutation.id, &mutation.forward)
             .await?
         {
@@ -70,6 +74,7 @@ impl GraphService {
             engine.apply_cache_patch(&mutation.id, &mutation.forward, margin);
         }
         self.repo
+            .history
             .record_patch_history(mutation.id, mutation.forward, mutation.reverse)
             .await?;
         Ok(())
@@ -77,15 +82,16 @@ impl GraphService {
 
     pub async fn delete_node_entry(&self, id: TypedRecordId) -> anyhow::Result<()> {
         debug!("Deleting node: {:?}", id);
-        let Some(node) = self.repo.get_node(id).await? else {
+        let Some(node) = self.repo.nodes.get_node(id).await? else {
             return Err(anyhow::anyhow!("Node not found for deletion"));
         };
 
-        let connected_relations = self.repo.get_connected_relations(&id).await?;
+        let connected_relations = self.repo.relations.get_connected_relations(&id).await?;
 
-        self.repo.delete_node(id).await?;
+        self.repo.nodes.delete_node(id).await?;
 
         self.repo
+            .history
             .record_patch_history(
                 id,
                 EntityPatch::DeleteNode(node.clone(), connected_relations.clone()),
@@ -117,7 +123,7 @@ impl GraphService {
     }
 
     pub async fn broadcast_boundaries(&self) {
-        match self.repo.calculate_global_bounds().await {
+        match self.repo.layout.calculate_global_bounds().await {
             Ok(bounds) => {
                 info!("FFI: Broadcasting bounds: {:?}", bounds);
                 self.publish_event(GraphEvent::BoundaryUpdated(bounds));

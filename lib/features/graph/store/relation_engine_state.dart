@@ -11,7 +11,7 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'invalidation_tracker.dart';
 
 class RelationEngineState {
-  final GraphApi _api;
+  final RelationApi _api;
   final InvalidationTracker _tracker = InvalidationTracker();
   RelationEngineConfig _config = RelationEngineConfig(
     routing: RoutingConfig(
@@ -58,7 +58,7 @@ class RelationEngineState {
   final Map<RawUuid, UiRelation> Function()? _relationLookupGetter;
 
   RelationEngineState({
-    required GraphApi api,
+    required RelationApi api,
     Map<RawUuid, UiNode> Function()? nodeLookupGetter,
     Map<RawUuid, UiRelation> Function()? relationLookupGetter,
   })  : _api = api,

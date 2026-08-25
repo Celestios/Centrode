@@ -11,9 +11,13 @@ use centrode_core::domain::relations::{IRelation, IRelationFields};
 use centrode_core::domain::snapshot::GraphSnapshot;
 use centrode_core::domain::styles::RelationDirection;
 use centrode_core::domain::traits::TableKind;
+use centrode_core::repo::traits::{
+    LayoutRepository, NodeRepository, RelationRepository, SnapshotRepository,
+};
+use centrode_core::repo::Repositories;
 
 async fn assert_significance_eventually(
-    repo: &centrode_core::repo::Repository,
+    repo: &Repositories,
     table: &str,
     key: &str,
     expected: u8,
@@ -23,7 +27,7 @@ async fn assert_significance_eventually(
     let interval = std::time::Duration::from_millis(10);
     let typed_id = TypedRecordId::from(format!("{}:{}", table, key).as_str());
     while start.elapsed() < timeout {
-        if let Ok(Some(node)) = repo.get_node(typed_id).await {
+        if let Ok(Some(node)) = repo.nodes.get_node(typed_id).await {
             let sig = match node {
                 Nodes::INode(n) => n.significance,
                 Nodes::TaskNode(t) => t.significance,
@@ -37,6 +41,7 @@ async fn assert_significance_eventually(
         tokio::time::sleep(interval).await;
     }
     let node = repo
+        .nodes
         .get_node(typed_id)
         .await
         .unwrap()
@@ -87,12 +92,13 @@ async fn test_graph_snapshot() {
         created_at: 0,
         updated_at: 0,
     };
-    repo.create_node(Nodes::INode(inode.clone()))
+    repo.nodes.create_node(Nodes::INode(inode.clone()))
         .await
         .expect("Failed to seed snapshot test node");
 
     // Verify snapshot query
     let snapshot = repo
+        .snapshot
         .get_graph_snapshot()
         .await
         .expect("Failed to fetch graph snapshot");
@@ -220,12 +226,13 @@ async fn test_graph_snapshot() {
         },
     };
 
-    repo.set_graph_snapshot(new_snapshot)
+    repo.snapshot.set_graph_snapshot(new_snapshot)
         .await
         .expect("Failed to set graph snapshot");
 
     // Verify overwritten snapshot
     let restored_snapshot = repo
+        .snapshot
         .get_graph_snapshot()
         .await
         .expect("Failed to fetch restored snapshot");
@@ -256,6 +263,7 @@ async fn test_graph_snapshot() {
 
     // Ensure old INode was deleted during clear_graph
     let old_inode = repo
+        .nodes
         .get_node(inode_id)
         .await
         .expect("Query failed");
@@ -270,12 +278,13 @@ async fn test_container_node_snapshot() {
     let container = crate::common::make_container_node(container_id, "Snapshot Container", 50, 50);
 
     // Create ContainerNode
-    repo.create_node(Nodes::ContainerNode(container.clone()))
+    repo.nodes.create_node(Nodes::ContainerNode(container.clone()))
         .await
         .expect("Failed to create ContainerNode for snapshot test");
 
     // Verify snapshot includes ContainerNode
     let snapshot = repo
+        .snapshot
         .get_graph_snapshot()
         .await
         .expect("Failed to fetch graph snapshot");
@@ -309,12 +318,13 @@ async fn test_container_node_snapshot() {
         },
     };
 
-    repo.set_graph_snapshot(new_snapshot)
+    repo.snapshot.set_graph_snapshot(new_snapshot)
         .await
         .expect("Failed to set graph snapshot with ContainerNode");
 
     // Verify overwritten snapshot
     let restored_snapshot = repo
+        .snapshot
         .get_graph_snapshot()
         .await
         .expect("Failed to fetch restored snapshot");
@@ -328,6 +338,7 @@ async fn test_container_node_snapshot() {
 
     // Ensure old ContainerNode was deleted
     let old_container = repo
+        .nodes
         .get_node(container_id)
         .await
         .expect("Query failed");
@@ -389,8 +400,8 @@ async fn test_significance_calculation() {
         updated_at: 0,
     };
 
-    repo.create_node(Nodes::INode(center_node)).await.unwrap();
-    repo.create_node(Nodes::INode(node1)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(center_node)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(node1)).await.unwrap();
 
     let rel1 = IRelation {
         key: TypedRecordId::new_v4(TableKind::IRelation),
@@ -409,7 +420,7 @@ async fn test_significance_calculation() {
         },
     };
 
-    repo.create_relation(rel1).await.unwrap();
+    repo.relations.create_relation(rel1).await.unwrap();
 
     assert_significance_eventually(&repo, "INode", &n1_id.key.to_string(), 0).await;
 }
@@ -418,7 +429,7 @@ async fn test_significance_calculation() {
 async fn test_calculate_global_bounds() {
     let repo = setup_test_repo().await;
 
-    let empty_bounds = repo.calculate_global_bounds().await.unwrap();
+    let empty_bounds = repo.layout.calculate_global_bounds().await.unwrap();
     assert_eq!(empty_bounds, BoundingBox::default());
 
     let inode = INode {
@@ -466,10 +477,10 @@ async fn test_calculate_global_bounds() {
         updated_at: 0,
     };
 
-    repo.create_node(Nodes::INode(inode)).await.unwrap();
-    repo.create_node(Nodes::TaskNode(tasknode)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(inode)).await.unwrap();
+    repo.nodes.create_node(Nodes::TaskNode(tasknode)).await.unwrap();
 
-    let bounds = repo.calculate_global_bounds().await.unwrap();
+    let bounds = repo.layout.calculate_global_bounds().await.unwrap();
     assert_eq!(bounds.min_x, -100.0);
     assert_eq!(bounds.max_x, 310.0);
     assert_eq!(bounds.min_y, -200.0);

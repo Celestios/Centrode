@@ -15,7 +15,7 @@ class UpdateRelationLayoutCommand extends GraphCommand {
   @override
   RawUuid targetId;
   final String tableName;
-  final GraphApi api;
+  final RelationApi api;
   final RelationLayout? oldLayout;
   final RelationLayout? newLayout;
   final RelationStyle? oldStyle;

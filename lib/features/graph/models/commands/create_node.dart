@@ -11,7 +11,7 @@ final Logger _log = Logger('CreateNodeCommand');
 class CreateNodeCommand extends GraphCommand {
   @override
   RawUuid targetId;
-  final GraphApi api;
+  final NodeApi api;
   final UiNode node;
   final GraphCommandContext controller;
 

@@ -2,7 +2,7 @@ use crate::domain::id::TypedRecordId;
 use crate::domain::patches::{EntityPatch, SymmetricEntityPatch};
 use crate::domain::snapshot::HistoryStatus;
 use crate::domain::traits::TableKind;
-use crate::repo::Repository;
+use crate::repo::traits::HistoryRepository;
 
 use anyhow::Result;
 use surrealdb::engine::local::Db;
@@ -124,8 +124,23 @@ impl<'a> HistoryManager<'a> {
     }
 }
 
-impl Repository {
-    pub async fn record_patch_history(
+#[derive(Clone)]
+pub struct SurrealHistoryRepository {
+    pub(crate) db: Surreal<Db>,
+}
+
+impl SurrealHistoryRepository {
+    pub fn new(db: Surreal<Db>) -> Self {
+        Self { db }
+    }
+
+    pub fn db(&self) -> &Surreal<Db> {
+        &self.db
+    }
+}
+
+impl HistoryRepository for SurrealHistoryRepository {
+    async fn record_patch_history(
         &self,
         id: TypedRecordId,
         forward: EntityPatch,
@@ -143,7 +158,7 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn undo_count(&self) -> Result<u32> {
+    async fn undo_count(&self) -> Result<u32> {
         let mut response = self
             .db
             .query("SELECT VALUE count() FROM History WHERE status = $status GROUP ALL")
@@ -153,7 +168,7 @@ impl Repository {
         Ok(count.first().copied().unwrap_or(0) as u32)
     }
 
-    pub async fn redo_count(&self) -> Result<u32> {
+    async fn redo_count(&self) -> Result<u32> {
         let mut response = self
             .db
             .query("SELECT VALUE count() FROM History WHERE status = $status GROUP ALL")
@@ -163,12 +178,12 @@ impl Repository {
         Ok(count.first().copied().unwrap_or(0) as u32)
     }
 
-    pub async fn undo_event(&self) -> Result<Option<HistoryRecord>> {
+    async fn undo_event(&self) -> Result<Option<HistoryRecord>> {
         let history_manager = HistoryManager::new(&self.db, 100);
         history_manager.undo().await
     }
 
-    pub async fn redo_event(&self) -> Result<Option<HistoryRecord>> {
+    async fn redo_event(&self) -> Result<Option<HistoryRecord>> {
         let history_manager = HistoryManager::new(&self.db, 100);
         history_manager.redo().await
     }

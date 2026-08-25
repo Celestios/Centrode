@@ -9,7 +9,7 @@ import '../store/graph_api.dart';
 class ThemeController extends ChangeNotifier with TraceableNotifier {
   @override
   String get notifierName => 'ThemeController';
-  final GraphApi _appHandle;
+  final ThemeApi _appHandle;
   final Logger _log = Logger('ThemeController');
 
   GraphTheme? _currentGraphTheme;

@@ -2,10 +2,12 @@ use crate::domain::base_models::Record;
 use crate::domain::id::TypedRecordId;
 use crate::domain::theme::{MapTheme, ThemeFields};
 use crate::domain::traits::TableKind;
-use crate::repo::Repository;
+use crate::repo::traits::ThemeRepository;
 
 use anyhow::Result;
+use surrealdb::engine::local::Db;
 use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
+use surrealdb::Surreal;
 
 fn key_to_uuid(key: &RecordIdKey) -> Result<uuid::Uuid> {
     match key {
@@ -14,8 +16,23 @@ fn key_to_uuid(key: &RecordIdKey) -> Result<uuid::Uuid> {
     }
 }
 
-impl Repository {
-    pub async fn get_theme(&self, key: String) -> Result<Option<MapTheme>> {
+#[derive(Clone)]
+pub struct SurrealThemeRepository {
+    pub(crate) db: Surreal<Db>,
+}
+
+impl SurrealThemeRepository {
+    pub fn new(db: Surreal<Db>) -> Self {
+        Self { db }
+    }
+
+    pub fn db(&self) -> &Surreal<Db> {
+        &self.db
+    }
+}
+
+impl ThemeRepository for SurrealThemeRepository {
+    async fn get_theme(&self, key: String) -> Result<Option<MapTheme>> {
         let record_id = RecordId::new(MapTheme::LABEL, key.clone());
         let val: Option<Value> = self.db.select(record_id).await?;
         match val {
@@ -32,7 +49,7 @@ impl Repository {
         }
     }
 
-    pub async fn get_theme_by_key(&self, key: &str) -> Result<Option<MapTheme>> {
+    async fn get_theme_by_key(&self, key: &str) -> Result<Option<MapTheme>> {
         let u = uuid::Uuid::parse_str(key).unwrap_or_else(|_| uuid::Uuid::nil());
         let typed_id = TypedRecordId::new(TableKind::MapTheme, u);
         let val: Option<Value> = self.db.select(typed_id.to_record_id()).await?;
@@ -43,7 +60,7 @@ impl Repository {
         }))
     }
 
-    pub async fn save_theme(&self, theme: MapTheme) -> Result<MapTheme> {
+    async fn save_theme(&self, theme: MapTheme) -> Result<MapTheme> {
         let record_id = theme.key.to_record_id();
         let _: Option<Value> = self
             .db
@@ -53,7 +70,7 @@ impl Repository {
         Ok(theme)
     }
 
-    pub async fn list_themes(&self) -> Result<Vec<MapTheme>> {
+    async fn list_themes(&self) -> Result<Vec<MapTheme>> {
         let vals: Vec<Value> = self.db.select(MapTheme::LABEL).await?;
         let mut result = Vec::new();
         for v in vals {

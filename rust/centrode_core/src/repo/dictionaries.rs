@@ -1,16 +1,80 @@
+use std::cmp::Ordering;
+use std::collections::{HashMap, HashSet};
+
 use crate::domain::id::TypedRecordId;
 use crate::domain::styles::RelationStyle;
 use crate::domain::traits::TableKind;
 use crate::domain::types::{CustomWord, VectorEmbedding};
-use crate::repo::Repository;
+use crate::repo::traits::DictionaryRepository;
 use crate::services::embedding_service::EmbeddingService;
-use anyhow::Result;
-use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
 
-impl Repository {
-    /// Resolves the visual style for a given relation verb.
-    /// Checks local map IRelation records first; if absent, checks IRelation in the global system database.
-    pub async fn get_relation_spec(&self, verb: &str) -> Result<Option<RelationStyle>> {
+use anyhow::Result;
+use centrode_daemon::EngineManager;
+use surrealdb::engine::local::Db;
+use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
+use surrealdb::Surreal;
+
+#[derive(Clone)]
+pub struct SurrealDictionaryRepository {
+    pub(crate) db: Surreal<Db>,
+}
+
+impl SurrealDictionaryRepository {
+    pub fn new(db: Surreal<Db>) -> Self {
+        Self { db }
+    }
+
+    pub fn db(&self) -> &Surreal<Db> {
+        &self.db
+    }
+
+    pub fn detect_map_language(node_texts: &[String]) -> String {
+        Self::detect_map_language_impl(node_texts)
+    }
+
+    fn detect_map_language_impl(node_texts: &[String]) -> String {
+        let mut fa_ar_count = 0;
+        let mut fa_specific_count = 0;
+        let mut zh_count = 0;
+        let mut es_count = 0;
+        let mut en_count = 0;
+
+        for text in node_texts {
+            for ch in text.chars() {
+                let cp = ch as u32;
+                if (0x0600..=0x06FF).contains(&cp) || (0xFB50..=0xFEFF).contains(&cp) {
+                    fa_ar_count += 1;
+                    if matches!(ch, 'گ' | 'چ' | 'پ' | 'ژ' | 'ی' | 'ک') {
+                        fa_specific_count += 1;
+                    }
+                } else if (0x4E00..=0x9FFF).contains(&cp) || (0x3400..=0x4DBF).contains(&cp) {
+                    zh_count += 1;
+                } else if matches!(ch, 'á' | 'é' | 'í' | 'ó' | 'ú' | 'ñ' | '¿' | '¡' | 'Á' | 'É' | 'Í' | 'Ó' | 'Ú' | 'Ñ') {
+                    es_count += 2;
+                } else if ch.is_ascii_alphabetic() {
+                    en_count += 1;
+                }
+            }
+        }
+
+        if fa_ar_count > zh_count && fa_ar_count > es_count && fa_ar_count > en_count {
+            if fa_specific_count > 0 {
+                "fa".to_string()
+            } else {
+                "ar".to_string()
+            }
+        } else if zh_count > fa_ar_count && zh_count > es_count && zh_count > en_count {
+            "zh".to_string()
+        } else if es_count > 0 && es_count >= (en_count / 3) {
+            "es".to_string()
+        } else {
+            "en".to_string()
+        }
+    }
+}
+
+impl DictionaryRepository for SurrealDictionaryRepository {
+    async fn get_relation_spec(&self, verb: &str) -> Result<Option<RelationStyle>> {
         // 1. Query local map IRelation instances with this verb
         let local_res: Vec<Value> = self
             .db
@@ -30,7 +94,7 @@ impl Repository {
         }
 
         // 2. Query global system database (centrode:system)
-        if let Ok(sys_db) = centrode_daemon::EngineManager::system_db().await {
+        if let Ok(sys_db) = EngineManager::system_db().await {
             let sys_res: Vec<Value> = sys_db
                 .query("SELECT style FROM IRelation WHERE fields.verb = $verb AND fields.style != NONE LIMIT 1")
                 .bind(("verb", verb.to_string()))
@@ -51,12 +115,11 @@ impl Repository {
         Ok(None)
     }
 
-    /// Lists all known relation verbs and styles (combining system defaults and local map customizations).
-    pub async fn list_relation_specs(&self) -> Result<Vec<(String, RelationStyle)>> {
-        let mut results = std::collections::HashMap::new();
+    async fn list_relation_specs(&self) -> Result<Vec<(String, RelationStyle)>> {
+        let mut results = HashMap::new();
 
         // 1. Load system defaults from centrode:system IRelation table
-        if let Ok(sys_db) = centrode_daemon::EngineManager::system_db().await {
+        if let Ok(sys_db) = EngineManager::system_db().await {
             let sys_res: Vec<Value> = sys_db
                 .query("SELECT fields.verb as verb, fields.style as style FROM IRelation WHERE fields.style != NONE")
                 .await?
@@ -93,8 +156,7 @@ impl Repository {
         Ok(results.into_iter().collect())
     }
 
-    /// Adds a word to the custom vocabulary dictionary.
-    pub async fn add_custom_word(&self, word: &str, word_type: &str) -> Result<()> {
+    async fn add_custom_word(&self, word: &str, word_type: &str) -> Result<()> {
         let clean = word.trim();
         if clean.is_empty() {
             return Ok(());
@@ -115,8 +177,7 @@ impl Repository {
         Ok(())
     }
 
-    /// Lists all custom vocabulary words.
-    pub async fn list_custom_words(&self) -> Result<Vec<CustomWord>> {
+    async fn list_custom_words(&self) -> Result<Vec<CustomWord>> {
         let records: Vec<Value> = self.db.select(TableKind::CustomWord.table_name()).await?;
         let mut words = Vec::new();
         for val in records {
@@ -127,8 +188,7 @@ impl Repository {
         Ok(words)
     }
 
-    /// Removes a word from the custom vocabulary dictionary.
-    pub async fn remove_custom_word(&self, word: &str) -> Result<()> {
+    async fn remove_custom_word(&self, word: &str) -> Result<()> {
         let rid = RecordId::new(
             TableKind::CustomWord.table_name(),
             RecordIdKey::String(word.trim().to_string()),
@@ -137,8 +197,7 @@ impl Repository {
         Ok(())
     }
 
-    /// Indexes or updates an embedding for a text label.
-    pub async fn store_embedding(&self, text_payload: &str) -> Result<()> {
+    async fn store_embedding(&self, text_payload: &str) -> Result<()> {
         let clean = text_payload.trim();
         if clean.is_empty() {
             return Ok(());
@@ -160,8 +219,7 @@ impl Repository {
         Ok(())
     }
 
-    /// Searches for labels semantically similar to the query string (combining ontology, map verbs, and stored embeddings).
-    pub async fn search_similar_labels(&self, query: &str, limit: usize) -> Result<Vec<String>> {
+    async fn search_similar_labels(&self, query: &str, limit: usize) -> Result<Vec<String>> {
         let clean = query.trim();
         if clean.is_empty() {
             return Ok(vec![]);
@@ -170,7 +228,7 @@ impl Repository {
         let query_vec = EmbeddingService::embed_text(clean);
 
         // 1. Collect all candidates
-        let mut candidates = std::collections::HashSet::new();
+        let mut candidates = HashSet::new();
 
         // Built-in ontology verbs
         for &v in &["contradicts", "depends_on", "supports", "causes", "part_of", "leads_to", "blocks"] {
@@ -215,55 +273,17 @@ impl Repository {
         }
 
         // Sort descending by cosine similarity
-        scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(Ordering::Equal));
         scored.truncate(limit);
 
         Ok(scored.into_iter().map(|(text, _)| text).collect())
     }
 
-    /// Detects the dominant language across the graph's node texts ("en", "fa", "es", "ar", "zh").
-    pub fn detect_map_language(node_texts: &[String]) -> String {
-        let mut fa_ar_count = 0;
-        let mut fa_specific_count = 0;
-        let mut zh_count = 0;
-        let mut es_count = 0;
-        let mut en_count = 0;
-
-        for text in node_texts {
-            for ch in text.chars() {
-                let cp = ch as u32;
-                if (0x0600..=0x06FF).contains(&cp) || (0xFB50..=0xFEFF).contains(&cp) {
-                    fa_ar_count += 1;
-                    if matches!(ch, 'گ' | 'چ' | 'پ' | 'ژ' | 'ی' | 'ک') {
-                        fa_specific_count += 1;
-                    }
-                } else if (0x4E00..=0x9FFF).contains(&cp) || (0x3400..=0x4DBF).contains(&cp) {
-                    zh_count += 1;
-                } else if matches!(ch, 'á' | 'é' | 'í' | 'ó' | 'ú' | 'ñ' | '¿' | '¡' | 'Á' | 'É' | 'Í' | 'Ó' | 'Ú' | 'Ñ') {
-                    es_count += 2;
-                } else if ch.is_ascii_alphabetic() {
-                    en_count += 1;
-                }
-            }
-        }
-
-        if fa_ar_count > zh_count && fa_ar_count > es_count && fa_ar_count > en_count {
-            if fa_specific_count > 0 {
-                "fa".to_string()
-            } else {
-                "ar".to_string()
-            }
-        } else if zh_count > fa_ar_count && zh_count > es_count && zh_count > en_count {
-            "zh".to_string()
-        } else if es_count > 0 && es_count >= (en_count / 3) {
-            "es".to_string()
-        } else {
-            "en".to_string()
-        }
+    fn detect_map_language(&self, node_texts: &[String]) -> String {
+        Self::detect_map_language_impl(node_texts)
     }
 
-    /// Predicts contextual relation predicate labels connecting Source Node and Target Node.
-    pub async fn predict_relation_labels(
+    async fn predict_relation_labels(
         &self,
         source_text: &str,
         target_text: &str,
@@ -315,7 +335,7 @@ impl Repository {
         }
 
         // Sort descending by semantic similarity to contextual connection
-        scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(Ordering::Equal));
         scored.truncate(limit);
 
         Ok(scored.into_iter().map(|(text, _)| text).collect())

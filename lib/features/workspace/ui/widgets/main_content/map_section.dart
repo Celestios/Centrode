@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:centrode/features/graph/ui/graph_screen.dart';
-import 'package:centrode/features/graph/presentation/map_manager.dart';
-import 'package:centrode/infrastructure/lifecycle/daemon_gateway.dart';
+import 'package:centrode/features/workspace/presentation/workspace_hub_controller.dart';
 import 'package:centrode/shared/utils/map_scanner.dart';
 import '../shared/section_header.dart';
 import '../shared/horizontal_scroll_row.dart';
@@ -16,6 +15,7 @@ class MapSection extends StatefulWidget {
   final Set<String> selectedPaths;
   final ValueChanged<Set<String>> onSelectionChanged;
   final VoidCallback? onMapsChanged;
+  final WorkspaceHubController? controller;
 
   const MapSection({
     super.key,
@@ -26,6 +26,7 @@ class MapSection extends StatefulWidget {
     required this.selectedPaths,
     required this.onSelectionChanged,
     this.onMapsChanged,
+    this.controller,
   });
 
   @override
@@ -33,12 +34,14 @@ class MapSection extends StatefulWidget {
 }
 
 class MapSectionState extends State<MapSection> {
+  late final WorkspaceHubController _controller;
   List<MapInfo> _maps = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _controller = widget.controller ?? WorkspaceHubController();
     reload();
   }
 
@@ -80,11 +83,8 @@ class MapSectionState extends State<MapSection> {
 
     if (confirmed == true) {
       final newSelection = Set<String>.from(widget.selectedPaths);
+      await _controller.deleteMaps(mapsToDelete);
       for (final map in mapsToDelete) {
-        await MapManager.instance.closeByPath(map.path, saveState: false);
-      }
-      for (final map in mapsToDelete) {
-        await DaemonGateway.instance.deleteMap(map.id);
         newSelection.remove(map.path);
       }
       if (!mounted) return;
@@ -155,7 +155,7 @@ class MapSectionState extends State<MapSection> {
                     widget.onSelectionChanged(newSelection);
                   },
                   onTap: () {
-                    MapManager.instance.openMap(map.path, map.name, mapId: map.id);
+                    _controller.openMap(map);
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const GraphScreen(),
@@ -165,10 +165,9 @@ class MapSectionState extends State<MapSection> {
                   onDelete: () => _deleteMaps([map]),
                   onRename: (newName) async {
                     if (newName == map.name) return;
-                    await MapManager.instance.closeByPath(map.path, saveState: true);
-                    final updated = await DaemonGateway.instance.renameMap(map.id, newName);
+                    final updated = await _controller.renameMap(map, newName);
                     if (!mounted) return;
-                    if (widget.selectedPaths.contains(map.path)) {
+                    if (updated != null && widget.selectedPaths.contains(map.path)) {
                       final newSelection = Set<String>.from(widget.selectedPaths)
                         ..remove(map.path)
                         ..add(updated.storagePath);

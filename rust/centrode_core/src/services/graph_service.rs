@@ -1,18 +1,19 @@
+use std::path::{Path, PathBuf};
+pub use std::sync::Mutex;
+
 use crate::bridge::stream::GraphEvent;
+pub use crate::domain::styles::{NodeLayout, NodeStyle, RelationLayout, RelationStyle};
 use crate::frb_generated::StreamSink;
 use crate::layout_engine::config::LayoutConfig;
 use crate::layout_engine::engine::LayoutEngine;
-use crate::repo::Repository;
 use crate::relation_engine::config::RelationEngineConfig;
+pub use crate::relation_engine::engine::RelationEngine;
+use crate::repo::Repositories;
+
 use centrode_daemon::EngineManager;
-use std::path::{Path, PathBuf};
-pub use std::sync::Mutex;
 use tokio::sync::broadcast;
 use tokio::task::JoinHandle;
 use tokio_stream::StreamExt;
-
-pub use crate::domain::styles::{NodeLayout, NodeStyle, RelationLayout, RelationStyle};
-pub use crate::relation_engine::engine::RelationEngine;
 
 pub mod history;
 pub mod layout;
@@ -21,7 +22,7 @@ pub mod node;
 pub mod relation;
 
 pub struct GraphService {
-    pub repo: Repository,
+    pub repo: Repositories,
     pub relation_engine: std::sync::Arc<Mutex<RelationEngine>>,
     pub layout_engine: std::sync::Arc<Mutex<LayoutEngine>>,
     pub event_tx: broadcast::Sender<GraphEvent>,
@@ -48,15 +49,15 @@ impl GraphService {
             EngineManager::connect(path.to_str().unwrap_or(&storage_path), name, None, None).await?
         };
 
-        Ok(Self::with_repository(Repository::new(db)))
+        Ok(Self::with_repository(Repositories::new(db)))
     }
 
     pub async fn open(map_id: &str, name: &str) -> anyhow::Result<Self> {
         let db = EngineManager::open_map_db(map_id, name).await?;
-        Ok(Self::with_repository(Repository::new(db)))
+        Ok(Self::with_repository(Repositories::new(db)))
     }
 
-    pub fn with_repository(repo: Repository) -> Self {
+    pub fn with_repository(repo: Repositories) -> Self {
         let relation_engine = std::sync::Arc::new(Mutex::new(RelationEngine::new(
             RelationEngineConfig::default(),
         )));

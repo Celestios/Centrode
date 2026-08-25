@@ -2,13 +2,30 @@ use crate::domain::base_models::Record;
 use crate::domain::id::TypedRecordId;
 use crate::domain::tags::{Tag, TagFields};
 use crate::domain::traits::TableKind;
-use crate::repo::Repository;
+use crate::repo::traits::TagRepository;
 
 use anyhow::Result;
-use surrealdb::types::{SurrealValue, Value};
+use surrealdb::engine::local::Db;
+use surrealdb::types::{RecordIdKey, SurrealValue, Value};
+use surrealdb::Surreal;
 
-impl Repository {
-    pub async fn create_tag(&self, tag: Tag) -> Result<()> {
+#[derive(Clone)]
+pub struct SurrealTagRepository {
+    pub(crate) db: Surreal<Db>,
+}
+
+impl SurrealTagRepository {
+    pub fn new(db: Surreal<Db>) -> Self {
+        Self { db }
+    }
+
+    pub fn db(&self) -> &Surreal<Db> {
+        &self.db
+    }
+}
+
+impl TagRepository for SurrealTagRepository {
+    async fn create_tag(&self, tag: Tag) -> Result<()> {
         let record_id = tag.key.to_record_id();
         let res: surrealdb::Result<Option<TagFields>> = self.db.create(record_id).content(tag.fields).await;
         match res {
@@ -24,7 +41,7 @@ impl Repository {
         }
     }
 
-    pub async fn update_tag(&self, tag: Tag) -> Result<()> {
+    async fn update_tag(&self, tag: Tag) -> Result<()> {
         let record_id = tag.key.to_record_id();
         let res: surrealdb::Result<Option<TagFields>> = self.db.update(record_id).content(tag.fields).await;
         match res {
@@ -40,7 +57,7 @@ impl Repository {
         }
     }
 
-    pub async fn get_tag(&self, key: String) -> Result<Option<Tag>> {
+    async fn get_tag(&self, key: String) -> Result<Option<Tag>> {
         let u = uuid::Uuid::parse_str(&key)
             .map_err(|e| anyhow::anyhow!("Invalid tag key '{}': {}", key, e))?;
         let typed_id = TypedRecordId::new(TableKind::Tag, u);
@@ -48,14 +65,14 @@ impl Repository {
         Ok(fields.map(|f| Tag { key: typed_id, fields: f }))
     }
 
-    pub async fn get_all_tags(&self) -> Result<Vec<Tag>> {
+    async fn get_all_tags(&self) -> Result<Vec<Tag>> {
         let tag_records: Vec<Value> = self.db.select(Tag::LABEL).await?;
         let tags: Vec<Tag> = tag_records
             .into_iter()
             .filter_map(|val| {
                 let record = Record::from_record_value(val)?;
                 let u = match &record.id.key {
-                    surrealdb::types::RecordIdKey::Uuid(u) => {
+                    RecordIdKey::Uuid(u) => {
                         uuid::Uuid::from_bytes(u.into_bytes())
                     }
                     _ => return None,
@@ -68,7 +85,7 @@ impl Repository {
         Ok(tags)
     }
 
-    pub async fn delete_tag(&self, key: String) -> Result<()> {
+    async fn delete_tag(&self, key: String) -> Result<()> {
         let u = uuid::Uuid::parse_str(&key)
             .map_err(|e| anyhow::anyhow!("Invalid tag key '{}': {}", key, e))?;
         let tag_id = TypedRecordId::new(TableKind::Tag, u).to_record_id();

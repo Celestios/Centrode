@@ -14,7 +14,7 @@ final Logger _log = Logger('UpdateNodesStyleCommand');
 class UpdateNodesStyleCommand extends GraphCommand {
   @override
   RawUuid targetId;
-  final GraphApi api;
+  final NodeApi api;
   final Map<RawUuid, NodeStyle> oldStyles;
   final Map<RawUuid, NodeStyle> newStyles;
   final Map<RawUuid, Size> oldSizes;

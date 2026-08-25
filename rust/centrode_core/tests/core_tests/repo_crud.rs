@@ -5,8 +5,9 @@ use centrode_core::domain::id::TypedRecordId;
 use centrode_core::domain::nodes::{INode, Nodes, TaskNode, TaskState};
 use centrode_core::domain::relations::{IRelation, IRelationFields};
 use centrode_core::domain::styles::RelationDirection;
-use centrode_core::domain::tags::{TagEdge};
+use centrode_core::domain::tags::TagEdge;
 use centrode_core::domain::traits::TableKind;
+use centrode_core::repo::traits::{NodeRepository, RelationRepository};
 use crate::common::make_container_node;
 
 #[tokio::test]
@@ -43,12 +44,13 @@ async fn test_inode_crud() {
     };
 
     // Create
-    repo.create_node(Nodes::INode(inode.clone()))
+    repo.nodes.create_node(Nodes::INode(inode.clone()))
         .await
         .expect("Failed to create INode");
 
     // Read
     let fetched = repo
+        .nodes
         .get_node(inode_id)
         .await
         .expect("Failed to get INode")
@@ -71,11 +73,12 @@ async fn test_inode_crud() {
     updated_inode.content = Content::from_plain_text("Updated INode Content");
     updated_inode.position = Coordinates { x: 50, y: 60 };
 
-    repo.update_node(Nodes::INode(updated_inode))
+    repo.nodes.update_node(Nodes::INode(updated_inode))
         .await
         .expect("Failed to update INode");
 
     let fetched_updated = repo
+        .nodes
         .get_node(inode_id)
         .await
         .expect("Failed to get updated INode")
@@ -93,11 +96,12 @@ async fn test_inode_crud() {
     }
 
     // Delete
-    repo.delete_node(inode_id)
+    repo.nodes.delete_node(inode_id)
         .await
         .expect("Failed to delete INode");
 
     let fetched_deleted = repo
+        .nodes
         .get_node(inode_id)
         .await
         .expect("Query failed");
@@ -136,12 +140,13 @@ async fn test_task_node_crud() {
     };
 
     // Create
-    repo.create_node(Nodes::TaskNode(task_node.clone()))
+    repo.nodes.create_node(Nodes::TaskNode(task_node.clone()))
         .await
         .expect("Failed to create TaskNode");
 
     // Read
     let fetched = repo
+        .nodes
         .get_node(task_id)
         .await
         .expect("Failed to get TaskNode")
@@ -160,11 +165,12 @@ async fn test_task_node_crud() {
     let mut updated_task = task_node.clone();
     updated_task.state = TaskState::Done;
 
-    repo.update_node(Nodes::TaskNode(updated_task))
+    repo.nodes.update_node(Nodes::TaskNode(updated_task))
         .await
         .expect("Failed to update TaskNode");
 
     let fetched_updated = repo
+        .nodes
         .get_node(task_id)
         .await
         .expect("Failed to get updated TaskNode")
@@ -177,11 +183,12 @@ async fn test_task_node_crud() {
     }
 
     // Delete
-    repo.delete_node(task_id)
+    repo.nodes.delete_node(task_id)
         .await
         .expect("Failed to delete TaskNode");
 
     let fetched_deleted = repo
+        .nodes
         .get_node(task_id)
         .await
         .expect("Query failed");
@@ -215,12 +222,13 @@ async fn test_irelation_crud() {
     };
 
     // Create
-    repo.create_relation(relation.clone())
+    repo.relations.create_relation(relation.clone())
         .await
         .expect("Failed to create IRelation");
 
     // Read
     let fetched_rel = repo
+        .relations
         .get_relation(rel_id)
         .await
         .expect("Failed to get IRelation");
@@ -234,11 +242,12 @@ async fn test_irelation_crud() {
     let mut updated_fields = relation.fields.clone();
     updated_fields.verb = "blocks".to_string();
 
-    repo.update_relation(rel_id, updated_fields)
+    repo.relations.update_relation(rel_id, updated_fields)
         .await
         .expect("Failed to update IRelation");
 
     let fetched_updated = repo
+        .relations
         .get_relation(rel_id)
         .await
         .expect("Failed to get updated IRelation");
@@ -246,11 +255,12 @@ async fn test_irelation_crud() {
     assert_eq!(fetched_updated.fields.verb, "blocks");
 
     // Delete
-    repo.delete_relation(rel_id)
+    repo.relations.delete_relation(rel_id)
         .await
         .expect("Failed to delete IRelation");
 
     let fetched_deleted = repo
+        .relations
         .get_relation(rel_id)
         .await;
 
@@ -289,7 +299,7 @@ async fn test_unique_constraints() {
         created_at: 0,
         updated_at: 0,
     };
-    repo.create_node(Nodes::INode(inode)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(inode)).await.unwrap();
 
     let n1_id = TypedRecordId::new_v4(TableKind::INode);
     let n2_id = TypedRecordId::new_v4(TableKind::INode);
@@ -310,13 +320,13 @@ async fn test_unique_constraints() {
             updated_at: 0,
         },
     };
-    repo.create_relation(rel.clone()).await.unwrap();
+    repo.relations.create_relation(rel.clone()).await.unwrap();
 
     let rel_dup = IRelation {
         key: TypedRecordId::new_v4(TableKind::IRelation),
         ..rel.clone()
     };
-    let res_dup = repo.create_relation(rel_dup).await;
+    let res_dup = repo.relations.create_relation(rel_dup).await;
     assert!(
         res_dup.is_err(),
         "Duplicate relation unique constraint should fail"
@@ -410,9 +420,9 @@ async fn test_relation_rerouting_and_deletion() {
         updated_at: 0,
     };
 
-    repo.create_node(Nodes::INode(node1)).await.unwrap();
-    repo.create_node(Nodes::INode(node2)).await.unwrap();
-    repo.create_node(Nodes::INode(node3)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(node1)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(node2)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(node3)).await.unwrap();
 
     let rel_id = TypedRecordId::new_v4(TableKind::IRelation);
 
@@ -433,7 +443,7 @@ async fn test_relation_rerouting_and_deletion() {
         },
     };
 
-    repo.create_relation(rel).await.unwrap();
+    repo.relations.create_relation(rel).await.unwrap();
 
     let updated = IRelation {
         key: rel_id,
@@ -451,11 +461,12 @@ async fn test_relation_rerouting_and_deletion() {
             updated_at: 0,
         },
     };
-    repo.reroute_relation(rel_id, updated)
+    repo.relations.reroute_relation(rel_id, updated)
         .await
         .unwrap();
 
     let fetched = repo
+        .relations
         .get_relation(rel_id)
         .await
         .unwrap();
@@ -472,12 +483,13 @@ async fn test_container_node_crud() {
     let container = make_container_node(container_id, "Test Container", 100, 200);
 
     // Create
-    repo.create_node(Nodes::ContainerNode(container.clone()))
+    repo.nodes.create_node(Nodes::ContainerNode(container.clone()))
         .await
         .expect("Failed to create ContainerNode");
 
     // Read
     let fetched = repo
+        .nodes
         .get_node(container_id)
         .await
         .expect("Failed to get ContainerNode")
@@ -503,11 +515,12 @@ async fn test_container_node_crud() {
     updated_container.is_closed = false;
     updated_container.child_count = 5;
 
-    repo.update_node(Nodes::ContainerNode(updated_container))
+    repo.nodes.update_node(Nodes::ContainerNode(updated_container))
         .await
         .expect("Failed to update ContainerNode");
 
     let fetched_updated = repo
+        .nodes
         .get_node(container_id)
         .await
         .expect("Failed to get updated ContainerNode")
@@ -524,11 +537,12 @@ async fn test_container_node_crud() {
     }
 
     // Delete
-    repo.delete_node(container_id)
+    repo.nodes.delete_node(container_id)
         .await
         .expect("Failed to delete ContainerNode");
 
     let fetched_deleted = repo
+        .nodes
         .get_node(container_id)
         .await
         .expect("Failed to fetch deleted ContainerNode");

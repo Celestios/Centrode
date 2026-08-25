@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
-import 'package:centrode/shared/utils/name_generator.dart';
 import 'package:centrode/features/graph/ui/graph_screen.dart';
 import 'package:centrode/features/graph/presentation/map_manager.dart';
-import 'package:centrode/infrastructure/lifecycle/daemon_gateway.dart';
+import 'package:centrode/features/workspace/presentation/workspace_hub_controller.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/presentation/widgets/hover_scale_button.dart';
 
 class QuickActionsSection extends StatelessWidget {
-  const QuickActionsSection({super.key});
+  final WorkspaceHubController? controller;
+
+  const QuickActionsSection({super.key, this.controller});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hubController = controller ?? WorkspaceHubController();
 
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          const _ReturnToMapButton(),
+          _ReturnToMapButton(controller: hubController),
           const SizedBox(height: 16),
           ListTile(
             leading: Icon(
@@ -36,7 +38,7 @@ class QuickActionsSection extends StatelessWidget {
               if (result != null && result.files.single.path != null) {
                 final filePath = result.files.single.path!;
                 final name = p.basenameWithoutExtension(filePath);
-                MapManager.instance.openCentFile(filePath, name);
+                await hubController.openCentFile(filePath, name);
                 if (context.mounted) {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const GraphScreen()),
@@ -58,7 +60,7 @@ class QuickActionsSection extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             dense: true,
           ),
-          const Expanded(child: Center(child: _NewMapButton())),
+          Expanded(child: Center(child: _NewMapButton(controller: hubController))),
         ],
       ),
     );
@@ -66,7 +68,9 @@ class QuickActionsSection extends StatelessWidget {
 }
 
 class _ReturnToMapButton extends StatelessWidget {
-  const _ReturnToMapButton();
+  final WorkspaceHubController controller;
+
+  const _ReturnToMapButton({required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +79,7 @@ class _ReturnToMapButton extends StatelessWidget {
     return ListenableBuilder(
       listenable: MapManager.instance,
       builder: (context, _) {
-        final hasOpenMaps = MapManager.instance.hasOpenMaps;
+        final hasOpenMaps = controller.hasOpenMaps;
         final primaryColor = theme.colorScheme.primary;
         final disabledColor = theme.disabledColor;
 
@@ -145,7 +149,9 @@ class _ReturnToMapButton extends StatelessWidget {
 }
 
 class _NewMapButton extends StatelessWidget {
-  const _NewMapButton();
+  final WorkspaceHubController controller;
+
+  const _NewMapButton({required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -161,13 +167,7 @@ class _NewMapButton extends StatelessWidget {
       child: IconButton(
         icon: Icon(Icons.add, color: theme.colorScheme.primary),
         onPressed: () async {
-          final name = NameGenerator.generate();
-          final descriptor = await DaemonGateway.instance.createMap(name);
-          MapManager.instance.openMap(
-            descriptor.storagePath,
-            descriptor.name,
-            mapId: descriptor.id,
-          );
+          await controller.createNewMap();
           if (context.mounted) {
             Navigator.of(
               context,

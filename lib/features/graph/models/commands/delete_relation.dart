@@ -12,7 +12,7 @@ final Logger _log = Logger('DeleteRelationCommand');
 class DeleteRelationCommand extends GraphCommand {
   @override
   RawUuid targetId;
-  final GraphApi api;
+  final RelationApi api;
   final String tableName;
   final UiRelation relation;
   final GraphCommandContext controller;

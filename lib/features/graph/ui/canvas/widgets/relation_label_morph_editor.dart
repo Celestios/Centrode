@@ -1,20 +1,16 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'package:centrode/presentation/theme/app_theme_manager.dart';
 import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/features/graph/presentation/node_render_state.dart';
-import 'package:centrode/features/graph/presentation/workspace_tabs_controller.dart';
-import 'package:centrode/features/graph/store/graph_data_query.dart';
+import 'package:centrode/features/graph/presentation/relation_label_suggestion_controller.dart';
 import 'package:centrode/features/graph/engine/interaction_context.dart';
 
 class RelationLabelMorphEditor extends StatefulWidget {
   final UiRelation relation;
   final Offset labelCenter;
-  final GraphDataQuery queryController;
+  final RelationLabelSuggestionController suggestionController;
   final NodeRenderState uiController;
   final InteractionContext interactionContext;
   final ValueChanged<String> onCommit;
@@ -23,7 +19,7 @@ class RelationLabelMorphEditor extends StatefulWidget {
     super.key,
     required this.relation,
     required this.labelCenter,
-    required this.queryController,
+    required this.suggestionController,
     required this.uiController,
     required this.interactionContext,
     required this.onCommit,
@@ -42,26 +38,12 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
   static const _duration = Duration(milliseconds: 220);
   static const _curve = Curves.easeOutCubic;
 
-  static const List<String> _builtinOntologyVerbs = [
-    'contradicts',
-    'depends_on',
-    'supports',
-    'causes',
-    'part_of',
-    'leads_to',
-    'blocks',
-  ];
-
   late final TextEditingController _textController;
   late final FocusNode _focusNode;
   bool _isExpanded = false;
   bool _isClosing = false;
   Timer? _closeTimer;
   int _selectedIndex = -1;
-
-  String _mapLanguage = 'en';
-  List<String> _contextualVerbs = [];
-  List<String> _neuralAutocompleteVerbs = [];
 
   @override
   void initState() {
@@ -88,8 +70,6 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
         baseOffset: 0,
         extentOffset: _textController.text.length,
       );
-
-      _initializeLanguageAndContext();
     });
   }
 
@@ -101,199 +81,18 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
     super.dispose();
   }
 
-  void _initializeLanguageAndContext() {
-    try {
-      final tabsController = context.read<WorkspaceTabsController>();
-      final api = tabsController.activeSession.api;
-      if (api == null) return;
-
-      // 1. Detect language from nodes in current map
-      final nodeTexts = widget.queryController.nodeLookup.values
-          .map((n) => n.content.text.trim())
-          .where((t) => t.isNotEmpty)
-          .toList();
-
-      api.detectMapLanguage(nodeTexts: nodeTexts).then((lang) {
-        if (!mounted) return;
-        setState(() {
-          _mapLanguage = lang;
-        });
-
-        // 2. Fetch contextual suggestions for this specific connection (Source -> Target)
-        final sourceNode = widget.queryController.nodeLookup[widget.relation.fromNodeId];
-        final targetNode = widget.queryController.nodeLookup[widget.relation.toNodeId];
-        final srcText = sourceNode?.content.text.trim() ?? '';
-        final tgtText = targetNode?.content.text.trim() ?? '';
-
-        if (srcText.isNotEmpty || tgtText.isNotEmpty) {
-          api.predictRelationLabels(
-            sourceText: srcText,
-            targetText: tgtText,
-            language: _mapLanguage,
-            limit: BigInt.from(4),
-          ).then((preds) {
-            if (mounted && preds.isNotEmpty) {
-              setState(() {
-                _contextualVerbs = preds;
-              });
-            }
-          });
-        }
-      });
-    } catch (_) {}
-  }
-
   void _onQueryChanged() {
     if (_isClosing) return;
     setState(() {
       _selectedIndex = -1;
     });
-
-    final query = _textController.text.trim();
-    if (query.isEmpty) {
-      if (_neuralAutocompleteVerbs.isNotEmpty) {
-        setState(() {
-          _neuralAutocompleteVerbs = [];
-        });
-      }
-      return;
-    }
-
-    // Query native Rust Candle embedder for live query autocomplete & synonyms
-    try {
-      final tabsController = context.read<WorkspaceTabsController>();
-      final api = tabsController.activeSession.api;
-      api?.searchSimilarLabels(query: query, limit: BigInt.from(5)).then((results) {
-        if (mounted && _textController.text.trim() == query) {
-          setState(() {
-            _neuralAutocompleteVerbs = results;
-          });
-        }
-      });
-    } catch (_) {}
-  }
-
-  // --- Group 1: Contextual Candidates for Connected Nodes ---
-  List<String> get _group1Contextual {
-    final query = _textController.text.trim().toLowerCase();
-    if (query.isEmpty) return _contextualVerbs;
-    return _contextualVerbs.where((v) => v.toLowerCase().contains(query)).toList();
-  }
-
-  // --- Group 2: Live Autocomplete & Synonyms ---
-  List<String> get _group2Autocomplete {
-    final query = _textController.text.trim().toLowerCase();
-    final g1Set = _group1Contextual.toSet();
-
-    final pool = <String>{
-      ..._neuralAutocompleteVerbs,
-      ..._builtinOntologyVerbs,
-    }.where((v) => !g1Set.contains(v)).toList();
-
-    if (query.isEmpty) {
-      return pool.take(4).toList();
-    }
-
-    final scored = <MapEntry<String, double>>[];
-    for (final candidate in pool) {
-      final cLower = candidate.toLowerCase();
-      double score = 0.0;
-
-      final neuralIdx = _neuralAutocompleteVerbs.indexOf(candidate);
-      if (neuralIdx >= 0) {
-        score += 10.0 - (neuralIdx * 1.2);
-      }
-
-      if (cLower == query) {
-        score += 10.0;
-      } else if (cLower.startsWith(query)) {
-        score += 5.0 + (query.length / cLower.length);
-      } else if (cLower.contains(query)) {
-        score += 3.0;
-      }
-
-      final semanticScore = _calculateNgramSimilarity(query, cLower);
-      score += semanticScore * 2.0;
-
-      if (score > 0.0) {
-        scored.add(MapEntry(candidate, score));
-      }
-    }
-
-    scored.sort((a, b) => b.value.compareTo(a.value));
-    return scored.map((e) => e.key).take(4).toList();
-  }
-
-  // --- Group 3: Map Consistency (Verbs already present elsewhere in map) ---
-  Map<String, int> get _group3MapVerbs {
-    final query = _textController.text.trim().toLowerCase();
-    final g1Set = _group1Contextual.toSet();
-    final g2Set = _group2Autocomplete.toSet();
-
-    final counts = <String, int>{};
-    for (final rel in widget.queryController.relations) {
-      if (rel.id == widget.relation.id) continue;
-      final v = rel.verb.trim();
-      if (v.isNotEmpty && v != 'default' && !g1Set.contains(v) && !g2Set.contains(v)) {
-        if (query.isEmpty || v.toLowerCase().contains(query)) {
-          counts[v] = (counts[v] ?? 0) + 1;
-        }
-      }
-    }
-
-    return counts;
-  }
-
-  /// Flat list of all currently displayed selectable words in order
-  List<String> get _allSelectableVerbs {
-    final list = <String>[];
-    list.addAll(_group1Contextual);
-    list.addAll(_group2Autocomplete);
-    list.addAll(_group3MapVerbs.keys);
-    return list;
-  }
-
-  double _calculateNgramSimilarity(String s1, String s2) {
-    if (s1.length < 2 || s2.length < 2) return 0.0;
-
-    Map<String, int> getNgrams(String text) {
-      final map = <String, int>{};
-      for (int i = 0; i <= text.length - 2; i++) {
-        final gram = text.substring(i, math.min(i + 3, text.length));
-        map[gram] = (map[gram] ?? 0) + 1;
-      }
-      return map;
-    }
-
-    final g1 = getNgrams(s1);
-    final g2 = getNgrams(s2);
-
-    double dot = 0.0;
-    double mag1 = 0.0;
-    double mag2 = 0.0;
-
-    for (final val in g1.values) {
-      mag1 += val * val;
-    }
-    for (final val in g2.values) {
-      mag2 += val * val;
-    }
-
-    if (mag1 == 0.0 || mag2 == 0.0) return 0.0;
-
-    for (final entry in g1.entries) {
-      if (g2.containsKey(entry.key)) {
-        dot += entry.value * g2[entry.key]!;
-      }
-    }
-
-    return dot / (math.sqrt(mag1) * math.sqrt(mag2));
+    widget.suggestionController.onQueryChanged(_textController.text);
   }
 
   void _handleCommit([String? explicitWord]) {
     if (_isClosing) return;
 
-    final flatList = _allSelectableVerbs;
+    final flatList = widget.suggestionController.value.flatList;
     final text = explicitWord ??
         (_selectedIndex >= 0 && _selectedIndex < flatList.length
             ? flatList[_selectedIndex]
@@ -301,7 +100,11 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
 
     if (text.isNotEmpty && text != widget.relation.verb) {
       widget.onCommit(text);
-      _resolveAndApplyOntologyStyle(widget.relation.id, text);
+      widget.suggestionController.resolveAndApplyOntologyStyle(
+        relationId: widget.relation.id,
+        verb: text,
+        interactionContext: widget.interactionContext,
+      );
     }
 
     setState(() {
@@ -316,28 +119,10 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
     });
   }
 
-  Future<void> _resolveAndApplyOntologyStyle(RawUuid relationId, String verb) async {
-    for (final rel in widget.queryController.relations) {
-      if (rel.id != relationId && rel.verb == verb && rel.style != null) {
-        widget.interactionContext.onRelationUpdateStyle(relationId, rel.style!);
-        return;
-      }
-    }
-
-    try {
-      final tabsController = context.read<WorkspaceTabsController>();
-      final api = tabsController.activeSession.api;
-      final spec = await api?.getRelationSpec(verb: verb);
-      if (spec != null && mounted) {
-        widget.interactionContext.onRelationUpdateStyle(relationId, spec);
-      }
-    } catch (_) {}
-  }
-
   void _handleKeyEvent(KeyEvent event) {
     if (event is! KeyDownEvent || _isClosing) return;
 
-    final flatList = _allSelectableVerbs;
+    final flatList = widget.suggestionController.value.flatList;
     if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
       if (flatList.isNotEmpty) {
         setState(() {
@@ -361,17 +146,12 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
   @override
   Widget build(BuildContext context) {
     final theme = AppThemeManager.instance.currentTheme;
-    final flatList = _allSelectableVerbs;
 
     final currentWidth = _isExpanded ? _expandedWidth : _collapsedWidth;
     final currentHeight = _isExpanded ? _expandedHeight : _collapsedHeight;
 
     final left = widget.labelCenter.dx - (currentWidth / 2);
     final top = widget.labelCenter.dy - (_collapsedHeight / 2);
-
-    final g1 = _group1Contextual;
-    final g2 = _group2Autocomplete;
-    final g3 = _group3MapVerbs;
 
     return AnimatedPositioned(
       duration: _duration,
@@ -408,7 +188,6 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Centered Text Input Box
                     SizedBox(
                       height: 26.0,
                       child: Padding(
@@ -440,55 +219,60 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
                     if (showList) ...[
                       const Divider(height: 1, thickness: 0.5, color: Colors.white24),
                       Expanded(
-                        child: ListView(
-                          padding: const EdgeInsets.symmetric(vertical: 3),
-                          children: [
-                            // 1. Group 1: Contextual Suggestions
-                            if (g1.isNotEmpty) ...[
-                              _GroupHeader(
-                                icon: Icons.bolt,
-                                label: 'SUGGESTED',
-                                color: Colors.amberAccent,
-                              ),
-                              for (final verb in g1)
-                                _WordItemRow(
-                                  word: verb,
-                                  isSelected: flatList.indexOf(verb) == _selectedIndex,
-                                  onTap: () => _handleCommit(verb),
-                                ),
-                            ],
+                        child: ValueListenableBuilder<RelationSuggestionState>(
+                          valueListenable: widget.suggestionController,
+                          builder: (context, state, _) {
+                            final g1 = state.contextualVerbs;
+                            final g2 = state.autocompleteVerbs;
+                            final g3 = state.mapVerbs;
+                            final flatList = state.flatList;
 
-                            // 2. Group 2: Live Autocomplete & Synonyms
-                            if (g2.isNotEmpty) ...[
-                              _GroupHeader(
-                                icon: Icons.search,
-                                label: 'SYNONYMS',
-                                color: theme.canvasAccentColor,
-                              ),
-                              for (final verb in g2)
-                                _WordItemRow(
-                                  word: verb,
-                                  isSelected: flatList.indexOf(verb) == _selectedIndex,
-                                  onTap: () => _handleCommit(verb),
-                                ),
-                            ],
-
-                            // 3. Group 3: Map Consistency
-                            if (g3.isNotEmpty) ...[
-                              _GroupHeader(
-                                icon: Icons.bookmark_border,
-                                label: 'IN THIS MAP',
-                                color: Colors.tealAccent,
-                              ),
-                              for (final entry in g3.entries)
-                                _WordItemRow(
-                                  word: entry.key,
-                                  badge: '${entry.value}x',
-                                  isSelected: flatList.indexOf(entry.key) == _selectedIndex,
-                                  onTap: () => _handleCommit(entry.key),
-                                ),
-                            ],
-                          ],
+                            return ListView(
+                              padding: const EdgeInsets.symmetric(vertical: 3),
+                              children: [
+                                if (g1.isNotEmpty) ...[
+                                  const _GroupHeader(
+                                    icon: Icons.bolt,
+                                    label: 'SUGGESTED',
+                                    color: Colors.amberAccent,
+                                  ),
+                                  for (final verb in g1)
+                                    _WordItemRow(
+                                      word: verb,
+                                      isSelected: flatList.indexOf(verb) == _selectedIndex,
+                                      onTap: () => _handleCommit(verb),
+                                    ),
+                                ],
+                                if (g2.isNotEmpty) ...[
+                                  _GroupHeader(
+                                    icon: Icons.search,
+                                    label: 'SYNONYMS',
+                                    color: theme.canvasAccentColor,
+                                  ),
+                                  for (final verb in g2)
+                                    _WordItemRow(
+                                      word: verb,
+                                      isSelected: flatList.indexOf(verb) == _selectedIndex,
+                                      onTap: () => _handleCommit(verb),
+                                    ),
+                                ],
+                                if (g3.isNotEmpty) ...[
+                                  const _GroupHeader(
+                                    icon: Icons.bookmark_border,
+                                    label: 'IN THIS MAP',
+                                    color: Colors.tealAccent,
+                                  ),
+                                  for (final entry in g3.entries)
+                                    _WordItemRow(
+                                      word: entry.key,
+                                      badge: '${entry.value}x',
+                                      isSelected: flatList.indexOf(entry.key) == _selectedIndex,
+                                      onTap: () => _handleCommit(entry.key),
+                                    ),
+                                ],
+                              ],
+                            );
+                          },
                         ),
                       ),
                     ],

@@ -1,7 +1,8 @@
 import 'package:centrode/src/rust/bridge/api.dart';
 import 'package:centrode/src/rust/domain/base_models.dart';
+import 'package:centrode/features/graph/presentation/map_storage_gateway.dart';
 
-class DaemonGateway {
+class DaemonGateway implements MapStorageGateway {
   static final DaemonGateway instance = DaemonGateway._();
   DaemonGateway._();
 

@@ -15,7 +15,7 @@ class UpdateTagsCommand extends GraphCommand {
   @override
   RawUuid targetId;
   final String tableName;
-  final GraphApi api;
+  final TagApi api;
   final List<Tag> oldTags;
   final List<Tag> newTags;
   final GraphCommandContext controller;

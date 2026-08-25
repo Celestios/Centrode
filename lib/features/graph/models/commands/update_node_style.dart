@@ -15,7 +15,7 @@ class UpdateNodeStyleCommand extends GraphCommand {
   @override
   RawUuid targetId;
   final String tableName;
-  final GraphApi api;
+  final NodeApi api;
   final NodeStyle? oldStyle;
   final NodeStyle? newStyle;
   final Size? oldSize;

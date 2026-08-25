@@ -13,7 +13,7 @@ final Logger _log = Logger('DeleteNodeCommand');
 class DeleteNodeCommand extends GraphCommand {
   @override
   RawUuid targetId; // Mutable to allow ID swapping for optimistic commands
-  final GraphApi api;
+  final NodeApi api;
   final String tableName;
   final UiNode node;
   final GraphCommandContext controller;

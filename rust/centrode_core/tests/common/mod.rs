@@ -1,16 +1,17 @@
 use centrode_core::domain::base_models::{Coordinates, Size};
 use centrode_core::domain::contents::Content;
 use centrode_core::domain::id::TypedRecordId;
-use centrode_core::domain::nodes::INode;
 use centrode_core::domain::nodes::ContainerNode;
+use centrode_core::domain::nodes::INode;
 use centrode_core::domain::relations::IRelationFields;
 use centrode_core::domain::styles::RelationDirection;
-use centrode_core::repo::Repository;
+use centrode_core::repo::Repositories;
 use centrode_daemon::schema::{Schema, Seeder};
+
 use surrealdb::engine::local::Mem;
 use surrealdb::Surreal;
 
-pub async fn setup_test_repo() -> Repository {
+pub async fn setup_test_repo() -> Repositories {
     // Initialize SurrealDB in-memory engine
     let db = Surreal::new::<Mem>(())
         .await
@@ -31,7 +32,7 @@ pub async fn setup_test_repo() -> Repository {
         .await
         .expect("Failed to seed default data in tests");
 
-    Repository::new(db)
+    Repositories::new(db)
 }
 
 pub fn make_inode(id: TypedRecordId, text: &str, x: i32, y: i32) -> INode {
@@ -102,4 +103,3 @@ pub fn make_relation_fields(verb: &str) -> IRelationFields {
         updated_at: 0,
     }
 }
-

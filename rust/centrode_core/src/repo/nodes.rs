@@ -1,17 +1,34 @@
 use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::{IsNode, Nodes};
+use crate::domain::patches::{EntityPatch, NodePatch};
 use crate::domain::tags::TagEdge;
-use crate::repo::Repository;
+use crate::repo::patches::{apply_patch_check_position_db, patch_entity_db, patch_node_db};
+use crate::repo::tags::SurrealTagRepository;
+use crate::repo::traits::{NodeRepository, TagRepository};
 
 use anyhow::Result;
-use surrealdb::types::Value;
+use surrealdb::engine::local::Db;
+use surrealdb::types::{RecordId, Value};
+use surrealdb::Surreal;
 use tracing::info;
 
-impl Repository {
-    pub async fn create_node<N>(&self, input: N) -> Result<()>
-    where
-        N: IsNode,
-    {
+#[derive(Clone)]
+pub struct SurrealNodeRepository {
+    pub(crate) db: Surreal<Db>,
+}
+
+impl SurrealNodeRepository {
+    pub fn new(db: Surreal<Db>) -> Self {
+        Self { db }
+    }
+
+    pub fn db(&self) -> &Surreal<Db> {
+        &self.db
+    }
+}
+
+impl NodeRepository for SurrealNodeRepository {
+    async fn create_node(&self, input: Nodes) -> Result<()> {
         let record_id = input.id().to_record_id();
         let table = input.table_name();
         let key = input.id().to_string();
@@ -28,7 +45,7 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn get_node(&self, id: TypedRecordId) -> Result<Option<Nodes>> {
+    async fn get_node(&self, id: TypedRecordId) -> Result<Option<Nodes>> {
         let table = id.table.table_name().to_string();
         let record_id = id.to_record_id();
 
@@ -43,9 +60,10 @@ impl Repository {
 
         if let Some(mut node) = val.and_then(|v| Nodes::from_struct_value(&table, v).ok()) {
             if let Nodes::INode(ref mut inode) = node {
+                let tag_repo = SurrealTagRepository::new(self.db.clone());
                 for i in 0..inode.tags.len() {
                     if let TagEdge::Pointer(ptr) = &inode.tags[i] {
-                        if let Ok(Some(tag)) = self.get_tag(ptr.key.to_string()).await {
+                        if let Ok(Some(tag)) = tag_repo.get_tag(ptr.key.to_string()).await {
                             inode.tags[i] = TagEdge::Hydrated(tag);
                         }
                     }
@@ -56,10 +74,7 @@ impl Repository {
         Ok(None)
     }
 
-    pub async fn update_node<N>(&self, input: N) -> Result<()>
-    where
-        N: IsNode,
-    {
+    async fn update_node(&self, input: Nodes) -> Result<()> {
         let table = input.table_name();
         let key = input.id().to_string();
         let record_id = input.id().to_record_id();
@@ -76,7 +91,7 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn delete_node(&self, id: TypedRecordId) -> Result<()> {
+    async fn delete_node(&self, id: TypedRecordId) -> Result<()> {
         let query = "
             BEGIN TRANSACTION;
             DELETE IRelation WHERE in = $target OR out = $target;
@@ -94,5 +109,17 @@ impl Repository {
             .await?;
 
         Ok(())
+    }
+
+    async fn patch_node(&self, id: RecordId, patch: &NodePatch) -> Result<()> {
+        patch_node_db(&self.db, id, patch).await
+    }
+
+    async fn patch_entity(&self, id: RecordId, patch: &EntityPatch) -> Result<()> {
+        patch_entity_db(&self.db, id, patch).await
+    }
+
+    async fn apply_patch_check_position(&self, id: &TypedRecordId, patch: &EntityPatch) -> Result<bool> {
+        apply_patch_check_position_db(&self.db, id, patch).await
     }
 }

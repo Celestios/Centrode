@@ -9,7 +9,7 @@ final Logger _log = Logger('InstantiateTemplateCommand');
 class InstantiateTemplateCommand extends GraphCommand {
   @override
   RawUuid targetId;
-  final GraphApi api;
+  final TemplateApi api;
   final double targetX;
   final double targetY;
   final GraphCommandContext controller;

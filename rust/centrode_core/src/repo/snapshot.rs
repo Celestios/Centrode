@@ -2,18 +2,35 @@ use crate::domain::base_models::MapData;
 use crate::domain::nodes::{IsNode, Nodes};
 use crate::domain::relations::IRelation;
 use crate::domain::snapshot::GraphSnapshot;
-use crate::repo::Repository;
+use crate::repo::traits::SnapshotRepository;
 
 use anyhow::Result;
+use surrealdb::engine::local::Db;
 use surrealdb::types::{SurrealValue, Value};
+use surrealdb::Surreal;
 
-impl Repository {
-    pub async fn get_map_data(&self) -> Result<MapData> {
+#[derive(Clone)]
+pub struct SurrealSnapshotRepository {
+    pub(crate) db: Surreal<Db>,
+}
+
+impl SurrealSnapshotRepository {
+    pub fn new(db: Surreal<Db>) -> Self {
+        Self { db }
+    }
+
+    pub fn db(&self) -> &Surreal<Db> {
+        &self.db
+    }
+}
+
+impl SnapshotRepository for SurrealSnapshotRepository {
+    async fn get_map_data(&self) -> Result<MapData> {
         let metadata: Option<MapData> = self.db.select(MapData::record_id().to_record_id()).await?;
         metadata.ok_or_else(|| anyhow::anyhow!("MapData not found"))
     }
 
-    pub async fn update_map_data(&self, data: MapData) -> Result<()> {
+    async fn update_map_data(&self, data: MapData) -> Result<()> {
         let _: Option<MapData> = self
             .db
             .update(MapData::record_id().to_record_id())
@@ -22,7 +39,7 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn get_graph_snapshot(&self) -> Result<GraphSnapshot> {
+    async fn get_graph_snapshot(&self) -> Result<GraphSnapshot> {
         tracing::info!("Fetching graph snapshot...");
 
         let mut nodes = Vec::new();
@@ -66,7 +83,7 @@ impl Repository {
         })
     }
 
-    pub async fn clear_graph(&self) -> Result<()> {
+    async fn clear_graph(&self) -> Result<()> {
         tracing::debug!("Clearing existing graph data...");
 
         let db = self.db.clone();
@@ -91,7 +108,7 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn set_graph_snapshot(&self, snapshot: GraphSnapshot) -> Result<()> {
+    async fn set_graph_snapshot(&self, snapshot: GraphSnapshot) -> Result<()> {
         tracing::info!("Storing graph snapshot atomically...");
 
         self.clear_graph().await?;
@@ -133,7 +150,7 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn query_search(&self, query: String) -> Result<Vec<Nodes>> {
+    async fn query_search(&self, query: String) -> Result<Vec<Nodes>> {
         tracing::debug!("REPO: query_search called with query: {}", query);
         let trimmed = query.trim();
         

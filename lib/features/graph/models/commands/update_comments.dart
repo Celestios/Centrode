@@ -12,7 +12,7 @@ final Logger _log = Logger('UpdateCommentsCommand');
 class UpdateCommentsCommand extends GraphCommand {
   @override
   RawUuid targetId;
-  final GraphApi api;
+  final NodeApi api;
   final UiNode node;
   final List<frb.Comment> oldComments;
   final GraphCommandContext controller;

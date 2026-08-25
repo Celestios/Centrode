@@ -7,6 +7,9 @@ use centrode_core::domain::relations::{IRelation, IRelationFields};
 use centrode_core::domain::styles::RelationDirection;
 use centrode_core::domain::tags::{Tag, TagEdge, TagFields};
 use centrode_core::domain::traits::TableKind;
+use centrode_core::repo::traits::{
+    NodeRepository, RelationRepository, SnapshotRepository, TagRepository, TemplateRepository,
+};
 
 #[tokio::test]
 async fn test_templates_save_and_instantiate() {
@@ -23,7 +26,7 @@ async fn test_templates_save_and_instantiate() {
             updated_at: 0,
         },
     };
-    repo.create_tag(tag.clone()).await.unwrap();
+    repo.tags.create_tag(tag.clone()).await.unwrap();
 
     let node1_id = TypedRecordId::new_v4(TableKind::INode);
     let node1 = INode {
@@ -52,7 +55,7 @@ async fn test_templates_save_and_instantiate() {
         created_at: 0,
         updated_at: 0,
     };
-    repo.create_node(Nodes::INode(node1.clone())).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(node1.clone())).await.unwrap();
 
     let node2_id = TypedRecordId::new_v4(TableKind::TaskNode);
     let node2 = TaskNode {
@@ -75,7 +78,7 @@ async fn test_templates_save_and_instantiate() {
         created_at: 0,
         updated_at: 0,
     };
-    repo.create_node(Nodes::TaskNode(node2.clone())).await.unwrap();
+    repo.nodes.create_node(Nodes::TaskNode(node2.clone())).await.unwrap();
 
     // 2. Create relation between them
     let rel_id = TypedRecordId::new_v4(TableKind::IRelation);
@@ -95,20 +98,20 @@ async fn test_templates_save_and_instantiate() {
             updated_at: 0,
         },
     };
-    repo.create_relation(relation.clone()).await.unwrap();
+    repo.relations.create_relation(relation.clone()).await.unwrap();
 
     // 3. Save selection as a Template
     let selection_nodes = vec![Nodes::INode(node1), Nodes::TaskNode(node2)];
     let selection_relations = vec![relation];
 
-    let saved_template = repo.save_template(
+    let saved_template = repo.templates.save_template(
         "Workflow Step Template".to_string(),
         selection_nodes,
         selection_relations,
     ).await.expect("Failed to save template");
 
     // 4. Retrieve templates and verify
-    let templates = repo.list_templates().await.expect("Failed to list templates");
+    let templates = repo.templates.list_templates().await.expect("Failed to list templates");
     assert_eq!(templates.len(), 1);
     let template = &templates[0];
     assert_eq!(template.name, "Workflow Step Template");
@@ -132,12 +135,12 @@ async fn test_templates_save_and_instantiate() {
 
     // 5. Instantiate template at (500, 600)
     let template_key_str = saved_template.key.key.to_string();
-    repo.apply_template(template_key_str.clone(), 500.0, 600.0)
+    repo.templates.apply_template(template_key_str.clone(), 500.0, 600.0)
         .await
         .expect("Failed to instantiate template");
 
     // 6. Get all graph data and verify instantiated nodes and relations
-    let snapshot = repo.get_graph_snapshot().await.unwrap();
+    let snapshot = repo.snapshot.get_graph_snapshot().await.unwrap();
     let inodes: Vec<INode> = snapshot.nodes.iter().filter_map(|n| match n {
         Nodes::INode(inode) => Some(inode.clone()),
         _ => None,
@@ -167,8 +170,8 @@ async fn test_templates_save_and_instantiate() {
     assert_eq!(new_relation.out.key, new_tasknode.id.key);
 
     // 7. Delete the template
-    repo.delete_template(template_key_str).await.expect("Failed to delete template");
-    let templates_after_delete = repo.list_templates().await.unwrap();
+    repo.templates.delete_template(template_key_str).await.expect("Failed to delete template");
+    let templates_after_delete = repo.templates.list_templates().await.unwrap();
     assert_eq!(templates_after_delete.len(), 0);
 }
 
@@ -179,12 +182,13 @@ async fn test_container_node_template() {
     // 1. Create a ContainerNode
     let container_id = TypedRecordId::new_v4(TableKind::ContainerNode);
     let container = crate::common::make_container_node(container_id, "Template Container", 100, 200);
-    repo.create_node(Nodes::ContainerNode(container.clone()))
+    repo.nodes.create_node(Nodes::ContainerNode(container.clone()))
         .await
         .expect("Failed to create ContainerNode for template test");
 
     // 2. Save ContainerNode as template
     let saved_template = repo
+        .templates
         .save_template(
             "Container Template".to_string(),
             vec![Nodes::ContainerNode(container)],
@@ -197,12 +201,13 @@ async fn test_container_node_template() {
     let template_key_uuid = template_key.key.to_string();
 
     // 3. Verify template was created
-    let templates = repo.list_templates().await.unwrap();
+    let templates = repo.templates.list_templates().await.unwrap();
     assert_eq!(templates.len(), 1);
     assert_eq!(templates[0].key, template_key);
 
     // 4. Apply template to instantiate
     let (new_nodes, _new_relations) = repo
+        .templates
         .apply_template(
             template_key_uuid.clone(),
             500.0,
@@ -223,9 +228,9 @@ async fn test_container_node_template() {
     assert_eq!(new_container.position.y, 600);
 
     // 6. Delete template
-    repo.delete_template(template_key_uuid)
+    repo.templates.delete_template(template_key_uuid)
         .await
         .expect("Failed to delete template");
-    let templates_after_delete = repo.list_templates().await.unwrap();
+    let templates_after_delete = repo.templates.list_templates().await.unwrap();
     assert_eq!(templates_after_delete.len(), 0);
 }

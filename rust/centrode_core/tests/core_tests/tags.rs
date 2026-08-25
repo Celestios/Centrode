@@ -6,6 +6,7 @@ use centrode_core::domain::nodes::{INode, Nodes};
 use centrode_core::domain::patches::{EntityPatch, NodePatch, TagOperation};
 use centrode_core::domain::tags::{Tag, TagEdge, TagFields};
 use centrode_core::domain::traits::TableKind;
+use centrode_core::repo::traits::{NodeRepository, TagRepository};
 
 #[tokio::test]
 async fn test_tags_crud_and_patching() {
@@ -23,12 +24,13 @@ async fn test_tags_crud_and_patching() {
             updated_at: 100,
         },
     };
-    repo.create_tag(tag.clone())
+    repo.tags.create_tag(tag.clone())
         .await
         .expect("Failed to create tag");
 
     // 2. Read the tag back
     let fetched_tag = repo
+        .tags
         .get_tag(tag_id.key.to_string())
         .await
         .expect("Failed to get tag");
@@ -39,7 +41,7 @@ async fn test_tags_crud_and_patching() {
     assert_eq!(fetched_tag.fields.color, 0xFF00FF);
 
     // 3. List all tags
-    let all_tags = repo.get_all_tags().await.expect("Failed to get all tags");
+    let all_tags = repo.tags.get_all_tags().await.expect("Failed to get all tags");
     assert!(all_tags
         .iter()
         .any(|t| t.key == tag_id && t.fields.name == "test_tag_rust" && t.fields.color == 0xFF00FF));
@@ -73,18 +75,19 @@ async fn test_tags_crud_and_patching() {
         created_at: 0,
         updated_at: 0,
     };
-    repo.create_node(Nodes::INode(inode)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(inode)).await.unwrap();
 
     let record_id = inode_id.to_record_id();
 
     // 5. Add tag to the INode using patch
     let add_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Add(tag_id))]);
-    repo.patch_entity(record_id.clone(), &add_patch)
+    repo.nodes.patch_entity(record_id.clone(), &add_patch)
         .await
         .unwrap();
 
     // 6. Retrieve INode and verify tag is added & hydrated
     let fetched_node = repo
+        .nodes
         .get_node(inode_id)
         .await
         .unwrap()
@@ -108,12 +111,13 @@ async fn test_tags_crud_and_patching() {
 
     // 7. Remove tag from the INode using patch
     let remove_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Remove(tag_id))]);
-    repo.patch_entity(record_id.clone(), &remove_patch)
+    repo.nodes.patch_entity(record_id.clone(), &remove_patch)
         .await
         .unwrap();
 
     // 8. Retrieve INode and verify tag is removed
     let fetched_node_after_remove = repo
+        .nodes
         .get_node(inode_id)
         .await
         .unwrap()
@@ -135,7 +139,7 @@ async fn test_tags_crud_and_patching() {
             updated_at: 100,
         },
     };
-    repo.create_tag(tag2.clone()).await.unwrap();
+    repo.tags.create_tag(tag2.clone()).await.unwrap();
 
     let inode2_id = TypedRecordId::new_v4(TableKind::INode);
     let inode2 = INode {
@@ -164,22 +168,23 @@ async fn test_tags_crud_and_patching() {
         created_at: 0,
         updated_at: 0,
     };
-    repo.create_node(Nodes::INode(inode2)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(inode2)).await.unwrap();
 
     let add_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Add(tag2_id))]);
-    repo.patch_entity(inode2_id.to_record_id(), &add_patch)
+    repo.nodes.patch_entity(inode2_id.to_record_id(), &add_patch)
         .await
         .unwrap();
 
     // Delete tag2
-    repo.delete_tag(tag2_id.key.to_string()).await.unwrap();
+    repo.tags.delete_tag(tag2_id.key.to_string()).await.unwrap();
 
     // Verify tag2 is deleted from Repository
-    let fetched_tag2 = repo.get_tag(tag2_id.key.to_string()).await.unwrap();
+    let fetched_tag2 = repo.tags.get_tag(tag2_id.key.to_string()).await.unwrap();
     assert!(fetched_tag2.is_none());
 
     // Verify tag2 is removed from INode's tags array
     let fetched_node2 = repo
+        .nodes
         .get_node(inode2_id)
         .await
         .unwrap()
@@ -206,14 +211,14 @@ async fn test_container_node_tags() {
             updated_at: 0,
         },
     };
-    repo.create_tag(tag.clone())
+    repo.tags.create_tag(tag.clone())
         .await
         .expect("Failed to create tag");
 
     // 2. Create a ContainerNode
     let container_id = TypedRecordId::new_v4(TableKind::ContainerNode);
     let container = crate::common::make_container_node(container_id, "Tagged Container", 100, 200);
-    repo.create_node(Nodes::ContainerNode(container))
+    repo.nodes.create_node(Nodes::ContainerNode(container))
         .await
         .expect("Failed to create ContainerNode for tag test");
 
@@ -221,12 +226,13 @@ async fn test_container_node_tags() {
 
     // 3. Add tag to ContainerNode using patch
     let add_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Add(tag_id))]);
-    repo.patch_entity(record_id.clone(), &add_patch)
+    repo.nodes.patch_entity(record_id.clone(), &add_patch)
         .await
         .unwrap();
 
     // 4. Retrieve ContainerNode and verify tag is added & hydrated
     let fetched_node = repo
+        .nodes
         .get_node(container_id)
         .await
         .unwrap()
@@ -251,12 +257,13 @@ async fn test_container_node_tags() {
 
     // 5. Remove tag from ContainerNode
     let remove_patch = EntityPatch::Node(vec![NodePatch::TagOp(TagOperation::Remove(tag_id))]);
-    repo.patch_entity(record_id.clone(), &remove_patch)
+    repo.nodes.patch_entity(record_id.clone(), &remove_patch)
         .await
         .unwrap();
 
     // 6. Verify tag is removed
     let fetched_node = repo
+        .nodes
         .get_node(container_id)
         .await
         .unwrap()

@@ -5,10 +5,14 @@ use crate::domain::nodes::{IsNode, Nodes};
 use crate::domain::relations::IRelation;
 use crate::domain::templates::Template;
 use crate::domain::traits::TableKind;
-use crate::repo::Repository;
+use crate::repo::nodes::SurrealNodeRepository;
+use crate::repo::relations::SurrealRelationRepository;
+use crate::repo::traits::{NodeRepository, RelationRepository, TemplateRepository};
 
 use anyhow::Result;
+use surrealdb::engine::local::Db;
 use surrealdb::types::{RecordIdKey, SurrealValue, Value};
+use surrealdb::Surreal;
 
 fn key_to_uuid(key: &RecordIdKey) -> Result<uuid::Uuid> {
     match key {
@@ -17,8 +21,23 @@ fn key_to_uuid(key: &RecordIdKey) -> Result<uuid::Uuid> {
     }
 }
 
-impl Repository {
-    pub async fn get_template(&self, key: String) -> Result<Option<Template>> {
+#[derive(Clone)]
+pub struct SurrealTemplateRepository {
+    pub(crate) db: Surreal<Db>,
+}
+
+impl SurrealTemplateRepository {
+    pub fn new(db: Surreal<Db>) -> Self {
+        Self { db }
+    }
+
+    pub fn db(&self) -> &Surreal<Db> {
+        &self.db
+    }
+}
+
+impl TemplateRepository for SurrealTemplateRepository {
+    async fn get_template(&self, key: String) -> Result<Option<Template>> {
         let u = uuid::Uuid::parse_str(&key)
             .map_err(|e| anyhow::anyhow!("Invalid template key '{}': {}", key, e))?;
         let record_id = TypedRecordId::new(TableKind::Template, u).to_record_id();
@@ -35,7 +54,7 @@ impl Repository {
         }
     }
 
-    pub async fn save_template(
+    async fn save_template(
         &self,
         name: String,
         nodes: Vec<Nodes>,
@@ -54,7 +73,7 @@ impl Repository {
         Ok(template)
     }
 
-    pub async fn list_templates(&self) -> Result<Vec<Template>> {
+    async fn list_templates(&self) -> Result<Vec<Template>> {
         let vals: Vec<Value> = self.db.select(Template::LABEL).await?;
         let mut result = Vec::new();
         for v in vals {
@@ -68,7 +87,7 @@ impl Repository {
         Ok(result)
     }
 
-    pub async fn delete_template(&self, key: String) -> Result<()> {
+    async fn delete_template(&self, key: String) -> Result<()> {
         let u = uuid::Uuid::parse_str(&key)
             .map_err(|e| anyhow::anyhow!("Invalid template key '{}': {}", key, e))?;
         let record_id = TypedRecordId::new(TableKind::Template, u).to_record_id();
@@ -76,7 +95,7 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn apply_template(
+    async fn apply_template(
         &self,
         key: String,
         target_x: f64,
@@ -142,11 +161,14 @@ impl Repository {
         let result_nodes = new_nodes.clone();
         let result_relations = new_relations.clone();
 
+        let node_repo = SurrealNodeRepository::new(self.db.clone());
+        let rel_repo = SurrealRelationRepository::new(self.db.clone());
+
         for node in new_nodes {
-            self.create_node(node).await?;
+            node_repo.create_node(node).await?;
         }
         for rel in new_relations {
-            self.create_relation(rel).await?;
+            rel_repo.create_relation(rel).await?;
         }
 
         Ok((result_nodes, result_relations))

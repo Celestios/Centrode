@@ -1,13 +1,14 @@
 use crate::bridge::stream::GraphEvent;
 use crate::domain::patches::{GraphDelta, SymmetricEntityPatch};
 use crate::repo::history::HistoryRecord;
+use crate::repo::traits::{HistoryRepository, NodeRepository};
 use crate::services::graph_service::GraphService;
 use surrealdb::types::SurrealValue;
 
 impl GraphService {
     pub async fn undo(&self) -> anyhow::Result<Option<HistoryRecord>> {
         tracing::debug!("FFI: undo called");
-        let record = self.repo.undo_event().await?;
+        let record = self.repo.history.undo_event().await?;
         if let Some(ref rec) = record {
             let delta = self.apply_history_record_patch(rec, false).await?;
             if let Some(delta) = delta {
@@ -20,7 +21,7 @@ impl GraphService {
 
     pub async fn redo(&self) -> anyhow::Result<Option<HistoryRecord>> {
         tracing::debug!("FFI: redo called");
-        let record = self.repo.redo_event().await?;
+        let record = self.repo.history.redo_event().await?;
         if let Some(ref rec) = record {
             let delta = self.apply_history_record_patch(rec, true).await?;
             if let Some(delta) = delta {
@@ -32,11 +33,11 @@ impl GraphService {
     }
 
     pub async fn undo_count(&self) -> anyhow::Result<u32> {
-        self.repo.undo_count().await
+        self.repo.history.undo_count().await
     }
 
     pub async fn redo_count(&self) -> anyhow::Result<u32> {
-        self.repo.redo_count().await
+        self.repo.history.redo_count().await
     }
 
     pub async fn apply_history_record_patch(
@@ -58,6 +59,7 @@ impl GraphService {
             };
             if self
                 .repo
+                .nodes
                 .apply_patch_check_position(&payload.id, patch)
                 .await?
             {

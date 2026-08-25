@@ -16,7 +16,7 @@ class PatchNodeCommand extends GraphCommand {
   @override
   RawUuid targetId;
   final String tableName;
-  final GraphApi api;
+  final NodeApi api;
   final GraphCommandContext controller;
   final Offset? oldPosition;
   final Offset? newPosition;

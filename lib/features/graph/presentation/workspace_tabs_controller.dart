@@ -122,9 +122,19 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
   final ValueNotifier<bool> showRightPanel = ValueNotifier(true);
   final ValueNotifier<bool> showBottomPanel = ValueNotifier(true);
   final ValueNotifier<bool> isInitialized = ValueNotifier<bool>(false);
+  NodeApi? get nodeApi => handle;
+  RelationApi? get relationApi => handle;
+  LayoutApi? get layoutApi => handle;
+  HistoryApi? get historyApi => handle;
+  ThemeApi? get themeApi => handle;
+  TemplateApi? get templateApi => handle;
+  TagApi? get tagApi => handle;
+  AssetApi? get assetApi => handle;
+  MlApi? get mlApi => handle;
+  ViewportApi? get viewportApi => handle;
+
   VoidCallback? _themeListener;
   StreamSubscription<GraphEntityUpdate>? _querySub;
-  final DeferredGraphApi _deferredApi = DeferredGraphApi();
 
   Future<void>? _initFuture;
 
@@ -133,34 +143,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     required this.storagePath,
     required this.name,
     this.centFilePath,
-  }) {
-    handle = _deferredApi;
-    final tc = ThemeController(_deferredApi);
-    themeController = tc;
-    final qc = GraphDataQueryController(_deferredApi);
-    queryController = qc;
-    final processor = CommandQueueProcessor(_deferredApi, qc);
-    commandProcessor = processor;
-    nodeRenderState = NodeRenderState(qc, processor);
-
-    final styleManager = StyleManager(qc.store);
-    final layoutStrategy = DefaultNodeLayoutStrategy();
-    processor.sizeCalculator = layoutStrategy.calculateSize;
-    processor.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
-    processor.styleUpdater = styleManager;
-
-    _themeListener = () {
-      final newTheme = tc.currentGraphTheme;
-      styleManager.setTheme(newTheme);
-      styleManager.updateAllStyles(qc.store.nodes, qc.store.relations);
-      qc.triggerUpdate();
-    };
-    tc.addListener(_themeListener!);
-
-    _querySub = qc.onEntityUpdate.listen((_) {
-      notifyListeners();
-    });
-  }
+  });
 
   Future<void> initialize(ThemeData globalTheme) {
     return _initFuture ??= _doInitialize(globalTheme).catchError((e) {
@@ -188,28 +171,49 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
       storagePath: resolvedPath,
       name: name,
     );
-    final wrapper = RustAppHandleWrapper(activeHandle);
-    _deferredApi.attach(wrapper);
+    final rustApi = RustGraphApi(activeHandle);
+    handle = rustApi;
 
     if (centFilePath != null) {
       final attachmentDir = await AppPaths.attachmentsDirectoryForMap(
         p.basenameWithoutExtension(centFilePath!),
       );
-      await wrapper.loadMapFromFile(
+      await rustApi.loadMapFromFile(
         filePath: centFilePath!,
         attachmentDir: attachmentDir,
       );
     }
 
-    final tc = themeController!;
-    final qc = queryController!;
-    final processor = commandProcessor!;
+    final tc = ThemeController(rustApi);
+    themeController = tc;
+    final qc = GraphDataQueryController(rustApi);
+    queryController = qc;
+    final processor = CommandQueueProcessor(rustApi, qc);
+    commandProcessor = processor;
+    nodeRenderState = NodeRenderState(qc, processor);
+
+    final styleManager = StyleManager(qc.store);
+    final layoutStrategy = DefaultNodeLayoutStrategy();
+    processor.sizeCalculator = layoutStrategy.calculateSize;
+    processor.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
+    processor.styleUpdater = styleManager;
+
+    _themeListener = () {
+      final newTheme = tc.currentGraphTheme;
+      styleManager.setTheme(newTheme);
+      styleManager.updateAllStyles(qc.store.nodes, qc.store.relations);
+      qc.triggerUpdate();
+    };
+    tc.addListener(_themeListener!);
+
+    _querySub = qc.onEntityUpdate.listen((_) {
+      notifyListeners();
+    });
 
     await tc.initialize(globalTheme);
     // Seeding initial theme style
-    final styleManager = processor.styleUpdater as StyleManager?;
-    styleManager?.setTheme(tc.currentGraphTheme);
-    styleManager?.updateAllStyles(qc.store.nodes, qc.store.relations);
+    styleManager.setTheme(tc.currentGraphTheme);
+    styleManager.updateAllStyles(qc.store.nodes, qc.store.relations);
 
     await processor.loadGraph();
     isInitialized.value = true;
@@ -303,7 +307,6 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     showBottomPanel.dispose();
     isInitialized.dispose();
     _viewportController = null;
-    _deferredApi.dispose();
     super.dispose();
   }
 }

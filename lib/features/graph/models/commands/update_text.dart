@@ -18,7 +18,7 @@ class UpdateTextCommand extends GraphCommand {
   @override
   RawUuid targetId;
   final String tableName;
-  final GraphApi api;
+  final NodeApi api;
   final Content? oldContent;
   final Content? newContent;
   final Size? oldSize;

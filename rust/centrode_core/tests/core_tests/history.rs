@@ -12,10 +12,11 @@ async fn test_history_manager() {
     let repo = setup_test_repo().await;
 
     // Use a strict threshold of 3 for testing
-    let history = HistoryManager::new(repo.db(), 3);
+    let history = HistoryManager::new(repo.history.db(), 3);
 
     // Clear history to start fresh
     let _: Vec<surrealdb::types::Value> = repo
+        .history
         .db()
         .query("DELETE History")
         .await
@@ -77,6 +78,7 @@ async fn test_history_manager() {
 
     // Check threshold pruning (max 3 applied events should remain)
     let mut count_response = repo
+        .history
         .db()
         .query("SELECT VALUE count() FROM History WHERE status = 0 GROUP ALL")
         .await
@@ -96,6 +98,7 @@ async fn test_history_manager() {
 
     // Verify non-zero undone count query returns successfully
     let mut undone_count_response = repo
+        .history
         .db()
         .query("SELECT VALUE count() FROM History WHERE status = 1 GROUP ALL")
         .await
@@ -129,6 +132,7 @@ async fn test_history_manager() {
         .unwrap();
 
     let mut undone_query = repo
+        .history
         .db()
         .query("SELECT VALUE count() FROM History WHERE status = 1 GROUP ALL")
         .await
@@ -141,9 +145,10 @@ async fn test_history_manager() {
 #[tokio::test]
 async fn test_history_lifo_undo_redo_sequence() {
     let repo = setup_test_repo().await;
-    let history = HistoryManager::new(repo.db(), 10);
+    let history = HistoryManager::new(repo.history.db(), 10);
 
     let _: Vec<surrealdb::types::Value> = repo
+        .history
         .db()
         .query("DELETE History")
         .await

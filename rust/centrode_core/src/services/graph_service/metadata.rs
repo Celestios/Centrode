@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use crate::bridge::stream::{self, GraphEvent};
 use crate::domain::base_models::ViewportState;
 use crate::domain::id::TypedRecordId;
@@ -11,17 +13,21 @@ use crate::domain::templates::Template;
 use crate::domain::theme::{MapTheme, ThemeFields};
 use crate::domain::traits::TableKind;
 use crate::format::packager;
+use crate::repo::traits::{
+    NodeRepository, RelationRepository, SnapshotRepository, TagRepository, TemplateRepository,
+    ThemeRepository,
+};
 use crate::services::graph_service::GraphService;
-use std::collections::BTreeMap;
+
 use surrealdb::types::{SurrealValue, Value};
 
 impl GraphService {
     pub async fn get_all_themes(&self) -> anyhow::Result<Vec<MapTheme>> {
-        self.repo.list_themes().await
+        self.repo.themes.list_themes().await
     }
 
     pub async fn get_theme(&self, key: String) -> anyhow::Result<Option<MapTheme>> {
-        self.repo.get_theme(key).await
+        self.repo.themes.get_theme(key).await
     }
 
     pub async fn set_active_theme_id(&self, _theme_id: String) -> anyhow::Result<()> {
@@ -41,6 +47,7 @@ impl GraphService {
             .map_err(|e| anyhow::anyhow!("Invalid theme key '{}': {}", key, e))?;
         let typed_id = TypedRecordId::new(TableKind::MapTheme, u);
         self.repo
+            .themes
             .save_theme(MapTheme {
                 key: typed_id,
                 fields,
@@ -54,28 +61,28 @@ impl GraphService {
     }
 
     pub async fn update_theme(&self, theme: MapTheme) -> anyhow::Result<()> {
-        self.repo.save_theme(theme).await?;
+        self.repo.themes.save_theme(theme).await?;
         Ok(())
     }
 
     pub async fn create_tag(&self, tag: Tag) -> anyhow::Result<()> {
-        self.repo.create_tag(tag).await
+        self.repo.tags.create_tag(tag).await
     }
 
     pub async fn update_tag(&self, tag: Tag) -> anyhow::Result<()> {
-        self.repo.update_tag(tag).await
+        self.repo.tags.update_tag(tag).await
     }
 
     pub async fn get_tag(&self, key: String) -> anyhow::Result<Option<Tag>> {
-        self.repo.get_tag(key).await
+        self.repo.tags.get_tag(key).await
     }
 
     pub async fn get_all_tags(&self) -> anyhow::Result<Vec<Tag>> {
-        self.repo.get_all_tags().await
+        self.repo.tags.get_all_tags().await
     }
 
     pub async fn delete_tag(&self, key: String) -> anyhow::Result<()> {
-        self.repo.delete_tag(key).await
+        self.repo.tags.delete_tag(key).await
     }
 
     pub async fn save_template_from_selection(
@@ -86,19 +93,19 @@ impl GraphService {
     ) -> anyhow::Result<()> {
         let mut nodes = Vec::new();
         for key in node_keys {
-            if let Some(n) = self.repo.get_node(key).await? {
+            if let Some(n) = self.repo.nodes.get_node(key).await? {
                 nodes.push(n);
             }
         }
 
         let mut relations = Vec::new();
         for key in relation_keys {
-            if let Ok(r) = self.repo.get_relation(key).await {
+            if let Ok(r) = self.repo.relations.get_relation(key).await {
                 relations.push(r);
             }
         }
 
-        self.repo.save_template(name, nodes, relations).await?;
+        self.repo.templates.save_template(name, nodes, relations).await?;
         Ok(())
     }
 
@@ -109,7 +116,7 @@ impl GraphService {
         target_y: f64,
     ) -> anyhow::Result<()> {
         let (created_nodes, created_relations) =
-            self.repo.apply_template(key, target_x, target_y).await?;
+            self.repo.templates.apply_template(key, target_x, target_y).await?;
         let delta = GraphDelta {
             node_creations: created_nodes,
             relation_creations: created_relations,
@@ -120,19 +127,19 @@ impl GraphService {
     }
 
     pub async fn get_all_templates(&self) -> anyhow::Result<Vec<Template>> {
-        self.repo.list_templates().await
+        self.repo.templates.list_templates().await
     }
 
     pub async fn delete_template(&self, key: String) -> anyhow::Result<()> {
-        self.repo.delete_template(key).await
+        self.repo.templates.delete_template(key).await
     }
 
     pub async fn query_search(&self, query: String) -> anyhow::Result<Vec<Nodes>> {
-        self.repo.query_search(query).await
+        self.repo.snapshot.query_search(query).await
     }
 
     pub async fn get_graph_snapshot(&self) -> anyhow::Result<GraphSnapshot> {
-        let snapshot = self.repo.get_graph_snapshot().await?;
+        let snapshot = self.repo.snapshot.get_graph_snapshot().await?;
         self.broadcast_boundaries().await;
         Ok(snapshot)
     }
@@ -142,7 +149,7 @@ impl GraphService {
         file_path: String,
         attachment_dir: String,
     ) -> anyhow::Result<()> {
-        let snapshot = self.repo.get_graph_snapshot().await?;
+        let snapshot = self.repo.snapshot.get_graph_snapshot().await?;
         let mut content: BTreeMap<String, Vec<Value>> = BTreeMap::new();
 
         for node in snapshot.nodes {
@@ -201,6 +208,7 @@ impl GraphService {
             .collect();
 
         self.repo
+            .snapshot
             .set_graph_snapshot(GraphSnapshot {
                 nodes,
                 relations: irelations,

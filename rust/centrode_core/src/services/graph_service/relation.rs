@@ -7,6 +7,7 @@ use crate::relation_engine::computed::ComputedRelation;
 use crate::relation_engine::config::RelationEngineConfig;
 use crate::relation_engine::config::RoutingMode;
 use crate::relation_engine::input::{InputEdge, InputNode};
+use crate::repo::traits::{HistoryRepository, RelationRepository, SnapshotRepository};
 use crate::services::graph_service::GraphService;
 use tracing::{debug, error, info};
 
@@ -64,11 +65,13 @@ impl GraphService {
             "FFI: create_relation called: {} -> {}",
             input.in_, input.out
         );
-        self.repo.create_relation(input.clone()).await?;
+        self.repo.relations.create_relation(input.clone()).await?;
 
+        let key = input.key;
         self.repo
+            .history
             .record_patch_history(
-                input.key,
+                key,
                 EntityPatch::CreateRelation(input.clone()),
                 EntityPatch::DeleteRelation(input),
             )
@@ -79,11 +82,12 @@ impl GraphService {
 
     pub async fn delete_relation(&self, id: TypedRecordId) -> anyhow::Result<()> {
         debug!("Deleting relation: {:?}", id);
-        let rel = self.repo.get_relation(id).await?;
+        let rel = self.repo.relations.get_relation(id).await?;
 
-        self.repo.delete_relation(id).await?;
+        self.repo.relations.delete_relation(id).await?;
 
         self.repo
+            .history
             .record_patch_history(
                 id,
                 EntityPatch::DeleteRelation(rel.clone()),
@@ -98,6 +102,7 @@ impl GraphService {
         debug!("FFI: update_relation called for {} with patch", input.key);
 
         self.repo
+            .relations
             .update_relation(input.key, input.fields)
             .await
             .map_err(|e| {
@@ -119,13 +124,14 @@ impl GraphService {
     ) -> anyhow::Result<()> {
         debug!("Rerouting relation {} to: {} -> {}", record, from, to);
 
-        let old = self.repo.get_relation(record).await?;
+        let old = self.repo.relations.get_relation(record).await?;
         let mut existing = old.clone();
         existing.in_ = from.clone();
         existing.out = to.clone();
 
-        self.repo.reroute_relation(record, existing).await?;
+        self.repo.relations.reroute_relation(record, existing).await?;
         self.repo
+            .history
             .record_patch_history(
                 record,
                 EntityPatch::Relation(vec![RelationPatch::Endpoints(from, to)]),
@@ -154,7 +160,7 @@ impl GraphService {
 
         let relations = match snapshot_opt {
             Some(snapshot) => snapshot.relations,
-            None => self.repo.get_all_relations().await?,
+            None => self.repo.relations.get_all_relations().await?,
         };
         let edges: Vec<InputEdge> = relations
             .iter()
@@ -212,7 +218,7 @@ impl GraphService {
 
         let relations = match snapshot_opt {
             Some(snapshot) => snapshot.relations,
-            None => self.repo.get_all_relations().await?,
+            None => self.repo.relations.get_all_relations().await?,
         };
         let mut edges: Vec<InputEdge> = relations
             .iter()
@@ -255,7 +261,7 @@ impl GraphService {
         if let Ok(mut engine) = self.relation_engine.lock() {
             engine.cache.clear();
         }
-        if let Ok(snapshot) = self.repo.get_graph_snapshot().await {
+        if let Ok(snapshot) = self.repo.snapshot.get_graph_snapshot().await {
             if let Ok(mut engine) = self.relation_engine.lock() {
                 for node in &snapshot.nodes {
                     if let Some(input_node) = InputNode::from_domain(node) {

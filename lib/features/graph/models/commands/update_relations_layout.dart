@@ -14,7 +14,7 @@ final Logger _log = Logger('UpdateRelationsLayoutCommand');
 class UpdateRelationsLayoutCommand extends GraphCommand {
   @override
   RawUuid targetId;
-  final GraphApi api;
+  final RelationApi api;
   final Map<RawUuid, RelationLayout?> oldLayouts;
   final Map<RawUuid, RelationLayout?> newLayouts;
   final Map<RawUuid, RelationStyle?> oldStyles;

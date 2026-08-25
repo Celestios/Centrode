@@ -13,6 +13,8 @@ import '../../../models/models.dart';
 import '../../../presentation/view_state.dart';
 import '../widgets/metadata_preview_overlay.dart';
 import '../widgets/relation_label_morph_editor.dart';
+import '../../../presentation/relation_label_suggestion_controller.dart';
+import '../../../presentation/workspace_tabs_controller.dart';
 import '../utils/dashed_box_paint_utils.dart';
 import 'package:centrode/shared/widgets/unbounded_stack.dart';
 
@@ -141,10 +143,18 @@ class OverlayLayer extends StatelessWidget {
                   cached.labelPosition.y,
                 );
 
+                final tabsController = context.read<WorkspaceTabsController>();
+                final api = tabsController.activeSession.api;
+                final suggestionController = RelationLabelSuggestionController(
+                  api: api,
+                  queryController: dataController,
+                  relation: editedRel,
+                );
+
                 return RelationLabelMorphEditor(
                   relation: editedRel,
                   labelCenter: labelPos,
-                  queryController: dataController,
+                  suggestionController: suggestionController,
                   uiController: renderState,
                   interactionContext: interactionController.environment,
                   onCommit: (verb) {

@@ -31,7 +31,7 @@ async fn test_theme_crud_and_active_theme() {
     };
 
     let theme_id = RecordId::new("MapTheme", "dark_theme");
-    let _: Option<ThemeFields> = repo.db()
+    let _: Option<ThemeFields> = repo.themes.db()
         .query("CREATE $record_id CONTENT $fields")
         .bind(("record_id", theme_id.clone()))
         .bind(("fields", theme_fields.clone()))
@@ -40,7 +40,7 @@ async fn test_theme_crud_and_active_theme() {
         .take(0)
         .unwrap();
 
-    let fetched_fields: Option<ThemeFields> = repo.db().select(theme_id.clone()).await.unwrap();
+    let fetched_fields: Option<ThemeFields> = repo.themes.db().select(theme_id.clone()).await.unwrap();
     assert!(fetched_fields.is_some());
     let fetched_fields = fetched_fields.unwrap();
     assert_eq!(fetched_fields.name, "My Dark Theme");
@@ -51,7 +51,7 @@ async fn test_theme_crud_and_active_theme() {
     let mut updated_fields = theme_fields.clone();
     updated_fields.name = "Updated Dark Theme".to_string();
     updated_fields.primary_color = 0x445566;
-    let _: Option<ThemeFields> = repo.db()
+    let _: Option<ThemeFields> = repo.themes.db()
         .query("UPDATE $record_id MERGE $fields")
         .bind(("record_id", theme_id.clone()))
         .bind(("fields", updated_fields))
@@ -60,21 +60,21 @@ async fn test_theme_crud_and_active_theme() {
         .take(0)
         .unwrap();
 
-    let fetched_updated: ThemeFields = repo.db().select(theme_id.clone()).await.unwrap().unwrap();
+    let fetched_updated: ThemeFields = repo.themes.db().select(theme_id.clone()).await.unwrap().unwrap();
     assert_eq!(fetched_updated.name, "Updated Dark Theme");
     assert_eq!(fetched_updated.primary_color, 0x445566);
     assert_eq!(fetched_updated.secondary_color, 0x445566);
     assert_eq!(fetched_updated.accent_color, 0x778899);
 
     let map_data_id = centrode_core::domain::base_models::MapData::record_id().to_record_id();
-    repo.db()
+    repo.themes.db()
         .query("UPDATE $record SET active_theme_id = $theme_id")
         .bind(("record", map_data_id.clone()))
         .bind(("theme_id", "dark_theme".to_string()))
         .await
         .unwrap();
 
-    let mut res = repo.db()
+    let mut res = repo.themes.db()
         .query("SELECT VALUE active_theme_id FROM $record")
         .bind(("record", map_data_id))
         .await
@@ -82,10 +82,9 @@ async fn test_theme_crud_and_active_theme() {
     let active_theme_id: Option<String> = res.take(0).unwrap();
     assert_eq!(active_theme_id, Some("dark_theme".to_string()));
 
-    let themes: Vec<ThemeFields> = repo.db().select("MapTheme").await.unwrap();
+    let themes: Vec<ThemeFields> = repo.themes.db().select("MapTheme").await.unwrap();
     assert_eq!(themes.len(), 1);
     assert_eq!(themes[0].name, "Updated Dark Theme");
     assert_eq!(themes[0].secondary_color, 0x445566);
     assert_eq!(themes[0].accent_color, 0x778899);
 }
-

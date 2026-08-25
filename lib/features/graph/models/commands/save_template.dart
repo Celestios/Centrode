@@ -10,7 +10,7 @@ final Logger _log = Logger('SaveTemplateCommand');
 class SaveTemplateCommand extends GraphCommand {
   @override
   RawUuid targetId;
-  final GraphApi api;
+  final TemplateApi api;
   final String name;
   final List<TypedRecordId> nodeKeys;
   final List<TypedRecordId> relationKeys;

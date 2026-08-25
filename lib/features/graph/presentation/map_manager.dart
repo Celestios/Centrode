@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:centrode/shared/logging.dart';
 import 'package:centrode/shared/utils/app_paths.dart';
-import 'package:centrode/infrastructure/lifecycle/daemon_gateway.dart';
+import 'package:centrode/shared/utils/name_generator.dart';
+import 'map_storage_gateway.dart';
 import 'workspace_tabs_controller.dart';
 
 class MapManager extends ChangeNotifier {
@@ -12,7 +13,11 @@ class MapManager extends ChangeNotifier {
 
   final Logger _log = Logger('MapManager');
   WorkspaceTabsController? _tabsController;
+  MapStorageGateway? _storageGateway;
   VoidCallback? _onAllTabsClosed;
+
+  MapStorageGateway? get storageGateway => _storageGateway;
+  set storageGateway(MapStorageGateway? gateway) => _storageGateway = gateway;
 
   WorkspaceTabsController? get activeTabsController => _tabsController;
 
@@ -40,11 +45,30 @@ class MapManager extends ChangeNotifier {
     );
   }
 
+  Future<void> createAndOpenMap({String? name}) async {
+    final finalName = (name != null && name.trim().isNotEmpty)
+        ? name.trim()
+        : NameGenerator.generate();
+    _log.info('createAndOpenMap name=$finalName');
+
+    if (_storageGateway?.isInitialized == true) {
+      final descriptor = await _storageGateway!.createMap(finalName);
+      openMap(
+        descriptor.storagePath,
+        descriptor.name,
+        mapId: descriptor.id,
+      );
+    } else {
+      final path = 'maps/$finalName.db';
+      openMap(path, finalName);
+    }
+  }
+
   bool openMap(String storagePath, String name, {String? mapId}) {
     _log.info('openMap name=$name path=$storagePath id=$mapId');
     final id = mapId ?? p.basenameWithoutExtension(storagePath);
-    if (DaemonGateway.instance.isInitialized) {
-      DaemonGateway.instance.touchMap(id);
+    if (_storageGateway?.isInitialized == true) {
+      _storageGateway!.touchMap(id);
     }
 
     if (_tabsController != null) {
@@ -107,8 +131,8 @@ class MapManager extends ChangeNotifier {
 
     final storagePath = await AppPaths.resolveMapPath(name);
     final id = p.basenameWithoutExtension(storagePath);
-    if (DaemonGateway.instance.isInitialized) {
-      DaemonGateway.instance.touchMap(id);
+    if (_storageGateway?.isInitialized == true) {
+      _storageGateway!.touchMap(id);
     }
 
     if (_tabsController != null) {

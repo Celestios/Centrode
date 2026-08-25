@@ -7,7 +7,6 @@ import 'package:centrode/shared/elements/elements.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
 import 'package:centrode/shared/utils/name_generator.dart';
 import 'package:centrode/shared/utils/map_scanner.dart';
-import 'package:centrode/infrastructure/lifecycle/daemon_gateway.dart';
 import 'package:centrode/features/graph/presentation/map_manager.dart';
 import 'package:centrode/presentation/widgets/hover_scale_button.dart';
 
@@ -357,20 +356,8 @@ class _AddTabButtonState extends State<_AddTabButton> {
   }
 
   void _createMap() async {
-    final name = _searchQuery.isNotEmpty
-        ? _searchQuery
-        : NameGenerator.generate();
-    if (DaemonGateway.instance.isInitialized) {
-      final descriptor = await DaemonGateway.instance.createMap(name);
-      MapManager.instance.openMap(
-        descriptor.storagePath,
-        descriptor.name,
-        mapId: descriptor.id,
-      );
-    } else {
-      final path = 'maps/$name.db';
-      MapManager.instance.openMap(path, name);
-    }
+    final name = _searchQuery.isNotEmpty ? _searchQuery : null;
+    await MapManager.instance.createAndOpenMap(name: name);
     _close();
   }
 
@@ -548,18 +535,7 @@ class _AddTabButtonState extends State<_AddTabButton> {
         onExit: (_) => _scheduleClose(),
           child: GestureDetector(
             onTap: () async {
-              final name = NameGenerator.generate();
-              if (DaemonGateway.instance.isInitialized) {
-                final descriptor = await DaemonGateway.instance.createMap(name);
-                MapManager.instance.openMap(
-                  descriptor.storagePath,
-                  descriptor.name,
-                  mapId: descriptor.id,
-                );
-              } else {
-                final path = 'maps/$name.db';
-                MapManager.instance.openMap(path, name);
-              }
+              await MapManager.instance.createAndOpenMap();
             },
             child: _overlayEntry == null
                 ? Container(

@@ -14,31 +14,39 @@ import 'modules/graph_relation_mutations.dart';
 import 'modules/graph_property_mutations.dart';
 import 'modules/graph_template_mutations.dart';
 import 'modules/graph_area_mutations.dart';
+import 'handlers/handlers.dart';
 import 'command_processor.dart';
 import '../models/commands/graph_command_context.dart';
-import '../models/commands/patch_helpers.dart';
 import 'package:centrode/src/rust/layout_engine/config.dart';
 import 'package:centrode/src/rust/layout_engine/types.dart';
 import 'graph_api.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
+/// Central coordinator for graph command execution, queueing, and synchronization.
 class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   final Logger _log = Logger('CommandQueueProcessor');
 
   final GraphDataQueryController queryController;
   final GraphApi api;
 
-  late final GraphSyncEngine syncEngine;
-  late final GraphNodeMutations nodeMutations;
-  late final GraphRelationMutations relationMutations;
-  late final GraphPropertyMutations propertyMutations;
-  late final GraphTemplateMutations templateMutations;
-  late final GraphAreaMutations areaMutations;
   late final CommandProcessor processor;
+  late final GraphSyncEngine syncEngine;
+  late final NodeCommandHandler nodeHandler;
+  late final RelationCommandHandler relationHandler;
+  late final PropertyCommandHandler propertyHandler;
+  late final TemplateCommandHandler templateHandler;
+  late final AreaCommandHandler areaHandler;
+  late final HistoryCommandHandler historyHandler;
+
+  // Compatibility getters for mutation modules
+  GraphNodeMutations get nodeMutations => nodeHandler.mutations;
+  GraphRelationMutations get relationMutations => relationHandler.mutations;
+  PropertyCommandHandler get propertyMutations => propertyHandler;
+  TemplateCommandHandler get templateMutations => templateHandler;
+  AreaCommandHandler get areaMutations => areaHandler;
 
   // Sizing & styling delegates
-  ({Size size, int lineCount}) Function(UiNode, {bool isEditing})?
-  sizeCalculator;
+  ({Size size, int lineCount}) Function(UiNode, {bool isEditing})? sizeCalculator;
   NodeStyle Function(UiNode)? styleResolver;
 
   @override
@@ -60,11 +68,28 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
       api: api,
       processor: processor,
     );
-    nodeMutations = GraphNodeMutations(this);
-    relationMutations = GraphRelationMutations(this);
-    propertyMutations = GraphPropertyMutations(this);
-    templateMutations = GraphTemplateMutations(this);
-    areaMutations = GraphAreaMutations(this);
+    nodeHandler = NodeCommandHandler(
+      context: this,
+      api: api,
+      processor: processor,
+    );
+    relationHandler = RelationCommandHandler(
+      context: this,
+      api: api,
+      processor: processor,
+    );
+    propertyHandler = PropertyCommandHandler(this);
+    templateHandler = TemplateCommandHandler(
+      api: api,
+      context: this,
+      processor: processor,
+    );
+    areaHandler = AreaCommandHandler(api: api);
+    historyHandler = HistoryCommandHandler(
+      api: api,
+      processor: processor,
+      onHistoryUpdated: triggerUpdate,
+    );
   }
 
   // ===========================================================================
@@ -117,21 +142,32 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   }
 
   // ===========================================================================
-  // History & Error Handling
+  // History & Lifecycle
   // ===========================================================================
 
-  int _undoCount = 0;
-  int _redoCount = 0;
+  int get undoCount => historyHandler.undoCount;
+  int get redoCount => historyHandler.redoCount;
+  bool get canUndo => historyHandler.canUndo;
+  bool get canRedo => historyHandler.canRedo;
+
   bool _graphLoadInProgress = false;
-
-  int get undoCount => _undoCount;
-  int get redoCount => _redoCount;
-
-  bool get canUndo => _undoCount > 0;
-  bool get canRedo => _redoCount > 0;
 
   Future<void> flush() async {
     await processor.flush();
+  }
+
+  void flushSync() => syncEngine.flushSync();
+
+  Future<void> updateHistoryStatus() async {
+    await historyHandler.updateHistoryStatus();
+  }
+
+  Future<void> undo() async {
+    await historyHandler.undo();
+  }
+
+  Future<void> redo() async {
+    await historyHandler.redo();
   }
 
   void _handleError(String msg) {
@@ -141,12 +177,6 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   }
 
   void Function(String) get onError => _handleError;
-
-  Future<void> updateHistoryStatus() async {
-    _undoCount = await syncEngine.api.undoCount();
-    _redoCount = await syncEngine.api.redoCount();
-    triggerUpdate();
-  }
 
   ViewportState? getSavedViewportState() {
     return syncEngine.savedViewportState;
@@ -182,17 +212,9 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     }
   }
 
-  void flushSync() => syncEngine.flushSync();
-
-  Future<void> undo() async {
-    await syncEngine.undo();
-    await updateHistoryStatus();
-  }
-
-  Future<void> redo() async {
-    await syncEngine.redo();
-    await updateHistoryStatus();
-  }
+  // ===========================================================================
+  // GraphDataCommand & Handler Delegations
+  // ===========================================================================
 
   @override
   RawUuid createNode(
@@ -207,7 +229,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     Content? content,
     Attachment? attachment,
     MediaType? mediaType,
-  }) => nodeMutations.createNode(
+  }) => nodeHandler.createNode(
     type,
     position,
     parentContainerId: parentContainerId,
@@ -222,98 +244,35 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   );
 
   @override
-  Future<void> deleteNode(RawUuid id) => nodeMutations.deleteNode(id);
+  Future<void> deleteNode(RawUuid id) => nodeHandler.deleteNode(id);
 
   @override
-  void convertNodeToContainer(RawUuid id) {
-    nodeMutations.convertNodeToContainer(id);
-    relationEngine.onNodeMoved(id);
-  }
+  void convertNodeToContainer(RawUuid id) => nodeHandler.convertNodeToContainer(id);
 
   @override
-  RawUuid createFrameFromSelection(Iterable<RawUuid> nodeIds, {Offset? defaultPosition}) {
-    final frameId = nodeMutations.createFrameFromSelection(nodeIds, defaultPosition: defaultPosition);
-    relationEngine.onNodeMoved(frameId);
-    return frameId;
-  }
+  RawUuid createFrameFromSelection(Iterable<RawUuid> nodeIds, {Offset? defaultPosition}) =>
+      nodeHandler.createFrameFromSelection(nodeIds, defaultPosition: defaultPosition);
 
   @override
-  RawUuid? groupNodes(Iterable<RawUuid> nodeIds) {
-    return nodeMutations.groupNodes(nodeIds);
-  }
+  RawUuid? groupNodes(Iterable<RawUuid> nodeIds) => nodeHandler.groupNodes(nodeIds);
 
   @override
-  void ungroupNodes(Iterable<RawUuid> nodeIds) {
-    nodeMutations.ungroupNodes(nodeIds);
-  }
+  void ungroupNodes(Iterable<RawUuid> nodeIds) => nodeHandler.ungroupNodes(nodeIds);
 
-  void _syncNodeCache(
-    RawUuid id, [
-    Offset? positionOverride,
-    Size? sizeOverride,
-  ]) {
-    final node = store.nodeLookup[id];
-    if (node != null) {
-      final pos = positionOverride ?? node.position;
-      final size = sizeOverride ?? node.size;
-      syncEngine.api.updateNodeCachePositions(
-        positions: [
-          (
-            parseTypedRecordId(node.tableName, id),
-            pos.dx,
-            pos.dy,
-            size.width,
-            size.height,
-          ),
-        ],
-      );
-    }
-    relationEngine.onNodeMoved(id);
-  }
+  void updateNodePosition(RawUuid id, Offset newPosition) =>
+      nodeHandler.updateNodePosition(id, newPosition);
 
-  void updateNodePosition(RawUuid id, Offset newPosition) {
-    nodeMutations.updateNodePosition(id, newPosition);
-    _syncNodeCache(id, newPosition);
-  }
+  void reparentNode(RawUuid id, RawUuid? targetParentId, Offset targetPos) =>
+      nodeHandler.reparentNode(id, targetParentId, targetPos);
 
-  void reparentNode(RawUuid id, RawUuid? targetParentId, Offset targetPos) {
-    nodeMutations.reparentNode(id, targetParentId, targetPos);
-    _syncNodeCache(id, targetPos);
-  }
+  void updateNodePositionsVolatile(List<(RawUuid, Offset)> updates) =>
+      nodeHandler.updateNodePositionsVolatile(updates);
 
-  void updateNodePositionsVolatile(List<(RawUuid, Offset)> updates) {
-    final List<(TypedRecordId, double, double, double, double)> positions = [];
-    for (final update in updates) {
-      final id = update.$1;
-      final newPos = update.$2;
-      final node = store.nodeLookup[id];
-      if (node != null) {
-        positions.add((
-          parseTypedRecordId(node.tableName, id),
-          newPos.dx,
-          newPos.dy,
-          node.size.width,
-          node.size.height,
-        ));
-      }
-    }
-    if (positions.isNotEmpty) {
-      syncEngine.api.updateNodeCachePositions(positions: positions);
-      for (final update in updates) {
-        relationEngine.onNodeMoved(update.$1);
-      }
-    }
-  }
+  void updateNodeWidth(RawUuid id, double leftEdge, double rightEdge) =>
+      nodeHandler.updateNodeWidth(id, leftEdge, rightEdge);
 
-  void updateNodeWidth(RawUuid id, double leftEdge, double rightEdge) {
-    nodeMutations.updateNodeWidth(id, leftEdge, rightEdge);
-    _syncNodeCache(id);
-  }
-
-  void toggleNodeExpansion(RawUuid id) {
-    nodeMutations.toggleNodeExpansion(id);
-    _syncNodeCache(id);
-  }
+  void toggleNodeExpansion(RawUuid id) =>
+      nodeHandler.toggleNodeExpansion(id);
 
   UiRelation? createRelation(
     RawUuid fromId,
@@ -321,53 +280,16 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     PortSide? fromSide,
     PortSide? toSide,
     String? verb,
-  }) {
-    final relation = relationMutations.createRelation(
-      fromId,
-      toId,
-      fromSide: fromSide,
-      toSide: toSide,
-      verb: verb,
-    );
-
-    final fromNode = store.nodeLookup[fromId];
-    final toNode = store.nodeLookup[toId];
-    if (fromNode != null && toNode != null) {
-      syncEngine.api.updateNodeCachePositions(
-        positions: [
-          (
-            parseTypedRecordId(fromNode.tableName, fromId),
-            fromNode.position.dx,
-            fromNode.position.dy,
-            fromNode.size.width,
-            fromNode.size.height,
-          ),
-          (
-            parseTypedRecordId(toNode.tableName, toId),
-            toNode.position.dx,
-            toNode.position.dy,
-            toNode.size.width,
-            toNode.size.height,
-          ),
-        ],
-      );
-    }
-
-    if (relation != null) {
-      relationEngine.onRelationAdded(
-        relation,
-        fromNode: fromNode,
-        toNode: toNode,
-      );
-    }
-    return relation;
-  }
+  }) => relationHandler.createRelation(
+    fromId,
+    toId,
+    fromSide: fromSide,
+    toSide: toSide,
+    verb: verb,
+  );
 
   @override
-  Future<void> deleteRelation(RawUuid id) async {
-    await relationMutations.deleteRelation(id);
-    relationEngine.onRelationDeleted(id);
-  }
+  Future<void> deleteRelation(RawUuid id) => relationHandler.deleteRelation(id);
 
   void updateRelationLayout(
     RawUuid id, {
@@ -376,83 +298,67 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     PortSide? fromSide,
     PortSide? toSide,
     String? strategyType,
-  }) {
-    relationMutations.updateRelationLayout(
-      id,
-      fromNodeId: fromNodeId,
-      toNodeId: toNodeId,
-      fromSide: fromSide,
-      toSide: toSide,
-      strategyType: strategyType,
-    );
-    relationEngine.onRelationLayoutUpdated(id);
-  }
+  }) => relationHandler.updateRelationLayout(
+    id,
+    fromNodeId: fromNodeId,
+    toNodeId: toNodeId,
+    fromSide: fromSide,
+    toSide: toSide,
+    strategyType: strategyType,
+  );
 
-  void updateRelationStyle(RawUuid id, RelationStyle newStyle) {
-    propertyMutations.updateRelationStyle(id, newStyle);
-    relationEngine.onRelationLayoutUpdated(id);
-  }
+  void updateRelationStyle(RawUuid id, RelationStyle newStyle) =>
+      propertyHandler.updateRelationStyle(id, newStyle);
 
   @override
-  void updateRelationsLayout(List<RawUuid> ids, {String? strategyType}) {
-    relationMutations.updateRelationsLayout(ids, strategyType: strategyType);
-    for (final id in ids) {
-      relationEngine.onRelationLayoutUpdated(id);
-    }
-  }
+  void updateRelationsLayout(List<RawUuid> ids, {String? strategyType}) =>
+      relationHandler.updateRelationsLayout(ids, strategyType: strategyType);
 
   @override
   void updateNodesStyle(
     List<RawUuid> ids,
     NodeStyle Function(NodeStyle style) updateFn,
-  ) => propertyMutations.updateNodesStyle(ids, updateFn);
+  ) => propertyHandler.updateNodesStyle(ids, updateFn);
 
   @override
-  void addTagToNode(RawUuid nodeId, String name, int color) {
-    propertyMutations.addTagToNode(nodeId, name, color);
-  }
+  void addTagToNode(RawUuid nodeId, String name, int color) =>
+      propertyHandler.addTagToNode(nodeId, name, color);
 
   @override
-  void removeTagFromNode(RawUuid nodeId, String tagKey) {
-    propertyMutations.removeTagFromNode(nodeId, tagKey);
-  }
+  void removeTagFromNode(RawUuid nodeId, String tagKey) =>
+      propertyHandler.removeTagFromNode(nodeId, tagKey);
 
   @override
-  void addCommentToNode(RawUuid nodeId, String text) {
-    propertyMutations.addCommentToNode(nodeId, text);
-  }
+  void addCommentToNode(RawUuid nodeId, String text) =>
+      propertyHandler.addCommentToNode(nodeId, text);
 
   @override
-  void removeCommentFromNode(RawUuid nodeId, Comment comment) {
-    propertyMutations.removeCommentFromNode(nodeId, comment);
-  }
+  void removeCommentFromNode(RawUuid nodeId, Comment comment) =>
+      propertyHandler.removeCommentFromNode(nodeId, comment);
 
   @override
   void commitEntityText(
     RawUuid id,
     dynamic newTextOrContent, {
     dynamic originalTextOrContent,
-  }) {
-    propertyMutations.commitEntityText(
-      id,
-      newTextOrContent,
-      originalTextOrContent: originalTextOrContent,
-    );
-  }
+  }) => propertyHandler.commitEntityText(
+    id,
+    newTextOrContent,
+    originalTextOrContent: originalTextOrContent,
+  );
 
   @override
-  void updateEntityTextLive(RawUuid id, dynamic newTextOrContent) {
-    propertyMutations.updateEntityTextLive(id, newTextOrContent);
-  }
+  void updateEntityTextLive(RawUuid id, dynamic newTextOrContent) =>
+      propertyHandler.updateEntityTextLive(id, newTextOrContent);
 
   @override
-  Future<void> createTag(Tag tag) => propertyMutations.createTag(tag);
+  Future<void> createTag(Tag tag) => propertyHandler.createTag(tag);
 
   @override
-  Future<void> updateTag(Tag tag) => propertyMutations.updateTag(tag);
+  Future<void> updateTag(Tag tag) => propertyHandler.updateTag(tag);
 
   @override
-  Future<void> deleteTag(String tagKey) => propertyMutations.deleteTag(tagKey);
+  Future<void> deleteTag(String tagKey) => propertyHandler.deleteTag(tagKey);
 
   Future<void> triggerLayoutOptimization({
     LayoutConfig config = const LayoutConfig(
@@ -481,13 +387,13 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
       batchSize: 1,
     ),
     required List<LayoutPatch> livePositions,
-  }) => areaMutations.triggerLayoutOptimization(
+  }) => areaHandler.triggerLayoutOptimization(
     config: config,
     livePositions: livePositions,
   );
 
   Future<void> setOptArea({BoundingBox? bounds}) =>
-      areaMutations.setOptArea(bounds: bounds);
+    areaHandler.setOptArea(bounds: bounds);
 
   void dispose() {
     processor.dispose();

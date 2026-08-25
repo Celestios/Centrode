@@ -8,12 +8,13 @@ use centrode_core::domain::relations::{IRelation, IRelationFields};
 use centrode_core::domain::styles::{NodeStyle, PortSide, RelationDirection, RelationLayout, RelationStyle};
 use centrode_core::domain::traits::TableKind;
 use centrode_core::repo::history::HistoryManager;
+use centrode_core::repo::traits::{NodeRepository, RelationRepository};
 use surrealdb::types::SurrealValue;
 
 #[tokio::test]
 async fn test_targeted_patch_and_history() {
     let repo = setup_test_repo().await;
-    let history = HistoryManager::new(repo.db(), 5);
+    let history = HistoryManager::new(repo.history.db(), 5);
 
     let inode_id = TypedRecordId::new_v4(TableKind::INode);
 
@@ -44,7 +45,7 @@ async fn test_targeted_patch_and_history() {
         created_at: 0,
         updated_at: 0,
     };
-    repo.create_node(Nodes::INode(inode)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(inode)).await.unwrap();
 
     let record_id = inode_id.to_record_id();
 
@@ -80,12 +81,13 @@ async fn test_targeted_patch_and_history() {
     ]);
 
     // 3. Apply forward patch
-    repo.patch_entity(record_id.clone(), &forward_patch)
+    repo.nodes.patch_entity(record_id.clone(), &forward_patch)
         .await
         .unwrap();
 
     // Verify forward state
     let fetched = repo
+        .nodes
         .get_node(inode_id)
         .await
         .unwrap()
@@ -119,12 +121,13 @@ async fn test_targeted_patch_and_history() {
 
     let payload_undone = SymmetricEntityPatch::from_value(rec_undone.payload).unwrap();
     let target_id = payload_undone.id.to_record_id();
-    repo.patch_entity(target_id, &payload_undone.reverse)
+    repo.nodes.patch_entity(target_id, &payload_undone.reverse)
         .await
         .unwrap();
 
     // Verify undone state
     let fetched_undone = repo
+        .nodes
         .get_node(inode_id)
         .await
         .unwrap()
@@ -145,12 +148,13 @@ async fn test_targeted_patch_and_history() {
 
     let payload_redone = SymmetricEntityPatch::from_value(rec_redone.payload).unwrap();
     let target_id_redo = payload_redone.id.to_record_id();
-    repo.patch_entity(target_id_redo, &payload_redone.forward)
+    repo.nodes.patch_entity(target_id_redo, &payload_redone.forward)
         .await
         .unwrap();
 
     // Verify redone state
     let fetched_redone = repo
+        .nodes
         .get_node(inode_id)
         .await
         .unwrap()
@@ -218,8 +222,8 @@ async fn test_relation_patching() {
         created_at: 0,
         updated_at: 0,
     };
-    repo.create_node(Nodes::INode(n1)).await.unwrap();
-    repo.create_node(Nodes::INode(n2)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(n1)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(n2)).await.unwrap();
 
     let rel_id = TypedRecordId::new_v4(TableKind::IRelation);
 
@@ -239,7 +243,7 @@ async fn test_relation_patching() {
             updated_at: 0,
         },
     };
-    repo.create_relation(rel).await.unwrap();
+    repo.relations.create_relation(rel).await.unwrap();
 
     let record_id = rel_id.to_record_id();
 
@@ -278,11 +282,12 @@ async fn test_relation_patching() {
         RelationPatch::Direction(RelationDirection::Undirected),
     ]);
 
-    repo.patch_entity(record_id.clone(), &patch)
+    repo.nodes.patch_entity(record_id.clone(), &patch)
         .await
         .unwrap();
 
     let fetched = repo
+        .relations
         .get_relation(rel_id)
         .await
         .unwrap();
@@ -360,47 +365,52 @@ async fn test_create_and_delete_entity_patches() {
 
     // 1. Create node and relations via CreateNode patch
     let create_patch = EntityPatch::CreateNode(Nodes::INode(n1.clone()), vec![rel.clone()]);
-    repo.patch_entity(n1.id.to_record_id(), &create_patch)
+    repo.nodes.patch_entity(n1.id.to_record_id(), &create_patch)
         .await
         .unwrap();
 
     // Verify node and relation were created
     assert!(repo
+        .nodes
         .get_node(in_id)
         .await
         .unwrap()
         .is_some());
     assert!(repo
+        .relations
         .get_relation(rel_id)
         .await
         .is_ok());
 
     // 2. Delete relation via DeleteRelation patch
     let delete_rel_patch = EntityPatch::DeleteRelation(rel.clone());
-    repo.patch_entity(rel_id.to_record_id(), &delete_rel_patch)
+    repo.nodes.patch_entity(rel_id.to_record_id(), &delete_rel_patch)
         .await
         .unwrap();
     assert!(repo
+        .relations
         .get_relation(rel_id)
         .await
         .is_err());
 
     // 3. Create relation via CreateRelation patch
     let create_rel_patch = EntityPatch::CreateRelation(rel.clone());
-    repo.patch_entity(rel_id.to_record_id(), &create_rel_patch)
+    repo.nodes.patch_entity(rel_id.to_record_id(), &create_rel_patch)
         .await
         .unwrap();
     assert!(repo
+        .relations
         .get_relation(rel_id)
         .await
         .is_ok());
 
     // 4. Delete node via DeleteNode patch
     let delete_node_patch = EntityPatch::DeleteNode(Nodes::INode(n1.clone()), vec![]);
-    repo.patch_entity(n1.id.to_record_id(), &delete_node_patch)
+    repo.nodes.patch_entity(n1.id.to_record_id(), &delete_node_patch)
         .await
         .unwrap();
     assert!(repo
+        .nodes
         .get_node(in_id)
         .await
         .unwrap()
@@ -415,7 +425,7 @@ async fn test_container_node_patch() {
     let container = crate::common::make_container_node(container_id, "Patch Container", 10, 20);
 
     // Create ContainerNode
-    repo.create_node(Nodes::ContainerNode(container))
+    repo.nodes.create_node(Nodes::ContainerNode(container))
         .await
         .expect("Failed to create ContainerNode for patch test");
 
@@ -425,11 +435,11 @@ async fn test_container_node_patch() {
     let forward_patch = EntityPatch::Node(vec![
         NodePatch::Position(Coordinates { x: 100, y: 200 }),
     ]);
-    repo.patch_entity(record_id.clone(), &forward_patch)
+    repo.nodes.patch_entity(record_id.clone(), &forward_patch)
         .await
         .unwrap();
 
-    let fetched = repo.get_node(container_id).await.unwrap().unwrap();
+    let fetched = repo.nodes.get_node(container_id).await.unwrap().unwrap();
     if let Nodes::ContainerNode(ref c) = fetched {
         assert_eq!(c.position.x, 100);
         assert_eq!(c.position.y, 200);
@@ -441,11 +451,11 @@ async fn test_container_node_patch() {
     let patch2 = EntityPatch::Node(vec![
         NodePatch::Title("Patched Container".to_string()),
     ]);
-    repo.patch_entity(record_id.clone(), &patch2)
+    repo.nodes.patch_entity(record_id.clone(), &patch2)
         .await
         .unwrap();
 
-    let fetched = repo.get_node(container_id).await.unwrap().unwrap();
+    let fetched = repo.nodes.get_node(container_id).await.unwrap().unwrap();
     if let Nodes::ContainerNode(ref c) = fetched {
         assert_eq!(c.title, "Patched Container");
     } else {
@@ -456,11 +466,11 @@ async fn test_container_node_patch() {
     let patch3 = EntityPatch::Node(vec![
         NodePatch::Significance(42),
     ]);
-    repo.patch_entity(record_id.clone(), &patch3)
+    repo.nodes.patch_entity(record_id.clone(), &patch3)
         .await
         .unwrap();
 
-    let fetched = repo.get_node(container_id).await.unwrap().unwrap();
+    let fetched = repo.nodes.get_node(container_id).await.unwrap().unwrap();
     if let Nodes::ContainerNode(ref c) = fetched {
         assert_eq!(c.significance, 42);
     } else {
@@ -473,11 +483,11 @@ async fn test_container_node_patch() {
         NodePatch::Title("Patch Container".to_string()),
         NodePatch::Significance(0),
     ]);
-    repo.patch_entity(record_id.clone(), &reverse_patch)
+    repo.nodes.patch_entity(record_id.clone(), &reverse_patch)
         .await
         .unwrap();
 
-    let fetched = repo.get_node(container_id).await.unwrap().unwrap();
+    let fetched = repo.nodes.get_node(container_id).await.unwrap().unwrap();
     if let Nodes::ContainerNode(ref c) = fetched {
         assert_eq!(c.position.x, 10);
         assert_eq!(c.position.y, 20);

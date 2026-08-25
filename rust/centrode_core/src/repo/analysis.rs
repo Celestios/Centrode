@@ -2,12 +2,29 @@ use crate::domain::base_models::BoundingBox;
 use crate::domain::id::TypedRecordId;
 use crate::domain::nodes::{INode, InterNode, TaskNode};
 use crate::domain::relations::IRelation;
-use crate::repo::Repository;
+use crate::repo::traits::LayoutRepository;
 
 use anyhow::Result;
+use surrealdb::engine::local::Db;
+use surrealdb::Surreal;
 
-impl Repository {
-    pub async fn trigger_significance_update(&self, node_id: &TypedRecordId) -> Result<()> {
+#[derive(Clone)]
+pub struct SurrealLayoutRepository {
+    pub(crate) db: Surreal<Db>,
+}
+
+impl SurrealLayoutRepository {
+    pub fn new(db: Surreal<Db>) -> Self {
+        Self { db }
+    }
+
+    pub fn db(&self) -> &Surreal<Db> {
+        &self.db
+    }
+}
+
+impl LayoutRepository for SurrealLayoutRepository {
+    async fn trigger_significance_update(&self, node_id: &TypedRecordId) -> Result<()> {
         let self_clone = self.clone();
         let id_clone = *node_id;
 
@@ -20,7 +37,7 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn recalculate_significance_area(&self, center_node_id: TypedRecordId) -> Result<()> {
+    async fn recalculate_significance_area(&self, center_node_id: TypedRecordId) -> Result<()> {
         tracing::info!(
             "ANALYSIS: Recalculating significance area for center node: {:?}",
             center_node_id.to_string()
@@ -56,7 +73,7 @@ impl Repository {
         Ok(())
     }
 
-    pub async fn calculate_global_bounds(&self) -> Result<BoundingBox> {
+    async fn calculate_global_bounds(&self) -> Result<BoundingBox> {
         let sql = format!(
             "
             LET $nodes = (SELECT position.x AS x, position.y AS y, (size.width || 80.0) AS w, (size.height || 40.0) AS h FROM {0}, {1}, {2} WHERE position.x != NONE);

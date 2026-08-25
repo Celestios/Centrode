@@ -10,7 +10,7 @@ final Logger _log = Logger('CreateTagCommand');
 class CreateTagCommand extends GraphCommand {
   @override
   RawUuid targetId;
-  final GraphApi api;
+  final TagApi api;
   final Tag tag;
   final GraphCommandContext controller;
 

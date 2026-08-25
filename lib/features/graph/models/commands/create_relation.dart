@@ -11,7 +11,7 @@ final _log = Logger('CreateRelationCommand');
 class CreateRelationCommand extends GraphCommand {
   @override
   RawUuid targetId;
-  final GraphApi api;
+  final RelationApi api;
   final UiRelation relation;
   final GraphCommandContext controller;
 
