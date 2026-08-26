@@ -1,7 +1,7 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
+
+import '../shared/widgets/unravel_slider/unravel_slider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,9 +18,7 @@ Future<void> main() async {
   runApp(const UnravelSliderDemoApp());
 }
 
-typedef _UnravelOption = ({IconData icon, String label});
-
-const _optionPool = <_UnravelOption>[
+const _optionPool = <UnravelOption>[
   (icon: Icons.near_me_rounded, label: 'Select'),
   (icon: Icons.crop_square_rounded, label: 'Frame'),
   (icon: Icons.draw_rounded, label: 'Draw'),
@@ -73,204 +71,12 @@ class UnravelSliderLab extends StatefulWidget {
   State<UnravelSliderLab> createState() => _UnravelSliderLabState();
 }
 
-class _UnravelSliderLabState extends State<UnravelSliderLab>
-    with SingleTickerProviderStateMixin {
-  static const _baseCellWidth = 72.0;
-  static const _baseCellHeight = 48.0;
-  static const _tapSlack = 8.0;
-
-  late final AnimationController _settle;
-  double _settleFrom = 0;
-  double _settleTo = 0;
-
-  // Primary variant inputs
+class _UnravelSliderLabState extends State<UnravelSliderLab> {
   int _itemCount = 6;
+  int _selectedIndex = 0;
   double _trackWidth = 230;
-
-  // Modes & overrides
   bool _magnetic = false;
-  bool _autoDerive = true;
-
-  // Manual overrides (used when _autoDerive is false)
-  double _manualSigma = 140;
-  double _manualHandleTravel = 140;
-  double _manualValueMax = 640;
-  double _manualCellScale = 1.15;
-
-  // State
-  double _u = 0;
-  double _rawU = 0;
-  int? _activePointer;
-  Offset? _downPos;
-  List<double> _itemXs = const [];
-
-  // Mathematical Derivations based on (trackWidth, itemCount)
-  // Margin ensures fixed 15.2px clearance between handle and track edge
-  double get _margin => (_handleBoxWidth / 2.0) + 15.2;
-  double get _handleTravel => _autoDerive
-      ? (_trackWidth - 2.0 * _margin).clamp(40.0, double.infinity)
-      : _manualHandleTravel;
-  double get _sigma => _autoDerive ? _handleTravel : _manualSigma;
-  double get _unitsPerPx =>
-      _autoDerive ? (32.0 / 7.0) : (_manualValueMax / _handleTravel);
-  double get _valueMax =>
-      _autoDerive ? (_sigma * 32.0 / 7.0) : _manualValueMax;
-  double get _cellScale =>
-      _autoDerive ? 1.15 : _manualCellScale;
-
-  // Natural element dimensions (independent of track width)
-  double get _cellWidth => _baseCellWidth * _cellScale;
-  double get _cellHeight => _baseCellHeight * _cellScale;
-  double get _handleBoxWidth => _cellWidth * 0.72;
-  double get _trackHeight => _cellHeight + 24.0;
-
-  @override
-  void initState() {
-    super.initState();
-    _settle = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 260),
-    )..addListener(_onSettleTick);
-  }
-
-  @override
-  void dispose() {
-    _settle.dispose();
-    super.dispose();
-  }
-
-  void _onSettleTick() {
-    setState(() {
-      _u =
-          _settleFrom +
-          (_settleTo - _settleFrom) *
-              Curves.easeOutCubic.transform(_settle.value);
-    });
-  }
-
-  void _animateTo(double target) {
-    _settleFrom = _u;
-    _settleTo = target.clamp(0.0, _handleTravel);
-    _settle.duration = Duration(
-      milliseconds: (80 + (_settleTo - _settleFrom).abs() * 1.4)
-          .round()
-          .clamp(90, 260),
-    );
-    _settle.forward(from: 0);
-  }
-
-  double _snapU(double raw) {
-    final n = _itemCount;
-    return n > 1
-        ? ((raw / _handleTravel) * (n - 1)).round() * _handleTravel / (n - 1)
-        : 0.0;
-  }
-
-  void _applyDragDelta(double dx) {
-    _rawU = (_rawU + dx).clamp(0.0, _handleTravel);
-    if (_magnetic) {
-      final target = _snapU(_rawU);
-      final headingThere =
-          _settle.isAnimating && (_settleTo - target).abs() < 0.01;
-      if ((target - _u).abs() > 0.01 && !headingThere) {
-        _animateTo(target);
-      }
-    } else {
-      _u = _rawU;
-    }
-  }
-
-  double _anchorU(int i, int n) =>
-      n > 1 ? (_handleTravel * i / (n - 1)) : 0.0;
-
-  double _logit(double p) => math.log(p / (1.0 - p));
-
-  double _sigmoid(double z) => 1.0 / (1.0 + math.exp(-z));
-
-  List<double> _optionValues(int n) {
-    final unitsPerPx = _unitsPerPx;
-    final margin = _margin;
-    final sigma = _sigma;
-    final width = _trackWidth;
-
-    return [
-      for (var i = 0; i < n; i++)
-        unitsPerPx * _anchorU(i, n) +
-            sigma * _logit((margin + _anchorU(i, n)) / width),
-    ];
-  }
-
-  List<double> _optionXs(List<double> values, double value) {
-    final width = _trackWidth;
-    final sigma = _sigma;
-    return [
-      for (final v in values) width * _sigmoid((v - value) / sigma),
-    ];
-  }
-
-  void _onPointerDown(PointerDownEvent e) {
-    _activePointer = e.pointer;
-    _downPos = e.position;
-    _settle.stop();
-    _rawU = _u;
-  }
-
-  void _onPointerMove(PointerMoveEvent e) {
-    if (_activePointer != e.pointer) return;
-    setState(() => _applyDragDelta(e.delta.dx));
-  }
-
-  void _onPointerUp(PointerUpEvent e) {
-    if (_activePointer != e.pointer) return;
-    _activePointer = null;
-    final moved = (e.position - _downPos!).distance;
-    if (moved < _tapSlack) {
-      _selectAt(e.position);
-    } else if (!_magnetic) {
-      final handleCenter = _margin + _u;
-      _animateTo(_anchorU(_nearestIndexTo(handleCenter), _itemCount));
-    }
-  }
-
-  void _onPointerCancel(PointerCancelEvent e) {
-    if (_activePointer != e.pointer) return;
-    _activePointer = null;
-  }
-
-  int _nearestIndexTo(double handleCenter) {
-    var best = 0;
-    var bestDist = double.infinity;
-    for (var i = 0; i < _itemXs.length; i++) {
-      final d = (_itemXs[i] - handleCenter).abs();
-      if (d < bestDist) {
-        bestDist = d;
-        best = i;
-      }
-    }
-    return best;
-  }
-
-  void _selectAt(Offset globalPosition) {
-    final box = context.findRenderObject() as RenderBox;
-    final x = box.globalToLocal(globalPosition).dx;
-    final cw = _cellWidth;
-    var hit = -1;
-    for (var i = _itemXs.length - 1; i >= 0; i--) {
-      if (x >= _itemXs[i] - cw / 2 && x < _itemXs[i] + cw / 2) {
-        hit = i;
-        break;
-      }
-    }
-    if (hit >= 0) {
-      _animateTo(_anchorU(hit, _itemCount));
-    }
-  }
-
-  /// Spatial focus: continuous gradual fall-off as items enter and exit the handle zone
-  double _spatialFocus(double itemX, double handleCenter, double radius) {
-    final d = (itemX - handleCenter).abs();
-    return (1.0 - d / radius).clamp(0.0, 1.0);
-  }
+  double _cellScale = 1.0;
 
   @override
   Widget build(BuildContext context) {
@@ -278,19 +84,13 @@ class _UnravelSliderLabState extends State<UnravelSliderLab>
     final scheme = theme.colorScheme;
     final textColor = theme.textTheme.bodyMedium?.color ?? Colors.white;
     final options = _optionPool.take(_itemCount).toList();
-    final n = options.length;
 
-    final cellW = _cellWidth;
-    final handleBoxW = _handleBoxWidth;
-    final handleCenter = _margin + _u;
-
-    final value = _u * _unitsPerPx;
-    final values = _optionValues(n);
-    final xs = _optionXs(values, value);
-    _itemXs = xs;
-
-    final selectedIndex = _nearestIndexTo(handleCenter).clamp(0, n - 1);
-    final focusRadius = handleBoxW * 1.15;
+    final customTheme = UnravelSliderThemeData(
+      cellWidth: 82.8 * _cellScale,
+      cellHeight: 55.2 * _cellScale,
+      iconSize: 25.3 * _cellScale,
+      labelFontSize: 12.6 * _cellScale,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -309,90 +109,27 @@ class _UnravelSliderLabState extends State<UnravelSliderLab>
           ),
           const SizedBox(height: 16),
           Center(
-            child: MouseRegion(
-              cursor: SystemMouseCursors.grab,
-              child: Container(
-                key: const Key('unravel-track'),
-                width: _trackWidth,
-                height: _trackHeight,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.07),
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Listener(
-                    behavior: HitTestBehavior.opaque,
-                    onPointerDown: _onPointerDown,
-                    onPointerMove: _onPointerMove,
-                    onPointerUp: _onPointerUp,
-                    onPointerCancel: _onPointerCancel,
-                    child: Stack(
-                      clipBehavior: Clip.hardEdge,
-                      children: [
-                        Positioned(
-                          left: handleCenter - handleBoxW / 2,
-                          top: 0,
-                          bottom: 0,
-                          width: handleBoxW,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: scheme.primary.withValues(alpha: 0.75),
-                                width: 1.2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: scheme.primary.withValues(alpha: 0.22),
-                                  blurRadius: 14,
-                                  spreadRadius: -1,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        for (var i = 0; i < n; i++)
-                          Positioned(
-                            key: ValueKey(options[i].label),
-                            left: xs[i] - cellW / 2,
-                            top: 0,
-                            bottom: 0,
-                            width: cellW,
-                            child: _UnravelCell(
-                              option: options[i],
-                              focus: _spatialFocus(
-                                xs[i],
-                                handleCenter,
-                                focusRadius,
-                              ),
-                              textColor: textColor,
-                              accentColor: scheme.primary,
-                              iconSize: 22 * _cellScale,
-                              labelFontSize: 11 * _cellScale,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+            child: UnravelSlider<UnravelOption>(
+              items: options,
+              selectedIndex: _selectedIndex,
+              trackWidth: _trackWidth,
+              magnetic: _magnetic,
+              autofocus: true,
+              theme: customTheme,
+              onSelected: (idx) => setState(() => _selectedIndex = idx),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Row(
             children: [
               Icon(
-                options[selectedIndex].icon,
+                options[_selectedIndex.clamp(0, options.length - 1)].icon,
                 size: 18,
                 color: scheme.primary,
               ),
               const SizedBox(width: 8),
               Text(
-                options[selectedIndex].label.toUpperCase(),
+                options[_selectedIndex.clamp(0, options.length - 1)].label.toUpperCase(),
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -401,7 +138,7 @@ class _UnravelSliderLabState extends State<UnravelSliderLab>
               ),
               const Spacer(),
               Text(
-                'u=${_u.toStringAsFixed(0)}px  v=${value.toStringAsFixed(0)}',
+                'Selected Index: $_selectedIndex',
                 style: TextStyle(
                   fontSize: 12,
                   fontFeatures: const [FontFeature.tabularFigures()],
@@ -410,7 +147,7 @@ class _UnravelSliderLabState extends State<UnravelSliderLab>
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           Row(
             children: [
               Text(
@@ -428,25 +165,8 @@ class _UnravelSliderLabState extends State<UnravelSliderLab>
               }),
               const SizedBox(width: 6),
               _modeChip('MAGNETIC', _magnetic, theme, () {
-                setState(() {
-                  _magnetic = true;
-                  _animateTo(_snapU(_u));
-                });
+                setState(() => _magnetic = true);
               }),
-              const Spacer(),
-              _modeChip(
-                _autoDerive ? 'AUTO RATIOS (ON)' : 'MANUAL TUNING',
-                _autoDerive,
-                theme,
-                () {
-                  setState(() {
-                    _autoDerive = !_autoDerive;
-                    if (_autoDerive) {
-                      _u = _rawU = _rawU.clamp(0.0, _handleTravel);
-                    }
-                  });
-                },
-              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -459,7 +179,9 @@ class _UnravelSliderLabState extends State<UnravelSliderLab>
             display: '$_itemCount',
             onChanged: (v) => setState(() {
               _itemCount = v.round();
-              _u = _rawU = _rawU.clamp(0.0, _handleTravel);
+              if (_selectedIndex >= _itemCount) {
+                _selectedIndex = _itemCount - 1;
+              }
             }),
             theme: theme,
           ),
@@ -470,76 +192,19 @@ class _UnravelSliderLabState extends State<UnravelSliderLab>
             max: 560,
             divisions: 42,
             display: '${_trackWidth.round()}px',
-            onChanged: (v) => setState(() {
-              _trackWidth = v;
-              if (!_autoDerive && _manualHandleTravel > _trackWidth - 40) {
-                _manualHandleTravel = _trackWidth - 40;
-              }
-              _u = _rawU = _rawU.clamp(0.0, _handleTravel);
-            }),
+            onChanged: (v) => setState(() => _trackWidth = v),
             theme: theme,
           ),
-          if (!_autoDerive) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Divider(height: 1, color: Colors.white12),
-            ),
-            _knob(
-              label: 'EDGE FALL-OFF',
-              value: _manualSigma,
-              min: 20,
-              max: 300,
-              divisions: 28,
-              display: 's=${_manualSigma.round()}',
-              onChanged: (v) => setState(() => _manualSigma = v),
-              theme: theme,
-            ),
-            _knob(
-              label: 'HANDLE RANGE',
-              value: _manualHandleTravel,
-              min: 40,
-              max: (_trackWidth - 40).clamp(40.0, 520.0),
-              divisions: ((_trackWidth - 40) / 10).floor().clamp(4, 100),
-              display: '${_manualHandleTravel.round()}px',
-              onChanged: (v) => setState(() {
-                _manualHandleTravel = v;
-                _u = _rawU = _rawU.clamp(0.0, _handleTravel);
-              }),
-              theme: theme,
-            ),
-            _knob(
-              label: 'VALUE SPAN',
-              value: _manualValueMax,
-              min: 200,
-              max: 3000,
-              divisions: 28,
-              display: '${_manualValueMax.round()}',
-              onChanged: (v) => setState(() => _manualValueMax = v),
-              theme: theme,
-            ),
-            _knob(
-              label: 'ELEMENT SIZE',
-              value: _manualCellScale,
-              min: 0.5,
-              max: 2.5,
-              divisions: 40,
-              display: 'x${_manualCellScale.toStringAsFixed(2)}',
-              onChanged: (v) => setState(() => _manualCellScale = v),
-              theme: theme,
-            ),
-          ] else ...[
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                'Travel: ${_handleTravel.toStringAsFixed(0)}px | Margin: ${_margin.toStringAsFixed(0)}px | σ: ${_sigma.toStringAsFixed(0)} | Span: ${_valueMax.toStringAsFixed(0)} | Step: ${(_handleTravel / (_itemCount - 1)).toStringAsFixed(1)}px',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                  color: scheme.primary.withValues(alpha: 0.7),
-                ),
-              ),
-            ),
-          ],
+          _knob(
+            label: 'ELEMENT SCALE',
+            value: _cellScale,
+            min: 0.6,
+            max: 1.6,
+            divisions: 20,
+            display: 'x${_cellScale.toStringAsFixed(2)}',
+            onChanged: (v) => setState(() => _cellScale = v),
+            theme: theme,
+          ),
         ],
       ),
     );
@@ -637,75 +302,6 @@ class _UnravelSliderLabState extends State<UnravelSliderLab>
           ),
         ),
       ],
-    );
-  }
-}
-
-class _UnravelCell extends StatelessWidget {
-  final _UnravelOption option;
-  final double focus;
-  final Color textColor;
-  final Color accentColor;
-  final double iconSize;
-  final double labelFontSize;
-
-  const _UnravelCell({
-    required this.option,
-    required this.focus,
-    required this.textColor,
-    required this.accentColor,
-    required this.iconSize,
-    required this.labelFontSize,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final easedFocus = Curves.easeOutCubic.transform(focus);
-    final scale = 0.74 + 0.26 * easedFocus;
-    final opacity = 0.22 + 0.78 * easedFocus;
-
-    // Smooth continuous color blend from ambient text to vibrant accent
-    final itemColor = Color.lerp(
-      textColor.withValues(alpha: 0.45),
-      accentColor,
-      easedFocus,
-    )!;
-
-    final fontWeight = FontWeight.lerp(
-      FontWeight.w500,
-      FontWeight.w800,
-      easedFocus,
-    )!;
-
-    return Center(
-      child: Transform.scale(
-        scale: scale,
-        child: Opacity(
-          opacity: opacity,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                option.icon,
-                size: iconSize,
-                color: itemColor,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                option.label,
-                maxLines: 1,
-                overflow: TextOverflow.clip,
-                style: TextStyle(
-                  fontSize: labelFontSize,
-                  fontWeight: fontWeight,
-                  color: itemColor,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

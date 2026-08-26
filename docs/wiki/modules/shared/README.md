@@ -48,6 +48,13 @@ lib/shared/
     ├── unbounded_stack.dart            # Stack without bounds
     ├── color_palette/
     │   └── color_palette.dart          # Color palette picker
+    ├── unravel_slider/                 # Sigmoid unravelling segmented slider
+    │   ├── unravel_slider.dart         # Barrel export
+    │   ├── domain/
+    │   │   └── unravel_slider_metrics.dart # Pure mathematical layout engine
+    │   └── presentation/
+    │       ├── unravel_slider.dart     # Generic interactive slider widget
+    │       └── unravel_slider_theme.dart # Configurable styling & theme
     ├── interactive_viewer/             # CanvasInteractiveViewer internals, modularized:
     │   ├── canvas_geometry_utils.dart  # Coordinate/geometry transforms
     │   ├── canvas_gesture_classifier.dart # Gesture intent classification
@@ -91,6 +98,14 @@ See [Glass Panel documentation](glass-panel.md) for details.
 
 Its internals are modularized under `widgets/interactive_viewer/`: geometry utilities (`canvas_geometry_utils.dart`), gesture classification (`canvas_gesture_classifier.dart`), viewport physics (`canvas_viewport_physics.dart`), and transform application (`canvas_viewport_transformer.dart`).
 
+### Unravel Slider
+
+The unravel slider system (`shared/widgets/unravel_slider/`) provides a non-linear, fisheye-style segmented control:
+- `UnravelSlider<T>` — generic segmented slider supporting touch drag, trackpad scrolling, and keyboard arrow keys
+- `UnravelSliderMetrics` — pure mathematical domain engine caching logit/sigmoid anchor vectors
+- `UnravelSliderThemeData` — typography, colors, padding, and border theming
+
 ### Elements
 
 Shared UI primitives used across all features — buttons, dividers, menu bars, window controls.
+
