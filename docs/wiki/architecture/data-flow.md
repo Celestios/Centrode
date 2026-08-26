@@ -56,9 +56,11 @@ Rust broadcasts graph changes back to Flutter via `GraphEvent`:
 
 ```rust
 pub enum GraphEvent {
-    Delta(GraphDelta),     // Node/relation mutations
-    Boundaries(BoundingBox), // Content boundary updates
-    Error(String),         // Error notifications
+    NodeUpdated { id, patches },        // Single-node mutation
+    RelationUpdated { id, patches },    // Single-relation mutation
+    BatchUpdated(GraphDelta),           // Batch node/relation mutations
+    BoundaryUpdated(BoundingBox),       // Content boundary updates
+    LayoutTick(LayoutTickResult),       // Layout engine physics ticks
 }
 ```
 
@@ -103,6 +105,7 @@ Each mutation creates a `SymmetricEntityPatch` stored in the `History` table. Un
 | Dart API | `GraphApi` (abstract) | `lib/features/graph/store/graph_api.dart` |
 | FFI Boundary | `AppHandle` | `rust/centrode_core/src/bridge/api.rs` |
 | Rust Service | `GraphService` | `rust/centrode_core/src/services/graph_service.rs` |
-| Rust Domain | `Nodes` (enum) | `rust/centrode_core/src/domain/nodes.rs` |
-| Rust Persistence | `Repository` | `rust/centrode_core/src/repo.rs` |
+| Rust Domain | `Nodes` (enum, macro-generated) | `rust/centrode_core/src/domain/types.rs` |
+| Rust Persistence | `Repositories` | `rust/centrode_core/src/repo.rs` |
+| Rust Storage Engine | `EngineManager` | `rust/centrode_daemon/src/engine.rs` |
 | Rust Stream | `GraphEvent` | `rust/centrode_core/src/bridge/stream.rs` |

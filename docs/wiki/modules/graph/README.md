@@ -17,16 +17,19 @@ lib/features/graph/
 │   ├── handlers/           # Action handlers (content, spatial, topology)
 │   ├── strategies/         # Layout, style, text, container zoom strategies
 │   └── dtos/               # Data transfer objects
-├── store/                  # Sync engine, mutations, queries [Tier 3]
-│   └── modules/            # 12 store mutation modules (incl. graph_spatial)
+├── store/                  # API interfaces, command handlers, sync engine [Tier 3]
+│   ├── api/                # 10 GraphApi sub-interfaces (node, relation, ml, ...)
+│   ├── handlers/           # 6 command handlers dispatching to the APIs
+│   └── modules/            # 12 store modules (sync engine, mutations, queries)
 └── ui/                     # Canvas widgets, rendering [Tier 1]
     ├── canvas/             # Canvas, painters, layers, text
     │   ├── layers/         # 5 paint layers
-    │   ├── painters/       # 15 painter/renderer files
+    │   ├── painters/       # 20 painter files (incl. nodes/ renderers)
     │   ├── text/           # Text editing system
     │   ├── utils/          # Paint utilities (container, dashed box, perimeter dock)
-    │   └── widgets/        # Canvas child widgets (attachment shelf, media node)
+    │   └── widgets/        # Attachment shelf, media node, relation label morph editor
     └── widgets/            # Sidebars, overlays, inspectors
+        └── inspector/      # Inspector tabs + reusable component library
 ```
 
 ---
@@ -41,10 +44,13 @@ lib/features/graph/
 | `engine/base_interaction_state.dart` | Sealed base class for all interaction states |
 | `models/graph_node.dart` | `UiNode` sealed class — all 9 node types |
 | `models/commands/base.dart` | `GraphCommand` abstract — command pattern base |
-| `store/graph_api.dart` | `GraphApi` abstract — FFI interface |
+| `store/graph_api.dart` | `GraphApi` composite interface + `RustGraphApi` FFI implementation |
+| `store/api/api.dart` | Barrel for the 10 split API interfaces |
+| `store/handlers/handlers.dart` | Barrel for the store command-handler layer |
 | `store/modules/graph_sync_engine.dart` | Sync engine — Rust stream → Dart state |
 | `presentation/editor_state.dart` | Editor state management |
 | `presentation/viewport_state.dart` | Viewport pan/zoom state |
+| `presentation/relation_label_suggestion_controller.dart` | Multi-language relation label prediction |
 
 ---
 

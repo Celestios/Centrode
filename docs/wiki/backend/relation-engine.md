@@ -14,7 +14,7 @@ The relation engine computes visual paths for connections between nodes. It hand
 |------|------|
 | `engine.rs` | Main `RelationEngine` — orchestrates the pipeline |
 | `computed.rs` | `ComputedRelation` — output type with path data |
-| `config.rs` | `RelationEngineConfig`, `RoutingMode` |
+| `config.rs` | `RelationEngineConfig`; re-exports [`RoutingMode`](domain.md) from `domain/routing.rs` |
 | `state.rs` | Engine state management |
 | `strategy.rs` | Strategy pattern dispatch |
 | `types.rs` | Engine types |
@@ -112,11 +112,13 @@ Post-routing adjustments:
 
 ## Routing Modes
 
-`RoutingMode` enum selects the routing algorithm:
-- `Bezier` — dynamic Bezier routing around obstacles
+`RoutingMode` enum (defined in `domain/routing.rs`) selects the routing algorithm:
+- `Polyline` — polyline segments (default)
+- `BSpline` — B-spline smoothing
 - `Orthogonal` — right-angle routing
 - `Octilinear` — Manhattan-distance routing
-- `Straight` — direct lines
+- `Bezier { control_point_1, control_point_2 }` — user-controlled Bezier routing
+- `SineWave { control_point_1, control_point_2 }` — sinusoidal wave routing
 
 ---
 

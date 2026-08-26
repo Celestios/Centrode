@@ -27,6 +27,8 @@ The presentation layer manages view state, style resolution, viewport transforms
 | `presentation/view_state_geometry.dart` | Geometry calculations for view state |
 | `presentation/palette_action_registry.dart` | Palette action registration |
 | `presentation/workspace_tabs_controller.dart` | Multi-tab session management |
+| `presentation/map_storage_gateway.dart` | `MapStorageGateway` abstract — map list/create/delete/rename/duplicate/touch (implemented by [DaemonGateway](../infrastructure/README.md)) |
+| `presentation/relation_label_suggestion_controller.dart` | `RelationLabelSuggestionController extends ValueNotifier<RelationSuggestionState>` — multi-language relation label prediction (map language detection, contextual verbs, autocomplete, verb frequency) |
 
 ---
 

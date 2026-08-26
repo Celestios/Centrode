@@ -66,15 +66,16 @@ The `lib/features/graph/models/commands/` directory contains **21 files**:
 1. **Creation**: Interaction state or action handler creates a command
 2. **Queue**: Command added to `CommandQueueProcessor`
 3. **Debouncing**: Commands of same category and target are debounced (coalesced)
-4. **Execute**: `command.execute()` → `GraphApi` method → FFI call
-5. **Success**: `command.onSuccess()` called, command added to undo stack
-6. **Failure**: `command.undo()` called to roll back local state
+4. **Dispatch**: Routed to the domain [command handler](store.md) (`NodeCommandHandler`, `RelationCommandHandler`, `HistoryCommandHandler`, ...) for the command's category
+5. **Execute**: handler calls `command.execute()` → `GraphApi` method → FFI call
+6. **Success**: `command.onSuccess()` called, command added to undo stack
+7. **Failure**: `command.undo()` called to roll back local state
 
 ---
 
 ## Undo/Redo Integration
 
-- `CommandQueueProcessor` maintains undo/redo stacks
+- Undo/redo stacks live in the `HistoryCommandHandler` (`store/handlers/history_command_handler.dart`); `CommandQueueProcessor` delegates to it
 - Undo pops from undo stack, pushes to redo stack
 - Redo pops from redo stack, pushes to undo stack
 - New mutations clear the redo stack

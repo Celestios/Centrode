@@ -1,6 +1,37 @@
 # FFI API Surface
 
-All methods on `AppHandle` (`rust/centrode_core/src/bridge/api.rs`) that are callable from Dart via FRB.
+All methods on `AppHandle`, `DaemonHandle`, and free functions (`rust/centrode_core/src/bridge/api.rs`) that are callable from Dart via FRB.
+
+---
+
+## Daemon & Map Management (`DaemonHandle`)
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `new` | `(storage_path: String) -> Self` | Create daemon handle |
+| `list_maps` | `() -> Result<Vec<MapDescriptor>>` | List all registered maps |
+| `get_recent_maps` | `(limit: u32) -> Result<Vec<MapDescriptor>>` | Recently touched maps |
+| `create_map` | `(name: String) -> Result<MapDescriptor>` | Create a new map |
+| `delete_map` | `(map_id: String) -> Result<()>` | Delete a map and its storage |
+| `rename_map` | `(map_id, new_name: String) -> Result<()>` | Rename a map |
+| `duplicate_map` | `(map_id, new_name: String) -> Result<()>` | Duplicate a map |
+| `touch_map` | `(map_id: String) -> Result<()>` | Update last-opened timestamp |
+| `get_map` | `(map_id: String) -> Result<Option<MapDescriptor>>` | Get map descriptor |
+| `get_setting` | `(key: String) -> Result<Option<String>>` | Read a system setting |
+| `set_setting` | `(key, value: String) -> Result<()>` | Write a system setting |
+| `delete_setting` | `(key: String) -> Result<()>` | Delete a system setting |
+| `shutdown` | `() -> Result<()>` | Shut the daemon down |
+
+---
+
+## Engine Lifecycle (free functions)
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `init_core_engine` | `(storage_path: String) -> Result<()>` | Initialize storage engine |
+| `shutdown_core_engine` | `() -> Result<()>` | Close database connections |
+| `yield_daemon_if_running` | `() -> bool` | Handshake with running daemon before init |
+| `delete_map_storage` | `(map_id: String) -> Result<()>` | Remove a map's on-disk database |
 
 ---
 
@@ -40,6 +71,8 @@ All methods on `AppHandle` (`rust/centrode_core/src/bridge/api.rs`) that are cal
 | `reroute_relation` | `(record, from, to: TypedRecordId) -> Result<()>` | Change relation endpoints |
 | `compute_relations` | `(config, relation_ids?) -> Result<Vec<ComputedRelation>>` | Batch compute relation paths |
 | `compute_single_relation` | `(config, edge_id, from, to, ...) -> Result<ComputedRelation>` | Compute single relation path |
+| `get_relation_spec` | `(verb: String) -> Result<Option<RelationStyle>>` | Get style spec for relation verb |
+| `list_relation_specs` | `() -> Result<Vec<(String, RelationStyle)>>` | List all verb style specs |
 
 ---
 
@@ -114,6 +147,29 @@ All methods on `AppHandle` (`rust/centrode_core/src/bridge/api.rs`) that are cal
 | `save_map_to_file` | `(file_path, attachment_dir) -> Result<()>` | Export .cent file |
 | `load_map_from_file` | `(file_path, attachment_dir) -> Result<()>` | Import .cent file |
 | `update_viewport_state` | `(state: ViewportState) -> Result<()>` | Save viewport state |
+
+---
+
+## Dictionary (custom words)
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `add_custom_word` | `(word, word_type: String) -> Result<()>` | Add custom dictionary word |
+| `list_custom_words` | `() -> Result<Vec<CustomWord>>` | List all custom words |
+| `remove_custom_word` | `(word: String) -> Result<()>` | Remove a custom word |
+
+---
+
+## Embeddings (native candle BERT)
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `init_embedder_model` | `(weights, tokenizer, config)` | Load candle model artifacts |
+| `embed_text` | `(text: String) -> Vec<f32>` | Produce 384-dim embedding vector |
+| `store_embedding` | `(text_payload)` | Persist an embedding for a text payload |
+| `search_similar_labels` | `(query: String, limit: i32) -> Vec<String>` | Cosine-similarity label search |
+| `predict_relation_labels` | `(context...) -> ...` | Multi-language relation label prediction |
+| `detect_map_language` | `(node_texts: Vec<String>) -> String` | Detect dominant map language |
 
 ---
 

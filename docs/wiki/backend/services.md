@@ -4,7 +4,7 @@
 
 ## Overview
 
-The services layer provides high-level APIs that orchestrate lower-level modules (persistence, engines, streams).
+The services layer provides high-level APIs that orchestrate lower-level modules ([repositories](persistence.md), engines, streams). `GraphService` obtains its SurrealDB connections from the daemon's `EngineManager`.
 
 ---
 
@@ -13,15 +13,16 @@ The services layer provides high-level APIs that orchestrate lower-level modules
 `services/graph_service.rs` is the primary service, wrapping all operations:
 
 ```
-services/
-├── graph_service.rs          # Root — GraphService struct & dispatch
+services.rs                   # Module root
+├── graph_service.rs          # GraphService struct & dispatch
 ├── asset_vault.rs            # Content-addressable asset storage (SHA-256 CAS)
+├── embedding_service.rs      # Native candle BERT embedder (384-dim vectors)
 └── graph_service/            # Domain operation submodules
     ├── node.rs               # Node CRUD & cache management
     ├── relation.rs           # Relation CRUD, routing & boundaries
     ├── history.rs            # Undo/redo operations
     ├── layout.rs             # Layout engine operations & OptArea
-    └── metadata.rs           # Theme, tag, template operations & search
+    └── metadata.rs           # Theme, tag, template, dictionary ops & search
 ```
 
 ---
@@ -55,6 +56,7 @@ services/
 - Theme CRUD: `get_all_themes()`, `create_theme()`, `update_theme()`, `set_active_theme()`
 - Tag CRUD: `create_tag()`, `update_tag()`, `delete_tag()`, `get_all_tags()`
 - Template CRUD: `save_template_from_selection()`, `instantiate_template()`, `delete_template()`
+- Relation specs: `get_relation_spec(verb)`, `list_relation_specs()`
 - Search: `query_search()`
 - Snapshot: `get_graph_snapshot()`
 - File I/O: `save_map_to_file()`, `load_map_from_file()`
@@ -63,6 +65,14 @@ services/
 - `compute_hash(bytes)` — SHA-256 hex digest
 - `ingest_bytes(asset_dir, file_name, bytes, mime_type)` — CAS write, returns `Attachment`
 - `resolve_path(asset_dir, hash, ext)` — resolve hash to absolute file path
+
+### Embedding Service (`embedding_service.rs`)
+Native BERT embedder built on candle (MiniLM-L6, 384-dim vectors), with a hash-based fallback embedder when no model weights are loaded:
+- `init_model(weights, tokenizer, config)` — load candle model artifacts
+- `embed_text(text)` — produce a 384-dim vector
+- `cosine_similarity(a, b)` — vector similarity
+
+Exposed through [GraphService / AppHandle](../ffi/api-surface.md) as `store_embedding`, `search_similar_labels`, `predict_relation_labels`, `detect_map_language`, `embed_text`, `init_embedder_model`.
 
 ---
 

@@ -11,27 +11,32 @@ The workspace module provides the home screen / project management hub. It's the
 ## Structure
 
 ```
-lib/features/workspace/ui/
-├── workspace_hub_screen.dart          # Main workspace screen
-├── liquid_glass_test_screen.dart      # Glass shader test screen
-└── widgets/
-    ├── left_panel/
-    │   ├── left_panel.dart            # Left sidebar
-    │   ├── quick_actions_section.dart # Quick action buttons
-    │   └── panel_footer_section.dart  # Footer with settings
-    ├── main_content/
-    │   ├── main_content_area.dart     # Central content area
-    │   ├── analytics_box.dart         # Usage analytics display
-    │   ├── empty_section_card.dart    # Empty state placeholder
-    │   ├── map_section.dart           # Single map display
-    │   ├── maps_section.dart          # Maps grid/list
-    │   ├── project_card.dart          # Project card widget
-    │   ├── projects_section.dart      # Projects grid/list
-    │   ├── recent_section.dart        # Recent maps
-    │   └── templates_section.dart     # Templates display
-    └── shared/
-        ├── horizontal_scroll_row.dart # Horizontal scroll utility
-        └── section_header.dart        # Section header widget
+lib/features/workspace/
+├── presentation/
+│   └── workspace_hub_controller.dart     # WorkspaceHubController (ChangeNotifier) —
+│                                         #   map create/open/delete orchestration via
+│                                         #   MapManager + MapStorageGateway
+└── ui/
+    ├── workspace_hub_screen.dart          # Main workspace screen
+    ├── liquid_glass_test_screen.dart      # Glass shader test screen
+    └── widgets/
+        ├── left_panel/
+        │   ├── left_panel.dart            # Left sidebar
+        │   ├── quick_actions_section.dart # Quick action buttons
+        │   └── panel_footer_section.dart  # Footer with settings
+        ├── main_content/
+        │   ├── main_content_area.dart     # Central content area
+        │   ├── analytics_box.dart         # Usage analytics display
+        │   ├── empty_section_card.dart    # Empty state placeholder
+        │   ├── map_section.dart           # Single map display
+        │   ├── maps_section.dart          # Maps grid/list
+        │   ├── project_card.dart          # Project card widget
+        │   ├── projects_section.dart      # Projects grid/list
+        │   ├── recent_section.dart        # Recent maps
+        │   └── templates_section.dart     # Templates display
+        └── shared/
+            ├── horizontal_scroll_row.dart # Horizontal scroll utility
+            └── section_header.dart        # Section header widget
 ```
 
 ---
@@ -49,6 +54,7 @@ lib/features/workspace/ui/
 
 ## Data Sources
 
-- Maps are stored as local SurrealDB databases in `maps/` directory
+- Maps are stored as local SurrealDB databases managed by the daemon's `EngineManager` (`<data_local>/centrode/data`)
+- Map lifecycle operations go through the [`MapStorageGateway`](../graph/presentation.md) abstraction, implemented by [DaemonGateway](../infrastructure/README.md) (wraps the Rust `DaemonHandle`: list/recent/create/delete/rename/duplicate/touch)
 - Recent maps tracked in `data/recent.json`
-- Map scanning via `shared/utils/map_scanner.dart`
+- Filesystem scanning via `shared/utils/map_scanner.dart` complements daemon-backed listing

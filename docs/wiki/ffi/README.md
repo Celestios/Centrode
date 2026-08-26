@@ -14,15 +14,17 @@ Centrode uses Flutter Rust Bridge to connect Dart and Rust. FRB auto-generates t
 Dart (Flutter)                    Rust
 ─────────────                    ────
 GraphApi (abstract)
-  └─ GraphSyncEngine
+  └─ RustGraphApi / InMemoryGraphApi
        └─ FRB generated bindings ──→ AppHandle (struct)
-                                      ├─ GraphService
-                                      │   ├─ Repository
-                                      │   │   └─ SurrealDB
-                                      │   ├─ RelationEngine
-                                      │   └─ LayoutEngine
-                                      └─ GraphEvent stream
-                                           └─ StreamSink ──→ Dart stream
+       │                             ├─ GraphService
+       │                             │   ├─ Repositories
+       │                             │   ├─ RelationEngine
+       │                             │   └─ LayoutEngine
+       │                             └─ GraphEvent stream
+       │                                  └─ StreamSink ──→ Dart stream
+       └─ DaemonGateway ─────────→ DaemonHandle (struct)
+                                     └─ DaemonService
+                                         └─ EngineManager (SurrealKV, per-map DBs)
 ```
 
 ---
@@ -42,7 +44,7 @@ GraphApi (abstract)
 
 ## AppHandle
 
-The Rust-side entry point for all FFI calls:
+The Rust-side entry point for graph FFI calls:
 
 ```rust
 pub struct AppHandle {
@@ -52,9 +54,11 @@ pub struct AppHandle {
 
 Created via:
 ```rust
-AppHandle::new(storage_path, name)  // Opens/creates a map
+AppHandle::new(storage_path, name)  // Opens/creates a map via EngineManager
 AppHandle::with_repository(repo)    // Wraps existing repositories
 ```
+
+A second handle, `DaemonHandle`, wraps `Arc<DaemonService>` and exposes map lifecycle management (`list_maps`, `create_map`, `delete_map`, `rename_map`, `duplicate_map`, settings get/set) plus engine shutdown. On the Dart side it is wrapped by [DaemonGateway](../modules/infrastructure/README.md), which implements the `MapStorageGateway` interface used by the workspace.
 
 ---
 
@@ -71,10 +75,14 @@ Rust → Dart communication uses FRB's `StreamSink`:
 
 ## Initialization
 
-1. `RustLib.init()` — loads native library, calls `init_core()`
-2. Map opened via `AppHandle::new(path, name)`
-3. `create_graph_stream()` establishes event stream
-4. Initial snapshot fetched via `get_graph_snapshot()`
+1. `RustLib.init()` — loads native library, calls `init_core()` (telemetry setup)
+2. `yield_daemon_if_running()` — handshake with any already-running daemon instance
+3. `init_core_engine(storage_path)` — wires the daemon's `EngineManager` (SurrealKV connections)
+4. Map opened via `AppHandle::new(path, name)` — routes through `EngineManager::open_map_db` / `connect`
+5. `create_graph_stream()` establishes event stream
+6. Initial snapshot fetched via `get_graph_snapshot()`
+
+Shutdown: `shutdown_core_engine()` closes database connections; on window close the [Custodian lifecycle coordinator](../modules/infrastructure/README.md) may detach and respawn a background daemon first.
 
 ---
 

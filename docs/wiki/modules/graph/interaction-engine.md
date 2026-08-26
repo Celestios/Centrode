@@ -23,6 +23,8 @@ The interaction engine is a finite state machine (FSM) that processes raw `Point
 | `engine/volatile_node_state.dart` | Transient node state during interactions |
 | `engine/z_order_utils.dart` | Z-order sorting for hit testing |
 | `engine/config.dart` | Engine configuration constants (includes elastic/spring params) |
+| `engine/canvas_tool_mode.dart` | `CanvasToolMode` enum — active canvas tool (select, frame, opt area, ...) |
+| `engine/interaction_facade.dart` | Facade bridging states to store & action handlers (see below) |
 
 ---
 

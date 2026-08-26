@@ -32,7 +32,7 @@
 | [Interaction Engine](modules/graph/interaction-engine.md) | FSM state machine, gesture handling, 11 states & helpers |
 | [Node Types](modules/graph/node-types.md) | All 9 node types, their models, UiNode sealed hierarchy & continuous zoom |
 | [Commands](modules/graph/commands.md) | Command pattern, 18 commands (21 command files), undo/redo integration |
-| [Store & Sync](modules/graph/store.md) | Sync engine, 12 mutation modules, query layer, invalidation tracking |
+| [Store & Sync](modules/graph/store.md) | GraphApi sub-interfaces, command handlers, sync engine, 12 store modules |
 | [Presentation Layer](modules/graph/presentation.md) | View state, strategies, viewport, style resolution |
 | [Workspace Module](modules/workspace/README.md) | Workspace hub, map/project management |
 | [Shared Module](modules/shared/README.md) | Shared widgets, glass panel, common elements |

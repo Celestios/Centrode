@@ -34,6 +34,7 @@ lib/shared/
 │   └── window_title_bar.dart          # Custom title bar
 ├── utils/
 │   ├── app_paths.dart                 # Application directory paths
+│   ├── boot_cache.dart                # Boot-phase cache helpers
 │   ├── color_harmony_generator.dart   # Color harmony algorithms
 │   ├── color_utils.dart               # Color utilities
 │   ├── date_utils.dart                # Date formatting
@@ -42,11 +43,16 @@ lib/shared/
 │   └── name_generator.dart            # Random name generation
 └── widgets/
     ├── canvas_camera_physics.dart       # Rubber-band & spring math
-    ├── canvas_interactive_viewer.dart  # Custom InteractiveViewer with elastic bounds
+    ├── canvas_interactive_viewer.dart  # Custom InteractiveViewer (re-exports interactive_viewer/)
     ├── context_menu_overlay.dart       # Context menu system
     ├── unbounded_stack.dart            # Stack without bounds
     ├── color_palette/
     │   └── color_palette.dart          # Color palette picker
+    ├── interactive_viewer/             # CanvasInteractiveViewer internals, modularized:
+    │   ├── canvas_geometry_utils.dart  # Coordinate/geometry transforms
+    │   ├── canvas_gesture_classifier.dart # Gesture intent classification
+    │   ├── canvas_viewport_physics.dart   # Viewport spring physics
+    │   └── canvas_viewport_transformer.dart # Pan/zoom transform application
     └── glass_panel/                    # Glassmorphic panel widget
         ├── glass_panel.dart            # Barrel export
         └── src/
@@ -82,6 +88,8 @@ See [Glass Panel documentation](glass-panel.md) for details.
 - Mouse wheel zoom
 - Canvas-space coordinate transforms
 - `onElasticOverscroll` callback for visual layer reactions
+
+Its internals are modularized under `widgets/interactive_viewer/`: geometry utilities (`canvas_geometry_utils.dart`), gesture classification (`canvas_gesture_classifier.dart`), viewport physics (`canvas_viewport_physics.dart`), and transform application (`canvas_viewport_transformer.dart`).
 
 ### Elements
 

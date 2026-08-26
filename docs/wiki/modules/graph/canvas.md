@@ -57,6 +57,29 @@ The `NodeRenderEntry` (`painters/node_render_entry.dart`) orchestrates which ren
 | `NodeRichText` | `widgets/node_rich_text.dart` | Rich text rendering for node content |
 | `DrawNodeWidget` | `widgets/draw_node_widget.dart` | Freehand drawing widget |
 | `HighlightFrame` | `widgets/highlight_frame.dart` | Selection highlight frame |
+| `RelationLabelMorphEditor` | `widgets/relation_label_morph_editor.dart` | Centered relation-label morph editor (edit label + routing mode inline) |
+| `MetadataPreviewOverlay` | `widgets/metadata_preview_overlay.dart` | Node metadata preview overlay |
+| `NodeOverlayManager` | `widgets/node_overlay_manager.dart` | Manages per-node overlay lifecycle |
+| `NodeVisualConstants` | `widgets/node_visual_constants.dart` | Shared node visual constants |
+
+---
+
+## Painters (`painters/`)
+
+20 painter files, including:
+
+| Painter | File | Responsibility |
+|---------|------|----------------|
+| `RelationPainter` / DTO builder | `relation_painter.dart`, `relation_paint_dto_builder.dart`, `relation_painter_dto.dart` | Relation path painting pipeline |
+| `TempRelationPainter` | `temp_relation_painter.dart` | In-progress relation preview during drag |
+| `FrameDrawingPainter` | `frame_drawing_painter.dart` | Live frame drawing preview |
+| `MarqueePainter` | `marquee_painter.dart` | Marquee selection box |
+| `OptAreaPainter` / `PersistentOptAreaPainter` | `opt_area_painter.dart`, `persistent_opt_area_painter.dart` | Optimization-area rendering |
+| `ActiveDrawingPainter` / `DrawingNodePainter` | `active_drawing_painter.dart`, `drawing_node_painter.dart` | Freehand drawing strokes |
+| `CanvasNodesPainter` | `canvas_nodes_painter.dart` | Batch node painting |
+| Node renderers | `nodes/` (5 files) | Type-specific node rendering (see above) |
+
+See [Routing Modes](../../backend/relation-engine.md#routing-modes) for the full list of relation routing styles.
 
 ---
 
@@ -78,7 +101,7 @@ Relations are rendered by `RelationPainter` (`painters/relation_painter.dart`):
 2. `TransformedRelationPainter` applies canvas transformations
 3. Arrow endpoints rendered by `EndpointShapes` (Rust-side)
 
-Routing styles: Bezier, B-spline, orthogonal, octilinear, sinewave, straight.
+Routing modes are defined by [`RoutingMode`](../../backend/domain.md) — polyline (default), B-spline, orthogonal, octilinear, Bezier, sine wave.
 
 ---
 

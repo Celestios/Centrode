@@ -12,10 +12,12 @@ The store layer manages the data pipeline between the Rust backend and the Dart 
 
 | File | Role |
 |------|------|
-| `store/graph_api.dart` | `GraphApi` abstract — decoupled FFI interface |
-| `store/modules/graph_sync_engine.dart` | Sync engine — processes Rust stream events & implements GraphApi |
+| `store/graph_api.dart` | `GraphApi` composite interface + `RustGraphApi` FFI implementation |
+| `store/api/api.dart` | Barrel for the 10 API sub-interfaces |
+| `store/handlers/handlers.dart` | Barrel for the store command-handler layer |
+| `store/in_memory_graph_api.dart` | `InMemoryGraphApi` — in-memory `GraphApi` implementation (tests/previews) |
 | `store/command_processor.dart` | Single command execution |
-| `store/command_queue_processor.dart` | Command queue with debouncing |
+| `store/command_queue_processor.dart` | Command queue with debouncing, delegates undo/redo to history handler |
 | `store/graph_data_command.dart` | Data command abstractions |
 | `store/graph_data_query.dart` | Query abstractions |
 | `store/graph_data_query_controller.dart` | Query controller with caching |
@@ -25,9 +27,50 @@ The store layer manages the data pipeline between the Rust backend and the Dart 
 
 ---
 
+## API Interfaces (`api/`)
+
+`GraphApi` is a composite interface:
+
+```dart
+abstract interface class GraphApi implements NodeApi, RelationApi, LayoutApi,
+    HistoryApi, ThemeApi, TemplateApi, TagApi, AssetApi, MlApi, ViewportApi {}
+```
+
+Each sub-interface lives in its own file:
+
+| Interface | File | Responsibility |
+|-----------|------|----------------|
+| `NodeApi` | `node_api.dart` | Node CRUD, cache updates, boundaries |
+| `RelationApi` | `relation_api.dart` | Relation CRUD, routing, relation specs |
+| `LayoutApi` | `layout_api.dart` | Layout optimization, auto-placement, OptArea |
+| `HistoryApi` | `history_api.dart` | Undo/redo + counts |
+| `ThemeApi` | `theme_api.dart` | Theme CRUD, active theme |
+| `TemplateApi` | `template_api.dart` | Template save/instantiate/delete |
+| `TagApi` | `tag_api.dart` | Tag CRUD |
+| `AssetApi` | `asset_api.dart` | Attachment ingest/resolve |
+| `MlApi` | `ml_api.dart` | Native embedder surface: `detectMapLanguage`, `predictRelationLabels`, `searchSimilarLabels`, `embedText`, `initEmbedderModel` |
+| `ViewportApi` | `viewport_api.dart` | Viewport state persistence |
+
+---
+
+## Command Handlers (`handlers/`)
+
+Command dispatch is routed through 6 domain handlers that own mutation logic and call the APIs:
+
+| Handler | Responsibility |
+|---------|----------------|
+| `node_command_handler.dart` | Node create/move/resize/text commands |
+| `relation_command_handler.dart` | Relation create/update/layout commands |
+| `area_command_handler.dart` | Area/container/OptArea commands |
+| `property_command_handler.dart` | Style & property update commands |
+| `history_command_handler.dart` | Owns undo/redo stacks and counts |
+| `template_command_handler.dart` | Template save/instantiate commands |
+
+---
+
 ## Mutation Modules
 
-`store/modules/` contains 12 specialized mutation modules:
+`store/modules/` contains 12 specialized store modules:
 
 | Module | Responsibility |
 |--------|----------------|
@@ -46,27 +89,27 @@ The store layer manages the data pipeline between the Rust backend and the Dart 
 
 ---
 
-## GraphApi Interface
+## GraphApi Implementations
 
-`GraphApi` is the abstract interface for all FFI calls. The concrete implementation (`GraphSyncEngine`) delegates to Rust via FRB.
+- **`RustGraphApi`** (`graph_api.dart`) — production implementation delegating to Rust via FRB
+- **`InMemoryGraphApi`** (`in_memory_graph_api.dart`) — pure-Dart implementation used by tests and previews
 
-Key methods:
-- `createNode()`, `updateNode()`, `deleteNodeEntry()`
-- `createRelation()`, `updateRelation()`, `deleteRelation()`
-- `computeRelations()`, `computeSingleRelation()`
-- `applyEntityMutation()` — generic patch application
-- `undo()`, `redo()`, `undoCount()`, `redoCount()`
-- `getGraphSnapshot()`, `querySearch()`
-- `saveMapToFile()`, `loadMapFromFile()`
-- `createTag()`, `updateTag()`, `deleteTag()`
-- `saveTemplateFromSelection()`, `instantiateTemplate()`
-- `ingestAsset()`, `getAssetAbsolutePath()` — file attachment I/O
+Key method groups:
+- Nodes: `createNode()`, `updateNode()`, `deleteNodeEntry()`
+- Relations: `createRelation()`, `updateRelation()`, `deleteRelation()`, `computeRelations()`, `computeSingleRelation()`, `getRelationSpec()`, `listRelationSpecs()`
+- Patches: `applyEntityMutation()` — generic patch application
+- History: `undo()`, `redo()`, `undoCount()`, `redoCount()` (via `HistoryApi`)
+- Snapshot/search: `getGraphSnapshot()`, `querySearch()`
+- Files: `saveMapToFile()`, `loadMapFromFile()`
+- Tags/templates/themes: `createTag()`, `saveTemplateFromSelection()`, `instantiateTemplate()`
+- Assets: `ingestAsset()`, `getAssetAbsolutePath()`
+- ML ([embedding service](../../backend/services.md)): `detectMapLanguage()`, `predictRelationLabels()`, `searchSimilarLabels()`, `embedText()`, `initEmbedderModel()`
 
 ---
 
 ## Sync Engine
 
-`GraphSyncEngine` subscribes to the Rust `GraphEvent` stream and processes deltas:
+`GraphSyncEngine` (in `modules/graph_sync_engine.dart`) consumes a `GraphApi` and subscribes to the Rust `GraphEvent` stream to process deltas:
 
 1. Receives `GraphEvent` from FRB `StreamSink`
 2. Extracts `GraphDelta` (node/relation changes)

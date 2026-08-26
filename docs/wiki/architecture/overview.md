@@ -40,10 +40,11 @@ graph TD
 | **Core Repo** | `rust/centrode_core/src/repo/` | SurrealDB connection, CRUD, history queries |
 | **Relation Engine** | `rust/centrode_core/src/relation_engine/` | Routing algorithms, path finding, composition |
 | **Layout Engine** | `rust/centrode_core/src/layout_engine/` | Force-directed graph layout, physics forces |
-| **Services** | `rust/centrode_core/src/services/` | High-level graph service layer, asset vault |
+| **Services** | `rust/centrode_core/src/services/` | High-level graph service layer, asset vault, candle embedding service |
 | **Format** | `rust/centrode_core/src/format/` | `.cent` zip package format |
 | **Telemetry** | `rust/centrode_core/src/telemetry.rs` | Tracing subscriber bridged to Flutter |
-| **Daemon** | `rust/centrode_daemon/` | Standalone tray, hotkeys, Custodian IPC, schema |
+| **Macros** | `rust/centrode_macros/` | Proc-macro codegen — `Nodes`/`Relations` enums, SurQL schema impls |
+| **Daemon** | `rust/centrode_daemon/` | Standalone binary — SurrealKV storage engine (`EngineManager`), schema generation, map registry, tray, Custodian IPC |
 
 ---
 
@@ -58,7 +59,7 @@ graph TD
 7. `ThemeLoader.loadBundledThemes()` — load JSON themes from `assets/themes/`
 8. `runApp(MyApp)` — start Flutter app with `WorkspaceHubScreen` as home
 
-On the Rust side, `init_core()` (called via FRB init) sets up the `tracing` telemetry subscriber.
+On the Rust side, `init_core()` (called via FRB init) sets up the `tracing` telemetry subscriber. Engine initialization follows: the app calls `yield_daemon_if_running()` (handshake with any already-running daemon), then `init_core_engine(storage_path)`, which wires the daemon's `EngineManager`.
 
 ---
 
@@ -73,9 +74,10 @@ On the Rust side, `init_core()` (called via FRB init) sets up the `tracing` tele
 | `lib/features/graph/store/graph_api.dart` | Store API — data access facade |
 | `lib/features/graph/store/modules/graph_sync_engine.dart` | Sync engine — Rust FFI sync bridge |
 | `rust/centrode_core/src/bridge/api.rs` | FFI API surface — all endpoints callable from Flutter |
-| `rust/centrode_core/src/repo.rs` | Repository — SurrealDB CRUD layer |
+| `rust/centrode_core/src/repo.rs` | Repository — `Repositories` aggregate, SurrealDB CRUD layer |
 | `rust/centrode_core/src/relation_engine.rs` | Relation engine — routing + geometry |
 | `rust/centrode_core/src/layout_engine.rs` | Layout engine — force-directed graph layout & OptArea physics |
+| `rust/centrode_daemon/src/engine.rs` | `EngineManager` — SurrealKV connections, per-map databases |
 
 ---
 
