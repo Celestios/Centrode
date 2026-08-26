@@ -73,7 +73,7 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                             menuChildren: [
                               MenuItemButton(
                                 onPressed: () {
-                                  session.commandProcessor?.flushSync();
+                                  session.commandProcessor.flushSync();
                                 },
                                 leadingIcon: const Icon(
                                   Icons.save_outlined,

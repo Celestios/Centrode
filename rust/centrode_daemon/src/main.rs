@@ -1,8 +1,7 @@
 use centrode_daemon::{default_storage_path, tray, DaemonWorker};
 use std::path::PathBuf;
 
-#[tokio::main]
-async fn main() {
+fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -18,7 +17,18 @@ async fn main() {
 
     tracing::info!("centrode_daemon starting, data dir: {:?}", storage_path);
 
-    let worker = match DaemonWorker::start(storage_path).await {
+    let rt = match tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+    {
+        Ok(rt) => rt,
+        Err(e) => {
+            tracing::error!("Daemon: failed to build runtime: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    let worker = match rt.block_on(DaemonWorker::start(storage_path)) {
         Ok(w) => w,
         Err(e) => {
             tracing::error!("Daemon: failed to start: {}", e);
@@ -28,9 +38,9 @@ async fn main() {
 
     let _ = tray::init_tray();
 
-    let custodian = centrode_daemon::CustodianManager::new(worker.storage_path().clone());
+    let custodian = centrode_daemon::CustodianManager::new();
 
-    if let Err(e) = custodian.run_loop(worker) {
+    if let Err(e) = custodian.run_loop(worker, rt) {
         tracing::error!("Daemon: custodian loop error: {}", e);
     }
 }

@@ -116,7 +116,7 @@ class CanvasOverlayLayout extends StatelessWidget {
                       ),
                       onSelected: (action) {
                         if (action == 'force_sync') {
-                          session.commandProcessor?.flushSync();
+                          session.commandProcessor.flushSync();
                         } else if (action == 'toggle_theme') {
                           final current = AppThemeManager.instance.themeNotifier.value;
                           final isDark = current.brightness == Brightness.dark;

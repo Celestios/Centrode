@@ -62,11 +62,11 @@ class PaletteActionRegistry {
       icon: Icons.undo_rounded,
       onSelected: (context) {
         final session = context.read<WorkspaceTabsController>().activeSession;
-        session.commandProcessor?.undo();
+        session.commandProcessor.undo();
       },
       isEnabled: (context) {
         final session = context.read<WorkspaceTabsController>().activeSession;
-        return session.commandProcessor?.canUndo == true;
+        return session.commandProcessor.canUndo;
       },
     ),
     PaletteAction(
@@ -76,11 +76,11 @@ class PaletteActionRegistry {
       icon: Icons.redo_rounded,
       onSelected: (context) {
         final session = context.read<WorkspaceTabsController>().activeSession;
-        session.commandProcessor?.redo();
+        session.commandProcessor.redo();
       },
       isEnabled: (context) {
         final session = context.read<WorkspaceTabsController>().activeSession;
-        return session.commandProcessor?.canRedo == true;
+        return session.commandProcessor.canRedo;
       },
     ),
     PaletteAction(
@@ -92,14 +92,13 @@ class PaletteActionRegistry {
         final session = context.read<WorkspaceTabsController>().activeSession;
         final queryController = session.queryController;
         final viewportController = session.viewportController;
-        if (viewportController != null && queryController != null) {
+        if (viewportController != null) {
           viewportController.focusOnBounds(queryController.canvasBounds);
         }
       },
       isEnabled: (context) {
         final session = context.read<WorkspaceTabsController>().activeSession;
-        return session.viewportController != null &&
-            session.queryController != null;
+        return session.viewportController != null;
       },
     ),
   ];

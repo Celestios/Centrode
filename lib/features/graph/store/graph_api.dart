@@ -35,47 +35,55 @@ abstract interface class GraphApi
 
 /// Direct FFI-backed implementation of [GraphApi] wrapping [AppHandle].
 class RustGraphApi implements GraphApi {
-  final AppHandle _api;
+  final Future<AppHandle> _handleFuture;
 
-  RustGraphApi(this._api);
+  RustGraphApi(this._handleFuture);
+  RustGraphApi.fromHandle(AppHandle handle) : _handleFuture = Future.value(handle);
 
-  AppHandle get handle => _api;
+  Future<T> _call<T>(Future<T> Function(AppHandle api) action) async {
+    final api = await _handleFuture;
+    return action(api);
+  }
 
   // NodeApi
   @override
-  Future<void> createNode({required Nodes input}) => _api.createNode(input: input);
+  Future<void> createNode({required Nodes input}) =>
+      _call((api) => api.createNode(input: input));
 
   @override
-  Future<Nodes?> getNode({required TypedRecordId id}) => _api.getNode(id: id);
+  Future<Nodes?> getNode({required TypedRecordId id}) =>
+      _call((api) => api.getNode(id: id));
 
   @override
-  Future<void> updateNode({required Nodes input}) => _api.updateNode(input: input);
+  Future<void> updateNode({required Nodes input}) =>
+      _call((api) => api.updateNode(input: input));
 
   @override
-  Future<void> deleteNodeEntry({required TypedRecordId id}) => _api.deleteNodeEntry(id: id);
+  Future<void> deleteNodeEntry({required TypedRecordId id}) =>
+      _call((api) => api.deleteNodeEntry(id: id));
 
   @override
   Future<void> applyEntityMutation({required SymmetricEntityPatch mutation}) =>
-      _api.applyEntityMutation(mutation: mutation);
+      _call((api) => api.applyEntityMutation(mutation: mutation));
 
   @override
   Future<void> updateNodeCachePositions({
     required List<(TypedRecordId, double, double, double, double)> positions,
   }) =>
-      _api.updateNodeCachePositions(positions: positions);
+      _call((api) => api.updateNodeCachePositions(positions: positions));
 
   // RelationApi
   @override
   Future<void> createRelation({required IRelation input}) =>
-      _api.createRelation(input: input);
+      _call((api) => api.createRelation(input: input));
 
   @override
   Future<void> updateRelation({required IRelation input}) =>
-      _api.updateRelation(input: input);
+      _call((api) => api.updateRelation(input: input));
 
   @override
   Future<void> deleteRelation({required TypedRecordId id}) =>
-      _api.deleteRelation(id: id);
+      _call((api) => api.deleteRelation(id: id));
 
   @override
   Future<void> rerouteRelation({
@@ -83,14 +91,14 @@ class RustGraphApi implements GraphApi {
     required TypedRecordId from,
     required TypedRecordId to,
   }) =>
-      _api.rerouteRelation(record: record, from: from, to: to);
+      _call((api) => api.rerouteRelation(record: record, from: from, to: to));
 
   @override
   Future<List<ComputedRelation>> computeRelations({
     required RelationEngineConfig config,
     List<TypedRecordId>? relationIds,
   }) =>
-      _api.computeRelations(config: config, relationIds: relationIds);
+      _call((api) => api.computeRelations(config: config, relationIds: relationIds));
 
   @override
   Future<ComputedRelation> computeSingleRelation({
@@ -106,19 +114,19 @@ class RustGraphApi implements GraphApi {
     double? overrideEndX,
     double? overrideEndY,
   }) =>
-      _api.computeSingleRelation(
-        config: config,
-        edgeId: edgeId,
-        fromNodeId: fromNodeId,
-        toNodeId: toNodeId,
-        fromSide: fromSide,
-        toSide: toSide,
-        routingMode: routingMode,
-        overrideStartX: overrideStartX,
-        overrideStartY: overrideStartY,
-        overrideEndX: overrideEndX,
-        overrideEndY: overrideEndY,
-      );
+      _call((api) => api.computeSingleRelation(
+            config: config,
+            edgeId: edgeId,
+            fromNodeId: fromNodeId,
+            toNodeId: toNodeId,
+            fromSide: fromSide,
+            toSide: toSide,
+            routingMode: routingMode,
+            overrideStartX: overrideStartX,
+            overrideStartY: overrideStartY,
+            overrideEndX: overrideEndX,
+            overrideEndY: overrideEndY,
+          ));
 
   // LayoutApi
   @override
@@ -126,21 +134,31 @@ class RustGraphApi implements GraphApi {
     required LayoutConfig config,
     List<LayoutPatch> livePositions = const [],
   }) =>
-      _api.triggerLayoutOptimization(config: config, livePositions: livePositions);
+      _call((api) => api.triggerLayoutOptimization(
+            config: config,
+            livePositions: livePositions,
+          ));
+
+  @override
+  Future<BoundingBox?> getOptArea() => _call((api) => api.getOptArea());
+
+  @override
+  Future<void> setOptArea({BoundingBox? bounds}) =>
+      _call((api) => api.setOptArea(bounds: bounds));
 
   @override
   Future<(double, double)> computeAutoPlacement({
     required TypedRecordId sourceId,
     required PortSide portSide,
   }) =>
-      _api.computeAutoPlacement(sourceId: sourceId, portSide: portSide);
+      _call((api) => api.computeAutoPlacement(sourceId: sourceId, portSide: portSide));
 
   @override
   Future<void> setAlignmentConstraint({
     required List<TypedRecordId> nodeIds,
     required Axis axis,
   }) =>
-      _api.setAlignmentConstraint(nodeIds: nodeIds, axis: axis);
+      _call((api) => api.setAlignmentConstraint(nodeIds: nodeIds, axis: axis));
 
   @override
   Future<void> addAnchorSpring({
@@ -149,45 +167,52 @@ class RustGraphApi implements GraphApi {
     required double y,
     required double strength,
   }) =>
-      _api.addAnchorSpring(nodeId: nodeId, x: x, y: y, strength: strength);
+      _call((api) => api.addAnchorSpring(
+            nodeId: nodeId,
+            x: x,
+            y: y,
+            strength: strength,
+          ));
 
   // HistoryApi
   @override
-  Future<HistoryRecord?> undo() => _api.undo();
+  Future<HistoryRecord?> undo() => _call((api) => api.undo());
 
   @override
-  Future<int> undoCount() => _api.undoCount();
+  Future<int> undoCount() => _call((api) => api.undoCount());
 
   @override
-  Future<HistoryRecord?> redo() => _api.redo();
+  Future<HistoryRecord?> redo() => _call((api) => api.redo());
 
   @override
-  Future<int> redoCount() => _api.redoCount();
+  Future<int> redoCount() => _call((api) => api.redoCount());
 
   // ThemeApi
   @override
   Future<void> createTheme({required String key, required ThemeFields fields}) =>
-      _api.createTheme(key: key, fields: fields);
+      _call((api) => api.createTheme(key: key, fields: fields));
 
   @override
-  Future<MapTheme?> getTheme({required String key}) => _api.getTheme(key: key);
+  Future<MapTheme?> getTheme({required String key}) =>
+      _call((api) => api.getTheme(key: key));
 
   @override
-  Future<List<MapTheme>> getAllThemes() => _api.getAllThemes();
+  Future<List<MapTheme>> getAllThemes() => _call((api) => api.getAllThemes());
 
   @override
-  Future<void> updateTheme({required MapTheme theme}) => _api.updateTheme(theme: theme);
+  Future<void> updateTheme({required MapTheme theme}) =>
+      _call((api) => api.updateTheme(theme: theme));
 
   @override
   Future<void> setActiveTheme({required String themeKey}) =>
-      _api.setActiveTheme(themeKey: themeKey);
+      _call((api) => api.setActiveTheme(themeKey: themeKey));
 
   @override
   Future<void> setActiveThemeId({required String themeId}) =>
-      _api.setActiveThemeId(themeId: themeId);
+      _call((api) => api.setActiveThemeId(themeId: themeId));
 
   @override
-  Future<String?> getActiveThemeId() => _api.getActiveThemeId();
+  Future<String?> getActiveThemeId() => _call((api) => api.getActiveThemeId());
 
   // TemplateApi
   @override
@@ -196,11 +221,11 @@ class RustGraphApi implements GraphApi {
     required List<TypedRecordId> nodeKeys,
     required List<TypedRecordId> relationKeys,
   }) =>
-      _api.saveTemplateFromSelection(
-        name: name,
-        nodeKeys: nodeKeys,
-        relationKeys: relationKeys,
-      );
+      _call((api) => api.saveTemplateFromSelection(
+            name: name,
+            nodeKeys: nodeKeys,
+            relationKeys: relationKeys,
+          ));
 
   @override
   Future<void> instantiateTemplate({
@@ -208,30 +233,38 @@ class RustGraphApi implements GraphApi {
     required double targetX,
     required double targetY,
   }) =>
-      _api.instantiateTemplate(key: key, targetX: targetX, targetY: targetY);
+      _call((api) => api.instantiateTemplate(
+            key: key,
+            targetX: targetX,
+            targetY: targetY,
+          ));
 
   @override
-  Future<List<Template>> getAllTemplates() => _api.getAllTemplates();
+  Future<List<Template>> getAllTemplates() => _call((api) => api.getAllTemplates());
 
   @override
   Future<void> deleteTemplate({required String key}) =>
-      _api.deleteTemplate(key: key);
+      _call((api) => api.deleteTemplate(key: key));
 
   // TagApi
   @override
-  Future<void> createTag({required Tag tag}) => _api.createTag(tag: tag);
+  Future<void> createTag({required Tag tag}) =>
+      _call((api) => api.createTag(tag: tag));
 
   @override
-  Future<Tag?> getTag({required String key}) => _api.getTag(key: key);
+  Future<Tag?> getTag({required String key}) =>
+      _call((api) => api.getTag(key: key));
 
   @override
-  Future<List<Tag>> getAllTags() => _api.getAllTags();
+  Future<List<Tag>> getAllTags() => _call((api) => api.getAllTags());
 
   @override
-  Future<void> updateTag({required Tag tag}) => _api.updateTag(tag: tag);
+  Future<void> updateTag({required Tag tag}) =>
+      _call((api) => api.updateTag(tag: tag));
 
   @override
-  Future<void> deleteTag({required String key}) => _api.deleteTag(key: key);
+  Future<void> deleteTag({required String key}) =>
+      _call((api) => api.deleteTag(key: key));
 
   // AssetApi
   @override
@@ -241,12 +274,12 @@ class RustGraphApi implements GraphApi {
     required List<int> fileBytes,
     required String mimeType,
   }) =>
-      _api.ingestAsset(
-        assetDir: assetDir,
-        fileName: fileName,
-        fileBytes: fileBytes,
-        mimeType: mimeType,
-      );
+      _call((api) => api.ingestAsset(
+            assetDir: assetDir,
+            fileName: fileName,
+            fileBytes: fileBytes,
+            mimeType: mimeType,
+          ));
 
   @override
   Future<String> getAssetAbsolutePath({
@@ -254,36 +287,36 @@ class RustGraphApi implements GraphApi {
     required String hash,
     required String extension,
   }) =>
-      _api.getAssetAbsolutePath(
-        assetDir: assetDir,
-        hash: hash,
-        extension_: extension,
-      );
+      _call((api) => api.getAssetAbsolutePath(
+            assetDir: assetDir,
+            hash: hash,
+            extension_: extension,
+          ));
 
   @override
   Future<void> loadMapFromFile({
     required String filePath,
     required String attachmentDir,
   }) =>
-      _api.loadMapFromFile(
-        filePath: filePath,
-        attachmentDir: attachmentDir,
-      );
+      _call((api) => api.loadMapFromFile(
+            filePath: filePath,
+            attachmentDir: attachmentDir,
+          ));
 
   @override
   Future<void> saveMapToFile({
     required String filePath,
     required String attachmentDir,
   }) =>
-      _api.saveMapToFile(
-        filePath: filePath,
-        attachmentDir: attachmentDir,
-      );
+      _call((api) => api.saveMapToFile(
+            filePath: filePath,
+            attachmentDir: attachmentDir,
+          ));
 
   // MlApi
   @override
   Future<String> detectMapLanguage({required List<String> nodeTexts}) =>
-      _api.detectMapLanguage(nodeTexts: nodeTexts);
+      _call((api) => api.detectMapLanguage(nodeTexts: nodeTexts));
 
   @override
   Future<List<String>> predictRelationLabels({
@@ -292,23 +325,23 @@ class RustGraphApi implements GraphApi {
     String? language,
     required BigInt limit,
   }) =>
-      _api.predictRelationLabels(
-        sourceText: sourceText,
-        targetText: targetText,
-        language: language,
-        limit: limit,
-      );
+      _call((api) => api.predictRelationLabels(
+            sourceText: sourceText,
+            targetText: targetText,
+            language: language,
+            limit: limit,
+          ));
 
   @override
   Future<List<String>> searchSimilarLabels({
     required String query,
     required BigInt limit,
   }) =>
-      _api.searchSimilarLabels(query: query, limit: limit);
+      _call((api) => api.searchSimilarLabels(query: query, limit: limit));
 
   @override
   Future<Float32List> embedText({required String text}) =>
-      _api.embedText(text: text);
+      _call((api) => api.embedText(text: text));
 
   @override
   Future<void> initEmbedderModel({
@@ -316,42 +349,39 @@ class RustGraphApi implements GraphApi {
     required Uint8List tokenizerBytes,
     Uint8List? configBytes,
   }) =>
-      _api.initEmbedderModel(
-        weightsBytes: weightsBytes,
-        tokenizerBytes: tokenizerBytes,
-        configBytes: configBytes,
-      );
+      _call((api) => api.initEmbedderModel(
+            weightsBytes: weightsBytes,
+            tokenizerBytes: tokenizerBytes,
+            configBytes: configBytes,
+          ));
 
   @override
   Future<RelationStyle?> getRelationSpec({required String verb}) =>
-      _api.getRelationSpec(verb: verb);
+      _call((api) => api.getRelationSpec(verb: verb));
 
   @override
   Future<List<(String, RelationStyle)>> listRelationSpecs() =>
-      _api.listRelationSpecs();
+      _call((api) => api.listRelationSpecs());
 
   // ViewportApi
   @override
   Future<void> updateViewportState({required ViewportState state}) =>
-      _api.updateViewportState(state: state);
+      _call((api) => api.updateViewportState(state: state));
 
   @override
-  Future<BoundingBox?> getOptArea() => _api.getOptArea();
-
-  @override
-  Future<void> setOptArea({BoundingBox? bounds}) =>
-      _api.setOptArea(bounds: bounds);
-
-  @override
-  Future<GraphSnapshot> getGraphSnapshot() => _api.getGraphSnapshot();
+  Future<GraphSnapshot> getGraphSnapshot() =>
+      _call((api) => api.getGraphSnapshot());
 
   @override
   Future<List<Nodes>> querySearch({required String query}) =>
-      _api.querySearch(query: query);
+      _call((api) => api.querySearch(query: query));
 
   @override
-  Stream<GraphEvent> createGraphStream() => _api.createGraphStream();
+  Stream<GraphEvent> createGraphStream() async* {
+    final api = await _handleFuture;
+    yield* api.createGraphStream();
+  }
 
   @override
-  Future<void> close() => _api.close();
+  Future<void> close() => _call((api) => api.close());
 }

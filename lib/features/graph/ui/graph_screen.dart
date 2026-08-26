@@ -71,7 +71,7 @@ class _GraphScreenState extends State<GraphScreen> {
               ),
               builder: (context, _) {
                 final mapTheme =
-                    activeSession.themeController?.currentGraphTheme;
+                    activeSession.themeController.currentGraphTheme;
                 ThemeData fallbackTheme() {
                   try {
                     return AppThemeManager.instance.themeNotifier.value
@@ -185,39 +185,6 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
     }
   }
 
-  Widget _buildSessionContent(BuildContext context) {
-    if (widget.session.themeController == null ||
-        widget.session.queryController == null ||
-        widget.session.commandProcessor == null ||
-        widget.session.nodeRenderState == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    return MultiProvider(
-      key: ValueKey(
-        widget.session.id,
-      ), // Reconstruct providers and context hierarchy
-      providers: [
-        ChangeNotifierProvider<ThemeController>.value(
-          value: widget.session.themeController!,
-        ),
-        Provider<GraphDataQueryController>.value(
-          value: widget.session.queryController!,
-        ),
-        Provider<CommandQueueProcessor>.value(
-          value: widget.session.commandProcessor!,
-        ),
-        InheritedProvider<GraphDataQuery>.value(
-          value: widget.session.nodeRenderState!,
-        ),
-        ChangeNotifierProvider<NodeRenderState>.value(
-          value: widget.session.nodeRenderState!,
-        ),
-      ],
-      child: const GraphCanvas(),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<void>(
@@ -239,7 +206,29 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
           );
         }
 
-        return _buildSessionContent(context);
+        return MultiProvider(
+          key: ValueKey(
+            widget.session.id,
+          ), // Reconstruct providers and context hierarchy
+          providers: [
+            ChangeNotifierProvider<ThemeController>.value(
+              value: widget.session.themeController,
+            ),
+            Provider<GraphDataQueryController>.value(
+              value: widget.session.queryController,
+            ),
+            Provider<CommandQueueProcessor>.value(
+              value: widget.session.commandProcessor,
+            ),
+            InheritedProvider<GraphDataQuery>.value(
+              value: widget.session.nodeRenderState,
+            ),
+            ChangeNotifierProvider<NodeRenderState>.value(
+              value: widget.session.nodeRenderState,
+            ),
+          ],
+          child: const GraphCanvas(),
+        );
       },
     );
   }

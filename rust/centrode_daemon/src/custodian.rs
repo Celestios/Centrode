@@ -7,14 +7,12 @@ use crate::ipc::{self, IpcMessage, IpcResponse, IpcServer};
 use crate::DaemonWorker;
 
 pub struct CustodianManager {
-    storage_path: PathBuf,
     running: Arc<AtomicBool>,
 }
 
 impl CustodianManager {
-    pub fn new(storage_path: PathBuf) -> Self {
+    pub fn new() -> Self {
         Self {
-            storage_path,
             running: Arc::new(AtomicBool::new(true)),
         }
     }
@@ -63,22 +61,21 @@ impl CustodianManager {
         Ok(adjacent)
     }
 
-    fn release_worker_lock(worker_slot: &std::sync::Mutex<Option<DaemonWorker>>) -> Result<()> {
+    fn release_worker_lock(
+        worker_slot: &std::sync::Mutex<Option<DaemonWorker>>,
+        rt: &tokio::runtime::Runtime,
+    ) -> Result<()> {
         let mut lock = worker_slot
             .lock()
             .map_err(|_| anyhow::anyhow!("Daemon worker mutex poisoned"))?;
         if let Some(dw) = lock.take() {
-            let rt = tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()
-                .context("Failed to build Tokio runtime for lock release")?;
             rt.block_on(dw.flush_and_release())?;
         }
         Ok(())
     }
 
     /// Serves the IPC loop with automatic baton yielding and app launch.
-    pub fn run_loop(&self, worker: DaemonWorker) -> Result<()> {
+    pub fn run_loop(&self, worker: DaemonWorker, rt: tokio::runtime::Runtime) -> Result<()> {
         let pipe = IpcServer::new(ipc::IPC_PIPE_NAME);
         let worker_slot = std::sync::Mutex::new(Some(worker));
         let running = self.running.clone();
@@ -110,7 +107,7 @@ impl CustodianManager {
                             "CustodianManager: OpenMap received, yielding to app: {}",
                             map_id
                         );
-                        if let Err(e) = Self::release_worker_lock(&worker_slot) {
+                        if let Err(e) = Self::release_worker_lock(&worker_slot, &rt) {
                             tracing::error!("CustodianManager: Failed to release storage lock: {}", e);
                             return IpcResponse {
                                 success: false,
@@ -138,7 +135,7 @@ impl CustodianManager {
                             "CustodianManager: YieldBaton received for {}",
                             target_process
                         );
-                        if let Err(e) = Self::release_worker_lock(&worker_slot) {
+                        if let Err(e) = Self::release_worker_lock(&worker_slot, &rt) {
                             tracing::error!("CustodianManager: Failed to release storage lock: {}", e);
                             return IpcResponse {
                                 success: false,

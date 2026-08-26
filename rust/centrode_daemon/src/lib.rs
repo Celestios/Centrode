@@ -30,7 +30,21 @@ impl DaemonWorker {
             .context("storage path is not valid UTF-8")?;
 
         tracing::info!("Daemon: acquiring SurrealKV lock via EngineManager at {}", path_str);
-        EngineManager::init(path_str).await?;
+
+        let mut attempts = 0;
+        loop {
+            match EngineManager::init(path_str).await {
+                Ok(()) => break,
+                Err(e) => {
+                    attempts += 1;
+                    if attempts >= 5 {
+                        return Err(e).context("Failed to acquire SurrealKV lock after retries");
+                    }
+                    tracing::warn!("Daemon: storage lock busy, retrying in 100ms (attempt {}/5)...", attempts);
+                    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+                }
+            }
+        }
 
         let service = DaemonService::new().await?;
 

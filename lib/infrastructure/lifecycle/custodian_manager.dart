@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:centrode/infrastructure/lifecycle/daemon_gateway.dart';
+import 'package:centrode/infrastructure/telemetry/log_manager.dart';
 import 'package:centrode/shared/logging.dart';
 import 'package:centrode/shared/utils/app_paths.dart';
 import 'package:centrode/src/rust/bridge/api.dart';
@@ -46,6 +47,8 @@ class CustodianLifecycleCoordinator with WindowListener {
     _isShuttingDown = true;
     _log.info('onWindowClose intercepted. Starting graceful teardown...');
 
+    await windowManager.hide();
+
     // 1. Flush and close presentation tabs if registered
     if (onBeforeShutdown != null) {
       await onBeforeShutdown!();
@@ -61,18 +64,23 @@ class CustodianLifecycleCoordinator with WindowListener {
       await _spawnDetachedDaemon();
     }
 
+    // 4. Dispose logging isolate cleanly
+    await LogManager().dispose();
+
     _log.info('Destroying window and exiting process.');
     await windowManager.destroy();
+    exit(0);
   }
 
   Future<void> _spawnDetachedDaemon() async {
     try {
       final daemonPath = await _resolveDaemonExecutable();
       if (daemonPath != null && File(daemonPath).existsSync()) {
-        _log.info('Spawning detached daemon process at $daemonPath');
+        final storagePath = await AppPaths.mapsDirectory;
+        _log.info('Spawning detached daemon process at $daemonPath with data-dir: $storagePath');
         await Process.start(
           daemonPath,
-          [],
+          ['--data-dir', storagePath],
           mode: ProcessStartMode.detached,
         );
         _log.info('Detached daemon process launched successfully.');
@@ -115,7 +123,7 @@ class CustodianLifecycleCoordinator with WindowListener {
       }
     }
 
-    return p.join(devRoot, 'rust', 'target', 'debug', binaryNames.first);
+    return null;
   }
 
   void dispose() {

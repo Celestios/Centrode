@@ -150,7 +150,7 @@ class OverlayLayer extends StatelessWidget {
                   uiController: renderState,
                   interactionContext: interactionContext,
                   onCommit: (verb) {
-                    activeSession.commandProcessor?.commitEntityText(activeEditId, verb);
+                    activeSession.commandProcessor.commitEntityText(activeEditId, verb);
                     renderState.editorState.cancelActiveEdit();
                   },
                 );

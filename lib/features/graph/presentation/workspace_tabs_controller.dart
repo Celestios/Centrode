@@ -27,12 +27,13 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
   final String storagePath;
   final String name;
   final String? centFilePath;
-  GraphApi? handle;
-  GraphApi? get api => handle;
-  ThemeController? themeController;
-  GraphDataQueryController? queryController;
-  CommandQueueProcessor? commandProcessor;
-  NodeRenderState? nodeRenderState;
+  final Completer<AppHandle> _handleCompleter;
+  late final RustGraphApi handle;
+  GraphApi get api => handle;
+  late final ThemeController themeController;
+  late final GraphDataQueryController queryController;
+  late final CommandQueueProcessor commandProcessor;
+  late final NodeRenderState nodeRenderState;
 
   ViewportController? _viewportController;
   Timer? _debounceTimer;
@@ -57,8 +58,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     _log.fine('saveViewportState for session $name');
     _debounceTimer?.cancel();
     final vp = _viewportController;
-    final api = handle;
-    if (vp != null && api != null) {
+    if (vp != null) {
       final matrix = vp.transformController.value;
       final xOffset = matrix.getTranslation().x;
       final yOffset = matrix.getTranslation().y;
@@ -73,7 +73,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
       );
 
       try {
-        await api.updateViewportState(state: state);
+        await handle.updateViewportState(state: state);
       } catch (e) {
         debugPrint('Failed to save viewport state for session $name: $e');
       }
@@ -122,16 +122,16 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
   final ValueNotifier<bool> showRightPanel = ValueNotifier(true);
   final ValueNotifier<bool> showBottomPanel = ValueNotifier(true);
   final ValueNotifier<bool> isInitialized = ValueNotifier<bool>(false);
-  NodeApi? get nodeApi => handle;
-  RelationApi? get relationApi => handle;
-  LayoutApi? get layoutApi => handle;
-  HistoryApi? get historyApi => handle;
-  ThemeApi? get themeApi => handle;
-  TemplateApi? get templateApi => handle;
-  TagApi? get tagApi => handle;
-  AssetApi? get assetApi => handle;
-  MlApi? get mlApi => handle;
-  ViewportApi? get viewportApi => handle;
+  NodeApi get nodeApi => handle;
+  RelationApi get relationApi => handle;
+  LayoutApi get layoutApi => handle;
+  HistoryApi get historyApi => handle;
+  ThemeApi get themeApi => handle;
+  TemplateApi get templateApi => handle;
+  TagApi get tagApi => handle;
+  AssetApi get assetApi => handle;
+  MlApi get mlApi => handle;
+  ViewportApi get viewportApi => handle;
 
   VoidCallback? _themeListener;
   StreamSubscription<GraphEntityUpdate>? _querySub;
@@ -143,7 +143,34 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     required this.storagePath,
     required this.name,
     this.centFilePath,
-  });
+  }) : _handleCompleter = Completer<AppHandle>() {
+    handle = RustGraphApi(_handleCompleter.future);
+    themeController = ThemeController(handle);
+    queryController = GraphDataQueryController(handle);
+    commandProcessor = CommandQueueProcessor(handle, queryController);
+    nodeRenderState = NodeRenderState(queryController, commandProcessor);
+
+    final styleManager = StyleManager(queryController.store);
+    final layoutStrategy = DefaultNodeLayoutStrategy();
+    commandProcessor.sizeCalculator = layoutStrategy.calculateSize;
+    commandProcessor.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
+    commandProcessor.styleUpdater = styleManager;
+
+    _themeListener = () {
+      final newTheme = themeController.currentGraphTheme;
+      styleManager.setTheme(newTheme);
+      styleManager.updateAllStyles(
+        queryController.store.nodes,
+        queryController.store.relations,
+      );
+      queryController.triggerUpdate();
+    };
+    themeController.addListener(_themeListener!);
+
+    _querySub = queryController.onEntityUpdate.listen((_) {
+      notifyListeners();
+    });
+  }
 
   Future<void> initialize(ThemeData globalTheme) {
     return _initFuture ??= _doInitialize(globalTheme).catchError((e) {
@@ -171,51 +198,32 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
       storagePath: resolvedPath,
       name: name,
     );
-    final rustApi = RustGraphApi(activeHandle);
-    handle = rustApi;
+    if (!_handleCompleter.isCompleted) {
+      _handleCompleter.complete(activeHandle);
+    }
 
     if (centFilePath != null) {
       final attachmentDir = await AppPaths.attachmentsDirectoryForMap(
         p.basenameWithoutExtension(centFilePath!),
       );
-      await rustApi.loadMapFromFile(
+      await handle.loadMapFromFile(
         filePath: centFilePath!,
         attachmentDir: attachmentDir,
       );
     }
 
-    final tc = ThemeController(rustApi);
-    themeController = tc;
-    final qc = GraphDataQueryController(rustApi);
-    queryController = qc;
-    final processor = CommandQueueProcessor(rustApi, qc);
-    commandProcessor = processor;
-    nodeRenderState = NodeRenderState(qc, processor);
-
-    final styleManager = StyleManager(qc.store);
-    final layoutStrategy = DefaultNodeLayoutStrategy();
-    processor.sizeCalculator = layoutStrategy.calculateSize;
-    processor.styleResolver = (node) => NodeStyleStrategy.resolveStyle(node);
-    processor.styleUpdater = styleManager;
-
-    _themeListener = () {
-      final newTheme = tc.currentGraphTheme;
-      styleManager.setTheme(newTheme);
-      styleManager.updateAllStyles(qc.store.nodes, qc.store.relations);
-      qc.triggerUpdate();
-    };
-    tc.addListener(_themeListener!);
-
-    _querySub = qc.onEntityUpdate.listen((_) {
-      notifyListeners();
-    });
-
-    await tc.initialize(globalTheme);
+    await themeController.initialize(globalTheme);
     // Seeding initial theme style
-    styleManager.setTheme(tc.currentGraphTheme);
-    styleManager.updateAllStyles(qc.store.nodes, qc.store.relations);
+    final styleManager = commandProcessor.styleUpdater as StyleManager?;
+    if (styleManager != null) {
+      styleManager.setTheme(themeController.currentGraphTheme);
+      styleManager.updateAllStyles(
+        queryController.store.nodes,
+        queryController.store.relations,
+      );
+    }
 
-    await processor.loadGraph();
+    await commandProcessor.loadGraph();
     isInitialized.value = true;
     _log.info('TabSession initialized successfully');
     notifyListeners();
@@ -227,7 +235,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
         final tokBytes = await rootBundle.load('assets/models/multilingual_5lang/tokenizer.json');
         final cfgBytes = await rootBundle.load('assets/models/multilingual_5lang/config.json');
 
-        await handle?.initEmbedderModel(
+        await handle.initEmbedderModel(
           weightsBytes: modelBytes.buffer.asUint8List(),
           tokenizerBytes: tokBytes.buffer.asUint8List(),
           configBytes: cfgBytes.buffer.asUint8List(),
@@ -239,29 +247,25 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     }());
   }
 
-  bool get canUndo => commandProcessor?.canUndo ?? false;
-  bool get canRedo => commandProcessor?.canRedo ?? false;
-  int get undoCount => commandProcessor?.undoCount ?? 0;
-  int get redoCount => commandProcessor?.redoCount ?? 0;
+  bool get canUndo => commandProcessor.canUndo;
+  bool get canRedo => commandProcessor.canRedo;
+  int get undoCount => commandProcessor.undoCount;
+  int get redoCount => commandProcessor.redoCount;
 
   Future<void> undo() async {
-    await commandProcessor?.undo();
+    await commandProcessor.undo();
     notifyListeners();
   }
 
   Future<void> redo() async {
-    await commandProcessor?.redo();
+    await commandProcessor.redo();
     notifyListeners();
   }
 
-
-    Future<void> close() async {
+  Future<void> close() async {
     _log.info('Closing TabSession name=$name path=$storagePath');
     _debounceTimer?.cancel();
-    final h = handle;
-    if (h != null) {
-      await h.close();
-    }
+    await handle.close();
   }
 
   /// Flushes pending mutations, saves viewport state, and closes the handle.
@@ -271,10 +275,7 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     if (saveState) {
       await saveViewportState();
     }
-    final cp = commandProcessor;
-    if (cp != null) {
-      await cp.flush();
-    }
+    await commandProcessor.flush();
     await close();
   }
 
@@ -284,15 +285,15 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     _debounceTimer?.cancel();
     _viewportController?.transformController.removeListener(_onViewportChanged);
     if (_themeListener != null) {
-      themeController?.removeListener(_themeListener!);
+      themeController.removeListener(_themeListener!);
       _themeListener = null;
     }
     _querySub?.cancel();
     _querySub = null;
-    themeController?.dispose();
-    queryController?.dispose();
-    commandProcessor?.dispose();
-    nodeRenderState?.dispose();
+    themeController.dispose();
+    queryController.dispose();
+    commandProcessor.dispose();
+    nodeRenderState.dispose();
     toolModeNotifier.dispose();
     brushColorNotifier.dispose();
     brushThicknessNotifier.dispose();

@@ -12,6 +12,7 @@ import '../../presentation/theme/app_theme.dart';
 import '../../presentation/theme/app_theme_manager.dart';
 import '../../presentation/theme/theme_repository.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/utils/boot_cache.dart';
 import '../lifecycle/custodian_manager.dart';
 import '../lifecycle/daemon_gateway.dart';
 import '../../features/graph/presentation/map_manager.dart';
@@ -31,10 +32,11 @@ class AppContext {
 class AppBootstrap {
   static final Logger _log = Logger('AppBootstrap');
 
+  static const Size splashWindowSize = Size(640, 420);
   static const Size defaultWindowSize = Size(1280, 720);
 
-  /// Executes the complete multi-phase boot sequence.
-  static Future<AppContext> initialize() async {
+  /// Preflight initialization completing in <50ms for instant frame 0 rendering.
+  static Future<AppContext> initializeFast() async {
     WidgetsFlutterBinding.ensureInitialized();
 
     if (kDebugMode) {
@@ -43,26 +45,26 @@ class AppBootstrap {
       debugProfileBuildsEnabled = false;
     }
 
-    // Phase 1: Core System, FFI & Telemetry
+    // Phase 1: Core System, FFI, Boot Cache & Telemetry
     await RustLib.init();
     await LogManager().init();
-    await GlassShaderProvider.load();
+    await BootCache.init();
     await AppPaths.ensureDirectories();
-    _log.info('Phase 1: Core FFI and telemetry ready.');
+    _log.info('Phase 1: Core FFI, boot cache and telemetry ready.');
 
     // Phase 2: Window & Platform Management
     if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       await windowManager.ensureInitialized();
       const windowOptions = WindowOptions(
-        size: defaultWindowSize,
+        size: splashWindowSize,
         center: true,
         backgroundColor: Colors.transparent,
         skipTaskbar: false,
-        titleBarStyle: TitleBarStyle.hidden,
       );
       await windowManager.waitUntilReadyToShow(windowOptions, () async {
+        await windowManager.setAsFrameless();
+        await windowManager.setHasShadow(false);
         await windowManager.show();
-        await windowManager.focus();
       });
 
       CustodianLifecycleCoordinator.instance.init();
@@ -72,27 +74,37 @@ class AppBootstrap {
       _log.info('Phase 2: Platform window & custodian ready.');
     }
 
-    // Phase 3: Engine & Persistence Storage
-    final coreDbDir = await AppPaths.mapsDirectory;
-    await DaemonGateway.instance.init(coreDbDir);
-    MapManager.instance.storageGateway = DaemonGateway.instance;
-    _log.info('Phase 3: Daemon storage gateway connected.');
-
-    // Phase 4: Bundled Themes & Presentation
+    // Phase 3: Cached Theme Resolution
     final themes = await ThemeLoader.loadBundledThemes();
+    final cachedThemeName = BootCache.cachedThemeName;
     final AppTheme initialTheme;
     if (themes.isEmpty) {
-      _log.severe('No JSON themes found in assets. Falling back to bare defaults.');
       initialTheme = AppTheme();
     } else {
-      initialTheme = themes['dark'] ?? themes.values.first;
-      _log.info('Phase 4: Loaded themes: ${themes.keys.join(', ')}');
+      initialTheme = themes[cachedThemeName] ?? themes['dark'] ?? themes.values.first;
+      _log.info('Phase 3: Active theme selected: $cachedThemeName');
     }
-    AppThemeManager.instance.themeNotifier = ValueNotifier(initialTheme);
+    AppThemeManager.instance.currentTheme = initialTheme;
 
     return AppContext(
       allThemes: themes,
       initialTheme: initialTheme,
     );
+  }
+
+  /// Asynchronous background worker preparing heavier storage and shader assets.
+  static Future<void> initializeBackgroundServices([
+    void Function(String status)? onProgress,
+  ]) async {
+    onProgress?.call('Loading shaders...');
+    await GlassShaderProvider.load();
+
+    onProgress?.call('Connecting storage daemon...');
+    final coreDbDir = await AppPaths.mapsDirectory;
+    await DaemonGateway.instance.init(coreDbDir);
+    MapManager.instance.storageGateway = DaemonGateway.instance;
+    _log.info('Background daemon storage connected.');
+
+    onProgress?.call('Ready');
   }
 }

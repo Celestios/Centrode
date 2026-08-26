@@ -118,6 +118,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
     int relationCount,
   ) {
     final relationColor = Colors.amber.shade600;
+    final showBadges = isSelected && !_isExpanded;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -150,7 +151,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (!isSelected)
+                if (!showBadges)
                   Icon(
                     Icons.tune_rounded,
                     size: 16,
@@ -275,18 +276,11 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Standout Context Status Badge Box
-              _ContextStatusBadge(
-                nodeCount: nodeCount,
-                relationCount: relationCount,
-              ),
-              const SizedBox(height: 8),
-
               // Top Tab Switcher Bar (Appearance vs Data)
               _buildTopTabBar(context, renderState),
               const SizedBox(height: 10),
 
-              // Main Dynamic Accordion Body
+              // Main Dynamic Body
               Expanded(
                 child: ValueListenableBuilder<InspectorTab>(
                   valueListenable: renderState.activeInspectorTabNotifier,
@@ -340,6 +334,14 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                   },
                 ),
               ),
+
+              const SizedBox(height: 8),
+
+              // Scope Status Badge Moved to Bottom
+              _ContextStatusBadge(
+                nodeCount: nodeCount,
+                relationCount: relationCount,
+              ),
             ],
           ),
         ),
@@ -357,6 +359,8 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
     return ValueListenableBuilder<InspectorTab>(
       valueListenable: renderState.activeInspectorTabNotifier,
       builder: (context, activeTab, _) {
+        final isAppearance = activeTab == InspectorTab.appearance;
+
         return Container(
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
@@ -367,34 +371,49 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
               width: 0.8,
             ),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: _GlassTabButton(
-                  icon: Icons.palette_rounded,
-                  label: 'Appearance',
-                  isActive: activeTab == InspectorTab.appearance,
-                  activeColor: primaryColor,
-                  onTap: () {
-                    renderState.activeInspectorTabNotifier.value =
-                        InspectorTab.appearance;
-                  },
-                ),
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: _GlassTabButton(
-                  icon: Icons.storage_rounded,
-                  label: 'Data',
-                  isActive: activeTab == InspectorTab.data,
-                  activeColor: primaryColor,
-                  onTap: () {
-                    renderState.activeInspectorTabNotifier.value =
-                        InspectorTab.data;
-                  },
-                ),
-              ),
-            ],
+          child: TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeInOutCubic,
+            tween: Tween<double>(
+              begin: isAppearance ? 1.0 : 0.0,
+              end: isAppearance ? 1.0 : 0.0,
+            ),
+            builder: (context, progress, _) {
+              final appearanceFlex = (1000 * (1.0 + progress * 0.75)).round();
+              final dataFlex = (1000 * (1.0 + (1.0 - progress) * 0.75)).round();
+
+              return Row(
+                children: [
+                  Expanded(
+                    flex: appearanceFlex,
+                    child: _GlassTabButton(
+                      icon: Icons.palette_rounded,
+                      label: 'Appearance',
+                      isActive: isAppearance,
+                      activeColor: primaryColor,
+                      onTap: () {
+                        renderState.activeInspectorTabNotifier.value =
+                            InspectorTab.appearance;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    flex: dataFlex,
+                    child: _GlassTabButton(
+                      icon: Icons.storage_rounded,
+                      label: 'Data',
+                      isActive: !isAppearance,
+                      activeColor: primaryColor,
+                      onTap: () {
+                        renderState.activeInspectorTabNotifier.value =
+                            InspectorTab.data;
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         );
       },

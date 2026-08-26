@@ -104,7 +104,7 @@ class TagSearchSource extends SearchSource {
   void _focusOnUiNode(BuildContext context, RawUuid nodeId) {
     final tabsController = context.read<WorkspaceTabsController>();
     final session = tabsController.activeSession;
-    final uiNode = session.queryController?.nodeLookup[nodeId];
+    final uiNode = session.queryController.nodeLookup[nodeId];
     final viewportController = session.viewportController;
 
     if (uiNode != null && viewportController != null) {
@@ -187,7 +187,7 @@ class DatabaseSearchSource extends SearchSource {
   void _focusOnUiNode(BuildContext context, RawUuid nodeId) {
     final tabsController = context.read<WorkspaceTabsController>();
     final session = tabsController.activeSession;
-    final uiNode = session.queryController?.nodeLookup[nodeId];
+    final uiNode = session.queryController.nodeLookup[nodeId];
     final viewportController = session.viewportController;
 
     if (uiNode != null && viewportController != null) {
@@ -293,7 +293,7 @@ class CanvasSearchSource extends SearchSource {
   void _focusOnUiNode(BuildContext context, RawUuid nodeId) {
     final tabsController = context.read<WorkspaceTabsController>();
     final session = tabsController.activeSession;
-    final uiNode = session.queryController?.nodeLookup[nodeId];
+    final uiNode = session.queryController.nodeLookup[nodeId];
     final viewportController = session.viewportController;
 
     if (uiNode != null && viewportController != null) {
@@ -311,7 +311,6 @@ class CanvasSearchSource extends SearchSource {
     final tabsController = context.read<WorkspaceTabsController>();
     final session = tabsController.activeSession;
     final queryController = session.queryController;
-    if (queryController == null) return;
 
     final fromNode = queryController.nodeLookup[relation.fromNodeId];
     final toNode = queryController.nodeLookup[relation.toNodeId];

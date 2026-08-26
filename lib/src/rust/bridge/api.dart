@@ -28,8 +28,6 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:uuid/uuid.dart';
 import 'stream.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`
-
 /// Initializes the root unified SurrealKV storage engine.
 Future<void> initCoreEngine({required String storagePath}) =>
     RustLib.instance.api.crateBridgeApiInitCoreEngine(storagePath: storagePath);
