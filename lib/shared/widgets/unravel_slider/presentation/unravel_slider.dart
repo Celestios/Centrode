@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -54,6 +55,7 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
 
   late final AnimationController _settleController;
   late final FocusNode _focusNode;
+  Timer? _scrollSettleTimer;
 
   double _settleFrom = 0.0;
   double _settleTo = 0.0;
@@ -62,6 +64,8 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
 
   int? _activePointer;
   Offset? _downPos;
+  bool _isInteracting = false;
+  int? _lastReportedIndex;
   late UnravelSliderMetrics _metrics;
 
   @override
@@ -75,6 +79,7 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
 
     _updateMetrics(widget.trackWidth ?? 230.0);
     _u = _rawU = _metrics.anchorU(widget.selectedIndex);
+    _lastReportedIndex = widget.selectedIndex;
   }
 
   @override
@@ -87,14 +92,18 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
       _u = _rawU = _rawU.clamp(0.0, _metrics.handleTravel);
     }
 
-    if (oldWidget.selectedIndex != widget.selectedIndex &&
-        !_settleController.isAnimating) {
-      _animateTo(_metrics.anchorU(widget.selectedIndex));
+    if (oldWidget.selectedIndex != widget.selectedIndex) {
+      // Only animate if the change was triggered externally, not from active local interaction
+      if (widget.selectedIndex != _lastReportedIndex && !_isInteracting) {
+        _lastReportedIndex = widget.selectedIndex;
+        _animateTo(_metrics.anchorU(widget.selectedIndex));
+      }
     }
   }
 
   @override
   void dispose() {
+    _scrollSettleTimer?.cancel();
     _focusNode.dispose();
     _settleController.dispose();
     super.dispose();
@@ -145,13 +154,16 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
     final handleCenter = _metrics.margin + _u;
     final xs = _metrics.computeXs(_u);
     final nearest = _metrics.nearestIndex(handleCenter, xs);
-    if (nearest != widget.selectedIndex) {
+    if (nearest != widget.selectedIndex && nearest != _lastReportedIndex) {
+      _lastReportedIndex = nearest;
       widget.onSelected?.call(nearest);
     }
   }
 
   void _onPointerDown(PointerDownEvent e) {
     _focusNode.requestFocus();
+    _isInteracting = true;
+    _scrollSettleTimer?.cancel();
     _activePointer = e.pointer;
     _downPos = e.position;
     _settleController.stop();
@@ -166,6 +178,7 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
   void _onPointerUp(PointerUpEvent e) {
     if (_activePointer != e.pointer) return;
     _activePointer = null;
+    _isInteracting = false;
     final moved = (e.position - _downPos!).distance;
     if (moved < _tapSlack) {
       _selectAt(e.localPosition.dx);
@@ -173,10 +186,12 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
       final handleCenter = _metrics.margin + _u;
       final xs = _metrics.computeXs(_u);
       final targetIndex = _metrics.nearestIndex(handleCenter, xs);
+      _lastReportedIndex = targetIndex;
       _animateTo(_metrics.anchorU(targetIndex));
       widget.onSelectFinalized?.call(targetIndex);
     } else {
       final targetIndex = _metrics.nearestIndex(_metrics.margin + _u, _metrics.computeXs(_u));
+      _lastReportedIndex = targetIndex;
       widget.onSelectFinalized?.call(targetIndex);
     }
   }
@@ -184,14 +199,36 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
   void _onPointerCancel(PointerCancelEvent e) {
     if (_activePointer != e.pointer) return;
     _activePointer = null;
+    _isInteracting = false;
   }
 
   void _onPointerSignal(PointerSignalEvent event) {
     if (event is PointerScrollEvent) {
+      _settleController.stop();
+      _isInteracting = true;
+      _scrollSettleTimer?.cancel();
+
       final delta = event.scrollDelta.dx != 0 ? event.scrollDelta.dx : event.scrollDelta.dy;
       if (delta.abs() > 0.1) {
         setState(() => _applyDragDelta(delta * 0.4));
       }
+
+      _scrollSettleTimer = Timer(const Duration(milliseconds: 140), () {
+        if (!mounted) return;
+        _isInteracting = false;
+        if (!widget.magnetic) {
+          final handleCenter = _metrics.margin + _u;
+          final xs = _metrics.computeXs(_u);
+          final targetIndex = _metrics.nearestIndex(handleCenter, xs);
+          _lastReportedIndex = targetIndex;
+          _animateTo(_metrics.anchorU(targetIndex));
+          widget.onSelectFinalized?.call(targetIndex);
+        } else {
+          final targetIndex = _metrics.nearestIndex(_metrics.margin + _u, _metrics.computeXs(_u));
+          _lastReportedIndex = targetIndex;
+          widget.onSelectFinalized?.call(targetIndex);
+        }
+      });
     }
   }
 
@@ -199,6 +236,7 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
     final xs = _metrics.computeXs(_u);
     final hitIndex = _metrics.hitTest(localX, xs);
     if (hitIndex >= 0) {
+      _lastReportedIndex = hitIndex;
       _animateTo(_metrics.anchorU(hitIndex));
       widget.onSelected?.call(hitIndex);
       widget.onSelectFinalized?.call(hitIndex);
@@ -210,23 +248,27 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
 
     if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
       final prev = (widget.selectedIndex - 1).clamp(0, widget.items.length - 1);
+      _lastReportedIndex = prev;
       _animateTo(_metrics.anchorU(prev));
       widget.onSelected?.call(prev);
       widget.onSelectFinalized?.call(prev);
       return KeyEventResult.handled;
     } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
       final next = (widget.selectedIndex + 1).clamp(0, widget.items.length - 1);
+      _lastReportedIndex = next;
       _animateTo(_metrics.anchorU(next));
       widget.onSelected?.call(next);
       widget.onSelectFinalized?.call(next);
       return KeyEventResult.handled;
     } else if (event.logicalKey == LogicalKeyboardKey.home) {
+      _lastReportedIndex = 0;
       _animateTo(_metrics.anchorU(0));
       widget.onSelected?.call(0);
       widget.onSelectFinalized?.call(0);
       return KeyEventResult.handled;
     } else if (event.logicalKey == LogicalKeyboardKey.end) {
       final last = widget.items.length - 1;
+      _lastReportedIndex = last;
       _animateTo(_metrics.anchorU(last));
       widget.onSelected?.call(last);
       widget.onSelectFinalized?.call(last);
