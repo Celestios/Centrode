@@ -100,12 +100,12 @@ class _DataTabState extends State<DataTab> {
   Widget _buildCenteredPlaceholder(ThemeData theme, String text) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(24.0),
         child: Text(
           text,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: FontWeight.w500,
             color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
           ),
@@ -118,7 +118,7 @@ class _DataTabState extends State<DataTab> {
     return CentrodeIconButton(
       icon: Icons.add_rounded,
       onPressed: _startAddingTag,
-      iconSize: 18,
+      iconSize: 20,
       enableHover: false,
     );
   }
@@ -138,18 +138,18 @@ class _DataTabState extends State<DataTab> {
             children: [
               Expanded(
                 child: SizedBox(
-                  height: 28,
+                  height: 32,
                   child: TextField(
                     controller: _tagController,
                     focusNode: _tagFocusNode,
                     style: TextStyle(
-                      fontSize: 10.5,
+                      fontSize: 12.0,
                       color: theme.textTheme.bodyMedium?.color,
                     ),
                     decoration: InputDecoration(
                       hintText: 'New tag name...',
                       hintStyle: TextStyle(
-                        fontSize: 10,
+                        fontSize: 11.5,
                         color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.4),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
@@ -171,16 +171,16 @@ class _DataTabState extends State<DataTab> {
               CentrodeIconButton(
                 icon: Icons.close_rounded,
                 onPressed: _cancelAddingTag,
-                iconSize: 14,
-                buttonSize: 24,
+                iconSize: 16,
+                buttonSize: 26,
                 enableHover: false,
               ),
               const SizedBox(width: 4),
               CentrodeIconButton(
                 icon: Icons.check_rounded,
                 onPressed: () => _addTag(node),
-                iconSize: 14,
-                buttonSize: 24,
+                iconSize: 16,
+                buttonSize: 26,
                 enableHover: false,
               ),
             ],
@@ -202,15 +202,15 @@ class _DataTabState extends State<DataTab> {
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 150),
-                          margin: const EdgeInsets.only(right: 5),
-                          width: 18,
-                          height: 18,
+                          margin: const EdgeInsets.only(right: 6),
+                          width: 20,
+                          height: 20,
                           decoration: BoxDecoration(
                             color: Color(colorValue),
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: isSelected ? Colors.white : Colors.white24,
-                              width: isSelected ? 1.8 : 0.8,
+                              width: isSelected ? 2.0 : 0.8,
                             ),
                             boxShadow: isSelected
                                 ? [
@@ -224,7 +224,7 @@ class _DataTabState extends State<DataTab> {
                           child: isSelected
                               ? Icon(
                                   Icons.check,
-                                  size: 9,
+                                  size: 10,
                                   color: ThemeData.estimateBrightnessForColor(
                                             Color(colorValue),
                                           ) ==
@@ -242,7 +242,7 @@ class _DataTabState extends State<DataTab> {
               CentrodeIconButton(
                 icon: Icons.shuffle_rounded,
                 onPressed: _randomizePalette,
-                iconSize: 16,
+                iconSize: 18,
                 enableHover: false,
               ),
             ],
@@ -275,11 +275,11 @@ class _DataTabState extends State<DataTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Sub-block 1: TAGS
-        SubBlockShell(
+        // Section 1: TAGS (Always Open)
+        GlassSectionShell(
           title: 'Tags',
+          icon: Icons.label_rounded,
           accentColor: primaryAccent,
-          initiallyExpanded: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -292,8 +292,8 @@ class _DataTabState extends State<DataTab> {
                       final tagColor = Color(tag.fields.color);
                       return Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                          horizontal: 9,
+                          vertical: 5,
                         ),
                         decoration: BoxDecoration(
                           color: tagColor.withValues(alpha: 0.18),
@@ -307,32 +307,32 @@ class _DataTabState extends State<DataTab> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Container(
-                              width: 6,
-                              height: 6,
+                              width: 8,
+                              height: 8,
                               decoration: BoxDecoration(
                                 color: tagColor,
                                 shape: BoxShape.circle,
                               ),
                             ),
-                            const SizedBox(width: 5),
+                            const SizedBox(width: 6),
                             Text(
                               tag.fields.name,
                               style: TextStyle(
-                                fontSize: 9.5,
+                                fontSize: 11.5,
                                 color: theme.textTheme.bodyMedium?.color
-                                    ?.withValues(alpha: 0.9),
+                                    ?.withValues(alpha: 0.95),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 5),
                             CentrodeIconButton(
                               icon: Icons.close_rounded,
                               onPressed: () => widget.renderState.removeTagFromNode(
                                 node.id,
                                 tag.key.key.uuid,
                               ),
-                              iconSize: 14,
-                              buttonSize: 24,
+                              iconSize: 15,
+                              buttonSize: 22,
                               enableHover: false,
                             ),
                           ],
@@ -353,11 +353,11 @@ class _DataTabState extends State<DataTab> {
           ),
         ),
 
-        // Sub-block 2: COMMENTS
-        SubBlockShell(
+        // Section 2: COMMENTS (Always Open)
+        GlassSectionShell(
           title: 'Comments',
+          icon: Icons.comment_rounded,
           accentColor: primaryAccent,
-          initiallyExpanded: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -365,18 +365,18 @@ class _DataTabState extends State<DataTab> {
                 children: [
                   Expanded(
                     child: SizedBox(
-                      height: 28,
+                      height: 32,
                       child: TextField(
                         controller: _commentController,
                         focusNode: _commentFocusNode,
                         style: TextStyle(
-                          fontSize: 10.5,
+                          fontSize: 12.0,
                           color: theme.textTheme.bodyMedium?.color,
                         ),
                         decoration: InputDecoration(
                           hintText: 'Write a comment...',
                           hintStyle: TextStyle(
-                            fontSize: 10,
+                            fontSize: 11.5,
                             color: theme.textTheme.bodyMedium?.color
                                 ?.withValues(alpha: 0.4),
                           ),
@@ -399,7 +399,7 @@ class _DataTabState extends State<DataTab> {
                   CentrodeIconButton(
                     icon: Icons.send_rounded,
                     onPressed: () => _addComment(node),
-                    iconSize: 16,
+                    iconSize: 18,
                     enableHover: false,
                   ),
                 ],
@@ -411,7 +411,7 @@ class _DataTabState extends State<DataTab> {
                   children: node.comments.map((comment) {
                     return Container(
                       margin: const EdgeInsets.only(bottom: 6),
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
@@ -429,10 +429,10 @@ class _DataTabState extends State<DataTab> {
                               Text(
                                 formatTimestampShort(comment.createdAt.toInt()),
                                 style: TextStyle(
-                                  fontSize: 8.5,
+                                  fontSize: 9.5,
                                   fontWeight: FontWeight.w600,
                                   color: theme.textTheme.bodyMedium?.color
-                                      ?.withValues(alpha: 0.4),
+                                      ?.withValues(alpha: 0.45),
                                 ),
                               ),
                               CentrodeIconButton(
@@ -448,10 +448,10 @@ class _DataTabState extends State<DataTab> {
                           Text(
                             comment.text,
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: 12,
                               color: theme.textTheme.bodyMedium?.color
-                                  ?.withValues(alpha: 0.85),
-                              height: 1.25,
+                                  ?.withValues(alpha: 0.9),
+                              height: 1.3,
                             ),
                           ),
                         ],
@@ -461,12 +461,12 @@ class _DataTabState extends State<DataTab> {
                 )
               else
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(vertical: 20.0),
                   child: Center(
                     child: Text(
                       'No comments added',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 11.5,
                         color: theme.textTheme.bodyMedium?.color
                             ?.withValues(alpha: 0.4),
                       ),

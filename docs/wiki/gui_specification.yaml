@@ -619,17 +619,19 @@ toolbar_components:
         border_radius: 12
         blur: 12
       content_panel:
-        width: "280px (default), min: 200, max: 500"
+        width: "320px (default), min: 240, max: 550"
         border_radius: 16
       tab_bar:
         height: 30
         active: "{ background: primaryColor 0.25, border_radius: 8 }"
     animations:
       container: "{ duration: 250ms, curve: easeInOut }"
+      tab_transition: "{ duration: 280ms, slide+fade, easeInOutCubic }"
     behaviors:
       - Drag to resize panel width
       - Velocity-based auto-expand/collapse
       - Click handle to toggle
+      - Tab switch slides data/appearance tabs in from opposite edges
 
   - name: CollapsibleSidebar
     path: lib/features/graph/ui/widgets/overlays/collapsible_sidebar.dart
@@ -718,17 +720,17 @@ inspector_components:
     description: "Inspector tab for editing node metadata: tags and comments."
     styles:
       tag_chip:
-        padding: "{ horizontal: 8, vertical: 4 }"
+        padding: "{ horizontal: 9, vertical: 5 }"
         background: tagColor 0.18
         border_radius: 8
         border: "{ color: tagColor 0.45, width: 0.8 }"
       comment_card:
-        padding: 8
+        padding: 9
         background: black 0.15
         border_radius: 8
 
   - name: GlassSectionShell
-    path: lib/features/graph/ui/widgets/inspector/relation_appearance_section.dart
+    path: lib/features/graph/ui/widgets/inspector/components/glass_section_shell.dart
     description: "Reusable top-level section container for inspector property groups."
     styles:
       background: black 0.18
@@ -737,7 +739,7 @@ inspector_components:
       header: "{ padding: { horizontal: 10, vertical: 8 }, fontSize: 10, fontWeight: w700 }"
 
   - name: SubBlockShell
-    path: lib/features/graph/ui/widgets/inspector/relation_appearance_section.dart
+    path: lib/features/graph/ui/widgets/inspector/components/sub_block_shell.dart
     description: "Collapsible sub-block within a section shell."
     styles:
       background: black 0.12
@@ -745,7 +747,7 @@ inspector_components:
       header: "{ fontSize: 9.0, fontWeight: w800 }"
 
   - name: VisualShapeSelector
-    path: lib/features/graph/ui/widgets/inspector/relation_appearance_section.dart
+    path: lib/features/graph/ui/widgets/inspector/components/visual_shape_selector.dart
     description: "Grid of visual preview tiles for shape/routing/cap selection."
     styles:
       item:
@@ -756,7 +758,7 @@ inspector_components:
         icon_size: 13
 
   - name: SegmentedGlassSwitcher
-    path: lib/features/graph/ui/widgets/inspector/relation_appearance_section.dart
+    path: lib/features/graph/ui/widgets/inspector/components/segmented_glass_switcher.dart
     description: "Glass-style segmented mode switcher."
     styles:
       container: "{ background: black 0.25, border_radius: 8 }"
@@ -764,13 +766,29 @@ inspector_components:
       segment_height: 26
 
   - name: InlinePropertyRow
-    path: lib/features/graph/ui/widgets/inspector/relation_appearance_section.dart
+    path: lib/features/graph/ui/widgets/inspector/components/inline_property_row.dart
     description: "Inline row with label, color swatch, micro slider, and value readout."
     styles:
       label_width: 75
       label_font_size: 9.5
       color_swatch: 14x14 circle
       slider: "{ track_height: 2, thumb_radius: 5 }"
+
+  - name: NodesSectionShell
+    path: lib/features/graph/ui/widgets/inspector/nodes_section_shell.dart
+    description: "Nodes appearance section composing Body, Border, and Text sub-blocks."
+
+  - name: RelationsSectionShell
+    path: lib/features/graph/ui/widgets/inspector/relations_section_shell.dart
+    description: "Relations appearance section composing Label Body, Label Text, Routing, Stroke & Caps, and Topology sub-blocks."
+
+  - name: NodeShowcaseCard
+    path: lib/features/graph/ui/widgets/inspector/showcase/node_showcase_card.dart
+    description: "Live preview card rendering node appearance settings."
+
+  - name: RelationShowcaseCard
+    path: lib/features/graph/ui/widgets/inspector/showcase/relation_showcase_card.dart
+    description: "Live preview card rendering relation appearance settings."
 
 # =============================================================================
 # SECTION 6: SHARED WIDGETS

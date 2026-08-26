@@ -14,15 +14,15 @@ class RightPropertyPanel extends StatefulWidget {
 }
 
 class _RightPropertyPanelState extends State<RightPropertyPanel> {
-  double _panelWidth = 280.0;
+  double _panelWidth = 320.0;
   bool _isExpanded = false;
 
   static const double _handleWidth = 42.0;
   static const double _handleHeight = 160.0;
   static const double _gapWidth = 4.0;
-  static const double _defaultPanelWidth = 280.0;
-  static const double _minPanelWidth = 200.0;
-  static const double _maxPanelWidth = 500.0;
+  static const double _defaultPanelWidth = 320.0;
+  static const double _minPanelWidth = 240.0;
+  static const double _maxPanelWidth = 550.0;
 
   bool _isHovered = false;
   bool _isDragging = false;
@@ -280,60 +280,95 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
               _buildTopTabBar(context, renderState),
               const SizedBox(height: 10),
 
-              // Main Dynamic Body
+              // Main Dynamic Body with Full-Width Sliding Tab Transition
               Expanded(
-                child: ValueListenableBuilder<InspectorTab>(
-                  valueListenable: renderState.activeInspectorTabNotifier,
-                  builder: (context, activeTab, _) {
-                    if (activeTab == InspectorTab.data) {
-                      if (nodeCount > 0) {
-                        final selectedNodeId = selectedEntities.firstWhere(
-                          (id) => renderState.nodeLookup.containsKey(id),
-                        );
-                        return SingleChildScrollView(
-                          physics: const BouncingScrollPhysics(),
-                          child: DataTab(
-                            nodeId: selectedNodeId,
-                            renderState: renderState,
-                          ),
-                        );
-                      }
-
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text(
-                            'Select a node to inspect and edit its Tags & Comments.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color
-                                  ?.withValues(alpha: 0.5),
+                child: ClipRect(
+                  child: ValueListenableBuilder<InspectorTab>(
+                    valueListenable: renderState.activeInspectorTabNotifier,
+                    builder: (context, activeTab, _) {
+                      return AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 280),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
+                          return Stack(
+                            alignment: Alignment.topCenter,
+                            children: <Widget>[
+                              ...previousChildren,
+                              if (currentChild != null) currentChild,
+                            ],
+                          );
+                        },
+                        transitionBuilder: (Widget child, Animation<double> animation) {
+                          final isData = child.key == const ValueKey('data_tab');
+                          final inOffset = Tween<Offset>(
+                            begin: Offset(isData ? 1.0 : -1.0, 0.0),
+                            end: Offset.zero,
+                          ).animate(CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeInOutCubic,
+                          ));
+                          final fadeAnim = Tween<double>(begin: 0.15, end: 1.0).animate(
+                            CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeInOut,
                             ),
-                          ),
-                        ),
-                      );
-                    }
-
-                    final showNodesSection = isNothingSelected || nodeCount > 0;
-                    final showRelationsSection = isNothingSelected || relationCount > 0;
-
-                    return ListView(
-                      padding: EdgeInsets.zero,
-                      children: [
-                        if (showNodesSection)
-                          NodesSectionShell(isGlobal: isNothingSelected),
-                        if (showRelationsSection)
-                          RelationsSectionShell(isGlobal: isNothingSelected),
-                      ],
+                          );
+                          return SlideTransition(
+                            position: inOffset,
+                            child: FadeTransition(opacity: fadeAnim, child: child),
+                          );
+                        },
+                      child: activeTab == InspectorTab.data
+                          ? KeyedSubtree(
+                              key: const ValueKey('data_tab'),
+                              child: nodeCount > 0
+                                  ? SingleChildScrollView(
+                                      physics: const BouncingScrollPhysics(),
+                                      child: DataTab(
+                                        nodeId: selectedEntities.firstWhere(
+                                          (id) => renderState.nodeLookup.containsKey(id),
+                                        ),
+                                        renderState: renderState,
+                                      ),
+                                    )
+                                  : Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                        child: Text(
+                                          'Select a node to inspect and edit its Tags & Comments.',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.color
+                                                ?.withValues(alpha: 0.5),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                            )
+                          : KeyedSubtree(
+                              key: const ValueKey('appearance_tab'),
+                              child: ListView(
+                                padding: EdgeInsets.zero,
+                                physics: const BouncingScrollPhysics(),
+                                children: [
+                                  if (isNothingSelected || nodeCount > 0)
+                                    NodesSectionShell(isGlobal: isNothingSelected),
+                                  if (isNothingSelected || relationCount > 0)
+                                    RelationsSectionShell(isGlobal: isNothingSelected),
+                                ],
+                              ),
+                            ),
                     );
                   },
                 ),
               ),
+            ),
 
               const SizedBox(height: 8),
 
@@ -433,8 +468,7 @@ class _ContextStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
+    final primaryColor = Theme.of(context).colorScheme.primary;
     final amberColor = Colors.amber.shade600;
     final neutralColor = Colors.white.withValues(alpha: 0.85);
 
@@ -456,24 +490,24 @@ class _ContextStatusBadge extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: isNothingSelected
               ? Colors.white.withValues(alpha: 0.22)
               : primaryAccent.withValues(alpha: 0.6),
-          width: 1.2,
+          width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
             color: isNothingSelected
                 ? Colors.white.withValues(alpha: 0.06)
                 : primaryAccent.withValues(alpha: 0.25),
-            blurRadius: 10,
+            blurRadius: 8,
             spreadRadius: -1,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -482,61 +516,61 @@ class _ContextStatusBadge extends StatelessWidget {
         children: [
           if (isNothingSelected) ...[
             Container(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.0),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 0.8),
               ),
-              child: Icon(Icons.public_rounded, size: 12, color: neutralColor),
+              child: Icon(Icons.public_rounded, size: 11, color: neutralColor),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Text(
               'GLOBAL DEFAULTS',
               style: TextStyle(
-                fontSize: 10.0,
+                fontSize: 9.5,
                 fontWeight: FontWeight.w900,
-                letterSpacing: 1.1,
+                letterSpacing: 0.9,
                 color: neutralColor,
               ),
             ),
           ] else if (isOnlyNodes) ...[
             Container(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
                 color: primaryColor.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
-                border: Border.all(color: primaryColor.withValues(alpha: 0.6), width: 1.0),
+                border: Border.all(color: primaryColor.withValues(alpha: 0.6), width: 0.8),
               ),
-              child: Icon(Icons.account_tree_rounded, size: 12, color: primaryColor),
+              child: Icon(Icons.account_tree_rounded, size: 11, color: primaryColor),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Text(
               '$nodeCount NODE${nodeCount > 1 ? 'S' : ''} SELECTED',
               style: TextStyle(
-                fontSize: 10.0,
+                fontSize: 9.5,
                 fontWeight: FontWeight.w900,
-                letterSpacing: 1.0,
+                letterSpacing: 0.8,
                 color: primaryColor,
               ),
             ),
           ] else if (isOnlyRelations) ...[
             Container(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
                 color: amberColor.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
-                border: Border.all(color: amberColor.withValues(alpha: 0.6), width: 1.0),
+                border: Border.all(color: amberColor.withValues(alpha: 0.6), width: 0.8),
               ),
-              child: Icon(Icons.link_rounded, size: 12, color: amberColor),
+              child: Icon(Icons.link_rounded, size: 11, color: amberColor),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Text(
               '$relationCount RELATION${relationCount > 1 ? 'S' : ''} SELECTED',
               style: TextStyle(
-                fontSize: 10.0,
+                fontSize: 9.5,
                 fontWeight: FontWeight.w900,
-                letterSpacing: 1.0,
+                letterSpacing: 0.8,
                 color: amberColor,
               ),
             ),
@@ -547,25 +581,22 @@ class _ContextStatusBadge extends StatelessWidget {
                 color: primaryColor.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.account_tree_rounded, size: 11, color: primaryColor),
+              child: Icon(Icons.account_tree_rounded, size: 10, color: primaryColor),
             ),
-            const SizedBox(width: 3),
+            const SizedBox(width: 4),
             Text(
-              '$nodeCount',
-              style: TextStyle(
-                fontSize: 10.0,
-                fontWeight: FontWeight.w900,
-                color: primaryColor,
-              ),
-            ),
-            Text(
-              ' NODES & ',
+              '$nodeCount NODE${nodeCount > 1 ? 'S' : ''}',
               style: TextStyle(
                 fontSize: 9.0,
                 fontWeight: FontWeight.w800,
-                letterSpacing: 0.6,
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                color: primaryColor,
               ),
+            ),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 6),
+              width: 1.0,
+              height: 10,
+              color: Colors.white24,
             ),
             Container(
               padding: const EdgeInsets.all(3),
@@ -573,24 +604,15 @@ class _ContextStatusBadge extends StatelessWidget {
                 color: amberColor.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.link_rounded, size: 11, color: amberColor),
+              child: Icon(Icons.link_rounded, size: 10, color: amberColor),
             ),
-            const SizedBox(width: 3),
+            const SizedBox(width: 4),
             Text(
-              '$relationCount',
-              style: TextStyle(
-                fontSize: 10.0,
-                fontWeight: FontWeight.w900,
-                color: amberColor,
-              ),
-            ),
-            Text(
-              ' RELATIONS',
+              '$relationCount RELATION${relationCount > 1 ? 'S' : ''}',
               style: TextStyle(
                 fontSize: 9.0,
                 fontWeight: FontWeight.w800,
-                letterSpacing: 0.6,
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                color: amberColor,
               ),
             ),
           ],
@@ -662,7 +684,7 @@ class _GlassTabButton extends StatelessWidget {
       onTap: onTap,
       enableHover: false,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: const Duration(milliseconds: 180),
         height: 30,
         decoration: BoxDecoration(
           color: isActive
@@ -681,21 +703,22 @@ class _GlassTabButton extends StatelessWidget {
           children: [
             Icon(
               icon,
-              size: 13,
+              size: isActive ? 14 : 12.5,
               color: isActive
                   ? activeColor
                   : textColor.withValues(alpha: 0.6),
             ),
             const SizedBox(width: 4),
-            Text(
-              label,
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 180),
               style: TextStyle(
-                fontSize: 10,
+                fontSize: isActive ? 11.5 : 10.0,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                 color: isActive
                     ? activeColor
                     : textColor.withValues(alpha: 0.7),
               ),
+              child: Text(label),
             ),
           ],
         ),
