@@ -1,6 +1,5 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'node_showcase_card.dart';
+import 'showcase_painters.dart';
 
 /// Live Relation Showcase Object rendering in real-time.
 class RelationShowcaseCard extends StatelessWidget {
@@ -156,8 +155,9 @@ class RelationPathPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final start = Offset(24, size.height / 2);
-    final end = Offset(size.width - 24, size.height / 2);
+    final inset = (size.width * 0.12).clamp(8.0, 24.0);
+    final start = Offset(inset, size.height / 2);
+    final end = Offset(size.width - inset, size.height / 2);
 
     final path = Path();
     path.moveTo(start.dx, start.dy);
@@ -165,47 +165,34 @@ class RelationPathPainter extends CustomPainter {
     if (routingStrategy == 'straight') {
       path.lineTo(end.dx, end.dy);
     } else if (routingStrategy == 'curved') {
-      final controlY = size.height / 2 - (curveTension * 32.0);
-      path.quadraticBezierTo(size.width / 2, controlY, end.dx, end.dy);
-    } else if (routingStrategy == 'ortho') {
-      final midX = size.width / 2;
-      path.lineTo(midX, start.dy);
-      path.lineTo(midX, end.dy);
+      final dx = end.dx - start.dx;
+      final dy = end.dy - start.dy;
+      final cx1 = start.dx + dx * 0.35;
+      final cy1 = start.dy - 18.0 * curveTension;
+      final cx2 = start.dx + dx * 0.65;
+      final cy2 = end.dy + 18.0 * curveTension;
+      path.cubicTo(cx1, cy1, cx2, cy2, end.dx, end.dy);
+    } else if (routingStrategy == 'orthogonal') {
+      final midX = (start.dx + end.dx) / 2;
+      path.lineTo(midX, start.dy - 12);
+      path.lineTo(midX, end.dy + 12);
       path.lineTo(end.dx, end.dy);
     } else if (routingStrategy == 'step') {
-      final stepY = size.height / 2 - 14;
-      final midX = size.width / 2;
-      path.lineTo(midX - 16, start.dy);
-      path.lineTo(midX - 16, stepY);
-      path.lineTo(midX + 16, stepY);
-      path.lineTo(midX + 16, end.dy);
-      path.lineTo(end.dx, end.dy);
-    } else {
+      final midX = (start.dx + end.dx) / 2;
+      path.lineTo(midX, start.dy);
+      path.lineTo(midX, end.dy);
       path.lineTo(end.dx, end.dy);
     }
 
     final paint = Paint()
       ..color = color
-      ..strokeWidth = strokeWidth.clamp(1.0, 8.0)
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
 
     if (strokePattern == 'solid') {
       canvas.drawPath(path, paint);
     } else {
-      final dashWidth = strokePattern == 'dashed' ? 6.0 : 2.0;
-      final dashSpace = strokePattern == 'dashed' ? 4.0 : 3.0;
-
-      for (final metric in path.computeMetrics()) {
-        double distance = 0.0;
-        while (distance < metric.length) {
-          final len = math.min(dashWidth, metric.length - distance);
-          final extract = metric.extractPath(distance, distance + len);
-          canvas.drawPath(extract, paint);
-          distance += dashWidth + dashSpace;
-        }
-      }
+      drawDashedPath(canvas, path, paint, borderStyle: strokePattern);
     }
 
     // Start Cap

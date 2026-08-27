@@ -1,47 +1,41 @@
-import 'package:flutter/foundation.dart';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'graph_manual_widget.dart';
 import 'status_metrics_widget.dart';
 import 'zoom_slider_widget.dart';
 import 'viewport_mini_map_widget.dart';
+import 'status_bar_metrics.dart';
 
 class CanvasStatusBar extends StatelessWidget {
   const CanvasStatusBar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final isAndroid = !kIsWeb && Platform.isAndroid;
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final double maxWidth = constraints.maxWidth;
+        final double maxHeight = MediaQuery.sizeOf(context).height;
 
         // Guard against zero layout width
         if (maxWidth <= 0) return const SizedBox.shrink();
 
-        // On Android, minimap, metrics, and zoom slider are disabled and removed.
-        final showMiniMap = !isAndroid && maxWidth >= 700;
-        final showMetrics = !isAndroid && maxWidth >= 500;
-        final showZoom = !isAndroid;
-        final showManual = maxWidth >= 300;
+        final showMiniMap = CanvasStatusBarMetrics.shouldShowMiniMap(
+          maxWidth: maxWidth,
+          maxHeight: maxHeight,
+        );
+        final showMetrics = CanvasStatusBarMetrics.shouldShowMetrics(maxWidth);
+        final showZoom = CanvasStatusBarMetrics.shouldShowZoom();
+        final showManual = CanvasStatusBarMetrics.shouldShowManual(maxWidth);
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             // Bottom Left: Graph Manual / Conventions Legend
-            if (showManual)
-              const GraphManualWidget()
-            else
-              const SizedBox.shrink(),
+            if (showManual) const GraphManualWidget(),
 
             // Bottom Center: Graph Metrics & Sync Info (Disabled on Android)
-            if (showMetrics)
-              const StatusMetricsWidget()
-            else
-              const SizedBox.shrink(),
+            if (showMetrics) const StatusMetricsWidget(),
 
             // Bottom Right: Zoom & Mini-Map group (Disabled on Android)
             if (showZoom)

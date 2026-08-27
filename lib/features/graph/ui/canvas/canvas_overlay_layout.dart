@@ -14,6 +14,7 @@ import '../widgets/overlays/left_repository_drawer.dart';
 import '../widgets/overlays/right_property_panel.dart';
 import '../widgets/overlays/canvas_status_bar/canvas_status_bar.dart';
 import '../widgets/overlays/canvas_status_bar/graph_manual_widget.dart';
+import '../widgets/overlays/canvas_status_bar/status_bar_metrics.dart';
 import 'context_toolbar_overlay.dart';
 import 'package:centrode/features/graph/ui/widgets/tag_manager/global_tags_manager_panel.dart';
 import 'package:centrode/features/graph/ui/widgets/template_manager/global_templates_manager_panel.dart';
@@ -264,28 +265,40 @@ class CanvasOverlayLayout extends StatelessWidget {
           ),
 
         // Right Property Panel (Handle right edge aligned with minimap)
-        Positioned(
-          top: isAndroid ? (statusBarHeight + 104.0) : 112.0,
-          bottom: isAndroid ? (bottomPadding + 68.0) : 224.0,
-          right: 12,
-          child: ValueListenableBuilder<bool>(
-            valueListenable: session.showRightPanel,
-            builder: (context, visible, _) {
-              if (!visible) return const SizedBox.shrink();
-              final topOffset = isAndroid ? (statusBarHeight + 104.0) : 112.0;
-              final bottomOffset = isAndroid ? (bottomPadding + 68.0) : 224.0;
-              return ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: 180,
-                  maxWidth: 360,
-                  maxHeight: (constraints.maxHeight - topOffset - bottomOffset)
-                      .clamp(180, 10000)
-                      .toDouble(),
-                ),
-                child: const RightPropertyPanel(),
-              );
-            },
-          ),
+        ValueListenableBuilder<bool>(
+          valueListenable: session.showBottomPanel,
+          builder: (context, showBottom, _) {
+            final bottomOffset = CanvasStatusBarMetrics.rightPanelBottomOffset(
+              screenHeight: constraints.maxHeight,
+              maxWidth: constraints.maxWidth,
+              maxHeight: constraints.maxHeight,
+              bottomPadding: bottomPadding,
+              isBottomPanelVisible: showBottom,
+            );
+            final topOffset = isAndroid ? (statusBarHeight + 104.0) : 112.0;
+
+            return Positioned(
+              top: topOffset,
+              bottom: bottomOffset,
+              right: 12,
+              child: ValueListenableBuilder<bool>(
+                valueListenable: session.showRightPanel,
+                builder: (context, visible, _) {
+                  if (!visible) return const SizedBox.shrink();
+                  return ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: 180,
+                      maxWidth: 360,
+                      maxHeight: (constraints.maxHeight - topOffset - bottomOffset)
+                          .clamp(180, 10000)
+                          .toDouble(),
+                    ),
+                    child: const RightPropertyPanel(),
+                  );
+                },
+              ),
+            );
+          },
         ),
 
         // Bottom Tool Ribbon on Android (Framed by Manual Guide on Left and Extra Menu on Right)

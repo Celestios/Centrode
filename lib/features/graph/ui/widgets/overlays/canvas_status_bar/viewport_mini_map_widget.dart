@@ -8,6 +8,7 @@ import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'mini_map_painter.dart';
+import 'status_bar_metrics.dart';
 
 class ViewportMiniMapWidget extends StatefulWidget {
   const ViewportMiniMapWidget({super.key});
@@ -176,8 +177,9 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
   void _handleMiniMapInteraction(
     Offset localPosition,
     ViewportController controller,
+    double dimension,
   ) {
-    const Size miniMapSize = Size(200, 200);
+    final Size miniMapSize = Size(dimension, dimension);
     final clampedX = localPosition.dx.clamp(0.0, miniMapSize.width);
     final clampedY = localPosition.dy.clamp(0.0, miniMapSize.height);
 
@@ -213,13 +215,17 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
     final gridState = viewportController.viewportStateNotifier.value;
     final margins = viewportController.elasticMargins.value;
 
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final double dimension =
+        CanvasStatusBarMetrics.computeMiniMapDimension(screenHeight);
+
     _viewportFill.color = primaryColor.withValues(alpha: 0.08);
     _viewportBorder.color = primaryColor.withValues(alpha: 0.5);
 
     return GlassPanel(
       borderRadius: 10,
-      width: 200,
-      height: 200,
+      width: dimension,
+      height: dimension,
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
@@ -227,16 +233,18 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
           onTapDown: (details) => _handleMiniMapInteraction(
             details.localPosition,
             viewportController,
+            dimension,
           ),
           onPanUpdate: (details) => _handleMiniMapInteraction(
             details.localPosition,
             viewportController,
+            dimension,
           ),
           onPanEnd: (_) => viewportController.recalculateElasticMargins(),
           onTapUp: (_) => viewportController.recalculateElasticMargins(),
           child: _snapshot != null
               ? CustomPaint(
-                  size: const Size(200, 200),
+                  size: Size(dimension, dimension),
                   painter: _SnapshotPainter(
                     snapshot: _snapshot!,
                     viewportLeft: _viewportLeft,
@@ -255,6 +263,7 @@ class _ViewportMiniMapWidgetState extends State<ViewportMiniMapWidget>
                     primaryColor: primaryColor,
                     viewportSize: gridState.viewportSize,
                     margins: margins,
+                    dimension: dimension,
                   ),
                 ),
         ),
@@ -269,6 +278,7 @@ class _MiniMapContent extends StatelessWidget {
   final Color primaryColor;
   final Size viewportSize;
   final EdgeInsets margins;
+  final double dimension;
 
   const _MiniMapContent({
     required this.nodes,
@@ -276,13 +286,14 @@ class _MiniMapContent extends StatelessWidget {
     required this.primaryColor,
     required this.viewportSize,
     required this.margins,
+    required this.dimension,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 200,
-      height: 200,
+      width: dimension,
+      height: dimension,
       child: CustomPaint(
         painter: MiniMapPainter(
           nodes: nodes,

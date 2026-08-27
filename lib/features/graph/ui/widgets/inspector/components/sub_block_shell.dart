@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:centrode/shared/elements/elements.dart';
 
-/// Collapsible sub-block container within a section shell.
+/// Clean sub-block container within a section shell.
+/// The reset button only appears when hovering over the subsection.
 class SubBlockShell extends StatefulWidget {
   final String title;
   final Widget child;
   final Color accentColor;
-  final bool initiallyExpanded;
+  final VoidCallback? onReset;
 
   const SubBlockShell({
     super.key,
     required this.title,
     required this.child,
     required this.accentColor,
-    this.initiallyExpanded = false,
+    this.onReset,
   });
 
   @override
@@ -21,65 +21,89 @@ class SubBlockShell extends StatefulWidget {
 }
 
 class _SubBlockShellState extends State<SubBlockShell> {
-  late bool _isExpanded;
-
-  @override
-  void initState() {
-    super.initState();
-    _isExpanded = widget.initiallyExpanded;
-  }
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 6.0),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: widget.accentColor.withValues(alpha: 0.12),
-          width: 0.6,
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CentrodeButton(
-            onTap: () => setState(() => _isExpanded = !_isExpanded),
-            borderRadius: BorderRadius.circular(8),
-            enableHover: false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+    final theme = Theme.of(context);
+    final displayTitle = widget.title.isNotEmpty
+        ? '${widget.title[0].toUpperCase()}${widget.title.substring(1)}'
+        : widget.title;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header outside of box with title on left and refresh on right (inset 14px from right scrollbar)
+            Padding(
+              padding: const EdgeInsets.only(left: 2.0, right: 14.0, bottom: 5.0),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Text(
-                      widget.title.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 9.0,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.6,
-                        color: widget.accentColor.withValues(alpha: 0.95),
-                      ),
+                  Text(
+                    displayTitle,
+                    style: TextStyle(
+                      fontSize: 11.0,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.04,
+                      color: widget.accentColor.withValues(alpha: 0.88),
                     ),
                   ),
-                  Icon(
-                    _isExpanded
-                        ? Icons.keyboard_arrow_up_rounded
-                        : Icons.keyboard_arrow_down_rounded,
-                    size: 14,
-                    color: widget.accentColor.withValues(alpha: 0.6),
-                  ),
+                  if (widget.onReset != null)
+                    AnimatedOpacity(
+                      duration: const Duration(milliseconds: 140),
+                      curve: Curves.easeOut,
+                      opacity: _isHovered ? 1.0 : 0.0,
+                      child: IgnorePointer(
+                        ignoring: !_isHovered,
+                        child: Tooltip(
+                          message: 'Reset $displayTitle formatting',
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: widget.onReset,
+                              child: Container(
+                                padding: const EdgeInsets.all(4.0),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(4),
+                                  color: Colors.transparent,
+                                ),
+                                child: Icon(
+                                  Icons.refresh_rounded,
+                                  size: 15,
+                                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.55) ?? Colors.white54,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
-          ),
-          if (_isExpanded)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+            // Sub-block glass container
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: widget.accentColor.withValues(alpha: 0.14),
+                  width: 0.6,
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 6.0),
               child: widget.child,
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

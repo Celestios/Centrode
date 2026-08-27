@@ -27,6 +27,8 @@ class UnravelSlider<T> extends StatefulWidget {
   final ValueChanged<int>? onSelected;
   final ValueChanged<int>? onSelectFinalized;
   final double? trackWidth;
+  final double? trackHeight;
+  final Axis orientation;
   final bool magnetic;
   final bool autofocus;
   final UnravelItemBuilder<T>? itemBuilder;
@@ -39,6 +41,8 @@ class UnravelSlider<T> extends StatefulWidget {
     this.onSelected,
     this.onSelectFinalized,
     this.trackWidth,
+    this.trackHeight,
+    this.orientation = Axis.horizontal,
     this.magnetic = false,
     this.autofocus = false,
     this.itemBuilder,
@@ -68,6 +72,8 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
   int? _lastReportedIndex;
   late UnravelSliderMetrics _metrics;
 
+  bool get _isVertical => widget.orientation == Axis.vertical;
+
   @override
   void initState() {
     super.initState();
@@ -77,7 +83,10 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
       duration: const Duration(milliseconds: 260),
     )..addListener(_onSettleTick);
 
-    _updateMetrics(widget.trackWidth ?? 230.0);
+    final extent = _isVertical
+        ? (widget.trackHeight ?? 240.0)
+        : (widget.trackWidth ?? 230.0);
+    _updateMetrics(extent);
     _u = _rawU = _metrics.anchorU(widget.selectedIndex);
     _lastReportedIndex = widget.selectedIndex;
   }
@@ -85,15 +94,18 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
   @override
   void didUpdateWidget(covariant UnravelSlider<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
+    final oldExtent = _isVertical ? oldWidget.trackHeight : oldWidget.trackWidth;
+    final currentExtent = _isVertical ? widget.trackHeight : widget.trackWidth;
+
     if (oldWidget.items.length != widget.items.length ||
-        oldWidget.trackWidth != widget.trackWidth ||
+        oldExtent != currentExtent ||
+        oldWidget.orientation != widget.orientation ||
         oldWidget.theme != widget.theme) {
-      _updateMetrics(widget.trackWidth ?? _metrics.trackWidth);
+      _updateMetrics(currentExtent ?? _metrics.trackExtent);
       _u = _rawU = _rawU.clamp(0.0, _metrics.handleTravel);
     }
 
     if (oldWidget.selectedIndex != widget.selectedIndex) {
-      // Only animate if the change was triggered externally, not from active local interaction
       if (widget.selectedIndex != _lastReportedIndex && !_isInteracting) {
         _lastReportedIndex = widget.selectedIndex;
         _animateTo(_metrics.anchorU(widget.selectedIndex));
@@ -109,13 +121,13 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
     super.dispose();
   }
 
-  void _updateMetrics(double width) {
+  void _updateMetrics(double extent) {
     final style = widget.theme ?? const UnravelSliderThemeData();
     _metrics = UnravelSliderMetrics(
-      trackWidth: width,
+      trackExtent: extent,
       itemCount: widget.items.length,
-      cellWidth: style.cellWidth,
-      cellHeight: style.cellHeight,
+      mainCellExtent: _isVertical ? style.cellHeight : style.cellWidth,
+      crossCellExtent: _isVertical ? style.cellWidth : style.cellHeight,
     );
   }
 
@@ -138,8 +150,8 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
     _settleController.forward(from: 0);
   }
 
-  void _applyDragDelta(double dx) {
-    _rawU = (_rawU + dx).clamp(0.0, _metrics.handleTravel);
+  void _applyDragDelta(double delta) {
+    _rawU = (_rawU + delta).clamp(0.0, _metrics.handleTravel);
     if (widget.magnetic) {
       final target = _metrics.snapU(_rawU);
       final headingThere = _settleController.isAnimating &&
@@ -152,8 +164,8 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
     }
 
     final handleCenter = _metrics.margin + _u;
-    final xs = _metrics.computeXs(_u);
-    final nearest = _metrics.nearestIndex(handleCenter, xs);
+    final pos = _metrics.computePositions(_u);
+    final nearest = _metrics.nearestIndex(handleCenter, pos);
     if (nearest != widget.selectedIndex && nearest != _lastReportedIndex) {
       _lastReportedIndex = nearest;
       widget.onSelected?.call(nearest);
@@ -172,25 +184,29 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
 
   void _onPointerMove(PointerMoveEvent e) {
     if (_activePointer != e.pointer) return;
-    setState(() => _applyDragDelta(e.delta.dx));
+    final delta = _isVertical ? e.delta.dy : e.delta.dx;
+    setState(() => _applyDragDelta(delta));
   }
 
   void _onPointerUp(PointerUpEvent e) {
     if (_activePointer != e.pointer) return;
     _activePointer = null;
     _isInteracting = false;
-    final moved = (e.position - _downPos!).distance;
+    final down = _downPos;
+    _downPos = null;
+    final moved = down != null ? (e.position - down).distance : 0.0;
     if (moved < _tapSlack) {
-      _selectAt(e.localPosition.dx);
+      final localPos = _isVertical ? e.localPosition.dy : e.localPosition.dx;
+      _selectAt(localPos);
     } else if (!widget.magnetic) {
       final handleCenter = _metrics.margin + _u;
-      final xs = _metrics.computeXs(_u);
-      final targetIndex = _metrics.nearestIndex(handleCenter, xs);
+      final pos = _metrics.computePositions(_u);
+      final targetIndex = _metrics.nearestIndex(handleCenter, pos);
       _lastReportedIndex = targetIndex;
       _animateTo(_metrics.anchorU(targetIndex));
       widget.onSelectFinalized?.call(targetIndex);
     } else {
-      final targetIndex = _metrics.nearestIndex(_metrics.margin + _u, _metrics.computeXs(_u));
+      final targetIndex = _metrics.nearestIndex(_metrics.margin + _u, _metrics.computePositions(_u));
       _lastReportedIndex = targetIndex;
       widget.onSelectFinalized?.call(targetIndex);
     }
@@ -199,6 +215,7 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
   void _onPointerCancel(PointerCancelEvent e) {
     if (_activePointer != e.pointer) return;
     _activePointer = null;
+    _downPos = null;
     _isInteracting = false;
   }
 
@@ -208,7 +225,9 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
       _isInteracting = true;
       _scrollSettleTimer?.cancel();
 
-      final delta = event.scrollDelta.dx != 0 ? event.scrollDelta.dx : event.scrollDelta.dy;
+      final delta = _isVertical
+          ? (event.scrollDelta.dy != 0 ? event.scrollDelta.dy : event.scrollDelta.dx)
+          : (event.scrollDelta.dx != 0 ? event.scrollDelta.dx : event.scrollDelta.dy);
       if (delta.abs() > 0.1) {
         setState(() => _applyDragDelta(delta * 0.4));
       }
@@ -218,13 +237,13 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
         _isInteracting = false;
         if (!widget.magnetic) {
           final handleCenter = _metrics.margin + _u;
-          final xs = _metrics.computeXs(_u);
-          final targetIndex = _metrics.nearestIndex(handleCenter, xs);
+          final pos = _metrics.computePositions(_u);
+          final targetIndex = _metrics.nearestIndex(handleCenter, pos);
           _lastReportedIndex = targetIndex;
           _animateTo(_metrics.anchorU(targetIndex));
           widget.onSelectFinalized?.call(targetIndex);
         } else {
-          final targetIndex = _metrics.nearestIndex(_metrics.margin + _u, _metrics.computeXs(_u));
+          final targetIndex = _metrics.nearestIndex(_metrics.margin + _u, _metrics.computePositions(_u));
           _lastReportedIndex = targetIndex;
           widget.onSelectFinalized?.call(targetIndex);
         }
@@ -232,9 +251,9 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
     }
   }
 
-  void _selectAt(double localX) {
-    final xs = _metrics.computeXs(_u);
-    final hitIndex = _metrics.hitTest(localX, xs);
+  void _selectAt(double localPos) {
+    final pos = _metrics.computePositions(_u);
+    final hitIndex = _metrics.hitTest(localPos, pos);
     if (hitIndex >= 0) {
       _lastReportedIndex = hitIndex;
       _animateTo(_metrics.anchorU(hitIndex));
@@ -246,14 +265,21 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
   KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
-    if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+    final isPrevKey = _isVertical
+        ? event.logicalKey == LogicalKeyboardKey.arrowUp
+        : event.logicalKey == LogicalKeyboardKey.arrowLeft;
+    final isNextKey = _isVertical
+        ? event.logicalKey == LogicalKeyboardKey.arrowDown
+        : event.logicalKey == LogicalKeyboardKey.arrowRight;
+
+    if (isPrevKey) {
       final prev = (widget.selectedIndex - 1).clamp(0, widget.items.length - 1);
       _lastReportedIndex = prev;
       _animateTo(_metrics.anchorU(prev));
       widget.onSelected?.call(prev);
       widget.onSelectFinalized?.call(prev);
       return KeyEventResult.handled;
-    } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+    } else if (isNextKey) {
       final next = (widget.selectedIndex + 1).clamp(0, widget.items.length - 1);
       _lastReportedIndex = next;
       _animateTo(_metrics.anchorU(next));
@@ -280,18 +306,22 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
   @override
   Widget build(BuildContext context) {
     final style = (widget.theme ?? const UnravelSliderThemeData()).resolve(context);
-    final width = widget.trackWidth ?? _metrics.trackWidth;
+    final targetExtent = (_isVertical ? widget.trackHeight : widget.trackWidth) ??
+        (_isVertical ? 240.0 : _metrics.trackExtent);
 
-    if ((width - _metrics.trackWidth).abs() > 0.5) {
-      _updateMetrics(width);
+    if ((targetExtent - _metrics.trackExtent).abs() > 0.5) {
+      _updateMetrics(targetExtent);
     }
 
     final handleCenter = _metrics.margin + _u;
-    final xs = _metrics.computeXs(_u);
-    final handleBoxW = _metrics.handleBoxWidth;
-    final cellW = _metrics.cellWidth;
+    final pos = _metrics.computePositions(_u);
+    final handleBoxExtent = _metrics.handleBoxExtent;
+    final mainCell = _metrics.mainCellExtent;
     final n = widget.items.length;
-    final selected = _metrics.nearestIndex(handleCenter, xs).clamp(0, n - 1);
+    final selected = _metrics.nearestIndex(handleCenter, pos).clamp(0, n - 1);
+
+    final trackW = _isVertical ? _metrics.crossCellExtent : _metrics.trackExtent;
+    final trackH = _isVertical ? _metrics.trackExtent : _metrics.crossCellExtent;
 
     return Focus(
       focusNode: _focusNode,
@@ -301,8 +331,8 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
         cursor: SystemMouseCursors.grab,
         child: RepaintBoundary(
           child: Container(
-            width: _metrics.trackWidth,
-            height: _metrics.trackHeight,
+            width: trackW,
+            height: trackH,
             decoration: BoxDecoration(
               color: style.trackBackgroundColor,
               borderRadius: style.trackBorderRadius,
@@ -321,50 +351,95 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
                   clipBehavior: Clip.hardEdge,
                   children: [
                     // Moving handle indicator box
-                    Positioned(
-                      left: handleCenter - handleBoxW / 2,
-                      top: 0,
-                      bottom: 0,
-                      width: handleBoxW,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: style.handleBorderRadius,
-                          border: Border.all(
-                            color: style.handleBorderColor!,
-                            width: 1.2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: style.handleShadowColor!,
-                              blurRadius: 14,
-                              spreadRadius: -1,
+                    if (_isVertical)
+                      Positioned(
+                        top: handleCenter - handleBoxExtent / 2,
+                        left: 2,
+                        right: 2,
+                        height: handleBoxExtent,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: style.handleBorderRadius,
+                            border: Border.all(
+                              color: style.handleBorderColor!,
+                              width: 1.2,
                             ),
-                          ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: style.handleShadowColor!,
+                                blurRadius: 14,
+                                spreadRadius: -1,
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      Positioned(
+                        left: handleCenter - handleBoxExtent / 2,
+                        top: 2,
+                        bottom: 2,
+                        width: handleBoxExtent,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: style.handleBorderRadius,
+                            border: Border.all(
+                              color: style.handleBorderColor!,
+                              width: 1.2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: style.handleShadowColor!,
+                                blurRadius: 14,
+                                spreadRadius: -1,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
 
                     // Unravelling options
                     for (var i = 0; i < n; i++)
-                      Positioned(
-                        key: ValueKey(i),
-                        left: xs[i] - cellW / 2,
-                        top: 0,
-                        bottom: 0,
-                        width: cellW,
-                        child: widget.itemBuilder != null
-                            ? widget.itemBuilder!(
-                                context,
-                                widget.items[i],
-                                _metrics.spatialFocus(xs[i], handleCenter),
-                                i == selected,
-                              )
-                            : _DefaultUnravelCell(
-                                item: widget.items[i],
-                                focus: _metrics.spatialFocus(xs[i], handleCenter),
-                                style: style,
-                              ),
-                      ),
+                      if (_isVertical)
+                        Positioned(
+                          key: ValueKey(i),
+                          top: pos[i] - mainCell / 2,
+                          left: 0,
+                          right: 0,
+                          height: mainCell,
+                          child: widget.itemBuilder != null
+                              ? widget.itemBuilder!(
+                                  context,
+                                  widget.items[i],
+                                  _metrics.spatialFocus(pos[i], handleCenter),
+                                  i == selected,
+                                )
+                              : _DefaultUnravelCell(
+                                  item: widget.items[i],
+                                  focus: _metrics.spatialFocus(pos[i], handleCenter),
+                                  style: style,
+                                ),
+                        )
+                      else
+                        Positioned(
+                          key: ValueKey(i),
+                          left: pos[i] - mainCell / 2,
+                          top: 0,
+                          bottom: 0,
+                          width: mainCell,
+                          child: widget.itemBuilder != null
+                              ? widget.itemBuilder!(
+                                  context,
+                                  widget.items[i],
+                                  _metrics.spatialFocus(pos[i], handleCenter),
+                                  i == selected,
+                                )
+                              : _DefaultUnravelCell(
+                                  item: widget.items[i],
+                                  focus: _metrics.spatialFocus(pos[i], handleCenter),
+                                  style: style,
+                                ),
+                        ),
                   ],
                 ),
               ),
@@ -376,8 +451,8 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
   }
 }
 
-class _DefaultUnravelCell extends StatelessWidget {
-  final dynamic item;
+class _DefaultUnravelCell<T> extends StatelessWidget {
+  final T item;
   final double focus;
   final UnravelSliderThemeData style;
 
@@ -389,12 +464,13 @@ class _DefaultUnravelCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = item is UnravelOption
-        ? item.icon
-        : (item is IconData ? item : Icons.circle_outlined);
-    final label = item is UnravelOption
-        ? item.label
-        : (item is String ? item : item.toString());
+    final option = item is UnravelOption ? item as UnravelOption : null;
+    final icon = option != null
+        ? option.icon
+        : (item is IconData ? item as IconData : Icons.circle_outlined);
+    final label = option != null
+        ? option.label
+        : (item is String ? item as String : item.toString());
 
     final easedFocus = Curves.easeOutCubic.transform(focus);
     final scale = 0.74 + 0.26 * easedFocus;

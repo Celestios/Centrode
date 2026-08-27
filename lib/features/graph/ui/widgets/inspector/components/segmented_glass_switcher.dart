@@ -1,11 +1,28 @@
 import 'package:flutter/material.dart';
 
-/// Pattern B: Glass Segmented Mode Switcher with sliding indicator feel.
-class SegmentedGlassSwitcher<T> extends StatelessWidget {
+class SegmentData<T> {
+  final T value;
+  final String label;
+  final IconData? icon;
+  final String? tooltip;
+  final TextStyle? style;
+
+  const SegmentData({
+    required this.value,
+    required this.label,
+    this.icon,
+    this.tooltip,
+    this.style,
+  });
+}
+
+/// Glass Segmented Mode Switcher with sliding indicator and full click + drag support.
+class SegmentedGlassSwitcher<T> extends StatefulWidget {
   final List<SegmentData<T>> segments;
   final T selectedValue;
   final ValueChanged<T> onSelected;
   final Color activeColor;
+  final double height;
 
   const SegmentedGlassSwitcher({
     super.key,
@@ -13,91 +30,152 @@ class SegmentedGlassSwitcher<T> extends StatelessWidget {
     required this.selectedValue,
     required this.onSelected,
     required this.activeColor,
+    this.height = 26.0,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.25),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.06),
-          width: 0.8,
-        ),
-      ),
-      child: Row(
-        children: segments.map((seg) {
-          final isSelected = seg.value == selectedValue;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => onSelected(seg.value),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                height: 26,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? activeColor.withValues(alpha: 0.28)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: isSelected
-                        ? activeColor.withValues(alpha: 0.5)
-                        : Colors.transparent,
-                    width: 0.8,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (seg.icon != null) ...[
-                      Icon(
-                        seg.icon,
-                        size: 12,
-                        color: isSelected
-                            ? activeColor
-                            : Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.color
-                                ?.withValues(alpha: 0.5),
-                      ),
-                      const SizedBox(width: 3),
-                    ],
-                    Text(
-                      seg.label,
-                      style: TextStyle(
-                        fontSize: 9.5,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected
-                            ? activeColor
-                            : Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.color
-                                ?.withValues(alpha: 0.6),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
+  State<SegmentedGlassSwitcher<T>> createState() => _SegmentedGlassSwitcherState<T>();
 }
 
-class SegmentData<T> {
-  final T value;
-  final String label;
-  final IconData? icon;
+class _SegmentedGlassSwitcherState<T> extends State<SegmentedGlassSwitcher<T>> {
+  bool _isDragging = false;
 
-  const SegmentData({
-    required this.value,
-    required this.label,
-    this.icon,
-  });
+  void _handlePointer(Offset localPosition, double totalWidth) {
+    if (totalWidth <= 0 || widget.segments.isEmpty) return;
+    final itemWidth = totalWidth / widget.segments.length;
+    final targetIndex = (localPosition.dx / itemWidth).floor().clamp(0, widget.segments.length - 1);
+    final targetValue = widget.segments[targetIndex].value;
+    if (targetValue != widget.selectedValue) {
+      widget.onSelected(targetValue);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final activeIndex = widget.segments.indexWhere((s) => s.value == widget.selectedValue);
+    final safeIndex = activeIndex >= 0 ? activeIndex : 0;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalWidth = constraints.maxWidth;
+        final count = widget.segments.isEmpty ? 1 : widget.segments.length;
+        final innerWidth = (totalWidth - 4.0).clamp(0.0, double.infinity);
+        final itemWidth = count > 0 && innerWidth > 0 ? innerWidth / count : 0.0;
+
+        return Listener(
+          behavior: HitTestBehavior.opaque,
+          onPointerDown: (event) {
+            setState(() => _isDragging = true);
+            _handlePointer(event.localPosition - const Offset(2, 2), innerWidth);
+          },
+          onPointerMove: (event) {
+            _handlePointer(event.localPosition - const Offset(2, 2), innerWidth);
+          },
+          onPointerUp: (_) {
+            setState(() => _isDragging = false);
+          },
+          onPointerCancel: (_) {
+            setState(() => _isDragging = false);
+          },
+          child: Container(
+            height: widget.height,
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.06),
+                width: 0.8,
+              ),
+            ),
+            child: Stack(
+              children: [
+                // Sliding indicator pill
+                AnimatedPositioned(
+                  duration: Duration(milliseconds: _isDragging ? 50 : 180),
+                  curve: Curves.easeOutCubic,
+                  left: safeIndex * itemWidth,
+                  top: 0,
+                  bottom: 0,
+                  width: itemWidth,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: widget.activeColor.withValues(alpha: _isDragging ? 0.35 : 0.28),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: widget.activeColor.withValues(alpha: _isDragging ? 0.75 : 0.5),
+                        width: 0.8,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: widget.activeColor.withValues(alpha: _isDragging ? 0.35 : 0.2),
+                          blurRadius: _isDragging ? 8 : 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Interactive segment labels/icons
+                Row(
+                  children: [
+                    for (int i = 0; i < widget.segments.length; i++) ...[
+                      Expanded(
+                        child: Tooltip(
+                          message: widget.segments[i].tooltip ?? widget.segments[i].label,
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (widget.segments[i].icon != null) ...[
+                                      Icon(
+                                        widget.segments[i].icon,
+                                        size: 12,
+                                        color: i == safeIndex
+                                            ? widget.activeColor
+                                            : theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5) ??
+                                                Colors.white54,
+                                      ),
+                                      if (widget.segments[i].label.isNotEmpty)
+                                        const SizedBox(width: 3),
+                                    ],
+                                    if (widget.segments[i].label.isNotEmpty)
+                                      Text(
+                                        widget.segments[i].label,
+                                        maxLines: 1,
+                                        style: (widget.segments[i].style ?? const TextStyle()).copyWith(
+                                          fontSize: widget.segments[i].style?.fontSize ?? 10.0,
+                                          fontWeight: i == safeIndex
+                                              ? FontWeight.w700
+                                              : (widget.segments[i].style?.fontWeight ?? FontWeight.w500),
+                                          color: i == safeIndex
+                                              ? widget.activeColor
+                                              : (theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6) ??
+                                                  Colors.white70),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 /// Pattern C: Inline Value & Swatch Row combining label, swatch, and micro slider.
 class InlinePropertyRow extends StatelessWidget {
   final String label;
+  final IconData? leadingIcon;
   final double value;
   final double min;
   final double max;
@@ -13,7 +14,8 @@ class InlinePropertyRow extends StatelessWidget {
 
   const InlinePropertyRow({
     super.key,
-    required this.label,
+    this.label = '',
+    this.leadingIcon,
     required this.value,
     required this.min,
     required this.max,
@@ -26,21 +28,39 @@ class InlinePropertyRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final valueText = unit == 'x'
+        ? '${value.toStringAsFixed(1)}x'
+        : (unit.isEmpty
+            ? value.toStringAsFixed(1)
+            : '${value.toStringAsFixed(1)} $unit');
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3.0),
+      padding: const EdgeInsets.symmetric(vertical: 2.5),
       child: Row(
         children: [
-          SizedBox(
-            width: 75,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 9.5,
-                fontWeight: FontWeight.w500,
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+          if (leadingIcon != null) ...[
+            SizedBox(
+              width: 18,
+              child: Icon(
+                leadingIcon,
+                size: 15,
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5) ?? Colors.white54,
               ),
             ),
-          ),
+            const SizedBox(width: 6),
+          ] else if (label.isNotEmpty) ...[
+            SizedBox(
+              width: 75,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w500,
+                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                ),
+              ),
+            ),
+          ],
           if (colorSwatch != null) ...[
             Container(
               width: 14,
@@ -57,10 +77,10 @@ class InlinePropertyRow extends StatelessWidget {
             child: SliderTheme(
               data: SliderThemeData(
                 trackHeight: 2.0,
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5.0),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 10.0),
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4.5),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 8.0),
                 activeTrackColor: activeColor,
-                inactiveTrackColor: activeColor.withValues(alpha: 0.15),
+                inactiveTrackColor: Colors.white.withValues(alpha: 0.12),
                 thumbColor: activeColor,
               ),
               child: Slider(
@@ -72,14 +92,14 @@ class InlinePropertyRow extends StatelessWidget {
             ),
           ),
           SizedBox(
-            width: 32,
+            width: 44,
             child: Text(
-              '${value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 1)}$unit',
+              valueText,
               textAlign: TextAlign.right,
               style: TextStyle(
-                fontSize: 9.0,
-                fontWeight: FontWeight.w700,
-                color: activeColor,
+                fontSize: 11.0,
+                fontWeight: FontWeight.w500,
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.75) ?? Colors.white70,
               ),
             ),
           ),

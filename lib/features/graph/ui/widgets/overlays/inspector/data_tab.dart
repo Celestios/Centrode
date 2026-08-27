@@ -6,7 +6,7 @@ import 'package:centrode/shared/utils/date_utils.dart';
 import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
 import '../../../../engine/config.dart';
-import '../../inspector/relation_appearance_section.dart';
+import '../../inspector/components/glass_section_shell.dart';
 
 class DataTab extends StatefulWidget {
   final RawUuid nodeId;
@@ -27,7 +27,6 @@ class _DataTabState extends State<DataTab> {
   bool _isAddingTag = false;
   int? _selectedTagColor;
   List<int> _currentPalette = [...AppConfig.node.defaultTagColors];
-  RawUuid? _lastNodeId;
 
   @override
   void dispose() {
@@ -253,17 +252,21 @@ class _DataTabState extends State<DataTab> {
   }
 
   @override
+  void didUpdateWidget(covariant DataTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.nodeId != widget.nodeId) {
+      _isAddingTag = false;
+      _tagController.clear();
+      _commentController.clear();
+      _currentPalette = [...AppConfig.node.defaultTagColors];
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryAccent = theme.colorScheme.primary;
     final node = widget.renderState.getNode(widget.nodeId);
-
-    if (_lastNodeId != widget.nodeId) {
-      _lastNodeId = widget.nodeId;
-      _isAddingTag = false;
-      _tagController.clear();
-      _currentPalette = [...AppConfig.node.defaultTagColors];
-    }
 
     if (node is! InfoUiNode) {
       return _buildCenteredPlaceholder(
@@ -299,40 +302,30 @@ class _DataTabState extends State<DataTab> {
                           color: tagColor.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: tagColor.withValues(alpha: 0.45),
+                            color: tagColor.withValues(alpha: 0.5),
                             width: 0.8,
                           ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: tagColor,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
                             Text(
                               tag.fields.name,
                               style: TextStyle(
                                 fontSize: 11.5,
-                                color: theme.textTheme.bodyMedium?.color
-                                    ?.withValues(alpha: 0.95),
                                 fontWeight: FontWeight.w600,
+                                color: tagColor,
                               ),
                             ),
-                            const SizedBox(width: 5),
+                            const SizedBox(width: 4),
                             CentrodeIconButton(
                               icon: Icons.close_rounded,
                               onPressed: () => widget.renderState.removeTagFromNode(
                                 node.id,
                                 tag.key.key.uuid,
                               ),
-                              iconSize: 15,
-                              buttonSize: 22,
+                              iconSize: 14,
+                              buttonSize: 18,
                               enableHover: false,
                             ),
                           ],
@@ -341,12 +334,9 @@ class _DataTabState extends State<DataTab> {
                     }),
                     if (!_isAddingTag) _buildAddTagTriggerButton(theme, primaryAccent),
                   ],
-                )
-              else if (!_isAddingTag)
-                _buildAddTagTriggerButton(theme, primaryAccent),
-
+                ),
               if (_isAddingTag) ...[
-                const SizedBox(height: 6),
+                if (node.tags.isNotEmpty) const SizedBox(height: 8),
                 _buildTagEditor(theme, node, primaryAccent),
               ],
             ],
@@ -356,7 +346,7 @@ class _DataTabState extends State<DataTab> {
         // Section 2: COMMENTS (Always Open)
         GlassSectionShell(
           title: 'Comments',
-          icon: Icons.comment_rounded,
+          icon: Icons.chat_bubble_outline_rounded,
           accentColor: primaryAccent,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

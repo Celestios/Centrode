@@ -19,7 +19,7 @@ void main() {
 
         for (var k = 0; k < tc.itemCount; k++) {
           final u = metrics.anchorU(k);
-          final xs = metrics.computeXs(u);
+          final xs = metrics.computePositions(u);
           final handleCenter = metrics.margin + u;
 
           expect(
@@ -60,7 +60,7 @@ void main() {
     test('hit testing accurately locates clicked option', () {
       final metrics = UnravelSliderMetrics(trackWidth: 230.0, itemCount: 6);
       final u = metrics.anchorU(2);
-      final xs = metrics.computeXs(u);
+      final xs = metrics.computePositions(u);
 
       expect(metrics.hitTest(xs[2], xs), equals(2));
       expect(metrics.hitTest(xs[0], xs), equals(0));

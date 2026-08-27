@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import '../../../presentation/node_render_state.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/elements/elements.dart';
-import '../inspector/relation_appearance_section.dart';
+import '../inspector/nodes_section_shell.dart';
+import '../inspector/relations_section_shell.dart';
 import 'inspector/data_tab.dart';
 
 class RightPropertyPanel extends StatefulWidget {
@@ -272,13 +273,13 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
           offset: const Offset(0, 3),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Top Tab Switcher Bar (Appearance vs Data)
               _buildTopTabBar(context, renderState),
-              const SizedBox(height: 10),
+              const SizedBox(height: 6),
 
               // Main Dynamic Body with Full-Width Sliding Tab Transition
               Expanded(
@@ -353,14 +354,19 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                             )
                           : KeyedSubtree(
                               key: const ValueKey('appearance_tab'),
-                              child: ListView(
-                                padding: EdgeInsets.zero,
+                              child: CustomScrollView(
                                 physics: const BouncingScrollPhysics(),
-                                children: [
+                                slivers: [
                                   if (isNothingSelected || nodeCount > 0)
-                                    NodesSectionShell(isGlobal: isNothingSelected),
+                                    NodesSectionShell(
+                                      isGlobal: isNothingSelected,
+                                      selectedCount: nodeCount,
+                                    ),
                                   if (isNothingSelected || relationCount > 0)
-                                    RelationsSectionShell(isGlobal: isNothingSelected),
+                                    RelationsSectionShell(
+                                      isGlobal: isNothingSelected,
+                                      selectedCount: relationCount,
+                                    ),
                                 ],
                               ),
                             ),
@@ -369,20 +375,12 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                 ),
               ),
             ),
-
-              const SizedBox(height: 8),
-
-              // Scope Status Badge Moved to Bottom
-              _ContextStatusBadge(
-                nodeCount: nodeCount,
-                relationCount: relationCount,
-              ),
-            ],
-          ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildTopTabBar(
     BuildContext context,
@@ -456,210 +454,6 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
   }
 }
 
-/// Standout Prominent Top Context Status Badge Bounding Box.
-class _ContextStatusBadge extends StatelessWidget {
-  final int nodeCount;
-  final int relationCount;
-
-  const _ContextStatusBadge({
-    required this.nodeCount,
-    required this.relationCount,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).colorScheme.primary;
-    final amberColor = Colors.amber.shade600;
-    final neutralColor = Colors.white.withValues(alpha: 0.85);
-
-    final isNothingSelected = nodeCount == 0 && relationCount == 0;
-    final isOnlyNodes = nodeCount > 0 && relationCount == 0;
-    final isOnlyRelations = relationCount > 0 && nodeCount == 0;
-    final isMixed = nodeCount > 0 && relationCount > 0;
-
-    Color primaryAccent;
-    if (isNothingSelected) {
-      primaryAccent = neutralColor;
-    } else if (isOnlyNodes) {
-      primaryAccent = primaryColor;
-    } else if (isOnlyRelations) {
-      primaryAccent = amberColor;
-    } else {
-      primaryAccent = primaryColor;
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isNothingSelected
-              ? Colors.white.withValues(alpha: 0.22)
-              : primaryAccent.withValues(alpha: 0.6),
-          width: 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isNothingSelected
-                ? Colors.white.withValues(alpha: 0.06)
-                : primaryAccent.withValues(alpha: 0.25),
-            blurRadius: 8,
-            spreadRadius: -1,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (isNothingSelected) ...[
-            Container(
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 0.8),
-              ),
-              child: Icon(Icons.public_rounded, size: 11, color: neutralColor),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              'GLOBAL DEFAULTS',
-              style: TextStyle(
-                fontSize: 9.5,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.9,
-                color: neutralColor,
-              ),
-            ),
-          ] else if (isOnlyNodes) ...[
-            Container(
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                color: primaryColor.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-                border: Border.all(color: primaryColor.withValues(alpha: 0.6), width: 0.8),
-              ),
-              child: Icon(Icons.account_tree_rounded, size: 11, color: primaryColor),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              '$nodeCount NODE${nodeCount > 1 ? 'S' : ''} SELECTED',
-              style: TextStyle(
-                fontSize: 9.5,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.8,
-                color: primaryColor,
-              ),
-            ),
-          ] else if (isOnlyRelations) ...[
-            Container(
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                color: amberColor.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-                border: Border.all(color: amberColor.withValues(alpha: 0.6), width: 0.8),
-              ),
-              child: Icon(Icons.link_rounded, size: 11, color: amberColor),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              '$relationCount RELATION${relationCount > 1 ? 'S' : ''} SELECTED',
-              style: TextStyle(
-                fontSize: 9.5,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.8,
-                color: amberColor,
-              ),
-            ),
-          ] else if (isMixed) ...[
-            Container(
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                color: primaryColor.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.account_tree_rounded, size: 10, color: primaryColor),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '$nodeCount NODE${nodeCount > 1 ? 'S' : ''}',
-              style: TextStyle(
-                fontSize: 9.0,
-                fontWeight: FontWeight.w800,
-                color: primaryColor,
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 6),
-              width: 1.0,
-              height: 10,
-              color: Colors.white24,
-            ),
-            Container(
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                color: amberColor.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.link_rounded, size: 10, color: amberColor),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '$relationCount RELATION${relationCount > 1 ? 'S' : ''}',
-              style: TextStyle(
-                fontSize: 9.0,
-                fontWeight: FontWeight.w800,
-                color: amberColor,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _BadgeCircle extends StatelessWidget {
-  final int count;
-  final Color color;
-  final double size;
-
-  const _BadgeCircle({
-    required this.count,
-    required this.color,
-    this.size = 20,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          width: 1.5,
-        ),
-      ),
-      child: Center(
-        child: Text(
-          '$count',
-          style: TextStyle(
-            fontSize: size * 0.45,
-            fontWeight: FontWeight.w900,
-            color: Colors.black87,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _GlassTabButton extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -721,6 +515,44 @@ class _GlassTabButton extends StatelessWidget {
               child: Text(label),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BadgeCircle extends StatelessWidget {
+  final int count;
+  final Color color;
+  final double size;
+
+  const _BadgeCircle({
+    required this.count,
+    required this.color,
+    this.size = 20,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          width: 1.5,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          '$count',
+          style: TextStyle(
+            fontSize: size * 0.45,
+            fontWeight: FontWeight.w900,
+            color: Colors.black87,
+          ),
         ),
       ),
     );
