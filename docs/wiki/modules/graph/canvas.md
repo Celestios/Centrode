@@ -120,6 +120,29 @@ On-canvas text editing system in `ui/canvas/text/`:
 
 ---
 
+## Overlays & Inspector System
+
+The canvas hosts floating and docked overlays via `CanvasOverlayLayout` (`ui/canvas/canvas_overlay_layout.dart`):
+
+| Component | File | Role |
+|-----------|------|------|
+| `RightPropertyPanel` | `ui/widgets/overlays/right_property_panel.dart` | Collapsible docked glass panel for multi-selection styling and metadata editing |
+| `CanvasStatusBar` | `ui/widgets/overlays/canvas_status_bar/canvas_status_bar.dart` | Bottom status bar displaying graph metrics, sync status, zoom controls, and mini-map |
+| `NodesSectionShell` | `ui/widgets/inspector/nodes_section_shell.dart` | Node appearance inspector with live showcase, Text, Body, Border, and Shadow sub-blocks |
+| `RelationsSectionShell` | `ui/widgets/inspector/relations_section_shell.dart` | Relation appearance inspector with live showcase, Label, Routing, Stroke/Caps, and Topology sub-blocks |
+| `DataTab` | `ui/widgets/overlays/inspector/data_tab.dart` | Node metadata tab managing tags, comments, and color palettes |
+
+### Inspector Micro-Components (`ui/widgets/inspector/components/`)
+
+- `CompactSliderBox` — high-density side-by-side micro sliders for paired attributes (Opacity + Radius, Width + Tension, Blur + Distance)
+- `FontSizeUnravelPicker` — unravelling font size stepper and overlay picker
+- `GlassColorPillButton` — full-width flat glass button with active color swatch pill and palette dropdown
+- `SegmentedGlassSwitcher` — sliding glass capsule switcher for typography, fill modes, and routing styles
+- `SubBlockShell` — grouped property card with hover-visible reset actions
+- `ShowcasePainters` (`showcase_painters.dart`) — shared blueprint dot grid custom painter and dashed/dotted path extraction utility
+
+---
+
 ## Context Menu & Keyboard
 
 - `canvas_context_menu.dart` — right-click context menu
@@ -164,4 +187,3 @@ graph TD
 
 3. **Flyweight Style Resolution**:
    - Node styles and typography are resolved once into `StyleFlyweight` caches (`presentation/style_flyweight.dart`), preventing per-frame layout recalculations.
-
