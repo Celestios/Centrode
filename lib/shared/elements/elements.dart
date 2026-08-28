@@ -1,6 +1,8 @@
 export '../theme/design_tokens.dart';
+export '../theme/theme_derived_palette.dart';
 export '../theme/ui_enums.dart';
 export '../theme/ui_strings.dart';
+export '../utils/color_theory_engine.dart';
 export 'centrode_button.dart';
 export 'centrode_color_controls.dart';
 export 'centrode_compact_slider.dart';

@@ -30,7 +30,7 @@ class SquareSwatchButton<T> extends StatelessWidget {
 
     final button = PopupMenuButton<T>(
       tooltip: '$label: ${currentOpt.label}',
-      color: const Color(0xFF151820),
+      color: CentrodeDerivedPalette.of(context).surface.dialogBackground,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(UiRadius.card),
         side: BorderSide(color: Colors.white.withValues(alpha: 0.12), width: UiStrokeWidth.subtle),

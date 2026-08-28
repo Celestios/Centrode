@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart' hide Theme;
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 abstract final class AppConfig {
   AppConfig._();
@@ -85,13 +86,8 @@ class _Node {
   final double metadataPreviewWidth = 140.0;
   final double metadataPreviewBorderRadius = UiRadius.card;
   final double metadataPreviewBlur = 10.0;
-  final List<int> defaultTagColors = const [
-    0xFF5C6BC0,
-    0xFF26A69A,
-    0xFFEC407A,
-    0xFFFFA726,
-    0xFF78909C,
-  ];
+  List<int> get defaultTagColors =>
+      CentrodeDerivedPalette.current.tagColors.map((c) => c.toARGB32()).toList();
 }
 
 class _Toolbar {
@@ -115,15 +111,8 @@ class _Visuals {
     'Roboto',
     'Consolas',
   ];
-  final List<int> textColors = const [
-    0xFF000000,
-    0xFFFFFFFF,
-    0xFF0D47A1,
-    0xFF1B5E20,
-    0xFF880E4F,
-    0xFFE65100,
-    0xFF263238,
-  ];
+  List<int> get textColors =>
+      CentrodeDerivedPalette.current.swatches.map((c) => c.toARGB32()).toList();
 }
 
 class _Port {

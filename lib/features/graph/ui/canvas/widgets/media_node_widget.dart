@@ -1,4 +1,5 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/utils/app_paths.dart';
@@ -83,7 +84,11 @@ class _MediaNodeWidgetState extends State<MediaNodeWidget> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.audiotrack_rounded, size: 32.0, color: Color(0xFF80CBC4)),
+              Icon(
+                Icons.audiotrack_rounded,
+                size: 32.0,
+                color: CentrodeDerivedPalette.of(context).nodeTints.media,
+              ),
               const SizedBox(height: UiSpacing.standard),
               Text(
                 node.attachment.name,
@@ -109,7 +114,11 @@ class _MediaNodeWidgetState extends State<MediaNodeWidget> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.picture_as_pdf_rounded, size: 36.0, color: Color(0xFFEF5350)),
+              Icon(
+                Icons.picture_as_pdf_rounded,
+                size: 36.0,
+                color: CentrodeDerivedPalette.of(context).semantic.danger,
+              ),
               const SizedBox(height: UiSpacing.standard),
               Text(
                 node.attachment.name,

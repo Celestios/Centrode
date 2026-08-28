@@ -1,4 +1,5 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/unravel_slider/unravel_slider.dart';
 
@@ -62,7 +63,7 @@ class _FontSizeUnravelPickerState extends State<FontSizeUnravelPicker> {
                   child: Container(
                     height: 220,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF13161F),
+                      color: CentrodeDerivedPalette.of(context).surface.dialogBackground,
                       borderRadius: BorderRadius.circular(UiRadius.card),
                       border: Border.all(
                         color: widget.activeColor.withValues(alpha: 0.35),

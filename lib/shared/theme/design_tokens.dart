@@ -156,6 +156,47 @@ abstract final class UiFont {
   static const double title = 16.0;
 }
 
+/// Centralized alpha & opacity tokens mapped to visual hierarchy.
+abstract final class UiAlpha {
+  UiAlpha._();
+
+  /// 0.05 - Faint hover overlay, subtle backdrop tint
+  static const double micro = 0.05;
+
+  /// 0.08 - Standard hover highlight, container fill tint, inactive tracks
+  static const double subtle = 0.08;
+
+  /// 0.10 - Container background wash, subtle chip background
+  static const double wash = 0.10;
+
+  /// 0.12 - Selection fill, badge background, soft mask
+  static const double tint = 0.12;
+
+  /// 0.18 - Subtle border framing, hover-scale border
+  static const double borderSubtle = 0.18;
+
+  /// 0.25 - Minimap lens, active chip fill, secondary borders
+  static const double medium = 0.25;
+
+  /// 0.35 - Active borders, focused glow, text selection
+  static const double borderStrong = 0.35;
+
+  /// 0.50 - Secondary indicators, disabled icons, backdrop shadow
+  static const double half = 0.50;
+
+  /// 0.65 - Connection lines, secondary labels, metadata text
+  static const double muted = 0.65;
+
+  /// 0.85 - Strong borders, primary glass body, elevated cards
+  static const double glassBody = 0.85;
+
+  /// 0.95 - Opaque glass header, pinned toolbar shells
+  static const double glassHeader = 0.95;
+
+  /// 1.00 - Fully opaque
+  static const double opaque = 1.0;
+}
+
 /// Centralized motion & animation parameters.
 abstract final class UiMotion {
   UiMotion._();

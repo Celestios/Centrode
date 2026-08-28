@@ -134,16 +134,7 @@ class GlobalDrawingPanel extends StatelessWidget {
                   initialColor: parsedColor,
                   mode: ColorPaletteMode.advanced,
                   showAlpha: true,
-                  customPresets: const [
-                    Color(0xFF00E5FF),
-                    Color(0xFFD500F9),
-                    Color(0xFFFF6D00),
-                    Color(0xFFFFD600),
-                    Color(0xFFFFFFFF),
-                    Color(0xFF818CF8),
-                    Color(0xFF34D399),
-                    Color(0xFFFBBF24),
-                  ],
+                  customPresets: CentrodeDerivedPalette.of(context).swatches,
                   onColorSelected: (color) {
                     final hexStr =
                         '#${color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';

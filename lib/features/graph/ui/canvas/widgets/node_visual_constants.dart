@@ -1,6 +1,6 @@
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:centrode/presentation/theme/app_theme_manager.dart';
-import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 class NodeVisualConstants {
   NodeVisualConstants._();
@@ -44,8 +44,9 @@ class NodeVisualConstants {
     required bool hasTags,
     required bool hasComments,
   }) {
-    if (hasTags && hasComments) return 0xFFEC407A;
-    if (hasTags) return 0xFF5C6BC0;
-    return 0xFF26A69A;
+    final tags = CentrodeDerivedPalette.current.tagColors;
+    if (hasTags && hasComments) return tags[1].toARGB32();
+    if (hasTags) return tags[0].toARGB32();
+    return tags[2].toARGB32();
   }
 }

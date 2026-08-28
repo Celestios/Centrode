@@ -1,4 +1,5 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:centrode/features/graph/models/graph_node.dart';
 
@@ -6,10 +7,16 @@ const double _referenceFontSize = 14.0;
 const String defaultNodeFont = 'Inter';
 const String defaultNodeShape = 'rectangle';
 
-const int containerBgColor = 0x1A2196F3;
-const int containerStrokeColor = 0xFF64B5F6;
-const int frameBgColor = 0x14BCAAA4;
-const int frameStrokeColor = 0xFFBCAAA4;
+int get containerBgColor => CentrodeDerivedPalette.current.canvas.containerBorder
+    .withValues(alpha: CentrodeDerivedPalette.current.alpha.containerFill)
+    .toARGB32();
+int get containerStrokeColor =>
+    CentrodeDerivedPalette.current.canvas.containerBorder.toARGB32();
+int get frameBgColor => CentrodeDerivedPalette.current.canvas.frameBorder
+    .withValues(alpha: CentrodeDerivedPalette.current.alpha.frameFill)
+    .toARGB32();
+int get frameStrokeColor =>
+    CentrodeDerivedPalette.current.canvas.frameBorder.toARGB32();
 
 double expandToggleSpace(bool isExpanded, double fontScale) =>
     (isExpanded ? 24.0 : 18.0) * fontScale;

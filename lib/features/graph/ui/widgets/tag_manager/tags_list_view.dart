@@ -12,19 +12,8 @@ import 'delete_tag_dialog.dart';
 import '../../../models/commands/patch_helpers.dart';
 import 'tag_color_picker_panel.dart';
 
-const List<int> _presetColors = [
-  0xFF818CF8, // Indigo
-  0xFF34D399, // Mint/Green
-  0xFFFBBF24, // Amber
-  0xFFC084FC, // Lavender
-  0xFFF472B6, // Rose
-  0xFFFB923C, // Orange
-  0xFF94A3B8, // Slate
-  0xFFEC407A, // Pink
-  0xFF7E57C2, // Deep Purple
-  0xFF42A5F5, // Blue
-  0xFF26A69A, // Teal
-];
+List<int> get _presetColors =>
+    CentrodeDerivedPalette.current.swatches.map((c) => c.value).toList();
 
 enum TagSortOption { alphabeticalAsc, alphabeticalDesc, usageDesc, usageAsc }
 

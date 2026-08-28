@@ -1,4 +1,5 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'package:flutter/material.dart';
 
 /// Reusable top-level section container with a pinned live showcase header.
@@ -75,10 +76,12 @@ class _ShowcaseSectionHeaderDelegate extends SliverPersistentHeaderDelegate {
     return SizedBox.expand(
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF0F1117).withValues(alpha: overlapsContent ? 0.95 : 0.88),
+          color: CentrodeDerivedPalette.of(context)
+              .glassBackground(isHeader: overlapsContent),
           borderRadius: BorderRadius.circular(UiRadius.panel),
           border: Border.all(
-            color: accentColor.withValues(alpha: overlapsContent ? 0.35 : 0.22),
+            color: CentrodeDerivedPalette.of(context)
+                .border(accentColor, strong: overlapsContent),
             width: UiStrokeWidth.subtle,
           ),
           boxShadow: overlapsContent

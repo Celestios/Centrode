@@ -1,4 +1,6 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/elements/elements.dart';
+import 'package:centrode/shared/utils/color_theory_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/features/graph/presentation/node_render_state.dart';
@@ -277,16 +279,18 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
     return base.toARGB32();
   }
 
-  List<ColorPillOption<Color?>> _buildGlassColorOptions(Color primaryAccent) => [
-    const ColorPillOption(value: null, label: 'Auto (Glass)', isNone: true),
-    ColorPillOption(value: primaryAccent, color: primaryAccent, label: 'Accent'),
-    const ColorPillOption(value: Color(0xFF1E293B), color: Color(0xFF1E293B), label: 'Slate'),
-    const ColorPillOption(value: Color(0xFF0F172A), color: Color(0xFF0F172A), label: 'Midnight'),
-    const ColorPillOption(value: Color(0xFF1E1B4B), color: Color(0xFF1E1B4B), label: 'Indigo'),
-    const ColorPillOption(value: Color(0xFF064E3B), color: Color(0xFF064E3B), label: 'Emerald'),
-    const ColorPillOption(value: Color(0xFF701A75), color: Color(0xFF701A75), label: 'Fuchsia'),
-    const ColorPillOption(value: Color(0xFF7C2D12), color: Color(0xFF7C2D12), label: 'Rust'),
-  ];
+  List<ColorPillOption<Color?>> _buildGlassColorOptions(BuildContext context, Color primaryAccent) {
+    final swatches = CentrodeDerivedPalette.of(context).swatches;
+    return [
+      const ColorPillOption(value: null, label: 'Auto (Glass)', isNone: true),
+      ColorPillOption(value: primaryAccent, color: primaryAccent, label: 'Accent'),
+      ...swatches.take(6).map((c) => ColorPillOption(
+            value: c,
+            color: c,
+            label: ColorTheoryEngine.toHex(c),
+          )),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -742,13 +746,12 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         },
                         options: [
                           const ColorPillOption(value: Colors.white, color: Colors.white, label: 'White'),
-                          const ColorPillOption(value: Color(0xFFD0D4E0), color: Color(0xFFD0D4E0), label: 'Silver'),
                           ColorPillOption(value: primaryAccent, color: primaryAccent, label: 'Accent'),
-                          const ColorPillOption(value: Color(0xFF00F0FF), color: Color(0xFF00F0FF), label: 'Cyan'),
-                          const ColorPillOption(value: Color(0xFFFFB800), color: Color(0xFFFFB800), label: 'Amber'),
-                          const ColorPillOption(value: Color(0xFFFF5C5C), color: Color(0xFFFF5C5C), label: 'Coral'),
-                          const ColorPillOption(value: Color(0xFF10B981), color: Color(0xFF10B981), label: 'Emerald'),
-                          const ColorPillOption(value: Color(0xFFA855F7), color: Color(0xFFA855F7), label: 'Purple'),
+                          ...CentrodeDerivedPalette.of(context).swatches.take(6).map((c) => ColorPillOption(
+                                value: c,
+                                color: c,
+                                label: ColorTheoryEngine.toHex(c),
+                              )),
                         ],
                       ),
                     ),
@@ -801,7 +804,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                             );
                           }
                         },
-                        options: _buildGlassColorOptions(primaryAccent),
+                        options: _buildGlassColorOptions(context, primaryAccent),
                       ),
                     ),
                   ],
@@ -931,7 +934,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                             rs.updateNodesStyle(nodeIds, (s) => s.copyWith(bgColor: bgInt));
                           }
                         },
-                        options: _buildGlassColorOptions(primaryAccent),
+                        options: _buildGlassColorOptions(context, primaryAccent),
                       ),
                     ),
                   ],
