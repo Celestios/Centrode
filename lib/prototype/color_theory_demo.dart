@@ -190,6 +190,71 @@ class _ColorTheoryStudioAppState extends State<ColorTheoryStudioApp> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Live Canonical Elements Showcase
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 1. Opaque Color Control Box
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    '1. OPAQUE COLOR CONTROL BOX (CentrodeColorPicker)',
+                                    style: TextStyle(
+                                      fontSize: UiFont.compact,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF818CF8),
+                                      letterSpacing: 0.8,
+                                    ),
+                                  ),
+                                  const SizedBox(height: UiSpacing.tight),
+                                  CentrodeColorPicker(
+                                    initialColor: _baseColor,
+                                    originalColor: const Color(0xFF475569),
+                                    mapColors: const [
+                                      Color(0xFF38BDF8),
+                                      Color(0xFFA855F7),
+                                      Color(0xFF22C55E),
+                                      Color(0xFFE11D48),
+                                    ],
+                                    onColorChanged: (newCol) {
+                                      setState(() => _baseColor = newCol);
+                                    },
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(width: UiSpacing.gutter),
+
+                              // 2. Interlocking Puzzle Generative Palette Explorer
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      '2. GENERATIVE PALETTE EXPLORER (CentrodePaletteGenerator)',
+                                      style: TextStyle(
+                                        fontSize: UiFont.compact,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF818CF8),
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                    const SizedBox(height: UiSpacing.tight),
+                                    CentrodePaletteGenerator(
+                                      primaryAnchor: _baseColor,
+                                      onColorSelected: (c) {
+                                        setState(() => _baseColor = c);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: UiSpacing.gutter),
+
                           // 1. Master Active Color Header Box
                           _buildActiveColorCard(hsv),
 

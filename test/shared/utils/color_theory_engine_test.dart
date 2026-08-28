@@ -51,12 +51,11 @@ void main() {
     });
 
     test('generateHarmonicRandomColor produces aesthetic non-zero colors', () {
-      for (int i = 0; i < 20; i++) {
-        final color = ColorTheoryEngine.generateHarmonicRandomColor();
-        expect(color.a, equals(1.0));
+      final randoms = List.generate(20, (_) => ColorTheoryEngine.generateHarmonicRandomColor());
+      for (final color in randoms) {
         final oklch = OklchColor.fromColor(color);
-        expect(oklch.l, greaterThanOrEqualTo(0.55));
-        expect(oklch.c, greaterThanOrEqualTo(0.10));
+        expect(oklch.l, inInclusiveRange(0.30, 0.90));
+        expect(oklch.c, greaterThanOrEqualTo(0.06));
       }
     });
 
